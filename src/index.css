@@ -6,9 +6,9 @@
   :root {
     --background: 288 80% 98%;
     --foreground: 228 21% 17%;
-    --card: 0 0% 100%;
+    --card: 288 80% 98%;
     --card-foreground: 228 21% 17%;
-    --popover: 0 0% 100%;
+    --popover: 288 80% 98%;
     --popover-foreground: 228 21% 17%;
     --primary: 330 100% 38%;
     --primary-foreground: 0 0% 100%;
@@ -26,15 +26,14 @@
     --border: 269 66% 48%;
     --input: 228 21% 17%;
     --ring: 269 66% 48%;
-
     --radius: 0.5rem;
     
-    /* Creator Brand Colors - agora usando as novas cores */
+    /* Creator Brand Colors */
     --creator-primary: 330 100% 38%;
     --creator-secondary: 269 66% 48%;
     --creator-accent: 201 73% 40%;
     
-    /* Main gradient backgrounds - atualizados */
+    /* Main gradient backgrounds */
     --gradient-creator: linear-gradient(135deg, hsl(330 100% 38%), hsl(269 66% 48%));
     --gradient-card: linear-gradient(145deg, hsl(288 80% 98%), hsl(0 0% 95%));
     --gradient-subtle: linear-gradient(180deg, hsl(288 80% 98%), hsl(0 0% 95%));
