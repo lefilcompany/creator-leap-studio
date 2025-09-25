@@ -88,20 +88,33 @@ const Dashboard = () => {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3 bg-primary/5 px-4 py-3 rounded-lg border border-primary/10">
-          <HomeIcon className="w-5 h-5 text-primary" />
-          <div>
-            <h1 className="text-xl font-semibold">Olá, Equipe Lima!</h1>
-            <p className="text-sm text-muted-foreground">Bem-vindo(a) de volta ao seu painel de criação</p>
+      <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5 animate-fade-in">
+        <CardHeader className="pb-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div className="flex items-center gap-4">
+              <div className="flex-shrink-0 bg-gradient-to-br from-primary/20 to-primary/10 text-primary rounded-xl p-4 shadow-md">
+                <HomeIcon className="h-8 w-8" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-foreground mb-1">
+                  Olá, Equipe Lima!
+                </h1>
+                <p className="text-muted-foreground text-base">
+                  Bem-vindo(a) de volta ao seu painel de criação
+                </p>
+              </div>
+            </div>
+            
+            <Button 
+              size="lg" 
+              className="rounded-full text-lg px-8 py-6 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+            >
+              <Plus className="mr-2 h-5 w-5" />
+              Criar Novo Conteúdo
+            </Button>
           </div>
-        </div>
-        
-        <Button className="bg-primary text-primary-foreground hover:bg-primary/90 px-6">
-          <Plus className="w-4 h-4 mr-2" />
-          Criar Novo Conteúdo
-        </Button>
-      </div>
+        </CardHeader>
+      </Card>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
