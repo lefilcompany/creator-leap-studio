@@ -10,6 +10,7 @@ import Dashboard from "./pages/Dashboard";
 import Brands from "./pages/Brands";
 import CreateContent from "./pages/CreateContent";
 import ReviewContent from "./pages/ReviewContent";
+import PlanContent from "./pages/PlanContent";
 import { DashboardLayout } from "./components/DashboardLayout";
 import NotFound from "./pages/NotFound";
 
@@ -35,7 +36,7 @@ const App = () => (
             <Route path="history" element={<Dashboard />} />
             <Route path="create" element={<CreateContent />} />
             <Route path="review" element={<ReviewContent />} />
-            <Route path="plan" element={<Dashboard />} />
+            <Route path="plan" element={<PlanContent />} />
           </Route>
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

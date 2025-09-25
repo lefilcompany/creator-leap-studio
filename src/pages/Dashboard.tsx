@@ -135,7 +135,7 @@ const Dashboard = () => {
               <p className="text-xs text-muted-foreground">{stat.subtitle}</p>
               {stat.progress && (
                 <div className="mt-3">
-                  <div className="w-full bg-gray-200 rounded-full h-1.5">
+                  <div className="w-full bg-muted rounded-full h-1.5">
                     <div 
                       className="bg-primary h-1.5 rounded-full" 
                       style={{ width: `${stat.progress}%` }}
@@ -166,7 +166,7 @@ const Dashboard = () => {
             {quickActions.map((action, index) => (
               <div 
                 key={index}
-                className="flex items-center gap-3 p-3 rounded-lg border border-gray-100 hover:border-gray-200 cursor-pointer transition-colors"
+                className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted cursor-pointer transition-colors"
               >
                 <div className={`w-10 h-10 ${action.color} rounded-lg flex items-center justify-center text-white`}>
                   <action.icon className="w-5 h-5" />
@@ -192,7 +192,7 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             {recentActivities.map((activity, index) => (
-              <div key={index} className="flex items-start justify-between p-3 rounded-lg bg-gray-50">
+              <div key={index} className="flex items-start justify-between p-3 rounded-lg bg-muted border">
                 <div className="flex-1">
                   <h3 className="font-medium text-sm">{activity.title}</h3>
                   <p className="text-xs text-muted-foreground mt-1">{activity.brand}</p>

@@ -95,7 +95,7 @@ const Brands = () => {
                 className={`flex items-center justify-between p-4 rounded-lg border cursor-pointer transition-colors ${
                   selectedBrand === brand.id 
                     ? 'border-primary bg-primary/5' 
-                    : 'border-gray-200 hover:border-gray-300'
+                    : 'border-border hover:bg-muted'
                 }`}
               >
                 <div className="flex items-center gap-3">

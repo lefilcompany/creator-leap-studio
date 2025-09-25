@@ -101,7 +101,7 @@ const ReviewContent = () => {
             <CardContent className="space-y-4">
               <div>
                 <label className="text-sm font-medium">Sua Imagem *</label>
-                <div className="border-2 border-dashed border-gray-200 rounded-lg p-8 text-center">
+                <div className="border-2 border-dashed border-input rounded-lg p-8 text-center">
                   <input
                     type="file"
                     accept="image/*"
@@ -110,7 +110,7 @@ const ReviewContent = () => {
                     id="image-upload"
                   />
                   <label htmlFor="image-upload" className="cursor-pointer">
-                    <ImageIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <ImageIcon className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
                     <p className="text-sm text-muted-foreground mb-2">
                       Arraste e solte ou clique para enviar
                     </p>

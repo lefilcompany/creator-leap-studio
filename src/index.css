@@ -17,7 +17,7 @@
     --gradient-subtle: linear-gradient(180deg, hsl(0 0% 99%), hsl(0 0% 97%));
     
     /* Core theme colors */
-    --background: 0 0% 100%;
+    --background: 250 10% 97%;
     --foreground: 222.2 84% 4.9%;
 
     --card: 0 0% 100%;
@@ -29,10 +29,10 @@
     --primary: 320 85% 50%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
+    --secondary: 250 15% 94%;
     --secondary-foreground: 222.2 47.4% 11.2%;
 
-    --muted: 210 40% 96.1%;
+    --muted: 250 15% 94%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
     --accent: 340 90% 55%;
@@ -41,8 +41,8 @@
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
     --ring: 320 85% 50%;
 
     --radius: 0.5rem;
@@ -128,14 +128,14 @@
   }
   
   .creator-card {
-    @apply bg-white rounded-lg shadow-lg border border-white/20 backdrop-blur-sm;
+    @apply bg-card rounded-lg shadow-lg border border-border backdrop-blur-sm;
   }
   
   .creator-button-primary {
-    @apply bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg px-6 py-3 font-medium transition-all;
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg px-6 py-3 font-medium transition-all shadow-sm;
   }
   
   .creator-button-secondary {
-    @apply bg-white/10 text-white hover:bg-white/20 rounded-lg px-6 py-3 font-medium transition-all border border-white/20;
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-lg px-6 py-3 font-medium transition-all border border-border;
   }
 }

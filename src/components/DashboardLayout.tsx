@@ -7,7 +7,7 @@ export const DashboardLayout = () => {
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
         <AppSidebar />
-        <main className="flex-1 overflow-auto bg-gray-50">
+        <main className="flex-1 overflow-auto bg-background">
           <div className="sticky top-0 z-10 bg-white border-b p-2 lg:hidden">
             <SidebarTrigger />
           </div>

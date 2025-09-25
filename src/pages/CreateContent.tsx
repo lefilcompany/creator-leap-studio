@@ -163,7 +163,7 @@ const CreateContent = () => {
 
             <div>
               <Label htmlFor="reference">Imagem de Referência *</Label>
-              <div className="border-2 border-dashed border-gray-200 rounded-lg p-6 text-center">
+              <div className="border-2 border-dashed border-input rounded-lg p-6 text-center">
                 <input
                   type="file"
                   accept="image/*"
@@ -172,7 +172,7 @@ const CreateContent = () => {
                   id="file-upload"
                 />
                 <label htmlFor="file-upload" className="cursor-pointer">
-                  <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                  <Upload className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
                   <Button variant="outline" asChild>
                     <span>Escolher arquivos</span>
                   </Button>
