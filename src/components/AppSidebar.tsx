@@ -73,7 +73,7 @@ export function AppSidebar() {
                         className={`flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors ${
                           isActive(item.url) 
                             ? "bg-primary/10 text-primary" 
-                            : "text-muted-foreground hover:bg-gray-100 hover:text-foreground"
+                            : "text-muted-foreground hover:bg-gray-300 hover:text-foreground"
                         }`}
                       >
                         <item.icon className={`w-5 h-5 ${isActive(item.url) ? "text-primary" : "text-muted-foreground"}`} />
