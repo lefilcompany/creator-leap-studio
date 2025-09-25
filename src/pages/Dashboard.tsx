@@ -104,32 +104,52 @@ const Dashboard = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {stats.map((stat, index) => (
-          <Card key={index} className={`border-0 shadow-sm hover:shadow-md transition-shadow duration-200 ${index === 0 ? 'border border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10' : 'bg-card'}`}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {stat.title}
-              </CardTitle>
-              <stat.icon className={`w-5 h-5 ${stat.color}`} />
-            </CardHeader>
-            <CardContent className="pb-4">
-              <div className="text-3xl font-bold tracking-tight text-foreground mb-1">{stat.value}</div>
-              <p className="text-sm text-muted-foreground mb-3">{stat.subtitle}</p>
-              {stat.progress && (
-                <div className="space-y-3">
-                  <Progress value={stat.progress} className="h-2 bg-primary/20">
-                    <div className="h-full bg-gradient-to-r from-primary to-primary/80 rounded-full transition-all duration-500" 
-                         style={{ width: `${stat.progress}%` }} />
-                  </Progress>
-                  <Button variant="link" className="h-auto p-0 text-sm text-primary hover:text-primary/80 font-medium">
-                    Ver planos e uso <ArrowRight className="w-4 h-4 ml-1" />
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        ))}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Créditos Card - Destaque com 2 colunas */}
+        <Card className="lg:col-span-2 bg-card shadow-lg border-2 border-primary/20 hover:border-primary/30 transition-all duration-200">
+          <CardHeader className="flex flex-row items-center justify-between pb-3">
+            <CardTitle className="text-base font-medium text-primary">
+              {stats[0].title}
+            </CardTitle>
+            <Rocket className="h-5 w-5 text-primary" />
+          </CardHeader>
+          <CardContent className="pb-4">
+            <div className="text-4xl font-bold tracking-tight text-foreground mb-2">{stats[0].value}</div>
+            <p className="text-sm text-muted-foreground mb-4">{stats[0].subtitle}</p>
+            <Progress value={stats[0].progress} className="h-3 bg-primary/20 mb-3" />
+            <Button variant="link" className="h-auto p-0 text-sm text-primary hover:text-primary/80 font-medium">
+              Ver planos e uso <ArrowRight className="w-4 h-4 ml-1" />
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Minhas Ações Card */}
+        <Card className="bg-card shadow-lg border-2 border-transparent hover:border-secondary/20 transition-all duration-200">
+          <CardHeader className="flex flex-row items-center justify-between pb-3">
+            <CardTitle className="text-base font-medium">
+              {stats[1].title}
+            </CardTitle>
+            <Zap className="h-5 w-5 text-muted-foreground" />
+          </CardHeader>
+          <CardContent className="pb-4">
+            <div className="text-4xl font-bold tracking-tight text-foreground mb-2">{stats[1].value}</div>
+            <p className="text-sm text-muted-foreground">{stats[1].subtitle}</p>
+          </CardContent>
+        </Card>
+
+        {/* Marcas Gerenciadas Card */}
+        <Card className="bg-card shadow-lg border-2 border-transparent hover:border-accent/20 transition-all duration-200">
+          <CardHeader className="flex flex-row items-center justify-between pb-3">
+            <CardTitle className="text-base font-medium">
+              {stats[2].title}
+            </CardTitle>
+            <Tags className="h-5 w-5 text-muted-foreground" />
+          </CardHeader>
+          <CardContent className="pb-4">
+            <div className="text-4xl font-bold tracking-tight text-foreground mb-2">{stats[2].value}</div>
+            <p className="text-sm text-muted-foreground">{stats[2].subtitle}</p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Main Content Grid */}
