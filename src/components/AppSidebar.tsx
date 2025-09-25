@@ -51,7 +51,7 @@ export function AppSidebar() {
         
         {/* Logo no topo */}
         {!collapsed && (
-          <div className="p-6 border-b border-border/50">
+          <div className="p-6">
             <img 
               src={logoCreator} 
               alt="Creator Logo" 
