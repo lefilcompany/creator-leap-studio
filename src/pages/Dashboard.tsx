@@ -10,7 +10,7 @@ import {
   ArrowRight,
   FileText,
   Zap,
-  Tags,
+  Tag,
   Rocket
 } from "lucide-react";
 
