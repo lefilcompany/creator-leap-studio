@@ -142,7 +142,7 @@ const Dashboard = () => {
             <CardTitle className="text-base font-medium">
               {stats[1].title}
             </CardTitle>
-            <Zap className="h-5 w-5 text-muted-foreground" />
+            <Sparkles className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent className="pb-4">
             <div className="text-4xl font-bold tracking-tight text-foreground mb-2">{stats[1].value}</div>
@@ -208,9 +208,6 @@ const Dashboard = () => {
                   </div>
                   <CardTitle className="text-xl font-semibold">Atividades Recentes</CardTitle>
                 </div>
-                <Button variant="outline" size="sm" className="text-xs">
-                  Ver todas
-                </Button>
               </div>
             </CardHeader>
             <CardContent className="p-0">
