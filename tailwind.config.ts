@@ -47,6 +47,11 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        creator: {
+          primary: "hsl(var(--creator-primary))",
+          secondary: "hsl(var(--creator-secondary))",
+          accent: "hsl(var(--creator-accent))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
