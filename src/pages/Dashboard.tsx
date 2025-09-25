@@ -159,17 +159,17 @@ const Dashboard = () => {
         </div>
 
         {/* Recent Activities */}
-        <div className="bg-pink-50 rounded-xl p-6 border border-pink-100">
+        <div className="bg-pink-100 rounded-xl p-6 border border-pink-200">
           <div className="flex items-center gap-3 mb-6">
-            <div className="bg-pink-100 rounded-full p-2">
-              <FileText className="w-5 h-5 text-pink-600" />
+            <div className="bg-pink-200 rounded-lg p-2">
+              <FileText className="w-5 h-5 text-pink-700" />
             </div>
             <h2 className="text-lg font-semibold text-gray-800">Atividades Recentes</h2>
           </div>
           
-          <div className="space-y-4">
+          <div className="space-y-0">
             {recentActivities.map((activity, index) => (
-              <div key={index} className="flex items-center justify-between py-3 border-b border-pink-100 last:border-b-0">
+              <div key={index} className="flex items-center justify-between py-4 border-b border-pink-300 last:border-b-0">
                 <div className="flex items-center gap-3">
                   <div className="bg-gray-100 rounded-lg p-2">
                     <activity.icon className="w-4 h-4 text-gray-500" />
