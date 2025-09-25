@@ -46,7 +46,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar className={collapsed ? "w-16" : "w-64"} collapsible="icon">
-      <SidebarContent className="bg-background p-4 space-y-6">
+      <SidebarContent className="bg-background p-4 flex flex-col h-full">
         
         {/* Navigation Items */}
         <SidebarGroup>
@@ -75,7 +75,7 @@ export function AppSidebar() {
 
         {/* Action Buttons */}
         {!collapsed && (
-          <div className="space-y-3">
+          <div className="space-y-3 mt-6">
             {actionItems.map((item) => (
               <Button
                 key={item.title}
@@ -91,9 +91,12 @@ export function AppSidebar() {
           </div>
         )}
 
-        {/* Team Info */}
+        {/* Spacer para empurrar o card para o final */}
+        <div className="flex-grow"></div>
+
+        {/* Team Info - Fixado no final */}
         {!collapsed && (
-          <div className="mt-auto bg-primary text-primary-foreground rounded-lg p-4">
+          <div className="bg-primary text-primary-foreground rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
               <Rocket className="w-4 h-4" />
               <div className="text-sm font-semibold">Equipe: LeFil</div>
