@@ -1,3 +1,4 @@
+/* app/globals.css */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -26,26 +27,7 @@
     --border: 269 66% 48%;
     --input: 228 21% 17%;
     --ring: 269 66% 48%;
-    --radius: 0.5rem;
-    
-    /* Creator Brand Colors */
-    --creator-primary: 330 100% 38%;
-    --creator-secondary: 269 66% 48%;
-    --creator-accent: 201 73% 40%;
-    
-    /* Main gradient backgrounds */
-    --gradient-creator: linear-gradient(135deg, hsl(330 100% 38%), hsl(269 66% 48%));
-    --gradient-card: linear-gradient(145deg, hsl(288 80% 98%), hsl(0 0% 95%));
-    --gradient-subtle: linear-gradient(180deg, hsl(288 80% 98%), hsl(0 0% 95%));
-
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 228 21% 17%;
-    --sidebar-primary: 330 100% 38%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 269 66% 48%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 269 66% 48%;
-    --sidebar-ring: 330 100% 38%;
+    --radius: 0.5rem
   }
 
   .dark {
@@ -70,14 +52,6 @@
     --border: 271 72% 31%;
     --input: 228 21% 17%;
     --ring: 330 100% 38%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
 
@@ -123,31 +97,4 @@
 /* Efeito ao passar o mouse sobre o polegar */
 ::-webkit-scrollbar-thumb:hover {
   background-color: hsl(var(--secondary) / 0.6);
-}
-
-@layer components {
-  /* Creator Platform Custom Utilities */
-  .bg-creator-gradient {
-    background: var(--gradient-creator);
-  }
-  
-  .bg-card-gradient {
-    background: var(--gradient-card);
-  }
-  
-  .creator-logo {
-    @apply flex items-center gap-2 text-white font-bold text-xl;
-  }
-  
-  .creator-card {
-    @apply bg-card rounded-lg shadow-lg border border-border backdrop-blur-sm;
-  }
-  
-  .creator-button-primary {
-    @apply bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg px-6 py-3 font-medium transition-all shadow-sm;
-  }
-  
-  .creator-button-secondary {
-    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-lg px-6 py-3 font-medium transition-all border border-border;
-  }
 }
