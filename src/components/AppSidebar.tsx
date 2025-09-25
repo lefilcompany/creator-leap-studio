@@ -70,11 +70,11 @@ export function AppSidebar() {
                     <SidebarMenuButton asChild className="p-0">
                        <NavLink 
                         to={item.url} 
-                        className={`flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors ${
-                          isActive(item.url) 
-                            ? "bg-primary/10 text-primary" 
-                            : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                        }`}
+                         className={`flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors ${
+                           isActive(item.url) 
+                             ? "bg-primary/10 text-primary" 
+                             : "text-muted-foreground hover:bg-muted/70 hover:text-foreground"
+                         }`}
                       >
                         <item.icon className={`w-5 h-5 ${isActive(item.url) ? "text-primary" : "text-muted-foreground"}`} />
                         {!collapsed && <span>{item.title}</span>}
