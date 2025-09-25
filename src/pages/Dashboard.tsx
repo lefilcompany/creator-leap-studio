@@ -166,64 +166,97 @@ const Dashboard = () => {
       </div>
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Quick Actions */}
-        <div className="bg-purple-100 rounded-xl p-6 border border-purple-200">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="bg-purple-200 rounded-lg p-2">
-              <Sparkles className="w-5 h-5 text-purple-700" />
-            </div>
-            <h2 className="text-lg font-semibold text-gray-800">Ações Rápidas</h2>
-          </div>
-          
-          <div className="space-y-3">
-            {quickActions.map((action, index) => (
-              <div 
-                key={index}
-                className="bg-white rounded-xl p-4 border border-purple-200 hover:border-purple-300 cursor-pointer transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <action.icon className="w-5 h-5 text-blue-500" />
-                  <div className="flex-1">
-                    <h3 className="font-medium text-gray-800">{action.title}</h3>
-                    <p className="text-sm text-gray-500">{action.description}</p>
-                  </div>
+        <div className="lg:col-span-1">
+          <Card className="shadow-lg border-0 bg-gradient-to-r from-secondary/5 via-primary/5 to-secondary/5 animate-fade-in">
+            <CardHeader className="pb-4">
+              <div className="flex items-center gap-3">
+                <div className="flex-shrink-0 bg-secondary/10 text-secondary rounded-lg p-3">
+                  <Sparkles className="h-6 w-6" />
                 </div>
+                <CardTitle className="text-xl font-semibold">Ações Rápidas</CardTitle>
               </div>
-            ))}
-          </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {quickActions.map((action, index) => (
+                <Card key={index} className="hover:bg-muted/50 hover:shadow-md transition-all duration-200 cursor-pointer hover-scale">
+                  <CardContent className="p-4 flex items-center gap-4">
+                    <div className="flex-shrink-0 bg-accent/10 text-accent rounded-lg p-2">
+                      <action.icon className="h-6 w-6" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-semibold text-foreground">{action.title}</p>
+                      <p className="text-sm text-muted-foreground">{action.description}</p>
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-muted-foreground opacity-50 group-hover:opacity-100 transition-opacity" />
+                  </CardContent>
+                </Card>
+              ))}
+            </CardContent>
+          </Card>
         </div>
 
         {/* Recent Activities */}
-        <div className="bg-pink-100 rounded-xl p-6 border border-pink-200">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="bg-pink-200 rounded-lg p-2">
-              <FileText className="w-5 h-5 text-pink-700" />
-            </div>
-            <h2 className="text-lg font-semibold text-gray-800">Atividades Recentes</h2>
-          </div>
-          
-          <div className="space-y-0">
-            {recentActivities.map((activity, index) => (
-              <div key={index} className="flex items-center justify-between py-4 border-b border-pink-300 last:border-b-0">
+        <div className="lg:col-span-2">
+          <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5 animate-fade-in">
+            <CardHeader className="pb-4 border-b border-border/50">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="bg-gray-100 rounded-lg p-2">
-                    <activity.icon className="w-4 h-4 text-gray-500" />
+                  <div className="flex-shrink-0 bg-primary/10 text-primary rounded-lg p-3">
+                    <FileText className="h-6 w-6" />
                   </div>
-                  <div>
-                    <h3 className="font-medium text-gray-800">{activity.title}</h3>
-                    <p className="text-sm text-gray-500">{activity.brand}</p>
-                  </div>
+                  <CardTitle className="text-xl font-semibold">Atividades Recentes</CardTitle>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm text-gray-600 mb-1">{activity.date}</p>
-                  <button className="text-sm text-purple-600 hover:text-purple-700 font-medium">
-                    {activity.action}
-                  </button>
-                </div>
+                <Button variant="outline" size="sm" className="text-xs">
+                  Ver todas
+                </Button>
               </div>
-            ))}
-          </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="divide-y divide-border/50">
+                {recentActivities.length > 0 ? (
+                  recentActivities.map((activity, index) => (
+                    <div key={index} className="flex items-center justify-between p-6 hover:bg-muted/30 transition-all duration-200 group">
+                      <div className="flex items-center gap-4">
+                        <div className="p-3 bg-gradient-to-br from-muted to-muted/50 rounded-lg shadow-sm">
+                          <activity.icon className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-foreground group-hover:text-primary transition-colors">
+                            {activity.title}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {activity.brand}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-medium text-foreground mb-1">
+                          {activity.date}
+                        </p>
+                        <button className="text-sm text-primary hover:text-primary/80 font-medium hover:underline transition-all">
+                          {activity.action}
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="p-12 text-center">
+                    <div className="bg-muted/50 rounded-full p-4 w-16 h-16 mx-auto mb-4">
+                      <FileText className="h-8 w-8 text-muted-foreground mx-auto" />
+                    </div>
+                    <p className="text-muted-foreground text-lg font-medium">
+                      Nenhuma atividade recente encontrada
+                    </p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Suas atividades aparecerão aqui quando você começar a criar conteúdo
+                    </p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
