@@ -111,14 +111,6 @@ const Brands = () => {
                 </div>
                 <div className="text-right">
                   <p className="text-xs text-muted-foreground">Criado em: {brand.createdAt}</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Button size="sm" variant="ghost" className="h-6 w-6 p-0">
-                      <Edit className="w-3 h-3" />
-                    </Button>
-                    <Button size="sm" variant="ghost" className="h-6 w-6 p-0">
-                      <Trash2 className="w-3 h-3" />
-                    </Button>
-                  </div>
                 </div>
               </div>
             ))}
