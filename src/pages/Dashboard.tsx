@@ -132,10 +132,10 @@ const Dashboard = () => {
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Quick Actions */}
-        <div className="bg-purple-50 rounded-xl p-6 border border-purple-100">
+        <div className="bg-purple-100 rounded-xl p-6 border border-purple-200">
           <div className="flex items-center gap-3 mb-6">
-            <div className="bg-purple-100 rounded-full p-2">
-              <Sparkles className="w-5 h-5 text-purple-600" />
+            <div className="bg-purple-200 rounded-lg p-2">
+              <Sparkles className="w-5 h-5 text-purple-700" />
             </div>
             <h2 className="text-lg font-semibold text-gray-800">Ações Rápidas</h2>
           </div>
