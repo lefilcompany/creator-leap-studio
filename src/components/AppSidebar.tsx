@@ -46,7 +46,7 @@ export function AppSidebar() {
   const isActive = (path: string) => currentPath === path;
 
   return (
-    <Sidebar className={collapsed ? "w-16" : "w-64"} collapsible="icon">
+    <Sidebar className={`${collapsed ? "w-16" : "w-64"} border-none`} collapsible="icon">
       <SidebarContent className="bg-background flex flex-col h-full">
         
         {/* Logo no topo */}
