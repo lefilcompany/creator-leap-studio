@@ -132,57 +132,63 @@ const Dashboard = () => {
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Quick Actions */}
-        <Card className="bg-secondary/5 border-secondary/20">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-secondary" />
-              Ações Rápidas
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
+        <div className="bg-purple-50 rounded-xl p-6 border border-purple-100">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="bg-purple-100 rounded-full p-2">
+              <Sparkles className="w-5 h-5 text-purple-600" />
+            </div>
+            <h2 className="text-lg font-semibold text-gray-800">Ações Rápidas</h2>
+          </div>
+          
+          <div className="space-y-3">
             {quickActions.map((action, index) => (
               <div 
                 key={index}
-                className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/50 cursor-pointer transition-colors"
+                className="bg-white rounded-xl p-4 border border-purple-200 hover:border-purple-300 cursor-pointer transition-colors"
               >
-                <action.icon className={`w-5 h-5 ${action.color}`} />
-                <div className="flex-1">
-                  <h3 className="font-medium">{action.title}</h3>
-                  <p className="text-sm text-muted-foreground">{action.description}</p>
+                <div className="flex items-center gap-3">
+                  <action.icon className="w-5 h-5 text-blue-500" />
+                  <div className="flex-1">
+                    <h3 className="font-medium text-gray-800">{action.title}</h3>
+                    <p className="text-sm text-gray-500">{action.description}</p>
+                  </div>
                 </div>
               </div>
             ))}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Recent Activities */}
-        <Card className="border">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="w-5 h-5 text-primary" />
-              Atividades Recentes
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+        <div className="bg-pink-50 rounded-xl p-6 border border-pink-100">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="bg-pink-100 rounded-full p-2">
+              <FileText className="w-5 h-5 text-pink-600" />
+            </div>
+            <h2 className="text-lg font-semibold text-gray-800">Atividades Recentes</h2>
+          </div>
+          
+          <div className="space-y-4">
             {recentActivities.map((activity, index) => (
-              <div key={index} className="flex items-center justify-between border-b last:border-b-0 pb-3 last:pb-0">
+              <div key={index} className="flex items-center justify-between py-3 border-b border-pink-100 last:border-b-0">
                 <div className="flex items-center gap-3">
-                  <activity.icon className="w-4 h-4 text-muted-foreground" />
+                  <div className="bg-gray-100 rounded-lg p-2">
+                    <activity.icon className="w-4 h-4 text-gray-500" />
+                  </div>
                   <div>
-                    <h3 className="font-medium text-sm">{activity.title}</h3>
-                    <p className="text-xs text-muted-foreground">{activity.brand}</p>
+                    <h3 className="font-medium text-gray-800">{activity.title}</h3>
+                    <p className="text-sm text-gray-500">{activity.brand}</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs text-muted-foreground">{activity.date}</p>
-                  <Button variant="link" className="h-auto p-0 text-xs text-primary">
+                  <p className="text-sm text-gray-600 mb-1">{activity.date}</p>
+                  <button className="text-sm text-purple-600 hover:text-purple-700 font-medium">
                     {activity.action}
-                  </Button>
+                  </button>
                 </div>
               </div>
             ))}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   );
