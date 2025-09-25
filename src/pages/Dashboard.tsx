@@ -156,7 +156,7 @@ const Dashboard = () => {
             <CardTitle className="text-base font-medium">
               {stats[2].title}
             </CardTitle>
-            <Tags className="h-5 w-5 text-muted-foreground" />
+            <Tag className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent className="pb-4">
             <div className="text-4xl font-bold tracking-tight text-foreground mb-2">{stats[2].value}</div>
