@@ -18,7 +18,7 @@ const Dashboard = () => {
   const stats = [
     {
       title: "Créditos Restantes",
-      value: "29740",
+      value: "29736",
       subtitle: "de 30000 créditos disponíveis",
       icon: Rocket,
       color: "text-primary",
@@ -26,17 +26,17 @@ const Dashboard = () => {
     },
     {
       title: "Minhas Ações",
-      value: "53",
+      value: "54",
       subtitle: "total de ações realizadas",
       icon: Zap,
-      color: "text-secondary"
+      color: "text-muted-foreground"
     },
     {
       title: "Marcas Gerenciadas", 
       value: "16",
       subtitle: "total de marcas ativas",
       icon: Tags,
-      color: "text-accent"
+      color: "text-muted-foreground"
     }
   ];
 
@@ -106,21 +106,24 @@ const Dashboard = () => {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {stats.map((stat, index) => (
-          <Card key={index} className={`border ${index === 0 ? 'border-primary/20 bg-primary/5' : 'border-border'}`}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <Card key={index} className={`border-0 shadow-sm hover:shadow-md transition-shadow duration-200 ${index === 0 ? 'border border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10' : 'bg-card'}`}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 {stat.title}
               </CardTitle>
-              <stat.icon className={`w-4 h-4 ${stat.color}`} />
+              <stat.icon className={`w-5 h-5 ${stat.color}`} />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
-              <p className="text-xs text-muted-foreground">{stat.subtitle}</p>
+            <CardContent className="pb-4">
+              <div className="text-3xl font-bold tracking-tight text-foreground mb-1">{stat.value}</div>
+              <p className="text-sm text-muted-foreground mb-3">{stat.subtitle}</p>
               {stat.progress && (
-                <div className="mt-3">
-                  <Progress value={stat.progress} className="h-2" />
-                  <Button variant="link" className="h-auto p-0 mt-2 text-xs text-primary">
-                    Ver planos e uso <ArrowRight className="w-3 h-3 ml-1" />
+                <div className="space-y-3">
+                  <Progress value={stat.progress} className="h-2 bg-primary/20">
+                    <div className="h-full bg-gradient-to-r from-primary to-primary/80 rounded-full transition-all duration-500" 
+                         style={{ width: `${stat.progress}%` }} />
+                  </Progress>
+                  <Button variant="link" className="h-auto p-0 text-sm text-primary hover:text-primary/80 font-medium">
+                    Ver planos e uso <ArrowRight className="w-4 h-4 ml-1" />
                   </Button>
                 </div>
               )}
