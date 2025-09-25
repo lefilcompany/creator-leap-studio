@@ -18,7 +18,7 @@ const Dashboard = () => {
   const stats = [
     {
       title: "Créditos Restantes",
-      value: "29740",
+      value: "29739",
       subtitle: "de 30000 créditos disponíveis",
       icon: Rocket,
       color: "text-primary",
@@ -26,7 +26,7 @@ const Dashboard = () => {
     },
     {
       title: "Minhas Ações",
-      value: "53",
+      value: "54",
       subtitle: "total de ações realizadas",
       icon: Zap,
       color: "text-secondary"
@@ -63,9 +63,9 @@ const Dashboard = () => {
 
   const recentActivities = [
     {
-      title: "Calendário Planejado",
-      brand: "Planejamento para LeFil Company",
-      date: "24/09/2025",
+      title: "Conteúdo Criado",
+      brand: "Para a marca Lumi",
+      date: "25/09/2025",
       action: "Ver detalhes",
       icon: FileText
     },
@@ -86,10 +86,10 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6 bg-gradient-subtle min-h-screen">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3 bg-primary/5 px-4 py-3 rounded-lg border border-primary/10">
+        <div className="flex items-center gap-3 bg-accent px-4 py-3 rounded-xl shadow-sm">
           <HomeIcon className="w-5 h-5 text-primary" />
           <div>
             <h1 className="text-xl font-semibold">Olá, Equipe Lima!</h1>
@@ -97,7 +97,7 @@ const Dashboard = () => {
           </div>
         </div>
         
-        <Button className="bg-primary text-primary-foreground hover:bg-primary/90 px-6">
+        <Button className="bg-creator-gradient text-white hover:opacity-90 px-6 rounded-xl shadow-sm">
           <Plus className="w-4 h-4 mr-2" />
           Criar Novo Conteúdo
         </Button>
@@ -106,7 +106,7 @@ const Dashboard = () => {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {stats.map((stat, index) => (
-          <Card key={index} className={`border ${index === 0 ? 'border-primary/20 bg-primary/5' : 'border-border'}`}>
+          <Card key={index} className={`shadow-sm border-0 ${index === 0 ? 'bg-gradient-card' : 'bg-card'} rounded-xl`}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 {stat.title}
@@ -132,10 +132,10 @@ const Dashboard = () => {
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Quick Actions */}
-        <Card className="bg-secondary/5 border-secondary/20">
+        <Card className="bg-accent shadow-sm border-0">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-secondary" />
+              <Sparkles className="w-5 h-5 text-primary" />
               Ações Rápidas
             </CardTitle>
           </CardHeader>
@@ -143,7 +143,7 @@ const Dashboard = () => {
             {quickActions.map((action, index) => (
               <div 
                 key={index}
-                className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/50 cursor-pointer transition-colors"
+                className="flex items-center gap-3 p-3 rounded-xl bg-background border-0 hover:bg-muted/30 cursor-pointer transition-colors"
               >
                 <action.icon className={`w-5 h-5 ${action.color}`} />
                 <div className="flex-1">
@@ -156,7 +156,7 @@ const Dashboard = () => {
         </Card>
 
         {/* Recent Activities */}
-        <Card className="border">
+        <Card className="shadow-sm border-0">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileText className="w-5 h-5 text-primary" />
