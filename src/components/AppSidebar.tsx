@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { 
   Home, 
@@ -9,20 +8,19 @@ import {
   Sparkles, 
   CheckCircle, 
   PlusCircle,
-  ChevronRight
+  Rocket
 } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { CreatorLogo } from "./CreatorLogo";
+import { Button } from "@/components/ui/button";
 
 const navigationItems = [
   { title: "Home", url: "/dashboard", icon: Home },
@@ -33,9 +31,9 @@ const navigationItems = [
 ];
 
 const actionItems = [
-  { title: "Criar Conteúdo", url: "/create", icon: PlusCircle },
-  { title: "Revisar Conteúdo", url: "/review", icon: CheckCircle },
-  { title: "Planejar Conteúdo", url: "/plan", icon: Calendar },
+  { title: "Criar Conteúdo", url: "/create", icon: Sparkles, color: "bg-primary hover:bg-primary/90 text-primary-foreground" },
+  { title: "Revisar Conteúdo", url: "/review", icon: CheckCircle, color: "bg-accent hover:bg-accent/90 text-accent-foreground" },
+  { title: "Planejar Conteúdo", url: "/plan", icon: Calendar, color: "bg-secondary hover:bg-secondary/90 text-secondary-foreground" },
 ];
 
 export function AppSidebar() {
@@ -45,24 +43,27 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
 
   const isActive = (path: string) => currentPath === path;
-  const getNavCls = ({ isActive }: { isActive: boolean }) =>
-    isActive ? "bg-primary text-primary-foreground font-medium" : "hover:bg-muted/50 text-muted-foreground hover:text-foreground";
 
   return (
     <Sidebar className={collapsed ? "w-16" : "w-64"} collapsible="icon">
-      <SidebarContent className="bg-white border-r">
-        <div className="p-4 border-b">
-          <CreatorLogo className="text-primary" />
-        </div>
-
+      <SidebarContent className="bg-background p-4 space-y-6">
+        
+        {/* Navigation Items */}
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="space-y-2">
               {navigationItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink to={item.url} className={getNavCls}>
-                      <item.icon className="w-4 h-4" />
+                  <SidebarMenuButton asChild className="p-0">
+                    <NavLink 
+                      to={item.url} 
+                      className={`flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors ${
+                        isActive(item.url) 
+                          ? "text-primary" 
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                      }`}
+                    >
+                      <item.icon className={`w-5 h-5 ${isActive(item.url) ? "text-primary" : "text-muted-foreground"}`} />
                       {!collapsed && <span>{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
@@ -72,32 +73,31 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup>
-          <SidebarGroupLabel className={collapsed ? "sr-only" : ""}>
-            Ações
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {actionItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton 
-                    asChild 
-                    className={isActive(item.url) ? "bg-primary text-primary-foreground" : ""}
-                  >
-                    <NavLink to={item.url} className={getNavCls}>
-                      <item.icon className="w-4 h-4" />
-                      {!collapsed && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
+        {/* Action Buttons */}
         {!collapsed && (
-          <div className="mt-auto p-4 bg-primary text-primary-foreground rounded-lg m-4">
-            <div className="text-sm font-medium">Equipe: LeFil</div>
+          <div className="space-y-3">
+            {actionItems.map((item) => (
+              <Button
+                key={item.title}
+                asChild
+                className={`w-full justify-start h-12 ${item.color}`}
+              >
+                <NavLink to={item.url}>
+                  <item.icon className="w-5 h-5 mr-3" />
+                  {item.title}
+                </NavLink>
+              </Button>
+            ))}
+          </div>
+        )}
+
+        {/* Team Info */}
+        {!collapsed && (
+          <div className="mt-auto bg-primary text-primary-foreground rounded-lg p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Rocket className="w-4 h-4" />
+              <div className="text-sm font-semibold">Equipe: LeFil</div>
+            </div>
             <div className="text-xs opacity-90">Plano: LEFIL</div>
           </div>
         )}
