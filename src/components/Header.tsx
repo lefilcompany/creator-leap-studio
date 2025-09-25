@@ -86,7 +86,7 @@ export const Header = () => {
         {/* Search bar - Desktop only */}
         <div className="hidden md:flex flex-1 max-w-2xl mx-6">
           <div className="relative w-full group">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-primary h-5 w-5 z-10 transition-colors duration-200" />
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5 z-10 transition-colors duration-200" />
             {isSearching && (
               <Loader2 className="absolute right-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-primary animate-spin z-10" />
             )}
@@ -95,18 +95,12 @@ export const Header = () => {
               placeholder="Pesquisar marcas, temas, personas..."
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
-              className={`w-full rounded-2xl pl-12 pr-12 py-3 h-12 text-base border-2 bg-background/50 transition-all duration-200 hover:bg-background focus:bg-background ${
+              className={`w-full rounded-2xl pl-12 pr-4 py-3 h-12 text-base border-2 bg-background/50 transition-all duration-200 hover:bg-background focus:bg-background ${
                 isSearching 
                   ? 'border-primary/50 shadow-md' 
                   : 'border-border/50 hover:border-primary/30 focus:border-primary/50'
               }`}
             />
-            {/* Keyboard shortcut hint */}
-            {!isSearching && !searchQuery && (
-              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none opacity-60 group-focus-within:opacity-0 transition-opacity duration-200">
-                <kbd className="px-2 py-1 text-xs font-semibold bg-muted border border-border/50 rounded">⌘K</kbd>
-              </div>
-            )}
           </div>
         </div>
 
