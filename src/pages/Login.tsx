@@ -47,9 +47,7 @@ const Login = () => {
           
           <div className="space-y-4">
             <div className="flex items-center gap-4 p-4 bg-card/30 backdrop-blur-sm rounded-xl border border-primary/20">
-              <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center">
-                <div className="w-3 h-3 bg-primary rounded-full"></div>
-              </div>
+              <div className="w-3 h-3 bg-primary rounded-full"></div>
               <div>
                 <h3 className="font-semibold text-foreground text-sm">Organização Estratégica</h3>
                 <p className="text-muted-foreground text-xs">Estruture sua comunicação de forma clara e integrada</p>
