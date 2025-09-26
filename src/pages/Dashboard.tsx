@@ -179,7 +179,7 @@ const Dashboard = () => {
                 <CardTitle className="text-xl font-semibold">Ações Rápidas</CardTitle>
               </div>
             </CardHeader>
-            <CardContent className="space-y-5 mb-4">
+            <CardContent className="space-y-6">
               {quickActions.map((action, index) => (
                 <Card key={index} className="hover:bg-muted/50 hover:shadow-md transition-all duration-200 cursor-pointer hover-scale">
                   <CardContent className="p-4 flex items-center gap-6">
