@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { CreatorLogo } from "@/components/CreatorLogo";
+import creatorLogoBackground from "@/assets/creatorLogoBackground.png";
 import { Eye, EyeOff, Chrome, Facebook, Mail, Lock } from "lucide-react";
 
 const Login = () => {
@@ -21,6 +22,15 @@ const Login = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 flex relative">
+      {/* Background logo element */}
+      <div className="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none">
+        <img 
+          src={creatorLogoBackground} 
+          alt="" 
+          className="w-96 h-96 object-contain blur-sm transform scale-150"
+        />
+      </div>
+      
       {/* Background gradient for entire screen */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary/15 via-accent/10 via-secondary/15 to-primary/5"></div>
       <div className="absolute inset-0 bg-gradient-to-tl from-secondary/10 via-transparent to-accent/15 opacity-70"></div>
