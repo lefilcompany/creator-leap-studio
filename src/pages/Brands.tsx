@@ -290,39 +290,20 @@ const Brands = () => {
         </CardHeader>
       </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Brands List */}
-        <Card className="lg:col-span-2 border-2 border-primary/10 shadow-sm bg-card/50 backdrop-blur-sm">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-xl font-semibold text-foreground">Todas as marcas</CardTitle>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input 
-                placeholder="Buscar marcas..." 
-                className="pl-10 border-border/50 focus:border-primary/50 bg-background/50" 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <BrandList
-              brands={filteredBrands}
-              selectedBrand={selectedBrandSummary}
-              onSelectBrand={handleSelectBrand}
-              isLoading={isLoading}
-            />
-          </CardContent>
-        </Card>
-
-        {/* Brand Details */}
+      <main className="grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-0 flex-1">
+        <BrandList
+          brands={filteredBrands}
+          selectedBrand={selectedBrandSummary}
+          onSelectBrand={handleSelectBrand}
+          isLoading={isLoading}
+        />
         <BrandDetails
           brand={selectedBrand}
           onEdit={handleEditBrand}
           onDelete={handleDeleteBrand}
           isLoading={isLoadingDetails}
         />
-      </div>
+      </main>
 
       {/* Brand Dialog */}
       <BrandDialog
