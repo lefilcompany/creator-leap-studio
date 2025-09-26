@@ -26,47 +26,47 @@ const Login = () => {
       <div className="absolute inset-0 bg-gradient-to-tl from-secondary/10 via-transparent to-accent/15 opacity-70"></div>
       
       {/* Left side - Marketing content */}
-      <div className="hidden lg:flex lg:w-1/2 flex-col justify-center px-16 py-12 relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 flex-col justify-center px-16 py-8 relative overflow-hidden">
         {/* Decorative elements */}
         <div className="absolute top-1/4 left-10 w-64 h-64 bg-primary/10 rounded-full blur-3xl"></div>
         <div className="absolute bottom-1/4 right-10 w-64 h-64 bg-secondary/10 rounded-full blur-3xl"></div>
         
         <div className="relative max-w-lg">
-          <div className="mb-12">
-            <CreatorLogo className="mb-8" />
+          <div className="mb-6">
+            <CreatorLogo className="mb-6" />
           </div>
           
-          <div className="mb-12">
-            <h1 className="text-4xl lg:text-5xl font-bold text-foreground mb-6 leading-tight">
+          <div className="mb-8">
+            <h1 className="text-3xl lg:text-4xl font-bold text-foreground mb-4 leading-tight">
               IA para planejar e criar conteúdo estratégico
             </h1>
-            <p className="text-xl text-muted-foreground leading-relaxed">
+            <p className="text-lg text-muted-foreground leading-relaxed">
               Organize sua comunicação em torno de Equipes, Marcas, Temas e Personas
             </p>
           </div>
           
-          <div className="space-y-5">
-            <div className="flex items-start gap-4 p-5 bg-card/30 backdrop-blur-sm rounded-xl border border-primary/20 transition-all duration-300 hover:bg-card/40 hover:border-primary/30">
-              <div className="w-4 h-4 bg-primary rounded-full mt-1 flex-shrink-0"></div>
+          <div className="space-y-3">
+            <div className="flex items-start gap-3 p-4 bg-card/30 backdrop-blur-sm rounded-xl border border-primary/20 transition-all duration-300 hover:bg-card/40 hover:border-primary/30">
+              <div className="w-3 h-3 bg-primary rounded-full mt-1 flex-shrink-0"></div>
               <div className="flex-1">
-                <h3 className="font-semibold text-foreground text-base mb-1">Organização Estratégica</h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">Estruture sua comunicação de forma clara e integrada</p>
+                <h3 className="font-semibold text-foreground text-sm mb-1">Organização Estratégica</h3>
+                <p className="text-muted-foreground text-xs leading-relaxed">Estruture sua comunicação de forma clara e integrada</p>
               </div>
             </div>
             
-            <div className="flex items-start gap-4 p-5 bg-card/30 backdrop-blur-sm rounded-xl border border-secondary/20 transition-all duration-300 hover:bg-card/40 hover:border-secondary/30">
-              <div className="w-4 h-4 bg-secondary rounded-full mt-1 flex-shrink-0"></div>
+            <div className="flex items-start gap-3 p-4 bg-card/30 backdrop-blur-sm rounded-xl border border-secondary/20 transition-all duration-300 hover:bg-card/40 hover:border-secondary/30">
+              <div className="w-3 h-3 bg-secondary rounded-full mt-1 flex-shrink-0"></div>
               <div className="flex-1">
-                <h3 className="font-semibold text-foreground text-base mb-1">Segmentação por Personas</h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">Conteúdos personalizados para diferentes públicos</p>
+                <h3 className="font-semibold text-foreground text-sm mb-1">Segmentação por Personas</h3>
+                <p className="text-muted-foreground text-xs leading-relaxed">Conteúdos personalizados para diferentes públicos</p>
               </div>
             </div>
             
-            <div className="flex items-start gap-4 p-5 bg-card/30 backdrop-blur-sm rounded-xl border border-accent/20 transition-all duration-300 hover:bg-card/40 hover:border-accent/30">
-              <div className="w-4 h-4 bg-accent rounded-full mt-1 flex-shrink-0"></div>
+            <div className="flex items-start gap-3 p-4 bg-card/30 backdrop-blur-sm rounded-xl border border-accent/20 transition-all duration-300 hover:bg-card/40 hover:border-accent/30">
+              <div className="w-3 h-3 bg-accent rounded-full mt-1 flex-shrink-0"></div>
               <div className="flex-1">
-                <h3 className="font-semibold text-foreground text-base mb-1">Campanhas Completas</h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">Calendários completos, não apenas posts isolados</p>
+                <h3 className="font-semibold text-foreground text-sm mb-1">Campanhas Completas</h3>
+                <p className="text-muted-foreground text-xs leading-relaxed">Calendários completos, não apenas posts isolados</p>
               </div>
             </div>
           </div>
