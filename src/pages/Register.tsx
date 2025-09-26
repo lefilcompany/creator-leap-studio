@@ -153,17 +153,80 @@ const Register = () => {
 
   return (
     <>
-      <div className="w-full min-h-screen lg:grid lg:grid-cols-2">
-        {/* Header mobile com logo e texto */}
-        <div className="lg:hidden bg-gradient-to-br from-primary to-secondary text-white p-6 text-center">
-          <CreatorLogo className="mx-auto mb-4 w-32" />
-          <h2 className="text-xl font-bold">Junte-se a nós!</h2>
-          <p className="mt-2 text-white/80 text-sm">Crie sua conta e comece a transformar ideias em conteúdo.</p>
+      <div className="min-h-screen bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 flex relative">
+        {/* Background gradient for entire screen */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/15 via-accent/10 via-secondary/15 to-primary/5"></div>
+        <div className="absolute inset-0 bg-gradient-to-tl from-secondary/10 via-transparent to-accent/15 opacity-70"></div>
+        
+        {/* Left side - Showcase */}
+        <div className="hidden lg:flex lg:w-1/2 flex-col justify-center px-16 py-8 relative overflow-hidden">
+          {/* Decorative elements */}
+          <div className="absolute top-1/4 left-10 w-64 h-64 bg-primary/10 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-1/4 right-10 w-64 h-64 bg-secondary/10 rounded-full blur-3xl"></div>
+          
+          <div className="relative max-w-lg">
+            <div className="mb-6">
+              <CreatorLogo className="mb-6" />
+            </div>
+            
+            <div className="mb-8">
+              <h1 className="text-3xl lg:text-4xl font-bold text-foreground mb-4 leading-tight">
+                Transforme Ideias em Conteúdo
+              </h1>
+              <p className="text-lg text-muted-foreground leading-relaxed">
+                Junte-se à nossa comunidade e comece a criar posts incríveis com o poder da inteligência artificial.
+              </p>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="flex items-center gap-4 p-4 bg-card/30 backdrop-blur-sm rounded-xl border border-primary/20">
+                <div className="w-3 h-3 bg-primary rounded-full"></div>
+                <div>
+                  <h3 className="font-semibold text-foreground text-base">IA Avançada</h3>
+                  <p className="text-muted-foreground text-sm">Criação de conteúdo inteligente e personalizado</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-4 p-4 bg-card/30 backdrop-blur-sm rounded-xl border border-secondary/20">
+                <div className="w-3 h-3 bg-secondary rounded-full"></div>
+                <div>
+                  <h3 className="font-semibold text-foreground text-base">Rápido e Eficiente</h3>
+                  <p className="text-muted-foreground text-sm">Acelere sua produção de conteúdo em até 10x</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-4 p-4 bg-card/30 backdrop-blur-sm rounded-xl border border-accent/20">
+                <div className="w-3 h-3 bg-accent rounded-full"></div>
+                <div>
+                  <h3 className="font-semibold text-foreground text-base">Múltiplas Plataformas</h3>
+                  <p className="text-muted-foreground text-sm">Conteúdo otimizado para todas as redes sociais</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Coluna Esquerda: Formulário de Cadastro */}
-        <div className="flex items-center justify-center p-6 lg:p-8 bg-background overflow-y-auto">
-          <div className="w-full max-w-md space-y-5 lg:space-y-6">
+        {/* Right side - Register form */}
+        <div className="w-full lg:w-1/2 flex items-center justify-center p-8 relative">
+          {/* Mobile header */}
+          <div className="lg:hidden absolute top-8 left-8">
+            <CreatorLogo />
+          </div>
+
+          {/* Register card */}
+          <div className="w-full max-w-md">
+            <div className="bg-card/90 backdrop-blur-xl border border-border/50 rounded-2xl shadow-2xl p-8">
+              {/* Mobile title */}
+              <div className="lg:hidden text-center mb-8">
+                <h1 className="text-2xl font-bold text-foreground mb-2">Creator</h1>
+                <p className="text-muted-foreground">Crie sua conta e comece a transformar ideias em conteúdo</p>
+              </div>
+
+              {/* Desktop title */}
+              <div className="hidden lg:block text-center mb-8">
+                <h2 className="text-2xl font-bold text-foreground mb-2">Crie sua Conta</h2>
+                <p className="text-muted-foreground">É rápido e fácil. Vamos começar!</p>
+              </div>
             <div className="text-center hidden lg:block">
               <h1 className="text-3xl font-bold text-foreground">Crie sua Conta</h1>
               <p className="text-muted-foreground mt-2">
@@ -344,9 +407,9 @@ const Register = () => {
               
               {error && <p className="text-sm text-destructive text-center">{error}</p>}
               
-              <Button
-                type="submit"
-                className="w-full rounded-lg text-base py-4 lg:py-5 bg-gradient-to-r from-primary to-secondary font-bold tracking-wider"
+              <Button 
+                type="submit" 
+                className="w-full h-12 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-medium rounded-xl transition-all duration-300 transform hover:scale-[1.02]"
                 disabled={
                   isLoading ||
                   !formData.name ||
@@ -361,26 +424,16 @@ const Register = () => {
               </Button>
             </form>
             
-            <div className="text-center text-sm">
-              <span className="text-muted-foreground">Já tem uma conta? </span>
+            <div className="text-center">
+              <span className="text-muted-foreground text-sm">Já tem uma conta? </span>
               <a 
                 href="/login" 
-                className="font-semibold text-primary hover:underline"
+                className="text-primary hover:text-primary/80 font-medium text-sm transition-colors"
               >
                 Conecte-se
               </a>
             </div>
-          </div>
-        </div>
-        
-        {/* Coluna Direita: Showcase */}
-        <div className="hidden lg:flex flex-col items-center justify-center p-12 bg-gradient-to-br from-primary to-secondary text-white text-center">
-          <div className="max-w-md space-y-4">
-            <CreatorLogo className="mx-auto w-48" />
-            <h2 className="text-4xl font-bold mt-6">Transforme Ideias em Conteúdo</h2>
-            <p className="mt-4 text-white/80 text-lg">
-              Junte-se à nossa comunidade e comece a criar posts incríveis com o poder da inteligência artificial.
-            </p>
+            </div>
           </div>
         </div>
       </div>
