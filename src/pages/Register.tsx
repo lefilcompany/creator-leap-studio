@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CreatorLogo } from "@/components/CreatorLogo";
-import { Eye, EyeOff, User, Mail, Phone, MapPin, Lock } from "lucide-react";
+import { Eye, EyeOff, User, Mail, Phone, Lock } from "lucide-react";
 
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -34,142 +34,117 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-secondary/5 via-background to-accent/5 flex items-center justify-center p-4">
-      {/* Decorative elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 right-10 w-80 h-80 bg-secondary/5 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-1/4 left-10 w-80 h-80 bg-primary/5 rounded-full blur-3xl"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-accent/5 rounded-full blur-3xl"></div>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 flex relative">
+      {/* Background gradient for entire screen */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/15 via-accent/10 via-secondary/15 to-primary/5"></div>
+      <div className="absolute inset-0 bg-gradient-to-tl from-secondary/10 via-transparent to-accent/15 opacity-70"></div>
+      
+      {/* Left side - Register form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 relative">
+        {/* Mobile header */}
+        <div className="lg:hidden absolute top-8 left-8">
+          <CreatorLogo />
+        </div>
 
-      {/* Register card */}
-      <div className="relative z-10 w-full max-w-lg">
-        <div className="bg-card/80 backdrop-blur-xl border border-border/50 rounded-3xl shadow-2xl p-8">
-          {/* Logo and header */}
-          <div className="text-center mb-8">
-            <CreatorLogo className="justify-center mb-6" />
-            <h1 className="text-2xl font-bold text-foreground mb-2">Acelere Seu Marketing.</h1>
-            <p className="text-muted-foreground">Crie, revise e planeje conteúdo inteligente em minutos</p>
-          </div>
-
-          {/* Registration form */}
-          <form onSubmit={handleRegister} className="space-y-5">
-            <div className="space-y-2">
-              <Label htmlFor="name" className="text-sm font-medium text-foreground">
-                Nome Completo
-              </Label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input
-                  id="name"
-                  type="text"
-                  placeholder="Seu nome completo"
-                  value={formData.name}
-                  onChange={(e) => updateFormData("name", e.target.value)}
-                  className="pl-10 h-12 bg-background/50 border-border/50 focus:border-primary transition-colors"
-                />
-              </div>
+        {/* Register card */}
+        <div className="w-full max-w-lg">
+          <div className="bg-card/90 backdrop-blur-xl border border-border/50 rounded-2xl shadow-2xl p-6">
+            {/* Mobile title */}
+            <div className="lg:hidden text-center mb-6">
+              <h1 className="text-2xl font-bold text-foreground mb-2">Creator</h1>
+              <p className="text-muted-foreground">Acelere seu marketing estratégico</p>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium text-foreground">
-                E-mail
-              </Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="seu@email.com"
-                  value={formData.email}
-                  onChange={(e) => updateFormData("email", e.target.value)}
-                  className="pl-10 h-12 bg-background/50 border-border/50 focus:border-primary transition-colors"
-                />
-              </div>
+            {/* Desktop title */}
+            <div className="hidden lg:block text-center mb-6">
+              <h2 className="text-2xl font-bold text-foreground mb-2">Comece no Creator</h2>
+              <p className="text-muted-foreground">Teste grátis por 7 dias</p>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            {/* Registration form */}
+            <form onSubmit={handleRegister} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-medium text-foreground">
-                  Senha
-                </Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="••••••••"
-                    value={formData.password}
-                    onChange={(e) => updateFormData("password", e.target.value)}
-                    className="pl-10 pr-10 h-12 bg-background/50 border-border/50 focus:border-primary transition-colors"
+                    id="name"
+                    type="text"
+                    placeholder="Nome completo"
+                    value={formData.name}
+                    onChange={(e) => updateFormData("name", e.target.value)}
+                    className="pl-10 h-12"
                   />
-                  <Button type="button" variant="ghost" size="icon" className="absolute top-1/2 -translate-y-1/2 right-1 h-10 w-10 text-muted-foreground" onClick={() => setShowPassword(!showPassword)}>
-                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                  </Button>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className="text-sm font-medium text-foreground">
-                  Confirmar Senha
-                </Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <Input
-                    id="confirmPassword"
-                    type={showConfirmPassword ? "text" : "password"}
-                    placeholder="••••••••"
-                    value={formData.confirmPassword}
-                    onChange={(e) => updateFormData("confirmPassword", e.target.value)}
-                    className="pl-10 pr-10 h-12 bg-background/50 border-border/50 focus:border-primary transition-colors"
+                    id="email"
+                    type="email"
+                    placeholder="E-mail"
+                    value={formData.email}
+                    onChange={(e) => updateFormData("email", e.target.value)}
+                    className="pl-10 h-12"
                   />
-                  <Button type="button" variant="ghost" size="icon" className="absolute top-1/2 -translate-y-1/2 right-1 h-10 w-10 text-muted-foreground" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
-                    {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                  </Button>
                 </div>
               </div>
-            </div>
 
-            {formData.password && formData.confirmPassword && (
-              <div className="flex items-center gap-4 text-sm p-3 bg-background/30 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full ${formData.password.length >= 6 ? 'bg-success' : 'bg-destructive'}`}></div>
-                  <span className={formData.password.length >= 6 ? 'text-success' : 'text-destructive'}>
-                    Mínimo 6 caracteres
-                  </span>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Senha"
+                      value={formData.password}
+                      onChange={(e) => updateFormData("password", e.target.value)}
+                      className="pl-10 pr-10 h-12"
+                    />
+                    <Button type="button" variant="ghost" size="icon" className="absolute top-1/2 -translate-y-1/2 right-1 h-10 w-10 text-muted-foreground" onClick={() => setShowPassword(!showPassword)}>
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full ${formData.password === formData.confirmPassword ? 'bg-success' : 'bg-destructive'}`}></div>
-                  <span className={formData.password === formData.confirmPassword ? 'text-success' : 'text-destructive'}>
-                    Senhas coincidem
-                  </span>
+
+                <div className="space-y-2">
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <Input
+                      id="confirmPassword"
+                      type={showConfirmPassword ? "text" : "password"}
+                      placeholder="Confirmar"
+                      value={formData.confirmPassword}
+                      onChange={(e) => updateFormData("confirmPassword", e.target.value)}
+                      className="pl-10 pr-10 h-12"
+                    />
+                    <Button type="button" variant="ghost" size="icon" className="absolute top-1/2 -translate-y-1/2 right-1 h-10 w-10 text-muted-foreground" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+                      {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </Button>
+                  </div>
                 </div>
               </div>
-            )}
 
-            <div className="space-y-2">
-              <Label htmlFor="phone" className="text-sm font-medium text-foreground">
-                Telefone
-              </Label>
-              <div className="relative">
-                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input
-                  id="phone"
-                  type="tel"
-                  placeholder="(XX) XXXXX-XXXX"
-                  value={formData.phone}
-                  onChange={(e) => updateFormData("phone", e.target.value)}
-                  className="pl-10 h-12 bg-background/50 border-border/50 focus:border-primary transition-colors"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-sm font-medium text-foreground">Estado</Label>
+                <div className="relative">
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Input
+                    id="phone"
+                    type="tel"
+                    placeholder="Telefone"
+                    value={formData.phone}
+                    onChange={(e) => updateFormData("phone", e.target.value)}
+                    className="pl-10 h-12"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
                 <Select onValueChange={(value) => updateFormData("state", value)}>
-                  <SelectTrigger className="h-12 bg-background/50 border-border/50 focus:border-primary">
-                    <SelectValue placeholder="Selecione" />
+                  <SelectTrigger className="h-12">
+                    <SelectValue placeholder="Estado" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="sp">São Paulo</SelectItem>
@@ -177,13 +152,10 @@ const Register = () => {
                     <SelectItem value="mg">Minas Gerais</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
 
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-foreground">Cidade</Label>
                 <Select onValueChange={(value) => updateFormData("city", value)}>
-                  <SelectTrigger className="h-12 bg-background/50 border-border/50 focus:border-primary">
-                    <SelectValue placeholder="Selecione" />
+                  <SelectTrigger className="h-12">
+                    <SelectValue placeholder="Cidade" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="sao-paulo">São Paulo</SelectItem>
@@ -192,44 +164,87 @@ const Register = () => {
                   </SelectContent>
                 </Select>
               </div>
+
+              <div className="flex items-start space-x-3 p-3 bg-background/30 rounded-lg">
+                <Checkbox 
+                  id="terms" 
+                  checked={formData.termsAccepted}
+                  onCheckedChange={(checked) => updateFormData("termsAccepted", checked)}
+                  className="mt-0.5"
+                />
+                <Label htmlFor="terms" className="text-xs leading-relaxed text-muted-foreground">
+                  Li e concordo com a{" "}
+                  <a href="#" className="text-primary hover:text-primary/80 transition-colors">
+                    Política de Privacidade
+                  </a>{" "}
+                  e os{" "}
+                  <a href="#" className="text-primary hover:text-primary/80 transition-colors">
+                    Termos de Uso
+                  </a>
+                </Label>
+              </div>
+
+              <Button 
+                type="submit" 
+                className="w-full h-12 bg-gradient-to-r from-secondary to-secondary/80 hover:from-secondary/90 hover:to-secondary/70 text-secondary-foreground font-medium rounded-xl transition-all duration-300 transform hover:scale-[1.02]"
+              >
+                Começar grátis
+              </Button>
+            </form>
+
+            {/* Login link */}
+            <div className="text-center mt-4">
+              <span className="text-muted-foreground text-sm">Já tem uma conta? </span>
+              <a 
+                href="/login" 
+                className="text-primary hover:text-primary/80 font-medium text-sm transition-colors"
+              >
+                Fazer login
+              </a>
             </div>
+          </div>
+        </div>
+      </div>
 
-            <div className="flex items-start space-x-3 p-4 bg-background/30 rounded-lg">
-              <Checkbox 
-                id="terms" 
-                checked={formData.termsAccepted}
-                onCheckedChange={(checked) => updateFormData("termsAccepted", checked)}
-                className="mt-0.5"
-              />
-              <Label htmlFor="terms" className="text-sm leading-relaxed text-muted-foreground">
-                Li e concordo com a{" "}
-                <a href="#" className="text-primary hover:text-primary/80 transition-colors">
-                  Política de Privacidade
-                </a>{" "}
-                e os{" "}
-                <a href="#" className="text-primary hover:text-primary/80 transition-colors">
-                  Termos de Uso
-                </a>
-              </Label>
+      {/* Right side - Marketing content */}
+      <div className="hidden lg:flex lg:w-1/2 flex-col justify-center px-12 relative overflow-hidden">
+        {/* Decorative elements */}
+        <div className="absolute top-1/4 right-10 w-64 h-64 bg-secondary/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-1/4 left-10 w-64 h-64 bg-primary/10 rounded-full blur-3xl"></div>
+        
+        <div className="relative z-10">
+          <CreatorLogo className="mb-8" />
+          <h1 className="text-4xl font-bold text-foreground mb-6 leading-tight">
+            Revolucione seu<br />
+            marketing de conteúdo
+          </h1>
+          <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
+            Muito mais que criação de posts:<br />
+            organização estratégica completa
+          </p>
+          
+          <div className="space-y-6">
+            <div className="flex items-start gap-4">
+              <div className="w-2 h-2 bg-primary rounded-full mt-3"></div>
+              <div>
+                <h3 className="font-semibold text-foreground mb-2">Posts para redes sociais</h3>
+                <p className="text-muted-foreground">Conteúdo otimizado para cada plataforma</p>
+              </div>
             </div>
-
-            <Button 
-              type="submit" 
-              className="w-full h-12 bg-gradient-to-r from-secondary to-secondary/80 hover:from-secondary/90 hover:to-secondary/70 text-secondary-foreground font-medium rounded-xl transition-all duration-300 transform hover:scale-[1.02]"
-            >
-              Criar Conta
-            </Button>
-          </form>
-
-          {/* Login link */}
-          <div className="text-center mt-6">
-            <span className="text-muted-foreground text-sm">Já tem uma conta? </span>
-            <a 
-              href="/login" 
-              className="text-primary hover:text-primary/80 font-medium text-sm transition-colors"
-            >
-              Fazer login
-            </a>
+            <div className="flex items-start gap-4">
+              <div className="w-2 h-2 bg-secondary rounded-full mt-3"></div>
+              <div>
+                <h3 className="font-semibold text-foreground mb-2">E-mails marketing e newsletters</h3>
+                <p className="text-muted-foreground">Comunicação direta com seu público</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4">
+              <div className="w-2 h-2 bg-accent rounded-full mt-3"></div>
+              <div>
+                <h3 className="font-semibold text-foreground mb-2">Roteiros e diretrizes</h3>
+                <p className="text-muted-foreground">Conteúdo para vídeos e diretrizes visuais</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
