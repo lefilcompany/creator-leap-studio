@@ -47,7 +47,7 @@ const Login = () => {
               <Input
                 id="email"
                 type="email"
-                placeholder="seu@email.com"
+                placeholder="E-mail"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="h-12 bg-background/50 border-border/50 focus:border-primary transition-colors"
@@ -62,7 +62,7 @@ const Login = () => {
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
+                  placeholder="Senha"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="h-12 bg-background/50 border-border/50 focus:border-primary transition-colors pr-12"
