@@ -167,7 +167,7 @@ const Dashboard = () => {
       </div>
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Quick Actions */}
         <div className="lg:col-span-1">
           <Card className="shadow-lg border-0 bg-gradient-to-r from-secondary/5 via-primary/5 to-secondary/5 animate-fade-in">
@@ -179,7 +179,7 @@ const Dashboard = () => {
                 <CardTitle className="text-xl font-semibold">Ações Rápidas</CardTitle>
               </div>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-5">
               {quickActions.map((action, index) => (
                 <Card key={index} className="hover:bg-muted/50 hover:shadow-md transition-all duration-200 cursor-pointer hover-scale">
                   <CardContent className="p-4 flex items-center gap-6">
