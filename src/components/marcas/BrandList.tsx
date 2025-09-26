@@ -39,7 +39,7 @@ export default function BrandList({ brands, selectedBrand, onSelectBrand, isLoad
   }, [brands]);
 
   return (
-    <div className="lg:col-span-2 bg-card p-4 md:p-6 rounded-2xl border-2 border-primary/10 flex flex-col h-full max-h-[calc(100vh-16rem)]">
+    <div className="lg:col-span-2 bg-card p-4 md:p-6 rounded-2xl border-2 border-primary/10 flex flex-col h-full overflow-hidden">
       <h2 className="text-2xl font-semibold text-foreground mb-4 px-2 flex-shrink-0">Todas as marcas</h2>
       <div className="overflow-y-auto pr-2 flex-1 min-h-0">
         {isLoading ? (
