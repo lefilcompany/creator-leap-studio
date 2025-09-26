@@ -1,12 +1,20 @@
 import React from 'react';
+import logoImage from '../assets/logoCreatorPreta-2.png';
 
-export const CreatorLogo = ({ className = "" }: { className?: string }) => {
+export const CreatorLogo = ({ className = "", size = "default" }: { className?: string; size?: "small" | "default" | "large" }) => {
+  const sizeClasses = {
+    small: "h-8",
+    default: "h-10",
+    large: "h-16"
+  };
+
   return (
-    <div className={`creator-logo ${className}`}>
-      <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
-        <div className="w-5 h-5 bg-gradient-to-br from-white to-white/70 rounded transform rotate-45"></div>
-      </div>
-      <span>CREATOR</span>
+    <div className={`flex items-center gap-3 ${className}`}>
+      <img 
+        src={logoImage} 
+        alt="Creator Logo" 
+        className={`${sizeClasses[size]} w-auto object-contain`}
+      />
     </div>
   );
 };
