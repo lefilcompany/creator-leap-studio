@@ -31,7 +31,7 @@ const Login = () => {
         <div className="absolute top-1/4 left-10 w-64 h-64 bg-primary/10 rounded-full blur-3xl"></div>
         <div className="absolute bottom-1/4 right-10 w-64 h-64 bg-secondary/10 rounded-full blur-3xl"></div>
         
-        <div className="relative z-10">
+        <div className="relative">
           <CreatorLogo className="mb-8" />
           <h1 className="w-full text-4xl font-bold text-foreground mb-6 leading-tight">
             IA para planejar e criar conteúdo estratégico
