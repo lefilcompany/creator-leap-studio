@@ -6,12 +6,16 @@ import { Outlet } from "react-router-dom";
 export const DashboardLayout = () => {
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full">
+      <div className="min-h-screen flex w-full overflow-hidden bg-gradient-to-br from-background via-background to-muted/10">
         <AppSidebar />
-        <main className="flex-1 overflow-auto bg-background pt-16 md:pt-20">
+        <div className="flex flex-1 flex-col overflow-hidden min-w-0">
           <Header />
-          <Outlet />
-        </main>
+          <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-gradient-to-b from-background/50 to-background">
+            <div className="max-w-8xl mx-auto">
+              <Outlet />
+            </div>
+          </main>
+        </div>
       </div>
     </SidebarProvider>
   );
