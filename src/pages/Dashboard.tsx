@@ -172,7 +172,7 @@ const Dashboard = () => {
         <div className="lg:col-span-1">
           <Card className="shadow-lg border-0 bg-gradient-to-r from-secondary/5 via-primary/5 to-secondary/5 animate-fade-in">
             <CardHeader className="pb-4">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-4">
                 <div className="flex-shrink-0 bg-secondary/10 text-secondary rounded-lg p-3">
                   <Sparkles className="h-6 w-6" />
                 </div>
