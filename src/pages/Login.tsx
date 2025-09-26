@@ -34,34 +34,34 @@ const Login = () => {
         <div className="relative z-10">
           <CreatorLogo className="mb-8" />
           <h1 className="text-4xl font-bold text-foreground mb-6 leading-tight">
-            Crie Mais.<br />
-            Pense Menos.
+            IA para planejar e criar<br />
+            conteúdo estratégico
           </h1>
           <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
-            Transforme suas ideias em conteúdo<br />
-            profissional com inteligência artificial
+            Organize sua comunicação em torno de<br />
+            Equipes, Marcas, Temas e Personas
           </p>
           
           <div className="space-y-6">
             <div className="flex items-start gap-4">
               <div className="w-2 h-2 bg-primary rounded-full mt-3"></div>
               <div>
-                <h3 className="font-semibold text-foreground mb-2">Criação Inteligente</h3>
-                <p className="text-muted-foreground">Gere conteúdo otimizado em segundos com IA avançada</p>
+                <h3 className="font-semibold text-foreground mb-2">Organização Estratégica</h3>
+                <p className="text-muted-foreground">Estruture sua comunicação de forma clara e integrada</p>
               </div>
             </div>
             <div className="flex items-start gap-4">
               <div className="w-2 h-2 bg-secondary rounded-full mt-3"></div>
               <div>
-                <h3 className="font-semibold text-foreground mb-2">Revisão Automática</h3>
-                <p className="text-muted-foreground">Melhore e refine seu conteúdo automaticamente</p>
+                <h3 className="font-semibold text-foreground mb-2">Segmentação por Personas</h3>
+                <p className="text-muted-foreground">Conteúdos personalizados para diferentes públicos</p>
               </div>
             </div>
             <div className="flex items-start gap-4">
               <div className="w-2 h-2 bg-accent rounded-full mt-3"></div>
               <div>
-                <h3 className="font-semibold text-foreground mb-2">Planejamento Estratégico</h3>
-                <p className="text-muted-foreground">Organize campanhas com calendário inteligente</p>
+                <h3 className="font-semibold text-foreground mb-2">Campanhas Completas</h3>
+                <p className="text-muted-foreground">Calendários completos, não apenas posts isolados</p>
               </div>
             </div>
           </div>
@@ -80,14 +80,14 @@ const Login = () => {
           <div className="bg-card/90 backdrop-blur-xl border border-border/50 rounded-2xl shadow-2xl p-8">
             {/* Mobile title */}
             <div className="lg:hidden text-center mb-8">
-              <h1 className="text-2xl font-bold text-foreground mb-2">Bem-vindo de volta</h1>
-              <p className="text-muted-foreground">Entre na sua conta para continuar</p>
+              <h1 className="text-2xl font-bold text-foreground mb-2">Creator</h1>
+              <p className="text-muted-foreground">IA para planejar e criar conteúdo estratégico</p>
             </div>
 
             {/* Desktop title */}
             <div className="hidden lg:block text-center mb-8">
-              <h2 className="text-2xl font-bold text-foreground mb-2">Entrar na conta</h2>
-              <p className="text-muted-foreground">Acesse sua plataforma de criação</p>
+              <h2 className="text-2xl font-bold text-foreground mb-2">Acesse o Creator</h2>
+              <p className="text-muted-foreground">Sua plataforma de marketing estratégico</p>
             </div>
 
             {/* Login form */}
