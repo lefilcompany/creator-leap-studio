@@ -1,6 +1,5 @@
 'use client';
 
-// Image component using regular img tag
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
