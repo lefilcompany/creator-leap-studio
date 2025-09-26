@@ -263,20 +263,32 @@ const Brands = () => {
   return (
     <div className="p-4 md:p-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-        <div className="flex items-center gap-3 bg-gradient-to-r from-pink-50 to-purple-50 dark:from-pink-950/20 dark:to-purple-950/20 px-4 py-3 rounded-xl border border-pink-200 dark:border-pink-800">
-          <Tag className="w-5 h-5 text-pink-600 dark:text-pink-400" />
-          <div>
-            <h1 className="text-xl font-semibold text-foreground">Suas Marcas</h1>
-            <p className="text-sm text-muted-foreground">Gerencie, edite ou crie novas marcas para seus projetos.</p>
+      <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5 flex-shrink-0 mb-6">
+        <CardHeader className="pb-4">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div className="flex items-center gap-3">
+              <div className="flex-shrink-0 bg-primary/10 text-primary rounded-lg p-3">
+                <Tag className="h-8 w-8" />
+              </div>
+              <div>
+                <CardTitle className="text-2xl font-bold">
+                  Suas Marcas
+                </CardTitle>
+                <p className="text-muted-foreground">
+                  Gerencie, edite ou crie novas marcas para seus projetos.
+                </p>
+              </div>
+            </div>
+            <Button 
+              onClick={handleCreateBrand} 
+              className="rounded-lg bg-gradient-to-r from-primary to-secondary px-6 py-5 text-base"
+            >
+              <Plus className="mr-2 h-5 w-5" />
+              Nova marca
+            </Button>
           </div>
-        </div>
-        
-        <Button onClick={handleCreateBrand} className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300">
-          <Plus className="w-4 h-4 mr-2" />
-          Nova marca
-        </Button>
-      </div>
+        </CardHeader>
+      </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Brands List */}
