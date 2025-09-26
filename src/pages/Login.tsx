@@ -42,26 +42,28 @@ const Login = () => {
             Equipes, Marcas, Temas e Personas
           </p>
           
-          <div className="space-y-6">
-            <div className="flex items-start gap-4">
-              <div className="w-2 h-2 bg-primary rounded-full mt-3"></div>
+          <div className="space-y-4">
+            <div className="flex items-center gap-4 p-4 bg-card/30 backdrop-blur-sm rounded-xl border border-primary/20">
+              <div className="w-3 h-3 bg-primary rounded-full"></div>
               <div>
-                <h3 className="font-semibold text-foreground mb-2">Organização Estratégica</h3>
-                <p className="text-muted-foreground">Estruture sua comunicação de forma clara e integrada</p>
+                <h3 className="font-semibold text-foreground text-sm">Organização Estratégica</h3>
+                <p className="text-muted-foreground text-xs">Estruture sua comunicação de forma clara e integrada</p>
               </div>
             </div>
-            <div className="flex items-start gap-4">
-              <div className="w-2 h-2 bg-secondary rounded-full mt-3"></div>
+            
+            <div className="flex items-center gap-4 p-4 bg-card/30 backdrop-blur-sm rounded-xl border border-secondary/20">
+              <div className="w-3 h-3 bg-secondary rounded-full"></div>
               <div>
-                <h3 className="font-semibold text-foreground mb-2">Segmentação por Personas</h3>
-                <p className="text-muted-foreground">Conteúdos personalizados para diferentes públicos</p>
+                <h3 className="font-semibold text-foreground text-sm">Segmentação por Personas</h3>
+                <p className="text-muted-foreground text-xs">Conteúdos personalizados para diferentes públicos</p>
               </div>
             </div>
-            <div className="flex items-start gap-4">
-              <div className="w-2 h-2 bg-accent rounded-full mt-3"></div>
+            
+            <div className="flex items-center gap-4 p-4 bg-card/30 backdrop-blur-sm rounded-xl border border-accent/20">
+              <div className="w-3 h-3 bg-accent rounded-full"></div>
               <div>
-                <h3 className="font-semibold text-foreground mb-2">Campanhas Completas</h3>
-                <p className="text-muted-foreground">Calendários completos, não apenas posts isolados</p>
+                <h3 className="font-semibold text-foreground text-sm">Campanhas Completas</h3>
+                <p className="text-muted-foreground text-xs">Calendários completos, não apenas posts isolados</p>
               </div>
             </div>
           </div>
