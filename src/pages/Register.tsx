@@ -332,16 +332,22 @@ const Register = () => {
                 />
               </div>
               
-              <div className="flex flex-col sm:grid sm:grid-cols-2 gap-4">
+               <div className="flex flex-col sm:grid sm:grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <Label htmlFor="state" className="text-muted-foreground text-xs">Estado</Label>
                   <Select value={formData.state} onValueChange={(value) => handleSelectChange('state', value)} disabled={loadingStates}>
-                    <SelectTrigger className="h-10 lg:h-11">
-                      {loadingStates ? 'Carregando...' : <SelectValue placeholder="Selecione" />}
+                    <SelectTrigger className="h-10 lg:h-11 disabled:opacity-50 disabled:cursor-wait">
+                      <SelectValue placeholder={loadingStates ? 'Carregando estados...' : 'Selecione o estado'} />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-background border border-border shadow-lg max-h-[200px]">
                       {states.map(state => (
-                        <SelectItem key={state.id} value={state.sigla}>{state.nome}</SelectItem>
+                        <SelectItem 
+                          key={state.id} 
+                          value={state.sigla}
+                          className="hover:bg-accent hover:text-accent-foreground cursor-pointer"
+                        >
+                          {state.nome}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -350,12 +356,24 @@ const Register = () => {
                 <div className="space-y-1">
                   <Label htmlFor="city" className="text-muted-foreground text-xs">Cidade</Label>
                   <Select value={formData.city} onValueChange={(value) => handleSelectChange('city', value)} disabled={!formData.state || loadingCities}>
-                    <SelectTrigger className="h-10 lg:h-11">
-                      {loadingCities ? 'Carregando...' : <SelectValue placeholder="Selecione" />}
+                    <SelectTrigger className="h-10 lg:h-11 disabled:opacity-50 disabled:cursor-wait">
+                      <SelectValue placeholder={
+                        !formData.state 
+                          ? 'Primeiro selecione o estado' 
+                          : loadingCities 
+                            ? 'Carregando cidades...' 
+                            : 'Selecione a cidade'
+                      } />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-background border border-border shadow-lg max-h-[200px]">
                       {cities.map(city => (
-                        <SelectItem key={city.id} value={city.nome}>{city.nome}</SelectItem>
+                        <SelectItem 
+                          key={city.id} 
+                          value={city.nome}
+                          className="hover:bg-accent hover:text-accent-foreground cursor-pointer"
+                        >
+                          {city.nome}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
