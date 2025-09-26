@@ -159,14 +159,14 @@ const Login = () => {
             <div className="grid grid-cols-2 gap-3 mb-6">
               <Button 
                 variant="outline" 
-                className="h-12 border-border/50 hover:bg-accent/5 transition-colors"
+                className="h-12 border-border/50 hover:bg-primary/5 hover:border-primary/30 hover:text-primary transition-all duration-200"
               >
                 <Chrome className="w-5 h-5 mr-2" />
                 Google
               </Button>
               <Button 
                 variant="outline" 
-                className="h-12 border-border/50 hover:bg-accent/5 transition-colors"
+                className="h-12 border-border/50 hover:bg-secondary/5 hover:border-secondary/30 hover:text-secondary transition-all duration-200"
               >
                 <Facebook className="w-5 h-5 mr-2" />
                 Facebook
