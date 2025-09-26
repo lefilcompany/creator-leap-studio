@@ -182,7 +182,7 @@ const Dashboard = () => {
             <CardContent className="space-y-5">
               {quickActions.map((action, index) => (
                 <Card key={index} className="hover:bg-muted/50 hover:shadow-md transition-all duration-200 cursor-pointer hover-scale">
-                  <CardContent className="p-4 flex items-center gap-7">
+                  <CardContent className="p-4 flex items-center gap-8">
                     <div className="flex-shrink-0 bg-accent/10 text-accent rounded-lg p-2">
                       <action.icon className="h-6 w-6" />
                     </div>
