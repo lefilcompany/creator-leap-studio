@@ -1,77 +1,278 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Tag, Plus, Search, Edit, Trash2, Calendar } from "lucide-react";
+import { Tag, Plus, Search } from "lucide-react";
+import { toast } from 'sonner';
+import type { Brand, BrandSummary, MoodboardFile, ColorItem } from '@/types/brand';
+import { useAuth } from '@/hooks/useAuth';
+import BrandList from '@/components/marcas/BrandList';
+import BrandDetails from '@/components/marcas/BrandDetails';
+import BrandDialog from '@/components/marcas/BrandDialog';
 
 const Brands = () => {
-  const [selectedBrand, setSelectedBrand] = useState("acucar-petribu");
+  const [brands, setBrands] = useState<BrandSummary[]>([]);
+  const [selectedBrand, setSelectedBrand] = useState<Brand | null>(null);
+  const [selectedBrandSummary, setSelectedBrandSummary] = useState<BrandSummary | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingDetails, setIsLoadingDetails] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [brandToEdit, setBrandToEdit] = useState<Brand | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const { user } = useAuth();
 
-  const brands = [
+  // Mock data for demonstration
+  const mockBrands: BrandSummary[] = [
     {
       id: "acucar-petribu",
-      name: "Açúcar Petribu",
+      name: "Açúcar Petribu", 
       responsible: "copy@lefil.com.br",
-      createdAt: "02/09/2025",
-      segment: "Alimentício / Confeitaria / Doméstico / Açúcares",
-      values: "Sabor, Tradição, Memória, Afeto, Família, Doçura, Regionalidade, Conexão.",
-      keywords: "Sabor, Tradição, Afeto, Família, Açúcar, Saudável.",
-      goals: "Fortalecer a conexão emocional com os consumidores, Valorizar a tradição e o sabor regional, Inspirar o uso do açúcar em receitas afetivas, Reforçar a presença da marca no dia a dia das famílias, Engajar com",
-      avatar: "A"
+      createdAt: "2025-09-02T10:00:00.000Z",
+      updatedAt: "2025-09-02T10:00:00.000Z"
     },
     {
-      id: "ceramica-brennand", 
+      id: "ceramica-brennand",
       name: "Cerâmica Brennand",
-      responsible: "julia.lima@lefil.com.br",
-      createdAt: "18/09/2025",
-      avatar: "C"
+      responsible: "julia.lima@lefil.com.br", 
+      createdAt: "2025-09-18T10:00:00.000Z",
+      updatedAt: "2025-09-18T10:00:00.000Z"
     },
     {
       id: "escola-marketing",
-      name: "Escola de Marketing do Futuro", 
+      name: "Escola de Marketing do Futuro",
       responsible: "thalles.silva.ext@lefil.com.br",
-      createdAt: "03/09/2025",
-      avatar: "E"
+      createdAt: "2025-09-03T10:00:00.000Z",
+      updatedAt: "2025-09-03T10:00:00.000Z"
     },
     {
       id: "grupo-cornelio",
       name: "Grupo Cornélio Brennand",
-      responsible: "copy@lefil.com.br", 
-      createdAt: "02/09/2025",
-      avatar: "G"
+      responsible: "copy@lefil.com.br",
+      createdAt: "2025-09-02T10:00:00.000Z", 
+      updatedAt: "2025-09-02T10:00:00.000Z"
     },
     {
       id: "iclub",
       name: "Iclub",
       responsible: "marianna.monteiro.ext@lefil.com.br",
-      createdAt: "08/09/2025", 
-      avatar: "I"
+      createdAt: "2025-09-08T10:00:00.000Z",
+      updatedAt: "2025-09-08T10:00:00.000Z"
     },
     {
-      id: "juq",
+      id: "juq", 
       name: "JUQ",
       responsible: "copy@lefil.com.br",
-      createdAt: "11/09/2025",
-      avatar: "J"
+      createdAt: "2025-09-11T10:00:00.000Z",
+      updatedAt: "2025-09-11T10:00:00.000Z"
     }
   ];
 
-  const selectedBrandData = brands.find(b => b.id === selectedBrand) || brands[0];
+  const mockFullBrand: Brand = {
+    id: "acucar-petribu",
+    name: "Açúcar Petribu",
+    responsible: "copy@lefil.com.br", 
+    segment: "Alimentício / Confeitaria / Doméstico / Açúcares",
+    values: "Sabor, Tradição, Memória, Afeto, Família, Doçura, Regionalidade, Conexão.",
+    keywords: "Sabor, Tradição, Afeto, Família, Açúcar, Saudável.",
+    goals: "Fortalecer a conexão emocional com os consumidores, Valorizar a tradição e o sabor regional, Inspirar o uso do açúcar em receitas afetivas, Reforçar a presença da marca no dia a dia das famílias.",
+    inspirations: "Marcas que valorizam tradição e família, como Nestle e Vigor.",
+    successMetrics: "Aumento de 20% nas vendas, 15% de crescimento no engajamento digital.",
+    references: "Posts no Instagram que mostram receitas caseiras e momentos em família.",
+    specialDates: "Festa Junina, Natal, Dia das Mães, aniversários familiares.",
+    promise: "O açúcar que adoça as memórias e fortalece os laços familiares.",
+    crisisInfo: "Possível crise relacionada a questões de saúde e consumo de açúcar.",
+    milestones: "Empresa familiar fundada há 50 anos, líder regional em açúcar refinado.",
+    collaborations: "Parcerias com chefs locais e influenciadores de culinária.",
+    restrictions: "Evitar associações diretas com problemas de saúde, não usar imagens de pessoas obesas.",
+    moodboard: null,
+    logo: null,
+    referenceImage: null,
+    colorPalette: [
+      {
+        id: "1",
+        name: "Azul Petribu", 
+        hex: "#1e40af",
+        rgb: { r: 30, g: 64, b: 175 }
+      },
+      {
+        id: "2",
+        name: "Branco Açúcar",
+        hex: "#ffffff", 
+        rgb: { r: 255, g: 255, b: 255 }
+      }
+    ],
+    createdAt: "2025-09-02T10:00:00.000Z",
+    updatedAt: "2025-09-02T10:00:00.000Z",
+    teamId: "team-1",
+    userId: "1"
+  };
+
+  useEffect(() => {
+    loadBrands();
+  }, []);
+
+  const loadBrands = async () => {
+    setIsLoading(true);
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 800));
+      setBrands(mockBrands);
+      
+      // Select first brand by default
+      if (mockBrands.length > 0) {
+        handleSelectBrand(mockBrands[0]);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar marcas:', error);
+      toast.error('Erro ao carregar marcas');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSelectBrand = async (brandSummary: BrandSummary) => {
+    setSelectedBrandSummary(brandSummary);
+    setIsLoadingDetails(true);
+    
+    try {
+      // Simulate API call to get full brand details
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Mock: return different data based on selected brand
+      const fullBrand = {
+        ...mockFullBrand,
+        id: brandSummary.id,
+        name: brandSummary.name,
+        responsible: brandSummary.responsible,
+        createdAt: brandSummary.createdAt,
+        updatedAt: brandSummary.updatedAt
+      };
+      
+      setSelectedBrand(fullBrand);
+    } catch (error) {
+      console.error('Erro ao carregar detalhes da marca:', error);
+      toast.error('Erro ao carregar detalhes da marca');
+    } finally {
+      setIsLoadingDetails(false);
+    }
+  };
+
+  const handleCreateBrand = () => {
+    setBrandToEdit(null);
+    setIsDialogOpen(true);
+  };
+
+  const handleEditBrand = (brand: Brand) => {
+    setBrandToEdit(brand);
+    setIsDialogOpen(true);
+  };
+
+  const handleSaveBrand = async (formData: Omit<Brand, 'id' | 'createdAt' | 'updatedAt' | 'teamId' | 'userId'>) => {
+    try {
+      setIsLoading(true);
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      if (brandToEdit) {
+        // Update existing brand
+        const updatedBrand: Brand = {
+          ...brandToEdit,
+          ...formData,
+          updatedAt: new Date().toISOString()
+        };
+        
+        setBrands(prev => prev.map(b => 
+          b.id === brandToEdit.id 
+            ? { ...b, name: formData.name, responsible: formData.responsible, updatedAt: updatedBrand.updatedAt }
+            : b
+        ));
+        
+        if (selectedBrand?.id === brandToEdit.id) {
+          setSelectedBrand(updatedBrand);
+        }
+        
+        toast.success('Marca atualizada com sucesso!');
+      } else {
+        // Create new brand
+        const newBrand: Brand = {
+          ...formData,
+          id: `brand-${Date.now()}`,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          teamId: user?.teamId || 'team-1',
+          userId: user?.id || '1'
+        };
+        
+        const newBrandSummary: BrandSummary = {
+          id: newBrand.id,
+          name: newBrand.name,
+          responsible: newBrand.responsible,
+          createdAt: newBrand.createdAt,
+          updatedAt: newBrand.updatedAt
+        };
+        
+        setBrands(prev => [...prev, newBrandSummary]);
+        toast.success('Marca criada com sucesso!');
+      }
+      
+      setIsDialogOpen(false);
+      setBrandToEdit(null);
+    } catch (error) {
+      console.error('Erro ao salvar marca:', error);
+      toast.error('Erro ao salvar marca');
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteBrand = async () => {
+    if (!selectedBrand) return;
+    
+    try {
+      setIsLoading(true);
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      setBrands(prev => prev.filter(b => b.id !== selectedBrand.id));
+      setSelectedBrand(null);
+      setSelectedBrandSummary(null);
+      
+      // Select first remaining brand if any
+      const remainingBrands = brands.filter(b => b.id !== selectedBrand.id);
+      if (remainingBrands.length > 0) {
+        handleSelectBrand(remainingBrands[0]);
+      }
+      
+      toast.success('Marca deletada com sucesso!');
+    } catch (error) {
+      console.error('Erro ao deletar marca:', error);
+      toast.error('Erro ao deletar marca');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const filteredBrands = brands?.filter(brand =>
+    brand.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    brand.responsible.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
-    <div className="p-6">
+    <div className="p-4 md:p-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3 bg-pink-50 px-4 py-3 rounded-lg">
-          <Tag className="w-5 h-5 text-pink-600" />
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <div className="flex items-center gap-3 bg-gradient-to-r from-pink-50 to-purple-50 dark:from-pink-950/20 dark:to-purple-950/20 px-4 py-3 rounded-xl border border-pink-200 dark:border-pink-800">
+          <Tag className="w-5 h-5 text-pink-600 dark:text-pink-400" />
           <div>
-            <h1 className="text-xl font-semibold">Suas Marcas</h1>
+            <h1 className="text-xl font-semibold text-foreground">Suas Marcas</h1>
             <p className="text-sm text-muted-foreground">Gerencie, edite ou crie novas marcas para seus projetos.</p>
           </div>
         </div>
         
-        <Button className="creator-button-primary">
+        <Button onClick={handleCreateBrand} className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300">
           <Plus className="w-4 h-4 mr-2" />
           Nova marca
         </Button>
@@ -79,109 +280,45 @@ const Brands = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Brands List */}
-        <Card className="lg:col-span-2 creator-card">
-          <CardHeader>
-            <CardTitle>Todas as marcas</CardTitle>
+        <Card className="lg:col-span-2 border-2 border-primary/10 shadow-sm bg-card/50 backdrop-blur-sm">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-xl font-semibold text-foreground">Todas as marcas</CardTitle>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input placeholder="Buscar marcas..." className="pl-10" />
+              <Input 
+                placeholder="Buscar marcas..." 
+                className="pl-10 border-border/50 focus:border-primary/50 bg-background/50" 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
             </div>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {brands.map((brand) => (
-              <div 
-                key={brand.id}
-                onClick={() => setSelectedBrand(brand.id)}
-                className={`flex items-center justify-between p-4 rounded-lg border cursor-pointer transition-colors ${
-                  selectedBrand === brand.id 
-                    ? 'border-primary bg-primary/5' 
-                    : 'border-border hover:bg-muted'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-semibold">
-                    {brand.avatar}
-                  </div>
-                  <div>
-                    <h3 className="font-medium">{brand.name}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Responsável: {brand.responsible}
-                    </p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-xs text-muted-foreground">Criado em: {brand.createdAt}</p>
-                </div>
-              </div>
-            ))}
+          <CardContent className="pt-0">
+            <BrandList
+              brands={filteredBrands}
+              selectedBrand={selectedBrandSummary}
+              onSelectBrand={handleSelectBrand}
+              isLoading={isLoading}
+            />
           </CardContent>
         </Card>
 
         {/* Brand Details */}
-        <Card className="creator-card">
-          <CardHeader>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-bold text-lg">
-                {selectedBrandData.avatar}
-              </div>
-              <div>
-                <CardTitle className="text-lg">{selectedBrandData.name}</CardTitle>
-                <CardDescription>
-                  Responsável: {selectedBrandData.responsible}
-                </CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {selectedBrandData.segment && (
-              <div>
-                <h4 className="font-medium text-sm mb-2">Segmento</h4>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {selectedBrandData.segment}
-                </p>
-              </div>
-            )}
-
-            {selectedBrandData.values && (
-              <div>
-                <h4 className="font-medium text-sm mb-2">Valores</h4>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {selectedBrandData.values}
-                </p>
-              </div>
-            )}
-
-            {selectedBrandData.keywords && (
-              <div>
-                <h4 className="font-medium text-sm mb-2">Palavras-Chave</h4>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {selectedBrandData.keywords}
-                </p>
-              </div>
-            )}
-
-            {selectedBrandData.goals && (
-              <div>
-                <h4 className="font-medium text-sm mb-2">Metas do Negócio</h4>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {selectedBrandData.goals}
-                </p>
-              </div>
-            )}
-
-            <div className="pt-4 border-t">
-              <Button variant="outline" className="w-full mb-2">
-                <Trash2 className="w-4 h-4 mr-2" />
-                Deletar
-              </Button>
-              <Button className="w-full creator-button-primary">
-                <Edit className="w-4 h-4 mr-2" />
-                Editar marca
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <BrandDetails
+          brand={selectedBrand}
+          onEdit={handleEditBrand}
+          onDelete={handleDeleteBrand}
+          isLoading={isLoadingDetails}
+        />
       </div>
+
+      {/* Brand Dialog */}
+      <BrandDialog
+        isOpen={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        onSave={handleSaveBrand}
+        brandToEdit={brandToEdit}
+      />
     </div>
   );
 };
