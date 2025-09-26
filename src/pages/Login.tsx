@@ -34,8 +34,8 @@ const Login = () => {
           {/* Logo */}
           <div className="text-center mb-8">
             <CreatorLogo className="justify-center mb-6" />
-            <h1 className="text-2xl font-bold text-foreground mb-2">Bem-vindo de volta</h1>
-            <p className="text-muted-foreground">Entre na sua conta para continuar</p>
+            <h1 className="text-2xl font-bold text-foreground mb-2">Crie Mais. Pense Menos.</h1>
+            <p className="text-muted-foreground">Transforme suas ideias em conteúdo com IA</p>
           </div>
 
           {/* Login form */}

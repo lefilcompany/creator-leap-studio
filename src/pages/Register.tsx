@@ -48,8 +48,8 @@ const Register = () => {
           {/* Logo and header */}
           <div className="text-center mb-8">
             <CreatorLogo className="justify-center mb-6" />
-            <h1 className="text-2xl font-bold text-foreground mb-2">Crie sua conta</h1>
-            <p className="text-muted-foreground">Comece sua jornada conosco hoje</p>
+            <h1 className="text-2xl font-bold text-foreground mb-2">Acelere Seu Marketing.</h1>
+            <p className="text-muted-foreground">Crie, revise e planeje conteúdo inteligente em minutos</p>
           </div>
 
           {/* Registration form */}
