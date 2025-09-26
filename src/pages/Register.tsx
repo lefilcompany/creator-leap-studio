@@ -207,50 +207,36 @@ const Register = () => {
         </div>
 
         {/* Right side - Register form */}
-        <div className="w-full lg:w-1/2 flex items-center justify-center p-8 relative">
+        <div className="w-full lg:w-1/2 flex items-center justify-center p-4 lg:p-6 relative min-h-screen lg:min-h-0">
           {/* Mobile header */}
-          <div className="lg:hidden absolute top-8 left-8">
+          <div className="lg:hidden absolute top-4 left-4">
             <CreatorLogo />
           </div>
 
           {/* Register card */}
-          <div className="w-full max-w-md">
-            <div className="bg-card/90 backdrop-blur-xl border border-border/50 rounded-2xl shadow-2xl p-8">
-              {/* Mobile title */}
-              <div className="lg:hidden text-center mb-8">
-                <h1 className="text-2xl font-bold text-foreground mb-2">Creator</h1>
-                <p className="text-muted-foreground">Crie sua conta e comece a transformar ideias em conteúdo</p>
+          <div className="w-full max-w-md mt-16 lg:mt-0">
+            <div className="bg-card/90 backdrop-blur-xl border border-border/50 rounded-2xl shadow-2xl p-4 lg:p-6">
+              {/* Title */}
+              <div className="text-center mb-4 lg:mb-6">
+                <h2 className="text-xl lg:text-2xl font-bold text-foreground mb-2">Crie sua Conta</h2>
+                <p className="text-muted-foreground text-sm">É rápido e fácil. Vamos começar!</p>
               </div>
 
-              {/* Desktop title */}
-              <div className="hidden lg:block text-center mb-8">
-                <h2 className="text-2xl font-bold text-foreground mb-2">Crie sua Conta</h2>
-                <p className="text-muted-foreground">É rápido e fácil. Vamos começar!</p>
-              </div>
-
-              {/* Título mobile mais compacto */}
-              <div className="text-center lg:hidden">
-                <h1 className="text-2xl font-bold text-foreground mb-2">Crie sua Conta</h1>
-                <p className="text-muted-foreground text-sm">
-                  É rápido e fácil. Vamos começar!
-                </p>
-              </div>
-
-            <form onSubmit={handleRegister} className="space-y-4 lg:space-y-5">
+            <form onSubmit={handleRegister} className="space-y-3 lg:space-y-4">
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input 
                   id="name" 
                   placeholder="Nome Completo" 
                   required 
                   value={formData.name} 
                   onChange={handleInputChange} 
-                  className="pl-10 h-12" 
+                  className="pl-10 h-10 lg:h-11" 
                 />
               </div>
               
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input 
                   id="email" 
                   type="email" 
@@ -258,14 +244,14 @@ const Register = () => {
                   required 
                   value={formData.email} 
                   onChange={handleInputChange} 
-                  className="pl-10 h-12" 
+                  className="pl-10 h-10 lg:h-11" 
                 />
               </div>
               
               {/* Campos de senha lado a lado no desktop, empilhados no mobile */}
               <div className="flex flex-col sm:grid sm:grid-cols-2 gap-4">
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input 
                     id="password" 
                     type={showPassword ? 'text' : 'password'} 
@@ -274,21 +260,21 @@ const Register = () => {
                     minLength={6} 
                     value={formData.password} 
                     onChange={handleInputChange} 
-                    className="pl-10 pr-12 h-12" 
+                    className="pl-10 pr-10 h-10 lg:h-11" 
                   />
                   <Button 
                     type="button"
                     variant="ghost" 
                     size="icon" 
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8" 
+                    className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8" 
                     onClick={() => setShowPassword(!showPassword)}
                   >
-                    {showPassword ? <EyeOff className="h-4 w-4"/> : <Eye className="h-4 w-4"/>}
+                    {showPassword ? <EyeOff className="h-3 w-3"/> : <Eye className="h-3 w-3"/>}
                   </Button>
                 </div>
                 
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input 
                     id="confirmPassword" 
                     type={showPassword ? 'text' : 'password'} 
@@ -296,7 +282,7 @@ const Register = () => {
                     required 
                     value={confirmPassword} 
                     onChange={(e) => setConfirmPassword(e.target.value)} 
-                    className="pl-10 h-12" 
+                    className="pl-10 h-10 lg:h-11" 
                   />
                 </div>
               </div>
@@ -334,23 +320,23 @@ const Register = () => {
               )}
               
               <div className="relative">
-                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input 
                   id="phone" 
                   type="tel" 
                   placeholder="(XX) XXXXX-XXXX" 
                   value={formData.phone} 
                   onChange={handleInputChange} 
-                  className="pl-10 h-12" 
+                  className="pl-10 h-10 lg:h-11" 
                   maxLength={15} 
                 />
               </div>
               
               <div className="flex flex-col sm:grid sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <Label htmlFor="state" className="text-muted-foreground text-xs">Estado</Label>
                   <Select value={formData.state} onValueChange={(value) => handleSelectChange('state', value)} disabled={loadingStates}>
-                    <SelectTrigger className="h-12">
+                    <SelectTrigger className="h-10 lg:h-11">
                       {loadingStates ? 'Carregando...' : <SelectValue placeholder="Selecione" />}
                     </SelectTrigger>
                     <SelectContent>
@@ -361,10 +347,10 @@ const Register = () => {
                   </Select>
                 </div>
                 
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <Label htmlFor="city" className="text-muted-foreground text-xs">Cidade</Label>
                   <Select value={formData.city} onValueChange={(value) => handleSelectChange('city', value)} disabled={!formData.state || loadingCities}>
-                    <SelectTrigger className="h-12">
+                    <SelectTrigger className="h-10 lg:h-11">
                       {loadingCities ? 'Carregando...' : <SelectValue placeholder="Selecione" />}
                     </SelectTrigger>
                     <SelectContent>
@@ -403,7 +389,7 @@ const Register = () => {
               
               <Button 
                 type="submit" 
-                className="w-full h-12 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-medium rounded-xl transition-all duration-300 transform hover:scale-[1.02]"
+                className="w-full h-10 lg:h-11 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-medium rounded-xl transition-all duration-300 transform hover:scale-[1.02]"
                 disabled={
                   isLoading ||
                   !formData.name ||
@@ -414,7 +400,7 @@ const Register = () => {
                   !privacyAccepted
                 }
               >
-                {isLoading ? <Loader2 className="animate-spin" /> : 'CRIAR CONTA'}
+                {isLoading ? <Loader2 className="animate-spin h-4 w-4" /> : 'CRIAR CONTA'}
               </Button>
             </form>
             
