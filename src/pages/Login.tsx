@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { CreatorLogo } from "@/components/CreatorLogo";
-import { Eye, EyeOff, Chrome, Facebook } from "lucide-react";
+import { Eye, EyeOff, Chrome, Facebook, Mail, Lock } from "lucide-react";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -44,14 +44,18 @@ const Login = () => {
               <Label htmlFor="email" className="text-sm font-medium text-foreground">
                 E-mail
               </Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="E-mail"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="h-12 bg-background/50 border-border/50 focus:border-primary transition-colors"
-              />
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="E-mail"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="pl-10 h-12 bg-background/50 border-border/50 focus:border-primary transition-colors"
+                />
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -59,21 +63,19 @@ const Login = () => {
                 Senha
               </Label>
               <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="Senha"
+                  required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="h-12 bg-background/50 border-border/50 focus:border-primary transition-colors pr-12"
+                  className="pl-10 pr-10 h-12 bg-background/50 border-border/50 focus:border-primary transition-colors"
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
+                <Button type="button" variant="ghost" size="icon" className="absolute top-1/2 -translate-y-1/2 right-1 h-10 w-10 text-muted-foreground" onClick={() => setShowPassword(!showPassword)}>
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </Button>
               </div>
             </div>
 

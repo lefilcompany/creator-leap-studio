@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CreatorLogo } from "@/components/CreatorLogo";
-import { Eye, EyeOff, User, Mail, Phone, MapPin } from "lucide-react";
+import { Eye, EyeOff, User, Mail, Phone, MapPin, Lock } from "lucide-react";
 
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -59,14 +59,14 @@ const Register = () => {
                 Nome Completo
               </Label>
               <div className="relative">
-                <User className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
                   id="name"
                   type="text"
                   placeholder="Seu nome completo"
                   value={formData.name}
                   onChange={(e) => updateFormData("name", e.target.value)}
-                  className="h-12 pl-12 bg-background/50 border-border/50 focus:border-primary transition-colors"
+                  className="pl-10 h-12 bg-background/50 border-border/50 focus:border-primary transition-colors"
                 />
               </div>
             </div>
@@ -76,14 +76,14 @@ const Register = () => {
                 E-mail
               </Label>
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
                   id="email"
                   type="email"
                   placeholder="seu@email.com"
                   value={formData.email}
                   onChange={(e) => updateFormData("email", e.target.value)}
-                  className="h-12 pl-12 bg-background/50 border-border/50 focus:border-primary transition-colors"
+                  className="pl-10 h-12 bg-background/50 border-border/50 focus:border-primary transition-colors"
                 />
               </div>
             </div>
@@ -94,21 +94,18 @@ const Register = () => {
                   Senha
                 </Label>
                 <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
                     value={formData.password}
                     onChange={(e) => updateFormData("password", e.target.value)}
-                    className="h-12 bg-background/50 border-border/50 focus:border-primary transition-colors pr-12"
+                    className="pl-10 pr-10 h-12 bg-background/50 border-border/50 focus:border-primary transition-colors"
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
+                  <Button type="button" variant="ghost" size="icon" className="absolute top-1/2 -translate-y-1/2 right-1 h-10 w-10 text-muted-foreground" onClick={() => setShowPassword(!showPassword)}>
+                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </Button>
                 </div>
               </div>
 
@@ -117,21 +114,18 @@ const Register = () => {
                   Confirmar Senha
                 </Label>
                 <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <Input
                     id="confirmPassword"
                     type={showConfirmPassword ? "text" : "password"}
                     placeholder="••••••••"
                     value={formData.confirmPassword}
                     onChange={(e) => updateFormData("confirmPassword", e.target.value)}
-                    className="h-12 bg-background/50 border-border/50 focus:border-primary transition-colors pr-12"
+                    className="pl-10 pr-10 h-12 bg-background/50 border-border/50 focus:border-primary transition-colors"
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
+                  <Button type="button" variant="ghost" size="icon" className="absolute top-1/2 -translate-y-1/2 right-1 h-10 w-10 text-muted-foreground" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+                    {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </Button>
                 </div>
               </div>
             </div>
@@ -158,14 +152,14 @@ const Register = () => {
                 Telefone
               </Label>
               <div className="relative">
-                <Phone className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
                   id="phone"
                   type="tel"
                   placeholder="(XX) XXXXX-XXXX"
                   value={formData.phone}
                   onChange={(e) => updateFormData("phone", e.target.value)}
-                  className="h-12 pl-12 bg-background/50 border-border/50 focus:border-primary transition-colors"
+                  className="pl-10 h-12 bg-background/50 border-border/50 focus:border-primary transition-colors"
                 />
               </div>
             </div>
