@@ -20,11 +20,13 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 flex">
+    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 flex relative">
+      {/* Background gradient for entire screen */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20"></div>
+      
       {/* Left side - Marketing content */}
       <div className="hidden lg:flex lg:w-1/2 flex-col justify-center px-12 relative overflow-hidden">
         {/* Decorative elements */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20"></div>
         <div className="absolute top-1/4 left-10 w-64 h-64 bg-primary/10 rounded-full blur-3xl"></div>
         <div className="absolute bottom-1/4 right-10 w-64 h-64 bg-secondary/10 rounded-full blur-3xl"></div>
         
