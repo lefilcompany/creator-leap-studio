@@ -45,28 +45,28 @@ const Login = () => {
             </p>
           </div>
           
-          <div className="space-y-3">
-            <div className="flex items-start gap-3 p-4 bg-card/30 backdrop-blur-sm rounded-xl border border-primary/20 transition-all duration-300 hover:bg-card/40 hover:border-primary/30">
-              <div className="w-3 h-3 bg-primary rounded-full mt-1 flex-shrink-0"></div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-foreground text-sm mb-1">Organização Estratégica</h3>
-                <p className="text-muted-foreground text-xs leading-relaxed">Estruture sua comunicação de forma clara e integrada</p>
+          <div className="space-y-4">
+            <div className="flex items-center gap-4 p-4 bg-card/30 backdrop-blur-sm rounded-xl border border-primary/20">
+              <div className="w-3 h-3 bg-primary rounded-full"></div>
+              <div>
+                <h3 className="font-semibold text-foreground text-sm">Organização Estratégica</h3>
+                <p className="text-muted-foreground text-xs">Estruture sua comunicação de forma clara e integrada</p>
               </div>
             </div>
             
-            <div className="flex items-start gap-3 p-4 bg-card/30 backdrop-blur-sm rounded-xl border border-secondary/20 transition-all duration-300 hover:bg-card/40 hover:border-secondary/30">
-              <div className="w-3 h-3 bg-secondary rounded-full mt-1 flex-shrink-0"></div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-foreground text-sm mb-1">Segmentação por Personas</h3>
-                <p className="text-muted-foreground text-xs leading-relaxed">Conteúdos personalizados para diferentes públicos</p>
+            <div className="flex items-center gap-4 p-4 bg-card/30 backdrop-blur-sm rounded-xl border border-secondary/20">
+              <div className="w-3 h-3 bg-secondary rounded-full"></div>
+              <div>
+                <h3 className="font-semibold text-foreground text-sm">Segmentação por Personas</h3>
+                <p className="text-muted-foreground text-xs">Conteúdos personalizados para diferentes públicos</p>
               </div>
             </div>
             
-            <div className="flex items-start gap-3 p-4 bg-card/30 backdrop-blur-sm rounded-xl border border-accent/20 transition-all duration-300 hover:bg-card/40 hover:border-accent/30">
-              <div className="w-3 h-3 bg-accent rounded-full mt-1 flex-shrink-0"></div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-foreground text-sm mb-1">Campanhas Completas</h3>
-                <p className="text-muted-foreground text-xs leading-relaxed">Calendários completos, não apenas posts isolados</p>
+            <div className="flex items-center gap-4 p-4 bg-card/30 backdrop-blur-sm rounded-xl border border-accent/20">
+              <div className="w-3 h-3 bg-accent rounded-full"></div>
+              <div>
+                <h3 className="font-semibold text-foreground text-sm">Campanhas Completas</h3>
+                <p className="text-muted-foreground text-xs">Calendários completos, não apenas posts isolados</p>
               </div>
             </div>
           </div>
