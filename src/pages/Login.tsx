@@ -26,47 +26,42 @@ const Login = () => {
       <div className="absolute inset-0 bg-gradient-to-tl from-secondary/10 via-transparent to-accent/15 opacity-70"></div>
       
       {/* Left side - Marketing content */}
-      <div className="hidden lg:flex lg:w-3/5 xl:w-1/2 flex-col justify-center px-8 xl:px-12 relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 flex-col justify-center px-12 relative overflow-hidden">
         {/* Decorative elements */}
-        <div className="absolute top-1/4 left-4 w-48 h-48 bg-primary/20 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-1/4 right-4 w-48 h-48 bg-secondary/20 rounded-full blur-3xl"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-accent/30 rounded-full blur-2xl"></div>
+        <div className="absolute top-1/4 left-10 w-64 h-64 bg-primary/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-1/4 right-10 w-64 h-64 bg-secondary/10 rounded-full blur-3xl"></div>
         
-        <div className="relative z-10 max-w-lg">
-          <CreatorLogo className="mb-6" />
-          <div className="mb-8">
-            <h1 className="text-3xl lg:text-4xl font-bold text-foreground mb-4 leading-tight">
-              IA para planejar e criar<br />
-              conteúdo estratégico
-            </h1>
-            <p className="text-lg text-muted-foreground leading-relaxed">
-              Organize sua comunicação em torno de<br />
-              Equipes, Marcas, Temas e Personas
-            </p>
-          </div>
+        <div className="relative z-10">
+          <CreatorLogo className="mb-8" />
+          <h1 className="text-4xl font-bold text-foreground mb-6 leading-tight">
+            IA para planejar e criar<br />
+            conteúdo estratégico
+          </h1>
+          <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
+            Organize sua comunicação em torno de<br />
+            Equipes, Marcas, Temas e Personas
+          </p>
           
-          <div className="space-y-4">
-            <div className="flex items-center gap-4 p-4 bg-card/30 backdrop-blur-sm rounded-xl border border-primary/20">
-              <div className="w-3 h-3 bg-primary rounded-full"></div>
+          <div className="space-y-6">
+            <div className="flex items-start gap-4">
+              <div className="w-2 h-2 bg-primary rounded-full mt-3"></div>
               <div>
-                <h3 className="font-semibold text-foreground text-sm">Organização Estratégica</h3>
-                <p className="text-muted-foreground text-xs">Estruture sua comunicação de forma clara e integrada</p>
+                <h3 className="font-semibold text-foreground mb-2">Organização Estratégica</h3>
+                <p className="text-muted-foreground">Estruture sua comunicação de forma clara e integrada</p>
               </div>
             </div>
-            
-            <div className="flex items-center gap-4 p-4 bg-card/30 backdrop-blur-sm rounded-xl border border-secondary/20">
-              <div className="w-3 h-3 bg-secondary rounded-full"></div>
+            <div className="flex items-start gap-4">
+              <div className="w-2 h-2 bg-secondary rounded-full mt-3"></div>
               <div>
-                <h3 className="font-semibold text-foreground text-sm">Segmentação por Personas</h3>
-                <p className="text-muted-foreground text-xs">Conteúdos personalizados para diferentes públicos</p>
+                <h3 className="font-semibold text-foreground mb-2">Segmentação por Personas</h3>
+                <p className="text-muted-foreground">Conteúdos personalizados para diferentes públicos</p>
               </div>
             </div>
-            
-            <div className="flex items-center gap-4 p-4 bg-card/30 backdrop-blur-sm rounded-xl border border-accent/20">
-              <div className="w-3 h-3 bg-accent rounded-full"></div>
+            <div className="flex items-start gap-4">
+              <div className="w-2 h-2 bg-accent rounded-full mt-3"></div>
               <div>
-                <h3 className="font-semibold text-foreground text-sm">Campanhas Completas</h3>
-                <p className="text-muted-foreground text-xs">Calendários completos, não apenas posts isolados</p>
+                <h3 className="font-semibold text-foreground mb-2">Campanhas Completas</h3>
+                <p className="text-muted-foreground">Calendários completos, não apenas posts isolados</p>
               </div>
             </div>
           </div>
@@ -74,15 +69,15 @@ const Login = () => {
       </div>
 
       {/* Right side - Login form */}
-      <div className="w-full lg:w-2/5 xl:w-1/2 flex items-center justify-center p-6 lg:p-8 relative">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 relative">
         {/* Mobile header */}
         <div className="lg:hidden absolute top-8 left-8">
           <CreatorLogo />
         </div>
 
         {/* Login card */}
-        <div className="w-full max-w-sm lg:max-w-md">
-          <div className="bg-card/90 backdrop-blur-xl border border-border/50 rounded-2xl shadow-2xl p-6 lg:p-8">
+        <div className="w-full max-w-md">
+          <div className="bg-card/90 backdrop-blur-xl border border-border/50 rounded-2xl shadow-2xl p-8">
             {/* Mobile title */}
             <div className="lg:hidden text-center mb-8">
               <h1 className="text-2xl font-bold text-foreground mb-2">Creator</h1>
