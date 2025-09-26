@@ -67,7 +67,7 @@ const Login = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-10 pr-10 h-12 bg-background/50 border-border/50 focus:border-primary transition-colors"
                 />
-                <Button type="button" variant="ghost" size="icon" className="absolute top-1/2 -translate-y-1/2 right-1 h-10 w-10 text-muted-foreground hover:bg-accent/50" onClick={() => setShowPassword(!showPassword)}>
+                <Button type="button" variant="ghost" size="icon" className="absolute top-1/2 -translate-y-1/2 right-1 h-10 w-10 text-muted-foreground hover:bg-accent/60 hover:text-muted-foreground" onClick={() => setShowPassword(!showPassword)}>
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </Button>
               </div>
