@@ -34,12 +34,10 @@ const Login = () => {
         <div className="relative z-10">
           <CreatorLogo className="mb-8" />
           <h1 className="w-full text-4xl font-bold text-foreground mb-6 leading-tight">
-            IA para planejar e criar<br />
-            conteúdo estratégico
+            IA para planejar e criar conteúdo estratégico
           </h1>
           <p className="w-full text-xl text-muted-foreground mb-8 leading-relaxed">
-            Organize sua comunicação em torno de<br />
-            Equipes, Marcas, Temas e Personas
+            Organize sua comunicação em torno de Equipes, Marcas, Temas e Personas
           </p>
           
           <div className="space-y-4">
