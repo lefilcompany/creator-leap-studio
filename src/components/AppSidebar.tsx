@@ -31,30 +31,16 @@ const navLinks = [
   { id: "nav-historico", href: "/history", icon: History, label: "Histórico" },
 ];
 
-const contentAction = {
-  id: "nav-criar",
-  href: "/create",
-  icon: Sparkles,
-  label: "Criar Conteúdo",
-};
+const actionButtons = [
+    { id: "nav-criar", href: "/create", icon: Sparkles, label: "Criar Conteúdo", variant: "primary" as const },
+    { id: "nav-revisar", href: "/review", icon: CheckCircle, label: "Revisar Conteúdo", variant: "accent" as const },
+    { id: "nav-planejar", href: "/plan", icon: Calendar, label: "Planejar Conteúdo", variant: "secondary" as const },
+];
 
-const reviewAction = {
-  id: "nav-revisar",
-  href: "/review",
-  icon: CheckCircle,
-  label: "Revisar Conteúdo",
-};
-
-const planAction = {
-  id: "nav-planejar",
-  href: "/plan",
-  icon: Calendar,
-  label: "Planejar Conteúdo",
-};
 
 // --- COMPONENT DEFINITIONS ---
 
-// NavItem Unificado
+// NavItem Unificado (Sem alterações)
 function NavItem({ id, href, icon: Icon, label, collapsed }: { 
   id: string; 
   href: string; 
@@ -86,91 +72,50 @@ function NavItem({ id, href, icon: Icon, label, collapsed }: {
   );
 }
 
-// ContentAction Unificado
-function ContentAction({ id, href, icon: Icon, label, collapsed }: { 
-  id: string; 
-  href: string; 
-  icon: React.ElementType; 
-  label: string; 
-  collapsed: boolean;
+// NOVO COMPONENTE REATORADO: ActionButton
+function ActionButton({ id, href, icon: Icon, label, collapsed, variant }: {
+    id: string;
+    href: string;
+    icon: React.ElementType;
+    label: string;
+    collapsed: boolean;
+    variant: 'primary' | 'secondary' | 'accent';
 }) {
-  const location = useLocation();
-  const isActive = location.pathname === href;
+    const location = useLocation();
+    const isActive = location.pathname === href;
 
-  return (
-    <NavLink
-      id={id}
-      to={href}
-      className={cn(
-        "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300 ease-in-out transform hover:scale-105",
-        isActive
-          ? "bg-background border border-primary text-primary shadow-lg scale-105"
-          : "bg-primary text-primary-foreground hover:bg-primary/90"
-      )}
-    >
-      <Icon className="h-5 w-5 flex-shrink-0" />
-      {!collapsed && <span>{label}</span>}
-    </NavLink>
-  );
+    const variantClasses = {
+        primary: {
+            active: "bg-background border border-primary text-primary shadow-lg scale-105",
+            inactive: "bg-primary text-primary-foreground hover:bg-primary/90",
+        },
+        accent: {
+            active: "bg-background border border-accent text-accent shadow-lg scale-105",
+            inactive: "bg-accent text-accent-foreground hover:bg-accent/90",
+        },
+        secondary: {
+            active: "bg-background border border-secondary text-secondary shadow-lg scale-105",
+            inactive: "bg-secondary text-secondary-foreground hover:bg-secondary/90",
+        },
+    };
+
+    return (
+        <NavLink
+            id={id}
+            to={href}
+            className={cn(
+                "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300 ease-in-out transform hover:scale-105",
+                isActive ? variantClasses[variant].active : variantClasses[variant].inactive
+            )}
+        >
+            <Icon className="h-5 w-5 flex-shrink-0" />
+            {!collapsed && <span>{label}</span>}
+        </NavLink>
+    );
 }
 
-// ReviewAction Unificado
-function ReviewAction({ id, href, icon: Icon, label, collapsed }: { 
-  id: string; 
-  href: string; 
-  icon: React.ElementType; 
-  label: string; 
-  collapsed: boolean;
-}) {
-  const location = useLocation();
-  const isActive = location.pathname === href;
 
-  return (
-    <NavLink
-      id={id}
-      to={href}
-      className={cn(
-        "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300 ease-in-out transform hover:scale-105",
-        isActive
-          ? "bg-background border border-accent text-accent shadow-lg scale-105"
-          : "bg-accent text-accent-foreground hover:bg-accent/90"
-      )}
-    >
-      <Icon className="h-5 w-5 flex-shrink-0" />
-      {!collapsed && <span>{label}</span>}
-    </NavLink>
-  );
-}
-
-// PlanAction Unificado
-function PlanAction({ id, href, icon: Icon, label, collapsed }: { 
-  id: string; 
-  href: string; 
-  icon: React.ElementType; 
-  label: string; 
-  collapsed: boolean;
-}) {
-  const location = useLocation();
-  const isActive = location.pathname === href;
-
-  return (
-    <NavLink
-      id={id}
-      to={href}
-      className={cn(
-        "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300 ease-in-out transform hover:scale-105",
-        isActive
-          ? "bg-background border border-secondary text-secondary shadow-lg scale-105"
-          : "bg-secondary text-secondary-foreground hover:bg-secondary/90"
-      )}
-    >
-      <Icon className="h-5 w-5 flex-shrink-0" />
-      {!collapsed && <span>{label}</span>}
-    </NavLink>
-  );
-}
-
-// TeamPlanSection Unificada
+// TeamPlanSection Unificada (Sem alterações)
 function TeamPlanSection({ teamName, planName, collapsed }: { 
   teamName: string; 
   planName: string; 
@@ -208,7 +153,7 @@ export function AppSidebar() {
         </div>
       )}
       
-      {/* Navigation Items */}
+      {/* Conteúdo Principal da Sidebar */}
       <div className="p-4 flex-1 flex flex-col">
         <SidebarGroup>
           <SidebarGroupContent>
@@ -223,9 +168,9 @@ export function AppSidebar() {
         {/* Action Buttons */}
         {!collapsed && (
           <div className="space-y-3 mt-6">
-            <ContentAction {...contentAction} collapsed={collapsed} />
-            <ReviewAction {...reviewAction} collapsed={collapsed} />
-            <PlanAction {...planAction} collapsed={collapsed} />
+            {actionButtons.map((button) => (
+                <ActionButton key={button.id} {...button} collapsed={collapsed} />
+            ))}
           </div>
         )}
 
