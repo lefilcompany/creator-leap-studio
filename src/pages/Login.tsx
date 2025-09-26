@@ -20,13 +20,13 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 flex relative">
+    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 flex relative max-w-7xl mx-auto">
       {/* Background gradient for entire screen */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary/15 via-accent/10 via-secondary/15 to-primary/5"></div>
       <div className="absolute inset-0 bg-gradient-to-tl from-secondary/10 via-transparent to-accent/15 opacity-70"></div>
       
       {/* Left side - Marketing content */}
-      <div className="hidden lg:flex lg:w-1/2 flex-col justify-center px-12 relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-3/5 xl:w-1/2 flex-col justify-center px-8 xl:px-16 relative overflow-hidden">
         {/* Decorative elements */}
         <div className="absolute top-1/4 left-10 w-64 h-64 bg-primary/10 rounded-full blur-3xl"></div>
         <div className="absolute bottom-1/4 right-10 w-64 h-64 bg-secondary/10 rounded-full blur-3xl"></div>
@@ -69,15 +69,15 @@ const Login = () => {
       </div>
 
       {/* Right side - Login form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 relative">
+      <div className="w-full lg:w-2/5 xl:w-1/2 flex items-center justify-center p-6 lg:p-8 relative">
         {/* Mobile header */}
         <div className="lg:hidden absolute top-8 left-8">
           <CreatorLogo />
         </div>
 
         {/* Login card */}
-        <div className="w-full max-w-md">
-          <div className="bg-card/90 backdrop-blur-xl border border-border/50 rounded-2xl shadow-2xl p-8">
+        <div className="w-full max-w-sm lg:max-w-md">
+          <div className="bg-card/90 backdrop-blur-xl border border-border/50 rounded-2xl shadow-2xl p-6 lg:p-8">
             {/* Mobile title */}
             <div className="lg:hidden text-center mb-8">
               <h1 className="text-2xl font-bold text-foreground mb-2">Creator</h1>
