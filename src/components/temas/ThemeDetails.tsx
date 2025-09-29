@@ -76,7 +76,7 @@ export default function ThemeDetails({ theme, onEdit, onDelete, brands, isLoadin
   return (
     <div className="lg:col-span-1 max-h-[calc(100vh-16rem)] bg-card/80 backdrop-blur-sm p-6 rounded-2xl shadow-sm border-2 border-secondary/20 flex flex-col overflow-hidden">
       <div className="flex items-center mb-6 flex-shrink-0">
-        <div className="bg-gradient-to-br from-secondary to-primary text-white rounded-xl w-16 h-16 flex items-center justify-center font-bold text-xl mr-4 flex-shrink-0">
+        <div className="bg-gradient-to-br from-secondary to-primary text-white rounded-xl w-16 h-16 flex items-center justify-center font-bold text-sm mr-4 flex-shrink-0">
           {theme.title.charAt(0).toUpperCase()}
         </div>
         <div>
