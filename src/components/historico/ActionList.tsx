@@ -1,7 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Eye } from 'lucide-react';
+import { Loader2, Eye, Clock } from 'lucide-react';
 import type { ActionSummary } from '@/types/action';
 import { ACTION_TYPE_DISPLAY, ACTION_STYLE_MAP } from '@/types/action';
 import { cn } from '@/lib/utils';
@@ -48,18 +47,16 @@ const generatePagination = (currentPage: number, totalPages: number) => {
   return [1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages];
 };
 
-const ActionSkeleton = () => (
-  <div className="w-full text-left p-4 rounded-lg border-2 border-transparent bg-muted/50 flex items-center justify-between gap-4">
-    <div className="flex items-center overflow-hidden flex-1">
-      <Skeleton className="w-10 h-10 rounded-lg mr-4" />
-      <div className="overflow-hidden flex-1">
-        <Skeleton className="h-5 w-40 mb-2" />
-        <Skeleton className="h-4 w-32" />
-      </div>
+// Componente de loading profissional
+const LoadingState = () => (
+  <div className="flex flex-col items-center justify-center py-16 space-y-4">
+    <div className="relative">
+      <div className="w-16 h-16 border-4 border-secondary/20 rounded-full"></div>
+      <div className="absolute top-0 left-0 w-16 h-16 border-4 border-transparent border-t-secondary rounded-full animate-spin"></div>
     </div>
-    <div className="flex items-center gap-2 flex-shrink-0">
-      <Skeleton className="h-8 w-20" />
-      <Skeleton className="h-4 w-16 hidden md:block" />
+    <div className="text-center space-y-2">
+      <h3 className="text-lg font-semibold text-foreground">Carregando histórico</h3>
+      <p className="text-sm text-muted-foreground">Aguarde um momento...</p>
     </div>
   </div>
 );
@@ -102,15 +99,9 @@ export default function ActionList({
       
       <div className="overflow-y-auto pr-2 flex-1 min-h-0">
         {isLoading ? (
-          <ul className="space-y-3">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <li key={i}>
-                <ActionSkeleton />
-              </li>
-            ))}
-          </ul>
+          <LoadingState />
         ) : actions.length > 0 ? (
-          <ul className="space-y-3">
+          <ul className="space-y-3 animate-fade-in">
             {actions.map((action) => {
               const displayType = ACTION_TYPE_DISPLAY[action.type];
               const style = ACTION_STYLE_MAP[displayType];
@@ -120,7 +111,7 @@ export default function ActionList({
                   <button
                     onClick={() => onSelectAction(action)}
                     className={cn(
-                      "w-full text-left p-4 rounded-lg border-2 transition-all duration-200 flex items-center justify-between gap-4",
+                      "w-full text-left p-4 rounded-lg border-2 transition-all duration-200 flex items-center justify-between gap-4 hover-scale",
                       selectedAction?.id === action.id
                         ? "bg-primary/10 border-primary shadow-md"
                         : "bg-muted/50 border-transparent hover:border-border/60 hover:bg-muted"
@@ -155,8 +146,10 @@ export default function ActionList({
             })}
           </ul>
         ) : (
-          <div className="text-center text-muted-foreground p-8">
-            <p>Nenhuma ação encontrada para o(s) filtro(s) selecionado(s).</p>
+          <div className="text-center text-muted-foreground p-8 animate-fade-in">
+            <Clock className="h-12 w-12 mx-auto mb-3 opacity-50" />
+            <p className="text-base">Nenhuma ação encontrada para o(s) filtro(s) selecionado(s).</p>
+            <p className="text-sm mt-1 opacity-75">Tente ajustar os filtros ou criar novas ações.</p>
           </div>
         )}
       </div>
