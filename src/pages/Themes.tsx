@@ -340,23 +340,25 @@ export default function Themes() {
           )}
         </div>
         
-        {/* Mobile/Tablet Theme Details Drawer */}
-        {selectedThemeSummary && (
-          <ThemeDetails
-            theme={selectedTheme}
-            brands={brands}
-            onEdit={handleOpenDialog}
-            onDelete={handleDeleteTheme}
-            isLoading={isLoadingThemeDetails}
-            isOpen={!!selectedThemeSummary}
-            onOpenChange={(open) => {
-              if (!open) {
-                setSelectedTheme(null);
-                setSelectedThemeSummary(null);
-              }
-            }}
-          />
-        )}
+        {/* Mobile/Tablet Theme Details Drawer - Only render on smaller screens */}
+        <div className="xl:hidden">
+          {selectedThemeSummary && (
+            <ThemeDetails
+              theme={selectedTheme}
+              brands={brands}
+              onEdit={handleOpenDialog}
+              onDelete={handleDeleteTheme}
+              isLoading={isLoadingThemeDetails}
+              isOpen={!!selectedThemeSummary}
+              onOpenChange={(open) => {
+                if (!open) {
+                  setSelectedTheme(null);
+                  setSelectedThemeSummary(null);
+                }
+              }}
+            />
+          )}
+        </div>
       </main>
 
       <ThemeDialog
