@@ -80,7 +80,7 @@ export default function ThemeDetails({ theme, onEdit, onDelete, brands, isLoadin
           {theme.title.charAt(0).toUpperCase()}
         </div>
         <div>
-          <h2 className="text-base font-bold text-foreground break-words">{theme.title}</h2>
+          <h2 className="text-xl font-bold text-foreground break-words">{theme.title}</h2>
           <p className="text-md text-muted-foreground">Marca: {brandName}</p>
         </div>
       </div>
