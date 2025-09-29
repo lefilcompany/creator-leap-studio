@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Tag } from 'lucide-react';
+import { Plus, Tag, ChevronDown } from 'lucide-react';
 import BrandList from '@/components/marcas/BrandList';
 import BrandDetails from '@/components/marcas/BrandDetails';
 import BrandDialog from '@/components/marcas/BrandDialog';
@@ -300,13 +300,23 @@ export default function MarcasPage() {
       </Card>
 
       <main className={`grid gap-4 lg:gap-6 flex-1 min-h-0 overflow-hidden ${isMobile ? 'grid-cols-1' : 'grid-cols-1 xl:grid-cols-3'}`}>
-        <div className={`${isMobile ? 'col-span-1' : 'col-span-1 xl:col-span-2'}`}>
+        <div className={`${isMobile ? 'col-span-1' : 'col-span-1 xl:col-span-2'} relative`}>
           <BrandList
             brands={brands}
             selectedBrand={selectedBrandSummary}
             onSelectBrand={handleSelectBrand}
             isLoading={isLoadingBrands}
           />
+          
+          {/* Indicador de scroll para desktop */}
+          {!isMobile && selectedBrandSummary && (
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10 animate-fade-in">
+              <div className="bg-primary/90 text-primary-foreground px-3 py-2 rounded-full text-xs font-medium shadow-lg backdrop-blur-sm border border-primary/20 flex items-center gap-2 animate-pulse">
+                <span>Ver detalhes abaixo</span>
+                <ChevronDown className="h-3 w-3 animate-bounce" />
+              </div>
+            </div>
+          )}
         </div>
         {!isMobile && (
           <BrandDetails
