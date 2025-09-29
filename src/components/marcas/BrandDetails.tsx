@@ -12,16 +12,25 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/components/ui/drawer';
 // **NOVO:** Importando ícones adicionais
 import { Edit, Trash2, Tag, ExternalLink, FileDown, Palette } from 'lucide-react';
 import type { Brand, MoodboardFile, ColorItem } from '@/types/brand';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface BrandDetailsProps {
   brand: Brand | null;
   onEdit: (brand: Brand) => void;
   onDelete: () => void;
   isLoading?: boolean;
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 const formatDate = (dateString: string) => {
@@ -151,7 +160,8 @@ const ColorPaletteField = ({ colors }: { colors?: ColorItem[] | null }) => {
 };
 
 
-export default function BrandDetails({ brand, onEdit, onDelete, isLoading = false }: BrandDetailsProps) {
+export default function BrandDetails({ brand, onEdit, onDelete, isLoading = false, isOpen = false, onOpenChange }: BrandDetailsProps) {
+  const isMobile = useIsMobile();
   if (isLoading) {
     return (
       <div className="lg:col-span-1 h-full bg-card p-6 rounded-2xl border-2 border-secondary/20 flex flex-col animate-pulse">
@@ -184,9 +194,9 @@ export default function BrandDetails({ brand, onEdit, onDelete, isLoading = fals
 
   const wasUpdated = brand.createdAt !== brand.updatedAt;
 
-  return (
-    <div className="lg:col-span-1 max-h-[calc(100vh-16rem)] bg-card/80 backdrop-blur-sm p-6 rounded-2xl shadow-sm border-2 border-secondary/20 flex flex-col overflow-hidden">
-
+  // Conteúdo comum para desktop e mobile
+  const brandContent = (
+    <>
       <div className="flex items-center mb-6 flex-shrink-0">
         <div className="bg-gradient-to-br from-secondary to-primary text-white rounded-xl w-16 h-16 flex items-center justify-center font-bold text-3xl mr-4 flex-shrink-0">
           {brand.name.charAt(0).toUpperCase()}
@@ -266,6 +276,29 @@ export default function BrandDetails({ brand, onEdit, onDelete, isLoading = fals
           <Edit className="mr-2 h-4 w-4" /> Editar marca
         </Button>
       </div>
+    </>
+  );
+
+  // Renderização condicional: Drawer para mobile, layout normal para desktop
+  if (isMobile) {
+    return (
+      <Drawer open={isOpen} onOpenChange={onOpenChange}>
+        <DrawerContent className="max-h-[90vh]">
+          <DrawerHeader>
+            <DrawerTitle className="text-left">Detalhes da Marca</DrawerTitle>
+          </DrawerHeader>
+          <div className="p-6 flex flex-col overflow-hidden h-full">
+            {brandContent}
+          </div>
+        </DrawerContent>
+      </Drawer>
+    );
+  }
+
+  // Layout para desktop
+  return (
+    <div className="lg:col-span-1 max-h-[calc(100vh-16rem)] bg-card/80 backdrop-blur-sm p-6 rounded-2xl shadow-sm border-2 border-secondary/20 flex flex-col overflow-hidden">
+      {brandContent}
     </div>
   );
 }

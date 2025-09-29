@@ -9,6 +9,7 @@ import BrandDetails from '@/components/marcas/BrandDetails';
 import BrandDialog from '@/components/marcas/BrandDialog';
 import type { Brand, BrandSummary } from '@/types/brand';
 import { useAuth } from '@/hooks/useAuth';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { toast } from 'sonner';
 
 // Definindo o tipo para os dados do formulário, que é um Brand parcial
@@ -102,6 +103,7 @@ const mockFullBrand: Brand = {
 
 export default function MarcasPage() {
   const { user } = useAuth();
+  const isMobile = useIsMobile();
   const [brands, setBrands] = useState<BrandSummary[]>([]);
   const [isLoadingBrands, setIsLoadingBrands] = useState(true);
   const [selectedBrandSummary, setSelectedBrandSummary] = useState<BrandSummary | null>(null);
@@ -111,6 +113,7 @@ export default function MarcasPage() {
   const [brandToEdit, setBrandToEdit] = useState<Brand | null>(null);
   const [team, setTeam] = useState<any>(null);
   const [isLoadingTeam, setIsLoadingTeam] = useState(false);
+  const [isBrandDetailsOpen, setIsBrandDetailsOpen] = useState(false);
 
   // Simulate loading brands
   useEffect(() => {
@@ -139,6 +142,11 @@ export default function MarcasPage() {
     setSelectedBrandSummary(brand);
     setIsLoadingBrandDetails(true);
     
+    // No mobile, abre o drawer quando seleciona uma marca
+    if (isMobile) {
+      setIsBrandDetailsOpen(true);
+    }
+    
     try {
       // Simulate API call to get full brand details
       await new Promise(resolve => setTimeout(resolve, 500));
@@ -160,7 +168,7 @@ export default function MarcasPage() {
     } finally {
       setIsLoadingBrandDetails(false);
     }
-  }, []);
+  }, [isMobile]);
 
   const handleSaveBrand = useCallback(async (formData: BrandFormData) => {
     if (!user?.teamId || !user.id) {
@@ -291,20 +299,34 @@ export default function MarcasPage() {
         </CardHeader>
       </Card>
 
-      <main className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0 overflow-hidden">
+      <main className={`grid gap-6 flex-1 min-h-0 overflow-hidden ${isMobile ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-3'}`}>
         <BrandList
           brands={brands}
           selectedBrand={selectedBrandSummary}
           onSelectBrand={handleSelectBrand}
           isLoading={isLoadingBrands}
         />
+        {!isMobile && (
+          <BrandDetails
+            brand={selectedBrand}
+            onEdit={handleOpenDialog}
+            onDelete={() => handleDeleteBrand()}
+            isLoading={isLoadingBrandDetails}
+          />
+        )}
+      </main>
+
+      {/* Drawer para mobile */}
+      {isMobile && (
         <BrandDetails
           brand={selectedBrand}
           onEdit={handleOpenDialog}
           onDelete={() => handleDeleteBrand()}
           isLoading={isLoadingBrandDetails}
+          isOpen={isBrandDetailsOpen}
+          onOpenChange={setIsBrandDetailsOpen}
         />
-      </main>
+      )}
 
       <BrandDialog
         isOpen={isDialogOpen}
