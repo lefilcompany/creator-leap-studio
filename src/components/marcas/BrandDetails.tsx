@@ -12,12 +12,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-} from '@/components/ui/drawer';
 // **NOVO:** Importando ícones adicionais
 import { Edit, Trash2, Tag, ExternalLink, FileDown, Palette } from 'lucide-react';
 import type { Brand, MoodboardFile, ColorItem } from '@/types/brand';
@@ -29,8 +23,6 @@ interface BrandDetailsProps {
   onEdit: (brand: Brand) => void;
   onDelete: () => void;
   isLoading?: boolean;
-  isOpen?: boolean;
-  onOpenChange?: (open: boolean) => void;
 }
 
 const formatDate = (dateString: string) => {
@@ -160,11 +152,10 @@ const ColorPaletteField = ({ colors }: { colors?: ColorItem[] | null }) => {
 };
 
 
-export default function BrandDetails({ brand, onEdit, onDelete, isLoading = false, isOpen = false, onOpenChange }: BrandDetailsProps) {
-  const isMobile = useIsMobile();
+export default function BrandDetails({ brand, onEdit, onDelete, isLoading = false }: BrandDetailsProps) {
   if (isLoading) {
     return (
-      <div className="lg:col-span-1 h-full bg-card p-6 rounded-2xl border-2 border-secondary/20 flex flex-col animate-pulse">
+      <div className="h-full bg-card p-6 flex flex-col animate-pulse">
         <div className="flex items-center mb-6 flex-shrink-0">
           <Skeleton className="w-16 h-16 rounded-xl mr-4" />
           <Skeleton className="h-8 w-32" />
@@ -184,19 +175,18 @@ export default function BrandDetails({ brand, onEdit, onDelete, isLoading = fals
 
   if (!brand) {
     return (
-      <div className="lg:col-span-1 h-full bg-card p-6 rounded-2xl border-2 border-dashed border-secondary/20 flex flex-col items-center justify-center text-center">
+      <div className="h-full bg-card p-6 flex flex-col items-center justify-center text-center">
         <Tag className="h-16 w-16 text-muted-foreground/50 mb-4" />
         <h3 className="text-xl font-semibold text-foreground">Nenhuma marca selecionada</h3>
-        <p className="text-muted-foreground">Selecione uma marca na lista para ver os detalhes ou crie uma nova.</p>
+        <p className="text-muted-foreground">Selecione uma marca na lista para ver os detalhes.</p>
       </div>
     );
   }
 
   const wasUpdated = brand.createdAt !== brand.updatedAt;
 
-  // Conteúdo comum para desktop e mobile
-  const brandContent = (
-    <>
+  return (
+    <div className="h-full p-6 flex flex-col overflow-hidden">
       <div className="flex items-center mb-6 flex-shrink-0">
         <div className="bg-gradient-to-br from-secondary to-primary text-white rounded-xl w-16 h-16 flex items-center justify-center font-bold text-3xl mr-4 flex-shrink-0">
           {brand.name.charAt(0).toUpperCase()}
@@ -276,29 +266,6 @@ export default function BrandDetails({ brand, onEdit, onDelete, isLoading = fals
           <Edit className="mr-2 h-4 w-4" /> Editar marca
         </Button>
       </div>
-    </>
-  );
-
-  // Renderização condicional: Drawer para mobile, layout normal para desktop
-  if (isMobile) {
-    return (
-      <Drawer open={isOpen} onOpenChange={onOpenChange}>
-        <DrawerContent className="max-h-[90vh]">
-          <DrawerHeader>
-            <DrawerTitle className="text-left">Detalhes da Marca</DrawerTitle>
-          </DrawerHeader>
-          <div className="p-6 flex flex-col overflow-hidden h-full">
-            {brandContent}
-          </div>
-        </DrawerContent>
-      </Drawer>
-    );
-  }
-
-  // Layout para desktop
-  return (
-    <div className="lg:col-span-1 max-h-[calc(100vh-16rem)] bg-card/80 backdrop-blur-sm p-6 rounded-2xl shadow-sm border-2 border-secondary/20 flex flex-col overflow-hidden">
-      {brandContent}
     </div>
   );
 }

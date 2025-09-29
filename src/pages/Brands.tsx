@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
+import { Drawer, DrawerContent, DrawerTitle } from '@/components/ui/drawer';
 import { Plus, Tag } from 'lucide-react';
 import BrandList from '@/components/marcas/BrandList';
 import BrandDetails from '@/components/marcas/BrandDetails';
@@ -136,11 +138,7 @@ export default function MarcasPage() {
   const handleSelectBrand = useCallback(async (brand: BrandSummary) => {
     setSelectedBrandSummary(brand);
     setIsLoadingBrandDetails(true);
-    
-    // No mobile, abre o drawer quando seleciona uma marca
-    if (isMobile) {
-      setIsBrandDetailsOpen(true);
-    }
+    setIsBrandDetailsOpen(true); // Abre o slider para todos os dispositivos
     
     try {
       // Simulate API call to get full brand details
@@ -163,7 +161,7 @@ export default function MarcasPage() {
     } finally {
       setIsLoadingBrandDetails(false);
     }
-  }, [isMobile]);
+  }, []);
 
   const handleSaveBrand = useCallback(async (formData: BrandFormData) => {
     if (!user?.teamId || !user.id) {
@@ -294,35 +292,43 @@ export default function MarcasPage() {
         </CardHeader>
       </Card>
 
-      <main className={`grid gap-4 lg:gap-6 flex-1 min-h-0 overflow-hidden ${isMobile ? 'grid-cols-1' : 'grid-cols-1 xl:grid-cols-3'}`}>
-        <div className={`${isMobile ? 'col-span-1' : 'col-span-1 xl:col-span-2'}`}>
-          <BrandList
-            brands={brands}
-            selectedBrand={selectedBrandSummary}
-            onSelectBrand={handleSelectBrand}
-            isLoading={isLoadingBrands}
-          />
-        </div>
-        {!isMobile && (
-          <BrandDetails
-            brand={selectedBrand}
-            onEdit={handleOpenDialog}
-            onDelete={() => handleDeleteBrand()}
-            isLoading={isLoadingBrandDetails}
-          />
-        )}
+      <main className="grid gap-4 lg:gap-6 flex-1 min-h-0 overflow-hidden grid-cols-1">
+        <BrandList
+          brands={brands}
+          selectedBrand={selectedBrandSummary}
+          onSelectBrand={handleSelectBrand}
+          isLoading={isLoadingBrands}
+        />
       </main>
 
-      {/* Drawer para mobile */}
+      {/* Sheet para desktop/tablet (da direita) */}
+      {!isMobile && (
+        <Sheet open={isBrandDetailsOpen} onOpenChange={setIsBrandDetailsOpen}>
+          <SheetContent side="right" className="w-full sm:max-w-md">
+            <SheetTitle className="text-left mb-4">Detalhes da Marca</SheetTitle>
+            <BrandDetails
+              brand={selectedBrand}
+              onEdit={handleOpenDialog}
+              onDelete={() => handleDeleteBrand()}
+              isLoading={isLoadingBrandDetails}
+            />
+          </SheetContent>
+        </Sheet>
+      )}
+
+      {/* Drawer para mobile (de baixo) */}
       {isMobile && (
-        <BrandDetails
-          brand={selectedBrand}
-          onEdit={handleOpenDialog}
-          onDelete={() => handleDeleteBrand()}
-          isLoading={isLoadingBrandDetails}
-          isOpen={isBrandDetailsOpen}
-          onOpenChange={setIsBrandDetailsOpen}
-        />
+        <Drawer open={isBrandDetailsOpen} onOpenChange={setIsBrandDetailsOpen}>
+          <DrawerContent className="max-h-[85vh]">
+            <DrawerTitle className="text-left p-6 pb-0">Detalhes da Marca</DrawerTitle>
+            <BrandDetails
+              brand={selectedBrand}
+              onEdit={handleOpenDialog}
+              onDelete={() => handleDeleteBrand()}
+              isLoading={isLoadingBrandDetails}
+            />
+          </DrawerContent>
+        </Drawer>
       )}
 
       <BrandDialog
