@@ -282,70 +282,66 @@ export default function CreateContent() {
   };
 
   return (
-    <div className="min-h-full bg-gradient-to-br from-background via-background to-muted/20">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 max-w-7xl">
+    <div className="min-h-full bg-gradient-to-br from-background via-background to-muted/20 p-4 md:p-6">
+      <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
-        <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/8 via-secondary/8 to-accent/8 backdrop-blur-sm mb-8">
-          <CardHeader className="p-6 lg:p-8">
-            <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-6">
-              <div className="flex items-start sm:items-center gap-4">
-                <div className="flex-shrink-0 bg-gradient-to-br from-primary/15 to-secondary/15 text-primary rounded-2xl p-4 shadow-lg">
-                  <Sparkles className="h-7 w-7 lg:h-8 lg:w-8" />
+        <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5">
+          <CardHeader className="p-4 md:p-6">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="flex-shrink-0 bg-primary/10 text-primary rounded-xl p-3">
+                  <Sparkles className="h-6 w-6 md:h-8 md:w-8" />
                 </div>
-                <div className="min-w-0 flex-1">
-                  <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-2">
+                <div>
+                  <h1 className="text-2xl md:text-3xl font-bold text-foreground">
                     Criar Conteúdo
                   </h1>
-                  <p className="text-muted-foreground text-sm sm:text-base lg:text-lg">
+                  <p className="text-muted-foreground text-sm md:text-base">
                     Preencha os campos para gerar um post com IA
                   </p>
                 </div>
               </div>
-              
-              <div className="flex flex-col sm:flex-row items-stretch gap-4 w-full xl:w-auto">
-                {/* Mode Toggle */}
-                <div className="flex items-center rounded-2xl bg-muted/50 p-1.5 border shadow-sm backdrop-blur-sm min-w-0">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full md:w-auto">
+                <div className="flex items-center space-x-1 rounded-full bg-muted p-1 border flex-1">
                   <Button
                     variant={!isVideoMode ? "default" : "ghost"}
                     onClick={() => handleVideoModeChange(false)}
-                    className="flex-1 sm:flex-none rounded-xl font-semibold transition-all duration-300 text-sm px-4 py-2.5 shadow-sm"
+                    className="w-full rounded-full font-semibold transition-all duration-200 ease-in-out hover:bg-background/50 hover:text-muted-foreground"
                   >
-                    <ImageIcon className="h-4 w-4 mr-2 flex-shrink-0" />
-                    <span className="truncate">Imagem</span>
+                    <ImageIcon className="h-4 w-4 mr-2" />
+                    Imagem
                   </Button>
                   <Button
                     variant={isVideoMode ? "default" : "ghost"}
                     onClick={() => handleVideoModeChange(true)}
-                    className="flex-1 sm:flex-none rounded-xl font-semibold transition-all duration-300 text-sm px-4 py-2.5 shadow-sm"
+                    className="w-full rounded-full font-semibold transition-all duration-200 ease-in-out hover:bg-background/50 hover:text-muted-foreground"
                   >
-                    <Video className="h-4 w-4 mr-2 flex-shrink-0" />
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="truncate">Vídeo</span>
-                      <Badge variant="secondary" className="text-[9px] px-1.5 py-0.5 font-bold">
+                    <Video className="h-4 w-4 mr-2" />
+                    <div className="flex items-center gap-1.5">
+                      Vídeo
+                      <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5">
                         BETA
                       </Badge>
                     </div>
                   </Button>
                 </div>
-
-                {/* Credits Card */}
                 {isLoadingData ? (
-                  <Skeleton className="h-16 w-full sm:w-52 rounded-2xl" />
+                  <Skeleton className="h-14 w-full sm:w-48 rounded-xl" />
                 ) : (
                   team && (
-                    <Card className="bg-gradient-to-br from-primary/10 via-secondary/10 to-accent/10 border-primary/20 shadow-lg backdrop-blur-sm flex-shrink-0">
-                      <CardContent className="p-4">
-                        <div className="flex items-center gap-4">
-                          <div className="relative flex-shrink-0">
-                            <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary rounded-full blur-md opacity-50"></div>
-                            <div className="relative bg-gradient-to-r from-primary to-secondary text-primary-foreground rounded-full p-3 shadow-lg">
-                              <Zap className="h-5 w-5" />
+                    <Card className="bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/20 flex-shrink-0">
+                      <CardContent className="p-3">
+                        <div className="flex items-center justify-center gap-3">
+                          <div className="relative">
+                            <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary rounded-full blur-sm opacity-40"></div>
+                            <div className="relative bg-gradient-to-r from-primary to-secondary text-white rounded-full p-2">
+                              <Zap className="h-4 w-4" />
                             </div>
                           </div>
-                          <div className="min-w-0 flex-1">
-                            <div className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                          <div className="text-left">
+                            <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                               {team?.credits?.contentSuggestions || 0}
-                            </div>
+                            </span>
                             <p className="text-xs text-muted-foreground font-medium leading-tight">
                               Criações Restantes
                             </p>
@@ -360,45 +356,45 @@ export default function CreateContent() {
           </CardHeader>
         </Card>
 
-        <div className="grid grid-cols-1 xl:grid-cols-5 gap-8">
-          {/* Left Column - Configuration */}
-          <div className="xl:col-span-2 space-y-6">
-            <Card className="backdrop-blur-sm bg-card/90 border border-border/30 shadow-xl rounded-2xl overflow-hidden group hover:shadow-2xl transition-all duration-300">
-              <CardHeader className="pb-4 bg-gradient-to-br from-primary/8 to-secondary/8 border-b border-border/20">
-                <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 bg-gradient-to-r from-primary to-secondary rounded-full shadow-lg"></div>
-                  <div>
-                    <h2 className="text-xl font-bold text-foreground">
-                      Configuração Básica
-                    </h2>
-                    <p className="text-muted-foreground text-sm mt-1">
-                      Defina marca, tema e público-alvo
-                    </p>
-                  </div>
-                </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+          {/* Configuração Básica */}
+          <div className="space-y-6">
+            <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-2xl">
+              <CardHeader className="pb-4 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-t-2xl">
+                <h2 className="text-xl font-semibold flex items-center gap-3 text-foreground">
+                  <div className="w-2 h-2 bg-primary rounded-full"></div>
+                  Configuração Básica
+                </h2>
+                <p className="text-muted-foreground text-sm">
+                  Defina marca, tema e público
+                </p>
               </CardHeader>
-              <CardContent className="p-6 space-y-6">
-                <div className="space-y-4">
-                  <Label className="text-sm font-bold text-foreground flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
+              <CardContent className="space-y-5 p-6">
+                <div className="space-y-3">
+                  <Label
+                    htmlFor="brand"
+                    className="text-sm font-semibold text-foreground"
+                  >
                     Marca <span className="text-destructive">*</span>
                   </Label>
                   {isLoadingData ? (
-                    <Skeleton className="h-12 w-full rounded-xl" />
+                    <Skeleton className="h-11 w-full rounded-xl" />
                   ) : (
                     <Select
-                      onValueChange={(value) => handleSelectChange("brand", value)}
+                      onValueChange={(value) =>
+                        handleSelectChange("brand", value)
+                      }
                       value={formData.brand}
                     >
-                      <SelectTrigger className="h-12 rounded-xl border-2 border-border/40 bg-background/70 hover:border-primary/50 focus:border-primary transition-all duration-200 shadow-sm">
+                      <SelectTrigger className="h-11 rounded-xl border-2 border-border/50 bg-background/50">
                         <SelectValue placeholder="Selecione a marca" />
                       </SelectTrigger>
-                      <SelectContent className="rounded-xl border-border/30 shadow-xl">
+                      <SelectContent className="rounded-xl border-border/20">
                         {brands.map((b) => (
                           <SelectItem
                             key={b.id}
                             value={b.name}
-                            className="rounded-lg hover:bg-primary/5 focus:bg-primary/10"
+                            className="rounded-lg"
                           >
                             {b.name}
                           </SelectItem>
@@ -408,20 +404,24 @@ export default function CreateContent() {
                   )}
                 </div>
 
-                <div className="space-y-4">
-                  <Label className="text-sm font-bold text-foreground flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 bg-secondary rounded-full"></div>
+                <div className="space-y-3">
+                  <Label
+                    htmlFor="theme"
+                    className="text-sm font-semibold text-foreground"
+                  >
                     Tema Estratégico
                   </Label>
                   {isLoadingData ? (
-                    <Skeleton className="h-12 w-full rounded-xl" />
+                    <Skeleton className="h-11 w-full rounded-xl" />
                   ) : (
                     <Select
-                      onValueChange={(value) => handleSelectChange("theme", value)}
+                      onValueChange={(value) =>
+                        handleSelectChange("theme", value)
+                      }
                       value={formData.theme}
                       disabled={!formData.brand || filteredThemes.length === 0}
                     >
-                      <SelectTrigger className="h-12 rounded-xl border-2 border-border/40 bg-background/70 hover:border-secondary/50 focus:border-secondary transition-all duration-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                      <SelectTrigger className="h-11 rounded-xl border-2 border-border/50 bg-background/50 disabled:opacity-50">
                         <SelectValue
                           placeholder={
                             !formData.brand
@@ -432,12 +432,12 @@ export default function CreateContent() {
                           }
                         />
                       </SelectTrigger>
-                      <SelectContent className="rounded-xl border-border/30 shadow-xl">
+                      <SelectContent className="rounded-xl border-border/20">
                         {filteredThemes.map((t) => (
                           <SelectItem
                             key={t.id}
                             value={t.title}
-                            className="rounded-lg hover:bg-secondary/5 focus:bg-secondary/10"
+                            className="rounded-lg"
                           >
                             {t.title}
                           </SelectItem>
@@ -447,140 +447,162 @@ export default function CreateContent() {
                   )}
                 </div>
 
-                {/* Remaining Configuration Fields */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-4">
-                    <Label className="text-sm font-bold text-foreground flex items-center gap-2">
-                      <div className="w-1.5 h-1.5 bg-accent rounded-full"></div>
-                      Persona
-                    </Label>
-                    {isLoadingData ? (
-                      <Skeleton className="h-12 w-full rounded-xl" />
-                    ) : (
-                      <Select
-                        onValueChange={(value) => handleSelectChange("persona", value)}
-                        value={formData.persona}
-                        disabled={!formData.brand || filteredPersonas.length === 0}
-                      >
-                        <SelectTrigger className="h-12 rounded-xl border-2 border-border/40 bg-background/70 hover:border-accent/50 focus:border-accent transition-all duration-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
-                          <SelectValue
-                            placeholder={
-                              !formData.brand ? "Primeiro, escolha a marca" : "Adicionar persona"
-                            }
-                          />
-                        </SelectTrigger>
-                        <SelectContent className="rounded-xl border-border/30 shadow-xl">
-                          {filteredPersonas.map((p) => (
-                            <SelectItem
-                              key={p.id}
-                              value={p.name}
-                              className="rounded-lg hover:bg-accent/5 focus:bg-accent/10"
-                            >
-                              {p.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                  </div>
-
-                  <div className="space-y-4">
-                    <Label className="text-sm font-bold text-foreground flex items-center gap-2">
-                      <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
-                      Plataforma <span className="text-destructive">*</span>
-                    </Label>
+                <div className="space-y-3">
+                  <Label
+                    htmlFor="persona"
+                    className="text-sm font-semibold text-foreground"
+                  >
+                    Persona
+                  </Label>
+                  {isLoadingData ? (
+                    <Skeleton className="h-11 w-full rounded-xl" />
+                  ) : (
                     <Select
-                      onValueChange={(value) => handleSelectChange("platform", value)}
-                      value={formData.platform}
+                      onValueChange={(value) =>
+                        handleSelectChange("persona", value)
+                      }
+                      value={formData.persona}
+                      disabled={!formData.brand || filteredPersonas.length === 0}
                     >
-                      <SelectTrigger className="h-12 rounded-xl border-2 border-border/40 bg-background/70 hover:border-primary/50 focus:border-primary transition-all duration-200 shadow-sm">
-                        <SelectValue placeholder="Onde será postado?" />
+                      <SelectTrigger className="h-11 rounded-xl border-2 border-border/50 bg-background/50 disabled:opacity-50">
+                        <SelectValue
+                          placeholder={
+                            !formData.brand
+                              ? "Primeiro, escolha a marca"
+                              : "Adicionar persona"
+                          }
+                        />
                       </SelectTrigger>
-                      <SelectContent className="rounded-xl border-border/30 shadow-xl">
-                        <SelectItem value="Instagram" className="rounded-lg hover:bg-primary/5 focus:bg-primary/10">
-                          Instagram
-                        </SelectItem>
-                        <SelectItem value="Facebook" className="rounded-lg hover:bg-primary/5 focus:bg-primary/10">
-                          Facebook
-                        </SelectItem>
-                        <SelectItem value="TikTok" className="rounded-lg hover:bg-primary/5 focus:bg-primary/10">
-                          TikTok
-                        </SelectItem>
-                        <SelectItem value="Twitter" className="rounded-lg hover:bg-primary/5 focus:bg-primary/10">
-                          Twitter (X)
-                        </SelectItem>
-                        <SelectItem value="LinkedIn" className="rounded-lg hover:bg-primary/5 focus:bg-primary/10">
-                          LinkedIn
-                        </SelectItem>
-                        <SelectItem value="Comunidades" className="rounded-lg hover:bg-primary/5 focus:bg-primary/10">
-                          Comunidades
-                        </SelectItem>
+                      <SelectContent className="rounded-xl border-border/20">
+                        {filteredPersonas.map((p) => (
+                          <SelectItem
+                            key={p.id}
+                            value={p.name}
+                            className="rounded-lg"
+                          >
+                            {p.name}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
-                  </div>
+                  )}
                 </div>
 
-                <div className="space-y-4">
-                  <Label className="text-sm font-bold text-foreground flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 bg-secondary rounded-full"></div>
+                <div className="space-y-3">
+                  <Label
+                    htmlFor="platform"
+                    className="text-sm font-semibold text-foreground"
+                  >
+                    Plataforma <span className="text-destructive">*</span>
+                  </Label>
+                  <Select
+                    onValueChange={(value) =>
+                      handleSelectChange("platform", value)
+                    }
+                    value={formData.platform}
+                  >
+                    <SelectTrigger className="h-11 rounded-xl border-2 border-border/50 bg-background/50">
+                      <SelectValue placeholder="Onde será postado?" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl border-border/20">
+                      <SelectItem value="Instagram" className="rounded-lg">
+                        Instagram
+                      </SelectItem>
+                      <SelectItem value="Facebook" className="rounded-lg">
+                        Facebook
+                      </SelectItem>
+                      <SelectItem value="TikTok" className="rounded-lg">
+                        TikTok
+                      </SelectItem>
+                      <SelectItem value="Twitter" className="rounded-lg">
+                        Twitter (X)
+                      </SelectItem>
+                      <SelectItem value="LinkedIn" className="rounded-lg">
+                        LinkedIn
+                      </SelectItem>
+                      <SelectItem value="Comunidades" className="rounded-lg">
+                        Comunidades
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-3">
+                  <Label
+                    htmlFor="audience"
+                    className="text-sm font-semibold text-foreground"
+                  >
                     Público-Alvo <span className="text-destructive">*</span>
                   </Label>
                   <Input
                     id="audience"
-                    placeholder="Ex: Jovens de 18-25 anos interessados em tecnologia"
+                    placeholder="Ex: Jovens de 18-25 anos"
                     value={formData.audience}
                     onChange={handleInputChange}
-                    className="h-12 rounded-xl border-2 border-border/40 bg-background/70 hover:border-secondary/50 focus:border-secondary transition-all duration-200 shadow-sm"
+                    className="h-11 rounded-xl border-2 border-border/50 bg-background/50"
                   />
                 </div>
 
                 {isVideoMode && (
-                  <div className="p-4 bg-gradient-to-r from-accent/10 to-secondary/10 rounded-xl border border-accent/20 space-y-4">
-                    <div className="flex items-center gap-2 text-sm font-bold text-accent">
-                      <Video className="h-4 w-4" />
-                      Configurações de Vídeo
-                    </div>
-                    
-                    <div className="space-y-4">
-                      <Label className="text-sm font-bold text-foreground">
+                  <>
+                    <div className="space-y-3">
+                      <Label
+                        htmlFor="transformation"
+                        className="text-sm font-semibold text-foreground"
+                      >
                         Tipo de Transformação <span className="text-destructive">*</span>
                       </Label>
                       <Select
                         value={transformationType}
-                        onValueChange={(value) => setTransformationType(value as any)}
+                        onValueChange={(value) =>
+                          setTransformationType(value as any)
+                        }
                       >
-                        <SelectTrigger className="h-12 rounded-xl border-2 border-border/40 bg-background/70">
+                        <SelectTrigger className="h-11 rounded-xl border-2 border-border/50 bg-background/50">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="image_to_video">Imagem para Vídeo</SelectItem>
-                          <SelectItem value="video_to_video">Vídeo para Vídeo</SelectItem>
+                          <SelectItem value="image_to_video">
+                            Imagem para Vídeo
+                          </SelectItem>
+                          <SelectItem value="video_to_video">
+                            Vídeo para Vídeo
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
-
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-4">
-                        <Label className="text-sm font-bold text-foreground">
+                      <div className="space-y-3">
+                        <Label
+                          htmlFor="ratio"
+                          className="text-sm font-semibold text-foreground"
+                        >
                           Proporção <span className="text-destructive">*</span>
                         </Label>
                         <Select value={ratio} onValueChange={setRatio}>
-                          <SelectTrigger className="h-12 rounded-xl border-2 border-border/40 bg-background/70">
+                          <SelectTrigger className="h-11 rounded-xl border-2 border-border/50 bg-background/50">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="768:1280">Vertical (9:16)</SelectItem>
-                            <SelectItem value="1280:768">Horizontal (16:9)</SelectItem>
+                            <SelectItem value="768:1280">
+                              Vertical (9:16)
+                            </SelectItem>
+                            <SelectItem value="1280:768">
+                              Horizontal (16:9)
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
                       {transformationType === "image_to_video" && (
-                        <div className="space-y-4">
-                          <Label className="text-sm font-bold text-foreground">
+                        <div className="space-y-3">
+                          <Label
+                            htmlFor="duration"
+                            className="text-sm font-semibold text-foreground"
+                          >
                             Duração (s) <span className="text-destructive">*</span>
                           </Label>
                           <Select value={duration} onValueChange={setDuration}>
-                            <SelectTrigger className="h-12 rounded-xl border-2 border-border/40 bg-background/70">
+                            <SelectTrigger className="h-11 rounded-xl border-2 border-border/50 bg-background/50">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -591,12 +613,14 @@ export default function CreateContent() {
                         </div>
                       )}
                     </div>
-                  </div>
+                  </>
                 )}
 
-                <div className="space-y-4">
-                  <Label className="text-sm font-bold text-foreground flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 bg-accent rounded-full"></div>
+                <div className="space-y-3">
+                  <Label
+                    htmlFor="referenceFile"
+                    className="text-sm font-semibold text-foreground"
+                  >
                     {isVideoMode
                       ? transformationType === "image_to_video"
                         ? "Imagem de Referência"
@@ -604,67 +628,53 @@ export default function CreateContent() {
                       : "Imagem de Referência"} <span className="text-destructive">*</span>
                   </Label>
 
-                  <div className="space-y-4">
-                    <Input
-                      type="file"
-                      accept={isVideoMode && transformationType === "video_to_video" ? "video/*" : "image/*"}
-                      multiple
-                      onChange={(e) => {
-                        const files = Array.from(e.target.files || []);
-                        setReferenceFiles((prev) => [...prev, ...files].slice(0, 10));
-                      }}
-                      className="h-12 rounded-xl border-2 border-border/40 bg-background/70 hover:border-accent/50 focus:border-accent transition-all duration-200 shadow-sm file:mr-4 file:py-3 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-bold file:bg-gradient-to-r file:from-primary/15 file:to-accent/15 file:text-primary hover:file:bg-gradient-to-r hover:file:from-primary/25 hover:file:to-accent/25"
-                    />
+                  <div className="space-y-3">
+                    <div className="flex gap-2">
+                      <Input
+                        type="file"
+                        accept={isVideoMode && transformationType === "video_to_video" ? "video/*" : "image/*"}
+                        multiple
+                        onChange={(e) => {
+                          const files = Array.from(e.target.files || []);
+                          setReferenceFiles((prev) =>
+                            [...prev, ...files].slice(0, 10)
+                          );
+                        }}
+                        className="h-11 rounded-xl border-2 border-border/50 bg-background/50 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary/10 file:text-primary"
+                      />
+                    </div>
 
                     <div
                       ref={pasteAreaRef}
                       tabIndex={0}
                       onPaste={handlePaste}
-                      className="group relative border-2 border-dashed border-border/50 hover:border-accent/60 rounded-xl p-8 text-center bg-gradient-to-br from-muted/20 to-accent/5 hover:from-muted/30 hover:to-accent/10 transition-all duration-300 cursor-pointer focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent"
+                      className="border-2 border-dashed border-border/50 rounded-xl p-4 text-center bg-muted/20 hover:bg-muted/30 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50"
                     >
-                      <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-accent/5 to-secondary/5 opacity-0 group-hover:opacity-100 rounded-xl transition-opacity duration-300"></div>
-                      <div className="relative">
-                        <ImageIcon className="h-12 w-12 text-muted-foreground/60 mx-auto mb-3 group-hover:text-accent/70 transition-colors duration-200" />
-                        <p className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors duration-200">
-                          Cole sua imagem aqui (Ctrl+V) ou clique para selecionar
-                        </p>
-                        <p className="text-xs text-muted-foreground/80 mt-1">
-                          Suporte para múltiplas imagens (máx. 10)
-                        </p>
-                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Cole sua imagem aqui (Ctrl+V)
+                      </p>
                     </div>
 
                     {referenceFiles.length > 0 && (
-                      <div className="space-y-3 p-4 bg-gradient-to-br from-primary/5 via-accent/5 to-secondary/5 rounded-xl border border-primary/20 backdrop-blur-sm">
-                        <div className="flex items-center gap-2 text-sm font-semibold text-primary">
-                          <div className="w-2 h-2 bg-primary rounded-full"></div>
-                          {referenceFiles.length} arquivo{referenceFiles.length > 1 ? 's' : ''} selecionado{referenceFiles.length > 1 ? 's' : ''}
-                        </div>
-                        <div className="space-y-2 max-h-32 overflow-y-auto">
-                          {referenceFiles.map((file, idx) => (
-                            <div key={idx} className="flex items-center justify-between bg-background/80 backdrop-blur-sm rounded-lg p-3 border border-border/30 group hover:bg-background/90 transition-all duration-200">
-                              <div className="flex items-center gap-3 min-w-0 flex-1">
-                                <div className="w-2 h-2 bg-gradient-to-r from-primary to-accent rounded-full flex-shrink-0"></div>
-                                <span className="text-sm font-medium text-foreground truncate">
-                                  {file.name}
-                                </span>
-                                <span className="text-xs text-muted-foreground flex-shrink-0">
-                                  ({(file.size / 1024 / 1024).toFixed(1)}MB)
-                                </span>
-                              </div>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleRemoveFile(idx)}
-                                className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-full flex-shrink-0 opacity-0 group-hover:opacity-100 transition-all duration-200"
-                                title="Remover arquivo"
-                              >
-                                <X className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          ))}
-                        </div>
+                      <div className="space-y-2 p-3 bg-primary/5 rounded-xl border border-primary/20">
+                        {referenceFiles.map((file, idx) => (
+                          <div key={idx} className="flex items-center justify-between bg-background/50 rounded-lg p-2">
+                            <span className="text-sm text-primary font-medium flex items-center gap-2">
+                              <div className="w-2 h-2 bg-primary rounded-full"></div>
+                              {file.name}
+                            </span>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleRemoveFile(idx)}
+                              className="h-6 w-6 p-0 text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full"
+                              title="Remover arquivo"
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        ))}
                       </div>
                     )}
                   </div>
@@ -673,73 +683,76 @@ export default function CreateContent() {
             </Card>
           </div>
 
-          {/* Right Column - Content Details */}
-          <div className="xl:col-span-3 space-y-6">
-            <Card className="backdrop-blur-sm bg-card/90 border border-border/30 shadow-xl rounded-2xl overflow-hidden group hover:shadow-2xl transition-all duration-300">
-              <CardHeader className="pb-4 bg-gradient-to-br from-secondary/8 to-accent/8 border-b border-border/20">
-                <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 bg-gradient-to-r from-secondary to-accent rounded-full shadow-lg"></div>
-                  <div>
-                    <h2 className="text-xl font-bold text-foreground">
-                      Detalhes do Conteúdo
-                    </h2>
-                    <p className="text-muted-foreground text-sm mt-1">
-                      Descreva o objetivo e características do post
-                    </p>
-                  </div>
-                </div>
+          {/* Detalhes do Conteúdo */}
+          <div className="space-y-6">
+            <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-2xl">
+              <CardHeader className="pb-4 bg-gradient-to-r from-secondary/5 to-accent/5 rounded-t-2xl">
+                <h2 className="text-xl font-semibold flex items-center gap-3 text-foreground">
+                  <div className="w-2 h-2 bg-secondary rounded-full"></div>
+                  Detalhes do Conteúdo
+                </h2>
+                <p className="text-muted-foreground text-sm">
+                  Descreva o objetivo e características do post
+                </p>
               </CardHeader>
-              <CardContent className="p-6 space-y-6">
-                <div className="space-y-4">
-                  <Label className="text-sm font-bold text-foreground flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
+              <CardContent className="space-y-6 p-6">
+                <div className="space-y-3">
+                  <Label
+                    htmlFor="objective"
+                    className="text-sm font-semibold text-foreground"
+                  >
                     Objetivo do Post <span className="text-destructive">*</span>
                   </Label>
                   <Textarea
                     id="objective"
-                    placeholder="Qual a principal meta? (ex: gerar engajamento, anunciar um produto, educar sobre sustentabilidade)"
+                    placeholder="Qual a principal meta? (ex: gerar engajamento, anunciar um produto, educar)"
                     value={formData.objective}
                     onChange={handleInputChange}
-                    className="min-h-[110px] rounded-xl border-2 border-border/40 bg-background/70 hover:border-primary/50 focus:border-primary transition-all duration-200 shadow-sm resize-none"
+                    className="min-h-[100px] rounded-xl border-2 border-border/50 bg-background/50 resize-none"
                   />
                 </div>
 
-                <div className="space-y-4">
-                  <Label className="text-sm font-bold text-foreground flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 bg-secondary rounded-full"></div>
-                    {isVideoMode ? "Descrição Visual do Vídeo" : "Descrição Visual da Imagem"} <span className="text-destructive">*</span>
+                <div className="space-y-3">
+                  <Label
+                    htmlFor="description"
+                    className="text-sm font-semibold text-foreground"
+                  >
+                    {isVideoMode
+                      ? "Descrição Visual do Vídeo"
+                      : "Descrição Visual da Imagem"} <span className="text-destructive">*</span>
                   </Label>
                   <Textarea
                     id="description"
                     placeholder={
                       isVideoMode
-                        ? "Como um roteirista: descreva a ação, movimento de câmera e atmosfera desejada..."
-                        : "Como um diretor de arte: descreva a cena, iluminação, cores e emoção que deve transmitir..."
+                        ? "Como um roteirista: descreva a ação, câmera e atmosfera..."
+                        : "Como um diretor de arte: descreva a cena, iluminação e emoção..."
                     }
                     value={formData.description}
                     onChange={handleInputChange}
-                    className="min-h-[130px] rounded-xl border-2 border-border/40 bg-background/70 hover:border-secondary/50 focus:border-secondary transition-all duration-200 shadow-sm resize-none"
+                    className="min-h-[120px] rounded-xl border-2 border-border/50 bg-background/50 resize-none"
                   />
                 </div>
 
-                <div className="space-y-4">
-                  <Label className="text-sm font-bold text-foreground flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 bg-accent rounded-full"></div>
-                    Tom de Voz <span className="text-destructive">*</span> 
-                    <span className="text-xs font-normal text-muted-foreground ml-auto">(máximo 4)</span>
+                <div className="space-y-3">
+                  <Label
+                    htmlFor="tone"
+                    className="text-sm font-semibold text-foreground"
+                  >
+                    Tom de Voz <span className="text-destructive">*</span> (máximo 4)
                   </Label>
                   <Select onValueChange={handleToneSelect} value="">
-                    <SelectTrigger className="h-12 rounded-xl border-2 border-border/40 bg-background/70 hover:border-accent/50 focus:border-accent transition-all duration-200 shadow-sm">
+                    <SelectTrigger className="h-11 rounded-xl border-2 border-border/50 bg-background/50">
                       <SelectValue placeholder="Adicionar tom de voz..." />
                     </SelectTrigger>
-                    <SelectContent className="rounded-xl border-border/30 shadow-xl">
+                    <SelectContent className="rounded-xl border-border/20">
                       {toneOptions
                         .filter(option => !formData.tone.includes(option))
                         .map((option) => (
                         <SelectItem
                           key={option}
                           value={option}
-                          className="rounded-lg hover:bg-accent/5 focus:bg-accent/10"
+                          className="rounded-lg"
                         >
                           {option.charAt(0).toUpperCase() + option.slice(1)}
                         </SelectItem>
@@ -747,24 +760,22 @@ export default function CreateContent() {
                     </SelectContent>
                   </Select>
                   
-                  <div className="min-h-[80px] p-4 rounded-xl border-2 border-dashed border-border/40 bg-gradient-to-br from-muted/10 to-accent/5 transition-all duration-200 hover:from-muted/20 hover:to-accent/10">
+                  <div className="min-h-[60px] p-4 rounded-xl border-2 border-dashed border-border/50 bg-muted/10">
                     {formData.tone.length === 0 ? (
-                      <div className="flex items-center justify-center h-full">
-                        <p className="text-sm text-muted-foreground italic">
-                          Nenhum tom selecionado
-                        </p>
-                      </div>
+                      <p className="text-sm text-muted-foreground italic text-center py-2">
+                        Nenhum tom selecionado
+                      </p>
                     ) : (
                       <div className="flex flex-wrap gap-2">
                         {formData.tone.map((tone) => (
                           <Badge
                             key={tone}
-                            className="group flex items-center gap-2 bg-gradient-to-r from-accent/15 to-secondary/15 border border-accent/30 text-accent hover:from-accent/25 hover:to-secondary/25 transition-all duration-200 px-3 py-1.5 text-sm font-semibold"
+                            className="flex items-center gap-2 bg-gradient-to-r from-primary/15 to-primary/5 border border-primary/30 text-primary hover:bg-primary/20"
                           >
                             {tone.charAt(0).toUpperCase() + tone.slice(1)}
                             <button
                               onClick={() => handleToneRemove(tone)}
-                              className="ml-1 text-accent hover:text-destructive p-1 rounded-full hover:bg-destructive/10 transition-all duration-200 group-hover:scale-110"
+                              className="ml-1 text-primary hover:text-destructive p-0.5 rounded-full hover:bg-destructive/10"
                             >
                               <X className="h-3 w-3" />
                             </button>
@@ -775,17 +786,19 @@ export default function CreateContent() {
                   </div>
                 </div>
 
-                <div className="space-y-4">
-                  <Label className="text-sm font-bold text-foreground flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
+                <div className="space-y-3">
+                  <Label
+                    htmlFor="additionalInfo"
+                    className="text-sm font-semibold text-foreground"
+                  >
                     Informações Extras
                   </Label>
                   <Textarea
                     id="additionalInfo"
-                    placeholder="Detalhes cruciais (ex: usar a cor #FF5733, incluir nosso logo, mencionar promoção especial, evitar certos elementos)"
+                    placeholder="Detalhes cruciais (ex: usar a cor #FF5733, incluir nosso logo...)"
                     value={formData.additionalInfo}
                     onChange={handleInputChange}
-                    className="min-h-[110px] rounded-xl border-2 border-border/40 bg-background/70 hover:border-primary/50 focus:border-primary transition-all duration-200 shadow-sm resize-none"
+                    className="min-h-[100px] rounded-xl border-2 border-border/50 bg-background/50 resize-none"
                   />
                 </div>
               </CardContent>
@@ -793,36 +806,31 @@ export default function CreateContent() {
           </div>
         </div>
 
-        {/* Generate Button */}
-        <div className="pt-8 pb-12">
-          <Card className="bg-gradient-to-br from-primary/10 via-secondary/10 to-accent/10 border border-primary/20 rounded-3xl shadow-2xl backdrop-blur-sm overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-accent/5 opacity-50"></div>
-            <CardContent className="relative p-8">
-              <div className="flex flex-col items-center gap-6">
+        {/* Botão Gerar Conteúdo */}
+        <div className="pt-6 pb-8">
+          <Card className="bg-gradient-to-r from-primary/5 via-secondary/5 to-accent/5 border border-border/20 rounded-2xl shadow-lg">
+            <CardContent className="p-6">
+              <div className="flex flex-col items-center gap-4">
                 <Button
                   onClick={handleGenerateContent}
                   disabled={loading || !isFormValid()}
-                  className="group relative w-full max-w-lg h-16 rounded-2xl text-lg font-bold bg-gradient-to-r from-primary via-accent to-secondary hover:from-primary/90 hover:via-accent/90 hover:to-secondary/90 shadow-2xl transition-all duration-500 disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden"
+                  className="w-full max-w-md h-14 rounded-2xl text-lg font-bold bg-gradient-to-r from-primary via-accent to-secondary hover:from-primary/90 hover:via-accent/90 hover:to-secondary/90 shadow-xl transition-all duration-500 disabled:opacity-50"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-accent/20 to-secondary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <div className="relative flex items-center justify-center gap-3">
-                    {loading ? (
-                      <>
-                        <Loader className="animate-spin h-6 w-6" />
-                        <span>Gerando conteúdo...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="h-6 w-6 group-hover:scale-110 transition-transform duration-200" />
-                        <span>Gerar Conteúdo</span>
-                      </>
-                    )}
-                  </div>
+                  {loading ? (
+                    <>
+                      <Loader className="animate-spin mr-3 h-5 w-5" />
+                      Gerando conteúdo...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="mr-3 h-5 w-5" />
+                      Gerar Conteúdo
+                    </>
+                  )}
                 </Button>
-                
                 {!isFormValid() && !loading && (
-                  <div className="text-center bg-muted/40 backdrop-blur-sm p-4 rounded-2xl border border-border/40 max-w-lg w-full">
-                    <p className="text-muted-foreground font-medium">
+                  <div className="text-center bg-muted/30 p-3 rounded-xl border border-border/30 max-w-md">
+                    <p className="text-muted-foreground text-sm">
                       Complete todos os campos obrigatórios (*) para gerar
                     </p>
                   </div>
