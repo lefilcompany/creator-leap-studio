@@ -78,7 +78,10 @@ export default function ActionList({
     window.open(`/historico/${actionId}`, '_blank');
   };
 
-  const handlePageClick = (page: number | string) => {
+  const handlePageClick = (page: number | string, event?: React.MouseEvent) => {
+    if (event) {
+      event.preventDefault();
+    }
     if (typeof page === 'number' && page > 0 && page <= totalPages && page !== currentPage) {
       onPageChange(page);
     }
@@ -87,7 +90,7 @@ export default function ActionList({
   const paginationRange = generatePagination(currentPage, totalPages);
 
   return (
-    <div className="lg:col-span-2 bg-card p-4 md:p-6 rounded-2xl border-2 border-primary/10 flex flex-col h-full max-h-[calc(100vh-16rem)]">
+    <div className="bg-card p-4 md:p-6 rounded-2xl border-2 border-primary/10 flex flex-col h-full">
       <div className="flex items-center justify-between mb-4 flex-shrink-0">
         <h2 className="text-2xl font-semibold text-foreground">Ações Recentes</h2>
         {!isLoading && (
@@ -159,13 +162,13 @@ export default function ActionList({
       </div>
 
       {totalPages > 1 && !isLoading && (
-        <div className="pt-2 mt-auto flex-shrink-0 border-t border-border/20">
-          <Pagination className="scale-90"> 
+        <div className="pt-4 mt-auto flex-shrink-0 border-t border-border/20">
+          <Pagination> 
             <PaginationContent>
               <PaginationItem>
                 <PaginationPrevious
-                  href="#"
-                  onClick={(e) => { e.preventDefault(); handlePageClick(currentPage - 1); }}
+                  onClick={(e) => handlePageClick(currentPage - 1, e)}
+                  disabled={currentPage === 1}
                   className={cn("cursor-pointer", currentPage === 1 && "pointer-events-none opacity-50")}
                   aria-disabled={currentPage === 1}
                 />
@@ -178,8 +181,7 @@ export default function ActionList({
                 return (
                   <PaginationItem key={page}>
                     <PaginationLink
-                      href="#"
-                      onClick={(e) => { e.preventDefault(); handlePageClick(page); }}
+                      onClick={(e) => handlePageClick(page, e)}
                       isActive={currentPage === page}
                       className="cursor-pointer"
                     >
@@ -191,8 +193,8 @@ export default function ActionList({
 
               <PaginationItem>
                 <PaginationNext
-                  href="#"
-                  onClick={(e) => { e.preventDefault(); handlePageClick(currentPage + 1); }}
+                  onClick={(e) => handlePageClick(currentPage + 1, e)}
+                  disabled={currentPage === totalPages}
                   className={cn("cursor-pointer", currentPage === totalPages && "pointer-events-none opacity-50")}
                   aria-disabled={currentPage === totalPages}
                 />

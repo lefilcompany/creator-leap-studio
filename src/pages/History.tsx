@@ -273,7 +273,7 @@ export default function History() {
   }, [brandFilter, typeFilter, currentPage]);
 
   return (
-    <div className="min-h-full flex flex-col gap-6">
+    <div className="h-full flex flex-col gap-6 overflow-hidden">
       <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5 flex-shrink-0">
         <CardHeader className="pb-4">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -320,7 +320,7 @@ export default function History() {
         </CardHeader>
       </Card>
 
-      <main className="grid gap-4 lg:gap-6 flex-1 min-h-0 overflow-hidden grid-cols-1">
+      <div className="flex-1 min-h-0 overflow-hidden">
         <ActionList
           actions={actions}
           selectedAction={selectedActionSummary}
@@ -330,7 +330,7 @@ export default function History() {
           totalPages={totalPages}
           onPageChange={setCurrentPage}
         />
-      </main>
+      </div>
 
       {/* Sheet para desktop/tablet (da direita) */}
       {!isMobile && (
