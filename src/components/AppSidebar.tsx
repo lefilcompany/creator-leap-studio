@@ -7,7 +7,8 @@ import {
   History,
   Sparkles,
   CheckCircle,
-  Rocket
+  Rocket,
+  Palette
 } from "lucide-react";
 import {
   Sidebar,
@@ -25,7 +26,7 @@ import logoCreator from "@/assets/logoCreatorPreta.png";
 const navLinks = [
   { id: "nav-home", href: "/dashboard", icon: Home, label: "Home" },
   { id: "nav-marcas", href: "/brands", icon: Tag, label: "Marcas" },
-  { id: "nav-temas", href: "/themes", icon: Sparkles, label: "Temas Estratégicos" },
+  { id: "nav-temas", href: "/themes", icon: Palette, label: "Temas Estratégicos" },
   { id: "nav-personas", href: "/personas", icon: Users, label: "Personas" },
   { id: "nav-historico", href: "/history", icon: History, label: "Histórico" },
 ];
@@ -53,10 +54,10 @@ function NavItem({ id, href, icon: Icon, label, collapsed }: {
           id={id}
           to={href}
           className={cn(
-            "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors duration-200",
+            "flex items-center gap-4 p-3 rounded-lg text-sm font-medium transition-colors duration-200",
             isActive
-              ? "bg-primary/10 text-primary hover:bg-primary/10"
-              : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              ? "bg-primary/10 text-primary"
+              : "text-muted-foreground bg-transparent hover:bg-muted hover:text-foreground"
           )}
         >
           <Icon className="h-5 w-5 flex-shrink-0" />
