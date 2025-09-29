@@ -2,10 +2,13 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
 import { Header } from "./Header";
 import { Outlet } from "react-router-dom";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export const DashboardLayout = () => {
+  const isMobile = useIsMobile();
+  
   return (
-    <SidebarProvider defaultOpen={true}>
+    <SidebarProvider defaultOpen={!isMobile}>
       <div className="min-h-screen flex w-full bg-gradient-to-br from-background via-background to-muted/10">
         <AppSidebar />
         <div className="flex flex-1 flex-col min-w-0 ml-0 lg:ml-64">
