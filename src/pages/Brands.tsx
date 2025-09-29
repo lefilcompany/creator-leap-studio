@@ -270,19 +270,19 @@ export default function MarcasPage() {
     : false;
 
   return (
-    <div className="h-full flex flex-col gap-6 overflow-hidden">
+    <div className="h-full flex flex-col gap-4 lg:gap-6 overflow-hidden">
       <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5 flex-shrink-0">
-        <CardHeader className="pb-4">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div className="flex items-center gap-3">
-              <div className="flex-shrink-0 bg-primary/10 text-primary rounded-lg p-3">
-                <Tag className="h-8 w-8" />
+        <CardHeader className="pb-3 lg:pb-4">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 lg:gap-4">
+            <div className="flex items-center gap-2 lg:gap-3">
+              <div className="flex-shrink-0 bg-primary/10 text-primary rounded-lg p-2 lg:p-3">
+                <Tag className="h-6 w-6 lg:h-8 lg:w-8" />
               </div>
               <div>
-                <CardTitle className="text-2xl font-bold">
+                <CardTitle className="text-xl lg:text-2xl font-bold">
                   Suas Marcas
                 </CardTitle>
-                <p className="text-muted-foreground">
+                <p className="text-sm lg:text-base text-muted-foreground">
                   Gerencie, edite ou crie novas marcas para seus projetos.
                 </p>
               </div>
@@ -290,22 +290,24 @@ export default function MarcasPage() {
             <Button 
               onClick={() => handleOpenDialog()} 
               disabled={isAtBrandLimit || isLoadingTeam}
-              className="rounded-lg bg-gradient-to-r from-primary to-secondary px-6 py-5 text-base disabled:opacity-50 disabled:cursor-not-allowed"
+              className="rounded-lg bg-gradient-to-r from-primary to-secondary px-4 lg:px-6 py-3 lg:py-5 text-sm lg:text-base disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
             >
-              <Plus className="mr-2 h-5 w-5" />
+              <Plus className="mr-2 h-4 w-4 lg:h-5 lg:w-5" />
               Nova marca
             </Button>
           </div>
         </CardHeader>
       </Card>
 
-      <main className={`grid gap-6 flex-1 min-h-0 overflow-hidden ${isMobile ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-3'}`}>
-        <BrandList
-          brands={brands}
-          selectedBrand={selectedBrandSummary}
-          onSelectBrand={handleSelectBrand}
-          isLoading={isLoadingBrands}
-        />
+      <main className={`grid gap-4 lg:gap-6 flex-1 min-h-0 overflow-hidden ${isMobile ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-3'}`}>
+        <div className={`${isMobile ? 'col-span-1' : 'col-span-1 lg:col-span-2'}`}>
+          <BrandList
+            brands={brands}
+            selectedBrand={selectedBrandSummary}
+            onSelectBrand={handleSelectBrand}
+            isLoading={isLoadingBrands}
+          />
+        </div>
         {!isMobile && (
           <BrandDetails
             brand={selectedBrand}

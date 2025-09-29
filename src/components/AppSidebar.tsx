@@ -54,14 +54,14 @@ function NavItem({ id, href, icon: Icon, label, collapsed }: {
           id={id}
           to={href}
           className={cn(
-            "flex items-center gap-4 p-3 rounded-lg transition-colors duration-200 group",
+            "flex items-center gap-3 lg:gap-4 p-2.5 lg:p-3 rounded-lg transition-colors duration-200 group",
             isActive
               ? "bg-primary/10 text-primary"
               : "text-muted-foreground bg-background hover:bg-muted hover:text-foreground"
           )}
         >
-          <Icon className="h-5 w-5 flex-shrink-0" />
-          {!collapsed && <span>{label}</span>}
+          <Icon className="h-4 w-4 lg:h-5 lg:w-5 flex-shrink-0" />
+          {!collapsed && <span className="text-sm lg:text-base">{label}</span>}
         </NavLink>
       </SidebarMenuButton>
     </SidebarMenuItem>
@@ -99,12 +99,12 @@ function ActionButton({ id, href, icon: Icon, label, collapsed, variant }: {
             id={id}
             to={href}
             className={cn(
-                "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300 ease-in-out transform hover:scale-105",
+                "flex items-center gap-3 px-3 py-2.5 lg:px-4 lg:py-3 rounded-lg text-sm font-medium transition-all duration-300 ease-in-out transform hover:scale-105",
                 isActive ? variantClasses[variant].active : variantClasses[variant].inactive
             )}
         >
-            <Icon className="h-5 w-5 flex-shrink-0" />
-            {!collapsed && <span>{label}</span>}
+            <Icon className="h-4 w-4 lg:h-5 lg:w-5 flex-shrink-0" />
+            {!collapsed && <span className="text-xs lg:text-sm">{label}</span>}
         </NavLink>
     );
 }
@@ -139,16 +139,24 @@ export function AppSidebar() {
   const sidebarContent = () => (
     <>
       {!collapsed && (
-        <div className="p-6">
+        <div className="p-4 lg:p-6">
           <img
             src={logoCreator}
             alt="Creator Logo"
-            className="h-8 w-auto"
+            className="h-6 lg:h-8 w-auto"
           />
         </div>
       )}
       
-      <div className="p-4 flex-1 flex flex-col">
+      <div className="p-3 lg:p-4 flex-1 flex flex-col">{collapsed && (
+          <div className="p-2 mb-4">
+            <img
+              src={logoCreator}
+              alt="Creator Logo"
+              className="h-6 w-auto mx-auto"
+            />
+          </div>
+        )}
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu className="space-y-1">
@@ -160,7 +168,7 @@ export function AppSidebar() {
         </SidebarGroup>
 
         {!collapsed && (
-          <div className="space-y-3 mt-6">
+          <div className="space-y-2 lg:space-y-3 mt-4 lg:mt-6">
             {actionButtons.map((button) => (
                 <ActionButton key={button.id} {...button} collapsed={collapsed} />
             ))}
@@ -179,7 +187,12 @@ export function AppSidebar() {
   );
 
   return (
-    <Sidebar className={`${collapsed ? "w-16" : "w-64"} border-r border-primary/20`} collapsible="icon">
+    <Sidebar 
+      className={`${collapsed ? "w-16" : "w-64"} border-r border-primary/20 transition-all duration-300`} 
+      collapsible="icon"
+      side="left"
+      variant="sidebar"
+    >
       <SidebarContent className="bg-background flex flex-col h-full">
         {sidebarContent()}
       </SidebarContent>

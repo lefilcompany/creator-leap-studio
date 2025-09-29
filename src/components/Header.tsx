@@ -69,29 +69,30 @@ export const Header = () => {
 
   return (
     <header className="sticky top-0 z-50 w-full shadow-lg shadow-primary/10 bg-card/95 backdrop-blur-md border-b border-border/20 transition-all duration-300 animate-fade-in flex-shrink-0">
-      <div className="flex h-16 md:h-20 items-center justify-between px-4 md:px-6 lg:px-8">{/* Mobile sidebar trigger */}
-          <div className="lg:hidden">
-            <SidebarTrigger />
-          </div>
+      <div className="flex h-14 md:h-16 lg:h-20 items-center justify-between px-3 md:px-4 lg:px-6 xl:px-8">
+        {/* Mobile sidebar trigger */}
+        <div className="lg:hidden">
+          <SidebarTrigger />
+        </div>
 
-          {/* Logo - hidden on very small screens, shown on medium screens when sidebar is hidden */}
-          <div className="hidden min-[420px]:block lg:hidden">
-            <CreatorLogo />
-          </div>
+        {/* Logo - hidden on very small screens, shown on medium screens when sidebar is hidden */}
+        <div className="hidden min-[420px]:block lg:hidden">
+          <CreatorLogo />
+        </div>
 
         {/* Search bar - Desktop only */}
-        <div className="hidden md:flex flex-1 max-w-2xl mx-6">
+        <div className="hidden lg:flex flex-1 max-w-2xl mx-4 xl:mx-6">
           <div className="relative w-full group">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5 z-10 transition-colors duration-200" />
+            <Search className="absolute left-3 lg:left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4 lg:h-5 lg:w-5 z-10 transition-colors duration-200" />
             {isSearching && (
-              <Loader2 className="absolute right-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-primary animate-spin z-10" />
+              <Loader2 className="absolute right-3 lg:right-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-primary animate-spin z-10" />
             )}
             <Input
               type="search"
               placeholder="Pesquisar marcas, temas, personas..."
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
-              className={`w-full rounded-2xl pl-12 pr-4 py-3 h-12 text-base border-2 bg-background/50 transition-all duration-200 hover:bg-background focus:bg-background ${
+              className={`w-full rounded-xl lg:rounded-2xl pl-10 lg:pl-12 pr-3 lg:pr-4 py-2 lg:py-3 h-10 lg:h-12 text-sm lg:text-base border-2 bg-background/50 transition-all duration-200 hover:bg-background focus:bg-background ${
                 isSearching 
                   ? 'border-primary/50 shadow-md' 
                   : 'border-border/50 hover:border-primary/30 focus:border-primary/50'
@@ -101,15 +102,15 @@ export const Header = () => {
         </div>
 
         {/* Right section */}
-        <div className="flex items-center gap-1 md:gap-3">
+        <div className="flex items-center gap-1 md:gap-2 lg:gap-3">
           {/* Mobile search button */}
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setShowMobileSearch(true)}
-            className="md:hidden h-10 w-10 rounded-xl hover:bg-primary/10 transition-all duration-200 border border-transparent hover:border-primary/20"
+            className="lg:hidden h-8 w-8 md:h-10 md:w-10 rounded-lg xl:rounded-xl hover:bg-primary/10 transition-all duration-200 border border-transparent hover:border-primary/20"
           >
-            <Search className="h-5 w-5 text-muted-foreground" />
+            <Search className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
             <span className="sr-only">Pesquisar</span>
           </Button>
 
@@ -117,11 +118,11 @@ export const Header = () => {
           <Button 
             variant="ghost" 
             size="sm" 
-            className="h-10 w-10 rounded-xl hover:bg-primary/10 transition-all duration-200 border border-transparent hover:border-primary/20 relative"
+            className="h-8 w-8 md:h-10 md:w-10 rounded-lg xl:rounded-xl hover:bg-primary/10 transition-all duration-200 border border-transparent hover:border-primary/20 relative"
           >
-            <Bell className="h-5 w-5 text-muted-foreground" />
+            <Bell className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
             {/* Notification badge */}
-            <div className="absolute -top-1 -right-1 h-3 w-3 bg-accent rounded-full border-2 border-background animate-pulse"></div>
+            <div className="absolute -top-0.5 -right-0.5 md:-top-1 md:-right-1 h-2.5 w-2.5 md:h-3 md:w-3 bg-accent rounded-full border-2 border-background animate-pulse"></div>
             <span className="sr-only">Notificações</span>
           </Button>
 
@@ -132,9 +133,9 @@ export const Header = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-10 w-10 rounded-xl hover:bg-primary/10 transition-all duration-200 border border-transparent hover:border-primary/20"
+                  className="h-8 w-8 md:h-10 md:w-10 rounded-lg xl:rounded-xl hover:bg-primary/10 transition-all duration-200 border border-transparent hover:border-primary/20"
                 >
-                  <Settings className="h-5 w-5 text-muted-foreground" />
+                  <Settings className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
                   <span className="sr-only">Configurações</span>
                 </Button>
               </DropdownMenuTrigger>
@@ -189,11 +190,11 @@ export const Header = () => {
           <Button
             variant="ghost"
             size="sm"
-            className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary via-primary/80 to-secondary text-primary-foreground
+            className="h-8 w-8 md:h-10 md:w-10 rounded-lg xl:rounded-xl bg-gradient-to-br from-primary via-primary/80 to-secondary text-primary-foreground
               transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-primary/25
               border-2 border-transparent hover:border-white/20"
           >
-            <User className="h-5 w-5" />
+            <User className="h-4 w-4 md:h-5 md:w-5" />
             <span className="sr-only">Perfil</span>
           </Button>
         </div>
