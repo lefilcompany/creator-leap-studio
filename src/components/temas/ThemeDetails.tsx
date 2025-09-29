@@ -21,8 +21,6 @@ interface ThemeDetailsProps {
   onDelete: () => void;
   brands: BrandSummary[]; // Recebe as marcas para encontrar o nome
   isLoading?: boolean;
-  isOpen?: boolean;
-  onOpenChange?: (open: boolean) => void;
 }
 
 const formatDate = (dateString: string) => {
@@ -44,7 +42,7 @@ const DetailField = ({ label, value }: { label: string, value?: string }) => {
 export default function ThemeDetails({ theme, onEdit, onDelete, brands, isLoading = false }: ThemeDetailsProps) {
   if (isLoading) {
     return (
-      <div className="lg:col-span-1 h-full bg-card p-6 rounded-2xl border-2 border-secondary/20 flex flex-col animate-pulse">
+      <div className="h-full bg-card p-6 flex flex-col animate-pulse">
         <div className="flex items-center mb-6 flex-shrink-0">
           <Skeleton className="w-16 h-16 rounded-xl mr-4" />
           <Skeleton className="h-8 w-32" />
@@ -64,10 +62,10 @@ export default function ThemeDetails({ theme, onEdit, onDelete, brands, isLoadin
 
   if (!theme) {
     return (
-      <div className="lg:col-span-1 h-full bg-card p-6 rounded-2xl border-2 border-dashed border-secondary/20 flex flex-col items-center justify-center text-center">
+      <div className="h-full bg-card p-6 flex flex-col items-center justify-center text-center">
         <Palette className="h-16 w-16 text-muted-foreground/50" strokeWidth={1.5} />
         <h3 className="text-xl font-semibold text-foreground">Nenhum tema estratégico selecionado</h3>
-        <p className="text-muted-foreground">Selecione um tema estratégico na lista para ver os detalhes ou crie um novo.</p>
+        <p className="text-muted-foreground">Selecione um tema estratégico na lista para ver os detalhes.</p>
       </div>
     );
   }
@@ -76,7 +74,7 @@ export default function ThemeDetails({ theme, onEdit, onDelete, brands, isLoadin
   const brandName = brands.find(b => b.id === theme.brandId)?.name || 'Marca não encontrada';
 
   return (
-    <div className="lg:col-span-1 max-h-[calc(100vh-16rem)] bg-card/80 backdrop-blur-sm p-6 rounded-2xl shadow-sm border-2 border-secondary/20 flex flex-col overflow-hidden">
+    <div className="h-full p-6 flex flex-col overflow-hidden">
       <div className="flex items-center mb-6 flex-shrink-0">
         <div className="bg-gradient-to-br from-secondary to-primary text-white rounded-xl w-16 h-16 flex items-center justify-center font-bold text-3xl mr-4 flex-shrink-0">
           {theme.title.charAt(0).toUpperCase()}

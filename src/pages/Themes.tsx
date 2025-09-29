@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
+import { Drawer, DrawerContent, DrawerTitle } from '@/components/ui/drawer';
 import { Palette, Plus } from 'lucide-react';
 import ThemeList from '@/components/temas/ThemeList';
 import ThemeDetails from '@/components/temas/ThemeDetails';
@@ -9,12 +11,14 @@ import type { StrategicTheme, StrategicThemeSummary } from '@/types/theme';
 import type { BrandSummary } from '@/types/brand';
 import type { Team } from '@/types/theme';
 import { useAuth } from '@/hooks/useAuth';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { useToast } from '@/hooks/use-toast';
 
 type ThemeFormData = Omit<StrategicTheme, 'id' | 'createdAt' | 'updatedAt' | 'teamId' | 'userId'>;
 
 export default function Themes() {
   const { user } = useAuth();
+  const isMobile = useIsMobile();
   const { toast } = useToast();
   const [themes, setThemes] = useState<StrategicThemeSummary[]>([]);
   const [brands, setBrands] = useState<BrandSummary[]>([]);
@@ -27,6 +31,7 @@ export default function Themes() {
   const [themeToEdit, setThemeToEdit] = useState<StrategicTheme | null>(null);
   const [team, setTeam] = useState<Team | null>(null);
   const [isLoadingTeam, setIsLoadingTeam] = useState(true);
+  const [isThemeDetailsOpen, setIsThemeDetailsOpen] = useState(false);
 
   // Mock data - In a real app, this would come from API calls
   useEffect(() => {
@@ -235,6 +240,7 @@ export default function Themes() {
   const handleSelectTheme = useCallback(async (theme: StrategicThemeSummary) => {
     setSelectedThemeSummary(theme);
     setIsLoadingThemeDetails(true);
+    setIsThemeDetailsOpen(true); // Abre o slider para todos os dispositivos
     
     try {
       // Simulate API call to get full theme details
@@ -312,54 +318,47 @@ export default function Themes() {
         </CardHeader>
       </Card>
 
-      <main className="grid grid-cols-1 xl:grid-cols-3 gap-4 lg:gap-6 min-h-0 flex-1">
-        <div className="xl:col-span-2">
-          <ThemeList
-            themes={themes}
-            brands={brands}
-            selectedTheme={selectedThemeSummary}
-            onSelectTheme={handleSelectTheme}
-            isLoading={isLoadingThemes}
-          />
-        </div>
-        <div className="xl:col-span-1 hidden xl:block">
-          {selectedThemeSummary ? (
-            <ThemeDetails
-              theme={selectedTheme}
-              brands={brands}
-              onEdit={handleOpenDialog}
-              onDelete={handleDeleteTheme}
-              isLoading={isLoadingThemeDetails}
-            />
-          ) : (
-            <div className="h-full bg-card p-6 rounded-2xl border-2 border-dashed border-secondary/20 flex flex-col items-center justify-center text-center space-y-2">
-              <Palette className="h-16 w-16 text-muted-foreground/50" strokeWidth={1.5} />
-              <h3 className="text-xl font-semibold text-foreground">Nenhum tema selecionado</h3>
-              <p className="text-muted-foreground">Selecione um tema estratégico na lista para ver os detalhes.</p>
-            </div>
-          )}
-        </div>
-        
-        {/* Mobile/Tablet Theme Details Drawer - Only render on smaller screens */}
-        <div className="xl:hidden">
-          {selectedThemeSummary && (
-            <ThemeDetails
-              theme={selectedTheme}
-              brands={brands}
-              onEdit={handleOpenDialog}
-              onDelete={handleDeleteTheme}
-              isLoading={isLoadingThemeDetails}
-              isOpen={!!selectedThemeSummary}
-              onOpenChange={(open) => {
-                if (!open) {
-                  setSelectedTheme(null);
-                  setSelectedThemeSummary(null);
-                }
-              }}
-            />
-          )}
-        </div>
+      <main className="grid gap-4 lg:gap-6 flex-1 min-h-0 overflow-hidden grid-cols-1">
+        <ThemeList
+          themes={themes}
+          brands={brands}
+          selectedTheme={selectedThemeSummary}
+          onSelectTheme={handleSelectTheme}
+          isLoading={isLoadingThemes}
+        />
       </main>
+
+      {/* Sheet para desktop/tablet (da direita) */}
+      {!isMobile && (
+        <Sheet open={isThemeDetailsOpen} onOpenChange={setIsThemeDetailsOpen}>
+          <SheetContent side="right" className="w-full sm:max-w-md">
+            <SheetTitle className="text-left mb-4">Detalhes do Tema</SheetTitle>
+            <ThemeDetails
+              theme={selectedTheme}
+              brands={brands}
+              onEdit={handleOpenDialog}
+              onDelete={handleDeleteTheme}
+              isLoading={isLoadingThemeDetails}
+            />
+          </SheetContent>
+        </Sheet>
+      )}
+
+      {/* Drawer para mobile (de baixo) */}
+      {isMobile && (
+        <Drawer open={isThemeDetailsOpen} onOpenChange={setIsThemeDetailsOpen}>
+          <DrawerContent className="max-h-[85vh]">
+            <DrawerTitle className="text-left p-6 pb-0">Detalhes do Tema</DrawerTitle>
+            <ThemeDetails
+              theme={selectedTheme}
+              brands={brands}
+              onEdit={handleOpenDialog}
+              onDelete={handleDeleteTheme}
+              isLoading={isLoadingThemeDetails}
+            />
+          </DrawerContent>
+        </Drawer>
+      )}
 
       <ThemeDialog
         isOpen={isDialogOpen}

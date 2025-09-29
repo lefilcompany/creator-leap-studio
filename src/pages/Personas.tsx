@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
+import { Drawer, DrawerContent, DrawerTitle } from '@/components/ui/drawer';
 import { Plus, Users } from 'lucide-react';
 import PersonaList from '@/components/personas/PersonaList';
 import PersonaDetails from '@/components/personas/PersonaDetails';
@@ -134,11 +136,7 @@ export default function PersonasPage() {
   const handleSelectPersona = useCallback(async (persona: PersonaSummary) => {
     setSelectedPersonaSummary(persona);
     setIsLoadingPersonaDetails(true);
-    
-    // No mobile, abre o drawer quando seleciona uma persona
-    if (isMobile) {
-      setIsPersonaDetailsOpen(true);
-    }
+    setIsPersonaDetailsOpen(true); // Abre o slider para todos os dispositivos
     
     try {
       // Simulate API call to get full persona details
@@ -161,7 +159,7 @@ export default function PersonasPage() {
     } finally {
       setIsLoadingPersonaDetails(false);
     }
-  }, [isMobile]);
+  }, []);
 
   const handleSavePersona = useCallback(async (formData: PersonaFormData) => {
     if (!user?.teamId || !user.id) {
@@ -245,17 +243,11 @@ export default function PersonasPage() {
       setSelectedPersona(null);
       setSelectedPersonaSummary(null);
       
-      // Select first remaining persona if any
-      const remainingPersonas = personas.filter(p => p.id !== selectedPersona.id);
-      if (remainingPersonas.length > 0) {
-        handleSelectPersona(remainingPersonas[0]);
-      }
-      
       toast.success('Persona deletada com sucesso!', { id: toastId });
     } catch (error) {
       toast.error('Erro ao deletar persona. Tente novamente.', { id: toastId });
     }
-  }, [selectedPersona, user, personas, handleSelectPersona]);
+  }, [selectedPersona, user]);
 
   // Verificar se o limite foi atingido
   const isAtPersonaLimit = team && typeof team.plan === 'object' 
@@ -292,38 +284,46 @@ export default function PersonasPage() {
         </CardHeader>
       </Card>
 
-      <main className={`grid gap-4 lg:gap-6 flex-1 min-h-0 overflow-hidden ${isMobile ? 'grid-cols-1' : 'grid-cols-1 xl:grid-cols-3'}`}>
-        <div className={`${isMobile ? 'col-span-1' : 'col-span-1 xl:col-span-2'}`}>
-          <PersonaList
-            personas={personas}
-            brands={brands}
-            selectedPersona={selectedPersonaSummary}
-            onSelectPersona={handleSelectPersona}
-            isLoading={isLoadingPersonas}
-          />
-        </div>
-        {!isMobile && (
-          <PersonaDetails
-            persona={selectedPersona}
-            brands={brands}
-            onEdit={handleOpenDialog}
-            onDelete={() => handleDeletePersona()}
-            isLoading={isLoadingPersonaDetails}
-          />
-        )}
+      <main className="grid gap-4 lg:gap-6 flex-1 min-h-0 overflow-hidden grid-cols-1">
+        <PersonaList
+          personas={personas}
+          brands={brands}
+          selectedPersona={selectedPersonaSummary}
+          onSelectPersona={handleSelectPersona}
+          isLoading={isLoadingPersonas}
+        />
       </main>
 
-      {/* Drawer para mobile */}
+      {/* Sheet para desktop/tablet (da direita) */}
+      {!isMobile && (
+        <Sheet open={isPersonaDetailsOpen} onOpenChange={setIsPersonaDetailsOpen}>
+          <SheetContent side="right" className="w-full sm:max-w-2xl">
+            <SheetTitle className="text-left mb-4">Detalhes da Persona</SheetTitle>
+            <PersonaDetails
+              persona={selectedPersona}
+              brands={brands}
+              onEdit={handleOpenDialog}
+              onDelete={handleDeletePersona}
+              isLoading={isLoadingPersonaDetails}
+            />
+          </SheetContent>
+        </Sheet>
+      )}
+
+      {/* Drawer para mobile (de baixo) */}
       {isMobile && (
-        <PersonaDetails
-          persona={selectedPersona}
-          brands={brands}
-          onEdit={handleOpenDialog}
-          onDelete={() => handleDeletePersona()}
-          isLoading={isLoadingPersonaDetails}
-          isOpen={isPersonaDetailsOpen}
-          onOpenChange={setIsPersonaDetailsOpen}
-        />
+        <Drawer open={isPersonaDetailsOpen} onOpenChange={setIsPersonaDetailsOpen}>
+          <DrawerContent className="max-h-[85vh]">
+            <DrawerTitle className="text-left p-6 pb-0">Detalhes da Persona</DrawerTitle>
+            <PersonaDetails
+              persona={selectedPersona}
+              brands={brands}
+              onEdit={handleOpenDialog}
+              onDelete={handleDeletePersona}
+              isLoading={isLoadingPersonaDetails}
+            />
+          </DrawerContent>
+        </Drawer>
       )}
 
       <PersonaDialog

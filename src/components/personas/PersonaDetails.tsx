@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { Edit, Trash2, Users, MapPin, Briefcase, Calendar, Target, Frown, Activity, Smartphone, Heart, Book, Home } from 'lucide-react';
 import type { Persona } from '@/types/persona';
 import type { BrandSummary } from '@/types/brand';
@@ -16,8 +15,6 @@ interface PersonaDetailsProps {
   onEdit: (persona: Persona) => void;
   onDelete: () => void;
   isLoading?: boolean;
-  isOpen?: boolean;
-  onOpenChange?: (open: boolean) => void;
 }
 
 const formatDate = (dateString: string) => {
@@ -56,7 +53,7 @@ const PersonaDetailsSkeleton = () => (
   </div>
 );
 
-function PersonaDetailsContent({ persona, brands, onEdit, onDelete, isLoading }: Omit<PersonaDetailsProps, 'isOpen' | 'onOpenChange'>) {
+function PersonaDetailsContent({ persona, brands, onEdit, onDelete, isLoading }: PersonaDetailsProps) {
   const getBrandName = (brandId: string) => {
     const brand = brands.find(b => b.id === brandId);
     return brand?.name || 'Marca não encontrada';
@@ -274,21 +271,9 @@ function PersonaDetailsContent({ persona, brands, onEdit, onDelete, isLoading }:
   );
 }
 
-export default function PersonaDetails({ isOpen, onOpenChange, ...props }: PersonaDetailsProps) {
-  if (isOpen !== undefined && onOpenChange) {
-    // Modo mobile com Sheet
-    return (
-      <Sheet open={isOpen} onOpenChange={onOpenChange}>
-        <SheetContent side="right" className="w-full sm:max-w-2xl p-6 overflow-y-auto">
-          <PersonaDetailsContent {...props} />
-        </SheetContent>
-      </Sheet>
-    );
-  }
-
-  // Modo desktop
+export default function PersonaDetails(props: PersonaDetailsProps) {
   return (
-    <div className="lg:col-span-1 bg-card p-4 md:p-6 rounded-2xl border-2 border-primary/10 overflow-y-auto">
+    <div className="h-full p-6 flex flex-col overflow-hidden">
       <PersonaDetailsContent {...props} />
     </div>
   );
