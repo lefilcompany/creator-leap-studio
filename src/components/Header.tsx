@@ -97,7 +97,7 @@ export const Header = () => {
               placeholder="Pesquisar marcas, temas, personas..."
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
-              className={`w-full rounded-xl lg:rounded-2xl pl-10 lg:pl-12 pr-3 lg:pr-4 py-2 lg:py-3 h-10 lg:h-12 text-sm lg:text-base border-2 bg-background/50 transition-all duration-200 hover:bg-background focus:bg-background ${
+              className={`w-full rounded-xl lg:rounded-2xl pl-10 lg:pl-12 pr-3 lg:pr-4 py-2 lg:py-3 h-10 text-sm lg:text-base border-2 bg-background/50 transition-all duration-200 hover:bg-background focus:bg-background ${
                 isSearching 
                   ? 'border-primary/50 shadow-md' 
                   : 'border-border/50 hover:border-primary/30 focus:border-primary/50'
