@@ -54,10 +54,10 @@ function NavItem({ id, href, icon: Icon, label, collapsed }: {
           id={id}
           to={href}
           className={cn(
-            "flex items-center gap-4 p-3 rounded-lg text-sm font-medium transition-colors duration-200",
+            "flex items-center gap-4 p-3 rounded-lg transition-colors duration-200 group",
             isActive
               ? "bg-primary/10 text-primary"
-              : "text-muted-foreground bg-background hover:bg-green hover:text-foreground"
+              : "text-muted-foreground bg-background hover:bg-muted hover:text-foreground"
           )}
         >
           <Icon className="h-5 w-5 flex-shrink-0" />
