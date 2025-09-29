@@ -20,6 +20,11 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import logoCreator from "@/assets/logoCreatorPreta.png";
@@ -134,14 +139,9 @@ function TeamPlanSection({ teamName, planName, collapsed }: {
 }
 
 export function AppSidebar() {
-  const { state } = useSidebar();
+  const { state, open, setOpen } = useSidebar();
   const collapsed = state === "collapsed";
   const isMobile = useIsMobile();
-
-  // No mobile/tablet, não renderiza a sidebar (ela fica completamente oculta)
-  if (isMobile) {
-    return null;
-  }
 
   const sidebarContent = () => (
     <>
@@ -193,6 +193,20 @@ export function AppSidebar() {
     </>
   );
 
+  // No mobile/tablet, renderiza um Sheet em vez da Sidebar normal
+  if (isMobile) {
+    return (
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetContent side="left" className="w-64 p-0 bg-background">
+          <div className="h-full flex flex-col">
+            {sidebarContent()}
+          </div>
+        </SheetContent>
+      </Sheet>
+    );
+  }
+
+  // Desktop: renderiza a Sidebar normal
   return (
     <Sidebar 
       className={`${collapsed ? "w-16" : "w-64"} border-r border-primary/20 transition-all duration-300`} 

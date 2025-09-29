@@ -2,7 +2,8 @@ import { useState, useRef, useEffect } from "react";
 import { Search, Bell, Settings, User, Menu, Loader2, Info, FileText, Shield, LogOut } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -23,6 +24,8 @@ import {
 import { CreatorLogo } from "./CreatorLogo";
 
 export const Header = () => {
+  const { setOpen } = useSidebar();
+  const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [showMobileSearch, setShowMobileSearch] = useState(false);
@@ -72,7 +75,18 @@ export const Header = () => {
       <div className="flex h-14 md:h-16 lg:h-20 items-center justify-between px-3 md:px-4 lg:px-6 xl:px-8">
         {/* Mobile sidebar trigger */}
         <div className="xl:hidden">
-          <SidebarTrigger />
+          {isMobile ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setOpen(true)}
+              className="h-8 w-8 md:h-10 md:w-10 rounded-lg hover:bg-primary/10 transition-all duration-200"
+            >
+              <Menu className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
+            </Button>
+          ) : (
+            <SidebarTrigger />
+          )}
         </div>
 
         {/* Logo - shown when sidebar is hidden */}
