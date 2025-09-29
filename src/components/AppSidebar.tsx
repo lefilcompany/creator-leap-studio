@@ -43,12 +43,13 @@ const actionButtons = [
     { id: "nav-planejar", href: "/plan", icon: Calendar, label: "Planejar Conteúdo", variant: "secondary" as const },
 ];
 
-function NavItem({ id, href, icon: Icon, label, collapsed }: {
+function NavItem({ id, href, icon: Icon, label, collapsed, onNavigate }: {
   id: string;
   href: string;
   icon: React.ElementType;
   label: string;
   collapsed: boolean;
+  onNavigate?: () => void;
 }) {
   const location = useLocation();
   const isActive = location.pathname === href;
@@ -59,6 +60,7 @@ function NavItem({ id, href, icon: Icon, label, collapsed }: {
         <NavLink
           id={id}
           to={href}
+          onClick={onNavigate}
           className={cn(
             "flex items-center gap-3 lg:gap-4 p-2.5 lg:p-3 rounded-lg transition-colors duration-200 group",
             isActive
@@ -74,13 +76,14 @@ function NavItem({ id, href, icon: Icon, label, collapsed }: {
   );
 }
 
-function ActionButton({ id, href, icon: Icon, label, collapsed, variant }: {
+function ActionButton({ id, href, icon: Icon, label, collapsed, variant, onNavigate }: {
     id: string;
     href: string;
     icon: React.ElementType;
     label: string;
     collapsed: boolean;
     variant: 'primary' | 'secondary' | 'accent';
+    onNavigate?: () => void;
 }) {
     const location = useLocation();
     const isActive = location.pathname === href;
@@ -104,6 +107,7 @@ function ActionButton({ id, href, icon: Icon, label, collapsed, variant }: {
         <NavLink
             id={id}
             to={href}
+            onClick={onNavigate}
             className={cn(
                 "flex items-center gap-3 px-3 py-2.5 lg:px-4 lg:py-3 rounded-lg text-sm font-medium transition-all duration-300 ease-in-out transform hover:scale-105",
                 isActive ? variantClasses[variant].active : variantClasses[variant].inactive
@@ -115,16 +119,18 @@ function ActionButton({ id, href, icon: Icon, label, collapsed, variant }: {
     );
 }
 
-function TeamPlanSection({ teamName, planName, collapsed }: {
+function TeamPlanSection({ teamName, planName, collapsed, onNavigate }: {
   teamName: string;
   planName: string;
   collapsed: boolean;
+  onNavigate?: () => void;
 }) {
   if (collapsed) return null;
 
   return (
     <NavLink
       to="/equipe"
+      onClick={onNavigate}
       className="bg-gradient-to-tr from-primary to-fuchsia-600 text-primary-foreground rounded-lg p-4 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-[1.02] block"
     >
       <div className="flex items-center gap-3">
@@ -142,6 +148,12 @@ export function AppSidebar() {
   const { state, open, setOpen } = useSidebar();
   const collapsed = state === "collapsed";
   const isMobile = useIsMobile();
+
+  const handleMobileNavigate = () => {
+    if (isMobile) {
+      setOpen(false);
+    }
+  };
 
   const sidebarContent = () => (
     <>
@@ -168,7 +180,7 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu className="space-y-1">
               {navLinks.map((link) => (
-                <NavItem key={link.href} {...link} collapsed={collapsed} />
+                <NavItem key={link.href} {...link} collapsed={collapsed} onNavigate={handleMobileNavigate} />
               ))}
             </SidebarMenu>
           </SidebarGroupContent>
@@ -177,7 +189,7 @@ export function AppSidebar() {
         {!collapsed && (
           <div className="space-y-2 lg:space-y-3 mt-4 lg:mt-6">
             {actionButtons.map((button) => (
-                <ActionButton key={button.id} {...button} collapsed={collapsed} />
+                <ActionButton key={button.id} {...button} collapsed={collapsed} onNavigate={handleMobileNavigate} />
             ))}
           </div>
         )}
@@ -188,6 +200,7 @@ export function AppSidebar() {
           teamName="LeFil"
           planName="LEFIL"
           collapsed={collapsed}
+          onNavigate={handleMobileNavigate}
         />
       </div>
     </>
