@@ -103,7 +103,7 @@ export default function ThemeDetails({ theme, onEdit, onDelete, brands, isLoadin
         </div>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-3 mt-6 flex-shrink-0">
+      <div className="flex flex-col md:flex-row gap-3 mt-6 mb-8 flex-shrink-0">
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button variant="outline" className="w-full flex-1 rounded-full py-5">

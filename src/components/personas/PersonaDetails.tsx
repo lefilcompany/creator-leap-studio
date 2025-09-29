@@ -263,7 +263,7 @@ function PersonaDetailsContent({ persona, brands, onEdit, onDelete, isLoading }:
       </Card>
 
       {/* Informações de criação */}
-      <div className="text-xs text-muted-foreground pt-4 border-t">
+      <div className="text-xs text-muted-foreground pt-4 pb-8 border-t">
         <p>Criado em: {formatDate(persona.createdAt)}</p>
         <p>Última atualização: {formatDate(persona.updatedAt)}</p>
       </div>
