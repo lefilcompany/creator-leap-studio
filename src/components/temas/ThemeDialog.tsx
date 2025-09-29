@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { X, Plus } from "lucide-react";
 import type { StrategicTheme } from "@/types/theme";
 import type { BrandSummary } from "@/types/brand";
 
@@ -28,14 +27,19 @@ export default function ThemeDialog({
     brandId: '',
     title: '',
     description: '',
+    colorPalette: '',
+    toneOfVoice: '',
     targetAudience: '',
-    tone: '',
-    objectives: [] as string[],
-    keyMessages: [] as string[]
+    hashtags: '',
+    objectives: '',
+    contentFormat: '',
+    macroThemes: '',
+    bestFormats: '',
+    platforms: '',
+    expectedAction: '',
+    additionalInfo: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [newObjective, setNewObjective] = useState('');
-  const [newKeyMessage, setNewKeyMessage] = useState('');
 
   useEffect(() => {
     if (themeToEdit) {
@@ -43,20 +47,34 @@ export default function ThemeDialog({
         brandId: themeToEdit.brandId,
         title: themeToEdit.title,
         description: themeToEdit.description,
+        colorPalette: themeToEdit.colorPalette,
+        toneOfVoice: themeToEdit.toneOfVoice,
         targetAudience: themeToEdit.targetAudience,
-        tone: themeToEdit.tone,
-        objectives: themeToEdit.objectives || [],
-        keyMessages: themeToEdit.keyMessages || []
+        hashtags: themeToEdit.hashtags,
+        objectives: themeToEdit.objectives,
+        contentFormat: themeToEdit.contentFormat,
+        macroThemes: themeToEdit.macroThemes,
+        bestFormats: themeToEdit.bestFormats,
+        platforms: themeToEdit.platforms,
+        expectedAction: themeToEdit.expectedAction,
+        additionalInfo: themeToEdit.additionalInfo,
       });
     } else {
       setFormData({
         brandId: '',
         title: '',
         description: '',
+        colorPalette: '',
+        toneOfVoice: '',
         targetAudience: '',
-        tone: '',
-        objectives: [],
-        keyMessages: []
+        hashtags: '',
+        objectives: '',
+        contentFormat: '',
+        macroThemes: '',
+        bestFormats: '',
+        platforms: '',
+        expectedAction: '',
+        additionalInfo: '',
       });
     }
   }, [themeToEdit, isOpen]);
@@ -73,40 +91,6 @@ export default function ThemeDialog({
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const addObjective = () => {
-    if (newObjective.trim()) {
-      setFormData(prev => ({
-        ...prev,
-        objectives: [...prev.objectives, newObjective.trim()]
-      }));
-      setNewObjective('');
-    }
-  };
-
-  const removeObjective = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      objectives: prev.objectives.filter((_, i) => i !== index)
-    }));
-  };
-
-  const addKeyMessage = () => {
-    if (newKeyMessage.trim()) {
-      setFormData(prev => ({
-        ...prev,
-        keyMessages: [...prev.keyMessages, newKeyMessage.trim()]
-      }));
-      setNewKeyMessage('');
-    }
-  };
-
-  const removeKeyMessage = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      keyMessages: prev.keyMessages.filter((_, i) => i !== index)
-    }));
   };
 
   return (
@@ -164,6 +148,40 @@ export default function ThemeDialog({
             />
           </div>
 
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Tom de Voz */}
+            <div className="space-y-2">
+              <Label htmlFor="toneOfVoice">Tom de Voz</Label>
+              <Select 
+                value={formData.toneOfVoice} 
+                onValueChange={(value) => setFormData(prev => ({ ...prev, toneOfVoice: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o tom de voz" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="profissional">Profissional</SelectItem>
+                  <SelectItem value="casual">Casual</SelectItem>
+                  <SelectItem value="amigavel">Amigável</SelectItem>
+                  <SelectItem value="serio">Sério</SelectItem>
+                  <SelectItem value="inspirador">Inspirador</SelectItem>
+                  <SelectItem value="divertido">Divertido</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Paleta de Cores */}
+            <div className="space-y-2">
+              <Label htmlFor="colorPalette">Paleta de Cores</Label>
+              <Input
+                id="colorPalette"
+                value={formData.colorPalette}
+                onChange={(e) => setFormData(prev => ({ ...prev, colorPalette: e.target.value }))}
+                placeholder="Ex: #FF6B6B, #4ECDC4, #45B7D1"
+              />
+            </div>
+          </div>
+
           {/* Público-Alvo */}
           <div className="space-y-2">
             <Label htmlFor="targetAudience">Público-Alvo</Label>
@@ -175,93 +193,94 @@ export default function ThemeDialog({
             />
           </div>
 
-          {/* Tom de Voz */}
+          {/* Hashtags */}
           <div className="space-y-2">
-            <Label htmlFor="tone">Tom de Voz</Label>
-            <Select 
-              value={formData.tone} 
-              onValueChange={(value) => setFormData(prev => ({ ...prev, tone: value }))}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o tom de voz" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="profissional">Profissional</SelectItem>
-                <SelectItem value="casual">Casual</SelectItem>
-                <SelectItem value="amigavel">Amigável</SelectItem>
-                <SelectItem value="serio">Sério</SelectItem>
-                <SelectItem value="inspirador">Inspirador</SelectItem>
-                <SelectItem value="divertido">Divertido</SelectItem>
-              </SelectContent>
-            </Select>
+            <Label htmlFor="hashtags">Hashtags</Label>
+            <Input
+              id="hashtags"
+              value={formData.hashtags}
+              onChange={(e) => setFormData(prev => ({ ...prev, hashtags: e.target.value }))}
+              placeholder="Ex: #marketing #digital #inovacao"
+            />
           </div>
 
           {/* Objetivos */}
           <div className="space-y-2">
-            <Label>Objetivos</Label>
-            <div className="flex gap-2">
-              <Input
-                value={newObjective}
-                onChange={(e) => setNewObjective(e.target.value)}
-                placeholder="Adicionar objetivo"
-                onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addObjective())}
-              />
-              <Button type="button" onClick={addObjective} size="icon" variant="outline">
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-            {formData.objectives.length > 0 && (
-              <div className="space-y-1">
-                {formData.objectives.map((objective, index) => (
-                  <div key={index} className="flex items-center gap-2 bg-muted p-2 rounded">
-                    <span className="flex-1 text-sm">{objective}</span>
-                    <Button
-                      type="button"
-                      onClick={() => removeObjective(index)}
-                      size="icon"
-                      variant="ghost"
-                      className="h-6 w-6"
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
+            <Label htmlFor="objectives">Objetivos</Label>
+            <Textarea
+              id="objectives"
+              value={formData.objectives}
+              onChange={(e) => setFormData(prev => ({ ...prev, objectives: e.target.value }))}
+              placeholder="Descreva os objetivos estratégicos"
+            />
           </div>
 
-          {/* Mensagens-Chave */}
-          <div className="space-y-2">
-            <Label>Mensagens-Chave</Label>
-            <div className="flex gap-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Formato de Conteúdo */}
+            <div className="space-y-2">
+              <Label htmlFor="contentFormat">Formato de Conteúdo</Label>
               <Input
-                value={newKeyMessage}
-                onChange={(e) => setNewKeyMessage(e.target.value)}
-                placeholder="Adicionar mensagem-chave"
-                onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addKeyMessage())}
+                id="contentFormat"
+                value={formData.contentFormat}
+                onChange={(e) => setFormData(prev => ({ ...prev, contentFormat: e.target.value }))}
+                placeholder="Ex: Posts, Stories, Reels"
               />
-              <Button type="button" onClick={addKeyMessage} size="icon" variant="outline">
-                <Plus className="h-4 w-4" />
-              </Button>
             </div>
-            {formData.keyMessages.length > 0 && (
-              <div className="space-y-1">
-                {formData.keyMessages.map((message, index) => (
-                  <div key={index} className="flex items-center gap-2 bg-muted p-2 rounded">
-                    <span className="flex-1 text-sm">{message}</span>
-                    <Button
-                      type="button"
-                      onClick={() => removeKeyMessage(index)}
-                      size="icon"
-                      variant="ghost"
-                      className="h-6 w-6"
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
+
+            {/* Melhores Formatos */}
+            <div className="space-y-2">
+              <Label htmlFor="bestFormats">Melhores Formatos</Label>
+              <Input
+                id="bestFormats"
+                value={formData.bestFormats}
+                onChange={(e) => setFormData(prev => ({ ...prev, bestFormats: e.target.value }))}
+                placeholder="Ex: Carrossel, Vídeo, Texto"
+              />
+            </div>
+          </div>
+
+          {/* Macro Temas */}
+          <div className="space-y-2">
+            <Label htmlFor="macroThemes">Macro Temas</Label>
+            <Textarea
+              id="macroThemes"
+              value={formData.macroThemes}
+              onChange={(e) => setFormData(prev => ({ ...prev, macroThemes: e.target.value }))}
+              placeholder="Descreva os macro temas abordados"
+            />
+          </div>
+
+          {/* Plataformas */}
+          <div className="space-y-2">
+            <Label htmlFor="platforms">Plataformas</Label>
+            <Input
+              id="platforms"
+              value={formData.platforms}
+              onChange={(e) => setFormData(prev => ({ ...prev, platforms: e.target.value }))}
+              placeholder="Ex: Instagram, LinkedIn, Facebook"
+            />
+          </div>
+
+          {/* Ação Esperada */}
+          <div className="space-y-2">
+            <Label htmlFor="expectedAction">Ação Esperada</Label>
+            <Input
+              id="expectedAction"
+              value={formData.expectedAction}
+              onChange={(e) => setFormData(prev => ({ ...prev, expectedAction: e.target.value }))}
+              placeholder="Ex: Engajamento, Conversão, Awareness"
+            />
+          </div>
+
+          {/* Informações Adicionais */}
+          <div className="space-y-2">
+            <Label htmlFor="additionalInfo">Informações Adicionais</Label>
+            <Textarea
+              id="additionalInfo"
+              value={formData.additionalInfo}
+              onChange={(e) => setFormData(prev => ({ ...prev, additionalInfo: e.target.value }))}
+              placeholder="Outras informações relevantes"
+            />
           </div>
 
           {/* Botões */}

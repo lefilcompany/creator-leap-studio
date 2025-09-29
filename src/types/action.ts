@@ -1,69 +1,84 @@
-import { Wand2, CheckCircle, Calendar } from 'lucide-react';
+import { Sparkles, CheckCircle, Calendar } from 'lucide-react';
 
-export interface ActionResult {
-  title?: string;
-  body?: string;
-  feedback?: string;
-  plan?: string;
-  imageUrl?: string;
-  originalImage?: string;
-}
+// Tipos de ação para consistência - deve corresponder ao enum ActionType no Prisma
+export type ActionType = 'CRIAR_CONTEUDO' | 'REVISAR_CONTEUDO' | 'PLANEJAR_CONTEUDO';
 
-export interface ActionDetails {
-  platform?: string;
-  quantity?: string;
-  [key: string]: any;
-}
+// Tipos de ação para exibição
+export type ActionDisplayType = 'Criar conteúdo' | 'Revisar conteúdo' | 'Planejar conteúdo';
 
-export interface Action {
-  id: string;
-  type: string;
-  brandId: string;
-  brand?: {
-    id: string;
-    name: string;
-  };
-  details?: ActionDetails;
-  result?: ActionResult;
-  approved: boolean;
-  createdAt: string;
-  updatedAt: string;
-  teamId: string;
-  userId: string;
-}
-
-export interface ActionSummary {
-  id: string;
-  type: string;
-  brandId: string;
-  brand?: {
-    id: string;
-    name: string;
-  };
-  approved: boolean;
-  createdAt: string;
-}
-
-export const ACTION_TYPE_DISPLAY: { [key: string]: string } = {
+// Mapeamento de tipos para exibição
+export const ACTION_TYPE_DISPLAY: { [key in ActionType]: ActionDisplayType } = {
   'CRIAR_CONTEUDO': 'Criar conteúdo',
-  'REVISAR_CONTEUDO': 'Revisar Conteúdo',
-  'PLANEJAR_CONTEUDO': 'Planejar Conteúdo'
+  'REVISAR_CONTEUDO': 'Revisar conteúdo',
+  'PLANEJAR_CONTEUDO': 'Planejar conteúdo',
 };
 
-export const ACTION_STYLE_MAP: { [key: string]: { icon: any; background: string; color: string } } = {
+// Mapeamento de tipos para seus respectivos ícones e cores
+export const ACTION_STYLE_MAP: {
+  [key in ActionDisplayType]: { icon: React.ElementType; color: string; background: string };
+} = {
   'Criar conteúdo': {
-    icon: Wand2,
-    background: 'bg-pink-500/10',
-    color: 'text-pink-600'
+    icon: Sparkles,
+    color: 'text-primary',
+    background: 'bg-primary/10',
   },
-  'Revisar Conteúdo': {
+  'Revisar conteúdo': {
     icon: CheckCircle,
-    background: 'bg-blue-500/10', 
-    color: 'text-blue-600'
+    color: 'text-accent',
+    background: 'bg-accent/10',
   },
-  'Planejar Conteúdo': {
+  'Planejar conteúdo': {
     icon: Calendar,
-    background: 'bg-purple-500/10',
-    color: 'text-purple-600'
-  }
+    color: 'text-secondary',
+    background: 'bg-secondary/10',
+  },
+};
+
+// Interface principal da Ação - corresponde ao modelo Prisma
+export interface Action {
+  id: string;
+  type: ActionType;
+  brandId: string;
+  teamId: string;
+  userId: string;
+  createdAt: string;
+  updatedAt?: string;
+  status: string; // "Em revisão", "Aprovado", "Rejeitado"
+  approved: boolean;
+  revisions: number;
+  details?: {
+    prompt?: string;
+    objective?: string;
+    platform?: string;
+    [key: string]: any;
+  } | null;
+  result?: {
+    imageUrl?: string;
+    title?: string;
+    body?: string;
+    hashtags?: string[];
+    feedback?: string;
+    plan?: string;
+    originalImage?: string;
+    [key: string]: any;
+  } | null;
+  // Relacionamentos vindos do Prisma
+  brand?: {
+    id: string;
+    name: string;
+  };
+  user?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+}
+
+// Dados mínimos utilizados nas listagens de ações
+export type ActionSummary = {
+  id: string;
+  type: ActionType;
+  createdAt: string;
+  approved: boolean;
+  brand: { id: string; name: string } | null;
 };
