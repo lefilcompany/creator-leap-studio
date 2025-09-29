@@ -117,7 +117,10 @@ function TeamPlanSection({ teamName, planName, collapsed }: {
   if (collapsed) return null;
 
   return (
-    <div className="bg-gradient-to-tr from-primary to-fuchsia-600 text-primary-foreground rounded-lg p-4 shadow-lg">
+    <NavLink
+      to="/equipe"
+      className="bg-gradient-to-tr from-primary to-fuchsia-600 text-primary-foreground rounded-lg p-4 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-[1.02] block"
+    >
       <div className="flex items-center gap-3">
         <Rocket className="h-5 w-5 flex-shrink-0" />
         <div className="flex flex-col items-start leading-tight">
@@ -125,7 +128,7 @@ function TeamPlanSection({ teamName, planName, collapsed }: {
           <div className="text-xs opacity-90">Plano: {planName}</div>
         </div>
       </div>
-    </div>
+    </NavLink>
   );
 }
 
