@@ -10,6 +10,7 @@ import Dashboard from "./pages/Dashboard";
 import Brands from "./pages/Brands";
 import Themes from "./pages/Themes";
 import Personas from "./pages/Personas";
+import History from "./pages/History";
 import CreateContent from "./pages/CreateContent";
 import ReviewContent from "./pages/ReviewContent";
 import PlanContent from "./pages/PlanContent";
@@ -35,7 +36,7 @@ const App = () => (
             <Route path="brands" element={<Brands />} />
             <Route path="themes" element={<Themes />} />
             <Route path="personas" element={<Personas />} />
-            <Route path="history" element={<Dashboard />} />
+            <Route path="history" element={<History />} />
             <Route path="create" element={<CreateContent />} />
             <Route path="review" element={<ReviewContent />} />
             <Route path="plan" element={<PlanContent />} />
