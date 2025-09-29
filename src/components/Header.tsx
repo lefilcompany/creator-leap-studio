@@ -89,10 +89,7 @@ export const Header = () => {
           )}
         </div>
 
-        {/* Logo - shown when sidebar is hidden */}
-        <div className="block xl:hidden">
-          <CreatorLogo />
-        </div>
+        
 
         {/* Search bar - Desktop only */}
         <div className="hidden xl:flex flex-1 max-w-2xl mx-4 xl:mx-6">
