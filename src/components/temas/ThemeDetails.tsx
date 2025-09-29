@@ -21,6 +21,8 @@ interface ThemeDetailsProps {
   onDelete: () => void;
   brands: BrandSummary[]; // Recebe as marcas para encontrar o nome
   isLoading?: boolean;
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 const formatDate = (dateString: string) => {
