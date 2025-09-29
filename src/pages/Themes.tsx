@@ -103,13 +103,20 @@ export default function Themes() {
       const mockTeam: Team = {
         id: 'team-1',
         name: 'LeFil',
+        code: 'lefil-123',
         admin: 'copy@lefil.com.br',
+        members: ['copy@lefil.com.br'],
+        pending: [],
         plan: {
           name: 'PREMIUM',
           limits: {
+            members: 10,
             themes: 10,
             brands: 20,
-            personas: 15
+            personas: 15,
+            calendars: 5,
+            contentSuggestions: 100,
+            contentReviews: 50
           }
         }
       };
@@ -254,11 +261,7 @@ export default function Themes() {
         description: 'Este é um tema estratégico focado em oferecer acolhimento e suporte em momentos difíceis, proporcionando conforto e paz para as famílias.',
         targetAudience: 'Famílias com idosos, pessoas que sofreram perdas recentes, adultos entre 40-60 anos.',
         tone: 'profissional, sério',
-        objectives: [
-          'Transmitir confiança e segurança',
-          'Demonstrar empatia e cuidado',
-          'Oferecer suporte emocional'
-        ],
+        objectives: 'Transmitir confiança e segurança, demonstrar empatia e cuidado, oferecer suporte emocional',
         keyMessages: [
           'Cuidado humanizado',
           'Momentos de paz',

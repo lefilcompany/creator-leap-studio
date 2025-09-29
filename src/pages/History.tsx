@@ -72,7 +72,6 @@ export default function History() {
         {
           id: '1',
           type: 'CRIAR_CONTEUDO',
-          brandId: '1',
           brand: { id: '1', name: 'Morada da Paz' },
           approved: true,
           createdAt: '2025-09-29T10:30:00Z'
@@ -80,7 +79,6 @@ export default function History() {
         {
           id: '2',
           type: 'REVISAR_CONTEUDO',
-          brandId: '2',
           brand: { id: '2', name: 'Morada da Paz Pet' },
           approved: true,
           createdAt: '2025-09-29T09:15:00Z'
@@ -88,7 +86,6 @@ export default function History() {
         {
           id: '3',
           type: 'PLANEJAR_CONTEUDO',
-          brandId: '3',
           brand: { id: '3', name: 'LeFil Company' },
           approved: true,
           createdAt: '2025-09-29T08:45:00Z'
@@ -96,7 +93,6 @@ export default function History() {
         {
           id: '4',
           type: 'CRIAR_CONTEUDO',
-          brandId: '1',
           brand: { id: '1', name: 'Morada da Paz' },
           approved: false,
           createdAt: '2025-09-28T16:20:00Z'
@@ -104,7 +100,6 @@ export default function History() {
         {
           id: '5',
           type: 'REVISAR_CONTEUDO',
-          brandId: '2',
           brand: { id: '2', name: 'Morada da Paz Pet' },
           approved: true,
           createdAt: '2025-09-28T14:30:00Z'
@@ -112,7 +107,6 @@ export default function History() {
         {
           id: '6',
           type: 'PLANEJAR_CONTEUDO',
-          brandId: '3',
           brand: { id: '3', name: 'LeFil Company' },
           approved: true,
           createdAt: '2025-09-28T13:15:00Z'
@@ -120,7 +114,6 @@ export default function History() {
         {
           id: '7',
           type: 'CRIAR_CONTEUDO',
-          brandId: '1',
           brand: { id: '1', name: 'Morada da Paz' },
           approved: true,
           createdAt: '2025-09-28T11:45:00Z'
@@ -128,7 +121,6 @@ export default function History() {
         {
           id: '8',
           type: 'REVISAR_CONTEUDO',
-          brandId: '2',
           brand: { id: '2', name: 'Morada da Paz Pet' },
           approved: false,
           createdAt: '2025-09-28T10:20:00Z'
@@ -136,7 +128,6 @@ export default function History() {
         {
           id: '9',
           type: 'PLANEJAR_CONTEUDO',
-          brandId: '3',
           brand: { id: '3', name: 'LeFil Company' },
           approved: true,
           createdAt: '2025-09-28T09:00:00Z'
@@ -144,7 +135,6 @@ export default function History() {
         {
           id: '10',
           type: 'CRIAR_CONTEUDO',
-          brandId: '1',
           brand: { id: '1', name: 'Morada da Paz' },
           approved: true,
           createdAt: '2025-09-27T17:30:00Z'
@@ -152,7 +142,6 @@ export default function History() {
         {
           id: '11',
           type: 'REVISAR_CONTEUDO',
-          brandId: '2',
           brand: { id: '2', name: 'Morada da Paz Pet' },
           approved: true,
           createdAt: '2025-09-27T16:15:00Z'
@@ -160,7 +149,6 @@ export default function History() {
         {
           id: '12',
           type: 'PLANEJAR_CONTEUDO',
-          brandId: '3',
           brand: { id: '3', name: 'LeFil Company' },
           approved: false,
           createdAt: '2025-09-27T15:00:00Z'
@@ -168,7 +156,6 @@ export default function History() {
         {
           id: '13',
           type: 'CRIAR_CONTEUDO',
-          brandId: '1',
           brand: { id: '1', name: 'Morada da Paz' },
           approved: true,
           createdAt: '2025-09-27T14:20:00Z'
@@ -176,7 +163,6 @@ export default function History() {
         {
           id: '14',
           type: 'REVISAR_CONTEUDO',
-          brandId: '2',
           brand: { id: '2', name: 'Morada da Paz Pet' },
           approved: true,
           createdAt: '2025-09-27T13:10:00Z'
@@ -184,7 +170,6 @@ export default function History() {
         {
           id: '15',
           type: 'PLANEJAR_CONTEUDO',
-          brandId: '3',
           brand: { id: '3', name: 'LeFil Company' },
           approved: true,
           createdAt: '2025-09-27T12:00:00Z'
@@ -232,7 +217,7 @@ export default function History() {
       const fullAction: Action = {
         id: action.id,
         type: action.type,
-        brandId: action.brandId,
+        brandId: action.brand?.id || '',
         brand: action.brand,
         details: {
           platform: action.type === 'CRIAR_CONTEUDO' ? 'Instagram' : action.type === 'PLANEJAR_CONTEUDO' ? 'Instagram' : undefined,
@@ -247,6 +232,8 @@ export default function History() {
           originalImage: action.type === 'REVISAR_CONTEUDO' ? 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400&h=400&fit=crop' : undefined
         },
         approved: action.approved,
+        status: action.approved ? 'Aprovado' : 'Em revisão',
+        revisions: 0,
         createdAt: action.createdAt,
         updatedAt: action.createdAt,
         teamId: user?.teamId || '',
