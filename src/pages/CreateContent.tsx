@@ -1,271 +1,845 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, Image as ImageIcon, Video, Wand2, Upload, X } from "lucide-react";
+import { Loader, Sparkles, Zap, X, Info, ImageIcon, Video } from "lucide-react";
+import { toast } from "sonner";
+import type { Brand, BrandSummary } from "@/types/brand";
+import type { StrategicTheme, StrategicThemeSummary } from "@/types/theme";
+import type { Persona, PersonaSummary } from "@/types/persona";
+import type { Team } from "@/types/theme";
+import { useAuth } from "@/hooks/useAuth";
 
-const CreateContent = () => {
-  const [contentType, setContentType] = useState("image");
-  const [formData, setFormData] = useState({
+// Interfaces
+interface FormData {
+  brand: string;
+  theme: string;
+  persona: string;
+  objective: string;
+  platform: string;
+  description: string;
+  audience: string;
+  tone: string[];
+  additionalInfo: string;
+}
+
+const toneOptions = [
+  "inspirador",
+  "motivacional", 
+  "profissional",
+  "casual",
+  "elegante",
+  "moderno",
+  "tradicional",
+  "divertido",
+  "sério",
+];
+
+export default function CreateContent() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState<FormData>({
     brand: "",
     theme: "",
     persona: "",
-    platform: "",
-    targetAudience: "",
-    referenceImage: null as File | null,
     objective: "",
-    visualDescription: "",
+    platform: "",
+    description: "",
+    audience: "",
     tone: [],
-    extraInfo: ""
+    additionalInfo: "",
   });
 
-  const updateFormData = (field: string, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+  const [team, setTeam] = useState<Team | null>(null);
+  const [brands, setBrands] = useState<BrandSummary[]>([]);
+  const [themes, setThemes] = useState<StrategicThemeSummary[]>([]);
+  const [personas, setPersonas] = useState<PersonaSummary[]>([]);
+  const [isLoadingData, setIsLoadingData] = useState(true);
+  const [filteredThemes, setFilteredThemes] = useState<StrategicThemeSummary[]>([]);
+  const [filteredPersonas, setFilteredPersonas] = useState<PersonaSummary[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [referenceFiles, setReferenceFiles] = useState<File[]>([]);
+  const [isVideoMode, setIsVideoMode] = useState<boolean>(false);
+  const [transformationType, setTransformationType] = useState<
+    "image_to_video" | "video_to_video"
+  >("image_to_video");
+  const [ratio, setRatio] = useState<string>("768:1280");
+  const [duration, setDuration] = useState<string>("5");
+  const pasteAreaRef = useRef<HTMLDivElement>(null);
+
+  const handlePaste = (e: React.ClipboardEvent) => {
+    const items = e.clipboardData.items;
+    const files: File[] = [];
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf("image") !== -1) {
+        const file = items[i].getAsFile();
+        if (file) files.push(file);
+      }
+    }
+    if (files.length > 0) {
+      setReferenceFiles((prev) => [...prev, ...files].slice(0, 10));
+    }
   };
 
-  const addTone = (tone: string) => {
+  const handleRemoveFile = (indexToRemove: number) => {
+    setReferenceFiles((prev) => 
+      prev.filter((_, index) => index !== indexToRemove)
+    );
+  };
+
+  useEffect(() => {
+    const loadData = async () => {
+      if (!user?.teamId || !user?.id) {
+        if (user) setIsLoadingData(false);
+        return;
+      }
+
+      setIsLoadingData(true);
+      try {
+        // Mock data for development
+        const mockTeam: Team = {
+          id: 'team-1',
+          name: 'LeFil',
+          code: 'lefil-123',
+          admin: 'copy@lefil.com.br',
+          members: ['copy@lefil.com.br'],
+          pending: [],
+          plan: {
+            name: 'PREMIUM',
+            limits: {
+              members: 10,
+              themes: 10,
+              brands: 20,
+              personas: 15,
+              calendars: 5,
+              contentSuggestions: 100,
+              contentReviews: 50
+            }
+          },
+          credits: {
+            contentSuggestions: 9795,
+            contentReviews: 48,
+            contentPlans: 25
+          }
+        };
+
+        const mockBrands: BrandSummary[] = [
+          { id: '1', name: 'Açúcar Petribu', responsible: 'copy@lefil.com.br', createdAt: '2025-09-01T10:00:00Z', updatedAt: '2025-09-29T10:00:00Z' },
+          { id: '2', name: 'Cerâmica Brennand', responsible: 'copy@lefil.com.br', createdAt: '2025-09-02T10:00:00Z', updatedAt: '2025-09-29T10:00:00Z' },
+          { id: '3', name: 'Iclub', responsible: 'copy@lefil.com.br', createdAt: '2025-09-03T10:00:00Z', updatedAt: '2025-09-29T10:00:00Z' },
+        ];
+
+        const mockThemes: StrategicThemeSummary[] = [
+          { id: '1', brandId: '1', title: 'Receitas Tradicionais', createdAt: '2025-09-01T10:00:00Z' },
+          { id: '2', brandId: '1', title: 'Momentos em Família', createdAt: '2025-09-02T10:00:00Z' },
+          { id: '3', brandId: '2', title: 'Arte e Tradição', createdAt: '2025-09-03T10:00:00Z' },
+        ];
+
+        const mockPersonas: PersonaSummary[] = [
+          { id: '1', brandId: '1', name: 'Mãe Carinhosa', createdAt: '2025-09-01T10:00:00Z' },
+          { id: '2', brandId: '1', name: 'Jovem Independente', createdAt: '2025-09-02T10:00:00Z' },
+          { id: '3', brandId: '2', name: 'Artista Apreciador', createdAt: '2025-09-03T10:00:00Z' },
+        ];
+
+        setTeam(mockTeam);
+        setBrands(mockBrands);
+        setThemes(mockThemes);
+        setPersonas(mockPersonas);
+      } catch (error: any) {
+        console.error("Erro ao carregar dados:", error);
+        toast.error("Erro ao carregar dados do formulário");
+      } finally {
+        setIsLoadingData(false);
+      }
+    };
+    loadData();
+  }, [user]);
+
+  useEffect(() => {
+    const selectedBrand = brands.find((b) => b.name === formData.brand);
+    setFilteredThemes(
+      selectedBrand ? themes.filter((t) => t.brandId === selectedBrand.id) : []
+    );
+    setFilteredPersonas(
+      selectedBrand ? personas.filter((p) => p.brandId === selectedBrand.id) : []
+    );
+  }, [brands, themes, personas, formData.brand]);
+
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setFormData((prev) => ({ ...prev, [e.target.id]: e.target.value }));
+  };
+
+  const handleSelectChange = (
+    field: keyof Omit<FormData, "tone">,
+    value: string
+  ) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    if (field === "brand") {
+      setFormData((prev) => ({ 
+        ...prev, 
+        theme: "",
+        persona: ""
+      }));
+    }
+  };
+
+  const handleToneSelect = (tone: string) => {
     if (!formData.tone.includes(tone)) {
-      updateFormData("tone", [...formData.tone, tone]);
+      if (formData.tone.length >= 4) {
+        toast.error("Limite atingido", {
+          description: "Você pode selecionar no máximo 4 tons de voz.",
+        });
+        return;
+      }
+      setFormData((prev) => ({ ...prev, tone: [...prev.tone, tone] }));
     }
   };
 
-  const removeTone = (tone: string) => {
-    updateFormData("tone", formData.tone.filter(t => t !== tone));
+  const handleToneRemove = (toneToRemove: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      tone: prev.tone.filter((t) => t !== toneToRemove),
+    }));
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      updateFormData("referenceImage", file);
+  const handleVideoModeChange = (checked: boolean) => {
+    setIsVideoMode(checked);
+    if (checked) {
+      toast.info("Geração de Vídeo (Beta) Ativada", {
+        description:
+          "Este recurso está em desenvolvimento e a geração pode levar mais tempo.",
+        duration: 4000,
+        icon: <Info className="h-5 w-5 text-accent" />,
+      });
     }
   };
 
-  const generateContent = () => {
-    console.log("Generating content with:", formData);
-    // Here would be the AI content generation logic
+  const isFormValid = () => {
+    const baseValid =
+      formData.brand &&
+      formData.objective &&
+      formData.platform &&
+      formData.description &&
+      formData.audience &&
+      formData.tone.length > 0 &&
+      referenceFiles.length > 0;
+    
+    if (isVideoMode) {
+      return (
+        baseValid &&
+        ratio &&
+        (transformationType !== "image_to_video" || duration)
+      );
+    }
+    return baseValid;
+  };
+
+  const handleGenerateContent = async () => {
+    if (!team) return toast.error("Equipe não encontrada.");
+    
+    const availableCredits = team?.credits?.contentSuggestions || 0;
+    if (availableCredits <= 0)
+      return toast.error("Seus créditos para criação de conteúdo acabaram.");
+      
+    if (!isFormValid())
+      return toast.error(
+        "Por favor, preencha todos os campos obrigatórios (*)."
+      );
+
+    setLoading(true);
+    const toastId = toast.loading("Gerando seu conteúdo...", {
+      description: "A IA está trabalhando. Isso pode levar alguns instantes.",
+    });
+
+    try {
+      // Simulate content generation
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      toast.success("Conteúdo gerado com sucesso!", {
+        id: toastId,
+        description: "Redirecionando para a página de resultado...",
+      });
+      navigate("/historico");
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao gerar o conteúdo.", { id: toastId });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3 bg-pink-50 px-4 py-3 rounded-lg">
-          <Sparkles className="w-5 h-5 text-pink-600" />
-          <div>
-            <h1 className="text-xl font-semibold">Criar Conteúdo</h1>
-            <p className="text-sm text-muted-foreground">Preencha os campos para gerar um post com IA</p>
-          </div>
-        </div>
-        
-        <div className="flex items-center gap-2">
-          <Button
-            variant={contentType === "image" ? "default" : "outline"}
-            onClick={() => setContentType("image")}
-            className={contentType === "image" ? "creator-button-primary" : ""}
-          >
-            <ImageIcon className="w-4 h-4 mr-2" />
-            Imagem
-          </Button>
-          <Button
-            variant={contentType === "video" ? "default" : "outline"}
-            onClick={() => setContentType("video")}
-            className={contentType === "video" ? "creator-button-primary" : ""}
-          >
-            <Video className="w-4 h-4 mr-2" />
-            Vídeo
-            <Badge variant="secondary" className="ml-2">BETA</Badge>
-          </Button>
-          <div className="flex items-center gap-2 ml-4">
-            <Wand2 className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium">9836 Criações Restantes</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Configuration Form */}
-        <Card className="creator-card">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-pink-500 rounded-full"></div>
-              Configuração Básica
-            </CardTitle>
-            <CardDescription>Defina marca, tema e público</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="brand">Marca *</Label>
-              <Select onValueChange={(value) => updateFormData("brand", value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione a marca" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="acucar-petribu">Açúcar Petribu</SelectItem>
-                  <SelectItem value="ceramica-brennand">Cerâmica Brennand</SelectItem>
-                  <SelectItem value="iclub">Iclub</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="theme">Tema Estratégico</Label>
-              <Select onValueChange={(value) => updateFormData("theme", value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Primeiro, escolha a marca" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="receitas">Receitas tradicionais</SelectItem>
-                  <SelectItem value="familia">Momentos em família</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="persona">Persona</Label>
-              <Select onValueChange={(value) => updateFormData("persona", value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Primeiro, escolha a marca" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="mae-carinhosa">Mãe Carinhosa</SelectItem>
-                  <SelectItem value="jovem-independente">Jovem Independente</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="platform">Plataforma *</Label>
-              <Select onValueChange={(value) => updateFormData("platform", value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Onde será postado?" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="instagram">Instagram</SelectItem>
-                  <SelectItem value="facebook">Facebook</SelectItem>
-                  <SelectItem value="linkedin">LinkedIn</SelectItem>
-                  <SelectItem value="tiktok">TikTok</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="audience">Público-Alvo *</Label>
-              <Input
-                placeholder="Ex: Jovens de 16-25 anos"
-                value={formData.targetAudience}
-                onChange={(e) => updateFormData("targetAudience", e.target.value)}
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="reference">Imagem de Referência *</Label>
-              <div className="border-2 border-dashed border-input rounded-lg p-6 text-center">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileUpload}
-                  className="hidden"
-                  id="file-upload"
-                />
-                <label htmlFor="file-upload" className="cursor-pointer">
-                  <Upload className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                  <Button variant="outline" asChild>
-                    <span>Escolher arquivos</span>
-                  </Button>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    {formData.referenceImage ? formData.referenceImage.name : "Nenhum arquivo escolhido"}
+    <div className="min-h-full bg-gradient-to-br from-background via-background to-muted/20 p-4 md:p-6">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Header */}
+        <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5">
+          <CardHeader className="p-4 md:p-6">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="flex-shrink-0 bg-primary/10 text-primary rounded-xl p-3">
+                  <Sparkles className="h-6 w-6 md:h-8 md:w-8" />
+                </div>
+                <div>
+                  <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+                    Criar Conteúdo
+                  </h1>
+                  <p className="text-muted-foreground text-sm md:text-base">
+                    Preencha os campos para gerar um post com IA
                   </p>
-                </label>
+                </div>
               </div>
-              <p className="text-xs text-muted-foreground">Cole sua imagem aqui (Ctrl+V)</p>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full md:w-auto">
+                <div className="flex items-center space-x-1 rounded-full bg-muted p-1 border flex-1">
+                  <Button
+                    variant={!isVideoMode ? "default" : "ghost"}
+                    onClick={() => handleVideoModeChange(false)}
+                    className="w-full rounded-full font-semibold transition-all duration-200 ease-in-out hover:bg-background/50 hover:text-muted-foreground"
+                  >
+                    <ImageIcon className="h-4 w-4 mr-2" />
+                    Imagem
+                  </Button>
+                  <Button
+                    variant={isVideoMode ? "default" : "ghost"}
+                    onClick={() => handleVideoModeChange(true)}
+                    className="w-full rounded-full font-semibold transition-all duration-200 ease-in-out hover:bg-background/50 hover:text-muted-foreground"
+                  >
+                    <Video className="h-4 w-4 mr-2" />
+                    <div className="flex items-center gap-1.5">
+                      Vídeo
+                      <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5">
+                        BETA
+                      </Badge>
+                    </div>
+                  </Button>
+                </div>
+                {isLoadingData ? (
+                  <Skeleton className="h-14 w-full sm:w-48 rounded-xl" />
+                ) : (
+                  team && (
+                    <Card className="bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/20 flex-shrink-0">
+                      <CardContent className="p-3">
+                        <div className="flex items-center justify-center gap-3">
+                          <div className="relative">
+                            <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary rounded-full blur-sm opacity-40"></div>
+                            <div className="relative bg-gradient-to-r from-primary to-secondary text-white rounded-full p-2">
+                              <Zap className="h-4 w-4" />
+                            </div>
+                          </div>
+                          <div className="text-left">
+                            <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                              {team?.credits?.contentSuggestions || 0}
+                            </span>
+                            <p className="text-xs text-muted-foreground font-medium leading-tight">
+                              Criações Restantes
+                            </p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )
+                )}
+              </div>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Content Details */}
-        <Card className="creator-card">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-              Detalhes do Conteúdo
-            </CardTitle>
-            <CardDescription>Descreva o objetivo e características do post</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="objective">Objetivo do Post *</Label>
-              <Textarea
-                placeholder="Qual a principal meta? (ex: gerar engajamento, anunciar um produto, educar)"
-                value={formData.objective}
-                onChange={(e) => updateFormData("objective", e.target.value)}
-                rows={3}
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="visual">Descrição Visual da Imagem *</Label>
-              <Textarea
-                placeholder="Como um diretor de arte: descreva a cena, iluminação e emoção."
-                value={formData.visualDescription}
-                onChange={(e) => updateFormData("visualDescription", e.target.value)}
-                rows={3}
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="tone">Tom de Voz * (máximo 4)</Label>
-              <div className="flex flex-wrap gap-2 mb-2">
-                {formData.tone.map((tone) => (
-                  <Badge key={tone} variant="secondary" className="flex items-center gap-1">
-                    {tone}
-                    <X 
-                      className="w-3 h-3 cursor-pointer" 
-                      onClick={() => removeTone(tone)}
-                    />
-                  </Badge>
-                ))}
-              </div>
-              <Input
-                placeholder="Adicionar tom de voz..."
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter' && e.currentTarget.value.trim()) {
-                    addTone(e.currentTarget.value.trim());
-                    e.currentTarget.value = '';
-                  }
-                }}
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                Nenhum tom selecionado
-              </p>
-            </div>
-
-            <div>
-              <Label htmlFor="extra">Informações Extras</Label>
-              <Textarea
-                placeholder="Detalhes cruciais (ex: usar a cor #FF5733, incluir nosso logo...)"
-                value={formData.extraInfo}
-                onChange={(e) => updateFormData("extraInfo", e.target.value)}
-                rows={3}
-              />
-            </div>
-
-            <Button 
-              onClick={generateContent}
-              className="w-full creator-button-primary"
-              disabled={!formData.brand || !formData.platform || !formData.objective}
-            >
-              <Wand2 className="w-4 h-4 mr-2" />
-              Gerar Conteúdo
-            </Button>
-          </CardContent>
         </Card>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+          {/* Configuração Básica */}
+          <div className="space-y-6">
+            <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-2xl">
+              <CardHeader className="pb-4 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-t-2xl">
+                <h2 className="text-xl font-semibold flex items-center gap-3 text-foreground">
+                  <div className="w-2 h-2 bg-primary rounded-full"></div>
+                  Configuração Básica
+                </h2>
+                <p className="text-muted-foreground text-sm">
+                  Defina marca, tema e público
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-5 p-6">
+                <div className="space-y-3">
+                  <Label
+                    htmlFor="brand"
+                    className="text-sm font-semibold text-foreground"
+                  >
+                    Marca <span className="text-destructive">*</span>
+                  </Label>
+                  {isLoadingData ? (
+                    <Skeleton className="h-11 w-full rounded-xl" />
+                  ) : (
+                    <Select
+                      onValueChange={(value) =>
+                        handleSelectChange("brand", value)
+                      }
+                      value={formData.brand}
+                    >
+                      <SelectTrigger className="h-11 rounded-xl border-2 border-border/50 bg-background/50">
+                        <SelectValue placeholder="Selecione a marca" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl border-border/20">
+                        {brands.map((b) => (
+                          <SelectItem
+                            key={b.id}
+                            value={b.name}
+                            className="rounded-lg"
+                          >
+                            {b.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </div>
+
+                <div className="space-y-3">
+                  <Label
+                    htmlFor="theme"
+                    className="text-sm font-semibold text-foreground"
+                  >
+                    Tema Estratégico
+                  </Label>
+                  {isLoadingData ? (
+                    <Skeleton className="h-11 w-full rounded-xl" />
+                  ) : (
+                    <Select
+                      onValueChange={(value) =>
+                        handleSelectChange("theme", value)
+                      }
+                      value={formData.theme}
+                      disabled={!formData.brand || filteredThemes.length === 0}
+                    >
+                      <SelectTrigger className="h-11 rounded-xl border-2 border-border/50 bg-background/50 disabled:opacity-50">
+                        <SelectValue
+                          placeholder={
+                            !formData.brand
+                              ? "Primeiro, escolha a marca"
+                              : filteredThemes.length === 0
+                              ? "Nenhum tema disponível"
+                              : "Selecione um tema (opcional)"
+                          }
+                        />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl border-border/20">
+                        {filteredThemes.map((t) => (
+                          <SelectItem
+                            key={t.id}
+                            value={t.title}
+                            className="rounded-lg"
+                          >
+                            {t.title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </div>
+
+                <div className="space-y-3">
+                  <Label
+                    htmlFor="persona"
+                    className="text-sm font-semibold text-foreground"
+                  >
+                    Persona
+                  </Label>
+                  {isLoadingData ? (
+                    <Skeleton className="h-11 w-full rounded-xl" />
+                  ) : (
+                    <Select
+                      onValueChange={(value) =>
+                        handleSelectChange("persona", value)
+                      }
+                      value={formData.persona}
+                      disabled={!formData.brand || filteredPersonas.length === 0}
+                    >
+                      <SelectTrigger className="h-11 rounded-xl border-2 border-border/50 bg-background/50 disabled:opacity-50">
+                        <SelectValue
+                          placeholder={
+                            !formData.brand
+                              ? "Primeiro, escolha a marca"
+                              : "Adicionar persona"
+                          }
+                        />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl border-border/20">
+                        {filteredPersonas.map((p) => (
+                          <SelectItem
+                            key={p.id}
+                            value={p.name}
+                            className="rounded-lg"
+                          >
+                            {p.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </div>
+
+                <div className="space-y-3">
+                  <Label
+                    htmlFor="platform"
+                    className="text-sm font-semibold text-foreground"
+                  >
+                    Plataforma <span className="text-destructive">*</span>
+                  </Label>
+                  <Select
+                    onValueChange={(value) =>
+                      handleSelectChange("platform", value)
+                    }
+                    value={formData.platform}
+                  >
+                    <SelectTrigger className="h-11 rounded-xl border-2 border-border/50 bg-background/50">
+                      <SelectValue placeholder="Onde será postado?" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl border-border/20">
+                      <SelectItem value="Instagram" className="rounded-lg">
+                        Instagram
+                      </SelectItem>
+                      <SelectItem value="Facebook" className="rounded-lg">
+                        Facebook
+                      </SelectItem>
+                      <SelectItem value="TikTok" className="rounded-lg">
+                        TikTok
+                      </SelectItem>
+                      <SelectItem value="Twitter" className="rounded-lg">
+                        Twitter (X)
+                      </SelectItem>
+                      <SelectItem value="LinkedIn" className="rounded-lg">
+                        LinkedIn
+                      </SelectItem>
+                      <SelectItem value="Comunidades" className="rounded-lg">
+                        Comunidades
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-3">
+                  <Label
+                    htmlFor="audience"
+                    className="text-sm font-semibold text-foreground"
+                  >
+                    Público-Alvo <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="audience"
+                    placeholder="Ex: Jovens de 18-25 anos"
+                    value={formData.audience}
+                    onChange={handleInputChange}
+                    className="h-11 rounded-xl border-2 border-border/50 bg-background/50"
+                  />
+                </div>
+
+                {isVideoMode && (
+                  <>
+                    <div className="space-y-3">
+                      <Label
+                        htmlFor="transformation"
+                        className="text-sm font-semibold text-foreground"
+                      >
+                        Tipo de Transformação <span className="text-destructive">*</span>
+                      </Label>
+                      <Select
+                        value={transformationType}
+                        onValueChange={(value) =>
+                          setTransformationType(value as any)
+                        }
+                      >
+                        <SelectTrigger className="h-11 rounded-xl border-2 border-border/50 bg-background/50">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="image_to_video">
+                            Imagem para Vídeo
+                          </SelectItem>
+                          <SelectItem value="video_to_video">
+                            Vídeo para Vídeo
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-3">
+                        <Label
+                          htmlFor="ratio"
+                          className="text-sm font-semibold text-foreground"
+                        >
+                          Proporção <span className="text-destructive">*</span>
+                        </Label>
+                        <Select value={ratio} onValueChange={setRatio}>
+                          <SelectTrigger className="h-11 rounded-xl border-2 border-border/50 bg-background/50">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="768:1280">
+                              Vertical (9:16)
+                            </SelectItem>
+                            <SelectItem value="1280:768">
+                              Horizontal (16:9)
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      {transformationType === "image_to_video" && (
+                        <div className="space-y-3">
+                          <Label
+                            htmlFor="duration"
+                            className="text-sm font-semibold text-foreground"
+                          >
+                            Duração (s) <span className="text-destructive">*</span>
+                          </Label>
+                          <Select value={duration} onValueChange={setDuration}>
+                            <SelectTrigger className="h-11 rounded-xl border-2 border-border/50 bg-background/50">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="5">5s</SelectItem>
+                              <SelectItem value="10">10s</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
+
+                <div className="space-y-3">
+                  <Label
+                    htmlFor="referenceFile"
+                    className="text-sm font-semibold text-foreground"
+                  >
+                    {isVideoMode
+                      ? transformationType === "image_to_video"
+                        ? "Imagem de Referência"
+                        : "Vídeo de Referência"
+                      : "Imagem de Referência"} <span className="text-destructive">*</span>
+                  </Label>
+
+                  <div className="space-y-3">
+                    <div className="flex gap-2">
+                      <Input
+                        type="file"
+                        accept={isVideoMode && transformationType === "video_to_video" ? "video/*" : "image/*"}
+                        multiple
+                        onChange={(e) => {
+                          const files = Array.from(e.target.files || []);
+                          setReferenceFiles((prev) =>
+                            [...prev, ...files].slice(0, 10)
+                          );
+                        }}
+                        className="h-11 rounded-xl border-2 border-border/50 bg-background/50 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary/10 file:text-primary"
+                      />
+                    </div>
+
+                    <div
+                      ref={pasteAreaRef}
+                      tabIndex={0}
+                      onPaste={handlePaste}
+                      className="border-2 border-dashed border-border/50 rounded-xl p-4 text-center bg-muted/20 hover:bg-muted/30 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    >
+                      <p className="text-sm text-muted-foreground">
+                        Cole sua imagem aqui (Ctrl+V)
+                      </p>
+                    </div>
+
+                    {referenceFiles.length > 0 && (
+                      <div className="space-y-2 p-3 bg-primary/5 rounded-xl border border-primary/20">
+                        {referenceFiles.map((file, idx) => (
+                          <div key={idx} className="flex items-center justify-between bg-background/50 rounded-lg p-2">
+                            <span className="text-sm text-primary font-medium flex items-center gap-2">
+                              <div className="w-2 h-2 bg-primary rounded-full"></div>
+                              {file.name}
+                            </span>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleRemoveFile(idx)}
+                              className="h-6 w-6 p-0 text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full"
+                              title="Remover arquivo"
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Detalhes do Conteúdo */}
+          <div className="space-y-6">
+            <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-2xl">
+              <CardHeader className="pb-4 bg-gradient-to-r from-secondary/5 to-accent/5 rounded-t-2xl">
+                <h2 className="text-xl font-semibold flex items-center gap-3 text-foreground">
+                  <div className="w-2 h-2 bg-secondary rounded-full"></div>
+                  Detalhes do Conteúdo
+                </h2>
+                <p className="text-muted-foreground text-sm">
+                  Descreva o objetivo e características do post
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-6 p-6">
+                <div className="space-y-3">
+                  <Label
+                    htmlFor="objective"
+                    className="text-sm font-semibold text-foreground"
+                  >
+                    Objetivo do Post <span className="text-destructive">*</span>
+                  </Label>
+                  <Textarea
+                    id="objective"
+                    placeholder="Qual a principal meta? (ex: gerar engajamento, anunciar um produto, educar)"
+                    value={formData.objective}
+                    onChange={handleInputChange}
+                    className="min-h-[100px] rounded-xl border-2 border-border/50 bg-background/50 resize-none"
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  <Label
+                    htmlFor="description"
+                    className="text-sm font-semibold text-foreground"
+                  >
+                    {isVideoMode
+                      ? "Descrição Visual do Vídeo"
+                      : "Descrição Visual da Imagem"} <span className="text-destructive">*</span>
+                  </Label>
+                  <Textarea
+                    id="description"
+                    placeholder={
+                      isVideoMode
+                        ? "Como um roteirista: descreva a ação, câmera e atmosfera..."
+                        : "Como um diretor de arte: descreva a cena, iluminação e emoção..."
+                    }
+                    value={formData.description}
+                    onChange={handleInputChange}
+                    className="min-h-[120px] rounded-xl border-2 border-border/50 bg-background/50 resize-none"
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  <Label
+                    htmlFor="tone"
+                    className="text-sm font-semibold text-foreground"
+                  >
+                    Tom de Voz <span className="text-destructive">*</span> (máximo 4)
+                  </Label>
+                  <Select onValueChange={handleToneSelect} value="">
+                    <SelectTrigger className="h-11 rounded-xl border-2 border-border/50 bg-background/50">
+                      <SelectValue placeholder="Adicionar tom de voz..." />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl border-border/20">
+                      {toneOptions
+                        .filter(option => !formData.tone.includes(option))
+                        .map((option) => (
+                        <SelectItem
+                          key={option}
+                          value={option}
+                          className="rounded-lg"
+                        >
+                          {option.charAt(0).toUpperCase() + option.slice(1)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  
+                  <div className="min-h-[60px] p-4 rounded-xl border-2 border-dashed border-border/50 bg-muted/10">
+                    {formData.tone.length === 0 ? (
+                      <p className="text-sm text-muted-foreground italic text-center py-2">
+                        Nenhum tom selecionado
+                      </p>
+                    ) : (
+                      <div className="flex flex-wrap gap-2">
+                        {formData.tone.map((tone) => (
+                          <Badge
+                            key={tone}
+                            className="flex items-center gap-2 bg-gradient-to-r from-primary/15 to-primary/5 border border-primary/30 text-primary hover:bg-primary/20"
+                          >
+                            {tone.charAt(0).toUpperCase() + tone.slice(1)}
+                            <button
+                              onClick={() => handleToneRemove(tone)}
+                              className="ml-1 text-primary hover:text-destructive p-0.5 rounded-full hover:bg-destructive/10"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <Label
+                    htmlFor="additionalInfo"
+                    className="text-sm font-semibold text-foreground"
+                  >
+                    Informações Extras
+                  </Label>
+                  <Textarea
+                    id="additionalInfo"
+                    placeholder="Detalhes cruciais (ex: usar a cor #FF5733, incluir nosso logo...)"
+                    value={formData.additionalInfo}
+                    onChange={handleInputChange}
+                    className="min-h-[100px] rounded-xl border-2 border-border/50 bg-background/50 resize-none"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Botão Gerar Conteúdo */}
+        <div className="pt-6 pb-8">
+          <Card className="bg-gradient-to-r from-primary/5 via-secondary/5 to-accent/5 border border-border/20 rounded-2xl shadow-lg">
+            <CardContent className="p-6">
+              <div className="flex flex-col items-center gap-4">
+                <Button
+                  onClick={handleGenerateContent}
+                  disabled={loading || !isFormValid()}
+                  className="w-full max-w-md h-14 rounded-2xl text-lg font-bold bg-gradient-to-r from-primary via-accent to-secondary hover:from-primary/90 hover:via-accent/90 hover:to-secondary/90 shadow-xl transition-all duration-500 disabled:opacity-50"
+                >
+                  {loading ? (
+                    <>
+                      <Loader className="animate-spin mr-3 h-5 w-5" />
+                      Gerando conteúdo...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="mr-3 h-5 w-5" />
+                      Gerar Conteúdo
+                    </>
+                  )}
+                </Button>
+                {!isFormValid() && !loading && (
+                  <div className="text-center bg-muted/30 p-3 rounded-xl border border-border/30 max-w-md">
+                    <p className="text-muted-foreground text-sm">
+                      Complete todos os campos obrigatórios (*) para gerar
+                    </p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
-};
-
-export default CreateContent;
+}
