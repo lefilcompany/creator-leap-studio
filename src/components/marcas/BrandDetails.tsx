@@ -100,7 +100,7 @@ const ColorPaletteField = ({ colors }: { colors?: ColorItem[] | null }) => {
       
       {colors.length <= 4 ? (
         // Layout horizontal para poucas cores
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
+        <div className="flex flex-wrap justify-center gap-8">
           {colors.map((color) => (
             <div key={color.id} className="flex flex-col items-center gap-3">
               <div
@@ -121,7 +121,7 @@ const ColorPaletteField = ({ colors }: { colors?: ColorItem[] | null }) => {
         </div>
       ) : (
         // Layout em grid para muitas cores
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 justify-items-center">
           {colors.map((color) => (
             <div
               key={color.id}
