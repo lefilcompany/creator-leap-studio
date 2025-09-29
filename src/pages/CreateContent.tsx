@@ -302,26 +302,30 @@ export default function CreateContent() {
                 </div>
               </div>
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full xl:w-auto xl:max-w-md">
-                <div className="flex items-center space-x-1 rounded-full bg-muted p-1 border flex-1 min-w-0">
+                <div className="flex items-center space-x-1 rounded-full bg-muted p-1 border flex-1">
                   <Button
                     variant={!isVideoMode ? "default" : "ghost"}
                     onClick={() => handleVideoModeChange(false)}
-                    className="w-full rounded-full font-semibold transition-all duration-200 ease-in-out hover:bg-background/50 hover:text-muted-foreground text-xs sm:text-sm"
+                    className="w-full rounded-full font-semibold transition-all duration-200 ease-in-out hover:bg-background/50 hover:text-muted-foreground"
                   >
-                    <ImageIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                    <span className="truncate">Imagem</span>
+                    Imagem
                   </Button>
                   <Button
                     variant={isVideoMode ? "default" : "ghost"}
                     onClick={() => handleVideoModeChange(true)}
-                    className="w-full rounded-full font-semibold transition-all duration-200 ease-in-out hover:bg-background/50 hover:text-muted-foreground text-xs sm:text-sm"
+                    className="w-full rounded-full font-semibold transition-all duration-200 ease-in-out hover:bg-background/50 hover:text-muted-foreground"
                   >
-                    <Video className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                    <div className="flex items-center gap-1 min-w-0">
-                      <span className="truncate">Vídeo</span>
-                      <Badge variant="secondary" className="text-[9px] sm:text-[10px] px-1 sm:px-1.5 py-0.5">
+                    <div className="flex items-center justify-center gap-1.5">
+                      Vídeo
+                      <span
+                        className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full leading-none transition-colors duration-200 ${
+                          isVideoMode
+                            ? "bg-background text-primary"
+                            : "border border-primary/50 bg-primary/20 text-primary"
+                        }`}
+                      >
                         BETA
-                      </Badge>
+                      </span>
                     </div>
                   </Button>
                 </div>
