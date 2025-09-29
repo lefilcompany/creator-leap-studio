@@ -122,11 +122,6 @@ export default function MarcasPage() {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 800));
       setBrands(mockBrands);
-      
-      // Select first brand by default
-      if (mockBrands.length > 0) {
-        handleSelectBrand(mockBrands[0]);
-      }
       setIsLoadingBrands(false);
     };
     
