@@ -1,5 +1,6 @@
 import { History, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 import type { Action } from '@/types/action';
 import { ACTION_STYLE_MAP, ACTION_TYPE_DISPLAY } from '@/types/action';
 import { cn } from '@/lib/utils';
@@ -26,7 +27,7 @@ const DetailItem = ({ label, value }: { label: string; value: React.ReactNode })
   <div className="p-4 bg-secondary/5 rounded-lg border border-secondary/10">
     <p className="text-sm font-medium text-muted-foreground mb-1">{label}</p>
     {typeof value === 'string' ? (
-      <p className="text-sm text-foreground break-words">{value}</p>
+      <p className="font-semibold text-foreground break-words">{value}</p>
     ) : (
       value
     )}
@@ -34,15 +35,18 @@ const DetailItem = ({ label, value }: { label: string; value: React.ReactNode })
 );
 
 export default function ActionDetails({ action, isLoading = false }: ActionDetailsProps) {
+  const navigate = useNavigate();
+
   if (isLoading) {
     return (
-      <div className="p-6 space-y-6">
+      <div className="p-6 space-y-6 animate-pulse">
         <div className="flex items-center gap-4">
           <Skeleton className="w-16 h-16 rounded-xl" />
           <div className="flex-1">
             <Skeleton className="h-6 w-48 mb-2" />
             <Skeleton className="h-4 w-32" />
           </div>
+          <Skeleton className="h-9 w-24" />
         </div>
         <div className="space-y-4">
           {Array.from({ length: 6 }).map((_, i) => (
@@ -74,54 +78,56 @@ export default function ActionDetails({ action, isLoading = false }: ActionDetai
   const Icon = style?.icon;
 
   return (
-    <div className="p-6 space-y-6 h-full overflow-y-auto">
-      <div className="flex items-start gap-4">
-        {Icon && (
-          <div className={cn("flex-shrink-0 rounded-xl w-16 h-16 flex items-center justify-center", style.background)}>
-            <Icon className={cn("h-8 w-8", style.color)} />
+    <div className="h-full bg-card/80 backdrop-blur-sm rounded-2xl border border-secondary/20 shadow-sm overflow-hidden flex flex-col">
+      <div className="p-6 border-b border-secondary/10 flex-shrink-0">
+        <div className="flex items-start gap-4">
+          {Icon && (
+            <div className={cn("flex-shrink-0 rounded-xl w-16 h-16 flex items-center justify-center", style.background)}>
+              <Icon className={cn("h-8 w-8", style.color)} />
+            </div>
+          )}
+          <div className="flex-1 min-w-0">
+            <h2 className="text-xl font-bold text-foreground mb-1 break-words">
+              {displayType}
+            </h2>
+            <p className="text-sm text-muted-foreground mb-3">
+              {formatDate(action.createdAt)}
+            </p>
+            <Button
+              onClick={() => navigate(`/historico/${action.id}`)}
+              variant="outline"
+              size="sm"
+              className="gap-2"
+            >
+              <Eye className="h-4 w-4" />
+              Visualizar completo
+            </Button>
           </div>
-        )}
-        <div className="flex-1 min-w-0">
-          <h2 className="text-xl font-bold text-foreground mb-1 break-words">
-            {displayType}
-          </h2>
-          <p className="text-sm text-muted-foreground mb-3">
-            {formatDate(action.createdAt)}
-          </p>
-          <Button
-            onClick={() => window.open(`/historico/${action.id}`, '_blank')}
-            variant="outline"
-            size="sm"
-            className="gap-2"
-          >
-            <Eye className="h-4 w-4" />
-            Visualizar completo
-          </Button>
         </div>
       </div>
 
-      <div className="space-y-4">
+      <div className="flex-1 overflow-y-auto p-6 space-y-4">
         <DetailItem label="Marca" value={action.brand?.name || 'N/A'} />
 
-        {action.type === 'CRIAR_CONTEUDO' && action.result && (
+        {action.type === 'CRIAR_CONTEUDO' && (
           <>
             {action.details?.platform && (
               <DetailItem label="Plataforma" value={action.details.platform} />
             )}
-            {action.result.title && (
+            {action.result?.title && (
               <DetailItem label="Título Gerado" value={action.result.title} />
             )}
-            {action.result.body && (
+            {action.result?.body && (
               <DetailItem 
                 label="Legenda Gerada" 
                 value={
-                  <p className="text-sm text-foreground whitespace-pre-line leading-relaxed">
+                  <p className="font-semibold text-foreground whitespace-pre-line leading-relaxed">
                     {action.result.body}
                   </p>
                 } 
               />
             )}
-            {action.result.imageUrl && (
+            {action.result?.imageUrl && (
               <div className="space-y-2">
                 <p className="text-sm font-medium text-muted-foreground">Imagem Gerada</p>
                 <div className="w-full aspect-square bg-secondary/5 rounded-lg border border-secondary/10 overflow-hidden">
@@ -136,19 +142,19 @@ export default function ActionDetails({ action, isLoading = false }: ActionDetai
           </>
         )}
 
-        {action.type === 'REVISAR_CONTEUDO' && action.result && (
+        {action.type === 'REVISAR_CONTEUDO' && (
           <>
-            {action.result.feedback && (
+            {action.result?.feedback && (
               <DetailItem 
                 label="Feedback Gerado" 
                 value={
-                  <p className="text-sm text-foreground whitespace-pre-line leading-relaxed">
+                  <p className="font-semibold text-foreground whitespace-pre-line leading-relaxed">
                     {action.result.feedback}
                   </p>
                 } 
               />
             )}
-            {action.result.originalImage ? (
+            {action.result?.originalImage ? (
               <div className="space-y-2">
                 <p className="text-sm font-medium text-muted-foreground">Imagem Original</p>
                 <div className="w-full aspect-square bg-secondary/5 rounded-lg border border-secondary/10 overflow-hidden">
@@ -180,6 +186,7 @@ export default function ActionDetails({ action, isLoading = false }: ActionDetai
                   {typeof action.result.plan === 'string' && action.result.plan.trim().length > 0 ? (
                     <div
                       className="prose prose-sm dark:prose-invert max-w-none text-sm leading-relaxed"
+                      style={{ minHeight: 200 }}
                       dangerouslySetInnerHTML={{ __html: action.result.plan }}
                     />
                   ) : (
