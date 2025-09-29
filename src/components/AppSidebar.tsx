@@ -1,12 +1,12 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { 
-  Home, 
-  Tag, 
-  Users, 
-  Calendar, 
-  History, 
-  Sparkles, 
-  CheckCircle, 
+import {
+  Home,
+  Tag,
+  Users,
+  Calendar,
+  History,
+  Sparkles,
+  CheckCircle,
   Rocket
 } from "lucide-react";
 import {
@@ -40,12 +40,12 @@ const actionButtons = [
 
 // --- COMPONENT DEFINITIONS ---
 
-// NavItem Unificado (Sem alterações)
-function NavItem({ id, href, icon: Icon, label, collapsed }: { 
-  id: string; 
-  href: string; 
-  icon: React.ElementType; 
-  label: string; 
+// NavItem com a lógica de hover ajustada
+function NavItem({ id, href, icon: Icon, label, collapsed }: {
+  id: string;
+  href: string;
+  icon: React.ElementType;
+  label: string;
   collapsed: boolean;
 }) {
   const location = useLocation();
@@ -60,7 +60,9 @@ function NavItem({ id, href, icon: Icon, label, collapsed }: {
           className={cn(
             "flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors duration-200",
             isActive
-              ? "bg-primary/10 text-primary hover:text-primary"
+              // ✅ SE ATIVO: Fundo rosa, sem efeito de hover no background
+              ? "bg-primary/10 text-primary hover:bg-primary/10"
+              // ✅ SE INATIVO: Fundo cinza no hover
               : "text-muted-foreground hover:bg-muted/70 hover:text-foreground"
           )}
         >
@@ -72,7 +74,7 @@ function NavItem({ id, href, icon: Icon, label, collapsed }: {
   );
 }
 
-// NOVO COMPONENTE REATORADO: ActionButton
+// ActionButton (Sem alterações)
 function ActionButton({ id, href, icon: Icon, label, collapsed, variant }: {
     id: string;
     href: string;
@@ -115,10 +117,10 @@ function ActionButton({ id, href, icon: Icon, label, collapsed, variant }: {
 }
 
 
-// TeamPlanSection Unificada (Sem alterações)
-function TeamPlanSection({ teamName, planName, collapsed }: { 
-  teamName: string; 
-  planName: string; 
+// TeamPlanSection (Sem alterações)
+function TeamPlanSection({ teamName, planName, collapsed }: {
+  teamName: string;
+  planName: string;
   collapsed: boolean;
 }) {
   if (collapsed) return null;
@@ -136,6 +138,7 @@ function TeamPlanSection({ teamName, planName, collapsed }: {
   );
 }
 
+// AppSidebar (Sem alterações)
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
@@ -145,14 +148,14 @@ export function AppSidebar() {
       {/* Logo no topo */}
       {!collapsed && (
         <div className="p-6">
-          <img 
-            src={logoCreator} 
-            alt="Creator Logo" 
+          <img
+            src={logoCreator}
+            alt="Creator Logo"
             className="h-8 w-auto"
           />
         </div>
       )}
-      
+
       {/* Conteúdo Principal da Sidebar */}
       <div className="p-4 flex-1 flex flex-col">
         <SidebarGroup>
@@ -178,10 +181,10 @@ export function AppSidebar() {
         <div className="flex-grow"></div>
 
         {/* Team Info - Fixado no final */}
-        <TeamPlanSection 
-          teamName="LeFil" 
-          planName="LEFIL" 
-          collapsed={collapsed} 
+        <TeamPlanSection
+          teamName="LeFil"
+          planName="LEFIL"
+          collapsed={collapsed}
         />
       </div>
     </>
