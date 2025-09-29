@@ -282,67 +282,67 @@ export default function CreateContent() {
   };
 
   return (
-    <div className="min-h-full bg-gradient-to-br from-background via-background to-muted/20 p-4 md:p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-full bg-gradient-to-br from-background via-background to-muted/20 p-3 md:p-4 lg:p-6">
+      <div className="max-w-7xl mx-auto space-y-4 md:space-y-6">
         {/* Header */}
         <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5">
-          <CardHeader className="p-4 md:p-6">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <CardHeader className="p-3 md:p-4 lg:p-6">
+            <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3 md:gap-4">
               <div className="flex items-center gap-3">
-                <div className="flex-shrink-0 bg-primary/10 text-primary rounded-xl p-3">
-                  <Sparkles className="h-6 w-6 md:h-8 md:w-8" />
+                <div className="flex-shrink-0 bg-primary/10 text-primary rounded-xl p-2.5 md:p-3">
+                  <Sparkles className="h-5 w-5 md:h-6 md:w-6 lg:h-8 lg:w-8" />
                 </div>
                 <div>
-                  <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+                  <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-foreground">
                     Criar Conteúdo
                   </h1>
-                  <p className="text-muted-foreground text-sm md:text-base">
+                  <p className="text-muted-foreground text-xs md:text-sm lg:text-base">
                     Preencha os campos para gerar um post com IA
                   </p>
                 </div>
               </div>
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full md:w-auto">
-                <div className="flex items-center space-x-1 rounded-full bg-muted p-1 border flex-1">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full xl:w-auto xl:max-w-md">
+                <div className="flex items-center space-x-1 rounded-full bg-muted p-1 border flex-1 min-w-0">
                   <Button
                     variant={!isVideoMode ? "default" : "ghost"}
                     onClick={() => handleVideoModeChange(false)}
-                    className="w-full rounded-full font-semibold transition-all duration-200 ease-in-out hover:bg-background/50 hover:text-muted-foreground"
+                    className="w-full rounded-full font-semibold transition-all duration-200 ease-in-out hover:bg-background/50 hover:text-muted-foreground text-xs sm:text-sm"
                   >
-                    <ImageIcon className="h-4 w-4 mr-2" />
-                    Imagem
+                    <ImageIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                    <span className="truncate">Imagem</span>
                   </Button>
                   <Button
                     variant={isVideoMode ? "default" : "ghost"}
                     onClick={() => handleVideoModeChange(true)}
-                    className="w-full rounded-full font-semibold transition-all duration-200 ease-in-out hover:bg-background/50 hover:text-muted-foreground"
+                    className="w-full rounded-full font-semibold transition-all duration-200 ease-in-out hover:bg-background/50 hover:text-muted-foreground text-xs sm:text-sm"
                   >
-                    <Video className="h-4 w-4 mr-2" />
-                    <div className="flex items-center gap-1.5">
-                      Vídeo
-                      <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5">
+                    <Video className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                    <div className="flex items-center gap-1 min-w-0">
+                      <span className="truncate">Vídeo</span>
+                      <Badge variant="secondary" className="text-[9px] sm:text-[10px] px-1 sm:px-1.5 py-0.5">
                         BETA
                       </Badge>
                     </div>
                   </Button>
                 </div>
                 {isLoadingData ? (
-                  <Skeleton className="h-14 w-full sm:w-48 rounded-xl" />
+                  <Skeleton className="h-12 md:h-14 w-full sm:w-40 lg:w-48 rounded-xl" />
                 ) : (
                   team && (
                     <Card className="bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/20 flex-shrink-0">
-                      <CardContent className="p-3">
-                        <div className="flex items-center justify-center gap-3">
+                      <CardContent className="p-2.5 md:p-3">
+                        <div className="flex items-center justify-center gap-2 md:gap-3">
                           <div className="relative">
                             <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary rounded-full blur-sm opacity-40"></div>
-                            <div className="relative bg-gradient-to-r from-primary to-secondary text-white rounded-full p-2">
-                              <Zap className="h-4 w-4" />
+                            <div className="relative bg-gradient-to-r from-primary to-secondary text-white rounded-full p-1.5 md:p-2">
+                              <Zap className="h-3 w-3 md:h-4 md:w-4" />
                             </div>
                           </div>
                           <div className="text-left">
-                            <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                            <span className="text-lg md:text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                               {team?.credits?.contentSuggestions || 0}
                             </span>
-                            <p className="text-xs text-muted-foreground font-medium leading-tight">
+                            <p className="text-[10px] md:text-xs text-muted-foreground font-medium leading-tight">
                               Criações Restantes
                             </p>
                           </div>
@@ -356,29 +356,29 @@ export default function CreateContent() {
           </CardHeader>
         </Card>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 md:gap-6 lg:gap-8">
           {/* Configuração Básica */}
-          <div className="space-y-6">
+          <div className="space-y-4 md:space-y-6">
             <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-2xl">
-              <CardHeader className="pb-4 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-t-2xl">
-                <h2 className="text-xl font-semibold flex items-center gap-3 text-foreground">
+              <CardHeader className="pb-3 md:pb-4 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-t-2xl">
+                <h2 className="text-lg md:text-xl font-semibold flex items-center gap-3 text-foreground">
                   <div className="w-2 h-2 bg-primary rounded-full"></div>
                   Configuração Básica
                 </h2>
-                <p className="text-muted-foreground text-sm">
+                <p className="text-muted-foreground text-xs md:text-sm">
                   Defina marca, tema e público
                 </p>
               </CardHeader>
-              <CardContent className="space-y-5 p-6">
-                <div className="space-y-3">
+              <CardContent className="space-y-4 md:space-y-5 p-4 md:p-6">
+                <div className="space-y-2 md:space-y-3">
                   <Label
                     htmlFor="brand"
-                    className="text-sm font-semibold text-foreground"
+                    className="text-xs md:text-sm font-semibold text-foreground"
                   >
                     Marca <span className="text-destructive">*</span>
                   </Label>
                   {isLoadingData ? (
-                    <Skeleton className="h-11 w-full rounded-xl" />
+                    <Skeleton className="h-10 md:h-11 w-full rounded-xl" />
                   ) : (
                     <Select
                       onValueChange={(value) =>
@@ -386,7 +386,7 @@ export default function CreateContent() {
                       }
                       value={formData.brand}
                     >
-                      <SelectTrigger className="h-11 rounded-xl border-2 border-border/50 bg-background/50">
+                      <SelectTrigger className="h-10 md:h-11 rounded-xl border-2 border-border/50 bg-background/50 text-sm hover:border-border/70 transition-colors">
                         <SelectValue placeholder="Selecione a marca" />
                       </SelectTrigger>
                       <SelectContent className="rounded-xl border-border/20">
@@ -404,15 +404,15 @@ export default function CreateContent() {
                   )}
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-2 md:space-y-3">
                   <Label
                     htmlFor="theme"
-                    className="text-sm font-semibold text-foreground"
+                    className="text-xs md:text-sm font-semibold text-foreground"
                   >
                     Tema Estratégico
                   </Label>
                   {isLoadingData ? (
-                    <Skeleton className="h-11 w-full rounded-xl" />
+                    <Skeleton className="h-10 md:h-11 w-full rounded-xl" />
                   ) : (
                     <Select
                       onValueChange={(value) =>
@@ -421,7 +421,7 @@ export default function CreateContent() {
                       value={formData.theme}
                       disabled={!formData.brand || filteredThemes.length === 0}
                     >
-                      <SelectTrigger className="h-11 rounded-xl border-2 border-border/50 bg-background/50 disabled:opacity-50">
+                      <SelectTrigger className="h-10 md:h-11 rounded-xl border-2 border-border/50 bg-background/50 disabled:opacity-50 text-sm hover:border-border/70 transition-colors">
                         <SelectValue
                           placeholder={
                             !formData.brand
@@ -447,15 +447,15 @@ export default function CreateContent() {
                   )}
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-2 md:space-y-3">
                   <Label
                     htmlFor="persona"
-                    className="text-sm font-semibold text-foreground"
+                    className="text-xs md:text-sm font-semibold text-foreground"
                   >
                     Persona
                   </Label>
                   {isLoadingData ? (
-                    <Skeleton className="h-11 w-full rounded-xl" />
+                    <Skeleton className="h-10 md:h-11 w-full rounded-xl" />
                   ) : (
                     <Select
                       onValueChange={(value) =>
@@ -464,7 +464,7 @@ export default function CreateContent() {
                       value={formData.persona}
                       disabled={!formData.brand || filteredPersonas.length === 0}
                     >
-                      <SelectTrigger className="h-11 rounded-xl border-2 border-border/50 bg-background/50 disabled:opacity-50">
+                      <SelectTrigger className="h-10 md:h-11 rounded-xl border-2 border-border/50 bg-background/50 disabled:opacity-50 text-sm hover:border-border/70 transition-colors">
                         <SelectValue
                           placeholder={
                             !formData.brand
@@ -488,10 +488,10 @@ export default function CreateContent() {
                   )}
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-2 md:space-y-3">
                   <Label
                     htmlFor="platform"
-                    className="text-sm font-semibold text-foreground"
+                    className="text-xs md:text-sm font-semibold text-foreground"
                   >
                     Plataforma <span className="text-destructive">*</span>
                   </Label>
@@ -501,7 +501,7 @@ export default function CreateContent() {
                     }
                     value={formData.platform}
                   >
-                    <SelectTrigger className="h-11 rounded-xl border-2 border-border/50 bg-background/50">
+                    <SelectTrigger className="h-10 md:h-11 rounded-xl border-2 border-border/50 bg-background/50 text-sm hover:border-border/70 transition-colors">
                       <SelectValue placeholder="Onde será postado?" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl border-border/20">
@@ -527,10 +527,10 @@ export default function CreateContent() {
                   </Select>
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-2 md:space-y-3">
                   <Label
                     htmlFor="audience"
-                    className="text-sm font-semibold text-foreground"
+                    className="text-xs md:text-sm font-semibold text-foreground"
                   >
                     Público-Alvo <span className="text-destructive">*</span>
                   </Label>
@@ -539,16 +539,16 @@ export default function CreateContent() {
                     placeholder="Ex: Jovens de 18-25 anos"
                     value={formData.audience}
                     onChange={handleInputChange}
-                    className="h-11 rounded-xl border-2 border-border/50 bg-background/50"
+                    className="h-10 md:h-11 rounded-xl border-2 border-border/50 bg-background/50 text-sm hover:border-border/70 focus:border-primary/50 transition-colors"
                   />
                 </div>
 
                 {isVideoMode && (
                   <>
-                    <div className="space-y-3">
+                    <div className="space-y-2 md:space-y-3">
                       <Label
                         htmlFor="transformation"
-                        className="text-sm font-semibold text-foreground"
+                        className="text-xs md:text-sm font-semibold text-foreground"
                       >
                         Tipo de Transformação <span className="text-destructive">*</span>
                       </Label>
@@ -558,7 +558,7 @@ export default function CreateContent() {
                           setTransformationType(value as any)
                         }
                       >
-                        <SelectTrigger className="h-11 rounded-xl border-2 border-border/50 bg-background/50">
+                        <SelectTrigger className="h-10 md:h-11 rounded-xl border-2 border-border/50 bg-background/50 text-sm hover:border-border/70 transition-colors">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -571,16 +571,16 @@ export default function CreateContent() {
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+                      <div className="space-y-2 md:space-y-3">
                         <Label
                           htmlFor="ratio"
-                          className="text-sm font-semibold text-foreground"
+                          className="text-xs md:text-sm font-semibold text-foreground"
                         >
                           Proporção <span className="text-destructive">*</span>
                         </Label>
                         <Select value={ratio} onValueChange={setRatio}>
-                          <SelectTrigger className="h-11 rounded-xl border-2 border-border/50 bg-background/50">
+                          <SelectTrigger className="h-10 md:h-11 rounded-xl border-2 border-border/50 bg-background/50 text-sm hover:border-border/70 transition-colors">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -594,15 +594,15 @@ export default function CreateContent() {
                         </Select>
                       </div>
                       {transformationType === "image_to_video" && (
-                        <div className="space-y-3">
+                        <div className="space-y-2 md:space-y-3">
                           <Label
                             htmlFor="duration"
-                            className="text-sm font-semibold text-foreground"
+                            className="text-xs md:text-sm font-semibold text-foreground"
                           >
                             Duração (s) <span className="text-destructive">*</span>
                           </Label>
                           <Select value={duration} onValueChange={setDuration}>
-                            <SelectTrigger className="h-11 rounded-xl border-2 border-border/50 bg-background/50">
+                            <SelectTrigger className="h-10 md:h-11 rounded-xl border-2 border-border/50 bg-background/50 text-sm hover:border-border/70 transition-colors">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -616,10 +616,10 @@ export default function CreateContent() {
                   </>
                 )}
 
-                <div className="space-y-3">
+                <div className="space-y-2 md:space-y-3">
                   <Label
                     htmlFor="referenceFile"
-                    className="text-sm font-semibold text-foreground"
+                    className="text-xs md:text-sm font-semibold text-foreground"
                   >
                     {isVideoMode
                       ? transformationType === "image_to_video"
@@ -628,29 +628,27 @@ export default function CreateContent() {
                       : "Imagem de Referência"} <span className="text-destructive">*</span>
                   </Label>
 
-                  <div className="space-y-3">
-                    <div className="flex gap-2">
-                      <Input
-                        type="file"
-                        accept={isVideoMode && transformationType === "video_to_video" ? "video/*" : "image/*"}
-                        multiple
-                        onChange={(e) => {
-                          const files = Array.from(e.target.files || []);
-                          setReferenceFiles((prev) =>
-                            [...prev, ...files].slice(0, 10)
-                          );
-                        }}
-                        className="h-11 rounded-xl border-2 border-border/50 bg-background/50 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary/10 file:text-primary"
-                      />
-                    </div>
+                  <div className="space-y-2 md:space-y-3">
+                    <Input
+                      type="file"
+                      accept={isVideoMode && transformationType === "video_to_video" ? "video/*" : "image/*"}
+                      multiple
+                      onChange={(e) => {
+                        const files = Array.from(e.target.files || []);
+                        setReferenceFiles((prev) =>
+                          [...prev, ...files].slice(0, 10)
+                        );
+                      }}
+                      className="h-10 md:h-11 rounded-xl border-2 border-border/50 bg-background/50 file:mr-2 md:file:mr-3 file:py-1.5 md:file:py-2 file:px-2 md:file:px-3 file:rounded-lg file:border-0 file:text-xs md:file:text-sm file:font-medium file:bg-primary/10 file:text-primary hover:border-border/70 transition-colors"
+                    />
 
                     <div
                       ref={pasteAreaRef}
                       tabIndex={0}
                       onPaste={handlePaste}
-                      className="border-2 border-dashed border-border/50 rounded-xl p-4 text-center bg-muted/20 hover:bg-muted/30 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      className="border-2 border-dashed border-border/50 rounded-xl p-3 md:p-4 text-center bg-muted/20 hover:bg-muted/30 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50"
                     >
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-xs md:text-sm text-muted-foreground">
                         Cole sua imagem aqui (Ctrl+V)
                       </p>
                     </div>
@@ -659,16 +657,16 @@ export default function CreateContent() {
                       <div className="space-y-2 p-3 bg-primary/5 rounded-xl border border-primary/20">
                         {referenceFiles.map((file, idx) => (
                           <div key={idx} className="flex items-center justify-between bg-background/50 rounded-lg p-2">
-                            <span className="text-sm text-primary font-medium flex items-center gap-2">
-                              <div className="w-2 h-2 bg-primary rounded-full"></div>
-                              {file.name}
+                            <span className="text-xs md:text-sm text-primary font-medium flex items-center gap-2 min-w-0 flex-1">
+                              <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0"></div>
+                              <span className="truncate">{file.name}</span>
                             </span>
                             <Button
                               type="button"
                               variant="ghost"
                               size="sm"
                               onClick={() => handleRemoveFile(idx)}
-                              className="h-6 w-6 p-0 text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full"
+                              className="h-6 w-6 p-0 text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full flex-shrink-0 ml-2"
                               title="Remover arquivo"
                             >
                               <X className="h-3 w-3" />
@@ -684,22 +682,22 @@ export default function CreateContent() {
           </div>
 
           {/* Detalhes do Conteúdo */}
-          <div className="space-y-6">
+          <div className="space-y-4 md:space-y-6">
             <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-2xl">
-              <CardHeader className="pb-4 bg-gradient-to-r from-secondary/5 to-accent/5 rounded-t-2xl">
-                <h2 className="text-xl font-semibold flex items-center gap-3 text-foreground">
+              <CardHeader className="pb-3 md:pb-4 bg-gradient-to-r from-secondary/5 to-accent/5 rounded-t-2xl">
+                <h2 className="text-lg md:text-xl font-semibold flex items-center gap-3 text-foreground">
                   <div className="w-2 h-2 bg-secondary rounded-full"></div>
                   Detalhes do Conteúdo
                 </h2>
-                <p className="text-muted-foreground text-sm">
+                <p className="text-muted-foreground text-xs md:text-sm">
                   Descreva o objetivo e características do post
                 </p>
               </CardHeader>
-              <CardContent className="space-y-6 p-6">
-                <div className="space-y-3">
+              <CardContent className="space-y-4 md:space-y-6 p-4 md:p-6">
+                <div className="space-y-2 md:space-y-3">
                   <Label
                     htmlFor="objective"
-                    className="text-sm font-semibold text-foreground"
+                    className="text-xs md:text-sm font-semibold text-foreground"
                   >
                     Objetivo do Post <span className="text-destructive">*</span>
                   </Label>
@@ -708,14 +706,14 @@ export default function CreateContent() {
                     placeholder="Qual a principal meta? (ex: gerar engajamento, anunciar um produto, educar)"
                     value={formData.objective}
                     onChange={handleInputChange}
-                    className="min-h-[100px] rounded-xl border-2 border-border/50 bg-background/50 resize-none"
+                    className="min-h-[80px] md:min-h-[100px] rounded-xl border-2 border-border/50 bg-background/50 resize-none text-sm hover:border-border/70 focus:border-primary/50 transition-colors"
                   />
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-2 md:space-y-3">
                   <Label
                     htmlFor="description"
-                    className="text-sm font-semibold text-foreground"
+                    className="text-xs md:text-sm font-semibold text-foreground"
                   >
                     {isVideoMode
                       ? "Descrição Visual do Vídeo"
@@ -730,19 +728,19 @@ export default function CreateContent() {
                     }
                     value={formData.description}
                     onChange={handleInputChange}
-                    className="min-h-[120px] rounded-xl border-2 border-border/50 bg-background/50 resize-none"
+                    className="min-h-[100px] md:min-h-[120px] rounded-xl border-2 border-border/50 bg-background/50 resize-none text-sm hover:border-border/70 focus:border-primary/50 transition-colors"
                   />
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-2 md:space-y-3">
                   <Label
                     htmlFor="tone"
-                    className="text-sm font-semibold text-foreground"
+                    className="text-xs md:text-sm font-semibold text-foreground"
                   >
                     Tom de Voz <span className="text-destructive">*</span> (máximo 4)
                   </Label>
                   <Select onValueChange={handleToneSelect} value="">
-                    <SelectTrigger className="h-11 rounded-xl border-2 border-border/50 bg-background/50">
+                    <SelectTrigger className="h-10 md:h-11 rounded-xl border-2 border-border/50 bg-background/50 text-sm hover:border-border/70 transition-colors">
                       <SelectValue placeholder="Adicionar tom de voz..." />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl border-border/20">
@@ -760,9 +758,9 @@ export default function CreateContent() {
                     </SelectContent>
                   </Select>
                   
-                  <div className="min-h-[60px] p-4 rounded-xl border-2 border-dashed border-border/50 bg-muted/10">
+                  <div className="min-h-[50px] md:min-h-[60px] p-3 md:p-4 rounded-xl border-2 border-dashed border-border/50 bg-muted/10">
                     {formData.tone.length === 0 ? (
-                      <p className="text-sm text-muted-foreground italic text-center py-2">
+                      <p className="text-xs md:text-sm text-muted-foreground italic text-center py-2">
                         Nenhum tom selecionado
                       </p>
                     ) : (
@@ -770,12 +768,12 @@ export default function CreateContent() {
                         {formData.tone.map((tone) => (
                           <Badge
                             key={tone}
-                            className="flex items-center gap-2 bg-gradient-to-r from-primary/15 to-primary/5 border border-primary/30 text-primary hover:bg-primary/20"
+                            className="flex items-center gap-2 bg-gradient-to-r from-primary/15 to-primary/5 border border-primary/30 text-primary hover:bg-primary/20 text-xs"
                           >
                             {tone.charAt(0).toUpperCase() + tone.slice(1)}
                             <button
                               onClick={() => handleToneRemove(tone)}
-                              className="ml-1 text-primary hover:text-destructive p-0.5 rounded-full hover:bg-destructive/10"
+                              className="ml-1 text-primary hover:text-destructive p-0.5 rounded-full hover:bg-destructive/10 transition-colors"
                             >
                               <X className="h-3 w-3" />
                             </button>
@@ -786,10 +784,10 @@ export default function CreateContent() {
                   </div>
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-2 md:space-y-3">
                   <Label
                     htmlFor="additionalInfo"
-                    className="text-sm font-semibold text-foreground"
+                    className="text-xs md:text-sm font-semibold text-foreground"
                   >
                     Informações Extras
                   </Label>
@@ -798,7 +796,7 @@ export default function CreateContent() {
                     placeholder="Detalhes cruciais (ex: usar a cor #FF5733, incluir nosso logo...)"
                     value={formData.additionalInfo}
                     onChange={handleInputChange}
-                    className="min-h-[100px] rounded-xl border-2 border-border/50 bg-background/50 resize-none"
+                    className="min-h-[80px] md:min-h-[100px] rounded-xl border-2 border-border/50 bg-background/50 resize-none text-sm hover:border-border/70 focus:border-primary/50 transition-colors"
                   />
                 </div>
               </CardContent>
@@ -807,30 +805,30 @@ export default function CreateContent() {
         </div>
 
         {/* Botão Gerar Conteúdo */}
-        <div className="pt-6 pb-8">
+        <div className="pt-4 md:pt-6 pb-6 md:pb-8">
           <Card className="bg-gradient-to-r from-primary/5 via-secondary/5 to-accent/5 border border-border/20 rounded-2xl shadow-lg">
-            <CardContent className="p-6">
-              <div className="flex flex-col items-center gap-4">
+            <CardContent className="p-4 md:p-6">
+              <div className="flex flex-col items-center gap-3 md:gap-4">
                 <Button
                   onClick={handleGenerateContent}
                   disabled={loading || !isFormValid()}
-                  className="w-full max-w-md h-14 rounded-2xl text-lg font-bold bg-gradient-to-r from-primary via-accent to-secondary hover:from-primary/90 hover:via-accent/90 hover:to-secondary/90 shadow-xl transition-all duration-500 disabled:opacity-50"
+                  className="w-full max-w-sm md:max-w-md h-12 md:h-14 rounded-2xl text-base md:text-lg font-bold bg-gradient-to-r from-primary via-accent to-secondary hover:from-primary/90 hover:via-accent/90 hover:to-secondary/90 shadow-xl transition-all duration-500 disabled:opacity-50"
                 >
                   {loading ? (
                     <>
-                      <Loader className="animate-spin mr-3 h-5 w-5" />
-                      Gerando conteúdo...
+                      <Loader className="animate-spin mr-2 md:mr-3 h-4 w-4 md:h-5 md:w-5" />
+                      <span className="text-sm md:text-base">Gerando conteúdo...</span>
                     </>
                   ) : (
                     <>
-                      <Sparkles className="mr-3 h-5 w-5" />
-                      Gerar Conteúdo
+                      <Sparkles className="mr-2 md:mr-3 h-4 w-4 md:h-5 md:w-5" />
+                      <span className="text-sm md:text-base">Gerar Conteúdo</span>
                     </>
                   )}
                 </Button>
                 {!isFormValid() && !loading && (
-                  <div className="text-center bg-muted/30 p-3 rounded-xl border border-border/30 max-w-md">
-                    <p className="text-muted-foreground text-sm">
+                  <div className="text-center bg-muted/30 p-3 rounded-xl border border-border/30 max-w-sm md:max-w-md">
+                    <p className="text-muted-foreground text-xs md:text-sm">
                       Complete todos os campos obrigatórios (*) para gerar
                     </p>
                   </div>
