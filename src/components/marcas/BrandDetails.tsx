@@ -100,9 +100,9 @@ const ColorPaletteField = ({ colors }: { colors?: ColorItem[] | null }) => {
       
       {colors.length <= 4 ? (
         // Layout horizontal para poucas cores
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
           {colors.map((color) => (
-            <div key={color.id} className="flex flex-col items-center gap-2">
+            <div key={color.id} className="flex flex-col items-center gap-3">
               <div
                 className="w-16 h-16 rounded-xl border-2 border-gray-300 shadow-md hover:shadow-lg transition-shadow cursor-pointer"
                 style={{ backgroundColor: color.hex }}
@@ -121,7 +121,7 @@ const ColorPaletteField = ({ colors }: { colors?: ColorItem[] | null }) => {
         </div>
       ) : (
         // Layout em grid para muitas cores
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {colors.map((color) => (
             <div
               key={color.id}
