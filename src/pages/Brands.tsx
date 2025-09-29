@@ -304,7 +304,7 @@ export default function MarcasPage() {
       {/* Sheet para desktop/tablet (da direita) */}
       {!isMobile && (
         <Sheet open={isBrandDetailsOpen} onOpenChange={setIsBrandDetailsOpen}>
-          <SheetContent side="right" className="w-[75vw] max-w-none">
+          <SheetContent side="right" className="w-[85vw] max-w-none">
             <SheetTitle className="text-left mb-4">Detalhes da Marca</SheetTitle>
             <BrandDetails
               brand={selectedBrand}
@@ -319,7 +319,7 @@ export default function MarcasPage() {
       {/* Drawer para mobile (de baixo) */}
       {isMobile && (
         <Drawer open={isBrandDetailsOpen} onOpenChange={setIsBrandDetailsOpen}>
-          <DrawerContent className="h-[75vh]">
+          <DrawerContent className="h-[85vh]">
             <DrawerTitle className="text-left p-6 pb-0">Detalhes da Marca</DrawerTitle>
             <BrandDetails
               brand={selectedBrand}
