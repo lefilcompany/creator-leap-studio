@@ -21,6 +21,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
 import logoCreator from "@/assets/logoCreatorPreta.png";
 
 const navLinks = [
@@ -135,6 +136,12 @@ function TeamPlanSection({ teamName, planName, collapsed }: {
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
+  const isMobile = useIsMobile();
+
+  // No mobile/tablet, não renderiza a sidebar (ela fica completamente oculta)
+  if (isMobile) {
+    return null;
+  }
 
   const sidebarContent = () => (
     <>

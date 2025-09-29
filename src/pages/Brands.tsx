@@ -299,8 +299,8 @@ export default function MarcasPage() {
         </CardHeader>
       </Card>
 
-      <main className={`grid gap-4 lg:gap-6 flex-1 min-h-0 overflow-hidden ${isMobile ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-3'}`}>
-        <div className={`${isMobile ? 'col-span-1' : 'col-span-1 lg:col-span-2'}`}>
+      <main className={`grid gap-4 lg:gap-6 flex-1 min-h-0 overflow-hidden ${isMobile ? 'grid-cols-1' : 'grid-cols-1 xl:grid-cols-3'}`}>
+        <div className={`${isMobile ? 'col-span-1' : 'col-span-1 xl:col-span-2'}`}>
           <BrandList
             brands={brands}
             selectedBrand={selectedBrandSummary}
