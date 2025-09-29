@@ -12,20 +12,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-} from '@/components/ui/drawer';
-// NOVO: Importando o componente Accordion
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Edit, Trash2, Tag, ExternalLink, FileDown, Palette, Info, Target, Brush, Settings } from 'lucide-react';
+// **NOVO:** Importando ícones adicionais
+import { Edit, Trash2, Tag, ExternalLink, FileDown, Palette } from 'lucide-react';
 import type { Brand, MoodboardFile, ColorItem } from '@/types/brand';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -35,8 +23,6 @@ interface BrandDetailsProps {
   onEdit: (brand: Brand) => void;
   onDelete: () => void;
   isLoading?: boolean;
-  isOpen?: boolean;
-  onOpenChange?: (open: boolean) => void;
 }
 
 const formatDate = (dateString: string) => {
@@ -45,6 +31,7 @@ const formatDate = (dateString: string) => {
   return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 };
 
+// Componente para renderizar um campo de detalhe de TEXTO
 const DetailField = ({ label, value }: { label: string, value?: string }) => {
   if (!value) return null;
   return (
@@ -55,13 +42,17 @@ const DetailField = ({ label, value }: { label: string, value?: string }) => {
   );
 };
 
+// **NOVO:** Componente unificado para renderizar o campo de arquivo (imagem ou outro)
 const FileDetailField = ({ label, file }: { label: string, file?: MoodboardFile | null }) => {
   if (!file || !file.content) return null;
+
   const isImage = file.type.startsWith('image/');
+
   return (
     <div className="p-3 bg-muted/50 rounded-lg">
       <p className="text-sm text-muted-foreground mb-2">{label}</p>
       {isImage ? (
+        // Renderiza a imagem
         <div className='relative group'>
           <img src={file.content} alt={file.name} className="rounded-md max-h-48 w-full object-cover" />
           <a
@@ -74,6 +65,7 @@ const FileDetailField = ({ label, file }: { label: string, file?: MoodboardFile 
           </a>
         </div>
       ) : (
+        // Renderiza um link para download de outros arquivos (PDF, etc.)
         <div className="flex items-center space-x-3">
           <FileDown className="h-10 w-10 text-primary flex-shrink-0" />
           <div className='flex-grow truncate'>
@@ -92,8 +84,10 @@ const FileDetailField = ({ label, file }: { label: string, file?: MoodboardFile 
   )
 }
 
+// **NOVO:** Componente para exibir a paleta de cores
 const ColorPaletteField = ({ colors }: { colors?: ColorItem[] | null }) => {
   if (!colors || colors.length === 0) return null;
+
   return (
     <div className="p-3 bg-muted/50 rounded-lg">
       <div className="flex items-center gap-2 mb-3">
@@ -105,9 +99,10 @@ const ColorPaletteField = ({ colors }: { colors?: ColorItem[] | null }) => {
       </div>
       
       {colors.length <= 4 ? (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        // Layout horizontal para poucas cores
+        <div className="flex flex-wrap justify-center gap-8">
           {colors.map((color) => (
-            <div key={color.id} className="flex flex-col items-center gap-2">
+            <div key={color.id} className="flex flex-col items-center gap-3">
               <div
                 className="w-16 h-16 rounded-xl border-2 border-gray-300 shadow-md hover:shadow-lg transition-shadow cursor-pointer"
                 style={{ backgroundColor: color.hex }}
@@ -125,7 +120,8 @@ const ColorPaletteField = ({ colors }: { colors?: ColorItem[] | null }) => {
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        // Layout em grid para muitas cores
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 justify-items-center">
           {colors.map((color) => (
             <div
               key={color.id}
@@ -155,30 +151,11 @@ const ColorPaletteField = ({ colors }: { colors?: ColorItem[] | null }) => {
   );
 };
 
-// NOVO: Componente para encapsular uma seção do acordeão
-const DetailSection = ({ title, icon: Icon, value, children }: { title: string, icon: React.ElementType, value: string, children: React.ReactNode }) => {
-  return (
-    <AccordionItem value={value} className="border-b border-border/50">
-      <AccordionTrigger className="text-base font-semibold hover:no-underline py-4">
-        <div className="flex items-center gap-3">
-          <Icon className="h-5 w-5 text-primary" />
-          <span>{title}</span>
-        </div>
-      </AccordionTrigger>
-      <AccordionContent className="pt-2">
-        <div className="space-y-4">
-          {children}
-        </div>
-      </AccordionContent>
-    </AccordionItem>
-  );
-};
 
-export default function BrandDetails({ brand, onEdit, onDelete, isLoading = false, isOpen = false, onOpenChange }: BrandDetailsProps) {
-  const isMobile = useIsMobile();
+export default function BrandDetails({ brand, onEdit, onDelete, isLoading = false }: BrandDetailsProps) {
   if (isLoading) {
     return (
-      <div className="lg:col-span-1 h-full bg-card p-6 rounded-2xl border-2 border-secondary/20 flex flex-col animate-pulse">
+      <div className="h-full bg-card p-6 flex flex-col animate-pulse">
         <div className="flex items-center mb-6 flex-shrink-0">
           <Skeleton className="w-16 h-16 rounded-xl mr-4" />
           <Skeleton className="h-8 w-32" />
@@ -198,18 +175,18 @@ export default function BrandDetails({ brand, onEdit, onDelete, isLoading = fals
 
   if (!brand) {
     return (
-      <div className="lg:col-span-1 h-full bg-card p-6 rounded-2xl border-2 border-dashed border-secondary/20 flex flex-col items-center justify-center text-center">
+      <div className="h-full bg-card p-6 flex flex-col items-center justify-center text-center">
         <Tag className="h-16 w-16 text-muted-foreground/50 mb-4" />
         <h3 className="text-xl font-semibold text-foreground">Nenhuma marca selecionada</h3>
-        <p className="text-muted-foreground">Selecione uma marca na lista para ver os detalhes ou crie uma nova.</p>
+        <p className="text-muted-foreground">Selecione uma marca na lista para ver os detalhes.</p>
       </div>
     );
   }
 
   const wasUpdated = brand.createdAt !== brand.updatedAt;
 
-  const brandContent = (
-    <>
+  return (
+    <div className="h-full p-6 flex flex-col overflow-hidden">
       <div className="flex items-center mb-6 flex-shrink-0">
         <div className="bg-gradient-to-br from-secondary to-primary text-white rounded-xl w-16 h-16 flex items-center justify-center font-bold text-3xl mr-4 flex-shrink-0">
           {brand.name.charAt(0).toUpperCase()}
@@ -218,45 +195,54 @@ export default function BrandDetails({ brand, onEdit, onDelete, isLoading = fals
       </div>
 
       <div className="overflow-y-auto pr-2 flex-1 min-h-0">
-        {/* ALTERADO: Usando o Accordion para organizar os campos */}
-        <Accordion type="multiple" defaultValue={['info', 'visuals']} className="w-full">
-          <DetailSection title="Informações Principais" icon={Info} value="info">
-            <DetailField label="Responsável" value={brand.responsible} />
-            <DetailField label="Segmento" value={brand.segment} />
-            <DetailField label="Valores" value={brand.values} />
-            <DetailField label="Palavras-Chave" value={brand.keywords} />
-          </DetailSection>
-
-          <DetailSection title="Estratégia e Metas" icon={Target} value="strategy">
-            <DetailField label="Metas do Negócio" value={brand.goals} />
-            <DetailField label="Indicadores de Sucesso" value={brand.successMetrics} />
-            <DetailField label="Promessa Única" value={brand.promise} />
-          </DetailSection>
-
-          <DetailSection title="Identidade Visual e Criativa" icon={Brush} value="visuals">
-             <FileDetailField label="Logo da Marca" file={brand.logo} />
-            <FileDetailField label="Imagem de Referência" file={brand.referenceImage} />
-            <FileDetailField label="Moodboard/Identidade Visual" file={brand.moodboard} />
-            <ColorPaletteField colors={brand.colorPalette} />
-            <DetailField label="Inspirações" value={brand.inspirations} />
-            <DetailField label="Referências de Conteúdo" value={brand.references} />
-          </DetailSection>
-
-          <DetailSection title="Detalhes Operacionais" icon={Settings} value="operations">
-            <DetailField label="Restrições" value={brand.restrictions} />
-            <DetailField label="Crises (Existentes ou Potenciais)" value={brand.crisisInfo} />
-            <DetailField label="Colaborações e Ações" value={brand.collaborations} />
-            <DetailField label="Datas Especiais" value={brand.specialDates} />
-            <DetailField label="Marcos e Cases" value={brand.milestones} />
-            <DetailField label="Data de Criação" value={formatDate(brand.createdAt)} />
-            {wasUpdated && (
-              <DetailField label="Última Atualização" value={formatDate(brand.updatedAt)} />
-            )}
-          </DetailSection>
-        </Accordion>
+        <div className="space-y-4 text-left">
+          <DetailField label="Responsável" value={brand.responsible} />
+          <DetailField label="Segmento" value={brand.segment} />
+          <DetailField label="Valores" value={brand.values} />
+          <DetailField label="Palavras-Chave" value={brand.keywords} />
+          <DetailField label="Metas do Negócio" value={brand.goals} />
+          <DetailField label="Inspirações" value={brand.inspirations} />
+          <DetailField label="Indicadores de Sucesso" value={brand.successMetrics} />
+          <DetailField label="Referências de Conteúdo" value={brand.references} />
+          <DetailField label="Datas Especiais" value={brand.specialDates} />
+          <DetailField label="Promessa Única" value={brand.promise} />
+          <DetailField label="Marcos e Cases" value={brand.milestones} />
+          <DetailField label="Restrições" value={brand.restrictions} />
+          <DetailField label="Crises (Existentes ou Potenciais)" value={brand.crisisInfo} />
+          <DetailField label="Colaborações e Ações com Influenciadores" value={brand.collaborations} />
+          <FileDetailField label="Logo da Marca" file={brand.logo} />
+          <FileDetailField label="Imagem de Referência" file={brand.referenceImage} />
+          <FileDetailField label="Moodboard/Identidade Visual" file={brand.moodboard} />
+          {/* Exibe identidade visual extraída do PDF, se houver */}
+          {brand.moodboard && (brand.moodboard as any).colors && (brand.moodboard as any).colors.length > 0 && (
+            <div className="mt-2">
+              <p className="text-sm text-muted-foreground mb-1 flex items-center gap-2"><Palette className="inline-block h-4 w-4" /> Paleta extraída do PDF:</p>
+              <div className="flex gap-2">
+                {(brand.moodboard as any).colors.map((color: string, idx: number) => (
+                  <div key={idx} className="w-8 h-8 rounded-full border-2 border-white shadow" style={{ background: color }} title={color}></div>
+                ))}
+              </div>
+            </div>
+          )}
+          {brand.moodboard && (brand.moodboard as any).images && (brand.moodboard as any).images.length > 0 && (
+            <div className="mt-2">
+              <p className="text-sm text-muted-foreground mb-1 flex items-center gap-2"><Palette className="inline-block h-4 w-4" /> Imagens extraídas do PDF:</p>
+              <div className="flex gap-2 flex-wrap">
+                {(brand.moodboard as any).images.map((img: string, idx: number) => (
+                  <img key={idx} src={img} alt={`Imagem extraída ${idx+1}`} className="w-24 h-16 object-cover rounded border" />
+                ))}
+              </div>
+            </div>
+          )}
+          <ColorPaletteField colors={brand.colorPalette} />
+          <DetailField label="Data de Criação" value={formatDate(brand.createdAt)} />
+          {wasUpdated && (
+            <DetailField label="Última Atualização" value={formatDate(brand.updatedAt)} />
+          )}
+        </div>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-3 mt-6 flex-shrink-0">
+      <div className="flex flex-col md:flex-row gap-3 mt-6 mb-8 flex-shrink-0">
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button variant="outline" className="w-full flex-1 rounded-full py-5">
@@ -280,28 +266,6 @@ export default function BrandDetails({ brand, onEdit, onDelete, isLoading = fals
           <Edit className="mr-2 h-4 w-4" /> Editar marca
         </Button>
       </div>
-    </>
-  );
-
-  if (isMobile) {
-    return (
-      <Drawer open={isOpen} onOpenChange={onOpenChange}>
-        {/* ALTERADO: Altura do Drawer aumentada para 70% da altura da tela */}
-        <DrawerContent className="h-auto max-h-[70vh]">
-          <DrawerHeader>
-            <DrawerTitle className="text-left">Detalhes da Marca</DrawerTitle>
-          </DrawerHeader>
-          <div className="p-6 flex flex-col overflow-hidden h-full">
-            {brandContent}
-          </div>
-        </DrawerContent>
-      </Drawer>
-    );
-  }
-
-  return (
-    <div className="lg:col-span-1 max-h-[calc(100vh-16rem)] bg-card/80 backdrop-blur-sm p-6 rounded-2xl shadow-sm border-2 border-secondary/20 flex flex-col overflow-hidden">
-      {brandContent}
     </div>
   );
 }
