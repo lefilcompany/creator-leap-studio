@@ -106,7 +106,7 @@ export default function ActionDetails({ action, isLoading = false }: ActionDetai
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-6 space-y-4">
+      <div className="flex-1 overflow-y-auto p-6 space-y-4 pb-8">
         <DetailItem label="Marca" value={action.brand?.name || 'N/A'} />
 
         {action.type === 'CRIAR_CONTEUDO' && (
@@ -128,7 +128,7 @@ export default function ActionDetails({ action, isLoading = false }: ActionDetai
               />
             )}
             {action.result?.imageUrl && (
-              <div className="space-y-2">
+              <div className="space-y-2 mb-6">
                 <p className="text-sm font-medium text-muted-foreground">Imagem Gerada</p>
                 <div className="w-full aspect-square bg-secondary/5 rounded-lg border border-secondary/10 overflow-hidden">
                   <img 
@@ -155,7 +155,7 @@ export default function ActionDetails({ action, isLoading = false }: ActionDetai
               />
             )}
             {action.result?.originalImage ? (
-              <div className="space-y-2">
+              <div className="space-y-2 mb-6">
                 <p className="text-sm font-medium text-muted-foreground">Imagem Original</p>
                 <div className="w-full aspect-square bg-secondary/5 rounded-lg border border-secondary/10 overflow-hidden">
                   <img 
@@ -180,7 +180,7 @@ export default function ActionDetails({ action, isLoading = false }: ActionDetai
               <DetailItem label="Quantidade" value={action.details.quantity} />
             )}
             {action.result?.plan && (
-              <div className="space-y-2">
+              <div className="space-y-2 mb-6">
                 <p className="text-sm font-medium text-muted-foreground">Planejamento Gerado</p>
                 <div className="bg-secondary/5 rounded-lg border border-secondary/10 p-4">
                   {typeof action.result.plan === 'string' && action.result.plan.trim().length > 0 ? (
@@ -199,6 +199,9 @@ export default function ActionDetails({ action, isLoading = false }: ActionDetai
             )}
           </>
         )}
+
+        {/* Espaço adicional no final para melhor UX em mobile */}
+        <div className="h-6"></div>
       </div>
     </div>
   );
