@@ -329,7 +329,7 @@ export default function Themes() {
             isLoading={isLoadingThemeDetails}
           />
         ) : (
-          <div className="lg:col-span-2 h-full bg-card p-6 rounded-2xl border-2 border-dashed border-secondary/20 flex flex-col items-center justify-center text-center space-y-2">
+          <div className="lg:col-span-1 h-full bg-card p-6 rounded-2xl border-2 border-dashed border-secondary/20 flex flex-col items-center justify-center text-center space-y-2">
             <Palette className="h-16 w-16 text-muted-foreground/50" strokeWidth={1.5} />
             <h3 className="text-xl font-semibold text-foreground">Nenhum tema selecionado</h3>
             <p className="text-muted-foreground">Selecione um tema estratégico na lista para ver os detalhes ou crie um novo.</p>
