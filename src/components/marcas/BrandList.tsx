@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { cn } from '@/lib/utils';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Loader2, Package } from 'lucide-react';
 import type { BrandSummary } from '@/types/brand';
 
 interface BrandListProps {
@@ -18,17 +18,17 @@ const formatDate = (dateString: string) => {
   return date.toLocaleDateString('pt-BR');
 };
 
-// Componente de skeleton para as marcas
-const BrandSkeleton = () => (
-  <div className="w-full p-4 rounded-lg border-2 border-transparent bg-muted/50 flex items-center justify-between">
-    <div className="flex items-center">
-      <Skeleton className="w-10 h-10 rounded-lg mr-4" />
-      <div>
-        <Skeleton className="h-5 w-32 mb-2" />
-        <Skeleton className="h-4 w-40" />
-      </div>
+// Componente de loading profissional
+const LoadingState = () => (
+  <div className="flex flex-col items-center justify-center py-16 space-y-4">
+    <div className="relative">
+      <div className="w-16 h-16 border-4 border-primary/20 rounded-full"></div>
+      <div className="absolute top-0 left-0 w-16 h-16 border-4 border-transparent border-t-primary rounded-full animate-spin"></div>
     </div>
-    <Skeleton className="h-4 w-24 hidden md:block" />
+    <div className="text-center space-y-2">
+      <h3 className="text-lg font-semibold text-foreground">Carregando marcas</h3>
+      <p className="text-sm text-muted-foreground">Aguarde um momento...</p>
+    </div>
   </div>
 );
 
@@ -43,21 +43,15 @@ export default function BrandList({ brands, selectedBrand, onSelectBrand, isLoad
       <h2 className="text-2xl font-semibold text-foreground mb-4 px-2 flex-shrink-0">Todas as marcas</h2>
       <div className="overflow-y-auto pr-2 flex-1 min-h-0">
         {isLoading ? (
-          <ul className="space-y-3">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <li key={i}>
-                <BrandSkeleton />
-              </li>
-            ))}
-          </ul>
+          <LoadingState />
         ) : sortedBrands.length > 0 ? (
-          <ul className="space-y-3">
+          <ul className="space-y-3 animate-fade-in">
             {sortedBrands.map((brand) => (
               <li key={brand.id}>
                 <button
                   onClick={() => onSelectBrand(brand)}
                   className={cn(
-                    "w-full text-left p-4 rounded-lg border-2 transition-all duration-200 flex items-center justify-between",
+                    "w-full text-left p-4 rounded-lg border-2 transition-all duration-200 flex items-center justify-between hover-scale",
                     selectedBrand?.id === brand.id
                       ? "bg-primary/10 border-primary shadow-md"
                       : "bg-muted/50 border-transparent hover:border-primary/50 hover:bg-primary/5"
@@ -80,8 +74,10 @@ export default function BrandList({ brands, selectedBrand, onSelectBrand, isLoad
             ))}
           </ul>
         ) : (
-          <div className="text-center text-muted-foreground py-8">
-            Nenhuma marca encontrada
+          <div className="text-center text-muted-foreground py-8 animate-fade-in">
+            <Package className="h-12 w-12 mx-auto mb-3 opacity-50" />
+            <p className="text-base">Nenhuma marca encontrada</p>
+            <p className="text-sm mt-1 opacity-75">Clique em "Nova marca" para começar.</p>
           </div>
         )}
       </div>
