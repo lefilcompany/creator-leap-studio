@@ -1,158 +1,132 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Edit, Trash2, Target, MessageSquare, Palette } from "lucide-react";
-import type { StrategicTheme } from "@/types/theme";
-import type { BrandSummary } from "@/types/brand";
+import { Button } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { Edit, Trash2, Palette } from 'lucide-react';
+import type { StrategicTheme } from '@/types/theme';
+import type { BrandSummary } from '@/types/brand';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface ThemeDetailsProps {
   theme: StrategicTheme | null;
-  brands: BrandSummary[];
   onEdit: (theme: StrategicTheme) => void;
   onDelete: () => void;
-  isLoading: boolean;
+  brands: BrandSummary[]; // Recebe as marcas para encontrar o nome
+  isLoading?: boolean;
 }
 
-export default function ThemeDetails({ 
-  theme, 
-  brands, 
-  onEdit, 
-  onDelete, 
-  isLoading 
-}: ThemeDetailsProps) {
+const formatDate = (dateString: string) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+};
+
+const DetailField = ({ label, value }: { label: string, value?: string }) => {
+  if (!value) return null;
+  return (
+    <div className="p-3 bg-muted/50 rounded-lg break-words">
+      <p className="text-sm text-muted-foreground">{label}</p>
+      <p className="font-semibold text-foreground whitespace-pre-wrap">{value}</p>
+    </div>
+  );
+};
+
+export default function ThemeDetails({ theme, onEdit, onDelete, brands, isLoading = false }: ThemeDetailsProps) {
   if (isLoading) {
     return (
-      <Card className="lg:col-span-2 h-full">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <Skeleton className="h-12 w-12 rounded-full" />
-              <div className="space-y-2">
-                <Skeleton className="h-6 w-[300px]" />
-                <Skeleton className="h-4 w-[200px]" />
-              </div>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <Skeleton className="h-20 w-full" />
-          <Skeleton className="h-16 w-full" />
-          <Skeleton className="h-24 w-full" />
-        </CardContent>
-      </Card>
+      <div className="lg:col-span-1 h-full bg-card p-6 rounded-2xl border-2 border-secondary/20 flex flex-col animate-pulse">
+        <div className="flex items-center mb-6 flex-shrink-0">
+          <Skeleton className="w-16 h-16 rounded-xl mr-4" />
+          <Skeleton className="h-8 w-32" />
+        </div>
+        <div className="space-y-4 flex-1 overflow-y-auto pr-2">
+          {Array.from({ length: 10 }).map((_, i) => (
+            <Skeleton key={i} className="h-4 w-full" />
+          ))}
+        </div>
+        <div className="flex gap-3 mt-6 flex-shrink-0">
+          <Skeleton className="h-10 flex-1" />
+          <Skeleton className="h-10 flex-1" />
+        </div>
+      </div>
     );
   }
 
   if (!theme) {
-    return null;
+    return (
+      <div className="lg:col-span-1 h-full bg-card p-6 rounded-2xl border-2 border-dashed border-secondary/20 flex flex-col items-center justify-center text-center">
+        <Palette className="h-16 w-16 text-muted-foreground/50" strokeWidth={1.5} />
+        <h3 className="text-xl font-semibold text-foreground">Nenhum tema estratégico selecionado</h3>
+        <p className="text-muted-foreground">Selecione um tema estratégico na lista para ver os detalhes ou crie um novo.</p>
+      </div>
+    );
   }
 
-  const getBrandName = (brandId: string) => {
-    const brand = brands.find(b => b.id === brandId);
-    return brand?.name || 'Marca não encontrada';
-  };
+  const wasUpdated = theme.createdAt !== theme.updatedAt;
+  const brandName = brands.find(b => b.id === theme.brandId)?.name || 'Marca não encontrada';
 
   return (
-    <Card className="lg:col-span-2 h-full">
-      <CardHeader>
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div className="flex items-center space-x-3">
-            <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center text-primary-foreground font-bold text-xl">
-              {theme.title.charAt(0).toUpperCase()}
-            </div>
-            <div>
-              <CardTitle className="text-xl mb-1">{theme.title}</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Marca: {getBrandName(theme.brandId)}
-              </p>
-            </div>
-          </div>
-          <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={onDelete}
-              className="text-destructive hover:text-destructive"
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Deletar
+    <div className="lg:col-span-1 max-h-[calc(100vh-16rem)] bg-card/80 backdrop-blur-sm p-6 rounded-2xl shadow-sm border-2 border-secondary/20 flex flex-col overflow-hidden">
+      <div className="flex items-center mb-6 flex-shrink-0">
+        <div className="bg-gradient-to-br from-secondary to-primary text-white rounded-xl w-16 h-16 flex items-center justify-center font-bold text-3xl mr-4 flex-shrink-0">
+          {theme.title.charAt(0).toUpperCase()}
+        </div>
+        <div>
+          <h2 className="text-2xl font-bold text-foreground break-words">{theme.title}</h2>
+          <p className="text-md text-muted-foreground">Marca: {brandName}</p>
+        </div>
+      </div>
+
+      <div className="overflow-y-auto pr-2 flex-1 min-h-0">
+        <div className="space-y-4 text-left">
+          <DetailField label="Descrição" value={theme.description} />
+          <DetailField label="Tom de Voz" value={theme.tone} />
+          <DetailField label="Universo-Alvo" value={theme.targetAudience} />
+          {theme.objectives && theme.objectives.length > 0 && (
+            <DetailField label="Objetivos" value={theme.objectives.join('\n• ')} />
+          )}
+          {theme.keyMessages && theme.keyMessages.length > 0 && (
+            <DetailField label="Mensagens-Chave" value={theme.keyMessages.join('\n• ')} />
+          )}
+          <DetailField label="Data de Criação" value={formatDate(theme.createdAt)} />
+          {wasUpdated && (
+            <DetailField label="Última Atualização" value={formatDate(theme.updatedAt)} />
+          )}
+        </div>
+      </div>
+
+      <div className="flex flex-col md:flex-row gap-3 mt-6 flex-shrink-0">
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="outline" className="w-full flex-1 rounded-full py-5">
+              <Trash2 className="mr-2 h-4 w-4" /> Deletar
             </Button>
-            <Button 
-              onClick={() => onEdit(theme)}
-              size="sm"
-              className="bg-gradient-to-r from-primary to-secondary"
-            >
-              <Edit className="h-4 w-4 mr-2" />
-              Editar tema
-            </Button>
-          </div>
-        </div>
-      </CardHeader>
-      
-      <CardContent className="space-y-6 max-h-[500px] overflow-y-auto">
-        {/* Descrição */}
-        <div className="space-y-2">
-          <h3 className="font-semibold text-sm flex items-center gap-2">
-            <Palette className="h-4 w-4 text-primary" />
-            Descrição
-          </h3>
-          <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-lg">
-            {theme.description}
-          </p>
-        </div>
-
-        {/* Tom de Voz */}
-        <div className="space-y-2">
-          <h3 className="font-semibold text-sm flex items-center gap-2">
-            <MessageSquare className="h-4 w-4 text-primary" />
-            Tom de Voz
-          </h3>
-          <Badge variant="secondary" className="text-sm">
-            {theme.tone}
-          </Badge>
-        </div>
-
-        {/* Público-Alvo */}
-        <div className="space-y-2">
-          <h3 className="font-semibold text-sm flex items-center gap-2">
-            <Target className="h-4 w-4 text-primary" />
-            Público-Alvo
-          </h3>
-          <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-lg">
-            {theme.targetAudience}
-          </p>
-        </div>
-
-        {/* Objetivos */}
-        {theme.objectives && theme.objectives.length > 0 && (
-          <div className="space-y-2">
-            <h3 className="font-semibold text-sm">Objetivos</h3>
-            <ul className="space-y-1">
-              {theme.objectives.map((objective, index) => (
-                <li key={index} className="text-sm text-muted-foreground flex items-start gap-2">
-                  <span className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0" />
-                  {objective}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {/* Mensagens-Chave */}
-        {theme.keyMessages && theme.keyMessages.length > 0 && (
-          <div className="space-y-2">
-            <h3 className="font-semibold text-sm">Mensagens-Chave</h3>
-            <div className="flex flex-wrap gap-2">
-              {theme.keyMessages.map((message, index) => (
-                <Badge key={index} variant="outline" className="text-xs">
-                  {message}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Essa ação não pode ser desfeita. Isso irá deletar permanentemente o tema &quot;{theme.title}&quot;.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={onDelete} className="bg-destructive hover:bg-destructive/90">Deletar</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+        <Button onClick={() => onEdit(theme)} className="w-full flex-1 rounded-full py-5">
+          <Edit className="mr-2 h-4 w-4" /> Editar tema
+        </Button>
+      </div>
+    </div>
   );
 }
