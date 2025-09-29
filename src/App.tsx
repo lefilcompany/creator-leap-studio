@@ -9,6 +9,7 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Brands from "./pages/Brands";
 import Themes from "./pages/Themes";
+import Personas from "./pages/Personas";
 import CreateContent from "./pages/CreateContent";
 import ReviewContent from "./pages/ReviewContent";
 import PlanContent from "./pages/PlanContent";
@@ -33,7 +34,7 @@ const App = () => (
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="brands" element={<Brands />} />
             <Route path="themes" element={<Themes />} />
-            <Route path="personas" element={<Dashboard />} />
+            <Route path="personas" element={<Personas />} />
             <Route path="history" element={<Dashboard />} />
             <Route path="create" element={<CreateContent />} />
             <Route path="review" element={<ReviewContent />} />
