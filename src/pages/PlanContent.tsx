@@ -217,19 +217,22 @@ const PlanContent = () => {
               </h2>
               <p className="text-muted-foreground text-sm">Defina marca, tema e plataforma</p>
             </CardHeader>
-            <CardContent className="p-4 sm:p-6">
-              <div className="space-y-6">
-                {/* First Row - Brand and Platform */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+            <CardContent className="p-4 sm:p-8">
+              <div className="space-y-8">
+                {/* Primary Selection Row */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="space-y-3">
-                    <Label htmlFor="brand" className="text-sm font-semibold text-foreground">Marca *</Label>
+                    <Label htmlFor="brand" className="text-sm font-semibold text-foreground flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
+                      Marca *
+                    </Label>
                     <Select onValueChange={handleBrandChange} value={formData.brand}>
-                      <SelectTrigger className="h-11 rounded-xl border-2 border-border/50 bg-background/50">
+                      <SelectTrigger className="h-12 rounded-2xl border-2 border-border/50 bg-background/50 hover:border-primary/30 transition-colors">
                         <SelectValue placeholder="Selecione a marca" />
                       </SelectTrigger>
-                      <SelectContent className="rounded-xl border-border/20">
+                      <SelectContent className="rounded-2xl border-border/20 bg-background/95 backdrop-blur-sm">
                         {brands.map((brand) => (
-                          <SelectItem key={brand.id} value={brand.name} className="rounded-lg">
+                          <SelectItem key={brand.id} value={brand.name} className="rounded-xl">
                             {brand.name}
                           </SelectItem>
                         ))}
@@ -238,75 +241,103 @@ const PlanContent = () => {
                   </div>
 
                   <div className="space-y-3">
-                    <Label htmlFor="platform" className="text-sm font-semibold text-foreground">Plataforma *</Label>
+                    <Label htmlFor="platform" className="text-sm font-semibold text-foreground flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 bg-secondary rounded-full"></div>
+                      Plataforma *
+                    </Label>
                     <Select onValueChange={handlePlatformChange} value={formData.platform}>
-                      <SelectTrigger className="h-11 rounded-xl border-2 border-border/50 bg-background/50">
+                      <SelectTrigger className="h-12 rounded-2xl border-2 border-border/50 bg-background/50 hover:border-secondary/30 transition-colors">
                         <SelectValue placeholder="Selecione a plataforma" />
                       </SelectTrigger>
-                      <SelectContent className="rounded-xl border-border/20">
-                        <SelectItem value="instagram" className="rounded-lg">Instagram</SelectItem>
-                        <SelectItem value="facebook" className="rounded-lg">Facebook</SelectItem>
-                        <SelectItem value="linkedin" className="rounded-lg">LinkedIn</SelectItem>
-                        <SelectItem value="twitter" className="rounded-lg">Twitter (X)</SelectItem>
+                      <SelectContent className="rounded-2xl border-border/20 bg-background/95 backdrop-blur-sm">
+                        <SelectItem value="instagram" className="rounded-xl">📷 Instagram</SelectItem>
+                        <SelectItem value="facebook" className="rounded-xl">👥 Facebook</SelectItem>
+                        <SelectItem value="linkedin" className="rounded-xl">💼 LinkedIn</SelectItem>
+                        <SelectItem value="twitter" className="rounded-xl">🐦 Twitter (X)</SelectItem>
                       </SelectContent>
                     </Select>
-                  </div>
-                </div>
-
-                {/* Second Row - Theme Selection */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-                  <div className="lg:col-span-2 space-y-3">
-                    <Label htmlFor="theme" className="text-sm font-semibold text-foreground">Tema Estratégico *</Label>
-                    <Select onValueChange={handleThemeSelect} value="" disabled={!formData.brand || filteredThemes.length === 0}>
-                      <SelectTrigger className="h-11 rounded-xl border-2 border-border/50 bg-background/50 disabled:opacity-50">
-                        <SelectValue placeholder={!formData.brand ? "Primeiro, escolha a marca" : "Adicionar tema"} />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl border-border/20">
-                        {filteredThemes.map((t) => (
-                          <SelectItem 
-                            key={t.id} 
-                            value={t.title} 
-                            disabled={formData.theme.includes(t.title)} 
-                            className="rounded-lg"
-                          >
-                            {t.title}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <div className="flex flex-wrap gap-2 min-h-[60px] p-3 rounded-xl border-2 border-dashed border-border/50 bg-muted/20">
-                      {formData.theme.length === 0 ? (
-                        <span className="text-sm text-muted-foreground italic self-center">Nenhum tema selecionado</span>
-                      ) : (
-                        formData.theme.map((t) => (
-                          <div key={t} className="flex items-center gap-2 bg-gradient-to-r from-primary/15 to-primary/5 border-2 border-primary/30 text-primary text-sm font-semibold px-3 py-1.5 rounded-xl">
-                            <span className="truncate max-w-[120px] sm:max-w-none">{t}</span>
-                            <button 
-                              onClick={() => handleThemeRemove(t)} 
-                              className="ml-1 text-primary hover:text-destructive transition-colors p-0.5 rounded-full hover:bg-destructive/10 flex-shrink-0" 
-                              aria-label={`Remover tema ${t}`}
-                            >
-                              <X size={14} />
-                            </button>
-                          </div>
-                        ))
-                      )}
-                    </div>
                   </div>
 
                   <div className="space-y-3">
-                    <Label htmlFor="quantity" className="text-sm font-semibold text-foreground">Quantidade de Posts (1-7) *</Label>
+                    <Label htmlFor="quantity" className="text-sm font-semibold text-foreground flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 bg-accent rounded-full"></div>
+                      Quantidade de Posts *
+                    </Label>
                     <Input
                       id="quantity"
                       type="number"
                       min="1"
                       max="7"
-                      placeholder="Ex: 5"
+                      placeholder="1-7"
                       value={formData.quantity}
                       onChange={handleQuantityChange}
                       onBlur={handleQuantityBlur}
-                      className="h-11 rounded-xl border-2 border-border/50 bg-background/50"
+                      className="h-12 rounded-2xl border-2 border-border/50 bg-background/50 hover:border-accent/30 transition-colors text-center font-semibold"
                     />
+                  </div>
+                </div>
+
+                {/* Theme Selection Section */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="theme" className="text-sm font-semibold text-foreground flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
+                      Temas Estratégicos *
+                    </Label>
+                    <span className="text-xs text-muted-foreground bg-muted/30 px-2 py-1 rounded-full">
+                      {formData.theme.length} selecionados
+                    </span>
+                  </div>
+                  
+                  <Select onValueChange={handleThemeSelect} value="" disabled={!formData.brand || filteredThemes.length === 0}>
+                    <SelectTrigger className="h-12 rounded-2xl border-2 border-border/50 bg-background/50 hover:border-primary/30 transition-colors disabled:opacity-50">
+                      <SelectValue placeholder={!formData.brand ? "Primeiro, escolha a marca" : "Adicionar tema estratégico"} />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-2xl border-border/20 bg-background/95 backdrop-blur-sm">
+                      {filteredThemes.map((t) => (
+                        <SelectItem 
+                          key={t.id} 
+                          value={t.title} 
+                          disabled={formData.theme.includes(t.title)} 
+                          className="rounded-xl"
+                        >
+                          {t.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  {/* Selected Themes Display */}
+                  <div className="relative">
+                    {formData.theme.length === 0 ? (
+                      <div className="flex items-center justify-center min-h-[80px] rounded-2xl border-2 border-dashed border-border/30 bg-muted/10 transition-all hover:bg-muted/20">
+                        <div className="text-center space-y-2">
+                          <div className="w-8 h-8 rounded-full bg-muted/40 mx-auto flex items-center justify-center">
+                            <div className="w-3 h-3 rounded-full bg-muted-foreground/30"></div>
+                          </div>
+                          <p className="text-sm text-muted-foreground">Nenhum tema selecionado</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 p-4 rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10">
+                        {formData.theme.map((t, index) => (
+                          <div 
+                            key={t} 
+                            className="group flex items-center justify-between bg-background/80 backdrop-blur-sm border border-primary/20 rounded-xl px-4 py-3 shadow-sm hover:shadow-md transition-all hover:scale-105 animate-fade-in"
+                            style={{ animationDelay: `${index * 0.1}s` }}
+                          >
+                            <span className="text-sm font-medium text-foreground truncate flex-1 mr-2">{t}</span>
+                            <button 
+                              onClick={() => handleThemeRemove(t)} 
+                              className="flex-shrink-0 w-6 h-6 rounded-full bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground transition-all flex items-center justify-center group-hover:scale-110" 
+                              aria-label={`Remover tema ${t}`}
+                            >
+                              <X size={12} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
