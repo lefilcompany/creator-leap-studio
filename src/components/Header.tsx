@@ -88,9 +88,7 @@ export const Header = () => {
             <SidebarTrigger />
           )}
         </div>
-
         
-
         {/* Search bar - Desktop only */}
         <div className="hidden xl:flex flex-1 max-w-2xl mx-4 xl:mx-6">
           <div className="relative w-full group">
@@ -186,7 +184,7 @@ export const Header = () => {
               </DialogHeader>
               <DialogFooter className="flex-col-reverse sm:flex-row gap-3 mt-6">
                 <DialogClose asChild>
-                  <Button type="button" variant="outline" className="w-full rounded-xl hover:border-primary border-2 h-12">
+                  <Button type="button" variant="outline" className="w-full rounded-xl bg-accent hover:border-accent h-12">
                     Cancelar
                   </Button>
                 </DialogClose>
