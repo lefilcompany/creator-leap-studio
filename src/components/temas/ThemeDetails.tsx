@@ -32,9 +32,9 @@ const formatDate = (dateString: string) => {
 const DetailField = ({ label, value }: { label: string, value?: string }) => {
   if (!value) return null;
   return (
-    <div className="p-3 bg-muted/50 rounded-lg break-words">
-      <p className="text-sm text-muted-foreground">{label}</p>
-      <p className="font-semibold text-foreground whitespace-pre-wrap">{value}</p>
+    <div className="bg-muted/30 border border-border/50 rounded-lg p-3 space-y-1">
+      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{label}</p>
+      <p className="text-sm font-medium text-foreground leading-relaxed whitespace-pre-wrap">{value}</p>
     </div>
   );
 };
@@ -74,40 +74,48 @@ export default function ThemeDetails({ theme, onEdit, onDelete, brands, isLoadin
   const brandName = brands.find(b => b.id === theme.brandId)?.name || 'Marca não encontrada';
 
   return (
-    <div className="lg:col-span-1 max-h-[calc(100vh-16rem)] bg-card/80 backdrop-blur-sm p-6 rounded-2xl shadow-sm border-2 border-secondary/20 flex flex-col overflow-hidden">
-      <div className="flex items-center mb-6 flex-shrink-0">
-        <div className="bg-gradient-to-br from-secondary to-primary text-white rounded-xl w-16 h-16 flex items-center justify-center font-bold text-3xl mr-4 flex-shrink-0">
+    <div className="lg:col-span-1 max-h-[calc(100vh-16rem)] bg-card border border-border/50 p-4 md:p-6 rounded-xl shadow-lg flex flex-col overflow-hidden">
+      {/* Header Section */}
+      <div className="flex items-start gap-4 mb-6 pb-4 border-b border-border/30">
+        <div className="bg-gradient-to-br from-primary to-secondary text-primary-foreground rounded-lg w-14 h-14 flex items-center justify-center font-bold text-2xl flex-shrink-0 shadow-md">
           {theme.title.charAt(0).toUpperCase()}
         </div>
-        <div>
-          <h2 className="text-2xl font-bold text-foreground break-words">{theme.title}</h2>
-          <p className="text-md text-muted-foreground">Marca: {brandName}</p>
+        <div className="flex-1 min-w-0">
+          <h2 className="text-xl md:text-2xl font-bold text-foreground leading-tight mb-1 break-words">{theme.title}</h2>
+          <p className="text-sm text-muted-foreground font-medium">Marca: {brandName}</p>
         </div>
       </div>
 
-      <div className="overflow-y-auto pr-2 flex-1 min-h-0">
-        <div className="space-y-4 text-left">
+      {/* Content Section */}
+      <div className="overflow-y-auto flex-1 min-h-0 space-y-4">
+        <div className="space-y-3">
           <DetailField label="Descrição" value={theme.description} />
           <DetailField label="Tom de Voz" value={theme.tone} />
-          <DetailField label="Universo-Alvo" value={theme.targetAudience} />
+          <DetailField label="Público-Alvo" value={theme.targetAudience} />
           {theme.objectives && theme.objectives.length > 0 && (
             <DetailField label="Objetivos" value={theme.objectives.join('\n• ')} />
           )}
           {theme.keyMessages && theme.keyMessages.length > 0 && (
             <DetailField label="Mensagens-Chave" value={theme.keyMessages.join('\n• ')} />
           )}
-          <DetailField label="Data de Criação" value={formatDate(theme.createdAt)} />
-          {wasUpdated && (
-            <DetailField label="Última Atualização" value={formatDate(theme.updatedAt)} />
-          )}
+          
+          {/* Date Information */}
+          <div className="grid grid-cols-1 gap-3 pt-2">
+            <DetailField label="Data de Criação" value={formatDate(theme.createdAt)} />
+            {wasUpdated && (
+              <DetailField label="Última Atualização" value={formatDate(theme.updatedAt)} />
+            )}
+          </div>
         </div>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-3 mt-6 flex-shrink-0">
+      {/* Action Buttons */}
+      <div className="flex flex-col sm:flex-row gap-3 mt-6 pt-4 border-t border-border/30">
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button variant="outline" className="w-full flex-1 rounded-full py-5">
-              <Trash2 className="mr-2 h-4 w-4" /> Deletar
+            <Button variant="outline" size="lg" className="flex-1 h-11 rounded-lg border-destructive/20 text-destructive hover:bg-destructive/10 hover:border-destructive">
+              <Trash2 className="mr-2 h-4 w-4" /> 
+              Deletar
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
@@ -123,8 +131,9 @@ export default function ThemeDetails({ theme, onEdit, onDelete, brands, isLoadin
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-        <Button onClick={() => onEdit(theme)} className="w-full flex-1 rounded-full py-5">
-          <Edit className="mr-2 h-4 w-4" /> Editar tema
+        <Button onClick={() => onEdit(theme)} size="lg" className="flex-1 h-11 rounded-lg bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90">
+          <Edit className="mr-2 h-4 w-4" /> 
+          Editar tema
         </Button>
       </div>
     </div>
