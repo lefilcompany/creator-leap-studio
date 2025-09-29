@@ -1,11 +1,19 @@
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Eye } from 'lucide-react';
 import type { ActionSummary } from '@/types/action';
 import { ACTION_TYPE_DISPLAY, ACTION_STYLE_MAP } from '@/types/action';
 import { cn } from '@/lib/utils';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  PaginationEllipsis,
+} from "@/components/ui/pagination";
 
 interface ActionListProps {
   actions: ActionSummary[];
@@ -23,177 +31,176 @@ const formatDate = (dateString: string) => {
   return date.toLocaleDateString('pt-BR', { 
     day: '2-digit', 
     month: '2-digit', 
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
+    year: 'numeric'
   });
 };
 
-export default function ActionList({ 
-  actions, 
-  selectedAction, 
-  onSelectAction, 
-  isLoading,
+const generatePagination = (currentPage: number, totalPages: number) => {
+  if (totalPages <= 7) {
+    return Array.from({ length: totalPages }, (_, i) => i + 1);
+  }
+  if (currentPage <= 3) {
+    return [1, 2, 3, 4, '...', totalPages];
+  }
+  if (currentPage >= totalPages - 2) {
+    return [1, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+  }
+  return [1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages];
+};
+
+const ActionSkeleton = () => (
+  <div className="w-full text-left p-4 rounded-lg border-2 border-transparent bg-muted/50 flex items-center justify-between gap-4">
+    <div className="flex items-center overflow-hidden flex-1">
+      <Skeleton className="w-10 h-10 rounded-lg mr-4" />
+      <div className="overflow-hidden flex-1">
+        <Skeleton className="h-5 w-40 mb-2" />
+        <Skeleton className="h-4 w-32" />
+      </div>
+    </div>
+    <div className="flex items-center gap-2 flex-shrink-0">
+      <Skeleton className="h-8 w-20" />
+      <Skeleton className="h-4 w-16 hidden md:block" />
+    </div>
+  </div>
+);
+
+export default function ActionList({
+  actions,
+  selectedAction,
+  onSelectAction,
+  isLoading = false,
   currentPage,
   totalPages,
-  onPageChange
+  onPageChange,
 }: ActionListProps) {
-  if (isLoading) {
-    return (
-      <div className="lg:col-span-2 space-y-4">
-        <Card className="shadow-sm border-secondary/20">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <Skeleton className="h-6 w-32" />
-              <Skeleton className="h-8 w-24" />
-            </div>
-            <div className="space-y-3">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="flex items-center gap-4 p-4 rounded-xl border border-secondary/10">
-                  <Skeleton className="w-12 h-12 rounded-lg" />
-                  <div className="flex-1">
-                    <Skeleton className="h-5 w-48 mb-2" />
-                    <Skeleton className="h-4 w-32" />
-                  </div>
-                  <Skeleton className="h-6 w-20" />
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  const handleViewAction = (actionId: string, event: React.MouseEvent) => {
+    event.stopPropagation();
+    window.open(`/historico/${actionId}`, '_blank');
+  };
+
+  const handlePageClick = (page: number | string) => {
+    if (typeof page === 'number' && page > 0 && page <= totalPages && page !== currentPage) {
+      onPageChange(page);
+    }
+  };
+
+  const paginationRange = generatePagination(currentPage, totalPages);
 
   return (
-    <div className="lg:col-span-2 space-y-4">
-      <Card className="shadow-sm border-secondary/20">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold">Ações Recentes</h2>
-            <Badge variant="secondary" className="bg-secondary/10 text-secondary">
-              {actions.length} ações
-            </Badge>
-          </div>
-          
-          {actions.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="text-muted-foreground">
-                <p className="text-lg font-medium mb-2">Nenhuma ação encontrada</p>
-                <p>Não há ações que correspondam aos filtros selecionados.</p>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {actions.map((action) => {
-                const displayType = ACTION_TYPE_DISPLAY[action.type];
-                const style = ACTION_STYLE_MAP[displayType];
-                const Icon = style?.icon;
-                const isSelected = selectedAction?.id === action.id;
-
-                return (
-                  <div
-                    key={action.id}
+    <div className="lg:col-span-2 bg-card p-4 md:p-6 rounded-2xl border-2 border-primary/10 flex flex-col h-full max-h-[calc(100vh-16rem)]">
+      <div className="flex items-center justify-between mb-4 flex-shrink-0">
+        <h2 className="text-2xl font-semibold text-foreground">Ações Recentes</h2>
+        {!isLoading && (
+          <Badge variant="secondary" className="bg-secondary/10 text-secondary">
+            {actions.length} ações
+          </Badge>
+        )}
+      </div>
+      
+      <div className="overflow-y-auto pr-2 flex-1 min-h-0">
+        {isLoading ? (
+          <ul className="space-y-3">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <li key={i}>
+                <ActionSkeleton />
+              </li>
+            ))}
+          </ul>
+        ) : actions.length > 0 ? (
+          <ul className="space-y-3">
+            {actions.map((action) => {
+              const displayType = ACTION_TYPE_DISPLAY[action.type];
+              const style = ACTION_STYLE_MAP[displayType];
+              const Icon = style.icon;
+              return (
+                <li key={action.id}>
+                  <button
                     onClick={() => onSelectAction(action)}
                     className={cn(
-                      "flex items-center gap-4 p-4 rounded-xl border cursor-pointer transition-all duration-200 hover:shadow-md hover:border-primary/20",
-                      isSelected 
-                        ? "border-primary/30 bg-primary/5 shadow-sm" 
-                        : "border-secondary/10 hover:border-secondary/20"
+                      "w-full text-left p-4 rounded-lg border-2 transition-all duration-200 flex items-center justify-between gap-4",
+                      selectedAction?.id === action.id
+                        ? "bg-primary/10 border-primary shadow-md"
+                        : "bg-muted/50 border-transparent hover:border-border/60 hover:bg-muted"
                     )}
                   >
-                    {Icon && (
-                      <div className={cn("flex-shrink-0 rounded-lg w-12 h-12 flex items-center justify-center", style.background)}>
-                        <Icon className={cn("h-6 w-6", style.color)} />
+                    <div className="flex items-center overflow-hidden flex-1">
+                      <div className={cn("flex-shrink-0 rounded-lg w-10 h-10 flex items-center justify-center mr-4", style.background)}>
+                        <Icon className={cn("h-5 w-5", style.color)} />
                       </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-sm text-foreground truncate">
-                        {displayType}
-                      </h3>
-                      <p className="text-sm text-muted-foreground truncate">
-                        Marca: {action.brand?.name || 'N/A'}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {formatDate(action.createdAt)}
-                      </p>
+                      <div className="overflow-hidden flex-1">
+                        <p className="font-semibold text-lg text-foreground truncate">{ACTION_TYPE_DISPLAY[action.type]}</p>
+                        <p className="text-sm text-muted-foreground truncate">Marca: {action.brand?.name || 'Não especificada'}</p>
+                      </div>
                     </div>
-                    <Badge 
-                      variant={action.approved ? "default" : "secondary"}
-                      className="text-xs"
-                    >
-                      {action.approved ? 'Aprovada' : 'Pendente'}
-                    </Badge>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {/* Paginação */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2 mt-6 pt-4 border-t border-secondary/10">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onPageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="h-8 w-8 p-0"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              
-              {[...Array(totalPages)].map((_, i) => {
-                const page = i + 1;
-                const isCurrentPage = page === currentPage;
-                
-                // Mostrar apenas algumas páginas ao redor da atual
-                if (totalPages > 7) {
-                  if (page === 1 || page === totalPages || 
-                      (page >= currentPage - 1 && page <= currentPage + 1)) {
-                    return (
+                    <div className="flex items-center gap-2 flex-shrink-0">
                       <Button
-                        key={page}
-                        variant={isCurrentPage ? "default" : "outline"}
+                        onClick={(e) => handleViewAction(action.id, e)}
+                        variant="outline"
                         size="sm"
-                        onClick={() => onPageChange(page)}
-                        className="h-8 w-8 p-0"
+                        className="h-8 px-2"
                       >
-                        {page}
+                        <Eye className="h-4 w-4" />
+                        <span className="ml-1 hidden sm:inline">Visualizar</span>
                       </Button>
-                    );
-                  } else if (page === currentPage - 2 || page === currentPage + 2) {
-                    return <span key={page} className="px-2">...</span>;
-                  }
-                  return null;
+                      <span className="text-sm text-muted-foreground hidden md:block">
+                        {formatDate(action.createdAt)}
+                      </span>
+                    </div>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          <div className="text-center text-muted-foreground p-8">
+            <p>Nenhuma ação encontrada para o(s) filtro(s) selecionado(s).</p>
+          </div>
+        )}
+      </div>
+
+      {totalPages > 1 && !isLoading && (
+        <div className="pt-2 mt-auto flex-shrink-0 border-t border-border/20">
+          <Pagination className="scale-90"> 
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  href="#"
+                  onClick={(e) => { e.preventDefault(); handlePageClick(currentPage - 1); }}
+                  className={cn("cursor-pointer", currentPage === 1 && "pointer-events-none opacity-50")}
+                  aria-disabled={currentPage === 1}
+                />
+              </PaginationItem>
+              
+              {paginationRange.map((page, index) => {
+                if (typeof page === 'string') {
+                  return <PaginationEllipsis key={`ellipsis-${index}`} />;
                 }
-                
                 return (
-                  <Button
-                    key={page}
-                    variant={isCurrentPage ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => onPageChange(page)}
-                    className="h-8 w-8 p-0"
-                  >
-                    {page}
-                  </Button>
+                  <PaginationItem key={page}>
+                    <PaginationLink
+                      href="#"
+                      onClick={(e) => { e.preventDefault(); handlePageClick(page); }}
+                      isActive={currentPage === page}
+                      className="cursor-pointer"
+                    >
+                      {page}
+                    </PaginationLink>
+                  </PaginationItem>
                 );
               })}
-              
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onPageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className="h-8 w-8 p-0"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+
+              <PaginationItem>
+                <PaginationNext
+                  href="#"
+                  onClick={(e) => { e.preventDefault(); handlePageClick(currentPage + 1); }}
+                  className={cn("cursor-pointer", currentPage === totalPages && "pointer-events-none opacity-50")}
+                  aria-disabled={currentPage === totalPages}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
     </div>
   );
 }

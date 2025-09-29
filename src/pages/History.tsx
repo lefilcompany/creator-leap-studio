@@ -67,7 +67,7 @@ export default function History() {
         }
       ];
 
-      // Mock actions data
+      // Mock actions data with more items for pagination
       const mockActions: ActionSummary[] = [
         {
           id: '1',
@@ -100,6 +100,94 @@ export default function History() {
           brand: { id: '1', name: 'Morada da Paz' },
           approved: false,
           createdAt: '2025-09-28T16:20:00Z'
+        },
+        {
+          id: '5',
+          type: 'REVISAR_CONTEUDO',
+          brandId: '2',
+          brand: { id: '2', name: 'Morada da Paz Pet' },
+          approved: true,
+          createdAt: '2025-09-28T14:30:00Z'
+        },
+        {
+          id: '6',
+          type: 'PLANEJAR_CONTEUDO',
+          brandId: '3',
+          brand: { id: '3', name: 'LeFil Company' },
+          approved: true,
+          createdAt: '2025-09-28T13:15:00Z'
+        },
+        {
+          id: '7',
+          type: 'CRIAR_CONTEUDO',
+          brandId: '1',
+          brand: { id: '1', name: 'Morada da Paz' },
+          approved: true,
+          createdAt: '2025-09-28T11:45:00Z'
+        },
+        {
+          id: '8',
+          type: 'REVISAR_CONTEUDO',
+          brandId: '2',
+          brand: { id: '2', name: 'Morada da Paz Pet' },
+          approved: false,
+          createdAt: '2025-09-28T10:20:00Z'
+        },
+        {
+          id: '9',
+          type: 'PLANEJAR_CONTEUDO',
+          brandId: '3',
+          brand: { id: '3', name: 'LeFil Company' },
+          approved: true,
+          createdAt: '2025-09-28T09:00:00Z'
+        },
+        {
+          id: '10',
+          type: 'CRIAR_CONTEUDO',
+          brandId: '1',
+          brand: { id: '1', name: 'Morada da Paz' },
+          approved: true,
+          createdAt: '2025-09-27T17:30:00Z'
+        },
+        {
+          id: '11',
+          type: 'REVISAR_CONTEUDO',
+          brandId: '2',
+          brand: { id: '2', name: 'Morada da Paz Pet' },
+          approved: true,
+          createdAt: '2025-09-27T16:15:00Z'
+        },
+        {
+          id: '12',
+          type: 'PLANEJAR_CONTEUDO',
+          brandId: '3',
+          brand: { id: '3', name: 'LeFil Company' },
+          approved: false,
+          createdAt: '2025-09-27T15:00:00Z'
+        },
+        {
+          id: '13',
+          type: 'CRIAR_CONTEUDO',
+          brandId: '1',
+          brand: { id: '1', name: 'Morada da Paz' },
+          approved: true,
+          createdAt: '2025-09-27T14:20:00Z'
+        },
+        {
+          id: '14',
+          type: 'REVISAR_CONTEUDO',
+          brandId: '2',
+          brand: { id: '2', name: 'Morada da Paz Pet' },
+          approved: true,
+          createdAt: '2025-09-27T13:10:00Z'
+        },
+        {
+          id: '15',
+          type: 'PLANEJAR_CONTEUDO',
+          brandId: '3',
+          brand: { id: '3', name: 'LeFil Company' },
+          approved: true,
+          createdAt: '2025-09-27T12:00:00Z'
         }
       ];
 
