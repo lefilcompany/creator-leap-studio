@@ -22,7 +22,6 @@ import {
 import { cn } from "@/lib/utils";
 import logoCreator from "@/assets/logoCreatorPreta.png";
 
-// --- DATA DEFINITIONS ---
 const navLinks = [
   { id: "nav-home", href: "/dashboard", icon: Home, label: "Home" },
   { id: "nav-marcas", href: "/brands", icon: Tag, label: "Marcas" },
@@ -37,10 +36,6 @@ const actionButtons = [
     { id: "nav-planejar", href: "/plan", icon: Calendar, label: "Planejar Conteúdo", variant: "secondary" as const },
 ];
 
-
-// --- COMPONENT DEFINITIONS ---
-
-// NavItem com a lógica de hover ajustada
 function NavItem({ id, href, icon: Icon, label, collapsed }: {
   id: string;
   href: string;
@@ -58,15 +53,13 @@ function NavItem({ id, href, icon: Icon, label, collapsed }: {
           id={id}
           to={href}
           className={cn(
-            "flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors duration-200",
+            "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors duration-200",
             isActive
-              // ✅ SE ATIVO: Fundo rosa, sem efeito de hover no background
               ? "bg-primary/10 text-primary hover:bg-primary/10"
-              // ✅ SE INATIVO: Fundo cinza no hover
-              : "text-muted-foreground hover:bg-muted/70 hover:text-foreground"
+              : "text-muted-foreground hover:bg-muted hover:text-foreground"
           )}
         >
-          <Icon className={cn("w-5 h-5", isActive ? "text-primary" : "text-muted-foreground")} />
+          <Icon className="h-5 w-5 flex-shrink-0" />
           {!collapsed && <span>{label}</span>}
         </NavLink>
       </SidebarMenuButton>
@@ -74,7 +67,6 @@ function NavItem({ id, href, icon: Icon, label, collapsed }: {
   );
 }
 
-// ActionButton (Sem alterações)
 function ActionButton({ id, href, icon: Icon, label, collapsed, variant }: {
     id: string;
     href: string;
@@ -116,8 +108,6 @@ function ActionButton({ id, href, icon: Icon, label, collapsed, variant }: {
     );
 }
 
-
-// TeamPlanSection (Sem alterações)
 function TeamPlanSection({ teamName, planName, collapsed }: {
   teamName: string;
   planName: string;
@@ -138,14 +128,12 @@ function TeamPlanSection({ teamName, planName, collapsed }: {
   );
 }
 
-// AppSidebar (Sem alterações)
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
 
   const sidebarContent = () => (
     <>
-      {/* Logo no topo */}
       {!collapsed && (
         <div className="p-6">
           <img
@@ -155,12 +143,11 @@ export function AppSidebar() {
           />
         </div>
       )}
-
-      {/* Conteúdo Principal da Sidebar */}
+      
       <div className="p-4 flex-1 flex flex-col">
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-2">
+            <SidebarMenu className="space-y-1">
               {navLinks.map((link) => (
                 <NavItem key={link.href} {...link} collapsed={collapsed} />
               ))}
@@ -168,7 +155,6 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* Action Buttons */}
         {!collapsed && (
           <div className="space-y-3 mt-6">
             {actionButtons.map((button) => (
@@ -177,10 +163,8 @@ export function AppSidebar() {
           </div>
         )}
 
-        {/* Spacer para empurrar o card para o final */}
         <div className="flex-grow"></div>
 
-        {/* Team Info - Fixado no final */}
         <TeamPlanSection
           teamName="LeFil"
           planName="LEFIL"
