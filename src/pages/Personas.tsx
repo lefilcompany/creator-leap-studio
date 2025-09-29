@@ -297,7 +297,7 @@ export default function PersonasPage() {
       {/* Sheet para desktop/tablet (da direita) */}
       {!isMobile && (
         <Sheet open={isPersonaDetailsOpen} onOpenChange={setIsPersonaDetailsOpen}>
-          <SheetContent side="right" className="w-full sm:max-w-2xl">
+          <SheetContent side="right" className="w-[75vw] max-w-none">
             <SheetTitle className="text-left mb-4">Detalhes da Persona</SheetTitle>
             <PersonaDetails
               persona={selectedPersona}
@@ -313,7 +313,7 @@ export default function PersonasPage() {
       {/* Drawer para mobile (de baixo) */}
       {isMobile && (
         <Drawer open={isPersonaDetailsOpen} onOpenChange={setIsPersonaDetailsOpen}>
-          <DrawerContent className="max-h-[85vh]">
+          <DrawerContent className="h-[75vh]">
             <DrawerTitle className="text-left p-6 pb-0">Detalhes da Persona</DrawerTitle>
             <PersonaDetails
               persona={selectedPersona}
