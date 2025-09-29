@@ -12,6 +12,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/components/ui/drawer';
 // **NOVO:** Importando ícones adicionais
 import { Edit, Trash2, Tag, ExternalLink, FileDown, Palette } from 'lucide-react';
 import type { Brand, MoodboardFile, ColorItem } from '@/types/brand';
@@ -23,6 +29,8 @@ interface BrandDetailsProps {
   onEdit: (brand: Brand) => void;
   onDelete: () => void;
   isLoading?: boolean;
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 const formatDate = (dateString: string) => {
@@ -100,9 +108,9 @@ const ColorPaletteField = ({ colors }: { colors?: ColorItem[] | null }) => {
       
       {colors.length <= 4 ? (
         // Layout horizontal para poucas cores
-        <div className="flex flex-wrap justify-center gap-8">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {colors.map((color) => (
-            <div key={color.id} className="flex flex-col items-center gap-3">
+            <div key={color.id} className="flex flex-col items-center gap-2">
               <div
                 className="w-16 h-16 rounded-xl border-2 border-gray-300 shadow-md hover:shadow-lg transition-shadow cursor-pointer"
                 style={{ backgroundColor: color.hex }}
@@ -121,7 +129,7 @@ const ColorPaletteField = ({ colors }: { colors?: ColorItem[] | null }) => {
         </div>
       ) : (
         // Layout em grid para muitas cores
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 justify-items-center">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {colors.map((color) => (
             <div
               key={color.id}
@@ -152,10 +160,11 @@ const ColorPaletteField = ({ colors }: { colors?: ColorItem[] | null }) => {
 };
 
 
-export default function BrandDetails({ brand, onEdit, onDelete, isLoading = false }: BrandDetailsProps) {
+export default function BrandDetails({ brand, onEdit, onDelete, isLoading = false, isOpen = false, onOpenChange }: BrandDetailsProps) {
+  const isMobile = useIsMobile();
   if (isLoading) {
     return (
-      <div className="h-full bg-card p-6 flex flex-col animate-pulse">
+      <div className="lg:col-span-1 h-full bg-card p-6 rounded-2xl border-2 border-secondary/20 flex flex-col animate-pulse">
         <div className="flex items-center mb-6 flex-shrink-0">
           <Skeleton className="w-16 h-16 rounded-xl mr-4" />
           <Skeleton className="h-8 w-32" />
@@ -175,18 +184,19 @@ export default function BrandDetails({ brand, onEdit, onDelete, isLoading = fals
 
   if (!brand) {
     return (
-      <div className="h-full bg-card p-6 flex flex-col items-center justify-center text-center">
+      <div className="lg:col-span-1 h-full bg-card p-6 rounded-2xl border-2 border-dashed border-secondary/20 flex flex-col items-center justify-center text-center">
         <Tag className="h-16 w-16 text-muted-foreground/50 mb-4" />
         <h3 className="text-xl font-semibold text-foreground">Nenhuma marca selecionada</h3>
-        <p className="text-muted-foreground">Selecione uma marca na lista para ver os detalhes.</p>
+        <p className="text-muted-foreground">Selecione uma marca na lista para ver os detalhes ou crie uma nova.</p>
       </div>
     );
   }
 
   const wasUpdated = brand.createdAt !== brand.updatedAt;
 
-  return (
-    <div className="h-full p-6 flex flex-col overflow-hidden">
+  // Conteúdo comum para desktop e mobile
+  const brandContent = (
+    <>
       <div className="flex items-center mb-6 flex-shrink-0">
         <div className="bg-gradient-to-br from-secondary to-primary text-white rounded-xl w-16 h-16 flex items-center justify-center font-bold text-3xl mr-4 flex-shrink-0">
           {brand.name.charAt(0).toUpperCase()}
@@ -242,7 +252,7 @@ export default function BrandDetails({ brand, onEdit, onDelete, isLoading = fals
         </div>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-3 mt-6 mb-8 flex-shrink-0">
+      <div className="flex flex-col md:flex-row gap-3 mt-6 flex-shrink-0">
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button variant="outline" className="w-full flex-1 rounded-full py-5">
@@ -266,6 +276,29 @@ export default function BrandDetails({ brand, onEdit, onDelete, isLoading = fals
           <Edit className="mr-2 h-4 w-4" /> Editar marca
         </Button>
       </div>
+    </>
+  );
+
+  // Renderização condicional: Drawer para mobile, layout normal para desktop
+  if (isMobile) {
+    return (
+      <Drawer open={isOpen} onOpenChange={onOpenChange}>
+        <DrawerContent className="max-h-[90vh]">
+          <DrawerHeader>
+            <DrawerTitle className="text-left">Detalhes da Marca</DrawerTitle>
+          </DrawerHeader>
+          <div className="p-6 flex flex-col overflow-hidden h-full">
+            {brandContent}
+          </div>
+        </DrawerContent>
+      </Drawer>
+    );
+  }
+
+  // Layout para desktop
+  return (
+    <div className="lg:col-span-1 w-full max-h-[calc(100vh-16rem)] bg-card/80 backdrop-blur-sm p-6 rounded-2xl shadow-sm border-2 border-secondary/20 flex flex-col overflow-hidden">
+      {brandContent}
     </div>
   );
 }
