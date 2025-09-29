@@ -73,24 +73,20 @@ export const Header = () => {
   return (
     <header className="sticky top-0 z-50 w-full shadow-lg shadow-primary/10 bg-card/95 backdrop-blur-md border-b border-border/20 transition-all duration-300 animate-fade-in flex-shrink-0">
       <div className="flex h-14 md:h-16 lg:h-20 items-center justify-between px-3 md:px-4 lg:px-6 xl:px-8">
-        {/* Mobile sidebar trigger */}
-        <div className="xl:hidden">
-          {isMobile ? (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setOpen(true)}
-              className="h-8 w-8 md:h-10 md:w-10 rounded-lg hover:bg-primary/10 transition-all duration-200"
-            >
-              <Menu className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
-            </Button>
-          ) : (
-            <SidebarTrigger />
-          )}
+        {/* Mobile sidebar trigger - only on mobile/tablet */}
+        <div className="lg:hidden">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setOpen(true)}
+            className="h-8 w-8 md:h-10 md:w-10 rounded-lg hover:bg-primary/10 transition-all duration-200"
+          >
+            <Menu className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
+          </Button>
         </div>
         
         {/* Search bar - Desktop only */}
-        <div className="hidden xl:flex flex-1 max-w-2xl mx-4 xl:mx-6">
+        <div className="hidden lg:flex flex-1 max-w-2xl mx-4 lg:mx-6">
           <div className="relative w-full group">
             <Search className="absolute left-3 lg:left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4 lg:h-5 lg:w-5 z-10 transition-colors duration-200" />
             {isSearching && (
@@ -117,7 +113,7 @@ export const Header = () => {
             variant="ghost"
             size="sm"
             onClick={() => setShowMobileSearch(true)}
-            className="xl:hidden h-8 w-8 md:h-10 md:w-10 rounded-lg xl:rounded-xl hover:bg-primary/10 transition-all duration-200 border border-transparent hover:border-primary/20"
+            className="lg:hidden h-8 w-8 md:h-10 md:w-10 rounded-lg hover:bg-primary/10 transition-all duration-200 border border-transparent hover:border-primary/20"
           >
             <Search className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
             <span className="sr-only">Pesquisar</span>
