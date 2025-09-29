@@ -60,7 +60,7 @@ function NavItem({ id, href, icon: Icon, label, collapsed }: {
           className={cn(
             "flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors duration-200",
             isActive
-              ? "bg-primary/10 text-primary hover:bg-primary/10 hover:text-primary"
+              ? "bg-primary/10 text-primary hover:text-primary"
               : "text-muted-foreground hover:bg-muted/70 hover:text-foreground"
           )}
         >
