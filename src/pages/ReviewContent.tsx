@@ -87,7 +87,7 @@ const ReviewContent = () => {
   };
 
   const handleGenerateReview = async () => {
-    if (!imageFile || !adjustmentsPrompt) return setError('Por favor, envie uma imagem e descreva os ajustes.');
+    if (!imageFile || !adjustmentsPrompt || !brand) return setError('Por favor, selecione uma marca, envie uma imagem e descreva os ajustes.');
     if (!team) return;
     if ((team.credits?.contentReviews || 0) <= 0) return setError('Seus créditos para revisões de conteúdo acabaram.');
 
@@ -197,7 +197,7 @@ Esta imagem tem grande potencial e com esses ajustes ficará ainda mais alinhada
               <CardContent className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-3">
-                    <Label htmlFor="brand" className="text-sm font-semibold text-foreground">Marca (Opcional)</Label>
+                    <Label htmlFor="brand" className="text-sm font-semibold text-foreground">Marca <span className="text-red-600">*</span></Label>
                     {isLoadingData ? <Skeleton className="h-11 w-full rounded-xl" /> : (
                       <Select onValueChange={handleBrandChange} value={brand}>
                         <SelectTrigger className="h-11 rounded-xl border-2 border-border/50 bg-background/50">
@@ -265,10 +265,10 @@ Esta imagem tem grande potencial e com esses ajustes ficará ainda mais alinhada
             <Card className="bg-gradient-to-r from-primary/5 via-secondary/5 to-accent/5 border border-border/20 rounded-2xl shadow-lg">
               <CardContent className="p-6">
                 <div className="flex flex-col items-center gap-4">
-                  <Button onClick={handleGenerateReview} disabled={loading || !imageFile || !adjustmentsPrompt} className="w-full max-w-lg h-14 rounded-2xl text-lg font-bold bg-gradient-to-r from-primary via-purple-600 to-secondary hover:from-primary/90 shadow-xl transition-all duration-500 disabled:opacity-50">
+                  <Button onClick={handleGenerateReview} disabled={loading || !imageFile || !adjustmentsPrompt || !brand} className="w-full max-w-lg h-14 rounded-2xl text-lg font-bold bg-gradient-to-r from-primary via-purple-600 to-secondary hover:from-primary/90 shadow-xl transition-all duration-500 disabled:opacity-50">
                     {loading ? <><Loader className="animate-spin mr-3 h-5 w-5" /><span>Analisando...</span></> : <><Sparkles className="mr-3 h-5 w-5" /><span>Analisar Imagem</span></>}
                   </Button>
-                  {(!imageFile || !adjustmentsPrompt) && (
+                  {(!imageFile || !adjustmentsPrompt || !brand) && (
                     <div className="text-center bg-muted/30 p-3 rounded-xl border border-border/30">
                       <p className="text-sm text-muted-foreground">Preencha todos os campos obrigatórios (*) para continuar</p>
                     </div>
