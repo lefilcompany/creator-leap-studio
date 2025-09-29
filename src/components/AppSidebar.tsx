@@ -212,7 +212,7 @@ export function AppSidebar() {
   // Desktop: renderiza a Sidebar normal sempre fixa
   return (
     <Sidebar 
-      className="w-64 border-r border-primary/20" 
+      className="fixed left-0 top-0 h-screen w-64 border-r border-primary/20 z-40" 
       collapsible="none"
       side="left"
       variant="sidebar"
