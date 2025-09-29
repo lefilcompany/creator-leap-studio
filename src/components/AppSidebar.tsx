@@ -64,7 +64,7 @@ function NavItem({ id, href, icon: Icon, label, collapsed, onNavigate }: {
           className={cn(
             "flex items-center gap-3 lg:gap-4 p-2.5 lg:p-3 rounded-lg transition-colors duration-200 group",
             isActive
-              ? "bg-primary/10 text-primary"
+              ? "bg-primary/10 text-primary hover:bg-primary/15"
               : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
           )}
         >
