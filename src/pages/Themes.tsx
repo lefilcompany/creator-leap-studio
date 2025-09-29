@@ -312,28 +312,50 @@ export default function Themes() {
         </CardHeader>
       </Card>
 
-      <main className="grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-0 flex-1">
-        <ThemeList
-          themes={themes}
-          brands={brands}
-          selectedTheme={selectedThemeSummary}
-          onSelectTheme={handleSelectTheme}
-          isLoading={isLoadingThemes}
-        />
-        {selectedThemeSummary ? (
+      <main className="grid grid-cols-1 xl:grid-cols-3 gap-4 lg:gap-6 min-h-0 flex-1">
+        <div className="xl:col-span-2">
+          <ThemeList
+            themes={themes}
+            brands={brands}
+            selectedTheme={selectedThemeSummary}
+            onSelectTheme={handleSelectTheme}
+            isLoading={isLoadingThemes}
+          />
+        </div>
+        <div className="xl:col-span-1 hidden xl:block">
+          {selectedThemeSummary ? (
+            <ThemeDetails
+              theme={selectedTheme}
+              brands={brands}
+              onEdit={handleOpenDialog}
+              onDelete={handleDeleteTheme}
+              isLoading={isLoadingThemeDetails}
+            />
+          ) : (
+            <div className="h-full bg-card p-6 rounded-2xl border-2 border-dashed border-secondary/20 flex flex-col items-center justify-center text-center space-y-2">
+              <Palette className="h-16 w-16 text-muted-foreground/50" strokeWidth={1.5} />
+              <h3 className="text-xl font-semibold text-foreground">Nenhum tema selecionado</h3>
+              <p className="text-muted-foreground">Selecione um tema estratégico na lista para ver os detalhes.</p>
+            </div>
+          )}
+        </div>
+        
+        {/* Mobile/Tablet Theme Details Drawer */}
+        {selectedThemeSummary && (
           <ThemeDetails
             theme={selectedTheme}
             brands={brands}
             onEdit={handleOpenDialog}
             onDelete={handleDeleteTheme}
             isLoading={isLoadingThemeDetails}
+            isOpen={!!selectedThemeSummary}
+            onOpenChange={(open) => {
+              if (!open) {
+                setSelectedTheme(null);
+                setSelectedThemeSummary(null);
+              }
+            }}
           />
-        ) : (
-          <div className="lg:col-span-1 h-full bg-card p-6 rounded-2xl border-2 border-dashed border-secondary/20 flex flex-col items-center justify-center text-center space-y-2">
-            <Palette className="h-16 w-16 text-muted-foreground/50" strokeWidth={1.5} />
-            <h3 className="text-xl font-semibold text-foreground">Nenhum tema selecionado</h3>
-            <p className="text-muted-foreground">Selecione um tema estratégico na lista para ver os detalhes ou crie um novo.</p>
-          </div>
         )}
       </main>
 

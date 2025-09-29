@@ -87,18 +87,18 @@ export default function ThemeDetails({ theme, onEdit, onDelete, brands, isLoadin
   // Conteúdo comum para desktop e mobile
   const themeContent = (
     <>
-      <div className="flex items-center mb-6 flex-shrink-0">
-        <div className="bg-gradient-to-br from-secondary to-primary text-white rounded-xl w-16 h-16 flex items-center justify-center font-bold text-3xl mr-4 flex-shrink-0">
+      <div className="flex items-center mb-4 lg:mb-6 flex-shrink-0">
+        <div className="bg-gradient-to-br from-secondary to-primary text-white rounded-lg lg:rounded-xl w-12 h-12 lg:w-16 lg:h-16 flex items-center justify-center font-bold text-xl lg:text-3xl mr-3 lg:mr-4 flex-shrink-0">
           {theme.title.charAt(0).toUpperCase()}
         </div>
-        <div>
-          <h2 className="text-2xl font-bold text-foreground break-words">{theme.title}</h2>
-          <p className="text-md text-muted-foreground">Marca: {brandName}</p>
+        <div className="min-w-0 flex-1">
+          <h2 className="text-lg lg:text-2xl font-bold text-foreground break-words leading-tight">{theme.title}</h2>
+          <p className="text-sm lg:text-base text-muted-foreground">Marca: {brandName}</p>
         </div>
       </div>
 
-      <div className="overflow-y-auto pr-2 flex-1 min-h-0">
-        <div className="space-y-4 text-left">
+      <div className="overflow-y-auto pr-1 lg:pr-2 flex-1 min-h-0">
+        <div className="space-y-3 lg:space-y-4 text-left">
           <DetailField label="Descrição" value={theme.description} />
           <DetailField label="Tom de Voz" value={theme.tone} />
           <DetailField label="Público-Alvo" value={theme.targetAudience} />
@@ -115,10 +115,10 @@ export default function ThemeDetails({ theme, onEdit, onDelete, brands, isLoadin
         </div>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-3 mt-6 flex-shrink-0">
+      <div className="flex flex-col sm:flex-row gap-3 mt-4 lg:mt-6 flex-shrink-0">
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button variant="outline" className="w-full flex-1 rounded-full py-5">
+            <Button variant="outline" className="w-full flex-1 rounded-full py-4 lg:py-5 text-sm lg:text-base">
               <Trash2 className="mr-2 h-4 w-4" /> Deletar
             </Button>
           </AlertDialogTrigger>
@@ -135,7 +135,7 @@ export default function ThemeDetails({ theme, onEdit, onDelete, brands, isLoadin
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-        <Button onClick={() => onEdit(theme)} className="w-full flex-1 rounded-full py-5">
+        <Button onClick={() => onEdit(theme)} className="w-full flex-1 rounded-full py-4 lg:py-5 text-sm lg:text-base">
           <Edit className="mr-2 h-4 w-4" /> Editar tema
         </Button>
       </div>
@@ -160,7 +160,7 @@ export default function ThemeDetails({ theme, onEdit, onDelete, brands, isLoadin
 
   // Layout para desktop
   return (
-    <div className="lg:col-span-1 max-h-[calc(100vh-16rem)] bg-card/80 backdrop-blur-sm p-6 rounded-2xl shadow-sm border-2 border-secondary/20 flex flex-col overflow-hidden">
+    <div className="xl:col-span-1 max-h-[calc(100vh-12rem)] lg:max-h-[calc(100vh-16rem)] bg-card/80 backdrop-blur-sm p-4 lg:p-6 rounded-xl lg:rounded-2xl shadow-sm border border-secondary/20 lg:border-2 flex flex-col overflow-hidden">
       {themeContent}
     </div>
   );
