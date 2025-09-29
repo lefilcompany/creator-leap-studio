@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Tag, ChevronDown } from 'lucide-react';
+import { Plus, Tag } from 'lucide-react';
 import BrandList from '@/components/marcas/BrandList';
 import BrandDetails from '@/components/marcas/BrandDetails';
 import BrandDialog from '@/components/marcas/BrandDialog';
@@ -317,16 +317,6 @@ export default function MarcasPage() {
           />
         )}
       </main>
-
-      {/* Indicador de scroll no centro da tela para desktop */}
-      {!isMobile && selectedBrandSummary && (
-        <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 pointer-events-none animate-fade-in">
-          <div className="bg-primary/90 text-primary-foreground px-4 py-3 rounded-full text-sm font-medium shadow-xl backdrop-blur-sm border border-primary/20 flex items-center gap-2">
-            <span>Detalhes da marca abaixo - role para ver</span>
-            <ChevronDown className="h-4 w-4 animate-bounce" />
-          </div>
-        </div>
-      )}
 
       {/* Drawer para mobile */}
       {isMobile && (
