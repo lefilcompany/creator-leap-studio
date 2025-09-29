@@ -65,7 +65,7 @@ function NavItem({ id, href, icon: Icon, label, collapsed, onNavigate }: {
             "flex items-center gap-3 lg:gap-4 p-2.5 lg:p-3 rounded-lg transition-colors duration-200 group",
             isActive
               ? "bg-primary/10 text-primary"
-              : "text-muted-foreground bg-background hover:bg-muted hover:text-foreground"
+              : "text-muted-foreground bg-background hover:text-foreground"
           )}
         >
           <Icon className="h-4 w-4 lg:h-5 lg:w-5 flex-shrink-0" />
