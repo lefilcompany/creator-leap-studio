@@ -748,12 +748,11 @@ export default function CreateContent() {
                       <SelectValue placeholder="Adicionar tom de voz..." />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl border-border/20">
-                      {toneOptions
-                        .filter(option => !formData.tone.includes(option))
-                        .map((option) => (
+                      {toneOptions.map((option) => (
                         <SelectItem
                           key={option}
                           value={option}
+                          disabled={formData.tone.includes(option)}
                           className="rounded-lg"
                         >
                           {option.charAt(0).toUpperCase() + option.slice(1)}
@@ -761,29 +760,26 @@ export default function CreateContent() {
                       ))}
                     </SelectContent>
                   </Select>
-                  
-                  <div className="min-h-[50px] md:min-h-[60px] p-3 md:p-4 rounded-xl border-2 border-dashed border-border/50 bg-muted/10">
+                  <div className="flex flex-wrap gap-2 min-h-[40px] p-3 rounded-xl border-2 border-dashed border-border/50 bg-muted/20">
                     {formData.tone.length === 0 ? (
-                      <p className="text-xs md:text-sm text-muted-foreground italic text-center py-2">
+                      <span className="text-xs md:text-sm text-muted-foreground italic self-center">
                         Nenhum tom selecionado
-                      </p>
+                      </span>
                     ) : (
-                      <div className="flex flex-wrap gap-2">
-                        {formData.tone.map((tone) => (
-                          <Badge
-                            key={tone}
-                            className="flex items-center gap-2 bg-gradient-to-r from-primary/15 to-primary/5 border border-primary/30 text-primary hover:bg-primary/20 text-xs"
+                      formData.tone.map((tone) => (
+                        <div
+                          key={tone}
+                          className="flex items-center gap-2 bg-gradient-to-r from-primary/15 to-primary/5 border-2 border-primary/30 text-primary text-xs md:text-sm font-semibold px-3 py-1.5 rounded-xl"
+                        >
+                          {tone.charAt(0).toUpperCase() + tone.slice(1)}
+                          <button
+                            onClick={() => handleToneRemove(tone)}
+                            className="ml-1 text-primary hover:text-destructive p-0.5 rounded-full hover:bg-destructive/10 transition-colors"
                           >
-                            {tone.charAt(0).toUpperCase() + tone.slice(1)}
-                            <button
-                              onClick={() => handleToneRemove(tone)}
-                              className="ml-1 text-primary hover:text-destructive p-0.5 rounded-full hover:bg-destructive/10 transition-colors"
-                            >
-                              <X className="h-3 w-3" />
-                            </button>
-                          </Badge>
-                        ))}
-                      </div>
+                            <X size={14} />
+                          </button>
+                        </div>
+                      ))
                     )}
                   </div>
                 </div>
