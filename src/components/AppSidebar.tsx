@@ -146,8 +146,10 @@ function TeamPlanSection({ teamName, planName, collapsed, onNavigate }: {
 
 export function AppSidebar() {
   const { state, open, setOpen } = useSidebar();
-  const collapsed = state === "collapsed";
   const isMobile = useIsMobile();
+  
+  // No desktop, a sidebar é sempre fixa e não colapsa
+  const collapsed = false;
 
   const handleMobileNavigate = () => {
     if (isMobile) {
@@ -157,25 +159,15 @@ export function AppSidebar() {
 
   const sidebarContent = () => (
     <>
-      {!collapsed && (
-        <div className="p-4 lg:p-6">
-          <img
-            src={logoCreator}
-            alt="Creator Logo"
-            className="h-6 lg:h-8 w-auto"
-          />
-        </div>
-      )}
+      <div className="p-4 lg:p-6">
+        <img
+          src={logoCreator}
+          alt="Creator Logo"
+          className="h-6 lg:h-8 w-auto"
+        />
+      </div>
       
-      <div className="p-3 lg:p-4 flex-1 flex flex-col">{collapsed && (
-          <div className="p-2 mb-4">
-            <img
-              src={logoCreator}
-              alt="Creator Logo"
-              className="h-6 w-auto mx-auto"
-            />
-          </div>
-        )}
+      <div className="p-3 lg:p-4 flex-1 flex flex-col">
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu className="space-y-1">
@@ -186,13 +178,11 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {!collapsed && (
-          <div className="space-y-2 lg:space-y-3 mt-4 lg:mt-6">
-            {actionButtons.map((button) => (
-                <ActionButton key={button.id} {...button} collapsed={collapsed} onNavigate={handleMobileNavigate} />
-            ))}
-          </div>
-        )}
+        <div className="space-y-2 lg:space-y-3 mt-4 lg:mt-6">
+          {actionButtons.map((button) => (
+              <ActionButton key={button.id} {...button} collapsed={collapsed} onNavigate={handleMobileNavigate} />
+          ))}
+        </div>
 
         <div className="flex-grow"></div>
 
@@ -219,11 +209,11 @@ export function AppSidebar() {
     );
   }
 
-  // Desktop: renderiza a Sidebar normal
+  // Desktop: renderiza a Sidebar normal sempre fixa
   return (
     <Sidebar 
-      className={`${collapsed ? "w-16" : "w-64"} border-r border-primary/20 transition-all duration-300`} 
-      collapsible="icon"
+      className="w-64 border-r border-primary/20" 
+      collapsible="none"
       side="left"
       variant="sidebar"
     >
