@@ -433,68 +433,68 @@ const Plans = () => {
 
   return (
     <div className="space-y-4 md:space-y-6 animate-fade-in">
-      {/* Header */}
-      <Card className="shadow-lg border-2 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5">
-        <CardHeader className="pb-4 md:pb-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div className="flex items-center gap-3">
-              <div className="flex-shrink-0 bg-primary/10 text-primary rounded-xl p-2 md:p-3">
-                <Crown className="h-6 w-6 md:h-8 md:w-8" />
-              </div>
-              <div>
-                <CardTitle className="text-2xl md:text-3xl font-bold">
-                  Planos e Uso
-                </CardTitle>
-                <p className="text-xs md:text-base text-muted-foreground mt-1">
-                  Gerencie seu plano e recursos
-                </p>
-              </div>
+      {/* Header com design limpo */}
+      <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-background rounded-2xl p-6 md:p-8 border border-primary/10">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="flex items-center gap-4">
+            <div className="flex-shrink-0 bg-primary/10 text-primary rounded-2xl p-4">
+              <Crown className="h-8 w-8 md:h-10 md:w-10" />
             </div>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => setShowPlansSelection(true)}
-              className="w-full sm:w-auto"
-            >
-              <Crown className="h-4 w-4 mr-2" />
-              Ver Todos os Planos
-            </Button>
-          </div>
-        </CardHeader>
-      </Card>
-
-      {/* Resumo do Plano Atual */}
-      <Card className="bg-gradient-to-br from-primary/5 to-secondary/5 border-2 border-primary/20">
-        <CardHeader className="pb-4">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 flex-wrap">
-                <Badge className="bg-secondary text-secondary-foreground text-sm">
-                  {plan?.displayName || 'Plano'}
-                </Badge>
-                <span className="text-sm font-medium text-foreground">Plano Atual</span>
-              </div>
-              <p className="text-xs md:text-sm text-muted-foreground">
-                R$ {(plan?.price || 0).toFixed(2)}/mês • Você está usando o plano {plan?.displayName || 'atual'}
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-1">
+                Planos e Uso
+              </h1>
+              <p className="text-sm md:text-base text-muted-foreground">
+                Gerencie seu plano e acompanhe o uso de recursos
               </p>
             </div>
-            <div className="text-left md:text-right">
-              <p className="text-3xl md:text-4xl font-bold text-primary">{totalCredits}</p>
-              <p className="text-xs md:text-sm text-muted-foreground">
-                de {totalLimits.toLocaleString()} créditos
-              </p>
-              <Progress value={100 - usagePercentage} className="h-2 mt-2" />
-            </div>
           </div>
-        </CardHeader>
-      </Card>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => setShowPlansSelection(true)}
+            className="w-full sm:w-auto border-primary/20 hover:bg-primary/5"
+          >
+            <Crown className="h-4 w-4 mr-2" />
+            Ver Todos os Planos
+          </Button>
+        </div>
+      </div>
 
-      {/* Grid de Créditos e Informações */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
-        {/* Coluna Principal - Créditos */}
-        <div className="lg:col-span-2 space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
-            {creditData.map((credit, index) => {
+      {/* Grid principal: Esquerda (conteúdo) + Direita (sidebar) */}
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-4 md:gap-6">
+        {/* Coluna Esquerda - Conteúdo Principal */}
+        <div className="space-y-4 md:space-y-6">
+          {/* Card Plano Atual com destaque para créditos totais */}
+          <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 via-background to-background shadow-lg">
+            <CardContent className="p-6">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex-shrink-0 bg-primary text-primary-foreground rounded-xl px-3 py-1.5 font-semibold text-sm">
+                    {plan?.displayName || 'Plano'}
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-semibold text-foreground">Plano Atual</h2>
+                    <p className="text-sm text-muted-foreground">
+                      Você está usando o plano {plan?.displayName || 'atual'}
+                    </p>
+                  </div>
+                </div>
+                <div className="text-center md:text-right">
+                  <div className="text-4xl md:text-5xl font-bold text-primary mb-1">
+                    {totalCredits.toLocaleString()}
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    de {totalLimits.toLocaleString()} créditos disponíveis
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Grid de Cards de Créditos - 3 colunas */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {creditData.slice(0, 3).map((credit, index) => {
               const usedCredits = Math.max(0, credit.limit - credit.current);
               const percentage = credit.limit > 0 ? (credit.current / credit.limit) * 100 : 0;
               const isLow = credit.current <= (credit.limit * 0.2);
@@ -504,37 +504,43 @@ const Plans = () => {
               return (
                 <Card 
                   key={index} 
-                  className={`hover-scale transition-all ${
-                    isAtLimit ? 'border-destructive/50' : 
-                    isLow ? 'border-yellow-500/50' : 
-                    'border-green-500/50'
-                  }`}
+                  className="border-2 hover:shadow-md transition-all"
                 >
-                  <CardHeader className="pb-2 md:pb-3">
-                    <CardTitle className="text-xs md:text-sm font-medium flex items-center gap-2">
-                      <div className={`p-1.5 rounded-lg ${credit.bgColor}`}>
-                        <Icon className={`h-3 w-3 md:h-4 md:w-4 ${credit.color}`} />
+                  <CardContent className="p-5">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className={`p-2.5 rounded-xl ${credit.bgColor}`}>
+                        <Icon className={`h-5 w-5 ${credit.color}`} />
                       </div>
-                      <span className="truncate">{credit.name}</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    <div className="flex items-baseline justify-between">
-                      <span className="text-2xl md:text-3xl font-bold">{credit.current}</span>
-                      <span className="text-xs text-muted-foreground">
-                        / {credit.limit}
-                      </span>
+                      <h3 className="font-semibold text-sm text-foreground">
+                        {credit.name}
+                      </h3>
                     </div>
-                    <Progress value={percentage} className="h-1.5 md:h-2" />
-                    <p className={`text-xs ${
-                      isAtLimit ? 'text-destructive' :
-                      isLow ? 'text-yellow-600' :
-                      'text-green-600'
-                    }`}>
-                      {isAtLimit ? 'Créditos esgotados' :
-                       isLow ? 'Poucos créditos' :
-                       'Disponível'}
-                    </p>
+                    
+                    <div className="space-y-3">
+                      <div>
+                        <div className="text-3xl font-bold text-foreground mb-1">
+                          {credit.current.toLocaleString()}
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          de {credit.limit.toLocaleString()} disponíveis
+                        </p>
+                      </div>
+                      
+                      <Progress 
+                        value={percentage} 
+                        className="h-2.5"
+                      />
+                      
+                      <p className={`text-xs font-medium ${
+                        isAtLimit ? 'text-destructive' :
+                        isLow ? 'text-yellow-600' :
+                        'text-green-600'
+                      }`}>
+                        {isAtLimit ? '⚠ Créditos esgotados' :
+                         isLow ? '⚡ Poucos créditos' :
+                         '✓ Créditos disponíveis'}
+                      </p>
+                    </div>
                   </CardContent>
                 </Card>
               );
@@ -542,29 +548,29 @@ const Plans = () => {
           </div>
 
           {/* Limites de Recursos */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base md:text-lg">Limites de Recursos</CardTitle>
-              <p className="text-xs md:text-sm text-muted-foreground">
-                Recursos incluídos no seu plano
+          <Card className="border-2">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg">Limites de Recursos</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Recursos disponíveis no seu plano atual
               </p>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 {[
-                  { icon: Tag, label: 'Marcas', value: plan?.maxBrands || 0, color: 'text-primary', bg: 'bg-primary/5' },
-                  { icon: Palette, label: 'Temas', value: plan?.maxStrategicThemes || 0, color: 'text-secondary', bg: 'bg-secondary/5' },
-                  { icon: Users, label: 'Personas', value: plan?.maxPersonas || 0, color: 'text-green-600', bg: 'bg-green-500/5' },
-                  { icon: UserCircle, label: 'Membros', value: plan?.maxMembers || 0, color: 'text-purple-600', bg: 'bg-purple-500/5' },
+                  { icon: Tag, label: 'Marcas', value: plan?.maxBrands || 0, color: 'text-pink-600', bg: 'bg-pink-500/10' },
+                  { icon: Palette, label: 'Temas', value: plan?.maxStrategicThemes || 0, color: 'text-purple-600', bg: 'bg-purple-500/10' },
+                  { icon: Users, label: 'Personas', value: plan?.maxPersonas || 0, color: 'text-green-600', bg: 'bg-green-500/10' },
+                  { icon: UserCircle, label: 'Membros', value: plan?.maxMembers || 0, color: 'text-blue-600', bg: 'bg-blue-500/10' },
                 ].map((item, idx) => {
                   const Icon = item.icon;
                   return (
-                    <div key={idx} className={`flex items-center gap-2 p-3 rounded-lg ${item.bg}`}>
+                    <div key={idx} className={`flex items-center gap-3 p-4 rounded-xl ${item.bg} border border-transparent hover:border-border transition-all`}>
                       <div className="flex-shrink-0">
-                        <Icon className={`h-4 w-4 md:h-5 md:w-5 ${item.color}`} />
+                        <Icon className={`h-6 w-6 ${item.color}`} />
                       </div>
                       <div className="min-w-0">
-                        <p className="font-medium text-xs md:text-sm truncate">{item.label}</p>
+                        <p className="font-semibold text-sm text-foreground">{item.label}</p>
                         <p className="text-xs text-muted-foreground">
                           {item.value >= 999999 ? 'Ilimitado' : `até ${item.value}`}
                         </p>
@@ -577,12 +583,12 @@ const Plans = () => {
           </Card>
         </div>
 
-        {/* Sidebar - Ações e Info */}
+        {/* Coluna Direita - Sidebar */}
         <div className="space-y-4">
           {/* Ações Rápidas */}
-          <Card>
+          <Card className="border-2">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm md:text-base">Ações Rápidas</CardTitle>
+              <CardTitle className="text-base font-semibold">Ações Rápidas</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
               {[
@@ -596,9 +602,9 @@ const Plans = () => {
                     <Button 
                       variant="outline" 
                       size="sm"
-                      className="w-full justify-start hover:bg-secondary/50 text-xs md:text-sm"
+                      className="w-full justify-start hover:bg-secondary/50 border-border/50"
                     >
-                      <Icon className="h-3 w-3 md:h-4 md:w-4 mr-2" />
+                      <Icon className="h-4 w-4 mr-2" />
                       {action.label}
                     </Button>
                   </Link>
@@ -607,32 +613,39 @@ const Plans = () => {
             </CardContent>
           </Card>
 
-          {/* Card do Plano */}
-          <Card className="border-2 border-primary/20 bg-gradient-to-br from-background to-primary/5">
+          {/* Card do Plano Atual - Detalhado */}
+          <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-background">
             <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-base md:text-lg">{plan?.displayName || 'Plano Atual'}</CardTitle>
-                <Badge variant="secondary" className="text-xs">Ativo</Badge>
+              <div className="flex items-center justify-between mb-2">
+                <CardTitle className="text-lg font-bold">
+                  {plan?.displayName || 'Plano Atual'}
+                </CardTitle>
+                <Badge className="bg-primary text-primary-foreground text-xs">
+                  Seu Plano
+                </Badge>
               </div>
-              <div className="text-2xl md:text-3xl font-bold text-primary">
-                R$ {(plan?.price || 0).toFixed(2)}
-                <span className="text-sm font-normal text-muted-foreground ml-1">/mês</span>
+              <div className="flex items-baseline gap-1">
+                <span className="text-3xl font-bold text-primary">
+                  R${(plan?.price || 0).toFixed(2)}
+                </span>
+                <span className="text-sm text-muted-foreground">/mês</span>
               </div>
             </CardHeader>
-            <CardContent className="space-y-2">
+            <CardContent className="space-y-2.5">
               {[
-                { label: 'Todas as funcionalidades', included: true },
+                { label: 'Todas as funcionalidades básicas', included: true },
+                { label: 'Suporte via email', included: true },
                 { label: 'Suporte prioritário', included: (plan?.price || 0) > 0 },
                 { label: 'Integrações avançadas', included: plan?.name === 'ENTERPRISE' },
               ].map((feature, idx) => (
-                <div key={idx} className="flex items-center gap-2">
+                <div key={idx} className="flex items-center gap-2.5">
                   {feature.included ? (
-                    <CheckCircle className="h-3 w-3 md:h-4 md:w-4 text-green-600 flex-shrink-0" />
+                    <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
                   ) : (
-                    <X className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground flex-shrink-0" />
+                    <X className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                   )}
-                  <span className={`text-xs md:text-sm ${
-                    feature.included ? '' : 'text-muted-foreground line-through'
+                  <span className={`text-sm ${
+                    feature.included ? 'text-foreground' : 'text-muted-foreground line-through'
                   }`}>
                     {feature.label}
                   </span>
@@ -642,21 +655,21 @@ const Plans = () => {
           </Card>
 
           {/* Info da Equipe */}
-          <Card>
+          <Card className="border-2">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm md:text-base flex items-center gap-2">
+              <CardTitle className="text-base font-semibold flex items-center gap-2">
                 <Building2 className="h-4 w-4 text-primary" />
-                Equipe
+                Informações da Equipe
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2 text-xs md:text-sm">
-              <div>
-                <p className="text-muted-foreground">Nome</p>
-                <p className="font-medium">{team?.name || 'Equipe'}</p>
+            <CardContent className="space-y-3">
+              <div className="p-3 bg-muted/50 rounded-lg">
+                <p className="text-xs text-muted-foreground mb-1">Nome da Equipe</p>
+                <p className="font-semibold text-sm">{team?.name || 'Equipe'}</p>
               </div>
-              <div>
-                <p className="text-muted-foreground">Admin</p>
-                <p className="font-medium truncate">{team?.admin || 'Admin'}</p>
+              <div className="p-3 bg-muted/50 rounded-lg">
+                <p className="text-xs text-muted-foreground mb-1">Administrador</p>
+                <p className="font-semibold text-sm truncate">{team?.admin || 'Admin'}</p>
               </div>
             </CardContent>
           </Card>
