@@ -148,7 +148,7 @@ export function AppSidebar() {
 
   const sidebarContent = () => (
     <>
-      <div className="pt-6 pb-4 mb-6 flex justify-center">
+      <div className="pt-6 pb-2 mb-2 flex justify-center">
         <img
           src={logoCreator}
           alt="Creator Logo"
@@ -156,14 +156,14 @@ export function AppSidebar() {
         />
       </div>
       
-      <nav className="flex-1 flex flex-col gap-8 px-4">
-        <div className="flex flex-col gap-3">
+      <nav className="flex-1 flex flex-col gap-6 px-4 overflow-hidden">
+        <div className="flex flex-col gap-2">
           {navLinks.map((link) => (
             <NavItem key={link.href} {...link} collapsed={collapsed} onNavigate={handleMobileNavigate} />
           ))}
         </div>
 
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3">
           {actionButtons.map((button) => (
             <ActionButton key={button.id} {...button} collapsed={collapsed} onNavigate={handleMobileNavigate} />
           ))}
