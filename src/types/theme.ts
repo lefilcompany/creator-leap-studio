@@ -26,7 +26,7 @@ export type StrategicThemeSummary = Pick<StrategicTheme, 'id' | 'brandId' | 'tit
 export interface Team {
   id: string;
   name: string;
-  code: string;
+  code?: string;
   displayCode?: string;
   admin: string; // admin email
   members: string[];

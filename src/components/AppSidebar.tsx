@@ -129,7 +129,7 @@ function TeamPlanSection({ teamName, planName, collapsed, onNavigate }: {
 
   return (
     <NavLink
-      to="/equipe"
+      to="/team"
       onClick={onNavigate}
       className="bg-gradient-to-tr from-primary to-fuchsia-600 text-primary-foreground rounded-lg p-4 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-[1.02] block"
     >

@@ -11,6 +11,7 @@ interface User {
 interface Team {
   id: string;
   name: string;
+  code?: string;
   admin: string;
   plan: Plan;
   credits?: {
@@ -33,6 +34,7 @@ export function useAuth() {
   const [team, setTeam] = useState<Team | null>({
     id: 'team-1',
     name: 'LeFil',
+    code: 'TIMELEFIL',
     admin: 'copy@lefil.com.br',
     plan: {
       id: '3',

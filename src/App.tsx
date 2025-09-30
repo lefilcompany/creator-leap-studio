@@ -15,6 +15,7 @@ import CreateContent from "./pages/CreateContent";
 import ReviewContent from "./pages/ReviewContent";
 import PlanContent from "./pages/PlanContent";
 import Plans from "./pages/Plans";
+import Team from "./pages/Team";
 import { DashboardLayout } from "./components/DashboardLayout";
 import NotFound from "./pages/NotFound";
 
@@ -42,6 +43,7 @@ const App = () => (
             <Route path="review" element={<ReviewContent />} />
             <Route path="plan" element={<PlanContent />} />
             <Route path="plans" element={<Plans />} />
+            <Route path="team" element={<Team />} />
           </Route>
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

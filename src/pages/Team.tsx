@@ -1,0 +1,330 @@
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Rocket, Users, ClipboardCopy, Check, X, Crown, Loader2, UserPlus, UserMinus } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { toast } from 'sonner';
+
+interface TeamMember {
+  id: string;
+  name: string;
+  email: string;
+}
+
+interface JoinRequest {
+  id: string;
+  name: string;
+  email: string;
+}
+
+export default function Team() {
+  const { user, team } = useAuth();
+  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
+  const [members, setMembers] = useState<TeamMember[]>([
+    { id: '1', name: 'Sthephanie Villarim', email: 's.villarim@lefil.com.br' },
+    { id: '2', name: 'Rodrigo Rios de Larrazábal', email: 'rrl@cesar.school' },
+    { id: '3', name: 'Rafaela Parrilha', email: 'rafaela.parrilha@lefil.com.br' },
+  ]);
+  const [pendingRequests, setPendingRequests] = useState<JoinRequest[]>([]);
+
+  useEffect(() => {
+    if (!user || !team) {
+      toast.error("Você precisa estar em uma equipe para ver esta página.");
+      navigate('/dashboard');
+      return;
+    }
+
+    if (user.email !== team.admin) {
+      toast.warning("🔒 Acesso Restrito", {
+        description: "Apenas o administrador da equipe pode acessar esta página.",
+        duration: 5000,
+      });
+      navigate('/dashboard');
+      return;
+    }
+  }, [user, team, navigate]);
+
+  const copyToClipboard = () => {
+    if (team?.code) {
+      navigator.clipboard.writeText(team.code);
+      toast.success('Código copiado para a área de transferência!');
+    }
+  };
+
+  const handleApproveRequest = (requestId: string, userName: string) => {
+    if (team?.plan && members.length >= team.plan.maxMembers) {
+      toast.error('Limite de membros do plano atingido.');
+      return;
+    }
+
+    setPendingRequests(prev => prev.filter(req => req.id !== requestId));
+    toast.success(`${userName} foi adicionado à equipe!`);
+  };
+
+  const handleRejectRequest = (requestId: string, userName: string) => {
+    setPendingRequests(prev => prev.filter(req => req.id !== requestId));
+    toast.info(`Solicitação de ${userName} foi recusada.`);
+  };
+
+  const handleRemoveMember = (memberId: string, memberName: string) => {
+    if (memberId === user?.id) {
+      toast.error("Você não pode remover a si mesmo da equipe.");
+      return;
+    }
+
+    setMembers(prev => prev.filter(m => m.id !== memberId));
+    toast.success(`${memberName} foi removido da equipe!`);
+  };
+
+  if (!team || !user) {
+    return (
+      <div className="flex h-full w-full items-center justify-center">
+        <div className="text-center space-y-4">
+          <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
+          <p className="text-muted-foreground">Carregando equipe...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-full space-y-6 animate-fade-in">
+      {/* Header */}
+      <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5 hover:shadow-xl transition-shadow duration-300">
+        <CardHeader className="pb-4">
+          <div className="flex items-center gap-3">
+            <div className="flex-shrink-0 bg-primary/10 text-primary rounded-lg p-3">
+              <Rocket className="h-8 w-8" />
+            </div>
+            <div>
+              <CardTitle className="text-3xl font-bold">
+                Gerenciar Equipe
+              </CardTitle>
+              <p className="text-muted-foreground">Veja os detalhes do seu plano, membros e solicitações.</p>
+            </div>
+          </div>
+        </CardHeader>
+      </Card>
+
+      {/* Main Content */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        {/* Left Column - Team Info and Requests */}
+        <div className="space-y-6">
+          {/* Team Information Card */}
+          <Card className="shadow-lg border-2 border-primary/20 bg-gradient-to-br from-card via-primary/5 to-secondary/10 hover:border-primary/30 hover:shadow-xl transition-all duration-300">
+            <CardHeader className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-t-lg pb-3">
+              <CardTitle className="text-xl bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                {team.name}
+              </CardTitle>
+              <CardDescription className="bg-gradient-to-r from-secondary to-accent bg-clip-text text-transparent font-medium">
+                Plano {team.plan?.displayName || team.plan?.name || 'Não definido'}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="flex flex-col md:flex-row gap-4">
+                {/* Access Code */}
+                <div className="flex-1 space-y-2">
+                  <Label className="text-primary font-semibold">Código de Acesso</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      value={team.code || 'TIMELEFIL'}
+                      readOnly
+                      className="bg-gradient-to-r from-muted/50 to-primary/5 cursor-not-allowed border-primary/20 font-mono"
+                    />
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={copyToClipboard}
+                      className="border-primary/30 hover:bg-primary/10 hover:border-primary/50 hover:scale-105 active:scale-95 transition-all duration-200"
+                    >
+                      <ClipboardCopy className="h-4 w-4 text-primary" />
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">Compartilhe para novos membros solicitarem entrada.</p>
+                </div>
+
+                {/* Members Count */}
+                <div className="flex-shrink-0 space-y-2 md:min-w-[160px]">
+                  <Label className="text-secondary font-semibold">Membros Aceitos</Label>
+                  <div className="flex items-center gap-3 text-2xl font-bold p-3 rounded-lg bg-gradient-to-r from-secondary/10 to-accent/10 border border-secondary/20 hover:border-secondary/30 transition-all duration-200">
+                    <Users className="h-5 w-5 text-secondary" />
+                    <span className="bg-gradient-to-r from-secondary to-accent bg-clip-text text-transparent">
+                      {members.length} / {team.plan?.maxMembers || 1000}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Pending Requests Card */}
+          <Card className="flex-1 flex flex-col bg-gradient-to-br from-card via-accent/5 to-primary/5 border-accent/20 shadow-lg hover:shadow-xl transition-all duration-300">
+            <CardHeader className="bg-gradient-to-r from-accent/10 to-primary/10 rounded-t-lg pb-3">
+              <CardTitle className="flex items-center gap-2 text-accent text-xl">
+                <UserPlus className="h-5 w-5" />
+                Solicitações para Aprovação
+                {pendingRequests.length > 0 && (
+                  <span className="bg-gradient-to-r from-accent to-primary text-white text-xs px-2.5 py-1 rounded-full animate-pulse">
+                    {pendingRequests.length}
+                  </span>
+                )}
+              </CardTitle>
+              <CardDescription>Aprove ou recuse as solicitações para entrar na sua equipe.</CardDescription>
+            </CardHeader>
+            <CardContent className="p-6">
+              {pendingRequests.length > 0 ? (
+                <div className="space-y-3">
+                  {pendingRequests.map(request => (
+                    <div key={request.id} className="flex items-center justify-between p-4 bg-gradient-to-r from-background/70 to-accent/5 rounded-lg shadow-sm border border-accent/10 hover:border-accent/30 hover:shadow-md transition-all duration-200">
+                      <div className='flex items-center gap-3 flex-1 min-w-0'>
+                        <Avatar className="h-11 w-11 flex-shrink-0 ring-2 ring-accent/20">
+                          <AvatarFallback className="bg-gradient-to-br from-accent/20 to-primary/20 text-accent font-bold">
+                            {request.name.charAt(0).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold truncate">{request.name}</p>
+                          <p className="text-sm text-muted-foreground truncate">{request.email}</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2 flex-shrink-0">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="border-destructive/50 text-destructive hover:bg-destructive hover:text-destructive-foreground hover:border-destructive hover:scale-105 active:scale-95 transition-all duration-200"
+                          onClick={() => handleRejectRequest(request.id, request.name)}
+                        >
+                          <X className="h-4 w-4 mr-1" />
+                          Rejeitar
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="border-green-500/50 text-green-600 hover:bg-green-500 hover:text-white hover:border-green-500 hover:scale-105 active:scale-95 transition-all duration-200"
+                          onClick={() => handleApproveRequest(request.id, request.name)}
+                        >
+                          <Check className="h-4 w-4 mr-1" />
+                          Aceitar
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center text-center py-12">
+                  <div className="bg-gradient-to-br from-secondary/10 to-accent/10 rounded-full w-16 h-16 flex items-center justify-center mb-4">
+                    <UserPlus className="h-8 w-8 text-secondary" />
+                  </div>
+                  <p className="text-muted-foreground font-medium">Nenhuma solicitação pendente</p>
+                  <p className="text-muted-foreground text-sm mt-1">As solicitações aparecerão aqui quando enviadas</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right Column - Team Members */}
+        <div className="flex flex-col">
+          <Card className="flex-1 flex flex-col overflow-hidden bg-gradient-to-br from-card via-secondary/5 to-accent/5 border-secondary/20 shadow-lg hover:shadow-xl transition-all duration-300">
+            <CardHeader className="bg-gradient-to-r from-secondary/10 to-accent/10 rounded-t-lg pb-4">
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-secondary text-xl">
+                  <Users className="h-6 w-6" />
+                  Membros Aceitos
+                </div>
+                <span className="bg-gradient-to-r from-secondary to-accent text-white text-sm px-3 py-1.5 rounded-full font-medium shadow-sm">
+                  {members.length}
+                </span>
+              </CardTitle>
+              <CardDescription>
+                Usuários que foram aprovados e fazem parte da equipe
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-6">
+              {members.length > 0 ? (
+                <div className="space-y-4">
+                  {members.map(member => (
+                    <div
+                      key={member.id}
+                      className="group relative flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-background/90 via-background/70 to-secondary/5 border border-secondary/10 hover:border-secondary/30 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]"
+                    >
+                      <Avatar className="h-14 w-14 ring-2 ring-secondary/15 group-hover:ring-secondary/30 transition-all duration-300 flex-shrink-0">
+                        <AvatarFallback className="bg-gradient-to-br from-secondary/20 to-accent/20 text-secondary font-bold text-lg">
+                          {member.name.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-1">
+                          <h3 className="font-semibold text-foreground group-hover:text-secondary transition-colors duration-200 truncate pr-2">
+                            {member.name}
+                          </h3>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                            <span className="text-xs text-green-600 font-medium hidden sm:inline">Ativo</span>
+                          </div>
+                        </div>
+
+                        <p className="text-sm text-muted-foreground truncate mb-3">
+                          {member.email}
+                        </p>
+
+                        <div className="flex items-center justify-between flex-wrap gap-2">
+                          {/* Role Badge */}
+                          {member.email === team.admin ? (
+                            <div className="flex items-center gap-1.5 text-xs text-amber-700 bg-gradient-to-r from-amber-100 to-amber-50 px-3 py-1.5 rounded-full border border-amber-200 shadow-sm">
+                              <Crown className="h-3.5 w-3.5" />
+                              <span className="font-semibold">Administrador</span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1.5 text-xs text-blue-700 bg-gradient-to-r from-blue-100 to-blue-50 px-3 py-1.5 rounded-full border border-blue-200 shadow-sm">
+                              <Users className="h-3.5 w-3.5" />
+                              <span className="font-semibold">Membro</span>
+                            </div>
+                          )}
+
+                          {/* Actions */}
+                          <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1.5 text-xs text-green-700 bg-gradient-to-r from-green-100 to-green-50 px-3 py-1.5 rounded-full border border-green-200 shadow-sm">
+                              <Check className="h-3.5 w-3.5" />
+                              <span className="font-semibold">Aprovado</span>
+                            </div>
+
+                            {member.email !== team.admin && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="border-destructive/30 text-destructive hover:bg-destructive hover:text-white hover:border-destructive hover:scale-110 active:scale-95 transition-all duration-200 h-8 w-8 p-0"
+                                onClick={() => handleRemoveMember(member.id, member.name)}
+                                title={`Remover ${member.name} da equipe`}
+                              >
+                                <UserMinus className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center text-center py-12">
+                  <div className="bg-gradient-to-br from-secondary/10 to-accent/10 rounded-full w-16 h-16 flex items-center justify-center mb-4">
+                    <Users className="h-8 w-8 text-secondary" />
+                  </div>
+                  <p className="text-muted-foreground font-medium">Nenhum membro aprovado ainda</p>
+                  <p className="text-muted-foreground text-sm mt-1">Aprove as solicitações para adicionar membros</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}
