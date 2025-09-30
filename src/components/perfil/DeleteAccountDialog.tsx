@@ -67,7 +67,7 @@ export default function DeleteAccountDialog({ open, onOpenChange }: DeleteAccoun
           </AlertDialogTitle>
           <AlertDialogDescription className="space-y-4">
             <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-3 space-y-2">
-              <p className="font-bold text-destructive text-sm">⚠️ ATENÇÃO: ESTA AÇÃO É IRREVERSÍVEL!</p>
+              <p className="font-bold text-destructive text-sm">ATENÇÃO: ESTA AÇÃO É IRREVERSÍVEL!</p>
               <p className="text-sm">
                 Ao deletar sua conta:
               </p>
