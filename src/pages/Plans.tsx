@@ -547,6 +547,68 @@ const Plans = () => {
             })}
           </div>
 
+          {/* Cards de Ações com IA */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+            {[
+              {
+                icon: Zap,
+                title: 'Criação Rápida',
+                description: 'Crie conteúdos instantâneos com IA em segundos',
+                color: 'text-orange-600',
+                bg: 'bg-orange-500/10',
+                borderColor: 'border-orange-500/20',
+              },
+              {
+                icon: Sparkles,
+                title: 'Criação Personalizada',
+                description: 'Conteúdos customizados baseados em suas marcas',
+                color: 'text-blue-600',
+                bg: 'bg-blue-500/10',
+                borderColor: 'border-blue-500/20',
+              },
+              {
+                icon: Calendar,
+                title: 'Planejamento de Conteúdo',
+                description: 'IA cria calendários editoriais estratégicos',
+                color: 'text-purple-600',
+                bg: 'bg-purple-500/10',
+                borderColor: 'border-purple-500/20',
+              },
+              {
+                icon: CheckCircle,
+                title: 'Revisão de Conteúdo',
+                description: 'Análise e sugestões de melhorias',
+                color: 'text-green-600',
+                bg: 'bg-green-500/10',
+                borderColor: 'border-green-500/20',
+              },
+            ].map((action, idx) => {
+              const Icon = action.icon;
+              return (
+                <Card 
+                  key={idx} 
+                  className={`border-2 ${action.borderColor} hover:shadow-md transition-all cursor-pointer group`}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex flex-col items-center text-center gap-3">
+                      <div className={`p-3 rounded-xl ${action.bg} group-hover:scale-110 transition-transform`}>
+                        <Icon className={`h-6 w-6 ${action.color}`} />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-sm mb-1 text-foreground">
+                          {action.title}
+                        </h3>
+                        <p className="text-xs text-muted-foreground leading-relaxed">
+                          {action.description}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+
           {/* Limites de Recursos */}
           <Card className="border-2">
             <CardHeader className="pb-4">
