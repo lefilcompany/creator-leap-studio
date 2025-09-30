@@ -13,8 +13,7 @@ import {
   Zap,
   Tags,
   Tag,
-  Rocket,
-  Calendar
+  Rocket
 } from "lucide-react";
 
 const Dashboard = () => {
@@ -40,6 +39,27 @@ const Dashboard = () => {
       subtitle: "total de marcas ativas",
       icon: Tags,
       color: "text-muted-foreground"
+    }
+  ];
+
+  const quickActions = [
+    {
+      title: "Criar Conteúdo",
+      description: "Gerar novas imagens e textos",
+      icon: Sparkles,
+      color: "text-primary"
+    },
+    {
+      title: "Revisar Imagem", 
+      description: "Receber feedback da IA",
+      icon: CheckCircle,
+      color: "text-secondary"
+    },
+    {
+      title: "Gerenciar Personas",
+      description: "Adicionar ou editar suas personas",
+      icon: Users,
+      color: "text-accent"
     }
   ];
 
@@ -111,12 +131,7 @@ const Dashboard = () => {
           <CardContent className="pb-4">
             <div className="text-4xl font-bold tracking-tight text-foreground mb-2">{stats[0].value}</div>
             <p className="text-sm text-muted-foreground mb-4">{stats[0].subtitle}</p>
-            <div className="relative h-3 w-full overflow-hidden rounded-full bg-primary/20 mb-3">
-              <div 
-                className="h-full bg-gradient-to-r from-pink-500 via-purple-500 to-purple-600 transition-all duration-300"
-                style={{ width: `${stats[0].progress}%` }}
-              />
-            </div>
+            <Progress value={stats[0].progress} className="h-3 bg-primary/20 mb-3" />
             <Link to="/plans">
               <Button variant="link" className="h-auto p-0 text-sm text-primary hover:text-primary/80 font-medium">
                 Ver planos e uso <ArrowRight className="w-4 h-4 ml-1" />
@@ -154,119 +169,33 @@ const Dashboard = () => {
         </Card>
       </div>
 
-      {/* Cards de Ações com IA */}
-      <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5 animate-fade-in">
-        <CardHeader className="pb-4">
-          <div className="flex items-center gap-4">
-            <div className="flex-shrink-0 bg-primary/10 text-primary rounded-lg p-3">
-              <Sparkles className="h-6 w-6" />
-            </div>
-            <div>
-              <CardTitle className="text-xl font-semibold">Ações Rápidas</CardTitle>
-              <p className="text-sm text-muted-foreground mt-1">Selecione uma ação para começar</p>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {[
-              {
-                icon: Zap,
-                title: 'Criar Conteúdo',
-                description: 'Gerar novas imagens e textos',
-                color: 'text-orange-600',
-                bg: 'bg-orange-500/10',
-                borderColor: 'border-orange-500/20',
-                link: '/create-content'
-              },
-              {
-                icon: Sparkles,
-                title: 'Criar Personalizado',
-                description: 'Conteúdos customizados',
-                color: 'text-blue-600',
-                bg: 'bg-blue-500/10',
-                borderColor: 'border-blue-500/20',
-                link: '/create-content'
-              },
-              {
-                icon: Calendar,
-                title: 'Planejar Conteúdo',
-                description: 'Criar calendário editorial',
-                color: 'text-purple-600',
-                bg: 'bg-purple-500/10',
-                borderColor: 'border-purple-500/20',
-                link: '/plan-content'
-              },
-              {
-                icon: CheckCircle,
-                title: 'Revisar Conteúdo',
-                description: 'Análise e melhorias',
-                color: 'text-green-600',
-                bg: 'bg-green-500/10',
-                borderColor: 'border-green-500/20',
-                link: '/review-content'
-              },
-            ].map((action, idx) => {
-              const Icon = action.icon;
-              return (
-                <Link key={idx} to={action.link}>
-                  <Card 
-                    className={`border-2 ${action.borderColor} hover:shadow-lg transition-all cursor-pointer group h-full`}
-                  >
-                    <CardContent className="p-5 flex flex-col items-center text-center gap-3">
-                      <div className={`p-3 rounded-xl ${action.bg} group-hover:scale-110 transition-transform`}>
-                        <Icon className={`h-7 w-7 ${action.color}`} />
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-sm mb-1 text-foreground">
-                          {action.title}
-                        </h3>
-                        <p className="text-xs text-muted-foreground leading-relaxed">
-                          {action.description}
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Quick Actions - Outras ações */}
+        {/* Quick Actions */}
         <div className="lg:col-span-1">
           <Card className="shadow-lg border-0 bg-gradient-to-r from-secondary/5 via-primary/5 to-secondary/5 animate-fade-in">
             <CardHeader className="pb-4">
               <div className="flex items-center gap-4">
                 <div className="flex-shrink-0 bg-secondary/10 text-secondary rounded-lg p-3">
-                  <Users className="h-6 w-6" />
+                  <Sparkles className="h-6 w-6" />
                 </div>
-                <CardTitle className="text-xl font-semibold">Gerenciar</CardTitle>
+                <CardTitle className="text-xl font-semibold">Ações Rápidas</CardTitle>
               </div>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {[
-                { title: 'Gerenciar Marcas', description: 'Adicionar ou editar marcas', icon: Tags, link: '/brands' },
-                { title: 'Gerenciar Temas', description: 'Configurar temas estratégicos', icon: Sparkles, link: '/themes' },
-                { title: 'Gerenciar Personas', description: 'Adicionar ou editar personas', icon: Users, link: '/personas' },
-              ].map((action, index) => (
-                <Link key={index} to={action.link}>
-                  <Card className="hover:bg-muted/50 hover:shadow-md transition-all duration-200 cursor-pointer hover-scale">
-                    <CardContent className="p-4 flex items-center gap-4">
-                      <div className="flex-shrink-0 bg-accent/10 text-accent rounded-lg p-2">
-                        <action.icon className="h-5 w-5" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-semibold text-sm text-foreground">{action.title}</p>
-                        <p className="text-xs text-muted-foreground">{action.description}</p>
-                      </div>
-                      <ArrowRight className="h-4 w-4 text-muted-foreground opacity-50 group-hover:opacity-100 transition-opacity" />
-                    </CardContent>
-                  </Card>
-                </Link>
+            <CardContent className="space-y-6">
+              {quickActions.map((action, index) => (
+                <Card key={index} className="hover:bg-muted/50 hover:shadow-md transition-all duration-200 cursor-pointer hover-scale">
+                  <CardContent className="p-4 flex items-center gap-6">
+                    <div className="flex-shrink-0 bg-accent/10 text-accent rounded-lg p-2">
+                      <action.icon className="h-6 w-6" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-semibold text-foreground">{action.title}</p>
+                      <p className="text-xs text-muted-foreground">{action.description}</p>
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-muted-foreground opacity-50 group-hover:opacity-100 transition-opacity" />
+                  </CardContent>
+                </Card>
               ))}
             </CardContent>
           </Card>
