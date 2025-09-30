@@ -462,7 +462,7 @@ const Plans = () => {
       </div>
 
       {/* Grid principal: Esquerda (conteúdo) + Direita (sidebar) */}
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-4 md:gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-4 md:gap-6">
         {/* Coluna Esquerda - Conteúdo Principal */}
         <div className="space-y-4 md:space-y-6">
           {/* Card Plano Atual com destaque para créditos totais */}
@@ -492,8 +492,8 @@ const Plans = () => {
             </CardContent>
           </Card>
 
-          {/* Grid de Cards de Créditos - 3 colunas */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Grid de Cards de Créditos - 2 ou 3 colunas */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
             {creditData.slice(0, 3).map((credit, index) => {
               const usedCredits = Math.max(0, credit.limit - credit.current);
               const percentage = credit.limit > 0 ? (credit.current / credit.limit) * 100 : 0;
@@ -506,19 +506,19 @@ const Plans = () => {
                   key={index} 
                   className="border-2 hover:shadow-md transition-all"
                 >
-                  <CardContent className="p-5">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className={`p-2.5 rounded-xl ${credit.bgColor}`}>
-                        <Icon className={`h-5 w-5 ${credit.color}`} />
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className={`p-2 rounded-xl ${credit.bgColor}`}>
+                        <Icon className={`h-4 w-4 ${credit.color}`} />
                       </div>
-                      <h3 className="font-semibold text-sm text-foreground">
+                      <h3 className="font-semibold text-xs xl:text-sm text-foreground">
                         {credit.name}
                       </h3>
                     </div>
                     
-                    <div className="space-y-3">
+                    <div className="space-y-2">
                       <div>
-                        <div className="text-3xl font-bold text-foreground mb-1">
+                        <div className="text-2xl xl:text-3xl font-bold text-foreground mb-1">
                           {credit.current.toLocaleString()}
                         </div>
                         <p className="text-xs text-muted-foreground">
@@ -556,7 +556,7 @@ const Plans = () => {
               </p>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
                 {[
                   { icon: Tag, label: 'Marcas', value: plan?.maxBrands || 0, color: 'text-pink-600', bg: 'bg-pink-500/10' },
                   { icon: Palette, label: 'Temas', value: plan?.maxStrategicThemes || 0, color: 'text-purple-600', bg: 'bg-purple-500/10' },
@@ -565,12 +565,12 @@ const Plans = () => {
                 ].map((item, idx) => {
                   const Icon = item.icon;
                   return (
-                    <div key={idx} className={`flex items-center gap-3 p-4 rounded-xl ${item.bg} border border-transparent hover:border-border transition-all`}>
+                    <div key={idx} className={`flex items-center gap-2 p-3 rounded-xl ${item.bg} border border-transparent hover:border-border transition-all`}>
                       <div className="flex-shrink-0">
-                        <Icon className={`h-6 w-6 ${item.color}`} />
+                        <Icon className={`h-5 w-5 ${item.color}`} />
                       </div>
                       <div className="min-w-0">
-                        <p className="font-semibold text-sm text-foreground">{item.label}</p>
+                        <p className="font-semibold text-xs xl:text-sm text-foreground truncate">{item.label}</p>
                         <p className="text-xs text-muted-foreground">
                           {item.value >= 999999 ? 'Ilimitado' : `até ${item.value}`}
                         </p>
