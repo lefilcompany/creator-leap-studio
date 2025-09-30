@@ -370,15 +370,17 @@ const Plans = () => {
     );
   }
 
-  if (!team || !team.plan) {
+  // Verificação de segurança - sempre garantir que temos um plano válido
+  const plan = team?.plan || mockPlans[0]; // Fallback para plano Free
+  const credits = teamData?.credits || mockCredits;
+
+  if (!team) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center space-y-4 p-6">
           <AlertTriangle className="h-12 w-12 text-orange-500 mx-auto" />
           <p className="text-lg font-semibold">Erro ao carregar informações</p>
-          <p className="text-sm text-muted-foreground">
-            {!team ? 'Equipe não encontrada' : 'Plano não encontrado'}
-          </p>
+          <p className="text-sm text-muted-foreground">Equipe não encontrada</p>
           <Link to="/dashboard">
             <Button variant="outline">
               <ArrowLeft className="h-4 w-4 mr-2" />
@@ -390,38 +392,35 @@ const Plans = () => {
     );
   }
 
-  const { plan } = team;
-  const credits = teamData?.credits || mockCredits;
-
   const creditData = [
     {
       name: 'Criações Rápidas',
-      current: credits.quickContentCreations || 0,
-      limit: plan.quickContentCreations,
+      current: credits?.quickContentCreations || 0,
+      limit: plan?.quickContentCreations || 0,
       icon: Zap,
       color: 'text-orange-600',
       bgColor: 'bg-orange-500/10',
     },
     {
       name: 'Sugestões',
-      current: credits.contentSuggestions || 0,
-      limit: plan.customContentSuggestions,
+      current: credits?.contentSuggestions || 0,
+      limit: plan?.customContentSuggestions || 0,
       icon: Sparkles,
       color: 'text-blue-600',
       bgColor: 'bg-blue-500/10',
     },
     {
       name: 'Revisões',
-      current: credits.contentReviews || 0,
-      limit: plan.contentReviews,
+      current: credits?.contentReviews || 0,
+      limit: plan?.contentReviews || 0,
       icon: CheckCircle,
       color: 'text-green-600',
       bgColor: 'bg-green-500/10',
     },
     {
       name: 'Planejamentos',
-      current: credits.contentPlans || 0,
-      limit: plan.contentPlans,
+      current: credits?.contentPlans || 0,
+      limit: plan?.contentPlans || 0,
       icon: Calendar,
       color: 'text-purple-600',
       bgColor: 'bg-purple-500/10',
@@ -471,12 +470,12 @@ const Plans = () => {
             <div className="space-y-2">
               <div className="flex items-center gap-2 flex-wrap">
                 <Badge className="bg-secondary text-secondary-foreground text-sm">
-                  {plan.displayName}
+                  {plan?.displayName || 'Plano'}
                 </Badge>
                 <span className="text-sm font-medium text-foreground">Plano Atual</span>
               </div>
               <p className="text-xs md:text-sm text-muted-foreground">
-                R$ {plan.price.toFixed(2)}/mês • Você está usando o plano {plan.displayName}
+                R$ {(plan?.price || 0).toFixed(2)}/mês • Você está usando o plano {plan?.displayName || 'atual'}
               </p>
             </div>
             <div className="text-left md:text-right">
@@ -553,10 +552,10 @@ const Plans = () => {
             <CardContent>
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                 {[
-                  { icon: Tag, label: 'Marcas', value: plan.maxBrands, color: 'text-primary', bg: 'bg-primary/5' },
-                  { icon: Palette, label: 'Temas', value: plan.maxStrategicThemes, color: 'text-secondary', bg: 'bg-secondary/5' },
-                  { icon: Users, label: 'Personas', value: plan.maxPersonas, color: 'text-green-600', bg: 'bg-green-500/5' },
-                  { icon: UserCircle, label: 'Membros', value: plan.maxMembers, color: 'text-purple-600', bg: 'bg-purple-500/5' },
+                  { icon: Tag, label: 'Marcas', value: plan?.maxBrands || 0, color: 'text-primary', bg: 'bg-primary/5' },
+                  { icon: Palette, label: 'Temas', value: plan?.maxStrategicThemes || 0, color: 'text-secondary', bg: 'bg-secondary/5' },
+                  { icon: Users, label: 'Personas', value: plan?.maxPersonas || 0, color: 'text-green-600', bg: 'bg-green-500/5' },
+                  { icon: UserCircle, label: 'Membros', value: plan?.maxMembers || 0, color: 'text-purple-600', bg: 'bg-purple-500/5' },
                 ].map((item, idx) => {
                   const Icon = item.icon;
                   return (
@@ -612,19 +611,19 @@ const Plans = () => {
           <Card className="border-2 border-primary/20 bg-gradient-to-br from-background to-primary/5">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-base md:text-lg">{plan.displayName}</CardTitle>
+                <CardTitle className="text-base md:text-lg">{plan?.displayName || 'Plano Atual'}</CardTitle>
                 <Badge variant="secondary" className="text-xs">Ativo</Badge>
               </div>
               <div className="text-2xl md:text-3xl font-bold text-primary">
-                R$ {plan.price.toFixed(2)}
+                R$ {(plan?.price || 0).toFixed(2)}
                 <span className="text-sm font-normal text-muted-foreground ml-1">/mês</span>
               </div>
             </CardHeader>
             <CardContent className="space-y-2">
               {[
                 { label: 'Todas as funcionalidades', included: true },
-                { label: 'Suporte prioritário', included: plan.price > 0 },
-                { label: 'Integrações avançadas', included: plan.name === 'ENTERPRISE' },
+                { label: 'Suporte prioritário', included: (plan?.price || 0) > 0 },
+                { label: 'Integrações avançadas', included: plan?.name === 'ENTERPRISE' },
               ].map((feature, idx) => (
                 <div key={idx} className="flex items-center gap-2">
                   {feature.included ? (
@@ -653,11 +652,11 @@ const Plans = () => {
             <CardContent className="space-y-2 text-xs md:text-sm">
               <div>
                 <p className="text-muted-foreground">Nome</p>
-                <p className="font-medium">{team.name}</p>
+                <p className="font-medium">{team?.name || 'Equipe'}</p>
               </div>
               <div>
                 <p className="text-muted-foreground">Admin</p>
-                <p className="font-medium truncate">{team.admin}</p>
+                <p className="font-medium truncate">{team?.admin || 'Admin'}</p>
               </div>
             </CardContent>
           </Card>
