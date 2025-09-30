@@ -146,9 +146,11 @@ export const Header = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 border-border/20 shadow-xl animate-scale-in">
-                <DropdownMenuItem className="p-3 cursor-pointer">
-                  <Info className="mr-3 h-4 w-4" />
-                  <span>Sobre o Creator</span>
+                <DropdownMenuItem className="p-3 cursor-pointer" asChild>
+                  <Link to="/about" className="flex items-center">
+                    <Info className="mr-3 h-4 w-4" />
+                    <span>Sobre o Creator</span>
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem className="p-3 cursor-pointer">
                   <FileText className="mr-3 h-4 w-4" />
