@@ -245,7 +245,7 @@ export default function BrandDetails({ brand, onEdit, onDelete, isLoading = fals
       <div className="flex flex-col md:flex-row gap-3 mt-6 mb-8 flex-shrink-0">
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button variant="outline" className="w-full flex-1 rounded-full py-5">
+            <Button variant="outline" className="w-full flex-1 rounded-full">
               <Trash2 className="mr-2 h-4 w-4" /> Deletar
             </Button>
           </AlertDialogTrigger>
@@ -262,7 +262,7 @@ export default function BrandDetails({ brand, onEdit, onDelete, isLoading = fals
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-        <Button onClick={() => onEdit(brand)} className="w-full flex-1 rounded-full py-5">
+        <Button onClick={() => onEdit(brand)} className="w-full flex-1 rounded-full">
           <Edit className="mr-2 h-4 w-4" /> Editar marca
         </Button>
       </div>
