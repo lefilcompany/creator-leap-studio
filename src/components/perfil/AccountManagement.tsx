@@ -13,13 +13,27 @@ export default function AccountManagement() {
   const [isDeactivateDialogOpen, setIsDeactivateDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
+  const handleToggleExpanded = () => {
+    setIsExpanded(!isExpanded);
+  };
+
+  const handleToggleDeactivate = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsDeactivateExpanded(!isDeactivateExpanded);
+  };
+
+  const handleToggleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsDeleteExpanded(!isDeleteExpanded);
+  };
+
   if (!isExpanded) {
     return (
       <Card className="group shadow-lg hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-card via-muted/[0.02] to-accent/[0.03] backdrop-blur-sm">
         <CardContent className="p-6">
           <Button
             variant="ghost"
-            onClick={() => setIsExpanded(true)}
+            onClick={handleToggleExpanded}
             className="w-full h-12 flex items-center justify-center gap-2 text-muted-foreground hover:text-foreground rounded-lg transition-all duration-300 hover:bg-muted/50"
           >
             <Settings className="h-4 w-4" />
@@ -71,15 +85,16 @@ export default function AccountManagement() {
               <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-muted/10 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300" />
               <CardContent className="p-6 space-y-4 relative">
                 <button
-                  onClick={() => setIsDeactivateExpanded(!isDeactivateExpanded)}
-                  className="w-full flex flex-col items-center gap-3 cursor-pointer"
+                  type="button"
+                  onClick={handleToggleDeactivate}
+                  className="w-full flex flex-col items-center gap-3 cursor-pointer bg-transparent border-0 hover:opacity-80 transition-opacity"
                 >
-                  <div className="flex items-center justify-center">
+                  <div className="flex items-center justify-center pointer-events-none">
                     <div className="relative p-4 bg-gradient-to-br from-muted to-accent/20 rounded-2xl shadow-md group-hover/card:shadow-lg transition-all duration-300">
                       <UserX className="h-8 w-8 text-muted-foreground relative z-10" />
                     </div>
                   </div>
-                  <div className="text-center space-y-2 w-full">
+                  <div className="text-center space-y-2 w-full pointer-events-none">
                     <div className="flex items-center justify-center gap-2">
                       <h3 className="font-bold text-lg bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
                         Inativar Conta
@@ -115,15 +130,16 @@ export default function AccountManagement() {
               <div className="absolute inset-0 bg-gradient-to-br from-destructive/10 to-destructive/5 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300" />
               <CardContent className="p-6 space-y-4 relative">
                 <button
-                  onClick={() => setIsDeleteExpanded(!isDeleteExpanded)}
-                  className="w-full flex flex-col items-center gap-3 cursor-pointer"
+                  type="button"
+                  onClick={handleToggleDelete}
+                  className="w-full flex flex-col items-center gap-3 cursor-pointer bg-transparent border-0 hover:opacity-80 transition-opacity"
                 >
-                  <div className="flex items-center justify-center">
+                  <div className="flex items-center justify-center pointer-events-none">
                     <div className="relative p-4 bg-gradient-to-br from-destructive/20 to-destructive/30 rounded-2xl shadow-md group-hover/card:shadow-lg transition-all duration-300">
                       <Trash2 className="h-8 w-8 text-destructive relative z-10" />
                     </div>
                   </div>
-                  <div className="text-center space-y-2 w-full">
+                  <div className="text-center space-y-2 w-full pointer-events-none">
                     <div className="flex items-center justify-center gap-2">
                       <h3 className="font-bold text-lg text-destructive">
                         Deletar Conta
@@ -159,7 +175,7 @@ export default function AccountManagement() {
           <div className="border-t border-primary/10 pt-6">
             <Button
               variant="ghost"
-              onClick={() => setIsExpanded(false)}
+              onClick={handleToggleExpanded}
               className="w-full h-11 flex items-center justify-center gap-2 text-muted-foreground hover:text-foreground rounded-lg transition-all duration-300 hover:bg-muted/50"
             >
               <span>Ocultar Opções Avançadas</span>
