@@ -354,7 +354,7 @@ const Plans = () => {
               </p>
             </div>
           </div>
-          <Button variant="outline" size="sm" onClick={() => setShowPlansSelection(true)} className="w-full sm:w-auto border-primary/20 hover:bg-primary/5">
+          <Button variant="outline" size="sm" onClick={() => setShowPlansSelection(true)} className="w-full sm:w-auto border-primary/20 hover:bg-primary/5 hover:text-nuted-foreground">
             <Crown className="h-4 w-4 mr-2" />
             Ver Todos os Planos
           </Button>
