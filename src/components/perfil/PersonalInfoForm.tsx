@@ -107,6 +107,17 @@ export default function PersonalInfoForm({ initialData }: PersonalInfoFormProps)
     }
   };
 
+  const handleSavePassword = async (newPassword: string) => {
+    try {
+      // Simula a chamada API para alterar senha
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      toast.success('Senha alterada com sucesso!');
+    } catch (error) {
+      toast.error('Erro ao alterar senha. Tente novamente.');
+      throw error;
+    }
+  };
+
   return (
     <>
       <Card className="group shadow-lg hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-card via-primary/[0.02] to-secondary/[0.03] backdrop-blur-sm overflow-hidden">
@@ -260,8 +271,9 @@ export default function PersonalInfoForm({ initialData }: PersonalInfoFormProps)
       </Card>
 
       <ChangePasswordDialog
-        open={isPasswordDialogOpen}
+        isOpen={isPasswordDialogOpen}
         onOpenChange={setIsPasswordDialogOpen}
+        onSavePassword={handleSavePassword}
       />
     </>
   );
