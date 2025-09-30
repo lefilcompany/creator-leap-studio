@@ -526,10 +526,12 @@ const Plans = () => {
                         </p>
                       </div>
                       
-                      <Progress 
-                        value={percentage} 
-                        className="h-2.5"
-                      />
+                      <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-muted">
+                        <div 
+                          className="h-full bg-gradient-to-r from-pink-500 via-purple-500 to-purple-600 transition-all duration-300"
+                          style={{ width: `${percentage}%` }}
+                        />
+                      </div>
                       
                       <p className={`text-xs font-medium ${
                         isAtLimit ? 'text-destructive' :
