@@ -562,10 +562,7 @@ const Plans = () => {
           </div>
 
           {/* Info da Equipe */}
-          <Card className="shadow-lg">
-            
-            
-          </Card>
+          
         </div>
       </div>
     </div>;
