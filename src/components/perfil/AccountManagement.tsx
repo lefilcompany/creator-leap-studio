@@ -5,9 +5,12 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle, UserX, Trash2, ChevronDown, ChevronUp, Settings } from 'lucide-react';
 import DeactivateAccountDialog from './DeactivateAccountDialog';
 import DeleteAccountDialog from './DeleteAccountDialog';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 export default function AccountManagement() {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isDeactivateExpanded, setIsDeactivateExpanded] = useState(false);
+  const [isDeleteExpanded, setIsDeleteExpanded] = useState(false);
   const [isDeactivateDialogOpen, setIsDeactivateDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
@@ -51,7 +54,7 @@ export default function AccountManagement() {
           </div>
         </CardHeader>
 
-        <CardContent className="space-y-8 p-8 relative">
+        <CardContent className="space-y-6 p-8 relative">
           {/* Warning Alert */}
           <Alert className="bg-gradient-to-r from-destructive/5 to-accent/5 border-2 border-destructive/20 rounded-xl shadow-sm">
             <AlertTriangle className="h-5 w-5 text-destructive" />
@@ -65,58 +68,96 @@ export default function AccountManagement() {
           {/* Actions Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Deactivate Account */}
-            <Card className="group/card border-0 bg-gradient-to-br from-muted/50 to-accent/5 hover:shadow-lg transition-all duration-300 overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-muted/10 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300" />
-              <CardContent className="pt-6 space-y-5 relative">
-                <div className="flex items-center justify-center">
-                  <div className="relative p-4 bg-gradient-to-br from-muted to-accent/20 rounded-2xl shadow-md group-hover/card:shadow-lg group-hover/card:scale-105 transition-all duration-300">
-                    <UserX className="h-8 w-8 text-muted-foreground relative z-10" />
-                  </div>
-                </div>
-                <div className="text-center space-y-2">
-                  <h3 className="font-bold text-lg bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
-                    Inativar Conta
-                  </h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed px-2">
-                    Dados preservados. Reative facilmente cadastrando-se novamente.
-                  </p>
-                </div>
-                <Button
-                  variant="outline"
-                  className="w-full h-11 rounded-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
-                  onClick={() => setIsDeactivateDialogOpen(true)}
-                >
-                  Inativar Conta
-                </Button>
-              </CardContent>
-            </Card>
+            <Collapsible open={isDeactivateExpanded} onOpenChange={setIsDeactivateExpanded}>
+              <Card className="group/card border-0 bg-gradient-to-br from-muted/50 to-accent/5 hover:shadow-lg transition-all duration-300 overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-muted/10 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300" />
+                <CardContent className="p-6 space-y-4 relative">
+                  <CollapsibleTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="w-full p-0 h-auto hover:bg-transparent flex flex-col items-center gap-3"
+                    >
+                      <div className="flex items-center justify-center">
+                        <div className="relative p-4 bg-gradient-to-br from-muted to-accent/20 rounded-2xl shadow-md group-hover/card:shadow-lg transition-all duration-300">
+                          <UserX className="h-8 w-8 text-muted-foreground relative z-10" />
+                        </div>
+                      </div>
+                      <div className="text-center space-y-2 w-full">
+                        <div className="flex items-center justify-center gap-2">
+                          <h3 className="font-bold text-lg bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
+                            Inativar Conta
+                          </h3>
+                          {isDeactivateExpanded ? (
+                            <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                          )}
+                        </div>
+                      </div>
+                    </Button>
+                  </CollapsibleTrigger>
+                  
+                  <CollapsibleContent className="space-y-4">
+                    <p className="text-sm text-muted-foreground leading-relaxed px-2 text-center">
+                      Dados preservados. Reative facilmente cadastrando-se novamente.
+                    </p>
+                    <Button
+                      variant="outline"
+                      className="w-full h-11 rounded-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+                      onClick={() => setIsDeactivateDialogOpen(true)}
+                    >
+                      Inativar Conta
+                    </Button>
+                  </CollapsibleContent>
+                </CardContent>
+              </Card>
+            </Collapsible>
 
             {/* Delete Account */}
-            <Card className="group/card border-0 bg-gradient-to-br from-destructive/5 to-destructive/10 hover:shadow-lg transition-all duration-300 overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-destructive/10 to-destructive/5 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300" />
-              <CardContent className="pt-6 space-y-5 relative">
-                <div className="flex items-center justify-center">
-                  <div className="relative p-4 bg-gradient-to-br from-destructive/20 to-destructive/30 rounded-2xl shadow-md group-hover/card:shadow-lg group-hover/card:scale-105 transition-all duration-300">
-                    <Trash2 className="h-8 w-8 text-destructive relative z-10" />
-                  </div>
-                </div>
-                <div className="text-center space-y-2">
-                  <h3 className="font-bold text-lg text-destructive">
-                    Deletar Conta
-                  </h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed px-2">
-                    <span className="font-bold text-destructive">PERMANENTE!</span> Todos os dados serão removidos.
-                  </p>
-                </div>
-                <Button
-                  variant="destructive"
-                  className="w-full h-11 rounded-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
-                  onClick={() => setIsDeleteDialogOpen(true)}
-                >
-                  Deletar Conta
-                </Button>
-              </CardContent>
-            </Card>
+            <Collapsible open={isDeleteExpanded} onOpenChange={setIsDeleteExpanded}>
+              <Card className="group/card border-0 bg-gradient-to-br from-destructive/5 to-destructive/10 hover:shadow-lg transition-all duration-300 overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-destructive/10 to-destructive/5 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300" />
+                <CardContent className="p-6 space-y-4 relative">
+                  <CollapsibleTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="w-full p-0 h-auto hover:bg-transparent flex flex-col items-center gap-3"
+                    >
+                      <div className="flex items-center justify-center">
+                        <div className="relative p-4 bg-gradient-to-br from-destructive/20 to-destructive/30 rounded-2xl shadow-md group-hover/card:shadow-lg transition-all duration-300">
+                          <Trash2 className="h-8 w-8 text-destructive relative z-10" />
+                        </div>
+                      </div>
+                      <div className="text-center space-y-2 w-full">
+                        <div className="flex items-center justify-center gap-2">
+                          <h3 className="font-bold text-lg text-destructive">
+                            Deletar Conta
+                          </h3>
+                          {isDeleteExpanded ? (
+                            <ChevronUp className="h-4 w-4 text-destructive" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4 text-destructive" />
+                          )}
+                        </div>
+                      </div>
+                    </Button>
+                  </CollapsibleTrigger>
+                  
+                  <CollapsibleContent className="space-y-4">
+                    <p className="text-sm text-muted-foreground leading-relaxed px-2 text-center">
+                      <span className="font-bold text-destructive">PERMANENTE!</span> Todos os dados serão removidos.
+                    </p>
+                    <Button
+                      variant="destructive"
+                      className="w-full h-11 rounded-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+                      onClick={() => setIsDeleteDialogOpen(true)}
+                    >
+                      Deletar Conta
+                    </Button>
+                  </CollapsibleContent>
+                </CardContent>
+              </Card>
+            </Collapsible>
           </div>
 
           {/* Hide Button */}
