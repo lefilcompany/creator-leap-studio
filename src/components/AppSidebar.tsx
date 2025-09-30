@@ -148,7 +148,7 @@ export function AppSidebar() {
 
   const sidebarContent = () => (
     <>
-      <div className="p-2 mb-6">
+      <div className="pt-6 pb-4 mb-6 flex justify-center">
         <img
           src={logoCreator}
           alt="Creator Logo"
