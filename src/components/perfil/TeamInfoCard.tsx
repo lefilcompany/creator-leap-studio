@@ -94,46 +94,42 @@ export default function TeamInfoCard({ team, userRole }: TeamInfoCardProps) {
           </div>
 
           {/* Role Section */}
-          <div className="group/section space-y-4 border-t border-secondary/10 pt-6">
-            <div className="flex items-center gap-3">
-              <div className="relative p-2.5 bg-gradient-to-br from-amber-100 to-amber-50 dark:from-amber-900/20 dark:to-amber-800/20 rounded-xl shadow-sm group-hover/section:shadow-md group-hover/section:scale-105 transition-all duration-300">
-                <div className="absolute inset-0 bg-gradient-to-br from-amber-400 to-amber-600 opacity-0 group-hover/section:opacity-10 rounded-xl transition-opacity duration-300" />
-                {userRole === 'admin' ? (
-                  <Crown className="h-5 w-5 text-amber-600 dark:text-amber-500 relative z-10" />
-                ) : (
-                  <Shield className="h-5 w-5 text-blue-600 dark:text-blue-500 relative z-10" />
-                )}
+          <div className="group/section space-y-3 border-t border-secondary/10 pt-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="relative p-2 bg-gradient-to-br from-primary/15 to-accent/15 rounded-lg shadow-sm group-hover/section:shadow-md transition-all duration-300">
+                  {userRole === 'admin' ? (
+                    <Crown className="h-4 w-4 text-primary relative z-10" />
+                  ) : (
+                    <Shield className="h-4 w-4 text-accent relative z-10" />
+                  )}
+                </div>
+                <div>
+                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Função</span>
+                </div>
               </div>
-              <div>
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Função</span>
-              </div>
-            </div>
-            
-            <div className="relative">
-              <div className={`inline-flex items-center gap-2.5 px-5 py-3 rounded-xl border-2 shadow-sm transition-all duration-300 hover:shadow-md hover:scale-[1.02] ${
+              
+              <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all duration-300 ${
                 userRole === 'admin' 
-                  ? 'bg-gradient-to-r from-amber-50 to-amber-100 dark:from-amber-900/10 dark:to-amber-800/20 border-amber-300 dark:border-amber-700' 
-                  : 'bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/10 dark:to-blue-800/20 border-blue-300 dark:border-blue-700'
+                  ? 'bg-primary/10 border-primary/30 text-primary' 
+                  : 'bg-accent/10 border-accent/30 text-accent'
               }`}>
                 {userRole === 'admin' ? (
-                  <Crown className="h-5 w-5 text-amber-600 dark:text-amber-500" />
+                  <Crown className="h-3.5 w-3.5" />
                 ) : (
-                  <Shield className="h-5 w-5 text-blue-600 dark:text-blue-500" />
+                  <Shield className="h-3.5 w-3.5" />
                 )}
-                <span className={`text-lg font-bold ${
-                  userRole === 'admin' 
-                    ? 'text-amber-700 dark:text-amber-500' 
-                    : 'text-blue-700 dark:text-blue-500'
-                }`}>
+                <span className="text-sm font-semibold">
                   {userRole === 'admin' ? 'Administrador' : 'Membro'}
                 </span>
               </div>
-              <p className="text-sm text-muted-foreground mt-3 ml-1">
-                {userRole === 'admin' 
-                  ? '👑 Controle total sobre a equipe e configurações' 
-                  : '🛡️ Acesso aos projetos e recursos da equipe'}
-              </p>
             </div>
+            
+            <p className="text-xs text-muted-foreground pl-8">
+              {userRole === 'admin' 
+                ? 'Controle total sobre a equipe e configurações' 
+                : 'Acesso aos projetos e recursos da equipe'}
+            </p>
           </div>
 
           {/* Remaining Actions Section */}
