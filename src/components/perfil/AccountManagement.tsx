@@ -70,17 +70,19 @@ export default function AccountManagement() {
             <Card className="group/card border-0 bg-gradient-to-br from-muted/50 to-accent/5 hover:shadow-lg transition-all duration-300 overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-muted/10 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300" />
               <CardContent className="p-6 space-y-4 relative">
-                <button
-                  type="button"
+                <div
+                  role="button"
+                  tabIndex={0}
                   onClick={() => setIsDeactivateExpanded(!isDeactivateExpanded)}
-                  className="w-full flex flex-col items-center gap-3 cursor-pointer bg-transparent border-0 hover:opacity-80 transition-opacity"
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setIsDeactivateExpanded(!isDeactivateExpanded); }}
+                  className="w-full flex flex-col items-center gap-3 cursor-pointer bg-transparent border-0 hover:opacity-80 transition-opacity rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
-                  <div className="flex items-center justify-center pointer-events-none">
+                  <div className="flex items-center justify-center">
                     <div className="relative p-4 bg-gradient-to-br from-muted to-accent/20 rounded-2xl shadow-md group-hover/card:shadow-lg transition-all duration-300">
                       <UserX className="h-8 w-8 text-muted-foreground relative z-10" />
                     </div>
                   </div>
-                  <div className="text-center space-y-2 w-full pointer-events-none">
+                  <div className="text-center space-y-2 w-full">
                     <div className="flex items-center justify-center gap-2">
                       <h3 className="font-bold text-lg bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
                         Inativar Conta
@@ -92,7 +94,7 @@ export default function AccountManagement() {
                       )}
                     </div>
                   </div>
-                </button>
+                </div>
                 
                 {isDeactivateExpanded && (
                   <div className="space-y-4 animate-fade-in">
@@ -115,17 +117,19 @@ export default function AccountManagement() {
             <Card className="group/card border-0 bg-gradient-to-br from-destructive/5 to-destructive/10 hover:shadow-lg transition-all duration-300 overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-destructive/10 to-destructive/5 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300" />
               <CardContent className="p-6 space-y-4 relative">
-                <button
-                  type="button"
+                <div
+                  role="button"
+                  tabIndex={0}
                   onClick={() => setIsDeleteExpanded(!isDeleteExpanded)}
-                  className="w-full flex flex-col items-center gap-3 cursor-pointer bg-transparent border-0 hover:opacity-80 transition-opacity"
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setIsDeleteExpanded(!isDeleteExpanded); }}
+                  className="w-full flex flex-col items-center gap-3 cursor-pointer bg-transparent border-0 hover:opacity-80 transition-opacity rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
-                  <div className="flex items-center justify-center pointer-events-none">
+                  <div className="flex items-center justify-center">
                     <div className="relative p-4 bg-gradient-to-br from-destructive/20 to-destructive/30 rounded-2xl shadow-md group-hover/card:shadow-lg transition-all duration-300">
                       <Trash2 className="h-8 w-8 text-destructive relative z-10" />
                     </div>
                   </div>
-                  <div className="text-center space-y-2 w-full pointer-events-none">
+                  <div className="text-center space-y-2 w-full">
                     <div className="flex items-center justify-center gap-2">
                       <h3 className="font-bold text-lg text-destructive">
                         Deletar Conta
@@ -137,7 +141,7 @@ export default function AccountManagement() {
                       )}
                     </div>
                   </div>
-                </button>
+                </div>
                 
                 {isDeleteExpanded && (
                   <div className="space-y-4 animate-fade-in">
@@ -182,3 +186,4 @@ export default function AccountManagement() {
     </>
   );
 }
+
