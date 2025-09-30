@@ -117,18 +117,23 @@ export default function CreateContent() {
           members: ['copy@lefil.com.br'],
           pending: [],
           plan: {
-            name: 'PREMIUM',
-            limits: {
-              members: 10,
-              themes: 10,
-              brands: 20,
-              personas: 15,
-              calendars: 5,
-              contentSuggestions: 100,
-              contentReviews: 50
-            }
+            id: '3',
+            name: 'PRO',
+            displayName: 'Premium',
+            price: 99.90,
+            trialDays: 14,
+            maxMembers: 10,
+            maxBrands: 20,
+            maxStrategicThemes: 50,
+            maxPersonas: 30,
+            quickContentCreations: 1000,
+            customContentSuggestions: 100,
+            contentPlans: 5,
+            contentReviews: 50,
+            isActive: true,
           },
           credits: {
+            quickContentCreations: 795,
             contentSuggestions: 9795,
             contentReviews: 48,
             contentPlans: 25

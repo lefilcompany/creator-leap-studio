@@ -31,23 +31,31 @@ export interface Team {
   admin: string; // admin email
   members: string[];
   pending: string[];
-  plan: string | {
-    name: string;
-    limits: {
-      members: number;
-      brands: number;
-      themes: number;
-      personas: number;
-      calendars: number;
-      contentSuggestions: number;
-      contentReviews: number;
-    };
-  };
+  plan: Plan | null;
   credits?: {
+    quickContentCreations: number;
     contentSuggestions: number;
     contentReviews: number;
     contentPlans: number;
   };
+}
+
+export interface Plan {
+  id: string;
+  name: string;
+  displayName: string;
+  price: number;
+  trialDays: number;
+  maxMembers: number;
+  maxBrands: number;
+  maxStrategicThemes: number;
+  maxPersonas: number;
+  quickContentCreations: number;
+  customContentSuggestions: number;
+  contentPlans: number;
+  contentReviews: number;
+  isActive: boolean;
+  stripePriceId?: string | null;
 }
 
 export interface TeamSummary {

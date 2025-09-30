@@ -108,16 +108,20 @@ export default function Themes() {
         members: ['copy@lefil.com.br'],
         pending: [],
         plan: {
-          name: 'PREMIUM',
-          limits: {
-            members: 10,
-            themes: 10,
-            brands: 20,
-            personas: 15,
-            calendars: 5,
-            contentSuggestions: 100,
-            contentReviews: 50
-          }
+          id: '3',
+          name: 'PRO',
+          displayName: 'Premium',
+          price: 99.90,
+          trialDays: 14,
+          maxMembers: 10,
+          maxBrands: 20,
+          maxStrategicThemes: 10,
+          maxPersonas: 30,
+          quickContentCreations: 1000,
+          customContentSuggestions: 100,
+          contentPlans: 5,
+          contentReviews: 50,
+          isActive: true,
         }
       };
 
@@ -136,15 +140,14 @@ export default function Themes() {
 
   const handleOpenDialog = useCallback((theme: StrategicTheme | null = null) => {
     // Check limit before opening dialog for new theme
-    if (!theme && team && typeof team.plan === 'object') {
-      const planLimits = team.plan.limits;
+    if (!theme && team) {
       const currentThemesCount = themes.length;
-      const maxThemes = planLimits?.themes || 3;
+      const maxThemes = team.plan.maxStrategicThemes || 3;
 
       if (currentThemesCount >= maxThemes) {
         toast({
           title: "Limite atingido!",
-          description: `Seu plano ${team.plan.name} permite apenas ${maxThemes} tema${maxThemes > 1 ? 's' : ''}.`,
+          description: `Seu plano ${team.plan.displayName} permite apenas ${maxThemes} tema${maxThemes > 1 ? 's' : ''}.`,
           variant: "destructive"
         });
         return;
@@ -289,8 +292,8 @@ export default function Themes() {
   }, [user, toast]);
 
   // Check if at theme limit
-  const isAtThemeLimit = team && typeof team.plan === 'object'
-    ? themes.length >= (team.plan.limits?.themes || 3)
+  const isAtThemeLimit = team
+    ? themes.length >= (team.plan.maxStrategicThemes || 3)
     : false;
 
   return (
