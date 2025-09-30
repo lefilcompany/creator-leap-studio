@@ -585,74 +585,77 @@ const Plans = () => {
 
         {/* Coluna Direita - Sidebar */}
         <div className="space-y-4">
-          {/* Ações Rápidas */}
-          <Card className="border-2">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base font-semibold">Ações Rápidas</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-4">
-              {[
-                { to: '/brands', icon: Tag, label: 'Gerenciar Marcas' },
-                { to: '/themes', icon: Palette, label: 'Gerenciar Temas' },
-                { to: '/personas', icon: Users, label: 'Gerenciar Personas' },
-              ].map((action, idx) => {
-                const Icon = action.icon;
-                return (
-                  <Link key={idx} to={action.to}>
-                    <Button 
-                      variant="outline" 
-                      size="default"
-                      className="w-full justify-start py-6 hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-200 border-border/50"
-                    >
-                      <Icon className="h-5 w-5 mr-3" />
-                      <span className="font-medium">{action.label}</span>
-                    </Button>
-                  </Link>
-                );
-              })}
-            </CardContent>
-          </Card>
+          {/* Grid com Ações Rápidas e Plano Atual lado a lado */}
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+            {/* Ações Rápidas */}
+            <Card className="border-2">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base font-semibold">Ações Rápidas</CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-4">
+                {[
+                  { to: '/brands', icon: Tag, label: 'Gerenciar Marcas' },
+                  { to: '/themes', icon: Palette, label: 'Gerenciar Temas' },
+                  { to: '/personas', icon: Users, label: 'Gerenciar Personas' },
+                ].map((action, idx) => {
+                  const Icon = action.icon;
+                  return (
+                    <Link key={idx} to={action.to}>
+                      <Button 
+                        variant="outline" 
+                        size="default"
+                        className="w-full justify-start py-6 hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-200 border-border/50"
+                      >
+                        <Icon className="h-5 w-5 mr-3" />
+                        <span className="font-medium">{action.label}</span>
+                      </Button>
+                    </Link>
+                  );
+                })}
+              </CardContent>
+            </Card>
 
-          {/* Card do Plano Atual - Detalhado */}
-          <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-background">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between mb-2">
-                <CardTitle className="text-lg font-bold">
-                  {plan?.displayName || 'Plano Atual'}
-                </CardTitle>
-                <Badge className="bg-primary text-primary-foreground text-xs">
-                  Seu Plano
-                </Badge>
-              </div>
-              <div className="flex items-baseline gap-1">
-                <span className="text-3xl font-bold text-primary">
-                  R${(plan?.price || 0).toFixed(2)}
-                </span>
-                <span className="text-sm text-muted-foreground">/mês</span>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-2.5">
-              {[
-                { label: 'Todas as funcionalidades básicas', included: true },
-                { label: 'Suporte via email', included: true },
-                { label: 'Suporte prioritário', included: (plan?.price || 0) > 0 },
-                { label: 'Integrações avançadas', included: plan?.name === 'ENTERPRISE' },
-              ].map((feature, idx) => (
-                <div key={idx} className="flex items-center gap-2.5">
-                  {feature.included ? (
-                    <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
-                  ) : (
-                    <X className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                  )}
-                  <span className={`text-sm ${
-                    feature.included ? 'text-foreground' : 'text-muted-foreground line-through'
-                  }`}>
-                    {feature.label}
-                  </span>
+            {/* Card do Plano Atual - Detalhado */}
+            <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-background">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between mb-2">
+                  <CardTitle className="text-lg font-bold">
+                    {plan?.displayName || 'Plano Atual'}
+                  </CardTitle>
+                  <Badge className="bg-primary text-primary-foreground text-xs">
+                    Seu Plano
+                  </Badge>
                 </div>
-              ))}
-            </CardContent>
-          </Card>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-3xl font-bold text-primary">
+                    R${(plan?.price || 0).toFixed(2)}
+                  </span>
+                  <span className="text-sm text-muted-foreground">/mês</span>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-2.5">
+                {[
+                  { label: 'Todas as funcionalidades básicas', included: true },
+                  { label: 'Suporte via email', included: true },
+                  { label: 'Suporte prioritário', included: (plan?.price || 0) > 0 },
+                  { label: 'Integrações avançadas', included: plan?.name === 'ENTERPRISE' },
+                ].map((feature, idx) => (
+                  <div key={idx} className="flex items-center gap-2.5">
+                    {feature.included ? (
+                      <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
+                    ) : (
+                      <X className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    )}
+                    <span className={`text-sm ${
+                      feature.included ? 'text-foreground' : 'text-muted-foreground line-through'
+                    }`}>
+                      {feature.label}
+                    </span>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </div>
 
           {/* Info da Equipe */}
           <Card className="border-2">
