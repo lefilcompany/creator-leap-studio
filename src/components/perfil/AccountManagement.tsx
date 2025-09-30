@@ -13,31 +13,13 @@ export default function AccountManagement() {
   const [isDeactivateDialogOpen, setIsDeactivateDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
-  const handleToggleExpanded = () => {
-    console.log('Toggle clicked, current isExpanded:', isExpanded);
-    setIsExpanded((prev) => {
-      console.log('Setting isExpanded to:', !prev);
-      return !prev;
-    });
-  };
-
-  const handleToggleDeactivate = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setIsDeactivateExpanded(!isDeactivateExpanded);
-  };
-
-  const handleToggleDelete = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setIsDeleteExpanded(!isDeleteExpanded);
-  };
-
   if (!isExpanded) {
     return (
       <Card className="group shadow-lg hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-card via-muted/[0.02] to-accent/[0.03] backdrop-blur-sm">
         <CardContent className="p-6">
           <Button
             variant="ghost"
-            onClick={handleToggleExpanded}
+            onClick={() => setIsExpanded(true)}
             className="w-full h-12 flex items-center justify-center gap-2 text-muted-foreground hover:text-foreground rounded-lg transition-all duration-300 hover:bg-muted/50"
           >
             <Settings className="h-4 w-4" />
@@ -90,7 +72,7 @@ export default function AccountManagement() {
               <CardContent className="p-6 space-y-4 relative">
                 <button
                   type="button"
-                  onClick={handleToggleDeactivate}
+                  onClick={() => setIsDeactivateExpanded(!isDeactivateExpanded)}
                   className="w-full flex flex-col items-center gap-3 cursor-pointer bg-transparent border-0 hover:opacity-80 transition-opacity"
                 >
                   <div className="flex items-center justify-center pointer-events-none">
@@ -135,7 +117,7 @@ export default function AccountManagement() {
               <CardContent className="p-6 space-y-4 relative">
                 <button
                   type="button"
-                  onClick={handleToggleDelete}
+                  onClick={() => setIsDeleteExpanded(!isDeleteExpanded)}
                   className="w-full flex flex-col items-center gap-3 cursor-pointer bg-transparent border-0 hover:opacity-80 transition-opacity"
                 >
                   <div className="flex items-center justify-center pointer-events-none">
@@ -179,7 +161,7 @@ export default function AccountManagement() {
           <div className="border-t border-primary/10 pt-6">
             <Button
               variant="ghost"
-              onClick={handleToggleExpanded}
+              onClick={() => setIsExpanded(false)}
               className="w-full h-11 flex items-center justify-center gap-2 text-muted-foreground hover:text-foreground rounded-lg transition-all duration-300 hover:bg-muted/50"
             >
               <span>Ocultar Opções Avançadas</span>

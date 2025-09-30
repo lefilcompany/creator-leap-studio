@@ -97,6 +97,7 @@ export default function PersonalInfoForm({ initialData }: PersonalInfoFormProps)
   const handleSave = async () => {
     setIsSaving(true);
     try {
+      // Simula a chamada API
       await new Promise(resolve => setTimeout(resolve, 1000));
       toast.success('Informações atualizadas com sucesso!');
     } catch (error) {
