@@ -185,7 +185,7 @@ export function AppSidebar() {
   if (isMobile) {
     return (
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="left" className="w-64 p-0 bg-card shadow-md shadow-primary/50">
+        <SheetContent side="left" className="w-64 p-0 bg-card shadow-md shadow-primary/20">
           <div className="h-full flex flex-col">
             {sidebarContent()}
           </div>
@@ -197,7 +197,7 @@ export function AppSidebar() {
   // Desktop: renderiza a Sidebar normal sempre fixa
   return (
     <Sidebar 
-      className="fixed left-0 top-0 h-screen w-64 border-r border-primary/20 shadow-md shadow-primary/50 z-40" 
+      className="fixed left-0 top-0 h-screen w-64 border-r border-primary/10 shadow-md shadow-primary/20 z-40" 
       collapsible="none"
       side="left"
       variant="sidebar"
