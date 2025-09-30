@@ -139,9 +139,9 @@ export default function TeamInfoCard({ team, userRole }: TeamInfoCardProps) {
           {/* Remaining Actions Section */}
           <div className="group/section space-y-4 border-t border-secondary/10 pt-6">
             <div className="flex items-center gap-3">
-              <div className="relative p-2.5 bg-gradient-to-br from-green-100 to-emerald-50 dark:from-green-900/20 dark:to-emerald-800/20 rounded-xl shadow-sm group-hover/section:shadow-md group-hover/section:scale-105 transition-all duration-300">
-                <div className="absolute inset-0 bg-gradient-to-br from-green-400 to-emerald-600 opacity-0 group-hover/section:opacity-10 rounded-xl transition-opacity duration-300" />
-                <Activity className="h-5 w-5 text-green-600 dark:text-green-500 relative z-10" />
+              <div className="relative p-2.5 bg-gradient-to-br from-accent/15 to-primary/15 rounded-xl shadow-sm group-hover/section:shadow-md group-hover/section:scale-105 transition-all duration-300">
+                <div className="absolute inset-0 bg-gradient-to-br from-accent to-primary opacity-0 group-hover/section:opacity-10 rounded-xl transition-opacity duration-300" />
+                <Activity className="h-5 w-5 text-accent relative z-10" />
               </div>
               <div>
                 <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Ações Restantes</span>
@@ -151,7 +151,7 @@ export default function TeamInfoCard({ team, userRole }: TeamInfoCardProps) {
             <div className="space-y-4">
               <div className="flex items-end justify-between gap-4">
                 <div>
-                  <span className="text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                  <span className="text-4xl font-bold bg-gradient-to-r from-accent to-primary bg-clip-text text-transparent">
                     {remainingCredits.toLocaleString()}
                   </span>
                   <p className="text-xs text-muted-foreground mt-1">créditos disponíveis</p>
@@ -171,12 +171,12 @@ export default function TeamInfoCard({ team, userRole }: TeamInfoCardProps) {
                   value={progressPercentage} 
                   className="h-4 rounded-full shadow-inner bg-muted/50" 
                 />
-                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-green-400/10 to-emerald-400/10 pointer-events-none" />
+                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-accent/10 to-primary/10 pointer-events-none" />
               </div>
               
               <div className="flex items-center justify-between text-xs">
-                <span className="text-green-600 dark:text-green-500 font-medium">
-                  ⚡ {progressPercentage.toFixed(1)}% utilizado
+                <span className="text-accent font-medium">
+                  {progressPercentage.toFixed(1)}% utilizado
                 </span>
                 <span className="text-muted-foreground">
                   {(100 - progressPercentage).toFixed(1)}% restante
