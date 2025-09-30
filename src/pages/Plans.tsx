@@ -489,7 +489,7 @@ const Plans = () => {
         {/* Coluna Direita - Sidebar */}
         <div className="space-y-4">
           {/* Grid com Ações Rápidas e Plano Atual lado a lado */}
-          <div className="flex flex-col xl:flex-row gap-4">
+          <div className="flex flex-col md:flex-row xl:flex-col gap-4">
             {/* Ações Rápidas */}
             <Card className="shadow-lg flex-1">
               <CardHeader className="pb-3">
