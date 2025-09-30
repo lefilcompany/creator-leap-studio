@@ -242,7 +242,7 @@ export default function BrandDetails({ brand, onEdit, onDelete, isLoading = fals
         </div>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-3 mt-4 mb-4 flex-shrink-0">
+      <div className="flex flex-col md:flex-row gap-3 mt-4 mb-2 flex-shrink-0">
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button variant="outline" className="w-full flex-1 rounded-full">
