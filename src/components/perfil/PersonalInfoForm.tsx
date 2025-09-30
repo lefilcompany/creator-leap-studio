@@ -201,60 +201,66 @@ export default function PersonalInfoForm({ initialData }: PersonalInfoFormProps)
           {/* Estado e Cidade */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             <div className="space-y-2 sm:space-y-3 group/field">
-              <Label htmlFor="state" className="text-xs sm:text-sm font-semibold text-foreground flex items-center gap-2 group-hover/field:text-secondary transition-colors">
-                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gradient-to-r from-secondary to-accent rounded-full shadow-sm group-hover/field:shadow-md group-hover/field:scale-125 transition-all duration-300" />
+              <Label htmlFor="state" className="text-xs sm:text-sm font-semibold text-foreground flex items-center gap-2 group-hover/field:text-secondary transition-colors duration-300">
+                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gradient-to-r from-secondary to-accent rounded-full shadow-sm group-hover/field:shadow-md group-hover/field:shadow-secondary/50 group-hover/field:scale-125 transition-all duration-300" />
                 Estado
               </Label>
-              <Select 
-                value={formData.state || ''} 
-                onValueChange={(value) => {
-                  handleChange('state', value);
-                  handleChange('city', ''); // Reset city when state changes
-                }} 
-                disabled={loadingStates}
-              >
-                <SelectTrigger className="h-10 sm:h-11 md:h-12 border-2 border-secondary/20 focus:border-secondary/50 hover:border-secondary/30 rounded-xl bg-background/80 backdrop-blur-sm text-sm sm:text-base shadow-sm focus:shadow-md transition-all duration-300">
-                  {loadingStates ? 'Carregando...' : <SelectValue placeholder="Selecione um estado" />}
-                </SelectTrigger>
-                <SelectContent className="rounded-xl border-2 border-secondary/20 shadow-xl bg-background z-50 max-h-[300px]">
-                  {states.map(state => (
-                    <SelectItem 
-                      key={state.id} 
-                      value={state.sigla} 
-                      className="text-xs sm:text-sm md:text-base rounded-lg hover:bg-secondary/10 focus:bg-secondary/20 transition-colors cursor-pointer py-3"
-                    >
-                      {state.nome}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="relative group/select">
+                <Select 
+                  value={formData.state || ''} 
+                  onValueChange={(value) => {
+                    handleChange('state', value);
+                    handleChange('city', ''); // Reset city when state changes
+                  }} 
+                  disabled={loadingStates}
+                >
+                  <SelectTrigger className="h-10 sm:h-11 md:h-12 border-2 border-secondary/20 focus:border-secondary/50 hover:border-secondary/40 hover:shadow-lg hover:shadow-secondary/20 rounded-xl bg-background/80 backdrop-blur-sm text-sm sm:text-base shadow-sm focus:shadow-md transition-all duration-300 group-hover/select:scale-[1.02] group-hover/select:bg-gradient-to-r group-hover/select:from-background group-hover/select:to-secondary/5">
+                    {loadingStates ? 'Carregando...' : <SelectValue placeholder="Selecione um estado" />}
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl border-2 border-secondary/20 shadow-xl bg-background z-50 max-h-[300px] animate-in fade-in-0 zoom-in-95">
+                    {states.map(state => (
+                      <SelectItem 
+                        key={state.id} 
+                        value={state.sigla} 
+                        className="text-xs sm:text-sm md:text-base rounded-lg hover:bg-secondary/10 focus:bg-secondary/20 transition-all duration-200 cursor-pointer py-3 hover:scale-[1.02] hover:shadow-sm"
+                      >
+                        {state.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-secondary/10 to-accent/10 opacity-0 group-hover/select:opacity-100 transition-opacity duration-300 pointer-events-none -z-10 blur-md" />
+              </div>
             </div>
 
             <div className="space-y-2 sm:space-y-3 group/field">
-              <Label htmlFor="city" className="text-xs sm:text-sm font-semibold text-foreground flex items-center gap-2 group-hover/field:text-secondary transition-colors">
-                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gradient-to-r from-secondary to-primary rounded-full shadow-sm group-hover/field:shadow-md group-hover/field:scale-125 transition-all duration-300" />
+              <Label htmlFor="city" className="text-xs sm:text-sm font-semibold text-foreground flex items-center gap-2 group-hover/field:text-secondary transition-colors duration-300">
+                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gradient-to-r from-secondary to-primary rounded-full shadow-sm group-hover/field:shadow-md group-hover/field:shadow-secondary/50 group-hover/field:scale-125 transition-all duration-300" />
                 Cidade
               </Label>
-              <Select 
-                value={formData.city || ''} 
-                onValueChange={(value) => handleChange('city', value)} 
-                disabled={!formData.state || loadingCities}
-              >
-                <SelectTrigger className="h-10 sm:h-11 md:h-12 border-2 border-secondary/20 focus:border-secondary/50 hover:border-secondary/30 rounded-xl bg-background/80 backdrop-blur-sm text-sm sm:text-base shadow-sm focus:shadow-md transition-all duration-300 disabled:opacity-50">
-                  {loadingCities ? 'Carregando...' : <SelectValue placeholder="Selecione uma cidade" />}
-                </SelectTrigger>
-                <SelectContent className="rounded-xl border-2 border-secondary/20 shadow-xl bg-background z-50 max-h-[300px]">
-                  {cities.map(city => (
-                    <SelectItem 
-                      key={city.id} 
-                      value={city.nome} 
-                      className="text-xs sm:text-sm md:text-base rounded-lg hover:bg-secondary/10 focus:bg-secondary/20 transition-colors cursor-pointer py-3"
-                    >
-                      {city.nome}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="relative group/select">
+                <Select 
+                  value={formData.city || ''} 
+                  onValueChange={(value) => handleChange('city', value)} 
+                  disabled={!formData.state || loadingCities}
+                >
+                  <SelectTrigger className="h-10 sm:h-11 md:h-12 border-2 border-secondary/20 focus:border-secondary/50 hover:border-secondary/40 hover:shadow-lg hover:shadow-secondary/20 rounded-xl bg-background/80 backdrop-blur-sm text-sm sm:text-base shadow-sm focus:shadow-md transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group-hover/select:scale-[1.02] group-hover/select:bg-gradient-to-r group-hover/select:from-background group-hover/select:to-secondary/5 disabled:hover:scale-100 disabled:hover:shadow-sm">
+                    {loadingCities ? 'Carregando...' : <SelectValue placeholder="Selecione uma cidade" />}
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl border-2 border-secondary/20 shadow-xl bg-background z-50 max-h-[300px] animate-in fade-in-0 zoom-in-95">
+                    {cities.map(city => (
+                      <SelectItem 
+                        key={city.id} 
+                        value={city.nome} 
+                        className="text-xs sm:text-sm md:text-base rounded-lg hover:bg-secondary/10 focus:bg-secondary/20 transition-all duration-200 cursor-pointer py-3 hover:scale-[1.02] hover:shadow-sm"
+                      >
+                        {city.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-secondary/10 to-primary/10 opacity-0 group-hover/select:opacity-100 transition-opacity duration-300 pointer-events-none -z-10 blur-md" />
+              </div>
             </div>
           </div>
           
