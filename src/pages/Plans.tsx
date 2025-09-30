@@ -381,7 +381,7 @@ const Plans = () => {
                   </div>
                 </div>
                 <div className="text-center md:text-right">
-                  <div className="text-4xl md:text-5xl font-bold text-primary mb-1">
+                  <div className="text-2xl md:text-3xl font-bold text-primary mb-1">
                     {totalCredits.toLocaleString()}
                   </div>
                   <p className="text-sm text-muted-foreground">
