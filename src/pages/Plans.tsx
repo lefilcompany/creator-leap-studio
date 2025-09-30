@@ -265,9 +265,11 @@ const Plans = () => {
                       </div>}
                   </div>
 
-                  <Button className="w-full text-xs md:text-sm" variant={isPopular ? 'default' : 'outline'} size="sm" onClick={() => handleSubscribe(plan)} disabled={isCurrentPlan || loadingPlanId === plan.id || plan.price > 0 && !plan.stripePriceId || plan.name === 'FREE'}>
-                    {isCurrentPlan ? 'Plano Atual' : loadingPlanId === plan.id ? 'Processando...' : plan.name === 'FREE' ? 'Continuar Grátis' : plan.name === 'ENTERPRISE' ? 'Entrar em Contato' : plan.price > 0 && !plan.stripePriceId ? 'Em Breve' : 'Assinar Agora'}
-                  </Button>
+                  {plan.name !== 'FREE' && (
+                    <Button className="w-full text-xs md:text-sm" variant={isPopular ? 'default' : 'outline'} size="sm" onClick={() => handleSubscribe(plan)} disabled={isCurrentPlan || loadingPlanId === plan.id || plan.price > 0 && !plan.stripePriceId}>
+                      {isCurrentPlan ? 'Plano Atual' : loadingPlanId === plan.id ? 'Processando...' : plan.name === 'ENTERPRISE' ? 'Entrar em Contato' : plan.price > 0 && !plan.stripePriceId ? 'Em Breve' : 'Assinar Agora'}
+                    </Button>
+                  )}
                 </CardContent>
               </Card>;
         })}
