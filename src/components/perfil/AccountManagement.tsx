@@ -14,7 +14,11 @@ export default function AccountManagement() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const handleToggleExpanded = () => {
-    setIsExpanded(!isExpanded);
+    console.log('Toggle clicked, current isExpanded:', isExpanded);
+    setIsExpanded((prev) => {
+      console.log('Setting isExpanded to:', !prev);
+      return !prev;
+    });
   };
 
   const handleToggleDeactivate = (e: React.MouseEvent) => {
