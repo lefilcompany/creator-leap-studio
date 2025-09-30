@@ -92,13 +92,16 @@ export default function DeleteAccountDialog({ open, onOpenChange }: DeleteAccoun
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="delete-confirm">Digite "DELETAR" para confirmar</Label>
+                <Label htmlFor="delete-confirm" className="text-sm font-semibold">
+                  Para confirmar, digite <span className="text-destructive font-bold">DELETAR</span> exatamente como aparece
+                </Label>
                 <Input
                   id="delete-confirm"
                   type="text"
                   value={confirmText}
                   onChange={(e) => setConfirmText(e.target.value)}
-                  placeholder="DELETAR"
+                  placeholder="Digite DELETAR aqui"
+                  className="font-medium"
                 />
               </div>
 
