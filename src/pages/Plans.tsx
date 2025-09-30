@@ -191,7 +191,7 @@ const Plans = () => {
             </Alert>}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6">
           {plans.map(plan => {
           const isCurrentPlan = subscriptionStatus?.plan?.id === plan.id;
           const isSelected = selectedPlan === plan.name;
@@ -265,8 +265,8 @@ const Plans = () => {
                       </div>}
                   </div>
 
-                  <Button className="w-full text-xs md:text-sm" variant={isPopular ? 'default' : 'outline'} size="sm" onClick={() => handleSubscribe(plan)} disabled={isCurrentPlan || loadingPlanId === plan.id || plan.price > 0 && !plan.stripePriceId || plan.name === 'ENTERPRISE'}>
-                    {isCurrentPlan ? 'Plano Atual' : loadingPlanId === plan.id ? 'Processando...' : plan.name === 'FREE' ? 'Continuar Grátis' : plan.name === 'ENTERPRISE' ? 'Em Breve' : plan.price > 0 && !plan.stripePriceId ? 'Em Breve' : 'Assinar Agora'}
+                  <Button className="w-full text-xs md:text-sm" variant={isPopular ? 'default' : 'outline'} size="sm" onClick={() => handleSubscribe(plan)} disabled={isCurrentPlan || loadingPlanId === plan.id || plan.price > 0 && !plan.stripePriceId || plan.name === 'FREE'}>
+                    {isCurrentPlan ? 'Plano Atual' : loadingPlanId === plan.id ? 'Processando...' : plan.name === 'FREE' ? 'Continuar Grátis' : plan.name === 'ENTERPRISE' ? 'Entrar em Contato' : plan.price > 0 && !plan.stripePriceId ? 'Em Breve' : 'Assinar Agora'}
                   </Button>
                 </CardContent>
               </Card>;
