@@ -140,7 +140,7 @@ export default function PersonalInfoForm({ initialData }: PersonalInfoFormProps)
           </div>
         </CardHeader>
 
-        <CardContent className="space-y-6 sm:space-y-8 p-4 sm:p-6 md:p-8 relative">
+        <CardContent className="space-y-6 sm:space-y-8 p-4 sm:p-6 md:px-8 md:py-6 lg:py-5 relative">
           {/* Nome e Email */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             <div className="space-y-2 sm:space-y-3 group/field">
