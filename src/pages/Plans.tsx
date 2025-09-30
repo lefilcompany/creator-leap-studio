@@ -590,7 +590,7 @@ const Plans = () => {
             <CardHeader className="pb-3">
               <CardTitle className="text-base font-semibold">Ações Rápidas</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-5">
               {[
                 { to: '/brands', icon: Tag, label: 'Gerenciar Marcas' },
                 { to: '/themes', icon: Palette, label: 'Gerenciar Temas' },
@@ -602,7 +602,7 @@ const Plans = () => {
                     <Button 
                       variant="outline" 
                       size="sm"
-                      className="w-full justify-start hover:bg-secondary/50 border-border/50"
+                      className="w-full justify-start hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-200 border-border/50"
                     >
                       <Icon className="h-4 w-4 mr-2" />
                       {action.label}
