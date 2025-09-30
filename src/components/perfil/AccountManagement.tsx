@@ -6,7 +6,11 @@ import { AlertTriangle, UserX, Trash2, ChevronDown, ChevronUp, Settings } from '
 import DeactivateAccountDialog from './DeactivateAccountDialog';
 import DeleteAccountDialog from './DeleteAccountDialog';
 
-export default function AccountManagement() {
+interface AccountManagementProps {
+  userEmail: string;
+}
+
+export default function AccountManagement({ userEmail }: AccountManagementProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isDeactivateDialogOpen, setIsDeactivateDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -131,6 +135,7 @@ export default function AccountManagement() {
       <DeleteAccountDialog
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
+        userEmail={userEmail}
       />
     </>
   );

@@ -17,11 +17,12 @@ import { AlertTriangle } from 'lucide-react';
 interface DeleteAccountDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  userEmail: string;
 }
 
-export default function DeleteAccountDialog({ open, onOpenChange }: DeleteAccountDialogProps) {
+export default function DeleteAccountDialog({ open, onOpenChange, userEmail }: DeleteAccountDialogProps) {
   const [password, setPassword] = useState('');
-  const [confirmText, setConfirmText] = useState('');
+  const [emailConfirm, setEmailConfirm] = useState('');
   const [understood, setUnderstood] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -31,8 +32,8 @@ export default function DeleteAccountDialog({ open, onOpenChange }: DeleteAccoun
       return;
     }
 
-    if (confirmText !== 'DELETAR') {
-      toast.error('Digite "DELETAR" para confirmar');
+    if (emailConfirm.toLowerCase().trim() !== userEmail.toLowerCase().trim()) {
+      toast.error('O email digitado não corresponde ao seu email');
       return;
     }
 
@@ -48,7 +49,7 @@ export default function DeleteAccountDialog({ open, onOpenChange }: DeleteAccoun
       toast.success('Conta deletada com sucesso');
       onOpenChange(false);
       setPassword('');
-      setConfirmText('');
+      setEmailConfirm('');
       setUnderstood(false);
     } catch (error) {
       toast.error('Erro ao deletar conta. Tente novamente.');
@@ -93,16 +94,20 @@ export default function DeleteAccountDialog({ open, onOpenChange }: DeleteAccoun
 
               <div className="space-y-2">
                 <Label htmlFor="delete-confirm" className="text-sm font-semibold">
-                  Para confirmar, digite <span className="text-destructive font-bold">DELETAR</span> exatamente como aparece
+                  Para confirmar, digite seu email: <span className="text-destructive font-bold">{userEmail}</span>
                 </Label>
                 <Input
                   id="delete-confirm"
-                  type="text"
-                  value={confirmText}
-                  onChange={(e) => setConfirmText(e.target.value)}
-                  placeholder="Digite DELETAR aqui"
+                  type="email"
+                  value={emailConfirm}
+                  onChange={(e) => setEmailConfirm(e.target.value)}
+                  placeholder="Digite seu email aqui"
                   className="font-medium"
+                  autoComplete="off"
                 />
+                <p className="text-xs text-muted-foreground">
+                  Esta é uma medida de segurança adicional para confirmar sua identidade
+                </p>
               </div>
 
               <div className="flex items-start space-x-2">
@@ -127,7 +132,7 @@ export default function DeleteAccountDialog({ open, onOpenChange }: DeleteAccoun
             onClick={() => {
               onOpenChange(false);
               setPassword('');
-              setConfirmText('');
+              setEmailConfirm('');
               setUnderstood(false);
             }}
             disabled={isLoading}

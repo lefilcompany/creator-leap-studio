@@ -50,7 +50,7 @@ export default function Profile() {
         </div>
         
         {/* Advanced Settings */}
-        <AccountManagement />
+        <AccountManagement userEmail={user.email || ''} />
       </div>
     </div>
   );
