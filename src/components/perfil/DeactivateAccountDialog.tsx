@@ -67,6 +67,7 @@ export default function DeactivateAccountDialog({ open, onOpenChange }: Deactiva
         <AlertDialogFooter>
           <Button
             variant="outline"
+            className="border-accent text-accent"
             onClick={() => {
               onOpenChange(false);
               setPassword('');
