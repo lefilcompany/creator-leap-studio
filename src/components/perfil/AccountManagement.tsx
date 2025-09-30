@@ -63,7 +63,7 @@ export default function AccountManagement({ userEmail }: AccountManagementProps)
           </Alert>
 
           {/* Actions Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             {/* Deactivate Account Card */}
             <Card className="border-0 bg-gradient-to-br from-muted/50 to-accent/5 hover:shadow-lg transition-all duration-300">
               <CardContent className="p-4 sm:p-6 space-y-3 sm:space-y-4">
