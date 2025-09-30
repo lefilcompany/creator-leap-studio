@@ -590,7 +590,7 @@ const Plans = () => {
             <CardHeader className="pb-3">
               <CardTitle className="text-base font-semibold">Ações Rápidas</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
+            <CardContent className="space-y-4">
               {[
                 { to: '/brands', icon: Tag, label: 'Gerenciar Marcas' },
                 { to: '/themes', icon: Palette, label: 'Gerenciar Temas' },
