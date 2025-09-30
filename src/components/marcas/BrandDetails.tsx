@@ -186,8 +186,8 @@ export default function BrandDetails({ brand, onEdit, onDelete, isLoading = fals
   const wasUpdated = brand.createdAt !== brand.updatedAt;
 
   return (
-    <div className="h-full p-6 flex flex-col overflow-hidden">
-      <div className="flex items-center mb-6 flex-shrink-0">
+    <div className="h-full p-4 md:p-6 flex flex-col overflow-hidden">
+      <div className="flex items-center mb-4 flex-shrink-0">
         <div className="bg-gradient-to-br from-secondary to-primary text-white rounded-xl w-16 h-16 flex items-center justify-center font-bold text-3xl mr-4 flex-shrink-0">
           {brand.name.charAt(0).toUpperCase()}
         </div>
@@ -242,7 +242,7 @@ export default function BrandDetails({ brand, onEdit, onDelete, isLoading = fals
         </div>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-3 mt-6 mb-8 flex-shrink-0">
+      <div className="flex flex-col md:flex-row gap-3 mt-4 mb-4 flex-shrink-0">
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button variant="outline" className="w-full flex-1 rounded-full">
