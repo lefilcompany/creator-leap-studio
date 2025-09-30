@@ -16,16 +16,16 @@ export default function TeamInfoCard({ team, userRole }: TeamInfoCardProps) {
   if (!team) {
     return (
       <Card className="group shadow-lg hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-card via-secondary/[0.02] to-accent/[0.03] backdrop-blur-sm">
-        <CardHeader className="relative bg-gradient-to-r from-secondary/8 via-accent/5 to-primary/8 border-b border-secondary/10 p-8">
-          <div className="flex items-start gap-4">
-            <div className="relative p-3 bg-gradient-to-br from-secondary/20 to-accent/20 rounded-2xl shadow-md">
-              <Users className="h-7 w-7 text-secondary relative z-10" />
+        <CardHeader className="relative bg-gradient-to-r from-secondary/8 via-accent/5 to-primary/8 border-b border-secondary/10 p-4 sm:p-6 md:p-8">
+          <div className="flex items-start gap-3 sm:gap-4">
+            <div className="relative p-2 sm:p-3 bg-gradient-to-br from-secondary/20 to-accent/20 rounded-2xl shadow-md">
+              <Users className="h-5 w-5 sm:h-6 sm:w-6 md:h-7 md:w-7 text-secondary relative z-10" />
             </div>
-            <div className="flex-1">
-              <CardTitle className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-secondary via-accent to-primary bg-clip-text text-transparent mb-2">
+            <div className="flex-1 min-w-0">
+              <CardTitle className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-secondary via-accent to-primary bg-clip-text text-transparent mb-2 truncate">
                 Informações da Equipe
               </CardTitle>
-              <CardDescription className="text-muted-foreground text-sm md:text-base">
+              <CardDescription className="text-muted-foreground text-xs sm:text-sm md:text-base">
                 Você não está em uma equipe
               </CardDescription>
             </div>
@@ -45,35 +45,35 @@ export default function TeamInfoCard({ team, userRole }: TeamInfoCardProps) {
       <Card className="group shadow-lg hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-card via-secondary/[0.02] to-accent/[0.03] backdrop-blur-sm overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-secondary/5 via-transparent to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
         
-        <CardHeader className="relative bg-gradient-to-r from-secondary/8 via-accent/5 to-primary/8 border-b border-secondary/10 p-8">
-          <div className="flex items-start gap-4">
-            <div className="relative p-3 bg-gradient-to-br from-secondary/20 to-accent/20 rounded-2xl shadow-md group-hover:shadow-lg group-hover:scale-105 transition-all duration-300">
+        <CardHeader className="relative bg-gradient-to-r from-secondary/8 via-accent/5 to-primary/8 border-b border-secondary/10 p-4 sm:p-6 md:p-8">
+          <div className="flex items-start gap-3 sm:gap-4">
+            <div className="relative p-2 sm:p-3 bg-gradient-to-br from-secondary/20 to-accent/20 rounded-2xl shadow-md group-hover:shadow-lg group-hover:scale-105 transition-all duration-300">
               <div className="absolute inset-0 bg-gradient-to-br from-secondary to-accent opacity-0 group-hover:opacity-10 rounded-2xl transition-opacity duration-300" />
-              <Users className="h-7 w-7 text-secondary relative z-10" />
+              <Users className="h-5 w-5 sm:h-6 sm:w-6 md:h-7 md:w-7 text-secondary relative z-10" />
             </div>
-            <div className="flex-1">
-              <CardTitle className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-secondary via-accent to-primary bg-clip-text text-transparent mb-2">
+            <div className="flex-1 min-w-0">
+              <CardTitle className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-secondary via-accent to-primary bg-clip-text text-transparent mb-2 truncate">
                 Informações da Equipe
               </CardTitle>
-              <CardDescription className="text-muted-foreground text-sm md:text-base">
+              <CardDescription className="text-muted-foreground text-xs sm:text-sm md:text-base">
                 Dados da sua equipe e função
               </CardDescription>
             </div>
           </div>
         </CardHeader>
 
-        <CardContent className="space-y-8 p-8 relative">
+        <CardContent className="space-y-6 sm:space-y-8 p-4 sm:p-6 md:p-8 relative">
           {/* Team Name Section */}
-          <div className="group/section space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3 flex-1">
-                <div className="relative p-2.5 bg-gradient-to-br from-secondary/15 to-accent/15 rounded-xl shadow-sm group-hover/section:shadow-md group-hover/section:scale-105 transition-all duration-300">
+          <div className="group/section space-y-3 sm:space-y-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                <div className="relative p-2 sm:p-2.5 bg-gradient-to-br from-secondary/15 to-accent/15 rounded-xl shadow-sm group-hover/section:shadow-md group-hover/section:scale-105 transition-all duration-300">
                   <div className="absolute inset-0 bg-gradient-to-br from-secondary to-accent opacity-0 group-hover/section:opacity-10 rounded-xl transition-opacity duration-300" />
-                  <Users className="h-5 w-5 text-secondary relative z-10" />
+                  <Users className="h-4 w-4 sm:h-5 sm:w-5 text-secondary relative z-10" />
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Equipe</span>
-                  <p className="text-xl font-bold bg-gradient-to-r from-secondary to-accent bg-clip-text text-transparent mt-1">
+                  <p className="text-base sm:text-lg md:text-xl font-bold bg-gradient-to-r from-secondary to-accent bg-clip-text text-transparent mt-1 truncate">
                     {team.name}
                   </p>
                 </div>

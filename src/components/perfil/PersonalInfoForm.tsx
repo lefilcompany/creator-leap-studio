@@ -123,29 +123,29 @@ export default function PersonalInfoForm({ initialData }: PersonalInfoFormProps)
       <Card className="group shadow-lg hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-card via-primary/[0.02] to-secondary/[0.03] backdrop-blur-sm overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
         
-        <CardHeader className="relative bg-gradient-to-r from-primary/8 via-secondary/5 to-accent/8 border-b border-primary/10 p-8">
-          <div className="flex items-start gap-4">
-            <div className="relative p-3 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-2xl shadow-md group-hover:shadow-lg group-hover:scale-105 transition-all duration-300">
+        <CardHeader className="relative bg-gradient-to-r from-primary/8 via-secondary/5 to-accent/8 border-b border-primary/10 p-4 sm:p-6 md:p-8">
+          <div className="flex items-start gap-3 sm:gap-4">
+            <div className="relative p-2 sm:p-3 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-2xl shadow-md group-hover:shadow-lg group-hover:scale-105 transition-all duration-300">
               <div className="absolute inset-0 bg-gradient-to-br from-primary to-secondary opacity-0 group-hover:opacity-10 rounded-2xl transition-opacity duration-300" />
-              <User className="h-7 w-7 text-primary relative z-10" />
+              <User className="h-5 w-5 sm:h-6 sm:w-6 md:h-7 md:w-7 text-primary relative z-10" />
             </div>
-            <div className="flex-1">
-              <CardTitle className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent mb-2">
+            <div className="flex-1 min-w-0">
+              <CardTitle className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent mb-2 truncate">
                 Dados Pessoais
               </CardTitle>
-              <CardDescription className="text-muted-foreground text-sm md:text-base">
+              <CardDescription className="text-muted-foreground text-xs sm:text-sm md:text-base">
                 Atualize suas informações de contato e localização
               </CardDescription>
             </div>
           </div>
         </CardHeader>
 
-        <CardContent className="space-y-8 p-8 relative">
+        <CardContent className="space-y-6 sm:space-y-8 p-4 sm:p-6 md:p-8 relative">
           {/* Nome e Email */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-3 group/field">
-              <Label htmlFor="name" className="text-sm font-semibold text-foreground flex items-center gap-2 group-hover/field:text-primary transition-colors">
-                <div className="w-2 h-2 bg-gradient-to-r from-primary to-secondary rounded-full shadow-sm group-hover/field:shadow-md group-hover/field:scale-125 transition-all duration-300" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+            <div className="space-y-2 sm:space-y-3 group/field">
+              <Label htmlFor="name" className="text-xs sm:text-sm font-semibold text-foreground flex items-center gap-2 group-hover/field:text-primary transition-colors">
+                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gradient-to-r from-primary to-secondary rounded-full shadow-sm group-hover/field:shadow-md group-hover/field:scale-125 transition-all duration-300" />
                 Nome Completo
               </Label>
               <div className="relative">
@@ -153,15 +153,15 @@ export default function PersonalInfoForm({ initialData }: PersonalInfoFormProps)
                   id="name" 
                   value={formData.name} 
                   onChange={(e) => handleChange('name', e.target.value)} 
-                  className="h-12 border-2 border-primary/20 focus:border-primary/50 hover:border-primary/30 rounded-xl bg-background/80 backdrop-blur-sm transition-all duration-300 text-base shadow-sm focus:shadow-md pl-4"
+                  className="h-10 sm:h-11 md:h-12 border-2 border-primary/20 focus:border-primary/50 hover:border-primary/30 rounded-xl bg-background/80 backdrop-blur-sm transition-all duration-300 text-sm sm:text-base shadow-sm focus:shadow-md pl-3 sm:pl-4"
                 />
                 <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary/5 to-secondary/5 opacity-0 hover:opacity-100 transition-opacity pointer-events-none" />
               </div>
             </div>
 
-            <div className="space-y-3 group/field">
-              <Label htmlFor="email" className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
-                <div className="w-2 h-2 bg-muted rounded-full" />
+            <div className="space-y-2 sm:space-y-3 group/field">
+              <Label htmlFor="email" className="text-xs sm:text-sm font-semibold text-muted-foreground flex items-center gap-2">
+                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-muted rounded-full" />
                 Email
               </Label>
               <div className="relative">
@@ -170,9 +170,9 @@ export default function PersonalInfoForm({ initialData }: PersonalInfoFormProps)
                   type="email" 
                   value={formData.email || ''} 
                   disabled 
-                  className="h-12 cursor-not-allowed bg-muted/30 border-2 border-muted/40 rounded-xl text-base pl-4 shadow-sm"
+                  className="h-10 sm:h-11 md:h-12 cursor-not-allowed bg-muted/30 border-2 border-muted/40 rounded-xl text-sm sm:text-base pl-3 sm:pl-4 shadow-sm"
                 />
-                <p className="absolute -bottom-6 left-0 text-xs text-muted-foreground/80 italic">
+                <p className="absolute -bottom-5 sm:-bottom-6 left-0 text-xs text-muted-foreground/80 italic">
                   Campo protegido por segurança
                 </p>
               </div>
@@ -180,10 +180,10 @@ export default function PersonalInfoForm({ initialData }: PersonalInfoFormProps)
           </div>
           
           {/* Telefone, Estado e Cidade */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
-            <div className="space-y-3 group/field">
-              <Label htmlFor="phone" className="text-sm font-semibold text-foreground flex items-center gap-2 group-hover/field:text-accent transition-colors">
-                <div className="w-2 h-2 bg-gradient-to-r from-accent to-primary rounded-full shadow-sm group-hover/field:shadow-md group-hover/field:scale-125 transition-all duration-300" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 pt-4">
+            <div className="space-y-2 sm:space-y-3 group/field">
+              <Label htmlFor="phone" className="text-xs sm:text-sm font-semibold text-foreground flex items-center gap-2 group-hover/field:text-accent transition-colors">
+                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gradient-to-r from-accent to-primary rounded-full shadow-sm group-hover/field:shadow-md group-hover/field:scale-125 transition-all duration-300" />
                 Telefone
               </Label>
               <div className="relative">
@@ -191,7 +191,7 @@ export default function PersonalInfoForm({ initialData }: PersonalInfoFormProps)
                   id="phone" 
                   value={formData.phone || ''} 
                   onChange={(e) => handlePhoneChange(e.target.value)} 
-                  className="h-12 border-2 border-accent/20 focus:border-accent/50 hover:border-accent/30 rounded-xl bg-background/80 backdrop-blur-sm transition-all duration-300 text-base shadow-sm focus:shadow-md pl-4"
+                  className="h-10 sm:h-11 md:h-12 border-2 border-accent/20 focus:border-accent/50 hover:border-accent/30 rounded-xl bg-background/80 backdrop-blur-sm transition-all duration-300 text-sm sm:text-base shadow-sm focus:shadow-md pl-3 sm:pl-4"
                   placeholder="(XX) XXXXX-XXXX"
                   maxLength={15}
                 />
@@ -199,9 +199,9 @@ export default function PersonalInfoForm({ initialData }: PersonalInfoFormProps)
               </div>
             </div>
 
-            <div className="space-y-3 group/field">
-              <Label htmlFor="state" className="text-sm font-semibold text-foreground flex items-center gap-2 group-hover/field:text-secondary transition-colors">
-                <div className="w-2 h-2 bg-gradient-to-r from-secondary to-accent rounded-full shadow-sm group-hover/field:shadow-md group-hover/field:scale-125 transition-all duration-300" />
+            <div className="space-y-2 sm:space-y-3 group/field">
+              <Label htmlFor="state" className="text-xs sm:text-sm font-semibold text-foreground flex items-center gap-2 group-hover/field:text-secondary transition-colors">
+                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gradient-to-r from-secondary to-accent rounded-full shadow-sm group-hover/field:shadow-md group-hover/field:scale-125 transition-all duration-300" />
                 Estado
               </Label>
               <Select 
@@ -212,12 +212,12 @@ export default function PersonalInfoForm({ initialData }: PersonalInfoFormProps)
                 }} 
                 disabled={loadingStates}
               >
-                <SelectTrigger className="h-12 border-2 border-secondary/20 focus:border-secondary/50 hover:border-secondary/30 rounded-xl bg-background/80 backdrop-blur-sm text-base shadow-sm focus:shadow-md transition-all duration-300">
+                <SelectTrigger className="h-10 sm:h-11 md:h-12 border-2 border-secondary/20 focus:border-secondary/50 hover:border-secondary/30 rounded-xl bg-background/80 backdrop-blur-sm text-sm sm:text-base shadow-sm focus:shadow-md transition-all duration-300">
                   {loadingStates ? 'Carregando...' : <SelectValue placeholder="Selecione um estado" />}
                 </SelectTrigger>
                 <SelectContent className="rounded-xl border-2 border-secondary/20 shadow-xl">
                   {states.map(state => (
-                    <SelectItem key={state.id} value={state.sigla} className="text-base rounded-lg hover:bg-secondary/10 transition-colors cursor-pointer">
+                    <SelectItem key={state.id} value={state.sigla} className="text-xs sm:text-sm md:text-base rounded-lg hover:bg-secondary/10 transition-colors cursor-pointer">
                       {state.nome}
                     </SelectItem>
                   ))}
@@ -225,9 +225,9 @@ export default function PersonalInfoForm({ initialData }: PersonalInfoFormProps)
               </Select>
             </div>
 
-            <div className="space-y-3 group/field">
-              <Label htmlFor="city" className="text-sm font-semibold text-foreground flex items-center gap-2 group-hover/field:text-secondary transition-colors">
-                <div className="w-2 h-2 bg-gradient-to-r from-secondary to-primary rounded-full shadow-sm group-hover/field:shadow-md group-hover/field:scale-125 transition-all duration-300" />
+            <div className="space-y-2 sm:space-y-3 group/field">
+              <Label htmlFor="city" className="text-xs sm:text-sm font-semibold text-foreground flex items-center gap-2 group-hover/field:text-secondary transition-colors">
+                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gradient-to-r from-secondary to-primary rounded-full shadow-sm group-hover/field:shadow-md group-hover/field:scale-125 transition-all duration-300" />
                 Cidade
               </Label>
               <Select 
@@ -235,12 +235,12 @@ export default function PersonalInfoForm({ initialData }: PersonalInfoFormProps)
                 onValueChange={(value) => handleChange('city', value)} 
                 disabled={!formData.state || loadingCities}
               >
-                <SelectTrigger className="h-12 border-2 border-secondary/20 focus:border-secondary/50 hover:border-secondary/30 rounded-xl bg-background/80 backdrop-blur-sm text-base shadow-sm focus:shadow-md transition-all duration-300 disabled:opacity-50">
+                <SelectTrigger className="h-10 sm:h-11 md:h-12 border-2 border-secondary/20 focus:border-secondary/50 hover:border-secondary/30 rounded-xl bg-background/80 backdrop-blur-sm text-sm sm:text-base shadow-sm focus:shadow-md transition-all duration-300 disabled:opacity-50">
                   {loadingCities ? 'Carregando...' : <SelectValue placeholder="Selecione uma cidade" />}
                 </SelectTrigger>
                 <SelectContent className="rounded-xl border-2 border-secondary/20 shadow-xl">
                   {cities.map(city => (
-                    <SelectItem key={city.id} value={city.nome} className="text-base rounded-lg hover:bg-secondary/10 transition-colors cursor-pointer">
+                    <SelectItem key={city.id} value={city.nome} className="text-xs sm:text-sm md:text-base rounded-lg hover:bg-secondary/10 transition-colors cursor-pointer">
                       {city.nome}
                     </SelectItem>
                   ))}
@@ -250,7 +250,7 @@ export default function PersonalInfoForm({ initialData }: PersonalInfoFormProps)
           </div>
           
           {/* Botões de Ação */}
-          <div className="flex flex-col sm:flex-row gap-4 pt-8 border-t border-primary/10">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-6 sm:pt-8 border-t border-primary/10">
             <Button 
               variant="outline" 
               onClick={() => setIsPasswordDialogOpen(true)} 
