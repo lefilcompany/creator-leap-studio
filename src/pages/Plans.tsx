@@ -7,27 +7,9 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/hooks/useAuth';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { 
-  Rocket, 
-  Users, 
-  Package, 
-  Palette, 
-  UserCircle, 
-  Sparkles, 
-  Calendar, 
-  FileText, 
-  CheckCircle,
-  Crown,
-  Zap,
-  X,
-  AlertTriangle,
-  ArrowLeft,
-  Tag,
-  Building2
-} from 'lucide-react';
+import { Rocket, Users, Package, Palette, UserCircle, Sparkles, Calendar, FileText, CheckCircle, Crown, Zap, X, AlertTriangle, ArrowLeft, Tag, Building2 } from 'lucide-react';
 import type { Plan } from '@/types/plan';
 import type { Team } from '@/types/theme';
-
 interface SubscriptionStatus {
   canAccess: boolean;
   isExpired: boolean;
@@ -35,9 +17,11 @@ interface SubscriptionStatus {
   daysRemaining?: number;
   plan?: Plan;
 }
-
 const Plans = () => {
-  const { user, team: authTeam } = useAuth();
+  const {
+    user,
+    team: authTeam
+  } = useAuth();
   const [teams, setTeams] = useState<Team[]>([]);
   const [teamData, setTeamData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -49,108 +33,97 @@ const Plans = () => {
   const [searchParams] = useSearchParams();
   const isExpired = searchParams.get('expired') === 'true';
   const selectedPlan = searchParams.get('selected');
-  
   const team = teams.find(t => t.id === user?.teamId) || authTeam;
 
   // Mock data - substituir com chamadas reais de API
-  const mockPlans: Plan[] = [
-    {
-      id: '1',
-      name: 'FREE',
-      displayName: 'Free',
-      price: 0,
-      trialDays: 7,
-      maxMembers: 5,
-      maxBrands: 1,
-      maxStrategicThemes: 3,
-      maxPersonas: 3,
-      quickContentCreations: 5,
-      customContentSuggestions: 15,
-      contentPlans: 5,
-      contentReviews: 10,
-      isActive: true,
-    },
-    {
-      id: '2',
-      name: 'BASIC',
-      displayName: 'Básico',
-      price: 59.90,
-      trialDays: 0,
-      maxMembers: 10,
-      maxBrands: 5,
-      maxStrategicThemes: 15,
-      maxPersonas: 15,
-      quickContentCreations: 7,
-      customContentSuggestions: 20,
-      contentPlans: 7,
-      contentReviews: 15,
-      isActive: true,
-      stripePriceId: 'price_basic',
-    },
-    {
-      id: '3',
-      name: 'PRO',
-      displayName: 'Profissional',
-      price: 99.90,
-      trialDays: 0,
-      maxMembers: 20,
-      maxBrands: 10,
-      maxStrategicThemes: 30,
-      maxPersonas: 30,
-      quickContentCreations: 10,
-      customContentSuggestions: 30,
-      contentPlans: 10,
-      contentReviews: 30,
-      isActive: true,
-      stripePriceId: 'price_pro',
-    },
-    {
-      id: '4',
-      name: 'ENTERPRISE',
-      displayName: 'Enterprise',
-      price: 499.90,
-      trialDays: 0,
-      maxMembers: 999999,
-      maxBrands: 999999,
-      maxStrategicThemes: 999999,
-      maxPersonas: 999999,
-      quickContentCreations: 50,
-      customContentSuggestions: 200,
-      contentPlans: 100,
-      contentReviews: 200,
-      isActive: true,
-    },
-  ];
-
+  const mockPlans: Plan[] = [{
+    id: '1',
+    name: 'FREE',
+    displayName: 'Free',
+    price: 0,
+    trialDays: 7,
+    maxMembers: 5,
+    maxBrands: 1,
+    maxStrategicThemes: 3,
+    maxPersonas: 3,
+    quickContentCreations: 5,
+    customContentSuggestions: 15,
+    contentPlans: 5,
+    contentReviews: 10,
+    isActive: true
+  }, {
+    id: '2',
+    name: 'BASIC',
+    displayName: 'Básico',
+    price: 59.90,
+    trialDays: 0,
+    maxMembers: 10,
+    maxBrands: 5,
+    maxStrategicThemes: 15,
+    maxPersonas: 15,
+    quickContentCreations: 7,
+    customContentSuggestions: 20,
+    contentPlans: 7,
+    contentReviews: 15,
+    isActive: true,
+    stripePriceId: 'price_basic'
+  }, {
+    id: '3',
+    name: 'PRO',
+    displayName: 'Profissional',
+    price: 99.90,
+    trialDays: 0,
+    maxMembers: 20,
+    maxBrands: 10,
+    maxStrategicThemes: 30,
+    maxPersonas: 30,
+    quickContentCreations: 10,
+    customContentSuggestions: 30,
+    contentPlans: 10,
+    contentReviews: 30,
+    isActive: true,
+    stripePriceId: 'price_pro'
+  }, {
+    id: '4',
+    name: 'ENTERPRISE',
+    displayName: 'Enterprise',
+    price: 499.90,
+    trialDays: 0,
+    maxMembers: 999999,
+    maxBrands: 999999,
+    maxStrategicThemes: 999999,
+    maxPersonas: 999999,
+    quickContentCreations: 50,
+    customContentSuggestions: 200,
+    contentPlans: 100,
+    contentReviews: 200,
+    isActive: true
+  }];
   const mockCredits = {
     quickContentCreations: 8,
     contentSuggestions: 25,
     contentReviews: 28,
-    contentPlans: 8,
+    contentPlans: 8
   };
-
   const loadData = useCallback(async () => {
     if (!user?.id) {
       setIsLoading(false);
       return;
     }
-
     setIsLoading(true);
     try {
       // Simular carregamento de dados
       await new Promise(resolve => setTimeout(resolve, 500));
-      
       setPlans(mockPlans);
       setTeamData({
         credits: mockCredits,
-        plan: team?.plan || mockPlans[2], // Pro como padrão
+        plan: team?.plan || mockPlans[2] // Pro como padrão
       });
-      
       setSubscriptionStatus({
         canAccess: true,
         isExpired: false,
         isTrial: false,
-        plan: team?.plan || mockPlans[2],
+        plan: team?.plan || mockPlans[2]
       });
     } catch (error) {
       toast.error('Erro ao carregar informações');
@@ -158,28 +131,23 @@ const Plans = () => {
       setIsLoading(false);
     }
   }, [user, team]);
-
   useEffect(() => {
     loadData();
   }, [loadData]);
-
   const handleSubscribe = async (plan: Plan) => {
     if (!user || !team) {
       navigate('/login');
       return;
     }
-
     if (plan.price > 0 && !plan.stripePriceId) {
       toast.error('Este plano ainda não está disponível para compra.', {
         description: 'Entre em contato com o suporte.'
       });
       return;
     }
-
     try {
       setLoadingPlanId(plan.id);
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
       if (plan.price > 0) {
         toast.success('Redirecionando para o checkout...');
         // Redirecionar para Stripe checkout
@@ -194,10 +162,8 @@ const Plans = () => {
       setLoadingPlanId(null);
     }
   };
-
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh] animate-fade-in">
+    return <div className="flex items-center justify-center min-h-[60vh] animate-fade-in">
         <div className="text-center space-y-4">
           <div className="relative mx-auto w-16 h-16">
             <div className="w-16 h-16 border-4 border-secondary/20 rounded-full"></div>
@@ -205,65 +171,42 @@ const Plans = () => {
           </div>
           <p className="text-muted-foreground">Carregando informações...</p>
         </div>
-      </div>
-    );
+      </div>;
   }
 
   // Tela de seleção de planos
   if (subscriptionStatus?.isExpired || showPlansSelection || !subscriptionStatus?.canAccess) {
-    return (
-      <div className="space-y-6 animate-fade-in">
+    return <div className="space-y-6 animate-fade-in">
         <div className="text-center space-y-4">
           <h1 className="text-2xl md:text-3xl font-bold text-foreground">Escolha seu Plano</h1>
           <p className="text-sm md:text-base text-muted-foreground max-w-2xl mx-auto">
             Selecione o plano que melhor atende às necessidades da sua equipe
           </p>
 
-          {isExpired && (
-            <Alert className="border-orange-200 bg-orange-50/50 max-w-2xl mx-auto">
+          {isExpired && <Alert className="border-orange-200 bg-orange-50/50 max-w-2xl mx-auto">
               <AlertTriangle className="h-4 w-4 text-orange-600" />
               <AlertDescription className="text-orange-800 text-sm">
                 Seu período de teste expirou. Escolha um plano para continuar usando o Creator.
               </AlertDescription>
-            </Alert>
-          )}
+            </Alert>}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-          {plans.map((plan) => {
-            const isCurrentPlan = subscriptionStatus?.plan?.id === plan.id;
-            const isSelected = selectedPlan === plan.name;
-            const isPopular = plan.name === 'PRO';
-            const isPremium = plan.name === 'ENTERPRISE';
-            
-            return (
-              <Card
-                key={plan.id}
-                className={`relative transition-all duration-200 shadow-lg hover:shadow-2xl ${
-                  isPopular ? 'shadow-xl scale-[1.02]' : ''
-                } ${
-                  isPremium ? 'shadow-xl' : ''
-                } ${
-                  isCurrentPlan ? 'bg-green-50/50 shadow-xl' : ''
-                } ${
-                  isSelected ? 'bg-orange-50/50 shadow-2xl' : ''
-                }`}
-              >
-                {isPopular && (
-                  <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-primary text-xs">
+          {plans.map(plan => {
+          const isCurrentPlan = subscriptionStatus?.plan?.id === plan.id;
+          const isSelected = selectedPlan === plan.name;
+          const isPopular = plan.name === 'PRO';
+          const isPremium = plan.name === 'ENTERPRISE';
+          return <Card key={plan.id} className={`relative transition-all duration-200 shadow-lg hover:shadow-2xl ${isPopular ? 'shadow-xl scale-[1.02]' : ''} ${isPremium ? 'shadow-xl' : ''} ${isCurrentPlan ? 'bg-green-50/50 shadow-xl' : ''} ${isSelected ? 'bg-orange-50/50 shadow-2xl' : ''}`}>
+                {isPopular && <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-primary text-xs">
                     Mais Popular
-                  </Badge>
-                )}
-                {isPremium && (
-                  <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-secondary text-xs">
+                  </Badge>}
+                {isPremium && <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-secondary text-xs">
                     Premium
-                  </Badge>
-                )}
-                {isCurrentPlan && (
-                  <Badge className="absolute -top-2 right-2 bg-green-500 text-xs">
+                  </Badge>}
+                {isCurrentPlan && <Badge className="absolute -top-2 right-2 bg-green-500 text-xs">
                     Atual
-                  </Badge>
-                )}
+                  </Badge>}
 
                 <CardHeader className="text-center pb-4">
                   <CardTitle className="text-xl md:text-2xl">{plan.displayName}</CardTitle>
@@ -271,11 +214,9 @@ const Plans = () => {
                     {plan.price === 0 ? 'Grátis' : `R$ ${plan.price.toFixed(2)}`}
                   </div>
                   {plan.price > 0 && <div className="text-xs text-muted-foreground">por mês</div>}
-                  {plan.trialDays > 0 && (
-                    <Badge variant="outline" className="mx-auto text-xs mt-2">
+                  {plan.trialDays > 0 && <Badge variant="outline" className="mx-auto text-xs mt-2">
                       {plan.trialDays} dias grátis
-                    </Badge>
-                  )}
+                    </Badge>}
                 </CardHeader>
 
                 <CardContent className="space-y-3">
@@ -316,67 +257,39 @@ const Plans = () => {
                         {plan.customContentSuggestions} sugestões
                       </span>
                     </div>
-                    {isPremium && (
-                      <div className="flex items-start gap-2">
+                    {isPremium && <div className="flex items-start gap-2">
                         <CheckCircle className="h-3 w-3 md:h-4 md:w-4 text-green-500 flex-shrink-0 mt-0.5" />
                         <span className="text-left font-medium text-secondary">
                           Integrações avançadas
                         </span>
-                      </div>
-                    )}
+                      </div>}
                   </div>
 
-                  <Button
-                    className="w-full text-xs md:text-sm"
-                    variant={isPopular ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => handleSubscribe(plan)}
-                    disabled={
-                      isCurrentPlan || 
-                      loadingPlanId === plan.id ||
-                      (plan.price > 0 && !plan.stripePriceId) ||
-                      plan.name === 'ENTERPRISE'
-                    }
-                  >
-                    {isCurrentPlan ? 'Plano Atual' : 
-                     loadingPlanId === plan.id ? 'Processando...' :
-                     plan.name === 'FREE' ? 'Continuar Grátis' :
-                     plan.name === 'ENTERPRISE' ? 'Em Breve' :
-                     plan.price > 0 && !plan.stripePriceId ? 'Em Breve' :
-                     'Assinar Agora'}
+                  <Button className="w-full text-xs md:text-sm" variant={isPopular ? 'default' : 'outline'} size="sm" onClick={() => handleSubscribe(plan)} disabled={isCurrentPlan || loadingPlanId === plan.id || plan.price > 0 && !plan.stripePriceId || plan.name === 'ENTERPRISE'}>
+                    {isCurrentPlan ? 'Plano Atual' : loadingPlanId === plan.id ? 'Processando...' : plan.name === 'FREE' ? 'Continuar Grátis' : plan.name === 'ENTERPRISE' ? 'Em Breve' : plan.price > 0 && !plan.stripePriceId ? 'Em Breve' : 'Assinar Agora'}
                   </Button>
                 </CardContent>
-              </Card>
-            );
-          })}
+              </Card>;
+        })}
         </div>
 
         <div className="text-center space-y-4">
           <p className="text-xs md:text-sm text-muted-foreground">
             Todos os planos incluem suporte técnico e atualizações gratuitas
           </p>
-          {!isExpired && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowPlansSelection(false)}
-            >
+          {!isExpired && <Button variant="outline" size="sm" onClick={() => setShowPlansSelection(false)}>
               <ArrowLeft className="h-4 w-4 mr-2" />
               Voltar ao Painel
-            </Button>
-          )}
+            </Button>}
         </div>
-      </div>
-    );
+      </div>;
   }
 
   // Verificação de segurança - sempre garantir que temos um plano válido
   const plan = team?.plan || mockPlans[0]; // Fallback para plano Free
   const credits = teamData?.credits || mockCredits;
-
   if (!team) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
+    return <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center space-y-4 p-6">
           <AlertTriangle className="h-12 w-12 text-orange-500 mx-auto" />
           <p className="text-lg font-semibold">Erro ao carregar informações</p>
@@ -388,51 +301,41 @@ const Plans = () => {
             </Button>
           </Link>
         </div>
-      </div>
-    );
+      </div>;
   }
-
-  const creditData = [
-    {
-      name: 'Criações Rápidas',
-      current: credits?.quickContentCreations || 0,
-      limit: plan?.quickContentCreations || 0,
-      icon: Zap,
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-500/10',
-    },
-    {
-      name: 'Sugestões',
-      current: credits?.contentSuggestions || 0,
-      limit: plan?.customContentSuggestions || 0,
-      icon: Sparkles,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-500/10',
-    },
-    {
-      name: 'Revisões',
-      current: credits?.contentReviews || 0,
-      limit: plan?.contentReviews || 0,
-      icon: CheckCircle,
-      color: 'text-green-600',
-      bgColor: 'bg-green-500/10',
-    },
-    {
-      name: 'Planejamentos',
-      current: credits?.contentPlans || 0,
-      limit: plan?.contentPlans || 0,
-      icon: Calendar,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-500/10',
-    },
-  ];
-
+  const creditData = [{
+    name: 'Criações Rápidas',
+    current: credits?.quickContentCreations || 0,
+    limit: plan?.quickContentCreations || 0,
+    icon: Zap,
+    color: 'text-orange-600',
+    bgColor: 'bg-orange-500/10'
+  }, {
+    name: 'Sugestões',
+    current: credits?.contentSuggestions || 0,
+    limit: plan?.customContentSuggestions || 0,
+    icon: Sparkles,
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-500/10'
+  }, {
+    name: 'Revisões',
+    current: credits?.contentReviews || 0,
+    limit: plan?.contentReviews || 0,
+    icon: CheckCircle,
+    color: 'text-green-600',
+    bgColor: 'bg-green-500/10'
+  }, {
+    name: 'Planejamentos',
+    current: credits?.contentPlans || 0,
+    limit: plan?.contentPlans || 0,
+    icon: Calendar,
+    color: 'text-purple-600',
+    bgColor: 'bg-purple-500/10'
+  }];
   const totalCredits = creditData.reduce((acc, credit) => acc + credit.current, 0);
   const totalLimits = creditData.reduce((acc, credit) => acc + credit.limit, 0);
-  const usagePercentage = totalLimits > 0 ? ((totalLimits - totalCredits) / totalLimits) * 100 : 0;
-
-  return (
-    <div className="space-y-4 md:space-y-6 animate-fade-in">
+  const usagePercentage = totalLimits > 0 ? (totalLimits - totalCredits) / totalLimits * 100 : 0;
+  return <div className="space-y-4 md:space-y-6 animate-fade-in">
       {/* Header com design limpo */}
       <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-background rounded-2xl p-6 md:p-8 shadow-lg">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -449,12 +352,7 @@ const Plans = () => {
               </p>
             </div>
           </div>
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => setShowPlansSelection(true)}
-            className="w-full sm:w-auto border-primary/20 hover:bg-primary/5"
-          >
+          <Button variant="outline" size="sm" onClick={() => setShowPlansSelection(true)} className="w-full sm:w-auto border-primary/20 hover:bg-primary/5">
             <Crown className="h-4 w-4 mr-2" />
             Ver Todos os Planos
           </Button>
@@ -495,17 +393,12 @@ const Plans = () => {
           {/* Grid de Cards de Créditos - 4 colunas */}
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
             {creditData.map((credit, index) => {
-              const usedCredits = Math.max(0, credit.limit - credit.current);
-              const percentage = credit.limit > 0 ? (credit.current / credit.limit) * 100 : 0;
-              const isLow = credit.current <= (credit.limit * 0.2);
-              const isAtLimit = credit.current <= 0;
-              const Icon = credit.icon;
-
-              return (
-                <Card 
-                  key={index} 
-                  className="border-0 shadow-lg hover:shadow-xl transition-all"
-                >
+            const usedCredits = Math.max(0, credit.limit - credit.current);
+            const percentage = credit.limit > 0 ? credit.current / credit.limit * 100 : 0;
+            const isLow = credit.current <= credit.limit * 0.2;
+            const isAtLimit = credit.current <= 0;
+            const Icon = credit.icon;
+            return <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-all">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-2 mb-3">
                       <div className={`p-2 rounded-xl ${credit.bgColor}`}>
@@ -526,25 +419,15 @@ const Plans = () => {
                         </p>
                       </div>
                       
-                      <Progress 
-                        value={percentage} 
-                        className="h-3 bg-primary/20 mb-3"
-                      />
+                      <Progress value={percentage} className="h-3 bg-primary/20 mb-3" />
                       
-                      <p className={`text-xs font-medium ${
-                        isAtLimit ? 'text-destructive' :
-                        isLow ? 'text-yellow-600' :
-                        'text-green-600'
-                      }`}>
-                        {isAtLimit ? '⚠ Créditos esgotados' :
-                         isLow ? '⚡ Poucos créditos' :
-                         '✓ Créditos disponíveis'}
+                      <p className={`text-xs font-medium ${isAtLimit ? 'text-destructive' : isLow ? 'text-yellow-600' : 'text-green-600'}`}>
+                        {isAtLimit ? '⚠ Créditos esgotados' : isLow ? '⚡ Poucos créditos' : '✓ Créditos disponíveis'}
                       </p>
                     </div>
                   </CardContent>
-                </Card>
-              );
-            })}
+                </Card>;
+          })}
           </div>
 
           {/* Limites de Recursos */}
@@ -557,15 +440,33 @@ const Plans = () => {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-                {[
-                  { icon: Tag, label: 'Marcas', value: plan?.maxBrands || 0, color: 'text-pink-600', bg: 'bg-pink-500/10' },
-                  { icon: Palette, label: 'Temas', value: plan?.maxStrategicThemes || 0, color: 'text-purple-600', bg: 'bg-purple-500/10' },
-                  { icon: Users, label: 'Personas', value: plan?.maxPersonas || 0, color: 'text-green-600', bg: 'bg-green-500/10' },
-                  { icon: UserCircle, label: 'Membros', value: plan?.maxMembers || 0, color: 'text-blue-600', bg: 'bg-blue-500/10' },
-                ].map((item, idx) => {
-                  const Icon = item.icon;
-                  return (
-                    <div key={idx} className={`flex items-center gap-2 p-3 rounded-xl ${item.bg} shadow-sm hover:shadow-md transition-all`}>
+                {[{
+                icon: Tag,
+                label: 'Marcas',
+                value: plan?.maxBrands || 0,
+                color: 'text-pink-600',
+                bg: 'bg-pink-500/10'
+              }, {
+                icon: Palette,
+                label: 'Temas',
+                value: plan?.maxStrategicThemes || 0,
+                color: 'text-purple-600',
+                bg: 'bg-purple-500/10'
+              }, {
+                icon: Users,
+                label: 'Personas',
+                value: plan?.maxPersonas || 0,
+                color: 'text-green-600',
+                bg: 'bg-green-500/10'
+              }, {
+                icon: UserCircle,
+                label: 'Membros',
+                value: plan?.maxMembers || 0,
+                color: 'text-blue-600',
+                bg: 'bg-blue-500/10'
+              }].map((item, idx) => {
+                const Icon = item.icon;
+                return <div key={idx} className={`flex items-center gap-2 p-3 rounded-xl ${item.bg} shadow-sm hover:shadow-md transition-all`}>
                       <div className="flex-shrink-0">
                         <Icon className={`h-5 w-5 ${item.color}`} />
                       </div>
@@ -575,87 +476,14 @@ const Plans = () => {
                           {item.value >= 999999 ? 'Ilimitado' : `até ${item.value}`}
                         </p>
                       </div>
-                    </div>
-                  );
-                })}
+                    </div>;
+              })}
               </div>
             </CardContent>
           </Card>
 
           {/* Cards de Ações com IA */}
-          <Card className="shadow-lg">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-primary" />
-                Ações com Inteligência Artificial
-              </CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Utilize IA para potencializar suas criações de conteúdo
-              </p>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {[
-                  {
-                    icon: Zap,
-                    title: 'Criação Rápida',
-                    description: 'Crie conteúdos instantâneos com IA em segundos',
-                    color: 'text-orange-600',
-                    bg: 'bg-orange-500/10',
-                    borderColor: 'border-orange-500/20',
-                  },
-                  {
-                    icon: Sparkles,
-                    title: 'Criação Personalizada',
-                    description: 'Conteúdos customizados baseados em suas marcas e personas',
-                    color: 'text-blue-600',
-                    bg: 'bg-blue-500/10',
-                    borderColor: 'border-blue-500/20',
-                  },
-                  {
-                    icon: Calendar,
-                    title: 'Planejamento de Conteúdo',
-                    description: 'IA ajuda a criar calendários editoriais estratégicos',
-                    color: 'text-purple-600',
-                    bg: 'bg-purple-500/10',
-                    borderColor: 'border-purple-500/20',
-                  },
-                  {
-                    icon: CheckCircle,
-                    title: 'Revisão de Conteúdo',
-                    description: 'Análise e sugestões de melhorias para seus conteúdos',
-                    color: 'text-green-600',
-                    bg: 'bg-green-500/10',
-                    borderColor: 'border-green-500/20',
-                  },
-                ].map((action, idx) => {
-                  const Icon = action.icon;
-                  return (
-                    <Card 
-                      key={idx} 
-                      className="shadow-md hover:shadow-xl transition-all cursor-pointer group"
-                    >
-                      <CardContent className="p-5">
-                        <div className="flex items-start gap-4">
-                          <div className={`flex-shrink-0 p-3 rounded-xl ${action.bg} group-hover:scale-110 transition-transform`}>
-                            <Icon className={`h-6 w-6 ${action.color}`} />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-bold text-sm mb-1 text-foreground">
-                              {action.title}
-                            </h3>
-                            <p className="text-xs text-muted-foreground leading-relaxed">
-                              {action.description}
-                            </p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
+          
         </div>
 
         {/* Coluna Direita - Sidebar */}
@@ -668,25 +496,27 @@ const Plans = () => {
                 <CardTitle className="text-base font-semibold">Ações Rápidas</CardTitle>
               </CardHeader>
               <CardContent className="flex flex-col gap-4">
-                {[
-                  { to: '/brands', icon: Tag, label: 'Gerenciar Marcas' },
-                  { to: '/themes', icon: Palette, label: 'Gerenciar Temas' },
-                  { to: '/personas', icon: Users, label: 'Gerenciar Personas' },
-                ].map((action, idx) => {
-                  const Icon = action.icon;
-                  return (
-                    <Link key={idx} to={action.to}>
-                      <Button 
-                        variant="outline" 
-                        size="default"
-                        className="w-full justify-start py-6 hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-200 border-border/50"
-                      >
+                {[{
+                to: '/brands',
+                icon: Tag,
+                label: 'Gerenciar Marcas'
+              }, {
+                to: '/themes',
+                icon: Palette,
+                label: 'Gerenciar Temas'
+              }, {
+                to: '/personas',
+                icon: Users,
+                label: 'Gerenciar Personas'
+              }].map((action, idx) => {
+                const Icon = action.icon;
+                return <Link key={idx} to={action.to}>
+                      <Button variant="outline" size="default" className="w-full justify-start py-6 hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-200 border-border/50">
                         <Icon className="h-5 w-5 mr-3" />
                         <span className="font-medium">{action.label}</span>
                       </Button>
-                    </Link>
-                  );
-                })}
+                    </Link>;
+              })}
               </CardContent>
             </Card>
 
@@ -709,25 +539,24 @@ const Plans = () => {
                 </div>
               </CardHeader>
               <CardContent className="space-y-2.5">
-                {[
-                  { label: 'Todas as funcionalidades básicas', included: true },
-                  { label: 'Suporte via email', included: true },
-                  { label: 'Suporte prioritário', included: (plan?.price || 0) > 0 },
-                  { label: 'Integrações avançadas', included: plan?.name === 'ENTERPRISE' },
-                ].map((feature, idx) => (
-                  <div key={idx} className="flex items-center gap-2.5">
-                    {feature.included ? (
-                      <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
-                    ) : (
-                      <X className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                    )}
-                    <span className={`text-sm ${
-                      feature.included ? 'text-foreground' : 'text-muted-foreground line-through'
-                    }`}>
+                {[{
+                label: 'Todas as funcionalidades básicas',
+                included: true
+              }, {
+                label: 'Suporte via email',
+                included: true
+              }, {
+                label: 'Suporte prioritário',
+                included: (plan?.price || 0) > 0
+              }, {
+                label: 'Integrações avançadas',
+                included: plan?.name === 'ENTERPRISE'
+              }].map((feature, idx) => <div key={idx} className="flex items-center gap-2.5">
+                    {feature.included ? <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" /> : <X className="h-4 w-4 text-muted-foreground flex-shrink-0" />}
+                    <span className={`text-sm ${feature.included ? 'text-foreground' : 'text-muted-foreground line-through'}`}>
                       {feature.label}
                     </span>
-                  </div>
-                ))}
+                  </div>)}
               </CardContent>
             </Card>
           </div>
@@ -753,8 +582,6 @@ const Plans = () => {
           </Card>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Plans;
