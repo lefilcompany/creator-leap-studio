@@ -29,14 +29,16 @@ export default function Profile() {
     <div className="min-h-full w-full">
       <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6 px-2 sm:px-4 lg:px-0">
         {/* Header Card */}
-        <div className="bg-gradient-to-r from-primary/10 via-secondary/10 to-accent/10 p-4 sm:p-6 rounded-xl border border-border shadow-sm">
-          <div className="flex items-center gap-3 sm:gap-4">
-            <div className="flex-shrink-0 bg-gradient-to-br from-primary to-secondary text-primary-foreground rounded-xl p-2 sm:p-3">
-              <UserIcon className="h-6 w-6 sm:h-8 sm:w-8" />
+        <div className="bg-gradient-to-r from-primary/15 via-secondary/15 to-accent/15 p-4 sm:p-6 rounded-xl border border-primary/30 shadow-lg backdrop-blur-md">
+          <div className="flex items-center gap-3 sm:gap-4 md:gap-6">
+            <div className="flex-shrink-0 bg-gradient-to-br from-primary to-secondary text-white rounded-xl p-2 sm:p-3 shadow-md">
+              <UserIcon className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8" />
             </div>
             <div className="min-w-0 flex-1">
-              <h1 className="text-2xl sm:text-3xl font-bold truncate">Meu Perfil</h1>
-              <p className="text-muted-foreground mt-1 text-sm sm:text-base">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent truncate">
+                Meu Perfil
+              </h1>
+              <p className="text-muted-foreground text-sm sm:text-base md:text-lg mt-1 sm:mt-2">
                 Gerencie suas informações pessoais e configurações da conta
               </p>
             </div>
