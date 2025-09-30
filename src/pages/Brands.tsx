@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
+import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { Drawer, DrawerContent, DrawerTitle } from '@/components/ui/drawer';
 import { Plus, Tag } from 'lucide-react';
 import BrandList from '@/components/marcas/BrandList';
@@ -19,89 +18,90 @@ type BrandFormData = Omit<Brand, 'id' | 'createdAt' | 'updatedAt' | 'teamId' | '
 
 // Mock data for demonstration
 const mockBrands: BrandSummary[] = [
-  {
-    id: "acucar-petribu",
-    name: "Açúcar Petribu", 
-    responsible: "copy@lefil.com.br",
-    createdAt: "2025-09-02T10:00:00.000Z",
-    updatedAt: "2025-09-02T10:00:00.000Z"
-  },
-  {
-    id: "ceramica-brennand",
-    name: "Cerâmica Brennand",
-    responsible: "julia.lima@lefil.com.br", 
-    createdAt: "2025-09-18T10:00:00.000Z",
-    updatedAt: "2025-09-18T10:00:00.000Z"
-  },
-  {
-    id: "escola-marketing",
-    name: "Escola de Marketing do Futuro",
-    responsible: "thalles.silva.ext@lefil.com.br",
-    createdAt: "2025-09-03T10:00:00.000Z",
-    updatedAt: "2025-09-03T10:00:00.000Z"
-  },
-  {
-    id: "grupo-cornelio",
-    name: "Grupo Cornélio Brennand",
-    responsible: "copy@lefil.com.br",
-    createdAt: "2025-09-02T10:00:00.000Z", 
-    updatedAt: "2025-09-02T10:00:00.000Z"
-  },
-  {
-    id: "iclub",
-    name: "Iclub",
-    responsible: "marianna.monteiro.ext@lefil.com.br",
-    createdAt: "2025-09-08T10:00:00.000Z",
-    updatedAt: "2025-09-08T10:00:00.000Z"
-  },
-  {
-    id: "juq", 
-    name: "JUQ",
-    responsible: "copy@lefil.com.br",
-    createdAt: "2025-09-11T10:00:00.000Z",
-    updatedAt: "2025-09-11T10:00:00.000Z"
-  }
+    {
+      id: "acucar-petribu",
+      name: "Açúcar Petribu", 
+      responsible: "copy@lefil.com.br",
+      createdAt: "2025-09-02T10:00:00.000Z",
+      updatedAt: "2025-09-02T10:00:00.000Z"
+    },
+    {
+      id: "ceramica-brennand",
+      name: "Cerâmica Brennand",
+      responsible: "julia.lima@lefil.com.br", 
+      createdAt: "2025-09-18T10:00:00.000Z",
+      updatedAt: "2025-09-18T10:00:00.000Z"
+    },
+    {
+      id: "escola-marketing",
+      name: "Escola de Marketing do Futuro",
+      responsible: "thalles.silva.ext@lefil.com.br",
+      createdAt: "2025-09-03T10:00:00.000Z",
+      updatedAt: "2025-09-03T10:00:00.000Z"
+    },
+    {
+      id: "grupo-cornelio",
+      name: "Grupo Cornélio Brennand",
+      responsible: "copy@lefil.com.br",
+      createdAt: "2025-09-02T10:00:00.000Z", 
+      updatedAt: "2025-09-02T10:00:00.000Z"
+    },
+    {
+      id: "iclub",
+      name: "Iclub",
+      responsible: "marianna.monteiro.ext@lefil.com.br",
+      createdAt: "2025-09-08T10:00:00.000Z",
+      updatedAt: "2025-09-08T10:00:00.000Z"
+    },
+    {
+      id: "juq", 
+      name: "JUQ",
+      responsible: "copy@lefil.com.br",
+      createdAt: "2025-09-11T10:00:00.000Z",
+      updatedAt: "2025-09-11T10:00:00.000Z"
+    }
 ];
 
 const mockFullBrand: Brand = {
-  id: "acucar-petribu",
-  name: "Açúcar Petribu",
-  responsible: "copy@lefil.com.br", 
-  segment: "Alimentício / Confeitaria / Doméstico / Açúcares",
-  values: "Sabor, Tradição, Memória, Afeto, Família, Doçura, Regionalidade, Conexão.",
-  keywords: "Sabor, Tradição, Afeto, Família, Açúcar, Saudável.",
-  goals: "Fortalecer a conexão emocional com os consumidores, Valorizar a tradição e o sabor regional, Inspirar o uso do açúcar em receitas afetivas, Reforçar a presença da marca no dia a dia das famílias.",
-  inspirations: "Marcas que valorizam tradição e família, como Nestle e Vigor.",
-  successMetrics: "Aumento de 20% nas vendas, 15% de crescimento no engajamento digital.",
-  references: "Posts no Instagram que mostram receitas caseiras e momentos em família.",
-  specialDates: "Festa Junina, Natal, Dia das Mães, aniversários familiares.",
-  promise: "O açúcar que adoça as memórias e fortalece os laços familiares.",
-  crisisInfo: "Possível crise relacionada a questões de saúde e consumo de açúcar.",
-  milestones: "Empresa familiar fundada há 50 anos, líder regional em açúcar refinado.",
-  collaborations: "Parcerias com chefs locais e influenciadores de culinária.",
-  restrictions: "Evitar associações diretas com problemas de saúde, não usar imagens de pessoas obesas.",
-  moodboard: null,
-  logo: null,
-  referenceImage: null,
-  colorPalette: [
-    {
-      id: "1",
-      name: "Azul Petribu", 
-      hex: "#1e40af",
-      rgb: { r: 30, g: 64, b: 175 }
-    },
-    {
-      id: "2",
-      name: "Branco Açúcar",
-      hex: "#ffffff", 
-      rgb: { r: 255, g: 255, b: 255 }
-    }
-  ],
-  createdAt: "2025-09-02T10:00:00.000Z",
-  updatedAt: "2025-09-02T10:00:00.000Z",
-  teamId: "team-1",
-  userId: "1"
+    id: "acucar-petribu",
+    name: "Açúcar Petribu",
+    responsible: "copy@lefil.com.br", 
+    segment: "Alimentício / Confeitaria / Doméstico / Açúcares",
+    values: "Sabor, Tradição, Memória, Afeto, Família, Doçura, Regionalidade, Conexão.",
+    keywords: "Sabor, Tradição, Afeto, Família, Açúcar, Saudável.",
+    goals: "Fortalecer a conexão emocional com os consumidores, Valorizar a tradição e o sabor regional, Inspirar o uso do açúcar em receitas afetivas, Reforçar a presença da marca no dia a dia das famílias.",
+    inspirations: "Marcas que valorizam tradição e família, como Nestle e Vigor.",
+    successMetrics: "Aumento de 20% nas vendas, 15% de crescimento no engajamento digital.",
+    references: "Posts no Instagram que mostram receitas caseiras e momentos em família.",
+    specialDates: "Festa Junina, Natal, Dia das Mães, aniversários familiares.",
+    promise: "O açúcar que adoça as memórias e fortalece os laços familiares.",
+    crisisInfo: "Possível crise relacionada a questões de saúde e consumo de açúcar.",
+    milestones: "Empresa familiar fundada há 50 anos, líder regional em açúcar refinado.",
+    collaborations: "Parcerias com chefs locais e influenciadores de culinária.",
+    restrictions: "Evitar associações diretas com problemas de saúde, não usar imagens de pessoas obesas.",
+    moodboard: null,
+    logo: null,
+    referenceImage: null,
+    colorPalette: [
+        {
+          id: "1",
+          name: "Azul Petribu", 
+          hex: "#1e40af",
+          rgb: { r: 30, g: 64, b: 175 }
+        },
+        {
+          id: "2",
+          name: "Branco Açúcar",
+          hex: "#ffffff", 
+          rgb: { r: 255, g: 255, b: 255 }
+        }
+    ],
+    createdAt: "2025-09-02T10:00:00.000Z",
+    updatedAt: "2025-09-02T10:00:00.000Z",
+    teamId: "team-1",
+    userId: "1"
 };
+
 
 export default function MarcasPage() {
   const { user } = useAuth();
@@ -115,20 +115,25 @@ export default function MarcasPage() {
   const [brandToEdit, setBrandToEdit] = useState<Brand | null>(null);
   const [team, setTeam] = useState<any>(null);
   const [isLoadingTeam, setIsLoadingTeam] = useState(false);
-  const [isBrandDetailsOpen, setIsBrandDetailsOpen] = useState(false);
 
-  // Simulate loading brands
+  // --> A lógica para mobile (Drawer) precisa de um estado de abertura separado
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
   useEffect(() => {
     const loadData = async () => {
       setIsLoadingBrands(true);
-      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 800));
       setBrands(mockBrands);
       setIsLoadingBrands(false);
+
+      // --> Para desktop, vamos pré-selecionar a primeira marca da lista
+      if (!isMobile && mockBrands.length > 0) {
+        handleSelectBrand(mockBrands[0]);
+      }
     };
     
     loadData();
-  }, []);
+  }, [isMobile]); // --> Adicionamos isMobile como dependência para reavaliar a seleção inicial
 
   const handleOpenDialog = useCallback((brand: Brand | null = null) => {
     setBrandToEdit(brand);
@@ -136,15 +141,20 @@ export default function MarcasPage() {
   }, []);
 
   const handleSelectBrand = useCallback(async (brand: BrandSummary) => {
+    // Se a mesma marca for clicada, não faz nada
+    if (selectedBrandSummary?.id === brand.id && !isMobile) {
+        return;
+    }
+      
     setSelectedBrandSummary(brand);
     setIsLoadingBrandDetails(true);
-    setIsBrandDetailsOpen(true); // Abre o slider para todos os dispositivos
+
+    if (isMobile) {
+      setIsDrawerOpen(true);
+    }
     
     try {
-      // Simulate API call to get full brand details
       await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Mock: return different data based on selected brand
       const fullBrand = {
         ...mockFullBrand,
         id: brand.id,
@@ -153,7 +163,6 @@ export default function MarcasPage() {
         createdAt: brand.createdAt,
         updatedAt: brand.updatedAt
       };
-      
       setSelectedBrand(fullBrand);
     } catch (error) {
       console.error('Erro ao carregar detalhes da marca:', error);
@@ -161,9 +170,10 @@ export default function MarcasPage() {
     } finally {
       setIsLoadingBrandDetails(false);
     }
-  }, []);
+  }, [isMobile, selectedBrandSummary?.id]);
 
   const handleSaveBrand = useCallback(async (formData: BrandFormData) => {
+    // ... (nenhuma mudança aqui dentro)
     if (!user?.teamId || !user.id) {
       toast.error('Usuário não autenticado ou sem equipe');
       return;
@@ -173,11 +183,9 @@ export default function MarcasPage() {
     try {
       toast.loading(brandToEdit ? 'Atualizando marca...' : 'Criando marca...', { id: toastId });
       
-      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       if (brandToEdit) {
-        // Update existing brand
         const updatedBrand: Brand = {
           ...brandToEdit,
           ...formData,
@@ -196,7 +204,6 @@ export default function MarcasPage() {
         
         toast.success('Marca atualizada com sucesso!', { id: toastId });
       } else {
-        // Create new brand
         const newBrand: Brand = {
           ...formData,
           id: `brand-${Date.now()}`,
@@ -229,6 +236,7 @@ export default function MarcasPage() {
   }, [brandToEdit, selectedBrand?.id, user]);
 
   const handleDeleteBrand = useCallback(async () => {
+    // ... (nenhuma mudança aqui dentro)
     if (!selectedBrand || !user?.teamId || !user?.id) {
       toast.error('Não foi possível deletar a marca. Verifique se você está logado.');
       return;
@@ -238,32 +246,35 @@ export default function MarcasPage() {
     try {
       toast.loading('Deletando marca...', { id: toastId });
       
-      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      setBrands(prev => prev.filter(brand => brand.id !== selectedBrand.id));
-      setSelectedBrand(null);
-      setSelectedBrandSummary(null);
-      
-      // Select first remaining brand if any
       const remainingBrands = brands.filter(b => b.id !== selectedBrand.id);
+      setBrands(remainingBrands);
+
+      if (isMobile) {
+        setIsDrawerOpen(false);
+      }
+      
+      // Seleciona a próxima marca ou nenhuma
       if (remainingBrands.length > 0) {
         handleSelectBrand(remainingBrands[0]);
+      } else {
+        setSelectedBrand(null);
+        setSelectedBrandSummary(null);
       }
       
       toast.success('Marca deletada com sucesso!', { id: toastId });
     } catch (error) {
       toast.error('Erro ao deletar marca. Tente novamente.', { id: toastId });
     }
-  }, [selectedBrand, user, brands, handleSelectBrand]);
+  }, [selectedBrand, user, brands, handleSelectBrand, isMobile]);
 
-  // Verificar se o limite foi atingido
   const isAtBrandLimit = team && typeof team.plan === 'object' 
     ? brands.length >= (team.plan.limits?.brands || 1)
     : false;
 
   return (
-    <div className="h-full flex flex-col gap-4 lg:gap-6 overflow-hidden">
+    <div className="h-full flex flex-col gap-4 lg:gap-6">
       <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5 flex-shrink-0">
         <CardHeader className="pb-3 lg:pb-4">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 lg:gap-4">
@@ -292,45 +303,46 @@ export default function MarcasPage() {
         </CardHeader>
       </Card>
 
-      <main className="grid gap-4 lg:gap-6 flex-1 min-h-0 overflow-hidden grid-cols-1">
-        <BrandList
-          brands={brands}
-          selectedBrand={selectedBrandSummary}
-          onSelectBrand={handleSelectBrand}
-          isLoading={isLoadingBrands}
-        />
-      </main>
+      {/* // --> MUDANÇA 1: O layout principal agora é um grid de 5 colunas em telas grandes (lg) */}
+      <main className="grid flex-1 min-h-0 overflow-hidden gap-4 lg:gap-6 lg:grid-cols-5">
+        
+        {/* // --> A lista de marcas sempre será visível e ocupará 2 das 5 colunas */}
+        <div className="lg:col-span-2 h-full overflow-y-auto">
+            <BrandList
+              brands={brands}
+              selectedBrand={selectedBrandSummary}
+              onSelectBrand={handleSelectBrand}
+              isLoading={isLoadingBrands}
+            />
+        </div>
 
-      {/* Sheet para desktop/tablet (da direita) */}
-      {!isMobile && (
-        <Sheet open={isBrandDetailsOpen} onOpenChange={setIsBrandDetailsOpen}>
-          <SheetContent side="right" className="w-1/2 max-w-none">
-            <SheetTitle className="text-left mb-4">Detalhes da Marca</SheetTitle>
-            <BrandDetails
+        {/* // --> MUDANÇA 2: O painel de detalhes é renderizado aqui em telas grandes */}
+        <div className="hidden lg:flex lg:col-span-3 h-full overflow-y-auto rounded-lg border bg-card">
+           <BrandDetails
               brand={selectedBrand}
               onEdit={handleOpenDialog}
-              onDelete={() => handleDeleteBrand()}
+              onDelete={handleDeleteBrand}
               isLoading={isLoadingBrandDetails}
-            />
-          </SheetContent>
-        </Sheet>
-      )}
+           />
+        </div>
+      </main>
 
-      {/* Drawer para mobile (de baixo) */}
+      {/* // --> MUDANÇA 3: Mantemos o Drawer APENAS para mobile */}
       {isMobile && (
-        <Drawer open={isBrandDetailsOpen} onOpenChange={setIsBrandDetailsOpen}>
+        <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
           <DrawerContent className="h-[85vh]">
             <DrawerTitle className="text-left p-6 pb-0">Detalhes da Marca</DrawerTitle>
             <BrandDetails
               brand={selectedBrand}
               onEdit={handleOpenDialog}
-              onDelete={() => handleDeleteBrand()}
+              onDelete={handleDeleteBrand}
               isLoading={isLoadingBrandDetails}
             />
           </DrawerContent>
         </Drawer>
       )}
 
+      {/* O Dialog de criação/edição permanece o mesmo */}
       <BrandDialog
         isOpen={isDialogOpen}
         onOpenChange={setIsDialogOpen}
