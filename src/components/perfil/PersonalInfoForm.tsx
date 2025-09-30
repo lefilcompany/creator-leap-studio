@@ -161,7 +161,7 @@ export default function PersonalInfoForm({ initialData }: PersonalInfoFormProps)
                   className="h-12 cursor-not-allowed bg-muted/30 border-2 border-muted/40 rounded-xl text-base pl-4 shadow-sm"
                 />
                 <p className="absolute -bottom-6 left-0 text-xs text-muted-foreground/80 italic">
-                  🔒 Campo protegido por segurança
+                  Campo protegido por segurança
                 </p>
               </div>
             </div>
@@ -242,18 +242,17 @@ export default function PersonalInfoForm({ initialData }: PersonalInfoFormProps)
             <Button 
               variant="outline" 
               onClick={() => setIsPasswordDialogOpen(true)} 
-              className="group/btn w-full sm:w-auto h-12 bg-gradient-to-r from-accent/5 to-secondary/5 border-2 border-accent/30 hover:border-accent/60 hover:bg-gradient-to-r hover:from-accent/15 hover:to-secondary/15 text-foreground font-semibold rounded-xl transition-all duration-300 shadow-sm hover:shadow-md text-base hover:scale-[1.02] active:scale-[0.98]"
+              className="w-full sm:w-auto h-11 rounded-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
             >
-              <span className="group-hover/btn:text-accent transition-colors">Alterar Senha</span>
+              Alterar Senha
             </Button>
             <Button 
               onClick={handleSave} 
               disabled={isSaving} 
-              className="group/btn w-full sm:w-auto flex-1 h-12 bg-gradient-to-r from-primary via-secondary to-accent hover:from-primary/90 hover:via-secondary/90 hover:to-accent/90 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed text-base hover:scale-[1.02] active:scale-[0.98] relative overflow-hidden"
+              className="w-full sm:w-auto flex-1 h-11 rounded-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 opacity-0 group-hover/btn:opacity-100 transition-opacity" />
-              {isSaving && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
-              <span className="relative z-10">{isSaving ? 'Salvando...' : 'Salvar Alterações'}</span>
+              {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isSaving ? 'Salvando...' : 'Salvar Alterações'}
             </Button>
           </div>
         </CardContent>
