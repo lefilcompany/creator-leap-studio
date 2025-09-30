@@ -74,7 +74,7 @@ const Plans = () => {
       id: '2',
       name: 'BASIC',
       displayName: 'Básico',
-      price: 49.90,
+      price: 59.90,
       trialDays: 7,
       maxMembers: 5,
       maxBrands: 5,
