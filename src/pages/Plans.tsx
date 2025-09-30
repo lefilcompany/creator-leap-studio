@@ -581,6 +581,81 @@ const Plans = () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Cards de Ações com IA */}
+          <Card className="border-2">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-primary" />
+                Ações com Inteligência Artificial
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Utilize IA para potencializar suas criações de conteúdo
+              </p>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[
+                  {
+                    icon: Zap,
+                    title: 'Criação Rápida',
+                    description: 'Crie conteúdos instantâneos com IA em segundos',
+                    color: 'text-orange-600',
+                    bg: 'bg-orange-500/10',
+                    borderColor: 'border-orange-500/20',
+                  },
+                  {
+                    icon: Sparkles,
+                    title: 'Criação Personalizada',
+                    description: 'Conteúdos customizados baseados em suas marcas e personas',
+                    color: 'text-blue-600',
+                    bg: 'bg-blue-500/10',
+                    borderColor: 'border-blue-500/20',
+                  },
+                  {
+                    icon: Calendar,
+                    title: 'Planejamento de Conteúdo',
+                    description: 'IA ajuda a criar calendários editoriais estratégicos',
+                    color: 'text-purple-600',
+                    bg: 'bg-purple-500/10',
+                    borderColor: 'border-purple-500/20',
+                  },
+                  {
+                    icon: CheckCircle,
+                    title: 'Revisão de Conteúdo',
+                    description: 'Análise e sugestões de melhorias para seus conteúdos',
+                    color: 'text-green-600',
+                    bg: 'bg-green-500/10',
+                    borderColor: 'border-green-500/20',
+                  },
+                ].map((action, idx) => {
+                  const Icon = action.icon;
+                  return (
+                    <Card 
+                      key={idx} 
+                      className={`border-2 ${action.borderColor} hover:shadow-md transition-all cursor-pointer group`}
+                    >
+                      <CardContent className="p-5">
+                        <div className="flex items-start gap-4">
+                          <div className={`flex-shrink-0 p-3 rounded-xl ${action.bg} group-hover:scale-110 transition-transform`}>
+                            <Icon className={`h-6 w-6 ${action.color}`} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-bold text-sm mb-1 text-foreground">
+                              {action.title}
+                            </h3>
+                            <p className="text-xs text-muted-foreground leading-relaxed">
+                              {action.description}
+                            </p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Coluna Direita - Sidebar */}
