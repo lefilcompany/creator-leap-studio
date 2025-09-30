@@ -13,11 +13,6 @@ import {
 import {
   Sidebar,
   SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
 import {
@@ -55,24 +50,20 @@ function NavItem({ id, href, icon: Icon, label, collapsed, onNavigate }: {
   const isActive = location.pathname === href;
 
   return (
-    <SidebarMenuItem>
-      <SidebarMenuButton asChild className="p-0">
-        <NavLink
-          id={id}
-          to={href}
-          onClick={onNavigate}
-          className={cn(
-            "flex items-center gap-3 lg:gap-4 p-2.5 lg:p-3 rounded-lg transition-colors duration-200 group",
-            isActive
-              ? "bg-primary/10 text-primary hover:bg-primary/15"
-              : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-          )}
-        >
-          <Icon className="h-4 w-4 lg:h-5 lg:w-5 flex-shrink-0" />
-          {!collapsed && <span className="text-sm lg:text-base">{label}</span>}
-        </NavLink>
-      </SidebarMenuButton>
-    </SidebarMenuItem>
+    <NavLink
+      id={id}
+      to={href}
+      onClick={onNavigate}
+      className={cn(
+        "flex items-center gap-4 p-3 rounded-lg transition-colors duration-200 group",
+        isActive
+          ? "bg-primary/10 text-primary"
+          : "text-muted-foreground bg-background hover:bg-muted hover:text-foreground"
+      )}
+    >
+      <Icon className="h-5 w-5 flex-shrink-0" />
+      {!collapsed && <span className="font-medium text-sm">{label}</span>}
+    </NavLink>
   );
 }
 
@@ -91,15 +82,15 @@ function ActionButton({ id, href, icon: Icon, label, collapsed, variant, onNavig
     const variantClasses = {
         primary: {
             active: "bg-background border border-primary text-primary shadow-lg scale-105",
-            inactive: "bg-primary text-primary-foreground hover:bg-primary/90",
+            inactive: "bg-primary text-background hover:bg-background hover:text-primary hover:border hover:border-primary",
         },
         accent: {
             active: "bg-background border border-accent text-accent shadow-lg scale-105",
-            inactive: "bg-accent text-accent-foreground hover:bg-accent/90",
+            inactive: "bg-accent text-background hover:bg-background hover:text-accent hover:border hover:border-accent",
         },
         secondary: {
             active: "bg-background border border-secondary text-secondary shadow-lg scale-105",
-            inactive: "bg-secondary text-secondary-foreground hover:bg-secondary/90",
+            inactive: "bg-secondary text-secondary-foreground hover:bg-background hover:text-secondary hover:border hover:border-secondary",
         },
     };
 
@@ -109,12 +100,12 @@ function ActionButton({ id, href, icon: Icon, label, collapsed, variant, onNavig
             to={href}
             onClick={onNavigate}
             className={cn(
-                "flex items-center gap-3 px-3 py-2.5 lg:px-4 lg:py-3 rounded-lg text-sm font-medium transition-all duration-300 ease-in-out transform hover:scale-105",
+                "flex items-center gap-3 p-3 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-105",
                 isActive ? variantClasses[variant].active : variantClasses[variant].inactive
             )}
         >
-            <Icon className="h-4 w-4 lg:h-5 lg:w-5 flex-shrink-0" />
-            {!collapsed && <span className="text-xs lg:text-sm">{label}</span>}
+            <Icon className="h-5 w-5 flex-shrink-0" />
+            {!collapsed && <span className="font-medium text-sm">{label}</span>}
         </NavLink>
     );
 }
@@ -131,14 +122,12 @@ function TeamPlanSection({ teamName, planName, collapsed, onNavigate }: {
     <NavLink
       to="/team"
       onClick={onNavigate}
-      className="bg-gradient-to-tr from-primary to-fuchsia-600 text-primary-foreground rounded-lg p-4 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-[1.02] block"
+      className="flex items-center gap-4 p-3 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-105 bg-gradient-to-tr from-primary to-fuchsia-600 text-primary-foreground shadow-lg"
     >
-      <div className="flex items-center gap-3">
-        <Rocket className="h-5 w-5 flex-shrink-0" />
-        <div className="flex flex-col items-start leading-tight">
-          <div className="text-sm font-semibold">Equipe: {teamName}</div>
-          <div className="text-xs opacity-90">Plano: {planName}</div>
-        </div>
+      <Rocket className="h-6 w-6 flex-shrink-0" />
+      <div className="flex flex-col items-start leading-tight">
+        <span className="font-bold text-sm">Equipe: {teamName}</span>
+        <span className="text-xs text-primary-foreground/80">Plano: {planName}</span>
       </div>
     </NavLink>
   );
@@ -159,40 +148,36 @@ export function AppSidebar() {
 
   const sidebarContent = () => (
     <>
-      <div className="p-4 lg:p-6">
+      <div className="p-2 mb-6">
         <img
           src={logoCreator}
           alt="Creator Logo"
-          className="h-6 lg:h-8 w-auto"
+          className="h-8 w-auto"
         />
       </div>
       
-      <div className="p-3 lg:p-4 flex-1 flex flex-col">
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu className="space-y-1">
-              {navLinks.map((link) => (
-                <NavItem key={link.href} {...link} collapsed={collapsed} onNavigate={handleMobileNavigate} />
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <div className="space-y-2 lg:space-y-3 mt-4 lg:mt-6">
-          {actionButtons.map((button) => (
-              <ActionButton key={button.id} {...button} collapsed={collapsed} onNavigate={handleMobileNavigate} />
+      <nav className="flex-1 flex flex-col gap-8 px-4">
+        <div className="flex flex-col gap-3">
+          {navLinks.map((link) => (
+            <NavItem key={link.href} {...link} collapsed={collapsed} onNavigate={handleMobileNavigate} />
           ))}
         </div>
 
-        <div className="flex-grow"></div>
+        <div className="flex flex-col gap-4">
+          {actionButtons.map((button) => (
+            <ActionButton key={button.id} {...button} collapsed={collapsed} onNavigate={handleMobileNavigate} />
+          ))}
+        </div>
 
-        <TeamPlanSection
-          teamName="LeFil"
-          planName="LEFIL"
-          collapsed={collapsed}
-          onNavigate={handleMobileNavigate}
-        />
-      </div>
+        <div className="mt-auto">
+          <TeamPlanSection
+            teamName="LeFil"
+            planName="LEFIL"
+            collapsed={collapsed}
+            onNavigate={handleMobileNavigate}
+          />
+        </div>
+      </nav>
     </>
   );
 
@@ -200,7 +185,7 @@ export function AppSidebar() {
   if (isMobile) {
     return (
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="left" className="w-64 p-0 bg-background">
+        <SheetContent side="left" className="w-64 p-0 bg-card shadow-md shadow-primary/50">
           <div className="h-full flex flex-col">
             {sidebarContent()}
           </div>
@@ -212,12 +197,12 @@ export function AppSidebar() {
   // Desktop: renderiza a Sidebar normal sempre fixa
   return (
     <Sidebar 
-      className="fixed left-0 top-0 h-screen w-64 border-r border-primary/20 z-40" 
+      className="fixed left-0 top-0 h-screen w-64 border-r border-primary/20 shadow-md shadow-primary/50 z-40" 
       collapsible="none"
       side="left"
       variant="sidebar"
     >
-      <SidebarContent className="bg-background flex flex-col h-full">
+      <SidebarContent className="bg-card flex flex-col h-full">
         {sidebarContent()}
       </SidebarContent>
     </Sidebar>
