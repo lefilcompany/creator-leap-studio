@@ -16,6 +16,7 @@ import ReviewContent from "./pages/ReviewContent";
 import PlanContent from "./pages/PlanContent";
 import Plans from "./pages/Plans";
 import Team from "./pages/Team";
+import Profile from "./pages/Profile";
 import { DashboardLayout } from "./components/DashboardLayout";
 import NotFound from "./pages/NotFound";
 
@@ -44,6 +45,7 @@ const App = () => (
             <Route path="plan" element={<PlanContent />} />
             <Route path="plans" element={<Plans />} />
             <Route path="team" element={<Team />} />
+            <Route path="profile" element={<Profile />} />
           </Route>
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

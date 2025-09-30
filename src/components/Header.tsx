@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Link } from "react-router-dom";
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -195,12 +196,15 @@ export const Header = () => {
           <Button
             variant="ghost"
             size="sm"
+            asChild
             className="h-8 w-8 md:h-10 md:w-10 rounded-lg xl:rounded-xl bg-gradient-to-br from-primary via-primary/80 to-secondary text-primary-foreground
               transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-primary/25
               border-2 border-transparent hover:border-white/20"
           >
-            <User className="h-4 w-4 md:h-5 md:w-5" />
-            <span className="sr-only">Perfil</span>
+            <Link to="/profile">
+              <User className="h-4 w-4 md:h-5 md:w-5" />
+              <span className="sr-only">Perfil</span>
+            </Link>
           </Button>
         </div>
       </div>
