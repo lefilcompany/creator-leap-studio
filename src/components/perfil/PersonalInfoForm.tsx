@@ -141,24 +141,25 @@ export default function PersonalInfoForm({ initialData }: PersonalInfoFormProps)
         </CardHeader>
 
         <CardContent className="space-y-6 sm:space-y-8 p-4 sm:p-6 md:px-8 md:py-6 lg:py-5 relative">
-          {/* Nome e Email */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-            <div className="space-y-2 sm:space-y-3 group/field">
-              <Label htmlFor="name" className="text-xs sm:text-sm font-semibold text-foreground flex items-center gap-2 group-hover/field:text-primary transition-colors">
-                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gradient-to-r from-primary to-secondary rounded-full shadow-sm group-hover/field:shadow-md group-hover/field:scale-125 transition-all duration-300" />
-                Nome Completo
-              </Label>
-              <div className="relative">
-                <Input 
-                  id="name" 
-                  value={formData.name} 
-                  onChange={(e) => handleChange('name', e.target.value)} 
-                  className="h-10 sm:h-11 md:h-12 border-2 border-primary/20 focus:border-primary/50 hover:border-primary/30 rounded-xl bg-background/80 backdrop-blur-sm transition-all duration-300 text-sm sm:text-base shadow-sm focus:shadow-md pl-3 sm:pl-4"
-                />
-                <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary/5 to-secondary/5 opacity-0 hover:opacity-100 transition-opacity pointer-events-none" />
-              </div>
+          {/* Nome Completo */}
+          <div className="space-y-2 sm:space-y-3 group/field">
+            <Label htmlFor="name" className="text-xs sm:text-sm font-semibold text-foreground flex items-center gap-2 group-hover/field:text-primary transition-colors">
+              <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gradient-to-r from-primary to-secondary rounded-full shadow-sm group-hover/field:shadow-md group-hover/field:scale-125 transition-all duration-300" />
+              Nome Completo
+            </Label>
+            <div className="relative">
+              <Input 
+                id="name" 
+                value={formData.name} 
+                onChange={(e) => handleChange('name', e.target.value)} 
+                className="h-10 sm:h-11 md:h-12 border-2 border-primary/20 focus:border-primary/50 hover:border-primary/30 rounded-xl bg-background/80 backdrop-blur-sm transition-all duration-300 text-sm sm:text-base shadow-sm focus:shadow-md pl-3 sm:pl-4"
+              />
+              <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary/5 to-secondary/5 opacity-0 hover:opacity-100 transition-opacity pointer-events-none" />
             </div>
+          </div>
 
+          {/* Email e Telefone */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             <div className="space-y-2 sm:space-y-3 group/field">
               <Label htmlFor="email" className="text-xs sm:text-sm font-semibold text-muted-foreground flex items-center gap-2">
                 <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-muted rounded-full" />
@@ -177,10 +178,7 @@ export default function PersonalInfoForm({ initialData }: PersonalInfoFormProps)
                 </p>
               </div>
             </div>
-          </div>
-          
-          {/* Telefone, Estado e Cidade */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 pt-4">
+
             <div className="space-y-2 sm:space-y-3 group/field">
               <Label htmlFor="phone" className="text-xs sm:text-sm font-semibold text-foreground flex items-center gap-2 group-hover/field:text-accent transition-colors">
                 <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gradient-to-r from-accent to-primary rounded-full shadow-sm group-hover/field:shadow-md group-hover/field:scale-125 transition-all duration-300" />
@@ -198,7 +196,10 @@ export default function PersonalInfoForm({ initialData }: PersonalInfoFormProps)
                 <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-accent/5 to-primary/5 opacity-0 hover:opacity-100 transition-opacity pointer-events-none" />
               </div>
             </div>
-
+          </div>
+          
+          {/* Estado e Cidade */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             <div className="space-y-2 sm:space-y-3 group/field">
               <Label htmlFor="state" className="text-xs sm:text-sm font-semibold text-foreground flex items-center gap-2 group-hover/field:text-secondary transition-colors">
                 <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gradient-to-r from-secondary to-accent rounded-full shadow-sm group-hover/field:shadow-md group-hover/field:scale-125 transition-all duration-300" />
