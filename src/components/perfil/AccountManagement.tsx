@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertTriangle, UserX, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+import { AlertTriangle, UserX, Trash2, ChevronDown, ChevronUp, Settings } from 'lucide-react';
 import DeactivateAccountDialog from './DeactivateAccountDialog';
 import DeleteAccountDialog from './DeleteAccountDialog';
 
@@ -13,13 +13,14 @@ export default function AccountManagement() {
 
   if (!isExpanded) {
     return (
-      <Card className="border-border shadow-sm">
-        <CardContent className="pt-6">
+      <Card className="group shadow-lg hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-card via-muted/[0.02] to-accent/[0.03] backdrop-blur-sm">
+        <CardContent className="p-6">
           <Button
             variant="ghost"
             onClick={() => setIsExpanded(true)}
-            className="w-full flex items-center justify-center gap-2 text-muted-foreground hover:text-foreground"
+            className="w-full h-12 flex items-center justify-center gap-2 text-muted-foreground hover:text-foreground rounded-lg transition-all duration-300 hover:bg-muted/50"
           >
+            <Settings className="h-4 w-4" />
             <span>Mostrar Opções Avançadas</span>
             <ChevronDown className="h-4 w-4" />
           </Button>
@@ -30,23 +31,31 @@ export default function AccountManagement() {
 
   return (
     <>
-      <Card className="border-border shadow-sm">
-        <CardHeader className="bg-muted/30 rounded-t-xl pb-4">
-          <div className="flex items-center gap-2">
-            <div className="bg-destructive/10 text-destructive rounded-lg p-2">
-              <AlertTriangle className="h-5 w-5" />
+      <Card className="group shadow-lg hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-card via-muted/[0.02] to-accent/[0.03] backdrop-blur-sm overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-destructive/5 via-transparent to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+        
+        <CardHeader className="relative bg-gradient-to-r from-destructive/8 via-accent/5 to-primary/8 border-b border-destructive/10 p-8">
+          <div className="flex items-start gap-4">
+            <div className="relative p-3 bg-gradient-to-br from-destructive/20 to-accent/20 rounded-2xl shadow-md group-hover:shadow-lg group-hover:scale-105 transition-all duration-300">
+              <div className="absolute inset-0 bg-gradient-to-br from-destructive to-accent opacity-0 group-hover:opacity-10 rounded-2xl transition-opacity duration-300" />
+              <AlertTriangle className="h-7 w-7 text-destructive relative z-10" />
             </div>
-            <div>
-              <CardTitle className="text-xl">Configurações Avançadas</CardTitle>
-              <CardDescription>Gerencie as opções avançadas da sua conta</CardDescription>
+            <div className="flex-1">
+              <CardTitle className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-destructive via-accent to-primary bg-clip-text text-transparent mb-2">
+                Configurações Avançadas
+              </CardTitle>
+              <CardDescription className="text-muted-foreground text-sm md:text-base">
+                Gerencie as opções avançadas da sua conta
+              </CardDescription>
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-6 pt-6">
+
+        <CardContent className="space-y-8 p-8 relative">
           {/* Warning Alert */}
-          <Alert className="bg-yellow-50 dark:bg-yellow-900/10 border-yellow-200 dark:border-yellow-800">
-            <AlertTriangle className="h-5 w-5 text-yellow-600 dark:text-yellow-500" />
-            <AlertDescription className="text-yellow-800 dark:text-yellow-200 ml-2">
+          <Alert className="bg-gradient-to-r from-destructive/5 to-accent/5 border-2 border-destructive/20 rounded-xl shadow-sm">
+            <AlertTriangle className="h-5 w-5 text-destructive" />
+            <AlertDescription className="text-foreground ml-2">
               <span className="font-bold">Atenção!</span>
               <br />
               As ações abaixo são irreversíveis. Certifique-se antes de prosseguir.
@@ -54,24 +63,27 @@ export default function AccountManagement() {
           </Alert>
 
           {/* Actions Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Deactivate Account */}
-            <Card className="border-border bg-muted/20 hover:bg-muted/30 transition-colors">
-              <CardContent className="pt-6 space-y-4">
+            <Card className="group/card border-0 bg-gradient-to-br from-muted/50 to-accent/5 hover:shadow-lg transition-all duration-300 overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-muted/10 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300" />
+              <CardContent className="pt-6 space-y-5 relative">
                 <div className="flex items-center justify-center">
-                  <div className="bg-muted rounded-full p-4">
-                    <UserX className="h-8 w-8 text-muted-foreground" />
+                  <div className="relative p-4 bg-gradient-to-br from-muted to-accent/20 rounded-2xl shadow-md group-hover/card:shadow-lg group-hover/card:scale-105 transition-all duration-300">
+                    <UserX className="h-8 w-8 text-muted-foreground relative z-10" />
                   </div>
                 </div>
                 <div className="text-center space-y-2">
-                  <h3 className="font-bold text-lg">Inativar Conta</h3>
-                  <p className="text-sm text-muted-foreground">
+                  <h3 className="font-bold text-lg bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
+                    Inativar Conta
+                  </h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed px-2">
                     Dados preservados. Reative facilmente cadastrando-se novamente.
                   </p>
                 </div>
                 <Button
                   variant="outline"
-                  className="w-full border-border hover:bg-muted"
+                  className="w-full h-11 rounded-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
                   onClick={() => setIsDeactivateDialogOpen(true)}
                 >
                   Inativar Conta
@@ -80,22 +92,25 @@ export default function AccountManagement() {
             </Card>
 
             {/* Delete Account */}
-            <Card className="border-destructive/30 bg-destructive/5 hover:bg-destructive/10 transition-colors">
-              <CardContent className="pt-6 space-y-4">
+            <Card className="group/card border-0 bg-gradient-to-br from-destructive/5 to-destructive/10 hover:shadow-lg transition-all duration-300 overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-destructive/10 to-destructive/5 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300" />
+              <CardContent className="pt-6 space-y-5 relative">
                 <div className="flex items-center justify-center">
-                  <div className="bg-destructive/10 rounded-full p-4">
-                    <Trash2 className="h-8 w-8 text-destructive" />
+                  <div className="relative p-4 bg-gradient-to-br from-destructive/20 to-destructive/30 rounded-2xl shadow-md group-hover/card:shadow-lg group-hover/card:scale-105 transition-all duration-300">
+                    <Trash2 className="h-8 w-8 text-destructive relative z-10" />
                   </div>
                 </div>
                 <div className="text-center space-y-2">
-                  <h3 className="font-bold text-lg text-destructive">Deletar Conta</h3>
-                  <p className="text-sm text-muted-foreground">
+                  <h3 className="font-bold text-lg text-destructive">
+                    Deletar Conta
+                  </h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed px-2">
                     <span className="font-bold text-destructive">PERMANENTE!</span> Todos os dados serão removidos.
                   </p>
                 </div>
                 <Button
                   variant="destructive"
-                  className="w-full"
+                  className="w-full h-11 rounded-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
                   onClick={() => setIsDeleteDialogOpen(true)}
                 >
                   Deletar Conta
@@ -105,14 +120,16 @@ export default function AccountManagement() {
           </div>
 
           {/* Hide Button */}
-          <Button
-            variant="ghost"
-            onClick={() => setIsExpanded(false)}
-            className="w-full flex items-center justify-center gap-2 text-muted-foreground hover:text-foreground"
-          >
-            <span>Ocultar Opções Avançadas</span>
-            <ChevronUp className="h-4 w-4" />
-          </Button>
+          <div className="border-t border-primary/10 pt-6">
+            <Button
+              variant="ghost"
+              onClick={() => setIsExpanded(false)}
+              className="w-full h-11 flex items-center justify-center gap-2 text-muted-foreground hover:text-foreground rounded-lg transition-all duration-300 hover:bg-muted/50"
+            >
+              <span>Ocultar Opções Avançadas</span>
+              <ChevronUp className="h-4 w-4" />
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
