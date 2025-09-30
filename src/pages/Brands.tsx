@@ -304,7 +304,7 @@ export default function MarcasPage() {
       {/* Sheet para desktop/tablet (da direita) */}
       {!isMobile && (
         <Sheet open={isBrandDetailsOpen} onOpenChange={setIsBrandDetailsOpen}>
-          <SheetContent side="right" className="w-[85vw] max-w-none">
+          <SheetContent side="right" className="w-[85vw] lg:w-[50vw] max-w-none">
             <SheetTitle className="text-left mb-4">Detalhes da Marca</SheetTitle>
             <BrandDetails
               brand={selectedBrand}
