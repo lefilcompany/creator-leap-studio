@@ -563,22 +563,8 @@ const Plans = () => {
 
           {/* Info da Equipe */}
           <Card className="shadow-lg">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base font-semibold flex items-center gap-2">
-                <Building2 className="h-4 w-4 text-primary" />
-                Informações da Equipe
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="p-3 bg-muted/50 rounded-lg">
-                <p className="text-xs text-muted-foreground mb-1">Nome da Equipe</p>
-                <p className="font-semibold text-sm">{team?.name || 'Equipe'}</p>
-              </div>
-              <div className="p-3 bg-muted/50 rounded-lg">
-                <p className="text-xs text-muted-foreground mb-1">Administrador</p>
-                <p className="font-semibold text-sm truncate">{team?.admin || 'Admin'}</p>
-              </div>
-            </CardContent>
+            
+            
           </Card>
         </div>
       </div>
