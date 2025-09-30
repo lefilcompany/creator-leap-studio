@@ -586,9 +586,9 @@ const Plans = () => {
         {/* Coluna Direita - Sidebar */}
         <div className="space-y-4">
           {/* Grid com Ações Rápidas e Plano Atual lado a lado */}
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+          <div className="flex flex-col xl:flex-row gap-4">
             {/* Ações Rápidas */}
-            <Card className="border-2">
+            <Card className="border-2 flex-1">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base font-semibold">Ações Rápidas</CardTitle>
               </CardHeader>
@@ -616,7 +616,7 @@ const Plans = () => {
             </Card>
 
             {/* Card do Plano Atual - Detalhado */}
-            <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-background">
+            <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-background flex-1">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between mb-2">
                   <CardTitle className="text-lg font-bold">
