@@ -528,7 +528,7 @@ const Plans = () => {
                       
                       <Progress 
                         value={percentage} 
-                        className="h-2.5"
+                        className="h-3 bg-primary/20 mb-3"
                       />
                       
                       <p className={`text-xs font-medium ${
