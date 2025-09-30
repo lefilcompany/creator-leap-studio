@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Link } from "react-router-dom";
 import { 
   Home as HomeIcon,
   Plus,
@@ -131,9 +132,11 @@ const Dashboard = () => {
             <div className="text-4xl font-bold tracking-tight text-foreground mb-2">{stats[0].value}</div>
             <p className="text-sm text-muted-foreground mb-4">{stats[0].subtitle}</p>
             <Progress value={stats[0].progress} className="h-3 bg-primary/20 mb-3" />
-            <Button variant="link" className="h-auto p-0 text-sm text-primary hover:text-primary/80 font-medium">
-              Ver planos e uso <ArrowRight className="w-4 h-4 ml-1" />
-            </Button>
+            <Link to="/plans">
+              <Button variant="link" className="h-auto p-0 text-sm text-primary hover:text-primary/80 font-medium">
+                Ver planos e uso <ArrowRight className="w-4 h-4 ml-1" />
+              </Button>
+            </Link>
           </CardContent>
         </Card>
 
