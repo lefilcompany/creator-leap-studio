@@ -239,14 +239,14 @@ const Plans = () => {
             return (
               <Card
                 key={plan.id}
-                className={`relative transition-all duration-200 hover:shadow-lg ${
-                  isPopular ? 'border-primary shadow-md scale-[1.02]' : ''
+                className={`relative transition-all duration-200 shadow-lg hover:shadow-2xl ${
+                  isPopular ? 'shadow-xl scale-[1.02]' : ''
                 } ${
-                  isPremium ? 'border-secondary shadow-md' : ''
+                  isPremium ? 'shadow-xl' : ''
                 } ${
-                  isCurrentPlan ? 'border-green-500 bg-green-50/50' : ''
+                  isCurrentPlan ? 'bg-green-50/50 shadow-xl' : ''
                 } ${
-                  isSelected ? 'border-orange-500 bg-orange-50/50 shadow-xl' : ''
+                  isSelected ? 'bg-orange-50/50 shadow-2xl' : ''
                 }`}
               >
                 {isPopular && (
@@ -434,7 +434,7 @@ const Plans = () => {
   return (
     <div className="space-y-4 md:space-y-6 animate-fade-in">
       {/* Header com design limpo */}
-      <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-background rounded-2xl p-6 md:p-8 border border-primary/10">
+      <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-background rounded-2xl p-6 md:p-8 shadow-lg">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="flex items-center gap-4">
             <div className="flex-shrink-0 bg-primary/10 text-primary rounded-2xl p-4">
@@ -466,7 +466,7 @@ const Plans = () => {
         {/* Coluna Esquerda - Conteúdo Principal */}
         <div className="space-y-4 md:space-y-6">
           {/* Card Plano Atual com destaque para créditos totais */}
-          <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 via-background to-background shadow-lg">
+          <Card className="bg-gradient-to-br from-primary/5 via-background to-background shadow-xl">
             <CardContent className="p-6">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
@@ -504,7 +504,7 @@ const Plans = () => {
               return (
                 <Card 
                   key={index} 
-                  className="border-2 hover:shadow-md transition-all"
+                  className="shadow-lg hover:shadow-xl transition-all"
                 >
                   <CardContent className="p-4">
                     <div className="flex items-center gap-2 mb-3">
@@ -548,7 +548,7 @@ const Plans = () => {
           </div>
 
           {/* Limites de Recursos */}
-          <Card className="border-2">
+          <Card className="shadow-lg">
             <CardHeader className="pb-4">
               <CardTitle className="text-lg">Limites de Recursos</CardTitle>
               <p className="text-sm text-muted-foreground">
@@ -565,7 +565,7 @@ const Plans = () => {
                 ].map((item, idx) => {
                   const Icon = item.icon;
                   return (
-                    <div key={idx} className={`flex items-center gap-2 p-3 rounded-xl ${item.bg} border border-transparent hover:border-border transition-all`}>
+                    <div key={idx} className={`flex items-center gap-2 p-3 rounded-xl ${item.bg} shadow-sm hover:shadow-md transition-all`}>
                       <div className="flex-shrink-0">
                         <Icon className={`h-5 w-5 ${item.color}`} />
                       </div>
@@ -583,7 +583,7 @@ const Plans = () => {
           </Card>
 
           {/* Cards de Ações com IA */}
-          <Card className="border-2">
+          <Card className="shadow-lg">
             <CardHeader className="pb-4">
               <CardTitle className="text-lg flex items-center gap-2">
                 <Sparkles className="h-5 w-5 text-primary" />
@@ -633,7 +633,7 @@ const Plans = () => {
                   return (
                     <Card 
                       key={idx} 
-                      className={`border-2 ${action.borderColor} hover:shadow-md transition-all cursor-pointer group`}
+                      className="shadow-md hover:shadow-xl transition-all cursor-pointer group"
                     >
                       <CardContent className="p-5">
                         <div className="flex items-start gap-4">
@@ -663,7 +663,7 @@ const Plans = () => {
           {/* Grid com Ações Rápidas e Plano Atual lado a lado */}
           <div className="flex flex-col xl:flex-row gap-4">
             {/* Ações Rápidas */}
-            <Card className="border-2 flex-1">
+            <Card className="shadow-lg flex-1">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base font-semibold">Ações Rápidas</CardTitle>
               </CardHeader>
@@ -691,7 +691,7 @@ const Plans = () => {
             </Card>
 
             {/* Card do Plano Atual - Detalhado */}
-            <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-background flex-1">
+            <Card className="bg-gradient-to-br from-primary/5 to-background shadow-xl flex-1">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between mb-2">
                   <CardTitle className="text-lg font-bold">
@@ -733,7 +733,7 @@ const Plans = () => {
           </div>
 
           {/* Info da Equipe */}
-          <Card className="border-2">
+          <Card className="shadow-lg">
             <CardHeader className="pb-3">
               <CardTitle className="text-base font-semibold flex items-center gap-2">
                 <Building2 className="h-4 w-4 text-primary" />
