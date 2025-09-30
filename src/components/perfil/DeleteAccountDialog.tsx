@@ -129,7 +129,7 @@ export default function DeleteAccountDialog({ open, onOpenChange, userEmail }: D
         <AlertDialogFooter>
           <Button
             variant="outline"
-            className="border-accent"
+            className="border-accent text-accent"
             onClick={() => {
               onOpenChange(false);
               setPassword('');
