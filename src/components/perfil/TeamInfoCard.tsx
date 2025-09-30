@@ -42,7 +42,7 @@ export default function TeamInfoCard({ team, userRole }: TeamInfoCardProps) {
 
   return (
     <>
-      <Card className="group shadow-lg hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-card via-secondary/[0.02] to-accent/[0.03] backdrop-blur-sm overflow-hidden">
+      <Card className="h-full group shadow-lg hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-card via-secondary/[0.02] to-accent/[0.03] backdrop-blur-sm overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-secondary/5 via-transparent to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
         
         <CardHeader className="relative bg-gradient-to-r from-secondary/8 via-accent/5 to-primary/8 border-b border-secondary/10 p-4 sm:p-6 md:p-8">
@@ -62,7 +62,7 @@ export default function TeamInfoCard({ team, userRole }: TeamInfoCardProps) {
           </div>
         </CardHeader>
 
-        <CardContent className="space-y-6 sm:space-y-8 p-4 sm:p-6 md:p-8 relative">
+        <CardContent className="space-y-6 sm:space-y-8 p-4 sm:p-6 md:px-8 md:py-6 lg:py-5 relative">
           {/* Team Name Section */}
           <div className="group/section space-y-3 sm:space-y-4">
             <div className="flex items-center justify-between gap-3">
