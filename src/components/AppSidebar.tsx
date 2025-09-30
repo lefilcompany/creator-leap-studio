@@ -169,7 +169,7 @@ export function AppSidebar() {
           ))}
         </div>
 
-        <div className="mt-auto">
+        <div className="mt-auto mb-4">
           <TeamPlanSection
             teamName="LeFil"
             planName="LEFIL"
