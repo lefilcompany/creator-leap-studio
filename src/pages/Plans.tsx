@@ -504,7 +504,7 @@ const Plans = () => {
               return (
                 <Card 
                   key={index} 
-                  className="shadow-lg hover:shadow-xl transition-all"
+                  className="border-0 shadow-lg hover:shadow-xl transition-all"
                 >
                   <CardContent className="p-4">
                     <div className="flex items-center gap-2 mb-3">
