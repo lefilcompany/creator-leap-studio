@@ -70,6 +70,7 @@ export default function CreateContent() {
   const [filteredPersonas, setFilteredPersonas] = useState<PersonaSummary[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [referenceFiles, setReferenceFiles] = useState<File[]>([]);
+  const [brandImages, setBrandImages] = useState<string[]>([]);
   const [isVideoMode, setIsVideoMode] = useState<boolean>(false);
   const [transformationType, setTransformationType] = useState<
     "image_to_video" | "video_to_video"
@@ -124,10 +125,10 @@ export default function CreateContent() {
 
         if (teamError) throw teamError;
 
-        // Buscar brands
+        // Buscar brands com imagens
         const { data: brandsData, error: brandsError } = await supabase
           .from('brands')
-          .select('id, name, responsible, created_at, updated_at')
+          .select('id, name, responsible, logo, moodboard, reference_image, created_at, updated_at')
           .eq('team_id', user.teamId)
           .order('created_at', { ascending: false });
 
@@ -225,14 +226,52 @@ export default function CreateContent() {
   }, [user]);
 
   useEffect(() => {
-    const selectedBrand = brands.find((b) => b.name === formData.brand);
-    setFilteredThemes(
-      selectedBrand ? themes.filter((t) => t.brandId === selectedBrand.id) : []
-    );
-    setFilteredPersonas(
-      selectedBrand ? personas.filter((p) => p.brandId === selectedBrand.id) : []
-    );
-  }, [brands, themes, personas, formData.brand]);
+    const loadBrandData = async () => {
+      const selectedBrand = brands.find((b) => b.id === formData.brand);
+      setFilteredThemes(
+        selectedBrand ? themes.filter((t) => t.brandId === selectedBrand.id) : []
+      );
+      setFilteredPersonas(
+        selectedBrand ? personas.filter((p) => p.brandId === selectedBrand.id) : []
+      );
+
+      // Carregar imagens da marca
+      if (selectedBrand) {
+        const images: string[] = [];
+        
+        // Buscar dados completos da marca para pegar as imagens
+        const { data: fullBrand, error } = await supabase
+          .from('brands')
+          .select('logo, moodboard, reference_image')
+          .eq('id', selectedBrand.id)
+          .single();
+
+        if (!error && fullBrand) {
+          // Adicionar logo
+          const logo = fullBrand.logo as any;
+          if (logo?.content) {
+            images.push(logo.content);
+          }
+          // Adicionar moodboard
+          const moodboard = fullBrand.moodboard as any;
+          if (moodboard?.content) {
+            images.push(moodboard.content);
+          }
+          // Adicionar imagem de referência
+          const referenceImage = fullBrand.reference_image as any;
+          if (referenceImage?.content) {
+            images.push(referenceImage.content);
+          }
+        }
+        
+        setBrandImages(images);
+      } else {
+        setBrandImages([]);
+      }
+    };
+
+    loadBrandData();
+  }, [brands, themes, personas, formData.brand, supabase]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -247,7 +286,8 @@ export default function CreateContent() {
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (field === "brand") {
       setFormData((prev) => ({ 
-        ...prev, 
+        ...prev,
+        brand: value,
         theme: "",
         persona: ""
       }));
@@ -322,7 +362,7 @@ export default function CreateContent() {
     });
 
     try {
-      // Converter imagens de referência para base64
+      // Converter imagens de referência (upload do usuário) para base64
       const referenceImagesBase64: string[] = [];
       for (const file of referenceFiles) {
         const base64 = await new Promise<string>((resolve, reject) => {
@@ -334,9 +374,12 @@ export default function CreateContent() {
         referenceImagesBase64.push(base64);
       }
 
+      // Adicionar imagens cadastradas na marca
+      const allReferenceImages = [...brandImages, ...referenceImagesBase64];
+
       toast.loading("Gerando imagem com IA...", {
         id: toastId,
-        description: `${referenceImagesBase64.length} imagem(ns) de referência sendo processadas com Gemini 2.5.`,
+        description: `${allReferenceImages.length} imagem(ns) de referência sendo processadas (${brandImages.length} da marca + ${referenceImagesBase64.length} upload).`,
       });
 
       // Buscar dados completos de brand, theme e persona
@@ -353,7 +396,7 @@ export default function CreateContent() {
         tone: formData.tone,
         platform: formData.platform,
         additionalInfo: formData.additionalInfo,
-        referenceImages: referenceImagesBase64,
+        referenceImages: allReferenceImages,
       };
 
       // 1. Gerar imagem com Gemini 2.5
