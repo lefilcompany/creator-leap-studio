@@ -13,6 +13,7 @@ import { ACTION_TYPE_DISPLAY } from '@/types/action';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function History() {
   const { user } = useAuth();
@@ -36,173 +37,126 @@ export default function History() {
   const [totalPages, setTotalPages] = useState(0);
   const ITEMS_PER_PAGE = 10;
 
-  // Mock data - In a real app, this would come from API calls
+  // Load brands from database
   useEffect(() => {
-    const loadMockData = async () => {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+    const loadBrands = async () => {
+      if (!user?.teamId) return;
       
-      // Mock brands data
-      const mockBrands: BrandSummary[] = [
-        { 
-          id: '1', 
-          name: 'Morada da Paz', 
-          responsible: 'João Silva',
-          createdAt: '2025-01-01T00:00:00Z',
-          updatedAt: '2025-01-01T00:00:00Z'
-        },
-        { 
-          id: '2', 
-          name: 'Morada da Paz Pet', 
-          responsible: 'Maria Santos',
-          createdAt: '2025-01-02T00:00:00Z',
-          updatedAt: '2025-01-02T00:00:00Z'
-        },
-        { 
-          id: '3', 
-          name: 'LeFil Company', 
-          responsible: 'Pedro Costa',
-          createdAt: '2025-01-03T00:00:00Z',
-          updatedAt: '2025-01-03T00:00:00Z'
-        }
-      ];
+      setIsLoadingBrands(true);
+      try {
+        const { data, error } = await supabase
+          .from('brands')
+          .select('id, name, responsible, created_at, updated_at')
+          .eq('team_id', user.teamId)
+          .order('name');
 
-      // Mock actions data with more items for pagination
-      const mockActions: ActionSummary[] = [
-        {
-          id: '1',
-          type: 'CRIAR_CONTEUDO',
-          brand: { id: '1', name: 'Morada da Paz' },
-          approved: true,
-          createdAt: '2025-09-29T10:30:00Z'
-        },
-        {
-          id: '2',
-          type: 'REVISAR_CONTEUDO',
-          brand: { id: '2', name: 'Morada da Paz Pet' },
-          approved: true,
-          createdAt: '2025-09-29T09:15:00Z'
-        },
-        {
-          id: '3',
-          type: 'PLANEJAR_CONTEUDO',
-          brand: { id: '3', name: 'LeFil Company' },
-          approved: true,
-          createdAt: '2025-09-29T08:45:00Z'
-        },
-        {
-          id: '4',
-          type: 'CRIAR_CONTEUDO',
-          brand: { id: '1', name: 'Morada da Paz' },
-          approved: false,
-          createdAt: '2025-09-28T16:20:00Z'
-        },
-        {
-          id: '5',
-          type: 'REVISAR_CONTEUDO',
-          brand: { id: '2', name: 'Morada da Paz Pet' },
-          approved: true,
-          createdAt: '2025-09-28T14:30:00Z'
-        },
-        {
-          id: '6',
-          type: 'PLANEJAR_CONTEUDO',
-          brand: { id: '3', name: 'LeFil Company' },
-          approved: true,
-          createdAt: '2025-09-28T13:15:00Z'
-        },
-        {
-          id: '7',
-          type: 'CRIAR_CONTEUDO',
-          brand: { id: '1', name: 'Morada da Paz' },
-          approved: true,
-          createdAt: '2025-09-28T11:45:00Z'
-        },
-        {
-          id: '8',
-          type: 'REVISAR_CONTEUDO',
-          brand: { id: '2', name: 'Morada da Paz Pet' },
-          approved: false,
-          createdAt: '2025-09-28T10:20:00Z'
-        },
-        {
-          id: '9',
-          type: 'PLANEJAR_CONTEUDO',
-          brand: { id: '3', name: 'LeFil Company' },
-          approved: true,
-          createdAt: '2025-09-28T09:00:00Z'
-        },
-        {
-          id: '10',
-          type: 'CRIAR_CONTEUDO',
-          brand: { id: '1', name: 'Morada da Paz' },
-          approved: true,
-          createdAt: '2025-09-27T17:30:00Z'
-        },
-        {
-          id: '11',
-          type: 'REVISAR_CONTEUDO',
-          brand: { id: '2', name: 'Morada da Paz Pet' },
-          approved: true,
-          createdAt: '2025-09-27T16:15:00Z'
-        },
-        {
-          id: '12',
-          type: 'PLANEJAR_CONTEUDO',
-          brand: { id: '3', name: 'LeFil Company' },
-          approved: false,
-          createdAt: '2025-09-27T15:00:00Z'
-        },
-        {
-          id: '13',
-          type: 'CRIAR_CONTEUDO',
-          brand: { id: '1', name: 'Morada da Paz' },
-          approved: true,
-          createdAt: '2025-09-27T14:20:00Z'
-        },
-        {
-          id: '14',
-          type: 'REVISAR_CONTEUDO',
-          brand: { id: '2', name: 'Morada da Paz Pet' },
-          approved: true,
-          createdAt: '2025-09-27T13:10:00Z'
-        },
-        {
-          id: '15',
-          type: 'PLANEJAR_CONTEUDO',
-          brand: { id: '3', name: 'LeFil Company' },
-          approved: true,
-          createdAt: '2025-09-27T12:00:00Z'
-        }
-      ];
+        if (error) throw error;
 
-      // Apply filters
-      let filteredActions = mockActions;
-      
-      if (brandFilter !== 'all') {
-        filteredActions = filteredActions.filter(action => action.brand?.name === brandFilter);
+        const brandSummaries: BrandSummary[] = (data || []).map(brand => ({
+          id: brand.id,
+          name: brand.name,
+          responsible: brand.responsible,
+          createdAt: brand.created_at,
+          updatedAt: brand.updated_at
+        }));
+
+        setBrands(brandSummaries);
+      } catch (error) {
+        console.error('Error loading brands:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao carregar marcas",
+          variant: "destructive"
+        });
+      } finally {
+        setIsLoadingBrands(false);
       }
-      
-      if (typeFilter !== 'all') {
-        filteredActions = filteredActions.filter(action => ACTION_TYPE_DISPLAY[action.type] === typeFilter);
-      }
-
-      // Apply pagination
-      const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-      const endIndex = startIndex + ITEMS_PER_PAGE;
-      const paginatedActions = filteredActions.slice(startIndex, endIndex);
-
-      setBrands(mockBrands);
-      setActions(paginatedActions);
-      setTotalPages(Math.ceil(filteredActions.length / ITEMS_PER_PAGE));
-      setIsLoadingBrands(false);
-      setIsLoadingActions(false);
     };
 
-    if (user?.teamId) {
-      loadMockData();
+    loadBrands();
+  }, [user, toast]);
+
+  // Load actions from database
+  useEffect(() => {
+    const loadActions = async () => {
+      if (!user?.teamId) return;
+      
+      setIsLoadingActions(true);
+      try {
+        let query = supabase
+          .from('actions')
+          .select(`
+            id,
+            type,
+            created_at,
+            approved,
+            brand_id,
+            brands!inner(id, name)
+          `)
+          .eq('team_id', user.teamId)
+          .order('created_at', { ascending: false });
+
+        // Apply brand filter
+        if (brandFilter !== 'all') {
+          const selectedBrand = brands.find(b => b.name === brandFilter);
+          if (selectedBrand) {
+            query = query.eq('brand_id', selectedBrand.id);
+          }
+        }
+
+        // Apply type filter
+        if (typeFilter !== 'all') {
+          const selectedType = Object.entries(ACTION_TYPE_DISPLAY).find(
+            ([_, display]) => display === typeFilter
+          )?.[0];
+          if (selectedType) {
+            query = query.eq('type', selectedType);
+          }
+        }
+
+        // Get count for pagination
+        const { count } = await supabase
+          .from('actions')
+          .select('*', { count: 'exact', head: true })
+          .eq('team_id', user.teamId);
+
+        // Apply pagination
+        const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+        query = query.range(startIndex, startIndex + ITEMS_PER_PAGE - 1);
+
+        const { data, error } = await query;
+
+        if (error) throw error;
+
+        const actionSummaries: ActionSummary[] = (data || []).map(action => ({
+          id: action.id,
+          type: action.type as any,
+          createdAt: action.created_at,
+          approved: action.approved,
+          brand: action.brands ? {
+            id: action.brands.id,
+            name: action.brands.name
+          } : null
+        }));
+
+        setActions(actionSummaries);
+        setTotalPages(Math.ceil((count || 0) / ITEMS_PER_PAGE));
+      } catch (error) {
+        console.error('Error loading actions:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao carregar histórico de ações",
+          variant: "destructive"
+        });
+      } finally {
+        setIsLoadingActions(false);
+      }
+    };
+
+    if (user?.teamId && brands.length > 0) {
+      loadActions();
     }
-  }, [user, brandFilter, typeFilter, currentPage]);
+  }, [user, brands, brandFilter, typeFilter, currentPage, toast]);
 
   const handleSelectAction = useCallback(async (action: ActionSummary) => {
     setSelectedActionSummary(action);
@@ -210,47 +164,59 @@ export default function History() {
     setIsActionDetailsOpen(true);
     
     try {
-      // Simulate API call to get full action details
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Mock full action data
+      const { data, error } = await supabase
+        .from('actions')
+        .select(`
+          id,
+          type,
+          brand_id,
+          team_id,
+          user_id,
+          created_at,
+          updated_at,
+          status,
+          approved,
+          revisions,
+          details,
+          result,
+          brands(id, name)
+        `)
+        .eq('id', action.id)
+        .single();
+
+      if (error) throw error;
+
       const fullAction: Action = {
-        id: action.id,
-        type: action.type,
-        brandId: action.brand?.id || '',
-        brand: action.brand,
-        details: {
-          platform: action.type === 'CRIAR_CONTEUDO' ? 'Instagram' : action.type === 'PLANEJAR_CONTEUDO' ? 'Instagram' : undefined,
-          quantity: action.type === 'PLANEJAR_CONTEUDO' ? '5 posts' : undefined
-        },
-        result: {
-          title: action.type === 'CRIAR_CONTEUDO' ? 'Descubra o sabor que chegou da Amazon!' : undefined,
-          body: action.type === 'CRIAR_CONTEUDO' ? 'Nossos novos produtos chegaram diretamente da floresta amazônica para sua mesa. Experimente sabores únicos e autênticos que conectam você com a natureza. 🌿✨\n\n#SaboresAmazonicos #NaturezaPura #NovosProdutos' : undefined,
-          feedback: action.type === 'REVISAR_CONTEUDO' ? 'O conteúdo está bem estruturado e alinhado com a identidade da marca. Sugestões: adicionar mais elementos visuais que remetam à natureza e incluir call-to-action mais direto para aumentar o engajamento.' : undefined,
-          plan: action.type === 'PLANEJAR_CONTEUDO' ? '<h3>Planejamento de Conteúdo - 5 Posts Instagram</h3><ul><li><strong>Post 1:</strong> Apresentação dos novos produtos amazônicos</li><li><strong>Post 2:</strong> História por trás dos produtos</li><li><strong>Post 3:</strong> Benefícios e propriedades</li><li><strong>Post 4:</strong> Depoimentos de clientes</li><li><strong>Post 5:</strong> Call-to-action para compra</li></ul>' : undefined,
-          imageUrl: action.type === 'CRIAR_CONTEUDO' ? 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop' : undefined,
-          originalImage: action.type === 'REVISAR_CONTEUDO' ? 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400&h=400&fit=crop' : undefined
-        },
-        approved: action.approved,
-        status: action.approved ? 'Aprovado' : 'Em revisão',
-        revisions: 0,
-        createdAt: action.createdAt,
-        updatedAt: action.createdAt,
-        teamId: user?.teamId || '',
-        userId: user?.id || ''
+        id: data.id,
+        type: data.type as any,
+        brandId: data.brand_id,
+        teamId: data.team_id,
+        userId: data.user_id,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at,
+        status: data.status,
+        approved: data.approved,
+        revisions: data.revisions,
+        details: data.details as any,
+        result: data.result as any,
+        brand: data.brands ? {
+          id: data.brands.id,
+          name: data.brands.name
+        } : undefined
       };
       
       setSelectedAction(fullAction);
     } catch (error) {
+      console.error('Error loading action details:', error);
       toast({
         title: "Erro",
-        description: "Erro de conexão ao carregar detalhes da ação",
+        description: "Erro ao carregar detalhes da ação",
         variant: "destructive"
       });
     } finally {
       setIsLoadingActionDetails(false);
     }
-  }, [user, toast]);
+  }, [toast]);
 
   // Reset to first page when filters change
   useEffect(() => {
