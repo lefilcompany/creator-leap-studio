@@ -133,14 +133,11 @@ export function CreateTeamDialog({ open, onClose, onSuccess }: CreateTeamDialogP
         throw new Error(`Não foi possível atualizar o perfil: ${profileError.message}`);
       }
 
-      toast.success("Equipe criada com sucesso! Faça login para acessar o sistema.");
+      toast.success("Equipe criada com sucesso!");
       
-      // Fazer logout para garantir nova sessão limpa
-      await supabase.auth.signOut();
-      
-      // Fechar dialog e redirecionar para login
+      // Fechar dialog e redirecionar para dashboard
       onSuccess();
-      navigate("/login");
+      navigate("/dashboard");
     } catch (error: any) {
       console.error('Erro ao criar equipe:', error);
       
