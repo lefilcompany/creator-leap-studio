@@ -124,7 +124,43 @@ export default function ContentResult() {
   };
 
   const handleDownload = () => {
-    toast.success(`Download do ${contentData?.type === "video" ? "vídeo" : "imagem"} iniciado!`);
+    if (!contentData) return;
+    
+    try {
+      // Convert base64 to blob
+      const base64Data = contentData.mediaUrl.split(',')[1];
+      const byteCharacters = atob(base64Data);
+      const byteNumbers = new Array(byteCharacters.length);
+      
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      
+      const byteArray = new Uint8Array(byteNumbers);
+      const mimeType = contentData.type === "video" ? "video/mp4" : "image/png";
+      const blob = new Blob([byteArray], { type: mimeType });
+      
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      
+      // Generate filename
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+      const extension = contentData.type === "video" ? "mp4" : "png";
+      link.download = `${contentData.brand.replace(/\s+/g, '_')}_${contentData.platform}_${timestamp}.${extension}`;
+      
+      // Trigger download
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast.success(`Download em alta qualidade iniciado!`);
+    } catch (error) {
+      console.error('Erro ao fazer download:', error);
+      toast.error("Erro ao fazer download");
+    }
   };
 
   const handleShare = () => {
