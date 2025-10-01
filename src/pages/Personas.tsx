@@ -14,76 +14,10 @@ import type { BrandSummary } from '@/types/brand';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 // Definindo o tipo para os dados do formulário, que é uma Persona parcial
 type PersonaFormData = Omit<Persona, 'id' | 'createdAt' | 'updatedAt' | 'teamId' | 'userId'>;
-
-// Mock data for demonstration
-const mockBrands: BrandSummary[] = [
-  {
-    id: "acucar-petribu",
-    name: "Açúcar Petribu", 
-    responsible: "copy@lefil.com.br",
-    createdAt: "2025-09-02T10:00:00.000Z",
-    updatedAt: "2025-09-02T10:00:00.000Z"
-  },
-  {
-    id: "ceramica-brennand",
-    name: "Cerâmica Brennand",
-    responsible: "julia.lima@lefil.com.br", 
-    createdAt: "2025-09-18T10:00:00.000Z",
-    updatedAt: "2025-09-18T10:00:00.000Z"
-  },
-  {
-    id: "iclub",
-    name: "Iclub",
-    responsible: "marianna.monteiro.ext@lefil.com.br",
-    createdAt: "2025-09-08T10:00:00.000Z",
-    updatedAt: "2025-09-08T10:00:00.000Z"
-  }
-];
-
-const mockPersonas: PersonaSummary[] = [
-  {
-    id: "persona-1",
-    brandId: "acucar-petribu",
-    name: "Maria Santos",
-    createdAt: "2025-09-15T10:00:00.000Z"
-  },
-  {
-    id: "persona-2",
-    brandId: "ceramica-brennand", 
-    name: "João Silva",
-    createdAt: "2025-09-20T10:00:00.000Z"
-  },
-  {
-    id: "persona-3",
-    brandId: "iclub",
-    name: "Ana Costa",
-    createdAt: "2025-09-10T10:00:00.000Z"
-  }
-];
-
-const mockFullPersona: Persona = {
-  id: "persona-1",
-  brandId: "acucar-petribu",
-  name: "Maria Santos",
-  age: "35",
-  gender: "Feminino",
-  professionalContext: "Gerente de Marketing",
-  location: "São Paulo, SP",
-  beliefsAndInterests: "Profissional experiente em marketing digital, mãe de dois filhos, sempre em busca de produtos que facilitem sua rotina familiar.",
-  mainGoal: "Crescer profissionalmente, equilibrar vida pessoal e profissional, encontrar produtos que economizem tempo no dia a dia.",
-  challenges: "Falta de tempo, produtos que não cumprem o que prometem, dificuldade em conciliar trabalho e família.",
-  contentConsumptionRoutine: "Pesquisa muito antes de comprar, lê reviews, prefere compras online, muito ativa nas redes sociais.",
-  preferredToneOfVoice: "Profissional",
-  purchaseJourneyStage: "Consideração", 
-  interestTriggers: "Produtos que economizem tempo, reviews positivos, promoções exclusivas",
-  createdAt: "2025-09-15T10:00:00.000Z",
-  updatedAt: "2025-09-15T10:00:00.000Z",
-  teamId: "team-1",
-  userId: "1"
-};
 
 export default function PersonasPage() {
   const { user } = useAuth();
@@ -97,27 +31,76 @@ export default function PersonasPage() {
   const [isLoadingPersonaDetails, setIsLoadingPersonaDetails] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [personaToEdit, setPersonaToEdit] = useState<Persona | null>(null);
-  const [team, setTeam] = useState<any>(null);
-  const [isLoadingTeam, setIsLoadingTeam] = useState(false);
   const [isPersonaDetailsOpen, setIsPersonaDetailsOpen] = useState(false);
 
-  // Simulate loading personas and brands
+  // Load brands from database
   useEffect(() => {
-    const loadData = async () => {
-      setIsLoadingPersonas(true);
+    const loadBrands = async () => {
+      if (!user?.teamId) return;
+      
       setIsLoadingBrands(true);
-      
-      // Simulate API calls
-      await new Promise(resolve => setTimeout(resolve, 800));
-      setPersonas(mockPersonas);
-      setBrands(mockBrands);
-      
-      setIsLoadingPersonas(false);
-      setIsLoadingBrands(false);
+      try {
+        const { data, error } = await supabase
+          .from('brands')
+          .select('id, name, responsible, created_at, updated_at')
+          .eq('team_id', user.teamId)
+          .order('name', { ascending: true });
+
+        if (error) throw error;
+
+        const brands: BrandSummary[] = data.map(brand => ({
+          id: brand.id,
+          name: brand.name,
+          responsible: brand.responsible,
+          createdAt: brand.created_at,
+          updatedAt: brand.updated_at
+        }));
+
+        setBrands(brands);
+      } catch (error) {
+        console.error('Erro ao carregar marcas:', error);
+        toast.error('Erro ao carregar marcas');
+      } finally {
+        setIsLoadingBrands(false);
+      }
     };
     
-    loadData();
-  }, []);
+    loadBrands();
+  }, [user?.teamId]);
+
+  // Load personas from database
+  useEffect(() => {
+    const loadPersonas = async () => {
+      if (!user?.teamId) return;
+      
+      setIsLoadingPersonas(true);
+      try {
+        const { data, error } = await supabase
+          .from('personas')
+          .select('id, brand_id, name, created_at')
+          .eq('team_id', user.teamId)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        const personas: PersonaSummary[] = data.map(persona => ({
+          id: persona.id,
+          brandId: persona.brand_id,
+          name: persona.name,
+          createdAt: persona.created_at
+        }));
+
+        setPersonas(personas);
+      } catch (error) {
+        console.error('Erro ao carregar personas:', error);
+        toast.error('Erro ao carregar personas');
+      } finally {
+        setIsLoadingPersonas(false);
+      }
+    };
+    
+    loadPersonas();
+  }, [user?.teamId]);
 
   const handleOpenDialog = useCallback((persona: Persona | null = null) => {
     setPersonaToEdit(persona);
@@ -127,20 +110,36 @@ export default function PersonasPage() {
   const handleSelectPersona = useCallback(async (persona: PersonaSummary) => {
     setSelectedPersonaSummary(persona);
     setIsLoadingPersonaDetails(true);
-    setIsPersonaDetailsOpen(true); // Abre o slider para todos os dispositivos
+    setIsPersonaDetailsOpen(true);
     
     try {
-      // Simulate API call to get full persona details
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Mock: return different data based on selected persona
-      const fullPersona = {
-        ...mockFullPersona,
-        id: persona.id,
-        brandId: persona.brandId,
-        name: persona.name,
-        createdAt: persona.createdAt,
-        updatedAt: persona.createdAt
+      const { data, error } = await supabase
+        .from('personas')
+        .select('*')
+        .eq('id', persona.id)
+        .single();
+
+      if (error) throw error;
+
+      const fullPersona: Persona = {
+        id: data.id,
+        brandId: data.brand_id,
+        teamId: data.team_id,
+        userId: data.user_id,
+        name: data.name,
+        age: data.age,
+        gender: data.gender,
+        professionalContext: data.professional_context,
+        location: data.location,
+        beliefsAndInterests: data.beliefs_and_interests,
+        mainGoal: data.main_goal,
+        challenges: data.challenges,
+        contentConsumptionRoutine: data.content_consumption_routine,
+        preferredToneOfVoice: data.preferred_tone_of_voice,
+        purchaseJourneyStage: data.purchase_journey_stage,
+        interestTriggers: data.interest_triggers,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at
       };
       
       setSelectedPersona(fullPersona);
@@ -162,11 +161,29 @@ export default function PersonasPage() {
     try {
       toast.loading(personaToEdit ? 'Atualizando persona...' : 'Criando persona...', { id: toastId });
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
       if (personaToEdit) {
         // Update existing persona
+        const { error } = await supabase
+          .from('personas')
+          .update({
+            brand_id: formData.brandId,
+            name: formData.name,
+            age: formData.age,
+            gender: formData.gender,
+            professional_context: formData.professionalContext,
+            location: formData.location,
+            beliefs_and_interests: formData.beliefsAndInterests,
+            main_goal: formData.mainGoal,
+            challenges: formData.challenges,
+            content_consumption_routine: formData.contentConsumptionRoutine,
+            preferred_tone_of_voice: formData.preferredToneOfVoice,
+            purchase_journey_stage: formData.purchaseJourneyStage,
+            interest_triggers: formData.interestTriggers,
+          })
+          .eq('id', personaToEdit.id);
+
+        if (error) throw error;
+
         const updatedPersona: Persona = {
           ...personaToEdit,
           ...formData,
@@ -187,13 +204,37 @@ export default function PersonasPage() {
         toast.success('Persona atualizada com sucesso!', { id: toastId });
       } else {
         // Create new persona
+        const { data, error } = await supabase
+          .from('personas')
+          .insert({
+            team_id: user.teamId,
+            user_id: user.id,
+            brand_id: formData.brandId,
+            name: formData.name,
+            age: formData.age,
+            gender: formData.gender,
+            professional_context: formData.professionalContext,
+            location: formData.location,
+            beliefs_and_interests: formData.beliefsAndInterests,
+            main_goal: formData.mainGoal,
+            challenges: formData.challenges,
+            content_consumption_routine: formData.contentConsumptionRoutine,
+            preferred_tone_of_voice: formData.preferredToneOfVoice,
+            purchase_journey_stage: formData.purchaseJourneyStage,
+            interest_triggers: formData.interestTriggers,
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+
         const newPersona: Persona = {
           ...formData,
-          id: `persona-${Date.now()}`,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          teamId: user?.teamId || 'team-1',
-          userId: user?.id || '1'
+          id: data.id,
+          createdAt: data.created_at,
+          updatedAt: data.updated_at,
+          teamId: user.teamId,
+          userId: user.id
         };
         
         const newPersonaSummary: PersonaSummary = {
@@ -212,6 +253,7 @@ export default function PersonasPage() {
       setIsDialogOpen(false);
       setPersonaToEdit(null);
     } catch (error) {
+      console.error('Erro ao salvar persona:', error);
       toast.error('Erro ao salvar persona. Tente novamente.', { id: toastId });
       throw error;
     }
@@ -227,23 +269,24 @@ export default function PersonasPage() {
     try {
       toast.loading('Deletando persona...', { id: toastId });
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
+      const { error } = await supabase
+        .from('personas')
+        .delete()
+        .eq('id', selectedPersona.id);
+
+      if (error) throw error;
       
       setPersonas(prev => prev.filter(persona => persona.id !== selectedPersona.id));
       setSelectedPersona(null);
       setSelectedPersonaSummary(null);
+      setIsPersonaDetailsOpen(false);
       
       toast.success('Persona deletada com sucesso!', { id: toastId });
     } catch (error) {
+      console.error('Erro ao deletar persona:', error);
       toast.error('Erro ao deletar persona. Tente novamente.', { id: toastId });
     }
   }, [selectedPersona, user]);
-
-  // Verificar se o limite foi atingido
-  const isAtPersonaLimit = team && typeof team.plan === 'object' 
-    ? personas.length >= (team.plan.limits?.personas || 2)
-    : false;
 
   return (
     <div className="h-full flex flex-col gap-4 lg:gap-6 overflow-hidden">
@@ -265,8 +308,7 @@ export default function PersonasPage() {
             </div>
             <Button 
               onClick={() => handleOpenDialog()} 
-              disabled={isAtPersonaLimit || isLoadingTeam}
-              className="rounded-lg bg-gradient-to-r from-primary to-secondary px-4 lg:px-6 py-3 lg:py-5 text-sm lg:text-base disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+              className="rounded-lg bg-gradient-to-r from-primary to-secondary px-4 lg:px-6 py-3 lg:py-5 text-sm lg:text-base shrink-0"
             >
               <Plus className="mr-2 h-4 w-4 lg:h-5 lg:w-5" />
               Nova persona
