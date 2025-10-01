@@ -35,11 +35,16 @@ export function useAuth() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
+        
+        // Defer Supabase calls with setTimeout to prevent deadlock
         if (session?.user) {
-          loadUserData(session.user);
+          setTimeout(() => {
+            loadUserData(session.user);
+          }, 0);
         } else {
           setUser(null);
           setTeam(null);
+          setIsLoading(false);
         }
       }
     );
@@ -48,7 +53,9 @@ export function useAuth() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session?.user) {
-        loadUserData(session.user);
+        setTimeout(() => {
+          loadUserData(session.user);
+        }, 0);
       } else {
         setIsLoading(false);
       }
