@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Select,
   SelectContent,
@@ -111,60 +112,108 @@ export default function CreateContent() {
 
       setIsLoadingData(true);
       try {
-        // Mock data for development
-        const mockTeam: Team = {
-          id: 'team-1',
-          name: 'LeFil',
-          code: 'lefil-123',
-          admin: 'copy@lefil.com.br',
-          members: ['copy@lefil.com.br'],
+        // Buscar team
+        const { data: teamData, error: teamError } = await supabase
+          .from('teams')
+          .select(`
+            *,
+            plan:plans(*)
+          `)
+          .eq('id', user.teamId)
+          .single();
+
+        if (teamError) throw teamError;
+
+        // Buscar brands
+        const { data: brandsData, error: brandsError } = await supabase
+          .from('brands')
+          .select('id, name, responsible, created_at, updated_at')
+          .eq('team_id', user.teamId)
+          .order('created_at', { ascending: false });
+
+        if (brandsError) throw brandsError;
+
+        // Buscar themes
+        const { data: themesData, error: themesError } = await supabase
+          .from('strategic_themes')
+          .select('id, brand_id, title, created_at')
+          .eq('team_id', user.teamId)
+          .order('created_at', { ascending: false });
+
+        if (themesError) throw themesError;
+
+        // Buscar personas
+        const { data: personasData, error: personasError } = await supabase
+          .from('personas')
+          .select('id, brand_id, name, created_at')
+          .eq('team_id', user.teamId)
+          .order('created_at', { ascending: false });
+
+        if (personasError) throw personasError;
+
+        // Mapear team
+        const mappedTeam: Team = {
+          id: teamData.id,
+          name: teamData.name,
+          code: teamData.code,
+          admin: teamData.admin_id,
+          admin_id: teamData.admin_id,
+          members: [],
           pending: [],
-          plan: {
-            id: '3',
-            name: 'PRO',
-            displayName: 'Premium',
-            price: 99.90,
-            trialDays: 14,
-            maxMembers: 10,
-            maxBrands: 20,
-            maxStrategicThemes: 50,
-            maxPersonas: 30,
-            quickContentCreations: 1000,
-            customContentSuggestions: 100,
-            contentPlans: 5,
-            contentReviews: 50,
-            isActive: true,
-          },
+          plan: teamData.plan ? {
+            id: teamData.plan.id,
+            name: teamData.plan.name,
+            displayName: teamData.plan.name,
+            price: Number(teamData.plan.price_monthly || 0),
+            trialDays: teamData.plan.trial_days,
+            maxMembers: teamData.plan.max_members,
+            maxBrands: teamData.plan.max_brands,
+            maxStrategicThemes: teamData.plan.max_strategic_themes,
+            maxPersonas: teamData.plan.max_personas,
+            quickContentCreations: teamData.plan.credits_quick_content,
+            customContentSuggestions: teamData.plan.credits_suggestions,
+            contentPlans: teamData.plan.credits_plans,
+            contentReviews: teamData.plan.credits_reviews,
+            isActive: teamData.plan.is_active,
+            stripePriceId: teamData.plan.stripe_price_id_monthly,
+          } : null,
           credits: {
-            quickContentCreations: 795,
-            contentSuggestions: 9795,
-            contentReviews: 48,
-            contentPlans: 25
+            quickContentCreations: teamData.credits_quick_content,
+            contentSuggestions: teamData.credits_suggestions,
+            contentReviews: teamData.credits_reviews,
+            contentPlans: teamData.credits_plans,
           }
         };
 
-        const mockBrands: BrandSummary[] = [
-          { id: '1', name: 'Açúcar Petribu', responsible: 'copy@lefil.com.br', createdAt: '2025-09-01T10:00:00Z', updatedAt: '2025-09-29T10:00:00Z' },
-          { id: '2', name: 'Cerâmica Brennand', responsible: 'copy@lefil.com.br', createdAt: '2025-09-02T10:00:00Z', updatedAt: '2025-09-29T10:00:00Z' },
-          { id: '3', name: 'Iclub', responsible: 'copy@lefil.com.br', createdAt: '2025-09-03T10:00:00Z', updatedAt: '2025-09-29T10:00:00Z' },
-        ];
+        // Mapear brands
+        const mappedBrands: BrandSummary[] = brandsData.map((brand) => ({
+          id: brand.id,
+          name: brand.name,
+          responsible: brand.responsible,
+          createdAt: brand.created_at,
+          updatedAt: brand.updated_at,
+        }));
 
-        const mockThemes: StrategicThemeSummary[] = [
-          { id: '1', brandId: '1', title: 'Receitas Tradicionais', createdAt: '2025-09-01T10:00:00Z' },
-          { id: '2', brandId: '1', title: 'Momentos em Família', createdAt: '2025-09-02T10:00:00Z' },
-          { id: '3', brandId: '2', title: 'Arte e Tradição', createdAt: '2025-09-03T10:00:00Z' },
-        ];
+        // Mapear themes
+        const mappedThemes: StrategicThemeSummary[] = themesData.map((theme) => ({
+          id: theme.id,
+          brandId: theme.brand_id,
+          title: theme.title,
+          createdAt: theme.created_at,
+        }));
 
-        const mockPersonas: PersonaSummary[] = [
-          { id: '1', brandId: '1', name: 'Mãe Carinhosa', createdAt: '2025-09-01T10:00:00Z' },
-          { id: '2', brandId: '1', name: 'Jovem Independente', createdAt: '2025-09-02T10:00:00Z' },
-          { id: '3', brandId: '2', name: 'Artista Apreciador', createdAt: '2025-09-03T10:00:00Z' },
-        ];
+        // Mapear personas
+        const mappedPersonas: PersonaSummary[] = personasData.map((persona) => ({
+          id: persona.id,
+          brandId: persona.brand_id,
+          name: persona.name,
+          createdAt: persona.created_at,
+        }));
 
-        setTeam(mockTeam);
-        setBrands(mockBrands);
-        setThemes(mockThemes);
-        setPersonas(mockPersonas);
+        setTeam(mappedTeam);
+        setBrands(mappedBrands);
+        setThemes(mappedThemes);
+        setPersonas(mappedPersonas);
       } catch (error: any) {
         console.error("Erro ao carregar dados:", error);
         toast.error("Erro ao carregar dados do formulário");
