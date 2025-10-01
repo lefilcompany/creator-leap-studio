@@ -10,10 +10,15 @@ import {
   ArrowLeft,
   Check,
   ImageIcon,
-  Video
+  Video,
+  RefreshCw
 } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { useAuth } from "@/hooks/useAuth";
 
 interface ContentResultData {
   type: "image" | "video";
@@ -26,17 +31,64 @@ interface ContentResultData {
 export default function ContentResult() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { team } = useAuth();
   const [copied, setCopied] = useState(false);
   const [contentData, setContentData] = useState<ContentResultData | null>(null);
+  const [showReviewDialog, setShowReviewDialog] = useState(false);
+  const [reviewType, setReviewType] = useState<"image" | "caption" | null>(null);
+  const [reviewPrompt, setReviewPrompt] = useState("");
+  const [isReviewing, setIsReviewing] = useState(false);
+  const [freeRevisionsLeft, setFreeRevisionsLeft] = useState(2);
+  const [totalRevisions, setTotalRevisions] = useState(0);
 
   useEffect(() => {
     // Get data from navigation state
     if (location.state?.contentData) {
-      setContentData(location.state.contentData);
+      const data = location.state.contentData;
+      setContentData(data);
+      
+      // Save to localStorage and history
+      const contentId = `content_${Date.now()}`;
+      const savedContent = {
+        id: contentId,
+        ...data,
+        createdAt: new Date().toISOString(),
+        revisions: []
+      };
+      
+      localStorage.setItem('currentContent', JSON.stringify(savedContent));
+      
+      // Add to history
+      const history = JSON.parse(localStorage.getItem('contentHistory') || '[]');
+      history.unshift(savedContent);
+      localStorage.setItem('contentHistory', JSON.stringify(history.slice(0, 50))); // Keep last 50
+      
+      // Load revision count for this session
+      const revisionsKey = `revisions_${contentId}`;
+      const savedRevisions = localStorage.getItem(revisionsKey);
+      if (savedRevisions) {
+        const count = parseInt(savedRevisions);
+        setTotalRevisions(count);
+        setFreeRevisionsLeft(Math.max(0, 2 - count));
+      }
     } else {
-      // If no data, redirect back
-      toast.error("Nenhum conteúdo encontrado");
-      navigate("/create");
+      // Try to load from localStorage
+      const saved = localStorage.getItem('currentContent');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setContentData(parsed);
+        
+        const revisionsKey = `revisions_${parsed.id}`;
+        const savedRevisions = localStorage.getItem(revisionsKey);
+        if (savedRevisions) {
+          const count = parseInt(savedRevisions);
+          setTotalRevisions(count);
+          setFreeRevisionsLeft(Math.max(0, 2 - count));
+        }
+      } else {
+        toast.error("Nenhum conteúdo encontrado");
+        navigate("/create");
+      }
     }
   }, [location.state, navigate]);
 
@@ -59,6 +111,79 @@ export default function ContentResult() {
 
   const handleShare = () => {
     toast.info("Funcionalidade de compartilhamento em breve");
+  };
+
+  const handleOpenReview = (type: "image" | "caption") => {
+    setReviewType(type);
+    setShowReviewDialog(true);
+    setReviewPrompt("");
+  };
+
+  const handleSubmitReview = async () => {
+    if (!reviewPrompt.trim() || !contentData || !reviewType) return;
+
+    // Check if needs to consume credits
+    const needsCredit = freeRevisionsLeft === 0;
+    if (needsCredit && (!team?.credits?.contentReviews || team.credits.contentReviews <= 0)) {
+      toast.error("Você não tem créditos de revisão disponíveis");
+      return;
+    }
+
+    setIsReviewing(true);
+
+    try {
+      // Simulate AI review
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      const newRevisionCount = totalRevisions + 1;
+      const newFreeRevisionsLeft = Math.max(0, 2 - newRevisionCount);
+
+      // Update content based on review type
+      const updatedContent = { ...contentData };
+      
+      if (reviewType === "caption") {
+        updatedContent.caption = `${contentData.caption}\n\n[Revisado: ${reviewPrompt}]`;
+      } else {
+        // For image, just log the review (actual implementation would regenerate)
+        toast.info("Imagem sendo revisada com base no seu feedback...");
+      }
+
+      setContentData(updatedContent);
+      
+      // Update localStorage
+      const saved = JSON.parse(localStorage.getItem('currentContent') || '{}');
+      const updatedSaved = {
+        ...saved,
+        ...updatedContent,
+        revisions: [...(saved.revisions || []), {
+          type: reviewType,
+          prompt: reviewPrompt,
+          timestamp: new Date().toISOString(),
+          usedCredit: needsCredit
+        }]
+      };
+      localStorage.setItem('currentContent', JSON.stringify(updatedSaved));
+      
+      // Update revision count
+      const revisionsKey = `revisions_${saved.id}`;
+      localStorage.setItem(revisionsKey, newRevisionCount.toString());
+      
+      setTotalRevisions(newRevisionCount);
+      setFreeRevisionsLeft(newFreeRevisionsLeft);
+
+      if (needsCredit) {
+        toast.success("Revisão concluída! 1 crédito foi consumido.");
+      } else {
+        toast.success(`Revisão concluída! ${newFreeRevisionsLeft} revisão${newFreeRevisionsLeft !== 1 ? 'ões' : ''} gratuita${newFreeRevisionsLeft !== 1 ? 's' : ''} restante${newFreeRevisionsLeft !== 1 ? 's' : ''}.`);
+      }
+
+      setShowReviewDialog(false);
+      setReviewPrompt("");
+    } catch (error) {
+      toast.error("Erro ao processar revisão");
+    } finally {
+      setIsReviewing(false);
+    }
   };
 
   if (!contentData) {
@@ -97,14 +222,24 @@ export default function ContentResult() {
                 </div>
               </div>
               
-              <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 gap-2 px-3 py-1.5">
-                {contentData.type === "video" ? (
-                  <Video className="h-4 w-4" />
-                ) : (
-                  <ImageIcon className="h-4 w-4" />
-                )}
-                {contentData.type === "video" ? "Vídeo" : "Imagem"}
-              </Badge>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="bg-muted/50 text-muted-foreground border-border/30 gap-2 px-3 py-1.5">
+                  <RefreshCw className="h-3 w-3" />
+                  {freeRevisionsLeft > 0 ? (
+                    <span>{freeRevisionsLeft} revisões grátis</span>
+                  ) : (
+                    <span>{team?.credits?.contentReviews || 0} créditos</span>
+                  )}
+                </Badge>
+                <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 gap-2 px-3 py-1.5">
+                  {contentData.type === "video" ? (
+                    <Video className="h-4 w-4" />
+                  ) : (
+                    <ImageIcon className="h-4 w-4" />
+                  )}
+                  {contentData.type === "video" ? "Vídeo" : "Imagem"}
+                </Badge>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -139,7 +274,7 @@ export default function ContentResult() {
               </div>
               
               {/* Action buttons */}
-              <div className="p-4 bg-gradient-to-r from-muted/30 to-muted/10 border-t border-border/20">
+              <div className="p-4 bg-gradient-to-r from-muted/30 to-muted/10 border-t border-border/20 space-y-2">
                 <div className="flex gap-2">
                   <Button
                     onClick={handleDownload}
@@ -158,6 +293,15 @@ export default function ContentResult() {
                     <Share2 className="h-4 w-4" />
                   </Button>
                 </div>
+                <Button
+                  onClick={() => handleOpenReview("image")}
+                  variant="secondary"
+                  className="w-full rounded-xl gap-2"
+                  size="lg"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  Revisar {contentData.type === "video" ? "Vídeo" : "Imagem"}
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -199,6 +343,15 @@ export default function ContentResult() {
 
                 <div className="pt-4 border-t border-border/20 space-y-3">
                   <Button
+                    onClick={() => handleOpenReview("caption")}
+                    variant="secondary"
+                    className="w-full rounded-xl gap-2"
+                    size="lg"
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                    Revisar Legenda
+                  </Button>
+                  <Button
                     onClick={() => navigate("/create")}
                     variant="outline"
                     className="w-full rounded-xl"
@@ -221,6 +374,71 @@ export default function ContentResult() {
 
         </div>
       </div>
+
+      {/* Review Dialog */}
+      <Dialog open={showReviewDialog} onOpenChange={setShowReviewDialog}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <RefreshCw className="h-5 w-5 text-primary" />
+              Revisar {reviewType === "image" ? (contentData?.type === "video" ? "Vídeo" : "Imagem") : "Legenda"}
+            </DialogTitle>
+            <DialogDescription>
+              Descreva as alterações que deseja fazer. 
+              {freeRevisionsLeft > 0 ? (
+                <span className="text-primary font-medium"> Você tem {freeRevisionsLeft} revisão{freeRevisionsLeft !== 1 ? 'ões' : ''} gratuita{freeRevisionsLeft !== 1 ? 's' : ''}.</span>
+              ) : (
+                <span className="text-orange-600 font-medium"> Esta revisão consumirá 1 crédito.</span>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="review-prompt">O que você quer melhorar?</Label>
+              <Textarea
+                id="review-prompt"
+                placeholder={
+                  reviewType === "image" 
+                    ? "Ex: Deixar a imagem mais clara, mudar o fundo para azul..."
+                    : "Ex: Tornar o texto mais persuasivo, adicionar emojis..."
+                }
+                value={reviewPrompt}
+                onChange={(e) => setReviewPrompt(e.target.value)}
+                className="min-h-[120px] resize-none"
+              />
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <Button
+                variant="outline"
+                onClick={() => setShowReviewDialog(false)}
+                className="flex-1"
+                disabled={isReviewing}
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleSubmitReview}
+                className="flex-1 gap-2"
+                disabled={!reviewPrompt.trim() || isReviewing}
+              >
+                {isReviewing ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 animate-spin" />
+                    Revisando...
+                  </>
+                ) : (
+                  <>
+                    <Check className="h-4 w-4" />
+                    Confirmar Revisão
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
