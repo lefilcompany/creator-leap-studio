@@ -1,14 +1,15 @@
 import { Sparkles, CheckCircle, Calendar } from 'lucide-react';
 
 // Tipos de ação para consistência - deve corresponder ao enum ActionType no Prisma
-export type ActionType = 'CRIAR_CONTEUDO' | 'REVISAR_CONTEUDO' | 'PLANEJAR_CONTEUDO';
+export type ActionType = 'CRIAR_CONTEUDO' | 'CRIAR_CONTEUDO_RAPIDO' | 'REVISAR_CONTEUDO' | 'PLANEJAR_CONTEUDO';
 
 // Tipos de ação para exibição
-export type ActionDisplayType = 'Criar conteúdo' | 'Revisar conteúdo' | 'Planejar conteúdo';
+export type ActionDisplayType = 'Criar conteúdo' | 'Criar conteúdo rápido' | 'Revisar conteúdo' | 'Planejar conteúdo';
 
 // Mapeamento de tipos para exibição
 export const ACTION_TYPE_DISPLAY: { [key in ActionType]: ActionDisplayType } = {
   'CRIAR_CONTEUDO': 'Criar conteúdo',
+  'CRIAR_CONTEUDO_RAPIDO': 'Criar conteúdo rápido',
   'REVISAR_CONTEUDO': 'Revisar conteúdo',
   'PLANEJAR_CONTEUDO': 'Planejar conteúdo',
 };
@@ -18,6 +19,11 @@ export const ACTION_STYLE_MAP: {
   [key in ActionDisplayType]: { icon: React.ElementType; color: string; background: string };
 } = {
   'Criar conteúdo': {
+    icon: Sparkles,
+    color: 'text-primary',
+    background: 'bg-primary/10',
+  },
+  'Criar conteúdo rápido': {
     icon: Sparkles,
     color: 'text-primary',
     background: 'bg-primary/10',
