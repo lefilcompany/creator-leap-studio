@@ -2,6 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ThemeProvider } from "next-themes";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import Index from "./pages/Index";
@@ -27,37 +28,39 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Login />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          
-          {/* Dashboard routes with sidebar layout */}
-          <Route path="/" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-            <Route path="dashboard" element={<Dashboard />} />
-            <Route path="brands" element={<Brands />} />
-            <Route path="themes" element={<Themes />} />
-            <Route path="personas" element={<Personas />} />
-            <Route path="history" element={<History />} />
-            <Route path="create" element={<CreateContent />} />
-            <Route path="result" element={<ContentResult />} />
-            <Route path="review" element={<ReviewContent />} />
-            <Route path="plan" element={<PlanContent />} />
-            <Route path="plans" element={<Plans />} />
-            <Route path="team" element={<Team />} />
-            <Route path="profile" element={<Profile />} />
-            <Route path="about" element={<About />} />
-          </Route>
-          
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Login />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            
+            {/* Dashboard routes with sidebar layout */}
+            <Route path="/" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
+              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="brands" element={<Brands />} />
+              <Route path="themes" element={<Themes />} />
+              <Route path="personas" element={<Personas />} />
+              <Route path="history" element={<History />} />
+              <Route path="create" element={<CreateContent />} />
+              <Route path="result" element={<ContentResult />} />
+              <Route path="review" element={<ReviewContent />} />
+              <Route path="plan" element={<PlanContent />} />
+              <Route path="plans" element={<Plans />} />
+              <Route path="team" element={<Team />} />
+              <Route path="profile" element={<Profile />} />
+              <Route path="about" element={<About />} />
+            </Route>
+            
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 
