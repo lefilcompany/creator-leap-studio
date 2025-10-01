@@ -8,6 +8,7 @@ interface User {
   email: string;
   name: string;
   teamId?: string;
+  isAdmin?: boolean;
 }
 
 interface Team {
@@ -64,6 +65,16 @@ export function useAuth() {
     return () => subscription.unsubscribe();
   }, []);
 
+  const checkIfAdmin = async (userId: string, teamId: string) => {
+    const { data: teamData } = await supabase
+      .from('teams')
+      .select('admin_id')
+      .eq('id', teamId)
+      .single();
+    
+    return teamData?.admin_id === userId;
+  };
+
   const loadUserData = async (supabaseUser: SupabaseUser) => {
     try {
       // Load profile
@@ -74,11 +85,14 @@ export function useAuth() {
         .single();
 
       if (profile) {
+        const isTeamAdmin = profile.team_id ? await checkIfAdmin(supabaseUser.id, profile.team_id) : false;
+        
         setUser({
           id: profile.id,
           email: profile.email,
           name: profile.name,
-          teamId: profile.team_id
+          teamId: profile.team_id,
+          isAdmin: isTeamAdmin
         });
 
         // Load team if user has one
