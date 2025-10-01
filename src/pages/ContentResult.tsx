@@ -22,6 +22,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ContentResultData {
   type: "image" | "video";
@@ -231,26 +232,62 @@ export default function ContentResult() {
     setIsReviewing(true);
 
     try {
-      // Simulate AI review
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
       const newRevisionCount = totalRevisions + 1;
       const newFreeRevisionsLeft = Math.max(0, 2 - newRevisionCount);
+
+      // Get original form data from localStorage
+      const saved = JSON.parse(localStorage.getItem('currentContent') || '{}');
+      const originalFormData = saved.originalFormData || {};
 
       // Update content based on review type
       const updatedContent = { ...contentData };
       
       if (reviewType === "caption") {
-        updatedContent.caption = `${contentData.caption}\n\n[Revisado: ${reviewPrompt}]`;
+        // Regenerate caption with review feedback
+        toast.info("Regenerando legenda com base no seu feedback...");
+        
+        const { data, error } = await supabase.functions.invoke('generate-caption', {
+          body: {
+            ...originalFormData,
+            // Add review feedback to the additionalInfo
+            additionalInfo: `${originalFormData.additionalInfo || ''}\n\nREVISÃO SOLICITADA: ${reviewPrompt}`
+          }
+        });
+
+        if (error) {
+          console.error("Erro ao regenerar legenda:", error);
+          throw new Error("Falha ao regenerar legenda");
+        }
+
+        // Format caption with hashtags
+        const formattedCaption = `${data.title}\n\n${data.body}\n\n${data.hashtags.map((tag: string) => `#${tag}`).join(' ')}`;
+        updatedContent.caption = formattedCaption;
+        
       } else {
-        // For image, just log the review (actual implementation would regenerate)
-        toast.info("Imagem sendo revisada com base no seu feedback...");
+        // Regenerate image with review feedback
+        toast.info("Regenerando imagem com base no seu feedback...");
+        
+        const { data, error } = await supabase.functions.invoke('generate-image', {
+          body: {
+            ...originalFormData,
+            // Add review feedback to the description
+            description: `${originalFormData.description}\n\nREVISÃO SOLICITADA: ${reviewPrompt}`,
+            // Pass reference images if they exist
+            referenceImages: originalFormData.referenceImages || []
+          }
+        });
+
+        if (error) {
+          console.error("Erro ao regenerar imagem:", error);
+          throw new Error("Falha ao regenerar imagem");
+        }
+
+        updatedContent.mediaUrl = data.imageUrl;
       }
 
       setContentData(updatedContent);
       
       // Update localStorage
-      const saved = JSON.parse(localStorage.getItem('currentContent') || '{}');
       const updatedSaved = {
         ...saved,
         ...updatedContent,
@@ -279,7 +316,8 @@ export default function ContentResult() {
       setShowReviewDialog(false);
       setReviewPrompt("");
     } catch (error) {
-      toast.error("Erro ao processar revisão");
+      console.error("Erro ao processar revisão:", error);
+      toast.error("Erro ao processar revisão. Tente novamente.");
     } finally {
       setIsReviewing(false);
     }
