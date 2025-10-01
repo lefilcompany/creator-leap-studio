@@ -358,7 +358,7 @@ export default function CreateContent() {
 
     setLoading(true);
     const toastId = toast.loading("Processando imagens de referência...", {
-      description: "Convertendo arquivos para análise com Gemini 2.5.",
+      description: "Convertendo arquivos para análise.",
     });
 
     try {
@@ -377,11 +377,6 @@ export default function CreateContent() {
       // Adicionar imagens cadastradas na marca
       const allReferenceImages = [...brandImages, ...referenceImagesBase64];
 
-      toast.loading("Gerando imagem com IA...", {
-        id: toastId,
-        description: `${allReferenceImages.length} imagem(ns) de referência sendo processadas (${brandImages.length} da marca + ${referenceImagesBase64.length} upload).`,
-      });
-
       // Buscar dados completos de brand, theme e persona
       const selectedBrand = brands.find(b => b.id === formData.brand);
       const selectedTheme = themes.find(t => t.id === formData.theme);
@@ -398,6 +393,132 @@ export default function CreateContent() {
         additionalInfo: formData.additionalInfo,
         referenceImages: allReferenceImages,
       };
+
+      // Se estiver em modo vídeo, gerar vídeo
+      if (isVideoMode) {
+        toast.loading("Gerando vídeo com Veo3...", {
+          id: toastId,
+          description: "Isso pode levar alguns minutos. Processando com IA avançada.",
+        });
+
+        const videoPrompt = `${formData.objective}. ${formData.description}. Tom: ${formData.tone.join(", ")}. Marca: ${selectedBrand?.name}. ${formData.additionalInfo}`;
+        
+        const videoResponse = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-video`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            },
+            body: JSON.stringify({
+              prompt: videoPrompt,
+              aspectRatio: ratio,
+              referenceImage: allReferenceImages[0], // Use primeira imagem como referência
+            }),
+          }
+        );
+
+        if (!videoResponse.ok) {
+          const error = await videoResponse.json();
+          throw new Error(error.error || "Erro ao gerar vídeo");
+        }
+
+        const { videoUrl, attempts } = await videoResponse.json();
+        
+        toast.loading("Gerando legenda...", {
+          id: toastId,
+          description: `Vídeo gerado em ${attempts} tentativa(s).`,
+        });
+
+        // Gerar legenda
+        const captionResponse = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-caption`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            },
+            body: JSON.stringify(requestData),
+          }
+        );
+
+        let captionData;
+        if (captionResponse.ok) {
+          captionData = await captionResponse.json();
+        } else {
+          captionData = {
+            title: `${selectedBrand?.name || formData.brand}: ${formData.objective}`,
+            body: `${formData.description}\n\nTom: ${formData.tone.join(", ")}`,
+            hashtags: [
+              (selectedBrand?.name || formData.brand).replace(/\s+/g, "").toLowerCase(),
+              formData.platform.toLowerCase(),
+              "video"
+            ]
+          };
+        }
+
+        const caption = `${captionData.title}\n\n${captionData.body}\n\n${captionData.hashtags.map((tag: string) => `#${tag}`).join(" ")}`;
+
+        // Salvar no histórico
+        const { data: actionData } = await supabase
+          .from('actions')
+          .insert({
+            type: 'CRIAR_VIDEO',
+            brand_id: formData.brand,
+            team_id: user?.teamId,
+            user_id: user?.id,
+            status: 'Em revisão',
+            approved: false,
+            revisions: 0,
+            details: {
+              prompt: videoPrompt,
+              objective: requestData.objective,
+              platform: requestData.platform,
+              tone: requestData.tone,
+              brand: requestData.brand,
+              theme: requestData.theme,
+              persona: requestData.persona,
+              additionalInfo: requestData.additionalInfo,
+              aspectRatio: ratio,
+            },
+            result: {
+              videoUrl,
+              title: captionData.title,
+              body: captionData.body,
+              hashtags: captionData.hashtags,
+            }
+          })
+          .select()
+          .single();
+
+        const generatedContent = {
+          type: "video",
+          mediaUrl: videoUrl,
+          caption,
+          platform: formData.platform,
+          brand: selectedBrand?.name || formData.brand,
+          title: captionData.title,
+          hashtags: captionData.hashtags,
+          originalFormData: requestData,
+          actionId: actionData?.id,
+        };
+        
+        toast.success("Vídeo gerado com sucesso!", {
+          id: toastId,
+          description: "Vídeo criado com Veo3 🎬",
+        });
+        
+        navigate("/result", { state: { contentData: generatedContent } });
+        return;
+      }
+
+      // Modo imagem (código existente)
+      toast.loading("Gerando imagem com IA...", {
+        id: toastId,
+        description: `${allReferenceImages.length} imagem(ns) de referência sendo processadas.`,
+      });
 
       // 1. Gerar imagem com Gemini 2.5
       const imageResponse = await fetch(
