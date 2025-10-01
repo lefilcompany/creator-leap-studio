@@ -14,6 +14,155 @@ export type Database = {
   }
   public: {
     Tables: {
+      actions: {
+        Row: {
+          approved: boolean | null
+          brand_id: string
+          created_at: string | null
+          details: Json | null
+          id: string
+          result: Json | null
+          revisions: number | null
+          status: string
+          team_id: string
+          type: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          approved?: boolean | null
+          brand_id: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          result?: Json | null
+          revisions?: number | null
+          status?: string
+          team_id: string
+          type: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          approved?: boolean | null
+          brand_id?: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          result?: Json | null
+          revisions?: number | null
+          status?: string
+          team_id?: string
+          type?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "actions_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "actions_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      brands: {
+        Row: {
+          brand_references: string | null
+          collaborations: string | null
+          color_palette: Json | null
+          created_at: string | null
+          crisis_info: string | null
+          goals: string | null
+          id: string
+          inspirations: string | null
+          keywords: string | null
+          logo: Json | null
+          milestones: string | null
+          moodboard: Json | null
+          name: string
+          promise: string | null
+          reference_image: Json | null
+          responsible: string
+          restrictions: string | null
+          segment: string
+          special_dates: string | null
+          success_metrics: string | null
+          team_id: string
+          updated_at: string | null
+          user_id: string
+          values: string | null
+        }
+        Insert: {
+          brand_references?: string | null
+          collaborations?: string | null
+          color_palette?: Json | null
+          created_at?: string | null
+          crisis_info?: string | null
+          goals?: string | null
+          id?: string
+          inspirations?: string | null
+          keywords?: string | null
+          logo?: Json | null
+          milestones?: string | null
+          moodboard?: Json | null
+          name: string
+          promise?: string | null
+          reference_image?: Json | null
+          responsible: string
+          restrictions?: string | null
+          segment: string
+          special_dates?: string | null
+          success_metrics?: string | null
+          team_id: string
+          updated_at?: string | null
+          user_id: string
+          values?: string | null
+        }
+        Update: {
+          brand_references?: string | null
+          collaborations?: string | null
+          color_palette?: Json | null
+          created_at?: string | null
+          crisis_info?: string | null
+          goals?: string | null
+          id?: string
+          inspirations?: string | null
+          keywords?: string | null
+          logo?: Json | null
+          milestones?: string | null
+          moodboard?: Json | null
+          name?: string
+          promise?: string | null
+          reference_image?: Json | null
+          responsible?: string
+          restrictions?: string | null
+          segment?: string
+          special_dates?: string | null
+          success_metrics?: string | null
+          team_id?: string
+          updated_at?: string | null
+          user_id?: string
+          values?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brands_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       content_generations: {
         Row: {
           additional_info: string | null
@@ -132,6 +281,84 @@ export type Database = {
           },
         ]
       }
+      personas: {
+        Row: {
+          age: string
+          beliefs_and_interests: string
+          brand_id: string
+          challenges: string
+          content_consumption_routine: string
+          created_at: string | null
+          gender: string
+          id: string
+          interest_triggers: string
+          location: string
+          main_goal: string
+          name: string
+          preferred_tone_of_voice: string
+          professional_context: string
+          purchase_journey_stage: string
+          team_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          age: string
+          beliefs_and_interests: string
+          brand_id: string
+          challenges: string
+          content_consumption_routine: string
+          created_at?: string | null
+          gender: string
+          id?: string
+          interest_triggers: string
+          location: string
+          main_goal: string
+          name: string
+          preferred_tone_of_voice: string
+          professional_context: string
+          purchase_journey_stage: string
+          team_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          age?: string
+          beliefs_and_interests?: string
+          brand_id?: string
+          challenges?: string
+          content_consumption_routine?: string
+          created_at?: string | null
+          gender?: string
+          id?: string
+          interest_triggers?: string
+          location?: string
+          main_goal?: string
+          name?: string
+          preferred_tone_of_voice?: string
+          professional_context?: string
+          purchase_journey_stage?: string
+          team_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "personas_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "personas_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string | null
@@ -158,6 +385,87 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      strategic_themes: {
+        Row: {
+          additional_info: string | null
+          best_formats: string
+          brand_id: string
+          color_palette: string
+          content_format: string
+          created_at: string | null
+          description: string
+          expected_action: string
+          hashtags: string
+          id: string
+          macro_themes: string
+          objectives: string
+          platforms: string
+          target_audience: string
+          team_id: string
+          title: string
+          tone_of_voice: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          additional_info?: string | null
+          best_formats: string
+          brand_id: string
+          color_palette: string
+          content_format: string
+          created_at?: string | null
+          description: string
+          expected_action: string
+          hashtags: string
+          id?: string
+          macro_themes: string
+          objectives: string
+          platforms: string
+          target_audience: string
+          team_id: string
+          title: string
+          tone_of_voice: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          additional_info?: string | null
+          best_formats?: string
+          brand_id?: string
+          color_palette?: string
+          content_format?: string
+          created_at?: string | null
+          description?: string
+          expected_action?: string
+          hashtags?: string
+          id?: string
+          macro_themes?: string
+          objectives?: string
+          platforms?: string
+          target_audience?: string
+          team_id?: string
+          title?: string
+          tone_of_voice?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "strategic_themes_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "strategic_themes_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       teams: {
         Row: {
