@@ -101,8 +101,7 @@ const Dashboard = () => {
     (team.credits?.contentPlans || 0) +
     (team.credits?.contentReviews || 0);
   
-  const usedCredits = totalCredits - remainingCredits;
-  const progressPercentage = totalCredits > 0 ? ((usedCredits / totalCredits) * 100) : 0;
+  const progressPercentage = totalCredits > 0 ? ((remainingCredits / totalCredits) * 100) : 0;
 
   const stats = [
     {
