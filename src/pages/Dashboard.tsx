@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -13,29 +14,105 @@ import {
   Zap,
   Tags,
   Tag,
-  Rocket
+  Rocket,
+  Loader2
 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const Dashboard = () => {
+  const { user, team, isLoading } = useAuth();
+  const [dashboardData, setDashboardData] = useState({
+    totalActions: 0,
+    totalBrands: 0,
+    recentActivities: [] as any[]
+  });
+  const [loadingData, setLoadingData] = useState(true);
+
+  useEffect(() => {
+    if (user && team) {
+      loadDashboardData();
+    }
+  }, [user, team]);
+
+  const loadDashboardData = async () => {
+    try {
+      setLoadingData(true);
+
+      // Buscar total de ações do usuário na equipe
+      const { count: actionsCount } = await supabase
+        .from('actions')
+        .select('*', { count: 'exact', head: true })
+        .eq('team_id', team?.id);
+
+      // Buscar total de marcas da equipe
+      const { count: brandsCount } = await supabase
+        .from('brands')
+        .select('*', { count: 'exact', head: true })
+        .eq('team_id', team?.id);
+
+      // Buscar atividades recentes (últimas 10 ações)
+      const { data: recentActions } = await supabase
+        .from('actions')
+        .select(`
+          id,
+          type,
+          status,
+          created_at,
+          brand_id,
+          brands(name)
+        `)
+        .eq('team_id', team?.id)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      setDashboardData({
+        totalActions: actionsCount || 0,
+        totalBrands: brandsCount || 0,
+        recentActivities: recentActions || []
+      });
+    } catch (error) {
+      console.error('Erro ao carregar dados do dashboard:', error);
+      toast.error('Erro ao carregar dados do dashboard');
+    } finally {
+      setLoadingData(false);
+    }
+  };
+
+  if (isLoading || !user || !team) {
+    return (
+      <div className="flex h-full w-full items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // Calcular créditos
+  const totalCredits = team.plan?.quickContentCreations || 0;
+  const usedCredits = totalCredits - (team.credits?.quickContentCreations || 0);
+  const remainingCredits = team.credits?.quickContentCreations || 0;
+  const progressPercentage = totalCredits > 0 ? ((usedCredits / totalCredits) * 100) : 0;
+
   const stats = [
     {
       title: "Créditos Restantes",
-      value: "29736",
-      subtitle: "de 30000 créditos disponíveis",
+      value: remainingCredits.toLocaleString(),
+      subtitle: `de ${totalCredits.toLocaleString()} créditos disponíveis`,
       icon: Rocket,
       color: "text-primary",
-      progress: 99.1
+      progress: progressPercentage
     },
     {
       title: "Minhas Ações",
-      value: "54",
+      value: dashboardData.totalActions.toString(),
       subtitle: "total de ações realizadas",
       icon: Zap,
       color: "text-muted-foreground"
     },
     {
       title: "Marcas Gerenciadas", 
-      value: "16",
+      value: dashboardData.totalBrands.toString(),
       subtitle: "total de marcas ativas",
       icon: Tags,
       color: "text-muted-foreground"
@@ -47,45 +124,43 @@ const Dashboard = () => {
       title: "Criar Conteúdo",
       description: "Gerar novas imagens e textos",
       icon: Sparkles,
-      color: "text-primary"
+      color: "text-primary",
+      link: "/create-content"
     },
     {
-      title: "Revisar Imagem", 
+      title: "Revisar Conteúdo", 
       description: "Receber feedback da IA",
       icon: CheckCircle,
-      color: "text-secondary"
+      color: "text-secondary",
+      link: "/review-content"
     },
     {
       title: "Gerenciar Personas",
       description: "Adicionar ou editar suas personas",
       icon: Users,
-      color: "text-accent"
+      color: "text-accent",
+      link: "/personas"
     }
   ];
 
-  const recentActivities = [
-    {
-      title: "Calendário Planejado",
-      brand: "Planejamento para LeFil Company",
-      date: "24/09/2025",
-      action: "Ver detalhes",
-      icon: FileText
-    },
-    {
-      title: "Conteúdo Criado", 
-      brand: "Para a marca Cerâmica Brennand",
-      date: "18/09/2025",
-      action: "Ver detalhes",
-      icon: FileText
-    },
-    {
-      title: "Conteúdo Criado",
-      brand: "Para a marca Iclub", 
-      date: "18/09/2025",
-      action: "Ver detalhes",
-      icon: FileText
-    }
-  ];
+  const formatActionType = (type: string) => {
+    const types: Record<string, string> = {
+      'quick_content': 'Conteúdo Criado',
+      'content_suggestion': 'Sugestão de Conteúdo',
+      'content_plan': 'Calendário Planejado',
+      'content_review': 'Conteúdo Revisado'
+    };
+    return types[type] || type;
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('pt-BR', { 
+      day: '2-digit', 
+      month: '2-digit', 
+      year: 'numeric' 
+    });
+  };
 
   return (
     <div className="p-6 space-y-6">
@@ -99,21 +174,23 @@ const Dashboard = () => {
               </div>
               <div>
                 <h1 className="text-3xl font-bold text-foreground mb-1">
-                  Olá, Equipe Lima!
+                  Olá, {user.name}!
                 </h1>
                 <p className="text-muted-foreground text-base">
-                  Bem-vindo(a) de volta ao seu painel de criação
+                  Equipe {team.name} • {user.isAdmin ? 'Administrador' : 'Membro'}
                 </p>
               </div>
             </div>
             
-            <Button 
-              size="lg" 
-              className="rounded-full text-lg px-8 py-6 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
-            >
-              <Plus className="mr-2 h-5 w-5" />
-              Criar Novo Conteúdo
-            </Button>
+            <Link to="/create-content">
+              <Button 
+                size="lg" 
+                className="rounded-full text-lg px-8 py-6 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+              >
+                <Plus className="mr-2 h-5 w-5" />
+                Criar Novo Conteúdo
+              </Button>
+            </Link>
           </div>
         </CardHeader>
       </Card>
@@ -184,18 +261,20 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent className="space-y-6">
               {quickActions.map((action, index) => (
-                <Card key={index} className="hover:bg-muted/50 hover:shadow-md transition-all duration-200 cursor-pointer hover-scale">
-                  <CardContent className="p-4 flex items-center gap-6">
-                    <div className="flex-shrink-0 bg-accent/10 text-accent rounded-lg p-2">
-                      <action.icon className="h-6 w-6" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-semibold text-foreground">{action.title}</p>
-                      <p className="text-xs text-muted-foreground">{action.description}</p>
-                    </div>
-                    <ArrowRight className="h-4 w-4 text-muted-foreground opacity-50 group-hover:opacity-100 transition-opacity" />
-                  </CardContent>
-                </Card>
+                <Link key={index} to={action.link}>
+                  <Card className="hover:bg-muted/50 hover:shadow-md transition-all duration-200 cursor-pointer hover-scale">
+                    <CardContent className="p-4 flex items-center gap-6">
+                      <div className="flex-shrink-0 bg-accent/10 text-accent rounded-lg p-2">
+                        <action.icon className="h-6 w-6" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-semibold text-foreground">{action.title}</p>
+                        <p className="text-xs text-muted-foreground">{action.description}</p>
+                      </div>
+                      <ArrowRight className="h-4 w-4 text-muted-foreground opacity-50 group-hover:opacity-100 transition-opacity" />
+                    </CardContent>
+                  </Card>
+                </Link>
               ))}
             </CardContent>
           </Card>
@@ -215,47 +294,55 @@ const Dashboard = () => {
               </div>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="divide-y divide-border/50">
-                {recentActivities.length > 0 ? (
-                  recentActivities.map((activity, index) => (
-                    <div key={index} className="flex items-center justify-between p-6 hover:bg-muted/30 transition-all duration-200 group">
-                      <div className="flex items-center gap-4">
-                        <div className="p-3 bg-gradient-to-br from-muted to-muted/50 rounded-lg shadow-sm">
-                          <activity.icon className="h-5 w-5 text-muted-foreground" />
+              {loadingData ? (
+                <div className="flex items-center justify-center p-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              ) : (
+                <div className="divide-y divide-border/50">
+                  {dashboardData.recentActivities.length > 0 ? (
+                    dashboardData.recentActivities.map((activity, index) => (
+                      <div key={activity.id} className="flex items-center justify-between p-6 hover:bg-muted/30 transition-all duration-200 group">
+                        <div className="flex items-center gap-4">
+                          <div className="p-3 bg-gradient-to-br from-muted to-muted/50 rounded-lg shadow-sm">
+                            <FileText className="h-5 w-5 text-muted-foreground" />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-foreground group-hover:text-primary transition-colors">
+                              {formatActionType(activity.type)}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              {activity.brands?.name ? `Para a marca ${activity.brands.name}` : 'Sem marca associada'}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-semibold text-foreground group-hover:text-primary transition-colors">
-                            {activity.title}
+                        <div className="text-right">
+                          <p className="text-sm font-medium text-foreground mb-1">
+                            {formatDate(activity.created_at)}
                           </p>
-                          <p className="text-sm text-muted-foreground">
-                            {activity.brand}
-                          </p>
+                          <Link to={`/history`}>
+                            <button className="text-sm text-primary hover:text-primary/80 font-medium hover:underline transition-all">
+                              Ver detalhes
+                            </button>
+                          </Link>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-sm font-medium text-foreground mb-1">
-                          {activity.date}
-                        </p>
-                        <button className="text-sm text-primary hover:text-primary/80 font-medium hover:underline transition-all">
-                          {activity.action}
-                        </button>
+                    ))
+                  ) : (
+                    <div className="p-12 text-center">
+                      <div className="bg-muted/50 rounded-full p-4 w-16 h-16 mx-auto mb-4">
+                        <FileText className="h-8 w-8 text-muted-foreground mx-auto" />
                       </div>
+                      <p className="text-muted-foreground text-lg font-medium">
+                        Nenhuma atividade recente encontrada
+                      </p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Suas atividades aparecerão aqui quando você começar a criar conteúdo
+                      </p>
                     </div>
-                  ))
-                ) : (
-                  <div className="p-12 text-center">
-                    <div className="bg-muted/50 rounded-full p-4 w-16 h-16 mx-auto mb-4">
-                      <FileText className="h-8 w-8 text-muted-foreground mx-auto" />
-                    </div>
-                    <p className="text-muted-foreground text-lg font-medium">
-                      Nenhuma atividade recente encontrada
-                    </p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Suas atividades aparecerão aqui quando você começar a criar conteúdo
-                    </p>
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
