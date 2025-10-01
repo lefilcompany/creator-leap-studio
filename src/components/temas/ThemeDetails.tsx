@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Edit, Trash2, Palette } from 'lucide-react';
 import type { StrategicTheme } from '@/types/theme';
-import type { BrandSummary } from '@/types/brand';
+import type { BrandSummary, ColorItem } from '@/types/brand';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface ThemeDetailsProps {
@@ -43,6 +43,70 @@ const DetailField = ({ label, value }: { label: string, value?: string }) => {
     <div className="p-3 bg-muted/50 rounded-lg break-words">
       <p className="text-sm text-muted-foreground">{label}</p>
       <p className="font-semibold text-foreground whitespace-pre-wrap">{value}</p>
+    </div>
+  );
+};
+
+const ColorPaletteField = ({ colors }: { colors?: ColorItem[] | null }) => {
+  if (!colors || colors.length === 0) return null;
+
+  return (
+    <div className="p-3 bg-muted/50 rounded-lg">
+      <div className="flex items-center gap-2 mb-3">
+        <Palette className="w-4 h-4 text-muted-foreground" />
+        <p className="text-sm text-muted-foreground">Paleta de Cores</p>
+        <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
+          {colors.length} {colors.length === 1 ? 'cor' : 'cores'}
+        </span>
+      </div>
+      
+      {colors.length <= 4 ? (
+        <div className="flex flex-wrap justify-center gap-8">
+          {colors.map((color) => (
+            <div key={color.id} className="flex flex-col items-center gap-3">
+              <div
+                className="w-16 h-16 rounded-xl border-2 border-gray-300 shadow-md hover:shadow-lg transition-shadow cursor-pointer"
+                style={{ backgroundColor: color.hex }}
+                title={`${color.name || 'Cor'} - ${color.hex}`}
+              />
+              <div className="text-center">
+                <div className="text-xs font-medium text-foreground truncate max-w-[80px]">
+                  {color.name || 'Sem nome'}
+                </div>
+                <div className="text-xs text-muted-foreground font-mono">
+                  {color.hex.toUpperCase()}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 justify-items-center">
+          {colors.map((color) => (
+            <div
+              key={color.id}
+              className="flex items-center gap-3 p-3 bg-background/60 rounded-lg border border-border/40 hover:bg-background/80 transition-colors cursor-pointer"
+              title={`${color.name || 'Cor'} - ${color.hex}`}
+            >
+              <div
+                className="w-12 h-12 rounded-lg border-2 border-gray-300 shadow-sm flex-shrink-0"
+                style={{ backgroundColor: color.hex }}
+              />
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium text-foreground truncate mb-1">
+                  {color.name || 'Sem nome'}
+                </div>
+                <div className="text-xs text-muted-foreground font-mono mb-1">
+                  {color.hex.toUpperCase()}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  RGB({color.rgb.r}, {color.rgb.g}, {color.rgb.b})
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
@@ -81,6 +145,16 @@ export default function ThemeDetails({ theme, onEdit, onDelete, brands, isLoadin
   const brandName = brands.find(b => b.id === theme.brandId)?.name || 'Marca não encontrada';
   const wasUpdated = theme.createdAt !== theme.updatedAt;
 
+  // Parse color palette from string
+  let parsedColors: ColorItem[] | null = null;
+  if (theme.colorPalette) {
+    try {
+      parsedColors = JSON.parse(theme.colorPalette);
+    } catch (e) {
+      console.error('Failed to parse color palette:', e);
+    }
+  }
+
   return (
     <div className="h-full p-4 md:p-6 flex flex-col overflow-hidden">
       <div className="flex items-center mb-4 flex-shrink-0">
@@ -97,7 +171,7 @@ export default function ThemeDetails({ theme, onEdit, onDelete, brands, isLoadin
         <div className="space-y-4 text-left">
           <DetailField label="Descrição" value={theme.description} />
           <DetailField label="Tom de Voz" value={theme.toneOfVoice} />
-          <DetailField label="Paleta de Cores" value={theme.colorPalette} />
+          <ColorPaletteField colors={parsedColors} />
           <DetailField label="Público-Alvo" value={theme.targetAudience} />
           <DetailField label="Objetivos" value={theme.objectives} />
           <DetailField label="Macro Temas" value={theme.macroThemes} />
