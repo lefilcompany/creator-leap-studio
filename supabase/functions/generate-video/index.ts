@@ -1,9 +1,121 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Função para processar vídeo em background
+async function processVideoGeneration(operationName: string, actionId: string) {
+  const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+  const BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+  const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+  const supabase = createClient(supabaseUrl, supabaseKey);
+
+  try {
+    let isDone = false;
+    let videoUri = null;
+    let attempts = 0;
+    const maxAttempts = 120; // 20 minutos
+
+    console.log('Background: Starting video processing for operation:', operationName);
+
+    while (!isDone && attempts < maxAttempts) {
+      attempts++;
+      console.log(`Background: Polling attempt ${attempts}/${maxAttempts}...`);
+      
+      await new Promise(resolve => setTimeout(resolve, 10000)); // 10 segundos
+      
+      const statusResponse = await fetch(
+        `${BASE_URL}/${operationName}`,
+        {
+          headers: {
+            'x-goog-api-key': GEMINI_API_KEY!,
+          },
+        }
+      );
+
+      if (!statusResponse.ok) {
+        console.error('Background: Status check failed:', statusResponse.status);
+        continue;
+      }
+
+      const statusData = await statusResponse.json();
+      console.log('Background: Status response:', JSON.stringify(statusData, null, 2));
+      isDone = statusData.done === true;
+
+      if (isDone) {
+        // Estrutura correta baseada na documentação oficial
+        videoUri = statusData.response?.generateVideoResponse?.generatedSamples?.[0]?.video?.uri;
+        
+        console.log('Background: Video URI found:', videoUri);
+        console.log('Background: Full response:', JSON.stringify(statusData.response, null, 2));
+      }
+    }
+
+    if (!videoUri) {
+      throw new Error('Video URI not found in response after max attempts');
+    }
+
+    // Download do vídeo
+    console.log('Background: Downloading video from:', videoUri);
+    const videoResponse = await fetch(videoUri, {
+      headers: {
+        'x-goog-api-key': GEMINI_API_KEY!,
+      },
+    });
+
+    if (!videoResponse.ok) {
+      throw new Error(`Failed to download video: ${videoResponse.status}`);
+    }
+
+    const videoBlob = await videoResponse.blob();
+    const arrayBuffer = await videoBlob.arrayBuffer();
+    const uint8Array = new Uint8Array(arrayBuffer);
+    
+    // Processar em chunks
+    let binary = '';
+    const chunkSize = 0x8000;
+    for (let i = 0; i < uint8Array.length; i += chunkSize) {
+      const chunk = uint8Array.subarray(i, Math.min(i + chunkSize, uint8Array.length));
+      binary += String.fromCharCode.apply(null, Array.from(chunk));
+    }
+    const videoBase64 = btoa(binary);
+
+    // Atualizar o action no banco com o vídeo gerado
+    const { error: updateError } = await supabase
+      .from('actions')
+      .update({
+        result: { videoUrl: `data:video/mp4;base64,${videoBase64}` },
+        status: 'completed'
+      })
+      .eq('id', actionId);
+
+    if (updateError) {
+      console.error('Background: Error updating action:', updateError);
+      throw updateError;
+    }
+
+    console.log('Background: Video generation completed successfully');
+  } catch (error) {
+    console.error('Background: Error processing video:', error);
+    
+    // Atualizar o action com erro
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+    
+    await supabase
+      .from('actions')
+      .update({
+        status: 'failed',
+        result: { error: error instanceof Error ? error.message : 'Unknown error' }
+      })
+      .eq('id', actionId);
+  }
+}
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -21,8 +133,16 @@ serve(async (req) => {
       );
     }
 
-    const { prompt, referenceImage } = await req.json();
-    console.log('Generating video with prompt:', prompt);
+    const { prompt, referenceImage, actionId } = await req.json();
+    console.log('Starting video generation with prompt:', prompt);
+    console.log('Action ID:', actionId);
+
+    if (!actionId) {
+      return new Response(
+        JSON.stringify({ error: 'actionId is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     const BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
     
@@ -33,9 +153,8 @@ serve(async (req) => {
       }]
     };
 
-    // Add reference image if provided (base64 encoded)
+    // Add reference image if provided
     if (referenceImage) {
-      // Extract mime type from data URL (e.g., "data:image/png;base64,...")
       const mimeType = referenceImage.split(';')[0].split(':')[1];
       const base64Data = referenceImage.split(',')[1];
       
@@ -45,7 +164,7 @@ serve(async (req) => {
       };
     }
 
-    // Start video generation (long-running operation)
+    // Start video generation
     console.log('Starting video generation operation...');
     const generateResponse = await fetch(
       `${BASE_URL}/models/veo-3.0-generate-001:predictLongRunning`,
@@ -81,93 +200,18 @@ serve(async (req) => {
 
     console.log('Operation started:', operationName);
 
-    // Poll the operation status until video is ready
-    let isDone = false;
-    let videoUri = null;
-    let attempts = 0;
-    const maxAttempts = 120; // 20 minutes max (10 seconds * 120) - Veo3 pode levar tempo
-
-    while (!isDone && attempts < maxAttempts) {
-      attempts++;
-      console.log(`Polling attempt ${attempts}/${maxAttempts}...`);
-      
-      await new Promise(resolve => setTimeout(resolve, 10000)); // Wait 10 seconds
-      
-      const statusResponse = await fetch(
-        `${BASE_URL}/${operationName}`,
-        {
-          headers: {
-            'x-goog-api-key': GEMINI_API_KEY,
-          },
-        }
-      );
-
-      if (!statusResponse.ok) {
-        console.error('Status check failed:', statusResponse.status);
-        continue;
-      }
-
-      const statusData = await statusResponse.json();
-      console.log('Status response:', JSON.stringify(statusData, null, 2));
-      isDone = statusData.done === true;
-
-      if (isDone) {
-        // Try multiple possible response structures
-        videoUri = statusData.response?.generatedSamples?.[0]?.video?.uri ||
-                   statusData.response?.predictions?.[0]?.videoUri ||
-                   statusData.response?.video?.uri ||
-                   statusData.result?.video?.uri;
-        
-        console.log('Video generation complete! URI:', videoUri);
-        console.log('Full response structure:', JSON.stringify(statusData.response, null, 2));
-      }
-    }
-
-    if (!videoUri) {
-      console.error('Video generation timeout or failed');
-      return new Response(
-        JSON.stringify({ 
-          error: 'Video generation timeout. Please try again.',
-          attempts: attempts
-        }),
-        { status: 408, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Download the video
-    console.log('Downloading video from:', videoUri);
-    const videoResponse = await fetch(videoUri, {
-      headers: {
-        'x-goog-api-key': GEMINI_API_KEY,
-      },
+    // Iniciar processamento em background (sem awaitar)
+    processVideoGeneration(operationName, actionId).catch(err => {
+      console.error('Background video processing error:', err);
     });
 
-    if (!videoResponse.ok) {
-      console.error('Video download failed:', videoResponse.status);
-      return new Response(
-        JSON.stringify({ error: 'Failed to download generated video' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const videoBlob = await videoResponse.blob();
-    const arrayBuffer = await videoBlob.arrayBuffer();
-    const uint8Array = new Uint8Array(arrayBuffer);
-    
-    // Processar em chunks para evitar stack overflow
-    let binary = '';
-    const chunkSize = 0x8000; // 32KB chunks
-    for (let i = 0; i < uint8Array.length; i += chunkSize) {
-      const chunk = uint8Array.subarray(i, Math.min(i + chunkSize, uint8Array.length));
-      binary += String.fromCharCode.apply(null, Array.from(chunk));
-    }
-    const videoBase64 = btoa(binary);
-    
-    console.log('Video generated successfully');
+    // Retornar imediatamente com status de processamento
     return new Response(
       JSON.stringify({ 
-        videoUrl: `data:video/mp4;base64,${videoBase64}`,
-        attempts: attempts
+        status: 'processing',
+        message: 'Video generation started. Check action status for updates.',
+        operationName: operationName,
+        actionId: actionId
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
