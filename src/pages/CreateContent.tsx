@@ -30,7 +30,6 @@ interface FormData {
   objective: string;
   platform: string;
   description: string;
-  audience: string;
   tone: string[];
   additionalInfo: string;
 }
@@ -57,7 +56,6 @@ export default function CreateContent() {
     objective: "",
     platform: "",
     description: "",
-    audience: "",
     tone: [],
     additionalInfo: "",
   });
@@ -244,7 +242,6 @@ export default function CreateContent() {
       formData.objective &&
       formData.platform &&
       formData.description &&
-      formData.audience &&
       formData.tone.length > 0 &&
       referenceFiles.length > 0;
     
@@ -290,8 +287,6 @@ export default function CreateContent() {
 ${formData.objective}
 
 ${formData.description}
-
-Perfeito para: ${formData.audience}
 
 Tom: ${formData.tone.join(", ")}
 
