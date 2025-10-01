@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Search, Bell, Settings, User, Menu, Loader2, Info, FileText, Shield, LogOut } from "lucide-react";
+import { Search, Settings, User, Menu, Loader2, Info, FileText, Shield, LogOut } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
@@ -23,6 +23,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { CreatorLogo } from "./CreatorLogo";
+import Notifications from "./Notifications";
 
 export const Header = () => {
   const { setOpen } = useSidebar();
@@ -121,16 +122,7 @@ export const Header = () => {
           </Button>
 
           {/* Notifications */}
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="h-8 w-8 md:h-10 md:w-10 rounded-lg xl:rounded-xl hover:bg-primary/10 transition-all duration-200 border border-transparent hover:border-primary/20 relative"
-          >
-            <Bell className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
-            {/* Notification badge */}
-            <div className="absolute -top-0.5 -right-0.5 md:-top-1 md:-right-1 h-2.5 w-2.5 md:h-3 md:w-3 bg-accent rounded-full border-2 border-background animate-pulse"></div>
-            <span className="sr-only">Notificações</span>
-          </Button>
+          <Notifications />
 
           {/* Settings dropdown */}
           <Dialog>
