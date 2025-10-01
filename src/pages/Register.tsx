@@ -165,8 +165,13 @@ const Register = () => {
       }
 
       if (data.user) {
-        toast.success('Cadastro realizado com sucesso!');
-        setShowTeamSelection(true);
+        // Fazer logout para garantir que o usuário faça login com sessão completa
+        await supabase.auth.signOut();
+        
+        toast.success('Cadastro realizado com sucesso! Faça login para configurar sua equipe.');
+        
+        // Redirecionar para login com flag indicando que acabou de se registrar
+        navigate('/login?newUser=true');
       }
     } catch (err) {
       setError('Ocorreu um erro ao tentar se cadastrar.');

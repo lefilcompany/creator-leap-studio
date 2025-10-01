@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,13 +8,23 @@ import { CreatorLogo } from "@/components/CreatorLogo";
 import { Eye, EyeOff, Chrome, Facebook, Mail, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { TeamSelectionDialog } from "@/components/auth/TeamSelectionDialog";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showTeamSelection, setShowTeamSelection] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  
+  useEffect(() => {
+    const isNewUser = searchParams.get('newUser') === 'true';
+    if (isNewUser) {
+      toast.info('Complete seu cadastro configurando sua equipe após fazer login.');
+    }
+  }, [searchParams]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,8 +42,22 @@ const Login = () => {
       }
 
       if (data.user) {
-        toast.success("Login realizado com sucesso!");
-        navigate("/dashboard");
+        // Verificar se o usuário já tem equipe
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('team_id')
+          .eq('id', data.user.id)
+          .single();
+
+        if (!profile?.team_id) {
+          // Usuário não tem equipe, mostrar diálogo de seleção
+          toast.success("Login realizado! Configure sua equipe para continuar.");
+          setShowTeamSelection(true);
+        } else {
+          // Usuário já tem equipe, redirecionar para dashboard
+          toast.success("Login realizado com sucesso!");
+          navigate("/dashboard");
+        }
       }
     } catch (error) {
       toast.error("Erro ao fazer login. Tente novamente.");
@@ -60,7 +84,8 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 flex relative">
+    <>
+      <div className="min-h-screen bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 flex relative">
       {/* Background gradient for entire screen */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary/15 via-accent/10 via-secondary/15 to-primary/5"></div>
       <div className="absolute inset-0 bg-gradient-to-tl from-secondary/10 via-transparent to-accent/15 opacity-70"></div>
@@ -236,7 +261,16 @@ const Login = () => {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+
+      <TeamSelectionDialog
+        open={showTeamSelection}
+        onClose={() => {
+          setShowTeamSelection(false);
+          navigate("/dashboard");
+        }}
+      />
+    </>
   );
 };
 
