@@ -1,11 +1,16 @@
 import React from 'react';
-import logoCreator from '@/assets/logoCreatorPreta.png';
+import { useTheme } from 'next-themes';
+import logoCreatorPreta from '@/assets/logoCreatorPreta.png';
+import logoCreatorBranca from '@/assets/logoCreatorBranca.png';
 
 export const CreatorLogo = ({ className = "" }: { className?: string }) => {
+  const { theme } = useTheme();
+  const logo = theme === 'dark' ? logoCreatorBranca : logoCreatorPreta;
+  
   return (
     <div className={`flex items-center gap-2 ${className}`}>
       <img 
-        src={logoCreator} 
+        src={logo} 
         alt="Creator Logo" 
         className="h-8 w-auto object-contain"
       />

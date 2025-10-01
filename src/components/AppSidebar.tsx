@@ -1,4 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
+import { useTheme } from "next-themes";
 import {
   Home,
   Tag,
@@ -23,7 +24,8 @@ import {
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/hooks/useAuth";
-import logoCreator from "@/assets/logoCreatorPreta.png";
+import logoCreatorPreta from "@/assets/logoCreatorPreta.png";
+import logoCreatorBranca from "@/assets/logoCreatorBranca.png";
 
 const navLinks = [
   { id: "nav-home", href: "/dashboard", icon: Home, label: "Home" },
@@ -138,6 +140,8 @@ export function AppSidebar() {
   const { state, open, setOpen } = useSidebar();
   const isMobile = useIsMobile();
   const { team } = useAuth();
+  const { theme } = useTheme();
+  const logo = theme === 'dark' ? logoCreatorBranca : logoCreatorPreta;
   
   // No desktop, a sidebar é sempre fixa e não colapsa
   const collapsed = false;
@@ -156,7 +160,7 @@ export function AppSidebar() {
         className="pt-6 pb-2 mb-2 flex justify-center cursor-pointer hover:opacity-80 transition-opacity"
       >
         <img
-          src={logoCreator}
+          src={logo}
           alt="Creator Logo"
           className="h-8 w-auto"
         />
