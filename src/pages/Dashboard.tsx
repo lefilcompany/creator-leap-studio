@@ -270,7 +270,7 @@ const Dashboard = () => {
                 <CardTitle className="text-xl font-semibold">Ações Rápidas</CardTitle>
               </div>
             </CardHeader>
-            <CardContent className="space-y-8">
+            <CardContent className="space-y-4">
               {quickActions.map((action, index) => (
                 <Link key={index} to={action.link}>
                   <Card className="hover:bg-muted/50 hover:shadow-md transition-all duration-200 cursor-pointer hover-scale">
