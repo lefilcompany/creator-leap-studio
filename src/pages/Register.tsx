@@ -10,6 +10,7 @@ import { CreatorLogo } from "@/components/CreatorLogo";
 import { Eye, EyeOff, User, Mail, Phone, Lock, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { TeamSelectionDialog } from "@/components/auth/TeamSelectionDialog";
 
 // Interfaces para os dados do IBGE
 interface State {
@@ -48,6 +49,9 @@ const Register = () => {
   const [privacyChecked, setPrivacyChecked] = useState(false);
   const [privacyModalOpen, setPrivacyModalOpen] = useState(false);
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
+
+  // Team selection
+  const [showTeamSelection, setShowTeamSelection] = useState(false);
 
   // Validações de senha
   const passwordsMatch = formData.password === confirmPassword;
@@ -161,8 +165,8 @@ const Register = () => {
       }
 
       if (data.user) {
-        toast.success('Cadastro realizado! Verifique seu e-mail.');
-        navigate("/");
+        toast.success('Cadastro realizado com sucesso!');
+        setShowTeamSelection(true);
       }
     } catch (err) {
       setError('Ocorreu um erro ao tentar se cadastrar.');
@@ -536,6 +540,15 @@ const Register = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Team Selection Dialog */}
+      <TeamSelectionDialog
+        open={showTeamSelection}
+        onClose={() => {
+          setShowTeamSelection(false);
+          navigate("/");
+        }}
+      />
     </>
   );
 };
