@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { CreatorLogo } from "@/components/CreatorLogo";
-import { Eye, EyeOff, Chrome, Facebook, Mail, Lock } from "lucide-react";
+import { Eye, EyeOff, Chrome, Facebook, Mail, Lock, Sun, Moon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { TeamSelectionDialog } from "@/components/auth/TeamSelectionDialog";
@@ -19,6 +20,7 @@ const Login = () => {
   const [showTeamSelection, setShowTeamSelection] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { theme, setTheme } = useTheme();
   
   useEffect(() => {
     const isNewUser = searchParams.get('newUser') === 'true';
@@ -91,6 +93,18 @@ const Login = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 flex relative">
+      {/* Theme toggle button */}
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+        className="absolute top-4 right-4 z-50 h-10 w-10 rounded-full"
+      >
+        <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+        <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+        <span className="sr-only">Alternar tema</span>
+      </Button>
+      
       {/* Background gradient for entire screen */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary/15 via-accent/10 via-secondary/15 to-primary/5"></div>
       <div className="absolute inset-0 bg-gradient-to-tl from-secondary/10 via-transparent to-accent/15 opacity-70"></div>
