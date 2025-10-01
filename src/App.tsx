@@ -12,6 +12,7 @@ import Themes from "./pages/Themes";
 import Personas from "./pages/Personas";
 import History from "./pages/History";
 import CreateContent from "./pages/CreateContent";
+import ContentResult from "./pages/ContentResult";
 import ReviewContent from "./pages/ReviewContent";
 import PlanContent from "./pages/PlanContent";
 import Plans from "./pages/Plans";
@@ -42,6 +43,7 @@ const App = () => (
             <Route path="personas" element={<Personas />} />
             <Route path="history" element={<History />} />
             <Route path="create" element={<CreateContent />} />
+            <Route path="result" element={<ContentResult />} />
             <Route path="review" element={<ReviewContent />} />
             <Route path="plan" element={<PlanContent />} />
             <Route path="plans" element={<Plans />} />

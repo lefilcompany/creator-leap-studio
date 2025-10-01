@@ -274,11 +274,35 @@ export default function CreateContent() {
       // Simulate content generation
       await new Promise(resolve => setTimeout(resolve, 2000));
       
+      // Mock generated content
+      const generatedContent = {
+        type: isVideoMode ? "video" : "image",
+        mediaUrl: isVideoMode 
+          ? "https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800&h=800&fit=crop" 
+          : "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=800&h=800&fit=crop",
+        caption: `🌟 Descubra o poder de ${formData.brand}! 🌟
+
+${formData.objective}
+
+${formData.description}
+
+Perfeito para: ${formData.audience}
+
+Tom: ${formData.tone.join(", ")}
+
+${formData.additionalInfo ? `\n${formData.additionalInfo}` : ""}
+
+#${formData.brand.replace(/\s+/g, "")} #${formData.platform} #ConteúdoIA`,
+        platform: formData.platform,
+        brand: formData.brand,
+      };
+      
       toast.success("Conteúdo gerado com sucesso!", {
         id: toastId,
         description: "Redirecionando para a página de resultado...",
       });
-      navigate("/historico");
+      
+      navigate("/result", { state: { contentData: generatedContent } });
     } catch (err: any) {
       toast.error(err.message || "Erro ao gerar o conteúdo.", { id: toastId });
     } finally {
