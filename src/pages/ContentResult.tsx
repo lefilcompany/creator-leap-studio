@@ -30,6 +30,10 @@ interface ContentResultData {
   caption: string;
   platform: string;
   brand: string;
+  title?: string;
+  hashtags?: string[];
+  originalFormData?: any;
+  actionId?: string;
 }
 
 export default function ContentResult() {
@@ -306,6 +310,29 @@ export default function ContentResult() {
       
       setTotalRevisions(newRevisionCount);
       setFreeRevisionsLeft(newFreeRevisionsLeft);
+
+      // Atualizar registro no histórico (tabela actions)
+      if (saved.actionId) {
+        const { error: updateError } = await supabase
+          .from('actions')
+          .update({
+            revisions: newRevisionCount,
+            result: {
+              imageUrl: updatedContent.mediaUrl,
+              title: updatedContent.title,
+              body: updatedContent.caption?.split('\n\n')[1] || updatedContent.caption,
+              hashtags: updatedContent.hashtags,
+              feedback: reviewPrompt,
+            },
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', saved.actionId);
+
+        if (updateError) {
+          console.error("Erro ao atualizar histórico:", updateError);
+          // Não bloqueia o fluxo
+        }
+      }
 
       if (needsCredit) {
         toast.success("Revisão concluída! 1 crédito foi consumido.");
