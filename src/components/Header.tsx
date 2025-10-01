@@ -166,13 +166,11 @@ export const Header = () => {
                     <span>Sobre o Creator</span>
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="p-3 cursor-pointer">
-                  <FileText className="mr-3 h-4 w-4" />
-                  <span>Termos de Serviço</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="p-3 cursor-pointer">
-                  <Shield className="mr-3 h-4 w-4" />
-                  <span>Política de Privacidade</span>
+                <DropdownMenuItem className="p-3 cursor-pointer" asChild>
+                  <Link to="/privacy" className="flex items-center">
+                    <Shield className="mr-3 h-4 w-4" />
+                    <span>Política de Privacidade</span>
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DialogTrigger asChild>
