@@ -396,79 +396,22 @@ export default function CreateContent() {
 
       // Se estiver em modo vídeo, gerar vídeo
       if (isVideoMode) {
-        toast.loading("Gerando vídeo com Veo3...", {
+        toast.loading("Iniciando geração de vídeo...", {
           id: toastId,
-          description: "Isso pode levar alguns minutos. Processando com IA avançada.",
+          description: "Criando registro e iniciando processamento com Veo3.",
         });
 
         const videoPrompt = `${formData.objective}. ${formData.description}. Tom: ${formData.tone.join(", ")}. Marca: ${selectedBrand?.name}. ${formData.additionalInfo}`;
         
-        const videoResponse = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-video`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-            },
-            body: JSON.stringify({
-              prompt: videoPrompt,
-              referenceImage: allReferenceImages[0], // Use primeira imagem como referência
-            }),
-          }
-        );
-
-        if (!videoResponse.ok) {
-          const errorText = await videoResponse.text();
-          throw new Error(`Erro ao gerar vídeo: ${errorText}`);
-        }
-
-        const { videoUrl, attempts } = await videoResponse.json();
-        
-        toast.loading("Gerando legenda...", {
-          id: toastId,
-          description: `Vídeo gerado em ${attempts} tentativa(s).`,
-        });
-
-        // Gerar legenda
-        const captionResponse = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-caption`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-            },
-            body: JSON.stringify(requestData),
-          }
-        );
-
-        let captionData;
-        if (captionResponse.ok) {
-          captionData = await captionResponse.json();
-        } else {
-          captionData = {
-            title: `${selectedBrand?.name || formData.brand}: ${formData.objective}`,
-            body: `${formData.description}\n\nTom: ${formData.tone.join(", ")}`,
-            hashtags: [
-              (selectedBrand?.name || formData.brand).replace(/\s+/g, "").toLowerCase(),
-              formData.platform.toLowerCase(),
-              "video"
-            ]
-          };
-        }
-
-        const caption = `${captionData.title}\n\n${captionData.body}\n\n${captionData.hashtags.map((tag: string) => `#${tag}`).join(" ")}`;
-
-        // Salvar no histórico
-        const { data: actionData } = await supabase
+        // Criar registro de action primeiro com status pending
+        const { data: actionData, error: actionError } = await supabase
           .from('actions')
           .insert({
             type: 'CRIAR_VIDEO',
             brand_id: formData.brand,
             team_id: user?.teamId,
             user_id: user?.id,
-            status: 'Em revisão',
+            status: 'pending',
             approved: false,
             revisions: 0,
             details: {
@@ -482,34 +425,51 @@ export default function CreateContent() {
               additionalInfo: requestData.additionalInfo,
               aspectRatio: ratio,
             },
-            result: {
-              videoUrl,
-              title: captionData.title,
-              body: captionData.body,
-              hashtags: captionData.hashtags,
-            }
+            result: null
           })
           .select()
           .single();
 
-        const generatedContent = {
-          type: "video",
-          mediaUrl: videoUrl,
-          caption,
-          platform: formData.platform,
-          brand: selectedBrand?.name || formData.brand,
-          title: captionData.title,
-          hashtags: captionData.hashtags,
-          originalFormData: requestData,
-          actionId: actionData?.id,
-        };
+        if (actionError || !actionData) {
+          throw new Error(`Erro ao criar registro: ${actionError?.message}`);
+        }
+
+        // Iniciar geração de vídeo em background
+        const videoResponse = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-video`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            },
+            body: JSON.stringify({
+              prompt: videoPrompt,
+              referenceImage: allReferenceImages[0],
+              actionId: actionData.id
+            }),
+          }
+        );
+
+        if (!videoResponse.ok) {
+          const errorText = await videoResponse.text();
+          // Atualizar action como failed
+          await supabase
+            .from('actions')
+            .update({ status: 'failed', result: { error: errorText } })
+            .eq('id', actionData.id);
+          throw new Error(`Erro ao iniciar geração: ${errorText}`);
+        }
+
+        const { status: genStatus, message } = await videoResponse.json();
         
-        toast.success("Vídeo gerado com sucesso!", {
+        toast.success("Geração iniciada!", {
           id: toastId,
-          description: "Vídeo criado com Veo3 🎬",
+          description: message || "O vídeo está sendo processado em background. Verifique o histórico para acompanhar o progresso.",
         });
         
-        navigate("/result", { state: { contentData: generatedContent } });
+        // Navegar para o histórico
+        navigate("/historico");
         return;
       }
 
