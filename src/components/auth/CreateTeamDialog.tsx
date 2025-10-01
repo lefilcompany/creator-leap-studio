@@ -44,10 +44,12 @@ export function CreateTeamDialog({ open, onClose, onSuccess }: CreateTeamDialogP
     setIsLoading(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      // Verificar sessão ativa
+      const { data: { session } } = await supabase.auth.getSession();
       
-      if (!user) {
-        toast.error("Usuário não autenticado");
+      if (!session?.user) {
+        toast.error("Sessão expirada. Por favor, faça login novamente.");
+        navigate("/login");
         return;
       }
 
@@ -57,28 +59,39 @@ export function CreateTeamDialog({ open, onClose, onSuccess }: CreateTeamDialogP
         .insert({
           name: teamName,
           code: teamCode,
-          admin_id: user.id,
+          admin_id: session.user.id,
           plan_id: 'free'
         })
         .select()
         .single();
 
-      if (teamError) throw teamError;
+      if (teamError) {
+        console.error('Erro ao criar equipe:', teamError);
+        throw new Error(`Não foi possível criar a equipe: ${teamError.message}`);
+      }
 
       // Atualizar o perfil do usuário com o team_id
       const { error: profileError } = await supabase
         .from('profiles')
         .update({ team_id: team.id })
-        .eq('id', user.id);
+        .eq('id', session.user.id);
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error('Erro ao atualizar perfil:', profileError);
+        throw new Error(`Não foi possível atualizar o perfil: ${profileError.message}`);
+      }
 
-      toast.success("Equipe criada com sucesso!");
+      toast.success("Equipe criada com sucesso! Faça login para acessar o sistema.");
+      
+      // Fazer logout
+      await supabase.auth.signOut();
+      
+      // Fechar dialog e redirecionar para login
       onSuccess();
-      navigate("/dashboard");
+      navigate("/login");
     } catch (error: any) {
       console.error('Erro ao criar equipe:', error);
-      toast.error(error.message || "Erro ao criar equipe");
+      toast.error(error.message || "Erro ao criar equipe. Tente novamente.");
     } finally {
       setIsLoading(false);
     }

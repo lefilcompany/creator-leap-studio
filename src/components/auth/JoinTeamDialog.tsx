@@ -30,10 +30,12 @@ export function JoinTeamDialog({ open, onClose, onBack, onSuccess }: JoinTeamDia
     setIsLoading(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      // Verificar sessão ativa
+      const { data: { session } } = await supabase.auth.getSession();
       
-      if (!user) {
-        toast.error("Usuário não autenticado");
+      if (!session?.user) {
+        toast.error("Sessão expirada. Por favor, faça login novamente.");
+        navigate("/login");
         return;
       }
 
@@ -42,9 +44,15 @@ export function JoinTeamDialog({ open, onClose, onBack, onSuccess }: JoinTeamDia
         .from('teams')
         .select('id')
         .eq('code', teamCode)
-        .single();
+        .maybeSingle();
 
-      if (teamError || !team) {
+      if (teamError) {
+        console.error('Erro ao buscar equipe:', teamError);
+        toast.error("Erro ao buscar equipe. Tente novamente.");
+        return;
+      }
+
+      if (!team) {
         toast.error("Código de equipe inválido");
         return;
       }
@@ -53,9 +61,9 @@ export function JoinTeamDialog({ open, onClose, onBack, onSuccess }: JoinTeamDia
       const { data: existingRequest } = await supabase
         .from('team_join_requests')
         .select('id, status')
-        .eq('user_id', user.id)
+        .eq('user_id', session.user.id)
         .eq('team_id', team.id)
-        .single();
+        .maybeSingle();
 
       if (existingRequest) {
         if (existingRequest.status === 'pending') {
@@ -63,7 +71,8 @@ export function JoinTeamDialog({ open, onClose, onBack, onSuccess }: JoinTeamDia
           return;
         } else if (existingRequest.status === 'approved') {
           toast.info("Sua solicitação já foi aprovada");
-          navigate("/dashboard");
+          await supabase.auth.signOut();
+          navigate("/login");
           return;
         }
       }
@@ -72,20 +81,26 @@ export function JoinTeamDialog({ open, onClose, onBack, onSuccess }: JoinTeamDia
       const { error: requestError } = await supabase
         .from('team_join_requests')
         .insert({
-          user_id: user.id,
+          user_id: session.user.id,
           team_id: team.id,
           status: 'pending'
         });
 
-      if (requestError) throw requestError;
+      if (requestError) {
+        console.error('Erro ao criar solicitação:', requestError);
+        throw new Error(`Não foi possível enviar a solicitação: ${requestError.message}`);
+      }
 
-      toast.success("Solicitação enviada! Aguarde a aprovação do administrador.");
+      toast.success("Solicitação enviada com sucesso! Faça login para acessar o sistema.");
+      
+      // Fazer logout
+      await supabase.auth.signOut();
+      
       onSuccess();
-      // Redirecionar para uma página de espera ou login
-      navigate("/");
+      navigate("/login");
     } catch (error: any) {
       console.error('Erro ao solicitar entrada:', error);
-      toast.error(error.message || "Erro ao solicitar entrada na equipe");
+      toast.error(error.message || "Erro ao solicitar entrada na equipe. Tente novamente.");
     } finally {
       setIsLoading(false);
     }
