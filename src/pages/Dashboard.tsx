@@ -102,8 +102,7 @@ const Dashboard = () => {
     (team.credits?.contentReviews || 0);
   
   const usedCredits = totalCredits - remainingCredits;
-  // Barra de progresso decrescente - mostra créditos restantes
-  const progressPercentage = totalCredits > 0 ? ((remainingCredits / totalCredits) * 100) : 0;
+  const progressPercentage = totalCredits > 0 ? ((usedCredits / totalCredits) * 100) : 0;
 
   const stats = [
     {
@@ -270,7 +269,7 @@ const Dashboard = () => {
                 <CardTitle className="text-xl font-semibold">Ações Rápidas</CardTitle>
               </div>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="flex flex-col gap-4">
               {quickActions.map((action, index) => (
                 <Link key={index} to={action.link}>
                   <Card className="hover:bg-muted/50 hover:shadow-md transition-all duration-200 cursor-pointer hover-scale">
