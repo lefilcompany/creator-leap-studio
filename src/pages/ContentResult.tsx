@@ -163,8 +163,53 @@ export default function ContentResult() {
     }
   };
 
-  const handleShare = () => {
-    toast.info("Funcionalidade de compartilhamento em breve");
+  const handleShare = async () => {
+    if (!contentData) return;
+
+    try {
+      // Check if Web Share API is available
+      if (!navigator.share) {
+        // Fallback: copy caption and prompt to download
+        await navigator.clipboard.writeText(contentData.caption);
+        toast.info("Legenda copiada! Agora faça o download da mídia para compartilhar.");
+        return;
+      }
+
+      // Convert base64 to blob
+      const base64Data = contentData.mediaUrl.split(',')[1];
+      const byteCharacters = atob(base64Data);
+      const byteNumbers = new Array(byteCharacters.length);
+      
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      
+      const byteArray = new Uint8Array(byteNumbers);
+      const mimeType = contentData.type === "video" ? "video/mp4" : "image/png";
+      const extension = contentData.type === "video" ? "mp4" : "png";
+      
+      // Create File object
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+      const filename = `${contentData.brand.replace(/\s+/g, '_')}_${contentData.platform}_${timestamp}.${extension}`;
+      const file = new File([byteArray], filename, { type: mimeType });
+
+      // Share using Web Share API
+      await navigator.share({
+        title: `${contentData.brand} - ${contentData.platform}`,
+        text: contentData.caption,
+        files: [file]
+      });
+
+      toast.success("Compartilhado com sucesso!");
+    } catch (error: any) {
+      // User cancelled or error occurred
+      if (error.name === 'AbortError') {
+        // User cancelled, don't show error
+        return;
+      }
+      console.error('Erro ao compartilhar:', error);
+      toast.error("Erro ao compartilhar. Tente copiar a legenda e baixar a mídia.");
+    }
   };
 
   const handleOpenReview = () => {
