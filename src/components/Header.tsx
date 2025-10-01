@@ -4,7 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -28,10 +29,17 @@ import Notifications from "./Notifications";
 export const Header = () => {
   const { setOpen } = useSidebar();
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
+  const { logout } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [showMobileSearch, setShowMobileSearch] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login");
+  };
 
   // Focus search on mobile when opened
   useEffect(() => {
@@ -179,7 +187,12 @@ export const Header = () => {
                     Cancelar
                   </Button>
                 </DialogClose>
-                <Button type="button" variant="destructive" className="w-full rounded-xl h-12">
+                <Button 
+                  type="button" 
+                  variant="destructive" 
+                  className="w-full rounded-xl h-12"
+                  onClick={handleLogout}
+                >
                   Sair da Conta
                 </Button>
               </DialogFooter>
