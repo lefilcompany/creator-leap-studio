@@ -394,6 +394,24 @@ export default function CreateContent() {
         referenceImages: allReferenceImages,
       };
 
+      // Validar que brand, theme e persona são UUIDs válidos
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      
+      if (!formData.brand || !uuidRegex.test(formData.brand)) {
+        toast.error("Por favor, selecione uma marca válida", { id: toastId });
+        return;
+      }
+      
+      if (!formData.theme || !uuidRegex.test(formData.theme)) {
+        toast.error("Por favor, selecione um tema estratégico válido", { id: toastId });
+        return;
+      }
+      
+      if (!formData.persona || !uuidRegex.test(formData.persona)) {
+        toast.error("Por favor, selecione uma persona válida", { id: toastId });
+        return;
+      }
+
       // Se estiver em modo vídeo, gerar vídeo
       if (isVideoMode) {
         toast.loading("Iniciando geração de vídeo...", {
