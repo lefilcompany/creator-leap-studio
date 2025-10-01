@@ -74,14 +74,14 @@ export default function ContentResult() {
           <CardContent className="p-4 md:p-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => navigate("/create")}
-                  className="rounded-xl hover:bg-background/50"
-                >
-                  <ArrowLeft className="h-5 w-5" />
-                </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate("/create")}
+                className="rounded-xl hover:bg-background/50 lg:hidden"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
                 <div className="flex items-center gap-3">
                   <div className="flex-shrink-0 bg-primary/10 text-primary rounded-xl p-2.5 md:p-3">
                     <Sparkles className="h-5 w-5 md:h-6 md:w-6" />
