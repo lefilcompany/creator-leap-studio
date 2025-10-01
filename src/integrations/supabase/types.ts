@@ -253,12 +253,17 @@ export type Database = {
           features: Json | null
           id: string
           is_active: boolean | null
+          max_brands: number
+          max_members: number
+          max_personas: number
+          max_strategic_themes: number
           name: string
           price_monthly: number
           price_yearly: number | null
           stripe_price_id_monthly: string | null
           stripe_price_id_yearly: string | null
           stripe_product_id: string | null
+          trial_days: number
           updated_at: string | null
         }
         Insert: {
@@ -272,12 +277,17 @@ export type Database = {
           features?: Json | null
           id: string
           is_active?: boolean | null
+          max_brands?: number
+          max_members?: number
+          max_personas?: number
+          max_strategic_themes?: number
           name: string
           price_monthly: number
           price_yearly?: number | null
           stripe_price_id_monthly?: string | null
           stripe_price_id_yearly?: string | null
           stripe_product_id?: string | null
+          trial_days?: number
           updated_at?: string | null
         }
         Update: {
@@ -291,12 +301,17 @@ export type Database = {
           features?: Json | null
           id?: string
           is_active?: boolean | null
+          max_brands?: number
+          max_members?: number
+          max_personas?: number
+          max_strategic_themes?: number
           name?: string
           price_monthly?: number
           price_yearly?: number | null
           stripe_price_id_monthly?: string | null
           stripe_price_id_yearly?: string | null
           stripe_product_id?: string | null
+          trial_days?: number
           updated_at?: string | null
         }
         Relationships: []
