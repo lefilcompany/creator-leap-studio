@@ -108,11 +108,18 @@ serve(async (req) => {
       }
 
       const statusData = await statusResponse.json();
+      console.log('Status response:', JSON.stringify(statusData, null, 2));
       isDone = statusData.done === true;
 
       if (isDone) {
-        videoUri = statusData.response?.generateVideoResponse?.generatedSamples?.[0]?.video?.uri;
+        // Try multiple possible response structures
+        videoUri = statusData.response?.generatedSamples?.[0]?.video?.uri ||
+                   statusData.response?.predictions?.[0]?.videoUri ||
+                   statusData.response?.video?.uri ||
+                   statusData.result?.video?.uri;
+        
         console.log('Video generation complete! URI:', videoUri);
+        console.log('Full response structure:', JSON.stringify(statusData.response, null, 2));
       }
 
       attempts++;
