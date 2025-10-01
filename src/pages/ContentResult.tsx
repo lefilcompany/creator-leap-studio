@@ -395,27 +395,27 @@ export default function ContentResult() {
                 onValueChange={(value) => setReviewType(value as "image" | "caption")}
                 className="space-y-3"
               >
-                <div className="flex items-center space-x-3 rounded-lg border border-border p-4 hover:bg-accent/50 transition-colors cursor-pointer">
+                <div className="flex items-center space-x-3 rounded-lg border-2 border-border p-4 hover:border-primary hover:bg-primary/10 transition-all cursor-pointer group">
                   <RadioGroupItem value="image" id="image" />
                   <Label htmlFor="image" className="flex-1 cursor-pointer flex items-center gap-3">
                     {contentData?.type === "video" ? (
-                      <Video className="h-5 w-5 text-primary" />
+                      <Video className="h-5 w-5 text-primary group-hover:scale-110 transition-transform" />
                     ) : (
-                      <ImageIcon className="h-5 w-5 text-primary" />
+                      <ImageIcon className="h-5 w-5 text-primary group-hover:scale-110 transition-transform" />
                     )}
                     <div>
-                      <div className="font-medium">Revisar {contentData?.type === "video" ? "Vídeo" : "Imagem"}</div>
+                      <div className="font-semibold group-hover:text-primary transition-colors">Revisar {contentData?.type === "video" ? "Vídeo" : "Imagem"}</div>
                       <div className="text-sm text-muted-foreground">Alterar elementos visuais do conteúdo</div>
                     </div>
                   </Label>
                 </div>
                 
-                <div className="flex items-center space-x-3 rounded-lg border border-border p-4 hover:bg-accent/50 transition-colors cursor-pointer">
+                <div className="flex items-center space-x-3 rounded-lg border-2 border-border p-4 hover:border-secondary hover:bg-secondary/10 transition-all cursor-pointer group">
                   <RadioGroupItem value="caption" id="caption" />
                   <Label htmlFor="caption" className="flex-1 cursor-pointer flex items-center gap-3">
-                    <FileText className="h-5 w-5 text-secondary" />
+                    <FileText className="h-5 w-5 text-secondary group-hover:scale-110 transition-transform" />
                     <div>
-                      <div className="font-medium">Revisar Legenda</div>
+                      <div className="font-semibold group-hover:text-secondary transition-colors">Revisar Legenda</div>
                       <div className="text-sm text-muted-foreground">Melhorar o texto e a mensagem</div>
                     </div>
                   </Label>
