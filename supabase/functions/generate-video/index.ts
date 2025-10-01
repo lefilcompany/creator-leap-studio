@@ -85,10 +85,11 @@ serve(async (req) => {
     let isDone = false;
     let videoUri = null;
     let attempts = 0;
-    const maxAttempts = 60; // 10 minutes max (10 seconds * 60)
+    const maxAttempts = 120; // 20 minutes max (10 seconds * 120) - Veo3 pode levar tempo
 
     while (!isDone && attempts < maxAttempts) {
-      console.log(`Polling attempt ${attempts + 1}/${maxAttempts}...`);
+      attempts++;
+      console.log(`Polling attempt ${attempts}/${maxAttempts}...`);
       
       await new Promise(resolve => setTimeout(resolve, 10000)); // Wait 10 seconds
       
@@ -103,7 +104,6 @@ serve(async (req) => {
 
       if (!statusResponse.ok) {
         console.error('Status check failed:', statusResponse.status);
-        attempts++;
         continue;
       }
 
@@ -121,8 +121,6 @@ serve(async (req) => {
         console.log('Video generation complete! URI:', videoUri);
         console.log('Full response structure:', JSON.stringify(statusData.response, null, 2));
       }
-
-      attempts++;
     }
 
     if (!videoUri) {
