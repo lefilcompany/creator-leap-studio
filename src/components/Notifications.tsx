@@ -229,7 +229,7 @@ export default function Notifications() {
                               e.stopPropagation();
                               markAsRead(notification.id);
                             }}
-                            className="h-6 gap-1 px-2 text-xs opacity-0 transition-opacity group-hover:opacity-100 hover:bg-primary/20"
+                            className="h-6 gap-1 px-2 text-xs opacity-0 transition-opacity group-hover:opacity-100 hover:bg-primary/50"
                           >
                             <Check className="h-3 w-3" />
                             Marcar lida
