@@ -63,21 +63,36 @@ export default function Team() {
         .from('team_join_requests')
         .select(`
           id,
-          user_id,
-          profiles!team_join_requests_user_id_fkey(name, email)
+          user_id
         `)
         .eq('team_id', team.id)
         .eq('status', 'pending');
 
       if (requestsError) throw requestsError;
 
-      const formattedRequests = (requestsData || []).map((req: any) => ({
-        id: req.id,
-        name: req.profiles?.name || 'Usuário',
-        email: req.profiles?.email || '',
-      }));
+      // Buscar dados dos usuários separadamente
+      if (requestsData && requestsData.length > 0) {
+        const userIds = requestsData.map((req: any) => req.user_id);
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('id, name, email')
+          .in('id', userIds);
 
-      setPendingRequests(formattedRequests);
+        const profilesMap = new Map(profilesData?.map(p => [p.id, p]) || []);
+
+        const formattedRequests = requestsData.map((req: any) => {
+          const profile = profilesMap.get(req.user_id);
+          return {
+            id: req.id,
+            name: profile?.name || 'Usuário',
+            email: profile?.email || '',
+          };
+        });
+
+        setPendingRequests(formattedRequests);
+      } else {
+        setPendingRequests([]);
+      }
     } catch (error: any) {
       console.error('Erro ao carregar dados da equipe:', error);
       toast.error('Erro ao carregar dados da equipe');
