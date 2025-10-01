@@ -21,7 +21,7 @@ serve(async (req) => {
       );
     }
 
-    const { prompt, aspectRatio, duration, referenceImage } = await req.json();
+    const { prompt, referenceImage } = await req.json();
     console.log('Generating video with prompt:', prompt);
 
     const BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
@@ -37,13 +37,6 @@ serve(async (req) => {
     if (referenceImage) {
       requestBody.instances[0].image = {
         bytesBase64Encoded: referenceImage.split(',')[1] // Remove data:image/png;base64, prefix
-      };
-    }
-
-    // Add aspect ratio if provided
-    if (aspectRatio) {
-      requestBody.instances[0].parameters = {
-        aspectRatio: aspectRatio
       };
     }
 

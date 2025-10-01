@@ -413,7 +413,6 @@ export default function CreateContent() {
             },
             body: JSON.stringify({
               prompt: videoPrompt,
-              aspectRatio: ratio,
               referenceImage: allReferenceImages[0], // Use primeira imagem como referência
             }),
           }
