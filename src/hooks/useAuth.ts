@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import type { Plan } from '@/types/plan';
+import type { User as SupabaseUser, Session } from '@supabase/supabase-js';
 
 interface User {
   id: string;
@@ -22,51 +24,115 @@ interface Team {
   };
 }
 
-// Mock hook for authentication - replace with your actual auth implementation
 export function useAuth() {
-  const [user, setUser] = useState<User | null>({
-    id: '1',
-    email: 'copy@lefil.com.br',
-    name: 'Usuário Creator',
-    teamId: 'team-1'
-  });
-  
-  const [team, setTeam] = useState<Team | null>({
-    id: 'team-1',
-    name: 'LeFil',
-    code: 'TIMELEFIL',
-    admin: 'copy@lefil.com.br',
-    plan: {
-      id: '3',
-      name: 'PRO',
-      displayName: 'Premium',
-      price: 99.90,
-      trialDays: 14,
-      maxMembers: 10,
-      maxBrands: 20,
-      maxStrategicThemes: 50,
-      maxPersonas: 30,
-      quickContentCreations: 1000,
-      customContentSuggestions: 500,
-      contentPlans: 100,
-      contentReviews: 200,
-      isActive: true,
-    },
-    credits: {
-      quickContentCreations: 736,
-      contentSuggestions: 350,
-      contentReviews: 145,
-      contentPlans: 67,
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [team, setTeam] = useState<Team | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session);
+        if (session?.user) {
+          loadUserData(session.user);
+        } else {
+          setUser(null);
+          setTeam(null);
+        }
+      }
+    );
+
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      if (session?.user) {
+        loadUserData(session.user);
+      } else {
+        setIsLoading(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const loadUserData = async (supabaseUser: SupabaseUser) => {
+    try {
+      // Load profile
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', supabaseUser.id)
+        .single();
+
+      if (profile) {
+        setUser({
+          id: profile.id,
+          email: profile.email,
+          name: profile.name,
+          teamId: profile.team_id
+        });
+
+        // Load team if user has one
+        if (profile.team_id) {
+          const { data: teamData } = await supabase
+            .from('teams')
+            .select('*')
+            .eq('id', profile.team_id)
+            .single();
+
+          if (teamData) {
+            setTeam({
+              id: teamData.id,
+              name: teamData.name,
+              code: teamData.code,
+              admin: teamData.admin_id,
+              plan: {
+                id: teamData.plan_id,
+                name: teamData.plan_id.toUpperCase(),
+                displayName: teamData.plan_id === 'pro' ? 'Premium' : 'Free',
+                price: 0,
+                trialDays: 14,
+                maxMembers: 10,
+                maxBrands: 20,
+                maxStrategicThemes: 50,
+                maxPersonas: 30,
+                quickContentCreations: 1000,
+                customContentSuggestions: 500,
+                contentPlans: 100,
+                contentReviews: 200,
+                isActive: true,
+              },
+              credits: {
+                quickContentCreations: teamData.credits_quick_content,
+                contentSuggestions: teamData.credits_suggestions,
+                contentReviews: teamData.credits_reviews,
+                contentPlans: teamData.credits_plans,
+              }
+            });
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error loading user data:', error);
+    } finally {
+      setIsLoading(false);
     }
-  });
-  
-  const [isLoading, setIsLoading] = useState(false);
+  };
+
+  const logout = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    setTeam(null);
+  };
 
   return {
     user,
+    session,
     team,
     isAuthenticated: !!user,
     isLoading,
-    logout: () => setUser(null)
+    logout
   };
 }

@@ -6,17 +6,57 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { CreatorLogo } from "@/components/CreatorLogo";
 import { Eye, EyeOff, Chrome, Facebook, Mail, Lock } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate login - in real app would validate credentials
-    navigate("/dashboard");
+    setLoading(true);
+
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+
+      if (data.user) {
+        toast.success("Login realizado com sucesso!");
+        navigate("/dashboard");
+      }
+    } catch (error) {
+      toast.error("Erro ao fazer login. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`,
+        }
+      });
+
+      if (error) {
+        toast.error(error.message);
+      }
+    } catch (error) {
+      toast.error("Erro ao fazer login com Google.");
+    }
   };
 
   return (
@@ -144,9 +184,10 @@ const Login = () => {
 
               <Button 
                 type="submit" 
-                className="w-full h-12 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-medium rounded-xl transition-all duration-300 transform hover:scale-[1.02]"
+                disabled={loading}
+                className="w-full h-12 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-medium rounded-xl transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50"
               >
-                Entrar
+                {loading ? "Entrando..." : "Entrar"}
               </Button>
             </form>
 
@@ -163,14 +204,18 @@ const Login = () => {
             {/* Social login */}
             <div className="grid grid-cols-2 gap-3 mb-6">
               <Button 
-                variant="outline" 
+                variant="outline"
+                onClick={handleGoogleLogin}
+                type="button"
                 className="h-12 border-border/50 hover:bg-primary/5 hover:border-primary/30 hover:text-primary transition-all duration-200"
               >
                 <Chrome className="w-5 h-5 mr-2" />
                 Google
               </Button>
               <Button 
-                variant="outline" 
+                variant="outline"
+                type="button"
+                disabled
                 className="h-12 border-border/50 hover:bg-secondary/5 hover:border-secondary/30 hover:text-secondary transition-all duration-200"
               >
                 <Facebook className="w-5 h-5 mr-2" />

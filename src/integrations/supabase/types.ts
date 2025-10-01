@@ -14,7 +14,193 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      content_generations: {
+        Row: {
+          additional_info: string | null
+          brand_id: string | null
+          content_type: string
+          created_at: string | null
+          description: string
+          free_revisions_used: number | null
+          generated_caption: string | null
+          generated_image_url: string | null
+          id: string
+          metadata: Json | null
+          objective: string
+          persona_id: string | null
+          platform: string
+          team_id: string | null
+          theme_id: string | null
+          tone_of_voice: string[] | null
+          total_revisions: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          additional_info?: string | null
+          brand_id?: string | null
+          content_type: string
+          created_at?: string | null
+          description: string
+          free_revisions_used?: number | null
+          generated_caption?: string | null
+          generated_image_url?: string | null
+          id?: string
+          metadata?: Json | null
+          objective: string
+          persona_id?: string | null
+          platform: string
+          team_id?: string | null
+          theme_id?: string | null
+          tone_of_voice?: string[] | null
+          total_revisions?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          additional_info?: string | null
+          brand_id?: string | null
+          content_type?: string
+          created_at?: string | null
+          description?: string
+          free_revisions_used?: number | null
+          generated_caption?: string | null
+          generated_image_url?: string | null
+          id?: string
+          metadata?: Json | null
+          objective?: string
+          persona_id?: string | null
+          platform?: string
+          team_id?: string | null
+          theme_id?: string | null
+          tone_of_voice?: string[] | null
+          total_revisions?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_generations_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      content_revisions: {
+        Row: {
+          content_id: string
+          created_at: string | null
+          id: string
+          new_value: string | null
+          previous_value: string | null
+          revision_prompt: string
+          revision_type: string
+          user_id: string
+          was_free_revision: boolean | null
+        }
+        Insert: {
+          content_id: string
+          created_at?: string | null
+          id?: string
+          new_value?: string | null
+          previous_value?: string | null
+          revision_prompt: string
+          revision_type: string
+          user_id: string
+          was_free_revision?: boolean | null
+        }
+        Update: {
+          content_id?: string
+          created_at?: string | null
+          id?: string
+          new_value?: string | null
+          previous_value?: string | null
+          revision_prompt?: string
+          revision_type?: string
+          user_id?: string
+          was_free_revision?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_revisions_content_id_fkey"
+            columns: ["content_id"]
+            isOneToOne: false
+            referencedRelation: "content_generations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+          name: string
+          team_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id: string
+          name: string
+          team_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+          name?: string
+          team_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      teams: {
+        Row: {
+          admin_id: string
+          code: string | null
+          created_at: string | null
+          credits_plans: number | null
+          credits_quick_content: number | null
+          credits_reviews: number | null
+          credits_suggestions: number | null
+          id: string
+          name: string
+          plan_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          admin_id: string
+          code?: string | null
+          created_at?: string | null
+          credits_plans?: number | null
+          credits_quick_content?: number | null
+          credits_reviews?: number | null
+          credits_suggestions?: number | null
+          id?: string
+          name: string
+          plan_id?: string
+          updated_at?: string | null
+        }
+        Update: {
+          admin_id?: string
+          code?: string | null
+          created_at?: string | null
+          credits_plans?: number | null
+          credits_quick_content?: number | null
+          credits_reviews?: number | null
+          credits_suggestions?: number | null
+          id?: string
+          name?: string
+          plan_id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

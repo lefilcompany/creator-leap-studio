@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { CreatorLogo } from "@/components/CreatorLogo";
 import { Eye, EyeOff, User, Mail, Phone, Lock, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 // Interfaces para os dados do IBGE
 interface State {
@@ -139,10 +140,30 @@ const Register = () => {
     setError('');
     
     try {
-      // Simulate registration - in real app would create account
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      toast.success('Cadastro realizado com sucesso!');
-      navigate("/dashboard");
+      const { data, error } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            name: formData.name,
+            phone: formData.phone,
+            state: formData.state,
+            city: formData.city,
+          },
+          emailRedirectTo: `${window.location.origin}/dashboard`,
+        }
+      });
+
+      if (error) {
+        setError(error.message);
+        toast.error(error.message);
+        return;
+      }
+
+      if (data.user) {
+        toast.success('Cadastro realizado! Verifique seu e-mail.');
+        navigate("/");
+      }
     } catch (err) {
       setError('Ocorreu um erro ao tentar se cadastrar.');
       toast.error('Erro de conexão durante o cadastro');
