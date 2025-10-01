@@ -419,8 +419,8 @@ export default function CreateContent() {
         );
 
         if (!videoResponse.ok) {
-          const error = await videoResponse.json();
-          throw new Error(error.error || "Erro ao gerar vídeo");
+          const errorText = await videoResponse.text();
+          throw new Error(`Erro ao gerar vídeo: ${errorText}`);
         }
 
         const { videoUrl, attempts } = await videoResponse.json();
@@ -533,8 +533,8 @@ export default function CreateContent() {
       );
 
       if (!imageResponse.ok) {
-        const error = await imageResponse.json();
-        throw new Error(error.error || "Erro ao gerar imagem");
+        const errorText = await imageResponse.text();
+        throw new Error(`Erro ao gerar imagem: ${errorText}`);
       }
 
       const { imageUrl, attempt } = await imageResponse.json();
