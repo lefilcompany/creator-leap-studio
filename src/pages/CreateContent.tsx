@@ -268,8 +268,8 @@ export default function CreateContent() {
       );
 
     setLoading(true);
-    const toastId = toast.loading("Gerando seu conteúdo...", {
-      description: "A IA está trabalhando. Isso pode levar alguns instantes.",
+    const toastId = toast.loading("Gerando imagem com IA...", {
+      description: "Usando Gemini 2.5 com sistema de retry inteligente.",
     });
 
     try {
@@ -278,8 +278,19 @@ export default function CreateContent() {
       const selectedTheme = themes.find(t => t.id === formData.theme);
       const selectedPersona = personas.find(p => p.id === formData.persona);
 
-      // Chamar edge function para gerar imagem
-      const response = await fetch(
+      const requestData = {
+        brand: selectedBrand?.name || formData.brand,
+        theme: selectedTheme?.title || formData.theme,
+        persona: selectedPersona?.name || formData.persona,
+        objective: formData.objective,
+        description: formData.description,
+        tone: formData.tone,
+        platform: formData.platform,
+        additionalInfo: formData.additionalInfo,
+      };
+
+      // 1. Gerar imagem com Gemini 2.5
+      const imageResponse = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-image`,
         {
           method: "POST",
@@ -287,38 +298,53 @@ export default function CreateContent() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
-          body: JSON.stringify({
-            brand: selectedBrand?.name || formData.brand,
-            theme: selectedTheme?.title || formData.theme,
-            persona: selectedPersona?.name || formData.persona,
-            objective: formData.objective,
-            description: formData.description,
-            tone: formData.tone,
-            platform: formData.platform,
-            additionalInfo: formData.additionalInfo,
-          }),
+          body: JSON.stringify(requestData),
         }
       );
 
-      if (!response.ok) {
-        const error = await response.json();
+      if (!imageResponse.ok) {
+        const error = await imageResponse.json();
         throw new Error(error.error || "Erro ao gerar imagem");
       }
 
-      const { imageUrl } = await response.json();
+      const { imageUrl, attempt } = await imageResponse.json();
       
-      // Gerar caption
-      const caption = `🌟 Descubra o poder de ${selectedBrand?.name || formData.brand}! 🌟
+      toast.loading("Gerando legenda profissional...", {
+        id: toastId,
+        description: `Imagem gerada em ${attempt} tentativa(s). Criando copy envolvente...`,
+      });
 
-${formData.objective}
+      // 2. Gerar legenda com Gemini 2.5
+      const captionResponse = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-caption`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify(requestData),
+        }
+      );
 
-${formData.description}
+      let captionData;
+      if (captionResponse.ok) {
+        captionData = await captionResponse.json();
+      } else {
+        // Fallback caso a geração de legenda falhe
+        captionData = {
+          title: `${selectedBrand?.name || formData.brand}: ${formData.objective}`,
+          body: `${formData.description}\n\nTom: ${formData.tone.join(", ")}`,
+          hashtags: [
+            (selectedBrand?.name || formData.brand).replace(/\s+/g, "").toLowerCase(),
+            formData.platform.toLowerCase(),
+            "conteudo"
+          ]
+        };
+      }
 
-Tom: ${formData.tone.join(", ")}
-
-${formData.additionalInfo ? `\n${formData.additionalInfo}` : ""}
-
-#${(selectedBrand?.name || formData.brand).replace(/\s+/g, "")} #${formData.platform} #ConteúdoIA`;
+      // 3. Montar caption formatada
+      const caption = `${captionData.title}\n\n${captionData.body}\n\n${captionData.hashtags.map((tag: string) => `#${tag}`).join(" ")}`;
 
       const generatedContent = {
         type: "image",
@@ -326,11 +352,13 @@ ${formData.additionalInfo ? `\n${formData.additionalInfo}` : ""}
         caption,
         platform: formData.platform,
         brand: selectedBrand?.name || formData.brand,
+        title: captionData.title,
+        hashtags: captionData.hashtags,
       };
       
       toast.success("Conteúdo gerado com sucesso!", {
         id: toastId,
-        description: "Redirecionando para a página de resultado...",
+        description: "Imagem e legenda criados com Gemini 2.5 🚀",
       });
       
       navigate("/result", { state: { contentData: generatedContent } });
