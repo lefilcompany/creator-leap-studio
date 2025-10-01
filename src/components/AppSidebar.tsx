@@ -83,11 +83,11 @@ function ActionButton({ id, href, icon: Icon, label, collapsed, variant, onNavig
     const variantClasses = {
         primary: {
             active: "bg-background border border-primary text-primary shadow-lg scale-105",
-            inactive: "bg-primary text-background hover:bg-background hover:text-primary hover:border hover:border-primary",
+            inactive: "bg-primary text-primary-foreground hover:bg-background hover:text-primary hover:border hover:border-primary",
         },
         accent: {
             active: "bg-background border border-accent text-accent shadow-lg scale-105",
-            inactive: "bg-accent text-background hover:bg-background hover:text-accent hover:border hover:border-accent",
+            inactive: "bg-accent text-accent-foreground hover:bg-background hover:text-accent hover:border hover:border-accent",
         },
         secondary: {
             active: "bg-background border border-secondary text-secondary shadow-lg scale-105",
