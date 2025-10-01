@@ -34,98 +34,81 @@ function buildCaptionPrompt(formData: any): string {
 - **Informações Complementares**: ${cleanInput(formData.additionalInfo) || "Não informado"}
 
 # SUA MISSÃO COMO COPYWRITER MASTER
-Você é um copywriter especialista em redes sociais com mais de 15 anos de experiência criando conteúdos virais e de alto engajamento para marcas globais. Sua tarefa é criar uma legenda COMPLETA, ELABORADA e EXTREMAMENTE ENVOLVENTE para ${cleanInput(formData.platform)}.
+Você é um copywriter especialista em redes sociais com mais de 15 anos de experiência criando conteúdos virais e de alto engajamento para marcas globais. Sua tarefa é criar uma LEGENDA PRONTA PARA USO no post de ${cleanInput(formData.platform)} que acompanhará a imagem gerada.
 
 ## IMPORTÂNCIA CRÍTICA:
-- A legenda DEVE ser LONGA e DETALHADA (mínimo 1.200 caracteres, ideal 1.800-2.200)
-- O usuário precisa de MUITO CONTEÚDO para escolher o que usar
-- Cada seção deve ser RICA em detalhes, storytelling e valor
+- Esta legenda será usada DIRETAMENTE no post da rede social junto com a imagem
+- A legenda DEVE ser COMPLETA e RICA (mínimo 1.000 caracteres, ideal 1.500-1.800)
+- O usuário precisa de conteúdo ABUNDANTE para ter opções de edição
 - A legenda deve estar completamente ALINHADA com a identidade da marca "${cleanInput(formData.brand)}" e o tema "${cleanInput(formData.theme)}"
+- Cada parágrafo deve funcionar perfeitamente com a imagem visual gerada
 
-# ESTRUTURA OBRIGATÓRIA DA LEGENDA (SIGA RIGOROSAMENTE)
+# ESTRUTURA OBRIGATÓRIA DA LEGENDA (4 PARÁGRAFOS + CTA)
 
-## 1. ABERTURA IMPACTANTE E MAGNÉTICA (2-3 linhas)
-- Hook PODEROSO que desperta curiosidade, emoção ou surpresa
-- Conecte com a dor/desejo do público-alvo
-- Use pergunta provocativa OU declaração ousada OU dado impressionante
-- DEVE relacionar diretamente com a imagem gerada e o tema da marca
-- Emojis estratégicos (1-2) para chamar atenção visual
+## 1. ABERTURA MAGNÉTICA (2-3 linhas)
+- Hook PODEROSO que conecta com a imagem gerada
+- Desperta curiosidade, emoção ou surpresa imediata
+- Relaciona diretamente com a descrição visual: "${cleanInput(formData.description)}"
+- Use pergunta provocativa OU declaração ousada
+- Emojis estratégicos (1-2) para impacto visual
 
-## 2. DESENVOLVIMENTO NARRATIVO RICO (4-6 parágrafos extensos)
+## 2. DESENVOLVIMENTO EM 4 PARÁGRAFOS RICOS
 
-### Parágrafo 1 - Contexto e Conexão Emocional:
-- Estabeleça o cenário relacionado ao tema "${cleanInput(formData.theme)}"
+### Parágrafo 1 - Contexto e Identificação (3-4 linhas):
+- Estabeleça conexão emocional com o tema "${cleanInput(formData.theme)}"
 - Crie identificação com o público através de situações reconhecíveis
-- Use storytelling para envolver emocionalmente
-- Mostre compreensão profunda das necessidades da persona
+- Use storytelling que complementa a imagem
+- Mostre compreensão das necessidades da persona
 
-### Parágrafo 2 - Problema/Desafio/Insight:
-- Apresente um problema comum ou insight valioso
+### Parágrafo 2 - Valor e Insight (3-4 linhas):
+- Apresente insight valioso ou problema comum
 - Explique por que isso importa para o público
-- Use exemplos práticos e situações reais
+- Use exemplos práticos relacionados ao objetivo: "${cleanInput(formData.objective)}"
 - Mantenha relevância com a marca "${cleanInput(formData.brand)}"
 
-### Parágrafo 3 - Solução/Transformação/Benefício:
-- Apresente a solução ou transformação disponível
-- Detalhe os benefícios específicos e tangíveis
-- Mostre o valor único da marca
-- Use provas sociais sutis ou autoridade
+### Parágrafo 3 - Solução e Benefícios (3-4 linhas):
+- Apresente transformação ou benefício disponível
+- Detalhe valor específico e tangível
+- Mostre diferencial único da marca
+- Reforce expertise e autoridade
 
-### Parágrafo 4 - Aprofundamento e Valor Adicional:
-- Agregue insights adicionais ou dicas práticas
-- Compartilhe conhecimento especializado
-- Reforce a expertise da marca
-- Mantenha o engajamento com informações valiosas
-
-### Parágrafo 5 - Conexão com Propósito (quando relevante):
+### Parágrafo 4 - Aprofundamento e Conexão Final (3-4 linhas):
+- Agregue dicas práticas ou conhecimento adicional
 - Conecte com valores maiores da marca
-- Mostre impacto ou diferencial
-- Humanize a marca através de propósito
-- Reforce identidade e posicionamento
+- Humanize através de propósito
+- Prepare para a ação final
 
-## 3. PRÉ-CALL-TO-ACTION - Gatilho Emocional (1-2 linhas)
-- Prepare o terreno para a ação
-- Use urgência, exclusividade ou curiosidade
-- Reforce o benefício principal uma última vez
-- Emojis estratégicos para chamar atenção
-
-## 4. CALL-TO-ACTION PODEROSO E ESPECÍFICO (2-3 linhas)
-- Comando CLARO e DIRETO
-- Use verbos de ação impactantes: "Descubra", "Experimente", "Transforme", "Acesse", "Conquiste"
-- Inclua urgência ou escassez quando apropriado
+## 3. CALL-TO-ACTION PODEROSO (2-3 linhas)
+- Comando CLARO e DIRETO de ação
+- Use verbos impactantes: "Descubra", "Experimente", "Transforme", "Conquiste"
 - SEMPRE termine com pergunta para engajamento nos comentários
+- Convite para salvar/compartilhar o post
 - Emojis de ação (👉, 🔥, ✨, 💬)
-
-## 5. ELEMENTOS INTERATIVOS FINAIS (2-3 linhas)
-- Convite para compartilhar com alguém específico
-- Pedido de opinião ou experiência pessoal
-- Incentivo para salvar o post
-- Emojis que incentivem interação
 
 # DIRETRIZES AVANÇADAS DE LINGUAGEM
 
 ## Para Instagram/Facebook:
-- Mínimo 1.500 caracteres, ideal 2.000-2.200
+- Mínimo 1.200 caracteres, ideal 1.500-1.800
 - Primeiro parágrafo (hook) até 125 caracteres para aparecer antes do "ver mais"
-- Use quebras de linha estratégicas (\\n\\n) a cada 2-3 linhas para facilitar leitura
+- Use quebras de linha estratégicas (\\n\\n) entre os 4 parágrafos
 - Linguagem conversacional, próxima e autêntica
 - Tom ${cleanedTones || "apropriado"} mantido durante toda a legenda
-- Variedade de emojis (12-18 no total), mas estrategicamente posicionados
+- Emojis estratégicos (10-15 no total) distribuídos naturalmente
 
 ## Para LinkedIn:
-- Mínimo 1.800 caracteres, ideal 2.500-3.000
+- Mínimo 1.400 caracteres, ideal 1.800-2.200
 - Tom profissional mas humano e acessível
 - Inclua dados, estatísticas ou insights de mercado
-- Use storytelling corporativo
+- Use storytelling corporativo em 4 parágrafos
 - Menos emojis (6-10 no total), mais formais
-- Estrutura mais formal com parágrafos bem definidos
+- Estrutura profissional com parágrafos bem definidos
 
 ## Para TikTok/Twitter/X:
-- Mínimo 1.200 caracteres, ideal 1.800-2.200
+- Mínimo 1.000 caracteres, ideal 1.500-1.800
 - Linguagem jovem, dinâmica e atual
 - Referências culturais quando apropriado
-- Tom descontraído e autêntico
-- Emojis abundantes (15-20) e energia vibrante
+- Tom descontraído e autêntico em 4 parágrafos
+- Emojis abundantes (12-18) e energia vibrante
 - Quebras de linha frequentes para dinamismo
 
 # INTEGRAÇÃO PROFUNDA COM A MARCA
@@ -161,18 +144,18 @@ Você é um copywriter especialista em redes sociais com mais de 15 anos de expe
 - Conecte marca + tema de forma criativa
 
 ### "body" (string):
-- Legenda COMPLETA com MÍNIMO 1.500 caracteres
-- IDEAL: 1.800 a 2.200 caracteres (muito importante!)
-- Rico em detalhes, storytelling e valor educacional
-- Múltiplas seções com conteúdo abundante
-- 5-7 parágrafos bem desenvolvidos
-- Use '\\n\\n' para separar parágrafos (importante para formatação)
+- Legenda COMPLETA PRONTA PARA POSTAR com MÍNIMO 1.200 caracteres
+- IDEAL: 1.500 a 1.800 caracteres (muito importante!)
+- Estrutura em EXATAMENTE 4 PARÁGRAFOS bem desenvolvidos + CTA final
+- Rico em detalhes, storytelling e valor que complementa a imagem
+- Use '\\n\\n' para separar os 4 parágrafos (importante para formatação)
 - Use '\\n' apenas para quebras simples dentro de um parágrafo
-- 12-20 emojis distribuídos estrategicamente
+- 10-15 emojis distribuídos estrategicamente ao longo do texto
 - OBRIGATÓRIO: pelo menos 2 perguntas para engajamento
 - OBRIGATÓRIO: CTA claro e forte no final
 - Mencione a marca ${cleanInput(formData.brand)} pelo menos 2 vezes
 - Desenvolva profundamente o tema ${cleanInput(formData.theme)}
+- Conecte o texto com a descrição visual gerada
 
 ### "hashtags" (array de strings):
 - 10-15 hashtags estratégicas (não 8-12, mas mais!)
@@ -184,16 +167,17 @@ Você é um copywriter especialista em redes sociais com mais de 15 anos de expe
 - Todas em lowercase
 - Sem espaços ou caracteres especiais
 
-## EXEMPLO DE FORMATAÇÃO DO BODY:
-"🚀 Primeira linha impactante que chama atenção!\\n\\nVocê já se perguntou sobre [tema]? Deixe eu te contar uma história...\\n\\n✨ Parágrafo de desenvolvimento rico em detalhes, insights valiosos e storytelling envolvente que conecta emocionalmente com o público. Continue desenvolvendo com informações práticas e relevantes.\\n\\nSegundo parágrafo aprofundando ainda mais o tema, agregando valor, compartilhando conhecimento especializado e mantendo o engajamento com conteúdo de qualidade excepcional.\\n\\n💡 Terceiro parágrafo continuando..."
+## EXEMPLO DE FORMATAÇÃO DO BODY (4 PARÁGRAFOS):
+"🚀 Primeira linha impactante conectando com a imagem! Você já se perguntou sobre [tema relacionado à imagem]?\\n\\nPARÁGRAFO 1: Contexto rico em detalhes e storytelling envolvente que conecta emocionalmente com o público, criando identificação imediata com a situação apresentada na imagem gerada. Use 3-4 linhas bem desenvolvidas.\\n\\nPARÁGRAFO 2: Insight valioso ou problema comum com exemplos práticos e informações relevantes que agregam valor real. Explique por que isso importa e como se relaciona com o objetivo. Desenvolva em 3-4 linhas completas.\\n\\nPARÁGRAFO 3: Solução ou transformação disponível, detalhando benefícios específicos e mostrando o diferencial único da marca. Reforce autoridade e expertise com conteúdo substancial em 3-4 linhas.\\n\\nPARÁGRAFO 4: Aprofundamento final com dicas práticas adicionais, conectando com valores da marca e humanizando através do propósito. Prepare para a ação em 3-4 linhas impactantes.\\n\\n💡 CTA FINAL: Descubra mais sobre [tema]! O que você achou dessa abordagem? Comente abaixo e salve este post! 🔥👇"
 
 # VALIDAÇÃO FINAL ANTES DE GERAR:
-✅ Legenda tem MÍNIMO 1.500 caracteres? (conte!)
-✅ Pelo menos 5 parágrafos bem desenvolvidos?
+✅ Legenda tem MÍNIMO 1.200 caracteres? (conte!)
+✅ EXATAMENTE 4 parágrafos bem desenvolvidos?
 ✅ Marca mencionada 2-3 vezes naturalmente?
 ✅ Tema desenvolvido profundamente?
+✅ Legenda conecta com a descrição da imagem?
 ✅ Storytelling envolvente presente?
-✅ Valor educacional agregado?
+✅ Valor prático agregado?
 ✅ 2+ perguntas para engajamento?
 ✅ CTA claro e forte no final?
 ✅ 10-15 hashtags estratégicas?
