@@ -146,7 +146,17 @@ serve(async (req) => {
     }
 
     const videoBlob = await videoResponse.blob();
-    const videoBase64 = btoa(String.fromCharCode(...new Uint8Array(await videoBlob.arrayBuffer())));
+    const arrayBuffer = await videoBlob.arrayBuffer();
+    const uint8Array = new Uint8Array(arrayBuffer);
+    
+    // Processar em chunks para evitar stack overflow
+    let binary = '';
+    const chunkSize = 0x8000; // 32KB chunks
+    for (let i = 0; i < uint8Array.length; i += chunkSize) {
+      const chunk = uint8Array.subarray(i, Math.min(i + chunkSize, uint8Array.length));
+      binary += String.fromCharCode.apply(null, Array.from(chunk));
+    }
+    const videoBase64 = btoa(binary);
     
     console.log('Video generated successfully');
     return new Response(
