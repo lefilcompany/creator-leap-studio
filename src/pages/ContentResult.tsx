@@ -61,10 +61,25 @@ export default function ContentResult() {
       
       localStorage.setItem('currentContent', JSON.stringify(savedContent));
       
-      // Add to history
-      const history = JSON.parse(localStorage.getItem('contentHistory') || '[]');
-      history.unshift(savedContent);
-      localStorage.setItem('contentHistory', JSON.stringify(history.slice(0, 50))); // Keep last 50
+      // Add to history (without base64 image to save space)
+      try {
+        const history = JSON.parse(localStorage.getItem('contentHistory') || '[]');
+        const historyItem = {
+          id: contentId,
+          type: data.type,
+          platform: data.platform,
+          brand: data.brand,
+          createdAt: new Date().toISOString(),
+          // Don't store mediaUrl (base64) to avoid quota issues
+        };
+        history.unshift(historyItem);
+        // Keep only last 10 items to avoid quota issues
+        localStorage.setItem('contentHistory', JSON.stringify(history.slice(0, 10)));
+      } catch (error) {
+        console.error('Error saving to history:', error);
+        // If quota exceeded, clear history and try again
+        localStorage.removeItem('contentHistory');
+      }
       
       // Load revision count for this session
       const revisionsKey = `revisions_${contentId}`;
