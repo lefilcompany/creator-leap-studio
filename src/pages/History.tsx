@@ -28,8 +28,7 @@ export default function History() {
   const [isLoadingActionDetails, setIsLoadingActionDetails] = useState(false);
   const [isActionDetailsOpen, setIsActionDetailsOpen] = useState(false);
 
-  // Estados para os filtros
-  const [brandFilter, setBrandFilter] = useState<string>('all');
+  // Estado para o filtro
   const [typeFilter, setTypeFilter] = useState<string>('all');
 
   // Estados para paginação
@@ -96,14 +95,6 @@ export default function History() {
           .eq('team_id', user.teamId)
           .order('created_at', { ascending: false });
 
-        // Apply brand filter
-        if (brandFilter !== 'all') {
-          const selectedBrand = brands.find(b => b.name === brandFilter);
-          if (selectedBrand) {
-            query = query.eq('brand_id', selectedBrand.id);
-          }
-        }
-
         // Apply type filter
         if (typeFilter !== 'all') {
           const selectedType = Object.entries(ACTION_TYPE_DISPLAY).find(
@@ -156,7 +147,7 @@ export default function History() {
     if (user?.teamId && brands.length > 0) {
       loadActions();
     }
-  }, [user, brands, brandFilter, typeFilter, currentPage, toast]);
+  }, [user, brands, typeFilter, currentPage, toast]);
 
   const handleSelectAction = useCallback(async (action: ActionSummary) => {
     setSelectedActionSummary(action);
@@ -218,12 +209,12 @@ export default function History() {
     }
   }, [toast]);
 
-  // Reset to first page when filters change
+  // Reset to first page when filter changes
   useEffect(() => {
     if (currentPage !== 1) {
       setCurrentPage(1);
     }
-  }, [brandFilter, typeFilter, currentPage]);
+  }, [typeFilter, currentPage]);
 
   return (
     <div className="h-full flex flex-col gap-6 overflow-hidden">
@@ -244,22 +235,10 @@ export default function History() {
               </div>
             </div>
             <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
-              {/* Filtro de Marca */}
-              <Select onValueChange={setBrandFilter} value={brandFilter}>
-                <SelectTrigger className="w-full sm:w-[180px] rounded-lg">
-                  <SelectValue placeholder="Filtrar por marca" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas as Marcas</SelectItem>
-                  {brands.map(brand => (
-                    <SelectItem key={brand.id} value={brand.name}>{brand.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
               {/* Filtro de Ação */}
               <Select onValueChange={setTypeFilter} value={typeFilter}>
-                <SelectTrigger className="w-full sm:w-[180px] rounded-lg">
-                  <SelectValue placeholder="Filtrar por ação" />
+                <SelectTrigger className="w-full sm:w-[200px] rounded-lg">
+                  <SelectValue placeholder="Filtrar por tipo de ação" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todas as Ações</SelectItem>
