@@ -672,7 +672,7 @@ ${formData.additionalInfo ? `\n${formData.additionalInfo}` : ""}
                           [...prev, ...files].slice(0, 10)
                         );
                       }}
-                      className="h-10 md:h-11 rounded-xl border-2 border-border/50 bg-background/50 file:mr-2 md:file:mr-3 file:py-1.5 md:file:py-2 file:px-2 md:file:px-3 file:rounded-lg file:border-0 file:text-xs md:file:text-sm file:font-medium file:bg-primary/10 file:text-primary hover:border-border/70 transition-colors"
+                      className="h-12 md:h-14 rounded-xl border-2 border-border/50 bg-background/50 flex items-center file:mr-3 md:file:mr-4 file:h-full file:py-0 file:px-4 md:file:px-5 file:rounded-l-[10px] file:border-0 file:text-xs md:file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 hover:border-primary/30 transition-all cursor-pointer"
                     />
 
                     <div
