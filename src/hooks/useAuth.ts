@@ -99,31 +99,36 @@ export function useAuth() {
         if (profile.team_id) {
           const { data: teamData } = await supabase
             .from('teams')
-            .select('*')
+            .select(`
+              *,
+              plans (*)
+            `)
             .eq('id', profile.team_id)
             .single();
 
-          if (teamData) {
+          if (teamData && teamData.plans) {
+            const planData = teamData.plans as any;
+            
             setTeam({
               id: teamData.id,
               name: teamData.name,
               code: teamData.code,
               admin: teamData.admin_id,
               plan: {
-                id: teamData.plan_id,
-                name: teamData.plan_id.toUpperCase(),
-                displayName: teamData.plan_id === 'pro' ? 'Premium' : 'Free',
-                price: 0,
-                trialDays: 14,
-                maxMembers: 10,
-                maxBrands: 20,
-                maxStrategicThemes: 50,
-                maxPersonas: 30,
-                quickContentCreations: 1000,
-                customContentSuggestions: 500,
-                contentPlans: 100,
-                contentReviews: 200,
-                isActive: true,
+                id: planData.id,
+                name: planData.name,
+                displayName: planData.name,
+                price: planData.price_monthly || 0,
+                trialDays: planData.trial_days,
+                maxMembers: planData.max_members,
+                maxBrands: planData.max_brands,
+                maxStrategicThemes: planData.max_strategic_themes,
+                maxPersonas: planData.max_personas,
+                quickContentCreations: planData.credits_quick_content,
+                customContentSuggestions: planData.credits_suggestions,
+                contentPlans: planData.credits_plans,
+                contentReviews: planData.credits_reviews,
+                isActive: planData.is_active,
               },
               credits: {
                 quickContentCreations: teamData.credits_quick_content,

@@ -88,10 +88,20 @@ const Dashboard = () => {
     );
   }
 
-  // Calcular créditos
-  const totalCredits = team.plan?.quickContentCreations || 0;
-  const usedCredits = totalCredits - (team.credits?.quickContentCreations || 0);
-  const remainingCredits = team.credits?.quickContentCreations || 0;
+  // Calcular créditos - soma de todos os tipos
+  const totalCredits = 
+    (team.plan?.quickContentCreations || 0) +
+    (team.plan?.customContentSuggestions || 0) +
+    (team.plan?.contentPlans || 0) +
+    (team.plan?.contentReviews || 0);
+  
+  const remainingCredits = 
+    (team.credits?.quickContentCreations || 0) +
+    (team.credits?.contentSuggestions || 0) +
+    (team.credits?.contentPlans || 0) +
+    (team.credits?.contentReviews || 0);
+  
+  const usedCredits = totalCredits - remainingCredits;
   const progressPercentage = totalCredits > 0 ? ((usedCredits / totalCredits) * 100) : 0;
 
   const stats = [
