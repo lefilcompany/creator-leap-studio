@@ -714,7 +714,7 @@ export default function CreateContent() {
                         {brands.map((b) => (
                           <SelectItem
                             key={b.id}
-                            value={b.name}
+                            value={b.id}
                             className="rounded-lg"
                           >
                             {b.name}
@@ -757,7 +757,7 @@ export default function CreateContent() {
                         {filteredThemes.map((t) => (
                           <SelectItem
                             key={t.id}
-                            value={t.title}
+                            value={t.id}
                             className="rounded-lg"
                           >
                             {t.title}
@@ -798,7 +798,7 @@ export default function CreateContent() {
                         {filteredPersonas.map((p) => (
                           <SelectItem
                             key={p.id}
-                            value={p.name}
+                            value={p.id}
                             className="rounded-lg"
                           >
                             {p.name}
