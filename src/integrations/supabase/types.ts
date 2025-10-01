@@ -241,6 +241,66 @@ export type Database = {
           },
         ]
       }
+      plans: {
+        Row: {
+          can_subscribe_online: boolean | null
+          created_at: string | null
+          credits_plans: number
+          credits_quick_content: number
+          credits_reviews: number
+          credits_suggestions: number
+          description: string | null
+          features: Json | null
+          id: string
+          is_active: boolean | null
+          name: string
+          price_monthly: number
+          price_yearly: number | null
+          stripe_price_id_monthly: string | null
+          stripe_price_id_yearly: string | null
+          stripe_product_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          can_subscribe_online?: boolean | null
+          created_at?: string | null
+          credits_plans?: number
+          credits_quick_content?: number
+          credits_reviews?: number
+          credits_suggestions?: number
+          description?: string | null
+          features?: Json | null
+          id: string
+          is_active?: boolean | null
+          name: string
+          price_monthly: number
+          price_yearly?: number | null
+          stripe_price_id_monthly?: string | null
+          stripe_price_id_yearly?: string | null
+          stripe_product_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          can_subscribe_online?: boolean | null
+          created_at?: string | null
+          credits_plans?: number
+          credits_quick_content?: number
+          credits_reviews?: number
+          credits_suggestions?: number
+          description?: string | null
+          features?: Json | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          price_monthly?: number
+          price_yearly?: number | null
+          stripe_price_id_monthly?: string | null
+          stripe_price_id_yearly?: string | null
+          stripe_product_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string | null
@@ -361,6 +421,10 @@ export type Database = {
           id: string
           name: string
           plan_id: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          subscription_period_end: string | null
+          subscription_status: string | null
           updated_at: string | null
         }
         Insert: {
@@ -374,6 +438,10 @@ export type Database = {
           id?: string
           name: string
           plan_id?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_period_end?: string | null
+          subscription_status?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -387,9 +455,21 @@ export type Database = {
           id?: string
           name?: string
           plan_id?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_period_end?: string | null
+          subscription_status?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "teams_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
