@@ -1,13 +1,8 @@
-import { Card } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
-
 const Privacy = () => {
   return (
     <div className="min-h-screen bg-background py-12 px-4">
       <div className="container max-w-4xl mx-auto">
-        <Card className="p-8">
-          <ScrollArea className="h-[calc(100vh-200px)]">
-            <div className="space-y-6 pr-4">
+        <div className="space-y-6">
               <div className="text-center mb-8">
                 <h1 className="text-3xl font-bold text-foreground mb-2">
                   Política de Privacidade, Uso de Dados e Inteligência Artificial
@@ -163,9 +158,7 @@ const Privacy = () => {
                   📧 <a href="mailto:contato@lefil.com.br" className="text-primary hover:underline">contato@lefil.com.br</a>
                 </p>
               </section>
-            </div>
-          </ScrollArea>
-        </Card>
+        </div>
       </div>
     </div>
   );
