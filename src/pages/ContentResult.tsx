@@ -11,13 +11,15 @@ import {
   Check,
   ImageIcon,
   Video,
-  RefreshCw
+  RefreshCw,
+  FileText
 } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useAuth } from "@/hooks/useAuth";
 
 interface ContentResultData {
@@ -113,8 +115,8 @@ export default function ContentResult() {
     toast.info("Funcionalidade de compartilhamento em breve");
   };
 
-  const handleOpenReview = (type: "image" | "caption") => {
-    setReviewType(type);
+  const handleOpenReview = () => {
+    setReviewType(null);
     setShowReviewDialog(true);
     setReviewPrompt("");
   };
@@ -294,13 +296,13 @@ export default function ContentResult() {
                   </Button>
                 </div>
                 <Button
-                  onClick={() => handleOpenReview("image")}
+                  onClick={handleOpenReview}
                   variant="secondary"
                   className="w-full rounded-xl gap-2"
                   size="lg"
                 >
                   <RefreshCw className="h-4 w-4" />
-                  Revisar {contentData.type === "video" ? "Vídeo" : "Imagem"}
+                  Revisar Conteúdo
                 </Button>
               </div>
             </CardContent>
@@ -343,13 +345,13 @@ export default function ContentResult() {
 
                 <div className="pt-4 border-t border-border/20 space-y-3">
                   <Button
-                    onClick={() => handleOpenReview("caption")}
+                    onClick={handleOpenReview}
                     variant="secondary"
                     className="w-full rounded-xl gap-2"
                     size="lg"
                   >
                     <RefreshCw className="h-4 w-4" />
-                    Revisar Legenda
+                    Revisar Conteúdo
                   </Button>
                   <Button
                     onClick={() => navigate("/create")}
@@ -381,61 +383,105 @@ export default function ContentResult() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <RefreshCw className="h-5 w-5 text-primary" />
-              Revisar {reviewType === "image" ? (contentData?.type === "video" ? "Vídeo" : "Imagem") : "Legenda"}
+              {reviewType ? `Revisar ${reviewType === "image" ? (contentData?.type === "video" ? "Vídeo" : "Imagem") : "Legenda"}` : "Escolha o tipo de revisão"}
             </DialogTitle>
             <DialogDescription>
-              Descreva as alterações que deseja fazer. 
-              {freeRevisionsLeft > 0 ? (
-                <span className="text-primary font-medium"> Você tem {freeRevisionsLeft} revisão{freeRevisionsLeft !== 1 ? 'ões' : ''} gratuita{freeRevisionsLeft !== 1 ? 's' : ''}.</span>
+              {reviewType ? (
+                <>
+                  Descreva as alterações que deseja fazer.
+                  {freeRevisionsLeft > 0 ? (
+                    <span className="text-primary font-medium"> Você tem {freeRevisionsLeft} revisão{freeRevisionsLeft !== 1 ? 'ões' : ''} gratuita{freeRevisionsLeft !== 1 ? 's' : ''}.</span>
+                  ) : (
+                    <span className="text-orange-600 font-medium"> Esta revisão consumirá 1 crédito.</span>
+                  )}
+                </>
               ) : (
-                <span className="text-orange-600 font-medium"> Esta revisão consumirá 1 crédito.</span>
+                "Selecione o que você deseja revisar neste conteúdo."
               )}
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="review-prompt">O que você quer melhorar?</Label>
-              <Textarea
-                id="review-prompt"
-                placeholder={
-                  reviewType === "image" 
-                    ? "Ex: Deixar a imagem mais clara, mudar o fundo para azul..."
-                    : "Ex: Tornar o texto mais persuasivo, adicionar emojis..."
-                }
-                value={reviewPrompt}
-                onChange={(e) => setReviewPrompt(e.target.value)}
-                className="min-h-[120px] resize-none"
-              />
-            </div>
+            {!reviewType ? (
+              <RadioGroup 
+                onValueChange={(value) => setReviewType(value as "image" | "caption")}
+                className="space-y-3"
+              >
+                <div className="flex items-center space-x-3 rounded-lg border border-border p-4 hover:bg-accent/50 transition-colors cursor-pointer">
+                  <RadioGroupItem value="image" id="image" />
+                  <Label htmlFor="image" className="flex-1 cursor-pointer flex items-center gap-3">
+                    {contentData?.type === "video" ? (
+                      <Video className="h-5 w-5 text-primary" />
+                    ) : (
+                      <ImageIcon className="h-5 w-5 text-primary" />
+                    )}
+                    <div>
+                      <div className="font-medium">Revisar {contentData?.type === "video" ? "Vídeo" : "Imagem"}</div>
+                      <div className="text-sm text-muted-foreground">Alterar elementos visuais do conteúdo</div>
+                    </div>
+                  </Label>
+                </div>
+                
+                <div className="flex items-center space-x-3 rounded-lg border border-border p-4 hover:bg-accent/50 transition-colors cursor-pointer">
+                  <RadioGroupItem value="caption" id="caption" />
+                  <Label htmlFor="caption" className="flex-1 cursor-pointer flex items-center gap-3">
+                    <FileText className="h-5 w-5 text-secondary" />
+                    <div>
+                      <div className="font-medium">Revisar Legenda</div>
+                      <div className="text-sm text-muted-foreground">Melhorar o texto e a mensagem</div>
+                    </div>
+                  </Label>
+                </div>
+              </RadioGroup>
+            ) : (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="review-prompt">O que você quer melhorar?</Label>
+                  <Textarea
+                    id="review-prompt"
+                    placeholder={
+                      reviewType === "image" 
+                        ? "Ex: Deixar a imagem mais clara, mudar o fundo para azul..."
+                        : "Ex: Tornar o texto mais persuasivo, adicionar emojis..."
+                    }
+                    value={reviewPrompt}
+                    onChange={(e) => setReviewPrompt(e.target.value)}
+                    className="min-h-[120px] resize-none"
+                  />
+                </div>
 
-            <div className="flex gap-2 pt-2">
-              <Button
-                variant="outline"
-                onClick={() => setShowReviewDialog(false)}
-                className="flex-1"
-                disabled={isReviewing}
-              >
-                Cancelar
-              </Button>
-              <Button
-                onClick={handleSubmitReview}
-                className="flex-1 gap-2"
-                disabled={!reviewPrompt.trim() || isReviewing}
-              >
-                {isReviewing ? (
-                  <>
-                    <RefreshCw className="h-4 w-4 animate-spin" />
-                    Revisando...
-                  </>
-                ) : (
-                  <>
-                    <Check className="h-4 w-4" />
-                    Confirmar Revisão
-                  </>
-                )}
-              </Button>
-            </div>
+                <div className="flex gap-2 pt-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setReviewType(null);
+                      setReviewPrompt("");
+                    }}
+                    className="flex-1"
+                    disabled={isReviewing}
+                  >
+                    Voltar
+                  </Button>
+                  <Button
+                    onClick={handleSubmitReview}
+                    className="flex-1 gap-2"
+                    disabled={!reviewPrompt.trim() || isReviewing}
+                  >
+                    {isReviewing ? (
+                      <>
+                        <RefreshCw className="h-4 w-4 animate-spin" />
+                        Revisando...
+                      </>
+                    ) : (
+                      <>
+                        <Check className="h-4 w-4" />
+                        Confirmar
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
         </DialogContent>
       </Dialog>
