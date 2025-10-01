@@ -273,16 +273,42 @@ export default function CreateContent() {
     });
 
     try {
-      // Simulate content generation
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Buscar dados completos de brand, theme e persona
+      const selectedBrand = brands.find(b => b.id === formData.brand);
+      const selectedTheme = themes.find(t => t.id === formData.theme);
+      const selectedPersona = personas.find(p => p.id === formData.persona);
+
+      // Chamar edge function para gerar imagem
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-image`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({
+            brand: selectedBrand?.name || formData.brand,
+            theme: selectedTheme?.title || formData.theme,
+            persona: selectedPersona?.name || formData.persona,
+            objective: formData.objective,
+            description: formData.description,
+            tone: formData.tone,
+            platform: formData.platform,
+            additionalInfo: formData.additionalInfo,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Erro ao gerar imagem");
+      }
+
+      const { imageUrl } = await response.json();
       
-      // Mock generated content
-      const generatedContent = {
-        type: isVideoMode ? "video" : "image",
-        mediaUrl: isVideoMode 
-          ? "https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800&h=800&fit=crop" 
-          : "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=800&h=800&fit=crop",
-        caption: `🌟 Descubra o poder de ${formData.brand}! 🌟
+      // Gerar caption
+      const caption = `🌟 Descubra o poder de ${selectedBrand?.name || formData.brand}! 🌟
 
 ${formData.objective}
 
@@ -292,9 +318,14 @@ Tom: ${formData.tone.join(", ")}
 
 ${formData.additionalInfo ? `\n${formData.additionalInfo}` : ""}
 
-#${formData.brand.replace(/\s+/g, "")} #${formData.platform} #ConteúdoIA`,
+#${(selectedBrand?.name || formData.brand).replace(/\s+/g, "")} #${formData.platform} #ConteúdoIA`;
+
+      const generatedContent = {
+        type: "image",
+        mediaUrl: imageUrl,
+        caption,
         platform: formData.platform,
-        brand: formData.brand,
+        brand: selectedBrand?.name || formData.brand,
       };
       
       toast.success("Conteúdo gerado com sucesso!", {
@@ -304,6 +335,7 @@ ${formData.additionalInfo ? `\n${formData.additionalInfo}` : ""}
       
       navigate("/result", { state: { contentData: generatedContent } });
     } catch (err: any) {
+      console.error("Erro ao gerar conteúdo:", err);
       toast.error(err.message || "Erro ao gerar o conteúdo.", { id: toastId });
     } finally {
       setLoading(false);
