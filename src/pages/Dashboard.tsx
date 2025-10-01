@@ -102,7 +102,8 @@ const Dashboard = () => {
     (team.credits?.contentReviews || 0);
   
   const usedCredits = totalCredits - remainingCredits;
-  const progressPercentage = totalCredits > 0 ? ((usedCredits / totalCredits) * 100) : 0;
+  // Barra de progresso decrescente - mostra créditos restantes
+  const progressPercentage = totalCredits > 0 ? ((remainingCredits / totalCredits) * 100) : 0;
 
   const stats = [
     {
