@@ -264,22 +264,22 @@ export default function ContentResult() {
         updatedContent.caption = formattedCaption;
         
       } else {
-        // Regenerate image with review feedback
-        toast.info("Regenerando imagem com base no seu feedback...");
+        // Edit existing image with review feedback
+        toast.info("Editando imagem com base no seu feedback...");
         
         const { data, error } = await supabase.functions.invoke('generate-image', {
           body: {
-            ...originalFormData,
-            // Add review feedback to the description
-            description: `${originalFormData.description}\n\nREVISÃO SOLICITADA: ${reviewPrompt}`,
-            // Pass reference images if they exist
-            referenceImages: originalFormData.referenceImages || []
+            isEdit: true,
+            existingImage: contentData.mediaUrl,
+            description: reviewPrompt, // Just the review instructions
+            brand: originalFormData.brand,
+            platform: originalFormData.platform
           }
         });
 
         if (error) {
-          console.error("Erro ao regenerar imagem:", error);
-          throw new Error("Falha ao regenerar imagem");
+          console.error("Erro ao editar imagem:", error);
+          throw new Error("Falha ao editar imagem");
         }
 
         updatedContent.mediaUrl = data.imageUrl;
