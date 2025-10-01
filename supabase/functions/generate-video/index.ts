@@ -35,8 +35,13 @@ serve(async (req) => {
 
     // Add reference image if provided (base64 encoded)
     if (referenceImage) {
+      // Extract mime type from data URL (e.g., "data:image/png;base64,...")
+      const mimeType = referenceImage.split(';')[0].split(':')[1];
+      const base64Data = referenceImage.split(',')[1];
+      
       requestBody.instances[0].image = {
-        bytesBase64Encoded: referenceImage.split(',')[1] // Remove data:image/png;base64, prefix
+        bytesBase64Encoded: base64Data,
+        mimeType: mimeType
       };
     }
 
