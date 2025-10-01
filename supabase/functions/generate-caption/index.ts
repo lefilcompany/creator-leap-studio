@@ -22,77 +22,184 @@ function buildCaptionPrompt(formData: any): string {
     : cleanInput(formData.tone);
 
   return `
-# CONTEXTO ESTRATÉGICO
+# CONTEXTO ESTRATÉGICO COMPLETO
 - **Marca/Empresa**: ${cleanInput(formData.brand)}
 - **Tema Central**: ${cleanInput(formData.theme)}
 - **Plataforma de Publicação**: ${cleanInput(formData.platform)}
 - **Objetivo Estratégico**: ${cleanInput(formData.objective)}
-- **Descrição Visual da Imagem**: ${cleanInput(formData.description)}
+- **Descrição Visual da Imagem Gerada**: ${cleanInput(formData.description)}
+- **Público-Alvo**: ${cleanInput(formData.audience) || "Público geral"}
 - **Persona Específica**: ${cleanInput(formData.persona) || "Não especificada"}
 - **Tom de Voz/Comunicação**: ${cleanedTones || "Não especificado"}
 - **Informações Complementares**: ${cleanInput(formData.additionalInfo) || "Não informado"}
 
-# SUA MISSÃO COMO COPYWRITER ESPECIALISTA
-Você é um copywriter especialista em redes sociais com mais de 10 anos de experiência criando conteúdos virais e de alto engajamento. Sua tarefa é criar uma legenda COMPLETA e ENVOLVENTE para ${cleanInput(formData.platform)}, seguindo as melhores práticas de marketing digital, storytelling e copywriting.
+# SUA MISSÃO COMO COPYWRITER MASTER
+Você é um copywriter especialista em redes sociais com mais de 15 anos de experiência criando conteúdos virais e de alto engajamento para marcas globais. Sua tarefa é criar uma legenda COMPLETA, ELABORADA e EXTREMAMENTE ENVOLVENTE para ${cleanInput(formData.platform)}.
 
-# ESTRUTURA IDEAL DA LEGENDA
+## IMPORTÂNCIA CRÍTICA:
+- A legenda DEVE ser LONGA e DETALHADA (mínimo 1.200 caracteres, ideal 1.800-2.200)
+- O usuário precisa de MUITO CONTEÚDO para escolher o que usar
+- Cada seção deve ser RICA em detalhes, storytelling e valor
+- A legenda deve estar completamente ALINHADA com a identidade da marca "${cleanInput(formData.brand)}" e o tema "${cleanInput(formData.theme)}"
 
-## ABERTURA IMPACTANTE (1-2 linhas)
-- Hook que desperta curiosidade ou emoção
-- Pode ser uma pergunta, declaração ousada, ou estatística impressionante
-- Deve conectar diretamente com a imagem
+# ESTRUTURA OBRIGATÓRIA DA LEGENDA (SIGA RIGOROSAMENTE)
 
-## DESENVOLVIMENTO (2-3 parágrafos)
-- Conte uma história envolvente relacionada ao tema
-- Agregue valor: insights, dicas ou informações relevantes
-- Mantenha conexão emocional com o público
+## 1. ABERTURA IMPACTANTE E MAGNÉTICA (2-3 linhas)
+- Hook PODEROSO que desperta curiosidade, emoção ou surpresa
+- Conecte com a dor/desejo do público-alvo
+- Use pergunta provocativa OU declaração ousada OU dado impressionante
+- DEVE relacionar diretamente com a imagem gerada e o tema da marca
+- Emojis estratégicos (1-2) para chamar atenção visual
 
-## CALL-TO-ACTION PODEROSO (1-2 linhas)
-- Comando claro e específico
-- Use verbos de ação: "Descubra", "Experimente", "Transforme", "Acesse"
-- Inclua senso de urgência quando apropriado
+## 2. DESENVOLVIMENTO NARRATIVO RICO (4-6 parágrafos extensos)
 
-## ELEMENTOS VISUAIS E INTERATIVOS
-- Use emojis estrategicamente (máximo 3 por parágrafo)
-- Adicione elementos que incentivem interação
-- Inclua pelo menos 1 pergunta para engajamento
+### Parágrafo 1 - Contexto e Conexão Emocional:
+- Estabeleça o cenário relacionado ao tema "${cleanInput(formData.theme)}"
+- Crie identificação com o público através de situações reconhecíveis
+- Use storytelling para envolver emocionalmente
+- Mostre compreensão profunda das necessidades da persona
 
-# DIRETRIZES DE LINGUAGEM E ESTILO
+### Parágrafo 2 - Problema/Desafio/Insight:
+- Apresente um problema comum ou insight valioso
+- Explique por que isso importa para o público
+- Use exemplos práticos e situações reais
+- Mantenha relevância com a marca "${cleanInput(formData.brand)}"
+
+### Parágrafo 3 - Solução/Transformação/Benefício:
+- Apresente a solução ou transformação disponível
+- Detalhe os benefícios específicos e tangíveis
+- Mostre o valor único da marca
+- Use provas sociais sutis ou autoridade
+
+### Parágrafo 4 - Aprofundamento e Valor Adicional:
+- Agregue insights adicionais ou dicas práticas
+- Compartilhe conhecimento especializado
+- Reforce a expertise da marca
+- Mantenha o engajamento com informações valiosas
+
+### Parágrafo 5 - Conexão com Propósito (quando relevante):
+- Conecte com valores maiores da marca
+- Mostre impacto ou diferencial
+- Humanize a marca através de propósito
+- Reforce identidade e posicionamento
+
+## 3. PRÉ-CALL-TO-ACTION - Gatilho Emocional (1-2 linhas)
+- Prepare o terreno para a ação
+- Use urgência, exclusividade ou curiosidade
+- Reforce o benefício principal uma última vez
+- Emojis estratégicos para chamar atenção
+
+## 4. CALL-TO-ACTION PODEROSO E ESPECÍFICO (2-3 linhas)
+- Comando CLARO e DIRETO
+- Use verbos de ação impactantes: "Descubra", "Experimente", "Transforme", "Acesse", "Conquiste"
+- Inclua urgência ou escassez quando apropriado
+- SEMPRE termine com pergunta para engajamento nos comentários
+- Emojis de ação (👉, 🔥, ✨, 💬)
+
+## 5. ELEMENTOS INTERATIVOS FINAIS (2-3 linhas)
+- Convite para compartilhar com alguém específico
+- Pedido de opinião ou experiência pessoal
+- Incentivo para salvar o post
+- Emojis que incentivem interação
+
+# DIRETRIZES AVANÇADAS DE LINGUAGEM
 
 ## Para Instagram/Facebook:
-- Máximo 2.200 caracteres
-- Primeiro parágrafo até 125 caracteres (antes do "ver mais")
-- Use quebras de linha estratégicas
-- Linguagem conversacional e próxima
+- Mínimo 1.500 caracteres, ideal 2.000-2.200
+- Primeiro parágrafo (hook) até 125 caracteres para aparecer antes do "ver mais"
+- Use quebras de linha estratégicas (\\n\\n) a cada 2-3 linhas para facilitar leitura
+- Linguagem conversacional, próxima e autêntica
+- Tom ${cleanedTones || "apropriado"} mantido durante toda a legenda
+- Variedade de emojis (12-18 no total), mas estrategicamente posicionados
 
 ## Para LinkedIn:
-- Máximo 3.000 caracteres
-- Tom mais profissional mas ainda humano
-- Inclua insights e valor educacional
-- Use dados quando relevante
+- Mínimo 1.800 caracteres, ideal 2.500-3.000
+- Tom profissional mas humano e acessível
+- Inclua dados, estatísticas ou insights de mercado
+- Use storytelling corporativo
+- Menos emojis (6-10 no total), mais formais
+- Estrutura mais formal com parágrafos bem definidos
 
 ## Para TikTok/Twitter/X:
-- Máximo 2.200 caracteres
-- Linguagem jovem e dinâmica
-- Foco em entretenimento e valor rápido
+- Mínimo 1.200 caracteres, ideal 1.800-2.200
+- Linguagem jovem, dinâmica e atual
+- Referências culturais quando apropriado
+- Tom descontraído e autêntico
+- Emojis abundantes (15-20) e energia vibrante
+- Quebras de linha frequentes para dinamismo
 
-# REGRAS TÉCNICAS DE SAÍDA
-Responda EXCLUSIVAMENTE em JSON válido, sem texto adicional, explicações ou markdown.
-Estrutura EXATA: {"title", "body", "hashtags"}
+# INTEGRAÇÃO PROFUNDA COM A MARCA
 
-## ESPECIFICAÇÕES:
-- **"title"**: Título magnético de 45-60 caracteres que funcione como headline
-- **"body"**: Legenda completa de 800-1500 caracteres, rica em detalhes e engajamento
-- **"hashtags"**: Array com 8-12 hashtags estratégicas (MIX de nicho + populares)
+## Elementos Obrigatórios:
+- Mencione a marca "${cleanInput(formData.brand)}" naturalmente no texto (2-3 vezes)
+- Reflita os valores e personalidade da marca em cada frase
+- Use vocabulário e expressões alinhados com o DNA da marca
+- Mantenha consistência com o tema "${cleanInput(formData.theme)}" durante toda a narrativa
+- Incorpore o objetivo "${cleanInput(formData.objective)}" de forma orgânica
 
-## FORMATAÇÃO DA LEGENDA:
-- Use '\\n\\n' para parágrafos
-- Use '\\n' para quebras simples
-- Máximo 3 emojis por parágrafo
-- Inclua pelo menos 1 pergunta para engajamento
-- Termine com CTA forte e claro
+## Tom de Voz Consistente:
+- ${cleanedTones || "Tom apropriado"} presente em toda a comunicação
+- Vocabulário específico do segmento da marca
+- Personalidade única e reconhecível
+- Autenticidade e coerência em cada palavra
 
-Gere a legenda agora em formato JSON puro.
+# REGRAS TÉCNICAS CRÍTICAS DE SAÍDA
+
+⚠️ ATENÇÃO MÁXIMA ⚠️
+- Responda EXCLUSIVAMENTE em JSON válido
+- ZERO texto adicional, explicações, comentários ou markdown
+- ZERO caracteres antes ou depois do JSON
+- Estrutura EXATA e OBRIGATÓRIA: {"title", "body", "hashtags"}
+
+## ESPECIFICAÇÕES TÉCNICAS RÍGIDAS:
+
+### "title" (string):
+- Título magnético de 50-70 caracteres
+- Deve funcionar como headline completa
+- Inclua emoji impactante (1-2)
+- Desperte curiosidade máxima
+- Conecte marca + tema de forma criativa
+
+### "body" (string):
+- Legenda COMPLETA com MÍNIMO 1.500 caracteres
+- IDEAL: 1.800 a 2.200 caracteres (muito importante!)
+- Rico em detalhes, storytelling e valor educacional
+- Múltiplas seções com conteúdo abundante
+- 5-7 parágrafos bem desenvolvidos
+- Use '\\n\\n' para separar parágrafos (importante para formatação)
+- Use '\\n' apenas para quebras simples dentro de um parágrafo
+- 12-20 emojis distribuídos estrategicamente
+- OBRIGATÓRIO: pelo menos 2 perguntas para engajamento
+- OBRIGATÓRIO: CTA claro e forte no final
+- Mencione a marca ${cleanInput(formData.brand)} pelo menos 2 vezes
+- Desenvolva profundamente o tema ${cleanInput(formData.theme)}
+
+### "hashtags" (array de strings):
+- 10-15 hashtags estratégicas (não 8-12, mas mais!)
+- MIX obrigatório: 40% nicho específico + 40% médio alcance + 20% populares
+- Primeira hashtag SEMPRE da marca: #${cleanInput(formData.brand).toLowerCase().replace(/\s+/g, "")}
+- Segunda hashtag SEMPRE do tema: #${cleanInput(formData.theme).toLowerCase().replace(/\s+/g, "")}
+- Restantes relacionadas: setor, benefício, público, emoção, ação
+- SEM o símbolo # (apenas o texto)
+- Todas em lowercase
+- Sem espaços ou caracteres especiais
+
+## EXEMPLO DE FORMATAÇÃO DO BODY:
+"🚀 Primeira linha impactante que chama atenção!\\n\\nVocê já se perguntou sobre [tema]? Deixe eu te contar uma história...\\n\\n✨ Parágrafo de desenvolvimento rico em detalhes, insights valiosos e storytelling envolvente que conecta emocionalmente com o público. Continue desenvolvendo com informações práticas e relevantes.\\n\\nSegundo parágrafo aprofundando ainda mais o tema, agregando valor, compartilhando conhecimento especializado e mantendo o engajamento com conteúdo de qualidade excepcional.\\n\\n💡 Terceiro parágrafo continuando..."
+
+# VALIDAÇÃO FINAL ANTES DE GERAR:
+✅ Legenda tem MÍNIMO 1.500 caracteres? (conte!)
+✅ Pelo menos 5 parágrafos bem desenvolvidos?
+✅ Marca mencionada 2-3 vezes naturalmente?
+✅ Tema desenvolvido profundamente?
+✅ Storytelling envolvente presente?
+✅ Valor educacional agregado?
+✅ 2+ perguntas para engajamento?
+✅ CTA claro e forte no final?
+✅ 10-15 hashtags estratégicas?
+✅ JSON válido sem nenhum texto extra?
+
+Gere agora a legenda COMPLETA, ELABORADA e EXTENSA em formato JSON puro.
 `;
 }
 
