@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useAuth } from "@/hooks/useAuth";
 import logoCreator from "@/assets/logoCreatorPreta.png";
 
 const navLinks = [
@@ -136,6 +137,7 @@ function TeamPlanSection({ teamName, planName, collapsed, onNavigate }: {
 export function AppSidebar() {
   const { state, open, setOpen } = useSidebar();
   const isMobile = useIsMobile();
+  const { team } = useAuth();
   
   // No desktop, a sidebar é sempre fixa e não colapsa
   const collapsed = false;
@@ -173,14 +175,16 @@ export function AppSidebar() {
           ))}
         </div>
 
-        <div className="mt-auto mb-4">
-          <TeamPlanSection
-            teamName="LeFil"
-            planName="LEFIL"
-            collapsed={collapsed}
-            onNavigate={handleMobileNavigate}
-          />
-        </div>
+        {team && (
+          <div className="mt-auto mb-4">
+            <TeamPlanSection
+              teamName={team.name}
+              planName={team.plan?.name || 'Free'}
+              collapsed={collapsed}
+              onNavigate={handleMobileNavigate}
+            />
+          </div>
+        )}
       </nav>
     </>
   );

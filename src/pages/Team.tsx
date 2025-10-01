@@ -30,22 +30,18 @@ export default function Team() {
   const [pendingRequests, setPendingRequests] = useState<JoinRequest[]>([]);
 
   useEffect(() => {
-    if (!user || !team) {
-      toast.error("Você precisa estar em uma equipe para ver esta página.");
-      navigate('/dashboard');
-      return;
+    if (user && team) {
+      // Só verifica se é admin se já tiver user e team
+      if (!user.isAdmin) {
+        toast.warning("🔒 Acesso Restrito", {
+          description: "Apenas o administrador da equipe pode acessar esta página.",
+          duration: 5000,
+        });
+        navigate('/dashboard');
+        return;
+      }
+      loadTeamData();
     }
-
-    if (!user.isAdmin) {
-      toast.warning("🔒 Acesso Restrito", {
-        description: "Apenas o administrador da equipe pode acessar esta página.",
-        duration: 5000,
-      });
-      navigate('/dashboard');
-      return;
-    }
-
-    loadTeamData();
   }, [user, team, navigate]);
 
   const loadTeamData = async () => {
@@ -169,7 +165,7 @@ export default function Team() {
     }
   };
 
-  if (!team || !user) {
+  if (isLoading || !team) {
     return (
       <div className="flex h-full w-full items-center justify-center">
         <div className="text-center space-y-4">
