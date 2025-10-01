@@ -78,6 +78,7 @@ export default function CreateContent() {
   const [ratio, setRatio] = useState<string>("768:1280");
   const [duration, setDuration] = useState<string>("5");
   const pasteAreaRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handlePaste = (e: React.ClipboardEvent) => {
     const items = e.clipboardData.items;
@@ -94,9 +95,13 @@ export default function CreateContent() {
   };
 
   const handleRemoveFile = (indexToRemove: number) => {
-    setReferenceFiles((prev) => 
-      prev.filter((_, index) => index !== indexToRemove)
-    );
+    const updatedFiles = referenceFiles.filter((_, index) => index !== indexToRemove);
+    setReferenceFiles(updatedFiles);
+    
+    // Limpa o input se não houver mais arquivos
+    if (updatedFiles.length === 0 && fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   useEffect(() => {
@@ -663,6 +668,7 @@ ${formData.additionalInfo ? `\n${formData.additionalInfo}` : ""}
 
                   <div className="space-y-2 md:space-y-3">
                     <Input
+                      ref={fileInputRef}
                       type="file"
                       accept={isVideoMode && transformationType === "video_to_video" ? "video/*" : "image/*"}
                       multiple
