@@ -268,11 +268,28 @@ export default function CreateContent() {
       );
 
     setLoading(true);
-    const toastId = toast.loading("Gerando imagem com IA...", {
-      description: "Usando Gemini 2.5 com sistema de retry inteligente.",
+    const toastId = toast.loading("Processando imagens de referência...", {
+      description: "Convertendo arquivos para análise com Gemini 2.5.",
     });
 
     try {
+      // Converter imagens de referência para base64
+      const referenceImagesBase64: string[] = [];
+      for (const file of referenceFiles) {
+        const base64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+        referenceImagesBase64.push(base64);
+      }
+
+      toast.loading("Gerando imagem com IA...", {
+        id: toastId,
+        description: `${referenceImagesBase64.length} imagem(ns) de referência sendo processadas com Gemini 2.5.`,
+      });
+
       // Buscar dados completos de brand, theme e persona
       const selectedBrand = brands.find(b => b.id === formData.brand);
       const selectedTheme = themes.find(t => t.id === formData.theme);
@@ -287,6 +304,7 @@ export default function CreateContent() {
         tone: formData.tone,
         platform: formData.platform,
         additionalInfo: formData.additionalInfo,
+        referenceImages: referenceImagesBase64,
       };
 
       // 1. Gerar imagem com Gemini 2.5

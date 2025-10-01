@@ -28,8 +28,24 @@ function buildDetailedPrompt(formData: any): string {
   const description = cleanInput(formData.description);
   const tones = Array.isArray(formData.tone) ? formData.tone : (formData.tone ? [formData.tone] : []);
   const additionalInfo = cleanInput(formData.additionalInfo);
+  const hasReferenceImages = formData.referenceImages && Array.isArray(formData.referenceImages) && formData.referenceImages.length > 0;
 
   const promptParts: string[] = [];
+
+  // Instrução de uso de imagens de referência
+  if (hasReferenceImages) {
+    promptParts.push(
+      `*REGRA CRÍTICA DE REFERÊNCIA VISUAL*: Você recebeu ${formData.referenceImages.length} imagem(ns) de referência. ` +
+      `Estas imagens devem FORTEMENTE INFLUENCIAR a geração da nova imagem. Use-as como inspiração direta para: ` +
+      `- Paleta de cores (extraia e aplique as cores predominantes) ` +
+      `- Estilo visual e composição (replique o estilo gráfico observado) ` +
+      `- Elementos gráficos (ícones, padrões, texturas similares) ` +
+      `- Atmosfera e mood (mantenha a mesma sensação visual) ` +
+      `- Identidade visual da marca (preserve características únicas observadas) ` +
+      `NÃO copie literalmente, mas INSPIRE-SE FORTEMENTE nos elementos visuais fornecidos. ` +
+      `As imagens de referência representam a identidade visual que deve ser mantida.`
+    );
+  }
 
   // Contexto estratégico
   if (brand && theme) {
@@ -105,9 +121,37 @@ function buildDetailedPrompt(formData: any): string {
   return promptParts.join(". ");
 }
 
-async function generateImageWithRetry(prompt: string, apiKey: string, attempt: number = 1): Promise<any> {
+async function generateImageWithRetry(prompt: string, referenceImages: string[] | undefined, apiKey: string, attempt: number = 1): Promise<any> {
   try {
     console.log(`🎨 Tentativa ${attempt}/${MAX_RETRIES} de geração com Gemini 2.5...`);
+    
+    // Construir conteúdo da mensagem
+    const messageContent: any[] = [];
+    
+    // Adicionar imagens de referência primeiro (se houver)
+    if (referenceImages && Array.isArray(referenceImages) && referenceImages.length > 0) {
+      console.log(`📸 Processando ${referenceImages.length} imagem(ns) de referência...`);
+      for (const refImg of referenceImages) {
+        try {
+          const [meta, data] = refImg.split(",");
+          const mimeMatch = meta.match(/data:(image\/[^;]+);base64/);
+          messageContent.push({
+            type: "image_url",
+            image_url: {
+              url: refImg
+            }
+          });
+        } catch (refError) {
+          console.error("Erro ao processar imagem de referência:", refError);
+        }
+      }
+    }
+    
+    // Adicionar o prompt de texto
+    messageContent.push({
+      type: "text",
+      text: prompt
+    });
     
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -117,7 +161,7 @@ async function generateImageWithRetry(prompt: string, apiKey: string, attempt: n
       },
       body: JSON.stringify({
         model: "google/gemini-2.5-flash-image-preview",
-        messages: [{ role: "user", content: prompt }],
+        messages: [{ role: "user", content: messageContent }],
         modalities: ["image", "text"],
       }),
     });
@@ -159,7 +203,7 @@ async function generateImageWithRetry(prompt: string, apiKey: string, attempt: n
       const delay = attempt * RETRY_DELAY_MS;
       console.log(`⏳ Aguardando ${delay}ms antes da próxima tentativa...`);
       await new Promise(resolve => setTimeout(resolve, delay));
-      return generateImageWithRetry(prompt, apiKey, attempt + 1);
+      return generateImageWithRetry(prompt, referenceImages, apiKey, attempt + 1);
     }
     
     throw error;
@@ -190,10 +234,14 @@ serve(async (req) => {
     // Construir prompt detalhado
     const prompt = buildDetailedPrompt(formData);
     console.log("📝 Prompt gerado:", prompt.substring(0, 200) + "...");
+    
+    if (formData.referenceImages && formData.referenceImages.length > 0) {
+      console.log(`📸 ${formData.referenceImages.length} imagem(ns) de referência recebida(s)`);
+    }
 
     // Gerar imagem com sistema de retry
     try {
-      const result = await generateImageWithRetry(prompt, LOVABLE_API_KEY);
+      const result = await generateImageWithRetry(prompt, formData.referenceImages, LOVABLE_API_KEY);
       
       return new Response(
         JSON.stringify({ 
