@@ -9,10 +9,10 @@ import ThemeDetails from '@/components/temas/ThemeDetails';
 import ThemeDialog from '@/components/temas/ThemeDialog';
 import type { StrategicTheme, StrategicThemeSummary } from '@/types/theme';
 import type { BrandSummary } from '@/types/brand';
-import type { Team } from '@/types/theme';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 type ThemeFormData = Omit<StrategicTheme, 'id' | 'createdAt' | 'updatedAt' | 'teamId' | 'userId'>;
 
@@ -29,134 +29,89 @@ export default function Themes() {
   const [isLoadingThemeDetails, setIsLoadingThemeDetails] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [themeToEdit, setThemeToEdit] = useState<StrategicTheme | null>(null);
-  const [team, setTeam] = useState<Team | null>(null);
-  const [isLoadingTeam, setIsLoadingTeam] = useState(true);
   const [isThemeDetailsOpen, setIsThemeDetailsOpen] = useState(false);
 
-  // Mock data - In a real app, this would come from API calls
+  // Load brands from database
   useEffect(() => {
-    const loadMockData = async () => {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+    const loadBrands = async () => {
+      if (!user?.teamId) return;
       
-      // Mock brands data
-      const mockBrands: BrandSummary[] = [
-        { 
-          id: '1', 
-          name: 'Morada da Paz', 
-          responsible: 'João Silva',
-          createdAt: '2025-01-01T00:00:00Z',
-          updatedAt: '2025-01-01T00:00:00Z'
-        },
-        { 
-          id: '2', 
-          name: 'Morada da Paz Pet', 
-          responsible: 'Maria Santos',
-          createdAt: '2025-01-02T00:00:00Z',
-          updatedAt: '2025-01-02T00:00:00Z'
-        },
-        { 
-          id: '3', 
-          name: 'LeFil Company', 
-          responsible: 'Pedro Costa',
-          createdAt: '2025-01-03T00:00:00Z',
-          updatedAt: '2025-01-03T00:00:00Z'
-        },
-        { 
-          id: '4', 
-          name: 'Grupo Cornélio Brennand', 
-          responsible: 'Ana Oliveira',
-          createdAt: '2025-01-04T00:00:00Z',
-          updatedAt: '2025-01-04T00:00:00Z'
-        }
-      ];
+      setIsLoadingBrands(true);
+      try {
+        const { data, error } = await supabase
+          .from('brands')
+          .select('id, name, responsible, created_at, updated_at')
+          .eq('team_id', user.teamId)
+          .order('name', { ascending: true });
 
-      // Mock themes data
-      const mockThemes: StrategicThemeSummary[] = [
-        {
-          id: '1',
-          brandId: '1',
-          title: 'Acolhimento e Suporte em Momentos de Despedida',
-          createdAt: '2025-09-10T00:00:00Z'
-        },
-        {
-          id: '2',
-          brandId: '2',
-          title: 'Acolhimento em Momento de Despedida Pet',
-          createdAt: '2025-09-18T00:00:00Z'
-        },
-        {
-          id: '3',
-          brandId: '3',
-          title: 'AEIOU - Marketing do Futuro',
-          createdAt: '2025-09-12T00:00:00Z'
-        },
-        {
-          id: '4',
-          brandId: '4',
-          title: 'Atiaia Renováveis: Destaque no GPTW pelo Segundo Ano Consecutivo',
-          createdAt: '2025-09-25T00:00:00Z'
-        }
-      ];
+        if (error) throw error;
 
-      // Mock team data
-      const mockTeam: Team = {
-        id: 'team-1',
-        name: 'LeFil',
-        code: 'lefil-123',
-        admin: 'copy@lefil.com.br',
-        members: ['copy@lefil.com.br'],
-        pending: [],
-        plan: {
-          id: '3',
-          name: 'PRO',
-          displayName: 'Premium',
-          price: 99.90,
-          trialDays: 14,
-          maxMembers: 10,
-          maxBrands: 20,
-          maxStrategicThemes: 10,
-          maxPersonas: 30,
-          quickContentCreations: 1000,
-          customContentSuggestions: 100,
-          contentPlans: 5,
-          contentReviews: 50,
-          isActive: true,
-        }
-      };
+        const brands: BrandSummary[] = data.map(brand => ({
+          id: brand.id,
+          name: brand.name,
+          responsible: brand.responsible,
+          createdAt: brand.created_at,
+          updatedAt: brand.updated_at
+        }));
 
-      setBrands(mockBrands);
-      setThemes(mockThemes);
-      setTeam(mockTeam);
-      setIsLoadingBrands(false);
-      setIsLoadingThemes(false);
-      setIsLoadingTeam(false);
-    };
-
-    if (user?.teamId) {
-      loadMockData();
-    }
-  }, [user]);
-
-  const handleOpenDialog = useCallback((theme: StrategicTheme | null = null) => {
-    // Check limit before opening dialog for new theme
-    if (!theme && team) {
-      const currentThemesCount = themes.length;
-      const maxThemes = team.plan.maxStrategicThemes || 3;
-
-      if (currentThemesCount >= maxThemes) {
+        setBrands(brands);
+      } catch (error) {
+        console.error('Erro ao carregar marcas:', error);
         toast({
-          title: "Limite atingido!",
-          description: `Seu plano ${team.plan.displayName} permite apenas ${maxThemes} tema${maxThemes > 1 ? 's' : ''}.`,
+          title: "Erro",
+          description: "Erro ao carregar marcas",
           variant: "destructive"
         });
-        return;
+      } finally {
+        setIsLoadingBrands(false);
       }
-    }
+    };
+    
+    loadBrands();
+  }, [user?.teamId, toast]);
 
+  // Load themes from database
+  useEffect(() => {
+    const loadThemes = async () => {
+      if (!user?.teamId) return;
+      
+      setIsLoadingThemes(true);
+      try {
+        const { data, error } = await supabase
+          .from('strategic_themes')
+          .select('id, brand_id, title, created_at')
+          .eq('team_id', user.teamId)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        const themes: StrategicThemeSummary[] = data.map(theme => ({
+          id: theme.id,
+          brandId: theme.brand_id,
+          title: theme.title,
+          createdAt: theme.created_at
+        }));
+
+        setThemes(themes);
+      } catch (error) {
+        console.error('Erro ao carregar temas:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao carregar temas",
+          variant: "destructive"
+        });
+      } finally {
+        setIsLoadingThemes(false);
+      }
+    };
+    
+    loadThemes();
+  }, [user?.teamId, toast]);
+
+  const handleOpenDialog = useCallback((theme: StrategicTheme | null = null) => {
     setThemeToEdit(theme);
     setIsDialogOpen(true);
-  }, [themes.length, team, toast]);
+  }, []);
 
   const handleSaveTheme = useCallback(
     async (formData: ThemeFormData): Promise<StrategicTheme> => {
@@ -169,52 +124,126 @@ export default function Themes() {
         throw new Error('User not authenticated');
       }
 
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const saved: StrategicTheme = {
-        ...formData,
-        id: themeToEdit?.id || Date.now().toString(),
-        createdAt: themeToEdit?.createdAt || new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        teamId: user.teamId,
-        userId: user.id
-      };
-
-      const summary: StrategicThemeSummary = {
-        id: saved.id,
-        brandId: saved.brandId,
-        title: saved.title,
-        createdAt: saved.createdAt,
-      };
-
-      // Update themes list
-      setThemes(prev => {
+      try {
         if (themeToEdit) {
-          return prev.map(theme => theme.id === summary.id ? summary : theme);
+          // Update existing theme
+          const { error } = await supabase
+            .from('strategic_themes')
+            .update({
+              brand_id: formData.brandId,
+              title: formData.title,
+              description: formData.description,
+              target_audience: formData.targetAudience,
+              tone_of_voice: formData.toneOfVoice,
+              objectives: formData.objectives,
+              color_palette: formData.colorPalette,
+              hashtags: formData.hashtags,
+              content_format: formData.contentFormat,
+              macro_themes: formData.macroThemes,
+              best_formats: formData.bestFormats,
+              platforms: formData.platforms,
+              expected_action: formData.expectedAction,
+              additional_info: formData.additionalInfo,
+            })
+            .eq('id', themeToEdit.id);
+
+          if (error) throw error;
+
+          const saved: StrategicTheme = {
+            ...themeToEdit,
+            ...formData,
+            updatedAt: new Date().toISOString(),
+          };
+
+          const summary: StrategicThemeSummary = {
+            id: saved.id,
+            brandId: saved.brandId,
+            title: saved.title,
+            createdAt: saved.createdAt,
+          };
+
+          setThemes(prev => prev.map(theme => theme.id === summary.id ? summary : theme));
+          
+          if (selectedTheme?.id === saved.id) {
+            setSelectedTheme(saved);
+            setSelectedThemeSummary(summary);
+          }
+
+          toast({
+            title: "Sucesso!",
+            description: 'Tema atualizado com sucesso!'
+          });
+
+          setIsDialogOpen(false);
+          setThemeToEdit(null);
+          
+          return saved;
+        } else {
+          // Create new theme
+          const { data, error } = await supabase
+            .from('strategic_themes')
+            .insert({
+              team_id: user.teamId,
+              user_id: user.id,
+              brand_id: formData.brandId,
+              title: formData.title,
+              description: formData.description,
+              target_audience: formData.targetAudience,
+              tone_of_voice: formData.toneOfVoice,
+              objectives: formData.objectives,
+              color_palette: formData.colorPalette,
+              hashtags: formData.hashtags,
+              content_format: formData.contentFormat,
+              macro_themes: formData.macroThemes,
+              best_formats: formData.bestFormats,
+              platforms: formData.platforms,
+              expected_action: formData.expectedAction,
+              additional_info: formData.additionalInfo,
+            })
+            .select()
+            .single();
+
+          if (error) throw error;
+
+          const saved: StrategicTheme = {
+            ...formData,
+            id: data.id,
+            createdAt: data.created_at,
+            updatedAt: data.updated_at,
+            teamId: user.teamId,
+            userId: user.id
+          };
+
+          const summary: StrategicThemeSummary = {
+            id: saved.id,
+            brandId: saved.brandId,
+            title: saved.title,
+            createdAt: saved.createdAt,
+          };
+
+          setThemes(prev => [...prev, summary]);
+          setSelectedTheme(saved);
+          setSelectedThemeSummary(summary);
+
+          toast({
+            title: "Sucesso!",
+            description: 'Tema criado com sucesso!'
+          });
+
+          setIsDialogOpen(false);
+          setThemeToEdit(null);
+          
+          return saved;
         }
-        return [...prev, summary];
-      });
-
-      // Update selected theme if necessary
-      if (themeToEdit && selectedTheme?.id === saved.id) {
-        setSelectedTheme(saved);
-        setSelectedThemeSummary(summary);
-      } else if (!themeToEdit) {
-        setSelectedTheme(saved);
-        setSelectedThemeSummary(summary);
+      } catch (error) {
+        console.error('Erro ao salvar tema:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao salvar tema. Tente novamente.",
+          variant: "destructive"
+        });
+        throw error;
       }
-      
-      // Close dialog after successful save
-      setIsDialogOpen(false);
-      setThemeToEdit(null);
-
-      toast({
-        title: "Sucesso!",
-        description: themeToEdit ? 'Tema atualizado com sucesso!' : 'Tema criado com sucesso!'
-      });
-      
-      return saved;
     },
     [themeToEdit, selectedTheme?.id, user, toast]
   );
@@ -229,72 +258,83 @@ export default function Themes() {
       return;
     }
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 500));
+    try {
+      const { error } = await supabase
+        .from('strategic_themes')
+        .delete()
+        .eq('id', selectedTheme.id);
 
-    // Remove theme from list and clear selection
-    setThemes(prev => prev.filter(theme => theme.id !== selectedTheme.id));
-    setSelectedTheme(null);
-    setSelectedThemeSummary(null);
-    
-    // Close dialog if open
-    setIsDialogOpen(false);
-    setThemeToEdit(null);
-    
-    toast({
-      title: "Sucesso!",
-      description: "Tema deletado com sucesso!"
-    });
+      if (error) throw error;
+
+      setThemes(prev => prev.filter(theme => theme.id !== selectedTheme.id));
+      setSelectedTheme(null);
+      setSelectedThemeSummary(null);
+      setIsThemeDetailsOpen(false);
+      setIsDialogOpen(false);
+      setThemeToEdit(null);
+      
+      toast({
+        title: "Sucesso!",
+        description: "Tema deletado com sucesso!"
+      });
+    } catch (error) {
+      console.error('Erro ao deletar tema:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao deletar tema. Tente novamente.",
+        variant: "destructive"
+      });
+    }
   }, [selectedTheme, user, toast]);
 
   const handleSelectTheme = useCallback(async (theme: StrategicThemeSummary) => {
     setSelectedThemeSummary(theme);
     setIsLoadingThemeDetails(true);
-    setIsThemeDetailsOpen(true); // Abre o slider para todos os dispositivos
+    setIsThemeDetailsOpen(true);
     
     try {
-      // Simulate API call to get full theme details
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Mock full theme data
+      const { data, error } = await supabase
+        .from('strategic_themes')
+        .select('*')
+        .eq('id', theme.id)
+        .single();
+
+      if (error) throw error;
+
       const fullTheme: StrategicTheme = {
-        id: theme.id,
-        brandId: theme.brandId,
-        title: theme.title,
-        description: 'Este é um tema estratégico focado em oferecer acolhimento e suporte em momentos difíceis, proporcionando conforto e paz para as famílias.',
-        targetAudience: 'Famílias com idosos, pessoas que sofreram perdas recentes, adultos entre 40-60 anos.',
-        toneOfVoice: 'profissional, sério',
-        objectives: 'Transmitir confiança e segurança, demonstrar empatia e cuidado, oferecer suporte emocional',
-        colorPalette: '#2C3E50, #3498DB, #95A5A6',
-        hashtags: '#cuidado #familia #confianca #acolhimento',
-        contentFormat: 'Posts informativos, depoimentos, conteúdo educativo',
-        macroThemes: 'Cuidado humanizado, suporte familiar, momentos de paz',
-        bestFormats: 'Carrossel, posts únicos, stories',
-        platforms: 'Instagram, Facebook, WhatsApp',
-        expectedAction: 'Engajamento, geração de leads, fortalecimento da marca',
-        additionalInfo: 'Foco em transmitir serenidade e profissionalismo',
-        createdAt: theme.createdAt,
-        updatedAt: new Date().toISOString(),
-        teamId: user?.teamId || '',
-        userId: user?.id || ''
+        id: data.id,
+        brandId: data.brand_id,
+        title: data.title,
+        description: data.description,
+        targetAudience: data.target_audience,
+        toneOfVoice: data.tone_of_voice,
+        objectives: data.objectives,
+        colorPalette: data.color_palette,
+        hashtags: data.hashtags,
+        contentFormat: data.content_format,
+        macroThemes: data.macro_themes,
+        bestFormats: data.best_formats,
+        platforms: data.platforms,
+        expectedAction: data.expected_action,
+        additionalInfo: data.additional_info || '',
+        createdAt: data.created_at,
+        updatedAt: data.updated_at,
+        teamId: data.team_id,
+        userId: data.user_id
       };
       
       setSelectedTheme(fullTheme);
     } catch (error) {
+      console.error('Erro ao carregar detalhes do tema:', error);
       toast({
         title: "Erro",
-        description: "Erro de conexão ao carregar detalhes do tema",
+        description: "Erro ao carregar detalhes do tema",
         variant: "destructive"
       });
     } finally {
       setIsLoadingThemeDetails(false);
     }
-  }, [user, toast]);
-
-  // Check if at theme limit
-  const isAtThemeLimit = team
-    ? themes.length >= (team.plan.maxStrategicThemes || 3)
-    : false;
+  }, [toast]);
 
   return (
     <div className="min-h-full flex flex-col gap-6">
@@ -316,8 +356,7 @@ export default function Themes() {
             </div>
             <Button
               onClick={() => handleOpenDialog()}
-              disabled={isAtThemeLimit}
-              className="rounded-lg bg-gradient-to-r from-primary to-secondary px-6 py-5 text-base disabled:opacity-50 disabled:cursor-not-allowed"
+              className="rounded-lg bg-gradient-to-r from-primary to-secondary px-6 py-5 text-base"
             >
               <Plus className="mr-2 h-5 w-5" />
               Novo tema
