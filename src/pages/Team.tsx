@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -25,11 +26,7 @@ export default function Team() {
   const { user, team } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [members, setMembers] = useState<TeamMember[]>([
-    { id: '1', name: 'Sthephanie Villarim', email: 's.villarim@lefil.com.br' },
-    { id: '2', name: 'Rodrigo Rios de Larrazábal', email: 'rrl@cesar.school' },
-    { id: '3', name: 'Rafaela Parrilha', email: 'rafaela.parrilha@lefil.com.br' },
-  ]);
+  const [members, setMembers] = useState<TeamMember[]>([]);
   const [pendingRequests, setPendingRequests] = useState<JoinRequest[]>([]);
 
   useEffect(() => {
@@ -39,7 +36,7 @@ export default function Team() {
       return;
     }
 
-    if (user.email !== team.admin) {
+    if (!user.isAdmin) {
       toast.warning("🔒 Acesso Restrito", {
         description: "Apenas o administrador da equipe pode acessar esta página.",
         duration: 5000,
@@ -47,7 +44,51 @@ export default function Team() {
       navigate('/dashboard');
       return;
     }
+
+    loadTeamData();
   }, [user, team, navigate]);
+
+  const loadTeamData = async () => {
+    if (!team) return;
+
+    setIsLoading(true);
+    try {
+      // Carregar membros da equipe
+      const { data: membersData, error: membersError } = await supabase
+        .from('profiles')
+        .select('id, name, email')
+        .eq('team_id', team.id);
+
+      if (membersError) throw membersError;
+      setMembers(membersData || []);
+
+      // Carregar solicitações pendentes
+      const { data: requestsData, error: requestsError } = await supabase
+        .from('team_join_requests')
+        .select(`
+          id,
+          user_id,
+          profiles!team_join_requests_user_id_fkey(name, email)
+        `)
+        .eq('team_id', team.id)
+        .eq('status', 'pending');
+
+      if (requestsError) throw requestsError;
+
+      const formattedRequests = (requestsData || []).map((req: any) => ({
+        id: req.id,
+        name: req.profiles?.name || 'Usuário',
+        email: req.profiles?.email || '',
+      }));
+
+      setPendingRequests(formattedRequests);
+    } catch (error: any) {
+      console.error('Erro ao carregar dados da equipe:', error);
+      toast.error('Erro ao carregar dados da equipe');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const copyToClipboard = () => {
     if (team?.code) {
@@ -56,29 +97,76 @@ export default function Team() {
     }
   };
 
-  const handleApproveRequest = (requestId: string, userName: string) => {
+  const handleApproveRequest = async (requestId: string, userName: string) => {
     if (team?.plan && members.length >= team.plan.maxMembers) {
       toast.error('Limite de membros do plano atingido.');
       return;
     }
 
-    setPendingRequests(prev => prev.filter(req => req.id !== requestId));
-    toast.success(`${userName} foi adicionado à equipe!`);
+    try {
+      const { error } = await supabase
+        .from('team_join_requests')
+        .update({ 
+          status: 'approved',
+          reviewed_at: new Date().toISOString(),
+          reviewed_by: user?.id
+        })
+        .eq('id', requestId);
+
+      if (error) throw error;
+
+      setPendingRequests(prev => prev.filter(req => req.id !== requestId));
+      toast.success(`${userName} foi adicionado à equipe!`);
+      
+      // Recarregar membros
+      loadTeamData();
+    } catch (error: any) {
+      console.error('Erro ao aprovar solicitação:', error);
+      toast.error('Erro ao aprovar solicitação');
+    }
   };
 
-  const handleRejectRequest = (requestId: string, userName: string) => {
-    setPendingRequests(prev => prev.filter(req => req.id !== requestId));
-    toast.info(`Solicitação de ${userName} foi recusada.`);
+  const handleRejectRequest = async (requestId: string, userName: string) => {
+    try {
+      const { error } = await supabase
+        .from('team_join_requests')
+        .update({ 
+          status: 'rejected',
+          reviewed_at: new Date().toISOString(),
+          reviewed_by: user?.id
+        })
+        .eq('id', requestId);
+
+      if (error) throw error;
+
+      setPendingRequests(prev => prev.filter(req => req.id !== requestId));
+      toast.info(`Solicitação de ${userName} foi recusada.`);
+    } catch (error: any) {
+      console.error('Erro ao rejeitar solicitação:', error);
+      toast.error('Erro ao rejeitar solicitação');
+    }
   };
 
-  const handleRemoveMember = (memberId: string, memberName: string) => {
+  const handleRemoveMember = async (memberId: string, memberName: string) => {
     if (memberId === user?.id) {
       toast.error("Você não pode remover a si mesmo da equipe.");
       return;
     }
 
-    setMembers(prev => prev.filter(m => m.id !== memberId));
-    toast.success(`${memberName} foi removido da equipe!`);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ team_id: null })
+        .eq('id', memberId);
+
+      if (error) throw error;
+
+      setMembers(prev => prev.filter(m => m.id !== memberId));
+      toast.success(`${memberName} foi removido da equipe!`);
+    } catch (error: any) {
+      console.error('Erro ao remover membro:', error);
+      toast.error('Erro ao remover membro');
+    }
   };
 
   if (!team || !user) {
@@ -276,7 +364,7 @@ export default function Team() {
 
                         <div className="flex items-center justify-between flex-wrap gap-2">
                           {/* Role Badge */}
-                          {member.email === team.admin ? (
+                          {member.id === team.admin_id ? (
                             <div className="flex items-center gap-1.5 text-xs text-amber-700 bg-gradient-to-r from-amber-100 to-amber-50 px-3 py-1.5 rounded-full border border-amber-200 shadow-sm">
                               <Crown className="h-3.5 w-3.5" />
                               <span className="font-semibold">Administrador</span>
@@ -295,7 +383,7 @@ export default function Team() {
                               <span className="font-semibold">Aprovado</span>
                             </div>
 
-                            {member.email !== team.admin && (
+                            {member.id !== team.admin_id && (
                               <Button
                                 size="sm"
                                 variant="outline"

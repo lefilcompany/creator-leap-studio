@@ -16,6 +16,7 @@ interface Team {
   name: string;
   code?: string;
   admin: string;
+  admin_id?: string;
   plan: Plan;
   credits?: {
     quickContentCreations: number;
@@ -165,6 +166,7 @@ export function useAuth() {
               name: teamData.name,
               code: teamData.code,
               admin: teamData.admin_id,
+              admin_id: teamData.admin_id,
               plan: {
                 id: planData.id,
                 name: planData.name,

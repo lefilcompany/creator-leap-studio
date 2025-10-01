@@ -29,6 +29,7 @@ export interface Team {
   code?: string;
   displayCode?: string;
   admin: string; // admin email
+  admin_id?: string; // admin user id
   members: string[];
   pending: string[];
   plan: Plan | null;
