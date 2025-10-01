@@ -20,7 +20,7 @@ import { ColorPicker } from '@/components/ui/color-picker';
 import type { Brand, MoodboardFile, ColorItem } from '@/types/brand';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
-import { api } from '@/lib/api';
+import { supabase } from '@/integrations/supabase/client';
 
 type BrandFormData = Omit<Brand, 'id' | 'createdAt' | 'updatedAt' | 'teamId' | 'userId'>;
 
@@ -90,23 +90,24 @@ export default function BrandDialog({ isOpen, onOpenChange, onSave, brandToEdit 
     const loadMembers = async () => {
       if (!isOpen || !user?.teamId) return;
       try {
-        // Mock data for members - replace with actual API call
-        const mockMembers = [
-          { email: 'copy@lefil.com.br', name: 'Copy LeFil' },
-          { email: 'julia.lima@lefil.com.br', name: 'Julia Lima' },
-          { email: 'thalles.silva.ext@lefil.com.br', name: 'Thalles Silva' },
-          { email: 'marianna.monteiro.ext@lefil.com.br', name: 'Marianna Monteiro' },
-        ];
-        setMembers(mockMembers);
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('email, name')
+          .eq('team_id', user.teamId)
+          .order('name', { ascending: true });
+
+        if (error) throw error;
+
+        setMembers(data || []);
       } catch (error) {
-        console.error('❌ BrandDialog - Erro ao carregar membros:', error);
+        console.error('Erro ao carregar membros:', error);
         setMembers([]);
         toast.error('Erro ao carregar membros da equipe');
       }
     };
 
     loadMembers();
-  }, [isOpen, user]);
+  }, [isOpen, user?.teamId]);
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
