@@ -565,22 +565,6 @@ ${formData.additionalInfo ? `\n${formData.additionalInfo}` : ""}
                   </Select>
                 </div>
 
-                <div className="space-y-2 md:space-y-3">
-                  <Label
-                    htmlFor="audience"
-                    className="text-xs md:text-sm font-semibold text-foreground"
-                  >
-                    Público-Alvo <span className="text-destructive">*</span>
-                  </Label>
-                  <Input
-                    id="audience"
-                    placeholder="Ex: Jovens de 18-25 anos"
-                    value={formData.audience}
-                    onChange={handleInputChange}
-                    className="h-10 md:h-11 rounded-xl border-2 border-border/50 bg-background/50 text-sm hover:border-border/70 focus:border-primary/50 transition-colors"
-                  />
-                </div>
-
                 {isVideoMode && (
                   <>
                     <div className="space-y-2 md:space-y-3">
