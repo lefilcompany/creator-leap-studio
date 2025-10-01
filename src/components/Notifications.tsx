@@ -160,7 +160,7 @@ export default function Notifications() {
               variant="ghost"
               size="sm"
               onClick={markAllAsRead}
-              className="h-7 gap-1 px-2 text-xs hover:bg-primary/20 hover:text-muted-foreground"
+              className="h-7 gap-1 px-2 text-xs hover:bg-primary/80 hover:text-muted-foreground"
             >
               <CheckCheck className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Marcar todas</span>
