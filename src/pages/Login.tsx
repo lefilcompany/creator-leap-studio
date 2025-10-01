@@ -14,6 +14,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showTeamSelection, setShowTeamSelection] = useState(false);
   const navigate = useNavigate();
@@ -42,6 +43,15 @@ const Login = () => {
       }
 
       if (data.user) {
+        // Armazena informações de sessão customizada
+        const loginInfo = {
+          loginTime: Date.now(),
+          rememberMe: rememberMe,
+          // 2 horas = 7200000ms, 4 horas = 14400000ms
+          expiresIn: rememberMe ? 14400000 : 7200000
+        };
+        localStorage.setItem('creator_session_info', JSON.stringify(loginInfo));
+        
         toast.success("Login realizado com sucesso!");
         navigate("/dashboard");
       }
@@ -54,6 +64,14 @@ const Login = () => {
 
   const handleGoogleLogin = async () => {
     try {
+      // Salva preferência de "lembrar de mim" antes do redirect
+      const loginInfo = {
+        loginTime: Date.now(),
+        rememberMe: rememberMe,
+        expiresIn: rememberMe ? 14400000 : 7200000
+      };
+      localStorage.setItem('creator_session_info', JSON.stringify(loginInfo));
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -63,9 +81,11 @@ const Login = () => {
 
       if (error) {
         toast.error(error.message);
+        localStorage.removeItem('creator_session_info');
       }
     } catch (error) {
       toast.error("Erro ao fazer login com Google.");
+      localStorage.removeItem('creator_session_info');
     }
   };
 
@@ -182,8 +202,12 @@ const Login = () => {
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <Checkbox id="remember" />
-                  <Label htmlFor="remember" className="text-sm text-muted-foreground">
+                  <Checkbox 
+                    id="remember" 
+                    checked={rememberMe}
+                    onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+                  />
+                  <Label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer">
                     Lembrar de mim
                   </Label>
                 </div>
