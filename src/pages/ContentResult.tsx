@@ -276,33 +276,30 @@ export default function ContentResult() {
               </div>
               
               {/* Action buttons */}
-              <div className="p-4 bg-gradient-to-r from-muted/30 to-muted/10 border-t border-border/20 space-y-2">
-                <div className="flex gap-2">
-                  <Button
-                    onClick={handleDownload}
-                    className="flex-1 rounded-xl gap-2"
-                    size="lg"
-                  >
-                    <Download className="h-4 w-4" />
-                    Download
-                  </Button>
-                  <Button
-                    onClick={handleShare}
-                    variant="outline"
-                    className="rounded-xl"
-                    size="lg"
-                  >
-                    <Share2 className="h-4 w-4" />
-                  </Button>
-                </div>
+              <div className="p-4 bg-gradient-to-r from-muted/30 to-muted/10 border-t border-border/20 flex items-center gap-2">
+                <Button
+                  onClick={handleDownload}
+                  className="flex-1 rounded-xl gap-2 hover:scale-[1.02] transition-transform"
+                  size="lg"
+                >
+                  <Download className="h-4 w-4" />
+                  Download
+                </Button>
+                <Button
+                  onClick={handleShare}
+                  variant="outline"
+                  className="rounded-xl hover:scale-105 transition-transform"
+                  size="lg"
+                >
+                  <Share2 className="h-4 w-4" />
+                </Button>
                 <Button
                   onClick={handleOpenReview}
                   variant="secondary"
-                  className="w-full rounded-xl gap-2"
+                  className="rounded-xl gap-2 hover:scale-105 transition-all hover:shadow-lg hover:shadow-primary/20 group"
                   size="lg"
                 >
-                  <RefreshCw className="h-4 w-4" />
-                  Revisar Conteúdo
+                  <RefreshCw className="h-4 w-4 group-hover:rotate-180 transition-transform duration-500" />
                 </Button>
               </div>
             </CardContent>
@@ -345,18 +342,9 @@ export default function ContentResult() {
 
                 <div className="pt-4 border-t border-border/20 space-y-3">
                   <Button
-                    onClick={handleOpenReview}
-                    variant="secondary"
-                    className="w-full rounded-xl gap-2"
-                    size="lg"
-                  >
-                    <RefreshCw className="h-4 w-4" />
-                    Revisar Conteúdo
-                  </Button>
-                  <Button
                     onClick={() => navigate("/create")}
                     variant="outline"
-                    className="w-full rounded-xl"
+                    className="w-full rounded-xl hover:scale-[1.02] transition-transform"
                     size="lg"
                   >
                     Criar Novo Conteúdo
@@ -364,7 +352,7 @@ export default function ContentResult() {
                   <Button
                     onClick={() => navigate("/history")}
                     variant="ghost"
-                    className="w-full rounded-xl"
+                    className="w-full rounded-xl hover:scale-[1.02] transition-transform"
                     size="lg"
                   >
                     Ver Histórico
