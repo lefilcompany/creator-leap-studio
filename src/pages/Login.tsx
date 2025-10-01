@@ -42,22 +42,8 @@ const Login = () => {
       }
 
       if (data.user) {
-        // Verificar se o usuário já tem equipe
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('team_id')
-          .eq('id', data.user.id)
-          .single();
-
-        if (!profile?.team_id) {
-          // Usuário não tem equipe, mostrar diálogo de seleção
-          toast.success("Login realizado! Configure sua equipe para continuar.");
-          setShowTeamSelection(true);
-        } else {
-          // Usuário já tem equipe, redirecionar para dashboard
-          toast.success("Login realizado com sucesso!");
-          navigate("/dashboard");
-        }
+        toast.success("Login realizado com sucesso!");
+        navigate("/dashboard");
       }
     } catch (error) {
       toast.error("Erro ao fazer login. Tente novamente.");
@@ -84,8 +70,7 @@ const Login = () => {
   };
 
   return (
-    <>
-      <div className="min-h-screen bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 flex relative">
+    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 flex relative">
       {/* Background gradient for entire screen */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary/15 via-accent/10 via-secondary/15 to-primary/5"></div>
       <div className="absolute inset-0 bg-gradient-to-tl from-secondary/10 via-transparent to-accent/15 opacity-70"></div>
@@ -261,16 +246,7 @@ const Login = () => {
           </div>
         </div>
       </div>
-      </div>
-
-      <TeamSelectionDialog
-        open={showTeamSelection}
-        onClose={() => {
-          setShowTeamSelection(false);
-          navigate("/dashboard");
-        }}
-      />
-    </>
+    </div>
   );
 };
 

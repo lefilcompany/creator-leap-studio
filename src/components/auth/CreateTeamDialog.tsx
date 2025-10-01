@@ -30,6 +30,68 @@ export function CreateTeamDialog({ open, onClose, onSuccess }: CreateTeamDialogP
     return code;
   };
 
+  // Função auxiliar para aguardar
+  const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+  // Função robusta com retry para criar equipe
+  const createTeamWithRetry = async (userId: string, maxAttempts = 3) => {
+    let lastError: any = null;
+    
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        // Aguardar progressivamente mais em cada tentativa para garantir propagação da sessão
+        if (attempt > 1) {
+          const waitTime = attempt * 1500; // 1.5s, 3s, 4.5s
+          console.log(`Tentativa ${attempt}: aguardando ${waitTime}ms para propagação da sessão...`);
+          await sleep(waitTime);
+        }
+
+        // Verificar novamente a sessão antes de cada tentativa
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session?.user) {
+          throw new Error("Sessão não encontrada");
+        }
+
+        // Tentar criar a equipe
+        const { data: team, error: teamError } = await supabase
+          .from('teams')
+          .insert({
+            name: teamName,
+            code: teamCode,
+            admin_id: userId,
+            plan_id: 'free'
+          })
+          .select()
+          .single();
+
+        if (teamError) {
+          throw teamError;
+        }
+
+        // Se chegou aqui, sucesso!
+        return team;
+        
+      } catch (error: any) {
+        lastError = error;
+        console.error(`Tentativa ${attempt} falhou:`, error);
+        
+        // Se não for erro de RLS, não tentar novamente
+        if (!error.message?.includes('row-level security')) {
+          throw error;
+        }
+        
+        // Se foi a última tentativa, lançar o erro
+        if (attempt === maxAttempts) {
+          throw error;
+        }
+      }
+    }
+    
+    // Se chegou aqui, todas as tentativas falharam
+    throw lastError;
+  };
+
   const handleCreateTeam = async () => {
     if (!teamName.trim()) {
       toast.error("Por favor, insira o nome da equipe");
@@ -48,27 +110,17 @@ export function CreateTeamDialog({ open, onClose, onSuccess }: CreateTeamDialogP
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session?.user) {
-        toast.error("Sessão expirada. Por favor, faça login novamente.");
-        navigate("/login");
+        toast.error("Sessão não encontrada. Por favor, tente novamente.");
+        onClose();
         return;
       }
 
-      // Criar a equipe
-      const { data: team, error: teamError } = await supabase
-        .from('teams')
-        .insert({
-          name: teamName,
-          code: teamCode,
-          admin_id: session.user.id,
-          plan_id: 'free'
-        })
-        .select()
-        .single();
+      console.log("Iniciando criação de equipe para usuário:", session.user.id);
 
-      if (teamError) {
-        console.error('Erro ao criar equipe:', teamError);
-        throw new Error(`Não foi possível criar a equipe: ${teamError.message}`);
-      }
+      // Criar a equipe com retry robusto
+      const team = await createTeamWithRetry(session.user.id);
+
+      console.log("Equipe criada com sucesso:", team.id);
 
       // Atualizar o perfil do usuário com o team_id
       const { error: profileError } = await supabase
@@ -83,7 +135,7 @@ export function CreateTeamDialog({ open, onClose, onSuccess }: CreateTeamDialogP
 
       toast.success("Equipe criada com sucesso! Faça login para acessar o sistema.");
       
-      // Fazer logout
+      // Fazer logout para garantir nova sessão limpa
       await supabase.auth.signOut();
       
       // Fechar dialog e redirecionar para login
@@ -91,7 +143,12 @@ export function CreateTeamDialog({ open, onClose, onSuccess }: CreateTeamDialogP
       navigate("/login");
     } catch (error: any) {
       console.error('Erro ao criar equipe:', error);
-      toast.error(error.message || "Erro ao criar equipe. Tente novamente.");
+      
+      if (error.message?.includes('row-level security')) {
+        toast.error("Erro de autenticação. Por favor, faça logout e tente novamente.");
+      } else {
+        toast.error(error.message || "Erro ao criar equipe. Tente novamente.");
+      }
     } finally {
       setIsLoading(false);
     }
