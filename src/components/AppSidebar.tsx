@@ -149,7 +149,7 @@ export function AppSidebar() {
   const sidebarContent = () => (
     <>
       <NavLink 
-        to="/" 
+        to="/dashboard" 
         onClick={handleMobileNavigate}
         className="pt-6 pb-2 mb-2 flex justify-center cursor-pointer hover:opacity-80 transition-opacity"
       >
