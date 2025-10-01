@@ -9,99 +9,14 @@ import { Plus, Tag } from 'lucide-react';
 import BrandList from '@/components/marcas/BrandList';
 import BrandDetails from '@/components/marcas/BrandDetails';
 import BrandDialog from '@/components/marcas/BrandDialog';
-import type { Brand, BrandSummary } from '@/types/brand';
+import type { Brand, BrandSummary, MoodboardFile, ColorItem } from '@/types/brand';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 // Definindo o tipo para os dados do formulário, que é um Brand parcial
 type BrandFormData = Omit<Brand, 'id' | 'createdAt' | 'updatedAt' | 'teamId' | 'userId'>;
-
-// Mock data for demonstration
-const mockBrands: BrandSummary[] = [
-  {
-    id: "acucar-petribu",
-    name: "Açúcar Petribu", 
-    responsible: "copy@lefil.com.br",
-    createdAt: "2025-09-02T10:00:00.000Z",
-    updatedAt: "2025-09-02T10:00:00.000Z"
-  },
-  {
-    id: "ceramica-brennand",
-    name: "Cerâmica Brennand",
-    responsible: "julia.lima@lefil.com.br", 
-    createdAt: "2025-09-18T10:00:00.000Z",
-    updatedAt: "2025-09-18T10:00:00.000Z"
-  },
-  {
-    id: "escola-marketing",
-    name: "Escola de Marketing do Futuro",
-    responsible: "thalles.silva.ext@lefil.com.br",
-    createdAt: "2025-09-03T10:00:00.000Z",
-    updatedAt: "2025-09-03T10:00:00.000Z"
-  },
-  {
-    id: "grupo-cornelio",
-    name: "Grupo Cornélio Brennand",
-    responsible: "copy@lefil.com.br",
-    createdAt: "2025-09-02T10:00:00.000Z", 
-    updatedAt: "2025-09-02T10:00:00.000Z"
-  },
-  {
-    id: "iclub",
-    name: "Iclub",
-    responsible: "marianna.monteiro.ext@lefil.com.br",
-    createdAt: "2025-09-08T10:00:00.000Z",
-    updatedAt: "2025-09-08T10:00:00.000Z"
-  },
-  {
-    id: "juq", 
-    name: "JUQ",
-    responsible: "copy@lefil.com.br",
-    createdAt: "2025-09-11T10:00:00.000Z",
-    updatedAt: "2025-09-11T10:00:00.000Z"
-  }
-];
-
-const mockFullBrand: Brand = {
-  id: "acucar-petribu",
-  name: "Açúcar Petribu",
-  responsible: "copy@lefil.com.br", 
-  segment: "Alimentício / Confeitaria / Doméstico / Açúcares",
-  values: "Sabor, Tradição, Memória, Afeto, Família, Doçura, Regionalidade, Conexão.",
-  keywords: "Sabor, Tradição, Afeto, Família, Açúcar, Saudável.",
-  goals: "Fortalecer a conexão emocional com os consumidores, Valorizar a tradição e o sabor regional, Inspirar o uso do açúcar em receitas afetivas, Reforçar a presença da marca no dia a dia das famílias.",
-  inspirations: "Marcas que valorizam tradição e família, como Nestle e Vigor.",
-  successMetrics: "Aumento de 20% nas vendas, 15% de crescimento no engajamento digital.",
-  references: "Posts no Instagram que mostram receitas caseiras e momentos em família.",
-  specialDates: "Festa Junina, Natal, Dia das Mães, aniversários familiares.",
-  promise: "O açúcar que adoça as memórias e fortalece os laços familiares.",
-  crisisInfo: "Possível crise relacionada a questões de saúde e consumo de açúcar.",
-  milestones: "Empresa familiar fundada há 50 anos, líder regional em açúcar refinado.",
-  collaborations: "Parcerias com chefs locais e influenciadores de culinária.",
-  restrictions: "Evitar associações diretas com problemas de saúde, não usar imagens de pessoas obesas.",
-  moodboard: null,
-  logo: null,
-  referenceImage: null,
-  colorPalette: [
-    {
-      id: "1",
-      name: "Azul Petribu", 
-      hex: "#1e40af",
-      rgb: { r: 30, g: 64, b: 175 }
-    },
-    {
-      id: "2",
-      name: "Branco Açúcar",
-      hex: "#ffffff", 
-      rgb: { r: 255, g: 255, b: 255 }
-    }
-  ],
-  createdAt: "2025-09-02T10:00:00.000Z",
-  updatedAt: "2025-09-02T10:00:00.000Z",
-  teamId: "team-1",
-  userId: "1"
-};
 
 export default function MarcasPage() {
   const { user } = useAuth();
@@ -117,18 +32,40 @@ export default function MarcasPage() {
   const [isLoadingTeam, setIsLoadingTeam] = useState(false);
   const [isBrandDetailsOpen, setIsBrandDetailsOpen] = useState(false);
 
-  // Simulate loading brands
+  // Load brands from database
   useEffect(() => {
-    const loadData = async () => {
+    const loadBrands = async () => {
+      if (!user?.teamId) return;
+      
       setIsLoadingBrands(true);
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 800));
-      setBrands(mockBrands);
-      setIsLoadingBrands(false);
+      try {
+        const { data, error } = await supabase
+          .from('brands')
+          .select('id, name, responsible, created_at, updated_at')
+          .eq('team_id', user.teamId)
+          .order('name', { ascending: true });
+
+        if (error) throw error;
+
+        const brands: BrandSummary[] = data.map(brand => ({
+          id: brand.id,
+          name: brand.name,
+          responsible: brand.responsible,
+          createdAt: brand.created_at,
+          updatedAt: brand.updated_at
+        }));
+
+        setBrands(brands);
+      } catch (error) {
+        console.error('Erro ao carregar marcas:', error);
+        toast.error('Erro ao carregar marcas');
+      } finally {
+        setIsLoadingBrands(false);
+      }
     };
     
-    loadData();
-  }, []);
+    loadBrands();
+  }, [user?.teamId]);
 
   const handleOpenDialog = useCallback((brand: Brand | null = null) => {
     setBrandToEdit(brand);
@@ -138,20 +75,42 @@ export default function MarcasPage() {
   const handleSelectBrand = useCallback(async (brand: BrandSummary) => {
     setSelectedBrandSummary(brand);
     setIsLoadingBrandDetails(true);
-    setIsBrandDetailsOpen(true); // Abre o slider para todos os dispositivos
+    setIsBrandDetailsOpen(true);
     
     try {
-      // Simulate API call to get full brand details
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Mock: return different data based on selected brand
-      const fullBrand = {
-        ...mockFullBrand,
-        id: brand.id,
-        name: brand.name,
-        responsible: brand.responsible,
-        createdAt: brand.createdAt,
-        updatedAt: brand.updatedAt
+      const { data, error } = await supabase
+        .from('brands')
+        .select('*')
+        .eq('id', brand.id)
+        .single();
+
+      if (error) throw error;
+
+      const fullBrand: Brand = {
+        id: data.id,
+        teamId: data.team_id,
+        userId: data.user_id,
+        name: data.name,
+        responsible: data.responsible,
+        segment: data.segment,
+        values: data.values || '',
+        keywords: data.keywords || '',
+        goals: data.goals || '',
+        inspirations: data.inspirations || '',
+        successMetrics: data.success_metrics || '',
+        references: data.brand_references || '',
+        specialDates: data.special_dates || '',
+        promise: data.promise || '',
+        crisisInfo: data.crisis_info || '',
+        milestones: data.milestones || '',
+        collaborations: data.collaborations || '',
+        restrictions: data.restrictions || '',
+        moodboard: data.moodboard as unknown as MoodboardFile | null,
+        logo: data.logo as unknown as MoodboardFile | null,
+        referenceImage: data.reference_image as unknown as MoodboardFile | null,
+        colorPalette: data.color_palette as unknown as ColorItem[] | null,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at
       };
       
       setSelectedBrand(fullBrand);
@@ -173,11 +132,35 @@ export default function MarcasPage() {
     try {
       toast.loading(brandToEdit ? 'Atualizando marca...' : 'Criando marca...', { id: toastId });
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
       if (brandToEdit) {
         // Update existing brand
+        const { error } = await supabase
+          .from('brands')
+          .update({
+            name: formData.name,
+            responsible: formData.responsible,
+            segment: formData.segment,
+            values: formData.values,
+            keywords: formData.keywords,
+            goals: formData.goals,
+            inspirations: formData.inspirations,
+            success_metrics: formData.successMetrics,
+            brand_references: formData.references,
+            special_dates: formData.specialDates,
+            promise: formData.promise,
+            crisis_info: formData.crisisInfo,
+            milestones: formData.milestones,
+            collaborations: formData.collaborations,
+            restrictions: formData.restrictions,
+            moodboard: formData.moodboard as any,
+            logo: formData.logo as any,
+            reference_image: formData.referenceImage as any,
+            color_palette: formData.colorPalette as any,
+          })
+          .eq('id', brandToEdit.id);
+
+        if (error) throw error;
+
         const updatedBrand: Brand = {
           ...brandToEdit,
           ...formData,
@@ -197,13 +180,43 @@ export default function MarcasPage() {
         toast.success('Marca atualizada com sucesso!', { id: toastId });
       } else {
         // Create new brand
+        const { data, error } = await supabase
+          .from('brands')
+          .insert({
+            team_id: user.teamId,
+            user_id: user.id,
+            name: formData.name,
+            responsible: formData.responsible,
+            segment: formData.segment,
+            values: formData.values,
+            keywords: formData.keywords,
+            goals: formData.goals,
+            inspirations: formData.inspirations,
+            success_metrics: formData.successMetrics,
+            brand_references: formData.references,
+            special_dates: formData.specialDates,
+            promise: formData.promise,
+            crisis_info: formData.crisisInfo,
+            milestones: formData.milestones,
+            collaborations: formData.collaborations,
+            restrictions: formData.restrictions,
+            moodboard: formData.moodboard as any,
+            logo: formData.logo as any,
+            reference_image: formData.referenceImage as any,
+            color_palette: formData.colorPalette as any,
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+
         const newBrand: Brand = {
           ...formData,
-          id: `brand-${Date.now()}`,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          teamId: user?.teamId || 'team-1',
-          userId: user?.id || '1'
+          id: data.id,
+          createdAt: data.created_at,
+          updatedAt: data.updated_at,
+          teamId: user.teamId,
+          userId: user.id
         };
         
         const newBrandSummary: BrandSummary = {
@@ -223,6 +236,7 @@ export default function MarcasPage() {
       setIsDialogOpen(false);
       setBrandToEdit(null);
     } catch (error) {
+      console.error('Erro ao salvar marca:', error);
       toast.error('Erro ao salvar marca. Tente novamente.', { id: toastId });
       throw error;
     }
@@ -238,12 +252,17 @@ export default function MarcasPage() {
     try {
       toast.loading('Deletando marca...', { id: toastId });
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
+      const { error } = await supabase
+        .from('brands')
+        .delete()
+        .eq('id', selectedBrand.id);
+
+      if (error) throw error;
       
       setBrands(prev => prev.filter(brand => brand.id !== selectedBrand.id));
       setSelectedBrand(null);
       setSelectedBrandSummary(null);
+      setIsBrandDetailsOpen(false);
       
       // Select first remaining brand if any
       const remainingBrands = brands.filter(b => b.id !== selectedBrand.id);
@@ -253,6 +272,7 @@ export default function MarcasPage() {
       
       toast.success('Marca deletada com sucesso!', { id: toastId });
     } catch (error) {
+      console.error('Erro ao deletar marca:', error);
       toast.error('Erro ao deletar marca. Tente novamente.', { id: toastId });
     }
   }, [selectedBrand, user, brands, handleSelectBrand]);
