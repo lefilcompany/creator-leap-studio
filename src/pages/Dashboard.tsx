@@ -177,7 +177,7 @@ const Dashboard = () => {
                   Olá, {user.name}!
                 </h1>
                 <p className="text-muted-foreground text-base">
-                  Equipe {team.name} • {user.isAdmin ? 'Administrador' : 'Membro'}
+                  Bem-vindo(a) de volta ao seu painel de criação
                 </p>
               </div>
             </div>
