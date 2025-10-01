@@ -117,20 +117,22 @@ export default function Notifications() {
           variant="ghost"
           size="sm"
           className={cn(
-            'h-8 w-8 md:h-10 md:w-10 rounded-lg xl:rounded-xl hover:bg-primary/10 transition-all duration-200 border border-transparent hover:border-primary/20 relative',
-            unreadCount > 0 && 'text-primary'
+            'relative h-9 w-9 rounded-xl border transition-all duration-300',
+            unreadCount > 0 
+              ? 'border-primary/20 bg-primary/5 text-primary hover:bg-primary/10 hover:border-primary/30' 
+              : 'border-transparent hover:border-border hover:bg-muted/50'
           )}
         >
           {unreadCount > 0 ? (
-            <BellRing className="h-4 w-4 md:h-5 md:w-5" />
+            <BellRing className="h-[18px] w-[18px]" />
           ) : (
-            <Bell className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
+            <Bell className="h-[18px] w-[18px]" />
           )}
 
           {unreadCount > 0 && (
-            <div className="absolute -top-0.5 -right-0.5 md:-top-1 md:-right-1 h-2.5 w-2.5 md:h-3 md:w-3 bg-primary text-primary-foreground text-[8px] md:text-[10px] rounded-full flex items-center justify-center font-bold animate-pulse border-2 border-background">
+            <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-semibold text-primary-foreground shadow-sm">
               {unreadCount > 9 ? '9+' : unreadCount}
-            </div>
+            </span>
           )}
           <span className="sr-only">
             Notificações {unreadCount > 0 && `(${unreadCount} não lidas)`}
@@ -140,65 +142,72 @@ export default function Notifications() {
 
       <DropdownMenuContent
         align="end"
-        className="w-80 md:w-96 max-h-[70vh] overflow-hidden border-border/20 shadow-2xl rounded-xl"
-        sideOffset={12}
+        className="w-[380px] overflow-hidden rounded-xl border bg-background p-0 shadow-xl"
+        sideOffset={8}
       >
         {/* Header */}
-        <div className="p-4 border-b border-border/20 bg-muted/20">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-semibold text-foreground">Notificações</h3>
-              {unreadCount > 0 && (
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {unreadCount} não lida{unreadCount > 1 ? 's' : ''}
-                </p>
-              )}
-            </div>
-            {notifications.length > 0 && unreadCount > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={markAllAsRead}
-                className="text-xs h-7 px-2 hover:bg-primary/10 hover:text-primary"
-              >
-                <CheckCheck className="h-3 w-3 mr-1" />
-                Marcar todas
-              </Button>
+        <div className="flex items-center justify-between border-b bg-muted/30 px-4 py-3">
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-semibold">Notificações</h3>
+            {unreadCount > 0 && (
+              <span className="flex h-5 items-center justify-center rounded-full bg-primary/10 px-2 text-[11px] font-medium text-primary">
+                {unreadCount}
+              </span>
             )}
           </div>
+          {notifications.length > 0 && unreadCount > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={markAllAsRead}
+              className="h-7 gap-1 px-2 text-xs hover:bg-background"
+            >
+              <CheckCheck className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Marcar todas</span>
+            </Button>
+          )}
         </div>
 
         {/* Content */}
-        <div className="overflow-y-auto max-h-80">
+        <div className="max-h-[420px] overflow-y-auto">
           {notifications.length > 0 ? (
-            <div className="divide-y divide-border/20">
+            <div>
               {notifications.map((notification) => (
                 <div
                   key={notification.id}
                   className={cn(
-                    'p-4 transition-all duration-200 hover:bg-muted/30 group cursor-pointer',
-                    !notification.read && 'bg-primary/5 border-l-4 border-l-primary'
+                    'group relative border-b border-border/40 transition-colors last:border-0',
+                    !notification.read && 'bg-primary/[0.02]',
+                    'hover:bg-muted/40 cursor-pointer'
                   )}
                   onClick={() => !notification.read && markAsRead(notification.id)}
                 >
-                  <div className="flex items-start gap-3">
+                  {!notification.read && (
+                    <div className="absolute left-0 top-0 h-full w-1 bg-primary" />
+                  )}
+                  
+                  <div className="flex gap-3 p-4 pl-5">
                     {/* Icon */}
                     <div
                       className={cn(
-                        'p-2 rounded-lg flex-shrink-0 mt-0.5',
+                        'flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg',
                         !notification.read
-                          ? 'bg-primary/10 text-primary'
-                          : 'bg-muted text-muted-foreground'
+                          ? 'bg-primary/10'
+                          : 'bg-muted/60'
                       )}
                     >
-                      {getNotificationIcon(notification.type)}
+                      <div className={cn(
+                        !notification.read ? 'text-primary' : 'text-muted-foreground/70'
+                      )}>
+                        {getNotificationIcon(notification.type)}
+                      </div>
                     </div>
 
                     {/* Content */}
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 space-y-1.5">
                       <p
                         className={cn(
-                          'text-sm leading-relaxed',
+                          'text-sm leading-snug',
                           !notification.read
                             ? 'font-medium text-foreground'
                             : 'text-muted-foreground'
@@ -207,8 +216,8 @@ export default function Notifications() {
                         {notification.message}
                       </p>
 
-                      <div className="flex items-center justify-between mt-2">
-                        <p className="text-xs text-muted-foreground/70">
+                      <div className="flex items-center gap-2">
+                        <p className="text-xs text-muted-foreground/60">
                           {formatTime(notification.createdAt)}
                         </p>
 
@@ -220,31 +229,33 @@ export default function Notifications() {
                               e.stopPropagation();
                               markAsRead(notification.id);
                             }}
-                            className="h-6 px-2 text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-primary/10 hover:text-primary"
+                            className="h-6 gap-1 px-2 text-xs opacity-0 transition-opacity group-hover:opacity-100 hover:bg-background"
                           >
-                            <Check className="h-3 w-3 mr-1" />
+                            <Check className="h-3 w-3" />
                             Marcar lida
                           </Button>
                         )}
                       </div>
                     </div>
 
-                    {/* Unread indicator */}
+                    {/* Unread dot */}
                     {!notification.read && (
-                      <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0 mt-2"></div>
+                      <div className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-primary" />
                     )}
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="p-8 text-center">
-              <Bell className="h-12 w-12 text-muted-foreground/40 mx-auto mb-4" />
-              <p className="text-sm font-medium text-muted-foreground mb-1">
-                Nenhuma notificação
+            <div className="flex flex-col items-center justify-center py-12 px-4">
+              <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-muted/50">
+                <Bell className="h-6 w-6 text-muted-foreground/40" />
+              </div>
+              <p className="mb-1 text-sm font-medium text-foreground">
+                Tudo limpo!
               </p>
-              <p className="text-xs text-muted-foreground/70">
-                Você está em dia! Todas as suas notificações foram visualizadas.
+              <p className="text-center text-xs text-muted-foreground/70 max-w-[250px]">
+                Você não tem notificações no momento
               </p>
             </div>
           )}
