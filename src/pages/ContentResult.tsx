@@ -20,6 +20,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/hooks/useAuth";
 
 interface ContentResultData {
@@ -423,6 +424,24 @@ export default function ContentResult() {
               </RadioGroup>
             ) : (
               <>
+                {freeRevisionsLeft === 0 && (
+                  <Alert className="border-orange-500/50 bg-orange-500/10">
+                    <RefreshCw className="h-4 w-4 text-orange-600" />
+                    <AlertDescription className="text-sm">
+                      <span className="font-semibold text-orange-600">Atenção:</span> Esta revisão consumirá 1 crédito do seu plano.
+                      {team?.credits?.contentReviews !== undefined && (
+                        <span className="block mt-1 text-muted-foreground">
+                          {team.credits.contentReviews > 0 ? (
+                            <>Você tem {team.credits.contentReviews} crédito{team.credits.contentReviews !== 1 ? 's' : ''} disponível{team.credits.contentReviews !== 1 ? 'eis' : ''}.</>
+                          ) : (
+                            <span className="text-destructive font-medium">Você não tem créditos disponíveis. Faça upgrade do seu plano.</span>
+                          )}
+                        </span>
+                      )}
+                    </AlertDescription>
+                  </Alert>
+                )}
+
                 <div className="space-y-2">
                   <Label htmlFor="review-prompt">O que você quer melhorar?</Label>
                   <Textarea
@@ -453,7 +472,11 @@ export default function ContentResult() {
                   <Button
                     onClick={handleSubmitReview}
                     className="flex-1 gap-2"
-                    disabled={!reviewPrompt.trim() || isReviewing}
+                    disabled={
+                      !reviewPrompt.trim() || 
+                      isReviewing || 
+                      (freeRevisionsLeft === 0 && (!team?.credits?.contentReviews || team.credits.contentReviews <= 0))
+                    }
                   >
                     {isReviewing ? (
                       <>
@@ -463,7 +486,7 @@ export default function ContentResult() {
                     ) : (
                       <>
                         <Check className="h-4 w-4" />
-                        Confirmar
+                        {freeRevisionsLeft === 0 ? 'Confirmar e Usar Crédito' : 'Confirmar Revisão'}
                       </>
                     )}
                   </Button>
