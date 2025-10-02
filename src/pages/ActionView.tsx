@@ -240,28 +240,133 @@ export default function ActionView() {
           </div>
         </Card>
 
-        {/* Details Section */}
+        {/* Details Section - Specific per Action Type */}
         {action.details && (
           <Card className="p-6 mb-6">
             <h2 className="text-lg font-semibold mb-4">Detalhes da Solicitação</h2>
-            <div className="space-y-3">
-              {action.details.prompt && (
-                <div>
-                  <span className="text-sm font-medium text-muted-foreground">Prompt:</span>
-                  <p className="mt-1 text-foreground">{action.details.prompt}</p>
-                </div>
+            <div className="space-y-4">
+              {/* CRIAR_CONTEUDO and CRIAR_CONTEUDO_RAPIDO */}
+              {(action.type === 'CRIAR_CONTEUDO' || action.type === 'CRIAR_CONTEUDO_RAPIDO') && (
+                <>
+                  {action.details.objective && (
+                    <div>
+                      <span className="text-sm font-medium text-muted-foreground">Objetivo:</span>
+                      <p className="mt-1 text-foreground">{action.details.objective}</p>
+                    </div>
+                  )}
+                  {action.details.platform && (
+                    <div>
+                      <span className="text-sm font-medium text-muted-foreground">Plataforma:</span>
+                      <p className="mt-1 text-foreground">{action.details.platform}</p>
+                    </div>
+                  )}
+                  {action.details.description && (
+                    <div>
+                      <span className="text-sm font-medium text-muted-foreground">Descrição:</span>
+                      <p className="mt-1 text-foreground">{action.details.description}</p>
+                    </div>
+                  )}
+                  {action.details.tone && Array.isArray(action.details.tone) && action.details.tone.length > 0 && (
+                    <div>
+                      <span className="text-sm font-medium text-muted-foreground">Tom de Voz:</span>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {action.details.tone.map((t: string, idx: number) => (
+                          <Badge key={idx} variant="outline">{t}</Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {action.details.additionalInfo && (
+                    <div>
+                      <span className="text-sm font-medium text-muted-foreground">Informações Adicionais:</span>
+                      <p className="mt-1 text-foreground">{action.details.additionalInfo}</p>
+                    </div>
+                  )}
+                  {action.details.isVideoMode && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <span className="text-sm font-medium text-muted-foreground">Modo de Geração:</span>
+                        <Badge className="mt-1" variant="secondary">Vídeo</Badge>
+                      </div>
+                      {action.details.ratio && (
+                        <div>
+                          <span className="text-sm font-medium text-muted-foreground">Proporção:</span>
+                          <p className="mt-1 text-foreground">{action.details.ratio}</p>
+                        </div>
+                      )}
+                      {action.details.duration && (
+                        <div>
+                          <span className="text-sm font-medium text-muted-foreground">Duração:</span>
+                          <p className="mt-1 text-foreground">{action.details.duration}s</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </>
               )}
-              {action.details.objective && (
-                <div>
-                  <span className="text-sm font-medium text-muted-foreground">Objetivo:</span>
-                  <p className="mt-1 text-foreground">{action.details.objective}</p>
-                </div>
+
+              {/* REVISAR_CONTEUDO */}
+              {action.type === 'REVISAR_CONTEUDO' && (
+                <>
+                  {action.details.adjustmentsPrompt && (
+                    <div>
+                      <span className="text-sm font-medium text-muted-foreground">Ajustes Solicitados:</span>
+                      <p className="mt-1 text-foreground">{action.details.adjustmentsPrompt}</p>
+                    </div>
+                  )}
+                  {action.result?.originalImage && (
+                    <div>
+                      <span className="text-sm font-medium text-muted-foreground">Imagem Original Enviada:</span>
+                      <div className="mt-2 rounded-lg overflow-hidden border bg-muted/30 max-w-sm">
+                        <img 
+                          src={action.result.originalImage} 
+                          alt="Imagem original para revisão" 
+                          className="w-full h-auto"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
-              {action.details.platform && (
-                <div>
-                  <span className="text-sm font-medium text-muted-foreground">Plataforma:</span>
-                  <p className="mt-1 text-foreground">{action.details.platform}</p>
-                </div>
+
+              {/* PLANEJAR_CONTEUDO */}
+              {action.type === 'PLANEJAR_CONTEUDO' && (
+                <>
+                  {action.details.platform && (
+                    <div>
+                      <span className="text-sm font-medium text-muted-foreground">Plataforma:</span>
+                      <p className="mt-1 text-foreground">{action.details.platform}</p>
+                    </div>
+                  )}
+                  {action.details.quantity && (
+                    <div>
+                      <span className="text-sm font-medium text-muted-foreground">Quantidade de Posts:</span>
+                      <p className="mt-1 text-foreground">{action.details.quantity}</p>
+                    </div>
+                  )}
+                  {action.details.theme && Array.isArray(action.details.theme) && action.details.theme.length > 0 && (
+                    <div>
+                      <span className="text-sm font-medium text-muted-foreground">Temas Estratégicos:</span>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {action.details.theme.map((t: string, idx: number) => (
+                          <Badge key={idx} variant="secondary">{t}</Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {action.details.objective && (
+                    <div>
+                      <span className="text-sm font-medium text-muted-foreground">Objetivo:</span>
+                      <p className="mt-1 text-foreground">{action.details.objective}</p>
+                    </div>
+                  )}
+                  {action.details.additionalInfo && (
+                    <div>
+                      <span className="text-sm font-medium text-muted-foreground">Informações Adicionais:</span>
+                      <p className="mt-1 text-foreground">{action.details.additionalInfo}</p>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </Card>
