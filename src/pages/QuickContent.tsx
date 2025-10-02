@@ -178,10 +178,9 @@ export default function QuickContent() {
               }
             >
               <SelectTrigger id="brand">
-                <SelectValue placeholder="Selecione uma marca para dar contexto" />
+                <SelectValue placeholder="Nenhuma marca selecionada" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Nenhuma marca</SelectItem>
                 {brands.map((brand) => (
                   <SelectItem key={brand.id} value={brand.id}>
                     {brand.name}
