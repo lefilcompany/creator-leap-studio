@@ -245,7 +245,7 @@ const Plans = () => {
                       size="sm" 
                       onClick={() => {
                         if (plan.name === 'ENTERPRISE') {
-                          toast.info('Em breve você poderá entrar em contato via WhatsApp Business');
+                          toast.info('Redirecionando para o WhatsApp Business...');
                         } else {
                           handleSubscribe(plan);
                         }
