@@ -198,7 +198,7 @@ const PlanResult = () => {
                   ),
                   h2: ({ children }) => (
                     <h2 className="text-xl font-semibold text-foreground mt-6 mb-3 flex items-center gap-2">
-                      <span className="w-1 h-6 bg-gradient-to-b from-primary to-secondary rounded-full"></span>
+                      <span className="w-1 h-6 bg-gradient-to-b from-primary to-secondary rounded-full flex-shrink-0"></span>
                       {children}
                     </h2>
                   ),
