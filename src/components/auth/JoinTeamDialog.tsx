@@ -39,12 +39,9 @@ export function JoinTeamDialog({ open, onClose, onBack, onSuccess }: JoinTeamDia
         return;
       }
 
-      // Buscar equipe pelo código
-      const { data: team, error: teamError } = await supabase
-        .from('teams')
-        .select('id')
-        .eq('code', teamCode)
-        .maybeSingle();
+      // Buscar equipe pelo código usando função SQL segura
+      const { data: teamId, error: teamError } = await supabase
+        .rpc('get_team_id_by_code', { p_team_code: teamCode.trim() });
 
       if (teamError) {
         console.error('Erro ao buscar equipe:', teamError);
@@ -52,8 +49,8 @@ export function JoinTeamDialog({ open, onClose, onBack, onSuccess }: JoinTeamDia
         return;
       }
 
-      if (!team) {
-        toast.error("Código de equipe inválido");
+      if (!teamId) {
+        toast.error("Código de equipe inválido. Verifique e tente novamente.");
         return;
       }
 
@@ -62,7 +59,7 @@ export function JoinTeamDialog({ open, onClose, onBack, onSuccess }: JoinTeamDia
         .from('team_join_requests')
         .select('id, status')
         .eq('user_id', session.user.id)
-        .eq('team_id', team.id)
+        .eq('team_id', teamId)
         .maybeSingle();
 
       if (existingRequest) {
@@ -82,7 +79,7 @@ export function JoinTeamDialog({ open, onClose, onBack, onSuccess }: JoinTeamDia
         .from('team_join_requests')
         .insert({
           user_id: session.user.id,
-          team_id: team.id,
+          team_id: teamId,
           status: 'pending'
         });
 
@@ -129,6 +126,7 @@ export function JoinTeamDialog({ open, onClose, onBack, onSuccess }: JoinTeamDia
                 onChange={(e) => setTeamCode(e.target.value.toUpperCase())}
                 disabled={isLoading}
                 className="pr-10"
+                autoComplete="off"
               />
               <Button
                 type="button"
@@ -142,7 +140,9 @@ export function JoinTeamDialog({ open, onClose, onBack, onSuccess }: JoinTeamDia
               </Button>
             </div>
             <p className="text-xs text-muted-foreground">
-              Após enviar, aguarde a aprovação do administrador para acessar o sistema.
+              {isLoading 
+                ? "Verificando código da equipe..." 
+                : "Após enviar, aguarde a aprovação do administrador para acessar o sistema."}
             </p>
           </div>
         </div>
