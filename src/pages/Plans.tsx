@@ -8,8 +8,9 @@ import { useAuth } from '@/hooks/useAuth';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Rocket, Users, Package, Palette, UserCircle, Sparkles, Calendar, FileText, CheckCircle, Crown, Zap, X, AlertTriangle, ArrowLeft, Tag, Building2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import type { Plan } from '@/types/plan';
-import type { Team } from '@/types/theme';
+
 interface SubscriptionStatus {
   canAccess: boolean;
   isExpired: boolean;
@@ -20,12 +21,12 @@ interface SubscriptionStatus {
 const Plans = () => {
   const {
     user,
-    team: authTeam
+    team,
+    isLoading: authLoading
   } = useAuth();
-  const [teams, setTeams] = useState<Team[]>([]);
-  const [teamData, setTeamData] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  
   const [plans, setPlans] = useState<Plan[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
   const [showPlansSelection, setShowPlansSelection] = useState(false);
   const [loadingPlanId, setLoadingPlanId] = useState<string | null>(null);
@@ -33,104 +34,68 @@ const Plans = () => {
   const [searchParams] = useSearchParams();
   const isExpired = searchParams.get('expired') === 'true';
   const selectedPlan = searchParams.get('selected');
-  const team = teams.find(t => t.id === user?.teamId) || authTeam;
 
-  // Mock data - substituir com chamadas reais de API
-  const mockPlans: Plan[] = [{
-    id: '1',
-    name: 'FREE',
-    displayName: 'Free',
-    price: 0,
-    trialDays: 7,
-    maxMembers: 5,
-    maxBrands: 1,
-    maxStrategicThemes: 3,
-    maxPersonas: 3,
-    quickContentCreations: 5,
-    customContentSuggestions: 15,
-    contentPlans: 5,
-    contentReviews: 10,
-    isActive: true
-  }, {
-    id: '2',
-    name: 'BASIC',
-    displayName: 'Básico',
-    price: 59.90,
-    trialDays: 0,
-    maxMembers: 10,
-    maxBrands: 5,
-    maxStrategicThemes: 15,
-    maxPersonas: 15,
-    quickContentCreations: 7,
-    customContentSuggestions: 20,
-    contentPlans: 7,
-    contentReviews: 15,
-    isActive: true,
-    stripePriceId: 'price_basic'
-  }, {
-    id: '3',
-    name: 'PRO',
-    displayName: 'Profissional',
-    price: 99.90,
-    trialDays: 0,
-    maxMembers: 20,
-    maxBrands: 10,
-    maxStrategicThemes: 30,
-    maxPersonas: 30,
-    quickContentCreations: 10,
-    customContentSuggestions: 30,
-    contentPlans: 10,
-    contentReviews: 30,
-    isActive: true,
-    stripePriceId: 'price_pro'
-  }, {
-    id: '4',
-    name: 'ENTERPRISE',
-    displayName: 'Enterprise',
-    price: 499.90,
-    trialDays: 0,
-    maxMembers: 999999,
-    maxBrands: 999999,
-    maxStrategicThemes: 999999,
-    maxPersonas: 999999,
-    quickContentCreations: 50,
-    customContentSuggestions: 200,
-    contentPlans: 100,
-    contentReviews: 200,
-    isActive: true
-  }];
-  const mockCredits = {
-    quickContentCreations: 8,
-    contentSuggestions: 25,
-    contentReviews: 28,
-    contentPlans: 8
-  };
+  const loadPlans = useCallback(async () => {
+    try {
+      const { data: plansData, error } = await supabase
+        .from('plans')
+        .select('*')
+        .eq('is_active', true)
+        .order('price_monthly', { ascending: true });
+
+      if (error) throw error;
+
+      if (plansData) {
+        const formattedPlans: Plan[] = plansData.map(p => ({
+          id: p.id,
+          name: p.name,
+          displayName: p.name,
+          price: p.price_monthly || 0,
+          trialDays: p.trial_days || 0,
+          maxMembers: p.max_members,
+          maxBrands: p.max_brands,
+          maxStrategicThemes: p.max_strategic_themes,
+          maxPersonas: p.max_personas,
+          quickContentCreations: p.credits_quick_content,
+          customContentSuggestions: p.credits_suggestions,
+          contentPlans: p.credits_plans,
+          contentReviews: p.credits_reviews,
+          isActive: p.is_active,
+          stripePriceId: p.stripe_price_id_monthly
+        }));
+        setPlans(formattedPlans);
+      }
+    } catch (error) {
+      console.error('Error loading plans:', error);
+      toast.error('Erro ao carregar planos');
+    }
+  }, []);
+
   const loadData = useCallback(async () => {
-    if (!user?.id) {
-      setIsLoading(false);
+    if (!user?.id || authLoading) {
       return;
     }
+
     setIsLoading(true);
     try {
-      // Simular carregamento de dados
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setPlans(mockPlans);
-      setTeamData({
-        credits: mockCredits,
-        plan: team?.plan || mockPlans[2] // Pro como padrão
-      });
-      setSubscriptionStatus({
-        canAccess: true,
-        isExpired: false,
-        isTrial: false,
-        plan: team?.plan || mockPlans[2]
-      });
+      await loadPlans();
+
+      if (team) {
+        setSubscriptionStatus({
+          canAccess: true,
+          isExpired: false,
+          isTrial: false,
+          plan: team.plan
+        });
+      }
     } catch (error) {
+      console.error('Error loading data:', error);
       toast.error('Erro ao carregar informações');
     } finally {
       setIsLoading(false);
     }
-  }, [user, team]);
+  }, [user, team, authLoading, loadPlans]);
+
   useEffect(() => {
     loadData();
   }, [loadData]);
@@ -162,7 +127,7 @@ const Plans = () => {
       setLoadingPlanId(null);
     }
   };
-  if (isLoading) {
+  if (isLoading || authLoading) {
     return <div className="flex items-center justify-center min-h-[60vh] animate-fade-in">
         <div className="text-center space-y-4">
           <div className="relative mx-auto w-16 h-16">
@@ -287,9 +252,7 @@ const Plans = () => {
       </div>;
   }
 
-  // Verificação de segurança - sempre garantir que temos um plano válido
-  const plan = team?.plan || mockPlans[0]; // Fallback para plano Free
-  const credits = teamData?.credits || mockCredits;
+  // Verificação de segurança - garantir que temos dados da equipe
   if (!team) {
     return <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center space-y-4 p-6">
@@ -305,6 +268,14 @@ const Plans = () => {
         </div>
       </div>;
   }
+
+  const plan = team.plan;
+  const credits = team.credits || {
+    quickContentCreations: 0,
+    contentSuggestions: 0,
+    contentReviews: 0,
+    contentPlans: 0
+  };
   const creditData = [{
     name: 'Criações Rápidas',
     current: credits?.quickContentCreations || 0,
