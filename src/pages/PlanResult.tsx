@@ -192,43 +192,43 @@ const PlanResult = () => {
               <ReactMarkdown
                 components={{
                   h1: ({ children }) => (
-                    <h1 className="text-3xl font-bold text-primary mb-6 pb-3 border-b-2 border-primary/20">
+                    <h1 className="text-2xl font-bold text-primary mb-4 pb-2 border-b border-primary/20">
                       {children}
                     </h1>
                   ),
                   h2: ({ children }) => (
-                    <h2 className="text-2xl font-bold text-foreground mt-8 mb-4 flex items-center gap-2">
-                      <span className="w-2 h-8 bg-gradient-to-b from-primary to-secondary rounded-full"></span>
+                    <h2 className="text-xl font-semibold text-foreground mt-6 mb-3 flex items-center gap-2">
+                      <span className="w-1 h-6 bg-gradient-to-b from-primary to-secondary rounded-full"></span>
                       {children}
                     </h2>
                   ),
                   h3: ({ children }) => (
-                    <h3 className="text-xl font-semibold text-foreground mt-6 mb-3">
+                    <h3 className="text-lg font-semibold text-foreground mt-5 mb-2">
                       {children}
                     </h3>
                   ),
                   h4: ({ children }) => (
-                    <h4 className="text-lg font-semibold text-primary mt-4 mb-2">
+                    <h4 className="text-base font-semibold text-primary mt-3 mb-2">
                       {children}
                     </h4>
                   ),
                   p: ({ children }) => (
-                    <p className="text-base text-muted-foreground leading-relaxed mb-4">
+                    <p className="text-sm text-muted-foreground leading-relaxed mb-3">
                       {children}
                     </p>
                   ),
                   ul: ({ children }) => (
-                    <ul className="list-disc list-inside space-y-2 mb-4 ml-4">
+                    <ul className="list-disc list-inside space-y-1 mb-3 ml-4">
                       {children}
                     </ul>
                   ),
                   ol: ({ children }) => (
-                    <ol className="list-decimal list-inside space-y-2 mb-4 ml-4">
+                    <ol className="list-decimal list-inside space-y-1 mb-3 ml-4">
                       {children}
                     </ol>
                   ),
                   li: ({ children }) => (
-                    <li className="text-muted-foreground">
+                    <li className="text-sm text-muted-foreground">
                       {children}
                     </li>
                   ),
@@ -238,7 +238,7 @@ const PlanResult = () => {
                     </strong>
                   ),
                   blockquote: ({ children }) => (
-                    <blockquote className="border-l-4 border-primary/30 pl-4 italic text-muted-foreground bg-primary/5 py-2 my-4 rounded-r">
+                    <blockquote className="border-l-4 border-primary/30 pl-4 italic text-muted-foreground bg-primary/5 py-2 my-3 rounded-r">
                       {children}
                     </blockquote>
                   ),
@@ -248,7 +248,7 @@ const PlanResult = () => {
                     </code>
                   ),
                   hr: () => (
-                    <hr className="my-8 border-t-2 border-border/30" />
+                    <hr className="my-6 border-t-2 border-border/30" />
                   ),
                 }}
               >
