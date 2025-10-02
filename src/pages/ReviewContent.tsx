@@ -282,46 +282,52 @@ const ReviewContent = () => {
             <CardContent className="p-6">
               <RadioGroup value={reviewType || ''} onValueChange={(value) => setReviewType(value as ReviewType)}>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <label htmlFor="image" className="cursor-pointer">
-                    <Card className="hover:border-primary transition-all duration-300 hover:shadow-lg">
-                      <CardContent className="p-6 flex flex-col items-center text-center gap-4">
+                  <label htmlFor="image" className="cursor-pointer h-full">
+                    <Card className="hover:border-primary transition-all duration-300 hover:shadow-lg h-full">
+                      <CardContent className="p-6 flex flex-col items-center text-center gap-4 h-full justify-between min-h-[240px]">
                         <RadioGroupItem value="image" id="image" className="sr-only" />
-                        <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-                          <ImageIcon className="h-8 w-8 text-primary" />
-                        </div>
-                        <div>
-                          <h3 className="font-semibold text-lg mb-2">Revisar Imagem</h3>
-                          <p className="text-sm text-muted-foreground">Envie uma imagem e receba sugestões de melhorias visuais</p>
+                        <div className="flex flex-col items-center gap-4 flex-1 justify-center">
+                          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                            <ImageIcon className="h-8 w-8 text-primary" />
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-lg mb-2">Revisar Imagem</h3>
+                            <p className="text-sm text-muted-foreground">Envie uma imagem e receba sugestões de melhorias visuais</p>
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
                   </label>
 
-                  <label htmlFor="caption" className="cursor-pointer">
-                    <Card className="hover:border-primary transition-all duration-300 hover:shadow-lg">
-                      <CardContent className="p-6 flex flex-col items-center text-center gap-4">
+                  <label htmlFor="caption" className="cursor-pointer h-full">
+                    <Card className="hover:border-primary transition-all duration-300 hover:shadow-lg h-full">
+                      <CardContent className="p-6 flex flex-col items-center text-center gap-4 h-full justify-between min-h-[240px]">
                         <RadioGroupItem value="caption" id="caption" className="sr-only" />
-                        <div className="w-16 h-16 rounded-full bg-secondary/10 flex items-center justify-center">
-                          <FileText className="h-8 w-8 text-secondary" />
-                        </div>
-                        <div>
-                          <h3 className="font-semibold text-lg mb-2">Revisar Legenda</h3>
-                          <p className="text-sm text-muted-foreground">Melhore legendas existentes com sugestões da IA</p>
+                        <div className="flex flex-col items-center gap-4 flex-1 justify-center">
+                          <div className="w-16 h-16 rounded-full bg-secondary/10 flex items-center justify-center flex-shrink-0">
+                            <FileText className="h-8 w-8 text-secondary" />
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-lg mb-2">Revisar Legenda</h3>
+                            <p className="text-sm text-muted-foreground">Melhore legendas existentes com sugestões da IA</p>
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
                   </label>
 
-                  <label htmlFor="text-for-image" className="cursor-pointer">
-                    <Card className="hover:border-primary transition-all duration-300 hover:shadow-lg">
-                      <CardContent className="p-6 flex flex-col items-center text-center gap-4">
+                  <label htmlFor="text-for-image" className="cursor-pointer h-full">
+                    <Card className="hover:border-primary transition-all duration-300 hover:shadow-lg h-full">
+                      <CardContent className="p-6 flex flex-col items-center text-center gap-4 h-full justify-between min-h-[240px]">
                         <RadioGroupItem value="text-for-image" id="text-for-image" className="sr-only" />
-                        <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center">
-                          <Type className="h-8 w-8 text-accent" />
-                        </div>
-                        <div>
-                          <h3 className="font-semibold text-lg mb-2">Revisar Texto para Imagem</h3>
-                          <p className="text-sm text-muted-foreground">Otimize textos descritivos para geração de imagens</p>
+                        <div className="flex flex-col items-center gap-4 flex-1 justify-center">
+                          <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0">
+                            <Type className="h-8 w-8 text-accent" />
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-lg mb-2">Revisar Texto para Imagem</h3>
+                            <p className="text-sm text-muted-foreground">Otimize textos descritivos para geração de imagens</p>
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
