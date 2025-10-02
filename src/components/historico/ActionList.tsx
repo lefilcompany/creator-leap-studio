@@ -134,7 +134,7 @@ export default function ActionList({
                         onClick={(e) => handleViewAction(action.id, e)}
                         variant="outline"
                         size="sm"
-                        className="h-8 px-2"
+                        className="h-8 px-2 hover:bg-accent/20 hover:text-accent hover:border-accent"
                       >
                         <Eye className="h-4 w-4" />
                         <span className="ml-1 hidden sm:inline">Visualizar</span>
