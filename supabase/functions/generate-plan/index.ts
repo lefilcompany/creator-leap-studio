@@ -157,7 +157,6 @@ Gere um plano de conteúdo extremamente detalhado seguindo EXATAMENTE a estrutur
           { role: 'user', content: userPrompt }
         ],
         max_completion_tokens: 4000,
-        temperature: 0.8,
       }),
     });
 
