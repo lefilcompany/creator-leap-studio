@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { CreatorLogo } from "@/components/CreatorLogo";
-import { Eye, EyeOff, Chrome, Facebook, Mail, Lock, Sun, Moon } from "lucide-react";
+import { Eye, EyeOff, Chrome, Facebook, Mail, Lock, Sun, Moon, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { TeamSelectionDialog } from "@/components/auth/TeamSelectionDialog";
@@ -235,7 +235,14 @@ const Login = () => {
                 disabled={loading}
                 className="w-full h-12 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-medium rounded-xl transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50"
               >
-                {loading ? "Entrando..." : "Entrar"}
+                {loading ? (
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span>Entrando...</span>
+                  </div>
+                ) : (
+                  "Entrar"
+                )}
               </Button>
             </form>
 
