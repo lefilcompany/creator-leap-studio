@@ -140,7 +140,7 @@ const PlanResult = () => {
           <Button 
             variant="outline" 
             onClick={() => navigate("/plan")}
-            className="flex items-center gap-2 hover:bg-primary/10 hover:text-muted-foreground hover:border-primary"
+            className="flex items-center gap-2 hover:bg-primary/10 hover:text-primary hover:border-primary"
           >
             <ArrowLeft className="h-4 w-4" />
             Criar Novo Planejamento
