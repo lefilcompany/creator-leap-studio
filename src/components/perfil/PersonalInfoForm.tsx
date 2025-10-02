@@ -40,6 +40,11 @@ export default function PersonalInfoForm({ initialData }: PersonalInfoFormProps)
   const [loadingStates, setLoadingStates] = useState(true);
   const [loadingCities, setLoadingCities] = useState(false);
 
+  // Update formData when initialData changes
+  useEffect(() => {
+    setFormData(initialData);
+  }, [initialData]);
+
   const formatPhone = (value: string) => {
     const cleaned = value.replace(/\D/g, '');
     let formatted = cleaned;
