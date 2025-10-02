@@ -45,15 +45,6 @@ const Login = () => {
       }
 
       if (data.user) {
-        // Armazena informações de sessão customizada
-        const loginInfo = {
-          loginTime: Date.now(),
-          rememberMe: rememberMe,
-          // 2 horas = 7200000ms, 4 horas = 14400000ms
-          expiresIn: rememberMe ? 14400000 : 7200000
-        };
-        localStorage.setItem('creator_session_info', JSON.stringify(loginInfo));
-        
         toast.success("Login realizado com sucesso!");
         navigate("/dashboard");
       }
@@ -66,13 +57,6 @@ const Login = () => {
 
   const handleGoogleLogin = async () => {
     try {
-      // Salva preferência de "lembrar de mim" antes do redirect
-      const loginInfo = {
-        loginTime: Date.now(),
-        rememberMe: rememberMe,
-        expiresIn: rememberMe ? 14400000 : 7200000
-      };
-      localStorage.setItem('creator_session_info', JSON.stringify(loginInfo));
       
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',

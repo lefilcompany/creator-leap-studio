@@ -165,14 +165,6 @@ const Register = () => {
       }
 
       if (data.user) {
-        // Armazena informações de sessão customizada (padrão: 2 horas)
-        const loginInfo = {
-          loginTime: Date.now(),
-          rememberMe: false,
-          expiresIn: 7200000 // 2 horas
-        };
-        localStorage.setItem('creator_session_info', JSON.stringify(loginInfo));
-        
         toast.success('Cadastro realizado com sucesso!');
         setShowTeamSelection(true);
       }

@@ -232,17 +232,48 @@ serve(async (req) => {
 
   try {
     const formData = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
-    }
-
-    // Validação de campos obrigatórios
-    if (!formData.description) {
+    // Input validation
+    if (!formData || typeof formData !== 'object') {
       return new Response(
-        JSON.stringify({ error: "Campo 'description' é obrigatório" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ error: 'Invalid form data' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    if (!formData.description || typeof formData.description !== 'string' || formData.description.trim().length === 0) {
+      return new Response(
+        JSON.stringify({ error: 'Description is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    if (formData.description.length > 2000) {
+      return new Response(
+        JSON.stringify({ error: 'Description too long (max 2000 characters)' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    if (formData.additionalInfo && typeof formData.additionalInfo === 'string' && formData.additionalInfo.length > 2000) {
+      return new Response(
+        JSON.stringify({ error: 'Additional info too long' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    if (formData.referenceImages && (!Array.isArray(formData.referenceImages) || formData.referenceImages.length > 5)) {
+      return new Response(
+        JSON.stringify({ error: 'Too many reference images (max 5)' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) {
+      return new Response(
+        JSON.stringify({ error: 'Service configuration error' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -252,17 +283,9 @@ serve(async (req) => {
     // Construir prompt
     let prompt: string;
     if (isEdit) {
-      // Para edição, usar apenas o texto de revisão
       prompt = cleanInput(formData.description);
-      console.log("✏️ Editando imagem existente com instrução:", prompt.substring(0, 200) + "...");
     } else {
-      // Para geração nova, construir prompt detalhado
       prompt = buildDetailedPrompt(formData);
-      console.log("📝 Prompt gerado:", prompt.substring(0, 200) + "...");
-      
-      if (formData.referenceImages && formData.referenceImages.length > 0) {
-        console.log(`📸 ${formData.referenceImages.length} imagem(ns) de referência recebida(s)`);
-      }
     }
 
     // Gerar ou editar imagem com sistema de retry
@@ -287,31 +310,27 @@ serve(async (req) => {
     } catch (error: any) {
       if (error.message === "RATE_LIMIT") {
         return new Response(
-          JSON.stringify({ error: "Limite de requisições excedido. Tente novamente em alguns minutos." }),
+          JSON.stringify({ error: "Rate limit exceeded. Please try again later." }),
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
       
       if (error.message === "PAYMENT_REQUIRED") {
         return new Response(
-          JSON.stringify({ error: "Créditos insuficientes. Adicione créditos ao seu workspace Lovable AI." }),
+          JSON.stringify({ error: "AI credits exhausted. Please add credits." }),
           { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
       
-      console.error(`❌ Todas as ${MAX_RETRIES} tentativas falharam`);
       return new Response(
-        JSON.stringify({ 
-          error: `Não foi possível gerar a imagem após ${MAX_RETRIES} tentativas. Tente novamente em alguns minutos.` 
-        }),
+        JSON.stringify({ error: 'Unable to generate image after retries' }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
   } catch (error) {
-    console.error("❌ Erro na função generate-image:", error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Erro desconhecido" }),
+      JSON.stringify({ error: 'Unable to generate image' }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
