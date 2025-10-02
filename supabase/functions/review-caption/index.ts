@@ -13,7 +13,49 @@ serve(async (req) => {
   }
 
   try {
-    const { caption, prompt, brandName, themeName, userId, teamId } = await req.json();
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Authenticate user from JWT token
+    const authHeader = req.headers.get('authorization');
+    const token = authHeader?.replace('Bearer ', '');
+    
+    if (!token) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const authenticatedUserId = user.id;
+
+    // Fetch user's team from profile
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('team_id')
+      .eq('id', authenticatedUserId)
+      .single();
+
+    if (profileError || !profile?.team_id) {
+      return new Response(
+        JSON.stringify({ error: 'User not associated with a team' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const authenticatedTeamId = profile.team_id;
+
+    const { caption, prompt, brandName, themeName } = await req.json();
 
     // Input validation
     if (!caption || typeof caption !== 'string' || caption.length > 5000) {
@@ -30,22 +72,11 @@ serve(async (req) => {
       );
     }
 
-    if (!userId || !teamId) {
-      return new Response(
-        JSON.stringify({ error: 'User and team information required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
     // Check credits
     const { data: team, error: teamError } = await supabase
       .from('teams')
       .select('credits_reviews')
-      .eq('id', teamId)
+      .eq('id', authenticatedTeamId)
       .single();
 
     if (teamError || !team) {
@@ -182,8 +213,8 @@ Analise a legenda e retorne uma revisão completa em markdown seguindo EXATAMENT
       .from('actions')
       .insert({
         type: 'review-caption',
-        user_id: userId,
-        team_id: teamId,
+        user_id: authenticatedUserId,
+        team_id: authenticatedTeamId,
         brand_id: null,
         details: { caption, prompt, brandName, themeName },
         result: { review },
@@ -200,7 +231,7 @@ Analise a legenda e retorne uma revisão completa em markdown seguindo EXATAMENT
     const { error: updateError } = await supabase
       .from('teams')
       .update({ credits_reviews: team.credits_reviews - 1 })
-      .eq('id', teamId);
+      .eq('id', authenticatedTeamId);
 
     if (updateError) {
       console.error('Error updating credits:', updateError);

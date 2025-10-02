@@ -88,8 +88,6 @@ export default function QuickContent() {
           body: {
             prompt: formData.prompt,
             brandId: formData.brandId || null,
-            userId: user?.id,
-            teamId: team?.id,
           },
         }
       );

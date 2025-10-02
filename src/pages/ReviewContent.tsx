@@ -137,8 +137,6 @@ const ReviewContent = () => {
             prompt: adjustmentsPrompt,
             brandName: selectedBrand?.name,
             themeName: selectedTheme?.title,
-            userId: user.id,
-            teamId: authTeam.id
           }
         });
 
@@ -158,8 +156,6 @@ const ReviewContent = () => {
             prompt: adjustmentsPrompt,
             brandName: selectedBrand?.name,
             themeName: selectedTheme?.title,
-            userId: user.id,
-            teamId: authTeam.id
           }
         });
 
@@ -179,8 +175,6 @@ const ReviewContent = () => {
             prompt: adjustmentsPrompt,
             brandName: selectedBrand?.name,
             themeName: selectedTheme?.title,
-            userId: user.id,
-            teamId: authTeam.id
           }
         });
 

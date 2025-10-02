@@ -13,6 +13,51 @@ serve(async (req) => {
   }
 
   try {
+    // Initialize Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Authenticate user from JWT token
+    const authHeader = req.headers.get('authorization');
+    const token = authHeader?.replace('Bearer ', '');
+    
+    if (!token) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    
+    if (authError || !user) {
+      console.error('Auth error:', authError);
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const authenticatedUserId = user.id;
+
+    // Fetch user's team from profile
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('team_id')
+      .eq('id', authenticatedUserId)
+      .single();
+
+    if (profileError || !profile?.team_id) {
+      console.error('Profile error:', profileError);
+      return new Response(
+        JSON.stringify({ error: 'User not associated with a team' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const authenticatedTeamId = profile.team_id;
+
     const body = await req.json();
     
     // Input validation
@@ -30,20 +75,20 @@ serve(async (req) => {
       );
     }
     
-    const { prompt, brandId, userId, teamId } = body;
+    const { prompt, brandId } = body;
 
-    console.log('Generate Quick Content Request:', { promptLength: prompt.length, brandId, userId, teamId });
-
-    // Initialize Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    console.log('Generate Quick Content Request:', { 
+      promptLength: prompt.length, 
+      brandId, 
+      userId: authenticatedUserId, 
+      teamId: authenticatedTeamId 
+    });
 
     // Check team credits
     const { data: teamData, error: teamError } = await supabase
       .from('teams')
       .select('credits_quick_content')
-      .eq('id', teamId)
+      .eq('id', authenticatedTeamId)
       .single();
 
     if (teamError) {
@@ -148,7 +193,7 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
     const { error: updateError } = await supabase
       .from('teams')
       .update({ credits_quick_content: teamData.credits_quick_content - 1 })
-      .eq('id', teamId);
+      .eq('id', authenticatedTeamId);
 
     if (updateError) {
       console.error('Error updating credits:', updateError);
@@ -160,8 +205,8 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
       .insert({
         type: 'CRIAR_CONTEUDO_RAPIDO',
         brand_id: brandId || null,
-        team_id: teamId,
-        user_id: userId,
+        team_id: authenticatedTeamId,
+        user_id: authenticatedUserId,
         status: 'Aprovado',
         approved: true,
         details: {
