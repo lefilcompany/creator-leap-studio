@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Calendar, ArrowLeft, MessageSquareQuote, Zap, Clipboard, Check, X, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface FormData {
   brand: string;
@@ -21,6 +23,7 @@ interface FormData {
 
 const PlanContent = () => {
   const { user, team } = useAuth();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState<FormData>({
     brand: '',
     theme: [],
@@ -30,30 +33,56 @@ const PlanContent = () => {
     additionalInfo: '',
   });
 
-  const [plannedContent, setPlannedContent] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  const [isResultView, setIsResultView] = useState<boolean>(false);
-  const [isCopied, setIsCopied] = useState(false);
+  const [brands, setBrands] = useState<any[]>([]);
+  const [themes, setThemes] = useState<any[]>([]);
+  const [creditsRemaining, setCreditsRemaining] = useState<number>(0);
+  const [loadingData, setLoadingData] = useState(true);
 
-  // Mock brands and themes for now
-  const brands = [
-    { id: "1", name: "Açúcar Petribu" },
-    { id: "2", name: "Cerâmica Brennand" },
-    { id: "3", name: "Iclub" }
-  ];
+  useEffect(() => {
+    loadData();
+  }, [team]);
 
-  const themes = [
-    { id: "1", title: "Receitas tradicionais", brandId: "1" },
-    { id: "2", title: "Momentos em família", brandId: "1" },
-    { id: "3", title: "Tradição e memória", brandId: "1" },
-    { id: "4", title: "Arte e Design", brandId: "2" },
-    { id: "5", title: "Cultura Pernambucana", brandId: "2" },
-    { id: "6", title: "Inovação e Tecnologia", brandId: "3" },
-  ];
+  const loadData = async () => {
+    if (!team?.id) return;
+    
+    setLoadingData(true);
+    try {
+      // Load brands
+      const { data: brandsData } = await supabase
+        .from('brands')
+        .select('id, name')
+        .eq('team_id', team.id);
+      
+      if (brandsData) setBrands(brandsData);
+
+      // Load themes
+      const { data: themesData } = await supabase
+        .from('strategic_themes')
+        .select('id, title, brand_id')
+        .eq('team_id', team.id);
+      
+      if (themesData) setThemes(themesData);
+
+      // Load team credits
+      const { data: teamData } = await supabase
+        .from('teams')
+        .select('credits_plans')
+        .eq('id', team.id)
+        .single();
+      
+      if (teamData) setCreditsRemaining(teamData.credits_plans);
+
+    } catch (error) {
+      console.error('Error loading data:', error);
+      toast.error('Erro ao carregar dados');
+    } finally {
+      setLoadingData(false);
+    }
+  };
 
   const filteredThemes = formData.brand 
-    ? themes.filter(t => t.brandId === brands.find(b => b.name === formData.brand)?.id)
+    ? themes.filter(t => t.brand_id === formData.brand)
     : [];
 
   const handleBrandChange = (value: string) => {
@@ -61,15 +90,16 @@ const PlanContent = () => {
   };
 
   const handleThemeSelect = (value: string) => {
-    if (value && !formData.theme.includes(value)) {
-      setFormData(prev => ({ ...prev, theme: [...prev.theme, value] }));
+    const theme = themes.find(t => t.id === value);
+    if (theme && !formData.theme.includes(theme.id)) {
+      setFormData(prev => ({ ...prev, theme: [...prev.theme, theme.id] }));
     }
   };
 
-  const handleThemeRemove = (themeToRemove: string) => {
+  const handleThemeRemove = (themeId: string) => {
     setFormData(prev => ({ 
       ...prev, 
-      theme: prev.theme.filter(t => t !== themeToRemove) 
+      theme: prev.theme.filter(t => t !== themeId) 
     }));
   };
 
@@ -102,69 +132,74 @@ const PlanContent = () => {
     setFormData(prev => ({ ...prev, [id]: value }));
   };
 
-  const handleGoBackToForm = () => {
-    setIsResultView(false);
-    setPlannedContent(null);
-    setError(null);
-  };
-
-  const handleCopy = () => {
-    if (!plannedContent) return;
-    navigator.clipboard.writeText(plannedContent).then(() => {
-      setIsCopied(true);
-      toast.success('Conteúdo copiado!');
-      setTimeout(() => setIsCopied(false), 2000);
-    }).catch(() => toast.error('Falha ao copiar.'));
-  };
-
   const generatePlan = async () => {
     if (!formData.brand || formData.theme.length === 0 || !formData.platform || !formData.objective) {
       toast.error('Por favor, preencha todos os campos obrigatórios (*)');
       return;
     }
 
+    if (creditsRemaining <= 0) {
+      toast.error('Você não possui créditos suficientes para planejamento');
+      return;
+    }
+
     setLoading(true);
-    setError(null);
-    setPlannedContent(null);
-    setIsResultView(true);
 
     try {
-      // Simulate AI planning generation with mock content
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      const mockPlan = `
-        <h2>📅 Planejamento de Conteúdo - ${formData.brand}</h2>
-        <p><strong>Plataforma:</strong> ${formData.platform}</p>
-        <p><strong>Quantidade:</strong> ${formData.quantity} posts</p>
-        <p><strong>Temas:</strong> ${formData.theme.join(', ')}</p>
-        
-        <h3>🎯 Objetivo</h3>
-        <p>${formData.objective}</p>
-        
-        ${formData.additionalInfo ? `<h3>ℹ️ Informações Adicionais</h3><p>${formData.additionalInfo}</p>` : ''}
-        
-        <h3>📝 Posts Sugeridos</h3>
-        ${Array.from({ length: Number(formData.quantity) }, (_, i) => `
-          <div style="margin-bottom: 20px; padding: 15px; border-left: 4px solid #3b82f6;">
-            <h4>Post ${i + 1}</h4>
-            <p><strong>Tema:</strong> ${formData.theme[i % formData.theme.length]}</p>
-            <p><strong>Conteúdo:</strong> Post sugerido para ${formData.brand} focado em ${formData.theme[i % formData.theme.length].toLowerCase()}. Desenvolva uma abordagem criativa que conecte com o objetivo de ${formData.objective.toLowerCase()}.</p>
-            <p><strong>Hashtags:</strong> #${formData.brand.replace(/\s+/g, '').toLowerCase()} #${formData.theme[i % formData.theme.length].replace(/\s+/g, '').toLowerCase()} #conteudo</p>
-          </div>
-        `).join('')}
-      `;
-      
-      setPlannedContent(mockPlan);
+      const { data, error } = await supabase.functions.invoke('generate-plan', {
+        body: {
+          brand: formData.brand,
+          themes: formData.theme,
+          platform: formData.platform,
+          quantity: formData.quantity,
+          objective: formData.objective,
+          additionalInfo: formData.additionalInfo,
+          userId: user?.id,
+          teamId: team?.id
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.error) {
+        if (data.error.includes('Créditos insuficientes')) {
+          toast.error('Créditos insuficientes para planejamento');
+        } else {
+          toast.error('Erro ao gerar planejamento');
+        }
+        return;
+      }
+
+      // Navigate to result page with the generated plan
+      navigate('/plan-result', { 
+        state: { 
+          plan: data.plan,
+          actionId: data.actionId
+        } 
+      });
+
+      // Update local credits
+      setCreditsRemaining(data.creditsRemaining);
       toast.success('Planejamento gerado com sucesso!');
+
     } catch (err: any) {
-      setError(err.message || 'Erro ao gerar planejamento');
+      console.error('Error generating plan:', err);
       toast.error('Erro ao gerar planejamento');
     } finally {
       setLoading(false);
     }
   };
 
-  if (!isResultView) {
+  if (loadingData) {
+    return (
+      <div className="min-h-full w-full p-3 sm:p-6 flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
+          <p className="text-muted-foreground">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
     return (
       <div className="min-h-full w-full p-3 sm:p-6">
         <div className="max-w-7xl mx-auto space-y-4 sm:space-y-8">
@@ -195,7 +230,7 @@ const PlanContent = () => {
                       </div>
                       <div className="text-center sm:text-left min-w-0">
                         <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent block">
-                          ∞
+                          {creditsRemaining}
                         </span>
                         <p className="text-xs sm:text-sm text-muted-foreground font-medium leading-tight">
                           Planejamentos Restantes
@@ -232,7 +267,7 @@ const PlanContent = () => {
                       </SelectTrigger>
                       <SelectContent className="rounded-2xl border-border/20 bg-background/95 backdrop-blur-sm">
                         {brands.map((brand) => (
-                          <SelectItem key={brand.id} value={brand.name} className="rounded-xl">
+                          <SelectItem key={brand.id} value={brand.id} className="rounded-xl">
                             {brand.name}
                           </SelectItem>
                         ))}
@@ -297,8 +332,8 @@ const PlanContent = () => {
                       {filteredThemes.map((t) => (
                         <SelectItem 
                           key={t.id} 
-                          value={t.title} 
-                          disabled={formData.theme.includes(t.title)} 
+                          value={t.id} 
+                          disabled={formData.theme.includes(t.id)} 
                           className="rounded-xl"
                         >
                           {t.title}
@@ -320,22 +355,25 @@ const PlanContent = () => {
                       </div>
                     ) : (
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 p-4 rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10">
-                        {formData.theme.map((t, index) => (
-                          <div 
-                            key={t} 
-                            className="group flex items-center justify-between bg-background/80 backdrop-blur-sm border border-primary/20 rounded-xl px-4 py-3 shadow-sm hover:shadow-md transition-all hover:scale-105 animate-fade-in"
-                            style={{ animationDelay: `${index * 0.1}s` }}
-                          >
-                            <span className="text-sm font-medium text-foreground truncate flex-1 mr-2">{t}</span>
-                            <button 
-                              onClick={() => handleThemeRemove(t)} 
-                              className="flex-shrink-0 w-6 h-6 rounded-full bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground transition-all flex items-center justify-center group-hover:scale-110" 
-                              aria-label={`Remover tema ${t}`}
+                        {formData.theme.map((themeId, index) => {
+                          const theme = themes.find(t => t.id === themeId);
+                          return (
+                            <div 
+                              key={themeId} 
+                              className="group flex items-center justify-between bg-background/80 backdrop-blur-sm border border-primary/20 rounded-xl px-4 py-3 shadow-sm hover:shadow-md transition-all hover:scale-105 animate-fade-in"
+                              style={{ animationDelay: `${index * 0.1}s` }}
                             >
-                              <X size={12} />
-                            </button>
-                          </div>
-                        ))}
+                              <span className="text-sm font-medium text-foreground truncate flex-1 mr-2">{theme?.title || themeId}</span>
+                              <button 
+                                onClick={() => handleThemeRemove(themeId)} 
+                                className="flex-shrink-0 w-6 h-6 rounded-full bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground transition-all flex items-center justify-center group-hover:scale-110" 
+                                aria-label={`Remover tema ${theme?.title || themeId}`}
+                              >
+                                <X size={12} />
+                              </button>
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
                   </div>
@@ -408,7 +446,6 @@ const PlanContent = () => {
                       </p>
                     </div>
                   )}
-                  {error && <p className="text-destructive mt-4 text-center text-sm sm:text-base max-w-lg">{error}</p>}
                 </div>
               </CardContent>
             </Card>
@@ -416,83 +453,6 @@ const PlanContent = () => {
         </div>
       </div>
     );
-  }
-
-  // Result View
-  return (
-    <div className="min-h-full p-6">
-      <div className="max-w-7xl mx-auto space-y-8">
-        {/* Result Header */}
-        <Card className="shadow-lg border-0 bg-gradient-to-r from-secondary/5 via-primary/5 to-secondary/5">
-          <CardHeader>
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="flex-shrink-0 bg-secondary/10 text-secondary rounded-lg p-3">
-                  <MessageSquareQuote className="h-8 w-8" />
-                </div>
-                <div>
-                  <h1 className="text-2xl md:text-3xl font-bold">Planejar Conteúdo</h1>
-                  <p className="text-muted-foreground text-sm md:text-base">
-                    Gere seu calendário de posts com IA
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button onClick={handleGoBackToForm} variant="outline" className="rounded-xl px-4 py-2 border-2 border-primary/30">
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Criar Novo
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-        </Card>
-
-        {/* Result Content */}
-        <Card className="backdrop-blur-sm bg-card/60 border border-border/20 shadow-lg shadow-black/5 rounded-2xl overflow-hidden">
-          <CardHeader className="pb-4 bg-gradient-to-r from-primary/5 to-secondary/5 flex flex-row items-center justify-between">
-            <div>
-              <h2 className="text-xl font-semibold flex items-center gap-3">
-                <div className="w-2 h-2 bg-primary rounded-full"></div>
-                Resultado do Planejamento
-              </h2>
-              <p className="text-muted-foreground text-sm">Conteúdo gerado com base nos seus parâmetros</p>
-            </div>
-            {plannedContent && !loading && (
-              <Button onClick={handleCopy} variant="outline" size="sm" className="rounded-lg">
-                {isCopied ? (
-                  <Check className="h-4 w-4 mr-2 text-green-500" />
-                ) : (
-                  <Clipboard className="h-4 w-4 mr-2" />
-                )}
-                {isCopied ? 'Copiado!' : 'Copiar Texto'}
-              </Button>
-            )}
-          </CardHeader>
-          <CardContent className="p-6">
-            <div className="w-full min-h-[500px] bg-card rounded-2xl p-6 shadow-inner border border-border/20 flex flex-col overflow-hidden">
-              {loading && (
-                <div className="flex flex-col items-center justify-center h-full text-center">
-                  <div className="animate-pulse">
-                    <MessageSquareQuote size={64} className="text-primary" />
-                  </div>
-                  <p className="mt-4 text-muted-foreground text-lg">Gerando seu planejamento...</p>
-                </div>
-              )}
-              {plannedContent && !loading && (
-                <div
-                  className="prose prose-sm dark:prose-invert max-w-none text-left overflow-y-auto"
-                  dangerouslySetInnerHTML={{ __html: plannedContent }}
-                />
-              )}
-              {error && !loading && (
-                <p className="text-destructive p-4 text-center text-base">{error}</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
 };
 
 export default PlanContent;

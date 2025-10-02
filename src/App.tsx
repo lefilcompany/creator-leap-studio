@@ -17,6 +17,7 @@ import CreateContent from "./pages/CreateContent";
 import ContentResult from "./pages/ContentResult";
 import ReviewContent from "./pages/ReviewContent";
 import PlanContent from "./pages/PlanContent";
+import PlanResult from "./pages/PlanResult";
 import Plans from "./pages/Plans";
 import Team from "./pages/Team";
 import Profile from "./pages/Profile";
@@ -51,6 +52,7 @@ const App = () => (
               <Route path="result" element={<ContentResult />} />
               <Route path="review" element={<ReviewContent />} />
               <Route path="plan" element={<PlanContent />} />
+              <Route path="plan-result" element={<PlanResult />} />
               <Route path="plans" element={<Plans />} />
               <Route path="team" element={<Team />} />
               <Route path="profile" element={<Profile />} />
