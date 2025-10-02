@@ -241,7 +241,7 @@ const Login = () => {
                     Mantenha-me conectado
                   </Label>
                 </div>
-                <a href="#" className="text-sm text-primary hover:text-primary/80 transition-colors">
+                <a href="/forgot-password" className="text-sm text-primary hover:text-primary/80 transition-colors">
                   Esqueceu a senha?
                 </a>
               </div>
