@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, Eye, Clock } from 'lucide-react';
@@ -70,9 +71,11 @@ export default function ActionList({
   totalPages,
   onPageChange,
 }: ActionListProps) {
+  const navigate = useNavigate();
+
   const handleViewAction = (actionId: string, event: React.MouseEvent) => {
     event.stopPropagation();
-    window.open(`/historico/${actionId}`, '_blank');
+    navigate(`/historico/${actionId}`);
   };
 
   const handlePageClick = (page: number | string, event?: React.MouseEvent) => {
