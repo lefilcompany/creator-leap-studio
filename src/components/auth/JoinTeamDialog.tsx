@@ -40,11 +40,14 @@ export function JoinTeamDialog({ open, onClose, onBack, onSuccess }: JoinTeamDia
       }
 
       // Buscar equipe pelo código usando função SQL segura
+      console.log('🔍 Buscando equipe com código:', teamCode.trim());
       const { data: teamId, error: teamError } = await supabase
         .rpc('get_team_id_by_code', { p_team_code: teamCode.trim() });
 
+      console.log('📊 Resultado da busca - teamId:', teamId, 'error:', teamError);
+
       if (teamError) {
-        console.error('Erro ao buscar equipe:', teamError);
+        console.error('❌ Erro ao buscar equipe:', teamError);
         toast.error("Erro ao buscar equipe. Tente novamente.");
         return;
       }
@@ -53,6 +56,8 @@ export function JoinTeamDialog({ open, onClose, onBack, onSuccess }: JoinTeamDia
         toast.error("Código de equipe inválido. Verifique e tente novamente.");
         return;
       }
+
+      console.log('✅ Equipe encontrada com ID:', teamId);
 
       // Verificar se já existe uma solicitação pendente
       const { data: existingRequest } = await supabase
