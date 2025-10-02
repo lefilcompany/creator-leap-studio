@@ -239,7 +239,19 @@ const Plans = () => {
                   </div>
 
                   {plan.name !== 'FREE' && (
-                    <Button className="w-full text-xs md:text-sm" variant={isPopular ? 'default' : 'outline'} size="sm" onClick={() => handleSubscribe(plan)} disabled={isCurrentPlan || loadingPlanId === plan.id || plan.price > 0 && !plan.stripePriceId}>
+                    <Button 
+                      className="w-full text-xs md:text-sm" 
+                      variant={isPopular ? 'default' : 'outline'} 
+                      size="sm" 
+                      onClick={() => {
+                        if (plan.name === 'ENTERPRISE') {
+                          toast.info('Em breve você poderá entrar em contato via WhatsApp Business');
+                        } else {
+                          handleSubscribe(plan);
+                        }
+                      }} 
+                      disabled={isCurrentPlan || loadingPlanId === plan.id || (plan.price > 0 && !plan.stripePriceId && plan.name !== 'ENTERPRISE')}
+                    >
                       {isCurrentPlan ? 'Plano Atual' : loadingPlanId === plan.id ? 'Processando...' : plan.name === 'ENTERPRISE' ? 'Entrar em Contato' : plan.price > 0 && !plan.stripePriceId ? 'Em Breve' : 'Assinar Agora'}
                     </Button>
                   )}
