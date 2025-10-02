@@ -81,10 +81,18 @@ const Plans = () => {
       await loadPlans();
 
       if (team) {
+        // Calcular status baseado em subscription_period_end
+        const now = new Date();
+        const periodEnd = team.subscription_period_end ? new Date(team.subscription_period_end) : null;
+        const daysRemaining = periodEnd ? Math.ceil((periodEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)) : 0;
+        const isExpired = team.plan.id === 'free' && periodEnd && periodEnd < now;
+        const isTrial = team.plan.id === 'free';
+        
         setSubscriptionStatus({
-          canAccess: true,
-          isExpired: false,
-          isTrial: false,
+          canAccess: !isExpired,
+          isExpired: isExpired || false,
+          isTrial,
+          daysRemaining: Math.max(0, daysRemaining),
           plan: team.plan
         });
       }

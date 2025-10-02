@@ -18,6 +18,7 @@ interface Team {
   admin: string;
   admin_id?: string;
   plan: Plan;
+  subscription_period_end?: string;
   credits?: {
     quickContentCreations: number;
     contentSuggestions: number;
@@ -31,6 +32,8 @@ export function useAuth() {
   const [session, setSession] = useState<Session | null>(null);
   const [team, setTeam] = useState<Team | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isTrialExpired, setIsTrialExpired] = useState(false);
+  const [trialDaysRemaining, setTrialDaysRemaining] = useState<number | null>(null);
 
   useEffect(() => {
     // Set up auth state listener
@@ -113,12 +116,22 @@ export function useAuth() {
           if (teamData && teamData.plans) {
             const planData = teamData.plans as any;
             
+            // Calculate trial expiration
+            const now = new Date();
+            const periodEnd = teamData.subscription_period_end ? new Date(teamData.subscription_period_end) : null;
+            const daysRemaining = periodEnd ? Math.ceil((periodEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)) : null;
+            const isExpired = teamData.plan_id === 'free' && periodEnd && periodEnd < now;
+            
+            setIsTrialExpired(isExpired || false);
+            setTrialDaysRemaining(daysRemaining);
+            
             setTeam({
               id: teamData.id,
               name: teamData.name,
               code: teamData.code,
               admin: teamData.admin_id,
               admin_id: teamData.admin_id,
+              subscription_period_end: teamData.subscription_period_end,
               plan: {
                 id: planData.id,
                 name: planData.name,
@@ -164,6 +177,8 @@ export function useAuth() {
     team,
     isAuthenticated: !!user,
     isLoading,
+    isTrialExpired,
+    trialDaysRemaining,
     logout
   };
 }

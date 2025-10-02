@@ -10,7 +10,7 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children, requireTeam = true }: ProtectedRouteProps) {
-  const { user, team, isLoading } = useAuth();
+  const { user, team, isLoading, isTrialExpired } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -25,11 +25,17 @@ export function ProtectedRoute({ children, requireTeam = true }: ProtectedRouteP
       // Se requer equipe e o usuário não tem equipe, mostra mensagem
       if (requireTeam && !team) {
         toast.error('Você precisa estar em uma equipe para ver esta página');
-        // Não redireciona, só mostra a mensagem
+        return;
+      }
+
+      // Se o período de teste expirou, redireciona para página de planos
+      if (requireTeam && team && isTrialExpired) {
+        toast.error('Seu período de teste expirou. Escolha um plano para continuar.');
+        navigate('/plans?expired=true');
         return;
       }
     }
-  }, [user, team, isLoading, navigate, requireTeam]);
+  }, [user, team, isLoading, isTrialExpired, navigate, requireTeam]);
 
   // Mostra loading enquanto verifica autenticação
   if (isLoading) {
