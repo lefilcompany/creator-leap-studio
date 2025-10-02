@@ -35,6 +35,12 @@ export function useAuth() {
   const [isTrialExpired, setIsTrialExpired] = useState(false);
   const [trialDaysRemaining, setTrialDaysRemaining] = useState<number | null>(null);
 
+  const reloadUserData = async () => {
+    if (session?.user) {
+      await loadUserData(session.user);
+    }
+  };
+
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -188,6 +194,7 @@ export function useAuth() {
     isLoading,
     isTrialExpired,
     trialDaysRemaining,
-    logout
+    logout,
+    reloadUserData
   };
 }

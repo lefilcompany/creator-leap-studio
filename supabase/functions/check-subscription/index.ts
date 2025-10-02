@@ -62,25 +62,44 @@ serve(async (req) => {
     const customerId = customers.data[0].id;
     logStep("Found Stripe customer", { customerId });
 
+    // Verificar subscriptions com status active, trialing ou past_due
     const subscriptions = await stripe.subscriptions.list({
       customer: customerId,
-      status: "active",
-      limit: 1,
+      limit: 10, // Aumentar limite para pegar todas as subscriptions recentes
     });
     
-    const hasActiveSub = subscriptions.data.length > 0;
+    logStep("Subscriptions found", { 
+      count: subscriptions.data.length,
+      statuses: subscriptions.data.map((s: any) => s.status)
+    });
+    
+    // Procurar por subscription válida (active, trialing, ou recém-criada)
+    const validSubscription = subscriptions.data.find((s: any) => 
+      s.status === 'active' || 
+      s.status === 'trialing' || 
+      s.status === 'incomplete'
+    );
+    
+    const hasActiveSub = !!validSubscription;
     let productId = null;
     let subscriptionEnd = null;
     let planId = null;
+    let subscriptionStatus = null;
 
-    if (hasActiveSub) {
-      const subscription = subscriptions.data[0];
+    if (hasActiveSub && validSubscription) {
+      const subscription = validSubscription;
       subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
-      logStep("Active subscription found", { subscriptionId: subscription.id, endDate: subscriptionEnd });
+      subscriptionStatus = subscription.status;
+      
+      logStep("Valid subscription found", { 
+        subscriptionId: subscription.id, 
+        status: subscription.status,
+        endDate: subscriptionEnd 
+      });
       
       productId = subscription.items.data[0].price.product as string;
       planId = STRIPE_PRODUCT_TO_PLAN[productId] || null;
-      logStep("Determined subscription tier", { productId, planId });
+      logStep("Determined subscription tier", { productId, planId, status: subscriptionStatus });
 
       // Buscar team_id do usuário
       const { data: profile } = await supabaseClient
@@ -129,7 +148,9 @@ serve(async (req) => {
       subscribed: hasActiveSub,
       product_id: productId,
       plan_id: planId,
-      subscription_end: subscriptionEnd
+      subscription_end: subscriptionEnd,
+      subscription_status: subscriptionStatus,
+      processing: subscriptionStatus === 'incomplete'
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,

@@ -105,20 +105,65 @@ const Plans = () => {
   }, [user, team, authLoading, loadPlans]);
 
   const checkSubscriptionStatus = async () => {
-    try {
-      const { data, error } = await supabase.functions.invoke('check-subscription');
-      
-      if (error) throw error;
-      
-      if (data?.subscribed) {
-        toast.success('Assinatura ativada com sucesso!');
-        await loadData();
-      } else {
-        toast.info('Aguardando confirmação do pagamento...');
+    const MAX_RETRIES = 10;
+    const RETRY_INTERVAL = 3000; // 3 segundos
+    let currentRetry = 0;
+    
+    const attemptCheck = async (): Promise<boolean> => {
+      try {
+        currentRetry++;
+        
+        toast.info(`Verificando pagamento... (${currentRetry}/${MAX_RETRIES})`, {
+          id: 'subscription-check',
+          description: 'Aguarde enquanto confirmamos sua assinatura'
+        });
+        
+        const { data, error } = await supabase.functions.invoke('check-subscription');
+        
+        if (error) throw error;
+        
+        if (data?.subscribed) {
+          toast.success('Pagamento confirmado!', {
+            id: 'subscription-check',
+            description: 'Sua assinatura foi ativada com sucesso'
+          });
+          
+          // Forçar reload dos dados do useAuth
+          window.location.href = '/dashboard?payment_success=true';
+          return true;
+        }
+        
+        // Se não está subscribed mas não deu erro, continuar tentando
+        if (currentRetry >= MAX_RETRIES) {
+          toast.error('Tempo limite excedido', {
+            id: 'subscription-check',
+            description: 'Clique em "Verificar Status" para tentar novamente'
+          });
+          return false;
+        }
+        
+        // Tentar novamente após o intervalo
+        await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
+        return attemptCheck();
+        
+      } catch (error) {
+        console.error('Error checking subscription:', error);
+        
+        if (currentRetry >= MAX_RETRIES) {
+          toast.error('Erro ao verificar pagamento', {
+            id: 'subscription-check',
+            description: 'Entre em contato com o suporte se o problema persistir'
+          });
+          return false;
+        }
+        
+        // Tentar novamente após o intervalo mesmo com erro
+        await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
+        return attemptCheck();
       }
-    } catch (error) {
-      console.error('Error checking subscription:', error);
-    }
+    };
+    
+    return attemptCheck();
   };
 
   useEffect(() => {
@@ -126,9 +171,7 @@ const Plans = () => {
     const canceled = searchParams.get('canceled');
     
     if (success === 'true') {
-      toast.success('Processando pagamento...', {
-        description: 'Verificando status da assinatura'
-      });
+      // Iniciar verificação automática com polling
       checkSubscriptionStatus();
     }
     
