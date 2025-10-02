@@ -14,3 +14,9 @@ verify_jwt = true
 
 [functions.review-text-for-image]
 verify_jwt = true
+
+[functions.create-checkout]
+verify_jwt = true
+
+[functions.check-subscription]
+verify_jwt = true

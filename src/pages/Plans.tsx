@@ -104,7 +104,40 @@ const Plans = () => {
     }
   }, [user, team, authLoading, loadPlans]);
 
+  const checkSubscriptionStatus = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('check-subscription');
+      
+      if (error) throw error;
+      
+      if (data?.subscribed) {
+        toast.success('Assinatura ativada com sucesso!');
+        await loadData();
+      } else {
+        toast.info('Aguardando confirmação do pagamento...');
+      }
+    } catch (error) {
+      console.error('Error checking subscription:', error);
+    }
+  };
+
   useEffect(() => {
+    const success = searchParams.get('success');
+    const canceled = searchParams.get('canceled');
+    
+    if (success === 'true') {
+      toast.success('Processando pagamento...', {
+        description: 'Verificando status da assinatura'
+      });
+      checkSubscriptionStatus();
+    }
+    
+    if (canceled === 'true') {
+      toast.info('Checkout cancelado', {
+        description: 'Você pode tentar novamente quando quiser'
+      });
+    }
+    
     loadData();
   }, [loadData]);
   const handleSubscribe = async (plan: Plan) => {
@@ -112,24 +145,34 @@ const Plans = () => {
       navigate('/login');
       return;
     }
+
+    if (plan.name === 'ENTERPRISE') {
+      toast.info('Redirecionando para o WhatsApp Business...');
+      return;
+    }
+
     if (plan.price > 0 && !plan.stripePriceId) {
       toast.error('Este plano ainda não está disponível para compra.', {
         description: 'Entre em contato com o suporte.'
       });
       return;
     }
+
     try {
       setLoadingPlanId(plan.id);
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      if (plan.price > 0) {
+      
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: { price_id: plan.stripePriceId }
+      });
+
+      if (error) throw error;
+
+      if (data?.url) {
+        window.open(data.url, '_blank');
         toast.success('Redirecionando para o checkout...');
-        // Redirecionar para Stripe checkout
-      } else {
-        toast.success('Plano gratuito ativado com sucesso!');
-        setShowPlansSelection(false);
-        await loadData();
       }
     } catch (error) {
+      console.error('Error:', error);
       toast.error('Erro ao iniciar assinatura. Tente novamente.');
     } finally {
       setLoadingPlanId(null);
