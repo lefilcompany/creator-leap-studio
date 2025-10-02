@@ -63,84 +63,105 @@ serve(async (req) => {
     }
 
     // Build comprehensive prompt based on PDF structure
-    const systemPrompt = `Você é um especialista em planejamento de conteúdo estratégico para redes sociais. Sua tarefa é criar planos de conteúdo detalhados, estruturados e altamente acionáveis seguindo o formato abaixo:
+    const systemPrompt = `Você é um especialista em planejamento de conteúdo estratégico para redes sociais.
 
-# ESTRUTURA DO PLANO DE CONTEÚDO
+IMPORTANTE: Você DEVE gerar EXATAMENTE ${quantity} post(s) completo(s).
 
-## 1. OBJETIVOS DE NEGÓCIO
-Liste 3-4 objetivos claros e mensuráveis alinhados com a marca
+Use a seguinte estrutura para o planejamento:
 
-## 2. UNIVERSOS-ALVO
-Descreva as principais personas/públicos-alvo e suas necessidades específicas
+# Plano de Conteúdo Estratégico
 
-## 3. PILARES EDITORIAIS (70/20/10)
-- 70% Educação/Autoridade
-- 20% Prova social/Produto
-- 10% Cultura/Brand
+## Marca: [Nome da Marca]
 
-## 4. MÍDIAS & CADÊNCIA
-Defina frequência e tipo de conteúdo para a plataforma selecionada
+## Tema(s): [Temas Estratégicos]
 
-## 5. CALENDÁRIO SUGERIDO
-Organize os posts em semanas com sugestão de horários para publicação
+## Plataforma: [Plataforma]
 
-## 6. SUGESTÕES DE POSTS
-Para cada post sugerido (até ${quantity} posts), inclua:
+## Quantidade de Posts: ${quantity}
 
-### Post [Número] - [Título Descritivo]
-- **Objetivo:** [objetivo específico do post]
-- **Funnel:** [Topo/Meio/Fundo]
-- **Persona:** [público-alvo específico]
-- **Grande Ideia:** [conceito principal em uma frase]
-- **Formato:** [tipo de conteúdo - carrossel/vídeo/reels/etc]
-- **Estrutura/Roteiro:**
-  1. Hook (primeiros segundos): [texto exato]
-  2. Desenvolvimento: [pontos principais]
-  3. Prova/Valor: [dados, exemplos, benefícios]
-  4. Fecho: [CTA ou conclusão]
-- **Legenda/Copy:** [texto completo da legenda]
-- **CTA:** [chamada para ação específica]
-- **Brief de Arte:** [descrição visual detalhada]
-- **Hashtags:** [5-8 hashtags relevantes]
-- **Distribuição:** [estratégia de divulgação]
-- **Métrica-chave:** [KPI principal para medir sucesso]
+## Objetivo Principal: [Objetivo]
 
-IMPORTANTE:
-- Seja específico e detalhado em cada seção
-- Use dados e insights reais quando disponíveis
-- Mantenha tom profissional mas acessível
-- Inclua CTAs claros e mensuráveis
-- Sugira horários baseados no público-alvo
-- Forneça roteiros completos e acionáveis`;
+---
 
-    const userPrompt = `Crie um plano de conteúdo completo e detalhado com as seguintes especificações:
+## SUGESTÕES DE POSTS
 
-**MARCA:** ${brandData?.name || brand}
+Para CADA UM dos ${quantity} posts, siga EXATAMENTE este formato:
+
+### Post [N] - [Título Descritivo e Chamativo]
+
+**Objetivo:** [Objetivo específico - ex: Autoridade, Prova Social, Educação, Cultura/Marca]
+
+**Funil:** [Topo, Meio ou Fundo]
+
+**Persona:** [Descrição específica do público-alvo]
+
+**Grande Ideia:** [Conceito principal em uma frase impactante]
+
+**Formato:** [Tipo de conteúdo - Reels, Carrossel, IGTV, Post estático, etc]
+
+**Estrutura/Roteiro:**
+1. [Primeiro elemento/hook]
+2. [Desenvolvimento]
+3. [Prova/Valor]
+4. [Conclusão/CTA]
+
+**Legenda/Copy:**
+[Texto completo da legenda, incluindo emojis se apropriado. Sempre adicione ao final: "*Beba com moderação. Bebida destinada para maiores de 18 anos." se aplicável à marca]
+
+**CTA (Call to Action):**
+[Chamada para ação clara e específica]
+
+**Brief de Arte:**
+[Descrição visual detalhada com paleta de cores, elementos visuais, composição]
+
+**Hashtags:**
+[5-8 hashtags relevantes separadas por espaço]
+
+**Distribuição:**
+[Estratégia de impulsionamento e alcance]
+
+**Métrica-chave:**
+[KPI principal para medir o sucesso deste post]
+
+---
+
+REGRAS IMPORTANTES:
+- Gere EXATAMENTE ${quantity} post(s) seguindo este formato
+- Mantenha a formatação com os títulos em negrito (**Título:**)
+- Seja específico e detalhado em cada campo
+- Não pule nenhum campo
+- Use linguagem profissional mas acessível
+- Separe cada post com uma linha de "---"`;
+
+    const userPrompt = `Crie um plano de conteúdo completo com EXATAMENTE ${quantity} post(s).
+
+**INFORMAÇÕES DA MARCA:**
+${brandData?.name || brand}
 ${brandData ? `
-**Segmento:** ${brandData.segment}
-**Valores:** ${brandData.values}
-**Objetivos da Marca:** ${brandData.goals}
-**Palavras-chave:** ${brandData.keywords}
-${brandData.promise ? `**Promessa de Marca:** ${brandData.promise}` : ''}
+- Segmento: ${brandData.segment}
+- Valores: ${brandData.values}
+- Objetivos: ${brandData.goals}
+- Palavras-chave: ${brandData.keywords}
+${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
 ` : ''}
 
 **TEMAS ESTRATÉGICOS:**
 ${themeData?.map((t: any, i: number) => `
 ${i + 1}. ${t.title}
-   - Descrição: ${t.description}
+   - ${t.description}
    - Objetivos: ${t.objectives}
-   - Público-alvo: ${t.target_audience}
-   - Tom de voz: ${t.tone_of_voice}
-   - Formatos ideais: ${t.best_formats}
-   - Ação esperada: ${t.expected_action}
+   - Público: ${t.target_audience}
+   - Tom: ${t.tone_of_voice}
+   - Formatos: ${t.best_formats}
 `).join('\n') || themes.join(', ')}
 
-**PLATAFORMA:** ${platform}
-**QUANTIDADE DE POSTS:** ${quantity}
-**OBJETIVO DO PLANEJAMENTO:** ${objective}
-${additionalInfo ? `**INFORMAÇÕES ADICIONAIS:** ${additionalInfo}` : ''}
+**ESPECIFICAÇÕES:**
+- Plataforma: ${platform}
+- Quantidade de Posts: ${quantity}
+- Objetivo: ${objective}
+${additionalInfo ? `- Informações Adicionais: ${additionalInfo}` : ''}
 
-Gere um plano de conteúdo extremamente detalhado seguindo EXATAMENTE a estrutura fornecida no sistema prompt. Seja específico, criativo e forneça roteiros completos para cada post.`;
+LEMBRE-SE: Gere EXATAMENTE ${quantity} post(s) completo(s) seguindo TODA a estrutura fornecida.`;
 
     console.log('Calling Lovable AI...');
 
@@ -156,7 +177,8 @@ Gere um plano de conteúdo extremamente detalhado seguindo EXATAMENTE a estrutur
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
         ],
-        max_completion_tokens: 4000,
+        max_completion_tokens: 8000,
+        temperature: 0.7,
       }),
     });
 
