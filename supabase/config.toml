@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.generate-plan]
 verify_jwt = true
+
+[functions.generate-quick-content]
+verify_jwt = true

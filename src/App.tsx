@@ -18,6 +18,8 @@ import ContentResult from "./pages/ContentResult";
 import ReviewContent from "./pages/ReviewContent";
 import PlanContent from "./pages/PlanContent";
 import PlanResult from "./pages/PlanResult";
+import QuickContent from "./pages/QuickContent";
+import QuickContentResult from "./pages/QuickContentResult";
 import Plans from "./pages/Plans";
 import Team from "./pages/Team";
 import Profile from "./pages/Profile";
@@ -53,6 +55,8 @@ const App = () => (
               <Route path="review" element={<ReviewContent />} />
               <Route path="plan" element={<PlanContent />} />
               <Route path="plan-result" element={<PlanResult />} />
+              <Route path="quick-content" element={<QuickContent />} />
+              <Route path="quick-content-result" element={<QuickContentResult />} />
               <Route path="plans" element={<Plans />} />
               <Route path="team" element={<Team />} />
               <Route path="profile" element={<Profile />} />

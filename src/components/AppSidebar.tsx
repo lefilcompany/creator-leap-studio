@@ -9,7 +9,8 @@ import {
   Sparkles,
   CheckCircle,
   Rocket,
-  Palette
+  Palette,
+  Zap
 } from "lucide-react";
 import {
   Sidebar,
@@ -37,6 +38,7 @@ const navLinks = [
 
 const actionButtons = [
     { id: "nav-criar", href: "/create", icon: Sparkles, label: "Criar Conteúdo", variant: "primary" as const },
+    { id: "nav-rapido", href: "/quick-content", icon: Zap, label: "Criação Rápida", variant: "primary" as const },
     { id: "nav-revisar", href: "/review", icon: CheckCircle, label: "Revisar Conteúdo", variant: "accent" as const },
     { id: "nav-planejar", href: "/plan", icon: Calendar, label: "Planejar Conteúdo", variant: "secondary" as const },
 ];
