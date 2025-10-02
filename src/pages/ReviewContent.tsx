@@ -489,7 +489,7 @@ const ReviewContent = () => {
                       <Button 
                         onClick={handleReset} 
                         variant="outline"
-                        className="flex-1 h-14 rounded-2xl text-lg font-bold border-2"
+                        className="flex-1 h-14 rounded-2xl text-lg font-bold border-2 hover:bg-accent/20 hover:text-accent hover:border-accent"
                       >
                         Voltar
                       </Button>
