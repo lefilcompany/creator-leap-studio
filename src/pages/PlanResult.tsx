@@ -41,87 +41,103 @@ const PlanResult = () => {
       const maxWidth = pageWidth - (margin * 2);
       let yPosition = margin;
 
-      // Helper function to add new page if needed
       const checkPageBreak = (requiredSpace: number) => {
         if (yPosition + requiredSpace > pageHeight - margin) {
           pdf.addPage();
           yPosition = margin;
+          return true;
         }
+        return false;
       };
 
-      // Helper function to add text with word wrap
-      const addText = (text: string, fontSize: number, fontStyle: 'normal' | 'bold' = 'normal', color: [number, number, number] = [0, 0, 0]) => {
+      const addTextBlock = (text: string, fontSize: number, fontStyle: 'normal' | 'bold' = 'normal', color: [number, number, number] = [0, 0, 0], leftMargin: number = 0) => {
         pdf.setFontSize(fontSize);
         pdf.setFont('helvetica', fontStyle);
         pdf.setTextColor(...color);
-        const lines = pdf.splitTextToSize(text, maxWidth);
         
-        lines.forEach((line: string) => {
+        const effectiveWidth = maxWidth - leftMargin;
+        const lines = pdf.splitTextToSize(text, effectiveWidth);
+        
+        lines.forEach((line: string, index: number) => {
           checkPageBreak(fontSize * 0.6);
-          pdf.text(line, margin, yPosition);
+          pdf.text(line, margin + leftMargin, yPosition);
           yPosition += fontSize * 0.5;
         });
       };
 
-      // Parse markdown content and structure it
       const lines = planContent.split('\n');
+      let insideList = false;
       
-      lines.forEach((line) => {
-        line = line.trim();
-        if (!line) {
-          yPosition += 3;
+      lines.forEach((line, index) => {
+        const trimmedLine = line.trim();
+        
+        if (!trimmedLine) {
+          yPosition += 4;
+          insideList = false;
           return;
         }
 
-        // H1 - Main headers (e.g., "Plano de Conteúdo Estratégico")
-        if (line.startsWith('# ') && !line.startsWith('## ')) {
+        // H1 - Main headers
+        if (trimmedLine.startsWith('# ') && !trimmedLine.startsWith('## ')) {
+          checkPageBreak(20);
+          const text = trimmedLine.replace(/^#\s+/, '');
+          addTextBlock(text, 16, 'bold', [41, 128, 185]);
+          yPosition += 6;
+          insideList = false;
+        }
+        // H2 - Section headers
+        else if (trimmedLine.startsWith('## ')) {
           checkPageBreak(15);
-          const text = line.replace(/^#\s+/, '');
-          addText(text, 16, 'bold', [41, 128, 185]);
+          const text = trimmedLine.replace(/^##\s+/, '');
+          addTextBlock(text, 14, 'bold', [52, 152, 219]);
           yPosition += 5;
+          insideList = false;
         }
-        // H2 - Section headers (e.g., "Post 1:")
-        else if (line.startsWith('## ')) {
+        // H3 - Subsection headers
+        else if (trimmedLine.startsWith('### ')) {
           checkPageBreak(12);
-          const text = line.replace(/^##\s+/, '');
-          addText(text, 14, 'bold', [52, 152, 219]);
+          const text = trimmedLine.replace(/^###\s+/, '');
+          addTextBlock(text, 12, 'bold', [44, 62, 80]);
           yPosition += 4;
-        }
-        // H3 - Subsection headers (e.g., "Objetivo:", "Funil:")
-        else if (line.startsWith('### ')) {
-          checkPageBreak(10);
-          const text = line.replace(/^###\s+/, '');
-          addText(text, 12, 'bold', [44, 62, 80]);
-          yPosition += 3;
+          insideList = false;
         }
         // Bold text (field labels)
-        else if (line.includes('**')) {
-          const text = line.replace(/\*\*/g, '');
-          addText(text, 11, 'bold', [44, 62, 80]);
+        else if (trimmedLine.includes('**') && !trimmedLine.match(/^[\d]+\.\s/) && !trimmedLine.startsWith('- ')) {
+          checkPageBreak(10);
+          const text = trimmedLine.replace(/\*\*/g, '');
+          addTextBlock(text, 11, 'bold', [44, 62, 80]);
+          yPosition += 3;
+          insideList = false;
+        }
+        // Numbered list items
+        else if (trimmedLine.match(/^[\d]+\.\s/)) {
+          if (!insideList) {
+            yPosition += 2;
+            insideList = true;
+          }
+          checkPageBreak(12);
+          addTextBlock(trimmedLine, 10, 'normal', [52, 73, 94], 5);
           yPosition += 2;
         }
-        // List items
-        else if (line.match(/^[\d]+\.\s/) || line.startsWith('- ') || line.startsWith('* ')) {
-          checkPageBreak(10);
-          const text = line;
-          pdf.setFontSize(10);
-          pdf.setFont('helvetica', 'normal');
-          pdf.setTextColor(52, 73, 94);
-          const lines = pdf.splitTextToSize(text, maxWidth - 8);
-          lines.forEach((l: string) => {
-            checkPageBreak(7);
-            pdf.text(l, margin + 5, yPosition);
-            yPosition += 6;
-          });
+        // Bullet list items
+        else if (trimmedLine.startsWith('- ') || trimmedLine.startsWith('* ')) {
+          if (!insideList) {
+            yPosition += 2;
+            insideList = true;
+          }
+          checkPageBreak(12);
+          addTextBlock(trimmedLine, 10, 'normal', [52, 73, 94], 5);
+          yPosition += 2;
         }
         // Regular text
         else {
-          addText(line, 10, 'normal', [52, 73, 94]);
-          yPosition += 2;
+          checkPageBreak(10);
+          addTextBlock(trimmedLine, 10, 'normal', [52, 73, 94]);
+          yPosition += 3;
+          insideList = false;
         }
       });
 
-      // Save the PDF
       pdf.save(`planejamento-${new Date().toISOString().split('T')[0]}.pdf`);
       toast.success('Download do PDF iniciado!');
     } catch (error) {
