@@ -37,98 +37,76 @@ export default function History() {
   const [totalPages, setTotalPages] = useState(0);
   const ITEMS_PER_PAGE = 10;
 
-  // Load brands from database
+  // Load data in parallel for better performance
   useEffect(() => {
-    const loadBrands = async () => {
+    const loadData = async () => {
       if (!user?.teamId) return;
       
       setIsLoadingBrands(true);
+      setIsLoadingActions(true);
+
       try {
-        const { data, error } = await supabase
-          .from('brands')
-          .select('id, name, responsible, created_at, updated_at')
-          .eq('team_id', user.teamId)
-          .order('name');
+        // Load brands and actions in parallel
+        const [brandsResult, actionsResult] = await Promise.all([
+          // Load brands
+          supabase
+            .from('brands')
+            .select('id, name, responsible, created_at, updated_at')
+            .eq('team_id', user.teamId)
+            .order('name'),
+          
+          // Load actions with count in single query
+          (async () => {
+            let query = supabase
+              .from('actions')
+              .select(`
+                id,
+                type,
+                created_at,
+                approved,
+                brand_id,
+                brands!inner(id, name)
+              `, { count: 'exact' })
+              .eq('team_id', user.teamId)
+              .order('created_at', { ascending: false });
 
-        if (error) throw error;
+            // Apply brand filter if needed
+            if (brandFilter !== 'all') {
+              query = query.eq('brand_id', brandFilter);
+            }
 
-        const brandSummaries: BrandSummary[] = (data || []).map(brand => ({
+            // Apply type filter
+            if (typeFilter !== 'all') {
+              const selectedType = Object.entries(ACTION_TYPE_DISPLAY).find(
+                ([_, display]) => display === typeFilter
+              )?.[0];
+              if (selectedType) {
+                query = query.eq('type', selectedType);
+              }
+            }
+
+            // Apply pagination
+            const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+            query = query.range(startIndex, startIndex + ITEMS_PER_PAGE - 1);
+
+            return query;
+          })()
+        ]);
+
+        // Process brands
+        if (brandsResult.error) throw brandsResult.error;
+        const brandSummaries: BrandSummary[] = (brandsResult.data || []).map(brand => ({
           id: brand.id,
           name: brand.name,
           responsible: brand.responsible,
           createdAt: brand.created_at,
           updatedAt: brand.updated_at
         }));
-
         setBrands(brandSummaries);
-      } catch (error) {
-        console.error('Error loading brands:', error);
-        toast({
-          title: "Erro",
-          description: "Erro ao carregar marcas",
-          variant: "destructive"
-        });
-      } finally {
-        setIsLoadingBrands(false);
-      }
-    };
 
-    loadBrands();
-  }, [user, toast]);
-
-  // Load actions from database
-  useEffect(() => {
-    const loadActions = async () => {
-      if (!user?.teamId) return;
-      
-      setIsLoadingActions(true);
-      try {
-        let query = supabase
-          .from('actions')
-          .select(`
-            id,
-            type,
-            created_at,
-            approved,
-            brand_id,
-            brands!inner(id, name)
-          `)
-          .eq('team_id', user.teamId)
-          .order('created_at', { ascending: false });
-
-        // Apply brand filter
-        if (brandFilter !== 'all') {
-          const selectedBrand = brands.find(b => b.name === brandFilter);
-          if (selectedBrand) {
-            query = query.eq('brand_id', selectedBrand.id);
-          }
-        }
-
-        // Apply type filter
-        if (typeFilter !== 'all') {
-          const selectedType = Object.entries(ACTION_TYPE_DISPLAY).find(
-            ([_, display]) => display === typeFilter
-          )?.[0];
-          if (selectedType) {
-            query = query.eq('type', selectedType);
-          }
-        }
-
-        // Get count for pagination
-        const { count } = await supabase
-          .from('actions')
-          .select('*', { count: 'exact', head: true })
-          .eq('team_id', user.teamId);
-
-        // Apply pagination
-        const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-        query = query.range(startIndex, startIndex + ITEMS_PER_PAGE - 1);
-
-        const { data, error } = await query;
-
-        if (error) throw error;
-
-        const actionSummaries: ActionSummary[] = (data || []).map(action => ({
+        // Process actions
+        if (actionsResult.error) throw actionsResult.error;
+        const actionSummaries: ActionSummary[] = (actionsResult.data || []).map(action => ({
           id: action.id,
           type: action.type as any,
           createdAt: action.created_at,
@@ -138,25 +116,24 @@ export default function History() {
             name: action.brands.name
           } : null
         }));
-
         setActions(actionSummaries);
-        setTotalPages(Math.ceil((count || 0) / ITEMS_PER_PAGE));
+        setTotalPages(Math.ceil((actionsResult.count || 0) / ITEMS_PER_PAGE));
+
       } catch (error) {
-        console.error('Error loading actions:', error);
+        console.error('Error loading data:', error);
         toast({
           title: "Erro",
-          description: "Erro ao carregar histórico de ações",
+          description: "Erro ao carregar dados",
           variant: "destructive"
         });
       } finally {
+        setIsLoadingBrands(false);
         setIsLoadingActions(false);
       }
     };
 
-    if (user?.teamId && brands.length > 0) {
-      loadActions();
-    }
-  }, [user, brands, brandFilter, typeFilter, currentPage, toast]);
+    loadData();
+  }, [user?.teamId, brandFilter, typeFilter, currentPage, toast]);
 
   const handleSelectAction = useCallback(async (action: ActionSummary) => {
     setSelectedActionSummary(action);
