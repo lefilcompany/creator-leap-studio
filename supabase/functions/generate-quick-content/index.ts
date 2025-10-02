@@ -13,9 +13,26 @@ serve(async (req) => {
   }
 
   try {
-    const { prompt, brandId, userId, teamId } = await req.json();
+    const body = await req.json();
+    
+    // Input validation
+    if (!body.prompt || typeof body.prompt !== 'string') {
+      return new Response(
+        JSON.stringify({ error: 'Prompt inválido' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    if (body.prompt.length > 5000) {
+      return new Response(
+        JSON.stringify({ error: 'Prompt muito longo (máximo 5000 caracteres)' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    const { prompt, brandId, userId, teamId } = body;
 
-    console.log('Generate Quick Content Request:', { prompt, brandId, userId, teamId });
+    console.log('Generate Quick Content Request:', { promptLength: prompt.length, brandId, userId, teamId });
 
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -32,7 +49,7 @@ serve(async (req) => {
     if (teamError) {
       console.error('Error fetching team:', teamError);
       return new Response(
-        JSON.stringify({ error: 'Erro ao verificar créditos' }),
+        JSON.stringify({ error: 'Erro ao processar solicitação' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -176,7 +193,7 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
   } catch (error) {
     console.error('Error in generate-quick-content function:', error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
+      JSON.stringify({ error: 'Erro ao gerar conteúdo' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

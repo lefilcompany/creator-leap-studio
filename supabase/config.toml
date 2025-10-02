@@ -1,14 +1,5 @@
 project_id = "afxwqkrneraatgovhpkb"
 
-[functions.generate-image]
-verify_jwt = false
-
-[functions.generate-caption]
-verify_jwt = false
-
-[functions.generate-video]
-verify_jwt = false
-
 [functions.generate-plan]
 verify_jwt = true
 
