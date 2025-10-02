@@ -132,7 +132,7 @@ export default function QuickContent() {
   }
 
   return (
-    <div className="container max-w-4xl mx-auto p-6 space-y-6">
+    <div className="container max-w-4xl mx-auto space-y-6">
       {/* Header */}
       <Card className="p-6 bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 border-primary/20">
         <div className="flex items-center justify-between">
