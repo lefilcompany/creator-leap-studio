@@ -1,10 +1,14 @@
-import { History, Eye } from 'lucide-react';
+import { History, Eye, Download, Copy, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import type { Action } from '@/types/action';
 import { ACTION_STYLE_MAP, ACTION_TYPE_DISPLAY } from '@/types/action';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
+import ReactMarkdown from 'react-markdown';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import jsPDF from 'jspdf';
 
 interface ActionDetailsProps {
   action: Action | null;
@@ -36,6 +40,116 @@ const DetailItem = ({ label, value }: { label: string; value: React.ReactNode })
 
 export default function ActionDetails({ action, isLoading = false }: ActionDetailsProps) {
   const navigate = useNavigate();
+  const [isCopied, setIsCopied] = useState(false);
+
+  const handleCopy = (text: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      setIsCopied(true);
+      toast.success('Copiado!');
+      setTimeout(() => setIsCopied(false), 2000);
+    }).catch(() => toast.error('Falha ao copiar.'));
+  };
+
+  const handleDownloadPDF = (planContent: string) => {
+    try {
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 20;
+      const maxWidth = pageWidth - (margin * 2);
+      let yPosition = margin;
+
+      const checkPageBreak = (requiredSpace: number) => {
+        if (yPosition + requiredSpace > pageHeight - margin) {
+          pdf.addPage();
+          yPosition = margin;
+        }
+      };
+
+      const addText = (text: string, fontSize: number, fontStyle: 'normal' | 'bold' = 'normal', color: [number, number, number] = [0, 0, 0]) => {
+        pdf.setFontSize(fontSize);
+        pdf.setFont('helvetica', fontStyle);
+        pdf.setTextColor(...color);
+        const lines = pdf.splitTextToSize(text, maxWidth);
+        
+        lines.forEach((line: string) => {
+          checkPageBreak(fontSize / 2);
+          pdf.text(line, margin, yPosition);
+          yPosition += fontSize / 2;
+        });
+      };
+
+      const lines = planContent.split('\n');
+      
+      lines.forEach((line) => {
+        line = line.trim();
+        if (!line) {
+          yPosition += 3;
+          return;
+        }
+
+        if (line.startsWith('# ') && !line.startsWith('## ')) {
+          checkPageBreak(15);
+          const text = line.replace(/^#\s+/, '');
+          addText(text, 16, 'bold', [41, 128, 185]);
+          yPosition += 5;
+        } else if (line.startsWith('## ')) {
+          checkPageBreak(12);
+          const text = line.replace(/^##\s+/, '');
+          addText(text, 14, 'bold', [52, 152, 219]);
+          yPosition += 4;
+        } else if (line.startsWith('### ')) {
+          checkPageBreak(10);
+          const text = line.replace(/^###\s+/, '');
+          addText(text, 12, 'bold', [44, 62, 80]);
+          yPosition += 3;
+        } else if (line.includes('**')) {
+          const text = line.replace(/\*\*/g, '');
+          addText(text, 11, 'bold', [44, 62, 80]);
+          yPosition += 2;
+        } else if (line.match(/^[\d]+\.\s/) || line.startsWith('- ') || line.startsWith('* ')) {
+          checkPageBreak(8);
+          pdf.setFontSize(10);
+          pdf.setFont('helvetica', 'normal');
+          pdf.setTextColor(52, 73, 94);
+          const lines = pdf.splitTextToSize(line, maxWidth - 5);
+          lines.forEach((l: string) => {
+            checkPageBreak(6);
+            pdf.text(l, margin + 5, yPosition);
+            yPosition += 5;
+          });
+        } else {
+          addText(line, 10, 'normal', [52, 73, 94]);
+          yPosition += 2;
+        }
+      });
+
+      pdf.save(`planejamento-${new Date().toISOString().split('T')[0]}.pdf`);
+      toast.success('Download do PDF iniciado!');
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast.error('Erro ao gerar PDF.');
+    }
+  };
+
+  const handleDownloadImage = (imageUrl: string) => {
+    try {
+      if (imageUrl.startsWith('data:image')) {
+        const link = document.createElement('a');
+        link.href = imageUrl;
+        link.download = `imagem-${new Date().toISOString().split('T')[0]}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast.success('Download iniciado!');
+      } else {
+        window.open(imageUrl, '_blank');
+        toast.success('Imagem aberta em nova aba');
+      }
+    } catch (error) {
+      toast.error('Erro ao fazer download');
+    }
+  };
 
   if (isLoading) {
     return (
@@ -129,7 +243,18 @@ export default function ActionDetails({ action, isLoading = false }: ActionDetai
             )}
             {action.result?.imageUrl && (
               <div className="space-y-2 mb-6">
-                <p className="text-sm font-medium text-muted-foreground">Imagem Gerada</p>
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium text-muted-foreground">Imagem Gerada</p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDownloadImage(action.result.imageUrl!)}
+                    className="gap-2"
+                  >
+                    <Download className="h-4 w-4" />
+                    Download
+                  </Button>
+                </div>
                 <div className="w-full aspect-square bg-secondary/5 rounded-lg border border-secondary/10 overflow-hidden">
                   <img 
                     src={action.result.imageUrl} 
@@ -156,7 +281,18 @@ export default function ActionDetails({ action, isLoading = false }: ActionDetai
             )}
             {action.result?.originalImage ? (
               <div className="space-y-2 mb-6">
-                <p className="text-sm font-medium text-muted-foreground">Imagem Original</p>
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium text-muted-foreground">Imagem Original</p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDownloadImage(action.result.originalImage!)}
+                    className="gap-2"
+                  >
+                    <Download className="h-4 w-4" />
+                    Download
+                  </Button>
+                </div>
                 <div className="w-full aspect-square bg-secondary/5 rounded-lg border border-secondary/10 overflow-hidden">
                   <img 
                     src={action.result.originalImage} 
@@ -181,14 +317,80 @@ export default function ActionDetails({ action, isLoading = false }: ActionDetai
             )}
             {action.result?.plan && (
               <div className="space-y-2 mb-6">
-                <p className="text-sm font-medium text-muted-foreground">Planejamento Gerado</p>
-                <div className="bg-secondary/5 rounded-lg border border-secondary/10 p-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium text-muted-foreground">Planejamento Gerado</p>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDownloadPDF(action.result.plan!)}
+                      className="gap-2"
+                    >
+                      <Download className="h-4 w-4" />
+                      PDF
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleCopy(action.result.plan!)}
+                      className="gap-2"
+                    >
+                      {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                      {isCopied ? "Copiado!" : "Copiar"}
+                    </Button>
+                  </div>
+                </div>
+                <div className="bg-secondary/5 rounded-lg border border-secondary/10 p-6">
                   {typeof action.result.plan === 'string' && action.result.plan.trim().length > 0 ? (
-                    <div
-                      className="prose prose-sm dark:prose-invert max-w-none text-sm leading-relaxed"
-                      style={{ minHeight: 200 }}
-                      dangerouslySetInnerHTML={{ __html: action.result.plan }}
-                    />
+                    <div className="prose prose-sm prose-slate dark:prose-invert max-w-none">
+                      <ReactMarkdown
+                        components={{
+                          h1: ({ children }) => (
+                            <h1 className="text-2xl font-bold text-primary mb-4 pb-2 border-b border-primary/20">
+                              {children}
+                            </h1>
+                          ),
+                          h2: ({ children }) => (
+                            <h2 className="text-xl font-semibold text-foreground mt-6 mb-3 flex items-center gap-2">
+                              <span className="w-1 h-6 bg-gradient-to-b from-primary to-secondary rounded-full flex-shrink-0"></span>
+                              {children}
+                            </h2>
+                          ),
+                          h3: ({ children }) => (
+                            <h3 className="text-lg font-semibold text-foreground mt-5 mb-2">
+                              {children}
+                            </h3>
+                          ),
+                          p: ({ children }) => (
+                            <p className="text-sm text-muted-foreground leading-relaxed mb-3">
+                              {children}
+                            </p>
+                          ),
+                          strong: ({ children }) => (
+                            <strong className="font-semibold text-foreground">
+                              {children}
+                            </strong>
+                          ),
+                          ul: ({ children }) => (
+                            <ul className="list-disc list-inside space-y-1 mb-3 ml-4">
+                              {children}
+                            </ul>
+                          ),
+                          ol: ({ children }) => (
+                            <ol className="list-decimal list-inside space-y-1 mb-3 ml-4">
+                              {children}
+                            </ol>
+                          ),
+                          li: ({ children }) => (
+                            <li className="text-sm text-muted-foreground">
+                              {children}
+                            </li>
+                          ),
+                        }}
+                      >
+                        {action.result.plan}
+                      </ReactMarkdown>
+                    </div>
                   ) : (
                     <p className="text-muted-foreground italic text-sm">
                       Nenhum planejamento disponível
