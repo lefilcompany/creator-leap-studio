@@ -9,15 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 export default function Profile() {
   const { user, team, isLoading } = useAuth();
-
-  if (isLoading || !user) {
-    return (
-      <div className="flex h-full w-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
+  
   const [profileData, setProfileData] = useState({
     name: '',
     email: '',
@@ -49,6 +41,14 @@ export default function Profile() {
 
     loadProfile();
   }, [user]);
+
+  if (isLoading || !user) {
+    return (
+      <div className="flex h-full w-full items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-full w-full">
