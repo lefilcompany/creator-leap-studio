@@ -157,9 +157,21 @@ const Dashboard = () => {
       'quick_content': 'Conteúdo Criado',
       'content_suggestion': 'Sugestão de Conteúdo',
       'content_plan': 'Calendário Planejado',
-      'content_review': 'Conteúdo Revisado'
+      'content_review': 'Conteúdo Revisado',
+      'PLANEJAR_CONTEUDO': 'Planejar Conteúdo',
+      'CRIAR_CONTEUDO': 'Criar Conteúdo',
+      'SUGERIR_CONTEUDO': 'Sugerir Conteúdo',
+      'REVISAR_CONTEUDO': 'Revisar Conteúdo'
     };
-    return types[type] || type;
+    
+    // Se encontrar no mapeamento, retorna
+    if (types[type]) return types[type];
+    
+    // Caso contrário, converte SNAKE_CASE para Título Formatado
+    return type
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
   };
 
   const formatDate = (dateString: string) => {
