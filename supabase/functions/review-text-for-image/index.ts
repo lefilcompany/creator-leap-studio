@@ -72,24 +72,80 @@ serve(async (req) => {
 
     // Build AI prompt
     const systemPrompt = `Você é um especialista em prompts para geração de imagens (text-to-image) e branding visual.
-Analise textos descritivos considerando clareza, especificidade, elementos visuais, estilo artístico e efetividade para gerar imagens impactantes.
-Forneça análise estruturada com pontos positivos, sugestões de melhoria e versões otimizadas do prompt.`;
+Analise textos descritivos de forma profunda, considerando viabilidade técnica, clareza, especificidade, elementos visuais, composição, iluminação, estilo artístico e efetividade para gerar imagens impactantes.
+Forneça análise estruturada, educacional e acionável com score de qualidade, pontos positivos, sugestões técnicas específicas e versões otimizadas do prompt.`;
 
     const contextPrompt = `${brandName ? `Marca: ${brandName}\n` : ''}${themeName ? `Tema Estratégico: ${themeName}\n` : ''}
 Contexto desejado: ${prompt}
 
-TEXTO ORIGINAL:
+TEXTO ORIGINAL PARA ANÁLISE:
 ${text}
 
-Analise o texto e retorne uma revisão completa em markdown com:
-1. **Análise do Texto**: Avaliação da clareza e especificidade
-2. **Pontos Positivos**: Elementos descritivos que funcionam bem
-3. **Sugestões de Melhoria**: Como tornar o texto mais efetivo para geração de imagens
-4. **Versões Otimizadas**: 2-3 versões melhoradas do texto, otimizadas para:
-   - Maior clareza visual
-   - Detalhes específicos de composição, iluminação e estilo
-   - Alinhamento com identidade da marca
-5. **Elementos Recomendados**: Sugestões de elementos visuais adicionais que poderiam enriquecer a imagem`;
+Analise o texto e retorne uma revisão completa em markdown seguindo EXATAMENTE esta estrutura:
+
+## 📊 Análise do Prompt
+
+**Score de Qualidade**: [número de 1-10]/10
+
+**Justificativa do Score**: [breve explicação do score atribuído]
+
+---
+
+### ✅ Pontos Fortes
+- [Liste elementos bem descritos]
+- [Elementos visuais claros]
+- [Especificidade adequada]
+
+---
+
+### ⚠️ Pontos de Melhoria
+- [O que falta especificar]
+- [Ambiguidades identificadas]
+- [Elementos vagos que precisam de detalhamento]
+
+---
+
+### 🎨 Análise de Viabilidade Visual
+
+**Composição**: [Análise da estrutura e disposição dos elementos]
+
+**Iluminação**: [Análise e sugestões de iluminação, sombras, atmosfera]
+
+**Estilo Artístico**: [Recomendações de estilo (realista, ilustrativo, minimalista, etc.)]
+
+**Paleta de Cores**: [Sugestões de cores e harmonia visual]
+
+**Detalhamento Técnico**: [Análise da profundidade de detalhes especificados]
+
+---
+
+### 💡 Versões Otimizadas
+
+#### 1️⃣ Versão Profissional
+[Prompt otimizado focado em qualidade, detalhamento técnico e clareza visual]
+
+#### 2️⃣ Versão Criativa
+[Prompt com elementos artísticos, atmosfera e estilo visual marcante]
+
+#### 3️⃣ Versão Minimalista
+[Prompt simplificado focado nos elementos essenciais e composição limpa]
+
+---
+
+### 🔑 Palavras-chave Técnicas Recomendadas
+
+**Para Composição**: [keywords: rule of thirds, framing, perspective, etc.]
+
+**Para Iluminação**: [keywords: golden hour, dramatic lighting, soft shadows, etc.]
+
+**Para Estilo**: [keywords: photorealistic, cinematic, editorial, etc.]
+
+**Para Qualidade**: [keywords: high resolution, 4K, detailed, sharp focus, etc.]
+
+---
+
+### 🎯 Recomendações Finais
+[Dicas práticas e resumo das principais melhorias a implementar]`;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',

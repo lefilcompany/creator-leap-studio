@@ -71,22 +71,80 @@ serve(async (req) => {
     }
 
     // Build AI prompt
-    const systemPrompt = `Você é um especialista em copywriting para redes sociais e branding.
-Analise legendas considerando engajamento, clareza, tom de voz, call-to-action, uso de hashtags e alinhamento com marca.
-Forneça análise estruturada com pontos positivos, sugestões de melhoria e versões alternativas otimizadas.`;
+    const systemPrompt = `Você é um especialista em copywriting para redes sociais, estratégia de conteúdo digital e otimização de engajamento.
+Analise legendas considerando clareza, impacto, potencial de engajamento, alinhamento com marca, tom de voz, tamanho ideal por plataforma, SEO de hashtags e call-to-action.
+Forneça análise estruturada, educacional e acionável com score de engajamento, análise técnica e versões otimizadas.`;
 
     const contextPrompt = `${brandName ? `Marca: ${brandName}\n` : ''}${themeName ? `Tema Estratégico: ${themeName}\n` : ''}
-Solicitação do usuário: ${prompt}
+Contexto desejado: ${prompt}
 
-LEGENDA ORIGINAL:
+LEGENDA ORIGINAL PARA ANÁLISE:
 ${caption}
 
-Analise a legenda e retorne uma revisão completa em markdown com:
-1. **Análise Geral**: Avaliação do tom, engajamento e efetividade
-2. **Pontos Positivos**: O que está funcionando bem
-3. **Sugestões de Melhoria**: Aspectos que podem ser aprimorados
-4. **Versões Alternativas**: 2-3 versões otimizadas da legenda
-5. **Hashtags Sugeridas**: Se aplicável, sugestões de hashtags relevantes`;
+Analise a legenda e retorne uma revisão completa em markdown seguindo EXATAMENTE esta estrutura:
+
+## 📊 Análise da Legenda
+
+**Score de Engajamento Estimado**: [número de 1-10]/10
+
+**Justificativa do Score**: [breve explicação considerando potencial de curtidas, comentários e compartilhamentos]
+
+---
+
+### ✅ Pontos Fortes
+- [Elementos que geram conexão]
+- [Clareza da mensagem]
+- [Tom de voz adequado]
+
+---
+
+### ⚠️ Pontos de Melhoria
+- [O que pode aumentar engajamento]
+- [Oportunidades de call-to-action]
+- [Ajustes de clareza ou impacto]
+
+---
+
+### 📱 Análise por Plataforma
+
+**Instagram**: [Análise de tamanho (máx. 2.200 caracteres), uso de emojis, primeira linha impactante]
+
+**LinkedIn**: [Análise de tom profissional, tamanho ideal (máx. 3.000 caracteres), valor agregado]
+
+**Facebook**: [Análise de engajamento (ideal 40-80 caracteres), storytelling]
+
+**Twitter/X**: [Análise de concisão (máx. 280 caracteres), urgência, viralidade]
+
+---
+
+### 💡 Versões Otimizadas
+
+#### 1️⃣ Versão Alta Performance
+[Legenda otimizada para máximo engajamento com hooks poderosos e CTA claro]
+
+#### 2️⃣ Versão Storytelling
+[Legenda com narrativa envolvente, conexão emocional e jornada]
+
+#### 3️⃣ Versão Direta
+[Legenda concisa, objetiva e com mensagem clara em poucas palavras]
+
+---
+
+### #️⃣ Análise de Hashtags
+
+**Hashtags da Legenda Original**: [análise das hashtags existentes]
+
+**SEO e Alcance**: [análise de popularidade e relevância]
+
+**Sugestões Estratégicas**:
+- **Alta Performance** (100k-1M posts): [3-5 hashtags populares]
+- **Nicho** (10k-100k posts): [3-5 hashtags específicas]
+- **Marca** (baixo volume): [2-3 hashtags proprietárias]
+
+---
+
+### 🎯 Recomendações Finais
+[Dicas práticas sobre tamanho, timing de postagem, elementos visuais complementares]`;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',

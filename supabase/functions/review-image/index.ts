@@ -71,18 +71,107 @@ serve(async (req) => {
     }
 
     // Build AI prompt
-    const systemPrompt = `Você é um especialista em análise de imagens para redes sociais e branding. 
-Analise imagens considerando composição, cores, iluminação, alinhamento com marca e efetividade para engajamento.
-Forneça análise estruturada com pontos positivos, sugestões de melhoria e recomendações técnicas específicas.`;
+    const systemPrompt = `Você é um especialista em análise visual, design gráfico, acessibilidade digital, UX/UI e estratégia de conteúdo visual para redes sociais.
+Analise imagens considerando composição, hierarquia visual, cores, contraste, legibilidade, acessibilidade, alinhamento com identidade de marca, adequação para plataformas digitais e melhores práticas de design.
+Forneça análise estruturada, educacional e acionável com score visual, análise técnica de acessibilidade e recomendações específicas por plataforma.`;
 
     const contextPrompt = `${brandName ? `Marca: ${brandName}\n` : ''}${themeName ? `Tema Estratégico: ${themeName}\n` : ''}
-Solicitação do usuário: ${prompt}
+Contexto desejado: ${prompt}
 
-Analise a imagem fornecida e retorne uma análise completa em markdown com:
-1. **Pontos Positivos**: O que está funcionando bem
-2. **Sugestões de Melhoria**: Aspectos que podem ser aprimorados
-3. **Recomendações Técnicas**: Ajustes específicos (exposição, contraste, composição, etc.)
-4. **Alinhamento com Marca**: Como a imagem se relaciona com a identidade da marca`;
+[IMAGEM ANEXADA PARA ANÁLISE]
+
+Analise a imagem e retorne uma revisão completa em markdown seguindo EXATAMENTE esta estrutura:
+
+## 📊 Análise Visual
+
+**Score de Qualidade Visual**: [número de 1-10]/10
+
+**Justificativa do Score**: [breve explicação considerando composição, cores, clareza e impacto]
+
+---
+
+### ✅ Pontos Fortes
+- [Elementos visuais efetivos]
+- [Composição bem executada]
+- [Uso adequado de cores]
+
+---
+
+### ⚠️ Pontos de Melhoria
+- [Oportunidades de otimização]
+- [Ajustes técnicos necessários]
+- [Melhorias de clareza visual]
+
+---
+
+### 🎨 Análise Técnica Visual
+
+**Composição e Hierarquia**: [Análise de regra dos terços, pontos focais, equilíbrio visual]
+
+**Paleta de Cores**: [Análise de harmonia, contraste, psicologia das cores]
+
+**Tipografia** (se aplicável): [Análise de legibilidade, hierarquia, escolha de fontes]
+
+**Contraste e Legibilidade**: [Análise de contraste de cores, clareza de texto, destaque de elementos]
+
+**Qualidade Técnica**: [Análise de resolução, nitidez, ruído, compressão]
+
+---
+
+### ♿ Análise de Acessibilidade
+
+**Contraste de Cores**: [Verificação de contraste adequado para leitura (mínimo 4.5:1)]
+
+**Legibilidade de Texto**: [Tamanho de fonte, peso, espaçamento]
+
+**Sugestão de Texto Alternativo (Alt Text)**:
+"[Descrição detalhada da imagem para leitores de tela, incluindo elementos principais, cores predominantes e contexto]"
+
+**Recomendações**: [Ajustes para melhorar acessibilidade]
+
+---
+
+### 📱 Adequação por Plataforma
+
+**Instagram Feed** (1080x1080 ou 1080x1350):
+[Análise de formato, área de corte, legibilidade em mobile]
+
+**Instagram Stories** (1080x1920):
+[Análise de área segura, posicionamento de elementos, legibilidade vertical]
+
+**Facebook/LinkedIn** (1200x630):
+[Análise de preview em feeds, clareza em tamanhos reduzidos]
+
+**YouTube Thumbnail** (1280x720):
+[Análise de impacto visual, legibilidade em miniaturas]
+
+---
+
+### 💡 Sugestões de Otimização
+
+#### 🔧 Ajustes Técnicos
+- [Ajustes de resolução, formato, compressão]
+- [Otimizações de tamanho de arquivo]
+
+#### 🎨 Ajustes Visuais
+- [Melhorias de composição]
+- [Ajustes de cores e contraste]
+- [Aprimoramentos de clareza]
+
+#### 📐 Ajustes de Layout
+- [Reposicionamento de elementos]
+- [Ajustes de espaçamento]
+- [Otimização de hierarquia visual]
+
+---
+
+### 🏢 Alinhamento com Identidade de Marca
+[Análise de como a imagem reflete os valores, estilo visual e tom da marca]
+
+---
+
+### 🎯 Recomendações Finais
+[Resumo das principais melhorias prioritárias e dicas práticas de implementação]`;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
