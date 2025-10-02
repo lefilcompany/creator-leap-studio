@@ -73,9 +73,9 @@ export default function ActionDetails({ action, isLoading = false }: ActionDetai
         const lines = pdf.splitTextToSize(text, maxWidth);
         
         lines.forEach((line: string) => {
-          checkPageBreak(fontSize / 2);
+          checkPageBreak(fontSize * 0.6);
           pdf.text(line, margin, yPosition);
-          yPosition += fontSize / 2;
+          yPosition += fontSize * 0.5;
         });
       };
 
@@ -108,15 +108,15 @@ export default function ActionDetails({ action, isLoading = false }: ActionDetai
           addText(text, 11, 'bold', [44, 62, 80]);
           yPosition += 2;
         } else if (line.match(/^[\d]+\.\s/) || line.startsWith('- ') || line.startsWith('* ')) {
-          checkPageBreak(8);
+          checkPageBreak(10);
           pdf.setFontSize(10);
           pdf.setFont('helvetica', 'normal');
           pdf.setTextColor(52, 73, 94);
-          const lines = pdf.splitTextToSize(line, maxWidth - 5);
+          const lines = pdf.splitTextToSize(line, maxWidth - 8);
           lines.forEach((l: string) => {
-            checkPageBreak(6);
+            checkPageBreak(7);
             pdf.text(l, margin + 5, yPosition);
-            yPosition += 5;
+            yPosition += 6;
           });
         } else {
           addText(line, 10, 'normal', [52, 73, 94]);
