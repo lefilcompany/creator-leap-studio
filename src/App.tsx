@@ -22,6 +22,7 @@ import Team from "./pages/Team";
 import Profile from "./pages/Profile";
 import About from "./pages/About";
 import Privacy from "./pages/Privacy";
+import ActionView from "./pages/ActionView";
 import { DashboardLayout } from "./components/DashboardLayout";
 import NotFound from "./pages/NotFound";
 
@@ -56,6 +57,9 @@ const App = () => (
               <Route path="about" element={<About />} />
               <Route path="privacy" element={<Privacy />} />
             </Route>
+
+            {/* Action View - Outside dashboard layout for full screen */}
+            <Route path="/historico/:actionId" element={<ProtectedRoute><ActionView /></ProtectedRoute>} />
             
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
