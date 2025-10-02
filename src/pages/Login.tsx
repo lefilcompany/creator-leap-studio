@@ -58,8 +58,21 @@ const Login = () => {
           return;
         }
 
-        // Se não tem equipe, mostrar dialog de seleção
+        // Se não tem equipe, verificar se há solicitação pendente
         if (!profileData.team_id) {
+          const { data: pendingRequest } = await supabase
+            .from('team_join_requests')
+            .select('id, status')
+            .eq('user_id', data.user.id)
+            .eq('status', 'pending')
+            .maybeSingle();
+
+          if (pendingRequest) {
+            toast.info("Sua solicitação está pendente. Aguarde a aprovação do administrador da equipe.");
+            await supabase.auth.signOut();
+            return;
+          }
+
           toast.success("Login realizado com sucesso!");
           setShowTeamSelection(true);
         } else {
