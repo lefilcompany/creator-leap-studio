@@ -229,7 +229,7 @@ export default function History() {
                 <SelectContent>
                   <SelectItem value="all">Todas as Marcas</SelectItem>
                   {brands.map(brand => (
-                    <SelectItem key={brand.id} value={brand.name}>{brand.name}</SelectItem>
+                    <SelectItem key={brand.id} value={brand.id}>{brand.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
