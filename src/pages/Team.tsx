@@ -20,6 +20,7 @@ interface JoinRequest {
   id: string;
   name: string;
   email: string;
+  created_at: string;
 }
 
 export default function Team() {
@@ -63,7 +64,8 @@ export default function Team() {
         .from('team_join_requests')
         .select(`
           id,
-          user_id
+          user_id,
+          created_at
         `)
         .eq('team_id', team.id)
         .eq('status', 'pending');
@@ -86,6 +88,7 @@ export default function Team() {
             id: req.id,
             name: profile?.name || 'Usuário',
             email: profile?.email || '',
+            created_at: req.created_at,
           };
         });
 
@@ -289,6 +292,15 @@ export default function Team() {
                         <div className="flex-1 min-w-0">
                           <p className="font-semibold truncate">{request.name}</p>
                           <p className="text-sm text-muted-foreground truncate">{request.email}</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Solicitado em {new Date(request.created_at).toLocaleDateString('pt-BR', { 
+                              day: '2-digit', 
+                              month: '2-digit', 
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </p>
                         </div>
                       </div>
                       <div className="flex gap-2 flex-shrink-0">
