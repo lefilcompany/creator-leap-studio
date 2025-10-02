@@ -45,8 +45,27 @@ const Login = () => {
       }
 
       if (data.user) {
-        toast.success("Login realizado com sucesso!");
-        navigate("/dashboard");
+        // Verificar se o usuário tem equipe
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('team_id')
+          .eq('id', data.user.id)
+          .single();
+
+        if (profileError) {
+          console.error('Erro ao carregar perfil:', profileError);
+          toast.error('Erro ao verificar dados do usuário');
+          return;
+        }
+
+        // Se não tem equipe, mostrar dialog de seleção
+        if (!profileData.team_id) {
+          toast.success("Login realizado com sucesso!");
+          setShowTeamSelection(true);
+        } else {
+          toast.success("Login realizado com sucesso!");
+          navigate("/dashboard");
+        }
       }
     } catch (error) {
       toast.error("Erro ao fazer login. Tente novamente.");
@@ -275,6 +294,12 @@ const Login = () => {
           </div>
         </div>
       </div>
+
+      {/* Team Selection Dialog */}
+      <TeamSelectionDialog 
+        open={showTeamSelection} 
+        onClose={() => setShowTeamSelection(false)} 
+      />
     </div>
   );
 };
