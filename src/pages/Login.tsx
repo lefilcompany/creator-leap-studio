@@ -222,7 +222,7 @@ const Login = () => {
                     onCheckedChange={(checked) => setRememberMe(checked as boolean)}
                   />
                   <Label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer">
-                    Lembrar de mim
+                    Mantenha-me conectado
                   </Label>
                 </div>
                 <a href="#" className="text-sm text-primary hover:text-primary/80 transition-colors">
