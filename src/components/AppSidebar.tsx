@@ -33,12 +33,12 @@ const navLinks = [
   { id: "nav-marcas", href: "/brands", icon: Tag, label: "Marcas" },
   { id: "nav-temas", href: "/themes", icon: Palette, label: "Temas Estratégicos" },
   { id: "nav-personas", href: "/personas", icon: Users, label: "Personas" },
+  { id: "nav-rapido", href: "/quick-content", icon: Zap, label: "Criação Rápida" },
   { id: "nav-historico", href: "/history", icon: History, label: "Histórico" },
 ];
 
 const actionButtons = [
     { id: "nav-criar", href: "/create", icon: Sparkles, label: "Criar Conteúdo", variant: "primary" as const },
-    { id: "nav-rapido", href: "/quick-content", icon: Zap, label: "Criação Rápida", variant: "primary" as const },
     { id: "nav-revisar", href: "/review", icon: CheckCircle, label: "Revisar Conteúdo", variant: "accent" as const },
     { id: "nav-planejar", href: "/plan", icon: Calendar, label: "Planejar Conteúdo", variant: "secondary" as const },
 ];
