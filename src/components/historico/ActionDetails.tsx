@@ -63,96 +63,111 @@ export default function ActionDetails({ action, isLoading = false }: ActionDetai
         if (yPosition + requiredSpace > pageHeight - margin) {
           pdf.addPage();
           yPosition = margin;
-          return true;
         }
-        return false;
       };
 
-      const addTextBlock = (text: string, fontSize: number, fontStyle: 'normal' | 'bold' = 'normal', color: [number, number, number] = [0, 0, 0], leftMargin: number = 0) => {
-        pdf.setFontSize(fontSize);
-        pdf.setFont('helvetica', fontStyle);
-        pdf.setTextColor(...color);
-        
-        const effectiveWidth = maxWidth - leftMargin;
-        const lines = pdf.splitTextToSize(text, effectiveWidth);
-        
-        lines.forEach((line: string, index: number) => {
-          checkPageBreak(fontSize * 0.6);
-          pdf.text(line, margin + leftMargin, yPosition);
-          yPosition += fontSize * 0.5;
-        });
-      };
-
+      // Process markdown content
       const lines = planContent.split('\n');
-      let insideList = false;
       
-      lines.forEach((line, index) => {
+      lines.forEach((line) => {
         const trimmedLine = line.trim();
         
+        // Skip empty lines but add small spacing
         if (!trimmedLine) {
-          yPosition += 4;
-          insideList = false;
+          yPosition += 3;
           return;
         }
 
         // H1 - Main headers
-        if (trimmedLine.startsWith('# ') && !trimmedLine.startsWith('## ')) {
-          checkPageBreak(20);
+        if (trimmedLine.match(/^#\s+[^#]/)) {
+          checkPageBreak(15);
           const text = trimmedLine.replace(/^#\s+/, '');
-          addTextBlock(text, 16, 'bold', [41, 128, 185]);
-          yPosition += 6;
-          insideList = false;
+          pdf.setFontSize(16);
+          pdf.setFont('helvetica', 'bold');
+          pdf.setTextColor(41, 128, 185);
+          
+          const wrappedText = pdf.splitTextToSize(text, maxWidth);
+          wrappedText.forEach((textLine: string) => {
+            checkPageBreak(10);
+            pdf.text(textLine, margin, yPosition);
+            yPosition += 8;
+          });
+          yPosition += 3;
         }
         // H2 - Section headers
-        else if (trimmedLine.startsWith('## ')) {
-          checkPageBreak(15);
+        else if (trimmedLine.match(/^##\s+[^#]/)) {
+          checkPageBreak(12);
           const text = trimmedLine.replace(/^##\s+/, '');
-          addTextBlock(text, 14, 'bold', [52, 152, 219]);
-          yPosition += 5;
-          insideList = false;
+          pdf.setFontSize(14);
+          pdf.setFont('helvetica', 'bold');
+          pdf.setTextColor(52, 152, 219);
+          
+          const wrappedText = pdf.splitTextToSize(text, maxWidth);
+          wrappedText.forEach((textLine: string) => {
+            checkPageBreak(9);
+            pdf.text(textLine, margin, yPosition);
+            yPosition += 7;
+          });
+          yPosition += 2;
         }
         // H3 - Subsection headers
-        else if (trimmedLine.startsWith('### ')) {
-          checkPageBreak(12);
-          const text = trimmedLine.replace(/^###\s+/, '');
-          addTextBlock(text, 12, 'bold', [44, 62, 80]);
-          yPosition += 4;
-          insideList = false;
-        }
-        // Bold text (field labels)
-        else if (trimmedLine.includes('**') && !trimmedLine.match(/^[\d]+\.\s/) && !trimmedLine.startsWith('- ')) {
+        else if (trimmedLine.match(/^###\s+/)) {
           checkPageBreak(10);
+          const text = trimmedLine.replace(/^###\s+/, '');
+          pdf.setFontSize(12);
+          pdf.setFont('helvetica', 'bold');
+          pdf.setTextColor(44, 62, 80);
+          
+          const wrappedText = pdf.splitTextToSize(text, maxWidth);
+          wrappedText.forEach((textLine: string) => {
+            checkPageBreak(8);
+            pdf.text(textLine, margin, yPosition);
+            yPosition += 6;
+          });
+          yPosition += 2;
+        }
+        // Bold text
+        else if (trimmedLine.includes('**')) {
+          checkPageBreak(8);
           const text = trimmedLine.replace(/\*\*/g, '');
-          addTextBlock(text, 11, 'bold', [44, 62, 80]);
-          yPosition += 3;
-          insideList = false;
+          pdf.setFontSize(11);
+          pdf.setFont('helvetica', 'bold');
+          pdf.setTextColor(44, 62, 80);
+          
+          const wrappedText = pdf.splitTextToSize(text, maxWidth);
+          wrappedText.forEach((textLine: string) => {
+            checkPageBreak(7);
+            pdf.text(textLine, margin, yPosition);
+            yPosition += 5.5;
+          });
         }
-        // Numbered list items
-        else if (trimmedLine.match(/^[\d]+\.\s/)) {
-          if (!insideList) {
-            yPosition += 2;
-            insideList = true;
-          }
-          checkPageBreak(12);
-          addTextBlock(trimmedLine, 10, 'normal', [52, 73, 94], 5);
-          yPosition += 2;
-        }
-        // Bullet list items
-        else if (trimmedLine.startsWith('- ') || trimmedLine.startsWith('* ')) {
-          if (!insideList) {
-            yPosition += 2;
-            insideList = true;
-          }
-          checkPageBreak(12);
-          addTextBlock(trimmedLine, 10, 'normal', [52, 73, 94], 5);
-          yPosition += 2;
+        // Numbered or bullet lists
+        else if (trimmedLine.match(/^(\d+\.|\-|\*)\s+/)) {
+          checkPageBreak(8);
+          pdf.setFontSize(10);
+          pdf.setFont('helvetica', 'normal');
+          pdf.setTextColor(52, 73, 94);
+          
+          const wrappedText = pdf.splitTextToSize(trimmedLine, maxWidth - 5);
+          wrappedText.forEach((textLine: string) => {
+            checkPageBreak(6);
+            pdf.text(textLine, margin + 5, yPosition);
+            yPosition += 5;
+          });
         }
         // Regular text
         else {
-          checkPageBreak(10);
-          addTextBlock(trimmedLine, 10, 'normal', [52, 73, 94]);
-          yPosition += 3;
-          insideList = false;
+          checkPageBreak(8);
+          pdf.setFontSize(10);
+          pdf.setFont('helvetica', 'normal');
+          pdf.setTextColor(52, 73, 94);
+          
+          const wrappedText = pdf.splitTextToSize(trimmedLine, maxWidth);
+          wrappedText.forEach((textLine: string) => {
+            checkPageBreak(6);
+            pdf.text(textLine, margin, yPosition);
+            yPosition += 5;
+          });
         }
       });
 
