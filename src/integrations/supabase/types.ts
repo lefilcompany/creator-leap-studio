@@ -365,27 +365,39 @@ export type Database = {
       }
       profiles: {
         Row: {
+          city: string | null
           created_at: string | null
           email: string
           id: string
           name: string
+          phone: string | null
+          state: string | null
           team_id: string | null
+          tutorial_completed: boolean | null
           updated_at: string | null
         }
         Insert: {
+          city?: string | null
           created_at?: string | null
           email: string
           id: string
           name: string
+          phone?: string | null
+          state?: string | null
           team_id?: string | null
+          tutorial_completed?: boolean | null
           updated_at?: string | null
         }
         Update: {
+          city?: string | null
           created_at?: string | null
           email?: string
           id?: string
           name?: string
+          phone?: string | null
+          state?: string | null
           team_id?: string | null
+          tutorial_completed?: boolean | null
           updated_at?: string | null
         }
         Relationships: []

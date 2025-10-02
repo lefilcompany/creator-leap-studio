@@ -5,6 +5,7 @@ import TeamInfoCard from '@/components/perfil/TeamInfoCard';
 import AccountManagement from '@/components/perfil/AccountManagement';
 import { useAuth } from '@/hooks/useAuth';
 import { Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function Profile() {
   const { user, team, isLoading } = useAuth();
@@ -17,13 +18,37 @@ export default function Profile() {
     );
   }
 
-  const personalInfo = {
-    name: user.name || '',
-    email: user.email || '',
+  const [profileData, setProfileData] = useState({
+    name: '',
+    email: '',
     phone: '',
     state: '',
     city: '',
-  };
+  });
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      if (!user?.id) return;
+
+      const { data } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (data) {
+        setProfileData({
+          name: data.name || '',
+          email: data.email || '',
+          phone: data.phone || '',
+          state: data.state || '',
+          city: data.city || '',
+        });
+      }
+    };
+
+    loadProfile();
+  }, [user]);
 
   return (
     <div className="min-h-full w-full">
@@ -47,7 +72,7 @@ export default function Profile() {
 
         {/* Main content */}
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
-          <PersonalInfoForm initialData={personalInfo} />
+          <PersonalInfoForm initialData={profileData} />
           <TeamInfoCard team={team} userRole={user.isAdmin ? 'admin' : 'member'} />
         </div>
         

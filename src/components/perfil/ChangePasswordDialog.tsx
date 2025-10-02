@@ -8,14 +8,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Eye, EyeOff, Loader2, Check, X } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ChangePasswordDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onSavePassword: (password: string) => void;
 }
 
-export default function ChangePasswordDialog({ isOpen, onOpenChange, onSavePassword }: ChangePasswordDialogProps) {
+export default function ChangePasswordDialog({ isOpen, onOpenChange }: ChangePasswordDialogProps) {
   const { user } = useAuth();
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -30,40 +30,28 @@ export default function ChangePasswordDialog({ isOpen, onOpenChange, onSavePassw
   const isFormValid = newPassword.length >= 6 && passwordsMatch && hasVerifiedCurrentPassword;
 
   const verifyCurrentPassword = async () => {
-    if (!currentPassword || !user?.id) return;
+    if (!currentPassword || !user?.email) return;
     
     setIsVerifying(true);
     
     try {
-      const response = await fetch('/api/auth/verify-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: user.id,
-          currentPassword: currentPassword,
-        }),
+      // Tenta fazer login com a senha atual para verificar
+      const { error } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: currentPassword
       });
 
-      const data = await response.json();
-      
-      if (response.ok) {
-        setIsCurrentPasswordValid(data.isValid);
-        if (data.isValid) {
-          setHasVerifiedCurrentPassword(true);
-          toast.success('Senha atual verificada com sucesso!');
-        } else {
-          toast.error('Senha atual incorreta. Tente novamente.');
-          setHasVerifiedCurrentPassword(false);
-        }
+      if (!error) {
+        setIsCurrentPasswordValid(true);
+        setHasVerifiedCurrentPassword(true);
+        toast.success('Senha atual verificada com sucesso!');
       } else {
-        toast.error('Erro ao verificar senha atual. Tente novamente.');
+        toast.error('Senha atual incorreta. Tente novamente.');
         setIsCurrentPasswordValid(false);
         setHasVerifiedCurrentPassword(false);
       }
     } catch (error) {
-      toast.error('Erro de conexão ao verificar senha. Verifique sua internet.');
+      toast.error('Erro ao verificar senha. Tente novamente.');
       setIsCurrentPasswordValid(false);
       setHasVerifiedCurrentPassword(false);
     } finally {
@@ -105,9 +93,20 @@ export default function ChangePasswordDialog({ isOpen, onOpenChange, onSavePassw
         toast.error('Complete todos os requisitos antes de salvar.');
         return;
     }
+
+    if (!newPassword || newPassword.length < 6) {
+      toast.error('A senha deve ter no mínimo 6 caracteres');
+      return;
+    }
     
     try {
-      await onSavePassword(newPassword);
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) throw error;
+
+      toast.success('Senha alterada com sucesso!');
       onOpenChange(false);
       
       setTimeout(() => {
@@ -118,7 +117,8 @@ export default function ChangePasswordDialog({ isOpen, onOpenChange, onSavePassw
           setHasVerifiedCurrentPassword(false);
       }, 300);
     } catch (error) {
-      // Error handling is done by parent function
+      console.error('Error updating password:', error);
+      toast.error('Erro ao alterar senha. Tente novamente.');
     }
   };
 

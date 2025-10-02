@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { User, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 import ChangePasswordDialog from './ChangePasswordDialog';
 
 interface PersonalInfoFormProps {
@@ -97,26 +98,34 @@ export default function PersonalInfoForm({ initialData }: PersonalInfoFormProps)
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      // Simula a chamada API
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast.error('Usuário não autenticado');
+        return;
+      }
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          name: formData.name,
+          phone: formData.phone,
+          state: formData.state,
+          city: formData.city,
+        })
+        .eq('id', user.id);
+
+      if (error) throw error;
+
       toast.success('Informações atualizadas com sucesso!');
     } catch (error) {
+      console.error('Error updating profile:', error);
       toast.error('Erro ao salvar informações. Tente novamente.');
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handleSavePassword = async (newPassword: string) => {
-    try {
-      // Simula a chamada API para alterar senha
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      toast.success('Senha alterada com sucesso!');
-    } catch (error) {
-      toast.error('Erro ao alterar senha. Tente novamente.');
-      throw error;
-    }
-  };
 
   return (
     <>
@@ -288,7 +297,6 @@ export default function PersonalInfoForm({ initialData }: PersonalInfoFormProps)
       <ChangePasswordDialog
         isOpen={isPasswordDialogOpen}
         onOpenChange={setIsPasswordDialogOpen}
-        onSavePassword={handleSavePassword}
       />
     </>
   );
