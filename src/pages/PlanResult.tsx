@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Copy, Check, Download, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import ReactMarkdown from 'react-markdown';
+import jsPDF from 'jspdf';
 
 const PlanResult = () => {
   const navigate = useNavigate();
@@ -31,16 +32,102 @@ const PlanResult = () => {
 
   const handleDownload = () => {
     if (!planContent) return;
-    const blob = new Blob([planContent], { type: 'text/markdown' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `planejamento-${new Date().toISOString().split('T')[0]}.md`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    toast.success('Download iniciado!');
+    
+    try {
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 20;
+      const maxWidth = pageWidth - (margin * 2);
+      let yPosition = margin;
+
+      // Helper function to add new page if needed
+      const checkPageBreak = (requiredSpace: number) => {
+        if (yPosition + requiredSpace > pageHeight - margin) {
+          pdf.addPage();
+          yPosition = margin;
+        }
+      };
+
+      // Helper function to add text with word wrap
+      const addText = (text: string, fontSize: number, fontStyle: 'normal' | 'bold' = 'normal', color: [number, number, number] = [0, 0, 0]) => {
+        pdf.setFontSize(fontSize);
+        pdf.setFont('helvetica', fontStyle);
+        pdf.setTextColor(...color);
+        const lines = pdf.splitTextToSize(text, maxWidth);
+        
+        lines.forEach((line: string) => {
+          checkPageBreak(fontSize / 2);
+          pdf.text(line, margin, yPosition);
+          yPosition += fontSize / 2;
+        });
+      };
+
+      // Parse markdown content and structure it
+      const lines = planContent.split('\n');
+      
+      lines.forEach((line) => {
+        line = line.trim();
+        if (!line) {
+          yPosition += 3;
+          return;
+        }
+
+        // H1 - Main headers (e.g., "Plano de Conteúdo Estratégico")
+        if (line.startsWith('# ') && !line.startsWith('## ')) {
+          checkPageBreak(15);
+          const text = line.replace(/^#\s+/, '');
+          addText(text, 16, 'bold', [41, 128, 185]);
+          yPosition += 5;
+        }
+        // H2 - Section headers (e.g., "Post 1:")
+        else if (line.startsWith('## ')) {
+          checkPageBreak(12);
+          const text = line.replace(/^##\s+/, '');
+          addText(text, 14, 'bold', [52, 152, 219]);
+          yPosition += 4;
+        }
+        // H3 - Subsection headers (e.g., "Objetivo:", "Funil:")
+        else if (line.startsWith('### ')) {
+          checkPageBreak(10);
+          const text = line.replace(/^###\s+/, '');
+          addText(text, 12, 'bold', [44, 62, 80]);
+          yPosition += 3;
+        }
+        // Bold text (field labels)
+        else if (line.includes('**')) {
+          const text = line.replace(/\*\*/g, '');
+          addText(text, 11, 'bold', [44, 62, 80]);
+          yPosition += 2;
+        }
+        // List items
+        else if (line.match(/^[\d]+\.\s/) || line.startsWith('- ') || line.startsWith('* ')) {
+          checkPageBreak(8);
+          const text = line;
+          pdf.setFontSize(10);
+          pdf.setFont('helvetica', 'normal');
+          pdf.setTextColor(52, 73, 94);
+          const lines = pdf.splitTextToSize(text, maxWidth - 5);
+          lines.forEach((l: string) => {
+            checkPageBreak(6);
+            pdf.text(l, margin + 5, yPosition);
+            yPosition += 5;
+          });
+        }
+        // Regular text
+        else {
+          addText(line, 10, 'normal', [52, 73, 94]);
+          yPosition += 2;
+        }
+      });
+
+      // Save the PDF
+      pdf.save(`planejamento-${new Date().toISOString().split('T')[0]}.pdf`);
+      toast.success('Download do PDF iniciado!');
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast.error('Erro ao gerar PDF. Tente novamente.');
+    }
   };
 
   if (!planContent) return null;
