@@ -5,3 +5,12 @@ verify_jwt = true
 
 [functions.generate-quick-content]
 verify_jwt = true
+
+[functions.review-image]
+verify_jwt = true
+
+[functions.review-caption]
+verify_jwt = true
+
+[functions.review-text-for-image]
+verify_jwt = true

@@ -16,6 +16,7 @@ import History from "./pages/History";
 import CreateContent from "./pages/CreateContent";
 import ContentResult from "./pages/ContentResult";
 import ReviewContent from "./pages/ReviewContent";
+import ReviewResult from "./pages/ReviewResult";
 import PlanContent from "./pages/PlanContent";
 import PlanResult from "./pages/PlanResult";
 import QuickContent from "./pages/QuickContent";
@@ -53,6 +54,7 @@ const App = () => (
               <Route path="create" element={<CreateContent />} />
               <Route path="result" element={<ContentResult />} />
               <Route path="review" element={<ReviewContent />} />
+              <Route path="review-result" element={<ReviewResult />} />
               <Route path="plan" element={<PlanContent />} />
               <Route path="plan-result" element={<PlanResult />} />
               <Route path="quick-content" element={<QuickContent />} />

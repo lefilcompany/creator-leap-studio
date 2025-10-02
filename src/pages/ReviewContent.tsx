@@ -516,21 +516,6 @@ const ReviewContent = () => {
             </div>
           </>
         )}
-
-        {revisedText && !loading && (
-          <div className="mt-8">
-            <Card className="bg-gradient-to-r from-primary/5 via-secondary/5 to-accent/5 border border-border/20 rounded-2xl shadow-lg">
-              <CardContent className="p-6">
-                <div className="flex flex-col items-center gap-4">
-                  <Button onClick={handleGoBackToForm} className="w-full max-w-lg h-14 rounded-2xl text-lg font-bold bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 text-white shadow-xl">
-                    <ThumbsUp className="mr-3 h-5 w-5" />
-                    <span>Concluir Revisão</span>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
       </div>
     </div>
   );
