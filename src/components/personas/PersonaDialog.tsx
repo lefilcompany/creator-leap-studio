@@ -10,8 +10,11 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Save } from 'lucide-react';
 import type { Persona } from '@/types/persona';
 import type { BrandSummary } from '@/types/brand';
+import { useDraftForm } from '@/hooks/useDraftForm';
+import { toast } from 'sonner';
 
 const personaSchema = z.object({
   brandId: z.string().min(1, 'Selecione uma marca'),
@@ -60,6 +63,15 @@ export default function PersonaDialog({ isOpen, onOpenChange, onSave, personaToE
     },
   });
 
+  // Observa mudanças no formulário para salvar rascunho
+  const formValues = form.watch();
+  
+  // Hook para gerenciar rascunhos
+  const { loadDraft, clearDraft, hasDraft } = useDraftForm(formValues, {
+    draftKey: 'persona_form_draft',
+    expirationDays: 7,
+  });
+
   // Reset form when dialog opens/closes or persona changes
   useEffect(() => {
     if (isOpen && personaToEdit) {
@@ -79,35 +91,54 @@ export default function PersonaDialog({ isOpen, onOpenChange, onSave, personaToE
         interestTriggers: personaToEdit.interestTriggers,
       });
     } else if (isOpen && !personaToEdit) {
-      form.reset({
-        brandId: '',
-        name: '',
-        gender: '',
-        age: '',
-        location: '',
-        professionalContext: '',
-        beliefsAndInterests: '',
-        contentConsumptionRoutine: '',
-        mainGoal: '',
-        challenges: '',
-        preferredToneOfVoice: '',
-        purchaseJourneyStage: '',
-        interestTriggers: '',
-      });
+      // Tenta carregar rascunho
+      const draft = loadDraft();
+      if (draft) {
+        form.reset(draft);
+        toast.info('Rascunho recuperado', {
+          description: 'Seus dados foram restaurados automaticamente.',
+          icon: <Save className="h-4 w-4" />,
+        });
+      } else {
+        form.reset({
+          brandId: '',
+          name: '',
+          gender: '',
+          age: '',
+          location: '',
+          professionalContext: '',
+          beliefsAndInterests: '',
+          contentConsumptionRoutine: '',
+          mainGoal: '',
+          challenges: '',
+          preferredToneOfVoice: '',
+          purchaseJourneyStage: '',
+          interestTriggers: '',
+        });
+      }
     }
-  }, [isOpen, personaToEdit, form]);
+  }, [isOpen, personaToEdit, form, loadDraft]);
 
   const handleSubmit = (data: PersonaFormData) => {
     onSave(data);
+    clearDraft(); // Limpa o rascunho após salvar com sucesso
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
-            {personaToEdit ? 'Editar Persona' : 'Nova Persona'}
-          </DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle>
+              {personaToEdit ? 'Editar Persona' : 'Nova Persona'}
+            </DialogTitle>
+            {!personaToEdit && hasDraft() && (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted px-3 py-1.5 rounded-full">
+                <Save className="h-3 w-3" />
+                <span>Rascunho salvo</span>
+              </div>
+            )}
+          </div>
         </DialogHeader>
 
         <Form {...form}>

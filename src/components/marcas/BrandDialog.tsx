@@ -15,10 +15,11 @@ import {
   DialogFooter,
   DialogClose,
 } from '@/components/ui/dialog';
-import { X } from 'lucide-react';
+import { X, Save } from 'lucide-react';
 import { ColorPicker } from '@/components/ui/color-picker';
 import type { Brand, MoodboardFile, ColorItem } from '@/types/brand';
 import { useAuth } from '@/hooks/useAuth';
+import { useDraftForm } from '@/hooks/useDraftForm';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -57,9 +58,16 @@ export default function BrandDialog({ isOpen, onOpenChange, onSave, brandToEdit 
   const [formData, setFormData] = useState<BrandFormData>(initialFormData);
   const { user } = useAuth();
   const [members, setMembers] = useState<{ email: string; name: string }[]>([]);
+  
+  // Hook para gerenciar rascunhos
+  const { loadDraft, clearDraft, hasDraft } = useDraftForm(formData, {
+    draftKey: 'brand_form_draft',
+    expirationDays: 7,
+  });
 
   useEffect(() => {
     if (isOpen && brandToEdit) {
+      // Se está editando, carrega os dados da marca
       setFormData({
         name: brandToEdit.name || '',
         responsible: brandToEdit.responsible || '',
@@ -81,10 +89,20 @@ export default function BrandDialog({ isOpen, onOpenChange, onSave, brandToEdit 
         referenceImage: brandToEdit.referenceImage || null,
         colorPalette: brandToEdit.colorPalette || null,
       });
-    } else {
-      setFormData(initialFormData);
+    } else if (isOpen && !brandToEdit) {
+      // Se está criando nova marca, tenta carregar rascunho
+      const draft = loadDraft();
+      if (draft) {
+        setFormData(draft);
+        toast.info('Rascunho recuperado', {
+          description: 'Seus dados foram restaurados automaticamente.',
+          icon: <Save className="h-4 w-4" />,
+        });
+      } else {
+        setFormData(initialFormData);
+      }
     }
-  }, [brandToEdit, isOpen]);
+  }, [brandToEdit, isOpen, loadDraft]);
 
   useEffect(() => {
     const loadMembers = async () => {
@@ -240,6 +258,7 @@ export default function BrandDialog({ isOpen, onOpenChange, onSave, brandToEdit 
       }
 
       await onSave(formData);
+      clearDraft(); // Limpa o rascunho após salvar com sucesso
       onOpenChange(false);
     } catch (error) {
       // Em caso de erro, o toast será mostrado pela página pai
@@ -276,10 +295,20 @@ export default function BrandDialog({ isOpen, onOpenChange, onSave, brandToEdit 
     <Dialog open={isOpen} onOpenChange={handleDialogClose}>
       <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
         <DialogHeader>
-          <DialogTitle>{brandToEdit ? 'Editar Marca' : 'Criar Nova Marca'}</DialogTitle>
-          <DialogDescription>
-            {brandToEdit ? 'Altere as informações da sua marca.' : 'Preencha os campos abaixo para adicionar uma nova marca.'}
-          </DialogDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <DialogTitle>{brandToEdit ? 'Editar Marca' : 'Criar Nova Marca'}</DialogTitle>
+              <DialogDescription>
+                {brandToEdit ? 'Altere as informações da sua marca.' : 'Preencha os campos abaixo para adicionar uma nova marca.'}
+              </DialogDescription>
+            </div>
+            {!brandToEdit && hasDraft() && (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted px-3 py-1.5 rounded-full">
+                <Save className="h-3 w-3" />
+                <span>Rascunho salvo</span>
+              </div>
+            )}
+          </div>
         </DialogHeader>
 
         <div className="flex-grow overflow-y-auto pr-6 -mr-6 space-y-6 py-4">

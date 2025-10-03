@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, type ChangeEvent } from 'react';
-import { X } from 'lucide-react';
+import { X, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,6 +20,7 @@ import type { StrategicTheme } from '@/types/theme';
 import type { BrandSummary } from '@/types/brand';
 import { toast } from 'sonner';
 import { StrategicThemeColorPicker } from '../ui/strategic-theme-color-picker';
+import { useDraftForm } from '@/hooks/useDraftForm';
 
 type ThemeFormData = Omit<StrategicTheme, 'id' | 'createdAt' | 'updatedAt' | 'teamId' | 'userId'> & {
   colorPalette: string;
@@ -55,6 +56,12 @@ export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit,
   const [isLoading, setIsLoading] = useState(false);
   const [toneList, setToneList] = useState<string[]>([]);
   const [hashtagList, setHashtagList] = useState<string[]>([]);
+
+  // Hook para gerenciar rascunhos
+  const { loadDraft, clearDraft, hasDraft } = useDraftForm(formData, {
+    draftKey: 'theme_form_draft',
+    expirationDays: 7,
+  });
 
   const toneOptions = [
     'inspirador', 'motivacional', 'profissional', 'casual', 'elegante',
@@ -98,12 +105,37 @@ export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit,
 
       const hashtags = themeToEdit.hashtags?.split(/\s+/).filter(Boolean) || [];
       setHashtagList(hashtags);
-    } else {
-      setFormData(initialFormData);
-      setToneList([]);
-      setHashtagList([]);
+    } else if (isOpen && !themeToEdit) {
+      // Tenta carregar rascunho
+      const draft = loadDraft();
+      if (draft) {
+        setFormData(draft);
+        
+        // Recupera toneList e hashtagList do draft
+        try {
+          const raw = draft.toneOfVoice || '';
+          if (typeof raw === 'string' && raw.trim()) {
+            const parsed = raw.split(/[,;]\s*/).map(s => s.trim()).filter(Boolean);
+            setToneList(parsed);
+          }
+        } catch (e) {
+          setToneList([]);
+        }
+        
+        const hashtags = draft.hashtags?.split(/\s+/).filter(Boolean) || [];
+        setHashtagList(hashtags);
+        
+        toast.info('Rascunho recuperado', {
+          description: 'Seus dados foram restaurados automaticamente.',
+          icon: <Save className="h-4 w-4" />,
+        });
+      } else {
+        setFormData(initialFormData);
+        setToneList([]);
+        setHashtagList([]);
+      }
     }
-  }, [themeToEdit, isOpen]);
+  }, [themeToEdit, isOpen, loadDraft]);
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
@@ -157,6 +189,7 @@ export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit,
       } as ThemeFormData;
 
       await onSave(payload);
+      clearDraft(); // Limpa o rascunho após salvar com sucesso
       
       onOpenChange(false);
     } catch (error) {
@@ -208,10 +241,20 @@ export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit,
     <Dialog open={isOpen} onOpenChange={handleDialogClose}>
       <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
         <DialogHeader>
-          <DialogTitle>{themeToEdit ? 'Editar Tema Estratégico' : 'Criar Novo Tema Estratégico'}</DialogTitle>
-          <DialogDescription>
-            {themeToEdit ? 'Altere as informações do seu tema.' : 'Preencha os campos abaixo para adicionar um novo tema.'}
-          </DialogDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <DialogTitle>{themeToEdit ? 'Editar Tema Estratégico' : 'Criar Novo Tema Estratégico'}</DialogTitle>
+              <DialogDescription>
+                {themeToEdit ? 'Altere as informações do seu tema.' : 'Preencha os campos abaixo para adicionar um novo tema.'}
+              </DialogDescription>
+            </div>
+            {!themeToEdit && hasDraft() && (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted px-3 py-1.5 rounded-full">
+                <Save className="h-3 w-3" />
+                <span>Rascunho salvo</span>
+              </div>
+            )}
+          </div>
         </DialogHeader>
 
         <div className="flex-grow overflow-y-auto">
