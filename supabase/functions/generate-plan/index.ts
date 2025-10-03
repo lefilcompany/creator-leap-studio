@@ -13,7 +13,21 @@ serve(async (req) => {
   }
 
   try {
+    // Log request details for debugging
+    console.log('Generate plan request received');
+    
+    // Validate authorization header
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader) {
+      console.error('No authorization header provided');
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized - No authorization header' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
     const { brand, themes, platform, quantity, objective, additionalInfo, userId, teamId } = await req.json();
+    console.log('Request payload:', { brand, themes, platform, quantity, userId, teamId });
 
     // Input validation
     if (!brand || typeof brand !== 'string' || brand.trim().length === 0) {
@@ -185,6 +199,7 @@ Tema ${index + 1}:
 
     const userPrompt = `${brandContext}\n${themesContext}\n\nPlataforma: ${platform}\nQuantidade de Posts: ${quantity}\nObjetivo: ${objective}\n${additionalInfo ? `Informações Adicionais: ${additionalInfo}` : ''}\n\nPor favor, gere um plano estratégico completo com EXATAMENTE ${quantity} post(s) seguindo a estrutura fornecida.`;
 
+    console.log('Calling Lovable AI API...');
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -197,15 +212,16 @@ Tema ${index + 1}:
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
         ],
-        temperature: 0.8,
-        max_tokens: 4000,
       }),
     });
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error('AI API error:', response.status, errorText);
+      
       if (response.status === 429) {
         return new Response(
-          JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
+          JSON.stringify({ error: 'Rate limit exceeded. Please try again in a moment.' }),
           { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
@@ -218,10 +234,12 @@ Tema ${index + 1}:
       }
       
       return new Response(
-        JSON.stringify({ error: 'AI service error' }),
+        JSON.stringify({ error: `AI service error: ${errorText}` }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+    
+    console.log('AI API response received successfully');
 
     const data = await response.json();
     const generatedPlan = data.choices[0].message.content;

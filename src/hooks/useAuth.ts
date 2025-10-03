@@ -44,7 +44,22 @@ export function useAuth() {
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
+        console.log('Auth state changed:', event);
+        
+        // Handle token refresh errors
+        if (event === 'TOKEN_REFRESHED') {
+          console.log('Token refreshed successfully');
+        }
+        
+        if (event === 'SIGNED_OUT') {
+          setSession(null);
+          setUser(null);
+          setTeam(null);
+          setIsLoading(false);
+          return;
+        }
+        
         setSession(session);
         
         // Defer Supabase calls with setTimeout to prevent deadlock
@@ -60,17 +75,35 @@ export function useAuth() {
       }
     );
 
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session?.user) {
-        setTimeout(() => {
-          loadUserData(session.user);
-        }, 0);
-      } else {
+    // Check for existing session and validate token
+    const initializeAuth = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error getting session:', error);
+          // Clear corrupted session
+          await supabase.auth.signOut();
+          setIsLoading(false);
+          return;
+        }
+        
+        setSession(session);
+        if (session?.user) {
+          setTimeout(() => {
+            loadUserData(session.user);
+          }, 0);
+        } else {
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error('Fatal auth error:', error);
+        await supabase.auth.signOut();
         setIsLoading(false);
       }
-    });
+    };
+
+    initializeAuth();
 
     return () => {
       subscription.unsubscribe();
