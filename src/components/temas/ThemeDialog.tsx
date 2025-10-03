@@ -60,7 +60,7 @@ export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit,
   // Hook para gerenciar rascunhos
   const { loadDraft, clearDraft, hasDraft } = useDraftForm(formData, {
     draftKey: 'theme_form_draft',
-    expirationDays: 7,
+    expirationHours: 2,
   });
 
   const toneOptions = [

@@ -62,7 +62,7 @@ export default function BrandDialog({ isOpen, onOpenChange, onSave, brandToEdit 
   // Hook para gerenciar rascunhos
   const { loadDraft, clearDraft, hasDraft } = useDraftForm(formData, {
     draftKey: 'brand_form_draft',
-    expirationDays: 7,
+    expirationHours: 2,
   });
 
   useEffect(() => {

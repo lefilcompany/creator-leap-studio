@@ -7,19 +7,19 @@ interface DraftData<T> {
 
 interface UseDraftFormOptions {
   draftKey: string;
-  expirationDays?: number;
+  expirationHours?: number;
   debounceMs?: number;
 }
 
 /**
  * Hook para gerenciar rascunhos de formulários no localStorage
- * Salva automaticamente com debounce e expira após X dias
+ * Salva automaticamente com debounce e expira após X horas
  */
 export function useDraftForm<T extends Record<string, any>>(
   formData: T,
   options: UseDraftFormOptions
 ) {
-  const { draftKey, expirationDays = 7, debounceMs = 1000 } = options;
+  const { draftKey, expirationHours = 2, debounceMs = 1000 } = options;
   const timeoutRef = useRef<NodeJS.Timeout>();
   const isInitialMount = useRef(true);
 
@@ -49,7 +49,7 @@ export function useDraftForm<T extends Record<string, any>>(
       if (!stored) return null;
 
       const draftData: DraftData<T> = JSON.parse(stored);
-      const expirationMs = expirationDays * 24 * 60 * 60 * 1000;
+      const expirationMs = expirationHours * 60 * 60 * 1000;
       const isExpired = Date.now() - draftData.timestamp > expirationMs;
 
       if (isExpired) {
@@ -62,7 +62,7 @@ export function useDraftForm<T extends Record<string, any>>(
       console.error('Error loading draft:', error);
       return null;
     }
-  }, [draftKey, expirationDays]);
+  }, [draftKey, expirationHours]);
 
   // Limpar rascunho do localStorage
   const clearDraft = useCallback(() => {
@@ -83,14 +83,14 @@ export function useDraftForm<T extends Record<string, any>>(
       if (!stored) return false;
 
       const draftData: DraftData<T> = JSON.parse(stored);
-      const expirationMs = expirationDays * 24 * 60 * 60 * 1000;
+      const expirationMs = expirationHours * 60 * 60 * 1000;
       const isExpired = Date.now() - draftData.timestamp > expirationMs;
 
       return !isExpired;
     } catch {
       return false;
     }
-  }, [draftKey, expirationDays]);
+  }, [draftKey, expirationHours]);
 
   // Verificar se o formulário tem dados (não está vazio)
   const hasFormData = useCallback((data: T): boolean => {

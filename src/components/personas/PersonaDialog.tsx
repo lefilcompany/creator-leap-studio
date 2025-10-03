@@ -69,7 +69,7 @@ export default function PersonaDialog({ isOpen, onOpenChange, onSave, personaToE
   // Hook para gerenciar rascunhos
   const { loadDraft, clearDraft, hasDraft } = useDraftForm(formValues, {
     draftKey: 'persona_form_draft',
-    expirationDays: 7,
+    expirationHours: 2,
   });
 
   // Reset form when dialog opens/closes or persona changes
