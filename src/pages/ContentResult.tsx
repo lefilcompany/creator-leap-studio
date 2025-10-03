@@ -604,7 +604,7 @@ export default function ContentResult() {
                   <Button
                     onClick={() => navigate("/create")}
                     variant="outline"
-                    className="w-full rounded-xl hover-scale transition-all duration-200 hover:shadow-md"
+                    className="w-full rounded-xl hover-scale transition-all duration-200 hover:shadow-md hover:bg-accent/20 hover:text-accent hover:border-accent"
                     size="lg"
                   >
                     Criar Novo Conteúdo
