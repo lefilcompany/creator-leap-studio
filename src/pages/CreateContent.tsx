@@ -396,6 +396,13 @@ export default function CreateContent() {
         platform: formData.platform,
         additionalInfo: formData.additionalInfo,
         referenceImages: allReferenceImages,
+        negativePrompt: formData.negativePrompt,
+        colorPalette: formData.colorPalette,
+        lighting: formData.lighting,
+        composition: formData.composition,
+        cameraAngle: formData.cameraAngle,
+        detailLevel: formData.detailLevel,
+        mood: formData.mood,
       };
 
       // Validar que brand, theme e persona são UUIDs válidos
