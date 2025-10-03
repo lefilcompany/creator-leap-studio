@@ -29,6 +29,11 @@ function buildDetailedPrompt(formData: any): string {
   const tones = Array.isArray(formData.tone) ? formData.tone : (formData.tone ? [formData.tone] : []);
   const additionalInfo = cleanInput(formData.additionalInfo);
   const hasReferenceImages = formData.referenceImages && Array.isArray(formData.referenceImages) && formData.referenceImages.length > 0;
+  
+  // Informações sobre origem das imagens
+  const brandImagesCount = formData.brandImagesCount || 0;
+  const userImagesCount = formData.userImagesCount || 0;
+  const totalImages = hasReferenceImages ? formData.referenceImages.length : 0;
 
   // Advanced configurations
   const negativePrompt = cleanInput(formData.negativePrompt);
@@ -41,18 +46,27 @@ function buildDetailedPrompt(formData: any): string {
 
   const promptParts: string[] = [];
 
-  // Instrução de uso de imagens de referência - mais clara e direta
+  // Instrução de uso de imagens de referência - mais clara e contextualizada
   if (hasReferenceImages) {
-    const imageCount = Math.min(formData.referenceImages.length, 3);
+    let imageContext = `Você está recebendo ${totalImages} imagem(ns) de referência visual`;
+    
+    if (brandImagesCount > 0 && userImagesCount > 0) {
+      imageContext += ` (${brandImagesCount} da identidade visual da marca + ${userImagesCount} de referência adicional)`;
+    } else if (brandImagesCount > 0) {
+      imageContext += ` da identidade visual da marca "${brand}"`;
+    } else {
+      imageContext += ` fornecidas pelo usuário`;
+    }
+    
     promptParts.push(
-      `IMPORTANTE: Você está recebendo ${imageCount} imagem(ns) de referência visual. ` +
-      `GERE UMA NOVA IMAGEM inspirada nestas referências, seguindo estes aspectos: ` +
-      `1. Paleta de Cores: Use cores similares às observadas nas referências ` +
-      `2. Estilo Visual: Mantenha o mesmo estilo gráfico e composição ` +
-      `3. Elementos Visuais: Incorpore elementos gráficos complementares ` +
-      `4. Atmosfera: Preserve o mood e a sensação visual ` +
-      `GERE uma imagem NOVA e ORIGINAL que mantenha a identidade visual das referências. ` +
-      `Não extraia ou copie, mas crie algo novo com base na inspiração fornecida.`
+      `${imageContext}. ` +
+      `IMPORTANTE: GERE UMA NOVA IMAGEM inspirada nestas referências, seguindo estes aspectos: ` +
+      `1. IDENTIDADE VISUAL: ${brandImagesCount > 0 ? `Mantenha FORTE COERÊNCIA com a identidade visual da marca ${brand} observada nas primeiras ${brandImagesCount} imagens` : 'Use as referências como inspiração visual'} ` +
+      `2. PALETA DE CORES: Extraia e aplique cores similares às observadas nas referências ` +
+      `3. ESTILO GRÁFICO: Replique o estilo visual, composição e elementos gráficos ` +
+      `4. ATMOSFERA: Preserve o mood e a sensação transmitida pelas referências ` +
+      `GERE uma imagem NOVA e ORIGINAL que seja visualmente consistente com as referências fornecidas, ` +
+      `especialmente mantendo a coerência com a identidade visual da marca.`
     );
   }
 
@@ -246,16 +260,19 @@ async function generateImageWithRetry(prompt: string, referenceImages: string[] 
     }
     
     // Adicionar imagens de referência (se houver e não for edição)
-    // Limitar a 3 imagens para garantir melhor processamento
+    // Priorizar imagens da marca, depois do usuário, com limite total de 5
     if (!isEdit && referenceImages && Array.isArray(referenceImages) && referenceImages.length > 0) {
-      const limitedImages = referenceImages.slice(0, 3);
-      console.log(`📸 Processando ${limitedImages.length} imagem(ns) de referência (limitado a 3)...`);
+      const maxImages = 5;
+      const limitedImages = referenceImages.slice(0, maxImages);
       
+      console.log(`📸 Processando ${limitedImages.length} de ${referenceImages.length} imagem(ns) de referência...`);
+      
+      let successCount = 0;
       for (const refImg of limitedImages) {
         try {
           // Validar formato base64
           if (!refImg.startsWith('data:image/')) {
-            console.warn("Imagem de referência em formato inválido, ignorando...");
+            console.warn("⚠️ Imagem de referência em formato inválido, ignorando...");
             continue;
           }
           
@@ -265,12 +282,17 @@ async function generateImageWithRetry(prompt: string, referenceImages: string[] 
               url: refImg
             }
           });
+          successCount++;
         } catch (refError) {
-          console.error("Erro ao processar imagem de referência:", refError);
+          console.error("❌ Erro ao processar imagem de referência:", refError);
         }
       }
       
-      console.log(`✓ ${messageContent.filter(c => c.type === 'image_url').length} imagens adicionadas ao contexto`);
+      console.log(`✅ ${successCount} imagens adicionadas ao contexto com sucesso`);
+      
+      if (referenceImages.length > maxImages) {
+        console.log(`ℹ️ Limitadas a ${maxImages} imagens (${referenceImages.length - maxImages} não processadas)`);
+      }
     }
     
     // Adicionar o prompt de texto
@@ -381,10 +403,10 @@ serve(async (req) => {
       );
     }
     
-    // Limitar a 3 imagens de referência para evitar erros do modelo
-    if (formData.referenceImages && (!Array.isArray(formData.referenceImages) || formData.referenceImages.length > 3)) {
+    // Validar número de imagens (máximo 5 para não sobrecarregar o modelo)
+    if (formData.referenceImages && (!Array.isArray(formData.referenceImages) || formData.referenceImages.length > 10)) {
       return new Response(
-        JSON.stringify({ error: 'Too many reference images (max 3)' }),
+        JSON.stringify({ error: 'Too many reference images sent (max 10, will use first 5)' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }

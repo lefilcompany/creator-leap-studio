@@ -378,8 +378,32 @@ export default function CreateContent() {
         referenceImagesBase64.push(base64);
       }
 
-      // Adicionar imagens cadastradas na marca
-      const allReferenceImages = [...brandImages, ...referenceImagesBase64];
+      // Estratégia de priorização de imagens:
+      // 1. Sempre incluir TODAS as imagens da marca (logo, moodboard, reference)
+      // 2. Adicionar imagens de upload do usuário até o limite total de 5
+      // 3. Se ultrapassar 5, priorizar imagens da marca
+      const maxTotalImages = 5;
+      const brandImagesCount = brandImages.length;
+      const userImagesCount = referenceImagesBase64.length;
+      
+      let finalBrandImages = brandImages;
+      let finalUserImages = referenceImagesBase64;
+      
+      // Se o total ultrapassar o limite, ajustar imagens do usuário
+      if (brandImagesCount + userImagesCount > maxTotalImages) {
+        const availableSlots = Math.max(0, maxTotalImages - brandImagesCount);
+        finalUserImages = referenceImagesBase64.slice(0, availableSlots);
+        
+        if (availableSlots < userImagesCount) {
+          toast.warning(
+            `Limite de imagens atingido. Usando ${brandImagesCount} imagens da marca + ${availableSlots} suas imagens (total: ${brandImagesCount + availableSlots})`,
+            { duration: 5000 }
+          );
+        }
+      }
+      
+      // Combinar: primeiro imagens da marca, depois do usuário
+      const allReferenceImages = [...finalBrandImages, ...finalUserImages];
 
       // Buscar dados completos de brand, theme e persona
       const selectedBrand = brands.find(b => b.id === formData.brand);
@@ -396,6 +420,8 @@ export default function CreateContent() {
         platform: formData.platform,
         additionalInfo: formData.additionalInfo,
         referenceImages: allReferenceImages,
+        brandImagesCount: finalBrandImages.length, // Informar quantas são da marca
+        userImagesCount: finalUserImages.length,   // Informar quantas são do usuário
         negativePrompt: formData.negativePrompt,
         colorPalette: formData.colorPalette,
         lighting: formData.lighting,
@@ -505,7 +531,7 @@ export default function CreateContent() {
       // Modo imagem (código existente)
       toast.loading("Gerando imagem com IA...", {
         id: toastId,
-        description: `${allReferenceImages.length} imagem(ns) de referência sendo processadas.`,
+        description: `Usando ${finalBrandImages.length} imagem(ns) da marca + ${finalUserImages.length} sua(s) imagem(ns) de referência.`,
       });
 
       // 1. Gerar imagem com Gemini 2.5
