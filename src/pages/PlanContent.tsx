@@ -38,6 +38,7 @@ const PlanContent = () => {
   const [themes, setThemes] = useState<any[]>([]);
   const [creditsRemaining, setCreditsRemaining] = useState<number>(0);
   const [loadingData, setLoadingData] = useState(true);
+  const [dataLoaded, setDataLoaded] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -46,10 +47,13 @@ const PlanContent = () => {
   const loadData = async () => {
     if (!team?.id) {
       setLoadingData(false);
+      setDataLoaded(true);
       return;
     }
     
     setLoadingData(true);
+    setDataLoaded(false);
+    
     try {
       // Carregar todos os dados em paralelo
       const [
@@ -72,10 +76,15 @@ const PlanContent = () => {
           .single()
       ]);
       
-      // Atualizar todos os estados de uma vez para evitar múltiplos re-renders
+      // Atualizar todos os estados de uma vez
       setBrands(brandsData || []);
       setThemes(themesData || []);
       setCreditsRemaining(teamData?.credits_plans || 0);
+      
+      // Aguardar um tick para garantir que os estados foram atualizados
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      setDataLoaded(true);
 
     } catch (error) {
       console.error('Error loading data:', error);
@@ -83,6 +92,7 @@ const PlanContent = () => {
       setBrands([]);
       setThemes([]);
       setCreditsRemaining(0);
+      setDataLoaded(true);
     } finally {
       setLoadingData(false);
     }
@@ -234,12 +244,12 @@ const PlanContent = () => {
     }
   };
 
-  if (loadingData) {
+  if (loadingData || !dataLoaded) {
     return (
       <div className="min-h-full w-full p-3 sm:p-6 flex items-center justify-center">
         <div className="text-center space-y-4">
           <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
-          <p className="text-muted-foreground">Carregando...</p>
+          <p className="text-muted-foreground">Carregando dados...</p>
         </div>
       </div>
     );
