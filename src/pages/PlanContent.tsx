@@ -22,7 +22,7 @@ interface FormData {
 }
 
 const PlanContent = () => {
-  const { user, team } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [formData, setFormData] = useState<FormData>({
     brand: '',
@@ -40,58 +40,56 @@ const PlanContent = () => {
   const [isLoadingData, setIsLoadingData] = useState(true);
 
   useEffect(() => {
+    const loadData = async () => {
+      if (!user?.teamId || !user?.id) {
+        if (user) setIsLoadingData(false);
+        return;
+      }
+
+      try {
+        // Carregar todos os dados em paralelo
+        const [
+          { data: brandsData, error: brandsError },
+          { data: themesData, error: themesError },
+          { data: teamData, error: teamError }
+        ] = await Promise.all([
+          supabase
+            .from('brands')
+            .select('id, name')
+            .eq('team_id', user.teamId),
+          supabase
+            .from('strategic_themes')
+            .select('id, title, brand_id')
+            .eq('team_id', user.teamId),
+          supabase
+            .from('teams')
+            .select('credits_plans')
+            .eq('id', user.teamId)
+            .maybeSingle()
+        ]);
+        
+        if (brandsError) throw brandsError;
+        if (themesError) throw themesError;
+        if (teamError) throw teamError;
+        
+        // Atualizar todos os estados de uma vez para evitar múltiplas renderizações
+        setBrands(brandsData || []);
+        setThemes(themesData || []);
+        setCreditsRemaining(teamData?.credits_plans || 0);
+        setIsLoadingData(false);
+
+      } catch (error) {
+        console.error('Error loading data:', error);
+        toast.error('Erro ao carregar dados');
+        setBrands([]);
+        setThemes([]);
+        setCreditsRemaining(0);
+        setIsLoadingData(false);
+      }
+    };
+    
     loadData();
-  }, [team]);
-
-  const loadData = async () => {
-    if (!team?.id) {
-      setIsLoadingData(false);
-      return;
-    }
-    
-    setIsLoadingData(true);
-    
-    try {
-      // Carregar todos os dados em paralelo
-      const [
-        { data: brandsData, error: brandsError },
-        { data: themesData, error: themesError },
-        { data: teamData, error: teamError }
-      ] = await Promise.all([
-        supabase
-          .from('brands')
-          .select('id, name')
-          .eq('team_id', team.id),
-        supabase
-          .from('strategic_themes')
-          .select('id, title, brand_id')
-          .eq('team_id', team.id),
-        supabase
-          .from('teams')
-          .select('credits_plans')
-          .eq('id', team.id)
-          .maybeSingle()
-      ]);
-      
-      if (brandsError) throw brandsError;
-      if (themesError) throw themesError;
-      if (teamError) throw teamError;
-      
-      // Atualizar todos os estados de uma vez para evitar múltiplas renderizações
-      setBrands(brandsData || []);
-      setThemes(themesData || []);
-      setCreditsRemaining(teamData?.credits_plans || 0);
-      setIsLoadingData(false);
-
-    } catch (error) {
-      console.error('Error loading data:', error);
-      toast.error('Erro ao carregar dados');
-      setBrands([]);
-      setThemes([]);
-      setCreditsRemaining(0);
-      setIsLoadingData(false);
-    }
-  };
+  }, [user]);
 
   const filteredThemes = formData.brand 
     ? themes.filter(t => t.brand_id === formData.brand)
@@ -180,7 +178,7 @@ const PlanContent = () => {
           objective: formData.objective,
           additionalInfo: formData.additionalInfo,
           userId: user?.id,
-          teamId: team?.id
+          teamId: user?.teamId
         }
       });
 
