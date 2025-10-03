@@ -7,9 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Calendar, ArrowLeft, MessageSquareQuote, Zap, Clipboard, Check, X, Loader2, Save } from "lucide-react";
+import { Calendar, ArrowLeft, MessageSquareQuote, Zap, Clipboard, Check, X, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { useDraftForm } from "@/hooks/useDraftForm";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -39,12 +38,6 @@ const PlanContent = () => {
   const [themes, setThemes] = useState<any[]>([]);
   const [creditsRemaining, setCreditsRemaining] = useState<number>(0);
   const [loadingData, setLoadingData] = useState(true);
-
-  // Hook para gerenciar rascunhos
-  const { loadDraft, clearDraft, hasDraft } = useDraftForm(formData, {
-    draftKey: 'plan_content_draft',
-    expirationHours: 2,
-  });
 
   useEffect(() => {
     loadData();
@@ -79,16 +72,6 @@ const PlanContent = () => {
       if (brandsData) setBrands(brandsData);
       if (themesData) setThemes(themesData);
       if (teamData) setCreditsRemaining(teamData.credits_plans);
-
-      // Tentar carregar rascunho após carregar dados
-      const draft = loadDraft();
-      if (draft) {
-        setFormData(draft);
-        toast.info('Rascunho recuperado', {
-          description: 'Seus dados foram restaurados automaticamente.',
-          icon: <Save className="h-4 w-4" />,
-        });
-      }
 
     } catch (error) {
       console.error('Error loading data:', error);
@@ -224,9 +207,6 @@ const PlanContent = () => {
         } 
       });
 
-      // Limpar rascunho após sucesso
-      clearDraft();
-
       // Update local credits
       setCreditsRemaining(data.creditsRemaining);
       toast.success('Planejamento gerado com sucesso!');
@@ -269,15 +249,7 @@ const PlanContent = () => {
                     <Calendar className="h-6 w-6 sm:h-8 sm:w-8" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <h1 className="text-lg sm:text-xl lg:text-3xl font-bold truncate">Planejar Conteúdo</h1>
-                      {hasDraft() && (
-                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full flex-shrink-0">
-                          <Save className="h-3 w-3" />
-                          <span>Rascunho salvo</span>
-                        </div>
-                      )}
-                    </div>
+                    <h1 className="text-lg sm:text-xl lg:text-3xl font-bold truncate">Planejar Conteúdo</h1>
                     <p className="text-muted-foreground text-xs sm:text-sm lg:text-base">
                       Preencha os campos para gerar seu planejamento de posts
                     </p>
