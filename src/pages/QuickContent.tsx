@@ -221,7 +221,7 @@ export default function QuickContent() {
               {!loadingData && (
                 <Card className="bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/20 flex-shrink-0">
                   <CardContent className="p-2.5 md:p-3">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center gap-3">
                       <div className="relative flex-shrink-0">
                         <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary rounded-full blur-sm opacity-40"></div>
                         <div className="relative bg-gradient-to-r from-primary to-secondary text-white rounded-full p-2">
