@@ -724,9 +724,16 @@ export default function CreateContent() {
                         handleSelectChange("brand", value)
                       }
                       value={formData.brand}
+                      disabled={brands.length === 0}
                     >
-                      <SelectTrigger className="h-10 md:h-11 rounded-xl border-2 border-border/50 bg-background/50 text-sm hover:border-border/70 transition-colors">
-                        <SelectValue placeholder="Selecione a marca" />
+                      <SelectTrigger className="h-10 md:h-11 rounded-xl border-2 border-border/50 bg-background/50 text-sm hover:border-border/70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                        <SelectValue 
+                          placeholder={
+                            brands.length === 0
+                              ? "Nenhuma marca cadastrada"
+                              : "Selecione a marca"
+                          } 
+                        />
                       </SelectTrigger>
                       <SelectContent className="rounded-xl border-border/20">
                         {brands.map((b) => (
@@ -740,6 +747,17 @@ export default function CreateContent() {
                         ))}
                       </SelectContent>
                     </Select>
+                  )}
+                  {!isLoadingData && brands.length === 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      Você precisa cadastrar uma marca antes de criar conteúdo.{" "}
+                      <button
+                        onClick={() => navigate("/marcas")}
+                        className="text-primary hover:underline font-medium"
+                      >
+                        Ir para Marcas
+                      </button>
+                    </p>
                   )}
                 </div>
 
