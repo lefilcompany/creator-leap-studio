@@ -622,7 +622,7 @@ export default function CreateContent() {
                   </p>
                 </div>
               </div>
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full xl:w-auto xl:max-w-md">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-1 w-full xl:w-auto xl:max-w-md">
                 <div className="flex items-center space-x-1 rounded-full bg-muted p-1 border flex-1">
                   <Button
                     variant={!isVideoMode ? "default" : "ghost"}
