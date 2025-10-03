@@ -609,11 +609,11 @@ export default function CreateContent() {
         <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5">
           <CardHeader className="p-3 md:p-4 lg:p-6">
             <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3 md:gap-4">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
                 <div className="flex-shrink-0 bg-primary/10 text-primary rounded-xl p-2.5 md:p-3">
                   <Sparkles className="h-5 w-5 md:h-6 md:w-6 lg:h-8 lg:w-8" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-foreground">
                     Criar Conteúdo
                   </h1>
@@ -622,8 +622,8 @@ export default function CreateContent() {
                   </p>
                 </div>
               </div>
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full xl:w-auto xl:max-w-md">
-                <div className="flex items-center space-x-1 rounded-full bg-muted p-1 border flex-1">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full xl:w-auto">
+                <div className="flex items-center space-x-1 rounded-full bg-muted p-1 border flex-1 xl:flex-initial xl:w-auto">
                   <Button
                     variant={!isVideoMode ? "default" : "ghost"}
                     onClick={() => handleVideoModeChange(false)}
@@ -651,23 +651,23 @@ export default function CreateContent() {
                   </Button>
                 </div>
                 {isLoadingData ? (
-                  <Skeleton className="h-12 md:h-14 w-full sm:w-40 lg:w-48 rounded-xl" />
+                  <Skeleton className="h-12 md:h-14 w-full sm:w-48 xl:w-52 rounded-xl flex-shrink-0" />
                 ) : (
                   team && (
                     <Card className="bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/20 flex-shrink-0">
                       <CardContent className="p-2.5 md:p-3">
-                        <div className="flex items-center justify-center gap-4">
-                          <div className="relative">
+                        <div className="flex items-center gap-3">
+                          <div className="relative flex-shrink-0">
                             <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary rounded-full blur-sm opacity-40"></div>
                             <div className="relative bg-gradient-to-r from-primary to-secondary text-white rounded-full p-2">
                               <Zap className="h-4 w-4" />
                             </div>
                           </div>
-                          <div className="text-left gap-4 flex justify-center items-center">
-                            <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent whitespace-nowrap">
                               {team?.credits?.contentSuggestions || 0}
                             </span>
-                            <p className="text-md text-muted-foreground font-medium leading-tight">
+                            <p className="text-sm text-muted-foreground font-medium leading-tight whitespace-nowrap">
                               Revisões Restantes
                             </p>
                           </div>
