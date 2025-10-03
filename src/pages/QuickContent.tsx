@@ -40,24 +40,27 @@ export default function QuickContent() {
     try {
       setLoadingData(true);
 
-      // Load brands
-      const { data: brandsData, error: brandsError } = await supabase
-        .from("brands")
-        .select("*")
-        .eq("team_id", team?.id)
-        .order("name");
+      // Carregar todos os dados em paralelo
+      const [
+        { data: brandsData, error: brandsError },
+        { data: teamData, error: teamError }
+      ] = await Promise.all([
+        supabase
+          .from("brands")
+          .select("*")
+          .eq("team_id", team?.id)
+          .order("name"),
+        supabase
+          .from("teams")
+          .select("credits_quick_content")
+          .eq("id", team?.id)
+          .single()
+      ]);
 
       if (brandsError) throw brandsError;
-      setBrands((brandsData || []) as any);
-
-      // Load credits
-      const { data: teamData, error: teamError } = await supabase
-        .from("teams")
-        .select("credits_quick_content")
-        .eq("id", team?.id)
-        .single();
-
       if (teamError) throw teamError;
+      
+      setBrands((brandsData || []) as any);
       setCredits(teamData?.credits_quick_content || 0);
     } catch (error) {
       console.error("Error loading data:", error);

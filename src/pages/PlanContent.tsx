@@ -48,29 +48,29 @@ const PlanContent = () => {
     
     setLoadingData(true);
     try {
-      // Load brands
-      const { data: brandsData } = await supabase
-        .from('brands')
-        .select('id, name')
-        .eq('team_id', team.id);
+      // Carregar todos os dados em paralelo
+      const [
+        { data: brandsData },
+        { data: themesData },
+        { data: teamData }
+      ] = await Promise.all([
+        supabase
+          .from('brands')
+          .select('id, name')
+          .eq('team_id', team.id),
+        supabase
+          .from('strategic_themes')
+          .select('id, title, brand_id')
+          .eq('team_id', team.id),
+        supabase
+          .from('teams')
+          .select('credits_plans')
+          .eq('id', team.id)
+          .single()
+      ]);
       
       if (brandsData) setBrands(brandsData);
-
-      // Load themes
-      const { data: themesData } = await supabase
-        .from('strategic_themes')
-        .select('id, title, brand_id')
-        .eq('team_id', team.id);
-      
       if (themesData) setThemes(themesData);
-
-      // Load team credits
-      const { data: teamData } = await supabase
-        .from('teams')
-        .select('credits_plans')
-        .eq('id', team.id)
-        .single();
-      
       if (teamData) setCreditsRemaining(teamData.credits_plans);
 
     } catch (error) {

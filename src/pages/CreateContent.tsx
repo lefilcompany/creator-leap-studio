@@ -113,43 +113,38 @@ export default function CreateContent() {
 
       setIsLoadingData(true);
       try {
-        // Buscar team
-        const { data: teamData, error: teamError } = await supabase
-          .from('teams')
-          .select(`
-            *,
-            plan:plans(*)
-          `)
-          .eq('id', user.teamId)
-          .single();
+        // Buscar todos os dados em paralelo para melhor performance
+        const [
+          { data: teamData, error: teamError },
+          { data: brandsData, error: brandsError },
+          { data: themesData, error: themesError },
+          { data: personasData, error: personasError }
+        ] = await Promise.all([
+          supabase
+            .from('teams')
+            .select('*, plan:plans(*)')
+            .eq('id', user.teamId)
+            .single(),
+          supabase
+            .from('brands')
+            .select('id, name, responsible, created_at, updated_at')
+            .eq('team_id', user.teamId)
+            .order('created_at', { ascending: false }),
+          supabase
+            .from('strategic_themes')
+            .select('id, brand_id, title, created_at')
+            .eq('team_id', user.teamId)
+            .order('created_at', { ascending: false }),
+          supabase
+            .from('personas')
+            .select('id, brand_id, name, created_at')
+            .eq('team_id', user.teamId)
+            .order('created_at', { ascending: false })
+        ]);
 
         if (teamError) throw teamError;
-
-        // Buscar brands com imagens
-        const { data: brandsData, error: brandsError } = await supabase
-          .from('brands')
-          .select('id, name, responsible, logo, moodboard, reference_image, created_at, updated_at')
-          .eq('team_id', user.teamId)
-          .order('created_at', { ascending: false });
-
         if (brandsError) throw brandsError;
-
-        // Buscar themes
-        const { data: themesData, error: themesError } = await supabase
-          .from('strategic_themes')
-          .select('id, brand_id, title, created_at')
-          .eq('team_id', user.teamId)
-          .order('created_at', { ascending: false });
-
         if (themesError) throw themesError;
-
-        // Buscar personas
-        const { data: personasData, error: personasError } = await supabase
-          .from('personas')
-          .select('id, brand_id, name, created_at')
-          .eq('team_id', user.teamId)
-          .order('created_at', { ascending: false });
-
         if (personasError) throw personasError;
 
         // Mapear team
@@ -186,8 +181,8 @@ export default function CreateContent() {
           }
         };
 
-        // Mapear brands
-        const mappedBrands: BrandSummary[] = brandsData.map((brand) => ({
+        // Mapear dados
+        const mappedBrands: BrandSummary[] = (brandsData || []).map((brand) => ({
           id: brand.id,
           name: brand.name,
           responsible: brand.responsible,
@@ -195,16 +190,14 @@ export default function CreateContent() {
           updatedAt: brand.updated_at,
         }));
 
-        // Mapear themes
-        const mappedThemes: StrategicThemeSummary[] = themesData.map((theme) => ({
+        const mappedThemes: StrategicThemeSummary[] = (themesData || []).map((theme) => ({
           id: theme.id,
           brandId: theme.brand_id,
           title: theme.title,
           createdAt: theme.created_at,
         }));
 
-        // Mapear personas
-        const mappedPersonas: PersonaSummary[] = personasData.map((persona) => ({
+        const mappedPersonas: PersonaSummary[] = (personasData || []).map((persona) => ({
           id: persona.id,
           brandId: persona.brand_id,
           name: persona.name,
@@ -226,51 +219,44 @@ export default function CreateContent() {
   }, [user]);
 
   useEffect(() => {
-    const loadBrandData = async () => {
-      const selectedBrand = brands.find((b) => b.id === formData.brand);
-      setFilteredThemes(
-        selectedBrand ? themes.filter((t) => t.brandId === selectedBrand.id) : []
-      );
-      setFilteredPersonas(
-        selectedBrand ? personas.filter((p) => p.brandId === selectedBrand.id) : []
-      );
+    const selectedBrand = brands.find((b) => b.id === formData.brand);
+    
+    // Filtrar temas e personas baseado na marca selecionada
+    setFilteredThemes(
+      selectedBrand ? themes.filter((t) => t.brandId === selectedBrand.id) : []
+    );
+    setFilteredPersonas(
+      selectedBrand ? personas.filter((p) => p.brandId === selectedBrand.id) : []
+    );
 
-      // Carregar imagens da marca
-      if (selectedBrand) {
-        const images: string[] = [];
-        
-        // Buscar dados completos da marca para pegar as imagens
-        const { data: fullBrand, error } = await supabase
-          .from('brands')
-          .select('logo, moodboard, reference_image')
-          .eq('id', selectedBrand.id)
-          .single();
-
-        if (!error && fullBrand) {
-          // Adicionar logo
-          const logo = fullBrand.logo as any;
-          if (logo?.content) {
-            images.push(logo.content);
+    // Carregar imagens da marca apenas quando necessário (quando for gerar conteúdo)
+    if (selectedBrand) {
+      // Limpar imagens anteriores imediatamente
+      setBrandImages([]);
+      
+      // Buscar imagens em background
+      supabase
+        .from('brands')
+        .select('logo, moodboard, reference_image')
+        .eq('id', selectedBrand.id)
+        .single()
+        .then(({ data: fullBrand, error }) => {
+          if (!error && fullBrand) {
+            const images: string[] = [];
+            const logo = fullBrand.logo as any;
+            const moodboard = fullBrand.moodboard as any;
+            const referenceImage = fullBrand.reference_image as any;
+            
+            if (logo?.content) images.push(logo.content);
+            if (moodboard?.content) images.push(moodboard.content);
+            if (referenceImage?.content) images.push(referenceImage.content);
+            
+            setBrandImages(images);
           }
-          // Adicionar moodboard
-          const moodboard = fullBrand.moodboard as any;
-          if (moodboard?.content) {
-            images.push(moodboard.content);
-          }
-          // Adicionar imagem de referência
-          const referenceImage = fullBrand.reference_image as any;
-          if (referenceImage?.content) {
-            images.push(referenceImage.content);
-          }
-        }
-        
-        setBrandImages(images);
-      } else {
-        setBrandImages([]);
-      }
-    };
-
-    loadBrandData();
+        });
+    } else {
+      setBrandImages([]);
+    }
   }, [brands, themes, personas, formData.brand, supabase]);
 
   const handleInputChange = (
