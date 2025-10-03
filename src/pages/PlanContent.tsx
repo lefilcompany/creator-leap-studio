@@ -37,8 +37,7 @@ const PlanContent = () => {
   const [brands, setBrands] = useState<any[]>([]);
   const [themes, setThemes] = useState<any[]>([]);
   const [creditsRemaining, setCreditsRemaining] = useState<number>(0);
-  const [loadingData, setLoadingData] = useState(true);
-  const [dataLoaded, setDataLoaded] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(true);
 
   useEffect(() => {
     loadData();
@@ -46,20 +45,18 @@ const PlanContent = () => {
 
   const loadData = async () => {
     if (!team?.id) {
-      setLoadingData(false);
-      setDataLoaded(true);
+      setIsLoadingData(false);
       return;
     }
     
-    setLoadingData(true);
-    setDataLoaded(false);
+    setIsLoadingData(true);
     
     try {
       // Carregar todos os dados em paralelo
       const [
-        { data: brandsData },
-        { data: themesData },
-        { data: teamData }
+        { data: brandsData, error: brandsError },
+        { data: themesData, error: themesError },
+        { data: teamData, error: teamError }
       ] = await Promise.all([
         supabase
           .from('brands')
@@ -73,18 +70,18 @@ const PlanContent = () => {
           .from('teams')
           .select('credits_plans')
           .eq('id', team.id)
-          .single()
+          .maybeSingle()
       ]);
       
-      // Atualizar todos os estados de uma vez
+      if (brandsError) throw brandsError;
+      if (themesError) throw themesError;
+      if (teamError) throw teamError;
+      
+      // Atualizar todos os estados de uma vez para evitar múltiplas renderizações
       setBrands(brandsData || []);
       setThemes(themesData || []);
       setCreditsRemaining(teamData?.credits_plans || 0);
-      
-      // Aguardar um tick para garantir que os estados foram atualizados
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      setDataLoaded(true);
+      setIsLoadingData(false);
 
     } catch (error) {
       console.error('Error loading data:', error);
@@ -92,9 +89,7 @@ const PlanContent = () => {
       setBrands([]);
       setThemes([]);
       setCreditsRemaining(0);
-      setDataLoaded(true);
-    } finally {
-      setLoadingData(false);
+      setIsLoadingData(false);
     }
   };
 
@@ -244,37 +239,30 @@ const PlanContent = () => {
     }
   };
 
-  if (loadingData || !dataLoaded) {
-    return (
-      <div className="min-h-full w-full p-3 sm:p-6 flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
-          <p className="text-muted-foreground">Carregando dados...</p>
-        </div>
-      </div>
-    );
-  }
-    return (
-      <div className="min-h-full w-full p-3 sm:p-6">
-        <div className="max-w-7xl mx-auto space-y-4 sm:space-y-8">
-          {/* Header Card */}
-          <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5">
-            <CardHeader className="p-4 sm:p-6">
-              <div className="flex flex-col space-y-4 lg:flex-row lg:items-center lg:justify-between lg:space-y-0 gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="flex-shrink-0 bg-primary/10 text-primary rounded-lg p-2 sm:p-3">
-                    <Calendar className="h-6 w-6 sm:h-8 sm:w-8" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <h1 className="text-lg sm:text-xl lg:text-3xl font-bold truncate">Planejar Conteúdo</h1>
-                    <p className="text-muted-foreground text-xs sm:text-sm lg:text-base">
-                      Preencha os campos para gerar seu planejamento de posts
-                    </p>
-                  </div>
+  return (
+    <div className="min-h-full w-full p-3 sm:p-6">
+      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-8">
+        {/* Header Card */}
+        <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5">
+          <CardHeader className="p-4 sm:p-6">
+            <div className="flex flex-col space-y-4 lg:flex-row lg:items-center lg:justify-between lg:space-y-0 gap-4">
+              <div className="flex items-center gap-3">
+                <div className="flex-shrink-0 bg-primary/10 text-primary rounded-lg p-2 sm:p-3">
+                  <Calendar className="h-6 w-6 sm:h-8 sm:w-8" />
                 </div>
-                
-                <Card className="bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/30 flex-shrink-0 w-full sm:w-auto">
-                  <CardContent className="p-3 sm:p-4">
+                <div className="min-w-0 flex-1">
+                  <h1 className="text-lg sm:text-xl lg:text-3xl font-bold truncate">Planejar Conteúdo</h1>
+                  <p className="text-muted-foreground text-xs sm:text-sm lg:text-base">
+                    Preencha os campos para gerar seu planejamento de posts
+                  </p>
+                </div>
+              </div>
+              
+              <Card className="bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/30 flex-shrink-0 w-full sm:w-auto">
+                <CardContent className="p-3 sm:p-4">
+                  {isLoadingData ? (
+                    <Skeleton className="h-12 w-40" />
+                  ) : (
                     <div className="flex items-center justify-center gap-4">
                       <div className="relative">
                         <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary rounded-full blur-sm opacity-40"></div>
@@ -291,11 +279,12 @@ const PlanContent = () => {
                         </p>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </CardHeader>
-          </Card>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </CardHeader>
+        </Card>
 
           {/* Configuration Form */}
           <Card className="backdrop-blur-sm bg-card/60 border border-border/20 shadow-lg shadow-black/5 rounded-2xl overflow-hidden">
@@ -315,18 +304,22 @@ const PlanContent = () => {
                       <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
                       Marca *
                     </Label>
-                    <Select onValueChange={handleBrandChange} value={formData.brand}>
-                      <SelectTrigger className="h-12 rounded-2xl border-2 border-border/50 bg-background/50 hover:border-primary/30 transition-colors">
-                        <SelectValue placeholder="Selecione a marca" />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-2xl border-border/20 bg-background/95 backdrop-blur-sm">
-                        {brands.map((brand) => (
-                          <SelectItem key={brand.id} value={brand.id} className="rounded-xl">
-                            {brand.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    {isLoadingData ? (
+                      <Skeleton className="h-12 w-full rounded-2xl" />
+                    ) : (
+                      <Select onValueChange={handleBrandChange} value={formData.brand}>
+                        <SelectTrigger className="h-12 rounded-2xl border-2 border-border/50 bg-background/50 hover:border-primary/30 transition-colors">
+                          <SelectValue placeholder="Selecione a marca" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-2xl border-border/20 bg-background/95 backdrop-blur-sm">
+                          {brands.map((brand) => (
+                            <SelectItem key={brand.id} value={brand.id} className="rounded-xl">
+                              {brand.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
                   </div>
 
                   <div className="space-y-3">
@@ -334,17 +327,21 @@ const PlanContent = () => {
                       <div className="w-1.5 h-1.5 bg-secondary rounded-full"></div>
                       Plataforma *
                     </Label>
-                    <Select onValueChange={handlePlatformChange} value={formData.platform}>
-                      <SelectTrigger className="h-12 rounded-2xl border-2 border-border/50 bg-background/50 hover:border-secondary/30 transition-colors">
-                        <SelectValue placeholder="Selecione a plataforma" />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-2xl border-border/20 bg-background/95 backdrop-blur-sm">
-                        <SelectItem value="instagram" className="rounded-xl">📷 Instagram</SelectItem>
-                        <SelectItem value="facebook" className="rounded-xl">👥 Facebook</SelectItem>
-                        <SelectItem value="linkedin" className="rounded-xl">💼 LinkedIn</SelectItem>
-                        <SelectItem value="twitter" className="rounded-xl">🐦 Twitter (X)</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    {isLoadingData ? (
+                      <Skeleton className="h-12 w-full rounded-2xl" />
+                    ) : (
+                      <Select onValueChange={handlePlatformChange} value={formData.platform}>
+                        <SelectTrigger className="h-12 rounded-2xl border-2 border-border/50 bg-background/50 hover:border-secondary/30 transition-colors">
+                          <SelectValue placeholder="Selecione a plataforma" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-2xl border-border/20 bg-background/95 backdrop-blur-sm">
+                          <SelectItem value="instagram" className="rounded-xl">📷 Instagram</SelectItem>
+                          <SelectItem value="facebook" className="rounded-xl">👥 Facebook</SelectItem>
+                          <SelectItem value="linkedin" className="rounded-xl">💼 LinkedIn</SelectItem>
+                          <SelectItem value="twitter" className="rounded-xl">🐦 Twitter (X)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
                   </div>
 
                   <div className="space-y-3">
@@ -352,17 +349,21 @@ const PlanContent = () => {
                       <div className="w-1.5 h-1.5 bg-accent rounded-full"></div>
                       Quantidade de Posts *
                     </Label>
-                    <Input
-                      id="quantity"
-                      type="number"
-                      min="1"
-                      max="7"
-                      placeholder="1-7"
-                      value={formData.quantity}
-                      onChange={handleQuantityChange}
-                      onBlur={handleQuantityBlur}
-                      className="h-12 rounded-2xl border-2 border-border/50 bg-background/50 hover:border-accent/30 transition-colors text-center font-semibold"
-                    />
+                    {isLoadingData ? (
+                      <Skeleton className="h-12 w-full rounded-2xl" />
+                    ) : (
+                      <Input
+                        id="quantity"
+                        type="number"
+                        min="1"
+                        max="7"
+                        placeholder="1-7"
+                        value={formData.quantity}
+                        onChange={handleQuantityChange}
+                        onBlur={handleQuantityBlur}
+                        className="h-12 rounded-2xl border-2 border-border/50 bg-background/50 hover:border-accent/30 transition-colors text-center font-semibold"
+                      />
+                    )}
                   </div>
                 </div>
 
@@ -378,23 +379,27 @@ const PlanContent = () => {
                     </span>
                   </div>
                   
-                  <Select onValueChange={handleThemeSelect} value="" disabled={!formData.brand || filteredThemes.length === 0}>
-                    <SelectTrigger className="h-12 rounded-2xl border-2 border-border/50 bg-background/50 hover:border-primary/30 transition-colors disabled:opacity-50">
-                      <SelectValue placeholder={!formData.brand ? "Primeiro, escolha a marca" : "Adicionar tema estratégico"} />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-2xl border-border/20 bg-background/95 backdrop-blur-sm">
-                      {filteredThemes.map((t) => (
-                        <SelectItem 
-                          key={t.id} 
-                          value={t.id} 
-                          disabled={formData.theme.includes(t.id)} 
-                          className="rounded-xl"
-                        >
-                          {t.title}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  {isLoadingData ? (
+                    <Skeleton className="h-12 w-full rounded-2xl" />
+                  ) : (
+                    <Select onValueChange={handleThemeSelect} value="" disabled={!formData.brand || filteredThemes.length === 0}>
+                      <SelectTrigger className="h-12 rounded-2xl border-2 border-border/50 bg-background/50 hover:border-primary/30 transition-colors disabled:opacity-50">
+                        <SelectValue placeholder={!formData.brand ? "Primeiro, escolha a marca" : "Adicionar tema estratégico"} />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-2xl border-border/20 bg-background/95 backdrop-blur-sm">
+                        {filteredThemes.map((t) => (
+                          <SelectItem 
+                            key={t.id} 
+                            value={t.id} 
+                            disabled={formData.theme.includes(t.id)} 
+                            className="rounded-xl"
+                          >
+                            {t.title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
 
                   {/* Selected Themes Display */}
                   <div className="relative">
