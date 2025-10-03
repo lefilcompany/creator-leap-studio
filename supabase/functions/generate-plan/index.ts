@@ -44,8 +44,10 @@ serve(async (req) => {
       );
     }
     
-    const validPlatforms = ['Instagram', 'LinkedIn', 'Facebook', 'Twitter', 'TikTok'];
-    if (!platform || !validPlatforms.includes(platform)) {
+    const validPlatforms = ['instagram', 'linkedin', 'facebook', 'twitter', 'tiktok'];
+    const normalizedPlatform = platform.toLowerCase().trim();
+    if (!normalizedPlatform || !validPlatforms.includes(normalizedPlatform)) {
+      console.error('Invalid platform:', platform);
       return new Response(
         JSON.stringify({ error: 'Invalid platform' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
