@@ -628,7 +628,7 @@ export default function CreateContent() {
       }
 
       const generatedContent = {
-        type: "image",
+        type: "image" as const,
         mediaUrl: imageUrl,
         caption,
         platform: formData.platform,
@@ -642,9 +642,16 @@ export default function CreateContent() {
       toast.success("Conteúdo gerado com sucesso!", {
         id: toastId,
         description: "Imagem e legenda criados com Gemini 2.5 🚀",
+        duration: 2000,
       });
       
-      navigate("/result", { state: { contentData: generatedContent } });
+      // Pequeno delay para garantir que o toast seja exibido antes da navegação
+      setTimeout(() => {
+        navigate("/result", { 
+          state: { contentData: generatedContent },
+          replace: false 
+        });
+      }, 100);
     } catch (err: any) {
       console.error("Erro ao gerar conteúdo:", err);
       toast.error(err.message || "Erro ao gerar o conteúdo.", { id: toastId });
