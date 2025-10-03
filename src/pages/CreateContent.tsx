@@ -684,13 +684,11 @@ export default function CreateContent() {
         duration: 1500,
       });
       
-      // Reduzido para 50ms para navegação mais rápida
-      setTimeout(() => {
-        navigate("/result", { 
-          state: { contentData: generatedContent },
-          replace: false 
-        });
-      }, 50);
+      // Navegação imediata para melhor performance
+      navigate("/result", { 
+        state: { contentData: generatedContent },
+        replace: false 
+      });
     } catch (err: any) {
       console.error("Erro ao gerar conteúdo:", err);
       

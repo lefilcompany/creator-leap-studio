@@ -5,8 +5,8 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const MAX_RETRIES = 4;
-const RETRY_DELAY_MS = 2000;
+const MAX_RETRIES = 2;
+const RETRY_DELAY_MS = 1000;
 
 function cleanInput(text: string | string[] | undefined | null): string {
   if (!text) return "";
