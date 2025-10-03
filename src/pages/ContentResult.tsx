@@ -53,31 +53,71 @@ export default function ContentResult() {
 
   useEffect(() => {
     const loadContent = async () => {
+      // Limpar imagens antigas do sessionStorage (mais de 1 hora)
+      try {
+        Object.keys(sessionStorage).forEach(key => {
+          if (key.startsWith('image_')) {
+            const timestamp = parseInt(key.split('_')[1]);
+            if (!isNaN(timestamp) && Date.now() - timestamp > 3600000) {
+              sessionStorage.removeItem(key);
+            }
+          }
+        });
+      } catch (error) {
+        console.error('Erro ao limpar sessionStorage:', error);
+      }
+
       // Get data from navigation state
       if (location.state?.contentData) {
         const data = location.state.contentData;
+        const contentId = `content_${Date.now()}`;
         
-        // Validate data before setting
-        if (!data.mediaUrl || !data.caption) {
-          toast.error("Dados do conteúdo incompletos");
-          navigate("/create");
-          return;
+        // ✅ ETAPA 1: Definir contentData IMEDIATAMENTE (antes de qualquer validação)
+        setContentData(data);
+        setIsLoading(false);
+        
+        // ✅ ETAPA 2: Salvar imagem no sessionStorage (não no localStorage)
+        if (data.mediaUrl) {
+          try {
+            sessionStorage.setItem(`image_${contentId}`, data.mediaUrl);
+          } catch (error) {
+            if (error instanceof Error && error.name === 'QuotaExceededError') {
+              console.warn('⚠️ Imagem muito grande para cache - continuando sem salvar');
+            } else {
+              console.error('Erro ao salvar imagem no sessionStorage:', error);
+            }
+          }
         }
         
-        setContentData(data);
+        // ✅ ETAPA 3: Validar dados DEPOIS de definir o estado
+        if (!data.mediaUrl || !data.caption) {
+          toast.error("Dados incompletos, mas exibindo o que foi gerado");
+          // Não navega de volta - permite visualização parcial
+        }
         
-        // Save to localStorage and history
-        const contentId = `content_${Date.now()}`;
+        // ✅ ETAPA 4: Salvar metadados no localStorage (SEM base64)
         const savedContent = {
           id: contentId,
-          ...data,
+          type: data.type,
+          platform: data.platform,
+          brand: data.brand,
+          caption: data.caption,
+          title: data.title,
+          hashtags: data.hashtags,
+          originalFormData: data.originalFormData,
+          actionId: data.actionId,
           createdAt: new Date().toISOString(),
           revisions: []
+          // ❌ NÃO incluir mediaUrl aqui
         };
         
-        localStorage.setItem('currentContent', JSON.stringify(savedContent));
+        try {
+          localStorage.setItem('currentContent', JSON.stringify(savedContent));
+        } catch (error) {
+          console.error('Erro ao salvar no localStorage:', error);
+        }
         
-        // Add to history (without base64 image to save space)
+        // Add to history (sem base64)
         try {
           const history = JSON.parse(localStorage.getItem('contentHistory') || '[]');
           const historyItem = {
@@ -86,18 +126,15 @@ export default function ContentResult() {
             platform: data.platform,
             brand: data.brand,
             createdAt: new Date().toISOString(),
-            // Don't store mediaUrl (base64) to avoid quota issues
           };
           history.unshift(historyItem);
-          // Keep only last 10 items to avoid quota issues
           localStorage.setItem('contentHistory', JSON.stringify(history.slice(0, 10)));
         } catch (error) {
-          console.error('Error saving to history:', error);
-          // If quota exceeded, clear history and try again
+          console.error('Erro ao salvar histórico:', error);
           localStorage.removeItem('contentHistory');
         }
         
-        // Load revision count for this session
+        // Load revision count
         const revisionsKey = `revisions_${contentId}`;
         const savedRevisions = localStorage.getItem(revisionsKey);
         if (savedRevisions) {
@@ -106,23 +143,35 @@ export default function ContentResult() {
           setFreeRevisionsLeft(Math.max(0, 2 - count));
         }
         
-        setIsLoading(false);
       } else {
         // Try to load from localStorage
         const saved = localStorage.getItem('currentContent');
         if (saved) {
-          const parsed = JSON.parse(saved);
-          setContentData(parsed);
-          
-          const revisionsKey = `revisions_${parsed.id}`;
-          const savedRevisions = localStorage.getItem(revisionsKey);
-          if (savedRevisions) {
-            const count = parseInt(savedRevisions);
-            setTotalRevisions(count);
-            setFreeRevisionsLeft(Math.max(0, 2 - count));
+          try {
+            const parsed = JSON.parse(saved);
+            
+            // Tentar recuperar imagem do sessionStorage
+            const imageUrl = sessionStorage.getItem(`image_${parsed.id}`);
+            if (imageUrl) {
+              parsed.mediaUrl = imageUrl;
+            }
+            
+            setContentData(parsed);
+            
+            const revisionsKey = `revisions_${parsed.id}`;
+            const savedRevisions = localStorage.getItem(revisionsKey);
+            if (savedRevisions) {
+              const count = parseInt(savedRevisions);
+              setTotalRevisions(count);
+              setFreeRevisionsLeft(Math.max(0, 2 - count));
+            }
+            
+            setIsLoading(false);
+          } catch (error) {
+            console.error('Erro ao carregar conteúdo salvo:', error);
+            toast.error("Erro ao carregar conteúdo");
+            navigate("/create");
           }
-          
-          setIsLoading(false);
         } else {
           toast.error("Nenhum conteúdo encontrado");
           navigate("/create");
@@ -309,18 +358,40 @@ export default function ContentResult() {
 
       setContentData(updatedContent);
       
-      // Update localStorage
+      // Update sessionStorage with new image (se foi editada)
+      if (reviewType === "image" && updatedContent.mediaUrl) {
+        try {
+          sessionStorage.setItem(`image_${saved.id}`, updatedContent.mediaUrl);
+        } catch (error) {
+          if (error instanceof Error && error.name === 'QuotaExceededError') {
+            console.warn('⚠️ Imagem muito grande para cache');
+          }
+        }
+      }
+      
+      // Update localStorage (sem base64)
       const updatedSaved = {
         ...saved,
-        ...updatedContent,
+        type: updatedContent.type,
+        platform: updatedContent.platform,
+        brand: updatedContent.brand,
+        caption: updatedContent.caption,
+        title: updatedContent.title,
+        hashtags: updatedContent.hashtags,
         revisions: [...(saved.revisions || []), {
           type: reviewType,
           prompt: reviewPrompt,
           timestamp: new Date().toISOString(),
           usedCredit: needsCredit
         }]
+        // ❌ NÃO salvar mediaUrl no localStorage
       };
-      localStorage.setItem('currentContent', JSON.stringify(updatedSaved));
+      
+      try {
+        localStorage.setItem('currentContent', JSON.stringify(updatedSaved));
+      } catch (error) {
+        console.error('Erro ao atualizar localStorage:', error);
+      }
       
       // Update revision count
       const revisionsKey = `revisions_${saved.id}`;
@@ -432,23 +503,32 @@ export default function ContentResult() {
           <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-2xl overflow-hidden animate-fade-in hover:shadow-xl transition-shadow duration-300" style={{ animationDelay: '100ms' }}>
             <CardContent className="p-0">
               <div className="aspect-square bg-muted/30 relative overflow-hidden group">
-                {contentData.type === "video" ? (
-                  <video
-                    src={contentData.mediaUrl}
-                    controls
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    autoPlay
-                    loop
-                    muted
-                  >
-                    Seu navegador não suporta vídeos.
-                  </video>
+                {contentData.mediaUrl ? (
+                  contentData.type === "video" ? (
+                    <video
+                      src={contentData.mediaUrl}
+                      controls
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      autoPlay
+                      loop
+                      muted
+                    >
+                      Seu navegador não suporta vídeos.
+                    </video>
+                  ) : (
+                    <img
+                      src={contentData.mediaUrl}
+                      alt="Conteúdo gerado"
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                  )
                 ) : (
-                  <img
-                    src={contentData.mediaUrl}
-                    alt="Conteúdo gerado"
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
+                  <div className="flex items-center justify-center h-full">
+                    <div className="text-center space-y-2">
+                      <ImageIcon className="h-12 w-12 mx-auto text-muted-foreground/50" />
+                      <p className="text-muted-foreground">Imagem não disponível</p>
+                    </div>
+                  </div>
                 )}
                 
                 {/* Overlay gradient */}
