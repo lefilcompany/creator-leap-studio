@@ -258,19 +258,19 @@ const PlanContent = () => {
                 
                 <Card className="bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/30 flex-shrink-0 w-full sm:w-auto">
                   <CardContent className="p-3 sm:p-4">
-                    <div className="flex items-center justify-center gap-3 sm:gap-4">
-                      <div className="relative flex-shrink-0">
+                    <div className="flex items-center justify-center gap-4">
+                      <div className="relative">
                         <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary rounded-full blur-sm opacity-40"></div>
                         <div className="relative bg-gradient-to-r from-primary to-secondary text-white rounded-full p-2">
                           <Zap className="h-4 w-4" />
                         </div>
                       </div>
-                      <div className="text-center sm:text-left min-w-0">
-                        <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent block">
+                      <div className="text-left gap-4 flex justify-center items-center">
+                        <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                           {creditsRemaining}
                         </span>
-                        <p className="text-xs sm:text-sm text-muted-foreground font-medium leading-tight">
-                          Planejamentos Restantes
+                        <p className="text-md text-muted-foreground font-medium leading-tight">
+                          Revisões Restantes
                         </p>
                       </div>
                     </div>

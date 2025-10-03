@@ -656,19 +656,19 @@ export default function CreateContent() {
                   team && (
                     <Card className="bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/20 flex-shrink-0">
                       <CardContent className="p-2.5 md:p-3">
-                        <div className="flex items-center justify-center gap-2 md:gap-3">
+                        <div className="flex items-center justify-center gap-4">
                           <div className="relative">
                             <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary rounded-full blur-sm opacity-40"></div>
-                            <div className="relative bg-gradient-to-r from-primary to-secondary text-white rounded-full p-1.5 md:p-2">
-                              <Zap className="h-3 w-3 md:h-4 md:w-4" />
+                            <div className="relative bg-gradient-to-r from-primary to-secondary text-white rounded-full p-2">
+                              <Zap className="h-4 w-4" />
                             </div>
                           </div>
-                          <div className="text-left">
-                            <span className="text-lg md:text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                          <div className="text-left gap-4 flex justify-center items-center">
+                            <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                               {team?.credits?.contentSuggestions || 0}
                             </span>
-                            <p className="text-[10px] md:text-xs text-muted-foreground font-medium leading-tight">
-                              Criações Restantes
+                            <p className="text-md text-muted-foreground font-medium leading-tight">
+                              Revisões Restantes
                             </p>
                           </div>
                         </div>
