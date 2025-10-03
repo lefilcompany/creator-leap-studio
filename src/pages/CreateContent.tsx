@@ -111,7 +111,6 @@ export default function CreateContent() {
         return;
       }
 
-      setIsLoadingData(true);
       try {
         // Buscar todos os dados em paralelo para melhor performance
         const [
@@ -204,14 +203,15 @@ export default function CreateContent() {
           createdAt: persona.created_at,
         }));
 
+        // Atualizar todos os estados de uma vez para evitar múltiplas renderizações
         setTeam(mappedTeam);
         setBrands(mappedBrands);
         setThemes(mappedThemes);
         setPersonas(mappedPersonas);
+        setIsLoadingData(false);
       } catch (error: any) {
         console.error("Erro ao carregar dados:", error);
         toast.error("Erro ao carregar dados do formulário");
-      } finally {
         setIsLoadingData(false);
       }
     };
@@ -601,6 +601,41 @@ export default function CreateContent() {
       setLoading(false);
     }
   };
+
+  if (isLoadingData) {
+    return (
+      <div className="min-h-full bg-gradient-to-br from-background via-background to-muted/20">
+        <div className="max-w-7xl mx-auto space-y-4 md:space-y-6">
+          <Card className="shadow-lg border-0">
+            <CardHeader className="p-3 md:p-4 lg:p-6">
+              <div className="flex items-center gap-3">
+                <Skeleton className="h-12 w-12 rounded-xl" />
+                <div className="space-y-2 flex-1">
+                  <Skeleton className="h-6 w-48" />
+                  <Skeleton className="h-4 w-64" />
+                </div>
+              </div>
+            </CardHeader>
+          </Card>
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 md:gap-6">
+            <Card>
+              <CardContent className="p-6 space-y-4">
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-6 space-y-4">
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-32 w-full" />
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-full bg-gradient-to-br from-background via-background to-muted/20">
