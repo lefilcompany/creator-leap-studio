@@ -11,8 +11,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Sparkles, Zap } from "lucide-react";
+import { Loader2, Sparkles, Zap, Save } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useDraftForm } from "@/hooks/useDraftForm";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Brand } from "@/types/brand";
@@ -28,6 +29,12 @@ export default function QuickContent() {
   const [formData, setFormData] = useState({
     prompt: "",
     brandId: "",
+  });
+
+  // Hook para gerenciar rascunhos
+  const { loadDraft, clearDraft, hasDraft } = useDraftForm(formData, {
+    draftKey: 'quick_content_draft',
+    expirationHours: 2,
   });
 
   useEffect(() => {
@@ -62,6 +69,16 @@ export default function QuickContent() {
       
       setBrands((brandsData || []) as any);
       setCredits(teamData?.credits_quick_content || 0);
+
+      // Tentar carregar rascunho após carregar dados
+      const draft = loadDraft();
+      if (draft) {
+        setFormData(draft);
+        toast.info('Rascunho recuperado', {
+          description: 'Seus dados foram restaurados automaticamente.',
+          icon: <Save className="h-4 w-4" />,
+        });
+      }
     } catch (error) {
       console.error("Error loading data:", error);
       toast.error("Erro ao carregar dados");
@@ -105,6 +122,9 @@ export default function QuickContent() {
       // Update credits
       setCredits(data.creditsRemaining);
 
+      // Limpar rascunho após sucesso
+      clearDraft();
+
       // Navigate to result page
       navigate("/quick-content-result", {
         state: {
@@ -142,9 +162,17 @@ export default function QuickContent() {
               <Zap className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-foreground">
-                Criação Rápida
-              </h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl font-bold text-foreground">
+                  Criação Rápida
+                </h1>
+                {hasDraft() && (
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
+                    <Save className="h-3 w-3" />
+                    <span>Rascunho salvo</span>
+                  </div>
+                )}
+              </div>
               <p className="text-sm text-muted-foreground">
                 Gere imagens rapidamente com IA
               </p>

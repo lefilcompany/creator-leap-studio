@@ -15,13 +15,14 @@ import {
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Loader, Sparkles, Zap, X, Info, ImageIcon, Video } from "lucide-react";
+import { Loader, Sparkles, Zap, X, Info, ImageIcon, Video, Save } from "lucide-react";
 import { toast } from "sonner";
 import type { Brand, BrandSummary } from "@/types/brand";
 import type { StrategicTheme, StrategicThemeSummary } from "@/types/theme";
 import type { Persona, PersonaSummary } from "@/types/persona";
 import type { Team } from "@/types/theme";
 import { useAuth } from "@/hooks/useAuth";
+import { useDraftForm } from "@/hooks/useDraftForm";
 
 // Interfaces
 interface FormData {
@@ -79,6 +80,21 @@ export default function CreateContent() {
   const [duration, setDuration] = useState<string>("5");
   const pasteAreaRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Dados do formulário para rascunho (excluindo Files pois não podem ser serializados)
+  const formDataForDraft = {
+    ...formData,
+    isVideoMode,
+    transformationType,
+    ratio,
+    duration,
+  };
+
+  // Hook para gerenciar rascunhos
+  const { loadDraft, clearDraft, hasDraft } = useDraftForm(formDataForDraft, {
+    draftKey: 'create_content_draft',
+    expirationHours: 2,
+  });
 
   const handlePaste = (e: React.ClipboardEvent) => {
     const items = e.clipboardData.items;
@@ -208,6 +224,31 @@ export default function CreateContent() {
         setBrands(mappedBrands);
         setThemes(mappedThemes);
         setPersonas(mappedPersonas);
+
+        // Tentar carregar rascunho após carregar dados
+        const draft = loadDraft();
+        if (draft) {
+          setFormData({
+            brand: draft.brand || '',
+            theme: draft.theme || '',
+            persona: draft.persona || '',
+            objective: draft.objective || '',
+            platform: draft.platform || '',
+            description: draft.description || '',
+            tone: draft.tone || [],
+            additionalInfo: draft.additionalInfo || '',
+          });
+          
+          if (draft.isVideoMode !== undefined) setIsVideoMode(draft.isVideoMode);
+          if (draft.transformationType) setTransformationType(draft.transformationType);
+          if (draft.ratio) setRatio(draft.ratio);
+          if (draft.duration) setDuration(draft.duration);
+          
+          toast.info('Rascunho recuperado', {
+            description: 'Seus dados foram restaurados automaticamente.',
+            icon: <Save className="h-4 w-4" />,
+          });
+        }
       } catch (error: any) {
         console.error("Erro ao carregar dados:", error);
         toast.error("Erro ao carregar dados do formulário");
@@ -216,7 +257,7 @@ export default function CreateContent() {
       }
     };
     loadData();
-  }, [user]);
+  }, [user, loadDraft]);
 
   useEffect(() => {
     const selectedBrand = brands.find((b) => b.id === formData.brand);
@@ -472,6 +513,9 @@ export default function CreateContent() {
           description: message || "O vídeo está sendo processado em background. Verifique o histórico para acompanhar o progresso.",
         });
         
+        // Limpar rascunho após sucesso
+        clearDraft();
+        
         // Navegar para o histórico
         navigate("/historico");
         return;
@@ -593,6 +637,9 @@ export default function CreateContent() {
         description: "Imagem e legenda criados com Gemini 2.5 🚀",
       });
       
+      // Limpar rascunho após sucesso
+      clearDraft();
+      
       navigate("/result", { state: { contentData: generatedContent } });
     } catch (err: any) {
       console.error("Erro ao gerar conteúdo:", err);
@@ -614,9 +661,17 @@ export default function CreateContent() {
                   <Sparkles className="h-5 w-5 md:h-6 md:w-6 lg:h-8 lg:w-8" />
                 </div>
                 <div>
-                  <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-foreground">
-                    Criar Conteúdo
-                  </h1>
+                  <div className="flex items-center gap-2">
+                    <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-foreground">
+                      Criar Conteúdo
+                    </h1>
+                    {hasDraft() && (
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full flex-shrink-0">
+                        <Save className="h-3 w-3" />
+                        <span>Rascunho salvo</span>
+                      </div>
+                    )}
+                  </div>
                   <p className="text-muted-foreground text-xs md:text-sm lg:text-base">
                     Preencha os campos para gerar um post com IA
                   </p>

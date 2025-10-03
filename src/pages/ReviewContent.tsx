@@ -7,10 +7,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Skeleton } from '@/components/ui/skeleton';
-import { Loader, Image as ImageIcon, FileText, Type, Sparkles, CheckCircle, Zap } from 'lucide-react';
+import { Loader, Image as ImageIcon, FileText, Type, Sparkles, CheckCircle, Zap, Save } from 'lucide-react';
 import type { Brand } from '@/types/brand';
 import type { StrategicTheme, Team } from '@/types/theme';
 import { useAuth } from '@/hooks/useAuth';
+import { useDraftForm } from '@/hooks/useDraftForm';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -39,6 +40,23 @@ const ReviewContent = () => {
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [filteredThemes, setFilteredThemes] = useState<LightTheme[]>([]);
 
+  // Dados do formulário para rascunho (excluindo File pois não pode ser serializado)
+  const formDataForDraft = {
+    reviewType,
+    brand,
+    theme,
+    adjustmentsPrompt,
+    captionText,
+    textForImage,
+    previewUrl, // Mantém a URL da preview
+  };
+
+  // Hook para gerenciar rascunhos
+  const { loadDraft, clearDraft, hasDraft } = useDraftForm(formDataForDraft, {
+    draftKey: 'review_content_draft',
+    expirationHours: 2,
+  });
+
   useEffect(() => {
     const loadData = async () => {
       if (!user || !authTeam) return;
@@ -59,6 +77,23 @@ const ReviewContent = () => {
 
         if (themesError) throw themesError;
         setThemes(themesData?.map(t => ({ id: t.id, title: t.title, brandId: t.brand_id })) || []);
+
+        // Tentar carregar rascunho após carregar dados
+        const draft = loadDraft();
+        if (draft) {
+          if (draft.reviewType) setReviewType(draft.reviewType as ReviewType);
+          if (draft.brand) setBrand(draft.brand);
+          if (draft.theme) setTheme(draft.theme);
+          if (draft.adjustmentsPrompt) setAdjustmentsPrompt(draft.adjustmentsPrompt);
+          if (draft.captionText) setCaptionText(draft.captionText);
+          if (draft.textForImage) setTextForImage(draft.textForImage);
+          if (draft.previewUrl) setPreviewUrl(draft.previewUrl);
+          
+          toast.info('Rascunho recuperado', {
+            description: 'Seus dados foram restaurados automaticamente.',
+            icon: <Save className="h-4 w-4" />,
+          });
+        }
       } catch (err: any) {
         console.error('Error loading data:', err);
         toast.error('Erro ao carregar dados');
@@ -68,7 +103,7 @@ const ReviewContent = () => {
     };
 
     loadData();
-  }, [user, authTeam]);
+  }, [user, authTeam, loadDraft]);
 
   useEffect(() => {
     if (brand) {
@@ -183,6 +218,7 @@ const ReviewContent = () => {
       }
 
       if (result?.review) {
+        clearDraft(); // Limpar rascunho após sucesso
         navigate('/review-result', {
           state: {
             reviewType,
@@ -227,7 +263,15 @@ const ReviewContent = () => {
                   <CheckCircle className="h-8 w-8" />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold">Revisar Conteúdo</h1>
+                  <div className="flex items-center gap-2">
+                    <h1 className="text-3xl font-bold">Revisar Conteúdo</h1>
+                    {hasDraft() && (
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
+                        <Save className="h-3 w-3" />
+                        <span>Rascunho salvo</span>
+                      </div>
+                    )}
+                  </div>
                   <p className="text-muted-foreground text-base">
                     {!reviewType ? 'Escolha o tipo de revisão que deseja fazer' : 
                      reviewType === 'image' ? 'Receba sugestões da IA para aprimorar sua imagem' :
