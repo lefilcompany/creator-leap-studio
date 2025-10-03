@@ -374,10 +374,10 @@ export default function ContentResult() {
 
   return (
     <div className="min-h-full bg-gradient-to-br from-background via-background to-muted/20 p-3 md:p-4 lg:p-6">
-      <div className="max-w-6xl mx-auto space-y-4 md:space-y-6">
+      <div className="max-w-6xl mx-auto space-y-4 md:space-y-6 animate-fade-in">
         
         {/* Header */}
-        <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5">
+        <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5 animate-scale-in">
           <CardContent className="p-4 md:p-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -385,13 +385,13 @@ export default function ContentResult() {
                 variant="ghost"
                 size="icon"
                 onClick={() => navigate("/create")}
-                className="rounded-xl hover:bg-background/50 lg:hidden"
+                className="rounded-xl hover:bg-background/50 lg:hidden hover-scale transition-all duration-200"
               >
                 <ArrowLeft className="h-5 w-5" />
               </Button>
                 <div className="flex items-center gap-3">
                   <div className="flex-shrink-0 bg-primary/10 text-primary rounded-xl p-2.5 md:p-3">
-                    <Sparkles className="h-5 w-5 md:h-6 md:w-6" />
+                    <Sparkles className="h-5 w-5 md:h-6 md:w-6 animate-pulse" />
                   </div>
                   <div>
                     <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-foreground">
@@ -429,14 +429,14 @@ export default function ContentResult() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
           
           {/* Media Preview */}
-          <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-2xl overflow-hidden">
+          <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-2xl overflow-hidden animate-fade-in hover:shadow-xl transition-shadow duration-300" style={{ animationDelay: '100ms' }}>
             <CardContent className="p-0">
-              <div className="aspect-square bg-muted/30 relative overflow-hidden">
+              <div className="aspect-square bg-muted/30 relative overflow-hidden group">
                 {contentData.type === "video" ? (
                   <video
                     src={contentData.mediaUrl}
                     controls
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     autoPlay
                     loop
                     muted
@@ -447,7 +447,7 @@ export default function ContentResult() {
                   <img
                     src={contentData.mediaUrl}
                     alt="Conteúdo gerado"
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                 )}
                 
@@ -459,7 +459,7 @@ export default function ContentResult() {
               <div className="p-4 bg-gradient-to-r from-muted/30 to-muted/10 border-t border-border/20 flex items-center gap-2">
                 <Button
                   onClick={handleDownload}
-                  className="flex-1 rounded-xl gap-2 hover:scale-[1.02] transition-transform"
+                  className="flex-1 rounded-xl gap-2 hover-scale transition-all duration-200 hover:shadow-md"
                   size="lg"
                 >
                   <Download className="h-4 w-4" />
@@ -468,7 +468,7 @@ export default function ContentResult() {
                 <Button
                   onClick={handleShare}
                   variant="outline"
-                  className="rounded-xl hover:scale-105 transition-transform"
+                  className="rounded-xl hover-scale transition-all duration-200"
                   size="lg"
                 >
                   <Share2 className="h-4 w-4" />
@@ -476,7 +476,7 @@ export default function ContentResult() {
                 <Button
                   onClick={handleOpenReview}
                   variant="secondary"
-                  className="rounded-xl gap-2 hover:scale-105 transition-all hover:shadow-lg hover:shadow-primary/20 group"
+                  className="rounded-xl gap-2 hover-scale transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 group"
                   size="lg"
                 >
                   <RefreshCw className="h-4 w-4 group-hover:rotate-180 transition-transform duration-500" />
@@ -486,22 +486,22 @@ export default function ContentResult() {
           </Card>
 
           {/* Caption */}
-          <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-2xl">
+          <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-2xl animate-fade-in hover:shadow-xl transition-shadow duration-300" style={{ animationDelay: '200ms' }}>
             <CardContent className="p-4 md:p-6 space-y-4">
               <div className="flex items-center justify-between pb-3 border-b border-border/20">
                 <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                  <div className="w-2 h-2 bg-primary rounded-full"></div>
+                  <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
                   Legenda
                 </h2>
                 <Button
                   onClick={handleCopyCaption}
                   variant="outline"
                   size="sm"
-                  className="rounded-xl gap-2"
+                  className="rounded-xl gap-2 hover-scale transition-all duration-200"
                 >
                   {copied ? (
                     <>
-                      <Check className="h-4 w-4 text-green-500" />
+                      <Check className="h-4 w-4 text-green-500 animate-scale-in" />
                       Copiado
                     </>
                   ) : (
@@ -514,7 +514,7 @@ export default function ContentResult() {
               </div>
               
               <div className="space-y-4">
-                <div className="bg-muted/30 rounded-xl p-4 min-h-[300px] max-h-[400px] overflow-y-auto">
+                <div className="bg-muted/30 rounded-xl p-4 min-h-[300px] max-h-[400px] overflow-y-auto backdrop-blur-sm">
                   <p className="text-sm md:text-base text-foreground leading-relaxed whitespace-pre-wrap">
                     {contentData.caption}
                   </p>
@@ -524,7 +524,7 @@ export default function ContentResult() {
                   <Button
                     onClick={() => navigate("/create")}
                     variant="outline"
-                    className="w-full rounded-xl hover:scale-[1.02] transition-transform"
+                    className="w-full rounded-xl hover-scale transition-all duration-200 hover:shadow-md"
                     size="lg"
                   >
                     Criar Novo Conteúdo
@@ -532,7 +532,7 @@ export default function ContentResult() {
                   <Button
                     onClick={() => navigate("/history")}
                     variant="ghost"
-                    className="w-full rounded-xl hover:scale-[1.02] transition-transform"
+                    className="w-full rounded-xl hover-scale transition-all duration-200"
                     size="lg"
                   >
                     Ver Histórico
