@@ -260,19 +260,22 @@ Tema ${index + 1}:
     }
 
     // Save action
-    const { error: insertError } = await supabase
+    const { data: actionData, error: insertError } = await supabase
       .from('actions')
       .insert({
-        type: 'plan',
+        type: 'PLANEJAR_CONTEUDO',
         user_id: userId,
         team_id: teamId,
         brand_id: brand,
         status: 'Aguardando revisão',
         result: { plan: generatedPlan },
         details: { themes, platform, quantity, objective, additionalInfo }
-      });
+      })
+      .select('id')
+      .single();
 
     if (insertError) {
+      console.error('Error saving action:', insertError);
       return new Response(
         JSON.stringify({ error: 'Unable to save plan' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -282,7 +285,8 @@ Tema ${index + 1}:
     return new Response(
       JSON.stringify({ 
         plan: generatedPlan,
-        remainingCredits: teamData.credits_plans - 1 
+        actionId: actionData.id,
+        creditsRemaining: teamData.credits_plans - 1 
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
