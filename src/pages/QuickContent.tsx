@@ -204,7 +204,7 @@ export default function QuickContent() {
         {/* Header */}
         <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5">
           <CardHeader className="p-3 md:p-4 lg:p-6">
-            <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3 md:gap-4">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 md:gap-4">
               <div className="flex items-center gap-3 flex-1 min-w-0">
                 <div className="flex-shrink-0 bg-primary/10 text-primary rounded-xl p-2.5 md:p-3">
                   <Zap className="h-5 w-5 md:h-6 md:w-6 lg:h-8 lg:w-8" />
