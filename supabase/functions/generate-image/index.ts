@@ -30,6 +30,15 @@ function buildDetailedPrompt(formData: any): string {
   const additionalInfo = cleanInput(formData.additionalInfo);
   const hasReferenceImages = formData.referenceImages && Array.isArray(formData.referenceImages) && formData.referenceImages.length > 0;
 
+  // Advanced configurations
+  const negativePrompt = cleanInput(formData.negativePrompt);
+  const colorPalette = formData.colorPalette || 'auto';
+  const lighting = formData.lighting || 'natural';
+  const composition = formData.composition || 'auto';
+  const cameraAngle = formData.cameraAngle || 'eye_level';
+  const detailLevel = formData.detailLevel || 7;
+  const mood = formData.mood || 'auto';
+
   const promptParts: string[] = [];
 
   // Instrução de uso de imagens de referência
@@ -112,11 +121,104 @@ function buildDetailedPrompt(formData: any): string {
   if (objective) promptParts.push(`Objetivo: ${objective}`);
   if (additionalInfo) promptParts.push(`Elementos visuais adicionais: ${additionalInfo}`);
 
+  // Advanced configuration processing
+  const colorPaletteDescriptions: { [key: string]: string } = {
+    warm: "Paleta de cores quentes e acolhedoras: tons de laranja, vermelho, amarelo e dourado que transmitem energia e calor",
+    cool: "Paleta de cores frias e serenas: tons de azul, verde, roxo e prata que transmitem calma e profissionalismo",
+    monochrome: "Esquema monocromático sofisticado com variações tonais de uma única cor, criando harmonia visual",
+    vibrant: "Cores vibrantes e saturadas de alto impacto visual, criando energia e dinamismo",
+    pastel: "Paleta pastel suave e delicada com tons claros e arejados que transmitem leveza",
+    earth: "Tons terrosos naturais: marrom, bege, verde musgo e terracota que transmitem autenticidade",
+  };
+
+  const lightingDescriptions: { [key: string]: string } = {
+    natural: "Iluminação natural e realista simulando luz do dia, com sombras suaves e cores autênticas",
+    studio: "Iluminação de estúdio profissional controlada e uniforme, sem sombras duras, ideal para produtos",
+    golden_hour: "Iluminação Golden Hour mágica e cinematográfica com tons dourados e sombras longas e suaves",
+    dramatic: "Iluminação dramática de alto contraste com sombras profundas e destaques brilhantes para impacto visual",
+    soft: "Luz suave e difusa sem sombras duras, criando atmosfera delicada e profissional",
+    backlight: "Iluminação contraluz criando efeito de halo e silhueta com borda luminosa",
+    neon: "Iluminação neon vibrante e futurista com cores saturadas e glow effect",
+  };
+
+  const compositionDescriptions: { [key: string]: string } = {
+    center: "Composição centralizada com o elemento principal no centro exato do quadro",
+    rule_of_thirds: "Composição seguindo a regra dos terços com elementos-chave nos pontos de interesse visual",
+    symmetric: "Composição perfeitamente simétrica criando equilíbrio e harmonia visual",
+    asymmetric: "Composição assimétrica dinâmica com distribuição irregular de elementos para criar interesse",
+    dynamic: "Composição dinâmica com linhas diagonais e movimento visual que guia o olhar",
+    minimalist: "Composição minimalista clean com muito espaço negativo e poucos elementos essenciais",
+  };
+
+  const cameraAngleDescriptions: { [key: string]: string } = {
+    eye_level: "Câmera ao nível dos olhos criando perspectiva natural e conexão direta com o espectador",
+    top_down: "Vista superior flat lay perfeita para mostrar layout e organização de elementos",
+    low_angle: "Ângulo baixo olhando para cima, criando sensação de grandeza e poder",
+    high_angle: "Ângulo alto olhando para baixo, criando visão abrangente da cena",
+    close_up: "Close-up extremo focando em detalhes e texturas com profundidade de campo rasa",
+    wide_shot: "Plano geral amplo mostrando todo o contexto e ambiente da cena",
+    dutch_angle: "Ângulo holandês inclinado criando tensão visual e dinamismo",
+  };
+
+  const moodDescriptions: { [key: string]: string } = {
+    professional: "Atmosfera profissional e corporativa com elementos que transmitem autoridade e confiança",
+    casual: "Atmosfera casual e descontraída com elementos cotidianos que transmitem autenticidade",
+    elegant: "Atmosfera elegante e sofisticada com refinamento visual e luxo discreto",
+    playful: "Atmosfera divertida e lúdica com elementos que evocam alegria e criatividade",
+    serious: "Atmosfera séria e formal com elementos que transmitem importância e gravidade",
+    mysterious: "Atmosfera misteriosa e intrigante com elementos de suspense visual",
+    energetic: "Atmosfera energética e vibrante transbordando movimento e vitalidade",
+    calm: "Atmosfera calma e serena transmitindo paz e tranquilidade",
+  };
+
+  const detailLevelDescriptions = [
+    "Estilo ultra minimalista com elementos gráficos essenciais e espaços limpos",
+    "Abordagem minimalista com poucos elementos cuidadosamente selecionados",
+    "Design simplificado focando no essencial sem detalhes desnecessários",
+    "Equilíbrio entre simplicidade e informação visual adequada",
+    "Nível moderado de detalhes com elementos bem definidos",
+    "Boa quantidade de detalhes visuais sem sobrecarregar",
+    "Nível equilibrado de detalhes criando riqueza visual (PADRÃO RECOMENDADO)",
+    "Rica em detalhes com texturas e elementos complementares visíveis",
+    "Altamente detalhada com múltiplas camadas visuais e texturas complexas",
+    "Extremamente detalhada com atenção meticulosa a cada elemento visual",
+  ];
+
+  // Apply advanced configurations
+  if (colorPalette !== 'auto' && colorPaletteDescriptions[colorPalette]) {
+    promptParts.push(colorPaletteDescriptions[colorPalette]);
+  }
+
+  if (lightingDescriptions[lighting]) {
+    promptParts.push(lightingDescriptions[lighting]);
+  }
+
+  if (composition !== 'auto' && compositionDescriptions[composition]) {
+    promptParts.push(compositionDescriptions[composition]);
+  }
+
+  if (cameraAngleDescriptions[cameraAngle]) {
+    promptParts.push(cameraAngleDescriptions[cameraAngle]);
+  }
+
+  if (mood !== 'auto' && moodDescriptions[mood]) {
+    promptParts.push(moodDescriptions[mood]);
+  }
+
+  if (detailLevel >= 1 && detailLevel <= 10) {
+    promptParts.push(detailLevelDescriptions[detailLevel - 1]);
+  }
+
   // Reforço de qualidade
   promptParts.push(
     `Criar uma imagem visualmente impactante, de alta qualidade, profissional e otimizada para ${platform || 'redes sociais'}. ` +
     `A composição deve ser eye-catching e capturar a essência da marca ${brand} no tema ${theme}.`
   );
+
+  // Add negative prompt at the end if provided
+  if (negativePrompt) {
+    promptParts.push(`IMPORTANTE: Evitar absolutamente estes elementos: ${negativePrompt}`);
+  }
 
   return promptParts.join(". ");
 }
