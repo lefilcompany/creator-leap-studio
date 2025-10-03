@@ -23,6 +23,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { ContentResultSkeleton } from "@/components/ContentResultSkeleton";
 
 interface ContentResultData {
   type: "image" | "video";
@@ -42,6 +43,7 @@ export default function ContentResult() {
   const { team } = useAuth();
   const [copied, setCopied] = useState(false);
   const [contentData, setContentData] = useState<ContentResultData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [showReviewDialog, setShowReviewDialog] = useState(false);
   const [reviewType, setReviewType] = useState<"image" | "caption" | null>(null);
   const [reviewPrompt, setReviewPrompt] = useState("");
@@ -50,69 +52,85 @@ export default function ContentResult() {
   const [totalRevisions, setTotalRevisions] = useState(0);
 
   useEffect(() => {
-    // Get data from navigation state
-    if (location.state?.contentData) {
-      const data = location.state.contentData;
-      setContentData(data);
-      
-      // Save to localStorage and history
-      const contentId = `content_${Date.now()}`;
-      const savedContent = {
-        id: contentId,
-        ...data,
-        createdAt: new Date().toISOString(),
-        revisions: []
-      };
-      
-      localStorage.setItem('currentContent', JSON.stringify(savedContent));
-      
-      // Add to history (without base64 image to save space)
-      try {
-        const history = JSON.parse(localStorage.getItem('contentHistory') || '[]');
-        const historyItem = {
-          id: contentId,
-          type: data.type,
-          platform: data.platform,
-          brand: data.brand,
-          createdAt: new Date().toISOString(),
-          // Don't store mediaUrl (base64) to avoid quota issues
-        };
-        history.unshift(historyItem);
-        // Keep only last 10 items to avoid quota issues
-        localStorage.setItem('contentHistory', JSON.stringify(history.slice(0, 10)));
-      } catch (error) {
-        console.error('Error saving to history:', error);
-        // If quota exceeded, clear history and try again
-        localStorage.removeItem('contentHistory');
-      }
-      
-      // Load revision count for this session
-      const revisionsKey = `revisions_${contentId}`;
-      const savedRevisions = localStorage.getItem(revisionsKey);
-      if (savedRevisions) {
-        const count = parseInt(savedRevisions);
-        setTotalRevisions(count);
-        setFreeRevisionsLeft(Math.max(0, 2 - count));
-      }
-    } else {
-      // Try to load from localStorage
-      const saved = localStorage.getItem('currentContent');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        setContentData(parsed);
+    const loadContent = async () => {
+      // Get data from navigation state
+      if (location.state?.contentData) {
+        const data = location.state.contentData;
         
-        const revisionsKey = `revisions_${parsed.id}`;
+        // Validate data before setting
+        if (!data.mediaUrl || !data.caption) {
+          toast.error("Dados do conteúdo incompletos");
+          navigate("/create");
+          return;
+        }
+        
+        setContentData(data);
+        
+        // Save to localStorage and history
+        const contentId = `content_${Date.now()}`;
+        const savedContent = {
+          id: contentId,
+          ...data,
+          createdAt: new Date().toISOString(),
+          revisions: []
+        };
+        
+        localStorage.setItem('currentContent', JSON.stringify(savedContent));
+        
+        // Add to history (without base64 image to save space)
+        try {
+          const history = JSON.parse(localStorage.getItem('contentHistory') || '[]');
+          const historyItem = {
+            id: contentId,
+            type: data.type,
+            platform: data.platform,
+            brand: data.brand,
+            createdAt: new Date().toISOString(),
+            // Don't store mediaUrl (base64) to avoid quota issues
+          };
+          history.unshift(historyItem);
+          // Keep only last 10 items to avoid quota issues
+          localStorage.setItem('contentHistory', JSON.stringify(history.slice(0, 10)));
+        } catch (error) {
+          console.error('Error saving to history:', error);
+          // If quota exceeded, clear history and try again
+          localStorage.removeItem('contentHistory');
+        }
+        
+        // Load revision count for this session
+        const revisionsKey = `revisions_${contentId}`;
         const savedRevisions = localStorage.getItem(revisionsKey);
         if (savedRevisions) {
           const count = parseInt(savedRevisions);
           setTotalRevisions(count);
           setFreeRevisionsLeft(Math.max(0, 2 - count));
         }
+        
+        setIsLoading(false);
       } else {
-        toast.error("Nenhum conteúdo encontrado");
-        navigate("/create");
+        // Try to load from localStorage
+        const saved = localStorage.getItem('currentContent');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          setContentData(parsed);
+          
+          const revisionsKey = `revisions_${parsed.id}`;
+          const savedRevisions = localStorage.getItem(revisionsKey);
+          if (savedRevisions) {
+            const count = parseInt(savedRevisions);
+            setTotalRevisions(count);
+            setFreeRevisionsLeft(Math.max(0, 2 - count));
+          }
+          
+          setIsLoading(false);
+        } else {
+          toast.error("Nenhum conteúdo encontrado");
+          navigate("/create");
+        }
       }
-    }
+    };
+    
+    loadContent();
   }, [location.state, navigate]);
 
   const handleCopyCaption = async () => {
@@ -350,8 +368,8 @@ export default function ContentResult() {
     }
   };
 
-  if (!contentData) {
-    return null;
+  if (isLoading || !contentData) {
+    return <ContentResultSkeleton />;
   }
 
   return (

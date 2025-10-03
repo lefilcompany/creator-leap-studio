@@ -18,12 +18,21 @@ import { Badge } from "@/components/ui/badge";
 import { Loader, Sparkles, Zap, X, Info, ImageIcon, Video } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Slider } from "@/components/ui/slider";
+import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import type { Brand, BrandSummary } from "@/types/brand";
 import type { StrategicTheme, StrategicThemeSummary } from "@/types/theme";
 import type { Persona, PersonaSummary } from "@/types/persona";
 import type { Team } from "@/types/theme";
 import { useAuth } from "@/hooks/useAuth";
+
+enum GenerationStep {
+  IDLE = "IDLE",
+  GENERATING_IMAGE = "GENERATING_IMAGE",
+  GENERATING_CAPTION = "GENERATING_CAPTION",
+  SAVING = "SAVING",
+  COMPLETE = "COMPLETE"
+}
 
 // Interfaces
 interface FormData {
@@ -87,6 +96,8 @@ export default function CreateContent() {
   const [filteredThemes, setFilteredThemes] = useState<StrategicThemeSummary[]>([]);
   const [filteredPersonas, setFilteredPersonas] = useState<PersonaSummary[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [generationStep, setGenerationStep] = useState<GenerationStep>(GenerationStep.IDLE);
+  const [generationProgress, setGenerationProgress] = useState<number>(0);
   const [referenceFiles, setReferenceFiles] = useState<File[]>([]);
   const [brandImages, setBrandImages] = useState<string[]>([]);
   const [isVideoMode, setIsVideoMode] = useState<boolean>(false);
@@ -361,8 +372,11 @@ export default function CreateContent() {
       );
 
     setLoading(true);
-    const toastId = toast.loading("Processando imagens de referência...", {
-      description: "Convertendo arquivos para análise.",
+    setGenerationStep(GenerationStep.GENERATING_IMAGE);
+    setGenerationProgress(0);
+    
+    const toastId = toast.loading("🎨 Processando imagens de referência...", {
+      description: "Convertendo arquivos para análise (0%)",
     });
 
     try {
@@ -377,6 +391,12 @@ export default function CreateContent() {
         });
         referenceImagesBase64.push(base64);
       }
+
+      setGenerationProgress(10);
+      toast.loading("🎨 Preparando geração...", {
+        id: toastId,
+        description: "Analisando referências (10%)",
+      });
 
       // Estratégia de priorização de imagens:
       // 1. Sempre incluir TODAS as imagens da marca (logo, moodboard, reference)
@@ -554,9 +574,12 @@ export default function CreateContent() {
 
       const { imageUrl, attempt } = await imageResponse.json();
       
-      toast.loading("Gerando legenda profissional...", {
+      setGenerationStep(GenerationStep.GENERATING_CAPTION);
+      setGenerationProgress(60);
+      
+      toast.loading("✍️ Gerando legenda profissional...", {
         id: toastId,
-        description: `Imagem gerada em ${attempt} tentativa(s). Criando copy envolvente...`,
+        description: `Imagem criada em ${attempt} tentativa(s) | Escrevendo copy criativa (60%)`,
       });
 
       // 2. Gerar legenda com Gemini 2.5
@@ -588,6 +611,14 @@ export default function CreateContent() {
         };
       }
 
+      setGenerationStep(GenerationStep.SAVING);
+      setGenerationProgress(80);
+      
+      toast.loading("💾 Salvando no histórico...", {
+        id: toastId,
+        description: "Finalizando geração (80%)",
+      });
+      
       // 3. Montar caption formatada
       const caption = `${captionData.title}\n\n${captionData.body}\n\n${captionData.hashtags.map((tag: string) => `#${tag}`).join(" ")}`;
 
@@ -627,6 +658,11 @@ export default function CreateContent() {
         // Não bloqueia o fluxo, apenas loga o erro
       }
 
+      // Validar dados completos antes de criar o objeto
+      if (!imageUrl || !caption) {
+        throw new Error("Dados incompletos na geração");
+      }
+
       const generatedContent = {
         type: "image" as const,
         mediaUrl: imageUrl,
@@ -636,27 +672,54 @@ export default function CreateContent() {
         title: captionData.title,
         hashtags: captionData.hashtags,
         originalFormData: requestData,
-        actionId: actionData?.id, // ID do registro no histórico
+        actionId: actionData?.id,
       };
       
-      toast.success("Conteúdo gerado com sucesso!", {
+      setGenerationStep(GenerationStep.COMPLETE);
+      setGenerationProgress(100);
+      
+      toast.success("✅ Conteúdo gerado com sucesso!", {
         id: toastId,
         description: "Imagem e legenda criados com Gemini 2.5 🚀",
-        duration: 2000,
+        duration: 1500,
       });
       
-      // Pequeno delay para garantir que o toast seja exibido antes da navegação
+      // Reduzido para 50ms para navegação mais rápida
       setTimeout(() => {
         navigate("/result", { 
           state: { contentData: generatedContent },
           replace: false 
         });
-      }, 100);
+      }, 50);
     } catch (err: any) {
       console.error("Erro ao gerar conteúdo:", err);
-      toast.error(err.message || "Erro ao gerar o conteúdo.", { id: toastId });
+      
+      // Mensagens de erro mais específicas
+      let errorMessage = "Erro ao gerar o conteúdo.";
+      let errorDescription = "Por favor, tente novamente.";
+      
+      if (err.message?.includes("Network")) {
+        errorMessage = "Erro de conexão";
+        errorDescription = "Verifique sua internet e tente novamente.";
+      } else if (err.message?.includes("timeout")) {
+        errorMessage = "Tempo esgotado";
+        errorDescription = "A geração demorou muito. Tente novamente.";
+      } else if (err.message?.includes("API")) {
+        errorMessage = "Erro na API";
+        errorDescription = "Serviço temporariamente indisponível.";
+      } else if (err.message) {
+        errorDescription = err.message;
+      }
+      
+      toast.error(errorMessage, { 
+        id: toastId,
+        description: errorDescription,
+        duration: 5000
+      });
     } finally {
       setLoading(false);
+      setGenerationStep(GenerationStep.IDLE);
+      setGenerationProgress(0);
     }
   };
 
