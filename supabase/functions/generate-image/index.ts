@@ -41,18 +41,18 @@ function buildDetailedPrompt(formData: any): string {
 
   const promptParts: string[] = [];
 
-  // Instrução de uso de imagens de referência
+  // Instrução de uso de imagens de referência - mais clara e direta
   if (hasReferenceImages) {
+    const imageCount = Math.min(formData.referenceImages.length, 3);
     promptParts.push(
-      `*REGRA CRÍTICA DE REFERÊNCIA VISUAL*: Você recebeu ${formData.referenceImages.length} imagem(ns) de referência. ` +
-      `Estas imagens devem FORTEMENTE INFLUENCIAR a geração da nova imagem. Use-as como inspiração direta para: ` +
-      `- Paleta de cores (extraia e aplique as cores predominantes) ` +
-      `- Estilo visual e composição (replique o estilo gráfico observado) ` +
-      `- Elementos gráficos (ícones, padrões, texturas similares) ` +
-      `- Atmosfera e mood (mantenha a mesma sensação visual) ` +
-      `- Identidade visual da marca (preserve características únicas observadas) ` +
-      `NÃO copie literalmente, mas INSPIRE-SE FORTEMENTE nos elementos visuais fornecidos. ` +
-      `As imagens de referência representam a identidade visual que deve ser mantida.`
+      `IMPORTANTE: Você está recebendo ${imageCount} imagem(ns) de referência visual. ` +
+      `GERE UMA NOVA IMAGEM inspirada nestas referências, seguindo estes aspectos: ` +
+      `1. Paleta de Cores: Use cores similares às observadas nas referências ` +
+      `2. Estilo Visual: Mantenha o mesmo estilo gráfico e composição ` +
+      `3. Elementos Visuais: Incorpore elementos gráficos complementares ` +
+      `4. Atmosfera: Preserve o mood e a sensação visual ` +
+      `GERE uma imagem NOVA e ORIGINAL que mantenha a identidade visual das referências. ` +
+      `Não extraia ou copie, mas crie algo novo com base na inspiração fornecida.`
     );
   }
 
@@ -246,12 +246,19 @@ async function generateImageWithRetry(prompt: string, referenceImages: string[] 
     }
     
     // Adicionar imagens de referência (se houver e não for edição)
+    // Limitar a 3 imagens para garantir melhor processamento
     if (!isEdit && referenceImages && Array.isArray(referenceImages) && referenceImages.length > 0) {
-      console.log(`📸 Processando ${referenceImages.length} imagem(ns) de referência...`);
-      for (const refImg of referenceImages) {
+      const limitedImages = referenceImages.slice(0, 3);
+      console.log(`📸 Processando ${limitedImages.length} imagem(ns) de referência (limitado a 3)...`);
+      
+      for (const refImg of limitedImages) {
         try {
-          const [meta, data] = refImg.split(",");
-          const mimeMatch = meta.match(/data:(image\/[^;]+);base64/);
+          // Validar formato base64
+          if (!refImg.startsWith('data:image/')) {
+            console.warn("Imagem de referência em formato inválido, ignorando...");
+            continue;
+          }
+          
           messageContent.push({
             type: "image_url",
             image_url: {
@@ -262,6 +269,8 @@ async function generateImageWithRetry(prompt: string, referenceImages: string[] 
           console.error("Erro ao processar imagem de referência:", refError);
         }
       }
+      
+      console.log(`✓ ${messageContent.filter(c => c.type === 'image_url').length} imagens adicionadas ao contexto`);
     }
     
     // Adicionar o prompt de texto
@@ -288,13 +297,17 @@ async function generateImageWithRetry(prompt: string, referenceImages: string[] 
       console.error(`❌ Erro na tentativa ${attempt}:`, response.status, errorText);
       
       if (response.status === 429) {
-        throw new Error("RATE_LIMIT");
+        throw new Error("RATE_LIMIT: Muitas requisições. Aguarde alguns segundos e tente novamente.");
       }
       if (response.status === 402) {
-        throw new Error("PAYMENT_REQUIRED");
+        throw new Error("PAYMENT_REQUIRED: Créditos insuficientes no Lovable AI.");
+      }
+      if (response.status === 400) {
+        // Erro 400 geralmente indica problema com as imagens de referência
+        throw new Error("IMAGE_PROCESSING_ERROR: Não foi possível processar as imagens de referência. Tente com menos imagens ou imagens menores.");
       }
       
-      throw new Error(`AI_GATEWAY_ERROR: ${response.status}`);
+      throw new Error(`AI_GATEWAY_ERROR: Erro ${response.status} ao gerar imagem.`);
     }
 
     const data = await response.json();
@@ -311,7 +324,9 @@ async function generateImageWithRetry(prompt: string, referenceImages: string[] 
     console.error(`❌ Falha na tentativa ${attempt}:`, error.message);
     
     // Erros que não devem ser retentados
-    if (error.message === "RATE_LIMIT" || error.message === "PAYMENT_REQUIRED") {
+    if (error.message?.includes("RATE_LIMIT") || 
+        error.message?.includes("PAYMENT_REQUIRED") || 
+        error.message?.includes("IMAGE_PROCESSING_ERROR")) {
       throw error;
     }
     
@@ -323,7 +338,9 @@ async function generateImageWithRetry(prompt: string, referenceImages: string[] 
       return generateImageWithRetry(prompt, referenceImages, apiKey, isEdit, existingImage, attempt + 1);
     }
     
-    throw error;
+    // Última tentativa falhou
+    console.error(`💥 Todas as ${MAX_RETRIES} tentativas falharam`);
+    throw new Error(`Não foi possível gerar a imagem após ${MAX_RETRIES} tentativas. ${error.message}`);
   }
 }
 
@@ -364,9 +381,10 @@ serve(async (req) => {
       );
     }
     
-    if (formData.referenceImages && (!Array.isArray(formData.referenceImages) || formData.referenceImages.length > 5)) {
+    // Limitar a 3 imagens de referência para evitar erros do modelo
+    if (formData.referenceImages && (!Array.isArray(formData.referenceImages) || formData.referenceImages.length > 3)) {
       return new Response(
-        JSON.stringify({ error: 'Too many reference images (max 5)' }),
+        JSON.stringify({ error: 'Too many reference images (max 3)' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
