@@ -577,7 +577,7 @@ export default function ContentResult() {
                   onClick={handleCopyCaption}
                   variant="outline"
                   size="sm"
-                  className="rounded-xl gap-2 hover-scale transition-all duration-200"
+                  className="rounded-xl gap-2 hover-scale transition-all duration-200 hover:bg-accent/20 hover:text-accent hover:border-accent"
                 >
                   {copied ? (
                     <>
