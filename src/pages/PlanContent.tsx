@@ -44,7 +44,10 @@ const PlanContent = () => {
   }, [team]);
 
   const loadData = async () => {
-    if (!team?.id) return;
+    if (!team?.id) {
+      setLoadingData(false);
+      return;
+    }
     
     setLoadingData(true);
     try {
@@ -69,13 +72,17 @@ const PlanContent = () => {
           .single()
       ]);
       
-      if (brandsData) setBrands(brandsData);
-      if (themesData) setThemes(themesData);
-      if (teamData) setCreditsRemaining(teamData.credits_plans);
+      // Atualizar todos os estados de uma vez para evitar múltiplos re-renders
+      setBrands(brandsData || []);
+      setThemes(themesData || []);
+      setCreditsRemaining(teamData?.credits_plans || 0);
 
     } catch (error) {
       console.error('Error loading data:', error);
       toast.error('Erro ao carregar dados');
+      setBrands([]);
+      setThemes([]);
+      setCreditsRemaining(0);
     } finally {
       setLoadingData(false);
     }
