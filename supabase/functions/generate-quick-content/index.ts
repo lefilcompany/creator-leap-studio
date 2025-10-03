@@ -75,11 +75,22 @@ serve(async (req) => {
       );
     }
     
-    const { prompt, brandId } = body;
+    const { 
+      prompt, 
+      brandId, 
+      referenceImages = [],
+      aspectRatio = '1:1',
+      style = 'auto',
+      quality = 'standard'
+    } = body;
 
     console.log('Generate Quick Content Request:', { 
       promptLength: prompt.length, 
-      brandId, 
+      brandId,
+      aspectRatio,
+      style,
+      quality,
+      referenceImagesCount: referenceImages?.length || 0,
       userId: authenticatedUserId, 
       teamId: authenticatedTeamId 
     });
@@ -127,17 +138,75 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
       }
     }
 
+    // Build enhanced prompt with all configurations
+    let enhancedPrompt = prompt;
+
+    // Add style information
+    if (style !== 'auto') {
+      const styleDescriptions: Record<string, string> = {
+        'photorealistic': 'Estilo fotorrealista, com alta fidelidade e detalhes realistas.',
+        'illustration': 'Estilo de ilustração artística e criativa.',
+        'minimalist': 'Estilo minimalista, clean e moderno.',
+        'artistic': 'Estilo artístico, expressivo e abstrato.',
+        'vintage': 'Estilo vintage/retrô com toque nostálgico.'
+      };
+      const styleDesc = styleDescriptions[style as string];
+      if (styleDesc) {
+        enhancedPrompt += `\n\nEstilo Visual: ${styleDesc}`;
+      }
+    }
+
+    // Add aspect ratio information
+    const aspectRatioDescriptions: Record<string, string> = {
+      '1:1': 'formato quadrado (1:1) ideal para posts do Instagram',
+      '4:5': 'formato retrato (4:5) ideal para feed do Instagram',
+      '9:16': 'formato vertical (9:16) ideal para Stories e Reels',
+      '16:9': 'formato horizontal (16:9) ideal para YouTube e desktop'
+    };
+    enhancedPrompt += `\n\nProporção da Imagem: ${aspectRatioDescriptions[aspectRatio as string] || 'formato quadrado (1:1)'}.`;
+
+    // Add quality information
+    if (quality === 'hd') {
+      enhancedPrompt += '\n\nGerar com alta definição, máximo de detalhes e qualidade superior.';
+    }
+
+    // Add brand context if available
+    if (brandContext) {
+      enhancedPrompt += `\n\n${brandContext}\nGere uma imagem que reflita os valores e identidade da marca.`;
+    }
+
+    // Add reference images instruction if provided
+    if (referenceImages && referenceImages.length > 0) {
+      enhancedPrompt += `\n\nUse ${referenceImages.length === 1 ? 'a imagem de referência fornecida' : `as ${referenceImages.length} imagens de referência fornecidas`} como inspiração para o estilo visual, composição, paleta de cores e atmosfera geral da imagem.`;
+    }
+
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
     if (!lovableApiKey) {
       throw new Error('Lovable API key not configured');
     }
 
-    // Build the image generation prompt
-    const imagePrompt = brandContext 
-      ? `${prompt}\n\n${brandContext}\n\nGere uma imagem que reflita os valores e identidade da marca.`
-      : prompt;
+    console.log('Calling Lovable AI for image generation with enhanced prompt...');
 
-    console.log('Calling Lovable AI for image generation...');
+    // Build messages array with optional reference images
+    const messages: any[] = [];
+    
+    if (referenceImages && referenceImages.length > 0) {
+      messages.push({
+        role: 'user',
+        content: [
+          { type: 'text', text: enhancedPrompt },
+          ...referenceImages.map((img: string) => ({
+            type: 'image_url',
+            image_url: { url: img }
+          }))
+        ]
+      });
+    } else {
+      messages.push({
+        role: 'user',
+        content: enhancedPrompt
+      });
+    }
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -147,12 +216,7 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
       },
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash-image-preview',
-        messages: [
-          {
-            role: 'user',
-            content: imagePrompt
-          }
-        ],
+        messages,
         modalities: ['image', 'text']
       }),
     });
@@ -199,7 +263,7 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
       console.error('Error updating credits:', updateError);
     }
 
-    // Create action record
+    // Create action record with all configurations
     const { data: actionData, error: actionError } = await supabase
       .from('actions')
       .insert({
@@ -211,7 +275,12 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
         approved: true,
         details: {
           prompt,
-          brandId
+          brandId,
+          aspectRatio,
+          style,
+          quality,
+          referenceImagesCount: referenceImages?.length || 0,
+          enhancedPrompt
         },
         result: {
           imageUrl,
