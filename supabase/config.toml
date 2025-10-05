@@ -20,3 +20,12 @@ verify_jwt = true
 
 [functions.check-subscription]
 verify_jwt = true
+
+[functions.generate-video]
+verify_jwt = true
+
+[functions.generate-image]
+verify_jwt = true
+
+[functions.generate-caption]
+verify_jwt = true

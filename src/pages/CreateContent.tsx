@@ -482,7 +482,7 @@ export default function CreateContent() {
         const { data: actionData, error: actionError } = await supabase
           .from('actions')
           .insert({
-            type: 'CRIAR_VIDEO',
+            type: 'GERAR_VIDEO',
             brand_id: formData.brand,
             team_id: user?.teamId,
             user_id: user?.id,

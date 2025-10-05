@@ -641,6 +641,12 @@ export type Database = {
       }
     }
     Enums: {
+      action_type:
+        | "CRIAR_CONTEUDO"
+        | "CRIAR_CONTEUDO_RAPIDO"
+        | "REVISAR_CONTEUDO"
+        | "PLANEJAR_CONTEUDO"
+        | "GERAR_VIDEO"
       app_role: "admin" | "member"
     }
     CompositeTypes: {
@@ -769,6 +775,13 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      action_type: [
+        "CRIAR_CONTEUDO",
+        "CRIAR_CONTEUDO_RAPIDO",
+        "REVISAR_CONTEUDO",
+        "PLANEJAR_CONTEUDO",
+        "GERAR_VIDEO",
+      ],
       app_role: ["admin", "member"],
     },
   },

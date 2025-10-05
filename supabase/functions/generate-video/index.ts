@@ -102,11 +102,11 @@ async function processVideoGeneration(operationName: string, actionId: string) {
     const videoUrl = publicUrlData.publicUrl;
     console.log('Background: Video uploaded to storage:', videoUrl);
 
-    // Atualizar o action no banco com o vídeo gerado
+    // Atualizar o action no banco com a URL do vídeo
     const { error: updateError } = await supabase
       .from('actions')
       .update({
-        result: { videoUrl: `data:video/mp4;base64,${videoBase64}` },
+        result: { videoUrl },
         status: 'completed'
       })
       .eq('id', actionId);
