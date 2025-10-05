@@ -72,17 +72,35 @@ async function processVideoGeneration(operationName: string, actionId: string) {
     }
 
     const videoBlob = await videoResponse.blob();
-    const arrayBuffer = await videoBlob.arrayBuffer();
-    const uint8Array = new Uint8Array(arrayBuffer);
+    console.log('Background: Video downloaded, size:', videoBlob.size, 'bytes');
     
-    // Processar em chunks
-    let binary = '';
-    const chunkSize = 0x8000;
-    for (let i = 0; i < uint8Array.length; i += chunkSize) {
-      const chunk = uint8Array.subarray(i, Math.min(i + chunkSize, uint8Array.length));
-      binary += String.fromCharCode.apply(null, Array.from(chunk));
+    // Para vídeos grandes, armazenar em storage ao invés de base64
+    const fileName = `${actionId}_${Date.now()}.mp4`;
+    const filePath = `videos/${fileName}`;
+    
+    // Upload para storage bucket
+    const arrayBuffer = await videoBlob.arrayBuffer();
+    const { data: uploadData, error: uploadError } = await supabase
+      .storage
+      .from('videos')
+      .upload(filePath, arrayBuffer, {
+        contentType: 'video/mp4',
+        upsert: true
+      });
+
+    if (uploadError) {
+      console.error('Background: Error uploading video to storage:', uploadError);
+      throw uploadError;
     }
-    const videoBase64 = btoa(binary);
+
+    // Obter URL pública do vídeo
+    const { data: publicUrlData } = supabase
+      .storage
+      .from('videos')
+      .getPublicUrl(filePath);
+    
+    const videoUrl = publicUrlData.publicUrl;
+    console.log('Background: Video uploaded to storage:', videoUrl);
 
     // Atualizar o action no banco com o vídeo gerado
     const { error: updateError } = await supabase
