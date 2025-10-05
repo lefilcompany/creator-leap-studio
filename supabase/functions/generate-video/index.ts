@@ -146,14 +146,16 @@ serve(async (req) => {
     if (!GEMINI_API_KEY) {
       console.error('GEMINI_API_KEY not configured');
       return new Response(
-        JSON.stringify({ error: 'GEMINI_API_KEY not configured' }),
+        JSON.stringify({ error: 'GEMINI_API_KEY não configurada. Configure a chave da API do Gemini.' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     const { prompt, referenceImage, actionId } = await req.json();
-    console.log('Starting video generation with prompt:', prompt);
-    console.log('Action ID:', actionId);
+    console.log('🎬 Iniciando geração de vídeo com Gemini Veo 3');
+    console.log('📝 Prompt:', prompt);
+    console.log('🆔 Action ID:', actionId);
+    console.log('🖼️ Imagem de referência:', referenceImage ? 'Sim' : 'Não');
 
     if (!actionId) {
       return new Response(
