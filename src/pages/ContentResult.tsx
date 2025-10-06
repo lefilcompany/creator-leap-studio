@@ -341,25 +341,65 @@ export default function ContentResult() {
         updatedContent.hashtags = data.hashtags;
         
       } else {
-        // Edit existing image with review feedback
+        // Edit existing image with AI-powered editing
         toast.info("Editando imagem com base no seu feedback...");
         
-        const { data, error } = await supabase.functions.invoke('generate-image', {
-          body: {
-            isEdit: true,
-            existingImage: contentData.mediaUrl,
-            description: reviewPrompt, // Just the review instructions
-            brand: originalFormData.brand,
-            platform: originalFormData.platform
-          }
+        // Use Lovable AI Gateway directly for image editing
+        const LOVABLE_API_KEY = import.meta.env.VITE_LOVABLE_API_KEY;
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) {
+          throw new Error("Sessão não encontrada");
+        }
+
+        const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'google/gemini-2.5-flash-image-preview',
+            messages: [
+              {
+                role: 'user',
+                content: [
+                  {
+                    type: 'text',
+                    text: `Edite esta imagem seguindo estas instruções: ${reviewPrompt}
+
+IMPORTANTE: Mantenha a essência e identidade visual da imagem original, mas aplique as melhorias solicitadas. A imagem editada deve parecer profissional e autêntica.
+
+Contexto da marca: ${originalFormData.brand || 'N/A'}
+Plataforma: ${originalFormData.platform || 'N/A'}`
+                  },
+                  {
+                    type: 'image_url',
+                    image_url: {
+                      url: contentData.mediaUrl
+                    }
+                  }
+                ]
+              }
+            ],
+            modalities: ['image', 'text']
+          })
         });
 
-        if (error) {
-          console.error("Erro ao editar imagem:", error);
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error("Erro na API de edição de imagem:", errorText);
           throw new Error("Falha ao editar imagem");
         }
 
-        updatedContent.mediaUrl = data.imageUrl;
+        const aiData = await response.json();
+        const editedImageUrl = aiData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+        
+        if (!editedImageUrl) {
+          throw new Error("Imagem editada não foi retornada pela API");
+        }
+
+        updatedContent.mediaUrl = editedImageUrl;
       }
 
       setContentData(updatedContent);
