@@ -246,108 +246,47 @@ export default function ContentResult() {
     setIsSharing(true);
 
     try {
-      // Verificar se a API de compartilhamento está disponível
-      const canShare = navigator.share && navigator.canShare;
+      // Verificar se está em contexto seguro (HTTPS) e se a API está disponível
+      const isSecureContext = window.isSecureContext;
+      const hasShareAPI = !!navigator.share;
       
-      if (!canShare) {
-        // Fallback: copiar legenda
+      if (!isSecureContext || !hasShareAPI) {
+        // Fallback automático: copiar e fazer download
         await navigator.clipboard.writeText(contentData.caption);
-        toast.info("Legenda copiada! Use o botão de Download para salvar a mídia e compartilhar manualmente.");
-        setIsSharing(false);
+        handleDownload();
+        toast.success("Legenda copiada e download iniciado! Compartilhe manualmente.");
         return;
       }
 
-      // Validar URL da mídia
-      if (!contentData.mediaUrl || !contentData.mediaUrl.includes('base64')) {
-        toast.error("Formato de mídia inválido para compartilhamento");
-        setIsSharing(false);
-        return;
-      }
-
-      // Extrair dados base64
-      const base64Match = contentData.mediaUrl.match(/^data:([^;]+);base64,(.+)$/);
-      if (!base64Match) {
-        toast.error("Não foi possível processar a mídia");
-        setIsSharing(false);
-        return;
-      }
-
-      const mimeType = base64Match[1] || (contentData.type === "video" ? "video/mp4" : "image/png");
-      const base64Data = base64Match[2];
-
-      // Converter base64 para blob de forma mais eficiente
-      const byteCharacters = atob(base64Data);
-      const byteNumbers = new Uint8Array(byteCharacters.length);
-      
-      for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
-      }
-      
-      const blob = new Blob([byteNumbers], { type: mimeType });
-
-      // Validar tamanho do arquivo (alguns sistemas têm limite)
-      const maxSize = 10 * 1024 * 1024; // 10MB
-      if (blob.size > maxSize) {
-        toast.error("Arquivo muito grande para compartilhar. Use o botão de Download.");
-        setIsSharing(false);
-        return;
-      }
-
-      // Determinar extensão do arquivo
-      const extension = contentData.type === "video" ? "mp4" : "png";
-      
-      // Criar nome do arquivo
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-      const brandName = contentData.brand.replace(/[^a-zA-Z0-9]/g, '_');
-      const platformName = contentData.platform.replace(/[^a-zA-Z0-9]/g, '_');
-      const filename = `${brandName}_${platformName}_${timestamp}.${extension}`;
-
-      // Criar objeto File
-      const file = new File([blob], filename, { type: mimeType });
-
-      // Preparar dados para compartilhamento
-      const shareData = {
-        title: `${contentData.brand} - ${contentData.platform}`,
-        text: contentData.caption,
-        files: [file]
-      };
-
-      // Verificar se pode compartilhar com arquivos
-      if (!navigator.canShare(shareData)) {
-        // Fallback: compartilhar apenas texto
+      // Tentar compartilhar apenas o texto (mais confiável)
+      try {
         await navigator.share({
-          title: shareData.title,
-          text: shareData.text,
+          title: `${contentData.brand} - ${contentData.platform}`,
+          text: contentData.caption,
         });
-        toast.info("Texto compartilhado! Use o botão de Download para a mídia.");
-      } else {
-        // Compartilhar com arquivo
-        await navigator.share(shareData);
-        toast.success("Conteúdo compartilhado com sucesso!");
+        toast.success("Legenda compartilhada! Use o botão Download para salvar a mídia.");
+      } catch (shareError: any) {
+        // Se falhar o compartilhamento de texto, usar fallback
+        if (shareError.name === 'AbortError') {
+          // Usuário cancelou - silencioso
+          return;
+        }
+        throw shareError;
       }
 
     } catch (error: any) {
       console.error('Erro ao compartilhar:', error);
       
-      // Tratar diferentes tipos de erros
-      if (error.name === 'AbortError') {
-        // Usuário cancelou o compartilhamento - não mostrar erro
-        setIsSharing(false);
-        return;
-      }
-      
-      if (error.name === 'NotAllowedError') {
-        toast.error("Permissão negada. Verifique as configurações do navegador.");
-      } else if (error.name === 'InvalidStateError') {
-        toast.error("O navegador não está pronto para compartilhar.");
-      } else {
-        // Fallback final: copiar legenda
-        try {
-          await navigator.clipboard.writeText(contentData.caption);
-          toast.info("Legenda copiada! Use o Download para compartilhar a mídia.");
-        } catch (clipError) {
-          toast.error("Não foi possível compartilhar. Tente usar o botão de Download.");
-        }
+      // Fallback universal: copiar texto e sugerir download
+      try {
+        await navigator.clipboard.writeText(contentData.caption);
+        toast.info("Legenda copiada! Use o botão Download e compartilhe manualmente.", {
+          duration: 4000,
+        });
+      } catch (clipError) {
+        toast.error("Não foi possível compartilhar. Use o botão Download para salvar.", {
+          duration: 4000,
+        });
       }
     } finally {
       setIsSharing(false);
