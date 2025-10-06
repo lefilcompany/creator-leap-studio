@@ -28,11 +28,17 @@ export function ProtectedRoute({ children, requireTeam = true }: ProtectedRouteP
         return;
       }
 
-      // Se o período de teste expirou, redireciona para página de planos
+      // Se o período de teste expirou, permite apenas histórico e planos
       if (requireTeam && team && isTrialExpired) {
-        toast.error('Seu período de teste expirou. Escolha um plano para continuar.');
-        navigate('/plans?expired=true');
-        return;
+        const currentPath = window.location.pathname;
+        const allowedPaths = ['/plans', '/history', '/historico'];
+        const isAllowedPath = allowedPaths.some(path => currentPath.startsWith(path));
+        
+        if (!isAllowedPath) {
+          toast.error('Seu período de teste expirou. Escolha um plano para continuar.');
+          navigate('/plans?expired=true');
+          return;
+        }
       }
     }
   }, [user, team, isLoading, isTrialExpired, navigate, requireTeam]);

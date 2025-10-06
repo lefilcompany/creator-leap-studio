@@ -43,16 +43,31 @@ const actionButtons = [
     { id: "nav-planejar", href: "/plan", icon: Calendar, label: "Planejar Conteúdo", variant: "secondary" as const },
 ];
 
-function NavItem({ id, href, icon: Icon, label, collapsed, onNavigate }: {
+function NavItem({ id, href, icon: Icon, label, collapsed, onNavigate, disabled }: {
   id: string;
   href: string;
   icon: React.ElementType;
   label: string;
   collapsed: boolean;
   onNavigate?: () => void;
+  disabled?: boolean;
 }) {
   const location = useLocation();
   const isActive = location.pathname === href;
+
+  if (disabled) {
+    return (
+      <div
+        className={cn(
+          "flex items-center gap-4 p-3 rounded-lg transition-colors duration-200 cursor-not-allowed opacity-50",
+          "text-muted-foreground bg-background"
+        )}
+      >
+        <Icon className="h-5 w-5 flex-shrink-0" />
+        {!collapsed && <span className="font-medium text-sm">{label}</span>}
+      </div>
+    );
+  }
 
   return (
     <NavLink
@@ -72,7 +87,7 @@ function NavItem({ id, href, icon: Icon, label, collapsed, onNavigate }: {
   );
 }
 
-function ActionButton({ id, href, icon: Icon, label, collapsed, variant, onNavigate }: {
+function ActionButton({ id, href, icon: Icon, label, collapsed, variant, onNavigate, disabled }: {
     id: string;
     href: string;
     icon: React.ElementType;
@@ -80,6 +95,7 @@ function ActionButton({ id, href, icon: Icon, label, collapsed, variant, onNavig
     collapsed: boolean;
     variant: 'primary' | 'secondary' | 'accent';
     onNavigate?: () => void;
+    disabled?: boolean;
 }) {
     const location = useLocation();
     const isActive = location.pathname === href;
@@ -98,6 +114,20 @@ function ActionButton({ id, href, icon: Icon, label, collapsed, variant, onNavig
             inactive: "bg-secondary text-secondary-foreground hover:bg-background hover:text-secondary hover:border hover:border-secondary",
         },
     };
+
+    if (disabled) {
+        return (
+            <div
+                className={cn(
+                    "flex items-center gap-3 p-3 rounded-lg cursor-not-allowed opacity-50",
+                    "bg-muted text-muted-foreground"
+                )}
+            >
+                <Icon className="h-5 w-5 flex-shrink-0" />
+                {!collapsed && <span className="font-medium text-sm">{label}</span>}
+            </div>
+        );
+    }
 
     return (
         <NavLink
@@ -141,12 +171,15 @@ function TeamPlanSection({ teamName, planName, collapsed, onNavigate }: {
 export function AppSidebar() {
   const { state, open, setOpen } = useSidebar();
   const isMobile = useIsMobile();
-  const { team } = useAuth();
+  const { team, isTrialExpired } = useAuth();
   const { theme } = useTheme();
   const logo = theme === 'dark' ? logoCreatorBranca : logoCreatorPreta;
   
   // No desktop, a sidebar é sempre fixa e não colapsa
   const collapsed = false;
+  
+  // Se o trial expirou, desabilita navegação exceto histórico
+  const isNavigationDisabled = isTrialExpired;
 
   const handleMobileNavigate = () => {
     if (isMobile) {
@@ -171,13 +204,25 @@ export function AppSidebar() {
       <nav className="flex-1 flex flex-col gap-6 px-4 overflow-hidden">
         <div className="flex flex-col gap-2">
           {navLinks.map((link) => (
-            <NavItem key={link.href} {...link} collapsed={collapsed} onNavigate={handleMobileNavigate} />
+            <NavItem 
+              key={link.href} 
+              {...link} 
+              collapsed={collapsed} 
+              onNavigate={handleMobileNavigate}
+              disabled={isNavigationDisabled && link.href !== '/history'}
+            />
           ))}
         </div>
 
         <div className="flex flex-col gap-3">
           {actionButtons.map((button) => (
-            <ActionButton key={button.id} {...button} collapsed={collapsed} onNavigate={handleMobileNavigate} />
+            <ActionButton 
+              key={button.id} 
+              {...button} 
+              collapsed={collapsed} 
+              onNavigate={handleMobileNavigate}
+              disabled={isNavigationDisabled}
+            />
           ))}
         </div>
 

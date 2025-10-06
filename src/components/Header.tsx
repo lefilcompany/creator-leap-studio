@@ -31,12 +31,15 @@ export const Header = () => {
   const { setOpen } = useSidebar();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, isTrialExpired } = useAuth();
   const { theme, setTheme } = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [showMobileSearch, setShowMobileSearch] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
+  
+  // Se o trial expirou, desabilita funcionalidades
+  const isFunctionalityDisabled = isTrialExpired;
 
   const handleLogout = async () => {
     await logout();
@@ -109,7 +112,8 @@ export const Header = () => {
               placeholder="Pesquisar marcas, temas, personas..."
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
-              className={`w-full rounded-xl lg:rounded-2xl pl-10 lg:pl-12 pr-3 lg:pr-4 py-2 lg:py-3 h-10 text-sm lg:text-base border-2 bg-background/50 transition-all duration-200 hover:bg-background focus:bg-background ${
+              disabled={isFunctionalityDisabled}
+              className={`w-full rounded-xl lg:rounded-2xl pl-10 lg:pl-12 pr-3 lg:pr-4 py-2 lg:py-3 h-10 text-sm lg:text-base border-2 bg-background/50 transition-all duration-200 hover:bg-background focus:bg-background disabled:opacity-50 disabled:cursor-not-allowed ${
                 isSearching 
                   ? 'border-primary/50 shadow-md' 
                   : 'border-border/50 hover:border-primary/30 focus:border-primary/50'
@@ -125,7 +129,8 @@ export const Header = () => {
             variant="ghost"
             size="sm"
             onClick={() => setShowMobileSearch(true)}
-            className="lg:hidden h-8 w-8 md:h-10 md:w-10 rounded-lg hover:bg-primary/10 transition-all duration-200 border border-transparent hover:border-primary/20"
+            disabled={isFunctionalityDisabled}
+            className="lg:hidden h-8 w-8 md:h-10 md:w-10 rounded-lg hover:bg-primary/10 transition-all duration-200 border border-transparent hover:border-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Search className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
             <span className="sr-only">Pesquisar</span>
