@@ -607,63 +607,68 @@ Plataforma: ${originalFormData.platform || 'N/A'}`
   }
 
   return (
-    <div className="min-h-full bg-gradient-to-br from-background via-background to-muted/20 p-3 md:p-4 lg:p-6">
-      <div className="max-w-6xl mx-auto space-y-4 md:space-y-6 animate-fade-in">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-3 sm:p-4 md:p-6 lg:p-8">
+      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-5 md:space-y-6 animate-fade-in">
         
         {/* Header */}
         <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5 animate-scale-in">
-          <CardContent className="p-4 md:p-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate("/create")}
-                className="rounded-xl hover:bg-background/50 lg:hidden hover-scale transition-all duration-200"
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-                <div className="flex items-center gap-3">
-                  <div className="flex-shrink-0 bg-primary/10 text-primary rounded-xl p-2.5 md:p-3">
-                    <Sparkles className="h-5 w-5 md:h-6 md:w-6 animate-pulse" />
+          <CardContent className="p-3 sm:p-4 md:p-5 lg:p-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+              <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => navigate("/create")}
+                  className="rounded-xl hover:bg-background/50 hover-scale transition-all duration-200 flex-shrink-0"
+                >
+                  <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
+                </Button>
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                  <div className="flex-shrink-0 bg-primary/10 text-primary rounded-xl p-2 sm:p-2.5 lg:p-3">
+                    <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 animate-pulse" />
                   </div>
-                  <div>
-                    <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-foreground">
+                  <div className="min-w-0 flex-1">
+                    <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-foreground truncate">
                       Conteúdo Gerado
                     </h1>
-                    <p className="text-muted-foreground text-xs md:text-sm">
+                    <p className="text-muted-foreground text-xs sm:text-sm truncate">
                       {contentData.brand} • {contentData.platform}
                     </p>
                   </div>
                 </div>
               </div>
               
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className="bg-muted/50 text-muted-foreground border-border/30 gap-2 px-3 py-1.5">
-                  <RefreshCw className="h-3 w-3" />
-                  {freeRevisionsLeft > 0 ? (
-                    <span>{freeRevisionsLeft} revisões grátis</span>
-                  ) : (
-                    <span>{team?.credits?.contentReviews || 0} créditos</span>
-                  )}
+              <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                <Badge variant="outline" className="bg-muted/50 text-muted-foreground border-border/30 gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 text-xs">
+                  <RefreshCw className="h-3 w-3 flex-shrink-0" />
+                  <span className="hidden sm:inline">
+                    {freeRevisionsLeft > 0 ? (
+                      <>{freeRevisionsLeft} revisões grátis</>
+                    ) : (
+                      <>{team?.credits?.contentReviews || 0} créditos</>
+                    )}
+                  </span>
+                  <span className="sm:hidden">
+                    {freeRevisionsLeft > 0 ? freeRevisionsLeft : team?.credits?.contentReviews || 0}
+                  </span>
                 </Badge>
-                <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 gap-2 px-3 py-1.5">
+                <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 text-xs">
                   {contentData.type === "video" ? (
-                    <Video className="h-4 w-4" />
+                    <Video className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
                   ) : (
-                    <ImageIcon className="h-4 w-4" />
+                    <ImageIcon className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
                   )}
-                  {contentData.type === "video" ? "Vídeo" : "Imagem"}
+                  <span className="hidden sm:inline">{contentData.type === "video" ? "Vídeo" : "Imagem"}</span>
                 </Badge>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5 md:gap-6">
           
           {/* Media Preview */}
-          <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-2xl overflow-hidden animate-fade-in hover:shadow-xl transition-shadow duration-300" style={{ animationDelay: '100ms' }}>
+          <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-xl sm:rounded-2xl overflow-hidden animate-fade-in hover:shadow-xl transition-shadow duration-300" style={{ animationDelay: '100ms' }}>
             <CardContent className="p-0">
               <div className="aspect-square bg-muted/30 relative overflow-hidden group">
                 {contentData.mediaUrl ? (
@@ -688,8 +693,8 @@ Plataforma: ${originalFormData.platform || 'N/A'}`
                 ) : (
                   <div className="flex items-center justify-center h-full">
                     <div className="text-center space-y-2">
-                      <ImageIcon className="h-12 w-12 mx-auto text-muted-foreground/50" />
-                      <p className="text-muted-foreground">Imagem não disponível</p>
+                      <ImageIcon className="h-10 w-10 sm:h-12 sm:w-12 mx-auto text-muted-foreground/50" />
+                      <p className="text-sm sm:text-base text-muted-foreground">Imagem não disponível</p>
                     </div>
                   </div>
                 )}
@@ -699,40 +704,42 @@ Plataforma: ${originalFormData.platform || 'N/A'}`
               </div>
               
               {/* Action buttons */}
-              <div className="p-4 bg-gradient-to-r from-muted/30 to-muted/10 border-t border-border/20 flex items-center gap-2">
+              <div className="p-3 sm:p-4 bg-gradient-to-r from-muted/30 to-muted/10 border-t border-border/20 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                 <Button
                   onClick={handleDownload}
                   className="flex-1 rounded-xl gap-2 hover-scale transition-all duration-200 hover:shadow-md"
                   size="lg"
                 >
                   <Download className="h-4 w-4" />
-                  Download
+                  <span className="hidden xs:inline">Download</span>
                 </Button>
                 <Button
                   onClick={handleShare}
                   variant="outline"
-                  className="rounded-xl hover-scale transition-all duration-200"
+                  className="flex-1 sm:flex-initial rounded-xl gap-2 hover-scale transition-all duration-200"
                   size="lg"
                 >
                   <Share2 className="h-4 w-4" />
+                  <span className="sm:hidden">Compartilhar</span>
                 </Button>
                 <Button
                   onClick={handleOpenReview}
                   variant="secondary"
-                  className="rounded-xl gap-2 hover-scale transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 group"
+                  className="flex-1 sm:flex-initial rounded-xl gap-2 hover-scale transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 group"
                   size="lg"
                 >
                   <RefreshCw className="h-4 w-4 group-hover:rotate-180 transition-transform duration-500" />
+                  <span className="sm:hidden">Revisar</span>
                 </Button>
               </div>
             </CardContent>
           </Card>
 
           {/* Caption */}
-          <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-2xl animate-fade-in hover:shadow-xl transition-shadow duration-300" style={{ animationDelay: '200ms' }}>
-            <CardContent className="p-4 md:p-6 space-y-4">
+          <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-xl sm:rounded-2xl animate-fade-in hover:shadow-xl transition-shadow duration-300" style={{ animationDelay: '200ms' }}>
+            <CardContent className="p-3 sm:p-4 md:p-5 lg:p-6 space-y-3 sm:space-y-4">
               <div className="flex items-center justify-between pb-3 border-b border-border/20">
-                <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                <h2 className="text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">
                   <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
                   Legenda
                 </h2>
@@ -745,41 +752,42 @@ Plataforma: ${originalFormData.platform || 'N/A'}`
                   {copied ? (
                     <>
                       <Check className="h-4 w-4 text-green-500 animate-scale-in" />
-                      Copiado
+                      <span className="hidden sm:inline">Copiado</span>
                     </>
                   ) : (
                     <>
                       <Copy className="h-4 w-4" />
-                      Copiar
+                      <span className="hidden sm:inline">Copiar</span>
                     </>
                   )}
                 </Button>
               </div>
               
-              <div className="space-y-4">
-                <div className="bg-muted/30 rounded-xl p-4 min-h-[300px] max-h-[400px] overflow-y-auto backdrop-blur-sm">
-                  <p className="text-sm md:text-base text-foreground leading-relaxed whitespace-pre-wrap">
+              <div className="space-y-3 sm:space-y-4">
+                <div className="bg-muted/30 rounded-xl p-3 sm:p-4 min-h-[200px] sm:min-h-[250px] md:min-h-[300px] max-h-[300px] sm:max-h-[350px] md:max-h-[400px] overflow-y-auto backdrop-blur-sm">
+                  <p className="text-sm sm:text-base text-foreground leading-relaxed whitespace-pre-wrap">
                     {contentData.caption}
                   </p>
                 </div>
 
-                <div className="pt-4 border-t border-border/20 space-y-3">
+                <div className="pt-3 sm:pt-4 border-t border-border/20 space-y-2 sm:space-y-3">
                   {!isSavedToHistory && (
                     <Button
                       onClick={handleSaveToHistory}
                       disabled={isSaving}
-                      className="w-full rounded-xl hover-scale transition-all duration-200 hover:shadow-lg gap-2 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90"
+                      className="w-full rounded-xl hover-scale transition-all duration-200 hover:shadow-lg gap-2 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-sm sm:text-base"
                       size="lg"
                     >
                       {isSaving ? (
                         <>
                           <Loader className="h-4 w-4 animate-spin" />
-                          Salvando...
+                          <span className="hidden xs:inline">Salvando...</span>
                         </>
                       ) : (
                         <>
                           <Check className="h-4 w-4" />
-                          Salvar no Histórico
+                          <span className="hidden xs:inline">Salvar no Histórico</span>
+                          <span className="xs:hidden">Salvar</span>
                         </>
                       )}
                     </Button>
@@ -789,18 +797,19 @@ Plataforma: ${originalFormData.platform || 'N/A'}`
                     <Button
                       onClick={() => navigate(`/history/${contentData.actionId}`)}
                       variant="default"
-                      className="w-full rounded-xl hover-scale transition-all duration-200 gap-2"
+                      className="w-full rounded-xl hover-scale transition-all duration-200 gap-2 text-sm sm:text-base"
                       size="lg"
                     >
-                      <Check className="h-4 w-4 text-green-500" />
-                      Salvo no Histórico - Ver Detalhes
+                      <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
+                      <span className="hidden sm:inline">Salvo no Histórico - Ver Detalhes</span>
+                      <span className="sm:hidden">Ver no Histórico</span>
                     </Button>
                   )}
                   
                   <Button
                     onClick={() => navigate("/create")}
                     variant="outline"
-                    className="w-full rounded-xl hover-scale transition-all duration-200 hover:shadow-md hover:bg-accent/20 hover:text-accent hover:border-accent"
+                    className="w-full rounded-xl hover-scale transition-all duration-200 hover:shadow-md hover:bg-accent/20 hover:text-accent hover:border-accent text-sm sm:text-base"
                     size="lg"
                   >
                     Criar Novo Conteúdo
@@ -808,7 +817,7 @@ Plataforma: ${originalFormData.platform || 'N/A'}`
                   <Button
                     onClick={() => navigate("/history")}
                     variant="ghost"
-                    className="w-full rounded-xl hover-scale transition-all duration-200"
+                    className="w-full rounded-xl hover-scale transition-all duration-200 text-sm sm:text-base"
                     size="lg"
                   >
                     Ver Histórico
@@ -823,11 +832,11 @@ Plataforma: ${originalFormData.platform || 'N/A'}`
 
       {/* Review Dialog */}
       <Dialog open={showReviewDialog} onOpenChange={setShowReviewDialog}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <RefreshCw className="h-5 w-5 text-primary" />
-              {reviewType ? `Revisar ${reviewType === "image" ? (contentData?.type === "video" ? "Vídeo" : "Imagem") : "Legenda"}` : "Escolha o tipo de revisão"}
+            <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <RefreshCw className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
+              <span className="truncate">{reviewType ? `Revisar ${reviewType === "image" ? (contentData?.type === "video" ? "Vídeo" : "Imagem") : "Legenda"}` : "Escolha o tipo de revisão"}</span>
             </DialogTitle>
             <DialogDescription>
               {reviewType ? (
