@@ -523,12 +523,18 @@ Plataforma: ${originalFormData.platform || 'N/A'}`
       // Get saved content metadata
       const saved = JSON.parse(localStorage.getItem('currentContent') || '{}');
       
+      // Get brand_id from originalFormData if it exists, otherwise set to null
+      let brandId = null;
+      if (saved.originalFormData?.brandId) {
+        brandId = saved.originalFormData.brandId;
+      }
+      
       // Criar registro no histórico
       const { data: actionData, error: actionError } = await supabase
         .from('actions')
         .insert({
           type: contentData.type === "video" ? 'GERAR_VIDEO' : 'CRIAR_CONTEUDO_RAPIDO',
-          brand_id: saved.originalFormData?.brand || saved.brand,
+          brand_id: brandId,
           team_id: user.teamId,
           user_id: user.id,
           status: 'Em revisão',
@@ -539,7 +545,7 @@ Plataforma: ${originalFormData.platform || 'N/A'}`
             objective: saved.originalFormData?.objective,
             platform: contentData.platform,
             tone: saved.originalFormData?.tone,
-            brand: contentData.brand,
+            brand: saved.originalFormData?.brand || contentData.brand,
             theme: saved.originalFormData?.theme,
             persona: saved.originalFormData?.persona,
             additionalInfo: saved.originalFormData?.additionalInfo,
