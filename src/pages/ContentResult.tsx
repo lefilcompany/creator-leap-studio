@@ -12,7 +12,8 @@ import {
   ImageIcon,
   Video,
   RefreshCw,
-  FileText
+  FileText,
+  Loader
 } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -40,7 +41,7 @@ interface ContentResultData {
 export default function ContentResult() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { team } = useAuth();
+  const { team, user } = useAuth();
   const [copied, setCopied] = useState(false);
   const [contentData, setContentData] = useState<ContentResultData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -50,6 +51,8 @@ export default function ContentResult() {
   const [isReviewing, setIsReviewing] = useState(false);
   const [freeRevisionsLeft, setFreeRevisionsLeft] = useState(2);
   const [totalRevisions, setTotalRevisions] = useState(0);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isSavedToHistory, setIsSavedToHistory] = useState(false);
 
   useEffect(() => {
     const loadContent = async () => {
@@ -76,6 +79,9 @@ export default function ContentResult() {
         setContentData(data);
         setIsLoading(false);
         
+        // Verificar se já foi salvo no histórico
+        setIsSavedToHistory(!!data.actionId);
+        
         // ✅ ETAPA 2: Salvar imagem no sessionStorage (não no localStorage)
         if (data.mediaUrl) {
           try {
@@ -92,10 +98,19 @@ export default function ContentResult() {
         // ✅ ETAPA 3: Validar dados DEPOIS de definir o estado
         if (!data.mediaUrl || !data.caption) {
           toast.error("Dados incompletos, mas exibindo o que foi gerado");
-          // Não navega de volta - permite visualização parcial
         }
         
-        // ✅ ETAPA 4: Salvar metadados no localStorage (SEM base64)
+        // ✅ ETAPA 4: Criar sistema de versionamento
+        const versionData = {
+          version: 0,
+          timestamp: new Date().toISOString(),
+          caption: data.caption,
+          title: data.title,
+          hashtags: data.hashtags,
+          type: data.type,
+        };
+        
+        // ✅ ETAPA 5: Salvar metadados no localStorage (SEM base64)
         const savedContent = {
           id: contentId,
           type: data.type,
@@ -107,31 +122,17 @@ export default function ContentResult() {
           originalFormData: data.originalFormData,
           actionId: data.actionId,
           createdAt: new Date().toISOString(),
-          revisions: []
-          // ❌ NÃO incluir mediaUrl aqui
+          currentVersion: 0,
+          versions: [versionData],
+          savedToHistory: !!data.actionId
         };
         
         try {
           localStorage.setItem('currentContent', JSON.stringify(savedContent));
+          // Também salvar versões separadamente para facilitar recuperação
+          localStorage.setItem(`versions_${contentId}`, JSON.stringify([versionData]));
         } catch (error) {
           console.error('Erro ao salvar no localStorage:', error);
-        }
-        
-        // Add to history (sem base64)
-        try {
-          const history = JSON.parse(localStorage.getItem('contentHistory') || '[]');
-          const historyItem = {
-            id: contentId,
-            type: data.type,
-            platform: data.platform,
-            brand: data.brand,
-            createdAt: new Date().toISOString(),
-          };
-          history.unshift(historyItem);
-          localStorage.setItem('contentHistory', JSON.stringify(history.slice(0, 10)));
-        } catch (error) {
-          console.error('Erro ao salvar histórico:', error);
-          localStorage.removeItem('contentHistory');
         }
         
         // Load revision count
@@ -149,6 +150,9 @@ export default function ContentResult() {
         if (saved) {
           try {
             const parsed = JSON.parse(saved);
+            
+            // Verificar se já foi salvo no histórico
+            setIsSavedToHistory(!!parsed.savedToHistory);
             
             // Tentar recuperar imagem do sessionStorage
             const imageUrl = sessionStorage.getItem(`image_${parsed.id}`);
@@ -333,6 +337,8 @@ export default function ContentResult() {
         // Format caption with hashtags
         const formattedCaption = `${data.title}\n\n${data.body}\n\n${data.hashtags.map((tag: string) => `#${tag}`).join(' ')}`;
         updatedContent.caption = formattedCaption;
+        updatedContent.title = data.title;
+        updatedContent.hashtags = data.hashtags;
         
       } else {
         // Edit existing image with review feedback
@@ -369,6 +375,22 @@ export default function ContentResult() {
         }
       }
       
+      // Criar nova versão
+      const newVersion = {
+        version: newRevisionCount,
+        timestamp: new Date().toISOString(),
+        caption: updatedContent.caption,
+        title: updatedContent.title,
+        hashtags: updatedContent.hashtags,
+        type: reviewType,
+        reviewPrompt,
+        usedCredit: needsCredit
+      };
+      
+      // Atualizar versões
+      const currentVersions = saved.versions || [];
+      const updatedVersions = [...currentVersions, newVersion];
+      
       // Update localStorage (sem base64)
       const updatedSaved = {
         ...saved,
@@ -378,17 +400,19 @@ export default function ContentResult() {
         caption: updatedContent.caption,
         title: updatedContent.title,
         hashtags: updatedContent.hashtags,
+        currentVersion: newRevisionCount,
+        versions: updatedVersions,
         revisions: [...(saved.revisions || []), {
           type: reviewType,
           prompt: reviewPrompt,
           timestamp: new Date().toISOString(),
           usedCredit: needsCredit
         }]
-        // ❌ NÃO salvar mediaUrl no localStorage
       };
       
       try {
         localStorage.setItem('currentContent', JSON.stringify(updatedSaved));
+        localStorage.setItem(`versions_${saved.id}`, JSON.stringify(updatedVersions));
       } catch (error) {
         console.error('Erro ao atualizar localStorage:', error);
       }
@@ -400,8 +424,8 @@ export default function ContentResult() {
       setTotalRevisions(newRevisionCount);
       setFreeRevisionsLeft(newFreeRevisionsLeft);
 
-      // Atualizar registro no histórico (tabela actions)
-      if (saved.actionId) {
+      // Atualizar registro no histórico (tabela actions) se já estiver salvo
+      if (saved.actionId && saved.savedToHistory) {
         const { error: updateError } = await supabase
           .from('actions')
           .update({
@@ -419,7 +443,6 @@ export default function ContentResult() {
 
         if (updateError) {
           console.error("Erro ao atualizar histórico:", updateError);
-          // Não bloqueia o fluxo
         }
       }
 
@@ -436,6 +459,80 @@ export default function ContentResult() {
       toast.error("Erro ao processar revisão. Tente novamente.");
     } finally {
       setIsReviewing(false);
+    }
+  };
+
+  const handleSaveToHistory = async () => {
+    if (!contentData || !team || !user) return;
+    
+    if (isSavedToHistory) {
+      toast.info("Este conteúdo já foi salvo no histórico");
+      return;
+    }
+    
+    setIsSaving(true);
+    
+    try {
+      // Get saved content metadata
+      const saved = JSON.parse(localStorage.getItem('currentContent') || '{}');
+      
+      // Criar registro no histórico
+      const { data: actionData, error: actionError } = await supabase
+        .from('actions')
+        .insert({
+          type: contentData.type === "video" ? 'GERAR_VIDEO' : 'CRIAR_CONTEUDO_RAPIDO',
+          brand_id: saved.originalFormData?.brand || saved.brand,
+          team_id: user.teamId,
+          user_id: user.id,
+          status: 'Em revisão',
+          approved: false,
+          revisions: totalRevisions,
+          details: {
+            prompt: saved.originalFormData?.description || contentData.caption,
+            objective: saved.originalFormData?.objective,
+            platform: contentData.platform,
+            tone: saved.originalFormData?.tone,
+            brand: contentData.brand,
+            theme: saved.originalFormData?.theme,
+            persona: saved.originalFormData?.persona,
+            additionalInfo: saved.originalFormData?.additionalInfo,
+            versions: saved.versions || [],
+          },
+          result: {
+            imageUrl: contentData.mediaUrl,
+            title: contentData.title,
+            body: contentData.caption?.split('\n\n')[1] || contentData.caption,
+            hashtags: contentData.hashtags,
+          }
+        })
+        .select()
+        .single();
+
+      if (actionError) {
+        console.error("Erro ao salvar no histórico:", actionError);
+        throw new Error("Erro ao salvar no histórico");
+      }
+
+      // Atualizar localStorage com actionId
+      const updatedSaved = {
+        ...saved,
+        actionId: actionData.id,
+        savedToHistory: true
+      };
+      
+      localStorage.setItem('currentContent', JSON.stringify(updatedSaved));
+      
+      // Atualizar estado
+      setContentData({ ...contentData, actionId: actionData.id });
+      setIsSavedToHistory(true);
+      
+      toast.success("Conteúdo salvo no histórico com sucesso!");
+      
+    } catch (error) {
+      console.error("Erro ao salvar:", error);
+      toast.error("Erro ao salvar no histórico. Tente novamente.");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -601,6 +698,39 @@ export default function ContentResult() {
                 </div>
 
                 <div className="pt-4 border-t border-border/20 space-y-3">
+                  {!isSavedToHistory && (
+                    <Button
+                      onClick={handleSaveToHistory}
+                      disabled={isSaving}
+                      className="w-full rounded-xl hover-scale transition-all duration-200 hover:shadow-lg gap-2 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90"
+                      size="lg"
+                    >
+                      {isSaving ? (
+                        <>
+                          <Loader className="h-4 w-4 animate-spin" />
+                          Salvando...
+                        </>
+                      ) : (
+                        <>
+                          <Check className="h-4 w-4" />
+                          Salvar no Histórico
+                        </>
+                      )}
+                    </Button>
+                  )}
+                  
+                  {isSavedToHistory && contentData.actionId && (
+                    <Button
+                      onClick={() => navigate(`/history/${contentData.actionId}`)}
+                      variant="default"
+                      className="w-full rounded-xl hover-scale transition-all duration-200 gap-2"
+                      size="lg"
+                    >
+                      <Check className="h-4 w-4 text-green-500" />
+                      Salvo no Histórico - Ver Detalhes
+                    </Button>
+                  )}
+                  
                   <Button
                     onClick={() => navigate("/create")}
                     variant="outline"

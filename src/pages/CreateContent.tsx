@@ -622,41 +622,8 @@ export default function CreateContent() {
       // 3. Montar caption formatada
       const caption = `${captionData.title}\n\n${captionData.body}\n\n${captionData.hashtags.map((tag: string) => `#${tag}`).join(" ")}`;
 
-      // Salvar no histórico (tabela actions)
-      const { data: actionData, error: actionError } = await supabase
-        .from('actions')
-        .insert({
-          type: 'CRIAR_CONTEUDO_RAPIDO',
-          brand_id: formData.brand,
-          team_id: user?.teamId,
-          user_id: user?.id,
-          status: 'Em revisão',
-          approved: false,
-          revisions: 0,
-          details: {
-            prompt: requestData.description,
-            objective: requestData.objective,
-            platform: requestData.platform,
-            tone: requestData.tone,
-            brand: requestData.brand,
-            theme: requestData.theme,
-            persona: requestData.persona,
-            additionalInfo: requestData.additionalInfo,
-          },
-          result: {
-            imageUrl,
-            title: captionData.title,
-            body: captionData.body,
-            hashtags: captionData.hashtags,
-          }
-        })
-        .select()
-        .single();
-
-      if (actionError) {
-        console.error("Erro ao salvar no histórico:", actionError);
-        // Não bloqueia o fluxo, apenas loga o erro
-      }
+      // NÃO salvar no histórico automaticamente - apenas quando o usuário clicar em "Salvar"
+      // O conteúdo será salvo temporariamente no localStorage
 
       // Validar dados completos antes de criar o objeto
       if (!imageUrl || !caption) {
@@ -672,7 +639,7 @@ export default function CreateContent() {
         title: captionData.title,
         hashtags: captionData.hashtags,
         originalFormData: requestData,
-        actionId: actionData?.id,
+        actionId: undefined, // Não criar action automaticamente
       };
       
       setGenerationStep(GenerationStep.COMPLETE);
