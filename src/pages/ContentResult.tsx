@@ -53,6 +53,7 @@ export default function ContentResult() {
   const [totalRevisions, setTotalRevisions] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const [isSavedToHistory, setIsSavedToHistory] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
 
   useEffect(() => {
     const loadContent = async () => {
@@ -241,50 +242,115 @@ export default function ContentResult() {
 
   const handleShare = async () => {
     if (!contentData) return;
+    
+    setIsSharing(true);
 
     try {
-      // Check if Web Share API is available
-      if (!navigator.share) {
-        // Fallback: copy caption and prompt to download
+      // Verificar se a API de compartilhamento está disponível
+      const canShare = navigator.share && navigator.canShare;
+      
+      if (!canShare) {
+        // Fallback: copiar legenda
         await navigator.clipboard.writeText(contentData.caption);
-        toast.info("Legenda copiada! Agora faça o download da mídia para compartilhar.");
+        toast.info("Legenda copiada! Use o botão de Download para salvar a mídia e compartilhar manualmente.");
+        setIsSharing(false);
         return;
       }
 
-      // Convert base64 to blob
-      const base64Data = contentData.mediaUrl.split(',')[1];
+      // Validar URL da mídia
+      if (!contentData.mediaUrl || !contentData.mediaUrl.includes('base64')) {
+        toast.error("Formato de mídia inválido para compartilhamento");
+        setIsSharing(false);
+        return;
+      }
+
+      // Extrair dados base64
+      const base64Match = contentData.mediaUrl.match(/^data:([^;]+);base64,(.+)$/);
+      if (!base64Match) {
+        toast.error("Não foi possível processar a mídia");
+        setIsSharing(false);
+        return;
+      }
+
+      const mimeType = base64Match[1] || (contentData.type === "video" ? "video/mp4" : "image/png");
+      const base64Data = base64Match[2];
+
+      // Converter base64 para blob de forma mais eficiente
       const byteCharacters = atob(base64Data);
-      const byteNumbers = new Array(byteCharacters.length);
+      const byteNumbers = new Uint8Array(byteCharacters.length);
       
       for (let i = 0; i < byteCharacters.length; i++) {
         byteNumbers[i] = byteCharacters.charCodeAt(i);
       }
       
-      const byteArray = new Uint8Array(byteNumbers);
-      const mimeType = contentData.type === "video" ? "video/mp4" : "image/png";
+      const blob = new Blob([byteNumbers], { type: mimeType });
+
+      // Validar tamanho do arquivo (alguns sistemas têm limite)
+      const maxSize = 10 * 1024 * 1024; // 10MB
+      if (blob.size > maxSize) {
+        toast.error("Arquivo muito grande para compartilhar. Use o botão de Download.");
+        setIsSharing(false);
+        return;
+      }
+
+      // Determinar extensão do arquivo
       const extension = contentData.type === "video" ? "mp4" : "png";
       
-      // Create File object
+      // Criar nome do arquivo
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-      const filename = `${contentData.brand.replace(/\s+/g, '_')}_${contentData.platform}_${timestamp}.${extension}`;
-      const file = new File([byteArray], filename, { type: mimeType });
+      const brandName = contentData.brand.replace(/[^a-zA-Z0-9]/g, '_');
+      const platformName = contentData.platform.replace(/[^a-zA-Z0-9]/g, '_');
+      const filename = `${brandName}_${platformName}_${timestamp}.${extension}`;
 
-      // Share using Web Share API
-      await navigator.share({
+      // Criar objeto File
+      const file = new File([blob], filename, { type: mimeType });
+
+      // Preparar dados para compartilhamento
+      const shareData = {
         title: `${contentData.brand} - ${contentData.platform}`,
         text: contentData.caption,
         files: [file]
-      });
+      };
 
-      toast.success("Compartilhado com sucesso!");
+      // Verificar se pode compartilhar com arquivos
+      if (!navigator.canShare(shareData)) {
+        // Fallback: compartilhar apenas texto
+        await navigator.share({
+          title: shareData.title,
+          text: shareData.text,
+        });
+        toast.info("Texto compartilhado! Use o botão de Download para a mídia.");
+      } else {
+        // Compartilhar com arquivo
+        await navigator.share(shareData);
+        toast.success("Conteúdo compartilhado com sucesso!");
+      }
+
     } catch (error: any) {
-      // User cancelled or error occurred
+      console.error('Erro ao compartilhar:', error);
+      
+      // Tratar diferentes tipos de erros
       if (error.name === 'AbortError') {
-        // User cancelled, don't show error
+        // Usuário cancelou o compartilhamento - não mostrar erro
+        setIsSharing(false);
         return;
       }
-      console.error('Erro ao compartilhar:', error);
-      toast.error("Erro ao compartilhar. Tente copiar a legenda e baixar a mídia.");
+      
+      if (error.name === 'NotAllowedError') {
+        toast.error("Permissão negada. Verifique as configurações do navegador.");
+      } else if (error.name === 'InvalidStateError') {
+        toast.error("O navegador não está pronto para compartilhar.");
+      } else {
+        // Fallback final: copiar legenda
+        try {
+          await navigator.clipboard.writeText(contentData.caption);
+          toast.info("Legenda copiada! Use o Download para compartilhar a mídia.");
+        } catch (clipError) {
+          toast.error("Não foi possível compartilhar. Tente usar o botão de Download.");
+        }
+      }
+    } finally {
+      setIsSharing(false);
     }
   };
 
@@ -755,9 +821,19 @@ Plataforma: ${originalFormData.platform || 'N/A'}`
                   variant="outline"
                   className="flex-1 sm:flex-initial rounded-xl gap-2 hover-scale transition-all duration-200 hover:bg-accent/20 hover:text-accent hover:border-accent"
                   size="lg"
+                  disabled={isSharing}
                 >
-                  <Share2 className="h-4 w-4" />
-                  <span className="sm:hidden">Compartilhar</span>
+                  {isSharing ? (
+                    <>
+                      <Loader className="h-4 w-4 animate-spin" />
+                      <span className="sm:hidden">Compartilhando...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Share2 className="h-4 w-4" />
+                      <span className="sm:hidden">Compartilhar</span>
+                    </>
+                  )}
                 </Button>
                 <Button
                   onClick={handleOpenReview}
