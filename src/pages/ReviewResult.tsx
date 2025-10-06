@@ -96,7 +96,7 @@ const ReviewResult = () => {
 
         <div className="flex flex-col gap-6">
           {reviewType === 'image' && originalContent && (
-            <Card className="backdrop-blur-sm bg-card/60 border border-border/20 shadow-lg rounded-2xl">
+            <Card className="backdrop-blur-sm bg-card/60 border border-border/20 shadow-lg rounded-2xl max-w-2xl mx-auto">
               <CardHeader className="pb-4 bg-gradient-to-r from-secondary/5 to-accent/5">
                 <h2 className="text-xl font-semibold flex items-center gap-3">
                   <div className="w-2 h-2 bg-secondary rounded-full"></div>
@@ -104,7 +104,7 @@ const ReviewResult = () => {
                 </h2>
               </CardHeader>
               <CardContent className="p-6">
-                <div className="w-full aspect-square bg-muted/50 rounded-2xl flex items-center justify-center border-2 border-dashed border-secondary relative overflow-hidden">
+                <div className="w-full aspect-square max-w-md mx-auto bg-muted/50 rounded-2xl flex items-center justify-center border-2 border-dashed border-secondary relative overflow-hidden">
                   <img src={originalContent} alt="Original" className="w-full h-full rounded-2xl object-cover" />
                 </div>
               </CardContent>
