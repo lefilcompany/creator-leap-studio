@@ -383,9 +383,9 @@ serve(async (req) => {
     // Autenticar usuário
     const authHeader = req.headers.get('authorization');
     if (!authHeader) {
-      console.error('❌ [GENERATE-IMAGE] Authorization header missing');
+      console.error('❌ [GENERATE-IMAGE] Token de autenticação não fornecido');
       return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
+        JSON.stringify({ error: 'Token de autenticação não fornecido' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -398,14 +398,20 @@ serve(async (req) => {
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
 
     if (authError || !user) {
-      console.error('❌ [GENERATE-IMAGE] Authentication failed:', authError);
+      console.error('❌ [GENERATE-IMAGE] Falha na autenticação:', {
+        error: authError?.message,
+        hasUser: !!user
+      });
       return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
+        JSON.stringify({ 
+          error: 'Falha na autenticação. Por favor, faça login novamente.',
+          details: authError?.message 
+        }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log(`✅ [GENERATE-IMAGE] User authenticated: ${user.id}`);
+    console.log(`✅ [GENERATE-IMAGE] Usuário autenticado: ${user.id}`);
 
     // Buscar team_id do usuário
     const { data: profile, error: profileError } = await supabase
@@ -415,9 +421,9 @@ serve(async (req) => {
       .single();
 
     if (profileError || !profile?.team_id) {
-      console.error('❌ [GENERATE-IMAGE] No team found for user');
+      console.error('❌ [GENERATE-IMAGE] Usuário sem equipe:', profileError);
       return new Response(
-        JSON.stringify({ error: 'User has no team' }),
+        JSON.stringify({ error: 'Usuário não está associado a uma equipe' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -432,17 +438,17 @@ serve(async (req) => {
       .single();
 
     if (teamError || !teamData) {
-      console.error('❌ [GENERATE-IMAGE] Failed to fetch team credits');
+      console.error('❌ [GENERATE-IMAGE] Erro ao verificar créditos:', teamError);
       return new Response(
-        JSON.stringify({ error: 'Failed to verify credits' }),
+        JSON.stringify({ error: 'Não foi possível verificar créditos disponíveis' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log(`💰 [GENERATE-IMAGE] Current credits: ${teamData.credits_suggestions}`);
+    console.log(`💰 [GENERATE-IMAGE] Créditos disponíveis: ${teamData.credits_suggestions}`);
 
     if (teamData.credits_suggestions <= 0) {
-      console.warn('⚠️ [GENERATE-IMAGE] Insufficient credits');
+      console.warn('⚠️ [GENERATE-IMAGE] Créditos insuficientes');
       return new Response(
         JSON.stringify({ error: 'Créditos insuficientes para criação de conteúdo' }),
         { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -454,28 +460,28 @@ serve(async (req) => {
     // Input validation
     if (!formData || typeof formData !== 'object') {
       return new Response(
-        JSON.stringify({ error: 'Invalid form data' }),
+        JSON.stringify({ error: 'Dados do formulário inválidos' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
     
     if (!formData.description || typeof formData.description !== 'string' || formData.description.trim().length === 0) {
       return new Response(
-        JSON.stringify({ error: 'Description is required' }),
+        JSON.stringify({ error: 'Descrição é obrigatória' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
     
     if (formData.description.length > 2000) {
       return new Response(
-        JSON.stringify({ error: 'Description too long (max 2000 characters)' }),
+        JSON.stringify({ error: 'Descrição muito longa (máximo 2000 caracteres)' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
     
     if (formData.additionalInfo && typeof formData.additionalInfo === 'string' && formData.additionalInfo.length > 2000) {
       return new Response(
-        JSON.stringify({ error: 'Additional info too long' }),
+        JSON.stringify({ error: 'Informações adicionais muito longas' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
