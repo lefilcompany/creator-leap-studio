@@ -259,6 +259,7 @@ export default function ActionView() {
               variant="ghost" 
               size="sm"
               onClick={() => navigate('/history')}
+              className="hover:bg-accent/20 hover:text-accent hover:border-accent"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
               Voltar
