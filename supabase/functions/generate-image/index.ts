@@ -379,10 +379,21 @@ serve(async (req) => {
   try {
     const formData = await req.json();
     
+    console.log("🎨 [GENERATE-IMAGE] Iniciando geração de imagem");
+    
     // Input validation
     if (!formData || typeof formData !== 'object') {
       return new Response(
         JSON.stringify({ error: 'Invalid form data' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    // Verificar se teamId foi enviado
+    if (!formData.teamId) {
+      console.error("❌ teamId não fornecido");
+      return new Response(
+        JSON.stringify({ error: 'Team ID is required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -424,6 +435,46 @@ serve(async (req) => {
       );
     }
 
+    // Inicializar Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    
+    if (!supabaseUrl || !supabaseKey) {
+      console.error("❌ Supabase não configurado");
+      return new Response(
+        JSON.stringify({ error: 'Database configuration error' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2.39.3');
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Verificar créditos do time ANTES de gerar
+    const { data: teamData, error: teamError } = await supabase
+      .from('teams')
+      .select('credits_suggestions')
+      .eq('id', formData.teamId)
+      .single();
+
+    if (teamError || !teamData) {
+      console.error("❌ Erro ao buscar créditos:", teamError);
+      return new Response(
+        JSON.stringify({ error: 'Failed to check credits' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (teamData.credits_suggestions <= 0) {
+      console.log("❌ Créditos insuficientes");
+      return new Response(
+        JSON.stringify({ error: 'Insufficient credits' }),
+        { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log(`✅ Créditos disponíveis: ${teamData.credits_suggestions}`);
+
     // Verificar se é edição de imagem existente
     const isEdit = formData.isEdit === true && formData.existingImage;
     
@@ -445,11 +496,29 @@ serve(async (req) => {
         formData.existingImage
       );
       
+      console.log("✅ Imagem gerada com sucesso, decrementando crédito...");
+      
+      // Decrementar crédito após geração bem-sucedida
+      const { error: updateError } = await supabase
+        .from('teams')
+        .update({ 
+          credits_suggestions: teamData.credits_suggestions - 1 
+        })
+        .eq('id', formData.teamId);
+
+      if (updateError) {
+        console.error("⚠️ Erro ao decrementar crédito:", updateError);
+        // Não falhar a requisição por isso, apenas logar
+      } else {
+        console.log(`✅ Crédito decrementado. Restam: ${teamData.credits_suggestions - 1}`);
+      }
+      
       return new Response(
         JSON.stringify({ 
           imageUrl: result.imageUrl,
           attempt: result.attempt,
-          model: "google/gemini-2.5-flash-image-preview"
+          model: "google/gemini-2.5-flash-image-preview",
+          creditsRemaining: teamData.credits_suggestions - 1
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );

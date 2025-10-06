@@ -67,7 +67,7 @@ const toneOptions = [
 ];
 
 export default function CreateContent() {
-  const { user } = useAuth();
+  const { user, reloadUserData } = useAuth();
   const navigate = useNavigate();
   const [formData, setFormData] = useState<FormData>({
     brand: "",
@@ -597,7 +597,10 @@ export default function CreateContent() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
-          body: JSON.stringify(requestData),
+          body: JSON.stringify({
+            ...requestData,
+            teamId: user?.teamId, // Enviar teamId para controle de créditos
+          }),
         }
       );
 
@@ -705,6 +708,11 @@ ${formData.objective}
         },
         actionId: undefined, // Não criar action automaticamente
       };
+      
+      // Recarregar dados do usuário para atualizar créditos no header
+      if (reloadUserData) {
+        await reloadUserData();
+      }
       
       setGenerationStep(GenerationStep.COMPLETE);
       setGenerationProgress(100);
