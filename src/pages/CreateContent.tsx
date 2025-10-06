@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -341,8 +341,8 @@ export default function CreateContent() {
     }
   };
 
-  // Função pura para verificar se o formulário é válido (sem efeitos colaterais)
-  const isFormValid = () => {
+  // Memorizar se o formulário é válido
+  const isFormValid = useMemo(() => {
     const baseValid =
       formData.brand &&
       formData.objective &&
@@ -359,7 +359,18 @@ export default function CreateContent() {
       );
     }
     return baseValid;
-  };
+  }, [
+    formData.brand,
+    formData.objective,
+    formData.platform,
+    formData.description,
+    formData.tone.length,
+    referenceFiles.length,
+    isVideoMode,
+    ratio,
+    transformationType,
+    duration
+  ]);
 
   // Função para validar e atualizar campos faltantes (com efeitos colaterais)
   const validateForm = () => {
@@ -1470,7 +1481,7 @@ export default function CreateContent() {
               <div className="flex flex-col items-center gap-3 md:gap-4">
                 <Button
                   onClick={handleGenerateContent}
-                  disabled={loading || !isFormValid()}
+                  disabled={loading || !isFormValid}
                   className="w-full max-w-sm md:max-w-md h-12 md:h-14 rounded-2xl text-base md:text-lg font-bold bg-gradient-to-r from-primary via-accent to-secondary hover:from-primary/90 hover:via-accent/90 hover:to-secondary/90 shadow-xl transition-all duration-500 disabled:opacity-50"
                 >
                   {loading ? (
@@ -1485,7 +1496,7 @@ export default function CreateContent() {
                     </>
                   )}
                 </Button>
-                {!isFormValid() && !loading && (
+                {!isFormValid && !loading && (
                   <div className="text-center bg-muted/30 p-3 rounded-xl border border-border/30 max-w-sm md:max-w-md">
                     <p className="text-muted-foreground text-xs md:text-sm">
                       Complete todos os campos obrigatórios (*) para gerar
