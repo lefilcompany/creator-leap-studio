@@ -45,11 +45,16 @@ function buildCaptionPrompt(formData: any): string {
   const platformInstructions: Record<string, string> = {
     Instagram: `
 ## Para Instagram:
-- Máximo 2.200 caracteres
-- Primeiro parágrafo até 125 caracteres (antes do "ver mais")
-- Use quebras de linha estratégicas para facilitar leitura
-- Linguagem conversacional e próxima
-- 8-12 hashtags MIX de nicho + populares
+- Alvo: 900-1300 caracteres (texto extenso engaja mais)
+- Hook inicial: 100-125 caracteres impactantes (antes do "ver mais")
+- Subtítulo descritivo logo após o hook
+- 3-4 parágrafos descritivos e narrativos
+- Quebras de linha apenas entre parágrafos principais
+- Linguagem conversacional mas sofisticada
+- Tom aspiracional e inspirador
+- MÁXIMO 5 emojis em toda a legenda
+- 8-10 hashtags estratégicas (MIX nicho + médio alcance)
+- Inclua 1 pergunta genuína + CTA duplo (aspiracional + comando)
     `,
     Facebook: `
 ## Para Facebook:
@@ -119,9 +124,46 @@ Você é um copywriter especialista em redes sociais com mais de 10 anos de expe
 - Use verbos de ação: "Descubra", "Experimente", "Transforme", "Acesse"
 - Inclua senso de urgência quando apropriado
 
-## ELEMENTOS VISUAIS E INTERATIVOS
-- Use emojis estrategicamente (1 por parágrafo máximo)
-- Adicione elementos que incentivem interação
+## PRINCÍPIOS DE USO DE EMOJIS (CRÍTICO)
+- MÁXIMO 3-5 emojis em TODA a legenda
+- Use emojis apenas em momentos estratégicos:
+  * 1 emoji no hook inicial (opcional)
+  * 1-2 emojis no meio do texto para destacar benefícios
+  * 1-2 emojis no CTA final
+- NUNCA use emojis em todos os parágrafos
+- Priorize SEMPRE texto rico sobre ícones visuais
+
+# TÉCNICAS OBRIGATÓRIAS DE STORYTELLING
+
+## ESTRUTURA NARRATIVA:
+1. **Hook Aspiracional**: Abra com uma pergunta ou declaração que conecte emocionalmente
+   - Exemplo: "Já imaginou viver em um lugar onde..."
+   - Exemplo: "E se você pudesse transformar..."
+
+2. **Subtítulo Contextualizador**: Segunda linha que resume o valor principal
+   - Exemplo: "Da farmácia às quadras: a infraestrutura que apoia..."
+   - Formato: [Benefício tangível] + [conexão emocional]
+
+3. **Desenvolvimento Descritivo (3-4 parágrafos)**:
+   - Parágrafo 1: Descreva o cenário/contexto de forma sensorial
+   - Parágrafo 2: Aprofunde nos benefícios práticos e emocionais
+   - Parágrafo 3: Crie conexão com o dia a dia do público
+   - Parágrafo 4 (opcional): Reforce o valor único
+
+4. **Engajamento Conversacional**:
+   - Inclua 1 pergunta genuína que convide interação
+   - Exemplo: "Qual é a sua atividade favorita para relaxar?"
+
+5. **CTA Duplo**:
+   - Primeiro: Frase aspiracional sobre a oportunidade
+   - Segundo: Comando direto com verbo de ação
+   - Exemplo: "Não perca a oportunidade de viver... 👉 Descubra como..."
+
+## DENSIDADE TEXTUAL:
+- Legenda DEVE ter entre 900-1300 caracteres
+- Parágrafos de 80-150 caracteres cada
+- Preferir descrições detalhadas a frases curtas
+- Usar linguagem rica, mas acessível
 
 # DIRETRIZES DE LINGUAGEM E ESTILO
 ${specificInstructions}
@@ -145,13 +187,15 @@ ${toneOfVoice ? `- MANTENHA o tom de voz: ${toneOfVoice}` : ''}
 
 ## ESPECIFICAÇÕES:
 - **"title"**: Título magnético de 45-60 caracteres que funcione como headline
-- **"body"**: Legenda completa de 800-1500 caracteres, rica em detalhes e engajamento
-- **"hashtags"**: Array com 8-12 hashtags estratégicas (MIX de nicho + populares)
+- **"body"**: Legenda completa de 900-1300 caracteres, com TEXTO ABUNDANTE e emojis minimalistas (máximo 5 emojis no total)
+- **"hashtags"**: Array com 8-10 hashtags estratégicas (MIX de nicho + médio alcance)
 
 ## FORMATAÇÃO DA LEGENDA:
-- Use '\\n\\n' para parágrafos
-- Use '\\n' para quebras simples
-- Máximo 3 emojis por parágrafo
+- Use '\\n\\n' para separar parágrafos principais
+- Use '\\n' apenas para subtítulos ou quebras estratégicas
+- MÁXIMO 5 EMOJIS EM TODA A LEGENDA (incluso título)
+- Priorize parágrafos de texto corrido e descritivo
+- Evite listas com bullets ou excesso de quebras
 - Mantenha-se dentro do limite de caracteres da plataforma
 
 **FORMATO DE RESPOSTA (JSON VÁLIDO):**
@@ -160,6 +204,22 @@ ${toneOfVoice ? `- MANTENHA o tom de voz: ${toneOfVoice}` : ''}
   "body": "Corpo completo da legenda com quebras de linha apropriadas",
   "hashtags": ["hashtag1", "hashtag2", "hashtag3", "hashtag4", "hashtag5"]
 }
+
+# EXEMPLO DE LEGENDA IDEAL (REFERÊNCIA DE QUALIDADE)
+
+{
+  "title": "Seu novo estilo de vida começa aqui 🌅",
+  "body": "🌅 Já imaginou viver em um lugar onde a rotina e o lazer se encontram em perfeita harmonia?\\n\\nDa farmácia às quadras: a infraestrutura que apoia a rotina e o tempo livre.\\n\\nAqui, você encontra tudo o que precisa para o dia a dia — farmácias, padarias e mercados a poucos passos de casa. E quando o sol brilha, é hora de aproveitar! ⚽🌴\\n\\nCom quadras de beach tennis de areia, caminhos para caminhadas e áreas verdes, cada momento pode ser uma nova descoberta.\\n\\nQual é a sua atividade favorita para relaxar? Compartilhe com a gente nos comentários! 👇✨\\n\\nNão perca a oportunidade de viver em um lugar que transforma seu cotidiano em uma experiência incrível. 🏖️\\n\\n👉 Descubra como fazer parte dessa comunidade que valoriza a qualidade de vida!",
+  "hashtags": ["qualidadedevida", "infraestrutura", "lazer", "beachtennis", "comunidade", "estilodevida", "bemviver", "residencial"]
+}
+
+OBSERVE:
+- Apenas 5 emojis estratégicos em 650+ caracteres
+- Texto rico e descritivo
+- Narrativa fluida com storytelling
+- Pergunta genuína de engajamento
+- CTA duplo (aspiracional + comando)
+- Parágrafos bem desenvolvidos
 
 RETORNE APENAS O JSON, SEM TEXTO ADICIONAL ANTES OU DEPOIS.
   `.trim();
@@ -235,7 +295,7 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: "Você é um especialista em marketing de conteúdo para redes sociais. Retorne APENAS JSON válido, sem texto adicional.",
+            content: "Você é um copywriter sênior especializado em storytelling para redes sociais. Sua marca registrada é criar legendas RICAS EM TEXTO, com narrativas envolventes e uso MINIMALISTA de emojis (máximo 5 por legenda). Priorize sempre descrições detalhadas e parágrafos bem desenvolvidos. Retorne APENAS JSON válido, sem texto adicional.",
           },
           {
             role: "user",
