@@ -17,7 +17,7 @@ export type Database = {
       actions: {
         Row: {
           approved: boolean | null
-          brand_id: string
+          brand_id: string | null
           created_at: string | null
           details: Json | null
           id: string
@@ -31,7 +31,7 @@ export type Database = {
         }
         Insert: {
           approved?: boolean | null
-          brand_id: string
+          brand_id?: string | null
           created_at?: string | null
           details?: Json | null
           id?: string
@@ -45,7 +45,7 @@ export type Database = {
         }
         Update: {
           approved?: boolean | null
-          brand_id?: string
+          brand_id?: string | null
           created_at?: string | null
           details?: Json | null
           id?: string
