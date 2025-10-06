@@ -102,81 +102,95 @@ serve(async (req) => {
     }
 
     // Build AI prompt
-    const systemPrompt = `Você é um especialista em prompts para geração de imagens (text-to-image) e branding visual.
-Analise textos descritivos de forma profunda, considerando viabilidade técnica, clareza, especificidade, elementos visuais, composição, iluminação, estilo artístico e efetividade para gerar imagens impactantes.
-Forneça análise estruturada, educacional e acionável com score de qualidade, pontos positivos, sugestões técnicas específicas e versões otimizadas do prompt.`;
+    const systemPrompt = `Você é um especialista em copywriting para redes sociais e design de posts.
+Analise textos que serão inseridos em imagens de posts (frases, mensagens, citações, títulos, CTAs, etc.) de forma profunda, considerando clareza, impacto visual, legibilidade, adequação ao espaço da imagem, tom de voz e efetividade da mensagem.
+Forneça análise estruturada, educacional e acionável com score de qualidade, pontos positivos, sugestões específicas e versões otimizadas do texto.`;
 
     const contextPrompt = `${brandName ? `Marca: ${brandName}\n` : ''}${themeName ? `Tema Estratégico: ${themeName}\n` : ''}
-Contexto desejado: ${prompt}
+Contexto da imagem e ajustes desejados: ${prompt}
 
-TEXTO ORIGINAL PARA ANÁLISE:
+TEXTO QUE SERÁ INSERIDO NA IMAGEM:
 ${text}
 
-Analise o texto e retorne uma revisão completa em markdown seguindo EXATAMENTE esta estrutura:
+Analise o texto que será colocado NA IMAGEM do post e retorne uma revisão completa em markdown seguindo EXATAMENTE esta estrutura:
 
-## 📊 Análise do Prompt
+## 📊 Análise do Texto
 
 **Score de Qualidade**: [número de 1-10]/10
 
-**Justificativa do Score**: [breve explicação do score atribuído]
+**Justificativa do Score**: [breve explicação do score considerando clareza, impacto e adequação ao formato visual]
 
 ---
 
 ### ✅ Pontos Fortes
-- [Liste elementos bem descritos]
-- [Elementos visuais claros]
-- [Especificidade adequada]
+- [Clareza da mensagem]
+- [Impacto visual do texto]
+- [Adequação ao espaço da imagem]
+- [Tom de voz apropriado]
 
 ---
 
 ### ⚠️ Pontos de Melhoria
-- [O que falta especificar]
-- [Ambiguidades identificadas]
-- [Elementos vagos que precisam de detalhamento]
+- [Tamanho do texto (muito longo/curto)]
+- [Palavras complexas ou difíceis de ler]
+- [Falta de gancho emocional]
+- [Problemas de hierarquia visual]
 
 ---
 
-### 🎨 Análise de Viabilidade Visual
+### 🎨 Análise de Adequação Visual
 
-**Composição**: [Análise da estrutura e disposição dos elementos]
+**Legibilidade**: [Análise se o texto é fácil de ler em diferentes tamanhos e fundos]
 
-**Iluminação**: [Análise e sugestões de iluminação, sombras, atmosfera]
+**Tamanho Ideal**: [Se o texto está muito longo, muito curto ou adequado para a imagem]
 
-**Estilo Artístico**: [Recomendações de estilo (realista, ilustrativo, minimalista, etc.)]
+**Hierarquia Visual**: [Análise de títulos, subtítulos, frases de destaque]
 
-**Paleta de Cores**: [Sugestões de cores e harmonia visual]
+**Quebras de Linha**: [Sugestões de onde quebrar o texto para melhor leitura]
 
-**Detalhamento Técnico**: [Análise da profundidade de detalhes especificados]
+**Formatação Recomendada**: [Negrito, itálico, CAPS, emojis estratégicos, etc.]
 
 ---
 
 ### 💡 Versões Otimizadas
 
-#### 1️⃣ Versão Profissional
-[Prompt otimizado focado em qualidade, detalhamento técnico e clareza visual]
+#### 1️⃣ Versão Impacto
+[Versão focada em gerar máximo impacto emocional e visual, texto direto e poderoso]
 
-#### 2️⃣ Versão Criativa
-[Prompt com elementos artísticos, atmosfera e estilo visual marcante]
+#### 2️⃣ Versão Didática
+[Versão mais explicativa e educativa, mantendo clareza e completude da informação]
 
 #### 3️⃣ Versão Minimalista
-[Prompt simplificado focado nos elementos essenciais e composição limpa]
+[Versão ultra-resumida, apenas o essencial, ideal para imagens clean e com muito espaço visual]
 
 ---
 
-### 🔑 Palavras-chave Técnicas Recomendadas
+### 🎯 Dicas de Formatação Visual
 
-**Para Composição**: [keywords: rule of thirds, framing, perspective, etc.]
+**Sugestão de Emojis**: [Quais emojis adicionar e onde para reforçar a mensagem]
 
-**Para Iluminação**: [keywords: golden hour, dramatic lighting, soft shadows, etc.]
+**Destaque de Palavras-chave**: [Quais palavras colocar em CAPS ou negrito]
 
-**Para Estilo**: [keywords: photorealistic, cinematic, editorial, etc.]
+**Estrutura de Parágrafos**: [Como organizar visualmente o texto na imagem]
 
-**Para Qualidade**: [keywords: high resolution, 4K, detailed, sharp focus, etc.]
+**Call-to-Action**: [Sugestões de CTA se aplicável ao contexto]
+
+---
+
+### 📱 Adaptação para Plataformas
+
+**Instagram Feed**: [Como adaptar o texto para post do feed]
+
+**Instagram Stories**: [Como adaptar para stories com espaço limitado]
+
+**LinkedIn**: [Como adaptar para formato mais profissional]
+
+**Facebook**: [Como adaptar considerando espaço e público]
 
 ---
 
 ### 🎯 Recomendações Finais
-[Dicas práticas e resumo das principais melhorias a implementar]`;
+[Resumo das principais melhorias e próximos passos para otimizar o texto]`;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',

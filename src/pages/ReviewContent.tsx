@@ -320,7 +320,7 @@ const ReviewContent = () => {
                           </div>
                           <div>
                             <h3 className="font-semibold text-lg mb-2">Revisar Texto para Imagem</h3>
-                            <p className="text-sm text-muted-foreground">Otimize textos descritivos para geração de imagens</p>
+                            <p className="text-sm text-muted-foreground">Otimize textos que serão inseridos em imagens de posts</p>
                           </div>
                         </div>
                       </CardContent>
@@ -386,7 +386,7 @@ const ReviewContent = () => {
                 <p className="text-muted-foreground text-sm">
                   {reviewType === 'image' && 'Envie a imagem e descreva o que precisa melhorar'}
                   {reviewType === 'caption' && 'Cole a legenda e descreva como quer melhorá-la'}
-                  {reviewType === 'text-for-image' && 'Envie o texto para revisão e descreva os ajustes e objetivo da imagem'}
+                  {reviewType === 'text-for-image' && 'Revise o texto que será inserido na imagem do post'}
                 </p>
               </CardHeader>
               <CardContent className="p-6">
@@ -450,20 +450,20 @@ const ReviewContent = () => {
                   {reviewType === 'text-for-image' && (
                     <>
                       <div className="space-y-3">
-                        <Label htmlFor="textForImage" className="text-sm font-semibold text-foreground">Texto a Ser Revisado *</Label>
+                        <Label htmlFor="textForImage" className="text-sm font-semibold text-foreground">Texto que Irá na Imagem *</Label>
                         <Textarea 
                           id="textForImage" 
-                          placeholder="Cole aqui o texto que você deseja revisar para gerar a imagem..." 
+                          placeholder="Cole aqui o texto que será inserido na imagem do post (frase, citação, mensagem principal, etc.)..." 
                           value={textForImage} 
                           onChange={(e) => setTextForImage(e.target.value)} 
                           className="h-64 rounded-xl border-2 border-border/50 bg-background/50 resize-none" 
                         />
                       </div>
                       <div className="space-y-3">
-                        <Label htmlFor="adjustmentsPrompt" className="text-sm font-semibold text-foreground">Ajustes Desejados e Objetivo da Imagem *</Label>
+                        <Label htmlFor="adjustmentsPrompt" className="text-sm font-semibold text-foreground">Ajustes e Contexto da Imagem *</Label>
                         <Textarea 
                           id="adjustmentsPrompt" 
-                          placeholder="Descreva os ajustes que deseja no texto e o objetivo da imagem. Ex: 'Tornar o texto mais descritivo e visual para gerar uma imagem impactante para Instagram, estilo moderno e vibrante'" 
+                          placeholder="Descreva como quer melhorar o texto e o contexto da imagem onde ele será usado. Ex: 'Tornar o texto mais curto e impactante para Instagram, será usado em post motivacional com fundo azul'" 
                           value={adjustmentsPrompt} 
                           onChange={(e) => setAdjustmentsPrompt(e.target.value)} 
                           className="h-64 rounded-xl border-2 border-border/50 bg-background/50 resize-none" 
