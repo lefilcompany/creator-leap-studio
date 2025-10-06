@@ -65,7 +65,8 @@ export default function History() {
                 created_at,
                 approved,
                 brand_id,
-                brands!inner(id, name)
+                details,
+                brands(id, name)
               `, { count: 'exact' })
               .eq('team_id', user.teamId)
               .order('created_at', { ascending: false });
@@ -106,16 +107,30 @@ export default function History() {
 
         // Process actions
         if (actionsResult.error) throw actionsResult.error;
-        const actionSummaries: ActionSummary[] = (actionsResult.data || []).map(action => ({
-          id: action.id,
-          type: action.type as any,
-          createdAt: action.created_at,
-          approved: action.approved,
-          brand: action.brands ? {
-            id: action.brands.id,
-            name: action.brands.name
-          } : null
-        }));
+        const actionSummaries: ActionSummary[] = (actionsResult.data || []).map(action => {
+          // Se não tem brand_id, pegar o nome da marca do details
+          let brandInfo = null;
+          if (action.brands) {
+            brandInfo = {
+              id: action.brands.id,
+              name: action.brands.name
+            };
+          } else if (action.details && typeof action.details === 'object' && 'brand' in action.details) {
+            // Se não tem brand_id mas tem nome da marca em details
+            brandInfo = {
+              id: '',
+              name: String(action.details.brand)
+            };
+          }
+          
+          return {
+            id: action.id,
+            type: action.type as any,
+            createdAt: action.created_at,
+            approved: action.approved,
+            brand: brandInfo
+          };
+        });
         setActions(actionSummaries);
         setTotalPages(Math.ceil((actionsResult.count || 0) / ITEMS_PER_PAGE));
 
