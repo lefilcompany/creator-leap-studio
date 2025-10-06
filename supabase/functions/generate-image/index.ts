@@ -380,7 +380,7 @@ serve(async (req) => {
   console.log('🎨 [GENERATE-IMAGE] Iniciando geração de imagem');
 
   try {
-    // Autenticar usuário
+    // Validar authorization header
     const authHeader = req.headers.get('authorization');
     if (!authHeader) {
       console.error('❌ [GENERATE-IMAGE] Token de autenticação não fornecido');
@@ -390,23 +390,40 @@ serve(async (req) => {
       );
     }
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-
-    if (authError || !user) {
-      console.error('❌ [GENERATE-IMAGE] Falha na autenticação:', {
-        error: authError?.message,
-        hasUser: !!user
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseAnonKey = Deno.env.get('SUPABASE_PUBLISHABLE_KEY') || Deno.env.get('SUPABASE_ANON_KEY');
+    
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.error('❌ [GENERATE-IMAGE] Variáveis de ambiente não configuradas', {
+        hasUrl: !!supabaseUrl,
+        hasKey: !!supabaseAnonKey
       });
       return new Response(
-        JSON.stringify({ 
-          error: 'Falha na autenticação. Por favor, faça login novamente.',
-          details: authError?.message 
-        }),
+        JSON.stringify({ error: 'Configuração do servidor incorreta' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    console.log('✅ [GENERATE-IMAGE] Variáveis de ambiente carregadas');
+    
+    // Criar cliente Supabase usando o token do usuário (RLS vai validar)
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: {
+        headers: {
+          Authorization: authHeader
+        }
+      }
+    });
+
+    console.log('✅ [GENERATE-IMAGE] Cliente Supabase criado com token do usuário');
+
+    // Buscar dados do usuário (RLS vai validar automaticamente)
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    
+    if (userError || !user) {
+      console.error('❌ [GENERATE-IMAGE] Erro ao obter usuário:', userError?.message);
+      return new Response(
+        JSON.stringify({ error: 'Não foi possível autenticar o usuário' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -421,7 +438,7 @@ serve(async (req) => {
       .single();
 
     if (profileError || !profile?.team_id) {
-      console.error('❌ [GENERATE-IMAGE] Usuário sem equipe:', profileError);
+      console.error('❌ [GENERATE-IMAGE] Erro ao buscar perfil:', profileError?.message);
       return new Response(
         JSON.stringify({ error: 'Usuário não está associado a uma equipe' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -525,9 +542,24 @@ serve(async (req) => {
       
       console.log(`✅ [GENERATE-IMAGE] Image generated successfully in ${result.attempt} attempt(s)`);
 
-      // Decrementar crédito após geração bem-sucedida
+      // Decrementar crédito após geração bem-sucedida usando SERVICE_ROLE_KEY
+      const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+      const supaUrl = Deno.env.get('SUPABASE_URL');
+      
+      if (!supabaseServiceRoleKey || !supaUrl) {
+        console.error('❌ [GENERATE-IMAGE] SERVICE_ROLE_KEY ou URL não disponível');
+        return new Response(
+          JSON.stringify({ error: 'Erro ao atualizar créditos' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      const supabaseAdmin = createClient(supaUrl, supabaseServiceRoleKey);
       const newCredits = teamData.credits_suggestions - 1;
-      const { error: updateError } = await supabase
+      
+      console.log(`💰 [GENERATE-IMAGE] Decrementando créditos: ${teamData.credits_suggestions} -> ${newCredits}`);
+      
+      const { error: updateError } = await supabaseAdmin
         .from('teams')
         .update({ credits_suggestions: newCredits })
         .eq('id', profile.team_id);
@@ -570,9 +602,13 @@ serve(async (req) => {
       );
     }
 
-  } catch (error) {
+  } catch (error: any) {
+    console.error('❌ [GENERATE-IMAGE] Erro geral:', error);
     return new Response(
-      JSON.stringify({ error: 'Unable to generate image' }),
+      JSON.stringify({ 
+        error: 'Erro ao gerar imagem',
+        details: error?.message || 'Erro desconhecido'
+      }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
