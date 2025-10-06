@@ -210,6 +210,13 @@ export function useAuth() {
     setTeam(null);
   };
 
+  const refreshProfile = async () => {
+    const { data: { session: currentSession } } = await supabase.auth.getSession();
+    if (currentSession?.user) {
+      await loadUserData(currentSession.user);
+    }
+  };
+
   return {
     user,
     session,
@@ -219,6 +226,7 @@ export function useAuth() {
     isTrialExpired,
     trialDaysRemaining,
     logout,
-    reloadUserData
+    reloadUserData,
+    refreshProfile,
   };
 }

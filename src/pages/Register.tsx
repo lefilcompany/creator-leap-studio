@@ -7,10 +7,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { CreatorLogo } from "@/components/CreatorLogo";
-import { Eye, EyeOff, User, Mail, Phone, Lock, Loader2 } from "lucide-react";
+import { Eye, EyeOff, User, Mail, Phone, Lock, Loader2, Chrome, Facebook } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { TeamSelectionDialog } from "@/components/auth/TeamSelectionDialog";
+import { useOAuthCallback } from "@/hooks/useOAuthCallback";
 
 // Interfaces para os dados do IBGE
 interface State {
@@ -52,6 +53,10 @@ const Register = () => {
 
   // Team selection
   const [showTeamSelection, setShowTeamSelection] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [facebookLoading, setFacebookLoading] = useState(false);
+
+  const { showTeamDialog: oauthTeamDialog, handleTeamDialogClose: handleOAuthTeamDialogClose } = useOAuthCallback();
 
   // Validações de senha
   const passwordsMatch = formData.password === confirmPassword;
@@ -173,6 +178,63 @@ const Register = () => {
       toast.error('Erro de conexão durante o cadastro');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignup = async () => {
+    if (!privacyChecked || !privacyAccepted) {
+      toast.error('É necessário aceitar a Política de Privacidade para se cadastrar.');
+      return;
+    }
+    
+    setGoogleLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/register`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+        },
+      });
+
+      if (error) {
+        toast.error(error.message);
+        setGoogleLoading(false);
+      }
+    } catch (error) {
+      console.error('Google signup error:', error);
+      toast.error("Erro ao cadastrar com Google.");
+      setGoogleLoading(false);
+    }
+  };
+
+  const handleFacebookSignup = async () => {
+    if (!privacyChecked || !privacyAccepted) {
+      toast.error('É necessário aceitar a Política de Privacidade para se cadastrar.');
+      return;
+    }
+    
+    setFacebookLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'facebook',
+        options: {
+          redirectTo: `${window.location.origin}/register`,
+          scopes: 'email,public_profile',
+        },
+      });
+
+      if (error) {
+        toast.error(error.message);
+        setFacebookLoading(false);
+      }
+    } catch (error) {
+      console.error('Facebook signup error:', error);
+      toast.error("Erro ao cadastrar com Facebook.");
+      setFacebookLoading(false);
     }
   };
 
@@ -446,6 +508,52 @@ const Register = () => {
                 {isLoading ? <Loader2 className="animate-spin h-4 w-4" /> : 'CRIAR CONTA'}
               </Button>
             </form>
+
+            {/* Divider */}
+            <div className="relative my-4">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-border/30"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="bg-card px-4 text-muted-foreground">ou cadastre-se com</span>
+              </div>
+            </div>
+
+            {/* Social signup */}
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <Button 
+                variant="outline"
+                onClick={handleGoogleSignup}
+                type="button"
+                disabled={googleLoading || isLoading || !privacyChecked || !privacyAccepted}
+                className="h-10 lg:h-11 border-border/50 hover:bg-primary/5 hover:border-primary/30 hover:text-primary transition-all duration-200"
+              >
+                {googleLoading ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <>
+                    <Chrome className="w-4 h-4 mr-2" />
+                    Google
+                  </>
+                )}
+              </Button>
+              <Button 
+                variant="outline"
+                type="button"
+                onClick={handleFacebookSignup}
+                disabled={facebookLoading || isLoading || !privacyChecked || !privacyAccepted}
+                className="h-10 lg:h-11 border-border/50 hover:bg-secondary/5 hover:border-secondary/30 hover:text-secondary transition-all duration-200"
+              >
+                {facebookLoading ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <>
+                    <Facebook className="w-4 h-4 mr-2" />
+                    Facebook
+                  </>
+                )}
+              </Button>
+            </div>
             
             <div className="text-center">
               <span className="text-muted-foreground text-sm">Já tem uma conta? </span>
@@ -543,10 +651,14 @@ const Register = () => {
 
       {/* Team Selection Dialog */}
       <TeamSelectionDialog
-        open={showTeamSelection}
+        open={showTeamSelection || oauthTeamDialog}
         onClose={() => {
           setShowTeamSelection(false);
-          navigate("/");
+          if (oauthTeamDialog) {
+            handleOAuthTeamDialogClose();
+          } else {
+            navigate("/");
+          }
         }}
       />
     </>

@@ -10,6 +10,7 @@ import { Eye, EyeOff, Chrome, Facebook, Mail, Lock, Sun, Moon, Loader2 } from "l
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { TeamSelectionDialog } from "@/components/auth/TeamSelectionDialog";
+import { useOAuthCallback } from "@/hooks/useOAuthCallback";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -18,9 +19,13 @@ const Login = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showTeamSelection, setShowTeamSelection] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [facebookLoading, setFacebookLoading] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { theme, setTheme } = useTheme();
+  
+  const { showTeamDialog: oauthTeamDialog, handleTeamDialogClose: handleOAuthTeamDialogClose } = useOAuthCallback();
   
   useEffect(() => {
     const isNewUser = searchParams.get('newUser') === 'true';
@@ -88,22 +93,49 @@ const Login = () => {
   };
 
   const handleGoogleLogin = async () => {
+    setGoogleLoading(true);
     try {
-      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/dashboard`,
-        }
+          redirectTo: `${window.location.origin}/login`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+        },
       });
 
       if (error) {
         toast.error(error.message);
-        localStorage.removeItem('creator_session_info');
+        setGoogleLoading(false);
       }
     } catch (error) {
+      console.error('Google login error:', error);
       toast.error("Erro ao fazer login com Google.");
-      localStorage.removeItem('creator_session_info');
+      setGoogleLoading(false);
+    }
+  };
+
+  const handleFacebookLogin = async () => {
+    setFacebookLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'facebook',
+        options: {
+          redirectTo: `${window.location.origin}/login`,
+          scopes: 'email,public_profile',
+        },
+      });
+
+      if (error) {
+        toast.error(error.message);
+        setFacebookLoading(false);
+      }
+    } catch (error) {
+      console.error('Facebook login error:', error);
+      toast.error("Erro ao fazer login com Facebook.");
+      setFacebookLoading(false);
     }
   };
 
@@ -278,19 +310,33 @@ const Login = () => {
                 variant="outline"
                 onClick={handleGoogleLogin}
                 type="button"
+                disabled={googleLoading || loading}
                 className="h-12 border-border/50 hover:bg-primary/5 hover:border-primary/30 hover:text-primary transition-all duration-200"
               >
-                <Chrome className="w-5 h-5 mr-2" />
-                Google
+                {googleLoading ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <>
+                    <Chrome className="w-5 h-5 mr-2" />
+                    Google
+                  </>
+                )}
               </Button>
               <Button 
                 variant="outline"
                 type="button"
-                disabled
+                onClick={handleFacebookLogin}
+                disabled={facebookLoading || loading}
                 className="h-12 border-border/50 hover:bg-secondary/5 hover:border-secondary/30 hover:text-secondary transition-all duration-200"
               >
-                <Facebook className="w-5 h-5 mr-2" />
-                Facebook
+                {facebookLoading ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <>
+                    <Facebook className="w-5 h-5 mr-2" />
+                    Facebook
+                  </>
+                )}
               </Button>
             </div>
 
@@ -310,8 +356,13 @@ const Login = () => {
 
       {/* Team Selection Dialog */}
       <TeamSelectionDialog 
-        open={showTeamSelection} 
-        onClose={() => setShowTeamSelection(false)} 
+        open={showTeamSelection || oauthTeamDialog} 
+        onClose={() => {
+          setShowTeamSelection(false);
+          if (oauthTeamDialog) {
+            handleOAuthTeamDialogClose();
+          }
+        }} 
       />
     </div>
   );
