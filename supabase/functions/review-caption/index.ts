@@ -55,7 +55,7 @@ serve(async (req) => {
 
     const authenticatedTeamId = profile.team_id;
 
-    const { caption, prompt, brandName, themeName } = await req.json();
+    const { caption, prompt, brandId, brandName, themeName } = await req.json();
 
     // Input validation
     if (!caption || typeof caption !== 'string' || caption.length > 5000) {
@@ -215,7 +215,7 @@ Analise a legenda e retorne uma revisão completa em markdown seguindo EXATAMENT
         type: 'REVISAR_CONTEUDO',
         user_id: authenticatedUserId,
         team_id: authenticatedTeamId,
-        brand_id: null,
+        brand_id: brandId || null,
         details: { 
           reviewType: 'caption',
           caption, 

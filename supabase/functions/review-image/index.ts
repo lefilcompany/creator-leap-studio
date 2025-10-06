@@ -55,7 +55,7 @@ serve(async (req) => {
 
     const authenticatedTeamId = profile.team_id;
 
-    const { image, prompt, brandName, themeName } = await req.json();
+    const { image, prompt, brandId, brandName, themeName } = await req.json();
 
     // Input validation
     if (!image || typeof image !== 'string') {
@@ -248,7 +248,7 @@ Analise a imagem e retorne uma revisão completa em markdown seguindo EXATAMENTE
         type: 'REVISAR_CONTEUDO',
         user_id: authenticatedUserId,
         team_id: authenticatedTeamId,
-        brand_id: null,
+        brand_id: brandId || null,
         details: { 
           reviewType: 'image',
           prompt, 

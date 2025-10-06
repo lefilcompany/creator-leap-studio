@@ -55,7 +55,7 @@ serve(async (req) => {
 
     const authenticatedTeamId = profile.team_id;
 
-    const { text, prompt, brandName, themeName } = await req.json();
+    const { text, prompt, brandId, brandName, themeName } = await req.json();
 
     // Input validation
     if (!text || typeof text !== 'string' || text.length > 5000) {
@@ -230,7 +230,7 @@ Analise o texto que será colocado NA IMAGEM do post e retorne uma revisão comp
         type: 'REVISAR_CONTEUDO',
         user_id: authenticatedUserId,
         team_id: authenticatedTeamId,
-        brand_id: null,
+        brand_id: brandId || null,
         details: { 
           reviewType: 'text-for-image',
           text, 

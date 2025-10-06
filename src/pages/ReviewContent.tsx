@@ -135,6 +135,7 @@ const ReviewContent = () => {
           body: {
             image: base64Image,
             prompt: adjustmentsPrompt,
+            brandId: selectedBrand?.id,
             brandName: selectedBrand?.name,
             themeName: selectedTheme?.title,
           }
@@ -154,6 +155,7 @@ const ReviewContent = () => {
           body: {
             caption: captionText,
             prompt: adjustmentsPrompt,
+            brandId: selectedBrand?.id,
             brandName: selectedBrand?.name,
             themeName: selectedTheme?.title,
           }
@@ -173,6 +175,7 @@ const ReviewContent = () => {
           body: {
             text: textForImage,
             prompt: adjustmentsPrompt,
+            brandId: selectedBrand?.id,
             brandName: selectedBrand?.name,
             themeName: selectedTheme?.title,
           }
