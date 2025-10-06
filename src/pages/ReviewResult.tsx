@@ -94,7 +94,7 @@ const ReviewResult = () => {
           </Card>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="flex flex-col gap-6">
           {reviewType === 'image' && originalContent && (
             <Card className="backdrop-blur-sm bg-card/60 border border-border/20 shadow-lg rounded-2xl">
               <CardHeader className="pb-4 bg-gradient-to-r from-secondary/5 to-accent/5">
@@ -127,7 +127,7 @@ const ReviewResult = () => {
             </Card>
           )}
 
-          <Card className={`backdrop-blur-sm bg-card/60 border border-border/20 shadow-lg rounded-2xl ${reviewType === 'image' ? '' : 'lg:col-span-1'}`}>
+          <Card className="backdrop-blur-sm bg-card/60 border border-border/20 shadow-lg rounded-2xl">
             <CardHeader className="pb-4 bg-gradient-to-r from-primary/5 to-secondary/5">
               <h2 className="text-xl font-semibold flex items-center gap-3">
                 <div className="w-2 h-2 bg-primary rounded-full"></div>
