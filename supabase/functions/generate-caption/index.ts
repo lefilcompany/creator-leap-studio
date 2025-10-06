@@ -30,6 +30,7 @@ function buildCaptionPrompt(formData: any): string {
   const platform = cleanInput(formData.platform);
   const objective = cleanInput(formData.objective);
   const imageDescription = cleanInput(formData.imageDescription);
+  const audience = cleanInput(formData.audience);
   const toneOfVoice = Array.isArray(formData.tone) 
     ? formData.tone.map((t: any) => cleanInput(t)).join(", ")
     : cleanInput(formData.tone);
@@ -43,30 +44,40 @@ function buildCaptionPrompt(formData: any): string {
 
   const platformInstructions: Record<string, string> = {
     Instagram: `
-- Máximo de 2.200 caracteres
-- Use emojis estrategicamente
-- Primeira linha deve ser impactante (aparece antes do "ver mais")
-- Call-to-action no final
-- 5-12 hashtags relevantes (separadas, não em bloco)
-- Tom conversacional e engajador
+## Para Instagram:
+- Máximo 2.200 caracteres
+- Primeiro parágrafo até 125 caracteres (antes do "ver mais")
+- Use quebras de linha estratégicas para facilitar leitura
+- Linguagem conversacional e próxima
+- 8-12 hashtags MIX de nicho + populares
+    `,
+    Facebook: `
+## Para Facebook:
+- Máximo 2.200 caracteres
+- Primeiro parágrafo até 125 caracteres (antes do "ver mais")
+- Use quebras de linha estratégicas para facilitar leitura
+- Linguagem conversacional e próxima
+- 8-12 hashtags MIX de nicho + populares
     `,
     LinkedIn: `
-- Máximo de 3.000 caracteres
-- Tom profissional mas acessível
-- Primeira linha deve gerar curiosidade
-- Utilize quebras de linha para facilitar leitura
-- 3-5 hashtags profissionais
-- Incentive discussão nos comentários
+## Para LinkedIn:
+- Máximo 3.000 caracteres
+- Tom mais profissional mas ainda humano
+- Inclua insights e valor educacional
+- Use dados e estatísticas quando relevante
+- 5-8 hashtags profissionais
     `,
     TikTok: `
-- Máximo de 2.200 caracteres
-- Tom jovem, dinâmico e autêntico
-- Use emojis e linguagem informal
-- Call-to-action direto
-- 3-5 hashtags trending relevantes
+## Para TikTok/Reels:
+- Máximo 2.200 caracteres
+- Linguagem jovem e dinâmica
+- Referências a tendências quando apropriado
+- Foco em entretenimento e valor rápido
+- 5-8 hashtags trending
     `,
     "Twitter/X": `
-- Máximo de 280 caracteres
+## Para Twitter/X:
+- Máximo 280 caracteres
 - Seja direto e impactante
 - Use 1-2 hashtags estratégicas
 - Incentive retweets/engajamento
@@ -76,43 +87,72 @@ function buildCaptionPrompt(formData: any): string {
   const specificInstructions = platformInstructions[platform] || platformInstructions.Instagram;
 
   return `
-Você é um copywriter profissional especializado em criação de conteúdo para redes sociais. 
-Crie uma legenda COMPLETA, PROFISSIONAL e altamente ENGAJADORA baseada nas seguintes informações:
+# CONTEXTO ESTRATÉGICO
+- **Marca/Empresa**: ${brandName}
+- **Tema Central**: ${themeName || "Não especificado"}
+- **Plataforma de Publicação**: ${platform}
+- **Objetivo Estratégico**: ${objective}
+- **Descrição Visual da Imagem**: ${imageDescription}
+- **Público-Alvo**: ${audience || "Não especificado"}
+- **Persona Específica**: ${personaDescription || "Não especificada"}
+- **Tom de Voz/Comunicação**: ${toneOfVoice || "Não especificado"}
+- **Informações Complementares**: ${additionalInfo || "Não informado"}
 
-**CONTEXTO DA MARCA:**
-- Marca: ${brandName}
-${themeName ? `- Tema Estratégico: ${themeName}` : ''}
-${personaDescription ? `- Público-alvo (Persona): ${personaDescription}` : ''}
+# SUA MISSÃO COMO COPYWRITER ESPECIALISTA
+Você é um copywriter especialista em redes sociais com mais de 10 anos de experiência criando conteúdos virais e de alto engajamento. Sua tarefa é criar uma legenda COMPLETA e ENVOLVENTE para a descrição da ${platform}, seguindo as melhores práticas de marketing digital, storytelling e copywriting.
 
-**OBJETIVO E PLATAFORMA:**
-- Plataforma: ${platform}
-- Objetivo da publicação: ${objective}
+# ESTRUTURA IDEAL DA LEGENDA (SIGA RIGOROSAMENTE)
 
-**IMAGEM GERADA:**
-- Descrição: ${imageDescription}
+## ABERTURA IMPACTANTE (1-2 linhas)
+- Hook que desperta curiosidade ou emoção
+- Pode ser uma pergunta, declaração ousada, ou estatística impressionante
+- Deve conectar diretamente com a imagem
 
-**DIRETRIZES CRIATIVAS:**
-${toneOfVoice ? `- Tom de voz: ${toneOfVoice}` : ''}
-${additionalInfo ? `- Informações adicionais: ${additionalInfo}` : ''}
+## DESENVOLVIMENTO (2-4 parágrafos)
+- Conte uma história relacionada à imagem
+- Conecte com o objetivo e a persona
+- Use quebras de linha para facilitar leitura
+- Incorpore gatilhos emocionais
 
-**INSTRUÇÕES ESPECÍFICAS PARA ${platform.toUpperCase()}:**
+## CALL-TO-ACTION PODEROSO (1-2 linhas)
+- Comando claro e específico
+- Use verbos de ação: "Descubra", "Experimente", "Transforme", "Acesse"
+- Inclua senso de urgência quando apropriado
+
+## ELEMENTOS VISUAIS E INTERATIVOS
+- Use emojis estrategicamente (1 por parágrafo máximo)
+- Adicione elementos que incentivem interação
+
+# DIRETRIZES DE LINGUAGEM E ESTILO
 ${specificInstructions}
 
-**ESTRUTURA OBRIGATÓRIA:**
-1. **Título/Gancho**: Uma frase de impacto que captura atenção
-2. **Corpo**: Desenvolvimento do conteúdo relacionado à imagem e objetivo
-3. **Call-to-Action**: Incentivo claro para engajamento
-4. **Hashtags**: Relevantes para o tema e plataforma
-
-**REQUISITOS OBRIGATÓRIOS:**
-- A legenda DEVE estar PERFEITAMENTE ALINHADA com a descrição da imagem gerada
+# REQUISITOS OBRIGATÓRIOS
+- A legenda DEVE estar PERFEITAMENTE ALINHADA com a descrição da imagem: "${imageDescription}"
 - MANTENHA coerência total com a identidade da marca ${brandName}
 ${themeName ? `- REFLITA o tema estratégico "${themeName}" de forma clara e natural` : ''}
 ${personaDescription ? `- ESCREVA diretamente para a persona definida: ${personaDescription}` : ''}
+${audience ? `- FALE diretamente com o público: ${audience}` : ''}
+${toneOfVoice ? `- MANTENHA o tom de voz: ${toneOfVoice}` : ''}
 - Use linguagem de copywriter profissional, persuasiva e impactante
 - Incorpore gatilhos emocionais e elementos que incentivem interação
-- Mantenha-se rigorosamente dentro do limite de caracteres da plataforma
-- Seja criativo, original e autêntico à voz da marca
+- Inclua pelo menos 1 pergunta para engajamento
+- Termine com CTA forte e claro
+
+# REGRAS TÉCNICAS DE SAÍDA (CRÍTICAS)
+- Resposta EXCLUSIVAMENTE em JSON válido
+- ZERO texto adicional, explicações ou markdown
+- Estrutura EXATA: {"title", "body", "hashtags"}
+
+## ESPECIFICAÇÕES:
+- **"title"**: Título magnético de 45-60 caracteres que funcione como headline
+- **"body"**: Legenda completa de 800-1500 caracteres, rica em detalhes e engajamento
+- **"hashtags"**: Array com 8-12 hashtags estratégicas (MIX de nicho + populares)
+
+## FORMATAÇÃO DA LEGENDA:
+- Use '\\n\\n' para parágrafos
+- Use '\\n' para quebras simples
+- Máximo 3 emojis por parágrafo
+- Mantenha-se dentro do limite de caracteres da plataforma
 
 **FORMATO DE RESPOSTA (JSON VÁLIDO):**
 {
@@ -225,17 +265,45 @@ serve(async (req) => {
     try {
       postContent = JSON.parse(content);
     } catch (parseError) {
-      // Fallback
+      // Fallback rico mesmo em caso de erro
+      const brandName = cleanInput(formData.brand) || "nossa marca";
+      const themeName = cleanInput(formData.theme) || "novidades";
+      const objective = cleanInput(formData.objective) || "trazer inovação e valor";
+      const audience = cleanInput(formData.audience) || "nosso público";
+      const platform = cleanInput(formData.platform) || "redes sociais";
+
+      const fallbackBody = `🌟 Cada imagem conta uma história, e esta não é diferente!
+
+Quando olhamos para este conteúdo visual, vemos muito mais do que cores e formas. Vemos a essência da ${brandName} se manifestando através de cada detalhe cuidadosamente pensado.
+
+💡 ${themeName.charAt(0).toUpperCase() + themeName.slice(1)} não é apenas um tema - é um convite para explorar novas possibilidades e descobrir como podemos ${objective} de forma única e autêntica.
+
+Nossa conexão com ${audience} vai além das palavras. É uma conversa visual que acontece através de cada elemento desta composição, criando uma experiência que ressoa com quem realmente importa.
+
+🔥 A pergunta é: você está pronto para fazer parte desta jornada?
+
+💬 Deixe seu comentário e compartilhe suas impressões!
+✨ Marque alguém que também precisa ver isso!`;
+
       postContent = {
-        title: `${cleanInput(formData.brand)}: ${cleanInput(formData.theme)} 🚀`,
-        body: `🌟 Confira este conteúdo incrível sobre ${cleanInput(formData.theme)}!\n\n${cleanInput(formData.imageDescription)}\n\n💡 ${cleanInput(formData.objective)}\n\nO que você achou? Deixe seu comentário! 👇`,
+        title: `${brandName}: Descobrindo ${themeName} 🚀`,
+        body: fallbackBody,
         hashtags: [
-          cleanInput(formData.brand).toLowerCase().replace(/\s+/g, ""),
-          cleanInput(formData.theme).toLowerCase().replace(/\s+/g, ""),
-          "marketing",
-          "conteudo",
-          "digital"
+          brandName.toLowerCase().replace(/\s+/g, "").substring(0, 15),
+          themeName.toLowerCase().replace(/\s+/g, "").substring(0, 15),
+          "conteudovisual",
+          "marketingdigital",
+          "storytelling",
+          "engajamento",
+          "estrategia",
+          "inspiracao",
+          "crescimento",
+          "inovacao",
+          "conexao",
+          "transformacao",
         ]
+          .filter((tag) => tag && tag.length > 2)
+          .slice(0, 12),
       };
     }
 
