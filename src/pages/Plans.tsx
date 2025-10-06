@@ -391,37 +391,39 @@ const Plans = () => {
     contentReviews: 0,
     contentPlans: 0
   };
+  const isEnterprisePlan = plan?.name === 'ENTERPRISE';
+  
   const creditData = [{
     name: 'Criações Rápidas',
     current: credits?.quickContentCreations || 0,
-    limit: plan?.quickContentCreations || 0,
+    limit: isEnterprisePlan ? credits?.quickContentCreations || 0 : plan?.quickContentCreations || 0,
     icon: Zap,
     color: 'text-orange-600',
     bgColor: 'bg-orange-500/10'
   }, {
     name: 'Sugestões',
     current: credits?.contentSuggestions || 0,
-    limit: plan?.customContentSuggestions || 0,
+    limit: isEnterprisePlan ? credits?.contentSuggestions || 0 : plan?.customContentSuggestions || 0,
     icon: Sparkles,
     color: 'text-blue-600',
     bgColor: 'bg-blue-500/10'
   }, {
     name: 'Revisões',
     current: credits?.contentReviews || 0,
-    limit: plan?.contentReviews || 0,
+    limit: isEnterprisePlan ? credits?.contentReviews || 0 : plan?.contentReviews || 0,
     icon: CheckCircle,
     color: 'text-green-600',
     bgColor: 'bg-green-500/10'
   }, {
     name: 'Planejamentos',
     current: credits?.contentPlans || 0,
-    limit: plan?.contentPlans || 0,
+    limit: isEnterprisePlan ? credits?.contentPlans || 0 : plan?.contentPlans || 0,
     icon: Calendar,
     color: 'text-purple-600',
     bgColor: 'bg-purple-500/10'
   }];
   const totalCredits = creditData.reduce((acc, credit) => acc + credit.current, 0);
-  const totalLimits = creditData.reduce((acc, credit) => acc + credit.limit, 0);
+  const totalLimits = isEnterprisePlan ? totalCredits : creditData.reduce((acc, credit) => acc + credit.limit, 0);
   const usagePercentage = totalLimits > 0 ? (totalLimits - totalCredits) / totalLimits * 100 : 0;
   return <div className="space-y-4 md:space-y-6 animate-fade-in">
       {/* Header com design limpo */}
