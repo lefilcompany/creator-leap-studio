@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -377,128 +376,34 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  console.log('🎨 [GENERATE-IMAGE] Iniciando geração de imagem');
-
   try {
-    // Validar authorization header
-    const authHeader = req.headers.get('authorization');
-    if (!authHeader) {
-      console.error('❌ [GENERATE-IMAGE] Token de autenticação não fornecido');
-      return new Response(
-        JSON.stringify({ error: 'Token de autenticação não fornecido' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const supabaseAnonKey = Deno.env.get('SUPABASE_PUBLISHABLE_KEY') || Deno.env.get('SUPABASE_ANON_KEY');
-    
-    if (!supabaseUrl || !supabaseAnonKey) {
-      console.error('❌ [GENERATE-IMAGE] Variáveis de ambiente não configuradas', {
-        hasUrl: !!supabaseUrl,
-        hasKey: !!supabaseAnonKey
-      });
-      return new Response(
-        JSON.stringify({ error: 'Configuração do servidor incorreta' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-    
-    console.log('✅ [GENERATE-IMAGE] Variáveis de ambiente carregadas');
-    
-    // Criar cliente Supabase usando o token do usuário (RLS vai validar)
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      global: {
-        headers: {
-          Authorization: authHeader
-        }
-      }
-    });
-
-    console.log('✅ [GENERATE-IMAGE] Cliente Supabase criado com token do usuário');
-
-    // Buscar dados do usuário (RLS vai validar automaticamente)
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    
-    if (userError || !user) {
-      console.error('❌ [GENERATE-IMAGE] Erro ao obter usuário:', userError?.message);
-      return new Response(
-        JSON.stringify({ error: 'Não foi possível autenticar o usuário' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    console.log(`✅ [GENERATE-IMAGE] Usuário autenticado: ${user.id}`);
-
-    // Buscar team_id do usuário
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('team_id')
-      .eq('id', user.id)
-      .single();
-
-    if (profileError || !profile?.team_id) {
-      console.error('❌ [GENERATE-IMAGE] Erro ao buscar perfil:', profileError?.message);
-      return new Response(
-        JSON.stringify({ error: 'Usuário não está associado a uma equipe' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    console.log(`✅ [GENERATE-IMAGE] Team ID: ${profile.team_id}`);
-
-    // Verificar créditos disponíveis
-    const { data: teamData, error: teamError } = await supabase
-      .from('teams')
-      .select('credits_suggestions')
-      .eq('id', profile.team_id)
-      .single();
-
-    if (teamError || !teamData) {
-      console.error('❌ [GENERATE-IMAGE] Erro ao verificar créditos:', teamError);
-      return new Response(
-        JSON.stringify({ error: 'Não foi possível verificar créditos disponíveis' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    console.log(`💰 [GENERATE-IMAGE] Créditos disponíveis: ${teamData.credits_suggestions}`);
-
-    if (teamData.credits_suggestions <= 0) {
-      console.warn('⚠️ [GENERATE-IMAGE] Créditos insuficientes');
-      return new Response(
-        JSON.stringify({ error: 'Créditos insuficientes para criação de conteúdo' }),
-        { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
     const formData = await req.json();
     
     // Input validation
     if (!formData || typeof formData !== 'object') {
       return new Response(
-        JSON.stringify({ error: 'Dados do formulário inválidos' }),
+        JSON.stringify({ error: 'Invalid form data' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
     
     if (!formData.description || typeof formData.description !== 'string' || formData.description.trim().length === 0) {
       return new Response(
-        JSON.stringify({ error: 'Descrição é obrigatória' }),
+        JSON.stringify({ error: 'Description is required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
     
     if (formData.description.length > 2000) {
       return new Response(
-        JSON.stringify({ error: 'Descrição muito longa (máximo 2000 caracteres)' }),
+        JSON.stringify({ error: 'Description too long (max 2000 characters)' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
     
     if (formData.additionalInfo && typeof formData.additionalInfo === 'string' && formData.additionalInfo.length > 2000) {
       return new Response(
-        JSON.stringify({ error: 'Informações adicionais muito longas' }),
+        JSON.stringify({ error: 'Additional info too long' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -540,43 +445,11 @@ serve(async (req) => {
         formData.existingImage
       );
       
-      console.log(`✅ [GENERATE-IMAGE] Image generated successfully in ${result.attempt} attempt(s)`);
-
-      // Decrementar crédito após geração bem-sucedida usando SERVICE_ROLE_KEY
-      const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-      const supaUrl = Deno.env.get('SUPABASE_URL');
-      
-      if (!supabaseServiceRoleKey || !supaUrl) {
-        console.error('❌ [GENERATE-IMAGE] SERVICE_ROLE_KEY ou URL não disponível');
-        return new Response(
-          JSON.stringify({ error: 'Erro ao atualizar créditos' }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      
-      const supabaseAdmin = createClient(supaUrl, supabaseServiceRoleKey);
-      const newCredits = teamData.credits_suggestions - 1;
-      
-      console.log(`💰 [GENERATE-IMAGE] Decrementando créditos: ${teamData.credits_suggestions} -> ${newCredits}`);
-      
-      const { error: updateError } = await supabaseAdmin
-        .from('teams')
-        .update({ credits_suggestions: newCredits })
-        .eq('id', profile.team_id);
-
-      if (updateError) {
-        console.error('❌ [GENERATE-IMAGE] Failed to update credits:', updateError);
-        // Não falhar a requisição, apenas logar o erro
-      } else {
-        console.log(`💰 [GENERATE-IMAGE] Credits updated: ${teamData.credits_suggestions} → ${newCredits}`);
-      }
-      
       return new Response(
         JSON.stringify({ 
           imageUrl: result.imageUrl,
           attempt: result.attempt,
-          model: "google/gemini-2.5-flash-image-preview",
-          remainingCredits: newCredits
+          model: "google/gemini-2.5-flash-image-preview"
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
@@ -602,13 +475,9 @@ serve(async (req) => {
       );
     }
 
-  } catch (error: any) {
-    console.error('❌ [GENERATE-IMAGE] Erro geral:', error);
+  } catch (error) {
     return new Response(
-      JSON.stringify({ 
-        error: 'Erro ao gerar imagem',
-        details: error?.message || 'Erro desconhecido'
-      }),
+      JSON.stringify({ error: 'Unable to generate image' }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

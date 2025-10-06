@@ -170,21 +170,11 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  console.log('📝 [GENERATE-CAPTION] Iniciando geração de legenda');
-
   try {
     const { formData } = await req.json();
     
-    console.log('📝 [GENERATE-CAPTION] Dados recebidos:', {
-      brand: formData?.brand,
-      theme: formData?.theme,
-      platform: formData?.platform,
-      hasDescription: !!formData?.imageDescription
-    });
-
     // Input validation
     if (!formData || typeof formData !== 'object') {
-      console.error('❌ [GENERATE-CAPTION] Invalid form data');
       return new Response(
         JSON.stringify({ error: 'Invalid form data' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -222,8 +212,6 @@ serve(async (req) => {
     }
 
     const prompt = buildCaptionPrompt(formData);
-    
-    console.log('🤖 [GENERATE-CAPTION] Chamando Gemini 2.5 Flash...');
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -247,7 +235,6 @@ serve(async (req) => {
     });
 
     if (!response.ok) {
-      console.error(`❌ [GENERATE-CAPTION] AI gateway error: ${response.status}`);
       if (response.status === 429) {
         return new Response(
           JSON.stringify({ error: 'Rate limit exceeded' }),
@@ -270,54 +257,22 @@ serve(async (req) => {
     const content = data.choices?.[0]?.message?.content;
 
     if (!content) {
-      console.error('❌ [GENERATE-CAPTION] Empty content returned from AI');
       throw new Error("Empty content returned");
     }
-
-    console.log('✅ [GENERATE-CAPTION] Resposta recebida do Gemini');
 
     // Parse JSON
     let postContent;
     try {
       postContent = JSON.parse(content);
-      console.log('✅ [GENERATE-CAPTION] JSON parsed successfully');
     } catch (parseError) {
-      console.warn('⚠️ [GENERATE-CAPTION] Failed to parse JSON, using contextual fallback');
-      
-      // Fallback RICO e CONTEXTUALIZADO com os dados reais do formulário
+      // Fallback rico mesmo em caso de erro
       const brandName = cleanInput(formData.brand) || "nossa marca";
-      const themeName = cleanInput(formData.theme) || "";
-      const objective = cleanInput(formData.objective) || "engajar e conectar";
+      const themeName = cleanInput(formData.theme) || "novidades";
+      const objective = cleanInput(formData.objective) || "trazer inovação e valor";
       const audience = cleanInput(formData.audience) || "nosso público";
       const platform = cleanInput(formData.platform) || "redes sociais";
-      const imageDescription = cleanInput(formData.imageDescription) || "este conteúdo visual";
-      const toneOfVoice = Array.isArray(formData.tone) 
-        ? formData.tone.map((t: any) => cleanInput(t)).join(", ")
-        : cleanInput(formData.tone) || "autêntico";
-      const personaDescription = cleanInput(formData.persona) || "";
 
-      // Construir uma legenda contextualizada e profissional
-      let fallbackBody = `✨ ${brandName} apresenta: ${themeName ? themeName + '!' : 'uma novidade especial!'}\n\n`;
-      
-      fallbackBody += `${imageDescription}\n\n`;
-      
-      if (objective) {
-        fallbackBody += `💡 Nosso objetivo? ${objective.charAt(0).toUpperCase() + objective.slice(1)}`;
-        if (audience) {
-          fallbackBody += ` para ${audience}`;
-        }
-        fallbackBody += `.\n\n`;
-      }
-      
-      if (personaDescription) {
-        fallbackBody += `🎯 ${personaDescription}\n\n`;
-      }
-      
-      if (toneOfVoice) {
-        fallbackBody += `🔥 Estilo: ${toneOfVoice}\n\n`;
-      }
-      
-      const fallbackBody2 = `🌟 Cada imagem conta uma história, e esta não é diferente!
+      const fallbackBody = `🌟 Cada imagem conta uma história, e esta não é diferente!
 
 Quando olhamos para este conteúdo visual, vemos muito mais do que cores e formas. Vemos a essência da ${brandName} se manifestando através de cada detalhe cuidadosamente pensado.
 
@@ -330,10 +285,8 @@ Nossa conexão com ${audience} vai além das palavras. É uma conversa visual qu
 💬 Deixe seu comentário e compartilhe suas impressões!
 ✨ Marque alguém que também precisa ver isso!`;
 
-      fallbackBody += `💬 Comente suas impressões!\n✨ Marque alguém que precisa ver isso!`;
-
       postContent = {
-        title: `${brandName}${themeName ? ': ' + themeName : ''} 🚀`,
+        title: `${brandName}: Descobrindo ${themeName} 🚀`,
         body: fallbackBody,
         hashtags: [
           brandName.toLowerCase().replace(/\s+/g, "").substring(0, 15),
@@ -379,19 +332,15 @@ Nossa conexão com ${audience} vai além das palavras. É uma conversa visual qu
       .filter((tag: string) => tag.length > 0)
       .slice(0, 12);
 
-    console.log('✅ [GENERATE-CAPTION] Caption generated successfully');
-    
     return new Response(
       JSON.stringify(postContent),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
 
-  } catch (error: any) {
-    console.error('❌ [GENERATE-CAPTION] Error:', error.message);
+  } catch (error) {
     return new Response(
       JSON.stringify({ 
         error: 'Unable to generate caption',
-        details: error.message,
         caption: '',
         hashtags: []
       }),
