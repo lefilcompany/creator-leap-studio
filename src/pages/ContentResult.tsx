@@ -5,7 +5,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { 
   Download, 
   Copy, 
-  Share2, 
   Sparkles,
   ArrowLeft,
   Check,
@@ -53,7 +52,6 @@ export default function ContentResult() {
   const [totalRevisions, setTotalRevisions] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const [isSavedToHistory, setIsSavedToHistory] = useState(false);
-  const [isSharing, setIsSharing] = useState(false);
 
   useEffect(() => {
     const loadContent = async () => {
@@ -240,58 +238,6 @@ export default function ContentResult() {
     }
   };
 
-  const handleShare = async () => {
-    if (!contentData) return;
-    
-    setIsSharing(true);
-
-    try {
-      // Verificar se está em contexto seguro (HTTPS) e se a API está disponível
-      const isSecureContext = window.isSecureContext;
-      const hasShareAPI = !!navigator.share;
-      
-      if (!isSecureContext || !hasShareAPI) {
-        // Fallback automático: copiar e fazer download
-        await navigator.clipboard.writeText(contentData.caption);
-        handleDownload();
-        toast.success("Legenda copiada e download iniciado! Compartilhe manualmente.");
-        return;
-      }
-
-      // Tentar compartilhar apenas o texto (mais confiável)
-      try {
-        await navigator.share({
-          title: `${contentData.brand} - ${contentData.platform}`,
-          text: contentData.caption,
-        });
-        toast.success("Legenda compartilhada! Use o botão Download para salvar a mídia.");
-      } catch (shareError: any) {
-        // Se falhar o compartilhamento de texto, usar fallback
-        if (shareError.name === 'AbortError') {
-          // Usuário cancelou - silencioso
-          return;
-        }
-        throw shareError;
-      }
-
-    } catch (error: any) {
-      console.error('Erro ao compartilhar:', error);
-      
-      // Fallback universal: copiar texto e sugerir download
-      try {
-        await navigator.clipboard.writeText(contentData.caption);
-        toast.info("Legenda copiada! Use o botão Download e compartilhe manualmente.", {
-          duration: 4000,
-        });
-      } catch (clipError) {
-        toast.error("Não foi possível compartilhar. Use o botão Download para salvar.", {
-          duration: 4000,
-        });
-      }
-    } finally {
-      setIsSharing(false);
-    }
-  };
 
   const handleOpenReview = () => {
     setReviewType(null);
@@ -754,25 +700,6 @@ Plataforma: ${originalFormData.platform || 'N/A'}`
                 >
                   <Download className="h-4 w-4" />
                   <span className="hidden xs:inline">Download</span>
-                </Button>
-                <Button
-                  onClick={handleShare}
-                  variant="outline"
-                  className="flex-1 sm:flex-initial rounded-xl gap-2 hover-scale transition-all duration-200 hover:bg-accent/20 hover:text-accent hover:border-accent"
-                  size="lg"
-                  disabled={isSharing}
-                >
-                  {isSharing ? (
-                    <>
-                      <Loader className="h-4 w-4 animate-spin" />
-                      <span className="sm:hidden">Compartilhando...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Share2 className="h-4 w-4" />
-                      <span className="sm:hidden">Compartilhar</span>
-                    </>
-                  )}
                 </Button>
                 <Button
                   onClick={handleOpenReview}
