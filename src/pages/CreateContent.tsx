@@ -341,7 +341,28 @@ export default function CreateContent() {
     }
   };
 
+  // Função pura para verificar se o formulário é válido (sem efeitos colaterais)
   const isFormValid = () => {
+    const baseValid =
+      formData.brand &&
+      formData.objective &&
+      formData.platform &&
+      formData.description &&
+      formData.tone.length > 0 &&
+      referenceFiles.length > 0;
+    
+    if (isVideoMode) {
+      return (
+        baseValid &&
+        ratio &&
+        (transformationType !== "image_to_video" || duration)
+      );
+    }
+    return baseValid;
+  };
+
+  // Função para validar e atualizar campos faltantes (com efeitos colaterais)
+  const validateForm = () => {
     const missing: string[] = [];
     
     if (!formData.brand) missing.push('brand');
@@ -367,7 +388,7 @@ export default function CreateContent() {
     if (availableCredits <= 0)
       return toast.error("Seus créditos para criação de conteúdo acabaram.");
       
-    if (!isFormValid())
+    if (!validateForm())
       return toast.error(
         "Por favor, preencha todos os campos obrigatórios (*)."
       );
