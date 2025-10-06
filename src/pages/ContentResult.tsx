@@ -621,9 +621,9 @@ Plataforma: ${originalFormData.platform || 'N/A'}`
                   variant="ghost"
                   size="icon"
                   onClick={() => navigate("/create")}
-                  className="rounded-xl hover:bg-background/50 hover-scale transition-all duration-200 h-9 w-9 flex-shrink-0"
+                  className="rounded-xl hover:bg-primary/10 hover:border-primary/20 border border-transparent hover-scale transition-all duration-200 h-9 w-9 flex-shrink-0 hover:shadow-md"
                 >
-                  <ArrowLeft className="h-4 w-4" />
+                  <ArrowLeft className="h-4 w-4 hover:text-primary transition-colors" />
                 </Button>
                 <div className="flex-shrink-0 bg-primary/10 text-primary rounded-xl p-2">
                   <Sparkles className="h-5 w-5 animate-pulse" />
@@ -659,9 +659,9 @@ Plataforma: ${originalFormData.platform || 'N/A'}`
                   variant="ghost"
                   size="icon"
                   onClick={() => navigate("/create")}
-                  className="rounded-xl hover:bg-background/50 hover-scale transition-all duration-200 flex-shrink-0"
+                  className="rounded-xl hover:bg-primary/10 hover:border-primary/20 border border-transparent hover-scale transition-all duration-200 flex-shrink-0 hover:shadow-md"
                 >
-                  <ArrowLeft className="h-5 w-5" />
+                  <ArrowLeft className="h-5 w-5 hover:text-primary transition-colors" />
                 </Button>
                 <div className="flex items-center gap-3 min-w-0 flex-1">
                   <div className="flex-shrink-0 bg-primary/10 text-primary rounded-xl p-2.5 lg:p-3">
