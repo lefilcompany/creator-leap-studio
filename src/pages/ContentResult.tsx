@@ -501,7 +501,7 @@ Plataforma: ${originalFormData.platform || 'N/A'}`
           brand_id: brandId,
           team_id: user.teamId,
           user_id: user.id,
-          status: 'Em revisão',
+          status: 'Concluído',
           approved: false,
           revisions: totalRevisions,
           details: {
