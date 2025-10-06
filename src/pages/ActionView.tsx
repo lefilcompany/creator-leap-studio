@@ -44,10 +44,10 @@ const getTypeIcon = (type: string) => {
 };
 
 const getStatusColor = (status: string) => {
-  if (status === 'Concluído' || status === 'Aprovado') return 'bg-green-500/10 text-green-600 border-green-500/20';
-  if (status === 'Em revisão') return 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20';
-  if (status === 'Rejeitado') return 'bg-red-500/10 text-red-600 border-red-500/20';
-  return 'bg-muted text-muted-foreground border-border';
+  if (status === 'Concluído' || status === 'Aprovado') return 'bg-green-500/10 text-green-600 border-green-500/20 hover:bg-green-500/20 hover:text-green-700 hover:border-green-500/40 transition-colors';
+  if (status === 'Em revisão') return 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20 hover:bg-yellow-500/20 hover:text-yellow-700 hover:border-yellow-500/40 transition-colors';
+  if (status === 'Rejeitado') return 'bg-red-500/10 text-red-600 border-red-500/20 hover:bg-red-500/20 hover:text-red-700 hover:border-red-500/40 transition-colors';
+  return 'bg-muted text-muted-foreground border-border hover:bg-muted/80 hover:border-border/80 transition-colors';
 };
 
 export default function ActionView() {
@@ -317,14 +317,25 @@ export default function ActionView() {
             <Separator orientation="vertical" className="h-6" />
             <div>
               <span className="text-sm text-muted-foreground mr-2">Aprovado:</span>
-              <Badge variant={action.approved ? 'default' : 'secondary'}>
+              <Badge 
+                variant={action.approved ? 'default' : 'secondary'}
+                className={action.approved 
+                  ? 'hover:bg-primary/20 hover:text-primary hover:border-primary transition-colors' 
+                  : 'hover:bg-secondary/80 hover:border-secondary/80 transition-colors'
+                }
+              >
                 {action.approved ? 'Sim' : 'Não'}
               </Badge>
             </div>
             <Separator orientation="vertical" className="h-6" />
             <div>
               <span className="text-sm text-muted-foreground mr-2">Revisões:</span>
-              <Badge variant="outline">{action.revisions || 0}</Badge>
+              <Badge 
+                variant="outline" 
+                className="hover:bg-accent/20 hover:text-accent hover:border-accent transition-colors"
+              >
+                {action.revisions || 0}
+              </Badge>
             </div>
           </div>
         </Card>
