@@ -753,7 +753,7 @@ Plataforma: ${originalFormData.platform || 'N/A'}`
                 <Button
                   onClick={handleShare}
                   variant="outline"
-                  className="flex-1 sm:flex-initial rounded-xl gap-2 hover-scale transition-all duration-200"
+                  className="flex-1 sm:flex-initial rounded-xl gap-2 hover-scale transition-all duration-200 hover:bg-accent/20 hover:text-accent hover:border-accent"
                   size="lg"
                 >
                   <Share2 className="h-4 w-4" />
