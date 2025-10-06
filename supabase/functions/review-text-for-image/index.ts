@@ -227,11 +227,17 @@ Analise o texto que será colocado NA IMAGEM do post e retorne uma revisão comp
     const { data: actionData, error: actionError } = await supabase
       .from('actions')
       .insert({
-        type: 'review-text-for-image',
+        type: 'REVISAR_CONTEUDO',
         user_id: authenticatedUserId,
         team_id: authenticatedTeamId,
         brand_id: null,
-        details: { text, prompt, brandName, themeName },
+        details: { 
+          reviewType: 'text-for-image',
+          text, 
+          prompt, 
+          brandName, 
+          themeName 
+        },
         result: { review },
         status: 'Concluída'
       })

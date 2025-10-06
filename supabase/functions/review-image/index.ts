@@ -245,11 +245,16 @@ Analise a imagem e retorne uma revisão completa em markdown seguindo EXATAMENTE
     const { data: actionData, error: actionError } = await supabase
       .from('actions')
       .insert({
-        type: 'review-image',
+        type: 'REVISAR_CONTEUDO',
         user_id: authenticatedUserId,
         team_id: authenticatedTeamId,
         brand_id: null,
-        details: { prompt, brandName, themeName },
+        details: { 
+          reviewType: 'image',
+          prompt, 
+          brandName, 
+          themeName 
+        },
         result: { review },
         status: 'Concluída'
       })

@@ -316,40 +316,88 @@ export default function ActionDetails({ action, isLoading = false }: ActionDetai
 
         {action.type === 'REVISAR_CONTEUDO' && (
           <>
-            {action.result?.feedback && (
+            {action.details?.reviewType && (
               <DetailItem 
-                label="Feedback Gerado" 
+                label="Tipo de Revisão" 
                 value={
-                  <p className="font-semibold text-foreground whitespace-pre-line leading-relaxed">
-                    {action.result.feedback}
-                  </p>
+                  action.details.reviewType === 'image' ? 'Revisão de Imagem' :
+                  action.details.reviewType === 'caption' ? 'Revisão de Legenda' :
+                  'Revisão de Texto para Imagem'
                 } 
               />
             )}
-            {action.result?.originalImage ? (
+            {action.details?.brandName && (
+              <DetailItem label="Marca" value={action.details.brandName} />
+            )}
+            {action.details?.themeName && (
+              <DetailItem label="Tema Estratégico" value={action.details.themeName} />
+            )}
+            {action.result?.review && (
               <div className="space-y-2 mb-6">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm font-medium text-muted-foreground">Imagem Original</p>
+                  <p className="text-sm font-medium text-muted-foreground">Revisão Gerada</p>
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleDownloadImage(action.result.originalImage!)}
+                    onClick={() => handleCopy(action.result.review!)}
                     className="gap-2"
                   >
-                    <Download className="h-4 w-4" />
-                    Download
+                    {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                    {isCopied ? "Copiado!" : "Copiar"}
                   </Button>
                 </div>
-                <div className="w-full aspect-square bg-secondary/5 rounded-lg border border-secondary/10 overflow-hidden">
-                  <img 
-                    src={action.result.originalImage} 
-                    alt="Imagem Original" 
-                    className="w-full h-full object-cover"
-                  />
+                <div className="bg-secondary/5 rounded-lg border border-secondary/10 p-6">
+                  <div className="prose prose-sm prose-slate dark:prose-invert max-w-none">
+                    <ReactMarkdown
+                      components={{
+                        h1: ({ children }) => (
+                          <h1 className="text-2xl font-bold text-primary mb-4 pb-2 border-b border-primary/20">
+                            {children}
+                          </h1>
+                        ),
+                        h2: ({ children }) => (
+                          <h2 className="text-xl font-semibold text-foreground mt-6 mb-3 flex items-center gap-2">
+                            <span className="w-1 h-6 bg-gradient-to-b from-primary to-secondary rounded-full flex-shrink-0"></span>
+                            {children}
+                          </h2>
+                        ),
+                        h3: ({ children }) => (
+                          <h3 className="text-lg font-semibold text-foreground mt-5 mb-2">
+                            {children}
+                          </h3>
+                        ),
+                        p: ({ children }) => (
+                          <p className="text-sm text-muted-foreground leading-relaxed mb-3">
+                            {children}
+                          </p>
+                        ),
+                        strong: ({ children }) => (
+                          <strong className="font-semibold text-foreground">
+                            {children}
+                          </strong>
+                        ),
+                        ul: ({ children }) => (
+                          <ul className="list-disc list-inside space-y-1 mb-3 ml-4">
+                            {children}
+                          </ul>
+                        ),
+                        ol: ({ children }) => (
+                          <ol className="list-decimal list-inside space-y-1 mb-3 ml-4">
+                            {children}
+                          </ol>
+                        ),
+                        li: ({ children }) => (
+                          <li className="text-sm text-muted-foreground">
+                            {children}
+                          </li>
+                        ),
+                      }}
+                    >
+                      {action.result.review}
+                    </ReactMarkdown>
+                  </div>
                 </div>
               </div>
-            ) : (
-              <DetailItem label="Imagem Original" value="Não disponível" />
             )}
           </>
         )}

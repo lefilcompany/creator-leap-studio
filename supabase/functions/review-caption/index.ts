@@ -212,11 +212,17 @@ Analise a legenda e retorne uma revisão completa em markdown seguindo EXATAMENT
     const { data: actionData, error: actionError } = await supabase
       .from('actions')
       .insert({
-        type: 'review-caption',
+        type: 'REVISAR_CONTEUDO',
         user_id: authenticatedUserId,
         team_id: authenticatedTeamId,
         brand_id: null,
-        details: { caption, prompt, brandName, themeName },
+        details: { 
+          reviewType: 'caption',
+          caption, 
+          prompt, 
+          brandName, 
+          themeName 
+        },
         result: { review },
         status: 'Concluída'
       })
