@@ -606,17 +606,34 @@ export default function CreateContent() {
         throw new Error(`Erro ao gerar imagem: ${errorText}`);
       }
 
-      const { imageUrl, attempt } = await imageResponse.json();
+      const { imageUrl, attempt, remainingCredits } = await imageResponse.json();
+      
+      // Atualizar créditos localmente
+      if (team && typeof remainingCredits === 'number') {
+        setTeam({
+          ...team,
+          credits: {
+            ...team.credits,
+            contentSuggestions: remainingCredits
+          }
+        });
+        console.log(`💰 Créditos restantes: ${remainingCredits}`);
+      }
       
       setGenerationStep(GenerationStep.GENERATING_CAPTION);
       setGenerationProgress(60);
       
       toast.loading("✍️ Gerando legenda profissional...", {
         id: toastId,
-        description: `Imagem criada em ${attempt} tentativa(s) | Escrevendo copy criativa (60%)`,
+        description: `Imagem criada em ${attempt} tentativa(s) | ${remainingCredits} créditos restantes | Escrevendo copy (60%)`,
       });
 
       // 2. Gerar legenda com Gemini 2.5
+      const captionRequestData = {
+        ...requestData,
+        imageDescription: requestData.description, // Passar descrição como imageDescription
+      };
+
       const captionResponse = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-caption`,
         {
@@ -625,7 +642,7 @@ export default function CreateContent() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
-          body: JSON.stringify(requestData),
+          body: JSON.stringify({ formData: captionRequestData }),
         }
       );
 
@@ -682,10 +699,14 @@ export default function CreateContent() {
       setGenerationStep(GenerationStep.COMPLETE);
       setGenerationProgress(100);
       
+      const creditsInfo = typeof remainingCredits === 'number' 
+        ? ` | ${remainingCredits} créditos restantes` 
+        : '';
+      
       toast.success("✅ Conteúdo gerado com sucesso!", {
         id: toastId,
-        description: "Imagem e legenda criados com Gemini 2.5 🚀",
-        duration: 1500,
+        description: `Imagem e legenda criados com Gemini 2.5 🚀${creditsInfo}`,
+        duration: 2500,
       });
       
       // Navegação imediata para melhor performance

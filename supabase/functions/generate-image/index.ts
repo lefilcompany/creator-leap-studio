@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -376,7 +377,78 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  console.log('🎨 [GENERATE-IMAGE] Iniciando geração de imagem');
+
   try {
+    // Autenticar usuário
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader) {
+      console.error('❌ [GENERATE-IMAGE] Authorization header missing');
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+    if (authError || !user) {
+      console.error('❌ [GENERATE-IMAGE] Authentication failed:', authError);
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log(`✅ [GENERATE-IMAGE] User authenticated: ${user.id}`);
+
+    // Buscar team_id do usuário
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('team_id')
+      .eq('id', user.id)
+      .single();
+
+    if (profileError || !profile?.team_id) {
+      console.error('❌ [GENERATE-IMAGE] No team found for user');
+      return new Response(
+        JSON.stringify({ error: 'User has no team' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log(`✅ [GENERATE-IMAGE] Team ID: ${profile.team_id}`);
+
+    // Verificar créditos disponíveis
+    const { data: teamData, error: teamError } = await supabase
+      .from('teams')
+      .select('credits_suggestions')
+      .eq('id', profile.team_id)
+      .single();
+
+    if (teamError || !teamData) {
+      console.error('❌ [GENERATE-IMAGE] Failed to fetch team credits');
+      return new Response(
+        JSON.stringify({ error: 'Failed to verify credits' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log(`💰 [GENERATE-IMAGE] Current credits: ${teamData.credits_suggestions}`);
+
+    if (teamData.credits_suggestions <= 0) {
+      console.warn('⚠️ [GENERATE-IMAGE] Insufficient credits');
+      return new Response(
+        JSON.stringify({ error: 'Créditos insuficientes para criação de conteúdo' }),
+        { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const formData = await req.json();
     
     // Input validation
@@ -445,11 +517,28 @@ serve(async (req) => {
         formData.existingImage
       );
       
+      console.log(`✅ [GENERATE-IMAGE] Image generated successfully in ${result.attempt} attempt(s)`);
+
+      // Decrementar crédito após geração bem-sucedida
+      const newCredits = teamData.credits_suggestions - 1;
+      const { error: updateError } = await supabase
+        .from('teams')
+        .update({ credits_suggestions: newCredits })
+        .eq('id', profile.team_id);
+
+      if (updateError) {
+        console.error('❌ [GENERATE-IMAGE] Failed to update credits:', updateError);
+        // Não falhar a requisição, apenas logar o erro
+      } else {
+        console.log(`💰 [GENERATE-IMAGE] Credits updated: ${teamData.credits_suggestions} → ${newCredits}`);
+      }
+      
       return new Response(
         JSON.stringify({ 
           imageUrl: result.imageUrl,
           attempt: result.attempt,
-          model: "google/gemini-2.5-flash-image-preview"
+          model: "google/gemini-2.5-flash-image-preview",
+          remainingCredits: newCredits
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
