@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -27,13 +27,13 @@ const Plans = () => {
   
   const [plans, setPlans] = useState<Plan[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
   const [showPlansSelection, setShowPlansSelection] = useState(false);
   const [loadingPlanId, setLoadingPlanId] = useState<string | null>(null);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const isExpired = searchParams.get('expired') === 'true';
   const selectedPlan = searchParams.get('selected');
+  const checkingSubscription = useRef(false);
 
   const loadPlans = useCallback(async () => {
     try {
@@ -71,6 +71,24 @@ const Plans = () => {
     }
   }, []);
 
+  const subscriptionStatus = useMemo<SubscriptionStatus | null>(() => {
+    if (!team) return null;
+    
+    const now = new Date();
+    const periodEnd = team.subscription_period_end ? new Date(team.subscription_period_end) : null;
+    const daysRemaining = periodEnd ? Math.ceil((periodEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)) : 0;
+    const isExpired = team.plan.id === 'free' && periodEnd && periodEnd < now;
+    const isTrial = team.plan.id === 'free';
+    
+    return {
+      canAccess: !isExpired,
+      isExpired: isExpired || false,
+      isTrial,
+      daysRemaining: Math.max(0, daysRemaining),
+      plan: team.plan
+    };
+  }, [team]);
+
   const loadData = useCallback(async () => {
     if (!user?.id || authLoading) {
       return;
@@ -79,34 +97,23 @@ const Plans = () => {
     setIsLoading(true);
     try {
       await loadPlans();
-
-      if (team) {
-        // Calcular status baseado em subscription_period_end
-        const now = new Date();
-        const periodEnd = team.subscription_period_end ? new Date(team.subscription_period_end) : null;
-        const daysRemaining = periodEnd ? Math.ceil((periodEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)) : 0;
-        const isExpired = team.plan.id === 'free' && periodEnd && periodEnd < now;
-        const isTrial = team.plan.id === 'free';
-        
-        setSubscriptionStatus({
-          canAccess: !isExpired,
-          isExpired: isExpired || false,
-          isTrial,
-          daysRemaining: Math.max(0, daysRemaining),
-          plan: team.plan
-        });
-      }
     } catch (error) {
       console.error('Error loading data:', error);
       toast.error('Erro ao carregar informações');
     } finally {
       setIsLoading(false);
     }
-  }, [user, team, authLoading, loadPlans]);
+  }, [user, authLoading, loadPlans]);
 
-  const checkSubscriptionStatus = async () => {
+  const checkSubscriptionStatus = useCallback(async () => {
+    if (checkingSubscription.current) {
+      console.log('Subscription check already in progress, skipping...');
+      return false;
+    }
+
+    checkingSubscription.current = true;
     const MAX_RETRIES = 10;
-    const RETRY_INTERVAL = 3000; // 3 segundos
+    const RETRY_INTERVAL = 3000;
     let currentRetry = 0;
     
     const attemptCheck = async (): Promise<boolean> => {
@@ -128,21 +135,20 @@ const Plans = () => {
             description: 'Sua assinatura foi ativada com sucesso'
           });
           
-          // Forçar reload dos dados do useAuth
+          checkingSubscription.current = false;
           window.location.href = '/dashboard?payment_success=true';
           return true;
         }
         
-        // Se não está subscribed mas não deu erro, continuar tentando
         if (currentRetry >= MAX_RETRIES) {
           toast.error('Tempo limite excedido', {
             id: 'subscription-check',
             description: 'Clique em "Verificar Status" para tentar novamente'
           });
+          checkingSubscription.current = false;
           return false;
         }
         
-        // Tentar novamente após o intervalo
         await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
         return attemptCheck();
         
@@ -154,24 +160,23 @@ const Plans = () => {
             id: 'subscription-check',
             description: 'Entre em contato com o suporte se o problema persistir'
           });
+          checkingSubscription.current = false;
           return false;
         }
         
-        // Tentar novamente após o intervalo mesmo com erro
         await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
         return attemptCheck();
       }
     };
     
     return attemptCheck();
-  };
+  }, []);
 
   useEffect(() => {
     const success = searchParams.get('success');
     const canceled = searchParams.get('canceled');
     
-    if (success === 'true') {
-      // Iniciar verificação automática com polling
+    if (success === 'true' && !checkingSubscription.current) {
       checkSubscriptionStatus();
     }
     
@@ -182,7 +187,7 @@ const Plans = () => {
     }
     
     loadData();
-  }, [loadData]);
+  }, [loadData, checkSubscriptionStatus]);
   const handleSubscribe = async (plan: Plan) => {
     if (!user || !team) {
       navigate('/login');
@@ -221,8 +226,11 @@ const Plans = () => {
       setLoadingPlanId(null);
     }
   };
-  if (isLoading || authLoading) {
-    return <div className="flex items-center justify-center min-h-[60vh] animate-fade-in">
+  const isLoadingState = isLoading || authLoading || !subscriptionStatus;
+
+  if (isLoadingState) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center space-y-4">
           <div className="relative mx-auto w-16 h-16">
             <div className="w-16 h-16 border-4 border-secondary/20 rounded-full"></div>
@@ -230,7 +238,8 @@ const Plans = () => {
           </div>
           <p className="text-muted-foreground">Carregando informações...</p>
         </div>
-      </div>;
+      </div>
+    );
   }
 
   // Tela de seleção de planos

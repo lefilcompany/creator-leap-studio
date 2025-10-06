@@ -143,15 +143,6 @@ export function useAuth() {
 
         // Load team if user has one
         if (profile.team_id) {
-          // Auto-verificação de assinatura Stripe
-          setTimeout(async () => {
-            try {
-              await supabase.functions.invoke('check-subscription');
-            } catch (error) {
-              console.error('Error checking subscription:', error);
-            }
-          }, 1000);
-
           const { data: teamData } = await supabase
             .from('teams')
             .select(`
