@@ -396,21 +396,48 @@ export default function ActionView() {
               {/* REVISAR_CONTEUDO */}
               {action.type === 'REVISAR_CONTEUDO' && (
                 <>
-                  {action.details.adjustmentsPrompt && (
+                  {action.details.reviewType && (
                     <div>
-                      <span className="text-sm font-medium text-muted-foreground">Ajustes Solicitados:</span>
-                      <p className="mt-1 text-foreground">{action.details.adjustmentsPrompt}</p>
+                      <span className="text-sm font-medium text-muted-foreground">Tipo de Revisão:</span>
+                      <Badge className="mt-1" variant="secondary">
+                        {action.details.reviewType === 'image' ? 'Imagem' : 
+                         action.details.reviewType === 'caption' ? 'Legenda' : 
+                         action.details.reviewType === 'text-for-image' ? 'Texto para Imagem' : 
+                         action.details.reviewType}
+                      </Badge>
                     </div>
                   )}
-                  {action.result?.originalImage && (
+                  {action.details.prompt && (
                     <div>
-                      <span className="text-sm font-medium text-muted-foreground">Imagem Original Enviada:</span>
-                      <div className="mt-2 rounded-lg overflow-hidden border bg-muted/30 max-w-sm">
-                        <img 
-                          src={action.result.originalImage} 
-                          alt="Imagem original para revisão" 
-                          className="w-full h-auto"
-                        />
+                      <span className="text-sm font-medium text-muted-foreground">Contexto/Ajustes Solicitados:</span>
+                      <p className="mt-1 text-foreground">{action.details.prompt}</p>
+                    </div>
+                  )}
+                  {action.details.brandName && (
+                    <div>
+                      <span className="text-sm font-medium text-muted-foreground">Marca:</span>
+                      <p className="mt-1 text-foreground">{action.details.brandName}</p>
+                    </div>
+                  )}
+                  {action.details.themeName && (
+                    <div>
+                      <span className="text-sm font-medium text-muted-foreground">Tema Estratégico:</span>
+                      <p className="mt-1 text-foreground">{action.details.themeName}</p>
+                    </div>
+                  )}
+                  {action.details.caption && (
+                    <div>
+                      <span className="text-sm font-medium text-muted-foreground">Legenda Enviada:</span>
+                      <div className="mt-2 p-3 bg-muted/30 rounded-lg">
+                        <p className="text-foreground whitespace-pre-wrap">{action.details.caption}</p>
+                      </div>
+                    </div>
+                  )}
+                  {action.details.text && (
+                    <div>
+                      <span className="text-sm font-medium text-muted-foreground">Texto Enviado:</span>
+                      <div className="mt-2 p-3 bg-muted/30 rounded-lg">
+                        <p className="text-foreground whitespace-pre-wrap">{action.details.text}</p>
                       </div>
                     </div>
                   )}
@@ -463,23 +490,130 @@ export default function ActionView() {
         {/* Result Section */}
         {action.result && (
           <Card className="p-6">
-            <h2 className="text-lg font-semibold mb-4">Resultado</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold">Resultado</h2>
+              {/* Action buttons for the whole result */}
+              {(action.result.imageUrl || action.result.plan) && (
+                <div className="flex gap-2">
+                  {action.result.imageUrl && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDownloadImage(action.result.imageUrl!, 'resultado')}
+                    >
+                      <Download className="mr-2 h-4 w-4" />
+                      Baixar Imagem
+                    </Button>
+                  )}
+                  {action.result.plan && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDownloadPDF(action.result.plan!)}
+                    >
+                      <Download className="mr-2 h-4 w-4" />
+                      Baixar PDF
+                    </Button>
+                  )}
+                </div>
+              )}
+            </div>
             
+            {/* Review Result - Markdown format */}
+            {action.result.review && (
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm font-medium text-muted-foreground">Análise e Revisão</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleCopyText(action.result.review!)}
+                    disabled={copying}
+                  >
+                    {isCopied ? (
+                      <>
+                        <Check className="mr-2 h-4 w-4" />
+                        Copiado!
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="mr-2 h-4 w-4" />
+                        Copiar
+                      </>
+                    )}
+                  </Button>
+                </div>
+                <div className="p-6 bg-muted/50 rounded-lg">
+                  <div className="prose prose-sm prose-slate dark:prose-invert max-w-none">
+                    <ReactMarkdown
+                      components={{
+                        h1: ({ children }) => (
+                          <h1 className="text-2xl font-bold text-primary mb-4 pb-2 border-b border-primary/20">
+                            {children}
+                          </h1>
+                        ),
+                        h2: ({ children }) => (
+                          <h2 className="text-xl font-semibold text-foreground mt-6 mb-3 flex items-center gap-2">
+                            <span className="w-1 h-6 bg-gradient-to-b from-primary to-secondary rounded-full flex-shrink-0"></span>
+                            {children}
+                          </h2>
+                        ),
+                        h3: ({ children }) => (
+                          <h3 className="text-lg font-semibold text-foreground mt-5 mb-2">
+                            {children}
+                          </h3>
+                        ),
+                        h4: ({ children }) => (
+                          <h4 className="text-base font-semibold text-primary mt-3 mb-2">
+                            {children}
+                          </h4>
+                        ),
+                        p: ({ children }) => (
+                          <p className="text-sm text-muted-foreground leading-relaxed mb-3">
+                            {children}
+                          </p>
+                        ),
+                        strong: ({ children }) => (
+                          <strong className="font-semibold text-foreground">
+                            {children}
+                          </strong>
+                        ),
+                        ul: ({ children }) => (
+                          <ul className="list-disc list-inside space-y-1 mb-3 ml-4">
+                            {children}
+                          </ul>
+                        ),
+                        ol: ({ children }) => (
+                          <ol className="list-decimal list-inside space-y-1 mb-3 ml-4">
+                            {children}
+                          </ol>
+                        ),
+                        li: ({ children }) => (
+                          <li className="text-sm text-muted-foreground">
+                            {children}
+                          </li>
+                        ),
+                        blockquote: ({ children }) => (
+                          <blockquote className="border-l-4 border-primary/30 pl-4 italic text-muted-foreground bg-primary/5 py-2 my-3 rounded-r">
+                            {children}
+                          </blockquote>
+                        ),
+                      }}
+                    >
+                      {action.result.review}
+                    </ReactMarkdown>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Image Result */}
-            {action.result.imageUrl && (
+            {action.result.imageUrl && !action.result.review && (
               <div className="mb-6">
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-sm font-medium text-muted-foreground">Imagem Gerada</span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDownloadImage(action.result.imageUrl!, 'imagem-gerada')}
-                  >
-                    <Download className="mr-2 h-4 w-4" />
-                    Download
-                  </Button>
                 </div>
-                <div className="rounded-lg overflow-hidden border bg-muted/30">
+                <div className="rounded-lg overflow-hidden border bg-muted/30 max-w-2xl mx-auto">
                   <img 
                     src={action.result.imageUrl} 
                     alt="Imagem gerada" 
