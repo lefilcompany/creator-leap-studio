@@ -613,52 +613,89 @@ Plataforma: ${originalFormData.platform || 'N/A'}`
         {/* Header */}
         <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5 animate-scale-in">
           <CardContent className="p-3 sm:p-4 md:p-5 lg:p-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
-              <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+            {/* Mobile Layout */}
+            <div className="flex sm:hidden flex-col gap-3">
+              {/* Top row: Back button, icon, title, badges */}
+              <div className="flex items-center gap-2.5">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => navigate("/create")}
+                  className="rounded-xl hover:bg-background/50 hover-scale transition-all duration-200 h-9 w-9 flex-shrink-0"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+                <div className="flex-shrink-0 bg-primary/10 text-primary rounded-xl p-2">
+                  <Sparkles className="h-5 w-5 animate-pulse" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h1 className="text-lg font-bold text-foreground leading-tight">
+                    Conteúdo Gerado
+                  </h1>
+                  <p className="text-muted-foreground text-xs leading-tight truncate">
+                    {contentData.brand} • {contentData.platform}
+                  </p>
+                </div>
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  <Badge variant="outline" className="bg-muted/50 text-muted-foreground border-border/30 gap-1 px-2 py-1 text-xs h-7">
+                    <RefreshCw className="h-3 w-3" />
+                    <span>{freeRevisionsLeft > 0 ? freeRevisionsLeft : team?.credits?.contentReviews || 0}</span>
+                  </Badge>
+                  <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 p-1.5 h-7 w-7 flex items-center justify-center">
+                    {contentData.type === "video" ? (
+                      <Video className="h-3.5 w-3.5" />
+                    ) : (
+                      <ImageIcon className="h-3.5 w-3.5" />
+                    )}
+                  </Badge>
+                </div>
+              </div>
+            </div>
+
+            {/* Desktop/Tablet Layout */}
+            <div className="hidden sm:flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3 min-w-0 flex-1">
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => navigate("/create")}
                   className="rounded-xl hover:bg-background/50 hover-scale transition-all duration-200 flex-shrink-0"
                 >
-                  <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
+                  <ArrowLeft className="h-5 w-5" />
                 </Button>
-                <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-                  <div className="flex-shrink-0 bg-primary/10 text-primary rounded-xl p-2 sm:p-2.5 lg:p-3">
-                    <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 animate-pulse" />
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <div className="flex-shrink-0 bg-primary/10 text-primary rounded-xl p-2.5 lg:p-3">
+                    <Sparkles className="h-5 w-5 lg:h-6 lg:w-6 animate-pulse" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-foreground truncate">
+                    <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-foreground truncate">
                       Conteúdo Gerado
                     </h1>
-                    <p className="text-muted-foreground text-xs sm:text-sm truncate">
+                    <p className="text-muted-foreground text-sm truncate">
                       {contentData.brand} • {contentData.platform}
                     </p>
                   </div>
                 </div>
               </div>
               
-              <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-                <Badge variant="outline" className="bg-muted/50 text-muted-foreground border-border/30 gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 text-xs">
-                  <RefreshCw className="h-3 w-3 flex-shrink-0" />
-                  <span className="hidden sm:inline">
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <Badge variant="outline" className="bg-muted/50 text-muted-foreground border-border/30 gap-2 px-3 py-1.5 text-xs">
+                  <RefreshCw className="h-3 w-3" />
+                  <span>
                     {freeRevisionsLeft > 0 ? (
                       <>{freeRevisionsLeft} revisões grátis</>
                     ) : (
                       <>{team?.credits?.contentReviews || 0} créditos</>
                     )}
                   </span>
-                  <span className="sm:hidden">
-                    {freeRevisionsLeft > 0 ? freeRevisionsLeft : team?.credits?.contentReviews || 0}
-                  </span>
                 </Badge>
-                <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 text-xs">
+                <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 gap-2 px-3 py-1.5 text-xs">
                   {contentData.type === "video" ? (
-                    <Video className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                    <Video className="h-4 w-4" />
                   ) : (
-                    <ImageIcon className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                    <ImageIcon className="h-4 w-4" />
                   )}
-                  <span className="hidden sm:inline">{contentData.type === "video" ? "Vídeo" : "Imagem"}</span>
+                  <span>{contentData.type === "video" ? "Vídeo" : "Imagem"}</span>
                 </Badge>
               </div>
             </div>
