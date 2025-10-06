@@ -529,11 +529,24 @@ Plataforma: ${originalFormData.platform || 'N/A'}`
         brandId = saved.originalFormData.brandId;
       }
       
+      // Determinar o tipo de ação baseado na origem do conteúdo
+      let actionType: 'CRIAR_CONTEUDO' | 'CRIAR_CONTEUDO_RAPIDO' | 'GERAR_VIDEO' = 'CRIAR_CONTEUDO_RAPIDO';
+      
+      // Se for vídeo
+      if (contentData.type === "video") {
+        actionType = 'GERAR_VIDEO';
+      } 
+      // Se tem dados completos de criação (brand, objective, etc) = CRIAR_CONTEUDO
+      else if (saved.originalFormData?.objective && saved.originalFormData?.description && saved.originalFormData?.tone) {
+        actionType = 'CRIAR_CONTEUDO';
+      }
+      // Caso contrário (apenas prompt simples) = CRIAR_CONTEUDO_RAPIDO
+      
       // Criar registro no histórico
       const { data: actionData, error: actionError } = await supabase
         .from('actions')
         .insert({
-          type: contentData.type === "video" ? 'GERAR_VIDEO' : 'CRIAR_CONTEUDO_RAPIDO',
+          type: actionType,
           brand_id: brandId,
           team_id: user.teamId,
           user_id: user.id,
@@ -541,7 +554,7 @@ Plataforma: ${originalFormData.platform || 'N/A'}`
           approved: false,
           revisions: totalRevisions,
           details: {
-            prompt: saved.originalFormData?.description || contentData.caption,
+            prompt: saved.originalFormData?.description || saved.originalFormData?.prompt || contentData.caption,
             objective: saved.originalFormData?.objective,
             platform: contentData.platform,
             tone: saved.originalFormData?.tone,

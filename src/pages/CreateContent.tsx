@@ -672,7 +672,10 @@ export default function CreateContent() {
         brand: selectedBrand?.name || formData.brand,
         title: captionData.title,
         hashtags: captionData.hashtags,
-        originalFormData: requestData,
+        originalFormData: {
+          ...requestData,
+          brandId: formData.brand, // Adicionar brandId para salvar no histórico
+        },
         actionId: undefined, // Não criar action automaticamente
       };
       
