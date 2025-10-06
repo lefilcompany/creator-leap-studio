@@ -323,9 +323,16 @@ export default function ContentResult() {
         
         const { data, error } = await supabase.functions.invoke('generate-caption', {
           body: {
-            ...originalFormData,
-            // Add review feedback to the additionalInfo
-            additionalInfo: `${originalFormData.additionalInfo || ''}\n\nREVISÃO SOLICITADA: ${reviewPrompt}`
+            formData: {
+              brand: originalFormData.brand,
+              theme: originalFormData.theme || "",
+              persona: originalFormData.persona || "",
+              objective: originalFormData.objective,
+              imageDescription: originalFormData.description,
+              tone: originalFormData.tone,
+              platform: originalFormData.platform,
+              additionalInfo: `${originalFormData.additionalInfo || ''}\n\nREVISÃO SOLICITADA: ${reviewPrompt}`
+            }
           }
         });
 
