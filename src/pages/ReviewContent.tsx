@@ -386,7 +386,7 @@ const ReviewContent = () => {
                 <p className="text-muted-foreground text-sm">
                   {reviewType === 'image' && 'Envie a imagem e descreva o que precisa melhorar'}
                   {reviewType === 'caption' && 'Cole a legenda e descreva como quer melhorá-la'}
-                  {reviewType === 'text-for-image' && 'Cole o texto e descreva o contexto da imagem desejada'}
+                  {reviewType === 'text-for-image' && 'Envie o texto para revisão e descreva os ajustes e objetivo da imagem'}
                 </p>
               </CardHeader>
               <CardContent className="p-6">
@@ -450,20 +450,20 @@ const ReviewContent = () => {
                   {reviewType === 'text-for-image' && (
                     <>
                       <div className="space-y-3">
-                        <Label htmlFor="textForImage" className="text-sm font-semibold text-foreground">Texto Descritivo *</Label>
+                        <Label htmlFor="textForImage" className="text-sm font-semibold text-foreground">Texto a Ser Revisado *</Label>
                         <Textarea 
                           id="textForImage" 
-                          placeholder="Cole o texto que será usado para gerar a imagem..." 
+                          placeholder="Cole aqui o texto que você deseja revisar para gerar a imagem..." 
                           value={textForImage} 
                           onChange={(e) => setTextForImage(e.target.value)} 
                           className="h-64 rounded-xl border-2 border-border/50 bg-background/50 resize-none" 
                         />
                       </div>
                       <div className="space-y-3">
-                        <Label htmlFor="adjustmentsPrompt" className="text-sm font-semibold text-foreground">Contexto da Imagem *</Label>
+                        <Label htmlFor="adjustmentsPrompt" className="text-sm font-semibold text-foreground">Ajustes Desejados e Objetivo da Imagem *</Label>
                         <Textarea 
                           id="adjustmentsPrompt" 
-                          placeholder="Descreva o tipo de imagem que você quer gerar. Ex: 'Imagem para Instagram, estilo moderno e minimalista'" 
+                          placeholder="Descreva os ajustes que deseja no texto e o objetivo da imagem. Ex: 'Tornar o texto mais descritivo e visual para gerar uma imagem impactante para Instagram, estilo moderno e vibrante'" 
                           value={adjustmentsPrompt} 
                           onChange={(e) => setAdjustmentsPrompt(e.target.value)} 
                           className="h-64 rounded-xl border-2 border-border/50 bg-background/50 resize-none" 
