@@ -173,6 +173,17 @@ serve(async (req) => {
   try {
     const { formData } = await req.json();
     
+    console.log("📝 [CAPTION] Dados recebidos:", {
+      brand: formData?.brand,
+      theme: formData?.theme,
+      platform: formData?.platform,
+      objective: formData?.objective,
+      imageDescription: formData?.imageDescription,
+      tone: formData?.tone,
+      persona: formData?.persona,
+      audience: formData?.audience
+    });
+    
     // Input validation
     if (!formData || typeof formData !== 'object') {
       return new Response(
@@ -256,7 +267,13 @@ serve(async (req) => {
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content;
 
+    console.log("🤖 [CAPTION] Resposta da AI recebida:", {
+      contentLength: content?.length || 0,
+      contentPreview: content?.substring(0, 100)
+    });
+
     if (!content) {
+      console.error("❌ [CAPTION] Conteúdo vazio retornado pela AI");
       throw new Error("Empty content returned");
     }
 
@@ -265,6 +282,7 @@ serve(async (req) => {
     try {
       postContent = JSON.parse(content);
     } catch (parseError) {
+      console.warn("⚠️ [CAPTION] Falha ao parsear JSON, usando fallback:", parseError);
       // Fallback rico mesmo em caso de erro
       const brandName = cleanInput(formData.brand) || "nossa marca";
       const themeName = cleanInput(formData.theme) || "novidades";

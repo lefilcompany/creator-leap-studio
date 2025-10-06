@@ -625,7 +625,13 @@ export default function CreateContent() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
-          body: JSON.stringify(requestData),
+          body: JSON.stringify({
+            formData: {
+              ...requestData,
+              imageDescription: requestData.description,
+              audience: selectedPersona?.name || "",
+            }
+          }),
         }
       );
 
@@ -633,15 +639,36 @@ export default function CreateContent() {
       if (captionResponse.ok) {
         captionData = await captionResponse.json();
       } else {
-        // Fallback caso a geração de legenda falhe
+        // Fallback profissional e elaborado
+        const brandName = selectedBrand?.name || formData.brand;
+        const themeName = selectedTheme?.title || formData.theme;
+        const platform = formData.platform;
+        const fallbackBody = `🌟 ${brandName} apresenta: ${themeName}
+
+${formData.description}
+
+${formData.objective}
+
+💡 Para ${selectedPersona?.name || "nosso público"}, criamos este conteúdo com o propósito de ${formData.objective.toLowerCase()}.
+
+🎯 Tom de voz: ${formData.tone.join(", ")}
+
+💬 Comente o que achou!
+✨ Compartilhe com alguém que precisa ver isso!`;
+
         captionData = {
-          title: `${selectedBrand?.name || formData.brand}: ${formData.objective}`,
-          body: `${formData.description}\n\nTom: ${formData.tone.join(", ")}`,
+          title: `${brandName}: ${themeName} 🚀`,
+          body: fallbackBody,
           hashtags: [
-            (selectedBrand?.name || formData.brand).replace(/\s+/g, "").toLowerCase(),
-            formData.platform.toLowerCase(),
-            "conteudo"
-          ]
+            brandName.toLowerCase().replace(/\s+/g, ""),
+            themeName.toLowerCase().replace(/\s+/g, ""),
+            platform.toLowerCase(),
+            "marketingdigital",
+            "conteudocriativo",
+            "estrategia",
+            "engajamento",
+            "branding"
+          ].filter(tag => tag && tag.length > 2).slice(0, 10)
         };
       }
 
