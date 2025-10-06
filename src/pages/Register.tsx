@@ -201,12 +201,20 @@ const Register = () => {
       });
 
       if (error) {
-        toast.error(error.message);
+        console.error('Google OAuth error:', error);
+        
+        if (error.message.includes('provider is not enabled') || error.message.includes('Unsupported provider')) {
+          toast.error('Cadastro com Google não está configurado. Entre em contato com o administrador.', {
+            duration: 5000,
+          });
+        } else {
+          toast.error(error.message);
+        }
         setGoogleLoading(false);
       }
     } catch (error) {
       console.error('Google signup error:', error);
-      toast.error("Erro ao cadastrar com Google.");
+      toast.error("Erro ao cadastrar com Google. Tente novamente mais tarde.");
       setGoogleLoading(false);
     }
   };
@@ -228,12 +236,20 @@ const Register = () => {
       });
 
       if (error) {
-        toast.error(error.message);
+        console.error('Facebook OAuth error:', error);
+        
+        if (error.message.includes('provider is not enabled') || error.message.includes('Unsupported provider')) {
+          toast.error('Cadastro com Facebook não está configurado. Entre em contato com o administrador.', {
+            duration: 5000,
+          });
+        } else {
+          toast.error(error.message);
+        }
         setFacebookLoading(false);
       }
     } catch (error) {
       console.error('Facebook signup error:', error);
-      toast.error("Erro ao cadastrar com Facebook.");
+      toast.error("Erro ao cadastrar com Facebook. Tente novamente mais tarde.");
       setFacebookLoading(false);
     }
   };

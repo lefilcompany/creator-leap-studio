@@ -107,12 +107,20 @@ const Login = () => {
       });
 
       if (error) {
-        toast.error(error.message);
+        console.error('Google OAuth error:', error);
+        
+        if (error.message.includes('provider is not enabled') || error.message.includes('Unsupported provider')) {
+          toast.error('Login com Google não está configurado. Entre em contato com o administrador.', {
+            duration: 5000,
+          });
+        } else {
+          toast.error(error.message);
+        }
         setGoogleLoading(false);
       }
     } catch (error) {
       console.error('Google login error:', error);
-      toast.error("Erro ao fazer login com Google.");
+      toast.error("Erro ao fazer login com Google. Tente novamente mais tarde.");
       setGoogleLoading(false);
     }
   };
@@ -129,12 +137,20 @@ const Login = () => {
       });
 
       if (error) {
-        toast.error(error.message);
+        console.error('Facebook OAuth error:', error);
+        
+        if (error.message.includes('provider is not enabled') || error.message.includes('Unsupported provider')) {
+          toast.error('Login com Facebook não está configurado. Entre em contato com o administrador.', {
+            duration: 5000,
+          });
+        } else {
+          toast.error(error.message);
+        }
         setFacebookLoading(false);
       }
     } catch (error) {
       console.error('Facebook login error:', error);
-      toast.error("Erro ao fazer login com Facebook.");
+      toast.error("Erro ao fazer login com Facebook. Tente novamente mais tarde.");
       setFacebookLoading(false);
     }
   };
