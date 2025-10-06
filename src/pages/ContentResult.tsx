@@ -707,7 +707,7 @@ Plataforma: ${originalFormData.platform || 'N/A'}`
           {/* Media Preview */}
           <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-xl sm:rounded-2xl overflow-hidden animate-fade-in hover:shadow-xl transition-shadow duration-300" style={{ animationDelay: '100ms' }}>
             <CardContent className="p-0">
-              <div className="aspect-square max-h-[400px] sm:max-h-[500px] lg:max-h-[600px] bg-muted/30 relative overflow-hidden group mx-auto">
+              <div className="aspect-square bg-muted/30 relative overflow-hidden group">
                 {contentData.mediaUrl ? (
                   contentData.type === "video" ? (
                     <video
@@ -724,7 +724,7 @@ Plataforma: ${originalFormData.platform || 'N/A'}`
                     <img
                       src={contentData.mediaUrl}
                       alt="Conteúdo gerado"
-                      className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                   )
                 ) : (
