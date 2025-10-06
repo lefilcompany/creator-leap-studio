@@ -60,21 +60,26 @@ function buildDetailedPrompt(formData: any): string {
     
     promptParts.push(
       `${imageContext}. ` +
-      `IMPORTANTE: GERE UMA NOVA IMAGEM inspirada nestas referências, seguindo estes aspectos: ` +
-      `1. IDENTIDADE VISUAL: ${brandImagesCount > 0 ? `Mantenha FORTE COERÊNCIA com a identidade visual da marca ${brand} observada nas primeiras ${brandImagesCount} imagens` : 'Use as referências como inspiração visual'} ` +
-      `2. PALETA DE CORES: Extraia e aplique cores similares às observadas nas referências ` +
-      `3. ESTILO GRÁFICO: Replique o estilo visual, composição e elementos gráficos ` +
-      `4. ATMOSFERA: Preserve o mood e a sensação transmitida pelas referências ` +
-      `GERE uma imagem NOVA e ORIGINAL que seja visualmente consistente com as referências fornecidas, ` +
-      `especialmente mantendo a coerência com a identidade visual da marca.`
+      `CRÍTICO: As imagens de referência são APENAS BASE INSPIRACIONAL para criar uma NOVA IMAGEM AUTÊNTICA E ORIGINAL. ` +
+      `NÃO copie ou replique diretamente as imagens de referência. ` +
+      `INSTRUÇÕES DE CRIAÇÃO: ` +
+      `1. IDENTIDADE VISUAL: ${brandImagesCount > 0 ? `Mantenha FORTE COERÊNCIA com a essência e DNA visual da marca ${brand} observados nas primeiras ${brandImagesCount} imagens, mas crie uma composição completamente nova` : 'Inspire-se no estilo visual das referências, mas crie algo original'} ` +
+      `2. PALETA DE CORES: Extraia a paleta de cores dominante das referências e aplique de forma criativa e harmoniosa ` +
+      `3. ESTILO GRÁFICO: Inspire-se no estilo visual, mas crie uma composição única e autêntica ` +
+      `4. ATMOSFERA: Capture o mood e sensação das referências, mas interprete de forma original ` +
+      `5. ORIGINALIDADE: A imagem final deve ser SUBSTANCIALMENTE DIFERENTE das referências, mantendo apenas a essência da identidade visual ` +
+      `GERE uma imagem COMPLETAMENTE NOVA, AUTÊNTICA e ORIGINAL que seja inspirada (não copiada) pelas referências, ` +
+      `capturando a essência da marca mas com uma execução visual única e criativa.`
     );
   }
 
   // Contexto estratégico
-  if (brand && theme) {
-    promptParts.push(`Imagem profissional para a marca "${brand}", destacando o tema "${theme}".`);
-  } else if (brand) {
-    promptParts.push(`Imagem comercial para a marca "${brand}".`);
+  if (brand) {
+    if (theme) {
+      promptParts.push(`Imagem profissional para a marca "${brand}", destacando o tema estratégico "${theme}".`);
+    } else {
+      promptParts.push(`Imagem comercial profissional para a marca "${brand}".`);
+    }
   }
 
   // Descrição principal com fotorrealismo

@@ -108,6 +108,7 @@ export default function CreateContent() {
   const [duration, setDuration] = useState<string>("5");
   const pasteAreaRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [missingFields, setMissingFields] = useState<string[]>([]);
 
   const handlePaste = (e: React.ClipboardEvent) => {
     const items = e.clipboardData.items;
@@ -341,22 +342,22 @@ export default function CreateContent() {
   };
 
   const isFormValid = () => {
-    const baseValid =
-      formData.brand &&
-      formData.objective &&
-      formData.platform &&
-      formData.description &&
-      formData.tone.length > 0 &&
-      referenceFiles.length > 0;
+    const missing: string[] = [];
+    
+    if (!formData.brand) missing.push('brand');
+    if (!formData.objective) missing.push('objective');
+    if (!formData.platform) missing.push('platform');
+    if (!formData.description) missing.push('description');
+    if (formData.tone.length === 0) missing.push('tone');
+    if (referenceFiles.length === 0) missing.push('referenceFiles');
     
     if (isVideoMode) {
-      return (
-        baseValid &&
-        ratio &&
-        (transformationType !== "image_to_video" || duration)
-      );
+      if (!ratio) missing.push('ratio');
+      if (transformationType === "image_to_video" && !duration) missing.push('duration');
     }
-    return baseValid;
+    
+    setMissingFields(missing);
+    return missing.length === 0;
   };
 
   const handleGenerateContent = async () => {
@@ -451,7 +452,7 @@ export default function CreateContent() {
         mood: formData.mood,
       };
 
-      // Validar que brand, theme e persona são UUIDs válidos
+      // Validar que brand é UUID válido
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
       
       if (!formData.brand || !uuidRegex.test(formData.brand)) {
@@ -459,13 +460,14 @@ export default function CreateContent() {
         return;
       }
       
-      if (!formData.theme || !uuidRegex.test(formData.theme)) {
-        toast.error("Por favor, selecione um tema estratégico válido", { id: toastId });
+      // Theme e persona são opcionais, mas se fornecidos devem ser válidos
+      if (formData.theme && !uuidRegex.test(formData.theme)) {
+        toast.error("Tema estratégico inválido", { id: toastId });
         return;
       }
       
-      if (!formData.persona || !uuidRegex.test(formData.persona)) {
-        toast.error("Por favor, selecione uma persona válida", { id: toastId });
+      if (formData.persona && !uuidRegex.test(formData.persona)) {
+        toast.error("Persona inválida", { id: toastId });
         return;
       }
 
@@ -833,7 +835,9 @@ export default function CreateContent() {
                       value={formData.brand}
                       disabled={brands.length === 0}
                     >
-                      <SelectTrigger className="h-10 md:h-11 rounded-xl border-2 border-border/50 bg-background/50 text-sm hover:border-border/70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                      <SelectTrigger className={`h-10 md:h-11 rounded-xl border-2 bg-background/50 text-sm hover:border-border/70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                        missingFields.includes('brand') ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/50'
+                      }`}>
                         <SelectValue 
                           placeholder={
                             brands.length === 0
@@ -965,7 +969,9 @@ export default function CreateContent() {
                     }
                     value={formData.platform}
                   >
-                    <SelectTrigger className="h-10 md:h-11 rounded-xl border-2 border-border/50 bg-background/50 text-sm hover:border-border/70 transition-colors">
+                    <SelectTrigger className={`h-10 md:h-11 rounded-xl border-2 bg-background/50 text-sm hover:border-border/70 transition-colors ${
+                      missingFields.includes('platform') ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/50'
+                    }`}>
                       <SelectValue placeholder="Onde será postado?" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl border-border/20">
@@ -1088,14 +1094,20 @@ export default function CreateContent() {
                           [...prev, ...files].slice(0, 10)
                         );
                       }}
-                      className="h-12 md:h-14 rounded-xl border-2 border-border/50 bg-background/50 flex items-center file:mr-3 md:file:mr-4 file:h-full file:py-0 file:px-4 md:file:px-5 file:rounded-l-[10px] file:border-0 file:text-xs md:file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 hover:border-primary/30 transition-all cursor-pointer"
+                      className={`h-12 md:h-14 rounded-xl border-2 bg-background/50 flex items-center file:mr-3 md:file:mr-4 file:h-full file:py-0 file:px-4 md:file:px-5 file:rounded-l-[10px] file:border-0 file:text-xs md:file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 hover:border-primary/30 transition-all cursor-pointer ${
+                        missingFields.includes('referenceFiles') ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/50'
+                      }`}
                     />
 
                     <div
                       ref={pasteAreaRef}
                       tabIndex={0}
                       onPaste={handlePaste}
-                      className="border-2 border-dashed border-border/50 rounded-xl p-3 md:p-4 text-center bg-muted/20 hover:bg-muted/30 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      className={`border-2 border-dashed rounded-xl p-3 md:p-4 text-center bg-muted/20 hover:bg-muted/30 transition-colors cursor-pointer focus:outline-none focus:ring-2 ${
+                        missingFields.includes('referenceFiles') 
+                          ? 'border-destructive ring-destructive/50' 
+                          : 'border-border/50 focus:ring-primary/50'
+                      }`}
                     >
                       <p className="text-xs md:text-sm text-muted-foreground">
                         Cole sua imagem aqui (Ctrl+V)
@@ -1155,7 +1167,11 @@ export default function CreateContent() {
                     placeholder="Qual a principal meta? (ex: gerar engajamento, anunciar um produto, educar)"
                     value={formData.objective}
                     onChange={handleInputChange}
-                    className="min-h-[80px] md:min-h-[100px] rounded-xl border-2 border-border/50 bg-background/50 resize-none text-sm hover:border-border/70 focus:border-primary/50 transition-colors"
+                    className={`min-h-[80px] md:min-h-[100px] rounded-xl border-2 bg-background/50 resize-none text-sm hover:border-border/70 transition-colors ${
+                      missingFields.includes('objective') 
+                        ? 'border-destructive ring-2 ring-destructive/20 focus:border-destructive' 
+                        : 'border-border/50 focus:border-primary/50'
+                    }`}
                   />
                 </div>
 
@@ -1177,7 +1193,11 @@ export default function CreateContent() {
                     }
                     value={formData.description}
                     onChange={handleInputChange}
-                    className="min-h-[100px] md:min-h-[120px] rounded-xl border-2 border-border/50 bg-background/50 resize-none text-sm hover:border-border/70 focus:border-primary/50 transition-colors"
+                    className={`min-h-[100px] md:min-h-[120px] rounded-xl border-2 bg-background/50 resize-none text-sm hover:border-border/70 transition-colors ${
+                      missingFields.includes('description') 
+                        ? 'border-destructive ring-2 ring-destructive/20 focus:border-destructive' 
+                        : 'border-border/50 focus:border-primary/50'
+                    }`}
                   />
                 </div>
 
@@ -1189,7 +1209,9 @@ export default function CreateContent() {
                     Tom de Voz <span className="text-destructive">*</span> (máximo 4)
                   </Label>
                   <Select onValueChange={handleToneSelect} value="">
-                    <SelectTrigger className="h-10 md:h-11 rounded-xl border-2 border-border/50 bg-background/50 text-sm hover:border-border/70 transition-colors">
+                    <SelectTrigger className={`h-10 md:h-11 rounded-xl border-2 bg-background/50 text-sm hover:border-border/70 transition-colors ${
+                      missingFields.includes('tone') ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/50'
+                    }`}>
                       <SelectValue placeholder="Adicionar tom de voz..." />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl border-border/20">
@@ -1205,9 +1227,13 @@ export default function CreateContent() {
                       ))}
                     </SelectContent>
                   </Select>
-                  <div className="flex flex-wrap gap-2 min-h-[40px] p-3 rounded-xl border-2 border-dashed border-border/50 bg-muted/20">
+                  <div className={`flex flex-wrap gap-2 min-h-[40px] p-3 rounded-xl border-2 border-dashed bg-muted/20 ${
+                    missingFields.includes('tone') ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/50'
+                  }`}>
                     {formData.tone.length === 0 ? (
-                      <span className="text-xs md:text-sm text-muted-foreground italic self-center">
+                      <span className={`text-xs md:text-sm italic self-center ${
+                        missingFields.includes('tone') ? 'text-destructive' : 'text-muted-foreground'
+                      }`}>
                         Nenhum tom selecionado
                       </span>
                     ) : (

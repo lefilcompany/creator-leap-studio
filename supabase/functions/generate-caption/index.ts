@@ -36,6 +36,11 @@ function buildCaptionPrompt(formData: any): string {
   const personaDescription = cleanInput(formData.persona);
   const additionalInfo = cleanInput(formData.additionalInfo);
 
+  // Validar campos obrigatórios
+  if (!brandName || !platform || !objective || !imageDescription) {
+    throw new Error("Campos obrigatórios faltando: marca, plataforma, objetivo e descrição da imagem");
+  }
+
   const platformInstructions: Record<string, string> = {
     Instagram: `
 - Máximo de 2.200 caracteres
@@ -71,15 +76,22 @@ function buildCaptionPrompt(formData: any): string {
   const specificInstructions = platformInstructions[platform] || platformInstructions.Instagram;
 
   return `
-Você é um especialista em criação de conteúdo para redes sociais. Crie uma legenda COMPLETA e ENGAJADORA baseada nas seguintes informações:
+Você é um copywriter profissional especializado em criação de conteúdo para redes sociais. 
+Crie uma legenda COMPLETA, PROFISSIONAL e altamente ENGAJADORA baseada nas seguintes informações:
 
-**CONTEXTO:**
+**CONTEXTO DA MARCA:**
 - Marca: ${brandName}
-- Tema Estratégico: ${themeName}
+${themeName ? `- Tema Estratégico: ${themeName}` : ''}
+${personaDescription ? `- Público-alvo (Persona): ${personaDescription}` : ''}
+
+**OBJETIVO E PLATAFORMA:**
 - Plataforma: ${platform}
-- Objetivo: ${objective}
-- Descrição da Imagem: ${imageDescription}
-${personaDescription ? `- Público-alvo: ${personaDescription}` : ''}
+- Objetivo da publicação: ${objective}
+
+**IMAGEM GERADA:**
+- Descrição: ${imageDescription}
+
+**DIRETRIZES CRIATIVAS:**
 ${toneOfVoice ? `- Tom de voz: ${toneOfVoice}` : ''}
 ${additionalInfo ? `- Informações adicionais: ${additionalInfo}` : ''}
 
@@ -92,12 +104,15 @@ ${specificInstructions}
 3. **Call-to-Action**: Incentivo claro para engajamento
 4. **Hashtags**: Relevantes para o tema e plataforma
 
-**IMPORTANTE:**
-- A legenda DEVE se conectar diretamente com a descrição da imagem fornecida
-- Use a linguagem e tom apropriados para a persona
-- Incorpore elementos que incentivem interação (perguntas, enquetes, convites)
-- Mantenha-se dentro do limite de caracteres da plataforma
-- Seja criativo mas mantenha a identidade da marca
+**REQUISITOS OBRIGATÓRIOS:**
+- A legenda DEVE estar PERFEITAMENTE ALINHADA com a descrição da imagem gerada
+- MANTENHA coerência total com a identidade da marca ${brandName}
+${themeName ? `- REFLITA o tema estratégico "${themeName}" de forma clara e natural` : ''}
+${personaDescription ? `- ESCREVA diretamente para a persona definida: ${personaDescription}` : ''}
+- Use linguagem de copywriter profissional, persuasiva e impactante
+- Incorpore gatilhos emocionais e elementos que incentivem interação
+- Mantenha-se rigorosamente dentro do limite de caracteres da plataforma
+- Seja criativo, original e autêntico à voz da marca
 
 **FORMATO DE RESPOSTA (JSON VÁLIDO):**
 {
