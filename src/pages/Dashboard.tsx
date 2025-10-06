@@ -134,14 +134,14 @@ const Dashboard = () => {
       description: "Gerar novas imagens e textos",
       icon: Sparkles,
       color: "text-primary",
-      link: "/create-content"
+      link: "/create"
     },
     {
       title: "Revisar Conteúdo", 
       description: "Receber feedback da IA",
       icon: CheckCircle,
       color: "text-secondary",
-      link: "/review-content"
+      link: "/review"
     },
     {
       title: "Gerenciar Personas",
