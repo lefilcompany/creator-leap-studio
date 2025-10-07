@@ -14,13 +14,13 @@ function cleanInput(text: string | string[] | undefined | null): string {
     return text
       .map(item => String(item || ""))
       .join(", ")
-      .replace(/[^\\w\\sÀ-ÿ,.-]/gi, "")
+      .replace(/[^\w\sÀ-ÿ,.-]/gi, "")
       .trim();
   }
   
   return String(text)
-    .replace(/[^\\w\\sÀ-ÿ,.-]/gi, "")
-    .replace(/\\s+/g, " ")
+    .replace(/[^\w\sÀ-ÿ,.-]/gi, "")
+    .replace(/\s+/g, " ")
     .trim();
 }
 
@@ -45,12 +45,6 @@ function buildCaptionPrompt(formData: any): string {
   const platformInstructions: Record<string, string> = {
     Instagram: `
 ## Para Instagram:
-### Especificações de Imagem:
-- Feed Retrato (Recomendado): 1080x1350px (4:5) - Melhor performance
-- Feed Quadrado: 1080x1080px (1:1)
-- Stories/Reels: 1080x1920px (9:16)
-- Formatos: JPG ou PNG
-
 ### Especificações de Legenda:
 - Alvo: 900-1300 caracteres (texto extenso engaja mais)
 - Hook inicial: 100-125 caracteres impactantes (antes do "ver mais")
@@ -65,13 +59,6 @@ function buildCaptionPrompt(formData: any): string {
     `,
     Facebook: `
 ## Para Facebook:
-### Especificações de Imagem:
-- Feed Padrão/Links: 1200x630px (1.91:1)
-- Feed Quadrado: 1080x1080px (1:1)
-- Feed Retrato: 1080x1350px (4:5)
-- Stories: 1080x1920px (9:16)
-- Formatos: JPG ou PNG
-
 ### Especificações de Legenda:
 - Máximo 2.200 caracteres
 - Primeiro parágrafo até 125 caracteres (antes do "ver mais")
@@ -82,12 +69,6 @@ function buildCaptionPrompt(formData: any): string {
     `,
     LinkedIn: `
 ## Para LinkedIn:
-### Especificações de Imagem:
-- Feed Padrão: 1200x627px (1.91:1)
-- Quadrado: 1080x1080px (1:1)
-- Documentos PDF: Alto engajamento
-- Formatos: JPG ou PNG
-
 ### Especificações de Legenda:
 - Máximo 3.000 caracteres
 - Tom profissional mas humano
@@ -99,12 +80,6 @@ function buildCaptionPrompt(formData: any): string {
     `,
     TikTok: `
 ## Para TikTok:
-### Especificações de Vídeo:
-- Dimensões: 1080x1920px (9:16)
-- Duração: 3s a 10 minutos
-- Zona Segura: Centralizar conteúdo importante
-- Formatos: MP4
-
 ### Especificações de Legenda:
 - Máximo 2.200 caracteres
 - SEO é CRÍTICO: Use palavras-chave descritivas
@@ -115,11 +90,6 @@ function buildCaptionPrompt(formData: any): string {
     `,
     "Twitter/X": `
 ## Para Twitter/X:
-### Especificações de Imagem:
-- Feed (1 imagem): 1600x900px (16:9)
-- Links com Imagem: 800x418px (1.91:1)
-- Formatos: JPG ou PNG
-
 ### Especificações de Legenda:
 - Máximo 280 caracteres
 - Seja EXTREMAMENTE direto e impactante
@@ -167,44 +137,9 @@ Você é um copywriter especialista em redes sociais com mais de 10 anos de expe
 
 ## PRINCÍPIOS DE USO DE EMOJIS (CRÍTICO)
 - MÁXIMO 3-5 emojis em TODA a legenda
-- Use emojis apenas em momentos estratégicos:
-  * 1 emoji no hook inicial (opcional)
-  * 1-2 emojis no meio do texto para destacar benefícios
-  * 1-2 emojis no CTA final
+- Use emojis apenas em momentos estratégicos
 - NUNCA use emojis em todos os parágrafos
 - Priorize SEMPRE texto rico sobre ícones visuais
-
-# TÉCNICAS OBRIGATÓRIAS DE STORYTELLING
-
-## ESTRUTURA NARRATIVA:
-1. **Hook Aspiracional**: Abra com uma pergunta ou declaração que conecte emocionalmente
-   - Exemplo: "Já imaginou viver em um lugar onde..."
-   - Exemplo: "E se você pudesse transformar..."
-
-2. **Subtítulo Contextualizador**: Segunda linha que resume o valor principal
-   - Exemplo: "Da farmácia às quadras: a infraestrutura que apoia..."
-   - Formato: [Benefício tangível] + [conexão emocional]
-
-3. **Desenvolvimento Descritivo (3-4 parágrafos)**:
-   - Parágrafo 1: Descreva o cenário/contexto de forma sensorial
-   - Parágrafo 2: Aprofunde nos benefícios práticos e emocionais
-   - Parágrafo 3: Crie conexão com o dia a dia do público
-   - Parágrafo 4 (opcional): Reforce o valor único
-
-4. **Engajamento Conversacional**:
-   - Inclua 1 pergunta genuína que convide interação
-   - Exemplo: "Qual é a sua atividade favorita para relaxar?"
-
-5. **CTA Duplo**:
-   - Primeiro: Frase aspiracional sobre a oportunidade
-   - Segundo: Comando direto com verbo de ação
-   - Exemplo: "Não perca a oportunidade de viver... 👉 Descubra como..."
-
-## DENSIDADE TEXTUAL:
-- Legenda DEVE ter entre 900-1300 caracteres
-- Parágrafos de 80-150 caracteres cada
-- Preferir descrições detalhadas a frases curtas
-- Usar linguagem rica, mas acessível
 
 # DIRETRIZES DE LINGUAGEM E ESTILO
 ${specificInstructions}
@@ -245,22 +180,6 @@ ${toneOfVoice ? `- MANTENHA o tom de voz: ${toneOfVoice}` : ''}
   "body": "Corpo completo da legenda com quebras de linha apropriadas",
   "hashtags": ["hashtag1", "hashtag2", "hashtag3", "hashtag4", "hashtag5"]
 }
-
-# EXEMPLO DE LEGENDA IDEAL (REFERÊNCIA DE QUALIDADE)
-
-{
-  "title": "Seu novo estilo de vida começa aqui 🌅",
-  "body": "🌅 Já imaginou viver em um lugar onde a rotina e o lazer se encontram em perfeita harmonia?\\n\\nDa farmácia às quadras: a infraestrutura que apoia a rotina e o tempo livre.\\n\\nAqui, você encontra tudo o que precisa para o dia a dia — farmácias, padarias e mercados a poucos passos de casa. E quando o sol brilha, é hora de aproveitar! ⚽🌴\\n\\nCom quadras de beach tennis de areia, caminhos para caminhadas e áreas verdes, cada momento pode ser uma nova descoberta.\\n\\nQual é a sua atividade favorita para relaxar? Compartilhe com a gente nos comentários! 👇✨\\n\\nNão perca a oportunidade de viver em um lugar que transforma seu cotidiano em uma experiência incrível. 🏖️\\n\\n👉 Descubra como fazer parte dessa comunidade que valoriza a qualidade de vida!",
-  "hashtags": ["qualidadedevida", "infraestrutura", "lazer", "beachtennis", "comunidade", "estilodevida", "bemviver", "residencial"]
-}
-
-OBSERVE:
-- Apenas 5 emojis estratégicos em 650+ caracteres
-- Texto rico e descritivo
-- Narrativa fluida com storytelling
-- Pergunta genuína de engajamento
-- CTA duplo (aspiracional + comando)
-- Parágrafos bem desenvolvidos
 
 RETORNE APENAS O JSON, SEM TEXTO ADICIONAL ANTES OU DEPOIS.
   `.trim();
@@ -318,7 +237,7 @@ serve(async (req) => {
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
     if (!openAIApiKey) {
       return new Response(
-        JSON.stringify({ error: 'OpenAI API key not configured' }),
+        JSON.stringify({ error: 'OpenAI API key not configured', fallback: true }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -336,14 +255,12 @@ serve(async (req) => {
         model: "gpt-4o-mini",
         messages: [
           {
-            role: "system",
-            content: "Você é um copywriter sênior especializado em storytelling para redes sociais. Sua marca registrada é criar legendas RICAS EM TEXTO, com narrativas envolventes e uso MINIMALISTA de emojis (máximo 5 por legenda). Priorize sempre descrições detalhadas e parágrafos bem desenvolvidos. Retorne APENAS JSON válido, sem texto adicional.",
-          },
-          {
             role: "user",
             content: prompt,
           },
         ],
+        response_format: { type: "json_object" },
+        temperature: 0.7,
         max_tokens: 1500,
       }),
     });
@@ -351,10 +268,10 @@ serve(async (req) => {
     console.log(`📡 OpenAI Response Status: ${response.status}`);
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+      const errorText = await response.text();
       console.error("❌ [CAPTION] Erro OpenAI:", {
         status: response.status,
-        error: errorData
+        error: errorText
       });
       
       if (response.status === 429) {
@@ -363,7 +280,7 @@ serve(async (req) => {
             error: 'OpenAI rate limit exceeded. Try again in a moment.',
             fallback: true 
           }),
-          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
       if (response.status === 401) {
@@ -372,7 +289,7 @@ serve(async (req) => {
             error: 'Invalid OpenAI API key',
             fallback: true 
           }),
-          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
       return new Response(
@@ -380,7 +297,7 @@ serve(async (req) => {
           error: 'OpenAI API error',
           fallback: true 
         }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -402,38 +319,26 @@ serve(async (req) => {
     let postContent;
     try {
       console.log("🔍 Parsing JSON response...");
-      // Try to extract JSON from markdown code blocks
-      const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/);
-      const jsonString = jsonMatch ? jsonMatch[1] : content;
-      postContent = JSON.parse(jsonString.trim());
-      console.log("✅ JSON parsed successfully");
+      postContent = JSON.parse(content.trim());
+      console.log("✅ JSON parsed successfully:", {
+        hasTitle: !!postContent.title,
+        hasBody: !!postContent.body,
+        hasHashtags: !!postContent.hashtags,
+        hashtagsType: typeof postContent.hashtags
+      });
     } catch (parseError) {
       console.error("❌ JSON parse error:", parseError);
-      console.log("📝 Raw response:", content?.substring(0, 200));
+      console.log("📝 Raw response:", content?.substring(0, 500));
       
-      // Fallback: try to extract parts manually
-      const titleMatch = content.match(/"title":\s*"([^"]*)"/);
-      const bodyMatch = content.match(/"body":\s*"([^"]*)"/);
-      const hashtagsMatch = content.match(/"hashtags":\s*\[(.*?)\]/);
-      
-      if (titleMatch || bodyMatch) {
-        postContent = {
-          title: titleMatch ? titleMatch[1] : "Título não disponível",
-          body: bodyMatch ? bodyMatch[1] : content,
-          hashtags: hashtagsMatch 
-            ? hashtagsMatch[1].split(',').map((h: string) => h.trim().replace(/"/g, ''))
-            : []
-        };
-        console.log("⚠️ Using manual extraction");
-      } else {
-        // Último fallback - conteúdo rico estruturado
-        console.warn("⚠️ [CAPTION] Usando fallback completo");
-        const brandName = cleanInput(formData.brand) || "nossa marca";
-        const themeName = cleanInput(formData.theme) || "novidades";
-        const objective = cleanInput(formData.objective) || "trazer inovação e valor";
-        const audience = cleanInput(formData.audience) || "nosso público";
+      // Fallback - conteúdo rico estruturado
+      console.warn("⚠️ [CAPTION] Usando fallback completo");
+      const brandName = cleanInput(formData.brand) || "nossa marca";
+      const themeName = cleanInput(formData.theme) || "novidades";
+      const objective = cleanInput(formData.objective) || "trazer inovação e valor";
+      const audience = cleanInput(formData.audience) || "nosso público";
+      const platform = cleanInput(formData.platform) || "redes sociais";
 
-        const fallbackBody = `🌟 Cada imagem conta uma história, e esta não é diferente!
+      const fallbackBody = `🌟 Cada imagem conta uma história, e esta não é diferente!
 
 Quando olhamos para este conteúdo visual, vemos muito mais do que cores e formas. Vemos a essência da ${brandName} se manifestando através de cada detalhe cuidadosamente pensado.
 
@@ -444,27 +349,38 @@ Nossa conexão com ${audience} vai além das palavras. É uma conversa visual qu
 🔥 A pergunta é: você está pronto para fazer parte desta jornada?
 
 💬 Deixe seu comentário e compartilhe suas impressões!
-✨ Marque alguém que também precisa ver isso!`;
+✨ Marque alguém que também precisa ver isso!
 
-        postContent = {
-          title: `${brandName}: Descobrindo ${themeName} 🚀`,
-          body: fallbackBody,
-          hashtags: [
-            brandName.toLowerCase().replace(/\s+/g, "").substring(0, 15),
-            themeName.toLowerCase().replace(/\s+/g, "").substring(0, 15),
-            "conteudovisual",
-            "marketingdigital",
-            "storytelling",
-            "engajamento",
-            "estrategia",
-            "inspiracao"
-          ].filter((tag) => tag && tag.length > 2).slice(0, 10)
-        };
-      }
+#${platform}ready #conteudoautoral`;
+
+      postContent = {
+        title: `${brandName}: Descobrindo ${themeName} 🚀`,
+        body: fallbackBody,
+        hashtags: [
+          brandName.toLowerCase().replace(/\s+/g, "").substring(0, 15),
+          themeName.toLowerCase().replace(/\s+/g, "").substring(0, 15),
+          "conteudovisual",
+          "marketingdigital",
+          "storytelling",
+          "engajamento",
+          "estrategia",
+          "inspiracao",
+          "crescimento",
+          "inovacao",
+          "conexao",
+          "transformacao"
+        ].filter((tag: string) => tag && tag.length > 2).slice(0, 12)
+      };
+    }
+    
+    // Validação e correção do conteúdo - CRÍTICO
+    if (!postContent || typeof postContent !== "object") {
+      throw new Error("Conteúdo não é um objeto válido");
     }
 
-    // Validate hashtags
+    // Se a IA retornar uma string em vez de um array, tentamos corrigir.
     if (typeof postContent.hashtags === "string") {
+      console.log("⚠️ Hashtags em formato string, convertendo para array...");
       postContent.hashtags = postContent.hashtags
         .replace(/#/g, "")
         .split(/[\s,]+/)
@@ -472,35 +388,60 @@ Nossa conexão com ${audience} vai além das palavras. É uma conversa visual qu
     }
 
     if (!Array.isArray(postContent.hashtags) || postContent.hashtags.length === 0) {
+      console.warn("⚠️ Hashtags ausentes, usando fallback");
       postContent.hashtags = [
-        cleanInput(formData.brand).toLowerCase().replace(/\s+/g, ""),
-        cleanInput(formData.theme).toLowerCase().replace(/\s+/g, ""),
-        "marketing"
+        "conteudovisual",
+        "marketingdigital",
+        "storytelling",
+        "engajamento"
       ];
     }
 
+    // Limpar hashtags
     postContent.hashtags = postContent.hashtags
       .map((tag: any) =>
         String(tag)
           .replace(/[^a-zA-Z0-9áéíóúàèìòùâêîôûãõçÁÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕÇ]/g, "")
           .toLowerCase()
       )
-      .filter((tag: string) => tag.length > 0)
-      .slice(0, 12);
+      .filter((tag: string) => tag.length > 0);
+    
+    console.log("✅ [CAPTION] Conteúdo validado:", {
+      titleLength: postContent.title?.length || 0,
+      bodyLength: postContent.body?.length || 0,
+      hashtagsCount: postContent.hashtags?.length || 0
+    });
 
     return new Response(
-      JSON.stringify(postContent),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
-
-  } catch (error) {
-    return new Response(
-      JSON.stringify({ 
-        error: 'Unable to generate caption',
-        caption: '',
-        hashtags: []
+      JSON.stringify({
+        title: postContent.title,
+        body: postContent.body,
+        hashtags: postContent.hashtags,
       }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
+  } catch (error) {
+    console.error("❌ [CAPTION] Erro geral:", error);
+    
+    // Fallback final em caso de erro
+    const brandName = "nossa marca";
+    const themeName = "novidades";
+    const errorMessage = error instanceof Error ? error.message : "Unable to generate caption";
+    
+    return new Response(
+      JSON.stringify({
+        error: errorMessage,
+        fallback: true,
+        title: `${brandName}: Descobrindo ${themeName} 🚀`,
+        body: `🌟 Cada imagem conta uma história única!\n\nEste conteúdo visual representa muito mais do que apenas cores e formas.\n\n💡 É um convite para explorar novas possibilidades.\n\n🔥 Você está pronto para fazer parte desta jornada?\n\n💬 Deixe seu comentário!`,
+        hashtags: ["conteudovisual", "marketingdigital", "storytelling", "engajamento"]
+      }),
+      {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
     );
   }
 });
