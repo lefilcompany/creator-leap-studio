@@ -330,14 +330,28 @@ export default function ContentResult() {
             throw new Error("Imagem editada não foi retornada");
           }
 
-          updatedContent.mediaUrl = data.editedImageUrl;
+          // Add timestamp to URL to prevent caching
+          const timestamp = Date.now();
+          const imageUrlWithTimestamp = data.editedImageUrl.includes('?') 
+            ? `${data.editedImageUrl}&t=${timestamp}`
+            : `${data.editedImageUrl}?t=${timestamp}`;
+          
+          updatedContent.mediaUrl = imageUrlWithTimestamp;
+          console.log('✅ Imagem editada atualizada:', imageUrlWithTimestamp);
         } catch (error) {
           console.error("Erro ao editar imagem:", error);
           throw new Error("Falha ao editar imagem");
         }
       }
 
-      setContentData(updatedContent);
+      // Force update by creating a completely new object
+      const newContentData = {
+        ...updatedContent,
+        mediaUrl: updatedContent.mediaUrl, // Ensure the new URL is used
+        _updateKey: Date.now() // Add unique key to force re-render
+      };
+
+      setContentData(newContentData);
       
       // Update sessionStorage with new image (se foi editada)
       if (reviewType === "image" && updatedContent.mediaUrl) {
@@ -650,6 +664,7 @@ export default function ContentResult() {
                     </video>
                   ) : (
                     <img
+                      key={contentData.mediaUrl} // Force re-render when URL changes
                       src={contentData.mediaUrl}
                       alt="Conteúdo gerado"
                       className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
