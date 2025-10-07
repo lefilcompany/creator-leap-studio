@@ -45,6 +45,13 @@ function buildCaptionPrompt(formData: any): string {
   const platformInstructions: Record<string, string> = {
     Instagram: `
 ## Para Instagram:
+### Especificações de Imagem:
+- Feed Retrato (Recomendado): 1080x1350px (4:5) - Melhor performance
+- Feed Quadrado: 1080x1080px (1:1)
+- Stories/Reels: 1080x1920px (9:16)
+- Formatos: JPG ou PNG
+
+### Especificações de Legenda:
 - Alvo: 900-1300 caracteres (texto extenso engaja mais)
 - Hook inicial: 100-125 caracteres impactantes (antes do "ver mais")
 - Subtítulo descritivo logo após o hook
@@ -58,34 +65,68 @@ function buildCaptionPrompt(formData: any): string {
     `,
     Facebook: `
 ## Para Facebook:
+### Especificações de Imagem:
+- Feed Padrão/Links: 1200x630px (1.91:1)
+- Feed Quadrado: 1080x1080px (1:1)
+- Feed Retrato: 1080x1350px (4:5)
+- Stories: 1080x1920px (9:16)
+- Formatos: JPG ou PNG
+
+### Especificações de Legenda:
 - Máximo 2.200 caracteres
 - Primeiro parágrafo até 125 caracteres (antes do "ver mais")
 - Use quebras de linha estratégicas para facilitar leitura
 - Linguagem conversacional e próxima
-- 8-12 hashtags MIX de nicho + populares
+- 1-3 hashtags relevantes
+- Links diretos no corpo da postagem
     `,
     LinkedIn: `
 ## Para LinkedIn:
+### Especificações de Imagem:
+- Feed Padrão: 1200x627px (1.91:1)
+- Quadrado: 1080x1080px (1:1)
+- Documentos PDF: Alto engajamento
+- Formatos: JPG ou PNG
+
+### Especificações de Legenda:
 - Máximo 3.000 caracteres
-- Tom mais profissional mas ainda humano
+- Tom profissional mas humano
 - Inclua insights e valor educacional
 - Use dados e estatísticas quando relevante
-- 5-8 hashtags profissionais
+- 3-5 hashtags profissionais e de nicho
+- Quebras de linha estratégicas
+- Emojis profissionais com moderação (💡, 🚀, ✅)
     `,
     TikTok: `
-## Para TikTok/Reels:
+## Para TikTok:
+### Especificações de Vídeo:
+- Dimensões: 1080x1920px (9:16)
+- Duração: 3s a 10 minutos
+- Zona Segura: Centralizar conteúdo importante
+- Formatos: MP4
+
+### Especificações de Legenda:
 - Máximo 2.200 caracteres
-- Linguagem jovem e dinâmica
-- Referências a tendências quando apropriado
-- Foco em entretenimento e valor rápido
-- 5-8 hashtags trending
+- SEO é CRÍTICO: Use palavras-chave descritivas
+- 3-5 hashtags (tendências + nicho + específico)
+- Linguagem jovem, dinâmica e informal
+- Incentive engajamento rápido
+- Tom: "Você sabia disso? Comenta aí!"
     `,
     "Twitter/X": `
 ## Para Twitter/X:
+### Especificações de Imagem:
+- Feed (1 imagem): 1600x900px (16:9)
+- Links com Imagem: 800x418px (1.91:1)
+- Formatos: JPG ou PNG
+
+### Especificações de Legenda:
 - Máximo 280 caracteres
-- Seja direto e impactante
-- Use 1-2 hashtags estratégicas
-- Incentive retweets/engajamento
+- Seja EXTREMAMENTE direto e impactante
+- Use 1-2 hashtags estratégicas máximo
+- Incentive retweets e engajamento
+- Encurtadores de link quando necessário
+- Concisão é fundamental
     `
   };
 
@@ -291,7 +332,7 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-5-mini-2025-08-07",
+        model: "gpt-4o-mini",
         messages: [
           {
             role: "system",
@@ -302,7 +343,7 @@ serve(async (req) => {
             content: prompt,
           },
         ],
-        max_completion_tokens: 1500,
+        max_tokens: 1500,
       }),
     });
 

@@ -189,9 +189,22 @@ export default function ContentResult() {
     if (!contentData) return;
     
     try {
-      await navigator.clipboard.writeText(contentData.caption);
+      // Combinar título, corpo e hashtags para copiar
+      let fullCaption = '';
+      
+      if (contentData.title) {
+        fullCaption += contentData.title + '\n\n';
+      }
+      
+      fullCaption += contentData.caption;
+      
+      if (contentData.hashtags && contentData.hashtags.length > 0) {
+        fullCaption += '\n\n' + contentData.hashtags.map(tag => `#${tag}`).join(' ');
+      }
+      
+      await navigator.clipboard.writeText(fullCaption);
       setCopied(true);
-      toast.success("Legenda copiada!");
+      toast.success("Legenda completa copiada!");
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
       toast.error("Erro ao copiar legenda");
@@ -744,9 +757,33 @@ Plataforma: ${originalFormData.platform || 'N/A'}`
               
               <div className="space-y-3 sm:space-y-4">
                 <div className="bg-muted/30 rounded-xl p-3 sm:p-4 min-h-[200px] sm:min-h-[250px] md:min-h-[300px] max-h-[300px] sm:max-h-[350px] md:max-h-[400px] overflow-y-auto backdrop-blur-sm">
+                  {/* Título da Legenda */}
+                  {contentData.title && (
+                    <h3 className="text-base sm:text-lg md:text-xl font-bold text-foreground mb-3">
+                      {contentData.title}
+                    </h3>
+                  )}
+                  
+                  {/* Corpo da Legenda */}
                   <p className="text-sm sm:text-base text-foreground leading-relaxed whitespace-pre-wrap">
                     {contentData.caption}
                   </p>
+                  
+                  {/* Hashtags */}
+                  {contentData.hashtags && contentData.hashtags.length > 0 && (
+                    <div className="mt-4 pt-4 border-t border-border/20">
+                      <div className="flex flex-wrap gap-2">
+                        {contentData.hashtags.map((tag, index) => (
+                          <span 
+                            key={index}
+                            className="text-xs sm:text-sm text-primary font-medium bg-primary/10 px-2 py-1 rounded-md"
+                          >
+                            #{tag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="pt-3 sm:pt-4 border-t border-border/20 space-y-2 sm:space-y-3">
