@@ -316,8 +316,8 @@ export default function ContentResult() {
             body: {
               reviewPrompt,
               imageUrl: contentData.mediaUrl,
-              brand: originalFormData.brand,
-              platform: originalFormData.platform
+              brandId: originalFormData.brandId,
+              themeId: originalFormData.themeId || null
             }
           });
 
