@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { 
-  Download, 
-  Copy, 
+import {
+  Download,
+  Copy,
   Sparkles,
   ArrowLeft,
   Check,
@@ -12,7 +12,7 @@ import {
   Video,
   RefreshCw,
   FileText,
-  Loader
+  Loader,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -59,48 +59,48 @@ export default function ContentResult() {
     const loadContent = async () => {
       // Limpar imagens antigas do sessionStorage (mais de 1 hora)
       try {
-        Object.keys(sessionStorage).forEach(key => {
-          if (key.startsWith('image_')) {
-            const timestamp = parseInt(key.split('_')[1]);
+        Object.keys(sessionStorage).forEach((key) => {
+          if (key.startsWith("image_")) {
+            const timestamp = parseInt(key.split("_")[1]);
             if (!isNaN(timestamp) && Date.now() - timestamp > 3600000) {
               sessionStorage.removeItem(key);
             }
           }
         });
       } catch (error) {
-        console.error('Erro ao limpar sessionStorage:', error);
+        console.error("Erro ao limpar sessionStorage:", error);
       }
 
       // Get data from navigation state
       if (location.state?.contentData) {
         const data = location.state.contentData;
         const contentId = `content_${Date.now()}`;
-        
+
         // ✅ ETAPA 1: Definir contentData IMEDIATAMENTE (antes de qualquer validação)
         setContentData(data);
         setIsLoading(false);
-        
+
         // Verificar se já foi salvo no histórico
         setIsSavedToHistory(!!data.actionId);
-        
+
         // ✅ ETAPA 2: Salvar imagem no sessionStorage (não no localStorage)
         if (data.mediaUrl) {
           try {
             sessionStorage.setItem(`image_${contentId}`, data.mediaUrl);
           } catch (error) {
-            if (error instanceof Error && error.name === 'QuotaExceededError') {
-              console.warn('⚠️ Imagem muito grande para cache - continuando sem salvar');
+            if (error instanceof Error && error.name === "QuotaExceededError") {
+              console.warn("⚠️ Imagem muito grande para cache - continuando sem salvar");
             } else {
-              console.error('Erro ao salvar imagem no sessionStorage:', error);
+              console.error("Erro ao salvar imagem no sessionStorage:", error);
             }
           }
         }
-        
+
         // ✅ ETAPA 3: Validar dados DEPOIS de definir o estado
         if (!data.mediaUrl || !data.caption) {
           toast.error("Dados incompletos, mas exibindo o que foi gerado");
         }
-        
+
         // ✅ ETAPA 4: Criar sistema de versionamento
         const versionData = {
           version: 0,
@@ -110,7 +110,7 @@ export default function ContentResult() {
           hashtags: data.hashtags,
           type: data.type,
         };
-        
+
         // ✅ ETAPA 5: Salvar metadados no localStorage (SEM base64)
         const savedContent = {
           id: contentId,
@@ -125,17 +125,17 @@ export default function ContentResult() {
           createdAt: new Date().toISOString(),
           currentVersion: 0,
           versions: [versionData],
-          savedToHistory: !!data.actionId
+          savedToHistory: !!data.actionId,
         };
-        
+
         try {
-          localStorage.setItem('currentContent', JSON.stringify(savedContent));
+          localStorage.setItem("currentContent", JSON.stringify(savedContent));
           // Também salvar versões separadamente para facilitar recuperação
           localStorage.setItem(`versions_${contentId}`, JSON.stringify([versionData]));
         } catch (error) {
-          console.error('Erro ao salvar no localStorage:', error);
+          console.error("Erro ao salvar no localStorage:", error);
         }
-        
+
         // Load revision count
         const revisionsKey = `revisions_${contentId}`;
         const savedRevisions = localStorage.getItem(revisionsKey);
@@ -144,25 +144,24 @@ export default function ContentResult() {
           setTotalRevisions(count);
           setFreeRevisionsLeft(Math.max(0, 2 - count));
         }
-        
       } else {
         // Try to load from localStorage
-        const saved = localStorage.getItem('currentContent');
+        const saved = localStorage.getItem("currentContent");
         if (saved) {
           try {
             const parsed = JSON.parse(saved);
-            
+
             // Verificar se já foi salvo no histórico
             setIsSavedToHistory(!!parsed.savedToHistory);
-            
+
             // Tentar recuperar imagem do sessionStorage
             const imageUrl = sessionStorage.getItem(`image_${parsed.id}`);
             if (imageUrl) {
               parsed.mediaUrl = imageUrl;
             }
-            
+
             setContentData(parsed);
-            
+
             const revisionsKey = `revisions_${parsed.id}`;
             const savedRevisions = localStorage.getItem(revisionsKey);
             if (savedRevisions) {
@@ -170,10 +169,10 @@ export default function ContentResult() {
               setTotalRevisions(count);
               setFreeRevisionsLeft(Math.max(0, 2 - count));
             }
-            
+
             setIsLoading(false);
           } catch (error) {
-            console.error('Erro ao carregar conteúdo salvo:', error);
+            console.error("Erro ao carregar conteúdo salvo:", error);
             toast.error("Erro ao carregar conteúdo");
             navigate("/create");
           }
@@ -183,19 +182,20 @@ export default function ContentResult() {
         }
       }
     };
-    
+
     loadContent();
   }, [location.state, navigate]);
 
   const handleCopyCaption = async () => {
     if (!contentData) return;
-    
+
     try {
       // Verificar se os dados estão estruturados (novo formato)
-      const captionText = contentData.title && contentData.body && contentData.hashtags
-        ? `${contentData.title}\n\n${contentData.body}\n\n${contentData.hashtags.map((tag: string) => `#${tag}`).join(" ")}`
-        : contentData.caption || ""; // Fallback para formato antigo
-      
+      const captionText =
+        contentData.title && contentData.body && contentData.hashtags
+          ? `${contentData.title}\n\n${contentData.body}\n\n${contentData.hashtags.map((tag: string) => `#${tag}`).join(" ")}`
+          : contentData.caption || ""; // Fallback para formato antigo
+
       await navigator.clipboard.writeText(captionText);
       setCopied(true);
       toast.success("Legenda completa copiada!", {
@@ -209,44 +209,43 @@ export default function ContentResult() {
 
   const handleDownload = () => {
     if (!contentData) return;
-    
+
     try {
       // Convert base64 to blob
-      const base64Data = contentData.mediaUrl.split(',')[1];
+      const base64Data = contentData.mediaUrl.split(",")[1];
       const byteCharacters = atob(base64Data);
       const byteNumbers = new Array(byteCharacters.length);
-      
+
       for (let i = 0; i < byteCharacters.length; i++) {
         byteNumbers[i] = byteCharacters.charCodeAt(i);
       }
-      
+
       const byteArray = new Uint8Array(byteNumbers);
       const mimeType = contentData.type === "video" ? "video/mp4" : "image/png";
       const blob = new Blob([byteArray], { type: mimeType });
-      
+
       // Create download link
       const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = url;
-      
+
       // Generate filename
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+      const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, -5);
       const extension = contentData.type === "video" ? "mp4" : "png";
-      link.download = `${contentData.brand.replace(/\s+/g, '_')}_${contentData.platform}_${timestamp}.${extension}`;
-      
+      link.download = `${contentData.brand.replace(/\s+/g, "_")}_${contentData.platform}_${timestamp}.${extension}`;
+
       // Trigger download
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
-      
+
       toast.success(`Download em alta qualidade iniciado!`);
     } catch (error) {
-      console.error('Erro ao fazer download:', error);
+      console.error("Erro ao fazer download:", error);
       toast.error("Erro ao fazer download");
     }
   };
-
 
   const handleOpenReview = () => {
     setReviewType(null);
@@ -259,7 +258,7 @@ export default function ContentResult() {
 
     // Check if user can still review
     const needsCredit = freeRevisionsLeft === 0;
-    
+
     // Bloquear se não tem revisões gratuitas E não tem créditos
     if (needsCredit && (!team?.credits?.contentReviews || team.credits.contentReviews <= 0)) {
       toast.error("Você não tem créditos de revisão disponíveis");
@@ -273,30 +272,32 @@ export default function ContentResult() {
       const newFreeRevisionsLeft = Math.max(0, freeRevisionsLeft - 1);
 
       // Get original form data from localStorage
-      const saved = JSON.parse(localStorage.getItem('currentContent') || '{}');
+      const saved = JSON.parse(localStorage.getItem("currentContent") || "{}");
       const originalFormData = saved.originalFormData || {};
 
       // Update content based on review type
       const updatedContent = { ...contentData };
-      
+
       if (reviewType === "caption") {
         // Revise caption using OpenAI gpt-4o-mini
         toast.info("Revisando legenda com base no seu feedback...");
-        
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        const { data, error } = await supabase.functions.invoke('revise-caption-openai', {
+
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        const { data, error } = await supabase.functions.invoke("revise-caption-openai", {
           body: {
             prompt: reviewPrompt,
             originalTitle: contentData.title || "",
-            originalBody: contentData.body || contentData.caption?.split('\n\n')[1] || "",
+            originalBody: contentData.body || contentData.caption?.split("\n\n")[1] || "",
             originalHashtags: contentData.hashtags || [],
             brand: originalFormData.brand || contentData.brand,
             theme: originalFormData.theme || "",
             brandId: originalFormData.brandId,
             teamId: team?.id,
-            userId: user?.id
-          }
+            userId: user?.id,
+          },
         });
 
         if (error) {
@@ -309,38 +310,37 @@ export default function ContentResult() {
         }
 
         // Format caption with hashtags
-        const formattedCaption = `${data.title}\n\n${data.body}\n\n${data.hashtags.map((tag: string) => `#${tag}`).join(' ')}`;
+        const formattedCaption = `${data.title}\n\n${data.body}\n\n${data.hashtags.map((tag: string) => `#${tag}`).join(" ")}`;
         updatedContent.caption = formattedCaption;
         updatedContent.title = data.title;
         updatedContent.body = data.body;
         updatedContent.hashtags = data.hashtags;
-        
       } else {
         // Edit existing image with AI-powered editing
         toast.info("Editando imagem com base no seu feedback...");
-        
+
         try {
-          console.log('🤖 Enviando requisição para edit-image:', {
+          console.log("🤖 Enviando requisição para edit-image:", {
             hasPrompt: !!reviewPrompt,
             hasImageUrl: !!contentData.mediaUrl,
             hasBrandId: !!originalFormData.brandId,
-            hasThemeId: !!originalFormData.themeId
+            hasThemeId: !!originalFormData.themeId,
           });
 
-          const { data, error } = await supabase.functions.invoke('edit-image', {
+          const { data, error } = await supabase.functions.invoke("edit-image", {
             body: {
               reviewPrompt,
               imageUrl: contentData.mediaUrl,
               brandId: originalFormData.brandId,
-              themeId: originalFormData.themeId || null
-            }
+              themeId: originalFormData.themeId || null,
+            },
           });
 
-          console.log('📡 Resposta recebida de edit-image:', {
+          console.log("📡 Resposta recebida de edit-image:", {
             hasData: !!data,
             hasError: !!error,
             editedImageUrl: data?.editedImageUrl,
-            errorMessage: error?.message
+            errorMessage: error?.message,
           });
 
           if (error) {
@@ -354,7 +354,7 @@ export default function ContentResult() {
           }
 
           // Validate URL format
-          if (!data.editedImageUrl.startsWith('http')) {
+          if (!data.editedImageUrl.startsWith("http")) {
             console.error("❌ URL da imagem inválida:", data.editedImageUrl);
             throw new Error("URL da imagem editada é inválida");
           }
@@ -362,10 +362,9 @@ export default function ContentResult() {
           // Add timestamp to prevent caching
           const timestamp = Date.now();
           const imageUrlWithTimestamp = `${data.editedImageUrl}?t=${timestamp}`;
-          
+
           updatedContent.mediaUrl = imageUrlWithTimestamp;
-          console.log('✅ Imagem editada atualizada com sucesso:', imageUrlWithTimestamp);
-          
+          console.log("✅ Imagem editada atualizada com sucesso:", imageUrlWithTimestamp);
         } catch (error) {
           console.error("❌ Erro ao editar imagem:", error);
           throw new Error(error instanceof Error ? error.message : "Falha ao editar imagem");
@@ -376,22 +375,22 @@ export default function ContentResult() {
       const newContentData = {
         ...updatedContent,
         mediaUrl: updatedContent.mediaUrl, // Ensure the new URL is used
-        _updateKey: Date.now() // Add unique key to force re-render
+        _updateKey: Date.now(), // Add unique key to force re-render
       };
 
       setContentData(newContentData);
-      
+
       // Update sessionStorage with new image (se foi editada)
       if (reviewType === "image" && updatedContent.mediaUrl) {
         try {
           sessionStorage.setItem(`image_${saved.id}`, updatedContent.mediaUrl);
         } catch (error) {
-          if (error instanceof Error && error.name === 'QuotaExceededError') {
-            console.warn('⚠️ Imagem muito grande para cache');
+          if (error instanceof Error && error.name === "QuotaExceededError") {
+            console.warn("⚠️ Imagem muito grande para cache");
           }
         }
       }
-      
+
       // Criar nova versão
       const newVersion = {
         version: newRevisionCount,
@@ -401,13 +400,13 @@ export default function ContentResult() {
         hashtags: updatedContent.hashtags,
         type: reviewType,
         reviewPrompt,
-        usedCredit: needsCredit
+        usedCredit: needsCredit,
       };
-      
+
       // Atualizar versões
       const currentVersions = saved.versions || [];
       const updatedVersions = [...currentVersions, newVersion];
-      
+
       // Update localStorage (sem base64)
       const updatedSaved = {
         ...saved,
@@ -419,44 +418,47 @@ export default function ContentResult() {
         hashtags: updatedContent.hashtags,
         currentVersion: newRevisionCount,
         versions: updatedVersions,
-        revisions: [...(saved.revisions || []), {
-          type: reviewType,
-          prompt: reviewPrompt,
-          timestamp: new Date().toISOString(),
-          usedCredit: needsCredit
-        }]
+        revisions: [
+          ...(saved.revisions || []),
+          {
+            type: reviewType,
+            prompt: reviewPrompt,
+            timestamp: new Date().toISOString(),
+            usedCredit: needsCredit,
+          },
+        ],
       };
-      
+
       try {
-        localStorage.setItem('currentContent', JSON.stringify(updatedSaved));
+        localStorage.setItem("currentContent", JSON.stringify(updatedSaved));
         localStorage.setItem(`versions_${saved.id}`, JSON.stringify(updatedVersions));
       } catch (error) {
-        console.error('Erro ao atualizar localStorage:', error);
+        console.error("Erro ao atualizar localStorage:", error);
       }
-      
+
       // Update revision count
       const revisionsKey = `revisions_${saved.id}`;
       localStorage.setItem(revisionsKey, newRevisionCount.toString());
-      
+
       setTotalRevisions(newRevisionCount);
       setFreeRevisionsLeft(newFreeRevisionsLeft);
 
       // Atualizar registro no histórico (tabela actions) se já estiver salvo
       if (saved.actionId && saved.savedToHistory) {
         const { error: updateError } = await supabase
-          .from('actions')
+          .from("actions")
           .update({
             revisions: newRevisionCount,
             result: {
               imageUrl: updatedContent.mediaUrl,
               title: updatedContent.title,
-              body: updatedContent.caption?.split('\n\n')[1] || updatedContent.caption,
+              body: updatedContent.caption?.split("\n\n")[1] || updatedContent.caption,
               hashtags: updatedContent.hashtags,
               feedback: reviewPrompt,
             },
             updated_at: new Date().toISOString(),
           })
-          .eq('id', saved.actionId);
+          .eq("id", saved.actionId);
 
         if (updateError) {
           console.error("Erro ao atualizar histórico:", updateError);
@@ -466,7 +468,9 @@ export default function ContentResult() {
       if (needsCredit) {
         toast.success("Revisão concluída! 1 crédito foi consumido.");
       } else {
-        toast.success(`Revisão concluída! ${newFreeRevisionsLeft} revisão${newFreeRevisionsLeft !== 1 ? 'ões' : ''} gratuita${newFreeRevisionsLeft !== 1 ? 's' : ''} restante${newFreeRevisionsLeft !== 1 ? 's' : ''}.`);
+        toast.success(
+          `Revisão concluída! ${newFreeRevisionsLeft} revisão${newFreeRevisionsLeft !== 1 ? "ões" : ""} gratuita${newFreeRevisionsLeft !== 1 ? "s" : ""} restante${newFreeRevisionsLeft !== 1 ? "s" : ""}.`,
+        );
       }
 
       setShowReviewDialog(false);
@@ -481,46 +485,50 @@ export default function ContentResult() {
 
   const handleSaveToHistory = async () => {
     if (!contentData || !team || !user) return;
-    
+
     if (isSavedToHistory) {
       toast.info("Este conteúdo já foi salvo no histórico");
       return;
     }
-    
+
     setIsSaving(true);
-    
+
     try {
       // Get saved content metadata
-      const saved = JSON.parse(localStorage.getItem('currentContent') || '{}');
-      
+      const saved = JSON.parse(localStorage.getItem("currentContent") || "{}");
+
       // Get brand_id from originalFormData if it exists, otherwise set to null
       let brandId = null;
       if (saved.originalFormData?.brandId) {
         brandId = saved.originalFormData.brandId;
       }
-      
+
       // Determinar o tipo de ação baseado na origem do conteúdo
-      let actionType: 'CRIAR_CONTEUDO' | 'CRIAR_CONTEUDO_RAPIDO' | 'GERAR_VIDEO' = 'CRIAR_CONTEUDO_RAPIDO';
-      
+      let actionType: "CRIAR_CONTEUDO" | "CRIAR_CONTEUDO_RAPIDO" | "GERAR_VIDEO" = "CRIAR_CONTEUDO_RAPIDO";
+
       // Se for vídeo
       if (contentData.type === "video") {
-        actionType = 'GERAR_VIDEO';
-      } 
+        actionType = "GERAR_VIDEO";
+      }
       // Se tem dados completos de criação (brand, objective, etc) = CRIAR_CONTEUDO
-      else if (saved.originalFormData?.objective && saved.originalFormData?.description && saved.originalFormData?.tone) {
-        actionType = 'CRIAR_CONTEUDO';
+      else if (
+        saved.originalFormData?.objective &&
+        saved.originalFormData?.description &&
+        saved.originalFormData?.tone
+      ) {
+        actionType = "CRIAR_CONTEUDO";
       }
       // Caso contrário (apenas prompt simples) = CRIAR_CONTEUDO_RAPIDO
-      
+
       // Criar registro no histórico
       const { data: actionData, error: actionError } = await supabase
-        .from('actions')
+        .from("actions")
         .insert({
           type: actionType,
           brand_id: brandId,
           team_id: user.teamId,
           user_id: user.id,
-          status: 'Concluído',
+          status: "Concluído",
           approved: false,
           revisions: totalRevisions,
           details: {
@@ -537,9 +545,9 @@ export default function ContentResult() {
           result: {
             imageUrl: contentData.mediaUrl,
             title: contentData.title,
-            body: contentData.caption?.split('\n\n')[1] || contentData.caption,
+            body: contentData.caption?.split("\n\n")[1] || contentData.caption,
             hashtags: contentData.hashtags,
-          }
+          },
         })
         .select()
         .single();
@@ -553,17 +561,16 @@ export default function ContentResult() {
       const updatedSaved = {
         ...saved,
         actionId: actionData.id,
-        savedToHistory: true
+        savedToHistory: true,
       };
-      
-      localStorage.setItem('currentContent', JSON.stringify(updatedSaved));
-      
+
+      localStorage.setItem("currentContent", JSON.stringify(updatedSaved));
+
       // Atualizar estado
       setContentData({ ...contentData, actionId: actionData.id });
       setIsSavedToHistory(true);
-      
+
       toast.success("Conteúdo salvo no histórico com sucesso!");
-      
     } catch (error) {
       console.error("Erro ao salvar:", error);
       toast.error("Erro ao salvar no histórico. Tente novamente.");
@@ -579,7 +586,6 @@ export default function ContentResult() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       <div className="max-w-4xl mx-auto space-y-4 sm:space-y-5 md:space-y-6 animate-fade-in">
-        
         {/* Header */}
         <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5 animate-scale-in">
           <CardContent className="p-3 sm:p-4 md:p-5 lg:p-6">
@@ -599,19 +605,23 @@ export default function ContentResult() {
                   <Sparkles className="h-5 w-5 animate-pulse" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h1 className="text-lg font-bold text-foreground leading-tight">
-                    Conteúdo Gerado
-                  </h1>
+                  <h1 className="text-lg font-bold text-foreground leading-tight">Conteúdo Gerado</h1>
                   <p className="text-muted-foreground text-xs leading-tight truncate">
                     {contentData.brand} • {contentData.platform}
                   </p>
                 </div>
                 <div className="flex items-center gap-1.5 flex-shrink-0">
-                  <Badge variant="outline" className="bg-muted/50 text-muted-foreground border-border/30 gap-1 px-2 py-1 text-xs h-7">
+                  <Badge
+                    variant="outline"
+                    className="bg-muted/50 text-muted-foreground border-border/30 gap-1 px-2 py-1 text-xs h-7"
+                  >
                     <RefreshCw className="h-3 w-3" />
                     <span>{freeRevisionsLeft > 0 ? freeRevisionsLeft : team?.credits?.contentReviews || 0}</span>
                   </Badge>
-                  <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 p-1.5 h-7 w-7 flex items-center justify-center">
+                  <Badge
+                    variant="outline"
+                    className="bg-primary/10 text-primary border-primary/30 p-1.5 h-7 w-7 flex items-center justify-center"
+                  >
                     {contentData.type === "video" ? (
                       <Video className="h-3.5 w-3.5" />
                     ) : (
@@ -647,9 +657,12 @@ export default function ContentResult() {
                   </div>
                 </div>
               </div>
-              
+
               <div className="flex items-center gap-2 flex-shrink-0">
-                <Badge variant="outline" className="bg-muted/50 text-muted-foreground border-border/30 gap-2 px-3 py-1.5 text-xs">
+                <Badge
+                  variant="outline"
+                  className="bg-muted/50 text-muted-foreground border-border/30 gap-2 px-3 py-1.5 text-xs"
+                >
                   <RefreshCw className="h-3 w-3" />
                   <span>
                     {freeRevisionsLeft > 0 ? (
@@ -659,12 +672,11 @@ export default function ContentResult() {
                     )}
                   </span>
                 </Badge>
-                <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 gap-2 px-3 py-1.5 text-xs">
-                  {contentData.type === "video" ? (
-                    <Video className="h-4 w-4" />
-                  ) : (
-                    <ImageIcon className="h-4 w-4" />
-                  )}
+                <Badge
+                  variant="outline"
+                  className="bg-primary/10 text-primary border-primary/30 gap-2 px-3 py-1.5 text-xs"
+                >
+                  {contentData.type === "video" ? <Video className="h-4 w-4" /> : <ImageIcon className="h-4 w-4" />}
                   <span>{contentData.type === "video" ? "Vídeo" : "Imagem"}</span>
                 </Badge>
               </div>
@@ -673,9 +685,11 @@ export default function ContentResult() {
         </Card>
 
         <div className="flex flex-col gap-4 sm:gap-5 md:gap-6">
-          
           {/* Media Preview */}
-          <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-xl sm:rounded-2xl overflow-hidden animate-fade-in hover:shadow-xl transition-shadow duration-300" style={{ animationDelay: '100ms' }}>
+          <Card
+            className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-xl sm:rounded-2xl overflow-hidden animate-fade-in hover:shadow-xl transition-shadow duration-300"
+            style={{ animationDelay: "100ms" }}
+          >
             <CardContent className="p-0">
               <div className="aspect-square max-h-[500px] sm:max-h-[600px] md:max-h-[700px] bg-muted/30 relative overflow-hidden group mx-auto">
                 {contentData.mediaUrl ? (
@@ -706,11 +720,11 @@ export default function ContentResult() {
                     </div>
                   </div>
                 )}
-                
+
                 {/* Overlay gradient */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
               </div>
-              
+
               {/* Action buttons */}
               <div className="p-3 sm:p-4 bg-gradient-to-r from-muted/30 to-muted/10 border-t border-border/20 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                 <Button
@@ -727,12 +741,17 @@ export default function ContentResult() {
                     variant="secondary"
                     className="w-full flex-1 sm:flex-initial rounded-xl gap-2 hover-scale transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 group"
                     size="lg"
-                    disabled={freeRevisionsLeft === 0 && (!team?.credits?.contentReviews || team.credits.contentReviews <= 0)}
+                    disabled={
+                      freeRevisionsLeft === 0 && (!team?.credits?.contentReviews || team.credits.contentReviews <= 0)
+                    }
                   >
                     <RefreshCw className="h-4 w-4 group-hover:rotate-180 transition-transform duration-500" />
                     <span className="sm:hidden">Revisar</span>
                     {freeRevisionsLeft > 0 && (
-                      <Badge variant="secondary" className="ml-1 text-xs px-1.5 py-0.5 bg-primary/20 text-primary border-primary/30">
+                      <Badge
+                        variant="secondary"
+                        className="ml-1 text-xs px-1.5 py-0.5 bg-white text-secondary border-secondary/30"
+                      >
                         {freeRevisionsLeft}
                       </Badge>
                     )}
@@ -748,7 +767,10 @@ export default function ContentResult() {
           </Card>
 
           {/* Caption */}
-          <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-xl sm:rounded-2xl animate-fade-in hover:shadow-xl transition-shadow duration-300" style={{ animationDelay: '200ms' }}>
+          <Card
+            className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-xl sm:rounded-2xl animate-fade-in hover:shadow-xl transition-shadow duration-300"
+            style={{ animationDelay: "200ms" }}
+          >
             <CardContent className="p-4 sm:p-5 md:p-6 space-y-3 sm:space-y-4">
               <div className="flex items-center justify-between pb-3 border-b border-border/20">
                 <h2 className="text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">
@@ -774,7 +796,7 @@ export default function ContentResult() {
                   )}
                 </Button>
               </div>
-              
+
               <div className="space-y-3 sm:space-y-4">
                 <div className="bg-muted/30 rounded-xl p-4 sm:p-5 min-h-[250px] max-h-[500px] overflow-y-auto backdrop-blur-sm">
                   {contentData.title && contentData.body && contentData.hashtags ? (
@@ -789,17 +811,17 @@ export default function ContentResult() {
                           </Badge>
                         )}
                       </h3>
-                      
+
                       {/* Corpo da Legenda */}
                       <p className="text-sm sm:text-base text-foreground leading-relaxed whitespace-pre-wrap">
                         {contentData.body}
                       </p>
-                      
+
                       {/* Hashtags */}
                       <div className="mt-4 pt-4 border-t border-border/20">
                         <div className="flex flex-wrap gap-2">
                           {contentData.hashtags.map((tag, index) => (
-                            <span 
+                            <span
                               key={index}
                               className="text-xs sm:text-sm text-primary font-medium bg-primary/10 px-2 py-1 rounded-md"
                             >
@@ -817,16 +839,16 @@ export default function ContentResult() {
                           {contentData.title}
                         </h3>
                       )}
-                      
+
                       <p className="text-sm sm:text-base text-foreground leading-relaxed whitespace-pre-wrap">
                         {contentData.caption}
                       </p>
-                      
+
                       {contentData.hashtags && contentData.hashtags.length > 0 && (
                         <div className="mt-4 pt-4 border-t border-border/20">
                           <div className="flex flex-wrap gap-2">
                             {contentData.hashtags.map((tag, index) => (
-                              <span 
+                              <span
                                 key={index}
                                 className="text-xs sm:text-sm text-primary font-medium bg-primary/10 px-2 py-1 rounded-md"
                               >
@@ -862,7 +884,7 @@ export default function ContentResult() {
                       )}
                     </Button>
                   )}
-                  
+
                   {isSavedToHistory && contentData.actionId && (
                     <Button
                       onClick={() => navigate(`/historico/${contentData.actionId}`)}
@@ -875,7 +897,7 @@ export default function ContentResult() {
                       <span className="sm:hidden">Ver no Histórico</span>
                     </Button>
                   )}
-                  
+
                   <Button
                     onClick={() => navigate("/create")}
                     variant="outline"
@@ -896,7 +918,6 @@ export default function ContentResult() {
               </div>
             </CardContent>
           </Card>
-
         </div>
       </div>
 
@@ -906,16 +927,26 @@ export default function ContentResult() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
               <RefreshCw className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
-              <span className="truncate">{reviewType ? `Revisar ${reviewType === "image" ? (contentData?.type === "video" ? "Vídeo" : "Imagem") : "Legenda"}` : "Escolha o tipo de revisão"}</span>
+              <span className="truncate">
+                {reviewType
+                  ? `Revisar ${reviewType === "image" ? (contentData?.type === "video" ? "Vídeo" : "Imagem") : "Legenda"}`
+                  : "Escolha o tipo de revisão"}
+              </span>
             </DialogTitle>
             <DialogDescription>
               {reviewType ? (
                 <>
                   Descreva as alterações que deseja fazer.
                   {freeRevisionsLeft > 0 ? (
-                    <span className="text-primary font-medium"> {freeRevisionsLeft} revisão(ões) gratuita(s) restante(s).</span>
+                    <span className="text-primary font-medium">
+                      {" "}
+                      {freeRevisionsLeft} revisão(ões) gratuita(s) restante(s).
+                    </span>
                   ) : team?.credits?.contentReviews && team.credits.contentReviews > 0 ? (
-                    <span className="text-orange-600 font-medium"> Esta revisão consumirá 1 crédito. Você tem {team.credits.contentReviews} crédito(s).</span>
+                    <span className="text-orange-600 font-medium">
+                      {" "}
+                      Esta revisão consumirá 1 crédito. Você tem {team.credits.contentReviews} crédito(s).
+                    </span>
                   ) : (
                     <span className="text-destructive font-medium"> Sem créditos disponíveis para revisão.</span>
                   )}
@@ -925,13 +956,10 @@ export default function ContentResult() {
               )}
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4 py-4">
             {!reviewType ? (
-              <RadioGroup 
-                onValueChange={(value) => setReviewType(value as "image" | "caption")}
-                className="space-y-3"
-              >
+              <RadioGroup onValueChange={(value) => setReviewType(value as "image" | "caption")} className="space-y-3">
                 <div className="flex items-center space-x-3 rounded-lg border-2 border-border p-4 hover:border-primary hover:bg-primary/10 transition-all cursor-pointer group">
                   <RadioGroupItem value="image" id="image" />
                   <Label htmlFor="image" className="flex-1 cursor-pointer flex items-center gap-3">
@@ -941,12 +969,14 @@ export default function ContentResult() {
                       <ImageIcon className="h-5 w-5 text-primary group-hover:scale-110 transition-transform" />
                     )}
                     <div>
-                      <div className="font-semibold group-hover:text-primary transition-colors">Revisar {contentData?.type === "video" ? "Vídeo" : "Imagem"}</div>
+                      <div className="font-semibold group-hover:text-primary transition-colors">
+                        Revisar {contentData?.type === "video" ? "Vídeo" : "Imagem"}
+                      </div>
                       <div className="text-sm text-muted-foreground">Alterar elementos visuais do conteúdo</div>
                     </div>
                   </Label>
                 </div>
-                
+
                 <div className="flex items-center space-x-3 rounded-lg border-2 border-border p-4 hover:border-secondary hover:bg-secondary/10 transition-all cursor-pointer group">
                   <RadioGroupItem value="caption" id="caption" />
                   <Label htmlFor="caption" className="flex-1 cursor-pointer flex items-center gap-3">
@@ -964,22 +994,31 @@ export default function ContentResult() {
                   <Alert className="border-primary/50 bg-primary/10">
                     <RefreshCw className="h-4 w-4 text-primary" />
                     <AlertDescription className="text-sm">
-                      <span className="font-semibold text-primary">Revisão Gratuita:</span> Você tem {freeRevisionsLeft} revisão{freeRevisionsLeft !== 1 ? 'ões' : ''} gratuita{freeRevisionsLeft !== 1 ? 's' : ''} disponível{freeRevisionsLeft !== 1 ? 'eis' : ''} para este conteúdo.
+                      <span className="font-semibold text-primary">Revisão Gratuita:</span> Você tem {freeRevisionsLeft}{" "}
+                      revisão{freeRevisionsLeft !== 1 ? "ões" : ""} gratuita{freeRevisionsLeft !== 1 ? "s" : ""}{" "}
+                      disponível{freeRevisionsLeft !== 1 ? "eis" : ""} para este conteúdo.
                     </AlertDescription>
                   </Alert>
                 )}
-                
+
                 {freeRevisionsLeft === 0 && (
                   <Alert className="border-orange-500/50 bg-orange-500/10">
                     <RefreshCw className="h-4 w-4 text-orange-600" />
                     <AlertDescription className="text-sm">
-                      <span className="font-semibold text-orange-600">Atenção:</span> Revisões gratuitas esgotadas. Esta revisão consumirá 1 crédito do seu plano.
+                      <span className="font-semibold text-orange-600">Atenção:</span> Revisões gratuitas esgotadas. Esta
+                      revisão consumirá 1 crédito do seu plano.
                       {team?.credits?.contentReviews !== undefined && (
                         <span className="block mt-1 text-muted-foreground">
                           {team.credits.contentReviews > 0 ? (
-                            <>Você tem {team.credits.contentReviews} crédito{team.credits.contentReviews !== 1 ? 's' : ''} disponível{team.credits.contentReviews !== 1 ? 'eis' : ''}.</>
+                            <>
+                              Você tem {team.credits.contentReviews} crédito
+                              {team.credits.contentReviews !== 1 ? "s" : ""} disponível
+                              {team.credits.contentReviews !== 1 ? "eis" : ""}.
+                            </>
                           ) : (
-                            <span className="text-destructive font-medium">Você não tem créditos disponíveis. Faça upgrade do seu plano.</span>
+                            <span className="text-destructive font-medium">
+                              Você não tem créditos disponíveis. Faça upgrade do seu plano.
+                            </span>
                           )}
                         </span>
                       )}
@@ -992,7 +1031,7 @@ export default function ContentResult() {
                   <Textarea
                     id="review-prompt"
                     placeholder={
-                      reviewType === "image" 
+                      reviewType === "image"
                         ? "Ex: Deixar a imagem mais clara, mudar o fundo para azul..."
                         : "Ex: Tornar o texto mais persuasivo, adicionar emojis..."
                     }
@@ -1018,8 +1057,8 @@ export default function ContentResult() {
                     onClick={handleSubmitReview}
                     className="flex-1 gap-2"
                     disabled={
-                      !reviewPrompt.trim() || 
-                      isReviewing || 
+                      !reviewPrompt.trim() ||
+                      isReviewing ||
                       (freeRevisionsLeft === 0 && (!team?.credits?.contentReviews || team.credits.contentReviews <= 0))
                     }
                   >
@@ -1031,7 +1070,7 @@ export default function ContentResult() {
                     ) : (
                       <>
                         <Check className="h-4 w-4" />
-                        {freeRevisionsLeft === 0 ? 'Confirmar e Usar Crédito' : 'Confirmar Revisão'}
+                        {freeRevisionsLeft === 0 ? "Confirmar e Usar Crédito" : "Confirmar Revisão"}
                       </>
                     )}
                   </Button>
