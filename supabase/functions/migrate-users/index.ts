@@ -100,15 +100,19 @@ Deno.serve(async (req) => {
         // Verificar se usuário já existe
         const { data: existingUser } = await supabaseClient
           .from('profiles')
-          .select('id')
+          .select('id, email')
           .eq('email', user.email)
           .single()
 
         if (existingUser) {
+          // Usuário já existe - adicionar ao mapa e pular
+          userIdMap.set(user.id, existingUser.id)
+          console.log(`User ${user.email} already exists, mapped to ${existingUser.id}`)
           result.warnings.push({
             email: user.email,
-            warning: 'User already exists, skipping'
+            warning: 'User already exists, skipping creation'
           })
+          result.usersProcessed++
           continue
         }
 
