@@ -567,8 +567,8 @@ Plataforma: ${originalFormData.platform || 'N/A'}`
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-3 sm:p-4 md:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-5 md:space-y-6 animate-fade-in">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+      <div className="max-w-4xl mx-auto space-y-4 sm:space-y-5 md:space-y-6 animate-fade-in p-3 sm:p-4 md:p-6">
         
         {/* Header */}
         <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5 animate-scale-in">
@@ -662,12 +662,12 @@ Plataforma: ${originalFormData.platform || 'N/A'}`
           </CardContent>
         </Card>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5 md:gap-6">
+        <div className="flex flex-col gap-4 sm:gap-5 md:gap-6">
           
           {/* Media Preview */}
           <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-xl sm:rounded-2xl overflow-hidden animate-fade-in hover:shadow-xl transition-shadow duration-300" style={{ animationDelay: '100ms' }}>
             <CardContent className="p-0">
-              <div className="aspect-square max-h-[400px] sm:max-h-[500px] lg:max-h-[600px] bg-muted/30 relative overflow-hidden group mx-auto">
+              <div className="aspect-square max-h-[500px] sm:max-h-[600px] md:max-h-[700px] bg-muted/30 relative overflow-hidden group mx-auto">
                 {contentData.mediaUrl ? (
                   contentData.type === "video" ? (
                     <video
@@ -725,7 +725,7 @@ Plataforma: ${originalFormData.platform || 'N/A'}`
 
           {/* Caption */}
           <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-xl sm:rounded-2xl animate-fade-in hover:shadow-xl transition-shadow duration-300" style={{ animationDelay: '200ms' }}>
-            <CardContent className="p-3 sm:p-4 md:p-5 lg:p-6 space-y-3 sm:space-y-4">
+            <CardContent className="p-4 sm:p-5 md:p-6 space-y-3 sm:space-y-4">
               <div className="flex items-center justify-between pb-3 border-b border-border/20">
                 <h2 className="text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">
                   <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
@@ -752,7 +752,7 @@ Plataforma: ${originalFormData.platform || 'N/A'}`
               </div>
               
               <div className="space-y-3 sm:space-y-4">
-                <div className="bg-muted/30 rounded-xl p-3 sm:p-4 min-h-[200px] sm:min-h-[250px] md:min-h-[300px] max-h-[300px] sm:max-h-[350px] md:max-h-[400px] overflow-y-auto backdrop-blur-sm">
+                <div className="bg-muted/30 rounded-xl p-4 sm:p-5 min-h-[250px] max-h-[500px] overflow-y-auto backdrop-blur-sm">
                   {contentData.title && contentData.body && contentData.hashtags ? (
                     // Novo formato estruturado
                     <>
