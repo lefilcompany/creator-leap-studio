@@ -450,7 +450,7 @@ export const platformSpecs: Record<string, PlatformSpec> = {
     },
   },
   Comunidades: {
-    name: "Comunidades",
+    name: "Comunidades (Facebook Groups, LinkedIn Groups, Discord, etc.)",
     organic: {
       image: {
         dimensions: [
@@ -458,7 +458,7 @@ export const platformSpecs: Record<string, PlatformSpec> = {
             width: 1080,
             height: 1080,
             aspectRatio: "1:1",
-            description: "Quadrado (Universal)",
+            description: "Quadrado (Universal - Recomendado)",
           },
           {
             width: 1600,
@@ -468,6 +468,7 @@ export const platformSpecs: Record<string, PlatformSpec> = {
           },
         ],
         formats: ["JPG", "PNG", "GIF"],
+        safeZone: "A imagem não precisa ser uma superprodução. Foco em agregar valor à discussão (meme relevante, infográfico com dados, captura de tela para ilustrar dúvida, etc.)",
       },
       caption: {
         maxChars: 10000,
@@ -477,13 +478,14 @@ export const platformSpecs: Record<string, PlatformSpec> = {
           strategy: "Hashtags raramente usadas, foco em gerar conversa",
         },
         tips: [
-          "OBJETIVO: GERAR CONVERSA autêntica",
-          "Seja autêntico - fale como membro, não como marca",
-          "Faça perguntas abertas (não faça publicidade)",
-          "Entregue valor PRIMEIRO sem pedir nada",
-          "Respeite as regras da comunidade sobre autopromoção",
-          "Imagem pode ser meme, infográfico, print para ilustrar",
-          "CTA sutil: 'O que vocês acham?', 'Alguém já passou?'",
+          "OBJETIVO PRINCIPAL: GERAR CONVERSA autêntica",
+          "Seja Autêntico: Fale como membro, não como marca fazendo publicidade",
+          "Faça Perguntas Abertas: Em vez de 'Confira nosso produto', tente 'Qual a maior dificuldade que vocês enfrentam com [problema]?'",
+          "Entregue Valor Primeiro: Compartilhe dica, template ou insight valioso sem pedir nada em troca",
+          "Respeite as Regras: Cada comunidade tem regras próprias sobre autopromoção. Leia-as com atenção antes de postar",
+          "Imagem: Pode ser meme relevante, infográfico com dados, captura de tela para ilustrar",
+          "CTA Sutil: 'O que vocês acham?', 'Alguém já passou por isso?', 'Deixem suas dicas nos comentários'",
+          "Cultura e Engajamento são mais importantes que especificações técnicas",
         ],
       },
     },
