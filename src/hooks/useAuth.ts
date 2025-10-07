@@ -116,7 +116,7 @@ export function useAuth() {
       .select('role')
       .eq('user_id', userId)
       .eq('role', 'admin')
-      .single();
+      .maybeSingle();
     
     return !!data;
   };
