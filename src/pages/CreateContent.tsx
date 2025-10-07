@@ -25,7 +25,7 @@ import type { StrategicTheme, StrategicThemeSummary } from "@/types/theme";
 import type { Persona, PersonaSummary } from "@/types/persona";
 import type { Team } from "@/types/theme";
 import { useAuth } from "@/hooks/useAuth";
-import { getPlatformImageSpec, getCaptionGuidelines } from "@/lib/platformSpecs";
+import { getPlatformImageSpec, getCaptionGuidelines, platformSpecs } from "@/lib/platformSpecs";
 
 enum GenerationStep {
   IDLE = "IDLE",
@@ -45,6 +45,7 @@ interface FormData {
   description: string;
   tone: string[];
   additionalInfo: string;
+  contentType: 'organic' | 'ads';
   // Advanced configurations
   negativePrompt?: string;
   colorPalette?: string;
@@ -81,6 +82,7 @@ export default function CreateContent() {
     description: "",
     tone: [],
     additionalInfo: "",
+    contentType: "organic",
     // Advanced configurations with smart defaults
     negativePrompt: "",
     colorPalette: "auto",
@@ -1533,42 +1535,64 @@ ${formData.description}
                             Dimensões da Imagem
                             <Info className="h-3 w-3 text-muted-foreground" />
                           </Label>
-                          <div className="grid grid-cols-2 gap-3">
-                            <div className="space-y-1.5">
-                              <Label htmlFor="width" className="text-xs text-muted-foreground">Largura (px)</Label>
-                              <Input
-                                id="width"
-                                type="number"
-                                min="512"
-                                max="2048"
-                                step="64"
-                                placeholder="1024"
-                                value={formData.width || ''}
-                                onChange={(e) => setFormData(prev => ({ ...prev, width: e.target.value }))}
-                                className="h-9 rounded-lg border-2 border-border/50 bg-background/50 text-xs"
-                              />
-                            </div>
-                            <div className="space-y-1.5">
-                              <Label htmlFor="height" className="text-xs text-muted-foreground">Altura (px)</Label>
-                              <Input
-                                id="height"
-                                type="number"
-                                min="512"
-                                max="2048"
-                                step="64"
-                                placeholder="1024"
-                                value={formData.height || ''}
-                                onChange={(e) => setFormData(prev => ({ ...prev, height: e.target.value }))}
-                                className="h-9 rounded-lg border-2 border-border/50 bg-background/50 text-xs"
-                              />
-                            </div>
-                          </div>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Dimensões entre 512-2048px. Múltiplos de 64 recomendados.
-                          </p>
+                          <Select
+                            value={formData.width && formData.height ? `${formData.width}x${formData.height}` : ''}
+                            onValueChange={(value) => {
+                              const [width, height] = value.split('x');
+                              setFormData(prev => ({ ...prev, width, height }));
+                            }}
+                          >
+                            <SelectTrigger className="h-9 rounded-lg border-2 border-border/50 bg-background/50 text-xs">
+                              <SelectValue placeholder="Selecione as dimensões" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {formData.platform && platformSpecs[formData.platform] && (
+                                <>
+                                  {platformSpecs[formData.platform][formData.contentType === 'ads' ? 'ads' : 'organic']?.image.dimensions.map((dim) => (
+                                    <SelectItem 
+                                      key={`${dim.width}x${dim.height}`} 
+                                      value={`${dim.width}x${dim.height}`}
+                                    >
+                                      {dim.width}x{dim.height} ({dim.aspectRatio}) - {dim.description}
+                                    </SelectItem>
+                                  ))}
+                                </>
+                              )}
+                              {!formData.platform && (
+                                <SelectItem value="1080x1080" disabled>
+                                  Selecione uma plataforma primeiro
+                                </SelectItem>
+                              )}
+                            </SelectContent>
+                          </Select>
+                          {formData.width && formData.height && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Selecionado: {formData.width}x{formData.height}px
+                            </p>
+                          )}
                         </div>
 
                         {/* Composition */}
+                        <div className="space-y-2">
+                          <Label className="text-xs font-medium">Composição</Label>
+                          <Select
+                            value={formData.composition}
+                            onValueChange={(value) => setFormData(prev => ({ ...prev, composition: value }))}
+                          >
+                            <SelectTrigger className="h-9 rounded-lg border-2 border-border/50 bg-background/50 text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="auto">Automático</SelectItem>
+                              <SelectItem value="center">Centralizado</SelectItem>
+                              <SelectItem value="rule_of_thirds">Regra dos Terços</SelectItem>
+                              <SelectItem value="symmetric">Simétrico</SelectItem>
+                              <SelectItem value="asymmetric">Assimétrico</SelectItem>
+                              <SelectItem value="dynamic">Dinâmico</SelectItem>
+                              <SelectItem value="minimalist">Minimalista</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
                         <div className="space-y-2">
                           <Label className="text-xs font-medium">Composição</Label>
                           <Select
