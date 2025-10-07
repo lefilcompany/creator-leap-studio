@@ -1129,7 +1129,7 @@ ${formData.description}
                           setPlatformGuidelines(guidelines);
                         }
                       }}
-                      className="flex-1 rounded-lg font-semibold transition-all duration-200 ease-in-out"
+                      className="flex-1 rounded-lg font-semibold transition-all duration-200 ease-in-out hover:bg-accent/20 hover:border-accent hover:text-accent"
                     >
                       Orgânico
                     </Button>
@@ -1143,7 +1143,7 @@ ${formData.description}
                           setPlatformGuidelines(guidelines);
                         }
                       }}
-                      className="flex-1 rounded-lg font-semibold transition-all duration-200 ease-in-out"
+                      className="flex-1 rounded-lg font-semibold transition-all duration-200 ease-in-out hover:bg-accent/20 hover:border-accent hover:text-accent"
                     >
                       Anúncio
                     </Button>
