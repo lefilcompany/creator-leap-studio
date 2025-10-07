@@ -6,6 +6,12 @@ verify_jwt = true
 [functions.migrate-brands]
 verify_jwt = true
 
+[functions.migrate-personas]
+verify_jwt = true
+
+[functions.migrate-strategic-themes]
+verify_jwt = true
+
 [functions.generate-plan]
 verify_jwt = true
 
