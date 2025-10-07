@@ -913,7 +913,7 @@ ${formData.description}
                               {team?.credits?.contentSuggestions || 0}
                             </span>
                             <p className="text-sm text-muted-foreground font-medium leading-tight whitespace-nowrap">
-                              Revisões Restantes
+                              Criações Restantes
                             </p>
                           </div>
                         </div>
