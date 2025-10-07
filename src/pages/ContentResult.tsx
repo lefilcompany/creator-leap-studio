@@ -452,7 +452,7 @@ export default function ContentResult() {
             result: {
               imageUrl: updatedContent.mediaUrl,
               title: updatedContent.title,
-              body: updatedContent.caption?.split("\n\n")[1] || updatedContent.caption,
+              body: updatedContent.body || updatedContent.caption,
               hashtags: updatedContent.hashtags,
               feedback: reviewPrompt,
             },
@@ -545,7 +545,7 @@ export default function ContentResult() {
           result: {
             imageUrl: contentData.mediaUrl,
             title: contentData.title,
-            body: contentData.caption?.split("\n\n")[1] || contentData.caption,
+            body: contentData.body || contentData.caption,
             hashtags: contentData.hashtags,
           },
         })

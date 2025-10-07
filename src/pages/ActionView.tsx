@@ -664,7 +664,7 @@ export default function ActionView() {
               {action.result.body && (
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-muted-foreground">Legenda/Conteúdo</span>
+                    <span className="text-sm font-medium text-muted-foreground">Corpo da Legenda</span>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -679,8 +679,8 @@ export default function ActionView() {
                       Copiar
                     </Button>
                   </div>
-                  <div className="p-4 bg-muted/50 rounded-lg">
-                    <p className="whitespace-pre-wrap">{action.result.body}</p>
+                  <div className="p-4 bg-muted/50 rounded-lg border border-border/40">
+                    <p className="whitespace-pre-wrap text-foreground leading-relaxed">{action.result.body}</p>
                   </div>
                 </div>
               )}
