@@ -450,7 +450,7 @@ export const platformSpecs: Record<string, PlatformSpec> = {
     },
   },
   Comunidades: {
-    name: "Comunidades (Facebook Groups, LinkedIn Groups, Discord, etc.)",
+    name: "Comunidades",
     organic: {
       image: {
         dimensions: [
@@ -466,9 +466,16 @@ export const platformSpecs: Record<string, PlatformSpec> = {
             aspectRatio: "16:9",
             description: "Paisagem",
           },
+          {
+            width: 1080,
+            height: 1440,
+            aspectRatio: "3:4",
+            description: "Retrato",
+          },
         ],
         formats: ["JPG", "PNG", "GIF"],
-        safeZone: "A imagem não precisa ser uma superprodução. Foco em agregar valor à discussão (meme relevante, infográfico com dados, captura de tela para ilustrar dúvida, etc.)",
+        safeZone:
+          "A imagem não precisa ser uma superprodução. Foco em agregar valor à discussão (infográfico com dados, captura de tela para ilustrar dúvida, posts inspiradores, post informativo,etc.)",
       },
       caption: {
         maxChars: 10000,
@@ -483,7 +490,7 @@ export const platformSpecs: Record<string, PlatformSpec> = {
           "Faça Perguntas Abertas: Em vez de 'Confira nosso produto', tente 'Qual a maior dificuldade que vocês enfrentam com [problema]?'",
           "Entregue Valor Primeiro: Compartilhe dica, template ou insight valioso sem pedir nada em troca",
           "Respeite as Regras: Cada comunidade tem regras próprias sobre autopromoção. Leia-as com atenção antes de postar",
-          "Imagem: Pode ser meme relevante, infográfico com dados, captura de tela para ilustrar",
+          "Imagem: Pode informativos, inspiradores, infográfico com dados, captura de tela para ilustrar",
           "CTA Sutil: 'O que vocês acham?', 'Alguém já passou por isso?', 'Deixem suas dicas nos comentários'",
           "Cultura e Engajamento são mais importantes que especificações técnicas",
         ],
@@ -495,14 +502,12 @@ export const platformSpecs: Record<string, PlatformSpec> = {
 export function getPlatformImageSpec(
   platform: string,
   type: "feed" | "story" | "default" = "default",
-  contentType: "organic" | "ads" = "organic"
+  contentType: "organic" | "ads" = "organic",
 ): { width: number; height: number; aspectRatio: string } | null {
   const spec = platformSpecs[platform];
   if (!spec) return null;
 
-  const imageSpec = contentType === "ads" && spec.ads 
-    ? spec.ads.image 
-    : spec.organic.image;
+  const imageSpec = contentType === "ads" && spec.ads ? spec.ads.image : spec.organic.image;
 
   // Para Instagram, retornar baseado no tipo
   if (platform === "Instagram") {
@@ -516,16 +521,11 @@ export function getPlatformImageSpec(
   return imageSpec.dimensions[0];
 }
 
-export function getCaptionGuidelines(
-  platform: string,
-  contentType: "organic" | "ads" = "organic"
-): string[] {
+export function getCaptionGuidelines(platform: string, contentType: "organic" | "ads" = "organic"): string[] {
   const spec = platformSpecs[platform];
   if (!spec) return [];
 
-  const captionSpec = contentType === "ads" && spec.ads 
-    ? spec.ads.caption 
-    : spec.organic.caption;
+  const captionSpec = contentType === "ads" && spec.ads ? spec.ads.caption : spec.organic.caption;
 
   const guidelines: string[] = [];
 
@@ -538,14 +538,12 @@ export function getCaptionGuidelines(
   }
 
   if (captionSpec.hookChars) {
-    guidelines.push(
-      `Gancho inicial: ${captionSpec.hookChars} caracteres (antes do "ver mais")`
-    );
+    guidelines.push(`Gancho inicial: ${captionSpec.hookChars} caracteres (antes do "ver mais")`);
   }
 
   if (captionSpec.hashtags) {
     guidelines.push(
-      `Hashtags: ${captionSpec.hashtags.min}-${captionSpec.hashtags.max} (${captionSpec.hashtags.strategy})`
+      `Hashtags: ${captionSpec.hashtags.min}-${captionSpec.hashtags.max} (${captionSpec.hashtags.strategy})`,
     );
   }
 
