@@ -325,6 +325,7 @@ serve(async (req) => {
 
     const prompt = buildCaptionPrompt(formData);
 
+    console.log("🔄 Chamando OpenAI API...");
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -347,6 +348,8 @@ serve(async (req) => {
       }),
     });
 
+    console.log(`📡 OpenAI Response Status: ${response.status}`);
+
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       console.error("❌ [CAPTION] Erro OpenAI:", {
@@ -356,23 +359,33 @@ serve(async (req) => {
       
       if (response.status === 429) {
         return new Response(
-          JSON.stringify({ error: 'OpenAI rate limit exceeded. Try again in a moment.' }),
+          JSON.stringify({ 
+            error: 'OpenAI rate limit exceeded. Try again in a moment.',
+            fallback: true 
+          }),
           { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
       if (response.status === 401) {
         return new Response(
-          JSON.stringify({ error: 'Invalid OpenAI API key' }),
+          JSON.stringify({ 
+            error: 'Invalid OpenAI API key',
+            fallback: true 
+          }),
           { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
       return new Response(
-        JSON.stringify({ error: 'OpenAI API error' }),
+        JSON.stringify({ 
+          error: 'OpenAI API error',
+          fallback: true 
+        }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     const data = await response.json();
+    console.log("✅ OpenAI Response received");
     const content = data.choices?.[0]?.message?.content;
 
     console.log("🤖 [CAPTION] Resposta da AI recebida:", {
@@ -388,17 +401,39 @@ serve(async (req) => {
     // Parse JSON
     let postContent;
     try {
-      postContent = JSON.parse(content);
+      console.log("🔍 Parsing JSON response...");
+      // Try to extract JSON from markdown code blocks
+      const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/);
+      const jsonString = jsonMatch ? jsonMatch[1] : content;
+      postContent = JSON.parse(jsonString.trim());
+      console.log("✅ JSON parsed successfully");
     } catch (parseError) {
-      console.warn("⚠️ [CAPTION] Falha ao parsear JSON, usando fallback:", parseError);
-      // Fallback rico mesmo em caso de erro
-      const brandName = cleanInput(formData.brand) || "nossa marca";
-      const themeName = cleanInput(formData.theme) || "novidades";
-      const objective = cleanInput(formData.objective) || "trazer inovação e valor";
-      const audience = cleanInput(formData.audience) || "nosso público";
-      const platform = cleanInput(formData.platform) || "redes sociais";
+      console.error("❌ JSON parse error:", parseError);
+      console.log("📝 Raw response:", content?.substring(0, 200));
+      
+      // Fallback: try to extract parts manually
+      const titleMatch = content.match(/"title":\s*"([^"]*)"/);
+      const bodyMatch = content.match(/"body":\s*"([^"]*)"/);
+      const hashtagsMatch = content.match(/"hashtags":\s*\[(.*?)\]/);
+      
+      if (titleMatch || bodyMatch) {
+        postContent = {
+          title: titleMatch ? titleMatch[1] : "Título não disponível",
+          body: bodyMatch ? bodyMatch[1] : content,
+          hashtags: hashtagsMatch 
+            ? hashtagsMatch[1].split(',').map((h: string) => h.trim().replace(/"/g, ''))
+            : []
+        };
+        console.log("⚠️ Using manual extraction");
+      } else {
+        // Último fallback - conteúdo rico estruturado
+        console.warn("⚠️ [CAPTION] Usando fallback completo");
+        const brandName = cleanInput(formData.brand) || "nossa marca";
+        const themeName = cleanInput(formData.theme) || "novidades";
+        const objective = cleanInput(formData.objective) || "trazer inovação e valor";
+        const audience = cleanInput(formData.audience) || "nosso público";
 
-      const fallbackBody = `🌟 Cada imagem conta uma história, e esta não é diferente!
+        const fallbackBody = `🌟 Cada imagem conta uma história, e esta não é diferente!
 
 Quando olhamos para este conteúdo visual, vemos muito mais do que cores e formas. Vemos a essência da ${brandName} se manifestando através de cada detalhe cuidadosamente pensado.
 
@@ -411,26 +446,21 @@ Nossa conexão com ${audience} vai além das palavras. É uma conversa visual qu
 💬 Deixe seu comentário e compartilhe suas impressões!
 ✨ Marque alguém que também precisa ver isso!`;
 
-      postContent = {
-        title: `${brandName}: Descobrindo ${themeName} 🚀`,
-        body: fallbackBody,
-        hashtags: [
-          brandName.toLowerCase().replace(/\s+/g, "").substring(0, 15),
-          themeName.toLowerCase().replace(/\s+/g, "").substring(0, 15),
-          "conteudovisual",
-          "marketingdigital",
-          "storytelling",
-          "engajamento",
-          "estrategia",
-          "inspiracao",
-          "crescimento",
-          "inovacao",
-          "conexao",
-          "transformacao",
-        ]
-          .filter((tag) => tag && tag.length > 2)
-          .slice(0, 12),
-      };
+        postContent = {
+          title: `${brandName}: Descobrindo ${themeName} 🚀`,
+          body: fallbackBody,
+          hashtags: [
+            brandName.toLowerCase().replace(/\s+/g, "").substring(0, 15),
+            themeName.toLowerCase().replace(/\s+/g, "").substring(0, 15),
+            "conteudovisual",
+            "marketingdigital",
+            "storytelling",
+            "engajamento",
+            "estrategia",
+            "inspiracao"
+          ].filter((tag) => tag && tag.length > 2).slice(0, 10)
+        };
+      }
     }
 
     // Validate hashtags

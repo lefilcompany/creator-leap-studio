@@ -639,74 +639,100 @@ export default function CreateContent() {
       );
 
       let captionData;
+      let isLocalFallback = false;
+      
       if (captionResponse.ok) {
-        captionData = await captionResponse.json();
+        const responseData = await captionResponse.json();
+        // Verificar se é um fallback da API
+        if (responseData.fallback) {
+          console.warn("⚠️ API retornou fallback:", responseData.error);
+          isLocalFallback = true;
+          toast.warning("Legenda gerada localmente", {
+            description: "Usando fallback local devido a erro na API de legenda.",
+            duration: 4000,
+          });
+        }
+        captionData = responseData.fallback ? null : responseData;
       } else {
-        // Fallback profissional e elaborado
+        const errorText = await captionResponse.text();
+        console.error("❌ Erro na geração de legenda:", errorText);
+        isLocalFallback = true;
+        
+        toast.error("Erro ao gerar legenda", {
+          description: "Usando legenda padrão. Você pode editá-la depois.",
+          duration: 4000,
+        });
+      }
+
+      // Fallback local robusto e estruturado
+      if (!captionData || isLocalFallback) {
         const brandName = selectedBrand?.name || formData.brand;
-        const themeName = selectedTheme?.title || formData.theme;
+        const themeName = selectedTheme?.title || formData.theme || "Nossa proposta";
         const platform = formData.platform;
+        
+        const platformSpecs = {
+          Instagram: { maxLength: 2200, recommendedHashtags: 10 },
+          Facebook: { maxLength: 250, recommendedHashtags: 3 },
+          LinkedIn: { maxLength: 600, recommendedHashtags: 5 },
+          TikTok: { maxLength: 150, recommendedHashtags: 5 },
+          Twitter: { maxLength: 280, recommendedHashtags: 2 },
+        }[platform] || { maxLength: 500, recommendedHashtags: 5 };
+
         const fallbackBody = `🌟 ${brandName} apresenta: ${themeName}
 
 ${formData.description}
 
-${formData.objective}
+💡 ${formData.objective}
 
-💡 Para ${selectedPersona?.name || "nosso público"}, criamos este conteúdo com o propósito de ${formData.objective.toLowerCase()}.
+🎯 Tom: ${formData.tone.join(", ")}
 
-🎯 Tom de voz: ${formData.tone.join(", ")}
-
-💬 Comente o que achou!
-✨ Compartilhe com alguém que precisa ver isso!`;
+💬 Comente o que achou!`;
 
         captionData = {
-          title: `${brandName}: ${themeName} 🚀`,
-          body: fallbackBody,
+          title: `${brandName} | ${themeName} 🚀`,
+          body: fallbackBody.substring(0, platformSpecs.maxLength - 100),
           hashtags: [
             brandName.toLowerCase().replace(/\s+/g, ""),
             themeName.toLowerCase().replace(/\s+/g, ""),
             platform.toLowerCase(),
             "marketingdigital",
             "conteudocriativo",
-            "estrategia",
-            "engajamento",
-            "branding"
-          ].filter(tag => tag && tag.length > 2).slice(0, 10)
+            ...formData.tone.map(t => t.toLowerCase())
+          ].filter((tag, index, self) => 
+            tag && tag.length > 2 && self.indexOf(tag) === index
+          ).slice(0, platformSpecs.recommendedHashtags)
         };
       }
 
       setGenerationStep(GenerationStep.SAVING);
       setGenerationProgress(80);
       
-      toast.loading("💾 Salvando no histórico...", {
+      toast.loading("💾 Preparando resultado...", {
         id: toastId,
         description: "Finalizando geração (80%)",
       });
-      
-      // 3. Montar caption formatada
-      const caption = `${captionData.title}\n\n${captionData.body}\n\n${captionData.hashtags.map((tag: string) => `#${tag}`).join(" ")}`;
-
-      // NÃO salvar no histórico automaticamente - apenas quando o usuário clicar em "Salvar"
-      // O conteúdo será salvo temporariamente no localStorage
 
       // Validar dados completos antes de criar o objeto
-      if (!imageUrl || !caption) {
+      if (!imageUrl || !captionData?.title || !captionData?.body) {
         throw new Error("Dados incompletos na geração");
       }
 
+      // Manter dados ESTRUTURADOS - não concatenar
       const generatedContent = {
         type: "image" as const,
         mediaUrl: imageUrl,
-        caption,
         platform: formData.platform,
         brand: selectedBrand?.name || formData.brand,
+        // Dados estruturados da legenda
         title: captionData.title,
+        body: captionData.body,
         hashtags: captionData.hashtags,
         originalFormData: {
           ...requestData,
-          brandId: formData.brand, // Adicionar brandId para salvar no histórico
+          brandId: formData.brand,
         },
-        actionId: undefined, // Não criar action automaticamente
+        actionId: undefined,
+        isLocalFallback, // Informar se usou fallback
       };
       
       // Recarregar dados do usuário para atualizar créditos no header
