@@ -29,3 +29,6 @@ verify_jwt = true
 
 [functions.generate-caption]
 verify_jwt = true
+
+[functions.edit-image]
+verify_jwt = false
