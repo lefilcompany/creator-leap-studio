@@ -219,17 +219,53 @@ serve(async (req) => {
     const aiData = await response.json();
     console.log('✅ Resposta da AI recebida');
 
-    const editedImageUrl = aiData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    const editedImageBase64 = aiData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
     
-    if (!editedImageUrl) {
+    if (!editedImageBase64) {
       console.error('❌ Imagem editada não foi retornada pela API');
       throw new Error('Imagem editada não foi retornada pela API');
     }
 
-    console.log('✅ Imagem editada com sucesso');
+    console.log('📤 Fazendo upload da imagem editada para Storage...');
+
+    // Extract base64 data from data URL
+    const base64Data = editedImageBase64.split(',')[1] || editedImageBase64;
+    
+    // Convert base64 to Uint8Array
+    const binaryString = atob(base64Data);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+
+    // Generate unique filename
+    const timestamp = Date.now();
+    const randomId = crypto.randomUUID();
+    const fileName = `edited-images/${timestamp}-${randomId}.png`;
+
+    // Upload to Supabase Storage
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('content-images')
+      .upload(fileName, bytes, {
+        contentType: 'image/png',
+        cacheControl: '3600',
+        upsert: false
+      });
+
+    if (uploadError) {
+      console.error('❌ Erro ao fazer upload:', uploadError);
+      throw new Error(`Erro ao fazer upload da imagem: ${uploadError.message}`);
+    }
+
+    // Get public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from('content-images')
+      .getPublicUrl(fileName);
+
+    console.log('✅ Imagem editada com sucesso e armazenada:', publicUrl);
 
     return new Response(
-      JSON.stringify({ editedImageUrl }),
+      JSON.stringify({ editedImageUrl: publicUrl }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 

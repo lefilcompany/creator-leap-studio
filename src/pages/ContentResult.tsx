@@ -312,6 +312,13 @@ export default function ContentResult() {
         toast.info("Editando imagem com base no seu feedback...");
         
         try {
+          console.log('🤖 Enviando requisição para edit-image:', {
+            hasPrompt: !!reviewPrompt,
+            hasImageUrl: !!contentData.mediaUrl,
+            hasBrandId: !!originalFormData.brandId,
+            hasThemeId: !!originalFormData.themeId
+          });
+
           const { data, error } = await supabase.functions.invoke('edit-image', {
             body: {
               reviewPrompt,
@@ -321,26 +328,39 @@ export default function ContentResult() {
             }
           });
 
+          console.log('📡 Resposta recebida de edit-image:', {
+            hasData: !!data,
+            hasError: !!error,
+            editedImageUrl: data?.editedImageUrl,
+            errorMessage: error?.message
+          });
+
           if (error) {
-            console.error("Erro ao editar imagem:", error);
+            console.error("❌ Erro ao editar imagem:", error);
             throw new Error(error.message || "Falha ao editar imagem");
           }
 
           if (!data?.editedImageUrl) {
+            console.error("❌ URL da imagem editada não foi retornada");
             throw new Error("Imagem editada não foi retornada");
           }
 
-          // Add timestamp to URL to prevent caching
+          // Validate URL format
+          if (!data.editedImageUrl.startsWith('http')) {
+            console.error("❌ URL da imagem inválida:", data.editedImageUrl);
+            throw new Error("URL da imagem editada é inválida");
+          }
+
+          // Add timestamp to prevent caching
           const timestamp = Date.now();
-          const imageUrlWithTimestamp = data.editedImageUrl.includes('?') 
-            ? `${data.editedImageUrl}&t=${timestamp}`
-            : `${data.editedImageUrl}?t=${timestamp}`;
+          const imageUrlWithTimestamp = `${data.editedImageUrl}?t=${timestamp}`;
           
           updatedContent.mediaUrl = imageUrlWithTimestamp;
-          console.log('✅ Imagem editada atualizada:', imageUrlWithTimestamp);
+          console.log('✅ Imagem editada atualizada com sucesso:', imageUrlWithTimestamp);
+          
         } catch (error) {
-          console.error("Erro ao editar imagem:", error);
-          throw new Error("Falha ao editar imagem");
+          console.error("❌ Erro ao editar imagem:", error);
+          throw new Error(error instanceof Error ? error.message : "Falha ao editar imagem");
         }
       }
 
