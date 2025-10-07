@@ -53,6 +53,8 @@ interface FormData {
   cameraAngle?: string;
   detailLevel?: number;
   mood?: string;
+  width?: string;
+  height?: string;
 }
 
 const toneOptions = [
@@ -1523,6 +1525,47 @@ ${formData.description}
                               <SelectItem value="neon">Neon</SelectItem>
                             </SelectContent>
                           </Select>
+                        </div>
+
+                        {/* Image Dimensions */}
+                        <div className="space-y-2">
+                          <Label className="text-xs font-medium flex items-center gap-2">
+                            Dimensões da Imagem
+                            <Info className="h-3 w-3 text-muted-foreground" />
+                          </Label>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-1.5">
+                              <Label htmlFor="width" className="text-xs text-muted-foreground">Largura (px)</Label>
+                              <Input
+                                id="width"
+                                type="number"
+                                min="512"
+                                max="2048"
+                                step="64"
+                                placeholder="1024"
+                                value={formData.width || ''}
+                                onChange={(e) => setFormData(prev => ({ ...prev, width: e.target.value }))}
+                                className="h-9 rounded-lg border-2 border-border/50 bg-background/50 text-xs"
+                              />
+                            </div>
+                            <div className="space-y-1.5">
+                              <Label htmlFor="height" className="text-xs text-muted-foreground">Altura (px)</Label>
+                              <Input
+                                id="height"
+                                type="number"
+                                min="512"
+                                max="2048"
+                                step="64"
+                                placeholder="1024"
+                                value={formData.height || ''}
+                                onChange={(e) => setFormData(prev => ({ ...prev, height: e.target.value }))}
+                                className="h-9 rounded-lg border-2 border-border/50 bg-background/50 text-xs"
+                              />
+                            </div>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Dimensões entre 512-2048px. Múltiplos de 64 recomendados.
+                          </p>
                         </div>
 
                         {/* Composition */}
