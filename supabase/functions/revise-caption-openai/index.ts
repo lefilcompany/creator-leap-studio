@@ -22,7 +22,6 @@ serve(async (req) => {
       );
     }
 
-    // Authenticate user
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       return new Response(
@@ -33,50 +32,28 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey, {
+    const supabaseClient = createClient(supabaseUrl, supabaseKey, {
       global: { headers: { Authorization: authHeader } }
     });
 
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user) {
-      console.error('Erro de autenticação:', userError);
-      return new Response(
-        JSON.stringify({ error: 'Usuário não autenticado' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Get user's profile to find team_id
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('team_id')
-      .eq('id', user.id)
-      .single();
-
-    if (profileError || !profile?.team_id) {
-      console.error('Erro ao buscar perfil:', profileError);
-      return new Response(
-        JSON.stringify({ error: 'Perfil não encontrado' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
     const body = await req.json();
-    const { prompt, originalTitle, originalBody, originalHashtags, brand, theme, brandId } = body;
+    const { prompt, originalTitle, originalBody, originalHashtags, brand, theme, brandId, teamId, userId } = body;
 
     // Validate required fields
-    if (!prompt || !originalTitle || !originalBody || !originalHashtags || !brandId) {
+    if (!prompt || !originalTitle || !originalBody || !originalHashtags || !brandId || !teamId || !userId) {
       return new Response(
         JSON.stringify({ error: 'Dados insuficientes para a revisão.' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
+    console.log('📝 Verificando créditos do time:', teamId);
+
     // Check team credits
-    const { data: teamData, error: teamError } = await supabase
+    const { data: teamData, error: teamError } = await supabaseClient
       .from('teams')
       .select('credits_reviews')
-      .eq('id', profile.team_id)
+      .eq('id', teamId)
       .single();
 
     if (teamError) {
@@ -181,13 +158,13 @@ Responda ESTRITAMENTE em formato JSON com as chaves "title", "body" (legenda com
     }
 
     // Save action to history
-    const { data: actionData, error: actionError } = await supabase
+    const { data: actionData, error: actionError } = await supabaseClient
       .from('actions')
       .insert({
         type: 'revisar_legenda',
-        team_id: profile.team_id,
+        team_id: teamId,
         brand_id: brandId,
-        user_id: user.id,
+        user_id: userId,
         details: {
           prompt,
           originalTitle,
@@ -206,10 +183,10 @@ Responda ESTRITAMENTE em formato JSON com as chaves "title", "body" (legenda com
     }
 
     // Deduct credit
-    const { error: updateError } = await supabase
+    const { error: updateError } = await supabaseClient
       .from('teams')
       .update({ credits_reviews: teamData.credits_reviews - 1 })
-      .eq('id', profile.team_id);
+      .eq('id', teamId);
 
     if (updateError) {
       console.error('Erro ao deduzir crédito:', updateError);

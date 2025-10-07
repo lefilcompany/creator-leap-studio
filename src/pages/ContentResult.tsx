@@ -283,6 +283,8 @@ export default function ContentResult() {
         // Revise caption using OpenAI gpt-4o-mini
         toast.info("Revisando legenda com base no seu feedback...");
         
+        const { data: { user } } = await supabase.auth.getUser();
+        
         const { data, error } = await supabase.functions.invoke('revise-caption-openai', {
           body: {
             prompt: reviewPrompt,
@@ -291,7 +293,9 @@ export default function ContentResult() {
             originalHashtags: contentData.hashtags || [],
             brand: originalFormData.brand || contentData.brand,
             theme: originalFormData.theme || "",
-            brandId: originalFormData.brandId
+            brandId: originalFormData.brandId,
+            teamId: team?.id,
+            userId: user?.id
           }
         });
 
