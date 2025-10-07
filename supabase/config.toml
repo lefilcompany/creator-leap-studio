@@ -1,5 +1,8 @@
 project_id = "afxwqkrneraatgovhpkb"
 
+[functions.migrate-users]
+verify_jwt = true
+
 [functions.generate-plan]
 verify_jwt = true
 
