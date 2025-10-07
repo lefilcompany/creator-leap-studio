@@ -146,15 +146,19 @@ Deno.serve(async (req) => {
       try {
         result.themesProcessed++;
 
-        // Validate required fields
-        if (!csvTheme.title || !csvTheme.description || !csvTheme.toneOfVoice) {
+        // Validate required title field
+        if (!csvTheme.title || csvTheme.title.trim() === '') {
           result.themesSkipped++;
           result.errors.push({
-            theme: csvTheme.title || 'Unknown',
-            error: 'Missing required fields: title, description, or toneOfVoice',
+            theme: 'Unknown',
+            error: 'Missing required field: title cannot be empty',
           });
           continue;
         }
+
+        // Use defaults for empty required fields
+        const description = csvTheme.description?.trim() || 'Descrição não fornecida';
+        const toneOfVoice = csvTheme.toneOfVoice?.trim() || 'Tom de voz não especificado';
 
         // Get brand info from mapping
         const brandInfo = brandMap.get(csvTheme.brandId);
@@ -212,19 +216,19 @@ Deno.serve(async (req) => {
           team_id: profileData.team_id,
           user_id: profileData.id,
           brand_id: brandData.id,
-          title: csvTheme.title,
-          description: csvTheme.description,
-          color_palette: csvTheme.colorPalette || '',
-          tone_of_voice: csvTheme.toneOfVoice,
-          target_audience: csvTheme.targetAudience || '',
-          hashtags: csvTheme.hashtags || '',
-          objectives: csvTheme.objectives || '',
-          content_format: csvTheme.contentFormat || '',
-          macro_themes: csvTheme.macroThemes || '',
-          best_formats: csvTheme.bestFormats || '',
-          platforms: csvTheme.platforms || '',
-          expected_action: csvTheme.expectedAction || '',
-          additional_info: csvTheme.additionalInfo || '',
+          title: csvTheme.title.trim(),
+          description: description,
+          color_palette: csvTheme.colorPalette?.trim() || '',
+          tone_of_voice: toneOfVoice,
+          target_audience: csvTheme.targetAudience?.trim() || '',
+          hashtags: csvTheme.hashtags?.trim() || '',
+          objectives: csvTheme.objectives?.trim() || '',
+          content_format: csvTheme.contentFormat?.trim() || '',
+          macro_themes: csvTheme.macroThemes?.trim() || '',
+          best_formats: csvTheme.bestFormats?.trim() || '',
+          platforms: csvTheme.platforms?.trim() || '',
+          expected_action: csvTheme.expectedAction?.trim() || '',
+          additional_info: csvTheme.additionalInfo?.trim() || '',
         };
 
         if (existingTheme) {
