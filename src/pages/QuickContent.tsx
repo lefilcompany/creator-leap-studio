@@ -23,6 +23,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Brand } from "@/types/brand";
+import { getPlatformImageSpec } from "@/lib/platformSpecs";
 
 export default function QuickContent() {
   const navigate = useNavigate();
@@ -35,6 +36,7 @@ export default function QuickContent() {
   const [formData, setFormData] = useState({
     prompt: "",
     brandId: "",
+    platform: "",
     aspectRatio: "1:1",
     style: "auto",
     quality: "standard",
@@ -284,6 +286,48 @@ export default function QuickContent() {
               <p className="text-xs text-muted-foreground flex items-start gap-1.5">
                 <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
                 <span>Selecionar uma marca ajuda a IA a criar conteúdo alinhado com sua identidade visual</span>
+              </p>
+            </div>
+
+            {/* Platform Selection (Optional) */}
+            <div className="space-y-2">
+              <Label htmlFor="platform" className="text-sm font-semibold text-foreground">
+                Plataforma <span className="text-muted-foreground font-normal">(opcional)</span>
+              </Label>
+              <Select
+                value={formData.platform}
+                onValueChange={(value) => {
+                  setFormData({ ...formData, platform: value });
+                  
+                  // Auto-sugerir aspect ratio baseado na plataforma
+                  const imageSpec = getPlatformImageSpec(value, "feed", "organic");
+                  if (imageSpec) {
+                    setFormData(prev => ({ ...prev, aspectRatio: imageSpec.aspectRatio }));
+                    toast.info(`Proporção ajustada para ${value}`, {
+                      description: `${imageSpec.aspectRatio} (${imageSpec.width}x${imageSpec.height}px)`,
+                      duration: 3000
+                    });
+                  }
+                }}
+              >
+                <SelectTrigger 
+                  id="platform"
+                  className="h-11 rounded-xl border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
+                >
+                  <SelectValue placeholder="Nenhuma plataforma selecionada" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl border-border/20">
+                  <SelectItem value="Instagram" className="rounded-lg">Instagram</SelectItem>
+                  <SelectItem value="Facebook" className="rounded-lg">Facebook</SelectItem>
+                  <SelectItem value="TikTok" className="rounded-lg">TikTok</SelectItem>
+                  <SelectItem value="Twitter/X" className="rounded-lg">Twitter/X</SelectItem>
+                  <SelectItem value="LinkedIn" className="rounded-lg">LinkedIn</SelectItem>
+                  <SelectItem value="Comunidades" className="rounded-lg">Comunidades</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground flex items-start gap-1.5">
+                <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
+                <span>Selecionar plataforma ajusta automaticamente a proporção ideal</span>
               </p>
             </div>
 

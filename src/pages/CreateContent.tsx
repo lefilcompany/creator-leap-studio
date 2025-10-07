@@ -25,6 +25,7 @@ import type { StrategicTheme, StrategicThemeSummary } from "@/types/theme";
 import type { Persona, PersonaSummary } from "@/types/persona";
 import type { Team } from "@/types/theme";
 import { useAuth } from "@/hooks/useAuth";
+import { getPlatformImageSpec, getCaptionGuidelines } from "@/lib/platformSpecs";
 
 enum GenerationStep {
   IDLE = "IDLE",
@@ -109,6 +110,9 @@ export default function CreateContent() {
   const pasteAreaRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [missingFields, setMissingFields] = useState<string[]>([]);
+  const [contentType, setContentType] = useState<"organic" | "ads">("organic");
+  const [platformGuidelines, setPlatformGuidelines] = useState<string[]>([]);
+  const [recommendedAspectRatio, setRecommendedAspectRatio] = useState<string>("");
 
   const handlePaste = (e: React.ClipboardEvent) => {
     const items = e.clipboardData.items;
@@ -308,6 +312,21 @@ export default function CreateContent() {
         persona: ""
       }));
     }
+    
+    // Se for plataforma, atualizar diretrizes e sugerir aspect ratio
+    if (field === "platform") {
+      const guidelines = getCaptionGuidelines(value, contentType);
+      setPlatformGuidelines(guidelines);
+      
+      const imageSpec = getPlatformImageSpec(value, "feed", contentType);
+      if (imageSpec) {
+        setRecommendedAspectRatio(imageSpec.aspectRatio);
+        toast.info(`Proporção recomendada para ${value}`, {
+          description: `${imageSpec.aspectRatio} (${imageSpec.width}x${imageSpec.height}px)`,
+          duration: 4000
+        });
+      }
+    }
   };
 
   const handleToneSelect = (tone: string) => {
@@ -471,6 +490,7 @@ export default function CreateContent() {
         description: formData.description,
         tone: formData.tone,
         platform: formData.platform,
+        contentType: contentType,
         additionalInfo: formData.additionalInfo,
         referenceImages: allReferenceImages,
         brandImagesCount: finalBrandImages.length, // Informar quantas são da marca
@@ -1080,7 +1100,7 @@ ${formData.description}
                       <SelectItem value="TikTok" className="rounded-lg">
                         TikTok
                       </SelectItem>
-                      <SelectItem value="Twitter" className="rounded-lg">
+                      <SelectItem value="Twitter/X" className="rounded-lg">
                         Twitter (X)
                       </SelectItem>
                       <SelectItem value="LinkedIn" className="rounded-lg">
@@ -1092,6 +1112,70 @@ ${formData.description}
                     </SelectContent>
                   </Select>
                 </div>
+
+                {/* Content Type Selection */}
+                <div className="space-y-2 md:space-y-3">
+                  <Label className="text-xs md:text-sm font-semibold text-foreground">
+                    Tipo de Conteúdo <span className="text-destructive">*</span>
+                  </Label>
+                  <div className="flex items-center space-x-1 rounded-xl bg-muted p-1 border-2 border-border/30">
+                    <Button
+                      type="button"
+                      variant={contentType === "organic" ? "default" : "ghost"}
+                      onClick={() => {
+                        setContentType("organic");
+                        if (formData.platform) {
+                          const guidelines = getCaptionGuidelines(formData.platform, "organic");
+                          setPlatformGuidelines(guidelines);
+                        }
+                      }}
+                      className="flex-1 rounded-lg font-semibold transition-all duration-200 ease-in-out"
+                    >
+                      Orgânico
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={contentType === "ads" ? "default" : "ghost"}
+                      onClick={() => {
+                        setContentType("ads");
+                        if (formData.platform) {
+                          const guidelines = getCaptionGuidelines(formData.platform, "ads");
+                          setPlatformGuidelines(guidelines);
+                        }
+                      }}
+                      className="flex-1 rounded-lg font-semibold transition-all duration-200 ease-in-out"
+                    >
+                      Anúncio
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Platform Guidelines Display */}
+                {platformGuidelines.length > 0 && (
+                  <Card className="bg-primary/5 border-primary/20">
+                    <CardContent className="p-3 md:p-4 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Info className="h-4 w-4 text-primary flex-shrink-0" />
+                        <p className="text-xs md:text-sm font-semibold text-primary">
+                          Diretrizes para {formData.platform} ({contentType === "organic" ? "Orgânico" : "Anúncio"})
+                        </p>
+                      </div>
+                      <ul className="space-y-1 text-xs text-muted-foreground">
+                        {platformGuidelines.map((guideline, idx) => (
+                          <li key={idx} className="flex items-start gap-2">
+                            <span className="text-primary mt-0.5">•</span>
+                            <span>{guideline}</span>
+                          </li>
+                        ))}
+                      </ul>
+                      {recommendedAspectRatio && (
+                        <p className="text-xs text-primary/80 font-medium mt-2 pt-2 border-t border-primary/20">
+                          💡 Proporção recomendada: {recommendedAspectRatio}
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
 
                 {isVideoMode && (
                   <>

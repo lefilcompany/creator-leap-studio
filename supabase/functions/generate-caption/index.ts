@@ -42,65 +42,161 @@ function buildCaptionPrompt(formData: any): string {
     throw new Error("Campos obrigatórios faltando: marca, plataforma, objetivo e descrição da imagem");
   }
 
-  const platformInstructions: Record<string, string> = {
-    Instagram: `
-## Para Instagram:
-### Especificações de Legenda:
-- Alvo: 900-1300 caracteres (texto extenso engaja mais)
-- Hook inicial: 100-125 caracteres impactantes (antes do "ver mais")
-- Subtítulo descritivo logo após o hook
-- 3-4 parágrafos descritivos e narrativos
-- Quebras de linha apenas entre parágrafos principais
-- Linguagem conversacional mas sofisticada
-- Tom aspiracional e inspirador
-- MÁXIMO 5 emojis em toda a legenda
-- 8-10 hashtags estratégicas (MIX nicho + médio alcance)
-- Inclua 1 pergunta genuína + CTA duplo (aspiracional + comando)
-    `,
-    Facebook: `
-## Para Facebook:
-### Especificações de Legenda:
-- Máximo 2.200 caracteres
-- Primeiro parágrafo até 125 caracteres (antes do "ver mais")
-- Use quebras de linha estratégicas para facilitar leitura
-- Linguagem conversacional e próxima
-- 1-3 hashtags relevantes
-- Links diretos no corpo da postagem
-    `,
-    LinkedIn: `
-## Para LinkedIn:
-### Especificações de Legenda:
-- Máximo 3.000 caracteres
-- Tom profissional mas humano
-- Inclua insights e valor educacional
-- Use dados e estatísticas quando relevante
-- 3-5 hashtags profissionais e de nicho
-- Quebras de linha estratégicas
-- Emojis profissionais com moderação (💡, 🚀, ✅)
-    `,
-    TikTok: `
-## Para TikTok:
-### Especificações de Legenda:
-- Máximo 2.200 caracteres
-- SEO é CRÍTICO: Use palavras-chave descritivas
-- 3-5 hashtags (tendências + nicho + específico)
-- Linguagem jovem, dinâmica e informal
-- Incentive engajamento rápido
-- Tom: "Você sabia disso? Comenta aí!"
-    `,
-    "Twitter/X": `
-## Para Twitter/X:
-### Especificações de Legenda:
-- Máximo 280 caracteres
-- Seja EXTREMAMENTE direto e impactante
-- Use 1-2 hashtags estratégicas máximo
-- Incentive retweets e engajamento
-- Encurtadores de link quando necessário
-- Concisão é fundamental
-    `
+  // Mapear tipo de conteúdo (orgânico vs anúncios)
+  const contentType = cleanInput(formData.contentType) || "organic";
+  
+  const platformInstructions: Record<string, any> = {
+    Instagram: {
+      organic: {
+        maxChars: 2200,
+        recommendedChars: 1300,
+        hookChars: 125,
+        hashtags: { min: 5, max: 15, strategy: "Mix de nicho + médio alcance + populares" },
+        tips: [
+          "Hook inicial impactante nos primeiros 125 caracteres",
+          "Use storytelling para engajar",
+          "Quebras de linha entre parágrafos principais",
+          "Máximo 5 emojis em toda a legenda",
+          "Inclua CTA claro (Salve, Compartilhe, Comente)"
+        ]
+      },
+      ads: {
+        maxChars: 2200,
+        recommendedChars: 150,
+        tips: [
+          "Mensagem direta e clara sobre a oferta",
+          "Primeiras 3 linhas são críticas",
+          "Use botão de CTA nativo (Saiba Mais, Comprar Agora)",
+          "Evite texto excessivo na imagem"
+        ]
+      }
+    },
+    Facebook: {
+      organic: {
+        maxChars: 63206,
+        recommendedChars: 250,
+        hashtags: { min: 1, max: 3, strategy: "Hashtags menos importantes, foque em texto" },
+        tips: [
+          "Textos curtos (até 250 caracteres) performam melhor",
+          "Use quebras de linha e emojis para facilitar leitura",
+          "Ideal para compartilhar links diretos",
+          "Primeiro parágrafo deve ser cativante"
+        ]
+      },
+      ads: {
+        maxChars: 125,
+        recommendedChars: 125,
+        tips: [
+          "Título entre 25-40 caracteres",
+          "Texto principal até 125 caracteres para evitar cortes",
+          "Descrição do link com ~30 caracteres",
+          "Teste diferentes combinações de imagem e texto"
+        ]
+      }
+    },
+    LinkedIn: {
+      organic: {
+        maxChars: 3000,
+        recommendedChars: 1500,
+        hashtags: { min: 3, max: 5, strategy: "Hashtags profissionais e de nicho" },
+        tips: [
+          "Textos longos e elaborados são valorizados",
+          "Conte histórias profissionais e compartilhe aprendizados",
+          "Use quebras de linha para criar 'respiros'",
+          "Emojis profissionais com moderação (💡, 🚀, ✅)"
+        ]
+      },
+      ads: {
+        maxChars: 600,
+        recommendedChars: 150,
+        tips: [
+          "Texto introdutório até 150 caracteres recomendado",
+          "Título do anúncio: 70 caracteres para melhor visualização",
+          "Use CTAs pré-definidos (Saiba mais, Inscreva-se)"
+        ]
+      }
+    },
+    TikTok: {
+      organic: {
+        maxChars: 2200,
+        recommendedChars: 150,
+        hashtags: { min: 3, max: 5, strategy: "Tendências + nicho + específico" },
+        tips: [
+          "SEO é CRÍTICO: use palavras-chave que descrevam o vídeo",
+          "Hashtags essenciais para alcance",
+          "Tom informal e direto",
+          "Incentive engajamento rápido (Ex: Você sabia disso? Comenta aí!)"
+        ]
+      },
+      ads: {
+        maxChars: 100,
+        recommendedChars: 100,
+        tips: [
+          "Limite de 100 caracteres",
+          "Comunicação principal deve estar no vídeo",
+          "Legenda como apoio pequeno",
+          "Pareça conteúdo nativo, não anúncio"
+        ]
+      }
+    },
+    "Twitter/X": {
+      organic: {
+        maxChars: 280,
+        recommendedChars: 280,
+        hashtags: { min: 1, max: 2, strategy: "1-2 hashtags para conversas relevantes" },
+        tips: [
+          "Concisão é fundamental",
+          "Vá direto ao ponto",
+          "Faça perguntas e crie enquetes",
+          "Marque outros perfis (@) para gerar interação"
+        ]
+      },
+      ads: {
+        maxChars: 280,
+        tips: [
+          "Tweet: 280 caracteres",
+          "Título do Card: 70 caracteres (cortado após 50)",
+          "Descrição: 200 caracteres (não aparece em todos os lugares)"
+        ]
+      }
+    },
+    Comunidades: {
+      organic: {
+        maxChars: 5000,
+        tips: [
+          "Seja autêntico - fale como um membro, não como marca",
+          "Faça perguntas abertas para gerar conversa",
+          "Entregue valor primeiro sem pedir nada em troca",
+          "Respeite as regras sobre autopromoção",
+          "CTA sutil: 'O que vocês acham?', 'Alguém já passou por isso?'"
+        ]
+      }
+    }
   };
 
-  const specificInstructions = platformInstructions[platform] || platformInstructions.Instagram;
+  const platformData = platformInstructions[platform]?.[contentType] || platformInstructions[platform]?.organic || platformInstructions.Instagram.organic;
+  
+  let specificInstructions = `\n## Para ${platform} (${contentType === 'organic' ? 'Orgânico' : 'Anúncio'}):\n`;
+  specificInstructions += `### Especificações de Legenda:\n`;
+  
+  if (platformData.maxChars) {
+    specificInstructions += `- Limite máximo: ${platformData.maxChars} caracteres\n`;
+  }
+  if (platformData.recommendedChars) {
+    specificInstructions += `- Recomendado: ${platformData.recommendedChars} caracteres\n`;
+  }
+  if (platformData.hookChars) {
+    specificInstructions += `- Hook inicial: ${platformData.hookChars} caracteres (antes do "ver mais")\n`;
+  }
+  if (platformData.hashtags) {
+    specificInstructions += `- Hashtags: ${platformData.hashtags.min}-${platformData.hashtags.max} (${platformData.hashtags.strategy})\n`;
+  }
+  if (platformData.tips) {
+    specificInstructions += `\n### Dicas Importantes:\n`;
+    platformData.tips.forEach((tip: string) => {
+      specificInstructions += `- ${tip}\n`;
+    });
+  }
 
   return `
 # CONTEXTO ESTRATÉGICO

@@ -120,19 +120,46 @@ function buildDetailedPrompt(formData: any): string {
     "Profundidade de campo rasa criando efeito bokeh suave no fundo, destacando o sujeito principal com estética profissional e cinematográfica."
   );
 
-  // Otimização para plataforma
-  const platformStyles: { [key: string]: string } = {
-    instagram: "cores vibrantes, otimizado para engajamento no feed e stories",
-    facebook: "composição envolvente, focada na comunidade e interação social",
-    linkedin: "estética profissional e corporativa, ideal para posts de negócios",
-    twitter: "design clean e chamativo, otimizado para visibilidade",
-    x: "design clean e chamativo, otimizado para interações rápidas",
-    tiktok: "composição dinâmica e energia jovem, formato vertical",
-    youtube: "thumbnail de alto contraste, otimizado para aumentar visualizações"
+  // Otimização para plataforma com specs detalhadas
+  const platformImageSpecs: { [key: string]: any } = {
+    Instagram: {
+      feed: { width: 1080, height: 1350, ratio: "4:5", desc: "Feed vertical - maior engajamento" },
+      story: { width: 1080, height: 1920, ratio: "9:16", desc: "Stories/Reels - tela cheia" },
+      square: { width: 1080, height: 1080, ratio: "1:1", desc: "Quadrado - versátil" }
+    },
+    Facebook: {
+      feed: { width: 1200, height: 630, ratio: "1.91:1", desc: "Feed/Links padrão" },
+      square: { width: 1080, height: 1080, ratio: "1:1", desc: "Quadrado" }
+    },
+    TikTok: {
+      video: { width: 1080, height: 1920, ratio: "9:16", desc: "Formato vertical nativo" }
+    },
+    "Twitter/X": {
+      feed: { width: 1600, height: 900, ratio: "16:9", desc: "Feed otimizado" }
+    },
+    LinkedIn: {
+      feed: { width: 1200, height: 627, ratio: "1.91:1", desc: "Feed profissional" }
+    },
+    Comunidades: {
+      universal: { width: 1080, height: 1080, ratio: "1:1", desc: "Formato universal" }
+    }
   };
 
-  if (platform && platformStyles[platform.toLowerCase()]) {
-    promptParts.push(`Otimizado para ${platform}: ${platformStyles[platform.toLowerCase()]}`);
+  if (platform) {
+    const platformKey = platform.replace("/", "_");
+    const platformSpec = platformImageSpecs[platform];
+    
+    if (platformSpec) {
+      // Usar primeira opção disponível (feed, video, universal)
+      const specKey = Object.keys(platformSpec)[0];
+      const spec = platformSpec[specKey];
+      
+      promptParts.push(
+        `Otimizado para ${platform}: ${spec.desc}. ` +
+        `Formato ideal ${spec.ratio} (${spec.width}x${spec.height}px). ` +
+        `${platform === 'Instagram' && specKey === 'story' ? 'Mantenha elementos importantes centralizados (zona segura)' : ''}`
+      );
+    }
   }
 
   // Persona e informações adicionais
