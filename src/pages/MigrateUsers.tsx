@@ -18,7 +18,8 @@ interface MigrationResult {
 }
 
 const MigrateUsers = () => {
-  const [file, setFile] = useState<File | null>(null);
+  const [usersFile, setUsersFile] = useState<File | null>(null);
+  const [teamsFile, setTeamsFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<MigrationResult | null>(null);
 
@@ -38,30 +39,40 @@ const MigrateUsers = () => {
       });
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUsersFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
+      setUsersFile(e.target.files[0]);
+      setResult(null);
+    }
+  };
+
+  const handleTeamsFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setTeamsFile(e.target.files[0]);
       setResult(null);
     }
   };
 
   const handleMigration = async () => {
-    if (!file) {
-      toast.error("Por favor, selecione um arquivo CSV");
+    if (!usersFile || !teamsFile) {
+      toast.error("Por favor, selecione ambos os arquivos CSV (usuários e times)");
       return;
     }
 
     setLoading(true);
     try {
-      // Ler o arquivo CSV
-      const csvText = await file.text();
-      const csvData = parseCSV(csvText);
+      // Ler ambos os arquivos CSV
+      const usersText = await usersFile.text();
+      const teamsText = await teamsFile.text();
+      
+      const csvData = parseCSV(usersText);
+      const teamsData = parseCSV(teamsText);
 
-      console.log(`Parsed ${csvData.length} users from CSV`);
+      console.log(`Parsed ${csvData.length} users and ${teamsData.length} teams from CSVs`);
 
-      // Chamar a Edge Function
+      // Chamar a Edge Function com ambos os dados
       const { data, error } = await supabase.functions.invoke('migrate-users', {
-        body: { csvData }
+        body: { csvData, teamsData }
       });
 
       if (error) {
@@ -96,37 +107,58 @@ const MigrateUsers = () => {
 
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>Upload do Arquivo CSV</CardTitle>
+          <CardTitle>Upload dos Arquivos CSV</CardTitle>
           <CardDescription>
-            Selecione o arquivo CSV com os dados dos usuários a serem migrados.
+            Selecione os arquivos CSV de usuários e times para migração.
             Os usuários receberão automaticamente um email para redefinir suas senhas.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="csv-file">Arquivo CSV</Label>
+            <Label htmlFor="users-csv">Arquivo CSV de Usuários (User_rows.csv)</Label>
             <Input
-              id="csv-file"
+              id="users-csv"
               type="file"
               accept=".csv"
-              onChange={handleFileChange}
+              onChange={handleUsersFileChange}
               disabled={loading}
             />
           </div>
 
-          {file && (
+          <div className="space-y-2">
+            <Label htmlFor="teams-csv">Arquivo CSV de Times (Team_rows.csv)</Label>
+            <Input
+              id="teams-csv"
+              type="file"
+              accept=".csv"
+              onChange={handleTeamsFileChange}
+              disabled={loading}
+            />
+          </div>
+
+          {usersFile && (
             <Alert>
               <Upload className="h-4 w-4" />
-              <AlertTitle>Arquivo selecionado</AlertTitle>
+              <AlertTitle>Usuários: {usersFile.name}</AlertTitle>
               <AlertDescription>
-                {file.name} ({(file.size / 1024).toFixed(2)} KB)
+                {(usersFile.size / 1024).toFixed(2)} KB
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {teamsFile && (
+            <Alert>
+              <Upload className="h-4 w-4" />
+              <AlertTitle>Times: {teamsFile.name}</AlertTitle>
+              <AlertDescription>
+                {(teamsFile.size / 1024).toFixed(2)} KB
               </AlertDescription>
             </Alert>
           )}
 
           <Button
             onClick={handleMigration}
-            disabled={!file || loading}
+            disabled={!usersFile || !teamsFile || loading}
             className="w-full"
           >
             {loading ? "Processando migração..." : "Iniciar Migração"}

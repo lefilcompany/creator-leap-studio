@@ -10,7 +10,11 @@ Esta ferramenta permite migrar usuários de um sistema antigo para o sistema Cre
 
 Acesse a página de migração através da URL: `/migrate-users`
 
-### 2. Formato do CSV
+### 2. Arquivos Necessários
+
+A migração requer **dois arquivos CSV**:
+
+#### 2.1. CSV de Usuários (User_rows.csv)
 
 O arquivo CSV deve conter as seguintes colunas:
 
@@ -28,16 +32,36 @@ O arquivo CSV deve conter as seguintes colunas:
 - `resetTokenExpiry`: Expiração do token (não utilizado)
 - `tutorialCompleted`: Se o tutorial foi completado (`true`/`false`)
 
+#### 2.2. CSV de Times (Team_rows.csv)
+
+O arquivo CSV de times deve conter as seguintes colunas:
+
+- `id`: ID do time antigo (será mapeado para novo UUID)
+- `name`: Nome do time (obrigatório)
+- `code`: Código hasheado (não utilizado)
+- `displayCode`: Código legível da equipe (será usado como código)
+- `adminId`: ID do admin antigo (será mapeado para novo UUID)
+- `plan`: JSON com informações do plano (não utilizado atualmente)
+- `credits`: JSON com créditos disponíveis (`contentPlans`, `contentReviews`, `contentSuggestions`)
+- `totalContents`: Total de conteúdos (estatística, não migrado)
+- `totalBrands`: Total de marcas (estatística, não migrado)
+
 ### 3. Processo de Migração
 
-A migração segue estas etapas:
+A migração segue estas etapas em ordem:
 
-#### Fase 1: Criação de Equipes
-- Identifica todas as equipes únicas no CSV
-- Cria cada equipe no sistema com código único: `MIGRATED-{últimos8dígitos}`
-- Mapeia IDs antigos para novos UUIDs
 
-#### Fase 2: Criação de Usuários
+#### Fase 1: Criação de Equipes (do CSV de Teams)
+- Processa **todos os times do CSV Team_rows.csv**
+- Cria cada time com:
+  - Nome do time do CSV
+  - Código: usa o `displayCode` do CSV
+  - Créditos: extraídos do JSON `credits` do CSV
+  - Plano: `free` (padrão, pode ser ajustado depois)
+- Mapeia IDs antigos (`id` do CSV) para novos UUIDs
+- Guarda referência do `adminId` antigo para vincular depois
+
+#### Fase 2: Criação de Usuários (do CSV de Users)
 Para cada usuário no CSV:
 
 1. **Cria conta no Supabase Auth**
@@ -59,6 +83,11 @@ Para cada usuário no CSV:
    - Automaticamente via sistema nativo do Supabase
    - Usuário recebe link para criar nova senha
 
+#### Fase 3: Vinculação de Admins
+- Atualiza cada time com o `admin_id` correto
+- Usa o mapeamento entre `adminId` antigo (do CSV de times) e novo UUID do usuário
+- Garante que cada time tenha seu admin correto
+
 ### 4. Mapeamento de Dados
 
 #### Roles
@@ -79,11 +108,21 @@ PENDING           → sem equipe (team_id = NULL)
 
 #### Teams
 ```
-teamId antigo → novo UUID da equipe
-- Código único: MIGRATED-{8 dígitos}
-- Nome: Team {nome do admin}
-- Plano: free (padrão)
+CSV de Times (Team_rows.csv)
+id (antigo)     → novo UUID da equipe
+name            → nome do time (preservado)
+displayCode     → código do time (usado como `code`)
+adminId (antigo)→ mapeado para novo UUID do admin
+credits (JSON)  → extraído e aplicado (contentPlans, contentReviews, contentSuggestions)
+
+Exemplo:
+cmetykbus0003spgyoc3l77pq → novo UUID gerado
+LeFil → LeFil (nome preservado)
+TIMELEFIL → código usado no sistema
+cmetyjxxl0001spgy1gyx7cyg (adminId antigo) → novo UUID do usuário admin
 ```
+
+#### Users vinculados a Teams
 
 ### 5. Após a Migração
 
@@ -126,8 +165,21 @@ O relatório de migração mostrará:
 - Podem entrar em equipe posteriormente via código de acesso
 
 #### Admins de Equipe
-- Primeiro admin de cada equipe se torna o `admin_id` da equipe
-- Recebe role `admin` automaticamente
+- Admin é definido pelo CSV de teams (campo `adminId`)
+- O sistema vincula automaticamente o usuário correto como admin
+- Admin recebe role `admin` automaticamente
+- Se um time tiver múltiplos admins no CSV de usuários, apenas o primeiro (do CSV de teams) será o admin oficial
+
+#### Times Duplicados
+- Se um time com o mesmo `displayCode` já existe, usa o existente
+- Aparecerá nos "Avisos" do relatório
+
+#### Créditos dos Times
+- Créditos são extraídos do JSON `credits` no CSV de times
+- Se o JSON estiver malformado, usa valores padrão:
+  - `contentPlans`: 10
+  - `contentReviews`: 20  
+  - `contentSuggestions`: 50
 
 ### 7. Segurança
 
@@ -152,13 +204,21 @@ O relatório de migração mostrará:
 - Email já cadastrado no sistema
 - Usuário pode fazer login normalmente ou resetar senha
 
+#### "Invalid teams data format"
+- CSV de times está com formato incorreto
+- Verifique se tem todas as colunas necessárias
+
+#### "Team creation failed"
+- Código de equipe (`displayCode`) pode estar duplicado
+- Verifique logs para detalhes específicos
+
+#### "Failed to update admin for team"
+- AdminId do CSV não foi encontrado nos usuários criados
+- Verifique se o admin existe no CSV de usuários
+
 #### "Auth creation failed"
 - Pode ser problema temporário do Supabase
 - Tente novamente ou verifique logs da Edge Function
-
-#### "Team creation failed"
-- Código de equipe pode estar duplicado
-- Verifique logs para detalhes específicos
 
 ### 9. Logs
 
@@ -180,13 +240,20 @@ Se necessário reverter a migração:
 
 **Atenção:** Não há script automático de rollback. Faça backup antes de migrar!
 
-## Exemplo de CSV
+## Exemplo de CSVs
 
+### User_rows.csv
 ```csv
 id,name,email,password,phone,state,city,role,status,teamId,resetToken,resetTokenExpiry,tutorialCompleted
 abc123,João Silva,joao@example.com,$2b$12$hash..,(11) 98765-4321,SP,São Paulo,ADMIN,ACTIVE,team001,,,true
 def456,Maria Santos,maria@example.com,$2b$12$hash..,(11) 91234-5678,SP,São Paulo,MEMBER,ACTIVE,team001,,,true
 ghi789,Pedro Costa,pedro@example.com,$2b$12$hash..,(21) 99999-8888,RJ,Rio de Janeiro,WITHOUT_TEAM,NO_TEAM,,,,false
+```
+
+### Team_rows.csv
+```csv
+id,name,code,displayCode,adminId,plan,credits,totalContents,totalBrands
+team001,Equipe Alpha,$2b$12$hash..,ALPHA2024,abc123,"{""name"":""Free""}","{""contentPlans"":10,""contentReviews"":20,""contentSuggestions"":50}",0,5
 ```
 
 ## Conclusão
