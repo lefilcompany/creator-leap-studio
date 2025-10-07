@@ -280,33 +280,35 @@ export default function ContentResult() {
       const updatedContent = { ...contentData };
       
       if (reviewType === "caption") {
-        // Regenerate caption with review feedback
-        toast.info("Regenerando legenda com base no seu feedback...");
+        // Revise caption using OpenAI gpt-4o-mini
+        toast.info("Revisando legenda com base no seu feedback...");
         
-        const { data, error } = await supabase.functions.invoke('generate-caption', {
+        const { data, error } = await supabase.functions.invoke('revise-caption-openai', {
           body: {
-            formData: {
-              brand: originalFormData.brand,
-              theme: originalFormData.theme || "",
-              persona: originalFormData.persona || "",
-              objective: originalFormData.objective,
-              imageDescription: originalFormData.description,
-              tone: originalFormData.tone,
-              platform: originalFormData.platform,
-              additionalInfo: `${originalFormData.additionalInfo || ''}\n\nREVISÃO SOLICITADA: ${reviewPrompt}`
-            }
+            prompt: reviewPrompt,
+            originalTitle: contentData.title || "",
+            originalBody: contentData.body || contentData.caption?.split('\n\n')[1] || "",
+            originalHashtags: contentData.hashtags || [],
+            brand: originalFormData.brand || contentData.brand,
+            theme: originalFormData.theme || "",
+            brandId: originalFormData.brandId
           }
         });
 
         if (error) {
-          console.error("Erro ao regenerar legenda:", error);
-          throw new Error("Falha ao regenerar legenda");
+          console.error("Erro ao revisar legenda:", error);
+          throw new Error(error.message || "Falha ao revisar legenda");
+        }
+
+        if (!data.title || !data.body || !data.hashtags) {
+          throw new Error("Resposta inválida da revisão de legenda");
         }
 
         // Format caption with hashtags
         const formattedCaption = `${data.title}\n\n${data.body}\n\n${data.hashtags.map((tag: string) => `#${tag}`).join(' ')}`;
         updatedContent.caption = formattedCaption;
         updatedContent.title = data.title;
+        updatedContent.body = data.body;
         updatedContent.hashtags = data.hashtags;
         
       } else {

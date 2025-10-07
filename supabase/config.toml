@@ -32,3 +32,6 @@ verify_jwt = true
 
 [functions.edit-image]
 verify_jwt = false
+
+[functions.revise-caption-openai]
+verify_jwt = true
