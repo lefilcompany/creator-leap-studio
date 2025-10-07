@@ -888,9 +888,10 @@ Plataforma: ${originalFormData.platform || 'N/A'}`
               {reviewType ? (
                 <>
                   Descreva as alterações que deseja fazer.
-                  {freeRevisionsLeft > 0 ? (
-                    <span className="text-primary font-medium"> Você tem {freeRevisionsLeft} revisão{freeRevisionsLeft !== 1 ? 'ões' : ''} gratuita{freeRevisionsLeft !== 1 ? 's' : ''}.</span>
-                  ) : (
+                  {freeRevisionsLeft > 0 && (
+                    <span className="text-primary font-medium"> Você tem 2 revisões gratuitas.</span>
+                  )}
+                  {freeRevisionsLeft === 0 && (
                     <span className="text-orange-600 font-medium"> Esta revisão consumirá 1 crédito.</span>
                   )}
                 </>
