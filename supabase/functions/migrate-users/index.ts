@@ -78,85 +78,11 @@ Deno.serve(async (req) => {
       warnings: []
     }
 
-    // Fase 1: Processar times do CSV de teams
-    const teamMap = new Map<string, string>() // oldTeamId -> newTeamUUID
-    const adminMap = new Map<string, string>() // oldAdminId -> teamId (para atualizar depois)
-
-    console.log(`Processing ${teamsData.length} teams from CSV`)
-
-    // Criar todos os times primeiro
-    for (const team of teamsData as CSVTeam[]) {
-      try {
-        // Usar displayCode como código do time
-        const teamCode = team.displayCode || `TEAM-${team.id.slice(-8).toUpperCase()}`
-        
-        // Verificar se já existe
-        const { data: existingTeam } = await supabaseClient
-          .from('teams')
-          .select('id')
-          .eq('code', teamCode)
-          .single()
-
-        if (existingTeam) {
-          teamMap.set(team.id, existingTeam.id)
-          console.log(`Team ${teamCode} already exists, using existing ID`)
-          continue
-        }
-
-        // Parse dos créditos do JSON
-        let credits = { contentPlans: 10, contentReviews: 20, contentSuggestions: 50 }
-        try {
-          const parsedCredits = JSON.parse(team.credits)
-          credits = {
-            contentPlans: parsedCredits.contentPlans || 10,
-            contentReviews: parsedCredits.contentReviews || 20,
-            contentSuggestions: parsedCredits.contentSuggestions || 50
-          }
-        } catch (e) {
-          console.warn(`Failed to parse credits for team ${team.name}, using defaults`)
-        }
-
-        // Criar team temporariamente sem admin_id
-        const { data: newTeam, error: teamError } = await supabaseClient
-          .from('teams')
-          .insert({
-            name: team.name,
-            code: teamCode,
-            admin_id: '00000000-0000-0000-0000-000000000000', // Placeholder
-            plan_id: 'free', // Usar plano free por padrão
-            credits_quick_content: credits.contentSuggestions,
-            credits_suggestions: credits.contentSuggestions,
-            credits_plans: credits.contentPlans,
-            credits_reviews: credits.contentReviews
-          })
-          .select()
-          .single()
-
-        if (teamError) {
-          console.error(`Error creating team ${teamCode}:`, teamError)
-          result.warnings.push({
-            email: team.name,
-            warning: `Failed to create team: ${teamError.message}`
-          })
-          continue
-        }
-
-        teamMap.set(team.id, newTeam.id)
-        adminMap.set(team.adminId, newTeam.id) // Guardar para atualizar admin depois
-        result.teamsCreated++
-        console.log(`Created team ${teamCode} with ID ${newTeam.id}`)
-      } catch (error) {
-        console.error(`Error processing team ${team.name}:`, error)
-        result.warnings.push({
-          email: team.name,
-          warning: `Failed to process team: ${error instanceof Error ? error.message : 'Unknown error'}`
-        })
-      }
-    }
-
-    // Fase 2: Criar usuários e mapear admins
+    // Fase 1: Criar todos os usuários PRIMEIRO (sem team_id)
     const userIdMap = new Map<string, string>() // oldUserId -> newUserUUID
     const tempPassword = 'ChangeMe123!' // Senha temporária
+
+    console.log(`Processing ${csvData.length} users from CSV`)
 
     for (const user of csvData as CSVUser[]) {
       result.usersProcessed++
@@ -214,13 +140,7 @@ Deno.serve(async (req) => {
         // Guardar mapeamento do ID antigo para o novo
         userIdMap.set(user.id, authUser.user.id)
 
-        // Determinar team_id
-        let teamId: string | null = null
-        if (user.teamId && teamMap.has(user.teamId)) {
-          teamId = teamMap.get(user.teamId)!
-        }
-
-        // Criar profile
+        // Criar profile SEM team_id (vamos adicionar depois)
         const { error: profileError } = await supabaseClient
           .from('profiles')
           .insert({
@@ -230,7 +150,7 @@ Deno.serve(async (req) => {
             phone: user.phone,
             state: user.state,
             city: user.city,
-            team_id: teamId,
+            team_id: null, // Será atualizado na Fase 3
             tutorial_completed: user.tutorialCompleted === 'true'
           })
 
@@ -243,26 +163,8 @@ Deno.serve(async (req) => {
           continue
         }
 
-        // Criar role se não for WITHOUT_TEAM
-        if (user.role !== 'WITHOUT_TEAM') {
-          const roleValue = user.role === 'ADMIN' ? 'admin' : 'user'
-          
-          const { error: roleError } = await supabaseClient
-            .from('user_roles')
-            .insert({
-              user_id: authUser.user.id,
-              role: roleValue
-            })
-
-          if (roleError) {
-            console.error(`Role error for ${user.email}:`, roleError)
-            result.warnings.push({
-              email: user.email,
-              warning: `Role creation failed: ${roleError.message}`
-            })
-          }
-        }
-
+        // Não criar roles aqui - será feito quando criar os teams
+        
         // Enviar email de reset de senha usando o sistema nativo do Supabase
         const { error: resetError } = await supabaseClient.auth.admin.generateLink({
           type: 'recovery',
@@ -289,25 +191,129 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Fase 3: Atualizar admin_id dos times com os novos UUIDs
-    console.log('Updating team admins...')
-    for (const [oldAdminId, teamId] of adminMap) {
-      if (userIdMap.has(oldAdminId)) {
-        const newAdminUUID = userIdMap.get(oldAdminId)!
+    // Fase 2: Criar times com admin_id correto
+    const teamMap = new Map<string, string>() // oldTeamId -> newTeamUUID
+    const userTeamMap = new Map<string, string>() // oldUserId -> newTeamUUID (para atualizar profiles)
+
+    console.log(`Processing ${teamsData.length} teams from CSV`)
+
+    for (const team of teamsData as CSVTeam[]) {
+      try {
+        // Verificar se o admin existe
+        if (!userIdMap.has(team.adminId)) {
+          console.warn(`Admin ${team.adminId} not found for team ${team.name}, skipping team`)
+          result.warnings.push({
+            email: team.name,
+            warning: `Team admin not found in migrated users`
+          })
+          continue
+        }
+
+        const newAdminUUID = userIdMap.get(team.adminId)!
+        const teamCode = team.displayCode || `TEAM-${team.id.slice(-8).toUpperCase()}`
+        
+        // Verificar se já existe
+        const { data: existingTeam } = await supabaseClient
+          .from('teams')
+          .select('id')
+          .eq('code', teamCode)
+          .single()
+
+        if (existingTeam) {
+          teamMap.set(team.id, existingTeam.id)
+          console.log(`Team ${teamCode} already exists, using existing ID`)
+          continue
+        }
+
+        // Parse dos créditos do JSON
+        let credits = { contentPlans: 10, contentReviews: 20, contentSuggestions: 50 }
+        try {
+          const parsedCredits = JSON.parse(team.credits)
+          credits = {
+            contentPlans: parsedCredits.contentPlans || 10,
+            contentReviews: parsedCredits.contentReviews || 20,
+            contentSuggestions: parsedCredits.contentSuggestions || 50
+          }
+        } catch (e) {
+          console.warn(`Failed to parse credits for team ${team.name}, using defaults`)
+        }
+
+        // Criar team com admin_id válido
+        const { data: newTeam, error: teamError } = await supabaseClient
+          .from('teams')
+          .insert({
+            name: team.name,
+            code: teamCode,
+            admin_id: newAdminUUID, // Agora o admin já existe!
+            plan_id: 'free',
+            credits_quick_content: credits.contentSuggestions,
+            credits_suggestions: credits.contentSuggestions,
+            credits_plans: credits.contentPlans,
+            credits_reviews: credits.contentReviews
+          })
+          .select()
+          .single()
+
+        if (teamError) {
+          console.error(`Error creating team ${teamCode}:`, teamError)
+          result.warnings.push({
+            email: team.name,
+            warning: `Failed to create team: ${teamError.message}`
+          })
+          continue
+        }
+
+        teamMap.set(team.id, newTeam.id)
+        result.teamsCreated++
+        console.log(`Created team ${teamCode} with ID ${newTeam.id}`)
+        
+      } catch (error) {
+        console.error(`Error processing team ${team.name}:`, error)
+        result.warnings.push({
+          email: team.name,
+          warning: `Failed to process team: ${error instanceof Error ? error.message : 'Unknown error'}`
+        })
+      }
+    }
+
+    // Fase 3: Atualizar profiles com team_id correto
+    console.log('Assigning users to teams...')
+    for (const user of csvData as CSVUser[]) {
+      if (user.teamId && teamMap.has(user.teamId) && userIdMap.has(user.id)) {
+        const newTeamId = teamMap.get(user.teamId)!
+        const newUserId = userIdMap.get(user.id)!
         
         const { error: updateError } = await supabaseClient
-          .from('teams')
-          .update({ admin_id: newAdminUUID })
-          .eq('id', teamId)
+          .from('profiles')
+          .update({ team_id: newTeamId })
+          .eq('id', newUserId)
 
         if (updateError) {
-          console.error(`Failed to update admin for team ${teamId}:`, updateError)
+          console.error(`Failed to assign team to user ${user.email}:`, updateError)
           result.warnings.push({
-            email: 'system',
-            warning: `Failed to update admin for team: ${updateError.message}`
+            email: user.email,
+            warning: `Failed to assign to team: ${updateError.message}`
           })
-        } else {
-          console.log(`Updated admin for team ${teamId}`)
+        }
+
+        // Criar user role se não for WITHOUT_TEAM
+        if (user.role !== 'WITHOUT_TEAM') {
+          const roleValue = user.role === 'ADMIN' ? 'admin' : 'user'
+          
+          const { error: roleError } = await supabaseClient
+            .from('user_roles')
+            .insert({
+              user_id: newUserId,
+              role: roleValue
+            })
+
+          if (roleError) {
+            console.error(`Role error for ${user.email}:`, roleError)
+            result.warnings.push({
+              email: user.email,
+              warning: `Role creation failed: ${roleError.message}`
+            })
+          }
         }
       }
     }
