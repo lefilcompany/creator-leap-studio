@@ -865,7 +865,7 @@ export default function ContentResult() {
                   
                   {isSavedToHistory && contentData.actionId && (
                     <Button
-                      onClick={() => navigate(`/history/${contentData.actionId}`)}
+                      onClick={() => navigate(`/historico/${contentData.actionId}`)}
                       variant="default"
                       className="w-full rounded-xl hover-scale transition-all duration-200 gap-2 text-sm sm:text-base"
                       size="lg"
