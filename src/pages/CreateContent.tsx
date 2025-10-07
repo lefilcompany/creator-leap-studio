@@ -506,6 +506,8 @@ export default function CreateContent() {
         cameraAngle: formData.cameraAngle,
         detailLevel: formData.detailLevel,
         mood: formData.mood,
+        width: formData.width,
+        height: formData.height,
       };
 
       // Validar que brand é UUID válido

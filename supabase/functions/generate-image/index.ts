@@ -43,6 +43,18 @@ function buildDetailedPrompt(formData: any): string {
   const cameraAngle = formData.cameraAngle || 'eye_level';
   const detailLevel = formData.detailLevel || 7;
   const mood = formData.mood || 'auto';
+  
+  // Dimensões customizadas (com validação)
+  let customWidth = formData.width ? parseInt(formData.width) : null;
+  let customHeight = formData.height ? parseInt(formData.height) : null;
+  
+  // Validar dimensões (512-2048px, múltiplos de 64)
+  if (customWidth) {
+    customWidth = Math.max(512, Math.min(2048, Math.round(customWidth / 64) * 64));
+  }
+  if (customHeight) {
+    customHeight = Math.max(512, Math.min(2048, Math.round(customHeight / 64) * 64));
+  }
 
   const promptParts: string[] = [];
 
@@ -145,21 +157,60 @@ function buildDetailedPrompt(formData: any): string {
     }
   };
 
-  if (platform) {
-    const platformKey = platform.replace("/", "_");
+  // Determinar dimensões finais (priorizar customizadas)
+  let finalWidth: number;
+  let finalHeight: number;
+  let dimensionSource: string;
+  
+  if (customWidth && customHeight) {
+    // Usar dimensões customizadas
+    finalWidth = customWidth;
+    finalHeight = customHeight;
+    dimensionSource = "customizadas";
+  } else if (platform) {
+    // Usar specs da plataforma
     const platformSpec = platformImageSpecs[platform];
-    
     if (platformSpec) {
-      // Usar primeira opção disponível (feed, video, universal)
+      const specKey = Object.keys(platformSpec)[0];
+      const spec = platformSpec[specKey];
+      finalWidth = spec.width;
+      finalHeight = spec.height;
+      dimensionSource = `plataforma ${platform}`;
+    } else {
+      finalWidth = 1080;
+      finalHeight = 1080;
+      dimensionSource = "padrão";
+    }
+  } else {
+    // Fallback padrão
+    finalWidth = 1080;
+    finalHeight = 1080;
+    dimensionSource = "padrão";
+  }
+  
+  const ratio = finalWidth / finalHeight;
+  const ratioString = ratio > 1 ? `${ratio.toFixed(2)}:1` : `1:${(1/ratio).toFixed(2)}`;
+  
+  if (platform) {
+    const platformSpec = platformImageSpecs[platform];
+    if (platformSpec) {
       const specKey = Object.keys(platformSpec)[0];
       const spec = platformSpec[specKey];
       
       promptParts.push(
         `Otimizado para ${platform}: ${spec.desc}. ` +
-        `Formato ideal ${spec.ratio} (${spec.width}x${spec.height}px). ` +
+        `Gerar imagem em dimensões ${finalWidth}x${finalHeight}px (aspect ratio ${ratioString})${dimensionSource === "customizadas" ? " - dimensões customizadas" : ""}. ` +
         `${platform === 'Instagram' && specKey === 'story' ? 'Mantenha elementos importantes centralizados (zona segura)' : ''}`
       );
+    } else {
+      promptParts.push(
+        `Gerar imagem em dimensões ${finalWidth}x${finalHeight}px (aspect ratio ${ratioString})${dimensionSource === "customizadas" ? " - dimensões customizadas" : ""}.`
+      );
     }
+  } else {
+    promptParts.push(
+      `Gerar imagem em dimensões ${finalWidth}x${finalHeight}px (aspect ratio ${ratioString})${dimensionSource === "customizadas" ? " - dimensões customizadas" : ""}.`
+    );
   }
 
   // Persona e informações adicionais
