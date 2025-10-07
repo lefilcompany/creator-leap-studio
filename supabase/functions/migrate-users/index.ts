@@ -13,7 +13,7 @@ interface CSVUser {
   phone?: string
   state?: string
   city?: string
-  role: 'ADMIN' | 'MEMBER' | 'WITHOUT_TEAM'
+  teamRole?: string
   status: 'ACTIVE' | 'NO_TEAM' | 'PENDING'
   teamId?: string
   tutorialCompleted: string
@@ -300,25 +300,22 @@ Deno.serve(async (req) => {
           })
         }
 
-        // Criar user role se não for WITHOUT_TEAM
-        if (user.role !== 'WITHOUT_TEAM') {
-          const roleValue = user.role === 'ADMIN' ? 'admin' : 'user'
-          
+        // Criar user role apenas para ADMIN (ignorar outros)
+        const teamRoleUpper = user.teamRole?.toUpperCase()
+        
+        if (teamRoleUpper === 'ADMIN') {
           const { error: roleError } = await supabaseClient
             .from('user_roles')
             .insert({
               user_id: newUserId,
-              role: roleValue
+              role: 'admin'
             })
 
           if (roleError) {
             console.error(`Role error for ${user.email}:`, roleError)
-            result.warnings.push({
-              email: user.email,
-              warning: `Role creation failed: ${roleError.message}`
-            })
           }
         }
+        // Ignorar roles 'MEMBER' ou 'user' - não criar entrada na tabela
       }
     }
 
