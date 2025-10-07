@@ -44,7 +44,7 @@ serve(async (req) => {
     if (!price_id) throw new Error("price_id is required");
     logStep("Price ID received", { price_id });
 
-    const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
+    const stripe = new Stripe(stripeKey, { apiVersion: "2024-12-18.acacia" });
     
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     let customerId;
