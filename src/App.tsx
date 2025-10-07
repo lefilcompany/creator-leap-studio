@@ -30,6 +30,7 @@ import About from "./pages/About";
 import Privacy from "./pages/Privacy";
 import ActionView from "./pages/ActionView";
 import MigrateUsers from "./pages/MigrateUsers";
+import MigrateBrands from "./pages/MigrateBrands";
 import { DashboardLayout } from "./components/DashboardLayout";
 import NotFound from "./pages/NotFound";
 
@@ -70,6 +71,7 @@ const App = () => (
               <Route path="about" element={<About />} />
               <Route path="privacy" element={<Privacy />} />
               <Route path="migrate-users" element={<MigrateUsers />} />
+              <Route path="migrate-brands" element={<MigrateBrands />} />
             </Route>
 
             {/* Action View - Outside dashboard layout for full screen */}
