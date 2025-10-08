@@ -184,7 +184,6 @@ const Plans = () => {
     return attemptCheck();
   }, []);
 
-
   useEffect(() => {
     const success = searchParams.get("success");
     const canceled = searchParams.get("canceled");
@@ -356,10 +355,7 @@ const Plans = () => {
                       variant="outline"
                       size="sm"
                       onClick={() => {
-                        window.open(
-                          "https://wa.me/558199660072",
-                          "_blank",
-                        );
+                        window.open("https://wa.me/558199660072");
                         toast.success("Redirecionando para o WhatsApp...");
                       }}
                       disabled={isCurrentPlan}
