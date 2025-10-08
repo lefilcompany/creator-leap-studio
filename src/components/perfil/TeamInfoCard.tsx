@@ -35,11 +35,23 @@ export default function TeamInfoCard({ team, userRole }: TeamInfoCardProps) {
     );
   }
 
-  // Usar os créditos reais da equipe
-  const totalCredits = team.plan?.quickContentCreations || 0;
-  const usedCredits = totalCredits - (team.credits?.quickContentCreations || 0);
-  const remainingCredits = team.credits?.quickContentCreations || 0;
-  const progressPercentage = totalCredits > 0 ? (usedCredits / totalCredits) * 100 : 0;
+  // Calcular todos os tipos de créditos
+  const totalCredits = 
+    (team.plan?.quickContentCreations || 0) +
+    (team.plan?.customContentSuggestions || 0) +
+    (team.plan?.contentReviews || 0) +
+    (team.plan?.contentPlans || 0);
+    
+  const remainingCredits = 
+    (team.credits?.quickContentCreations || 0) +
+    (team.credits?.contentSuggestions || 0) +
+    (team.credits?.contentReviews || 0) +
+    (team.credits?.contentPlans || 0);
+    
+  const usedCredits = totalCredits - remainingCredits;
+  
+  // Progress bar decrescente - mostra créditos restantes
+  const progressPercentage = totalCredits > 0 ? (remainingCredits / totalCredits) * 100 : 0;
 
   return (
     <>
@@ -172,11 +184,11 @@ export default function TeamInfoCard({ team, userRole }: TeamInfoCardProps) {
               </div>
               
               <div className="flex items-center justify-between text-xs">
-                <span className="text-accent font-medium">
-                  {progressPercentage.toFixed(1)}% utilizado
+                <span className="text-primary font-medium">
+                  {progressPercentage.toFixed(1)}% disponível
                 </span>
                 <span className="text-muted-foreground">
-                  {(100 - progressPercentage).toFixed(1)}% restante
+                  {(100 - progressPercentage).toFixed(1)}% utilizado
                 </span>
               </div>
             </div>
