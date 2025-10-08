@@ -220,6 +220,22 @@ export default function ActionView() {
     }
   };
 
+  const handleDownloadVideo = (videoUrl: string, filename: string = 'video') => {
+    try {
+      const link = document.createElement('a');
+      link.href = videoUrl;
+      link.download = `${filename}-${new Date().toISOString().split('T')[0]}.mp4`;
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast.success('Download do vídeo iniciado!');
+    } catch (error) {
+      console.error('Error downloading video:', error);
+      toast.error('Erro ao fazer download do vídeo');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -405,6 +421,36 @@ export default function ActionView() {
                 </>
               )}
 
+              {/* GERAR_VIDEO - Detalhes específicos para geração de vídeo */}
+              {action.type === 'GERAR_VIDEO' && (
+                <>
+                  {action.details.description && (
+                    <div>
+                      <span className="text-sm font-medium text-muted-foreground">Descrição:</span>
+                      <p className="mt-1 text-foreground">{action.details.description}</p>
+                    </div>
+                  )}
+                  {action.details.contentType && (
+                    <div>
+                      <span className="text-sm font-medium text-muted-foreground">Tipo de Conteúdo:</span>
+                      <Badge className="mt-1" variant="secondary">{action.details.contentType}</Badge>
+                    </div>
+                  )}
+                  {action.details.ratio && (
+                    <div>
+                      <span className="text-sm font-medium text-muted-foreground">Proporção:</span>
+                      <p className="mt-1 text-foreground">{action.details.ratio}</p>
+                    </div>
+                  )}
+                  {action.details.duration && (
+                    <div>
+                      <span className="text-sm font-medium text-muted-foreground">Duração:</span>
+                      <p className="mt-1 text-foreground">{action.details.duration}s</p>
+                    </div>
+                  )}
+                </>
+              )}
+
               {/* REVISAR_CONTEUDO */}
               {action.type === 'REVISAR_CONTEUDO' && (
                 <>
@@ -505,8 +551,18 @@ export default function ActionView() {
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold">Resultado</h2>
               {/* Action buttons for the whole result */}
-              {(action.result.imageUrl || action.result.plan) && (
+              {(action.result.imageUrl || action.result.videoUrl || action.result.plan) && (
                 <div className="flex gap-2">
+                  {action.result.videoUrl && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDownloadVideo(action.result.videoUrl!, 'video')}
+                    >
+                      <Download className="mr-2 h-4 w-4" />
+                      Baixar Vídeo
+                    </Button>
+                  )}
                   {action.result.imageUrl && (
                     <Button
                       variant="outline"
@@ -530,6 +586,25 @@ export default function ActionView() {
                 </div>
               )}
             </div>
+            
+            {/* Video Result */}
+            {action.result.videoUrl && (
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm font-medium text-muted-foreground">Vídeo Gerado</span>
+                </div>
+                <div className="rounded-lg overflow-hidden border bg-muted/30 max-w-2xl mx-auto">
+                  <video 
+                    src={action.result.videoUrl} 
+                    controls 
+                    className="w-full h-auto"
+                    playsInline
+                  >
+                    Seu navegador não suporta a tag de vídeo.
+                  </video>
+                </div>
+              </div>
+            )}
             
             {/* Review Result - Markdown format */}
             {action.result.review && (
