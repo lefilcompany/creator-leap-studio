@@ -39,35 +39,26 @@ const Login = () => {
     setLoading(true);
 
     try {
-      // Primeiro, verificar se o email existe no banco de dados
-      const { data: existingUser, error: checkError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('email', email)
-        .maybeSingle();
-
-      if (checkError) {
-        console.error('Erro ao verificar email:', checkError);
-        toast.error('Erro ao verificar dados. Tente novamente.');
-        return;
-      }
-
-      // Se o email não existe no banco de dados
-      if (!existingUser) {
-        toast.error('Email não encontrado. Verifique o email digitado.');
-        return;
-      }
-
-      // Se o email existe, tentar fazer login
+      // Tentar fazer login primeiro
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) {
-        // Se chegou aqui, o email existe mas a senha está errada
+        // Se houver erro, verificar se o email existe no banco
         if (error.message.includes('Invalid login credentials')) {
-          toast.error('Senha incorreta. Tente novamente.');
+          const { data: existingUser } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('email', email)
+            .maybeSingle();
+
+          if (!existingUser) {
+            toast.error('Email não encontrado. Verifique o email digitado.');
+          } else {
+            toast.error('Senha incorreta. Tente novamente.');
+          }
         } else {
           toast.error(error.message);
         }
