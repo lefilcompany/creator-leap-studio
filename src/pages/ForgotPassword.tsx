@@ -130,7 +130,7 @@ const ForgotPassword = () => {
                   <Button
                     variant="ghost"
                     onClick={() => navigate("/login")}
-                    className="text-muted-foreground hover:text-foreground"
+                    className="text-muted-foreground hover:text-accent hover:bg-accent/20 border hover:border-accent"
                   >
                     <ArrowLeft className="w-4 h-4 mr-2" />
                     Voltar ao login
