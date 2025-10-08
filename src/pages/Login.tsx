@@ -21,6 +21,8 @@ const Login = () => {
   const [showTeamSelection, setShowTeamSelection] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [facebookLoading, setFacebookLoading] = useState(false);
+  const [failedAttempts, setFailedAttempts] = useState(0);
+  const [showPasswordResetSuggestion, setShowPasswordResetSuggestion] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { theme, setTheme } = useTheme();
@@ -45,9 +47,23 @@ const Login = () => {
       });
 
       if (error) {
-        toast.error('Credenciais de login inválidas. Verifique seu email e senha.');
+        const newAttempts = failedAttempts + 1;
+        setFailedAttempts(newAttempts);
+        
+        if (newAttempts >= 3) {
+          setShowPasswordResetSuggestion(true);
+          toast.error('Várias tentativas incorretas. Considere redefinir sua senha usando "Esqueci a senha".', {
+            duration: 6000,
+          });
+        } else {
+          toast.error('Credenciais de login inválidas. Verifique seu email e senha.');
+        }
         return;
       }
+
+      // Login bem-sucedido, resetar contador
+      setFailedAttempts(0);
+      setShowPasswordResetSuggestion(false);
 
       if (data.user) {
         // Verificar se o usuário tem equipe
@@ -278,6 +294,30 @@ const Login = () => {
                 </div>
               </div>
 
+              {/* Password Reset Suggestion - aparece após 3 tentativas incorretas */}
+              {showPasswordResetSuggestion && (
+                <div className="mb-4 p-4 bg-destructive/10 border-2 border-destructive/30 rounded-lg animate-fade-in">
+                  <div className="flex items-start gap-3">
+                    <Mail className="h-5 w-5 text-destructive mt-0.5 flex-shrink-0" />
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-destructive mb-1">
+                        Várias tentativas incorretas
+                      </p>
+                      <p className="text-xs text-muted-foreground mb-2">
+                        Se você esqueceu sua senha ou está com dificuldades para entrar, 
+                        redefina sua senha usando a opção abaixo.
+                      </p>
+                      <a 
+                        href="/forgot-password" 
+                        className="text-sm text-destructive hover:text-destructive/80 font-semibold underline underline-offset-2"
+                      >
+                        Redefinir minha senha →
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <Checkbox 
@@ -289,7 +329,14 @@ const Login = () => {
                     Mantenha-me conectado
                   </Label>
                 </div>
-                <a href="/forgot-password" className="text-sm text-primary hover:text-primary/80 transition-colors">
+                <a 
+                  href="/forgot-password" 
+                  className={`text-sm transition-all duration-300 ${
+                    showPasswordResetSuggestion 
+                      ? 'text-destructive hover:text-destructive/80 font-semibold animate-pulse' 
+                      : 'text-primary hover:text-primary/80'
+                  }`}
+                >
                   Esqueceu a senha?
                 </a>
               </div>
