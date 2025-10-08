@@ -383,12 +383,16 @@ const Plans = () => {
                       className="w-full text-xs md:text-sm"
                       variant="outline"
                       size="sm"
-                      onClick={() => {
-                        window.location.href = "https://wa.me/558199660072?text=Olá,%20tenho%20interesse%20no%20plano%20Enterprise";
-                      }}
+                      asChild
                       disabled={isCurrentPlan}
                     >
-                      {isCurrentPlan ? "Plano Atual" : "Falar no WhatsApp"}
+                      <a
+                        href="https://wa.me/558199660072?text=Olá,%20tenho%20interesse%20no%20plano%20Enterprise"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {isCurrentPlan ? "Plano Atual" : "Falar no WhatsApp"}
+                      </a>
                     </Button>
                   ) : (
                     <Button
