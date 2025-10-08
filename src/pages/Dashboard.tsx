@@ -20,6 +20,8 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { TrialBanner } from "@/components/TrialBanner";
+import { ExpiredTrialBlocker } from "@/components/ExpiredTrialBlocker";
 
 const Dashboard = () => {
   const { user, team, isLoading } = useAuth();
@@ -185,6 +187,12 @@ const Dashboard = () => {
 
   return (
     <div className="p-6 space-y-6">
+      {/* Bloqueador de Trial Expirado */}
+      <ExpiredTrialBlocker />
+      
+      {/* Banner de Trial */}
+      <TrialBanner />
+      
       {/* Header */}
       <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5 animate-fade-in">
         <CardHeader className="pb-6">

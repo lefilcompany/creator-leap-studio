@@ -370,7 +370,9 @@ export type Database = {
           created_at: string | null
           email: string
           id: string
+          migration_user: boolean | null
           name: string
+          password_reset_sent_at: string | null
           phone: string | null
           state: string | null
           team_id: string | null
@@ -383,7 +385,9 @@ export type Database = {
           created_at?: string | null
           email: string
           id: string
+          migration_user?: boolean | null
           name: string
+          password_reset_sent_at?: string | null
           phone?: string | null
           state?: string | null
           team_id?: string | null
@@ -396,7 +400,9 @@ export type Database = {
           created_at?: string | null
           email?: string
           id?: string
+          migration_user?: boolean | null
           name?: string
+          password_reset_sent_at?: string | null
           phone?: string | null
           state?: string | null
           team_id?: string | null
@@ -618,6 +624,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      align_team_credits_and_setup_trial: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          action_taken: string
+          plan_id: string
+          team_id: string
+          team_name: string
+        }[]
+      }
+      check_team_access: {
+        Args: { p_team_id: string }
+        Returns: boolean
+      }
       create_team_for_user: {
         Args: {
           p_plan_id?: string
