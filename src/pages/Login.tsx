@@ -47,17 +47,11 @@ const Login = () => {
       });
 
       if (error) {
-        const newAttempts = failedAttempts + 1;
-        setFailedAttempts(newAttempts);
-        
-        if (newAttempts >= 3) {
-          setShowPasswordResetSuggestion(true);
-          toast.error('Várias tentativas incorretas. Considere redefinir sua senha usando "Esqueci a senha".', {
-            duration: 6000,
-          });
-        } else {
-          toast.error('Credenciais de login inválidas. Verifique seu email e senha.');
-        }
+        setFailedAttempts(failedAttempts + 1);
+        setShowPasswordResetSuggestion(true);
+        toast.error('Credenciais de login inválidas. Considere redefinir sua senha usando "Esqueci a senha".', {
+          duration: 6000,
+        });
         return;
       }
 
@@ -294,14 +288,14 @@ const Login = () => {
                 </div>
               </div>
 
-              {/* Password Reset Suggestion - aparece após 3 tentativas incorretas */}
+              {/* Password Reset Suggestion - aparece após tentativa incorreta */}
               {showPasswordResetSuggestion && (
                 <div className="mb-4 p-4 bg-destructive/10 border-2 border-destructive/30 rounded-lg animate-fade-in">
                   <div className="flex items-start gap-3">
                     <Mail className="h-5 w-5 text-destructive mt-0.5 flex-shrink-0" />
                     <div className="flex-1">
                       <p className="text-sm font-semibold text-destructive mb-1">
-                        Várias tentativas incorretas
+                        Credenciais incorretas
                       </p>
                       <p className="text-xs text-muted-foreground mb-2">
                         Se você esqueceu sua senha ou está com dificuldades para entrar, 
