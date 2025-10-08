@@ -54,7 +54,7 @@ const Dashboard = () => {
         .select('*', { count: 'exact', head: true })
         .eq('team_id', team?.id);
 
-      // Buscar atividades recentes (últimas 10 ações)
+      // Buscar atividades recentes (últimas 3 ações)
       const { data: recentActions } = await supabase
         .from('actions')
         .select(`
@@ -67,7 +67,7 @@ const Dashboard = () => {
         `)
         .eq('team_id', team?.id)
         .order('created_at', { ascending: false })
-        .limit(10);
+        .limit(3);
 
       setDashboardData({
         totalActions: actionsCount || 0,
