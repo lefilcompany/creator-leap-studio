@@ -421,31 +421,68 @@ export default function ActionView() {
                 </>
               )}
 
+
               {/* GERAR_VIDEO - Detalhes específicos para geração de vídeo */}
               {action.type === 'GERAR_VIDEO' && (
                 <>
-                  {action.details.description && (
+                  {action.details.prompt && (
                     <div>
-                      <span className="text-sm font-medium text-muted-foreground">Descrição:</span>
-                      <p className="mt-1 text-foreground">{action.details.description}</p>
+                      <span className="text-sm font-medium text-muted-foreground">Prompt de Geração:</span>
+                      <div className="mt-2 p-3 bg-muted/30 rounded-lg">
+                        <p className="text-foreground whitespace-pre-wrap">{action.details.prompt}</p>
+                      </div>
                     </div>
                   )}
-                  {action.details.contentType && (
+                  {action.details.objective && (
                     <div>
-                      <span className="text-sm font-medium text-muted-foreground">Tipo de Conteúdo:</span>
-                      <Badge className="mt-1" variant="secondary">{action.details.contentType}</Badge>
+                      <span className="text-sm font-medium text-muted-foreground">Objetivo:</span>
+                      <p className="mt-1 text-foreground">{action.details.objective}</p>
                     </div>
                   )}
-                  {action.details.ratio && (
+                  {action.details.platform && (
+                    <div>
+                      <span className="text-sm font-medium text-muted-foreground">Plataforma:</span>
+                      <p className="mt-1 text-foreground">{action.details.platform}</p>
+                    </div>
+                  )}
+                  {action.details.brand && (
+                    <div>
+                      <span className="text-sm font-medium text-muted-foreground">Marca:</span>
+                      <p className="mt-1 text-foreground">{action.details.brand}</p>
+                    </div>
+                  )}
+                  {action.details.persona && (
+                    <div>
+                      <span className="text-sm font-medium text-muted-foreground">Persona:</span>
+                      <p className="mt-1 text-foreground">{action.details.persona}</p>
+                    </div>
+                  )}
+                  {action.details.theme && (
+                    <div>
+                      <span className="text-sm font-medium text-muted-foreground">Tema Estratégico:</span>
+                      <p className="mt-1 text-foreground">{action.details.theme}</p>
+                    </div>
+                  )}
+                  {action.details.tone && Array.isArray(action.details.tone) && action.details.tone.length > 0 && (
+                    <div>
+                      <span className="text-sm font-medium text-muted-foreground">Tom de Voz:</span>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {action.details.tone.map((t: string, idx: number) => (
+                          <Badge key={idx} variant="outline">{t}</Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {action.details.aspectRatio && (
                     <div>
                       <span className="text-sm font-medium text-muted-foreground">Proporção:</span>
-                      <p className="mt-1 text-foreground">{action.details.ratio}</p>
+                      <p className="mt-1 text-foreground">{action.details.aspectRatio}</p>
                     </div>
                   )}
-                  {action.details.duration && (
+                  {action.details.additionalInfo && (
                     <div>
-                      <span className="text-sm font-medium text-muted-foreground">Duração:</span>
-                      <p className="mt-1 text-foreground">{action.details.duration}s</p>
+                      <span className="text-sm font-medium text-muted-foreground">Informações Adicionais:</span>
+                      <p className="mt-1 text-foreground">{action.details.additionalInfo}</p>
                     </div>
                   )}
                 </>
