@@ -378,18 +378,21 @@ const Plans = () => {
                     )}
                   </div>
 
-                  {plan.name === "FREE" ? null : plan.name === "ENTERPRISE" ? (
+                  {plan.name.toUpperCase() === "FREE" ? null : plan.name.toUpperCase() === "ENTERPRISE" ? (
                     <Button
                       className="w-full text-xs md:text-sm"
                       variant="outline"
                       size="sm"
-                      onClick={() => {
-                        window.open("https://wa.me/558199660072");
-                        toast.success("Redirecionando para o WhatsApp...");
-                      }}
+                      asChild
                       disabled={isCurrentPlan}
                     >
-                      {isCurrentPlan ? "Plano Atual" : "Falar no WhatsApp"}
+                      <a
+                        href="https://wa.me/558199660072?text=Olá,%20tenho%20interesse%20no%20plano%20Enterprise"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {isCurrentPlan ? "Plano Atual" : "Falar no WhatsApp"}
+                      </a>
                     </Button>
                   ) : (
                     <Button
