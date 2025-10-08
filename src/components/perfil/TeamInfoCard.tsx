@@ -35,10 +35,11 @@ export default function TeamInfoCard({ team, userRole }: TeamInfoCardProps) {
     );
   }
 
-  const totalCredits = team.plan?.quickContentCreations || 30000;
-  const usedCredits = 338;
-  const remainingCredits = totalCredits - usedCredits;
-  const progressPercentage = (usedCredits / totalCredits) * 100;
+  // Usar os créditos reais da equipe
+  const totalCredits = team.plan?.quickContentCreations || 0;
+  const usedCredits = totalCredits - (team.credits?.quickContentCreations || 0);
+  const remainingCredits = team.credits?.quickContentCreations || 0;
+  const progressPercentage = totalCredits > 0 ? (usedCredits / totalCredits) * 100 : 0;
 
   return (
     <>
