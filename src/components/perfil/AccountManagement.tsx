@@ -80,7 +80,7 @@ export default function AccountManagement({ userEmail }: AccountManagementProps)
                 </div>
                 <Button
                   variant="outline"
-                  className="w-full h-10 sm:h-11 rounded-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] text-sm sm:text-base"
+                  className="w-full h-10 sm:h-11 rounded-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] text-sm sm:text-base border-muted-foreground/30 hover:bg-muted-foreground/20 hover:border-muted-foreground hover:text-muted-foreground"
                   onClick={() => setIsDeactivateDialogOpen(true)}
                 >
                   Inativar Conta
