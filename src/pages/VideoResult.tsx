@@ -50,6 +50,8 @@ export default function VideoResult() {
 
         // Se o vídeo está sendo processado, monitorar o status
         if (data.isProcessing && data.actionId) {
+          let intervalId: NodeJS.Timeout;
+          
           const checkVideoStatus = async () => {
             try {
               const { data: actionData, error } = await supabase
@@ -73,24 +75,40 @@ export default function VideoResult() {
                   isProcessing: false
                 } : null);
                 
-                // Mostrar toast apenas uma vez
+                // Mostrar toast apenas uma vez e limpar o intervalo
                 if (!hasShownSuccessToast) {
                   toast.success("Vídeo gerado com sucesso!");
                   setHasShownSuccessToast(true);
                 }
+                
+                // Limpar o intervalo quando o vídeo estiver pronto
+                if (intervalId) {
+                  clearInterval(intervalId);
+                }
               } else if (actionData?.status === 'failed') {
                 toast.error("Falha ao gerar o vídeo. Tente novamente.");
                 setVideoData(prev => prev ? { ...prev, isProcessing: false } : null);
+                
+                // Limpar o intervalo em caso de falha
+                if (intervalId) {
+                  clearInterval(intervalId);
+                }
               }
             } catch (error) {
               console.error("Erro ao verificar status:", error);
             }
           };
 
-          const interval = setInterval(checkVideoStatus, 5000);
+          // Verificar imediatamente
           checkVideoStatus();
+          // Depois verificar a cada 5 segundos
+          intervalId = setInterval(checkVideoStatus, 5000);
 
-          return () => clearInterval(interval);
+          return () => {
+            if (intervalId) {
+              clearInterval(intervalId);
+            }
+          };
         }
       } else {
         toast.error("Nenhum vídeo encontrado");
