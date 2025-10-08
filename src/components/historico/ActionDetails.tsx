@@ -198,6 +198,30 @@ export default function ActionDetails({ action, isLoading = false }: ActionDetai
     }
   };
 
+  const handleDownloadVideo = async (videoUrl: string) => {
+    try {
+      const response = await fetch(videoUrl);
+      const blob = await response.blob();
+      
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      
+      const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, -5);
+      link.download = `video_${timestamp}.mp4`;
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast.success("Download do vídeo iniciado!");
+    } catch (error) {
+      console.error("Erro ao fazer download:", error);
+      toast.error("Erro ao fazer download do vídeo");
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="p-6 space-y-6 animate-pulse">
@@ -287,6 +311,29 @@ export default function ActionDetails({ action, isLoading = false }: ActionDetai
                   </p>
                 } 
               />
+            )}
+            {action.result?.videoUrl && (
+              <div className="space-y-2 mb-6">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium text-muted-foreground">Vídeo Gerado</p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDownloadVideo(action.result.videoUrl!)}
+                    className="gap-2"
+                  >
+                    <Download className="h-4 w-4" />
+                    Download
+                  </Button>
+                </div>
+                <div className="w-full aspect-video bg-secondary/5 rounded-lg border border-secondary/10 overflow-hidden">
+                  <video 
+                    src={action.result.videoUrl} 
+                    controls
+                    className="w-full h-full object-contain bg-black"
+                  />
+                </div>
+              </div>
             )}
             {action.result?.imageUrl && (
               <div className="space-y-2 mb-6">
