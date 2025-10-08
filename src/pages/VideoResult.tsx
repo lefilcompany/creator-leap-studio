@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Download,
-  Copy,
   ArrowLeft,
   Check,
   Video,
@@ -33,7 +32,6 @@ export default function VideoResult() {
   const navigate = useNavigate();
   const location = useLocation();
   const { team, user } = useAuth();
-  const [copied, setCopied] = useState(false);
   const [videoData, setVideoData] = useState<VideoResultData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -119,23 +117,6 @@ export default function VideoResult() {
     loadVideo();
   }, [location.state, navigate, hasShownSuccessToast]);
 
-  const handleCopyCaption = async () => {
-    if (!videoData) return;
-
-    try {
-      const captionText = videoData.title && videoData.body && videoData.hashtags
-        ? `${videoData.title}\n\n${videoData.body}\n\n${videoData.hashtags.map(tag => `#${tag}`).join(" ")}`
-        : videoData.caption || "";
-
-      await navigator.clipboard.writeText(captionText);
-      setCopied(true);
-      toast.success("Legenda copiada!");
-      setTimeout(() => setCopied(false), 2000);
-    } catch (error) {
-      toast.error("Erro ao copiar legenda");
-    }
-  };
-
   const handleDownload = async () => {
     if (!videoData || !videoData.mediaUrl) return;
 
@@ -180,7 +161,20 @@ export default function VideoResult() {
         return;
       }
 
-      // Caso contrário, criar nova action
+      // Preparar os dados do resultado
+      const resultData: any = {
+        videoUrl: videoData.mediaUrl,
+        platform: videoData.platform,
+        brand: videoData.brand,
+      };
+
+      // Adicionar campos opcionais se existirem
+      if (videoData.caption) resultData.caption = videoData.caption;
+      if (videoData.title) resultData.title = videoData.title;
+      if (videoData.body) resultData.body = videoData.body;
+      if (videoData.hashtags) resultData.hashtags = videoData.hashtags;
+
+      // Criar nova action
       const { data: action, error } = await supabase
         .from("actions")
         .insert({
@@ -189,18 +183,11 @@ export default function VideoResult() {
           type: "CRIAR_CONTEUDO",
           status: "Concluído",
           approved: false,
-          result: {
-            videoUrl: videoData.mediaUrl,
-            caption: videoData.caption,
-            title: videoData.title,
-            body: videoData.body,
-            hashtags: videoData.hashtags,
-            platform: videoData.platform,
-            brand: videoData.brand,
-          },
+          result: resultData,
           details: {
             platform: videoData.platform,
             brand: videoData.brand,
+            contentType: "video",
           }
         })
         .select()
@@ -210,7 +197,7 @@ export default function VideoResult() {
 
       setVideoData(prev => prev ? { ...prev, actionId: action.id } : null);
       setIsSavedToHistory(true);
-      toast.success("Vídeo salvo no histórico!");
+      toast.success("Vídeo salvo no histórico com sucesso!");
     } catch (error) {
       console.error("Erro ao salvar no histórico:", error);
       toast.error("Erro ao salvar no histórico");
@@ -229,125 +216,120 @@ export default function VideoResult() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
-      <div className="container max-w-6xl mx-auto px-4 py-8">
+      <div className="container max-w-5xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <Button
             variant="ghost"
             onClick={() => navigate("/create")}
-            className="gap-2"
+            className="gap-2 hover:bg-primary/10"
           >
             <ArrowLeft className="h-4 w-4" />
             Voltar
           </Button>
-          <Badge variant="secondary" className="gap-2">
+          <Badge variant="secondary" className="gap-2 px-4 py-2">
             <Video className="h-4 w-4" />
             Vídeo Gerado
           </Badge>
         </div>
 
         {/* Main Content */}
-        <div className="grid lg:grid-cols-2 gap-8">
-          {/* Video Preview */}
-          <Card className="overflow-hidden">
+        <div className="space-y-6">
+          {/* Video Preview Card */}
+          <Card className="overflow-hidden border-primary/20 shadow-lg">
             <CardContent className="p-0">
-              <div className="aspect-video bg-muted flex items-center justify-center relative">
+              <div className="relative aspect-video bg-gradient-to-br from-primary/5 to-primary/10 flex items-center justify-center">
                 {videoData.isProcessing ? (
-                  <div className="flex flex-col items-center gap-4">
-                    <Loader className="h-12 w-12 animate-spin text-primary" />
-                    <p className="text-muted-foreground">Gerando vídeo...</p>
-                    <p className="text-sm text-muted-foreground">Isso pode levar alguns minutos</p>
+                  <div className="flex flex-col items-center gap-4 p-8">
+                    <div className="relative">
+                      <Loader className="h-16 w-16 animate-spin text-primary" />
+                      <div className="absolute inset-0 h-16 w-16 animate-pulse rounded-full bg-primary/20" />
+                    </div>
+                    <div className="text-center space-y-2">
+                      <p className="text-lg font-medium">Gerando vídeo...</p>
+                      <p className="text-sm text-muted-foreground">Isso pode levar alguns minutos</p>
+                    </div>
                   </div>
                 ) : videoData.mediaUrl ? (
                   <video
                     src={videoData.mediaUrl}
                     controls
-                    className="w-full h-full"
+                    className="w-full h-full object-contain bg-black"
                     autoPlay
                     loop
                   />
                 ) : (
-                  <div className="text-center text-muted-foreground">
-                    <Video className="h-12 w-12 mx-auto mb-2" />
-                    <p>Vídeo não disponível</p>
+                  <div className="text-center text-muted-foreground p-8">
+                    <Video className="h-16 w-16 mx-auto mb-4 opacity-50" />
+                    <p className="text-lg">Vídeo não disponível</p>
                   </div>
                 )}
               </div>
             </CardContent>
           </Card>
 
-          {/* Caption and Actions */}
-          <div className="space-y-6">
+          {/* Info and Actions Grid */}
+          <div className="grid md:grid-cols-2 gap-4">
             {/* Platform and Brand Info */}
-            <Card>
+            <Card className="border-primary/10">
               <CardContent className="p-6">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Plataforma</span>
-                    <Badge variant="outline">{videoData.platform}</Badge>
+                <h3 className="font-semibold mb-4 flex items-center gap-2">
+                  <Video className="h-4 w-4 text-primary" />
+                  Informações
+                </h3>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-primary/5">
+                    <span className="text-sm font-medium text-muted-foreground">Plataforma</span>
+                    <Badge variant="outline" className="font-medium">{videoData.platform}</Badge>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Marca</span>
-                    <Badge variant="outline">{videoData.brand}</Badge>
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-primary/5">
+                    <span className="text-sm font-medium text-muted-foreground">Marca</span>
+                    <Badge variant="outline" className="font-medium">{videoData.brand}</Badge>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Caption */}
-            {videoData.caption && (
-              <Card>
-                <CardContent className="p-6">
-                  <h3 className="font-semibold mb-4">Legenda</h3>
-                  <div className="prose prose-sm max-w-none">
-                    <p className="whitespace-pre-wrap text-muted-foreground">
-                      {videoData.caption}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
             {/* Action Buttons */}
-            <div className="space-y-3">
-              <Button
-                onClick={handleCopyCaption}
-                variant="outline"
-                className="w-full gap-2"
-                disabled={!videoData.caption}
-              >
-                {copied ? (
-                  <>
-                    <Check className="h-4 w-4" />
-                    Copiado!
-                  </>
-                ) : (
-                  <>
-                    <Copy className="h-4 w-4" />
-                    Copiar Legenda
-                  </>
-                )}
-              </Button>
+            <Card className="border-primary/10">
+              <CardContent className="p-6">
+                <h3 className="font-semibold mb-4">Ações</h3>
+                <div className="space-y-3">
+                  <Button
+                    onClick={handleDownload}
+                    variant="outline"
+                    className="w-full gap-2 hover:bg-primary/10 hover:border-primary"
+                    disabled={videoData.isProcessing}
+                  >
+                    <Download className="h-4 w-4" />
+                    Baixar Vídeo
+                  </Button>
 
-              <Button
-                onClick={handleDownload}
-                variant="outline"
-                className="w-full gap-2"
-                disabled={videoData.isProcessing}
-              >
-                <Download className="h-4 w-4" />
-                Baixar Vídeo
-              </Button>
-
-              <Button
-                onClick={handleSaveToHistory}
-                className="w-full gap-2"
-                disabled={isSaving || isSavedToHistory || videoData.isProcessing}
-              >
-                <Save className="h-4 w-4" />
-                {isSavedToHistory ? "Salvo no Histórico" : "Salvar no Histórico"}
-              </Button>
-            </div>
+                  <Button
+                    onClick={handleSaveToHistory}
+                    className="w-full gap-2 bg-primary hover:bg-primary/90"
+                    disabled={isSaving || isSavedToHistory || videoData.isProcessing}
+                  >
+                    {isSaving ? (
+                      <>
+                        <Loader className="h-4 w-4 animate-spin" />
+                        Salvando...
+                      </>
+                    ) : isSavedToHistory ? (
+                      <>
+                        <Check className="h-4 w-4" />
+                        Salvo no Histórico
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-4 w-4" />
+                        Salvar no Histórico
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
