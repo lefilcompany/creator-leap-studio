@@ -67,7 +67,7 @@ export default function DeactivateAccountDialog({ open, onOpenChange }: Deactiva
         <AlertDialogFooter>
           <Button
             variant="outline"
-            className="border-accent text-accent hover:bg-accent hover:text-white"
+            className="border-accent text-accent hover:bg-accent hover:border-accent hover:text-white"
             onClick={() => {
               onOpenChange(false);
               setPassword('');
