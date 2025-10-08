@@ -93,13 +93,18 @@ serve(async (req) => {
 
     if (hasActiveSub && validSubscription) {
       const subscription = validSubscription;
-      subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
+      
+      // Verificar se current_period_end existe e é válido
+      if (subscription.current_period_end) {
+        subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
+      }
       subscriptionStatus = subscription.status;
       
       logStep("Valid subscription found", { 
         subscriptionId: subscription.id, 
         status: subscription.status,
-        endDate: subscriptionEnd 
+        endDate: subscriptionEnd,
+        periodEnd: subscription.current_period_end
       });
       
       productId = subscription.items.data[0].price.product as string;
