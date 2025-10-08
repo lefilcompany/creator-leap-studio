@@ -294,7 +294,7 @@ const PlanResult = () => {
           <div className="mt-6 text-center">
             <Button
               variant="link"
-              onClick={() => navigate(`/historico/${actionId}`)}
+              onClick={() => navigate(`/action/${actionId}`)}
               className="text-muted-foreground hover:text-primary"
             >
               Ver detalhes desta ação no histórico →

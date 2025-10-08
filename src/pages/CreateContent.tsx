@@ -598,13 +598,14 @@ export default function CreateContent() {
 
         const { status: genStatus, message } = await videoResponse.json();
         
-        toast.success("Geração iniciada!", {
+        toast.success("Vídeo sendo gerado em background", {
           id: toastId,
-          description: message || "O vídeo está sendo processado em background. Verifique o histórico para acompanhar o progresso.",
+          description: message || "Você será redirecionado quando o vídeo estiver pronto. Isso pode levar alguns minutos.",
+          duration: 5000,
         });
         
-        // Navegar para o histórico
-        navigate("/historico");
+        // Navegar para o histórico com a rota correta
+        navigate("/history");
         return;
       }
 

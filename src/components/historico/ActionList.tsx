@@ -75,7 +75,7 @@ export default function ActionList({
 
   const handleViewAction = (actionId: string, event: React.MouseEvent) => {
     event.stopPropagation();
-    navigate(`/historico/${actionId}`);
+    navigate(`/action/${actionId}`);
   };
 
   const handlePageClick = (page: number | string, event?: React.MouseEvent) => {

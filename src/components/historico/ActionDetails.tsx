@@ -255,7 +255,7 @@ export default function ActionDetails({ action, isLoading = false }: ActionDetai
               {formatDate(action.createdAt)}
             </p>
             <Button
-              onClick={() => navigate(`/historico/${action.id}`)}
+              onClick={() => navigate(`/action/${action.id}`)}
               variant="outline"
               size="sm"
               className="gap-2"

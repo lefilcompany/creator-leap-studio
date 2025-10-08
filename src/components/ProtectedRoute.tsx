@@ -31,7 +31,7 @@ export function ProtectedRoute({ children, requireTeam = true }: ProtectedRouteP
       // Se o período de teste expirou, permite apenas histórico e planos
       if (requireTeam && team && isTrialExpired) {
         const currentPath = window.location.pathname;
-        const allowedPaths = ['/plans', '/history', '/historico'];
+        const allowedPaths = ['/plans', '/history'];
         const isAllowedPath = allowedPaths.some(path => currentPath.startsWith(path));
         
         if (!isAllowedPath) {
