@@ -211,7 +211,7 @@ const Dashboard = () => {
               </div>
             </div>
             
-            <Link to="/create-content">
+            <Link to="/create">
               <Button 
                 size="lg" 
                 className="rounded-full text-lg px-8 py-6 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
