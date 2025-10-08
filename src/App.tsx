@@ -29,8 +29,6 @@ import Profile from "./pages/Profile";
 import About from "./pages/About";
 import Privacy from "./pages/Privacy";
 import ActionView from "./pages/ActionView";
-import MigrationWelcome from "./pages/MigrationWelcome";
-import AdminPasswordReset from "./pages/AdminPasswordReset";
 import { DashboardLayout } from "./components/DashboardLayout";
 import NotFound from "./pages/NotFound";
 
@@ -49,8 +47,6 @@ const App = () => (
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/bem-vindo-migracao" element={<MigrationWelcome />} />
-            <Route path="/admin/send-reset-emails" element={<ProtectedRoute><AdminPasswordReset /></ProtectedRoute>} />
             
             {/* Dashboard routes with sidebar layout */}
             <Route path="/" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
