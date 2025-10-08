@@ -184,34 +184,6 @@ const Plans = () => {
     return attemptCheck();
   }, []);
 
-  const manualCheckSubscription = useCallback(async () => {
-    try {
-      toast.loading("Verificando status da assinatura...", { id: "check-status" });
-
-      const { data, error } = await supabase.functions.invoke("check-subscription");
-
-      if (error) throw error;
-
-      if (data?.subscribed) {
-        toast.success("Assinatura ativa encontrada!", {
-          id: "check-status",
-          description: "Recarregando página...",
-        });
-        setTimeout(() => window.location.reload(), 1000);
-      } else {
-        toast.info("Nenhuma assinatura ativa encontrada", {
-          id: "check-status",
-          description: "Tente fazer uma nova assinatura",
-        });
-      }
-    } catch (error) {
-      console.error("Error checking subscription:", error);
-      toast.error("Erro ao verificar assinatura", {
-        id: "check-status",
-        description: "Tente novamente em alguns instantes",
-      });
-    }
-  }, []);
 
   useEffect(() => {
     const success = searchParams.get("success");
@@ -513,27 +485,15 @@ const Plans = () => {
               </p>
             </div>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowPlansSelection(true)}
-              className="border-primary/20 hover:bg-primary/5 text-muted-foreground hover:text-muted-foreground"
-            >
-              <Crown className="h-4 w-4 mr-2 text-muted-foreground hover:text-foreground" />
-              Ver Todos os Planos
-            </Button>
-            <Button
-              variant="default"
-              size="sm"
-              onClick={manualCheckSubscription}
-              disabled={checkingSubscription.current}
-              className="bg-secondary hover:bg-secondary/90"
-            >
-              <CheckCircle className="h-4 w-4 mr-2" />
-              Verificar Status
-            </Button>
-          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowPlansSelection(true)}
+            className="border-primary/20 hover:bg-primary/5 text-muted-foreground hover:text-muted-foreground"
+          >
+            <Crown className="h-4 w-4 mr-2 text-muted-foreground hover:text-foreground" />
+            Ver Todos os Planos
+          </Button>
         </div>
       </div>
 
