@@ -84,47 +84,10 @@ export default function ContentResult() {
         // Verificar se já foi salvo no histórico
         setIsSavedToHistory(!!data.actionId);
 
-        // Se for vídeo em processamento, monitorar o status
-        if (data.type === "video" && data.isProcessing && data.actionId) {
-          const checkVideoStatus = async () => {
-            try {
-              const { data: actionData, error } = await supabase
-                .from('actions')
-                .select('status, result')
-                .eq('id', data.actionId)
-                .single();
-
-              if (error) {
-                console.error("Erro ao verificar status do vídeo:", error);
-                return;
-              }
-
-              // Fazer type assertion para o resultado
-              const result = actionData?.result as { videoUrl?: string; caption?: string } | null;
-
-              if (actionData?.status === 'completed' && result?.videoUrl) {
-                // Atualizar com o vídeo completo
-                setContentData(prev => prev ? {
-                  ...prev,
-                  mediaUrl: result.videoUrl,
-                  caption: result.caption || prev.caption,
-                  isProcessing: false
-                } : null);
-                toast.success("Vídeo gerado com sucesso!");
-              } else if (actionData?.status === 'failed') {
-                toast.error("Falha ao gerar o vídeo. Tente novamente.");
-                setContentData(prev => prev ? { ...prev, isProcessing: false } : null);
-              }
-            } catch (error) {
-              console.error("Erro ao verificar status:", error);
-            }
-          };
-
-          // Verificar a cada 5 segundos
-          const interval = setInterval(checkVideoStatus, 5000);
-          checkVideoStatus(); // Verificar imediatamente também
-
-          return () => clearInterval(interval);
+        // Não processar vídeos nesta página (usar VideoResult)
+        if (data.type === "video") {
+          navigate("/video-result", { state: { contentData: data }, replace: true });
+          return;
         }
 
         // ✅ ETAPA 2: Salvar imagem no sessionStorage (não no localStorage)
@@ -255,8 +218,13 @@ export default function ContentResult() {
     if (!contentData) return;
 
     try {
-      // Convert base64 to blob
+      // Convert base64 to blob (apenas para imagens)
       const base64Data = contentData.mediaUrl.split(",")[1];
+      if (!base64Data) {
+        toast.error("Formato de imagem inválido");
+        return;
+      }
+      
       const byteCharacters = atob(base64Data);
       const byteNumbers = new Array(byteCharacters.length);
 
@@ -265,8 +233,7 @@ export default function ContentResult() {
       }
 
       const byteArray = new Uint8Array(byteNumbers);
-      const mimeType = contentData.type === "video" ? "video/mp4" : "image/png";
-      const blob = new Blob([byteArray], { type: mimeType });
+      const blob = new Blob([byteArray], { type: "image/png" });
 
       // Create download link
       const url = window.URL.createObjectURL(blob);
@@ -275,8 +242,7 @@ export default function ContentResult() {
 
       // Generate filename
       const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, -5);
-      const extension = contentData.type === "video" ? "mp4" : "png";
-      link.download = `${contentData.brand.replace(/\s+/g, "_")}_${contentData.platform}_${timestamp}.${extension}`;
+      link.download = `${contentData.brand.replace(/\s+/g, "_")}_${contentData.platform}_${timestamp}.png`;
 
       // Trigger download
       document.body.appendChild(link);
@@ -284,10 +250,10 @@ export default function ContentResult() {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
 
-      toast.success(`Download em alta qualidade iniciado!`);
+      toast.success(`Download da imagem iniciado!`);
     } catch (error) {
       console.error("Erro ao fazer download:", error);
-      toast.error("Erro ao fazer download");
+      toast.error("Erro ao fazer download da imagem");
     }
   };
 

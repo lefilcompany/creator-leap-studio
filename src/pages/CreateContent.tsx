@@ -604,11 +604,10 @@ export default function CreateContent() {
           duration: 3000,
         });
         
-        // Navegar para a tela de resultado com dados do vídeo
-        navigate("/result", {
+        // Navegar para a tela de resultado de vídeo
+        navigate("/video-result", {
           state: {
             contentData: {
-              type: "video",
               mediaUrl: "", // Será atualizado quando o vídeo estiver pronto
               caption: videoPrompt || formData.description || "Legenda sendo gerada...",
               platform: formData.platform,
