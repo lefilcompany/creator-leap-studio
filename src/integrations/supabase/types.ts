@@ -370,7 +370,9 @@ export type Database = {
           created_at: string | null
           email: string
           id: string
+          migration_user: boolean | null
           name: string
+          password_reset_sent_at: string | null
           phone: string | null
           state: string | null
           team_id: string | null
@@ -383,7 +385,9 @@ export type Database = {
           created_at?: string | null
           email: string
           id: string
+          migration_user?: boolean | null
           name: string
+          password_reset_sent_at?: string | null
           phone?: string | null
           state?: string | null
           team_id?: string | null
@@ -396,7 +400,9 @@ export type Database = {
           created_at?: string | null
           email?: string
           id?: string
+          migration_user?: boolean | null
           name?: string
+          password_reset_sent_at?: string | null
           phone?: string | null
           state?: string | null
           team_id?: string | null

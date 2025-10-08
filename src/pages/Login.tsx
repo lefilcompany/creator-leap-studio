@@ -11,6 +11,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { TeamSelectionDialog } from "@/components/auth/TeamSelectionDialog";
 import { useOAuthCallback } from "@/hooks/useOAuthCallback";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -242,6 +244,14 @@ const Login = () => {
               <h2 className="text-2xl font-bold text-foreground mb-2">Acesse o Creator</h2>
               <p className="text-muted-foreground">Sua plataforma de marketing estratégico</p>
             </div>
+
+            {/* Migration Alert */}
+            <Alert className="mb-6 border-amber-500/20 bg-amber-500/5">
+              <AlertCircle className="h-4 w-4 text-amber-500" />
+              <AlertDescription className="text-sm">
+                <strong>Migração Concluída!</strong> Se você já tinha conta, use o botão "Esqueceu a senha?" para criar uma nova senha.
+              </AlertDescription>
+            </Alert>
 
             {/* Login form */}
             <form onSubmit={handleLogin} className="space-y-6">

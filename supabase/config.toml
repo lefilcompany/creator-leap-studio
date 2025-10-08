@@ -47,3 +47,6 @@ verify_jwt = false
 
 [functions.revise-caption-openai]
 verify_jwt = true
+
+[functions.send-migration-password-reset]
+verify_jwt = true
