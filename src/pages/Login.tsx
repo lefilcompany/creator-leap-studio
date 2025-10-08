@@ -45,7 +45,11 @@ const Login = () => {
       });
 
       if (error) {
-        toast.error(error.message);
+        // Traduzir mensagens de erro comuns
+        const errorMessage = error.message.includes('Invalid login credentials') 
+          ? 'Credenciais de login inválidas'
+          : error.message;
+        toast.error(errorMessage);
         return;
       }
 
