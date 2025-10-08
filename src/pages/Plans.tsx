@@ -354,13 +354,16 @@ const Plans = () => {
                       className="w-full text-xs md:text-sm"
                       variant="outline"
                       size="sm"
-                      onClick={() => {
-                        window.open("https://wa.me/558199660072");
-                        toast.success("Redirecionando para o WhatsApp...");
-                      }}
                       disabled={isCurrentPlan}
+                      asChild
                     >
-                      {isCurrentPlan ? "Plano Atual" : "Falar no WhatsApp"}
+                      <a 
+                        href="https://wa.me/558199660072" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                      >
+                        {isCurrentPlan ? "Plano Atual" : "Falar no WhatsApp"}
+                      </a>
                     </Button>
                   ) : (
                     <Button
