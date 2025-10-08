@@ -12,15 +12,6 @@ const logStep = (step: string, details?: any) => {
   console.log(`[CREATE-CHECKOUT] ${step}${detailsStr}`);
 };
 
-// Mapeamento de price IDs de produção para teste
-const PRICE_ID_MAPPING: Record<string, string> = {
-  // Basic
-  'price_1SDQ1kAGsH8eqXqH5qIn9Fwh': 'price_1SAXemAGsH8eqXqHhIw5vN2a',
-  // Pro
-  'price_1SDQ49AGsH8eqXqHpfPRNVi8': 'price_1SAXfIAGsH8eqXqHyebusdkQ',
-  // Enterprise
-  'price_1SDQ4QAGsH8eqXqHygze0JAf': 'price_1SFvQdAGsH8eqXqHAnaZgSQB',
-};
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -55,20 +46,7 @@ serve(async (req) => {
     logStep("Price ID received", { price_id });
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2024-12-18.acacia" });
-    
-    // Detectar se estamos em modo teste e mapear o price_id se necessário
-    const isTestMode = stripeKey.includes('_test_');
-    let finalPriceId = price_id;
-    
-    if (isTestMode && PRICE_ID_MAPPING[price_id]) {
-      finalPriceId = PRICE_ID_MAPPING[price_id];
-      logStep("Test mode detected, mapped price ID", { 
-        original: price_id, 
-        mapped: finalPriceId 
-      });
-    } else {
-      logStep("Using production price ID", { price_id: finalPriceId });
-    }
+    logStep("Using price ID", { price_id });
     
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     let customerId;
@@ -86,7 +64,7 @@ serve(async (req) => {
       customer_email: customerId ? undefined : user.email,
       line_items: [
         {
-          price: finalPriceId,
+          price: price_id,
           quantity: 1,
         },
       ],
