@@ -223,10 +223,6 @@ const Plans = () => {
       return;
     }
 
-    if (plan.name === 'ENTERPRISE') {
-      toast.info('Redirecionando para o WhatsApp Business...');
-      return;
-    }
 
     if (plan.price > 0 && !plan.stripePriceId) {
       toast.error('Este plano ainda não está disponível para compra.', {
@@ -362,21 +358,28 @@ const Plans = () => {
                       </div>}
                   </div>
 
-                  {plan.name !== 'FREE' && (
+                  {plan.name === 'FREE' ? null : plan.name === 'ENTERPRISE' ? (
+                    <Button 
+                      className="w-full text-xs md:text-sm" 
+                      variant="outline"
+                      size="sm" 
+                      onClick={() => {
+                        window.open('https://wa.me/5511999999999?text=Olá,%20tenho%20interesse%20no%20plano%20Enterprise', '_blank');
+                        toast.success('Redirecionando para o WhatsApp...');
+                      }}
+                      disabled={isCurrentPlan}
+                    >
+                      {isCurrentPlan ? 'Plano Atual' : 'Falar no WhatsApp'}
+                    </Button>
+                  ) : (
                     <Button 
                       className="w-full text-xs md:text-sm" 
                       variant={isPopular ? 'default' : 'outline'} 
                       size="sm" 
-                      onClick={() => {
-                        if (plan.name === 'ENTERPRISE') {
-                          toast.info('Redirecionando para o WhatsApp Business...');
-                        } else {
-                          handleSubscribe(plan);
-                        }
-                      }} 
-                      disabled={isCurrentPlan || loadingPlanId === plan.id || (plan.price > 0 && !plan.stripePriceId && plan.name !== 'ENTERPRISE')}
+                      onClick={() => handleSubscribe(plan)} 
+                      disabled={isCurrentPlan || loadingPlanId === plan.id || (plan.price > 0 && !plan.stripePriceId)}
                     >
-                      {isCurrentPlan ? 'Plano Atual' : loadingPlanId === plan.id ? 'Processando...' : plan.name === 'ENTERPRISE' ? 'Entrar em Contato' : plan.price > 0 && !plan.stripePriceId ? 'Em Breve' : 'Assinar Agora'}
+                      {isCurrentPlan ? 'Plano Atual' : loadingPlanId === plan.id ? 'Processando...' : plan.price > 0 && !plan.stripePriceId ? 'Em Breve' : 'Assinar Agora'}
                     </Button>
                   )}
                 </CardContent>
