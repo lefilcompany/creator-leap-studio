@@ -1,15 +1,32 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useAuth } from '@/hooks/useAuth';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { toast } from 'sonner';
-import { Rocket, Users, Package, Palette, UserCircle, Sparkles, Calendar, FileText, CheckCircle, Crown, Zap, X, AlertTriangle, ArrowLeft, Tag, Building2 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import type { Plan } from '@/types/plan';
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useAuth } from "@/hooks/useAuth";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { toast } from "sonner";
+import {
+  Rocket,
+  Users,
+  Package,
+  Palette,
+  UserCircle,
+  Sparkles,
+  Calendar,
+  FileText,
+  CheckCircle,
+  Crown,
+  Zap,
+  X,
+  AlertTriangle,
+  ArrowLeft,
+  Tag,
+  Building2,
+} from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import type { Plan } from "@/types/plan";
 
 interface SubscriptionStatus {
   canAccess: boolean;
@@ -19,34 +36,30 @@ interface SubscriptionStatus {
   plan?: Plan;
 }
 const Plans = () => {
-  const {
-    user,
-    team,
-    isLoading: authLoading
-  } = useAuth();
-  
+  const { user, team, isLoading: authLoading } = useAuth();
+
   const [plans, setPlans] = useState<Plan[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showPlansSelection, setShowPlansSelection] = useState(false);
   const [loadingPlanId, setLoadingPlanId] = useState<string | null>(null);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const isExpired = searchParams.get('expired') === 'true';
-  const selectedPlan = searchParams.get('selected');
+  const isExpired = searchParams.get("expired") === "true";
+  const selectedPlan = searchParams.get("selected");
   const checkingSubscription = useRef(false);
 
   const loadPlans = useCallback(async () => {
     try {
       const { data: plansData, error } = await supabase
-        .from('plans')
-        .select('*')
-        .eq('is_active', true)
-        .order('price_monthly', { ascending: true });
+        .from("plans")
+        .select("*")
+        .eq("is_active", true)
+        .order("price_monthly", { ascending: true });
 
       if (error) throw error;
 
       if (plansData) {
-        const formattedPlans: Plan[] = plansData.map(p => ({
+        const formattedPlans: Plan[] = plansData.map((p) => ({
           id: p.id,
           name: p.name,
           displayName: p.name,
@@ -61,31 +74,31 @@ const Plans = () => {
           contentPlans: p.credits_plans,
           contentReviews: p.credits_reviews,
           isActive: p.is_active,
-          stripePriceId: p.stripe_price_id_monthly
+          stripePriceId: p.stripe_price_id_monthly,
         }));
         setPlans(formattedPlans);
       }
     } catch (error) {
-      console.error('Error loading plans:', error);
-      toast.error('Erro ao carregar planos');
+      console.error("Error loading plans:", error);
+      toast.error("Erro ao carregar planos");
     }
   }, []);
 
   const subscriptionStatus = useMemo<SubscriptionStatus | null>(() => {
     if (!team) return null;
-    
+
     const now = new Date();
     const periodEnd = team.subscription_period_end ? new Date(team.subscription_period_end) : null;
     const daysRemaining = periodEnd ? Math.ceil((periodEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)) : 0;
-    const isExpired = team.plan.id === 'free' && periodEnd && periodEnd < now;
-    const isTrial = team.plan.id === 'free';
-    
+    const isExpired = team.plan.id === "free" && periodEnd && periodEnd < now;
+    const isTrial = team.plan.id === "free";
+
     return {
       canAccess: !isExpired,
       isExpired: isExpired || false,
       isTrial,
       daysRemaining: Math.max(0, daysRemaining),
-      plan: team.plan
+      plan: team.plan,
     };
   }, [team]);
 
@@ -98,8 +111,8 @@ const Plans = () => {
     try {
       await loadPlans();
     } catch (error) {
-      console.error('Error loading data:', error);
-      toast.error('Erro ao carregar informações');
+      console.error("Error loading data:", error);
+      toast.error("Erro ao carregar informações");
     } finally {
       setIsLoading(false);
     }
@@ -107,7 +120,7 @@ const Plans = () => {
 
   const checkSubscriptionStatus = useCallback(async () => {
     if (checkingSubscription.current) {
-      console.log('Subscription check already in progress, skipping...');
+      console.log("Subscription check already in progress, skipping...");
       return false;
     }
 
@@ -115,138 +128,136 @@ const Plans = () => {
     const MAX_RETRIES = 10;
     const RETRY_INTERVAL = 3000;
     let currentRetry = 0;
-    
+
     const attemptCheck = async (): Promise<boolean> => {
       try {
         currentRetry++;
-        
+
         toast.info(`Verificando pagamento... (${currentRetry}/${MAX_RETRIES})`, {
-          id: 'subscription-check',
-          description: 'Aguarde enquanto confirmamos sua assinatura'
+          id: "subscription-check",
+          description: "Aguarde enquanto confirmamos sua assinatura",
         });
-        
-        const { data, error } = await supabase.functions.invoke('check-subscription');
-        
+
+        const { data, error } = await supabase.functions.invoke("check-subscription");
+
         if (error) throw error;
-        
+
         if (data?.subscribed) {
-          toast.success('Pagamento confirmado!', {
-            id: 'subscription-check',
-            description: 'Sua assinatura foi ativada com sucesso'
+          toast.success("Pagamento confirmado!", {
+            id: "subscription-check",
+            description: "Sua assinatura foi ativada com sucesso",
           });
-          
+
           checkingSubscription.current = false;
-          window.location.href = '/dashboard?payment_success=true';
+          window.location.href = "/dashboard?payment_success=true";
           return true;
         }
-        
+
         if (currentRetry >= MAX_RETRIES) {
-          toast.error('Tempo limite excedido', {
-            id: 'subscription-check',
-            description: 'Clique em "Verificar Status" para tentar novamente'
+          toast.error("Tempo limite excedido", {
+            id: "subscription-check",
+            description: 'Clique em "Verificar Status" para tentar novamente',
           });
           checkingSubscription.current = false;
           return false;
         }
-        
-        await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
+
+        await new Promise((resolve) => setTimeout(resolve, RETRY_INTERVAL));
         return attemptCheck();
-        
       } catch (error) {
-        console.error('Error checking subscription:', error);
-        
+        console.error("Error checking subscription:", error);
+
         if (currentRetry >= MAX_RETRIES) {
-          toast.error('Erro ao verificar pagamento', {
-            id: 'subscription-check',
-            description: 'Entre em contato com o suporte se o problema persistir'
+          toast.error("Erro ao verificar pagamento", {
+            id: "subscription-check",
+            description: "Entre em contato com o suporte se o problema persistir",
           });
           checkingSubscription.current = false;
           return false;
         }
-        
-        await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
+
+        await new Promise((resolve) => setTimeout(resolve, RETRY_INTERVAL));
         return attemptCheck();
       }
     };
-    
+
     return attemptCheck();
   }, []);
 
   const manualCheckSubscription = useCallback(async () => {
     try {
-      toast.loading('Verificando status da assinatura...', { id: 'check-status' });
-      
-      const { data, error } = await supabase.functions.invoke('check-subscription');
-      
+      toast.loading("Verificando status da assinatura...", { id: "check-status" });
+
+      const { data, error } = await supabase.functions.invoke("check-subscription");
+
       if (error) throw error;
-      
+
       if (data?.subscribed) {
-        toast.success('Assinatura ativa encontrada!', {
-          id: 'check-status',
-          description: 'Recarregando página...'
+        toast.success("Assinatura ativa encontrada!", {
+          id: "check-status",
+          description: "Recarregando página...",
         });
         setTimeout(() => window.location.reload(), 1000);
       } else {
-        toast.info('Nenhuma assinatura ativa encontrada', {
-          id: 'check-status',
-          description: 'Tente fazer uma nova assinatura'
+        toast.info("Nenhuma assinatura ativa encontrada", {
+          id: "check-status",
+          description: "Tente fazer uma nova assinatura",
         });
       }
     } catch (error) {
-      console.error('Error checking subscription:', error);
-      toast.error('Erro ao verificar assinatura', {
-        id: 'check-status',
-        description: 'Tente novamente em alguns instantes'
+      console.error("Error checking subscription:", error);
+      toast.error("Erro ao verificar assinatura", {
+        id: "check-status",
+        description: "Tente novamente em alguns instantes",
       });
     }
   }, []);
 
   useEffect(() => {
-    const success = searchParams.get('success');
-    const canceled = searchParams.get('canceled');
-    
-    if (success === 'true' && !checkingSubscription.current) {
+    const success = searchParams.get("success");
+    const canceled = searchParams.get("canceled");
+
+    if (success === "true" && !checkingSubscription.current) {
       checkSubscriptionStatus();
     }
-    
-    if (canceled === 'true') {
-      toast.info('Checkout cancelado', {
-        description: 'Você pode tentar novamente quando quiser'
+
+    if (canceled === "true") {
+      toast.info("Checkout cancelado", {
+        description: "Você pode tentar novamente quando quiser",
       });
     }
-    
+
     loadData();
   }, [loadData, checkSubscriptionStatus]);
   const handleSubscribe = async (plan: Plan) => {
     if (!user || !team) {
-      navigate('/login');
+      navigate("/login");
       return;
     }
 
-
     if (plan.price > 0 && !plan.stripePriceId) {
-      toast.error('Este plano ainda não está disponível para compra.', {
-        description: 'Entre em contato com o suporte.'
+      toast.error("Este plano ainda não está disponível para compra.", {
+        description: "Entre em contato com o suporte.",
       });
       return;
     }
 
     try {
       setLoadingPlanId(plan.id);
-      
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: { price_id: plan.stripePriceId }
+
+      const { data, error } = await supabase.functions.invoke("create-checkout", {
+        body: { price_id: plan.stripePriceId },
       });
 
       if (error) throw error;
 
       if (data?.url) {
-        window.open(data.url, '_blank');
-        toast.success('Redirecionando para o checkout...');
+        window.open(data.url, "_blank");
+        toast.success("Redirecionando para o checkout...");
       }
     } catch (error) {
-      console.error('Error:', error);
-      toast.error('Erro ao iniciar assinatura. Tente novamente.');
+      console.error("Error:", error);
+      toast.error("Erro ao iniciar assinatura. Tente novamente.");
     } finally {
       setLoadingPlanId(null);
     }
@@ -269,47 +280,58 @@ const Plans = () => {
 
   // Tela de seleção de planos
   if (subscriptionStatus?.isExpired || showPlansSelection || !subscriptionStatus?.canAccess) {
-    return <div className="space-y-6 animate-fade-in">
+    return (
+      <div className="space-y-6 animate-fade-in">
         <div className="text-center space-y-4">
           <h1 className="text-2xl md:text-3xl font-bold text-foreground">Escolha seu Plano</h1>
           <p className="text-sm md:text-base text-muted-foreground max-w-2xl mx-auto">
             Selecione o plano que melhor atende às necessidades da sua equipe
           </p>
 
-          {isExpired && <Alert className="border-orange-200 bg-orange-50/50 max-w-2xl mx-auto">
+          {isExpired && (
+            <Alert className="border-orange-200 bg-orange-50/50 max-w-2xl mx-auto">
               <AlertTriangle className="h-4 w-4 text-orange-600" />
               <AlertDescription className="text-orange-800 text-sm">
                 Seu período de teste expirou. Escolha um plano para continuar usando o Creator.
               </AlertDescription>
-            </Alert>}
+            </Alert>
+          )}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6">
-          {plans.map(plan => {
-          const isCurrentPlan = subscriptionStatus?.plan?.id === plan.id;
-          const isSelected = selectedPlan === plan.name;
-          const isPopular = plan.name === 'PRO';
-          const isPremium = plan.name === 'ENTERPRISE';
-          return <Card key={plan.id} className={`relative transition-all duration-200 shadow-lg hover:shadow-2xl ${isPopular ? 'shadow-xl scale-[1.02]' : ''} ${isPremium ? 'shadow-xl' : ''} ${isCurrentPlan ? 'bg-green-50/50 shadow-xl' : ''} ${isSelected ? 'bg-orange-50/50 shadow-2xl' : ''}`}>
-                {isPopular && <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-primary text-xs">
+          {plans.map((plan) => {
+            const isCurrentPlan = subscriptionStatus?.plan?.id === plan.id;
+            const isSelected = selectedPlan === plan.name;
+            const isPopular = plan.name === "PRO";
+            const isPremium = plan.name === "ENTERPRISE";
+            return (
+              <Card
+                key={plan.id}
+                className={`relative transition-all duration-200 shadow-lg hover:shadow-2xl ${isPopular ? "shadow-xl scale-[1.02]" : ""} ${isPremium ? "shadow-xl" : ""} ${isCurrentPlan ? "bg-green-50/50 shadow-xl" : ""} ${isSelected ? "bg-orange-50/50 shadow-2xl" : ""}`}
+              >
+                {isPopular && (
+                  <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-primary text-xs">
                     Mais Popular
-                  </Badge>}
-                {isPremium && <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-secondary text-xs">
+                  </Badge>
+                )}
+                {isPremium && (
+                  <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-secondary text-xs">
                     Premium
-                  </Badge>}
-                {isCurrentPlan && <Badge className="absolute -top-2 right-2 bg-green-500 text-xs">
-                    Atual
-                  </Badge>}
+                  </Badge>
+                )}
+                {isCurrentPlan && <Badge className="absolute -top-2 right-2 bg-green-500 text-xs">Atual</Badge>}
 
                 <CardHeader className="text-center pb-4">
                   <CardTitle className="text-xl md:text-2xl">{plan.displayName}</CardTitle>
                   <div className="text-2xl md:text-3xl font-bold text-primary">
-                    {plan.price === 0 ? 'Grátis' : `R$ ${plan.price.toFixed(2)}`}
+                    {plan.price === 0 ? "Grátis" : `R$ ${plan.price.toFixed(2)}`}
                   </div>
                   {plan.price > 0 && <div className="text-xs text-muted-foreground">por mês</div>}
-                  {plan.trialDays > 0 && <Badge variant="outline" className="mx-auto text-xs mt-2">
+                  {plan.trialDays > 0 && (
+                    <Badge variant="outline" className="mx-auto text-xs mt-2">
                       {plan.trialDays} dias grátis
-                    </Badge>}
+                    </Badge>
+                  )}
                 </CardHeader>
 
                 <CardContent className="space-y-3">
@@ -317,91 +339,103 @@ const Plans = () => {
                     <div className="flex items-start gap-2">
                       <CheckCircle className="h-3 w-3 md:h-4 md:w-4 text-green-500 flex-shrink-0 mt-0.5" />
                       <span className="text-left">
-                        {plan.maxMembers >= 999999 ? 'Membros ilimitados' : `Até ${plan.maxMembers} membros`}
+                        {plan.maxMembers >= 999999 ? "Membros ilimitados" : `Até ${plan.maxMembers} membros`}
                       </span>
                     </div>
                     <div className="flex items-start gap-2">
                       <CheckCircle className="h-3 w-3 md:h-4 md:w-4 text-green-500 flex-shrink-0 mt-0.5" />
                       <span className="text-left">
-                        {plan.maxBrands >= 999999 ? 'Marcas ilimitadas' : `${plan.maxBrands} ${plan.maxBrands === 1 ? 'marca' : 'marcas'}`}
+                        {plan.maxBrands >= 999999
+                          ? "Marcas ilimitadas"
+                          : `${plan.maxBrands} ${plan.maxBrands === 1 ? "marca" : "marcas"}`}
                       </span>
                     </div>
                     <div className="flex items-start gap-2">
                       <CheckCircle className="h-3 w-3 md:h-4 md:w-4 text-green-500 flex-shrink-0 mt-0.5" />
                       <span className="text-left">
-                        {plan.maxStrategicThemes >= 999999 ? 'Temas ilimitados' : `${plan.maxStrategicThemes} temas`}
+                        {plan.maxStrategicThemes >= 999999 ? "Temas ilimitados" : `${plan.maxStrategicThemes} temas`}
                       </span>
                     </div>
                     <div className="flex items-start gap-2">
                       <CheckCircle className="h-3 w-3 md:h-4 md:w-4 text-green-500 flex-shrink-0 mt-0.5" />
                       <span className="text-left">
-                        {plan.maxPersonas >= 999999 ? 'Personas ilimitadas' : `${plan.maxPersonas} personas`}
+                        {plan.maxPersonas >= 999999 ? "Personas ilimitadas" : `${plan.maxPersonas} personas`}
                       </span>
                     </div>
                     <div className="flex items-start gap-2">
                       <CheckCircle className="h-3 w-3 md:h-4 md:w-4 text-green-500 flex-shrink-0 mt-0.5" />
-                      <span className="text-left">
-                        {plan.quickContentCreations} criações rápidas
-                      </span>
+                      <span className="text-left">{plan.quickContentCreations} criações rápidas</span>
                     </div>
                     <div className="flex items-start gap-2">
                       <CheckCircle className="h-3 w-3 md:h-4 md:w-4 text-green-500 flex-shrink-0 mt-0.5" />
-                      <span className="text-left">
-                        {plan.customContentSuggestions} sugestões
-                      </span>
+                      <span className="text-left">{plan.customContentSuggestions} sugestões</span>
                     </div>
-                    {isPremium && <div className="flex items-start gap-2">
+                    {isPremium && (
+                      <div className="flex items-start gap-2">
                         <CheckCircle className="h-3 w-3 md:h-4 md:w-4 text-green-500 flex-shrink-0 mt-0.5" />
-                        <span className="text-left font-medium text-secondary">
-                          Integrações avançadas
-                        </span>
-                      </div>}
+                        <span className="text-left font-medium text-secondary">Integrações avançadas</span>
+                      </div>
+                    )}
                   </div>
 
-                  {plan.name === 'FREE' ? null : plan.name === 'ENTERPRISE' ? (
-                    <Button 
-                      className="w-full text-xs md:text-sm" 
+                  {plan.name.toUpperCase() === "FREE" ? null : plan.name.toUpperCase() === "ENTERPRISE" ? (
+                    <Button
+                      className="w-full text-xs md:text-sm"
                       variant="outline"
-                      size="sm" 
+                      size="sm"
                       onClick={() => {
-                        window.open('https://wa.me/5511999999999?text=Olá,%20tenho%20interesse%20no%20plano%20Enterprise', '_blank');
-                        toast.success('Redirecionando para o WhatsApp...');
+                        window.open(
+                          "https://wa.me/558199660072?text=Olá,%20tenho%20interesse%20no%20plano%20Enterprise",
+                          "_blank",
+                        );
+                        toast.success("Redirecionando para o WhatsApp...");
                       }}
                       disabled={isCurrentPlan}
                     >
-                      {isCurrentPlan ? 'Plano Atual' : 'Falar no WhatsApp'}
+                      {isCurrentPlan ? "Plano Atual" : "Falar no WhatsApp"}
                     </Button>
                   ) : (
-                    <Button 
-                      className="w-full text-xs md:text-sm" 
-                      variant={isPopular ? 'default' : 'outline'} 
-                      size="sm" 
-                      onClick={() => handleSubscribe(plan)} 
+                    <Button
+                      className="w-full text-xs md:text-sm"
+                      variant={isPopular ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => handleSubscribe(plan)}
                       disabled={isCurrentPlan || loadingPlanId === plan.id || (plan.price > 0 && !plan.stripePriceId)}
                     >
-                      {isCurrentPlan ? 'Plano Atual' : loadingPlanId === plan.id ? 'Processando...' : plan.price > 0 && !plan.stripePriceId ? 'Em Breve' : 'Assinar Agora'}
+                      {isCurrentPlan
+                        ? "Plano Atual"
+                        : loadingPlanId === plan.id
+                          ? "Processando..."
+                          : plan.price > 0 && !plan.stripePriceId
+                            ? "Em Breve"
+                            : "Assinar Agora"}
                     </Button>
                   )}
                 </CardContent>
-              </Card>;
-        })}
+              </Card>
+            );
+          })}
         </div>
 
         <div className="text-center space-y-4">
           <p className="text-xs md:text-sm text-muted-foreground">
             Todos os planos incluem suporte técnico e atualizações gratuitas
           </p>
-          {!isExpired && <Button variant="outline" size="sm" onClick={() => setShowPlansSelection(false)}>
+          {!isExpired && (
+            <Button variant="outline" size="sm" onClick={() => setShowPlansSelection(false)}>
               <ArrowLeft className="h-4 w-4 mr-2" />
               Voltar ao Painel
-            </Button>}
+            </Button>
+          )}
         </div>
-      </div>;
+      </div>
+    );
   }
 
   // Verificação de segurança - garantir que temos dados da equipe
   if (!team) {
-    return <div className="flex items-center justify-center min-h-[60vh]">
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center space-y-4 p-6">
           <AlertTriangle className="h-12 w-12 text-orange-500 mx-auto" />
           <p className="text-lg font-semibold">Erro ao carregar informações</p>
@@ -413,7 +447,8 @@ const Plans = () => {
             </Button>
           </Link>
         </div>
-      </div>;
+      </div>
+    );
   }
 
   const plan = team.plan;
@@ -421,43 +456,49 @@ const Plans = () => {
     quickContentCreations: 0,
     contentSuggestions: 0,
     contentReviews: 0,
-    contentPlans: 0
+    contentPlans: 0,
   };
-  const isEnterprisePlan = plan?.name === 'ENTERPRISE';
-  
-  const creditData = [{
-    name: 'Criações Rápidas',
-    current: credits?.quickContentCreations || 0,
-    limit: isEnterprisePlan ? credits?.quickContentCreations || 0 : plan?.quickContentCreations || 0,
-    icon: Zap,
-    color: 'text-orange-600',
-    bgColor: 'bg-orange-500/10'
-  }, {
-    name: 'Sugestões',
-    current: credits?.contentSuggestions || 0,
-    limit: isEnterprisePlan ? credits?.contentSuggestions || 0 : plan?.customContentSuggestions || 0,
-    icon: Sparkles,
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-500/10'
-  }, {
-    name: 'Revisões',
-    current: credits?.contentReviews || 0,
-    limit: isEnterprisePlan ? credits?.contentReviews || 0 : plan?.contentReviews || 0,
-    icon: CheckCircle,
-    color: 'text-green-600',
-    bgColor: 'bg-green-500/10'
-  }, {
-    name: 'Planejamentos',
-    current: credits?.contentPlans || 0,
-    limit: isEnterprisePlan ? credits?.contentPlans || 0 : plan?.contentPlans || 0,
-    icon: Calendar,
-    color: 'text-purple-600',
-    bgColor: 'bg-purple-500/10'
-  }];
+  const isEnterprisePlan = plan?.name === "ENTERPRISE";
+
+  const creditData = [
+    {
+      name: "Criações Rápidas",
+      current: credits?.quickContentCreations || 0,
+      limit: isEnterprisePlan ? credits?.quickContentCreations || 0 : plan?.quickContentCreations || 0,
+      icon: Zap,
+      color: "text-orange-600",
+      bgColor: "bg-orange-500/10",
+    },
+    {
+      name: "Sugestões",
+      current: credits?.contentSuggestions || 0,
+      limit: isEnterprisePlan ? credits?.contentSuggestions || 0 : plan?.customContentSuggestions || 0,
+      icon: Sparkles,
+      color: "text-blue-600",
+      bgColor: "bg-blue-500/10",
+    },
+    {
+      name: "Revisões",
+      current: credits?.contentReviews || 0,
+      limit: isEnterprisePlan ? credits?.contentReviews || 0 : plan?.contentReviews || 0,
+      icon: CheckCircle,
+      color: "text-green-600",
+      bgColor: "bg-green-500/10",
+    },
+    {
+      name: "Planejamentos",
+      current: credits?.contentPlans || 0,
+      limit: isEnterprisePlan ? credits?.contentPlans || 0 : plan?.contentPlans || 0,
+      icon: Calendar,
+      color: "text-purple-600",
+      bgColor: "bg-purple-500/10",
+    },
+  ];
   const totalCredits = creditData.reduce((acc, credit) => acc + credit.current, 0);
   const totalLimits = isEnterprisePlan ? totalCredits : creditData.reduce((acc, credit) => acc + credit.limit, 0);
-  const usagePercentage = totalLimits > 0 ? (totalLimits - totalCredits) / totalLimits * 100 : 0;
-  return <div className="space-y-4 md:space-y-6 animate-fade-in">
+  const usagePercentage = totalLimits > 0 ? ((totalLimits - totalCredits) / totalLimits) * 100 : 0;
+  return (
+    <div className="space-y-4 md:space-y-6 animate-fade-in">
       {/* Header com design limpo */}
       <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-background rounded-2xl p-6 md:p-8 shadow-lg">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -466,27 +507,25 @@ const Plans = () => {
               <Crown className="h-8 w-8 md:h-10 md:w-10" />
             </div>
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-1">
-                Planos e Uso
-              </h1>
+              <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-1">Planos e Uso</h1>
               <p className="text-sm md:text-base text-muted-foreground">
                 Gerencie seu plano e acompanhe o uso de recursos
               </p>
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => setShowPlansSelection(true)} 
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowPlansSelection(true)}
               className="border-primary/20 hover:bg-primary/5 text-muted-foreground hover:text-muted-foreground"
             >
               <Crown className="h-4 w-4 mr-2 text-muted-foreground hover:text-foreground" />
               Ver Todos os Planos
             </Button>
-            <Button 
-              variant="default" 
-              size="sm" 
+            <Button
+              variant="default"
+              size="sm"
               onClick={manualCheckSubscription}
               disabled={checkingSubscription.current}
               className="bg-secondary hover:bg-secondary/90"
@@ -508,12 +547,12 @@ const Plans = () => {
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
                   <div className="flex-shrink-0 bg-primary text-primary-foreground rounded-xl px-3 py-1.5 font-semibold text-sm">
-                    {plan?.displayName || 'Plano'}
+                    {plan?.displayName || "Plano"}
                   </div>
                   <div>
                     <h2 className="text-lg font-semibold text-foreground">Plano Atual</h2>
                     <p className="text-sm text-muted-foreground">
-                      Você está usando o plano {plan?.displayName || 'atual'}
+                      Você está usando o plano {plan?.displayName || "atual"}
                     </p>
                   </div>
                 </div>
@@ -532,97 +571,104 @@ const Plans = () => {
           {/* Grid de Cards de Créditos - 4 colunas */}
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
             {creditData.map((credit, index) => {
-            const usedCredits = Math.max(0, credit.limit - credit.current);
-            const percentage = credit.limit > 0 ? credit.current / credit.limit * 100 : 0;
-            const isLow = credit.current <= credit.limit * 0.2;
-            const isAtLimit = credit.current <= 0;
-            const Icon = credit.icon;
-            return <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-all">
+              const usedCredits = Math.max(0, credit.limit - credit.current);
+              const percentage = credit.limit > 0 ? (credit.current / credit.limit) * 100 : 0;
+              const isLow = credit.current <= credit.limit * 0.2;
+              const isAtLimit = credit.current <= 0;
+              const Icon = credit.icon;
+              return (
+                <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-all">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-2 mb-3">
                       <div className={`p-2 rounded-xl ${credit.bgColor}`}>
                         <Icon className={`h-4 w-4 ${credit.color}`} />
                       </div>
-                      <h3 className="font-semibold text-xs xl:text-sm text-foreground">
-                        {credit.name}
-                      </h3>
+                      <h3 className="font-semibold text-xs xl:text-sm text-foreground">{credit.name}</h3>
                     </div>
-                    
+
                     <div className="space-y-2">
                       <div>
                         <div className="text-2xl xl:text-3xl font-bold text-foreground mb-1">
                           {credit.current.toLocaleString()}
                         </div>
-                        <p className="text-xs text-muted-foreground">
-                          de {credit.limit.toLocaleString()} disponíveis
-                        </p>
+                        <p className="text-xs text-muted-foreground">de {credit.limit.toLocaleString()} disponíveis</p>
                       </div>
-                      
+
                       <Progress value={percentage} className="h-3 bg-primary/20 mb-3" />
-                      
-                      <p className={`text-xs font-medium ${isAtLimit ? 'text-destructive' : isLow ? 'text-yellow-600' : 'text-green-600'}`}>
-                        {isAtLimit ? '⚠ Créditos esgotados' : isLow ? '⚡ Poucos créditos' : '✓ Créditos disponíveis'}
+
+                      <p
+                        className={`text-xs font-medium ${isAtLimit ? "text-destructive" : isLow ? "text-yellow-600" : "text-green-600"}`}
+                      >
+                        {isAtLimit ? "⚠ Créditos esgotados" : isLow ? "⚡ Poucos créditos" : "✓ Créditos disponíveis"}
                       </p>
                     </div>
                   </CardContent>
-                </Card>;
-          })}
+                </Card>
+              );
+            })}
           </div>
 
           {/* Limites de Recursos */}
           <Card className="shadow-lg">
             <CardHeader className="pb-4">
               <CardTitle className="text-lg">Limites de Recursos</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Recursos disponíveis no seu plano atual
-              </p>
+              <p className="text-sm text-muted-foreground">Recursos disponíveis no seu plano atual</p>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-                {[{
-                icon: Tag,
-                label: 'Marcas',
-                value: plan?.maxBrands || 0,
-                color: 'text-pink-600',
-                bg: 'bg-pink-500/10'
-              }, {
-                icon: Palette,
-                label: 'Temas',
-                value: plan?.maxStrategicThemes || 0,
-                color: 'text-purple-600',
-                bg: 'bg-purple-500/10'
-              }, {
-                icon: Users,
-                label: 'Personas',
-                value: plan?.maxPersonas || 0,
-                color: 'text-green-600',
-                bg: 'bg-green-500/10'
-              }, {
-                icon: UserCircle,
-                label: 'Membros',
-                value: plan?.maxMembers || 0,
-                color: 'text-blue-600',
-                bg: 'bg-blue-500/10'
-              }].map((item, idx) => {
-                const Icon = item.icon;
-                return <div key={idx} className={`flex items-center gap-2 p-3 rounded-xl ${item.bg} shadow-sm hover:shadow-md transition-all`}>
+                {[
+                  {
+                    icon: Tag,
+                    label: "Marcas",
+                    value: plan?.maxBrands || 0,
+                    color: "text-pink-600",
+                    bg: "bg-pink-500/10",
+                  },
+                  {
+                    icon: Palette,
+                    label: "Temas",
+                    value: plan?.maxStrategicThemes || 0,
+                    color: "text-purple-600",
+                    bg: "bg-purple-500/10",
+                  },
+                  {
+                    icon: Users,
+                    label: "Personas",
+                    value: plan?.maxPersonas || 0,
+                    color: "text-green-600",
+                    bg: "bg-green-500/10",
+                  },
+                  {
+                    icon: UserCircle,
+                    label: "Membros",
+                    value: plan?.maxMembers || 0,
+                    color: "text-blue-600",
+                    bg: "bg-blue-500/10",
+                  },
+                ].map((item, idx) => {
+                  const Icon = item.icon;
+                  return (
+                    <div
+                      key={idx}
+                      className={`flex items-center gap-2 p-3 rounded-xl ${item.bg} shadow-sm hover:shadow-md transition-all`}
+                    >
                       <div className="flex-shrink-0">
                         <Icon className={`h-5 w-5 ${item.color}`} />
                       </div>
                       <div className="min-w-0">
                         <p className="font-semibold text-xs xl:text-sm text-foreground truncate">{item.label}</p>
                         <p className="text-xs text-muted-foreground">
-                          {item.value >= 999999 ? 'Ilimitado' : `até ${item.value}`}
+                          {item.value >= 999999 ? "Ilimitado" : `até ${item.value}`}
                         </p>
                       </div>
-                    </div>;
-              })}
+                    </div>
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
 
           {/* Cards de Ações com IA */}
-          
         </div>
 
         {/* Coluna Direita - Sidebar */}
@@ -635,27 +681,37 @@ const Plans = () => {
                 <CardTitle className="text-base font-semibold">Ações Rápidas</CardTitle>
               </CardHeader>
               <CardContent className="flex flex-col gap-4">
-                {[{
-                to: '/brands',
-                icon: Tag,
-                label: 'Gerenciar Marcas'
-              }, {
-                to: '/themes',
-                icon: Palette,
-                label: 'Gerenciar Temas'
-              }, {
-                to: '/personas',
-                icon: Users,
-                label: 'Gerenciar Personas'
-              }].map((action, idx) => {
-                const Icon = action.icon;
-                return <Link key={idx} to={action.to}>
-                      <Button variant="outline" size="default" className="w-full justify-start py-6 hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-200 border-border/50">
+                {[
+                  {
+                    to: "/brands",
+                    icon: Tag,
+                    label: "Gerenciar Marcas",
+                  },
+                  {
+                    to: "/themes",
+                    icon: Palette,
+                    label: "Gerenciar Temas",
+                  },
+                  {
+                    to: "/personas",
+                    icon: Users,
+                    label: "Gerenciar Personas",
+                  },
+                ].map((action, idx) => {
+                  const Icon = action.icon;
+                  return (
+                    <Link key={idx} to={action.to}>
+                      <Button
+                        variant="outline"
+                        size="default"
+                        className="w-full justify-start py-6 hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-200 border-border/50"
+                      >
                         <Icon className="h-5 w-5 mr-3" />
                         <span className="font-medium">{action.label}</span>
                       </Button>
-                    </Link>;
-              })}
+                    </Link>
+                  );
+                })}
               </CardContent>
             </Card>
 
@@ -663,47 +719,54 @@ const Plans = () => {
             <Card className="bg-gradient-to-br from-primary/5 to-background shadow-xl flex-1">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between mb-2">
-                  <CardTitle className="text-lg font-bold">
-                    {plan?.displayName || 'Plano Atual'}
-                  </CardTitle>
-                  <Badge className="bg-primary text-primary-foreground text-xs">
-                    Seu Plano
-                  </Badge>
+                  <CardTitle className="text-lg font-bold">{plan?.displayName || "Plano Atual"}</CardTitle>
+                  <Badge className="bg-primary text-primary-foreground text-xs">Seu Plano</Badge>
                 </div>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-3xl font-bold text-primary">
-                    R${(plan?.price || 0).toFixed(2)}
-                  </span>
+                  <span className="text-3xl font-bold text-primary">R${(plan?.price || 0).toFixed(2)}</span>
                   <span className="text-sm text-muted-foreground">/mês</span>
                 </div>
               </CardHeader>
               <CardContent className="space-y-2.5">
-                {[{
-                label: 'Todas as funcionalidades básicas',
-                included: true
-              }, {
-                label: 'Suporte via email',
-                included: true
-              }, {
-                label: 'Suporte prioritário',
-                included: (plan?.price || 0) > 0
-              }, {
-                label: 'Integrações avançadas',
-                included: plan?.name === 'ENTERPRISE'
-              }].map((feature, idx) => <div key={idx} className="flex items-center gap-2.5">
-                    {feature.included ? <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" /> : <X className="h-4 w-4 text-muted-foreground flex-shrink-0" />}
-                    <span className={`text-sm ${feature.included ? 'text-foreground' : 'text-muted-foreground line-through'}`}>
+                {[
+                  {
+                    label: "Todas as funcionalidades básicas",
+                    included: true,
+                  },
+                  {
+                    label: "Suporte via email",
+                    included: true,
+                  },
+                  {
+                    label: "Suporte prioritário",
+                    included: (plan?.price || 0) > 0,
+                  },
+                  {
+                    label: "Integrações avançadas",
+                    included: plan?.name === "ENTERPRISE",
+                  },
+                ].map((feature, idx) => (
+                  <div key={idx} className="flex items-center gap-2.5">
+                    {feature.included ? (
+                      <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
+                    ) : (
+                      <X className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    )}
+                    <span
+                      className={`text-sm ${feature.included ? "text-foreground" : "text-muted-foreground line-through"}`}
+                    >
                       {feature.label}
                     </span>
-                  </div>)}
+                  </div>
+                ))}
               </CardContent>
             </Card>
           </div>
 
           {/* Info da Equipe */}
-          
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
 export default Plans;
