@@ -357,7 +357,7 @@ const Plans = () => {
                       size="sm"
                       onClick={() => {
                         window.open(
-                          "https://wa.me/558199660072?text=Olá,%20tenho%20interesse%20no%20plano%20Enterprise",
+                          "https://wa.me/558199660072",
                           "_blank",
                         );
                         toast.success("Redirecionando para o WhatsApp...");
