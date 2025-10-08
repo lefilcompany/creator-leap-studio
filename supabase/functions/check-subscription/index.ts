@@ -12,11 +12,16 @@ const logStep = (step: string, details?: any) => {
   console.log(`[CHECK-SUBSCRIPTION] ${step}${detailsStr}`);
 };
 
-// Mapeamento de Stripe Product ID para Plan ID
+// Mapeamento de Stripe Product ID para Plan ID (Produção e Teste)
 const STRIPE_PRODUCT_TO_PLAN: Record<string, string> = {
+  // Produção
   'prod_T9jUCs242AIVtk': 'basic',
   'prod_T9jXbWuVLAjyRy': 'pro',
-  'prod_T9jXEcmoxn2ROu': 'enterprise'
+  'prod_T9jXEcmoxn2ROu': 'enterprise',
+  // Teste
+  'prod_T6lBcvEEzUiCNA': 'basic',
+  'prod_T6lBPH6wwKogjK': 'pro',
+  'prod_TCK4PULr4qMcl7': 'enterprise'
 };
 
 serve(async (req) => {
