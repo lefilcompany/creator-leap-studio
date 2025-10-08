@@ -384,11 +384,7 @@ const Plans = () => {
                       variant="outline"
                       size="sm"
                       onClick={() => {
-                        window.open(
-                          "https://wa.me/558199660072?text=Olá,%20tenho%20interesse%20no%20plano%20Enterprise",
-                          "_blank",
-                        );
-                        toast.success("Redirecionando para o WhatsApp...");
+                        window.location.href = "https://wa.me/558199660072?text=Olá,%20tenho%20interesse%20no%20plano%20Enterprise";
                       }}
                       disabled={isCurrentPlan}
                     >
