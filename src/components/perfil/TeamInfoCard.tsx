@@ -166,11 +166,8 @@ export default function TeamInfoCard({ team, userRole }: TeamInfoCardProps) {
                   <p className="text-xs text-muted-foreground mt-1">créditos disponíveis</p>
                 </div>
                 <div className="text-right">
-                  <span className="text-sm font-medium text-muted-foreground">
-                    de {totalCredits.toLocaleString()}
-                  </span>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {usedCredits} utilizados
+                    {usedCredits.toLocaleString()} utilizados
                   </p>
                 </div>
               </div>
