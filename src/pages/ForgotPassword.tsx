@@ -20,6 +20,25 @@ const ForgotPassword = () => {
     setLoading(true);
 
     try {
+      // Verificar se o email existe na base de dados
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', email)
+        .maybeSingle();
+
+      if (profileError) {
+        console.error('Erro ao verificar email:', profileError);
+        toast.error("Erro ao verificar email. Tente novamente.");
+        return;
+      }
+
+      if (!profile) {
+        toast.error("Este email não está cadastrado no sistema. Verifique o email digitado ou crie uma nova conta.");
+        return;
+      }
+
+      // Se o email existe, enviar o link de recuperação
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`,
       });
@@ -71,7 +90,7 @@ const ForgotPassword = () => {
                 <div className="text-center mb-8">
                   <h2 className="text-2xl font-bold text-foreground mb-2">Recuperar Senha</h2>
                   <p className="text-muted-foreground">
-                    Digite seu email para receber o link de recuperação
+                    Digite o email cadastrado na sua conta para receber o link de recuperação de senha
                   </p>
                 </div>
 
@@ -82,7 +101,7 @@ const ForgotPassword = () => {
                       <Input
                         id="email"
                         type="email"
-                        placeholder="seu@email.com"
+                        placeholder="Email cadastrado na sua conta"
                         required
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
