@@ -37,6 +37,7 @@ interface ContentResultData {
   originalFormData?: any;
   actionId?: string;
   isLocalFallback?: boolean; // Indica se usou fallback local
+  isProcessing?: boolean; // Flag para indicar que o vídeo está sendo processado
 }
 
 export default function ContentResult() {
@@ -82,6 +83,49 @@ export default function ContentResult() {
 
         // Verificar se já foi salvo no histórico
         setIsSavedToHistory(!!data.actionId);
+
+        // Se for vídeo em processamento, monitorar o status
+        if (data.type === "video" && data.isProcessing && data.actionId) {
+          const checkVideoStatus = async () => {
+            try {
+              const { data: actionData, error } = await supabase
+                .from('actions')
+                .select('status, result')
+                .eq('id', data.actionId)
+                .single();
+
+              if (error) {
+                console.error("Erro ao verificar status do vídeo:", error);
+                return;
+              }
+
+              // Fazer type assertion para o resultado
+              const result = actionData?.result as { videoUrl?: string; caption?: string } | null;
+
+              if (actionData?.status === 'completed' && result?.videoUrl) {
+                // Atualizar com o vídeo completo
+                setContentData(prev => prev ? {
+                  ...prev,
+                  mediaUrl: result.videoUrl,
+                  caption: result.caption || prev.caption,
+                  isProcessing: false
+                } : null);
+                toast.success("Vídeo gerado com sucesso!");
+              } else if (actionData?.status === 'failed') {
+                toast.error("Falha ao gerar o vídeo. Tente novamente.");
+                setContentData(prev => prev ? { ...prev, isProcessing: false } : null);
+              }
+            } catch (error) {
+              console.error("Erro ao verificar status:", error);
+            }
+          };
+
+          // Verificar a cada 5 segundos
+          const interval = setInterval(checkVideoStatus, 5000);
+          checkVideoStatus(); // Verificar imediatamente também
+
+          return () => clearInterval(interval);
+        }
 
         // ✅ ETAPA 2: Salvar imagem no sessionStorage (não no localStorage)
         if (data.mediaUrl) {
@@ -692,7 +736,17 @@ export default function ContentResult() {
           >
             <CardContent className="p-0">
               <div className="aspect-square max-h-[500px] sm:max-h-[600px] md:max-h-[700px] bg-muted/30 relative overflow-hidden group mx-auto">
-                {contentData.mediaUrl ? (
+                {contentData.isProcessing ? (
+                  <div className="flex items-center justify-center h-full">
+                    <div className="text-center space-y-4">
+                      <Loader className="h-12 w-12 mx-auto text-primary animate-spin" />
+                      <div className="space-y-2">
+                        <p className="text-lg font-semibold text-foreground">Gerando vídeo...</p>
+                        <p className="text-sm text-muted-foreground">Isso pode levar alguns minutos</p>
+                      </div>
+                    </div>
+                  </div>
+                ) : contentData.mediaUrl ? (
                   contentData.type === "video" ? (
                     <video
                       src={contentData.mediaUrl}
@@ -716,7 +770,7 @@ export default function ContentResult() {
                   <div className="flex items-center justify-center h-full">
                     <div className="text-center space-y-2">
                       <ImageIcon className="h-10 w-10 sm:h-12 sm:w-12 mx-auto text-muted-foreground/50" />
-                      <p className="text-sm sm:text-base text-muted-foreground">Imagem não disponível</p>
+                      <p className="text-sm sm:text-base text-muted-foreground">Mídia não disponível</p>
                     </div>
                   </div>
                 )}

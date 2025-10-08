@@ -598,14 +598,30 @@ export default function CreateContent() {
 
         const { status: genStatus, message } = await videoResponse.json();
         
-        toast.success("Vídeo sendo gerado em background", {
+        toast.success("Vídeo sendo gerado!", {
           id: toastId,
-          description: message || "Você será redirecionado quando o vídeo estiver pronto. Isso pode levar alguns minutos.",
-          duration: 5000,
+          description: message || "Aguarde enquanto processamos seu vídeo...",
+          duration: 3000,
         });
         
-        // Navegar para o histórico com a rota correta
-        navigate("/history");
+        // Navegar para a tela de resultado com dados do vídeo
+        navigate("/result", {
+          state: {
+            contentData: {
+              type: "video",
+              mediaUrl: "", // Será atualizado quando o vídeo estiver pronto
+              caption: videoPrompt || formData.description || "Legenda sendo gerada...",
+              platform: formData.platform,
+              brand: selectedBrand?.name || "Marca não especificada",
+              title: "",
+              body: "",
+              hashtags: [],
+              originalFormData: formData,
+              actionId: actionData.id,
+              isProcessing: true, // Flag para indicar que está processando
+            }
+          }
+        });
         return;
       }
 

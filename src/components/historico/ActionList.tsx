@@ -111,10 +111,10 @@ export default function ActionList({
               const Icon = style.icon;
               return (
                 <li key={action.id}>
-                  <button
+                  <div
                     onClick={() => onSelectAction(action)}
                     className={cn(
-                      "w-full text-left p-4 rounded-lg border-2 transition-all duration-200 flex items-center justify-between gap-4 hover-scale",
+                      "w-full text-left p-4 rounded-lg border-2 transition-all duration-200 flex items-center justify-between gap-4 hover-scale cursor-pointer",
                       selectedAction?.id === action.id
                         ? "bg-primary/10 border-primary shadow-md"
                         : "bg-muted/50 border-transparent hover:border-border/60 hover:bg-muted"
@@ -143,7 +143,7 @@ export default function ActionList({
                         {formatDate(action.createdAt)}
                       </span>
                     </div>
-                  </button>
+                  </div>
                 </li>
               );
             })}
