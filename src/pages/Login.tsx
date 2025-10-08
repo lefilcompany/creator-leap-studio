@@ -39,29 +39,13 @@ const Login = () => {
     setLoading(true);
 
     try {
-      // Tentar fazer login primeiro
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) {
-        // Se houver erro, verificar se o email existe no banco
-        if (error.message.includes('Invalid login credentials')) {
-          const { data: existingUser } = await supabase
-            .from('profiles')
-            .select('id')
-            .eq('email', email)
-            .maybeSingle();
-
-          if (!existingUser) {
-            toast.error('Email não encontrado. Verifique o email digitado.');
-          } else {
-            toast.error('Senha incorreta. Tente novamente.');
-          }
-        } else {
-          toast.error(error.message);
-        }
+        toast.error('Credenciais de login inválidas. Verifique seu email e senha.');
         return;
       }
 
