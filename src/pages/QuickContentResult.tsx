@@ -160,21 +160,21 @@ export default function QuickContentResult() {
             {actionId && (
               <Card className="border-primary/30 bg-gradient-to-br from-primary/10 to-primary/5 backdrop-blur-sm hover:shadow-lg hover:shadow-primary/10 transition-all duration-300">
                 <div className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div className="space-y-1 flex-1 min-w-0">
                       <h3 className="font-semibold text-sm flex items-center gap-2">
-                        <div className="w-1 h-4 bg-gradient-to-b from-primary to-primary/60 rounded-full" />
+                        <div className="w-1 h-4 bg-gradient-to-b from-primary to-primary/60 rounded-full flex-shrink-0" />
                         Ação registrada
                       </h3>
-                      <p className="text-xs text-muted-foreground pl-3">
+                      <p className="text-xs text-muted-foreground pl-3 break-words">
                         Esta criação foi salva no histórico
                       </p>
                     </div>
-                    <Link to={`/action/${actionId}`}>
+                    <Link to={`/action/${actionId}`} className="flex-shrink-0 w-full sm:w-auto">
                       <Button 
                         variant="outline" 
                         size="sm"
-                        className="hover:scale-105 transition-transform"
+                        className="hover:scale-105 transition-transform w-full sm:w-auto"
                       >
                         <ExternalLink className="mr-2 h-4 w-4" />
                         Ver detalhes
