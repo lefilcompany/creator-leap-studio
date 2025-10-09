@@ -174,16 +174,16 @@ export default function Notifications() {
           variant="ghost"
           size="sm"
           className={cn(
-            'relative h-9 w-9 rounded-xl border transition-all duration-300 bell-ring-animation',
+            'relative h-9 w-9 rounded-xl border transition-all duration-300 group',
             unreadCount > 0 
               ? 'border-primary/20 bg-primary/5 text-primary hover:bg-primary/10 hover:border-primary/30' 
               : 'h-8 w-8 md:h-10 md:w-10 rounded-lg xl:rounded-xl hover:bg-primary/10 transition-all duration-200 border border-transparent hover:border-primary/20'
           )}
         >
           {unreadCount > 0 ? (
-            <BellRing className="h-[18px] w-[18px]" />
+            <BellRing className="h-[18px] w-[18px] group-hover:animate-[bell-ring_0.8s_ease-in-out]" />
           ) : (
-            <Bell className="h-[18px] w-[18px] text-muted-foreground" />
+            <Bell className="h-[18px] w-[18px] text-muted-foreground group-hover:animate-[bell-ring_0.8s_ease-in-out]" />
           )}
 
           {unreadCount > 0 && (

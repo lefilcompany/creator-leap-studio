@@ -141,10 +141,10 @@ export const Header = () => {
             variant="ghost"
             size="sm"
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="h-8 w-8 md:h-10 md:w-10 rounded-lg hover:bg-primary/10 transition-all duration-200 border border-transparent hover:border-primary/20 theme-rotate-animation"
+            className="h-8 w-8 md:h-10 md:w-10 rounded-lg hover:bg-primary/10 transition-all duration-200 border border-transparent hover:border-primary/20 group"
           >
-            <Sun className="h-4 w-4 md:h-5 md:w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-muted-foreground" />
-            <Moon className="absolute h-4 w-4 md:h-5 md:w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 text-muted-foreground" />
+            <Sun className="h-4 w-4 md:h-5 md:w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-muted-foreground group-hover:animate-[sun-rays_0.6s_ease-in-out]" />
+            <Moon className="absolute h-4 w-4 md:h-5 md:w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 text-muted-foreground group-hover:animate-[moon-rotate_0.5s_ease-in-out]" />
             <span className="sr-only">Alternar tema</span>
           </Button>
 
@@ -158,9 +158,9 @@ export const Header = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 w-8 md:h-10 md:w-10 rounded-lg xl:rounded-xl hover:bg-primary/10 transition-all duration-200 border border-transparent hover:border-primary/20 settings-spin-animation"
+                  className="h-8 w-8 md:h-10 md:w-10 rounded-lg xl:rounded-xl hover:bg-primary/10 transition-all duration-200 border border-transparent hover:border-primary/20 group"
                 >
-                  <Settings className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
+                  <Settings className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground group-hover:animate-[gear-spin_0.3s_ease-in-out]" />
                   <span className="sr-only">Configurações</span>
                 </Button>
               </DropdownMenuTrigger>

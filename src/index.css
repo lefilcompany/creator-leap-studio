@@ -106,7 +106,7 @@
   background: linear-gradient(180deg, hsl(var(--primary)), hsl(var(--secondary)));
 }
 
-/* --- ANIMAÇÕES DE BOTÕES DO HEADER --- */
+/* --- ANIMAÇÕES DE ÍCONES DO HEADER --- */
 @keyframes bell-ring {
   0% { transform: rotate(0deg); }
   10% { transform: rotate(14deg); }
@@ -118,7 +118,12 @@
   100% { transform: rotate(0deg); }
 }
 
-@keyframes rotate-smooth {
+@keyframes sun-rays {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+}
+
+@keyframes moon-rotate {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(180deg); }
 }
@@ -126,16 +131,4 @@
 @keyframes gear-spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(90deg); }
-}
-
-.bell-ring-animation:hover {
-  animation: bell-ring 0.8s ease-in-out;
-}
-
-.theme-rotate-animation:hover {
-  animation: rotate-smooth 0.4s ease-in-out;
-}
-
-.settings-spin-animation:hover {
-  animation: gear-spin 0.3s ease-in-out;
 }
