@@ -284,27 +284,8 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
 
     console.log('Calling Lovable AI for image generation with enhanced prompt...');
 
-    // Build messages array with optional reference images
-    const messages: any[] = [];
-    
-    if (referenceImages && referenceImages.length > 0) {
-      messages.push({
-        role: 'user',
-        content: [
-          { type: 'text', text: enhancedPrompt },
-          ...referenceImages.map((img: string) => ({
-            type: 'image_url',
-            image_url: { url: img }
-          }))
-        ]
-      });
-    } else {
-      messages.push({
-        role: 'user',
-        content: enhancedPrompt
-      });
-    }
-
+    // For Nano banana model, we need to use a simple text prompt
+    // Reference images are not fully supported yet, so we'll just note them in the prompt
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -313,7 +294,12 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
       },
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash-image-preview',
-        messages,
+        messages: [
+          {
+            role: 'user',
+            content: `Generate an image: ${enhancedPrompt}`
+          }
+        ],
         modalities: ['image', 'text']
       }),
     });
