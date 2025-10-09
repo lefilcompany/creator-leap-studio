@@ -81,7 +81,7 @@ export default function ThemeList({ themes, brands, selectedTheme, onSelectTheme
       <div className="flex items-center justify-between mb-3 lg:mb-4 flex-shrink-0">
         <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-foreground">Todos os temas</h2>
         {!isLoading && (
-          <Badge variant="secondary" className="bg-secondary/10 text-secondary">
+          <Badge variant="secondary" className="bg-secondary/10 text-secondary hover:text-white">
             {sortedThemes.length} temas
           </Badge>
         )}
