@@ -212,10 +212,8 @@ export default function History() {
 
   // Reset to first page when filters change
   useEffect(() => {
-    if (currentPage !== 1) {
-      setCurrentPage(1);
-    }
-  }, [brandFilter, typeFilter, currentPage]);
+    setCurrentPage(1);
+  }, [brandFilter, typeFilter]);
 
   return (
     <div className="h-full flex flex-col gap-6 overflow-hidden">
