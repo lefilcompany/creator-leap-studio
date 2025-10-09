@@ -330,7 +330,7 @@ export default function PersonasPage() {
               title={isAtPersonaLimit ? `Limite de ${team?.plan.maxPersonas} personas atingido` : undefined}
             >
               <Plus className="mr-2 h-4 w-4 lg:h-5 lg:w-5" />
-              Nova persona {team && `(${personas.length}/${team.plan.maxPersonas})`}
+              Nova persona
             </Button>
           </div>
         </CardHeader>

@@ -382,7 +382,7 @@ export default function Themes() {
               title={isAtThemeLimit ? `Limite de ${team?.plan.maxStrategicThemes} temas atingido` : undefined}
             >
               <Plus className="mr-2 h-5 w-5" />
-              Novo tema {team && `(${themes.length}/${team.plan.maxStrategicThemes})`}
+              Novo tema
             </Button>
           </div>
         </CardHeader>

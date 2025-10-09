@@ -317,7 +317,7 @@ export default function MarcasPage() {
               title={isAtBrandLimit ? `Limite de ${team?.plan.maxBrands} marcas atingido` : undefined}
             >
               <Plus className="mr-2 h-4 w-4 lg:h-5 lg:w-5" />
-              Nova marca {team && `(${brands.length}/${team.plan.maxBrands})`}
+              Nova marca
             </Button>
           </div>
         </CardHeader>
