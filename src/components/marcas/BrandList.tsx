@@ -4,12 +4,24 @@ import { useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { Loader2, Package } from 'lucide-react';
 import type { BrandSummary } from '@/types/brand';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  PaginationEllipsis,
+} from "@/components/ui/pagination";
 
 interface BrandListProps {
   brands: BrandSummary[] | undefined;
   selectedBrand: BrandSummary | null;
   onSelectBrand: (brand: BrandSummary) => void;
   isLoading?: boolean;
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
 }
 
 const formatDate = (dateString: string) => {
@@ -32,11 +44,35 @@ const LoadingState = () => (
   </div>
 );
 
-export default function BrandList({ brands, selectedBrand, onSelectBrand, isLoading = false }: BrandListProps) {
+export default function BrandList({ brands, selectedBrand, onSelectBrand, isLoading = false, currentPage, totalPages, onPageChange }: BrandListProps) {
   const sortedBrands = useMemo(() => {
     if (!brands || !Array.isArray(brands)) return [];
     return [...brands].sort((a, b) => a.name.localeCompare(b.name));
   }, [brands]);
+
+  const generatePagination = (currentPage: number, totalPages: number) => {
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+    if (currentPage <= 3) {
+      return [1, 2, 3, 4, '...', totalPages];
+    }
+    if (currentPage >= totalPages - 2) {
+      return [1, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+    }
+    return [1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages];
+  };
+
+  const handlePageClick = (page: number | string, event?: React.MouseEvent) => {
+    if (event) {
+      event.preventDefault();
+    }
+    if (typeof page === 'number' && page > 0 && page <= totalPages && page !== currentPage) {
+      onPageChange(page);
+    }
+  };
+
+  const paginationRange = generatePagination(currentPage, totalPages);
 
   return (
     <div className="lg:col-span-2 bg-card p-4 md:p-6 rounded-2xl border-2 border-primary/10 flex flex-col h-full overflow-hidden">
@@ -81,6 +117,49 @@ export default function BrandList({ brands, selectedBrand, onSelectBrand, isLoad
           </div>
         )}
       </div>
+
+      {totalPages > 1 && !isLoading && (
+        <div className="pt-4 mt-auto flex-shrink-0 border-t border-border/20">
+          <Pagination> 
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  onClick={(e) => handlePageClick(currentPage - 1, e)}
+                  disabled={currentPage === 1}
+                  className={cn("cursor-pointer", currentPage === 1 && "pointer-events-none opacity-50")}
+                  aria-disabled={currentPage === 1}
+                />
+              </PaginationItem>
+              
+              {paginationRange.map((page, index) => {
+                if (typeof page === 'string') {
+                  return <PaginationEllipsis key={`ellipsis-${index}`} />;
+                }
+                return (
+                  <PaginationItem key={page}>
+                    <PaginationLink
+                      onClick={(e) => handlePageClick(page, e)}
+                      isActive={currentPage === page}
+                      className="cursor-pointer"
+                    >
+                      {page}
+                    </PaginationLink>
+                  </PaginationItem>
+                );
+              })}
+
+              <PaginationItem>
+                <PaginationNext
+                  onClick={(e) => handlePageClick(currentPage + 1, e)}
+                  disabled={currentPage === totalPages}
+                  className={cn("cursor-pointer", currentPage === totalPages && "pointer-events-none opacity-50")}
+                  aria-disabled={currentPage === totalPages}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
     </div>
   );
 }

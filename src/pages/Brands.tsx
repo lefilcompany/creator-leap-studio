@@ -32,6 +32,11 @@ export default function MarcasPage() {
   const [isLoadingTeam, setIsLoadingTeam] = useState(false);
   const [isBrandDetailsOpen, setIsBrandDetailsOpen] = useState(false);
 
+  // Estados para paginação
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const ITEMS_PER_PAGE = 10;
+
   // Load brands from database
   useEffect(() => {
     const loadBrands = async () => {
@@ -39,15 +44,18 @@ export default function MarcasPage() {
       
       setIsLoadingBrands(true);
       try {
-        const { data, error } = await supabase
+        const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+        
+        const { data, error, count } = await supabase
           .from('brands')
-          .select('id, name, responsible, created_at, updated_at')
+          .select('id, name, responsible, created_at, updated_at', { count: 'exact' })
           .eq('team_id', user.teamId)
-          .order('name', { ascending: true });
+          .order('name', { ascending: true })
+          .range(startIndex, startIndex + ITEMS_PER_PAGE - 1);
 
         if (error) throw error;
 
-        const brands: BrandSummary[] = data.map(brand => ({
+        const brands: BrandSummary[] = (data || []).map(brand => ({
           id: brand.id,
           name: brand.name,
           responsible: brand.responsible,
@@ -56,6 +64,7 @@ export default function MarcasPage() {
         }));
 
         setBrands(brands);
+        setTotalPages(Math.ceil((count || 0) / ITEMS_PER_PAGE));
       } catch (error) {
         console.error('Erro ao carregar marcas:', error);
         toast.error('Erro ao carregar marcas');
@@ -65,7 +74,7 @@ export default function MarcasPage() {
     };
     
     loadBrands();
-  }, [user?.teamId]);
+  }, [user?.teamId, currentPage]);
 
   const handleOpenDialog = useCallback((brand: Brand | null = null) => {
     setBrandToEdit(brand);
@@ -318,6 +327,9 @@ export default function MarcasPage() {
           selectedBrand={selectedBrandSummary}
           onSelectBrand={handleSelectBrand}
           isLoading={isLoadingBrands}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
         />
       </main>
 

@@ -33,6 +33,11 @@ export default function PersonasPage() {
   const [personaToEdit, setPersonaToEdit] = useState<Persona | null>(null);
   const [isPersonaDetailsOpen, setIsPersonaDetailsOpen] = useState(false);
 
+  // Estados para paginação
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const ITEMS_PER_PAGE = 10;
+
   // Load brands from database
   useEffect(() => {
     const loadBrands = async () => {
@@ -75,15 +80,18 @@ export default function PersonasPage() {
       
       setIsLoadingPersonas(true);
       try {
-        const { data, error } = await supabase
+        const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+        
+        const { data, error, count } = await supabase
           .from('personas')
-          .select('id, brand_id, name, created_at')
+          .select('id, brand_id, name, created_at', { count: 'exact' })
           .eq('team_id', user.teamId)
-          .order('created_at', { ascending: false });
+          .order('created_at', { ascending: false })
+          .range(startIndex, startIndex + ITEMS_PER_PAGE - 1);
 
         if (error) throw error;
 
-        const personas: PersonaSummary[] = data.map(persona => ({
+        const personas: PersonaSummary[] = (data || []).map(persona => ({
           id: persona.id,
           brandId: persona.brand_id,
           name: persona.name,
@@ -91,6 +99,7 @@ export default function PersonasPage() {
         }));
 
         setPersonas(personas);
+        setTotalPages(Math.ceil((count || 0) / ITEMS_PER_PAGE));
       } catch (error) {
         console.error('Erro ao carregar personas:', error);
         toast.error('Erro ao carregar personas');
@@ -100,7 +109,7 @@ export default function PersonasPage() {
     };
     
     loadPersonas();
-  }, [user?.teamId]);
+  }, [user?.teamId, currentPage]);
 
   const handleOpenDialog = useCallback((persona: Persona | null = null) => {
     setPersonaToEdit(persona);
@@ -324,6 +333,9 @@ export default function PersonasPage() {
           selectedPersona={selectedPersonaSummary}
           onSelectPersona={handleSelectPersona}
           isLoading={isLoadingPersonas}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
         />
       </main>
 

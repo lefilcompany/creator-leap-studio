@@ -3,13 +3,25 @@ import { cn } from '@/lib/utils';
 import { Loader2, Palette } from 'lucide-react';
 import type { StrategicThemeSummary } from "@/types/theme";
 import type { BrandSummary } from "@/types/brand";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  PaginationEllipsis,
+} from "@/components/ui/pagination";
 
 interface ThemeListProps {
   themes: StrategicThemeSummary[];
-  brands: BrandSummary[]; // Recebe a lista de marcas
+  brands: BrandSummary[];
   selectedTheme: StrategicThemeSummary | null;
   onSelectTheme: (theme: StrategicThemeSummary) => void;
   isLoading?: boolean;
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
 }
 
 const formatDate = (dateString: string) => {
@@ -32,12 +44,36 @@ const LoadingState = () => (
   </div>
 );
 
-export default function ThemeList({ themes, brands, selectedTheme, onSelectTheme, isLoading = false }: ThemeListProps) {
+export default function ThemeList({ themes, brands, selectedTheme, onSelectTheme, isLoading = false, currentPage, totalPages, onPageChange }: ThemeListProps) {
   const sortedThemes = useMemo(() => {
     return [...themes].sort((a, b) => a.title.localeCompare(b.title));
   }, [themes]);
 
   const brandMap = useMemo(() => new Map(brands.map(b => [b.id, b.name])), [brands]);
+
+  const generatePagination = (currentPage: number, totalPages: number) => {
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+    if (currentPage <= 3) {
+      return [1, 2, 3, 4, '...', totalPages];
+    }
+    if (currentPage >= totalPages - 2) {
+      return [1, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+    }
+    return [1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages];
+  };
+
+  const handlePageClick = (page: number | string, event?: React.MouseEvent) => {
+    if (event) {
+      event.preventDefault();
+    }
+    if (typeof page === 'number' && page > 0 && page <= totalPages && page !== currentPage) {
+      onPageChange(page);
+    }
+  };
+
+  const paginationRange = generatePagination(currentPage, totalPages);
 
   return (
     <div className="lg:col-span-2 bg-card p-3 sm:p-4 md:p-6 rounded-xl lg:rounded-2xl border border-primary/10 lg:border-2 flex flex-col max-h-[calc(100vh-12rem)] lg:max-h-[calc(100vh-16rem)] overflow-hidden">
@@ -82,6 +118,49 @@ export default function ThemeList({ themes, brands, selectedTheme, onSelectTheme
           </div>
         )}
       </div>
+
+      {totalPages > 1 && !isLoading && (
+        <div className="pt-4 mt-auto flex-shrink-0 border-t border-border/20">
+          <Pagination> 
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  onClick={(e) => handlePageClick(currentPage - 1, e)}
+                  disabled={currentPage === 1}
+                  className={cn("cursor-pointer", currentPage === 1 && "pointer-events-none opacity-50")}
+                  aria-disabled={currentPage === 1}
+                />
+              </PaginationItem>
+              
+              {paginationRange.map((page, index) => {
+                if (typeof page === 'string') {
+                  return <PaginationEllipsis key={`ellipsis-${index}`} />;
+                }
+                return (
+                  <PaginationItem key={page}>
+                    <PaginationLink
+                      onClick={(e) => handlePageClick(page, e)}
+                      isActive={currentPage === page}
+                      className="cursor-pointer"
+                    >
+                      {page}
+                    </PaginationLink>
+                  </PaginationItem>
+                );
+              })}
+
+              <PaginationItem>
+                <PaginationNext
+                  onClick={(e) => handlePageClick(currentPage + 1, e)}
+                  disabled={currentPage === totalPages}
+                  className={cn("cursor-pointer", currentPage === totalPages && "pointer-events-none opacity-50")}
+                  aria-disabled={currentPage === totalPages}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
     </div>
   );
 }

@@ -31,6 +31,11 @@ export default function Themes() {
   const [themeToEdit, setThemeToEdit] = useState<StrategicTheme | null>(null);
   const [isThemeDetailsOpen, setIsThemeDetailsOpen] = useState(false);
 
+  // Estados para paginação
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const ITEMS_PER_PAGE = 10;
+
   // Load brands from database
   useEffect(() => {
     const loadBrands = async () => {
@@ -77,15 +82,18 @@ export default function Themes() {
       
       setIsLoadingThemes(true);
       try {
-        const { data, error } = await supabase
+        const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+        
+        const { data, error, count } = await supabase
           .from('strategic_themes')
-          .select('id, brand_id, title, created_at')
+          .select('id, brand_id, title, created_at', { count: 'exact' })
           .eq('team_id', user.teamId)
-          .order('created_at', { ascending: false });
+          .order('created_at', { ascending: false })
+          .range(startIndex, startIndex + ITEMS_PER_PAGE - 1);
 
         if (error) throw error;
 
-        const themes: StrategicThemeSummary[] = data.map(theme => ({
+        const themes: StrategicThemeSummary[] = (data || []).map(theme => ({
           id: theme.id,
           brandId: theme.brand_id,
           title: theme.title,
@@ -93,6 +101,7 @@ export default function Themes() {
         }));
 
         setThemes(themes);
+        setTotalPages(Math.ceil((count || 0) / ITEMS_PER_PAGE));
       } catch (error) {
         console.error('Erro ao carregar temas:', error);
         toast({
@@ -106,7 +115,7 @@ export default function Themes() {
     };
     
     loadThemes();
-  }, [user?.teamId, toast]);
+  }, [user?.teamId, currentPage, toast]);
 
   const handleOpenDialog = useCallback((theme: StrategicTheme | null = null) => {
     setThemeToEdit(theme);
@@ -372,6 +381,9 @@ export default function Themes() {
           selectedTheme={selectedThemeSummary}
           onSelectTheme={handleSelectTheme}
           isLoading={isLoadingThemes}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
         />
       </main>
 
