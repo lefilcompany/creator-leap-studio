@@ -17,7 +17,7 @@ import { supabase } from '@/integrations/supabase/client';
 type ThemeFormData = Omit<StrategicTheme, 'id' | 'createdAt' | 'updatedAt' | 'teamId' | 'userId'>;
 
 export default function Themes() {
-  const { user } = useAuth();
+  const { user, team } = useAuth();
   const isMobile = useIsMobile();
   const { toast } = useToast();
   const [themes, setThemes] = useState<StrategicThemeSummary[]>([]);
@@ -118,9 +118,18 @@ export default function Themes() {
   }, [user?.teamId, currentPage, toast]);
 
   const handleOpenDialog = useCallback((theme: StrategicTheme | null = null) => {
+    // Check if at limit before opening dialog for new theme
+    if (!theme && team && themes.length >= team.plan.maxStrategicThemes) {
+      toast({
+        title: "Limite atingido",
+        description: `Você atingiu o limite de ${team.plan.maxStrategicThemes} temas do seu plano. Faça upgrade para criar mais temas.`,
+        variant: "destructive"
+      });
+      return;
+    }
     setThemeToEdit(theme);
     setIsDialogOpen(true);
-  }, []);
+  }, [team, themes.length, toast]);
 
   const handleSaveTheme = useCallback(
     async (formData: ThemeFormData): Promise<StrategicTheme> => {
@@ -345,6 +354,9 @@ export default function Themes() {
     }
   }, [toast]);
 
+  // Verificar se o limite foi atingido
+  const isAtThemeLimit = team ? themes.length >= team.plan.maxStrategicThemes : false;
+
   return (
     <div className="min-h-full flex flex-col gap-6">
       <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5 flex-shrink-0">
@@ -365,10 +377,12 @@ export default function Themes() {
             </div>
             <Button
               onClick={() => handleOpenDialog()}
-              className="rounded-lg bg-gradient-to-r from-primary to-secondary px-6 py-5 text-base"
+              disabled={isAtThemeLimit}
+              className="rounded-lg bg-gradient-to-r from-primary to-secondary px-6 py-5 text-base disabled:opacity-50 disabled:cursor-not-allowed"
+              title={isAtThemeLimit ? `Limite de ${team?.plan.maxStrategicThemes} temas atingido` : undefined}
             >
               <Plus className="mr-2 h-5 w-5" />
-              Novo tema
+              Novo tema {team && `(${themes.length}/${team.plan.maxStrategicThemes})`}
             </Button>
           </div>
         </CardHeader>

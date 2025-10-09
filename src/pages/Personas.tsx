@@ -20,7 +20,7 @@ import { supabase } from '@/integrations/supabase/client';
 type PersonaFormData = Omit<Persona, 'id' | 'createdAt' | 'updatedAt' | 'teamId' | 'userId'>;
 
 export default function PersonasPage() {
-  const { user } = useAuth();
+  const { user, team } = useAuth();
   const isMobile = useIsMobile();
   const [personas, setPersonas] = useState<PersonaSummary[]>([]);
   const [brands, setBrands] = useState<BrandSummary[]>([]);
@@ -112,9 +112,14 @@ export default function PersonasPage() {
   }, [user?.teamId, currentPage]);
 
   const handleOpenDialog = useCallback((persona: Persona | null = null) => {
+    // Check if at limit before opening dialog for new persona
+    if (!persona && team && personas.length >= team.plan.maxPersonas) {
+      toast.error(`Você atingiu o limite de ${team.plan.maxPersonas} personas do seu plano. Faça upgrade para criar mais personas.`);
+      return;
+    }
     setPersonaToEdit(persona);
     setIsDialogOpen(true);
-  }, []);
+  }, [team, personas.length]);
 
   const handleSelectPersona = useCallback(async (persona: PersonaSummary) => {
     setSelectedPersonaSummary(persona);
@@ -297,6 +302,9 @@ export default function PersonasPage() {
     }
   }, [selectedPersona, user]);
 
+  // Verificar se o limite foi atingido
+  const isAtPersonaLimit = team ? personas.length >= team.plan.maxPersonas : false;
+
   return (
     <div className="h-full flex flex-col gap-4 lg:gap-6 overflow-hidden">
       <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5 flex-shrink-0">
@@ -317,10 +325,12 @@ export default function PersonasPage() {
             </div>
             <Button 
               onClick={() => handleOpenDialog()} 
-              className="rounded-lg bg-gradient-to-r from-primary to-secondary px-4 lg:px-6 py-3 lg:py-5 text-sm lg:text-base shrink-0"
+              disabled={isAtPersonaLimit}
+              className="rounded-lg bg-gradient-to-r from-primary to-secondary px-4 lg:px-6 py-3 lg:py-5 text-sm lg:text-base disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+              title={isAtPersonaLimit ? `Limite de ${team?.plan.maxPersonas} personas atingido` : undefined}
             >
               <Plus className="mr-2 h-4 w-4 lg:h-5 lg:w-5" />
-              Nova persona
+              Nova persona {team && `(${personas.length}/${team.plan.maxPersonas})`}
             </Button>
           </div>
         </CardHeader>

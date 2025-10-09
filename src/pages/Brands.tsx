@@ -19,7 +19,7 @@ import { supabase } from '@/integrations/supabase/client';
 type BrandFormData = Omit<Brand, 'id' | 'createdAt' | 'updatedAt' | 'teamId' | 'userId'>;
 
 export default function MarcasPage() {
-  const { user } = useAuth();
+  const { user, team } = useAuth();
   const isMobile = useIsMobile();
   const [brands, setBrands] = useState<BrandSummary[]>([]);
   const [isLoadingBrands, setIsLoadingBrands] = useState(true);
@@ -28,8 +28,6 @@ export default function MarcasPage() {
   const [isLoadingBrandDetails, setIsLoadingBrandDetails] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [brandToEdit, setBrandToEdit] = useState<Brand | null>(null);
-  const [team, setTeam] = useState<any>(null);
-  const [isLoadingTeam, setIsLoadingTeam] = useState(false);
   const [isBrandDetailsOpen, setIsBrandDetailsOpen] = useState(false);
 
   // Estados para paginação
@@ -77,9 +75,14 @@ export default function MarcasPage() {
   }, [user?.teamId, currentPage]);
 
   const handleOpenDialog = useCallback((brand: Brand | null = null) => {
+    // Check if at limit before opening dialog for new brand
+    if (!brand && team && brands.length >= team.plan.maxBrands) {
+      toast.error(`Você atingiu o limite de ${team.plan.maxBrands} marcas do seu plano. Faça upgrade para criar mais marcas.`);
+      return;
+    }
     setBrandToEdit(brand);
     setIsDialogOpen(true);
-  }, []);
+  }, [team, brands.length]);
 
   const handleSelectBrand = useCallback(async (brand: BrandSummary) => {
     setSelectedBrandSummary(brand);
@@ -287,9 +290,7 @@ export default function MarcasPage() {
   }, [selectedBrand, user, brands, handleSelectBrand]);
 
   // Verificar se o limite foi atingido
-  const isAtBrandLimit = team && typeof team.plan === 'object' 
-    ? brands.length >= (team.plan.limits?.brands || 1)
-    : false;
+  const isAtBrandLimit = team ? brands.length >= team.plan.maxBrands : false;
 
   return (
     <div className="h-full flex flex-col gap-4 lg:gap-6 overflow-hidden">
@@ -311,11 +312,12 @@ export default function MarcasPage() {
             </div>
             <Button 
               onClick={() => handleOpenDialog()} 
-              disabled={isAtBrandLimit || isLoadingTeam}
+              disabled={isAtBrandLimit}
               className="rounded-lg bg-gradient-to-r from-primary to-secondary px-4 lg:px-6 py-3 lg:py-5 text-sm lg:text-base disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+              title={isAtBrandLimit ? `Limite de ${team?.plan.maxBrands} marcas atingido` : undefined}
             >
               <Plus className="mr-2 h-4 w-4 lg:h-5 lg:w-5" />
-              Nova marca
+              Nova marca {team && `(${brands.length}/${team.plan.maxBrands})`}
             </Button>
           </div>
         </CardHeader>
