@@ -18,7 +18,7 @@ async function processVideoGeneration(operationName: string, actionId: string) {
     let isDone = false;
     let videoUri = null;
     let attempts = 0;
-    const maxAttempts = 120; // 20 minutos
+    const maxAttempts = 60; // 10 minutos (60 tentativas x 5 segundos)
 
     console.log('Background: Starting video processing for operation:', operationName);
 
@@ -26,7 +26,7 @@ async function processVideoGeneration(operationName: string, actionId: string) {
       attempts++;
       console.log(`Background: Polling attempt ${attempts}/${maxAttempts}...`);
       
-      await new Promise(resolve => setTimeout(resolve, 10000)); // 10 segundos
+      await new Promise(resolve => setTimeout(resolve, 5000)); // Verificar a cada 5 segundos
       
       const statusResponse = await fetch(
         `${BASE_URL}/${operationName}`,
@@ -43,20 +43,43 @@ async function processVideoGeneration(operationName: string, actionId: string) {
       }
 
       const statusData = await statusResponse.json();
-      console.log('Background: Status response:', JSON.stringify(statusData, null, 2));
+      console.log('Background: Full status data:', JSON.stringify(statusData, null, 2));
       isDone = statusData.done === true;
 
+      // Verificar se a operação falhou
+      if (statusData.error || statusData.response?.error) {
+        const errorMsg = statusData.error?.message || JSON.stringify(statusData.response?.error);
+        console.error('Background: Operation failed with error:', errorMsg);
+        throw new Error(`Video generation failed: ${errorMsg}`);
+      }
+
+      // Verificar se operação foi cancelada
+      if (statusData.metadata?.verb === 'cancel') {
+        throw new Error('Video generation was cancelled');
+      }
+
       if (isDone) {
-        // Estrutura correta baseada na documentação oficial
-        videoUri = statusData.response?.generateVideoResponse?.generatedSamples?.[0]?.video?.uri;
+        console.log('Background: ✅ Operation completed!');
+        console.log('Background: Full response structure:', JSON.stringify(statusData.response, null, 2));
+        
+        // Tentar múltiplos caminhos possíveis na resposta
+        videoUri = statusData.response?.generateVideoResponse?.generatedSamples?.[0]?.video?.uri ||
+                   statusData.response?.video?.uri ||
+                   statusData.response?.generatedSamples?.[0]?.video?.uri ||
+                   statusData.response?.result?.video?.uri;
+        
+        // Se ainda não encontrou, verificar se há erro na resposta
+        if (!videoUri && statusData.response?.error) {
+          console.error('Background: API returned error:', statusData.response.error);
+          throw new Error(`API error: ${JSON.stringify(statusData.response.error)}`);
+        }
         
         console.log('Background: Video URI found:', videoUri);
-        console.log('Background: Full response:', JSON.stringify(statusData.response, null, 2));
       }
     }
 
     if (!videoUri) {
-      throw new Error('Video URI not found in response after max attempts');
+      throw new Error(`Video URI not found in response after ${attempts} attempts (${attempts * 5} seconds)`);
     }
 
     // Download do vídeo
@@ -106,8 +129,13 @@ async function processVideoGeneration(operationName: string, actionId: string) {
     const { error: updateError } = await supabase
       .from('actions')
       .update({
-        result: { videoUrl },
-        status: 'completed'
+        result: { 
+          videoUrl,
+          processingTime: `${attempts * 5} seconds`,
+          attempts: attempts
+        },
+        status: 'completed',
+        updated_at: new Date().toISOString()
       })
       .eq('id', actionId);
 
@@ -129,7 +157,12 @@ async function processVideoGeneration(operationName: string, actionId: string) {
       .from('actions')
       .update({
         status: 'failed',
-        result: { error: error instanceof Error ? error.message : 'Unknown error' }
+        result: { 
+          error: error instanceof Error ? error.message : 'Unknown error',
+          errorDetails: error instanceof Error ? error.stack : undefined,
+          failedAt: new Date().toISOString()
+        },
+        updated_at: new Date().toISOString()
       })
       .eq('id', actionId);
   }
