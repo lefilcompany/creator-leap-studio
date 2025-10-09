@@ -80,7 +80,7 @@ export default function BrandList({ brands, selectedBrand, onSelectBrand, isLoad
       <div className="flex items-center justify-between mb-4 flex-shrink-0">
         <h2 className="text-2xl font-semibold text-foreground">Todas as marcas</h2>
         {!isLoading && (
-          <Badge variant="secondary" className="bg-secondary/10 text-secondary">
+          <Badge variant="secondary" className="bg-secondary/10 text-secondary hover:text-white">
             {sortedBrands.length} marcas
           </Badge>
         )}
