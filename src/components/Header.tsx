@@ -143,7 +143,7 @@ export const Header = () => {
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
             className="h-8 w-8 md:h-10 md:w-10 rounded-lg hover:bg-primary/10 transition-all duration-200 border border-transparent hover:border-primary/20 group"
           >
-            <Sun className="h-4 w-4 md:h-5 md:w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-muted-foreground group-hover:animate-[sun-rays_0.6s_ease-in-out]" />
+            <Sun className="h-4 w-4 md:h-5 md:w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-muted-foreground group-hover:animate-[sun-rays_0.6s_ease-in-out] dark:group-hover:animate-none" />
             <Moon className="absolute h-4 w-4 md:h-5 md:w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 text-muted-foreground dark:group-hover:animate-[moon-glow_0.6s_ease-in-out]" />
             <span className="sr-only">Alternar tema</span>
           </Button>
