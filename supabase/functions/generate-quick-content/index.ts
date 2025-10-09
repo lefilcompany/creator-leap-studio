@@ -85,11 +85,26 @@ serve(async (req) => {
       quality = 'standard'
     } = body;
 
+    // Validate and normalize aspect ratio
+    const validAspectRatios = ['1:1', '4:5', '9:16', '16:9', '3:4'];
+    let normalizedAspectRatio = aspectRatio;
+    
+    // Handle Facebook's 1.91:1 as 16:9 (closest match)
+    if (aspectRatio === '1.91:1') {
+      normalizedAspectRatio = '16:9';
+    }
+    
+    // If aspect ratio is not valid, default to 1:1
+    if (!validAspectRatios.includes(normalizedAspectRatio)) {
+      normalizedAspectRatio = '1:1';
+    }
+
     console.log('Generate Quick Content Request:', { 
       promptLength: prompt.length, 
       brandId,
       platform,
       aspectRatio,
+      normalizedAspectRatio,
       style,
       quality,
       referenceImagesCount: referenceImages?.length || 0,
@@ -119,7 +134,7 @@ serve(async (req) => {
       );
     }
 
-    // Platform specifications
+    // Platform specifications - using normalized aspect ratio
     const platformSpecs: Record<string, any> = {
       'Instagram': {
         dimensions: { '1:1': '1080x1080px', '4:5': '1080x1350px', '9:16': '1080x1920px', '16:9': '1080x607px' },
@@ -200,14 +215,14 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
     // Build enhanced prompt with all configurations
     let enhancedPrompt = prompt;
 
-    // Add platform-specific guidelines
+    // Add platform-specific guidelines using normalized aspect ratio
     if (platform && platformSpecs[platform]) {
       const spec = platformSpecs[platform];
-      const dimensionInfo = spec.dimensions[aspectRatio] || spec.dimensions['1:1'];
+      const dimensionInfo = spec.dimensions[normalizedAspectRatio] || spec.dimensions['1:1'];
       
       enhancedPrompt += `\n\n=== ESPECIFICAÇÕES DA PLATAFORMA: ${platform} ===`;
       enhancedPrompt += `\nDimensões: ${dimensionInfo}`;
-      enhancedPrompt += `\nFormato: ${aspectRatio}`;
+      enhancedPrompt += `\nFormato: ${normalizedAspectRatio}`;
       enhancedPrompt += `\n\nDiretrizes de Design para ${platform}:`;
       spec.tips.forEach((tip: string, idx: number) => {
         enhancedPrompt += `\n${idx + 1}. ${tip}`;
@@ -237,7 +252,7 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
         '9:16': 'formato vertical (9:16) ideal para Stories e Reels',
         '16:9': 'formato horizontal (16:9) ideal para YouTube e desktop'
       };
-      enhancedPrompt += `\n\nProporção da Imagem: ${aspectRatioDescriptions[aspectRatio] || 'formato quadrado (1:1)'}.`;
+      enhancedPrompt += `\n\nProporção da Imagem: ${aspectRatioDescriptions[normalizedAspectRatio] || 'formato quadrado (1:1)'}.`;
     }
 
     // Add quality information
@@ -332,7 +347,14 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
     const description = data.choices?.[0]?.message?.content || 'Imagem gerada com sucesso';
 
     if (!imageUrl) {
-      throw new Error('No image URL in response');
+      console.error('No image URL in response. Full response:', JSON.stringify(data, null, 2));
+      return new Response(
+        JSON.stringify({ 
+          error: 'Falha ao gerar imagem. Por favor, tente novamente com um prompt mais específico ou sem imagens de referência.',
+          details: 'A API não retornou uma imagem válida'
+        }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     // Decrement team credits
@@ -359,7 +381,8 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
           prompt,
           brandId,
           platform,
-          aspectRatio,
+          aspectRatio: normalizedAspectRatio,
+          originalAspectRatio: aspectRatio,
           style,
           quality,
           referenceImagesCount: referenceImages?.length || 0,
