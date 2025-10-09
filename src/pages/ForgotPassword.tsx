@@ -20,37 +20,32 @@ const ForgotPassword = () => {
     setLoading(true);
 
     try {
-      // Verificar se o email existe na base de dados
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('email', email)
-        .maybeSingle();
-
-      if (profileError) {
-        console.error('Erro ao verificar email:', profileError);
-        toast.error("Erro ao verificar email. Tente novamente.");
+      // Normalizar o email
+      const normalizedEmail = email.trim().toLowerCase();
+      
+      // Validar formato básico
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(normalizedEmail)) {
+        toast.error("Por favor, digite um email válido.");
         return;
       }
 
-      if (!profile) {
-        toast.error("Este email não está cadastrado no sistema. Verifique o email digitado ou crie uma nova conta.");
-        return;
-      }
-
-      // Se o email existe, enviar o link de recuperação
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      // Enviar link de recuperação (Supabase valida internamente se o email existe)
+      const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
         redirectTo: `${window.location.origin}/reset-password`,
       });
 
       if (error) {
-        toast.error(error.message);
+        console.error('Erro ao enviar email:', error);
+        toast.error("Erro ao enviar email de recuperação. Tente novamente.");
         return;
       }
 
+      // Sempre mostrar mensagem de sucesso (mesmo se email não existir - segurança)
       setEmailSent(true);
-      toast.success("Email de recuperação enviado com sucesso!");
+      toast.success("Se este email estiver cadastrado, você receberá um link de recuperação.");
     } catch (error) {
+      console.error('Erro geral:', error);
       toast.error("Erro ao enviar email de recuperação. Tente novamente.");
     } finally {
       setLoading(false);
@@ -146,7 +141,7 @@ const ForgotPassword = () => {
                 <div>
                   <h2 className="text-2xl font-bold text-foreground mb-2">Email Enviado!</h2>
                   <p className="text-muted-foreground">
-                    Enviamos um link de recuperação para <strong>{email}</strong>
+                    Se o email <strong>{email}</strong> estiver cadastrado, você receberá um link de recuperação.
                   </p>
                 </div>
 
