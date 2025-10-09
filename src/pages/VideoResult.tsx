@@ -63,7 +63,12 @@ export default function VideoResult() {
                 return;
               }
 
-              const result = actionData?.result as { videoUrl?: string; caption?: string } | null;
+              const result = actionData?.result as { 
+                videoUrl?: string; 
+                caption?: string;
+                processingTime?: string;
+                attempts?: number;
+              } | null;
 
               if (actionData?.status === 'completed' && result?.videoUrl) {
                 setVideoData(prev => prev ? {

@@ -1,5 +1,6 @@
 import { History, Eye, Download, Copy, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
 import type { Action } from '@/types/action';
 import { ACTION_STYLE_MAP, ACTION_TYPE_DISPLAY } from '@/types/action';
@@ -315,7 +316,14 @@ export default function ActionDetails({ action, isLoading = false }: ActionDetai
             {action.result?.videoUrl && (
               <div className="space-y-2 mb-6">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm font-medium text-muted-foreground">Vídeo Gerado</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium text-muted-foreground">Vídeo Gerado</p>
+                    {action.result?.processingTime && (
+                      <Badge variant="secondary" className="text-xs">
+                        Processado em {action.result.processingTime}
+                      </Badge>
+                    )}
+                  </div>
                   <Button
                     variant="outline"
                     size="sm"
@@ -331,8 +339,15 @@ export default function ActionDetails({ action, isLoading = false }: ActionDetai
                     src={action.result.videoUrl} 
                     controls
                     className="w-full h-full object-contain bg-black"
+                    preload="metadata"
                   />
                 </div>
+                {action.result?.caption && (
+                  <div className="mt-3 p-3 bg-secondary/5 rounded-lg border border-secondary/10">
+                    <p className="text-sm font-medium text-muted-foreground mb-1">Legenda</p>
+                    <p className="text-sm text-foreground whitespace-pre-line">{action.result.caption}</p>
+                  </div>
+                )}
               </div>
             )}
             {action.result?.imageUrl && (
