@@ -15,7 +15,7 @@ import {
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Loader, Sparkles, Zap, X, Info, ImageIcon, Video } from "lucide-react";
+import { Loader2, Sparkles, Zap, X, Info, ImageIcon, Video } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Slider } from "@/components/ui/slider";
 import { Progress } from "@/components/ui/progress";
@@ -831,7 +831,7 @@ ${formData.description}
   if (isLoadingData) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Loader className="h-8 w-8 animate-spin text-primary" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -1692,7 +1692,7 @@ ${formData.description}
                 >
                   {loading ? (
                     <>
-                      <Loader className="animate-spin mr-2 md:mr-3 h-4 w-4 md:h-5 md:w-5" />
+                      <Loader2 className="animate-spin mr-2 md:mr-3 h-4 w-4 md:h-5 md:w-5" />
                       <span className="text-sm md:text-base">Gerando conteúdo...</span>
                     </>
                   ) : (

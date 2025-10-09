@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Skeleton } from '@/components/ui/skeleton';
-import { Loader, Image as ImageIcon, FileText, Type, Sparkles, CheckCircle, Zap } from 'lucide-react';
+import { Loader2, Image as ImageIcon, FileText, Type, Sparkles, CheckCircle, Zap } from 'lucide-react';
 import type { Brand } from '@/types/brand';
 import type { StrategicTheme, Team } from '@/types/theme';
 import { useAuth } from '@/hooks/useAuth';
@@ -222,7 +222,7 @@ const ReviewContent = () => {
   if (isLoadingData) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Loader className="h-8 w-8 animate-spin text-accent" />
+        <Loader2 className="h-8 w-8 animate-spin text-accent" />
       </div>
     );
   }
@@ -509,7 +509,7 @@ const ReviewContent = () => {
                       >
                         {loading ? (
                           <>
-                            <Loader className="animate-spin mr-3 h-5 w-5" />
+                            <Loader2 className="animate-spin mr-3 h-5 w-5" />
                             <span>Processando...</span>
                           </>
                         ) : (
