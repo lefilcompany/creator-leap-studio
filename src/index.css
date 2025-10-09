@@ -105,3 +105,37 @@
 ::-webkit-scrollbar-thumb:active {
   background: linear-gradient(180deg, hsl(var(--primary)), hsl(var(--secondary)));
 }
+
+/* --- ANIMAÇÕES DE BOTÕES DO HEADER --- */
+@keyframes bell-ring {
+  0% { transform: rotate(0deg); }
+  10% { transform: rotate(14deg); }
+  20% { transform: rotate(-10deg); }
+  30% { transform: rotate(14deg); }
+  40% { transform: rotate(-10deg); }
+  50% { transform: rotate(14deg); }
+  60% { transform: rotate(0deg); }
+  100% { transform: rotate(0deg); }
+}
+
+@keyframes rotate-smooth {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(180deg); }
+}
+
+@keyframes gear-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(90deg); }
+}
+
+.bell-ring-animation:hover {
+  animation: bell-ring 0.8s ease-in-out;
+}
+
+.theme-rotate-animation:hover {
+  animation: rotate-smooth 0.4s ease-in-out;
+}
+
+.settings-spin-animation:hover {
+  animation: gear-spin 0.3s ease-in-out;
+}
