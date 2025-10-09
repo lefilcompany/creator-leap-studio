@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { Loader2, Palette } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import type { StrategicThemeSummary } from "@/types/theme";
 import type { BrandSummary } from "@/types/brand";
 import {
@@ -77,7 +78,14 @@ export default function ThemeList({ themes, brands, selectedTheme, onSelectTheme
 
   return (
     <div className="lg:col-span-2 bg-card p-3 sm:p-4 md:p-6 rounded-xl lg:rounded-2xl border border-primary/10 lg:border-2 flex flex-col max-h-[calc(100vh-12rem)] lg:max-h-[calc(100vh-16rem)] overflow-hidden">
-      <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-foreground mb-3 lg:mb-4 px-1 lg:px-2 flex-shrink-0">Todos os temas</h2>
+      <div className="flex items-center justify-between mb-3 lg:mb-4 flex-shrink-0">
+        <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-foreground">Todos os temas</h2>
+        {!isLoading && (
+          <Badge variant="secondary" className="bg-secondary/10 text-secondary">
+            {sortedThemes.length} temas
+          </Badge>
+        )}
+      </div>
       <div className="overflow-y-auto pr-1 lg:pr-2 flex-1 min-h-0">
         {isLoading ? (
           <LoadingState />

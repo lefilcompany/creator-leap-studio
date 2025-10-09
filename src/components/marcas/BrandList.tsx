@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { Loader2, Package } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import type { BrandSummary } from '@/types/brand';
 import {
   Pagination,
@@ -76,7 +77,14 @@ export default function BrandList({ brands, selectedBrand, onSelectBrand, isLoad
 
   return (
     <div className="lg:col-span-2 bg-card p-4 md:p-6 rounded-2xl border-2 border-primary/10 flex flex-col h-full overflow-hidden">
-      <h2 className="text-2xl font-semibold text-foreground mb-4 px-2 flex-shrink-0">Todas as marcas</h2>
+      <div className="flex items-center justify-between mb-4 flex-shrink-0">
+        <h2 className="text-2xl font-semibold text-foreground">Todas as marcas</h2>
+        {!isLoading && (
+          <Badge variant="secondary" className="bg-secondary/10 text-secondary">
+            {sortedBrands.length} marcas
+          </Badge>
+        )}
+      </div>
       <div className="overflow-y-auto pr-2 flex-1 min-h-0">
         {isLoading ? (
           <LoadingState />
