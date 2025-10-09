@@ -1584,26 +1584,6 @@ ${formData.description}
                             </SelectContent>
                           </Select>
                         </div>
-                        <div className="space-y-2">
-                          <Label className="text-xs font-medium">Composição</Label>
-                          <Select
-                            value={formData.composition}
-                            onValueChange={(value) => setFormData(prev => ({ ...prev, composition: value }))}
-                          >
-                            <SelectTrigger className="h-9 rounded-lg border-2 border-border/50 bg-background/50 text-xs">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="auto">Automático</SelectItem>
-                              <SelectItem value="center">Centralizado</SelectItem>
-                              <SelectItem value="rule_of_thirds">Regra dos Terços</SelectItem>
-                              <SelectItem value="symmetric">Simétrico</SelectItem>
-                              <SelectItem value="asymmetric">Assimétrico</SelectItem>
-                              <SelectItem value="dynamic">Dinâmico</SelectItem>
-                              <SelectItem value="minimalist">Minimalista</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
 
                         {/* Camera Angle */}
                         <div className="space-y-2">
