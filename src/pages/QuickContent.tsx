@@ -157,6 +157,7 @@ export default function QuickContent() {
           body: {
             prompt: formData.prompt,
             brandId: formData.brandId || null,
+            platform: formData.platform || null,
             referenceImages: referenceImagesBase64,
             aspectRatio: formData.aspectRatio,
             style: formData.style,

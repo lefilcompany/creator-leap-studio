@@ -77,7 +77,8 @@ serve(async (req) => {
     
     const { 
       prompt, 
-      brandId, 
+      brandId,
+      platform,
       referenceImages = [],
       aspectRatio = '1:1',
       style = 'auto',
@@ -87,6 +88,7 @@ serve(async (req) => {
     console.log('Generate Quick Content Request:', { 
       promptLength: prompt.length, 
       brandId,
+      platform,
       aspectRatio,
       style,
       quality,
@@ -117,6 +119,63 @@ serve(async (req) => {
       );
     }
 
+    // Platform specifications
+    const platformSpecs: Record<string, any> = {
+      'Instagram': {
+        dimensions: { '1:1': '1080x1080px', '4:5': '1080x1350px', '9:16': '1080x1920px', '16:9': '1080x607px' },
+        tips: [
+          'Use cores vibrantes e alto contraste para destacar no feed',
+          'Mantenha elementos importantes centralizados (safe zone)',
+          'Textos legíveis mesmo em miniaturas pequenas',
+          'Composição visualmente atraente para parar o scroll'
+        ]
+      },
+      'Facebook': {
+        dimensions: { '1:1': '1080x1080px', '4:5': '1080x1350px', '16:9': '1200x630px' },
+        tips: [
+          'Imagens claras e diretas funcionam melhor',
+          'Use espaço generoso para textos se necessário',
+          'Cores que se destacam no feed azul do Facebook'
+        ]
+      },
+      'LinkedIn': {
+        dimensions: { '1:1': '1080x1080px', '16:9': '1200x627px' },
+        tips: [
+          'Mantenha profissionalismo e clareza',
+          'Cores corporativas e design clean',
+          'Evite elementos muito criativos ou informais',
+          'Textos concisos e objetivos'
+        ]
+      },
+      'TikTok': {
+        dimensions: { '9:16': '1080x1920px', '1:1': '1080x1080px' },
+        tips: [
+          'Elementos centralizados (UI do app ocupa bordas)',
+          'Cores vibrantes e dinâmicas',
+          'Composição que chama atenção nos primeiros 3 segundos',
+          'Evite textos pequenos nas extremidades'
+        ]
+      },
+      'Twitter/X': {
+        dimensions: { '16:9': '1600x900px', '1:1': '800x800px' },
+        tips: [
+          'Simplicidade e clareza são essenciais',
+          'Imagens que transmitem mensagem rapidamente',
+          'Alto contraste para legibilidade',
+          'Evite detalhes excessivos'
+        ]
+      },
+      'Comunidades': {
+        dimensions: { '1:1': '1080x1080px', '16:9': '1600x900px', '3:4': '1080x1440px' },
+        tips: [
+          'Foco em agregar valor à discussão',
+          'Pode ser infográfico, ilustração de conceito ou imagem inspiradora',
+          'Clareza e informação útil são mais importantes que produção elaborada',
+          'Evite excesso de publicidade visual'
+        ]
+      }
+    };
+
     // Fetch brand details if provided
     let brandContext = '';
     if (brandId) {
@@ -141,6 +200,20 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
     // Build enhanced prompt with all configurations
     let enhancedPrompt = prompt;
 
+    // Add platform-specific guidelines
+    if (platform && platformSpecs[platform]) {
+      const spec = platformSpecs[platform];
+      const dimensionInfo = spec.dimensions[aspectRatio] || spec.dimensions['1:1'];
+      
+      enhancedPrompt += `\n\n=== ESPECIFICAÇÕES DA PLATAFORMA: ${platform} ===`;
+      enhancedPrompt += `\nDimensões: ${dimensionInfo}`;
+      enhancedPrompt += `\nFormato: ${aspectRatio}`;
+      enhancedPrompt += `\n\nDiretrizes de Design para ${platform}:`;
+      spec.tips.forEach((tip: string, idx: number) => {
+        enhancedPrompt += `\n${idx + 1}. ${tip}`;
+      });
+    }
+
     // Add style information
     if (style !== 'auto') {
       const styleDescriptions: Record<string, string> = {
@@ -150,20 +223,22 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
         'artistic': 'Estilo artístico, expressivo e abstrato.',
         'vintage': 'Estilo vintage/retrô com toque nostálgico.'
       };
-      const styleDesc = styleDescriptions[style as string];
+      const styleDesc = styleDescriptions[style];
       if (styleDesc) {
         enhancedPrompt += `\n\nEstilo Visual: ${styleDesc}`;
       }
     }
 
-    // Add aspect ratio information
-    const aspectRatioDescriptions: Record<string, string> = {
-      '1:1': 'formato quadrado (1:1) ideal para posts do Instagram',
-      '4:5': 'formato retrato (4:5) ideal para feed do Instagram',
-      '9:16': 'formato vertical (9:16) ideal para Stories e Reels',
-      '16:9': 'formato horizontal (16:9) ideal para YouTube e desktop'
-    };
-    enhancedPrompt += `\n\nProporção da Imagem: ${aspectRatioDescriptions[aspectRatio as string] || 'formato quadrado (1:1)'}.`;
+    // Add aspect ratio information if no platform specified
+    if (!platform) {
+      const aspectRatioDescriptions: Record<string, string> = {
+        '1:1': 'formato quadrado (1:1) ideal para posts do Instagram',
+        '4:5': 'formato retrato (4:5) ideal para feed do Instagram',
+        '9:16': 'formato vertical (9:16) ideal para Stories e Reels',
+        '16:9': 'formato horizontal (16:9) ideal para YouTube e desktop'
+      };
+      enhancedPrompt += `\n\nProporção da Imagem: ${aspectRatioDescriptions[aspectRatio] || 'formato quadrado (1:1)'}.`;
+    }
 
     // Add quality information
     if (quality === 'hd') {
@@ -177,7 +252,14 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
 
     // Add reference images instruction if provided
     if (referenceImages && referenceImages.length > 0) {
-      enhancedPrompt += `\n\nUse ${referenceImages.length === 1 ? 'a imagem de referência fornecida' : `as ${referenceImages.length} imagens de referência fornecidas`} como inspiração para o estilo visual, composição, paleta de cores e atmosfera geral da imagem.`;
+      enhancedPrompt += `\n\n=== IMAGENS DE REFERÊNCIA ===`;
+      enhancedPrompt += `\n${referenceImages.length === 1 ? 'Uma imagem de referência foi fornecida' : `${referenceImages.length} imagens de referência foram fornecidas`}.`;
+      enhancedPrompt += `\n\nIMPORTANTE: Use estas imagens APENAS como inspiração para:`;
+      enhancedPrompt += `\n- Estilo visual geral e atmosfera`;
+      enhancedPrompt += `\n- Paleta de cores e harmonização`;
+      enhancedPrompt += `\n- Composição e enquadramento`;
+      enhancedPrompt += `\n- Elementos de design e textura`;
+      enhancedPrompt += `\n\nNÃO copie elementos específicos, pessoas, logos ou marcas das imagens de referência. Crie uma imagem completamente ORIGINAL baseada na inspiração visual fornecida.`;
     }
 
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
@@ -276,6 +358,7 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
         details: {
           prompt,
           brandId,
+          platform,
           aspectRatio,
           style,
           quality,
