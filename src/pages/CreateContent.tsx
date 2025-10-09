@@ -828,39 +828,22 @@ ${formData.description}
     }
   };
 
-  if (isLoadingData) {
-    return (
-      <div className="min-h-full bg-gradient-to-br from-background via-background to-muted/20">
-        <div className="max-w-7xl mx-auto space-y-4 md:space-y-6">
-          <Card className="shadow-lg border-0">
-            <CardHeader className="p-3 md:p-4 lg:p-6">
-              <div className="flex items-center gap-3">
-                <Skeleton className="h-12 w-12 rounded-xl" />
-                <div className="space-y-2 flex-1">
-                  <Skeleton className="h-6 w-48" />
-                  <Skeleton className="h-4 w-64" />
-                </div>
-              </div>
-            </CardHeader>
-          </Card>
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 md:gap-6">
-            <Card>
-              <CardContent className="p-6 space-y-4">
-                <Skeleton className="h-10 w-full" />
-                <Skeleton className="h-10 w-full" />
-                <Skeleton className="h-10 w-full" />
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-6 space-y-4">
-                <Skeleton className="h-10 w-full" />
-                <Skeleton className="h-32 w-full" />
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+  // Componente de loading profissional
+  const LoadingState = () => (
+    <div className="flex flex-col items-center justify-center py-16 space-y-4 min-h-screen">
+      <div className="relative">
+        <div className="w-16 h-16 border-4 border-primary/20 rounded-full"></div>
+        <div className="absolute top-0 left-0 w-16 h-16 border-4 border-transparent border-t-primary rounded-full animate-spin"></div>
       </div>
-    );
+      <div className="text-center space-y-2">
+        <h3 className="text-lg font-semibold text-foreground">Carregando dados</h3>
+        <p className="text-sm text-muted-foreground">Aguarde um momento...</p>
+      </div>
+    </div>
+  );
+
+  if (isLoadingData) {
+    return <LoadingState />;
   }
 
   return (

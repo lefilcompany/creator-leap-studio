@@ -219,6 +219,24 @@ const ReviewContent = () => {
     setError(null);
   };
 
+  // Componente de loading profissional
+  const LoadingState = () => (
+    <div className="flex flex-col items-center justify-center py-16 space-y-4 min-h-screen">
+      <div className="relative">
+        <div className="w-16 h-16 border-4 border-accent/20 rounded-full"></div>
+        <div className="absolute top-0 left-0 w-16 h-16 border-4 border-transparent border-t-accent rounded-full animate-spin"></div>
+      </div>
+      <div className="text-center space-y-2">
+        <h3 className="text-lg font-semibold text-foreground">Carregando dados</h3>
+        <p className="text-sm text-muted-foreground">Aguarde um momento...</p>
+      </div>
+    </div>
+  );
+
+  if (isLoadingData) {
+    return <LoadingState />;
+  }
+
   return (
     <div className="min-h-full w-full p-6">
       <div className="max-w-7xl mx-auto space-y-8">
