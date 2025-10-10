@@ -3,7 +3,7 @@ import { useNavigate, useLocation, Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { ArrowLeft, Download, Copy, Check, ExternalLink, Maximize2, RefreshCw } from "lucide-react";
+import { ArrowLeft, Download, Copy, Check, ExternalLink, Maximize2, RefreshCw, Undo2 } from "lucide-react";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -23,6 +23,7 @@ export default function QuickContentResult() {
   const [freeRevisionsLeft, setFreeRevisionsLeft] = useState(2);
   const [totalRevisions, setTotalRevisions] = useState(0);
   const [currentImageUrl, setCurrentImageUrl] = useState("");
+  const [imageHistory, setImageHistory] = useState<string[]>([]);
 
   const { imageUrl, description, actionId, prompt } = location.state || {};
 
@@ -32,14 +33,32 @@ export default function QuickContentResult() {
       navigate("/quick-content");
     } else {
       setCurrentImageUrl(imageUrl);
-      // Load revision count from localStorage
+      setImageHistory([imageUrl]); // Initialize history with original image
+      
+      // Load revision count and history from localStorage
       const contentId = `quick_content_${actionId || Date.now()}`;
       const revisionsKey = `revisions_${contentId}`;
+      const historyKey = `image_history_${contentId}`;
+      
       const savedRevisions = localStorage.getItem(revisionsKey);
       if (savedRevisions) {
         const count = parseInt(savedRevisions);
         setTotalRevisions(count);
         setFreeRevisionsLeft(Math.max(0, 2 - count));
+      }
+      
+      // Load image history if exists
+      const savedHistory = localStorage.getItem(historyKey);
+      if (savedHistory) {
+        try {
+          const history = JSON.parse(savedHistory);
+          if (Array.isArray(history) && history.length > 0) {
+            setImageHistory(history);
+            setCurrentImageUrl(history[history.length - 1]); // Set to most recent
+          }
+        } catch (error) {
+          console.error("Error loading image history:", error);
+        }
       }
     }
   }, [imageUrl, navigate, actionId]);
@@ -62,6 +81,55 @@ export default function QuickContentResult() {
   const handleOpenReview = () => {
     setShowReviewDialog(true);
     setReviewPrompt("");
+  };
+
+  const handleRevert = () => {
+    if (imageHistory.length <= 1) {
+      toast.error("Não há revisões para reverter");
+      return;
+    }
+
+    const newHistory = [...imageHistory];
+    newHistory.pop(); // Remove current image
+    const previousImage = newHistory[newHistory.length - 1];
+    
+    setImageHistory(newHistory);
+    setCurrentImageUrl(previousImage);
+    
+    const newRevisionCount = Math.max(0, totalRevisions - 1);
+    const newFreeRevisionsLeft = Math.max(0, 2 - newRevisionCount);
+    
+    setTotalRevisions(newRevisionCount);
+    setFreeRevisionsLeft(newFreeRevisionsLeft);
+    
+    // Update localStorage
+    const contentId = `quick_content_${actionId || Date.now()}`;
+    const revisionsKey = `revisions_${contentId}`;
+    const historyKey = `image_history_${contentId}`;
+    
+    localStorage.setItem(revisionsKey, newRevisionCount.toString());
+    localStorage.setItem(historyKey, JSON.stringify(newHistory));
+    
+    // Update action in database if it exists
+    if (actionId) {
+      supabase
+        .from("actions")
+        .update({
+          revisions: newRevisionCount,
+          result: {
+            imageUrl: previousImage,
+            description,
+            prompt,
+          },
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", actionId)
+        .then(({ error }) => {
+          if (error) console.error("Error updating action:", error);
+        });
+    }
+    
+    toast.success("Revisão revertida com sucesso!");
   };
 
   const handleSubmitReview = async () => {
@@ -109,12 +177,19 @@ export default function QuickContentResult() {
 
       const timestamp = Date.now();
       const imageUrlWithTimestamp = `${data.editedImageUrl}?t=${timestamp}`;
+      
+      // Add to history
+      const newHistory = [...imageHistory, imageUrlWithTimestamp];
+      setImageHistory(newHistory);
       setCurrentImageUrl(imageUrlWithTimestamp);
 
-      // Update revision count in localStorage
+      // Update revision count and history in localStorage
       const contentId = `quick_content_${actionId || Date.now()}`;
       const revisionsKey = `revisions_${contentId}`;
+      const historyKey = `image_history_${contentId}`;
+      
       localStorage.setItem(revisionsKey, newRevisionCount.toString());
+      localStorage.setItem(historyKey, JSON.stringify(newHistory));
 
       setTotalRevisions(newRevisionCount);
       setFreeRevisionsLeft(newFreeRevisionsLeft);
@@ -201,6 +276,18 @@ export default function QuickContentResult() {
                 <span className="hidden xs:inline">Revisar</span>
                 <span className="xs:hidden">Revisar</span>
               </Button>
+              {totalRevisions > 0 && (
+                <Button 
+                  variant="outline" 
+                  onClick={handleRevert}
+                  className="hover:scale-105 transition-transform flex-1 sm:flex-initial"
+                  title="Reverter última revisão"
+                >
+                  <Undo2 className="mr-2 h-4 w-4" />
+                  <span className="hidden xs:inline">Reverter</span>
+                  <span className="xs:hidden">Reverter</span>
+                </Button>
+              )}
               <Button 
                 variant="outline" 
                 onClick={handleDownload}
