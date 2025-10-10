@@ -290,7 +290,7 @@ export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit,
                     toneList.map(tone => (
                       <div key={tone} className="flex items-center gap-2 bg-gradient-to-r from-primary/15 to-primary/5 border-2 border-primary/30 text-primary text-sm font-semibold px-3 py-1.5 rounded-xl">
                         {tone}
-                        <button onClick={() => handleToneRemove(tone)} className="ml-1 text-primary hover:text-destructive transition-colors p-0.5 rounded-full hover:bg-destructive/10" aria-label={`Remover tom ${tone}`}>
+                        <button type="button" onClick={() => handleToneRemove(tone)} className="ml-1 text-primary hover:text-destructive transition-colors p-0.5 rounded-full hover:bg-destructive/10" aria-label={`Remover tom ${tone}`}>
                           <X size={14} />
                         </button>
                       </div>
@@ -369,6 +369,7 @@ export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit,
                       >
                         {hashtag}
                         <button 
+                          type="button"
                           onClick={() => handleHashtagRemove(hashtag)}
                           className="ml-1 text-primary hover:text-destructive transition-colors p-0.5 rounded-full hover:bg-destructive/10"
                           aria-label={`Remover hashtag ${hashtag}`}
@@ -452,7 +453,7 @@ export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit,
             </Button>
           </DialogClose>
           <Button
-            type="submit"
+            type="button"
             onClick={() => {
               if (isFormValid()) {
                 handleSaveClick();
