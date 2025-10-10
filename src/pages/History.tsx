@@ -171,19 +171,13 @@ export default function History() {
           revisions,
           details,
           result,
-          brands(id, name)
+          brands(id, name),
+          profiles!actions_user_id_fkey(id, name, email)
         `)
         .eq('id', action.id)
         .single();
 
       if (error) throw error;
-
-      // Buscar informações do usuário separadamente
-      const { data: userData } = await supabase
-        .from('profiles')
-        .select('id, name, email')
-        .eq('id', data.user_id)
-        .single();
 
       const fullAction: Action = {
         id: data.id,
@@ -202,10 +196,10 @@ export default function History() {
           id: data.brands.id,
           name: data.brands.name
         } : undefined,
-        user: userData ? {
-          id: userData.id,
-          name: userData.name,
-          email: userData.email
+        user: data.profiles ? {
+          id: data.profiles.id,
+          name: data.profiles.name,
+          email: data.profiles.email
         } : undefined
       };
       
