@@ -51,40 +51,42 @@ export default function QuickContentResult() {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/10">
       <div className="container max-w-7xl mx-auto">
         {/* Header */}
-        <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl border-b border-border/40 px-6 py-4 mb-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+        <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl border-b border-border/40 px-4 sm:px-6 py-3 sm:py-4 mb-6 sm:mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center gap-3 sm:gap-4">
               <Button
                 variant="outline"
                 size="icon"
                 onClick={() => navigate("/quick-content")}
-                className="hover:scale-105 transition-transform"
+                className="hover:scale-105 transition-transform shrink-0"
               >
                 <ArrowLeft className="h-4 w-4" />
               </Button>
-              <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+              <div className="min-w-0">
+                <h1 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent truncate">
                   Conteúdo Gerado
                 </h1>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs sm:text-sm text-muted-foreground truncate">
                   Sua imagem foi criada com sucesso
                 </p>
               </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 w-full sm:w-auto">
               <Button 
                 variant="outline" 
                 onClick={handleDownload}
-                className="hover:scale-105 transition-transform"
+                className="hover:scale-105 transition-transform flex-1 sm:flex-initial"
               >
                 <Download className="mr-2 h-4 w-4" />
-                Baixar
+                <span className="hidden xs:inline">Baixar</span>
+                <span className="xs:hidden">Baixar</span>
               </Button>
               <Button 
                 onClick={() => navigate("/quick-content")}
-                className="hover:scale-105 transition-transform"
+                className="hover:scale-105 transition-transform flex-1 sm:flex-initial"
               >
-                Criar Novo
+                <span className="hidden xs:inline">Criar Novo</span>
+                <span className="xs:hidden">Novo</span>
               </Button>
             </div>
           </div>
