@@ -225,11 +225,13 @@ serve(async (req) => {
 
     const aiData = await response.json();
     console.log('✅ Resposta da AI recebida');
+    console.log('📊 Estrutura da resposta:', JSON.stringify(aiData, null, 2));
 
     const editedImageBase64 = aiData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
     
     if (!editedImageBase64) {
       console.error('❌ Imagem editada não foi retornada pela API');
+      console.error('📊 Dados recebidos:', JSON.stringify(aiData, null, 2));
       throw new Error('Imagem editada não foi retornada pela API');
     }
 
