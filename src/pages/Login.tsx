@@ -396,10 +396,10 @@ const Login = () => {
             <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-secondary/10 to-accent/20"></div>
             
             <div className="relative z-10 mb-32 w-full">
-              <div className="flex items-start gap-6">
+              <div className="flex flex-col items-start gap-6">
                 <CreatorLogo className="flex-shrink-0" />
                 
-                <div className="flex-1 text-left space-y-3">
+                <div className="text-left space-y-3">
                   <h1 className="text-3xl font-bold text-foreground leading-tight">
                     Transforme suas ideias em conteúdo estratégico
                   </h1>
