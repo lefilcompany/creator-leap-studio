@@ -294,6 +294,7 @@ export default function ActionDetails({ action, isLoading = false }: ActionDetai
 
       <div className="flex-1 overflow-y-auto p-6 space-y-4 pb-8">
         <DetailItem label="Marca" value={action.brand?.name || 'N/A'} />
+        <DetailItem label="Criado por" value={action.user?.name || action.user?.email || 'N/A'} />
 
         {action.type === 'CRIAR_CONTEUDO' && (
           <>
@@ -459,6 +460,108 @@ export default function ActionDetails({ action, isLoading = false }: ActionDetai
                     </ReactMarkdown>
                   </div>
                 </div>
+              </div>
+            )}
+          </>
+        )}
+
+        {action.type === 'CRIAR_CONTEUDO_RAPIDO' && (
+          <>
+            {action.details?.platform && (
+              <DetailItem label="Plataforma" value={action.details.platform} />
+            )}
+            {action.details?.prompt && (
+              <DetailItem label="Prompt" value={action.details.prompt} />
+            )}
+            {action.result?.description && (
+              <DetailItem 
+                label="Descrição Gerada" 
+                value={
+                  <p className="font-semibold text-foreground whitespace-pre-line leading-relaxed">
+                    {action.result.description}
+                  </p>
+                } 
+              />
+            )}
+            {action.result?.imageUrl && (
+              <div className="space-y-2 mb-6">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium text-muted-foreground">Imagem Gerada</p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDownloadImage(action.result.imageUrl!)}
+                    className="gap-2"
+                  >
+                    <Download className="h-4 w-4" />
+                    Download
+                  </Button>
+                </div>
+                <div className="w-full aspect-square bg-secondary/5 rounded-lg border border-secondary/10 overflow-hidden">
+                  <img 
+                    src={action.result.imageUrl} 
+                    alt="Imagem Gerada" 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
+        {action.type === 'GERAR_VIDEO' && (
+          <>
+            {action.details?.prompt && (
+              <DetailItem label="Prompt" value={action.details.prompt} />
+            )}
+            {action.result?.videoUrl && (
+              <div className="space-y-2 mb-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium text-muted-foreground">Vídeo Gerado</p>
+                    {action.result?.processingTime && (
+                      <Badge variant="secondary" className="text-xs">
+                        Processado em {action.result.processingTime}
+                      </Badge>
+                    )}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDownloadVideo(action.result.videoUrl!)}
+                    className="gap-2"
+                  >
+                    <Download className="h-4 w-4" />
+                    Download
+                  </Button>
+                </div>
+                <div className="w-full aspect-video bg-secondary/5 rounded-lg border border-secondary/10 overflow-hidden">
+                  <video 
+                    src={action.result.videoUrl} 
+                    controls
+                    className="w-full h-full object-contain bg-black"
+                    preload="metadata"
+                  />
+                </div>
+                {action.result?.caption && (
+                  <div className="mt-3 p-3 bg-secondary/5 rounded-lg border border-secondary/10">
+                    <p className="text-sm font-medium text-muted-foreground mb-1">Legenda</p>
+                    <p className="text-sm text-foreground whitespace-pre-line">{action.result.caption}</p>
+                  </div>
+                )}
+              </div>
+            )}
+            {action.result?.status === 'processing' && (
+              <div className="p-4 bg-secondary/5 rounded-lg border border-secondary/10">
+                <p className="text-sm text-muted-foreground">Vídeo em processamento...</p>
+              </div>
+            )}
+            {action.result?.status === 'error' && (
+              <div className="p-4 bg-destructive/10 rounded-lg border border-destructive/20">
+                <p className="text-sm text-destructive">Erro ao processar vídeo</p>
+                {action.result?.error && (
+                  <p className="text-xs text-muted-foreground mt-1">{action.result.error}</p>
+                )}
               </div>
             )}
           </>

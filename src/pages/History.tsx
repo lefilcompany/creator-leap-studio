@@ -178,6 +178,13 @@ export default function History() {
 
       if (error) throw error;
 
+      // Buscar informações do usuário separadamente
+      const { data: userData } = await supabase
+        .from('profiles')
+        .select('id, name, email')
+        .eq('id', data.user_id)
+        .single();
+
       const fullAction: Action = {
         id: data.id,
         type: data.type as any,
@@ -194,6 +201,11 @@ export default function History() {
         brand: data.brands ? {
           id: data.brands.id,
           name: data.brands.name
+        } : undefined,
+        user: userData ? {
+          id: userData.id,
+          name: userData.name,
+          email: userData.email
         } : undefined
       };
       
