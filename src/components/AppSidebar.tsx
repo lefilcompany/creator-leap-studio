@@ -1,3 +1,4 @@
+import React from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useTheme } from "next-themes";
 import {
@@ -180,6 +181,13 @@ export function AppSidebar() {
   
   // Se o trial expirou, desabilita navegação exceto histórico
   const isNavigationDisabled = isTrialExpired;
+  
+  // Fecha a sidebar ao montar no mobile
+  React.useEffect(() => {
+    if (isMobile && open) {
+      setOpen(false);
+    }
+  }, [isMobile]);
 
   const handleMobileNavigate = () => {
     if (isMobile) {
