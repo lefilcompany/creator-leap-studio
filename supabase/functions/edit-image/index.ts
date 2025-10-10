@@ -17,13 +17,14 @@ function cleanInput(text: string | undefined | null): string {
 
 function buildRevisionPrompt(
   adjustment: string, 
-  brandData: any, 
+  brandData: any | null, 
   themeData: any | null,
   hasLogo: boolean
 ): string {
   let promptParts: string[] = [
-    "Atue como um diretor de arte e especialista em design para mídias sociais. Sua tarefa é refinar a imagem fornecida, mantendo a composição original, mas aplicando os ajustes solicitados e garantindo total alinhamento com a identidade da marca e as diretrizes do tema estratégico.",
-    `Ajuste solicitado pelo usuário: "${cleanInput(adjustment)}". Aplique esta alteração de forma sutil e integrada à imagem.`
+    "Atue como um diretor de arte e especialista em design para mídias sociais.",
+    "IMPORTANTE: Mantenha a composição e elementos principais da imagem original. Faça APENAS os ajustes solicitados pelo usuário, sem alterar completamente a imagem.",
+    `Ajuste solicitado: "${cleanInput(adjustment)}". Aplique esta alteração de forma sutil e integrada à imagem existente.`
   ];
 
   if (hasLogo) {
@@ -73,7 +74,12 @@ function buildRevisionPrompt(
   }
 
   promptParts.push("\n--- INSTRUÇÃO FINAL ---");
-  promptParts.push("Refine a imagem com alta qualidade, realismo e impacto visual, mantendo os elementos principais da imagem original, mas garantindo que as diretrizes de marca e tema acima sejam perfeitamente refletidas no resultado final.");
+  
+  if (brandData || themeData) {
+    promptParts.push("Refine a imagem com alta qualidade, realismo e impacto visual, mantendo os elementos principais da imagem original, mas garantindo que as diretrizes de marca e tema acima sejam perfeitamente refletidas no resultado final.");
+  } else {
+    promptParts.push("Refine a imagem com alta qualidade, realismo e impacto visual, mantendo EXATAMENTE a composição e elementos principais da imagem original. Faça apenas o ajuste solicitado pelo usuário.");
+  }
 
   const finalPrompt = promptParts.join('\n');
   return finalPrompt.length > MAX_PROMPT_LENGTH ? finalPrompt.substring(0, MAX_PROMPT_LENGTH) : finalPrompt;
@@ -94,9 +100,9 @@ serve(async (req) => {
       promptLength: reviewPrompt?.length || 0
     });
 
-    if (!reviewPrompt || !imageUrl || !brandId) {
+    if (!reviewPrompt || !imageUrl) {
       return new Response(
-        JSON.stringify({ error: 'reviewPrompt, imageUrl e brandId são obrigatórios' }),
+        JSON.stringify({ error: 'reviewPrompt e imageUrl são obrigatórios' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -115,20 +121,21 @@ serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Fetch complete brand data
-    console.log('🔍 Buscando dados da marca...');
-    const { data: brandData, error: brandError } = await supabase
-      .from('brands')
-      .select('*')
-      .eq('id', brandId)
-      .single();
+    // Fetch complete brand data if brandId is provided
+    let brandData = null;
+    if (brandId) {
+      console.log('🔍 Buscando dados da marca...');
+      const { data, error: brandError } = await supabase
+        .from('brands')
+        .select('*')
+        .eq('id', brandId)
+        .single();
 
-    if (brandError || !brandData) {
-      console.error('❌ Erro ao buscar marca:', brandError);
-      return new Response(
-        JSON.stringify({ error: 'Marca não encontrada' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      if (brandError) {
+        console.error('⚠️ Erro ao buscar marca:', brandError);
+      } else {
+        brandData = data;
+      }
     }
 
     // Fetch theme data if themeId is provided
@@ -147,7 +154,7 @@ serve(async (req) => {
     }
 
     // Build detailed prompt with brand and theme context
-    const hasLogo = !!brandData.logo;
+    const hasLogo = brandData?.logo ? true : false;
     const detailedPrompt = buildRevisionPrompt(reviewPrompt, brandData, themeData, hasLogo);
 
     console.log('📝 Prompt construído com', detailedPrompt.length, 'caracteres');
