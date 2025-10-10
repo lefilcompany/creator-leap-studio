@@ -188,7 +188,7 @@ export const Header = () => {
             </DropdownMenu>
 
             {/* Logout confirmation dialog */}
-            <DialogContent className="border-border/20 shadow-2xl animate-scale-in">
+            <DialogContent className="border-border/20 shadow-2xl animate-scale-in rounded-2xl">
               <DialogHeader className="items-center text-center">
                 <div className="mb-6">
                   <CreatorLogo />
