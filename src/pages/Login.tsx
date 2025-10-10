@@ -440,7 +440,7 @@ const Login = () => {
 
               <Button 
                 variant="outline" 
-                className="w-full h-14 bg-card/90 backdrop-blur-xl border-2 font-semibold rounded-2xl text-lg"
+                className="w-full h-14 bg-card/90 backdrop-blur-xl border-2 font-semibold rounded-2xl text-lg hover:text-white"
                 onClick={() => navigate("/register")}
               >
                 Criar conta
