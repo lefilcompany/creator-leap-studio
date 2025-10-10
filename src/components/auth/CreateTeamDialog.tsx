@@ -85,7 +85,7 @@ export function CreateTeamDialog({ open, onClose, onSuccess }: CreateTeamDialogP
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] rounded-2xl">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">Criar nova equipe</DialogTitle>
         </DialogHeader>

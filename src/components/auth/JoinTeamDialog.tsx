@@ -110,7 +110,7 @@ export function JoinTeamDialog({ open, onClose, onBack, onSuccess }: JoinTeamDia
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] rounded-2xl">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">Entrar em uma equipe</DialogTitle>
         </DialogHeader>

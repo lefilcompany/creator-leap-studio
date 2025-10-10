@@ -16,7 +16,7 @@ export function TeamSelectionDialog({ open, onClose }: TeamSelectionDialogProps)
   return (
     <>
       <Dialog open={open && !showCreateTeam && !showJoinTeam} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[500px] rounded-2xl">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold">Participar de uma equipe</DialogTitle>
           </DialogHeader>
