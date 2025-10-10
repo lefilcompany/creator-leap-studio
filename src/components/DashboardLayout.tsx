@@ -8,7 +8,7 @@ export const DashboardLayout = () => {
   const isMobile = useIsMobile();
   
   return (
-    <SidebarProvider defaultOpen={!isMobile}>
+    <SidebarProvider defaultOpen={isMobile === false}>
       <div className="min-h-screen flex w-full bg-gradient-to-br from-background via-background to-muted/10">
         <AppSidebar />
         <div className="flex flex-1 flex-col min-w-0 ml-0 lg:ml-64">
