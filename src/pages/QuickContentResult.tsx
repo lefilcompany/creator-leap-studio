@@ -2,13 +2,15 @@ import { useEffect, useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Download, Copy, Check, ExternalLink } from "lucide-react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { ArrowLeft, Download, Copy, Check, ExternalLink, Maximize2 } from "lucide-react";
 import { toast } from "sonner";
 
 export default function QuickContentResult() {
   const navigate = useNavigate();
   const location = useLocation();
   const [isCopied, setIsCopied] = useState(false);
+  const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
 
   const { imageUrl, description, actionId, prompt } = location.state || {};
 
@@ -95,12 +97,26 @@ export default function QuickContentResult() {
         <div className="grid lg:grid-cols-2 gap-8 px-6 pb-8">
           {/* Image Display */}
           <Card className="group overflow-hidden border-border/50 bg-card/50 backdrop-blur-sm hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300">
-            <div className="p-6 space-y-4">
-              <h2 className="text-lg font-semibold flex items-center gap-2">
-                <div className="w-1 h-5 bg-gradient-to-b from-primary to-primary/60 rounded-full" />
-                Imagem Gerada
-              </h2>
-              <div className="relative aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-muted/50 to-muted border border-border/50 shadow-inner group-hover:scale-[1.02] transition-transform duration-300">
+            <div className="p-4 sm:p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-base sm:text-lg font-semibold flex items-center gap-2">
+                  <div className="w-1 h-5 bg-gradient-to-b from-primary to-primary/60 rounded-full" />
+                  Imagem Gerada
+                </h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsImageDialogOpen(true)}
+                  className="gap-2"
+                >
+                  <Maximize2 className="h-4 w-4" />
+                  <span className="hidden sm:inline">Ampliar</span>
+                </Button>
+              </div>
+              <div 
+                className="relative aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-muted/50 to-muted border border-border/50 shadow-inner group-hover:scale-[1.02] transition-transform duration-300 cursor-pointer"
+                onClick={() => setIsImageDialogOpen(true)}
+              >
                 <img
                   src={imageUrl}
                   alt="Conteúdo gerado"
@@ -188,6 +204,19 @@ export default function QuickContentResult() {
             )}
           </div>
         </div>
+
+        {/* Image Dialog */}
+        <Dialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen}>
+          <DialogContent className="max-w-[95vw] max-h-[95vh] p-2 sm:p-4">
+            <div className="relative w-full h-[85vh] flex items-center justify-center bg-muted/20 rounded-lg">
+              <img
+                src={imageUrl}
+                alt="Conteúdo gerado ampliado"
+                className="max-w-full max-h-full object-contain"
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
