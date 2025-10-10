@@ -395,26 +395,17 @@ const Login = () => {
           <div className="flex-1 flex flex-col items-center justify-center p-8 relative">
             <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-secondary/10 to-accent/20"></div>
             
-            <div className="relative z-10 text-center space-y-8 mb-32">
-              <CreatorLogo className="mb-8" />
-              
-              <div className="space-y-4">
-                <h1 className="text-4xl font-bold text-foreground leading-tight">
-                  Transforme suas ideias em conteúdo estratégico
-                </h1>
-                <p className="text-lg text-muted-foreground max-w-sm mx-auto leading-relaxed">
-                  Planeje, crie e organize sua comunicação com inteligência artificial
-                </p>
-                <div className="flex flex-wrap justify-center gap-2 pt-2">
-                  <div className="px-3 py-1 bg-primary/10 rounded-full border border-primary/20">
-                    <span className="text-xs font-medium text-primary">📱 Multi-marca</span>
-                  </div>
-                  <div className="px-3 py-1 bg-secondary/10 rounded-full border border-secondary/20">
-                    <span className="text-xs font-medium text-secondary">🎯 Por Personas</span>
-                  </div>
-                  <div className="px-3 py-1 bg-accent/10 rounded-full border border-accent/20">
-                    <span className="text-xs font-medium text-accent">📅 Calendários</span>
-                  </div>
+            <div className="relative z-10 mb-32 w-full">
+              <div className="flex items-start gap-6">
+                <CreatorLogo className="flex-shrink-0" />
+                
+                <div className="flex-1 text-left space-y-3">
+                  <h1 className="text-3xl font-bold text-foreground leading-tight">
+                    Transforme suas ideias em conteúdo estratégico
+                  </h1>
+                  <p className="text-base text-muted-foreground leading-relaxed">
+                    Planeje, crie e organize sua comunicação com inteligência artificial
+                  </p>
                 </div>
               </div>
             </div>
