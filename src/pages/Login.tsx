@@ -5,12 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { CreatorLogo } from "@/components/CreatorLogo";
-import { Eye, EyeOff, Chrome, Facebook, Mail, Lock, Sun, Moon, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Chrome, Facebook, Mail, Lock, Sun, Moon, Loader2, ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { TeamSelectionDialog } from "@/components/auth/TeamSelectionDialog";
 import { useOAuthCallback } from "@/hooks/useOAuthCallback";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -165,6 +167,161 @@ const Login = () => {
     }
   };
 
+  const isMobile = useIsMobile();
+  const [sheetOpen, setSheetOpen] = useState(false);
+
+  const LoginForm = () => (
+    <form onSubmit={handleLogin} className="space-y-6">
+      <div className="space-y-2">
+        <div className="relative">
+          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+          <Input
+            id="email"
+            type="email"
+            placeholder="E-mail"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="pl-10 h-12"
+          />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <div className="relative">
+          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+          <Input
+            id="password"
+            type={showPassword ? "text" : "password"}
+            placeholder="Senha"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="pl-10 pr-10 h-12"
+          />
+          <Button type="button" variant="ghost" size="icon" className="absolute top-1/2 -translate-y-1/2 right-1 h-10 w-10 text-muted-foreground hover:bg-accent/60" onClick={() => setShowPassword(!showPassword)}>
+            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+          </Button>
+        </div>
+      </div>
+
+      {showPasswordResetSuggestion && (
+        <div className="mb-4 p-4 bg-destructive/10 border-2 border-destructive/30 rounded-lg animate-fade-in">
+          <div className="flex items-start gap-3">
+            <Mail className="h-5 w-5 text-destructive mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-destructive mb-1">
+                Credenciais incorretas
+              </p>
+              <p className="text-xs text-muted-foreground mb-2">
+                Se você esqueceu sua senha ou está com dificuldades para entrar, 
+                redefina sua senha usando a opção abaixo.
+              </p>
+              <a 
+                href="/forgot-password" 
+                className="text-sm text-destructive hover:text-destructive/80 font-semibold underline underline-offset-2"
+              >
+                Redefinir minha senha →
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <Checkbox 
+            id="remember" 
+            checked={rememberMe}
+            onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+          />
+          <Label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer">
+            Mantenha-me conectado
+          </Label>
+        </div>
+        <a 
+          href="/forgot-password" 
+          className={`text-sm transition-all duration-300 ${
+            showPasswordResetSuggestion 
+              ? 'text-destructive hover:text-destructive/80 font-semibold animate-pulse' 
+              : 'text-primary hover:text-primary/80'
+          }`}
+        >
+          Esqueceu a senha?
+        </a>
+      </div>
+
+      <Button 
+        type="submit" 
+        disabled={loading}
+        className="w-full h-12 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-medium rounded-xl transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50"
+      >
+        {loading ? (
+          <div className="flex items-center gap-2">
+            <Loader2 className="h-5 w-5 animate-spin" />
+            <span>Entrando...</span>
+          </div>
+        ) : (
+          "Entrar"
+        )}
+      </Button>
+
+      <div className="relative my-6">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-border/30"></div>
+        </div>
+        <div className="relative flex justify-center text-sm">
+          <span className="bg-card px-4 text-muted-foreground">ou continue com</span>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 mb-6">
+        <Button 
+          variant="outline"
+          onClick={handleGoogleLogin}
+          type="button"
+          disabled={googleLoading || loading}
+          className="h-12 border-border/50 hover:bg-primary/5 hover:border-primary/30 hover:text-primary transition-all duration-200"
+        >
+          {googleLoading ? (
+            <Loader2 className="w-5 h-5 animate-spin" />
+          ) : (
+            <>
+              <Chrome className="w-5 h-5 mr-2" />
+              Google
+            </>
+          )}
+        </Button>
+        <Button 
+          variant="outline"
+          type="button"
+          onClick={handleFacebookLogin}
+          disabled={facebookLoading || loading}
+          className="h-12 border-border/50 hover:bg-secondary/5 hover:border-secondary/30 hover:text-secondary transition-all duration-200"
+        >
+          {facebookLoading ? (
+            <Loader2 className="w-5 h-5 animate-spin" />
+          ) : (
+            <>
+              <Facebook className="w-5 h-5 mr-2" />
+              Facebook
+            </>
+          )}
+        </Button>
+      </div>
+
+      <div className="text-center">
+        <span className="text-muted-foreground text-sm">Não tem uma conta? </span>
+        <a 
+          href="/register" 
+          className="text-primary hover:text-primary/80 font-medium text-sm transition-colors"
+        >
+          Criar conta
+        </a>
+      </div>
+    </form>
+  );
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 flex relative">
       {/* Theme toggle button */}
@@ -231,185 +388,82 @@ const Login = () => {
         </div>
       </div>
 
-      {/* Right side - Login form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 relative">
-        {/* Mobile header */}
-        <div className="lg:hidden absolute top-8 left-8">
-          <CreatorLogo />
-        </div>
-
-        {/* Login card */}
-        <div className="w-full max-w-md">
-          <div className="bg-card/90 backdrop-blur-xl border border-border/50 rounded-2xl shadow-2xl p-8">
-            {/* Mobile title */}
-            <div className="lg:hidden text-center mb-8">
-              <h1 className="text-2xl font-bold text-foreground mb-2">Creator</h1>
-              <p className="text-muted-foreground">IA para planejar e criar conteúdo estratégico</p>
-            </div>
-
-            {/* Desktop title */}
-            <div className="hidden lg:block text-center mb-8">
-              <h2 className="text-2xl font-bold text-foreground mb-2">Acesse o Creator</h2>
-              <p className="text-muted-foreground">Sua plataforma de marketing estratégico</p>
-            </div>
-
-            {/* Login form */}
-            <form onSubmit={handleLogin} className="space-y-6">
-              <div className="space-y-2">
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="E-mail"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10 h-12"
-                  />
-                </div>
+      {/* Mobile/Tablet version with Sheet */}
+      {isMobile ? (
+        <div className="w-full flex flex-col relative min-h-screen">
+          {/* Hero section */}
+          <div className="flex-1 flex flex-col items-center justify-center p-8 relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-secondary/10 to-accent/20"></div>
+            
+            <div className="relative z-10 text-center space-y-8 mb-32">
+              <CreatorLogo className="mb-8" />
+              
+              <div className="space-y-4">
+                <h1 className="text-4xl font-bold text-foreground">
+                  Olá!
+                </h1>
+                <p className="text-xl text-muted-foreground max-w-sm mx-auto">
+                  Bem-vindo ao Creator
+                </p>
+                <p className="text-base text-muted-foreground max-w-md mx-auto leading-relaxed">
+                  IA para planejar e criar conteúdo estratégico
+                </p>
               </div>
+            </div>
 
-              <div className="space-y-2">
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Senha"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10 pr-10 h-12"
-                  />
-                  <Button type="button" variant="ghost" size="icon" className="absolute top-1/2 -translate-y-1/2 right-1 h-10 w-10 text-muted-foreground hover:bg-accent/60" onClick={() => setShowPassword(!showPassword)}>
-                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            {/* Fixed buttons at bottom */}
+            <div className="absolute bottom-8 left-0 right-0 px-8 space-y-3">
+              <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+                <SheetTrigger asChild>
+                  <Button 
+                    className="w-full h-14 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground font-semibold rounded-2xl text-lg shadow-xl"
+                  >
+                    Entrar
                   </Button>
-                </div>
-              </div>
-
-              {/* Password Reset Suggestion - aparece após tentativa incorreta */}
-              {showPasswordResetSuggestion && (
-                <div className="mb-4 p-4 bg-destructive/10 border-2 border-destructive/30 rounded-lg animate-fade-in">
-                  <div className="flex items-start gap-3">
-                    <Mail className="h-5 w-5 text-destructive mt-0.5 flex-shrink-0" />
-                    <div className="flex-1">
-                      <p className="text-sm font-semibold text-destructive mb-1">
-                        Credenciais incorretas
-                      </p>
-                      <p className="text-xs text-muted-foreground mb-2">
-                        Se você esqueceu sua senha ou está com dificuldades para entrar, 
-                        redefina sua senha usando a opção abaixo.
-                      </p>
-                      <a 
-                        href="/forgot-password" 
-                        className="text-sm text-destructive hover:text-destructive/80 font-semibold underline underline-offset-2"
-                      >
-                        Redefinir minha senha →
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id="remember" 
-                    checked={rememberMe}
-                    onCheckedChange={(checked) => setRememberMe(checked as boolean)}
-                  />
-                  <Label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer">
-                    Mantenha-me conectado
-                  </Label>
-                </div>
-                <a 
-                  href="/forgot-password" 
-                  className={`text-sm transition-all duration-300 ${
-                    showPasswordResetSuggestion 
-                      ? 'text-destructive hover:text-destructive/80 font-semibold animate-pulse' 
-                      : 'text-primary hover:text-primary/80'
-                  }`}
+                </SheetTrigger>
+                <SheetContent 
+                  side="bottom" 
+                  className="h-[90vh] rounded-t-3xl p-0 border-t-2"
                 >
-                  Esqueceu a senha?
-                </a>
-              </div>
+                  <div className="h-full overflow-y-auto p-6 pt-8">
+                    <div className="w-12 h-1.5 bg-muted-foreground/20 rounded-full mx-auto mb-8"></div>
+                    
+                    <div className="text-center mb-8">
+                      <h2 className="text-2xl font-bold text-foreground mb-2">Acesse o Creator</h2>
+                      <p className="text-muted-foreground">Sua plataforma de marketing estratégico</p>
+                    </div>
 
-              <Button 
-                type="submit" 
-                disabled={loading}
-                className="w-full h-12 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-medium rounded-xl transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50"
-              >
-                {loading ? (
-                  <div className="flex items-center gap-2">
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    <span>Entrando...</span>
+                    <LoginForm />
                   </div>
-                ) : (
-                  "Entrar"
-                )}
-              </Button>
-            </form>
+                </SheetContent>
+              </Sheet>
 
-            {/* Divider */}
-            <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-border/30"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="bg-card px-4 text-muted-foreground">ou continue com</span>
-              </div>
-            </div>
-
-            {/* Social login */}
-            <div className="grid grid-cols-2 gap-3 mb-6">
               <Button 
-                variant="outline"
-                onClick={handleGoogleLogin}
-                type="button"
-                disabled={googleLoading || loading}
-                className="h-12 border-border/50 hover:bg-primary/5 hover:border-primary/30 hover:text-primary transition-all duration-200"
-              >
-                {googleLoading ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <>
-                    <Chrome className="w-5 h-5 mr-2" />
-                    Google
-                  </>
-                )}
-              </Button>
-              <Button 
-                variant="outline"
-                type="button"
-                onClick={handleFacebookLogin}
-                disabled={facebookLoading || loading}
-                className="h-12 border-border/50 hover:bg-secondary/5 hover:border-secondary/30 hover:text-secondary transition-all duration-200"
-              >
-                {facebookLoading ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <>
-                    <Facebook className="w-5 h-5 mr-2" />
-                    Facebook
-                  </>
-                )}
-              </Button>
-            </div>
-
-            {/* Register link */}
-            <div className="text-center">
-              <span className="text-muted-foreground text-sm">Não tem uma conta? </span>
-              <a 
-                href="/register" 
-                className="text-primary hover:text-primary/80 font-medium text-sm transition-colors"
+                variant="outline" 
+                className="w-full h-14 bg-card/90 backdrop-blur-xl border-2 font-semibold rounded-2xl text-lg"
+                onClick={() => navigate("/register")}
               >
                 Criar conta
-              </a>
+              </Button>
             </div>
           </div>
         </div>
-      </div>
+      ) : (
+        /* Desktop version - Right side - Login form */
+        <div className="w-full lg:w-1/2 flex items-center justify-center p-8 relative">
+          {/* Login card */}
+          <div className="w-full max-w-md">
+            <div className="bg-card/90 backdrop-blur-xl border border-border/50 rounded-2xl shadow-2xl p-8">
+              <div className="text-center mb-8">
+                <h2 className="text-2xl font-bold text-foreground mb-2">Acesse o Creator</h2>
+                <p className="text-muted-foreground">Sua plataforma de marketing estratégico</p>
+              </div>
+
+              <LoginForm />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Team Selection Dialog */}
       <TeamSelectionDialog 
