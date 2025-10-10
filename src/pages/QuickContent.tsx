@@ -43,6 +43,7 @@ export default function QuickContent() {
   });
   
   const [referenceFiles, setReferenceFiles] = useState<File[]>([]);
+  const [preserveImageIndices, setPreserveImageIndices] = useState<number[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pasteAreaRef = useRef<HTMLDivElement>(null);
 
@@ -65,9 +66,26 @@ export default function QuickContent() {
     const updatedFiles = referenceFiles.filter((_, index) => index !== indexToRemove);
     setReferenceFiles(updatedFiles);
     
+    // Atualizar índices de preservação
+    setPreserveImageIndices(prev => 
+      prev
+        .filter(idx => idx !== indexToRemove)
+        .map(idx => idx > indexToRemove ? idx - 1 : idx)
+    );
+    
     if (updatedFiles.length === 0 && fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+  };
+
+  const handleTogglePreserve = (index: number) => {
+    setPreserveImageIndices(prev => {
+      if (prev.includes(index)) {
+        return prev.filter(idx => idx !== index);
+      } else {
+        return [...prev, index];
+      }
+    });
   };
 
   useEffect(() => {
@@ -129,20 +147,32 @@ export default function QuickContent() {
 
       // Convert reference images to base64 if any
       const referenceImagesBase64: string[] = [];
+      const preserveImages: string[] = [];
+      const styleReferenceImages: string[] = [];
+      
       if (referenceFiles.length > 0) {
         toast.loading("Processando imagens de referência...", {
           id: toastId,
           description: `${referenceFiles.length} imagem(ns) sendo processadas.`,
         });
         
-        for (const file of referenceFiles) {
+        for (let i = 0; i < referenceFiles.length; i++) {
+          const file = referenceFiles[i];
           const base64 = await new Promise<string>((resolve, reject) => {
             const reader = new FileReader();
             reader.onload = () => resolve(reader.result as string);
             reader.onerror = reject;
             reader.readAsDataURL(file);
           });
+          
           referenceImagesBase64.push(base64);
+          
+          // Separar imagens a preservar de imagens de referência de estilo
+          if (preserveImageIndices.includes(i)) {
+            preserveImages.push(base64);
+          } else {
+            styleReferenceImages.push(base64);
+          }
         }
       }
 
@@ -159,6 +189,8 @@ export default function QuickContent() {
             brandId: formData.brandId || null,
             platform: formData.platform || null,
             referenceImages: referenceImagesBase64,
+            preserveImages,
+            styleReferenceImages,
             aspectRatio: formData.aspectRatio,
             style: formData.style,
             quality: formData.quality,
@@ -395,30 +427,55 @@ export default function QuickContent() {
                     <p className="text-xs font-semibold text-primary mb-2">
                       {referenceFiles.length} imagem(ns) selecionada(s):
                     </p>
-                    {referenceFiles.map((file, idx) => (
-                      <div key={idx} className="flex items-center justify-between bg-background/50 rounded-lg p-2 group hover:bg-background transition-colors">
-                        <span className="text-sm text-foreground font-medium flex items-center gap-2 min-w-0 flex-1">
-                          <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0"></div>
-                          <span className="truncate">{file.name}</span>
-                        </span>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleRemoveFile(idx)}
-                          className="h-7 w-7 p-0 hover:bg-destructive/10 hover:text-destructive flex-shrink-0"
-                        >
-                          <X className="h-3.5 w-3.5" />
-                        </Button>
-                      </div>
-                    ))}
+                    <div className="space-y-2">
+                      {referenceFiles.map((file, idx) => (
+                        <div key={idx} className="bg-background/50 rounded-lg p-3 group hover:bg-background transition-colors">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm text-foreground font-medium flex items-center gap-2 min-w-0 flex-1">
+                              <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0"></div>
+                              <span className="truncate">{file.name}</span>
+                            </span>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleRemoveFile(idx)}
+                              className="h-7 w-7 p-0 hover:bg-destructive/10 hover:text-destructive flex-shrink-0"
+                            >
+                              <X className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                          <div className="flex items-center gap-2 pl-4">
+                            <input
+                              type="checkbox"
+                              id={`preserve-${idx}`}
+                              checked={preserveImageIndices.includes(idx)}
+                              onChange={() => handleTogglePreserve(idx)}
+                              className="h-4 w-4 rounded border-border/50 text-primary focus:ring-2 focus:ring-primary/50"
+                            />
+                            <Label 
+                              htmlFor={`preserve-${idx}`}
+                              className="text-xs text-muted-foreground cursor-pointer"
+                            >
+                              Preservar traços desta imagem na imagem final
+                            </Label>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
-              <p className="text-xs text-muted-foreground flex items-start gap-1.5">
-                <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
-                <span>Adicione imagens para inspirar o estilo e composição visual desejada</span>
-              </p>
+              <div className="bg-accent/30 border border-accent/50 rounded-lg p-3 space-y-2">
+                <p className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                  <Info className="h-3.5 w-3.5 flex-shrink-0" />
+                  Como usar imagens de referência:
+                </p>
+                <ul className="text-xs text-muted-foreground space-y-1 pl-5 list-disc">
+                  <li><strong>Sem marcação:</strong> A IA usa apenas como inspiração de estilo, cores e composição</li>
+                  <li><strong>Com marcação "Preservar traços":</strong> A IA mantém os elementos visuais originais da imagem no resultado final</li>
+                </ul>
+              </div>
             </div>
 
             {/* Advanced Options (Accordion) */}

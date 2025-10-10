@@ -80,6 +80,8 @@ serve(async (req) => {
       brandId,
       platform,
       referenceImages = [],
+      preserveImages = [],
+      styleReferenceImages = [],
       aspectRatio = '1:1',
       style = 'auto',
       quality = 'standard'
@@ -108,6 +110,8 @@ serve(async (req) => {
       style,
       quality,
       referenceImagesCount: referenceImages?.length || 0,
+      preserveImagesCount: preserveImages?.length || 0,
+      styleReferenceImagesCount: styleReferenceImages?.length || 0,
       userId: authenticatedUserId, 
       teamId: authenticatedTeamId 
     });
@@ -265,16 +269,28 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
       enhancedPrompt += `\n\n${brandContext}\nGere uma imagem que reflita os valores e identidade da marca.`;
     }
 
-    // Add reference images instruction if provided
-    if (referenceImages && referenceImages.length > 0) {
-      enhancedPrompt += `\n\n=== IMAGENS DE REFERÊNCIA ===`;
-      enhancedPrompt += `\n${referenceImages.length === 1 ? 'Uma imagem de referência foi fornecida' : `${referenceImages.length} imagens de referência foram fornecidas`}.`;
+    // Add preserve images instruction if provided
+    if (preserveImages && preserveImages.length > 0) {
+      enhancedPrompt += `\n\n=== IMAGENS PARA PRESERVAR NA IMAGEM FINAL ===`;
+      enhancedPrompt += `\n${preserveImages.length === 1 ? 'Uma imagem foi fornecida' : `${preserveImages.length} imagens foram fornecidas`} para ter seus traços PRESERVADOS na imagem resultado.`;
+      enhancedPrompt += `\n\n🔴 CRÍTICO - REGRAS DE PRESERVAÇÃO:`;
+      enhancedPrompt += `\n1. MANTENHA os elementos visuais, objetos, pessoas e características EXATAS destas imagens`;
+      enhancedPrompt += `\n2. PRESERVE as cores originais, formas, texturas e detalhes específicos`;
+      enhancedPrompt += `\n3. Use estas imagens como BASE VISUAL que deve aparecer na imagem final`;
+      enhancedPrompt += `\n4. Você pode ADICIONAR contexto, cenário ou elementos complementares conforme o prompt, mas NUNCA remova ou altere significativamente os elementos das imagens fornecidas`;
+      enhancedPrompt += `\n5. Trate estas imagens como o FOCO PRINCIPAL da composição final`;
+    }
+    
+    // Add style reference images instruction if provided
+    if (styleReferenceImages && styleReferenceImages.length > 0) {
+      enhancedPrompt += `\n\n=== IMAGENS DE REFERÊNCIA DE ESTILO ===`;
+      enhancedPrompt += `\n${styleReferenceImages.length === 1 ? 'Uma imagem de referência de estilo foi fornecida' : `${styleReferenceImages.length} imagens de referência de estilo foram fornecidas`}.`;
       enhancedPrompt += `\n\nIMPORTANTE: Use estas imagens APENAS como inspiração para:`;
       enhancedPrompt += `\n- Estilo visual geral e atmosfera`;
       enhancedPrompt += `\n- Paleta de cores e harmonização`;
       enhancedPrompt += `\n- Composição e enquadramento`;
       enhancedPrompt += `\n- Elementos de design e textura`;
-      enhancedPrompt += `\n\nNÃO copie elementos específicos, pessoas, logos ou marcas das imagens de referência. Crie uma imagem completamente ORIGINAL baseada na inspiração visual fornecida.`;
+      enhancedPrompt += `\n\nNÃO copie elementos específicos, pessoas, logos ou marcas destas imagens de referência. Use apenas como inspiração visual.`;
     }
 
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
@@ -289,9 +305,19 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
       { type: 'text', text: enhancedPrompt }
     ];
     
-    // Add reference images if provided
-    if (referenceImages && referenceImages.length > 0) {
-      referenceImages.forEach((img: string) => {
+    // Add preserve images first (highest priority)
+    if (preserveImages && preserveImages.length > 0) {
+      preserveImages.forEach((img: string) => {
+        messageContent.push({
+          type: 'image_url',
+          image_url: { url: img }
+        });
+      });
+    }
+    
+    // Add style reference images after
+    if (styleReferenceImages && styleReferenceImages.length > 0) {
+      styleReferenceImages.forEach((img: string) => {
         messageContent.push({
           type: 'image_url',
           image_url: { url: img }
@@ -385,6 +411,8 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
           style,
           quality,
           referenceImagesCount: referenceImages?.length || 0,
+          preserveImagesCount: preserveImages?.length || 0,
+          styleReferenceImagesCount: styleReferenceImages?.length || 0,
           enhancedPrompt
         },
         result: {
