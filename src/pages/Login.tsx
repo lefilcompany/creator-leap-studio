@@ -416,10 +416,10 @@ const Login = () => {
                 <CreatorLogo className="flex-shrink-0" />
 
                 <div className="text-left space-y-4">
-                  <h1 className="text-2xl font-bold text-foreground leading-tight">
+                  <h1 className="text-2xl md:text-3xl font-bold text-foreground leading-tight">
                     Transforme suas ideias em conteúdo estratégico
                   </h1>
-                  <p className="text-base text-muted-foreground leading-relaxed">
+                  <p className="text-base md:text-lg text-muted-foreground leading-relaxed">
                     Planeje, crie e organize sua comunicação com inteligência artificial
                   </p>
                 </div>
