@@ -399,15 +399,23 @@ const Login = () => {
               <CreatorLogo className="mb-8" />
               
               <div className="space-y-4">
-                <h1 className="text-4xl font-bold text-foreground">
-                  Olá!
+                <h1 className="text-4xl font-bold text-foreground leading-tight">
+                  Transforme suas ideias em conteúdo estratégico
                 </h1>
-                <p className="text-xl text-muted-foreground max-w-sm mx-auto">
-                  Bem-vindo ao Creator
+                <p className="text-lg text-muted-foreground max-w-sm mx-auto leading-relaxed">
+                  Planeje, crie e organize sua comunicação com inteligência artificial
                 </p>
-                <p className="text-base text-muted-foreground max-w-md mx-auto leading-relaxed">
-                  IA para planejar e criar conteúdo estratégico
-                </p>
+                <div className="flex flex-wrap justify-center gap-2 pt-2">
+                  <div className="px-3 py-1 bg-primary/10 rounded-full border border-primary/20">
+                    <span className="text-xs font-medium text-primary">📱 Multi-marca</span>
+                  </div>
+                  <div className="px-3 py-1 bg-secondary/10 rounded-full border border-secondary/20">
+                    <span className="text-xs font-medium text-secondary">🎯 Por Personas</span>
+                  </div>
+                  <div className="px-3 py-1 bg-accent/10 rounded-full border border-accent/20">
+                    <span className="text-xs font-medium text-accent">📅 Calendários</span>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -429,8 +437,8 @@ const Login = () => {
                     <div className="w-12 h-1.5 bg-muted-foreground/20 rounded-full mx-auto mb-8"></div>
                     
                     <div className="text-center mb-8">
-                      <h2 className="text-2xl font-bold text-foreground mb-2">Acesse o Creator</h2>
-                      <p className="text-muted-foreground">Sua plataforma de marketing estratégico</p>
+                      <h2 className="text-2xl font-bold text-foreground mb-2">Bem-vindo de volta! 👋</h2>
+                      <p className="text-muted-foreground">Acesse sua plataforma de conteúdo estratégico</p>
                     </div>
 
                     {loginForm}
