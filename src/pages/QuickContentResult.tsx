@@ -2,15 +2,27 @@ import { useEffect, useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { ArrowLeft, Download, Copy, Check, ExternalLink, Maximize2 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { ArrowLeft, Download, Copy, Check, ExternalLink, Maximize2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function QuickContentResult() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { team } = useAuth();
   const [isCopied, setIsCopied] = useState(false);
   const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
+  const [showReviewDialog, setShowReviewDialog] = useState(false);
+  const [reviewPrompt, setReviewPrompt] = useState("");
+  const [isReviewing, setIsReviewing] = useState(false);
+  const [freeRevisionsLeft, setFreeRevisionsLeft] = useState(2);
+  const [totalRevisions, setTotalRevisions] = useState(0);
+  const [currentImageUrl, setCurrentImageUrl] = useState("");
 
   const { imageUrl, description, actionId, prompt } = location.state || {};
 
@@ -18,13 +30,24 @@ export default function QuickContentResult() {
     if (!imageUrl) {
       toast.error("Nenhum conteúdo encontrado");
       navigate("/quick-content");
+    } else {
+      setCurrentImageUrl(imageUrl);
+      // Load revision count from localStorage
+      const contentId = `quick_content_${actionId || Date.now()}`;
+      const revisionsKey = `revisions_${contentId}`;
+      const savedRevisions = localStorage.getItem(revisionsKey);
+      if (savedRevisions) {
+        const count = parseInt(savedRevisions);
+        setTotalRevisions(count);
+        setFreeRevisionsLeft(Math.max(0, 2 - count));
+      }
     }
-  }, [imageUrl, navigate]);
+  }, [imageUrl, navigate, actionId]);
 
   const handleDownload = () => {
     try {
       const link = document.createElement("a");
-      link.href = imageUrl;
+      link.href = currentImageUrl;
       link.download = `creator-quick-${Date.now()}.png`;
       document.body.appendChild(link);
       link.click();
@@ -33,6 +56,101 @@ export default function QuickContentResult() {
     } catch (error) {
       console.error("Error downloading image:", error);
       toast.error("Erro ao baixar imagem");
+    }
+  };
+
+  const handleOpenReview = () => {
+    setShowReviewDialog(true);
+    setReviewPrompt("");
+  };
+
+  const handleSubmitReview = async () => {
+    if (!reviewPrompt.trim()) {
+      toast.error("Digite o que você gostaria de alterar na imagem");
+      return;
+    }
+
+    const needsCredit = freeRevisionsLeft === 0;
+
+    if (needsCredit && (!team?.credits?.contentReviews || team.credits.contentReviews <= 0)) {
+      toast.error("Você não tem créditos de revisão disponíveis");
+      return;
+    }
+
+    setIsReviewing(true);
+
+    try {
+      const newRevisionCount = totalRevisions + 1;
+      const newFreeRevisionsLeft = Math.max(0, freeRevisionsLeft - 1);
+
+      toast.info("Editando imagem com base no seu feedback...");
+
+      const { data, error } = await supabase.functions.invoke("edit-image", {
+        body: {
+          reviewPrompt,
+          imageUrl: currentImageUrl,
+          brandId: null,
+          themeId: null,
+        },
+      });
+
+      if (error) {
+        console.error("Erro ao editar imagem:", error);
+        throw new Error(error.message || "Falha ao editar imagem");
+      }
+
+      if (!data?.editedImageUrl) {
+        throw new Error("Imagem editada não foi retornada");
+      }
+
+      if (!data.editedImageUrl.startsWith("http")) {
+        throw new Error("URL da imagem editada é inválida");
+      }
+
+      const timestamp = Date.now();
+      const imageUrlWithTimestamp = `${data.editedImageUrl}?t=${timestamp}`;
+      setCurrentImageUrl(imageUrlWithTimestamp);
+
+      // Update revision count in localStorage
+      const contentId = `quick_content_${actionId || Date.now()}`;
+      const revisionsKey = `revisions_${contentId}`;
+      localStorage.setItem(revisionsKey, newRevisionCount.toString());
+
+      setTotalRevisions(newRevisionCount);
+      setFreeRevisionsLeft(newFreeRevisionsLeft);
+
+      // Update action in database if it exists
+      if (actionId) {
+        await supabase
+          .from("actions")
+          .update({
+            revisions: newRevisionCount,
+            result: {
+              imageUrl: imageUrlWithTimestamp,
+              description,
+              prompt,
+              feedback: reviewPrompt,
+            },
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", actionId);
+      }
+
+      if (needsCredit) {
+        toast.success("Revisão concluída! 1 crédito foi consumido.");
+      } else {
+        toast.success(
+          `Revisão concluída! ${newFreeRevisionsLeft} revisão${newFreeRevisionsLeft !== 1 ? "ões" : ""} gratuita${newFreeRevisionsLeft !== 1 ? "s" : ""} restante${newFreeRevisionsLeft !== 1 ? "s" : ""}.`
+        );
+      }
+
+      setShowReviewDialog(false);
+      setReviewPrompt("");
+    } catch (error) {
+      console.error("Erro ao revisar imagem:", error);
+      toast.error(error instanceof Error ? error.message : "Erro ao revisar imagem");
+    } finally {
+      setIsReviewing(false);
     }
   };
 
@@ -74,6 +192,15 @@ export default function QuickContentResult() {
               </div>
             </div>
             <div className="flex gap-2 w-full sm:w-auto">
+              <Button 
+                variant="outline" 
+                onClick={handleOpenReview}
+                className="hover:scale-105 transition-transform flex-1 sm:flex-initial"
+              >
+                <RefreshCw className="mr-2 h-4 w-4" />
+                <span className="hidden xs:inline">Revisar</span>
+                <span className="xs:hidden">Revisar</span>
+              </Button>
               <Button 
                 variant="outline" 
                 onClick={handleDownload}
@@ -118,11 +245,18 @@ export default function QuickContentResult() {
                 onClick={() => setIsImageDialogOpen(true)}
               >
                 <img
-                  src={imageUrl}
+                  src={currentImageUrl}
                   alt="Conteúdo gerado"
                   className="w-full h-full object-contain"
+                  key={currentImageUrl}
                 />
               </div>
+              {totalRevisions > 0 && (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <RefreshCw className="h-3 w-3" />
+                  <span>{totalRevisions} revisão{totalRevisions !== 1 ? "ões" : ""} realizada{totalRevisions !== 1 ? "s" : ""}</span>
+                </div>
+              )}
             </div>
           </Card>
 
@@ -209,10 +343,84 @@ export default function QuickContentResult() {
         <Dialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen}>
           <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 overflow-hidden border-0">
             <img
-              src={imageUrl}
+              src={currentImageUrl}
               alt="Conteúdo gerado ampliado"
               className="w-full h-full object-contain"
             />
+          </DialogContent>
+        </Dialog>
+
+        {/* Review Dialog */}
+        <Dialog open={showReviewDialog} onOpenChange={setShowReviewDialog}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold flex items-center gap-2">
+                <RefreshCw className="h-6 w-6 text-primary" />
+                Revisar Imagem
+              </DialogTitle>
+              <DialogDescription>
+                Descreva o que você gostaria de alterar na imagem. A IA preservará a imagem original, modificando apenas o que você solicitar.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4 py-4">
+              {/* Revision counter */}
+              <Alert>
+                <AlertDescription>
+                  {freeRevisionsLeft > 0 ? (
+                    <span className="text-sm">
+                      <strong>{freeRevisionsLeft}</strong> revisão{freeRevisionsLeft !== 1 ? "ões" : ""} gratuita{freeRevisionsLeft !== 1 ? "s" : ""} restante{freeRevisionsLeft !== 1 ? "s" : ""}
+                    </span>
+                  ) : (
+                    <span className="text-sm">
+                      Esta revisão consumirá <strong>1 crédito</strong> de revisão.
+                      {team?.credits?.contentReviews && (
+                        <> Você tem <strong>{team.credits.contentReviews}</strong> crédito{team.credits.contentReviews !== 1 ? "s" : ""} disponível{team.credits.contentReviews !== 1 ? "eis" : ""}.</>
+                      )}
+                    </span>
+                  )}
+                </AlertDescription>
+              </Alert>
+
+              <div className="space-y-2">
+                <Label htmlFor="review-prompt">O que você gostaria de alterar?</Label>
+                <Textarea
+                  id="review-prompt"
+                  placeholder="Ex: Deixe o céu mais azul e adicione nuvens brancas..."
+                  value={reviewPrompt}
+                  onChange={(e) => setReviewPrompt(e.target.value)}
+                  className="min-h-[120px]"
+                  disabled={isReviewing}
+                />
+              </div>
+
+              <div className="flex gap-3 justify-end">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowReviewDialog(false)}
+                  disabled={isReviewing}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={handleSubmitReview}
+                  disabled={isReviewing || !reviewPrompt.trim()}
+                  className="min-w-[120px]"
+                >
+                  {isReviewing ? (
+                    <>
+                      <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                      Revisando...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="mr-2 h-4 w-4" />
+                      Revisar
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
           </DialogContent>
         </Dialog>
       </div>
