@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -259,7 +259,7 @@ const Register = () => {
     }
   };
 
-  const RegisterForm = () => (
+  const registerForm = useMemo(() => (
     <form onSubmit={handleRegister} className="space-y-3 lg:space-y-4">
       <div className="relative">
         <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -510,7 +510,7 @@ const Register = () => {
         </a>
       </div>
     </form>
-  );
+  ), [formData, confirmPassword, showPassword, error, isLoading, googleLoading, facebookLoading, privacyChecked, privacyAccepted, states, cities, loadingStates, loadingCities, passwordsMatch, isPasswordValid, handleRegister, handleInputChange, handleSelectChange, handleGoogleSignup, handleFacebookSignup, setPrivacyModalOpen]);
 
   return (
     <>
@@ -628,7 +628,7 @@ const Register = () => {
                         <p className="text-muted-foreground text-sm">É rápido e fácil. Vamos começar!</p>
                       </div>
 
-                      <RegisterForm />
+                      {registerForm}
                     </div>
                   </SheetContent>
                 </Sheet>
@@ -646,7 +646,7 @@ const Register = () => {
                   <p className="text-muted-foreground text-sm">É rápido e fácil. Vamos começar!</p>
                 </div>
 
-                <RegisterForm />
+                {registerForm}
               </div>
             </div>
           </div>

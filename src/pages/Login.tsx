@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
@@ -170,7 +170,7 @@ const Login = () => {
   const isMobile = useIsMobile();
   const [sheetOpen, setSheetOpen] = useState(false);
 
-  const LoginForm = () => (
+  const loginForm = useMemo(() => (
     <form onSubmit={handleLogin} className="space-y-6">
       <div className="space-y-2">
         <div className="relative">
@@ -320,7 +320,7 @@ const Login = () => {
         </a>
       </div>
     </form>
-  );
+  ), [email, password, showPassword, rememberMe, loading, googleLoading, facebookLoading, showPasswordResetSuggestion, handleLogin, handleGoogleLogin, handleFacebookLogin]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 flex relative">
@@ -433,7 +433,7 @@ const Login = () => {
                       <p className="text-muted-foreground">Sua plataforma de marketing estratégico</p>
                     </div>
 
-                    <LoginForm />
+                    {loginForm}
                   </div>
                 </SheetContent>
               </Sheet>
@@ -459,7 +459,7 @@ const Login = () => {
                 <p className="text-muted-foreground">Sua plataforma de marketing estratégico</p>
               </div>
 
-              <LoginForm />
+              {loginForm}
             </div>
           </div>
         </div>
