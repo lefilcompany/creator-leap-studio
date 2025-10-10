@@ -412,10 +412,10 @@ const Login = () => {
             <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-secondary/10 to-accent/20"></div>
 
             <div className="relative z-10 mb-32 w-full">
-              <div className="flex flex-col items-start gap-6">
+              <div className="flex flex-col items-start gap-8">
                 <CreatorLogo className="flex-shrink-0" />
 
-                <div className="text-left space-y-3">
+                <div className="text-left space-y-4">
                   <h1 className="text-2xl font-bold text-foreground leading-tight">
                     Transforme suas ideias em conteúdo estratégico
                   </h1>
