@@ -215,42 +215,14 @@ export default function QuickContentResult() {
         toast.success("Revisão concluída! 1 crédito foi consumido.");
       } else {
         toast.success(
-          `Revisão concluída! ${newFreeRevisionsLeft} revisão${newFreeRevisionsLeft !== 1 ? "ões" : ""} gratuita${newFreeRevisionsLeft !== 1 ? "s" : ""} restante${newFreeRevisionsLeft !== 1 ? "s" : ""}.`,
+          `Revisão concluída! ${newFreeRevisionsLeft} ${newFreeRevisionsLeft !== 1 ? "revisões" : "revisão"} gratuita${newFreeRevisionsLeft !== 1 ? "s" : ""} restante${newFreeRevisionsLeft !== 1 ? "s" : ""}.`,
         );
       }
 
       setShowReviewDialog(false);
       setReviewPrompt("");
-    } catch (error: any) {
+    } catch (error) {
       console.error("Erro ao revisar imagem:", error);
-      
-      // Tratar erro de violação de compliance de forma amigável
-      if (error?.message?.includes('compliance_violation')) {
-        try {
-          const errorMatch = error.message.match(/\{.*\}/);
-          if (errorMatch) {
-            const errorData = JSON.parse(errorMatch[0]);
-            toast.error("Solicitação não permitida", {
-              description: errorData.message || "A solicitação viola regulamentações publicitárias brasileiras",
-              duration: 8000,
-            });
-            
-            // Mostrar recomendação separadamente se houver
-            if (errorData.recommendation) {
-              setTimeout(() => {
-                toast.info("Sugestão", {
-                  description: errorData.recommendation,
-                  duration: 10000,
-                });
-              }, 500);
-            }
-            return;
-          }
-        } catch (parseError) {
-          console.error("Erro ao parsear erro de compliance:", parseError);
-        }
-      }
-      
       toast.error(error instanceof Error ? error.message : "Erro ao revisar imagem");
     } finally {
       setIsReviewing(false);
