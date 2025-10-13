@@ -420,12 +420,18 @@ export default function QuickContentResult() {
 
         {/* Image Dialog */}
         <Dialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen}>
-          <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 overflow-hidden border-0">
+          <DialogContent className="max-w-[95vw] max-h-[95vh] p-2 overflow-auto border-0 bg-black/95">
             <DialogHeader className="sr-only">
               <DialogTitle>Visualização da Imagem</DialogTitle>
               <DialogDescription>Imagem ampliada do conteúdo gerado</DialogDescription>
             </DialogHeader>
-            <img src={currentImageUrl} alt="Conteúdo gerado ampliado" className="w-full h-full object-contain" />
+            <div className="flex items-center justify-center min-h-full">
+              <img 
+                src={currentImageUrl} 
+                alt="Conteúdo gerado ampliado" 
+                className="max-w-full max-h-full object-contain"
+              />
+            </div>
           </DialogContent>
         </Dialog>
 
