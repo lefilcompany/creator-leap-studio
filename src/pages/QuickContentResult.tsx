@@ -455,8 +455,7 @@ export default function QuickContentResult() {
                 <AlertDescription>
                   {freeRevisionsLeft > 0 ? (
                     <span className="text-sm">
-                      <strong>{freeRevisionsLeft}</strong> revisão{freeRevisionsLeft !== 1 ? "ões" : ""} gratuita
-                      {freeRevisionsLeft !== 1 ? "s" : ""} restante{freeRevisionsLeft !== 1 ? "s" : ""}
+                      <strong>{freeRevisionsLeft}</strong> {freeRevisionsLeft > 1 ? "revisões gratuitas restantes" : "revisão gratuita restante"}
                     </span>
                   ) : (
                     <span className="text-sm">
