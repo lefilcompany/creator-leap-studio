@@ -482,7 +482,7 @@ const Register = () => {
                   </SheetContent>
                 </Sheet>
 
-                <Button variant="outline" className="w-full h-14 bg-card/90 backdrop-blur-xl border-2 font-semibold rounded-2xl text-lg hover:text-white" onClick={() => navigate("/login")}>
+                <Button variant="outline" onClick={() => navigate("/login")} className="w-full h-14 bg-card/90 backdrop-blur-xl border-2 font-semibold rounded-2xl text-lg hover:text-primary ">
                   Já tenho conta
                 </Button>
               </div>
