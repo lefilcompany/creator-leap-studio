@@ -408,7 +408,7 @@ const Register = () => {
             
             <div className="mb-8">
               <h1 className="text-3xl lg:text-4xl font-bold text-foreground mb-4 leading-tight">
-                Transforme Ideias em Conteúdo
+                Transforme ideias em impacto.
               </h1>
               <p className="text-lg text-muted-foreground leading-relaxed">
                 Junte-se à nossa comunidade e comece a criar posts incríveis com o poder da inteligência artificial.
@@ -454,7 +454,7 @@ const Register = () => {
                 
                 <div className="space-y-4">
                   <h1 className="text-4xl font-bold text-foreground">
-                    Transforme Ideias<br />em Conteúdo
+                    Transforme ideias em impacto.
                   </h1>
                   <p className="text-base text-muted-foreground max-w-md mx-auto leading-relaxed">Junte-se à comunidade que está redefinindo a criação de conteúdo com inteligência artificial.</p>
                 </div>
