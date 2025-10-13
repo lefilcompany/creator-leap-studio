@@ -255,7 +255,7 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
       }
     }
 
-    // Add aspect ratio information - always specify even with platform
+    // Add aspect ratio information - CRITICAL: Must be enforced
     const aspectRatioDescriptions: Record<string, string> = {
       '1:1': 'formato quadrado (1:1)',
       '4:5': 'formato retrato (4:5)',
@@ -264,13 +264,27 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
       '3:4': 'formato retrato (3:4)'
     };
     
-    enhancedPrompt += `\n\n=== FORMATO DA IMAGEM ===`;
-    enhancedPrompt += `\nProporção OBRIGATÓRIA: ${normalizedAspectRatio} - ${aspectRatioDescriptions[normalizedAspectRatio] || normalizedAspectRatio}`;
-    enhancedPrompt += `\n\n🔴 CRÍTICO: A imagem DEVE ser gerada exatamente na proporção ${normalizedAspectRatio}.`;
-    enhancedPrompt += `\nNÃO use a proporção das imagens de referência. Use APENAS a proporção especificada: ${normalizedAspectRatio}.`;
+    enhancedPrompt += `\n\n${'='.repeat(60)}`;
+    enhancedPrompt += `\n🎯 FORMATO DA IMAGEM - REGRA ABSOLUTA E NÃO NEGOCIÁVEL`;
+    enhancedPrompt += `\n${'='.repeat(60)}`;
+    enhancedPrompt += `\n\n📐 PROPORÇÃO OBRIGATÓRIA: ${normalizedAspectRatio}`;
+    enhancedPrompt += `\n📏 Descrição: ${aspectRatioDescriptions[normalizedAspectRatio] || normalizedAspectRatio}`;
+    enhancedPrompt += `\n\n🔴 REGRAS CRÍTICAS - LEIA COM ATENÇÃO:`;
+    enhancedPrompt += `\n1. A imagem resultado DEVE ter EXATAMENTE a proporção ${normalizedAspectRatio}`;
+    enhancedPrompt += `\n2. IGNORE completamente a proporção de QUALQUER imagem de referência fornecida`;
+    enhancedPrompt += `\n3. Se houver imagens de referência com proporções diferentes, você deve:`;
+    enhancedPrompt += `\n   - Usar APENAS o conteúdo/estilo/elementos dessas imagens`;
+    enhancedPrompt += `\n   - RECOMPOR a imagem final na proporção ${normalizedAspectRatio}`;
+    enhancedPrompt += `\n   - NUNCA manter a proporção original das referências`;
+    enhancedPrompt += `\n4. A proporção ${normalizedAspectRatio} é DEFINITIVA e tem prioridade sobre tudo`;
+    enhancedPrompt += `\n\n⛔ PROIBIDO: Usar qualquer proporção diferente de ${normalizedAspectRatio}`;
+    enhancedPrompt += `\n✅ CORRETO: Gerar imagem na proporção exata de ${normalizedAspectRatio}`;
     
     if (referenceImages && referenceImages.length > 0) {
-      enhancedPrompt += `\n\n⚠️ IMPORTANTE: As imagens de referência fornecidas podem ter proporções diferentes. Você DEVE ignorar as proporções das referências e gerar a imagem na proporção ${normalizedAspectRatio}.`;
+      enhancedPrompt += `\n\n⚠️ ATENÇÃO ESPECIAL - IMAGENS DE REFERÊNCIA DETECTADAS:`;
+      enhancedPrompt += `\nAs imagens fornecidas podem ter proporções diferentes de ${normalizedAspectRatio}.`;
+      enhancedPrompt += `\nVocê DEVE extrair apenas os elementos visuais e RECOMPOR na proporção ${normalizedAspectRatio}.`;
+      enhancedPrompt += `\nNUNCA mantenha a proporção das imagens de referência.`;
     }
 
     // Add quality information
@@ -285,27 +299,50 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
 
     // Add preserve images instruction if provided
     if (preserveImages && preserveImages.length > 0) {
-      enhancedPrompt += `\n\n=== IMAGENS PARA PRESERVAR NA IMAGEM FINAL ===`;
+      enhancedPrompt += `\n\n${'='.repeat(60)}`;
+      enhancedPrompt += `\n🎨 IMAGENS PARA PRESERVAR - MANTER ELEMENTOS`;
+      enhancedPrompt += `\n${'='.repeat(60)}`;
       enhancedPrompt += `\n${preserveImages.length === 1 ? 'Uma imagem foi fornecida' : `${preserveImages.length} imagens foram fornecidas`} para ter seus traços PRESERVADOS na imagem resultado.`;
-      enhancedPrompt += `\n\n🔴 CRÍTICO - REGRAS DE PRESERVAÇÃO:`;
-      enhancedPrompt += `\n1. MANTENHA os elementos visuais, objetos, pessoas e características EXATAS destas imagens`;
-      enhancedPrompt += `\n2. PRESERVE as cores originais, formas, texturas e detalhes específicos`;
-      enhancedPrompt += `\n3. Use estas imagens como BASE VISUAL que deve aparecer na imagem final`;
-      enhancedPrompt += `\n4. Você pode ADICIONAR contexto, cenário ou elementos complementares conforme o prompt, mas NUNCA remova ou altere significativamente os elementos das imagens fornecidas`;
-      enhancedPrompt += `\n5. Trate estas imagens como o FOCO PRINCIPAL da composição final`;
+      enhancedPrompt += `\n\n🔴 REGRAS DE PRESERVAÇÃO (em ordem de prioridade):`;
+      enhancedPrompt += `\n1. 📐 FORMATO: A imagem final DEVE ter proporção ${normalizedAspectRatio} (NÃO use o formato das imagens fornecidas)`;
+      enhancedPrompt += `\n2. 🎨 ELEMENTOS: PRESERVE os elementos visuais, objetos, pessoas e características destas imagens`;
+      enhancedPrompt += `\n3. 🌈 CORES: MANTENHA as cores originais, formas, texturas e detalhes específicos`;
+      enhancedPrompt += `\n4. 🎯 COMPOSIÇÃO: Recomponha os elementos na proporção ${normalizedAspectRatio}`;
+      enhancedPrompt += `\n5. ➕ CONTEXTO: Você pode adicionar cenário ou elementos complementares conforme o prompt`;
+      enhancedPrompt += `\n\n⚠️ COMO PROCEDER:`;
+      enhancedPrompt += `\n- Extraia os elementos principais das imagens fornecidas`;
+      enhancedPrompt += `\n- Recomponha esses elementos na proporção ${normalizedAspectRatio}`;
+      enhancedPrompt += `\n- Ajuste o enquadramento e composição para o formato ${normalizedAspectRatio}`;
+      enhancedPrompt += `\n- NUNCA mantenha a proporção original das imagens de referência`;
+      enhancedPrompt += `\n\n❌ PROIBIDO: Usar a proporção das imagens de referência`;
+      enhancedPrompt += `\n✅ CORRETO: Elementos das imagens + Proporção ${normalizedAspectRatio}`;
     }
     
     // Add style reference images instruction if provided
     if (styleReferenceImages && styleReferenceImages.length > 0) {
-      enhancedPrompt += `\n\n=== IMAGENS DE REFERÊNCIA DE ESTILO ===`;
+      enhancedPrompt += `\n\n${'='.repeat(60)}`;
+      enhancedPrompt += `\n🎭 REFERÊNCIAS DE ESTILO - APENAS INSPIRAÇÃO`;
+      enhancedPrompt += `\n${'='.repeat(60)}`;
       enhancedPrompt += `\n${styleReferenceImages.length === 1 ? 'Uma imagem de referência de estilo foi fornecida' : `${styleReferenceImages.length} imagens de referência de estilo foram fornecidas`}.`;
-      enhancedPrompt += `\n\nIMPORTANTE: Use estas imagens APENAS como inspiração para:`;
-      enhancedPrompt += `\n- Estilo visual geral e atmosfera`;
-      enhancedPrompt += `\n- Paleta de cores e harmonização`;
-      enhancedPrompt += `\n- Composição e enquadramento`;
-      enhancedPrompt += `\n- Elementos de design e textura`;
-      enhancedPrompt += `\n\nNÃO copie elementos específicos, pessoas, logos ou marcas destas imagens de referência. Use apenas como inspiração visual.`;
+      enhancedPrompt += `\n\n📋 Use estas imagens APENAS como inspiração para:`;
+      enhancedPrompt += `\n✓ Estilo visual geral e atmosfera`;
+      enhancedPrompt += `\n✓ Paleta de cores e harmonização`;
+      enhancedPrompt += `\n✓ Elementos de design e textura`;
+      enhancedPrompt += `\n\n⚠️ IMPORTANTE SOBRE FORMATO:`;
+      enhancedPrompt += `\n- Ignore a proporção das imagens de estilo`;
+      enhancedPrompt += `\n- Use APENAS a inspiração visual, NÃO o formato`;
+      enhancedPrompt += `\n- A imagem final DEVE ter proporção ${normalizedAspectRatio}`;
+      enhancedPrompt += `\n\n❌ NÃO COPIE: Elementos específicos, pessoas, logos, marcas ou PROPORÇÕES`;
+      enhancedPrompt += `\n✅ USE: Apenas inspiração visual e estética`;
     }
+
+    // Final reinforcement of aspect ratio
+    enhancedPrompt += `\n\n${'='.repeat(60)}`;
+    enhancedPrompt += `\n🎯 CONFIRMAÇÃO FINAL - PROPORÇÃO DA IMAGEM`;
+    enhancedPrompt += `\n${'='.repeat(60)}`;
+    enhancedPrompt += `\nA imagem que você vai gerar DEVE ter EXATAMENTE a proporção: ${normalizedAspectRatio}`;
+    enhancedPrompt += `\nEsta é a proporção FINAL, DEFINITIVA e OBRIGATÓRIA.`;
+    enhancedPrompt += `\n${'='.repeat(60)}`;
 
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
     if (!lovableApiKey) {
