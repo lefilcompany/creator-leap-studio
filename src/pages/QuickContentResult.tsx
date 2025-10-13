@@ -34,19 +34,19 @@ export default function QuickContentResult() {
     } else {
       setCurrentImageUrl(imageUrl);
       setImageHistory([imageUrl]); // Initialize history with original image
-      
+
       // Load revision count and history from localStorage
       const contentId = `quick_content_${actionId || Date.now()}`;
       const revisionsKey = `revisions_${contentId}`;
       const historyKey = `image_history_${contentId}`;
-      
+
       const savedRevisions = localStorage.getItem(revisionsKey);
       if (savedRevisions) {
         const count = parseInt(savedRevisions);
         setTotalRevisions(count);
         setFreeRevisionsLeft(Math.max(0, 2 - count));
       }
-      
+
       // Load image history if exists
       const savedHistory = localStorage.getItem(historyKey);
       if (savedHistory) {
@@ -92,24 +92,24 @@ export default function QuickContentResult() {
     const newHistory = [...imageHistory];
     newHistory.pop(); // Remove current image
     const previousImage = newHistory[newHistory.length - 1];
-    
+
     setImageHistory(newHistory);
     setCurrentImageUrl(previousImage);
-    
+
     const newRevisionCount = Math.max(0, totalRevisions - 1);
     const newFreeRevisionsLeft = Math.max(0, 2 - newRevisionCount);
-    
+
     setTotalRevisions(newRevisionCount);
     setFreeRevisionsLeft(newFreeRevisionsLeft);
-    
+
     // Update localStorage
     const contentId = `quick_content_${actionId || Date.now()}`;
     const revisionsKey = `revisions_${contentId}`;
     const historyKey = `image_history_${contentId}`;
-    
+
     localStorage.setItem(revisionsKey, newRevisionCount.toString());
     localStorage.setItem(historyKey, JSON.stringify(newHistory));
-    
+
     // Update action in database if it exists
     if (actionId) {
       supabase
@@ -128,7 +128,7 @@ export default function QuickContentResult() {
           if (error) console.error("Error updating action:", error);
         });
     }
-    
+
     toast.success("Revisão revertida com sucesso!");
   };
 
@@ -164,18 +164,6 @@ export default function QuickContentResult() {
 
       if (error) {
         console.error("Erro ao editar imagem:", error);
-        
-        // Tratar erro de violação de compliance
-        if (error.message?.includes('compliance_violation')) {
-          const errorData = typeof error === 'object' && 'context' in error ? (error as any).context : null;
-          toast.error("Solicitação não permitida", {
-            description: errorData?.message || "A solicitação viola regulamentações publicitárias brasileiras",
-          });
-          setShowReviewDialog(false);
-          setIsReviewing(false);
-          return;
-        }
-        
         throw new Error(error.message || "Falha ao editar imagem");
       }
 
@@ -189,7 +177,7 @@ export default function QuickContentResult() {
 
       const timestamp = Date.now();
       const imageUrlWithTimestamp = `${data.editedImageUrl}?t=${timestamp}`;
-      
+
       // Add to history
       const newHistory = [...imageHistory, imageUrlWithTimestamp];
       setImageHistory(newHistory);
@@ -199,7 +187,7 @@ export default function QuickContentResult() {
       const contentId = `quick_content_${actionId || Date.now()}`;
       const revisionsKey = `revisions_${contentId}`;
       const historyKey = `image_history_${contentId}`;
-      
+
       localStorage.setItem(revisionsKey, newRevisionCount.toString());
       localStorage.setItem(historyKey, JSON.stringify(newHistory));
 
@@ -227,7 +215,7 @@ export default function QuickContentResult() {
         toast.success("Revisão concluída! 1 crédito foi consumido.");
       } else {
         toast.success(
-          `Revisão concluída! ${newFreeRevisionsLeft} revisão${newFreeRevisionsLeft !== 1 ? "ões" : ""} gratuita${newFreeRevisionsLeft !== 1 ? "s" : ""} restante${newFreeRevisionsLeft !== 1 ? "s" : ""}.`
+          `Revisão concluída! ${newFreeRevisionsLeft} revisão${newFreeRevisionsLeft !== 1 ? "ões" : ""} gratuita${newFreeRevisionsLeft !== 1 ? "s" : ""} restante${newFreeRevisionsLeft !== 1 ? "s" : ""}.`,
         );
       }
 
@@ -273,14 +261,12 @@ export default function QuickContentResult() {
                 <h1 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent truncate">
                   Conteúdo Gerado
                 </h1>
-                <p className="text-xs sm:text-sm text-muted-foreground truncate">
-                  Sua imagem foi criada com sucesso
-                </p>
+                <p className="text-xs sm:text-sm text-muted-foreground truncate">Sua imagem foi criada com sucesso</p>
               </div>
             </div>
             <div className="flex gap-2 w-full sm:w-auto">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={handleOpenReview}
                 className="hover:scale-105 transition-transform flex-1 sm:flex-initial"
               >
@@ -289,8 +275,8 @@ export default function QuickContentResult() {
                 <span className="xs:hidden">Revisar</span>
               </Button>
               {totalRevisions > 0 && (
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={handleRevert}
                   className="hover:scale-105 transition-transform flex-1 sm:flex-initial"
                   title="Reverter última revisão"
@@ -300,8 +286,8 @@ export default function QuickContentResult() {
                   <span className="xs:hidden">Reverter</span>
                 </Button>
               )}
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={handleDownload}
                 className="hover:scale-105 transition-transform flex-1 sm:flex-initial"
               >
@@ -309,7 +295,7 @@ export default function QuickContentResult() {
                 <span className="hidden xs:inline">Baixar</span>
                 <span className="xs:hidden">Baixar</span>
               </Button>
-              <Button 
+              <Button
                 onClick={() => navigate("/quick-content")}
                 className="hover:scale-105 transition-transform flex-1 sm:flex-initial"
               >
@@ -329,17 +315,12 @@ export default function QuickContentResult() {
                   <div className="w-1 h-5 bg-gradient-to-b from-primary to-primary/60 rounded-full" />
                   Imagem Gerada
                 </h2>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setIsImageDialogOpen(true)}
-                  className="gap-2"
-                >
+                <Button variant="ghost" size="sm" onClick={() => setIsImageDialogOpen(true)} className="gap-2">
                   <Maximize2 className="h-4 w-4" />
                   <span className="hidden sm:inline">Ampliar</span>
                 </Button>
               </div>
-              <div 
+              <div
                 className="relative aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-muted/50 to-muted border border-border/50 shadow-inner group-hover:scale-[1.02] transition-transform duration-300 cursor-pointer"
                 onClick={() => setIsImageDialogOpen(true)}
               >
@@ -353,7 +334,10 @@ export default function QuickContentResult() {
               {totalRevisions > 0 && (
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <RefreshCw className="h-3 w-3" />
-                  <span>{totalRevisions} revisão{totalRevisions !== 1 ? "ões" : ""} realizada{totalRevisions !== 1 ? "s" : ""}</span>
+                  <span>
+                    {totalRevisions} revisão{totalRevisions !== 1 ? "ões" : ""} realizada
+                    {totalRevisions !== 1 ? "s" : ""}
+                  </span>
                 </div>
               )}
             </div>
@@ -368,9 +352,7 @@ export default function QuickContentResult() {
                   <div className="w-1 h-5 bg-gradient-to-b from-primary to-primary/60 rounded-full" />
                   Descrição
                 </h2>
-                <p className="text-sm text-muted-foreground leading-relaxed pl-3">
-                  {description}
-                </p>
+                <p className="text-sm text-muted-foreground leading-relaxed pl-3">{description}</p>
               </div>
             </Card>
 
@@ -401,9 +383,7 @@ export default function QuickContentResult() {
                     )}
                   </Button>
                 </div>
-                <p className="text-sm text-muted-foreground leading-relaxed pl-3">
-                  {prompt}
-                </p>
+                <p className="text-sm text-muted-foreground leading-relaxed pl-3">{prompt}</p>
               </div>
             </Card>
 
@@ -422,8 +402,8 @@ export default function QuickContentResult() {
                       </p>
                     </div>
                     <Link to={`/action/${actionId}`} className="flex-shrink-0 w-full sm:w-auto">
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         size="sm"
                         className="hover:scale-105 transition-transform w-full sm:w-auto"
                       >
@@ -445,11 +425,7 @@ export default function QuickContentResult() {
               <DialogTitle>Visualização da Imagem</DialogTitle>
               <DialogDescription>Imagem ampliada do conteúdo gerado</DialogDescription>
             </DialogHeader>
-            <img
-              src={currentImageUrl}
-              alt="Conteúdo gerado ampliado"
-              className="w-full h-full object-contain"
-            />
+            <img src={currentImageUrl} alt="Conteúdo gerado ampliado" className="w-full h-full object-contain" />
           </DialogContent>
         </Dialog>
 
@@ -462,7 +438,8 @@ export default function QuickContentResult() {
                 Revisar Imagem
               </DialogTitle>
               <DialogDescription>
-                Descreva o que você gostaria de alterar na imagem. A IA preservará a imagem original, modificando apenas o que você solicitar.
+                Descreva o que você gostaria de alterar na imagem. A IA preservará a imagem original, modificando apenas
+                o que você solicitar.
               </DialogDescription>
             </DialogHeader>
 
@@ -472,13 +449,19 @@ export default function QuickContentResult() {
                 <AlertDescription>
                   {freeRevisionsLeft > 0 ? (
                     <span className="text-sm">
-                      <strong>{freeRevisionsLeft}</strong> revisão{freeRevisionsLeft !== 1 ? "ões" : ""} gratuita{freeRevisionsLeft !== 1 ? "s" : ""} restante{freeRevisionsLeft !== 1 ? "s" : ""}
+                      <strong>{freeRevisionsLeft}</strong> revisão{freeRevisionsLeft !== 1 ? "ões" : ""} gratuita
+                      {freeRevisionsLeft !== 1 ? "s" : ""} restante{freeRevisionsLeft !== 1 ? "s" : ""}
                     </span>
                   ) : (
                     <span className="text-sm">
                       Esta revisão consumirá <strong>1 crédito</strong> de revisão.
                       {team?.credits?.contentReviews && (
-                        <> Você tem <strong>{team.credits.contentReviews}</strong> crédito{team.credits.contentReviews !== 1 ? "s" : ""} disponível{team.credits.contentReviews !== 1 ? "eis" : ""}.</>
+                        <>
+                          {" "}
+                          Você tem <strong>{team.credits.contentReviews}</strong>{" "}
+                          {team.credits.contentReviews !== 1 ? "créditos" : "crédito"}{" "}
+                          {team.credits.contentReviews !== 1 ? "disponíveis" : "disponível"}.
+                        </>
                       )}
                     </span>
                   )}
@@ -498,11 +481,7 @@ export default function QuickContentResult() {
               </div>
 
               <div className="flex gap-3 justify-end">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowReviewDialog(false)}
-                  disabled={isReviewing}
-                >
+                <Button variant="outline" onClick={() => setShowReviewDialog(false)} disabled={isReviewing}>
                   Cancelar
                 </Button>
                 <Button
