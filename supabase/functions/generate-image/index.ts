@@ -59,65 +59,21 @@ function buildDetailedPrompt(formData: any): string {
   const promptParts: string[] = [];
 
   // === COMPLIANCE COM REGULAMENTAÇÃO PUBLICITÁRIA BRASILEIRA (CONAR/CDC) ===
-  // Estas diretrizes são OBRIGATÓRIAS e NÃO-NEGOCIÁVEIS para todas as imagens geradas
-  promptParts.push(
-    `DIRETRIZES ÉTICAS E LEGAIS OBRIGATÓRIAS (Código CONAR e CDC - Brasil): ` +
-    
-    `1. HONESTIDADE E VERACIDADE: A imagem NÃO PODE induzir ao erro ou enganar sobre características do produto/serviço. ` +
-    `Evite exageros visuais impossíveis, representações irreais de resultados, ou qualquer elemento que possa criar falsas expectativas. ` +
-    `Se mostrar benefícios, eles devem ser plausíveis e comprováveis visualmente. ` +
-    
-    `2. RESPEITO E DIGNIDADE HUMANA: PROIBIDO qualquer forma de discriminação (racial, étnica, social, gênero, orientação sexual, religiosa, etária, deficiência física). ` +
-    `NÃO retrate estereótipos depreciativos. Respeite símbolos nacionais, religiosos e culturais. ` +
-    `NÃO explore o medo como apelo (exceto campanhas de interesse público). ` +
-    `NÃO sugira ou mostre violência, crueldade ou situações de risco à segurança. ` +
-    `NÃO explore superstições de forma manipuladora. ` +
-    
-    `3. PROTEÇÃO DE PÚBLICOS VULNERÁVEIS (Crianças/Adolescentes): ` +
-    `Se o público-alvo incluir menores, aplique restrições MÁXIMAS. ` +
-    `NÃO faça apelo direto de compra para crianças. ` +
-    `NÃO mostre situações que possam constranger pais a comprar. ` +
-    `NÃO apresente crianças em situações perigosas, inadequadas ou constrangedoras. ` +
-    `NÃO use linguagem imperativa direcionada a crianças. ` +
-    
-    `4. BEBIDAS ALCOÓLICAS (Se aplicável): ` +
-    `NUNCA mostre ou sugira o ato de consumo/ingestão da bebida. ` +
-    `NÃO associe álcool a: sucesso profissional/social/sexual, condução de veículos, práticas esportivas, maturidade ou virilidade. ` +
-    `NÃO sugira que o álcool melhora desempenho ou resolve problemas. ` +
-    `Pessoas mostradas devem aparentar claramente mais de 25 anos. ` +
-    
-    `5. ALIMENTOS E BEBIDAS: ` +
-    `NÃO estimule consumo excessivo ou compulsivo. ` +
-    `Se mostrar alegações nutricionais/funcionais, mantenha proporcionalidade visual realista. ` +
-    `NÃO crie falsas expectativas sobre efeitos de saúde. ` +
-    `Porções devem ser realistas e proporcionais. ` +
-    
-    `6. APOSTAS E JOGOS (Se aplicável): ` +
-    `OBRIGATÓRIO incluir símbolo "18+" de forma visível e legível. ` +
-    `Pessoas representadas devem aparentar MAIS de 21 anos. ` +
-    `NÃO apresente apostas como solução para problemas financeiros. ` +
-    `NÃO mostre enriquecimento fácil ou garantido. ` +
-    `NÃO associe apostas a sucesso social ou sexual. ` +
-    
-    `7. APELOS DE SUSTENTABILIDADE: ` +
-    `Se houver elementos "eco" ou "sustentáveis", eles devem ser REALISTAS e COMPROVÁVEIS. ` +
-    `NÃO faça greenwashing (falsas alegações ambientais). ` +
-    `Benefícios ambientais devem ser específicos, não genéricos ou vagos. ` +
-    `NÃO exagere impactos positivos ao meio ambiente. ` +
-    
-    `8. COMPARAÇÃO COM CONCORRENTES: ` +
-    `Se comparar produtos/marcas, seja OBJETIVO e baseado em fatos visuais. ` +
-    `NÃO ridicularize, deprecie ou denigra concorrentes. ` +
-    `Mantenha lealdade concorrencial e respeito. ` +
-    
-    `9. DECÊNCIA E PADRÕES SOCIAIS: ` +
-    `Respeite padrões contemporâneos de decência da sociedade brasileira. ` +
-    `NÃO use nudez excessiva ou erotização desnecessária. ` +
-    `Linguagem visual deve ser apropriada para o público-alvo. ` +
-    
-    `ESTAS DIRETRIZES SÃO INVIOLÁVEIS E DEVEM SER APLICADAS EM TODA E QUALQUER IMAGEM GERADA, INDEPENDENTEMENTE DO CONTEXTO. ` +
-    `EM CASO DE DÚVIDA SOBRE CONFORMIDADE, OPTE PELA INTERPRETAÇÃO MAIS CONSERVADORA E ÉTICA.`
-  );
+  const complianceGuidelines = [
+    "DIRETRIZES ÉTICAS E LEGAIS OBRIGATÓRIAS (Código CONAR e CDC - Brasil):",
+    "1. HONESTIDADE E VERACIDADE: A imagem NÃO PODE induzir ao erro ou enganar sobre características do produto/serviço. Evite exageros visuais impossíveis, representações irreais de resultados, ou qualquer elemento que possa criar falsas expectativas. Se mostrar benefícios, eles devem ser plausíveis e comprováveis visualmente.",
+    "2. RESPEITO E DIGNIDADE HUMANA: PROIBIDO qualquer forma de discriminação (racial, étnica, social, gênero, orientação sexual, religiosa, etária, deficiência física). NÃO retrate estereótipos depreciativos. Respeite símbolos nacionais, religiosos e culturais. NÃO explore o medo como apelo (exceto campanhas de interesse público). NÃO sugira ou mostre violência, crueldade ou situações de risco à segurança. NÃO explore superstições de forma manipuladora.",
+    "3. PROTEÇÃO DE PÚBLICOS VULNERÁVEIS (Crianças/Adolescentes): Se o público-alvo incluir menores, aplique restrições MÁXIMAS. NÃO faça apelo direto de compra para crianças. NÃO mostre situações que possam constranger pais a comprar. NÃO apresente crianças em situações perigosas, inadequadas ou constrangedoras. NÃO use linguagem imperativa direcionada a crianças.",
+    "4. BEBIDAS ALCOÓLICAS (Se aplicável): NUNCA mostre ou sugira o ato de consumo/ingestão da bebida. NÃO associe álcool a: sucesso profissional/social/sexual, condução de veículos, práticas esportivas, maturidade ou virilidade. NÃO sugira que o álcool melhora desempenho ou resolve problemas. Pessoas mostradas devem aparentar claramente mais de 25 anos.",
+    "5. ALIMENTOS E BEBIDAS: NÃO estimule consumo excessivo ou compulsivo. Se mostrar alegações nutricionais/funcionais, mantenha proporcionalidade visual realista. NÃO crie falsas expectativas sobre efeitos de saúde. Porções devem ser realistas e proporcionais.",
+    "6. APOSTAS E JOGOS (Se aplicável): OBRIGATÓRIO incluir símbolo 18+ de forma visível e legível. Pessoas representadas devem aparentar MAIS de 21 anos. NÃO apresente apostas como solução para problemas financeiros. NÃO mostre enriquecimento fácil ou garantido. NÃO associe apostas a sucesso social ou sexual.",
+    "7. APELOS DE SUSTENTABILIDADE: Se houver elementos eco ou sustentáveis, eles devem ser REALISTAS e COMPROVÁVEIS. NÃO faça greenwashing (falsas alegações ambientais). Benefícios ambientais devem ser específicos, não genéricos ou vagos. NÃO exagere impactos positivos ao meio ambiente.",
+    "8. COMPARAÇÃO COM CONCORRENTES: Se comparar produtos/marcas, seja OBJETIVO e baseado em fatos visuais. NÃO ridicularize, deprecie ou denigra concorrentes. Mantenha lealdade concorrencial e respeito.",
+    "9. DECÊNCIA E PADRÕES SOCIAIS: Respeite padrões contemporâneos de decência da sociedade brasileira. NÃO use nudez excessiva ou erotização desnecessária. Linguagem visual deve ser apropriada para o público-alvo.",
+    "ESTAS DIRETRIZES SÃO INVIOLÁVEIS E DEVEM SER APLICADAS EM TODA E QUALQUER IMAGEM GERADA, INDEPENDENTEMENTE DO CONTEXTO. EM CASO DE DÚVIDA SOBRE CONFORMIDADE, OPTE PELA INTERPRETAÇÃO MAIS CONSERVADORA E ÉTICA."
+  ];
+  
+  promptParts.push(complianceGuidelines.join(" "));
 
   // Instrução de uso de imagens de referência - mais clara e contextualizada
   if (hasReferenceImages) {
