@@ -436,22 +436,34 @@ const ReviewContent = () => {
                   {reviewType === 'caption' && (
                     <>
                       <div className="space-y-3">
-                        <Label htmlFor="captionText" className="text-sm font-semibold text-foreground">Sua Legenda *</Label>
+                        <Label htmlFor="captionText" className="text-sm font-semibold text-foreground">
+                          Sua Legenda * 
+                          <span className="text-xs font-normal text-muted-foreground ml-2">
+                            ({captionText.length}/8000)
+                          </span>
+                        </Label>
                         <Textarea 
                           id="captionText" 
                           placeholder="Cole aqui a legenda que você quer melhorar..." 
                           value={captionText} 
                           onChange={(e) => setCaptionText(e.target.value)} 
+                          maxLength={8000}
                           className="h-64 rounded-xl border-2 border-border/50 bg-background/50 resize-none" 
                         />
                       </div>
                       <div className="space-y-3">
-                        <Label htmlFor="adjustmentsPrompt" className="text-sm font-semibold text-foreground">O que você quer melhorar? *</Label>
+                        <Label htmlFor="adjustmentsPrompt" className="text-sm font-semibold text-foreground">
+                          O que você quer melhorar? *
+                          <span className="text-xs font-normal text-muted-foreground ml-2">
+                            ({adjustmentsPrompt.length}/5000)
+                          </span>
+                        </Label>
                         <Textarea 
                           id="adjustmentsPrompt" 
                           placeholder="Descreva como quer melhorar a legenda. Ex: 'Tornar mais engajadora e adicionar call-to-action'" 
                           value={adjustmentsPrompt} 
                           onChange={(e) => setAdjustmentsPrompt(e.target.value)} 
+                          maxLength={5000}
                           className="h-64 rounded-xl border-2 border-border/50 bg-background/50 resize-none" 
                         />
                       </div>
@@ -461,22 +473,34 @@ const ReviewContent = () => {
                   {reviewType === 'text-for-image' && (
                     <>
                       <div className="space-y-3">
-                        <Label htmlFor="textForImage" className="text-sm font-semibold text-foreground">Texto que Irá na Imagem *</Label>
+                        <Label htmlFor="textForImage" className="text-sm font-semibold text-foreground">
+                          Texto que Irá na Imagem *
+                          <span className="text-xs font-normal text-muted-foreground ml-2">
+                            ({textForImage.length}/8000)
+                          </span>
+                        </Label>
                         <Textarea 
                           id="textForImage" 
                           placeholder="Cole aqui o texto que será inserido na imagem do post (frase, citação, mensagem principal, etc.)..." 
                           value={textForImage} 
                           onChange={(e) => setTextForImage(e.target.value)} 
+                          maxLength={8000}
                           className="h-64 rounded-xl border-2 border-border/50 bg-background/50 resize-none" 
                         />
                       </div>
                       <div className="space-y-3">
-                        <Label htmlFor="adjustmentsPrompt" className="text-sm font-semibold text-foreground">Ajustes e Contexto da Imagem *</Label>
+                        <Label htmlFor="adjustmentsPrompt" className="text-sm font-semibold text-foreground">
+                          Ajustes e Contexto da Imagem *
+                          <span className="text-xs font-normal text-muted-foreground ml-2">
+                            ({adjustmentsPrompt.length}/5000)
+                          </span>
+                        </Label>
                         <Textarea 
                           id="adjustmentsPrompt" 
                           placeholder="Descreva como quer melhorar o texto e o contexto da imagem onde ele será usado. Ex: 'Tornar o texto mais curto e impactante para Instagram, será usado em post motivacional com fundo azul'" 
                           value={adjustmentsPrompt} 
                           onChange={(e) => setAdjustmentsPrompt(e.target.value)} 
+                          maxLength={5000}
                           className="h-64 rounded-xl border-2 border-border/50 bg-background/50 resize-none" 
                         />
                       </div>

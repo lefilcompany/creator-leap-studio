@@ -58,14 +58,14 @@ serve(async (req) => {
     const { text, prompt, brandId, brandName, themeName } = await req.json();
 
     // Input validation
-    if (!text || typeof text !== 'string' || text.length > 5000) {
+    if (!text || typeof text !== 'string' || text.length > 8000) {
       return new Response(
         JSON.stringify({ error: 'Invalid text' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    if (!prompt || typeof prompt !== 'string' || prompt.length > 2000) {
+    if (!prompt || typeof prompt !== 'string' || prompt.length > 5000) {
       return new Response(
         JSON.stringify({ error: 'Invalid prompt' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
