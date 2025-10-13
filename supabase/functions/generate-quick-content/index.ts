@@ -87,17 +87,24 @@ serve(async (req) => {
       quality = 'standard'
     } = body;
 
-    // Validate and normalize aspect ratio
+    // Map aspect ratios from platformSpecs to AI model supported ratios
     const validAspectRatios = ['1:1', '4:5', '9:16', '16:9', '3:4'];
     let normalizedAspectRatio = aspectRatio;
     
-    // Handle Facebook's 1.91:1 as 16:9 (closest match)
-    if (aspectRatio === '1.91:1') {
-      normalizedAspectRatio = '16:9';
+    // Map common platform aspect ratios to supported ones
+    const aspectRatioMap: Record<string, string> = {
+      '1.91:1': '16:9', // Facebook/LinkedIn landscape
+      '3:4': '4:5',     // Map 3:4 to 4:5 (closest portrait format)
+    };
+    
+    // Apply mapping if exists
+    if (aspectRatioMap[aspectRatio]) {
+      normalizedAspectRatio = aspectRatioMap[aspectRatio];
     }
     
-    // If aspect ratio is not valid, default to 1:1
+    // If aspect ratio is still not valid, default to 1:1
     if (!validAspectRatios.includes(normalizedAspectRatio)) {
+      console.log(`Invalid aspect ratio ${aspectRatio}, defaulting to 1:1`);
       normalizedAspectRatio = '1:1';
     }
 
@@ -248,15 +255,22 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
       }
     }
 
-    // Add aspect ratio information if no platform specified
-    if (!platform) {
-      const aspectRatioDescriptions: Record<string, string> = {
-        '1:1': 'formato quadrado (1:1) ideal para posts do Instagram',
-        '4:5': 'formato retrato (4:5) ideal para feed do Instagram',
-        '9:16': 'formato vertical (9:16) ideal para Stories e Reels',
-        '16:9': 'formato horizontal (16:9) ideal para YouTube e desktop'
-      };
-      enhancedPrompt += `\n\nProporção da Imagem: ${aspectRatioDescriptions[normalizedAspectRatio] || 'formato quadrado (1:1)'}.`;
+    // Add aspect ratio information - always specify even with platform
+    const aspectRatioDescriptions: Record<string, string> = {
+      '1:1': 'formato quadrado (1:1)',
+      '4:5': 'formato retrato (4:5)',
+      '9:16': 'formato vertical (9:16)',
+      '16:9': 'formato horizontal (16:9)',
+      '3:4': 'formato retrato (3:4)'
+    };
+    
+    enhancedPrompt += `\n\n=== FORMATO DA IMAGEM ===`;
+    enhancedPrompt += `\nProporção OBRIGATÓRIA: ${normalizedAspectRatio} - ${aspectRatioDescriptions[normalizedAspectRatio] || normalizedAspectRatio}`;
+    enhancedPrompt += `\n\n🔴 CRÍTICO: A imagem DEVE ser gerada exatamente na proporção ${normalizedAspectRatio}.`;
+    enhancedPrompt += `\nNÃO use a proporção das imagens de referência. Use APENAS a proporção especificada: ${normalizedAspectRatio}.`;
+    
+    if (referenceImages && referenceImages.length > 0) {
+      enhancedPrompt += `\n\n⚠️ IMPORTANTE: As imagens de referência fornecidas podem ter proporções diferentes. Você DEVE ignorar as proporções das referências e gerar a imagem na proporção ${normalizedAspectRatio}.`;
     }
 
     // Add quality information
@@ -325,61 +339,108 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
       });
     }
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${lovableApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-image-preview',
-        messages: [
-          {
-            role: 'user',
-            content: messageContent
-          }
-        ],
-        modalities: ['image', 'text']
-      }),
-    });
+    // Retry logic for image generation
+    const MAX_RETRIES = 3;
+    let lastError: any = null;
+    let imageUrl: string | null = null;
+    let description = 'Imagem gerada com sucesso';
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Lovable AI error:', response.status, errorText);
-      
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: 'Limite de requisições excedido. Tente novamente mais tarde.' }),
-          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        console.log(`Image generation attempt ${attempt}/${MAX_RETRIES}...`);
+
+        const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${lovableApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'google/gemini-2.5-flash-image-preview',
+            messages: [
+              {
+                role: 'user',
+                content: messageContent
+              }
+            ],
+            modalities: ['image', 'text']
+          }),
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error(`Lovable AI error (attempt ${attempt}):`, response.status, errorText);
+          
+          // Don't retry on rate limit or payment errors
+          if (response.status === 429) {
+            return new Response(
+              JSON.stringify({ error: 'Limite de requisições excedido. Tente novamente mais tarde.' }),
+              { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+          
+          if (response.status === 402) {
+            return new Response(
+              JSON.stringify({ error: 'Pagamento necessário. Adicione créditos ao seu workspace Lovable AI.' }),
+              { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+          
+          lastError = new Error(`Lovable AI error: ${response.status}`);
+          
+          if (attempt < MAX_RETRIES) {
+            console.log(`Retrying in 2 seconds... (attempt ${attempt + 1}/${MAX_RETRIES})`);
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            continue;
+          }
+          
+          throw lastError;
+        }
+
+        const data = await response.json();
+        console.log('Image generation response received');
+
+        // Extract the generated image
+        imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+        description = data.choices?.[0]?.message?.content || 'Imagem gerada com sucesso';
+
+        if (!imageUrl) {
+          console.error('No image URL in response. Full response:', JSON.stringify(data, null, 2));
+          lastError = new Error('A API não retornou uma imagem válida');
+          
+          if (attempt < MAX_RETRIES) {
+            console.log(`No image URL returned, retrying in 2 seconds... (attempt ${attempt + 1}/${MAX_RETRIES})`);
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            continue;
+          }
+          
+          return new Response(
+            JSON.stringify({ 
+              error: 'Falha ao gerar imagem. Por favor, tente novamente com um prompt mais específico ou sem imagens de referência.',
+              details: 'A API não retornou uma imagem válida'
+            }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        // Success! Break out of retry loop
+        break;
+
+      } catch (error) {
+        lastError = error;
+        console.error(`Error on attempt ${attempt}:`, error);
+        
+        if (attempt < MAX_RETRIES) {
+          console.log(`Retrying in 2 seconds... (attempt ${attempt + 1}/${MAX_RETRIES})`);
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        } else {
+          throw error;
+        }
       }
-      
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: 'Pagamento necessário. Adicione créditos ao seu workspace Lovable AI.' }),
-          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      
-      throw new Error(`Lovable AI error: ${response.status}`);
     }
 
-    const data = await response.json();
-    console.log('Image generation response received');
-
-    // Extract the generated image
-    const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-    const description = data.choices?.[0]?.message?.content || 'Imagem gerada com sucesso';
-
     if (!imageUrl) {
-      console.error('No image URL in response. Full response:', JSON.stringify(data, null, 2));
-      return new Response(
-        JSON.stringify({ 
-          error: 'Falha ao gerar imagem. Por favor, tente novamente com um prompt mais específico ou sem imagens de referência.',
-          details: 'A API não retornou uma imagem válida'
-        }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      throw lastError || new Error('Failed to generate image after retries');
     }
 
     // Decrement team credits

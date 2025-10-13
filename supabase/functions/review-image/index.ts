@@ -204,42 +204,90 @@ Analise a imagem e retorne uma revisão completa em markdown seguindo EXATAMENTE
 ### 🎯 Recomendações Finais
 [Resumo das principais melhorias prioritárias e dicas práticas de implementação]`;
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { 
-            role: 'user', 
-            content: [
-              { type: 'text', text: contextPrompt },
-              { type: 'image_url', image_url: { url: image } }
-            ]
+    // Retry logic for image review
+    const MAX_RETRIES = 3;
+    let lastError: any = null;
+    let review = 'Unable to generate review';
+
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        console.log(`Review attempt ${attempt}/${MAX_RETRIES}...`);
+
+        const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'google/gemini-2.5-flash',
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { 
+                role: 'user', 
+                content: [
+                  { type: 'text', text: contextPrompt },
+                  { type: 'image_url', image_url: { url: image } }
+                ]
+              }
+            ],
+          }),
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error(`AI error (attempt ${attempt}):`, response.status, errorText);
+          
+          // Don't retry on rate limit or payment errors
+          if (response.status === 429 || response.status === 402) {
+            return new Response(
+              JSON.stringify({ error: 'AI service temporarily unavailable' }),
+              { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
           }
-        ],
-      }),
-    });
+          
+          lastError = new Error('AI processing failed');
+          
+          if (attempt < MAX_RETRIES) {
+            console.log(`Retrying in 2 seconds... (attempt ${attempt + 1}/${MAX_RETRIES})`);
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            continue;
+          }
+          
+          return new Response(
+            JSON.stringify({ error: 'AI processing failed' }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
 
-    if (!response.ok) {
-      if (response.status === 429 || response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: 'AI service temporarily unavailable' }),
-          { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+        const data = await response.json();
+        review = data.choices?.[0]?.message?.content || 'Unable to generate review';
+
+        if (review === 'Unable to generate review') {
+          lastError = new Error('No review content returned');
+          
+          if (attempt < MAX_RETRIES) {
+            console.log(`No review content, retrying in 2 seconds... (attempt ${attempt + 1}/${MAX_RETRIES})`);
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            continue;
+          }
+        }
+
+        // Success! Break out of retry loop
+        break;
+
+      } catch (error) {
+        lastError = error;
+        console.error(`Error on attempt ${attempt}:`, error);
+        
+        if (attempt < MAX_RETRIES) {
+          console.log(`Retrying in 2 seconds... (attempt ${attempt + 1}/${MAX_RETRIES})`);
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        } else {
+          throw error;
+        }
       }
-      return new Response(
-        JSON.stringify({ error: 'AI processing failed' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
     }
-
-    const data = await response.json();
-    const review = data.choices?.[0]?.message?.content || 'Unable to generate review';
 
     // Save to actions table
     const { data: actionData, error: actionError } = await supabase
