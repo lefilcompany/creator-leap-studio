@@ -579,7 +579,7 @@ const Register = () => {
                 
                 <div className="space-y-4">
                   <h1 className="text-4xl font-bold text-foreground">
-                    Transforme Ideias<br />em Conteúdo
+                    Transforme ideias em impacto.
                   </h1>
                   <p className="text-base text-muted-foreground max-w-md mx-auto leading-relaxed">
                     Junte-se à nossa comunidade e comece a criar posts incríveis com o poder da inteligência artificial
