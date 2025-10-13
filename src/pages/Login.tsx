@@ -270,10 +270,10 @@ const Login = () => {
 
           <div className="mb-8">
             <h1 className="text-3xl lg:text-4xl font-bold text-foreground mb-4 leading-tight">
-              IA para planejar e criar conteúdo estratégico
+              Conteúdo estratégico na velocidade das suas ideias
             </h1>
             <p className="text-lg text-muted-foreground leading-relaxed">
-              Organize sua comunicação em torno de Equipes, Marcas, Temas e Personas
+              Planeje, crie e revise com inteligência artificial — simples, rápido e sem prompts
             </p>
           </div>
 
