@@ -164,6 +164,18 @@ export default function QuickContentResult() {
 
       if (error) {
         console.error("Erro ao editar imagem:", error);
+        
+        // Tratar erro de violação de compliance
+        if (error.message?.includes('compliance_violation')) {
+          const errorData = typeof error === 'object' && 'context' in error ? (error as any).context : null;
+          toast.error("Solicitação não permitida", {
+            description: errorData?.message || "A solicitação viola regulamentações publicitárias brasileiras",
+          });
+          setShowReviewDialog(false);
+          setIsReviewing(false);
+          return;
+        }
+        
         throw new Error(error.message || "Falha ao editar imagem");
       }
 

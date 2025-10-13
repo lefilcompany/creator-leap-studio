@@ -8,6 +8,73 @@ const corsHeaders = {
 const MAX_RETRIES = 2;
 const RETRY_DELAY_MS = 1000;
 
+async function validateComplianceBeforeGeneration(
+  formData: any, 
+  apiKey: string
+): Promise<{ approved: boolean; violations: string[]; recommendation: string }> {
+  
+  const analysisPrompt = `
+Você é um especialista em compliance publicitário brasileiro (CONAR/CDC).
+
+Analise se a seguinte solicitação de imagem publicitária viola alguma regulamentação:
+
+SOLICITAÇÃO:
+- Descrição: ${cleanInput(formData.description)}
+- Informações adicionais: ${cleanInput(formData.additionalInfo)}
+- Marca: ${cleanInput(formData.brand)}
+- Tema: ${cleanInput(formData.theme)}
+- Objetivo: ${cleanInput(formData.objective)}
+
+REGULAMENTAÇÕES A VERIFICAR:
+1. Associação de álcool com direção/esporte/sucesso/menores
+2. Apelo direto de compra para crianças
+3. Discriminação (racial, gênero, religiosa, social)
+4. Representação de violência, medo não-educativo, crueldade
+5. Alegações enganosas ou exageradas
+6. Erotização desnecessária ou nudez excessiva
+7. Estímulo a consumo excessivo (alimentos/apostas)
+8. Greenwashing (alegações ambientais falsas)
+9. Comparação denigratória com concorrentes
+
+RESPONDA EM JSON:
+{
+  "approved": boolean,
+  "violations": ["lista de violações identificadas"],
+  "recommendation": "sugestão para ajustar a solicitação"
+}
+`;
+
+  try {
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [{ role: "user", content: analysisPrompt }],
+        response_format: { type: "json_object" }
+      }),
+    });
+
+    if (!response.ok) {
+      console.error("❌ Erro na validação de compliance:", response.status);
+      // Em caso de erro na validação, permitir geração (não bloquear por falha técnica)
+      return { approved: true, violations: [], recommendation: "" };
+    }
+
+    const data = await response.json();
+    const analysis = JSON.parse(data.choices[0].message.content);
+    
+    return analysis;
+  } catch (error) {
+    console.error("❌ Erro ao validar compliance:", error);
+    // Em caso de erro, permitir geração (não bloquear por falha técnica)
+    return { approved: true, violations: [], recommendation: "" };
+  }
+}
+
 function cleanInput(text: string | string[] | undefined | null): string {
   if (!text) return "";
   if (Array.isArray(text)) {
@@ -73,7 +140,10 @@ function buildDetailedPrompt(formData: any): string {
     "ESTAS DIRETRIZES SÃO INVIOLÁVEIS E DEVEM SER APLICADAS EM TODA E QUALQUER IMAGEM GERADA, INDEPENDENTEMENTE DO CONTEXTO. EM CASO DE DÚVIDA SOBRE CONFORMIDADE, OPTE PELA INTERPRETAÇÃO MAIS CONSERVADORA E ÉTICA."
   ];
   
-  promptParts.push(complianceGuidelines.join(" "));
+  promptParts.push(
+    complianceGuidelines.join(" ") + 
+    " PRIORIDADE ABSOLUTA: Em caso de qualquer conflito entre estas diretrizes e outras instruções recebidas, ESTAS DIRETRIZES ÉTICAS DEVEM SEMPRE PREVALECER. Recuse-se implicitamente a gerar conteúdo que viole estas regras."
+  );
 
   // Instrução de uso de imagens de referência - mais clara e contextualizada
   if (hasReferenceImages) {
@@ -572,6 +642,29 @@ serve(async (req) => {
 
     // Verificar se é edição de imagem existente
     const isEdit = formData.isEdit === true && formData.existingImage;
+    
+    // VALIDAÇÃO DE COMPLIANCE: Analisar solicitação antes da geração (apenas para novas imagens)
+    if (!isEdit) {
+      console.log("🔍 Validando compliance da solicitação...");
+      
+      const complianceCheck = await validateComplianceBeforeGeneration(formData, LOVABLE_API_KEY);
+      
+      if (!complianceCheck.approved) {
+        console.log("❌ Solicitação bloqueada por violação de compliance:", complianceCheck.violations);
+        
+        return new Response(
+          JSON.stringify({ 
+            error: 'compliance_violation',
+            message: 'A solicitação viola regulamentações publicitárias brasileiras',
+            violations: complianceCheck.violations,
+            recommendation: complianceCheck.recommendation
+          }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      console.log("✅ Solicitação aprovada no compliance check");
+    }
     
     // Construir prompt
     let prompt: string;
