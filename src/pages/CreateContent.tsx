@@ -799,6 +799,34 @@ ${formData.description}
     } catch (err: any) {
       console.error("Erro ao gerar conteúdo:", err);
       
+      // Tratar erro de violação de compliance de forma amigável
+      if (err.message?.includes('compliance_violation')) {
+        try {
+          const errorMatch = err.message.match(/\{.*\}/);
+          if (errorMatch) {
+            const errorData = JSON.parse(errorMatch[0]);
+            toast.error("Solicitação não permitida", {
+              id: toastId,
+              description: errorData.message || "A solicitação viola regulamentações publicitárias brasileiras",
+              duration: 8000,
+            });
+            
+            // Mostrar recomendação separadamente se houver
+            if (errorData.recommendation) {
+              setTimeout(() => {
+                toast.info("Sugestão", {
+                  description: errorData.recommendation,
+                  duration: 10000,
+                });
+              }, 500);
+            }
+            return;
+          }
+        } catch (parseError) {
+          console.error("Erro ao parsear erro de compliance:", parseError);
+        }
+      }
+      
       // Mensagens de erro mais específicas
       let errorMessage = "Erro ao gerar o conteúdo.";
       let errorDescription = "Por favor, tente novamente.";

@@ -356,11 +356,37 @@ export default function ContentResult() {
           if (error) {
             console.error("❌ Erro ao editar imagem:", error);
             
-            // Tratar erro de violação de compliance
+            // Tratar erro de violação de compliance de forma amigável
             if (error.message?.includes('compliance_violation')) {
-              const errorData = typeof error === 'object' && 'context' in error ? (error as any).context : null;
+              try {
+                const errorMatch = error.message.match(/\{.*\}/);
+                if (errorMatch) {
+                  const errorData = JSON.parse(errorMatch[0]);
+                  toast.error("Solicitação não permitida", {
+                    description: errorData.message || "A solicitação viola regulamentações publicitárias brasileiras",
+                    duration: 8000,
+                  });
+                  
+                  // Mostrar recomendação separadamente se houver
+                  if (errorData.recommendation) {
+                    setTimeout(() => {
+                      toast.info("Sugestão", {
+                        description: errorData.recommendation,
+                        duration: 10000,
+                      });
+                    }, 500);
+                  }
+                  
+                  setShowReviewDialog(false);
+                  setIsReviewing(false);
+                  return;
+                }
+              } catch (parseError) {
+                console.error("Erro ao parsear erro de compliance:", parseError);
+              }
+              
               toast.error("Solicitação não permitida", {
-                description: errorData?.message || "A solicitação viola regulamentações publicitárias brasileiras",
+                description: "A solicitação viola regulamentações publicitárias brasileiras",
               });
               setShowReviewDialog(false);
               setIsReviewing(false);
