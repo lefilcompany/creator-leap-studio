@@ -454,12 +454,8 @@ const Register = () => {
                   <CreatorLogo className="flex-shrink-0" />
                   
                   <div className="text-left space-y-4">
-                    <h1 className="text-2xl font-bold text-foreground leading-tight text-left md:text-4xl">
-                      Conteúdo estratégico na velocidade das suas ideias
-                    </h1>
-                    <p className="text-base text-muted-foreground leading-relaxed text-left md:text-lg">
-                      Planeje, crie e revise com inteligência artificial — simples, rápido e sem prompts
-                    </p>
+                    <h1 className="text-2xl font-bold text-foreground leading-tight text-left md:text-4xl">Transforme ideias em impacto</h1>
+                    <p className="text-base text-muted-foreground leading-relaxed text-left md:text-lg">Junte-se à comunidade que está redefinindo a criação de conteúdo com inteligência artificial</p>
                   </div>
                 </div>
               </div>
