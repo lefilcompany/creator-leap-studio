@@ -453,10 +453,10 @@ const Register = () => {
                 <CreatorLogo className="mb-8" />
                 
                 <div className="space-y-4">
-                  <h1 className="text-4xl font-bold text-foreground">
+                  <h1 className="font-bold text-foreground text-3xl">
                     Transforme ideias em impacto.
                   </h1>
-                  <p className="text-base text-muted-foreground max-w-md mx-auto leading-relaxed">Junte-se à comunidade que está redefinindo a criação de conteúdo com inteligência artificial.</p>
+                  <p className="text-muted-foreground max-w-md mx-auto leading-relaxed text-lg">Junte-se à comunidade que está redefinindo a criação de conteúdo com inteligência artificial.</p>
                 </div>
               </div>
 
