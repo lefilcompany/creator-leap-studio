@@ -316,10 +316,8 @@ const Login = () => {
                 <CreatorLogo className="flex-shrink-0" />
 
                 <div className="text-left space-y-4">
-                  <h1 className="text-2xl md:text-3xl font-bold text-foreground leading-tight">
-                    Transforme suas ideias em conteúdo estratégico
-                  </h1>
-                  <p className="text-base text-muted-foreground leading-relaxed md:text-lg">Planeje, crie e revise com inteligência artificial — simples, rápido e sem prompts</p>
+                  <h1 className="text-2xl md:text-3xl font-bold text-foreground leading-tight text-center">Conteúdo estratégico na velocidade das suas ideias</h1>
+                  <p className="text-base text-muted-foreground leading-relaxed md:text-lg text-center">Planeje, crie e revise com inteligência artificial — simples, rápido e sem prompts</p>
                 </div>
               </div>
             </div>
