@@ -344,7 +344,7 @@ const Login = () => {
                 </SheetContent>
               </Sheet>
 
-              <Button variant="outline" onClick={() => navigate("/register")} className="w-full h-14 bg-transparent backdrop-blur-xl border-primary border-2 font-semibold rounded-2xl text-lg hover:text-primary hover:bg-primary/20">
+              <Button variant="outline" onClick={() => navigate("/register")} className="w-full h-14 bg-card/90 backdrop-blur-xl  font-semibold rounded-2xl text-lg hover:text-primary ">
                 Criar conta
               </Button>
             </div>
