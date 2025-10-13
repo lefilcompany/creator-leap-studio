@@ -13,7 +13,6 @@ import { toast } from "sonner";
 import { TeamSelectionDialog } from "@/components/auth/TeamSelectionDialog";
 import { useOAuthCallback } from "@/hooks/useOAuthCallback";
 import { useIsMobile } from "@/hooks/use-mobile";
-
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
@@ -27,32 +26,36 @@ const Login = () => {
   const [showPasswordResetSuggestion, setShowPasswordResetSuggestion] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { theme, setTheme } = useTheme();
-
-  const { showTeamDialog: oauthTeamDialog, handleTeamDialogClose: handleOAuthTeamDialogClose } = useOAuthCallback();
-
+  const {
+    theme,
+    setTheme
+  } = useTheme();
+  const {
+    showTeamDialog: oauthTeamDialog,
+    handleTeamDialogClose: handleOAuthTeamDialogClose
+  } = useOAuthCallback();
   useEffect(() => {
     const isNewUser = searchParams.get("newUser") === "true";
     if (isNewUser) {
       toast.info("Complete seu cadastro configurando sua equipe após fazer login.");
     }
   }, [searchParams]);
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const {
+        data,
+        error
+      } = await supabase.auth.signInWithPassword({
         email,
-        password,
+        password
       });
-
       if (error) {
         setFailedAttempts(failedAttempts + 1);
         setShowPasswordResetSuggestion(true);
         toast.error('Credenciais de login inválidas. Considere redefinir sua senha usando "Esqueci a senha".', {
-          duration: 6000,
+          duration: 6000
         });
         return;
       }
@@ -60,15 +63,12 @@ const Login = () => {
       // Login bem-sucedido, resetar contador
       setFailedAttempts(0);
       setShowPasswordResetSuggestion(false);
-
       if (data.user) {
         // Verificar se o usuário tem equipe
-        const { data: profileData, error: profileError } = await supabase
-          .from("profiles")
-          .select("team_id")
-          .eq("id", data.user.id)
-          .single();
-
+        const {
+          data: profileData,
+          error: profileError
+        } = await supabase.from("profiles").select("team_id").eq("id", data.user.id).single();
         if (profileError) {
           console.error("Erro ao carregar perfil:", profileError);
           toast.error("Erro ao verificar dados do usuário");
@@ -77,19 +77,14 @@ const Login = () => {
 
         // Se não tem equipe, verificar se há solicitação pendente
         if (!profileData.team_id) {
-          const { data: pendingRequest } = await supabase
-            .from("team_join_requests")
-            .select("id, status")
-            .eq("user_id", data.user.id)
-            .eq("status", "pending")
-            .maybeSingle();
-
+          const {
+            data: pendingRequest
+          } = await supabase.from("team_join_requests").select("id, status").eq("user_id", data.user.id).eq("status", "pending").maybeSingle();
           if (pendingRequest) {
             toast.info("Sua solicitação está pendente. Aguarde a aprovação do administrador da equipe.");
             await supabase.auth.signOut();
             return;
           }
-
           toast.success("Login realizado com sucesso!");
           setShowTeamSelection(true);
         } else {
@@ -103,27 +98,26 @@ const Login = () => {
       setLoading(false);
     }
   };
-
   const handleGoogleLogin = async () => {
     setGoogleLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      const {
+        error
+      } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo: `${window.location.origin}/login`,
           queryParams: {
             access_type: "offline",
-            prompt: "consent",
-          },
-        },
+            prompt: "consent"
+          }
+        }
       });
-
       if (error) {
         console.error("Google OAuth error:", error);
-
         if (error.message.includes("provider is not enabled") || error.message.includes("Unsupported provider")) {
           toast.error("Login com Google não está configurado. Entre em contato com o administrador.", {
-            duration: 5000,
+            duration: 5000
           });
         } else {
           toast.error(error.message);
@@ -136,24 +130,23 @@ const Login = () => {
       setGoogleLoading(false);
     }
   };
-
   const handleFacebookLogin = async () => {
     setFacebookLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      const {
+        error
+      } = await supabase.auth.signInWithOAuth({
         provider: "facebook",
         options: {
           redirectTo: `${window.location.origin}/login`,
-          scopes: "email,public_profile",
-        },
+          scopes: "email,public_profile"
+        }
       });
-
       if (error) {
         console.error("Facebook OAuth error:", error);
-
         if (error.message.includes("provider is not enabled") || error.message.includes("Unsupported provider")) {
           toast.error("Login com Facebook não está configurado. Entre em contato com o administrador.", {
-            duration: 5000,
+            duration: 5000
           });
         } else {
           toast.error(error.message);
@@ -166,54 +159,27 @@ const Login = () => {
       setFacebookLoading(false);
     }
   };
-
   const isMobile = useIsMobile();
   const [sheetOpen, setSheetOpen] = useState(false);
-
-  const loginForm = useMemo(
-    () => (
-      <form onSubmit={handleLogin} className="space-y-6">
+  const loginForm = useMemo(() => <form onSubmit={handleLogin} className="space-y-6">
         <div className="space-y-2">
           <div className="relative">
             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-            <Input
-              id="email"
-              type="email"
-              placeholder="E-mail"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="pl-10 h-12"
-            />
+            <Input id="email" type="email" placeholder="E-mail" required value={email} onChange={e => setEmail(e.target.value)} className="pl-10 h-12" />
           </div>
         </div>
 
         <div className="space-y-2">
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-            <Input
-              id="password"
-              type={showPassword ? "text" : "password"}
-              placeholder="Senha"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="pl-10 pr-10 h-12"
-            />
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="absolute top-1/2 -translate-y-1/2 right-1 h-10 w-10 text-muted-foreground hover:bg-accent/60"
-              onClick={() => setShowPassword(!showPassword)}
-            >
+            <Input id="password" type={showPassword ? "text" : "password"} placeholder="Senha" required value={password} onChange={e => setPassword(e.target.value)} className="pl-10 pr-10 h-12" />
+            <Button type="button" variant="ghost" size="icon" className="absolute top-1/2 -translate-y-1/2 right-1 h-10 w-10 text-muted-foreground hover:bg-accent/60" onClick={() => setShowPassword(!showPassword)}>
               {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
             </Button>
           </div>
         </div>
 
-        {showPasswordResetSuggestion && (
-          <div className="mb-4 p-4 bg-destructive/10 border-2 border-destructive/30 rounded-lg animate-fade-in">
+        {showPasswordResetSuggestion && <div className="mb-4 p-4 bg-destructive/10 border-2 border-destructive/30 rounded-lg animate-fade-in">
             <div className="flex items-start gap-3">
               <Mail className="h-5 w-5 text-destructive mt-0.5 flex-shrink-0" />
               <div className="flex-1">
@@ -222,53 +188,30 @@ const Login = () => {
                   Se você esqueceu sua senha ou está com dificuldades para entrar, redefina sua senha usando a opção
                   abaixo.
                 </p>
-                <a
-                  href="/forgot-password"
-                  className="text-sm text-destructive hover:text-destructive/80 font-semibold underline underline-offset-2"
-                >
+                <a href="/forgot-password" className="text-sm text-destructive hover:text-destructive/80 font-semibold underline underline-offset-2">
                   Redefinir minha senha →
                 </a>
               </div>
             </div>
-          </div>
-        )}
+          </div>}
 
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Checkbox
-              id="remember"
-              checked={rememberMe}
-              onCheckedChange={(checked) => setRememberMe(checked as boolean)}
-            />
+            <Checkbox id="remember" checked={rememberMe} onCheckedChange={checked => setRememberMe(checked as boolean)} />
             <Label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer">
               Mantenha-me conectado
             </Label>
           </div>
-          <a
-            href="/forgot-password"
-            className={`text-sm transition-all duration-300 ${
-              showPasswordResetSuggestion
-                ? "text-destructive hover:text-destructive/80 font-semibold animate-pulse"
-                : "text-primary hover:text-primary/80"
-            }`}
-          >
+          <a href="/forgot-password" className={`text-sm transition-all duration-300 ${showPasswordResetSuggestion ? "text-destructive hover:text-destructive/80 font-semibold animate-pulse" : "text-primary hover:text-primary/80"}`}>
             Esqueceu a senha?
           </a>
         </div>
 
-        <Button
-          type="submit"
-          disabled={loading}
-          className="w-full h-12 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-medium rounded-xl transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50"
-        >
-          {loading ? (
-            <div className="flex items-center gap-2">
+        <Button type="submit" disabled={loading} className="w-full h-12 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-medium rounded-xl transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50">
+          {loading ? <div className="flex items-center gap-2">
               <Loader2 className="h-5 w-5 animate-spin" />
               <span>Entrando...</span>
-            </div>
-          ) : (
-            "Entrar"
-          )}
+            </div> : "Entrar"}
         </Button>
 
         <div className="relative my-6">
@@ -281,37 +224,17 @@ const Login = () => {
         </div>
 
         <div className="grid grid-cols-2 gap-3 mb-6">
-          <Button
-            variant="outline"
-            onClick={handleGoogleLogin}
-            type="button"
-            disabled={googleLoading || loading}
-            className="h-12 border-border/50 hover:bg-primary/5 hover:border-primary/30 hover:text-primary transition-all duration-200"
-          >
-            {googleLoading ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : (
-              <>
+          <Button variant="outline" onClick={handleGoogleLogin} type="button" disabled={googleLoading || loading} className="h-12 border-border/50 hover:bg-primary/5 hover:border-primary/30 hover:text-primary transition-all duration-200">
+            {googleLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>
                 <Chrome className="w-5 h-5 mr-2" />
                 Google
-              </>
-            )}
+              </>}
           </Button>
-          <Button
-            variant="outline"
-            type="button"
-            onClick={handleFacebookLogin}
-            disabled={facebookLoading || loading}
-            className="h-12 border-border/50 hover:bg-secondary/5 hover:border-secondary/30 hover:text-secondary transition-all duration-200"
-          >
-            {facebookLoading ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : (
-              <>
+          <Button variant="outline" type="button" onClick={handleFacebookLogin} disabled={facebookLoading || loading} className="h-12 border-border/50 hover:bg-secondary/5 hover:border-secondary/30 hover:text-secondary transition-all duration-200">
+            {facebookLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>
                 <Facebook className="w-5 h-5 mr-2" />
                 Facebook
-              </>
-            )}
+              </>}
           </Button>
         </div>
 
@@ -321,32 +244,10 @@ const Login = () => {
             Criar conta
           </a>
         </div>
-      </form>
-    ),
-    [
-      email,
-      password,
-      showPassword,
-      rememberMe,
-      loading,
-      googleLoading,
-      facebookLoading,
-      showPasswordResetSuggestion,
-      handleLogin,
-      handleGoogleLogin,
-      handleFacebookLogin,
-    ],
-  );
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 flex relative">
+      </form>, [email, password, showPassword, rememberMe, loading, googleLoading, facebookLoading, showPasswordResetSuggestion, handleLogin, handleGoogleLogin, handleFacebookLogin]);
+  return <div className="min-h-screen bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 flex relative">
       {/* Theme toggle button */}
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-        className="absolute top-4 right-4 z-50 h-10 w-10 rounded-full"
-      >
+      <Button variant="ghost" size="icon" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} className="absolute top-4 right-4 z-50 h-10 w-10 rounded-full">
         <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
         <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
         <span className="sr-only">Alternar tema</span>
@@ -405,8 +306,7 @@ const Login = () => {
       </div>
 
       {/* Mobile/Tablet version with Sheet */}
-      {isMobile ? (
-        <div className="w-full flex flex-col relative min-h-screen">
+      {isMobile ? <div className="w-full flex flex-col relative min-h-screen">
           {/* Hero section */}
           <div className="flex-1 flex flex-col items-center justify-center p-8 relative">
             <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-secondary/10 to-accent/20"></div>
@@ -439,7 +339,7 @@ const Login = () => {
                     <div className="w-12 h-1.5 bg-muted-foreground/20 rounded-full mx-auto mb-8"></div>
 
                     <div className="text-center mb-8">
-                      <h2 className="text-2xl font-bold text-foreground mb-2">Bem-vindo de volta! 👋</h2>
+                      <h2 className="text-2xl font-bold text-foreground mb-2">Bem-vindo de volta! </h2>
                       <p className="text-muted-foreground">Acesse sua plataforma de conteúdo estratégico</p>
                     </div>
 
@@ -448,19 +348,13 @@ const Login = () => {
                 </SheetContent>
               </Sheet>
 
-              <Button
-                variant="outline"
-                className="w-full h-14 bg-card/90 backdrop-blur-xl border-2 font-semibold rounded-2xl text-lg hover:text-white"
-                onClick={() => navigate("/register")}
-              >
+              <Button variant="outline" className="w-full h-14 bg-card/90 backdrop-blur-xl border-2 font-semibold rounded-2xl text-lg hover:text-white" onClick={() => navigate("/register")}>
                 Criar conta
               </Button>
             </div>
           </div>
-        </div>
-      ) : (
-        /* Desktop version - Right side - Login form */
-        <div className="w-full lg:w-1/2 flex items-center justify-center p-8 relative">
+        </div> : (/* Desktop version - Right side - Login form */
+    <div className="w-full lg:w-1/2 flex items-center justify-center p-8 relative">
           {/* Login card */}
           <div className="w-full max-w-md">
             <div className="bg-card/90 backdrop-blur-xl border border-border/50 rounded-2xl shadow-2xl p-8">
@@ -472,21 +366,15 @@ const Login = () => {
               {loginForm}
             </div>
           </div>
-        </div>
-      )}
+        </div>)}
 
       {/* Team Selection Dialog */}
-      <TeamSelectionDialog
-        open={showTeamSelection || oauthTeamDialog}
-        onClose={() => {
-          setShowTeamSelection(false);
-          if (oauthTeamDialog) {
-            handleOAuthTeamDialogClose();
-          }
-        }}
-      />
-    </div>
-  );
+      <TeamSelectionDialog open={showTeamSelection || oauthTeamDialog} onClose={() => {
+      setShowTeamSelection(false);
+      if (oauthTeamDialog) {
+        handleOAuthTeamDialogClose();
+      }
+    }} />
+    </div>;
 };
-
 export default Login;
