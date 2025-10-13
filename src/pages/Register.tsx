@@ -408,10 +408,10 @@ const Register = () => {
             
             <div className="mb-8">
               <h1 className="text-3xl lg:text-4xl font-bold text-foreground mb-4 leading-tight">
-                Transforme ideias em impacto.
+                Conteúdo estratégico na velocidade das suas ideias
               </h1>
               <p className="text-lg text-muted-foreground leading-relaxed">
-                Junte-se à nossa comunidade e comece a criar posts incríveis com o poder da inteligência artificial.
+                Planeje, crie e revise com inteligência artificial — simples, rápido e sem prompts
               </p>
             </div>
             
@@ -419,24 +419,24 @@ const Register = () => {
               <div className="flex items-center gap-4 p-4 bg-card/30 backdrop-blur-sm rounded-xl border border-primary/20">
                 <div className="w-3 h-3 bg-primary rounded-full"></div>
                 <div>
-                  <h3 className="font-semibold text-foreground text-base">IA Avançada</h3>
-                  <p className="text-muted-foreground text-sm">Criação de conteúdo inteligente e personalizado</p>
+                  <h3 className="font-semibold text-foreground text-base">Organização Estratégica</h3>
+                  <p className="text-muted-foreground text-sm">Estruture sua comunicação de forma clara e integrada</p>
                 </div>
               </div>
               
               <div className="flex items-center gap-4 p-4 bg-card/30 backdrop-blur-sm rounded-xl border border-secondary/20">
                 <div className="w-3 h-3 bg-secondary rounded-full"></div>
                 <div>
-                  <h3 className="font-semibold text-foreground text-base">Rápido e Eficiente</h3>
-                  <p className="text-muted-foreground text-sm">Acelere sua produção de conteúdo em até 10x</p>
+                  <h3 className="font-semibold text-foreground text-base">Segmentação por Personas</h3>
+                  <p className="text-muted-foreground text-sm">Conteúdos personalizados para diferentes públicos</p>
                 </div>
               </div>
               
               <div className="flex items-center gap-4 p-4 bg-card/30 backdrop-blur-sm rounded-xl border border-accent/20">
                 <div className="w-3 h-3 bg-accent rounded-full"></div>
                 <div>
-                  <h3 className="font-semibold text-foreground text-base">Múltiplas Plataformas</h3>
-                  <p className="text-muted-foreground text-sm">Conteúdo otimizado para todas as redes sociais</p>
+                  <h3 className="font-semibold text-foreground text-base">Campanhas Completas</h3>
+                  <p className="text-muted-foreground text-sm">Calendários completos, não apenas posts isolados</p>
                 </div>
               </div>
             </div>
@@ -449,23 +449,23 @@ const Register = () => {
             <div className="flex-1 flex flex-col items-center justify-center p-8 relative">
               <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-secondary/10 to-accent/20"></div>
               
-              <div className="relative z-10 text-center space-y-8 mb-32">
-                <CreatorLogo className="mb-8" />
-                
-                <div className="space-y-4">
-                  <h1 className="font-bold text-foreground text-3xl">
-                    Transforme ideias em impacto.
-                  </h1>
-                  <p className="text-muted-foreground max-w-md mx-auto leading-relaxed text-lg">Junte-se à comunidade que está redefinindo a criação de conteúdo com inteligência artificial.</p>
+              <div className="relative z-10 mb-32 w-full">
+                <div className="flex flex-col items-start gap-8">
+                  <CreatorLogo className="flex-shrink-0" />
+                  
+                  <div className="text-left space-y-4">
+                    <h1 className="text-2xl font-bold text-foreground leading-tight text-left md:text-4xl">
+                      Conteúdo estratégico na velocidade das suas ideias
+                    </h1>
+                    <p className="text-base text-muted-foreground leading-relaxed text-left md:text-lg">
+                      Planeje, crie e revise com inteligência artificial — simples, rápido e sem prompts
+                    </p>
+                  </div>
                 </div>
               </div>
 
               {/* Fixed buttons at bottom */}
               <div className="absolute bottom-8 left-0 right-0 px-8 space-y-3">
-                <Button variant="outline" className="w-full h-14 bg-card/90 backdrop-blur-xl border-2 font-semibold rounded-2xl text-lg" onClick={() => navigate("/login")}>
-                  Já tenho conta
-                </Button>
-
                 <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
                   <SheetTrigger asChild>
                     <Button className="w-full h-14 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground font-semibold rounded-2xl text-lg shadow-xl">
@@ -474,33 +474,31 @@ const Register = () => {
                   </SheetTrigger>
                   <SheetContent side="bottom" className="h-[90vh] rounded-t-3xl p-0 border-t-2">
                     <div className="h-full overflow-y-auto p-6 pt-8">
-                      <div className="flex items-center justify-between mb-6">
-                        <Button variant="ghost" size="icon" onClick={() => setSheetOpen(false)} className="rounded-full">
-                          <ArrowLeft className="h-5 w-5" />
-                        </Button>
-                        <div className="w-12 h-1.5 bg-muted-foreground/20 rounded-full"></div>
-                        <div className="w-10"></div>
-                      </div>
+                      <div className="w-12 h-1.5 bg-muted-foreground/20 rounded-full mx-auto mb-8"></div>
                       
-                      <div className="text-center mb-6">
-                        <h2 className="text-2xl font-bold text-foreground mb-2">Crie sua Conta</h2>
-                        <p className="text-muted-foreground text-sm">É rápido e fácil. Vamos começar!</p>
+                      <div className="text-center mb-8">
+                        <h2 className="text-2xl font-bold text-foreground mb-2">Crie sua conta</h2>
+                        <p className="text-muted-foreground">Comece a criar conteúdo estratégico hoje</p>
                       </div>
 
                       {registerForm}
                     </div>
                   </SheetContent>
                 </Sheet>
+
+                <Button variant="outline" className="w-full h-14 bg-card/90 backdrop-blur-xl border-2 font-semibold rounded-2xl text-lg hover:text-white" onClick={() => navigate("/login")}>
+                  Já tenho conta
+                </Button>
               </div>
             </div>
           </div> : (/* Desktop version - Right side - Register form */
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-4 lg:p-6 relative min-h-screen lg:min-h-0">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 relative">
             {/* Register card */}
             <div className="w-full max-w-md">
-              <div className="bg-card/90 backdrop-blur-xl border border-border/50 rounded-2xl shadow-2xl p-4 lg:p-6">
-                <div className="text-center mb-4 lg:mb-6">
-                  <h2 className="text-xl lg:text-2xl font-bold text-foreground mb-2">Crie sua Conta</h2>
-                  <p className="text-muted-foreground text-sm">É rápido e fácil. Vamos começar!</p>
+              <div className="bg-card/90 backdrop-blur-xl border border-border/50 rounded-2xl shadow-2xl p-8">
+                <div className="text-center mb-8">
+                  <h2 className="text-2xl font-bold text-foreground mb-2">Crie sua conta</h2>
+                  <p className="text-muted-foreground">Comece a criar conteúdo estratégico hoje</p>
                 </div>
 
                 {registerForm}
