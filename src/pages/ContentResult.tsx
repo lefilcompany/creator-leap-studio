@@ -224,7 +224,7 @@ export default function ContentResult() {
         toast.error("Formato de imagem inválido");
         return;
       }
-      
+
       const byteCharacters = atob(base64Data);
       const byteNumbers = new Array(byteCharacters.length);
 
@@ -479,7 +479,7 @@ export default function ContentResult() {
         toast.success("Revisão concluída! 1 crédito foi consumido.");
       } else {
         toast.success(
-          `Revisão concluída! ${newFreeRevisionsLeft} revisão${newFreeRevisionsLeft !== 1 ? "ões" : ""} gratuita${newFreeRevisionsLeft !== 1 ? "s" : ""} restante${newFreeRevisionsLeft !== 1 ? "s" : ""}.`,
+          `Revisão concluída! ${newFreeRevisionsLeft} revis${newFreeRevisionsLeft !== 1 ? "ões" : "ão"} gratuita${newFreeRevisionsLeft !== 1 ? "s" : ""} restante${newFreeRevisionsLeft !== 1 ? "s" : ""}.`,
         );
       }
 
