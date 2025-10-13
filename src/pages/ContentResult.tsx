@@ -1052,9 +1052,11 @@ export default function ContentResult() {
                   <Alert className="border-primary/50 bg-primary/10">
                     <RefreshCw className="h-4 w-4 text-primary" />
                     <AlertDescription className="text-sm">
-                      <span className="font-semibold text-primary">Revisão Gratuita:</span> Você tem {freeRevisionsLeft}{" "}
-                      revisão{freeRevisionsLeft !== 1 ? "ões" : ""} gratuita{freeRevisionsLeft !== 1 ? "s" : ""}{" "}
-                      disponível{freeRevisionsLeft !== 1 ? "eis" : ""} para este conteúdo.
+                      <span className="font-semibold text-primary">
+                        {freeRevisionsLeft > 1 ? "Revisões Gratuitas" : "Revisão Gratuita"}:
+                      </span>{" "}
+                      Você tem {freeRevisionsLeft}{" "}
+                      {freeRevisionsLeft > 1 ? "revisões gratuitas disponíveis" : "revisão gratuita disponível"} para este conteúdo.
                     </AlertDescription>
                   </Alert>
                 )}
