@@ -227,7 +227,7 @@ export default function VideoResult() {
           <Button
             variant="ghost"
             onClick={() => navigate("/create")}
-            className="gap-2 hover:bg-primary/10"
+            className="gap-2 hover:bg-primary/10 hover:text-primary"
           >
             <ArrowLeft className="h-4 w-4" />
             Voltar
