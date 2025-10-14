@@ -30,59 +30,64 @@ const Dashboard = () => {
     totalBrands: 0,
     recentActivities: [] as any[]
   });
-  const [loadingData, setLoadingData] = useState(true);
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
 
   useEffect(() => {
-    if (user && team) {
-      loadDashboardData();
-    }
-  }, [user, team]);
+    let isMounted = true;
 
-  const loadDashboardData = async () => {
-    try {
-      setLoadingData(true);
+    const loadData = async () => {
+      if (!user || !team || isDataLoaded) return;
 
-      // Buscar total de ações do usuário na equipe
-      const { count: actionsCount } = await supabase
-        .from('actions')
-        .select('*', { count: 'exact', head: true })
-        .eq('team_id', team?.id);
+      try {
+        // Buscar total de ações do usuário na equipe
+        const { count: actionsCount } = await supabase
+          .from('actions')
+          .select('*', { count: 'exact', head: true })
+          .eq('team_id', team?.id);
 
-      // Buscar total de marcas da equipe
-      const { count: brandsCount } = await supabase
-        .from('brands')
-        .select('*', { count: 'exact', head: true })
-        .eq('team_id', team?.id);
+        // Buscar total de marcas da equipe
+        const { count: brandsCount } = await supabase
+          .from('brands')
+          .select('*', { count: 'exact', head: true })
+          .eq('team_id', team?.id);
 
-      // Buscar atividades recentes (últimas 3 ações)
-      const { data: recentActions } = await supabase
-        .from('actions')
-        .select(`
-          id,
-          type,
-          status,
-          created_at,
-          brand_id,
-          brands(name)
-        `)
-        .eq('team_id', team?.id)
-        .order('created_at', { ascending: false })
-        .limit(3);
+        // Buscar atividades recentes (últimas 3 ações)
+        const { data: recentActions } = await supabase
+          .from('actions')
+          .select(`
+            id,
+            type,
+            status,
+            created_at,
+            brand_id,
+            brands(name)
+          `)
+          .eq('team_id', team?.id)
+          .order('created_at', { ascending: false })
+          .limit(3);
 
-      setDashboardData({
-        totalActions: actionsCount || 0,
-        totalBrands: brandsCount || 0,
-        recentActivities: recentActions || []
-      });
-    } catch (error) {
-      console.error('Erro ao carregar dados do dashboard:', error);
-      toast.error('Erro ao carregar dados do dashboard');
-    } finally {
-      setLoadingData(false);
-    }
-  };
+        if (isMounted) {
+          setDashboardData({
+            totalActions: actionsCount || 0,
+            totalBrands: brandsCount || 0,
+            recentActivities: recentActions || []
+          });
+          setIsDataLoaded(true);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar dados do dashboard:', error);
+        toast.error('Erro ao carregar dados do dashboard');
+      }
+    };
 
-  if (isLoading || !user || !team) {
+    loadData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user, team, isDataLoaded]);
+
+  if (isLoading || !isDataLoaded) {
     return (
       <div className="flex h-full w-full items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -255,16 +260,8 @@ const Dashboard = () => {
             <Sparkles className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent className="pb-4">
-            {loadingData ? (
-              <div className="flex items-center justify-center py-4">
-                <Loader2 className="h-6 w-6 animate-spin text-primary" />
-              </div>
-            ) : (
-              <>
-                <div className="text-4xl font-bold tracking-tight text-foreground mb-2">{stats[1].value}</div>
-                <p className="text-sm text-muted-foreground">{stats[1].subtitle}</p>
-              </>
-            )}
+            <div className="text-4xl font-bold tracking-tight text-foreground mb-2">{stats[1].value}</div>
+            <p className="text-sm text-muted-foreground">{stats[1].subtitle}</p>
           </CardContent>
         </Card>
 
@@ -277,16 +274,8 @@ const Dashboard = () => {
             <Tags className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent className="pb-4">
-            {loadingData ? (
-              <div className="flex items-center justify-center py-4">
-                <Loader2 className="h-6 w-6 animate-spin text-primary" />
-              </div>
-            ) : (
-              <>
-                <div className="text-4xl font-bold tracking-tight text-foreground mb-2">{stats[2].value}</div>
-                <p className="text-sm text-muted-foreground">{stats[2].subtitle}</p>
-              </>
-            )}
+            <div className="text-4xl font-bold tracking-tight text-foreground mb-2">{stats[2].value}</div>
+            <p className="text-sm text-muted-foreground">{stats[2].subtitle}</p>
           </CardContent>
         </Card>
       </div>
@@ -339,12 +328,7 @@ const Dashboard = () => {
               </div>
             </CardHeader>
             <CardContent className="p-0">
-              {loadingData ? (
-                <div className="flex items-center justify-center p-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                </div>
-              ) : (
-                <div className="divide-y divide-border/50">
+              <div className="divide-y divide-border/50">
                   {dashboardData.recentActivities.length > 0 ? (
                     dashboardData.recentActivities.map((activity, index) => (
                       <div key={activity.id} className="flex items-center justify-between p-6 hover:bg-muted/30 transition-all duration-200 group">
@@ -387,7 +371,6 @@ const Dashboard = () => {
                     </div>
                   )}
                 </div>
-              )}
             </CardContent>
           </Card>
         </div>
