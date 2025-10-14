@@ -523,7 +523,7 @@ async function generateImageWithRetry(prompt: string, referenceImages: string[] 
       }
     });
 
-    const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent", {
+    const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
