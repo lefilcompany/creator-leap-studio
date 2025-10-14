@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "react-router-dom";
 import { 
   Home as HomeIcon,
@@ -256,17 +255,8 @@ const Dashboard = () => {
             <Sparkles className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent className="pb-4">
-            {loadingData ? (
-              <>
-                <Skeleton className="h-10 w-16 mb-2" />
-                <Skeleton className="h-4 w-32" />
-              </>
-            ) : (
-              <>
-                <div className="text-4xl font-bold tracking-tight text-foreground mb-2">{stats[1].value}</div>
-                <p className="text-sm text-muted-foreground">{stats[1].subtitle}</p>
-              </>
-            )}
+            <div className="text-4xl font-bold tracking-tight text-foreground mb-2">{stats[1].value}</div>
+            <p className="text-sm text-muted-foreground">{stats[1].subtitle}</p>
           </CardContent>
         </Card>
 
@@ -279,17 +269,8 @@ const Dashboard = () => {
             <Tags className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent className="pb-4">
-            {loadingData ? (
-              <>
-                <Skeleton className="h-10 w-16 mb-2" />
-                <Skeleton className="h-4 w-32" />
-              </>
-            ) : (
-              <>
-                <div className="text-4xl font-bold tracking-tight text-foreground mb-2">{stats[2].value}</div>
-                <p className="text-sm text-muted-foreground">{stats[2].subtitle}</p>
-              </>
-            )}
+            <div className="text-4xl font-bold tracking-tight text-foreground mb-2">{stats[2].value}</div>
+            <p className="text-sm text-muted-foreground">{stats[2].subtitle}</p>
           </CardContent>
         </Card>
       </div>
