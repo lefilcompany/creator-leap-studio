@@ -169,34 +169,40 @@ serve(async (req) => {
       );
     }
 
-    console.log('🤖 Chamando Lovable AI para edição de imagem...');
+    console.log('🤖 Chamando Gemini API para edição de imagem...');
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+    if (!GEMINI_API_KEY) {
+      throw new Error('GEMINI_API_KEY não configurada');
+    }
+    
+    const imageBase64 = imageUrl.split(',')[1] || imageUrl;
+    const mimeType = imageUrl.match(/data:(.*?);/)?.[1] || 'image/png';
+
+    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-exp:generateContent', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
+        'x-goog-api-key': GEMINI_API_KEY,
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-image-preview',
-        messages: [
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: detailedPrompt
-              },
-              {
-                type: 'image_url',
-                image_url: {
-                  url: imageUrl
-                }
-              }
-            ]
-          }
-        ],
-        modalities: ['image', 'text']
+        contents: [{
+          parts: [
+            { text: detailedPrompt },
+            { 
+              inlineData: { 
+                mimeType, 
+                data: imageBase64 
+              } 
+            }
+          ]
+        }],
+        generationConfig: {
+          temperature: 0.7,
+          topP: 0.95,
+          topK: 40,
+          maxOutputTokens: 8192,
+        }
       })
     });
 
@@ -227,13 +233,17 @@ serve(async (req) => {
     console.log('✅ Resposta da AI recebida');
     console.log('📊 Estrutura da resposta:', JSON.stringify(aiData, null, 2));
 
-    const editedImageBase64 = aiData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    const geminiImageData = aiData.candidates?.[0]?.content?.parts?.find(
+      (part: any) => part.inlineData
+    )?.inlineData;
     
-    if (!editedImageBase64) {
+    if (!geminiImageData) {
       console.error('❌ Imagem editada não foi retornada pela API');
       console.error('📊 Dados recebidos:', JSON.stringify(aiData, null, 2));
       throw new Error('Imagem editada não foi retornada pela API');
     }
+
+    const editedImageBase64 = `data:${geminiImageData.mimeType};base64,${geminiImageData.data}`;
 
     console.log('📤 Fazendo upload da imagem editada para Storage...');
 
