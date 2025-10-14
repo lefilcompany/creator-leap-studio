@@ -299,41 +299,37 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
 
     // Add preserve images instruction if provided
     if (preserveImages && preserveImages.length > 0) {
-      enhancedPrompt += `\n\n${'='.repeat(60)}`;
-      enhancedPrompt += `\n🎨 IMAGENS PARA PRESERVAR - MANTER ELEMENTOS`;
-      enhancedPrompt += `\n${'='.repeat(60)}`;
-      enhancedPrompt += `\n${preserveImages.length === 1 ? 'Uma imagem foi fornecida' : `${preserveImages.length} imagens foram fornecidas`} para ter seus traços PRESERVADOS na imagem resultado.`;
-      enhancedPrompt += `\n\n🔴 REGRAS DE PRESERVAÇÃO (em ordem de prioridade):`;
-      enhancedPrompt += `\n1. 📐 FORMATO: A imagem final DEVE ter proporção ${normalizedAspectRatio} (NÃO use o formato das imagens fornecidas)`;
-      enhancedPrompt += `\n2. 🎨 ELEMENTOS: PRESERVE os elementos visuais, objetos, pessoas e características destas imagens`;
-      enhancedPrompt += `\n3. 🌈 CORES: MANTENHA as cores originais, formas, texturas e detalhes específicos`;
-      enhancedPrompt += `\n4. 🎯 COMPOSIÇÃO: Recomponha os elementos na proporção ${normalizedAspectRatio}`;
-      enhancedPrompt += `\n5. ➕ CONTEXTO: Você pode adicionar cenário ou elementos complementares conforme o prompt`;
-      enhancedPrompt += `\n\n⚠️ COMO PROCEDER:`;
-      enhancedPrompt += `\n- Extraia os elementos principais das imagens fornecidas`;
-      enhancedPrompt += `\n- Recomponha esses elementos na proporção ${normalizedAspectRatio}`;
-      enhancedPrompt += `\n- Ajuste o enquadramento e composição para o formato ${normalizedAspectRatio}`;
-      enhancedPrompt += `\n- NUNCA mantenha a proporção original das imagens de referência`;
-      enhancedPrompt += `\n\n❌ PROIBIDO: Usar a proporção das imagens de referência`;
-      enhancedPrompt += `\n✅ CORRETO: Elementos das imagens + Proporção ${normalizedAspectRatio}`;
+      enhancedPrompt += `\n\n${'='.repeat(80)}`;
+      enhancedPrompt += `\n🎨 IMAGENS DA MARCA/IDENTIDADE VISUAL (${preserveImages.length} fornecidas)`;
+      enhancedPrompt += `\n${'='.repeat(80)}`;
+      enhancedPrompt += `\n\n📌 INSTRUÇÕES PARA USO DESSAS IMAGENS:`;
+      enhancedPrompt += `\n   - Estas são imagens OFICIAIS da identidade visual/marca`;
+      enhancedPrompt += `\n   - Use EXATAMENTE o estilo visual, paleta de cores e estética dessas imagens`;
+      enhancedPrompt += `\n   - Mantenha a MESMA qualidade visual e nível de acabamento`;
+      enhancedPrompt += `\n   - Replique elementos de design (bordas, texturas, filtros, efeitos)`;
+      enhancedPrompt += `\n   - Preserve a atmosfera e mood transmitidos`;
+      enhancedPrompt += `\n   - A nova imagem DEVE parecer parte do mesmo conjunto visual`;
+      enhancedPrompt += `\n\n⚠️ IMPORTANTE - FORMATO:`;
+      enhancedPrompt += `\n   - A imagem final DEVE ter proporção ${normalizedAspectRatio}`;
+      enhancedPrompt += `\n   - NÃO use o formato das imagens de referência`;
+      enhancedPrompt += `\n   - Recomponha os elementos visuais na proporção correta`;
+      enhancedPrompt += `\n${'='.repeat(80)}`;
     }
     
     // Add style reference images instruction if provided
     if (styleReferenceImages && styleReferenceImages.length > 0) {
-      enhancedPrompt += `\n\n${'='.repeat(60)}`;
-      enhancedPrompt += `\n🎭 REFERÊNCIAS DE ESTILO - APENAS INSPIRAÇÃO`;
-      enhancedPrompt += `\n${'='.repeat(60)}`;
-      enhancedPrompt += `\n${styleReferenceImages.length === 1 ? 'Uma imagem de referência de estilo foi fornecida' : `${styleReferenceImages.length} imagens de referência de estilo foram fornecidas`}.`;
-      enhancedPrompt += `\n\n📋 Use estas imagens APENAS como inspiração para:`;
-      enhancedPrompt += `\n✓ Estilo visual geral e atmosfera`;
-      enhancedPrompt += `\n✓ Paleta de cores e harmonização`;
-      enhancedPrompt += `\n✓ Elementos de design e textura`;
-      enhancedPrompt += `\n\n⚠️ IMPORTANTE SOBRE FORMATO:`;
-      enhancedPrompt += `\n- Ignore a proporção das imagens de estilo`;
-      enhancedPrompt += `\n- Use APENAS a inspiração visual, NÃO o formato`;
-      enhancedPrompt += `\n- A imagem final DEVE ter proporção ${normalizedAspectRatio}`;
-      enhancedPrompt += `\n\n❌ NÃO COPIE: Elementos específicos, pessoas, logos, marcas ou PROPORÇÕES`;
-      enhancedPrompt += `\n✅ USE: Apenas inspiração visual e estética`;
+      enhancedPrompt += `\n\n${'='.repeat(80)}`;
+      enhancedPrompt += `\n✨ IMAGENS DE REFERÊNCIA DE ESTILO (${styleReferenceImages.length} fornecidas)`;
+      enhancedPrompt += `\n${'='.repeat(80)}`;
+      enhancedPrompt += `\n\n📋 INSTRUÇÕES PARA USO:`;
+      enhancedPrompt += `\n   - Inspiração adicional para composição, estilo ou elementos específicos`;
+      enhancedPrompt += `\n   - Analise elementos visuais (cores, layout, objetos, atmosfera)`;
+      enhancedPrompt += `\n   - Adapte esses elementos de forma coerente`;
+      enhancedPrompt += `\n   - Use como complemento às imagens principais da marca`;
+      enhancedPrompt += `\n\n⚠️ IMPORTANTE - FORMATO:`;
+      enhancedPrompt += `\n   - A imagem final DEVE ter proporção ${normalizedAspectRatio}`;
+      enhancedPrompt += `\n   - Extraia apenas o estilo e recomponha no formato correto`;
+      enhancedPrompt += `\n${'='.repeat(80)}`;
     }
 
     // Final reinforcement of aspect ratio

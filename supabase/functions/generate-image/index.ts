@@ -147,29 +147,35 @@ function buildDetailedPrompt(formData: any): string {
 
   // Instrução de uso de imagens de referência - mais clara e contextualizada
   if (hasReferenceImages) {
-    let imageContext = `Você está recebendo ${totalImages} imagem(ns) de referência visual`;
+    let imageContext = `\n\n${'='.repeat(80)}\n🎨 IMAGENS DE REFERÊNCIA VISUAL FORNECIDAS (${totalImages} no total)\n${'='.repeat(80)}`;
     
-    if (brandImagesCount > 0 && userImagesCount > 0) {
-      imageContext += ` (${brandImagesCount} da identidade visual da marca + ${userImagesCount} de referência adicional)`;
-    } else if (brandImagesCount > 0) {
-      imageContext += ` da identidade visual da marca "${brand}"`;
-    } else {
-      imageContext += ` fornecidas pelo usuário`;
+    if (brandImagesCount > 0) {
+      imageContext += `\n\n📌 ${brandImagesCount} IMAGEM(NS) DA MARCA "${brand}":`;
+      imageContext += `\n   - Estas são imagens OFICIAIS da identidade visual da marca`;
+      imageContext += `\n   - Use EXATAMENTE o estilo visual, paleta de cores, tipografia e estética dessas imagens`;
+      imageContext += `\n   - Mantenha a MESMA qualidade visual e nível de acabamento`;
+      imageContext += `\n   - Replique elementos de design (bordas, texturas, filtros, efeitos)`;
+      imageContext += `\n   - Preserve a atmosfera e mood transmitidos por essas imagens`;
+      imageContext += `\n   - PRIORIDADE MÁXIMA: A nova imagem DEVE parecer parte do mesmo conjunto visual`;
     }
     
-    promptParts.push(
-      `${imageContext}. ` +
-      `CRÍTICO: As imagens de referência são APENAS BASE INSPIRACIONAL para criar uma NOVA IMAGEM AUTÊNTICA E ORIGINAL. ` +
-      `NÃO copie ou replique diretamente as imagens de referência. ` +
-      `INSTRUÇÕES DE CRIAÇÃO: ` +
-      `1. IDENTIDADE VISUAL: ${brandImagesCount > 0 ? `Mantenha FORTE COERÊNCIA com a essência e DNA visual da marca ${brand} observados nas primeiras ${brandImagesCount} imagens, mas crie uma composição completamente nova` : 'Inspire-se no estilo visual das referências, mas crie algo original'} ` +
-      `2. PALETA DE CORES: Extraia a paleta de cores dominante das referências e aplique de forma criativa e harmoniosa ` +
-      `3. ESTILO GRÁFICO: Inspire-se no estilo visual, mas crie uma composição única e autêntica ` +
-      `4. ATMOSFERA: Capture o mood e sensação das referências, mas interprete de forma original ` +
-      `5. ORIGINALIDADE: A imagem final deve ser SUBSTANCIALMENTE DIFERENTE das referências, mantendo apenas a essência da identidade visual ` +
-      `GERE uma imagem COMPLETAMENTE NOVA, AUTÊNTICA e ORIGINAL que seja inspirada (não copiada) pelas referências, ` +
-      `capturando a essência da marca mas com uma execução visual única e criativa.`
-    );
+    if (userImagesCount > 0) {
+      imageContext += `\n\n✨ ${userImagesCount} IMAGEM(NS) DE REFERÊNCIA DO USUÁRIO:`;
+      imageContext += `\n   - Inspiração adicional para composição, estilo ou elementos específicos`;
+      imageContext += `\n   - Analise elementos visuais relevantes (layout, cores, objetos, atmosfera)`;
+      imageContext += `\n   - Adapte esses elementos mantendo coerência com a marca`;
+      imageContext += `\n   - Use como referência complementar, não como cópia exata`;
+    }
+    
+    imageContext += `\n\n⚠️ INSTRUÇÕES CRÍTICAS DE USO DAS REFERÊNCIAS:`;
+    imageContext += `\n   1. ANALISE todas as imagens de referência antes de começar a gerar`;
+    imageContext += `\n   2. IDENTIFIQUE padrões visuais: paleta de cores, estilo fotográfico/ilustrativo, composição`;
+    imageContext += `\n   3. REPLIQUE esses padrões na nova imagem de forma consistente`;
+    imageContext += `\n   4. MANTENHA coerência estética - a nova imagem deve parecer da mesma "família visual"`;
+    imageContext += `\n   5. Se houver logos, elementos gráficos ou tipografia específica nas referências, considere incluir elementos similares`;
+    imageContext += `\n${'='.repeat(80)}\n`;
+    
+    promptParts.push(imageContext);
   }
 
   // Contexto estratégico
