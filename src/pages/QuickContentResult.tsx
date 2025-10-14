@@ -96,18 +96,9 @@ export default function QuickContentResult() {
     setImageHistory(newHistory);
     setCurrentImageUrl(previousImage);
 
-    const newRevisionCount = Math.max(0, totalRevisions - 1);
-    const newFreeRevisionsLeft = Math.max(0, 2 - newRevisionCount);
-
-    setTotalRevisions(newRevisionCount);
-    setFreeRevisionsLeft(newFreeRevisionsLeft);
-
-    // Update localStorage
+    // Update localStorage - keep totalRevisions unchanged
     const contentId = `quick_content_${actionId || Date.now()}`;
-    const revisionsKey = `revisions_${contentId}`;
     const historyKey = `image_history_${contentId}`;
-
-    localStorage.setItem(revisionsKey, newRevisionCount.toString());
     localStorage.setItem(historyKey, JSON.stringify(newHistory));
 
     // Update action in database if it exists
@@ -115,7 +106,6 @@ export default function QuickContentResult() {
       supabase
         .from("actions")
         .update({
-          revisions: newRevisionCount,
           result: {
             imageUrl: previousImage,
             description,
@@ -193,6 +183,20 @@ export default function QuickContentResult() {
 
       setTotalRevisions(newRevisionCount);
       setFreeRevisionsLeft(newFreeRevisionsLeft);
+
+      // Decrement team credits if needed
+      if (needsCredit && team?.id) {
+        const { error: creditError } = await supabase
+          .from("teams")
+          .update({
+            credits_reviews: (team.credits.contentReviews || 0) - 1,
+          })
+          .eq("id", team.id);
+
+        if (creditError) {
+          console.error("Error updating team credits:", creditError);
+        }
+      }
 
       // Update action in database if it exists
       if (actionId) {
