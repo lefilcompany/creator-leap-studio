@@ -246,61 +246,65 @@ export default function QuickContentResult() {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/10">
       <div className="container max-w-7xl mx-auto">
         {/* Header */}
-        <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl border-b border-border/40 px-4 sm:px-6 py-3 sm:py-4 mb-6 sm:mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center gap-3 sm:gap-4">
+        <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl border-b border-border/40 px-3 sm:px-4 lg:px-6 py-2.5 sm:py-3 lg:py-4 mb-4 sm:mb-6 lg:mb-8">
+          <div className="flex flex-col gap-3">
+            {/* Top row: Back button + Title */}
+            <div className="flex items-center gap-2 sm:gap-3">
               <Button
                 variant="outline"
                 size="icon"
                 onClick={() => navigate("/quick-content")}
-                className="hover:scale-105 transition-transform shrink-0"
+                className="hover:scale-105 transition-transform shrink-0 h-8 w-8 sm:h-9 sm:w-9 lg:h-10 lg:w-10"
               >
-                <ArrowLeft className="h-4 w-4" />
+                <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               </Button>
-              <div className="min-w-0">
-                <h1 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent truncate">
+              <div className="min-w-0 flex-1">
+                <h1 className="text-base sm:text-lg lg:text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent truncate">
                   Conteúdo Gerado
                 </h1>
-                <p className="text-xs sm:text-sm text-muted-foreground truncate">Sua imagem foi criada com sucesso</p>
+                <p className="text-[10px] sm:text-xs lg:text-sm text-muted-foreground truncate">Sua imagem foi criada com sucesso</p>
               </div>
             </div>
-            <div className="flex gap-2 w-full sm:w-auto">
+            
+            {/* Bottom row: Action buttons */}
+            <div className="flex gap-1.5 sm:gap-2">
               <Button
                 variant="outline"
+                size="sm"
                 onClick={handleOpenReview}
-                className="hover:scale-105 transition-transform flex-1 sm:flex-initial"
+                className="hover:scale-105 transition-transform flex-1 h-8 sm:h-9 text-xs sm:text-sm px-2 sm:px-3"
               >
-                <RefreshCw className="mr-2 h-4 w-4" />
-                <span className="hidden xs:inline">Revisar</span>
-                <span className="xs:hidden">Revisar</span>
+                <RefreshCw className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-1.5" />
+                <span className="hidden sm:inline">Revisar</span>
               </Button>
               {totalRevisions > 0 && (
                 <Button
                   variant="outline"
+                  size="sm"
                   onClick={handleRevert}
-                  className="hover:scale-105 transition-transform flex-1 sm:flex-initial"
+                  className="hover:scale-105 transition-transform flex-1 h-8 sm:h-9 text-xs sm:text-sm px-2 sm:px-3"
                   title="Reverter última revisão"
                 >
-                  <Undo2 className="mr-2 h-4 w-4" />
-                  <span className="hidden xs:inline">Reverter</span>
-                  <span className="xs:hidden">Reverter</span>
+                  <Undo2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-1.5" />
+                  <span className="hidden sm:inline">Reverter</span>
                 </Button>
               )}
               <Button
                 variant="outline"
+                size="sm"
                 onClick={handleDownload}
-                className="hover:scale-105 transition-transform flex-1 sm:flex-initial"
+                className="hover:scale-105 transition-transform flex-1 h-8 sm:h-9 text-xs sm:text-sm px-2 sm:px-3"
               >
-                <Download className="mr-2 h-4 w-4" />
-                <span className="hidden xs:inline">Baixar</span>
-                <span className="xs:hidden">Baixar</span>
+                <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-1.5" />
+                <span className="hidden sm:inline">Baixar</span>
               </Button>
               <Button
+                size="sm"
                 onClick={() => navigate("/quick-content")}
-                className="hover:scale-105 transition-transform flex-1 sm:flex-initial"
+                className="hover:scale-105 transition-transform flex-1 h-8 sm:h-9 text-xs sm:text-sm px-2 sm:px-3"
               >
-                <span className="hidden xs:inline">Criar Novo</span>
-                <span className="xs:hidden">Novo</span>
+                <span className="hidden sm:inline">Criar Novo</span>
+                <span className="sm:hidden">Novo</span>
               </Button>
             </div>
           </div>
