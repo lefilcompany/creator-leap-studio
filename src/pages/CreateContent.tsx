@@ -15,7 +15,8 @@ import {
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Sparkles, Zap, X, Info, ImageIcon, Video } from "lucide-react";
+import { Loader2, Sparkles, Zap, X, Info, ImageIcon, Video, Type, AlertCircle } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Slider } from "@/components/ui/slider";
 import { Progress } from "@/components/ui/progress";
@@ -56,6 +57,10 @@ interface FormData {
   mood?: string;
   width?: string;
   height?: string;
+  // Video text configurations
+  videoIncludeText?: boolean;
+  videoTextContent?: string;
+  videoTextPosition?: 'top' | 'center' | 'bottom' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
 }
 
 const toneOptions = [
@@ -91,6 +96,10 @@ export default function CreateContent() {
     cameraAngle: "eye_level",
     detailLevel: 7,
     mood: "auto",
+    // Video text defaults
+    videoIncludeText: false,
+    videoTextContent: "",
+    videoTextPosition: "center",
   });
 
   const [team, setTeam] = useState<Team | null>(null);
@@ -395,6 +404,36 @@ export default function CreateContent() {
     duration
   ]);
 
+  // Função auxiliar para construir prompt de vídeo
+  const buildVideoPrompt = () => {
+    const selectedBrand = brands.find(b => b.id === formData.brand);
+    let prompt = `${formData.objective}. ${formData.description}. Tom: ${formData.tone.join(", ")}. Marca: ${selectedBrand?.name}.`;
+    
+    if (formData.additionalInfo) {
+      prompt += ` ${formData.additionalInfo}`;
+    }
+    
+    // CRITICAL: Instruções explícitas sobre texto
+    if (formData.videoIncludeText && formData.videoTextContent?.trim()) {
+      const positionMap = {
+        'top': 'no topo do vídeo',
+        'center': 'centralizado no vídeo',
+        'bottom': 'na parte inferior do vídeo',
+        'top-left': 'no canto superior esquerdo',
+        'top-right': 'no canto superior direito',
+        'bottom-left': 'no canto inferior esquerdo',
+        'bottom-right': 'no canto inferior direito'
+      };
+      
+      prompt += ` IMPORTANTE: Incluir o seguinte texto ${positionMap[formData.videoTextPosition || 'center']}: "${formData.videoTextContent}". O texto deve ser legível e bem visível.`;
+    } else {
+      // Instrução CRÍTICA para prevenir texto indesejado
+      prompt += ` CRÍTICO: NÃO incluir NENHUM texto, palavra, letra, número, símbolo ou caractere escrito visível no vídeo. O vídeo deve ser puramente visual, sem qualquer elemento de texto sobreposto. Absolutamente SEM TEXTO.`;
+    }
+    
+    return prompt;
+  };
+
   // Função para validar e atualizar campos faltantes (com efeitos colaterais)
   const validateForm = () => {
     const missing: string[] = [];
@@ -409,6 +448,11 @@ export default function CreateContent() {
     if (isVideoMode) {
       if (!ratio) missing.push('ratio');
       if (transformationType === "image_to_video" && !duration) missing.push('duration');
+      // NOVA VALIDAÇÃO: Texto obrigatório quando toggle ativado
+      if (formData.videoIncludeText && !formData.videoTextContent?.trim()) {
+        missing.push('videoTextContent');
+        toast.error("Por favor, digite o texto que deseja exibir no vídeo");
+      }
     }
     
     setMissingFields(missing);
@@ -536,7 +580,7 @@ export default function CreateContent() {
           description: "Criando registro e iniciando processamento com Veo3.",
         });
 
-        const videoPrompt = `${formData.objective}. ${formData.description}. Tom: ${formData.tone.join(", ")}. Marca: ${selectedBrand?.name}. ${formData.additionalInfo}`;
+        const videoPrompt = buildVideoPrompt();
         
         // Criar registro de action primeiro com status pending
         const { data: actionData, error: actionError } = await supabase
@@ -559,6 +603,10 @@ export default function CreateContent() {
               persona: requestData.persona,
               additionalInfo: requestData.additionalInfo,
               aspectRatio: ratio,
+              // NOVOS CAMPOS DE METADATA
+              includeText: formData.videoIncludeText || false,
+              textContent: formData.videoTextContent?.trim() || "",
+              textPosition: formData.videoTextPosition || "center"
             },
             result: null
           })
@@ -581,7 +629,10 @@ export default function CreateContent() {
             body: JSON.stringify({
               prompt: videoPrompt,
               referenceImage: allReferenceImages[0],
-              actionId: actionData.id
+              actionId: actionData.id,
+              includeText: formData.videoIncludeText || false,
+              textContent: formData.videoTextContent?.trim() || "",
+              textPosition: formData.videoTextPosition || "center"
             }),
           }
         );
@@ -1473,6 +1524,138 @@ ${formData.description}
                     className="min-h-[80px] md:min-h-[100px] rounded-xl border-2 border-border/50 bg-background/50 resize-none text-sm hover:border-border/70 focus:border-primary/50 transition-colors"
                   />
                 </div>
+
+                {/* Configurações de Texto no Vídeo - NOVO BLOCO */}
+                {isVideoMode && (
+                  <Card className="bg-gradient-to-br from-primary/5 to-secondary/5 border-2 border-primary/20 rounded-xl">
+                    <CardContent className="space-y-4 p-4">
+                      {/* Toggle Switch */}
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                          <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
+                            <Type className="h-4 w-4 text-primary" />
+                            Incluir Texto no Vídeo?
+                          </Label>
+                          <p className="text-xs text-muted-foreground">
+                            Escolha se deseja adicionar texto visível no vídeo gerado
+                          </p>
+                        </div>
+                        <Switch
+                          checked={formData.videoIncludeText || false}
+                          onCheckedChange={(checked) => 
+                            setFormData(prev => ({ 
+                              ...prev, 
+                              videoIncludeText: checked,
+                              videoTextContent: checked ? prev.videoTextContent : "",
+                              videoTextPosition: checked ? prev.videoTextPosition : "center"
+                            }))
+                          }
+                          className="data-[state=checked]:bg-primary"
+                        />
+                      </div>
+
+                      {/* Campos condicionais quando toggle está ativado */}
+                      {formData.videoIncludeText && (
+                        <div className="space-y-4 pt-2 border-t border-primary/20">
+                          {/* Campo de Texto */}
+                          <div className="space-y-2">
+                            <Label 
+                              htmlFor="videoTextContent"
+                              className="text-xs md:text-sm font-semibold text-foreground"
+                            >
+                              Texto a Exibir <span className="text-destructive">*</span>
+                            </Label>
+                            <Textarea
+                              id="videoTextContent"
+                              placeholder="Digite o texto que deseja exibir no vídeo..."
+                              value={formData.videoTextContent || ""}
+                              onChange={(e) => 
+                                setFormData(prev => ({ 
+                                  ...prev, 
+                                  videoTextContent: e.target.value 
+                                }))
+                              }
+                              className={`min-h-[80px] rounded-xl border-2 bg-background/50 resize-none text-sm hover:border-border/70 transition-colors ${
+                                formData.videoIncludeText && !formData.videoTextContent?.trim()
+                                  ? 'border-destructive ring-2 ring-destructive/20 focus:border-destructive' 
+                                  : 'border-border/50 focus:border-primary/50'
+                              }`}
+                              maxLength={200}
+                            />
+                            <p className="text-xs text-muted-foreground text-right">
+                              {formData.videoTextContent?.length || 0}/200 caracteres
+                            </p>
+                          </div>
+
+                          {/* Select de Posição */}
+                          <div className="space-y-2">
+                            <Label 
+                              htmlFor="videoTextPosition"
+                              className="text-xs md:text-sm font-semibold text-foreground"
+                            >
+                              Posição do Texto
+                            </Label>
+                            <Select 
+                              value={formData.videoTextPosition || "center"}
+                              onValueChange={(value) => 
+                                setFormData(prev => ({ 
+                                  ...prev, 
+                                  videoTextPosition: value as any 
+                                }))
+                              }
+                            >
+                              <SelectTrigger className="h-10 md:h-11 rounded-xl border-2 border-border/50 bg-background/50 text-sm hover:border-border/70 transition-colors">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="top">Topo</SelectItem>
+                                <SelectItem value="center">Centro</SelectItem>
+                                <SelectItem value="bottom">Inferior</SelectItem>
+                                <SelectItem value="top-left">Superior Esquerdo</SelectItem>
+                                <SelectItem value="top-right">Superior Direito</SelectItem>
+                                <SelectItem value="bottom-left">Inferior Esquerdo</SelectItem>
+                                <SelectItem value="bottom-right">Inferior Direito</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          {/* Preview Visual da Posição */}
+                          <div className="space-y-2">
+                            <Label className="text-xs font-medium text-muted-foreground">
+                              Preview da Posição
+                            </Label>
+                            <div className="relative w-full aspect-video bg-gradient-to-br from-muted/50 to-muted/30 rounded-lg border-2 border-dashed border-border/50 overflow-hidden">
+                              <div 
+                                className={`absolute text-xs font-bold bg-primary/90 text-primary-foreground px-3 py-1.5 rounded-md shadow-lg ${
+                                  formData.videoTextPosition === 'top' ? 'top-4 left-1/2 -translate-x-1/2' :
+                                  formData.videoTextPosition === 'center' ? 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2' :
+                                  formData.videoTextPosition === 'bottom' ? 'bottom-4 left-1/2 -translate-x-1/2' :
+                                  formData.videoTextPosition === 'top-left' ? 'top-4 left-4' :
+                                  formData.videoTextPosition === 'top-right' ? 'top-4 right-4' :
+                                  formData.videoTextPosition === 'bottom-left' ? 'bottom-4 left-4' :
+                                  formData.videoTextPosition === 'bottom-right' ? 'bottom-4 right-4' :
+                                  'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2'
+                                }`}
+                              >
+                                {formData.videoTextContent?.trim() || "Seu texto aqui"}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Alerta quando toggle ativo mas sem texto */}
+                      {formData.videoIncludeText && !formData.videoTextContent?.trim() && (
+                        <div className="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/30 rounded-lg">
+                          <AlertCircle className="h-4 w-4 text-destructive flex-shrink-0" />
+                          <p className="text-xs text-destructive font-medium">
+                            Por favor, digite o texto que deseja exibir no vídeo
+                          </p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
 
                 {/* Advanced Configuration Accordion */}
                 {!isVideoMode && (

@@ -184,11 +184,22 @@ serve(async (req) => {
       );
     }
 
-    const { prompt, referenceImage, actionId } = await req.json();
+    const { 
+      prompt, 
+      referenceImage, 
+      actionId,
+      includeText = false,
+      textContent = "",
+      textPosition = "center"
+    } = await req.json();
+    
     console.log('🎬 Iniciando geração de vídeo com Gemini Veo 3');
     console.log('📝 Prompt:', prompt);
     console.log('🆔 Action ID:', actionId);
     console.log('🖼️ Imagem de referência:', referenceImage ? 'Sim' : 'Não');
+    console.log('📝 Incluir texto:', includeText);
+    console.log('📝 Conteúdo do texto:', textContent ? `"${textContent}"` : 'Nenhum');
+    console.log('📍 Posição do texto:', textPosition);
 
     if (!actionId) {
       return new Response(
@@ -199,10 +210,33 @@ serve(async (req) => {
 
     const BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
     
+    // Garantir que as diretrizes de texto sejam respeitadas no backend
+    let enrichedPrompt = prompt;
+
+    if (!includeText) {
+      // Reforçar FORTEMENTE: sem texto
+      enrichedPrompt += " [CRITICAL CONSTRAINT: Absolutely NO text, letters, words, captions, subtitles, numbers, symbols, or any written characters should appear anywhere in the video. Pure visual content only. This is a hard requirement. NO TEXT OVERLAY AT ALL.]";
+    } else if (textContent?.trim()) {
+      // Reforçar instrução de texto específico com posição
+      const positionInstructions: Record<string, string> = {
+        'top': 'at the top of the frame',
+        'center': 'centered in the frame',
+        'bottom': 'at the bottom of the frame',
+        'top-left': 'in the top-left corner',
+        'top-right': 'in the top-right corner',
+        'bottom-left': 'in the bottom-left corner',
+        'bottom-right': 'in the bottom-right corner'
+      };
+      
+      enrichedPrompt += ` [TEXT REQUIREMENT: Display the exact text "${textContent}" ${positionInstructions[textPosition] || 'centered in the frame'}. The text should be clearly visible and readable throughout the video.]`;
+    }
+
+    console.log('📏 Enriched prompt length:', enrichedPrompt.length);
+    
     // Prepare request body
     const requestBody: any = {
       instances: [{
-        prompt: prompt,
+        prompt: enrichedPrompt,
       }]
     };
 
