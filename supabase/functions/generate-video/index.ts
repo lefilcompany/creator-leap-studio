@@ -288,21 +288,21 @@ serve(async (req) => {
     let enrichedPrompt = prompt;
 
     if (!includeText) {
-      // Reforçar FORTEMENTE: sem texto
-      enrichedPrompt += " [CRITICAL CONSTRAINT: Absolutely NO text, letters, words, captions, subtitles, numbers, symbols, or any written characters should appear anywhere in the video. Pure visual content only. This is a hard requirement. NO TEXT OVERLAY AT ALL.]";
+      // ⛔ RESTRIÇÃO ABSOLUTA: Sem texto
+      enrichedPrompt = `⛔ CRITICAL - NO TEXT ALLOWED: This video must be completely text-free. Do NOT include any text, words, letters, numbers, captions, subtitles, labels, watermarks, symbols, or written characters in any language. The video must be 100% visual content only. ${enrichedPrompt} [FINAL REMINDER: Absolutely NO text overlay or written content of any kind in this video.]`;
     } else if (textContent?.trim()) {
-      // Reforçar instrução de texto específico com posição
+      // 🎯 OBRIGATÓRIO: Incluir texto específico com posição
       const positionInstructions: Record<string, string> = {
-        'top': 'at the top of the frame',
-        'center': 'centered in the frame',
-        'bottom': 'at the bottom of the frame',
-        'top-left': 'in the top-left corner',
-        'top-right': 'in the top-right corner',
-        'bottom-left': 'in the bottom-left corner',
-        'bottom-right': 'in the bottom-right corner'
+        'top': 'at the TOP of the frame, positioned near the upper edge',
+        'center': 'CENTERED in the frame, at the middle of the screen',
+        'bottom': 'at the BOTTOM of the frame, positioned near the lower edge',
+        'top-left': 'in the TOP-LEFT corner of the frame',
+        'top-right': 'in the TOP-RIGHT corner of the frame',
+        'bottom-left': 'in the BOTTOM-LEFT corner of the frame',
+        'bottom-right': 'in the BOTTOM-RIGHT corner of the frame'
       };
       
-      enrichedPrompt += ` [TEXT REQUIREMENT: Display the exact text "${textContent}" ${positionInstructions[textPosition] || 'centered in the frame'}. The text should be clearly visible and readable throughout the video.]`;
+      enrichedPrompt = `🎯 MANDATORY TEXT OVERLAY: Display the following text throughout the video: "${textContent}" positioned ${positionInstructions[textPosition] || 'centered in the frame'}. The text must be clearly visible, use professional typography with high contrast for maximum readability, and remain consistent throughout the entire video duration. THIS IS THE ONLY TEXT THAT SHOULD APPEAR. ${enrichedPrompt} [TEXT REMINDER: Include the specified text "${textContent}" ${positionInstructions[textPosition] || 'centered'} - this is required.]`;
     }
 
     console.log('📏 Enriched prompt length:', enrichedPrompt.length);

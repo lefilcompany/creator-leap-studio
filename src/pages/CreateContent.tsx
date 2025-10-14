@@ -1630,6 +1630,33 @@ ${formData.description}
                               </SelectContent>
                             </Select>
                           </div>
+
+                          {/* Preview Visual do Texto no Vídeo */}
+                          {formData.videoTextContent?.trim() && (
+                            <div className="space-y-2 pt-2">
+                              <Label className="text-xs font-medium text-muted-foreground">
+                                Preview do Texto
+                              </Label>
+                              <div className="relative w-full aspect-video bg-gradient-to-br from-muted/50 to-muted/30 rounded-xl border-2 border-primary/30 overflow-hidden flex items-center justify-center">
+                                <div 
+                                  className={`absolute px-4 py-2 bg-black/60 backdrop-blur-sm rounded-lg ${
+                                    formData.videoTextPosition === 'top' ? 'top-4 left-1/2 -translate-x-1/2' :
+                                    formData.videoTextPosition === 'bottom' ? 'bottom-4 left-1/2 -translate-x-1/2' :
+                                    formData.videoTextPosition === 'top-left' ? 'top-4 left-4' :
+                                    formData.videoTextPosition === 'top-right' ? 'top-4 right-4' :
+                                    formData.videoTextPosition === 'bottom-left' ? 'bottom-4 left-4' :
+                                    formData.videoTextPosition === 'bottom-right' ? 'bottom-4 right-4' :
+                                    'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2'
+                                  }`}
+                                >
+                                  <p className="text-white font-bold text-sm md:text-base text-center leading-tight">
+                                    {formData.videoTextContent}
+                                  </p>
+                                </div>
+                                <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-secondary/10 pointer-events-none" />
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
                     </CardContent>
