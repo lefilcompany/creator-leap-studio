@@ -330,25 +330,25 @@ serve(async (req) => {
       );
     }
     
-    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
-    if (!openAIApiKey) {
+    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+    if (!lovableApiKey) {
       return new Response(
-        JSON.stringify({ error: 'OpenAI API key not configured', fallback: true }),
+        JSON.stringify({ error: 'AI service not configured', fallback: true }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     const prompt = buildCaptionPrompt(formData);
 
-    console.log("🔄 Chamando OpenAI API...");
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    console.log("🔄 Chamando Lovable AI...");
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${openAIApiKey}`,
+        Authorization: `Bearer ${lovableApiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: "google/gemini-2.5-flash",
         messages: [
           {
             role: "user",
@@ -356,16 +356,14 @@ serve(async (req) => {
           },
         ],
         response_format: { type: "json_object" },
-        temperature: 0.7,
-        max_tokens: 1500,
       }),
     });
 
-    console.log(`📡 OpenAI Response Status: ${response.status}`);
+    console.log(`📡 Lovable AI Response Status: ${response.status}`);
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("❌ [CAPTION] Erro OpenAI:", {
+      console.error("❌ [CAPTION] Erro Lovable AI:", {
         status: response.status,
         error: errorText
       });
@@ -373,16 +371,16 @@ serve(async (req) => {
       if (response.status === 429) {
         return new Response(
           JSON.stringify({ 
-            error: 'OpenAI rate limit exceeded. Try again in a moment.',
+            error: 'AI rate limit exceeded. Try again in a moment.',
             fallback: true 
           }),
           { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
-      if (response.status === 401) {
+      if (response.status === 402) {
         return new Response(
           JSON.stringify({ 
-            error: 'Invalid OpenAI API key',
+            error: 'AI credits exhausted',
             fallback: true 
           }),
           { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -390,7 +388,7 @@ serve(async (req) => {
       }
       return new Response(
         JSON.stringify({ 
-          error: 'OpenAI API error',
+          error: 'AI service error',
           fallback: true 
         }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
