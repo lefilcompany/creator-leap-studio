@@ -128,7 +128,7 @@ export default function QuickContentResult() {
       return;
     }
 
-    const needsCredit = freeRevisionsLeft === 0;
+    const needsCredit = totalRevisions >= 2;
 
     if (needsCredit && (!team?.credits?.contentReviews || team.credits.contentReviews <= 0)) {
       toast.error("Você não tem créditos de revisão disponíveis");

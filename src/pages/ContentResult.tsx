@@ -267,7 +267,7 @@ export default function ContentResult() {
     if (!reviewPrompt.trim() || !contentData || !reviewType) return;
 
     // Check if user can still review
-    const needsCredit = freeRevisionsLeft === 0;
+    const needsCredit = totalRevisions >= 2;
 
     // Bloquear se não tem revisões gratuitas E não tem créditos
     if (needsCredit && (!team?.credits?.contentReviews || team.credits.contentReviews <= 0)) {
