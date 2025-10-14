@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 // Função para processar vídeo em background
-async function processVideoGeneration(operationName: string, actionId: string) {
+async function processVideoGeneration(operationName: string, actionId: string, teamId: string) {
   const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
   const BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -125,6 +125,20 @@ async function processVideoGeneration(operationName: string, actionId: string) {
     const videoUrl = publicUrlData.publicUrl;
     console.log('Background: Video uploaded to storage:', videoUrl);
 
+    // Decrementar crédito do time após sucesso
+    const { error: creditError } = await supabase
+      .from('teams')
+      .update({
+        credits_suggestions: supabase.rpc('decrement', { x: 1, row_id: teamId })
+      })
+      .eq('id', teamId);
+
+    if (creditError) {
+      console.error('Background: Error decrementing credit:', creditError);
+    } else {
+      console.log('Background: Credit decremented successfully for team:', teamId);
+    }
+
     // Atualizar o action no banco com a URL do vídeo
     const { error: updateError } = await supabase
       .from('actions')
@@ -208,6 +222,66 @@ serve(async (req) => {
       );
     }
 
+    // Inicializar Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Buscar team_id do action
+    const { data: actionData, error: actionError } = await supabase
+      .from('actions')
+      .select('team_id')
+      .eq('id', actionId)
+      .single();
+
+    if (actionError || !actionData) {
+      console.error('Error fetching action:', actionError);
+      return new Response(
+        JSON.stringify({ error: 'Action not found' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Verificar créditos disponíveis
+    const { data: teamData, error: teamError } = await supabase
+      .from('teams')
+      .select('credits_suggestions')
+      .eq('id', actionData.team_id)
+      .single();
+
+    if (teamError || !teamData) {
+      console.error('Error fetching team:', teamError);
+      return new Response(
+        JSON.stringify({ error: 'Team not found' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Verificar se há créditos suficientes
+    if (teamData.credits_suggestions < 1) {
+      console.log('Insufficient credits for video generation');
+      
+      // Atualizar action como failed
+      await supabase
+        .from('actions')
+        .update({
+          status: 'failed',
+          result: { 
+            error: 'Créditos insuficientes para gerar vídeo',
+            creditsAvailable: teamData.credits_suggestions
+          },
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', actionId);
+
+      return new Response(
+        JSON.stringify({ error: 'Créditos insuficientes. Por favor, atualize seu plano.' }),
+        { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('Credits available:', teamData.credits_suggestions);
+
     const BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
     
     // Garantir que as diretrizes de texto sejam respeitadas no backend
@@ -288,7 +362,7 @@ serve(async (req) => {
     console.log('Operation started:', operationName);
 
     // Iniciar processamento em background (sem awaitar)
-    processVideoGeneration(operationName, actionId).catch(err => {
+    processVideoGeneration(operationName, actionId, actionData.team_id).catch(err => {
       console.error('Background video processing error:', err);
     });
 
