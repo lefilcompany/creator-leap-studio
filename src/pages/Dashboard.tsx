@@ -258,8 +258,8 @@ const Dashboard = () => {
           <CardContent className="pb-4">
             {loadingData ? (
               <>
-                <Skeleton className="h-10 w-20 mb-2" />
-                <Skeleton className="h-4 w-40" />
+                <Skeleton className="h-10 w-16 mb-2" />
+                <Skeleton className="h-4 w-32" />
               </>
             ) : (
               <>
@@ -281,8 +281,8 @@ const Dashboard = () => {
           <CardContent className="pb-4">
             {loadingData ? (
               <>
-                <Skeleton className="h-10 w-20 mb-2" />
-                <Skeleton className="h-4 w-40" />
+                <Skeleton className="h-10 w-16 mb-2" />
+                <Skeleton className="h-4 w-32" />
               </>
             ) : (
               <>
