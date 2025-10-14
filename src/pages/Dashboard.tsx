@@ -255,8 +255,16 @@ const Dashboard = () => {
             <Sparkles className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent className="pb-4">
-            <div className="text-4xl font-bold tracking-tight text-foreground mb-2">{stats[1].value}</div>
-            <p className="text-sm text-muted-foreground">{stats[1].subtitle}</p>
+            {loadingData ? (
+              <div className="flex items-center justify-center py-4">
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              </div>
+            ) : (
+              <>
+                <div className="text-4xl font-bold tracking-tight text-foreground mb-2">{stats[1].value}</div>
+                <p className="text-sm text-muted-foreground">{stats[1].subtitle}</p>
+              </>
+            )}
           </CardContent>
         </Card>
 
@@ -269,8 +277,16 @@ const Dashboard = () => {
             <Tags className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent className="pb-4">
-            <div className="text-4xl font-bold tracking-tight text-foreground mb-2">{stats[2].value}</div>
-            <p className="text-sm text-muted-foreground">{stats[2].subtitle}</p>
+            {loadingData ? (
+              <div className="flex items-center justify-center py-4">
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              </div>
+            ) : (
+              <>
+                <div className="text-4xl font-bold tracking-tight text-foreground mb-2">{stats[2].value}</div>
+                <p className="text-sm text-muted-foreground">{stats[2].subtitle}</p>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
