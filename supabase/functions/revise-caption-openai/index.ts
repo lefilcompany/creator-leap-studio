@@ -13,11 +13,11 @@ serve(async (req) => {
   }
 
   try {
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
-    if (!lovableApiKey) {
-      console.error('LOVABLE_API_KEY não configurada');
+    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+    if (!openAIApiKey) {
+      console.error('OPENAI_API_KEY não configurada');
       return new Response(
-        JSON.stringify({ error: 'Serviço de IA não configurado.' }),
+        JSON.stringify({ error: 'Chave da API OpenAI não configurada.' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -97,23 +97,24 @@ Responda ESTRITAMENTE em formato JSON com as chaves "title", "body" (legenda com
       try {
         console.log(`Tentativa ${retryCount + 1} de ${maxRetries} para revisar legenda`);
         
-        const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${lovableApiKey}`,
+            'Authorization': `Bearer ${openAIApiKey}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'google/gemini-2.5-flash',
+            model: 'gpt-4o-mini',
             messages: [{ role: 'user', content: textPrompt }],
             response_format: { type: "json_object" },
+            temperature: 0.7,
           }),
         });
 
         if (!response.ok) {
           const errorText = await response.text();
-          console.error('Erro da API Lovable AI:', response.status, errorText);
-          throw new Error(`Lovable AI error: ${response.status}`);
+          console.error('Erro da API OpenAI:', response.status, errorText);
+          throw new Error(`OpenAI API error: ${response.status}`);
         }
 
         const data = await response.json();
