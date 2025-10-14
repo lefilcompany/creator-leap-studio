@@ -213,15 +213,14 @@ Analise a imagem e retorne uma revisão completa em markdown seguindo EXATAMENTE
       try {
         console.log(`Review attempt ${attempt}/${MAX_RETRIES}...`);
 
-        const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${OPENAI_API_KEY}`,
+            'Authorization': `Bearer ${LOVABLE_API_KEY}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'gpt-4o',
+            model: 'google/gemini-2.5-flash',
             messages: [
               { role: 'system', content: systemPrompt },
               { 
@@ -232,7 +231,6 @@ Analise a imagem e retorne uma revisão completa em markdown seguindo EXATAMENTE
                 ]
               }
             ],
-            temperature: 0.5,
           }),
         });
 

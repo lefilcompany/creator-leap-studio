@@ -192,20 +192,18 @@ Analise o texto que será colocado NA IMAGEM do post e retorne uma revisão comp
 ### 🎯 Recomendações Finais
 [Resumo das principais melhorias e próximos passos para otimizar o texto]`;
 
-    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'google/gemini-2.5-flash',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: contextPrompt }
         ],
-        temperature: 0.5,
       }),
     });
 

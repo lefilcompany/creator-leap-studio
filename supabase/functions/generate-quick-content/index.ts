@@ -386,40 +386,21 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
       try {
         console.log(`Image generation attempt ${attempt}/${MAX_RETRIES}...`);
 
-        const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
-        if (!GEMINI_API_KEY) {
-          throw new Error('GEMINI_API_KEY não configurada');
-        }
-        
-    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-goog-api-key': GEMINI_API_KEY,
-      },
+        const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${lovableApiKey}`,
+            'Content-Type': 'application/json',
+          },
           body: JSON.stringify({
-            contents: [{
-              parts: messageContent.map((item: any) => {
-                if (item.type === "text") {
-                  return { text: item.text };
-                } else if (item.type === "image_url") {
-                  const base64Data = item.image_url.url.split(',')[1] || item.image_url.url;
-                  const mimeType = item.image_url.url.match(/data:(.*?);/)?.[1] || 'image/png';
-                  return { 
-                    inlineData: { 
-                      mimeType, 
-                      data: base64Data 
-                    } 
-                  };
-                }
-              })
-            }],
-            generationConfig: {
-              temperature: 0.7,
-              topP: 0.95,
-              topK: 40,
-              maxOutputTokens: 8192,
-            }
+            model: 'google/gemini-2.5-flash-image-preview',
+            messages: [
+              {
+                role: 'user',
+                content: messageContent
+              }
+            ],
+            modalities: ['image', 'text']
           }),
         });
 
@@ -456,18 +437,9 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
         const data = await response.json();
         console.log('Image generation response received');
 
-        // Extract the generated image from Gemini response
-        const geminiImageData = data.candidates?.[0]?.content?.parts?.find(
-          (part: any) => part.inlineData
-        )?.inlineData;
-        
-        if (geminiImageData) {
-          imageUrl = `data:${geminiImageData.mimeType};base64,${geminiImageData.data}`;
-        }
-        
-        description = data.candidates?.[0]?.content?.parts?.find(
-          (part: any) => part.text
-        )?.text || 'Imagem gerada com sucesso';
+        // Extract the generated image
+        imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+        description = data.choices?.[0]?.message?.content || 'Imagem gerada com sucesso';
 
         if (!imageUrl) {
           console.error('No image URL in response. Full response:', JSON.stringify(data, null, 2));
