@@ -179,7 +179,7 @@ serve(async (req) => {
     const imageBase64 = imageUrl.split(',')[1] || imageUrl;
     const mimeType = imageUrl.match(/data:(.*?);/)?.[1] || 'image/png';
 
-    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-exp:generateContent', {
+    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

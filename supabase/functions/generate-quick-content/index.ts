@@ -391,12 +391,12 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
           throw new Error('GEMINI_API_KEY não configurada');
         }
         
-        const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-exp:generateContent', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-goog-api-key': GEMINI_API_KEY,
-          },
+    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': GEMINI_API_KEY,
+      },
           body: JSON.stringify({
             contents: [{
               parts: messageContent.map((item: any) => {
