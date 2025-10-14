@@ -61,6 +61,10 @@ interface FormData {
   videoIncludeText?: boolean;
   videoTextContent?: string;
   videoTextPosition?: 'top' | 'center' | 'bottom' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+  // Image text configurations
+  imageIncludeText?: boolean;
+  imageTextContent?: string;
+  imageTextPosition?: 'top' | 'center' | 'bottom' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
 }
 
 const toneOptions = [
@@ -100,6 +104,10 @@ export default function CreateContent() {
     videoIncludeText: false,
     videoTextContent: "",
     videoTextPosition: "center",
+    // Image text defaults
+    imageIncludeText: false,
+    imageTextContent: "",
+    imageTextPosition: "center",
   });
 
   const [team, setTeam] = useState<Team | null>(null);
@@ -552,6 +560,10 @@ export default function CreateContent() {
         mood: formData.mood,
         width: formData.width,
         height: formData.height,
+        // Image text configurations
+        includeText: formData.imageIncludeText || false,
+        textContent: formData.imageTextContent?.trim() || "",
+        textPosition: formData.imageTextPosition || "center",
       };
 
       // Validar que brand é UUID válido
@@ -1597,14 +1609,113 @@ ${formData.description}
                             </Label>
                             <Select 
                               value={formData.videoTextPosition || "center"}
-                              onValueChange={(value) => 
+                              onValueChange={(value) =>
                                 setFormData(prev => ({ 
                                   ...prev, 
-                                  videoTextPosition: value as any 
+                                  videoTextPosition: value as any
                                 }))
                               }
                             >
-                              <SelectTrigger className="h-10 md:h-11 rounded-xl border-2 border-border/50 bg-background/50 text-sm hover:border-border/70 transition-colors">
+                              <SelectTrigger className="h-10 rounded-xl border-2 border-border/50 bg-background/50">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="top">Topo</SelectItem>
+                                <SelectItem value="center">Centro</SelectItem>
+                                <SelectItem value="bottom">Inferior</SelectItem>
+                                <SelectItem value="top-left">Superior Esquerdo</SelectItem>
+                                <SelectItem value="top-right">Superior Direito</SelectItem>
+                                <SelectItem value="bottom-left">Inferior Esquerdo</SelectItem>
+                                <SelectItem value="bottom-right">Inferior Direito</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Configurações de Texto na Imagem - NOVO BLOCO */}
+                {!isVideoMode && (
+                  <Card className="bg-gradient-to-br from-primary/5 to-secondary/5 border-2 border-primary/20 rounded-xl">
+                    <CardContent className="space-y-4 p-4">
+                      {/* Toggle Switch */}
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                          <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
+                            <Type className="h-4 w-4 text-primary" />
+                            Incluir Texto na Imagem?
+                          </Label>
+                          <p className="text-xs text-muted-foreground">
+                            Escolha se deseja adicionar texto visível na imagem gerada
+                          </p>
+                        </div>
+                        <Switch
+                          checked={formData.imageIncludeText || false}
+                          onCheckedChange={(checked) => 
+                            setFormData(prev => ({ 
+                              ...prev, 
+                              imageIncludeText: checked,
+                              imageTextContent: checked ? prev.imageTextContent : "",
+                              imageTextPosition: checked ? prev.imageTextPosition : "center"
+                            }))
+                          }
+                          className="data-[state=checked]:bg-primary"
+                        />
+                      </div>
+
+                      {/* Campos condicionais quando toggle está ativado */}
+                      {formData.imageIncludeText && (
+                        <div className="space-y-4 pt-2 border-t border-primary/20">
+                          {/* Campo de Texto */}
+                          <div className="space-y-2">
+                            <Label 
+                              htmlFor="imageTextContent"
+                              className="text-xs md:text-sm font-semibold text-foreground"
+                            >
+                              Texto a Exibir <span className="text-destructive">*</span>
+                            </Label>
+                            <Textarea
+                              id="imageTextContent"
+                              placeholder="Digite o texto que deseja exibir na imagem..."
+                              value={formData.imageTextContent || ""}
+                              onChange={(e) => 
+                                setFormData(prev => ({ 
+                                  ...prev, 
+                                  imageTextContent: e.target.value 
+                                }))
+                              }
+                              className={`min-h-[80px] rounded-xl border-2 bg-background/50 resize-none text-sm hover:border-border/70 transition-colors ${
+                                formData.imageIncludeText && !formData.imageTextContent?.trim()
+                                  ? 'border-destructive ring-2 ring-destructive/20 focus:border-destructive' 
+                                  : 'border-border/50 focus:border-primary/50'
+                              }`}
+                              maxLength={200}
+                            />
+                            <p className="text-xs text-muted-foreground text-right">
+                              {formData.imageTextContent?.length || 0}/200 caracteres
+                            </p>
+                          </div>
+
+                          {/* Select de Posição */}
+                          <div className="space-y-2">
+                            <Label 
+                              htmlFor="imageTextPosition"
+                              className="text-xs md:text-sm font-semibold text-foreground"
+                            >
+                              Posição do Texto
+                            </Label>
+                            <Select 
+                              value={formData.imageTextPosition || "center"}
+                              onValueChange={(value) =>
+                                setFormData(prev => ({ 
+                                  ...prev, 
+                                  imageTextPosition: value as any
+                                }))
+                              }
+                            >
+                              <SelectTrigger className="h-10 rounded-xl border-2 border-border/50 bg-background/50">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
@@ -1626,18 +1737,18 @@ ${formData.description}
                             </Label>
                             <div className="relative w-full aspect-video bg-gradient-to-br from-muted/50 to-muted/30 rounded-lg border-2 border-dashed border-border/50 overflow-hidden">
                               <div 
-                                className={`absolute text-xs font-bold bg-primary/90 text-primary-foreground px-3 py-1.5 rounded-md shadow-lg ${
-                                  formData.videoTextPosition === 'top' ? 'top-4 left-1/2 -translate-x-1/2' :
-                                  formData.videoTextPosition === 'center' ? 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2' :
-                                  formData.videoTextPosition === 'bottom' ? 'bottom-4 left-1/2 -translate-x-1/2' :
-                                  formData.videoTextPosition === 'top-left' ? 'top-4 left-4' :
-                                  formData.videoTextPosition === 'top-right' ? 'top-4 right-4' :
-                                  formData.videoTextPosition === 'bottom-left' ? 'bottom-4 left-4' :
-                                  formData.videoTextPosition === 'bottom-right' ? 'bottom-4 right-4' :
+                                 className={`absolute text-xs font-bold bg-primary/90 text-primary-foreground px-3 py-1.5 rounded-md shadow-lg ${
+                                  formData.imageTextPosition === 'top' ? 'top-4 left-1/2 -translate-x-1/2' :
+                                  formData.imageTextPosition === 'center' ? 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2' :
+                                  formData.imageTextPosition === 'bottom' ? 'bottom-4 left-1/2 -translate-x-1/2' :
+                                  formData.imageTextPosition === 'top-left' ? 'top-4 left-4' :
+                                  formData.imageTextPosition === 'top-right' ? 'top-4 right-4' :
+                                  formData.imageTextPosition === 'bottom-left' ? 'bottom-4 left-4' :
+                                  formData.imageTextPosition === 'bottom-right' ? 'bottom-4 right-4' :
                                   'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2'
                                 }`}
                               >
-                                {formData.videoTextContent?.trim() || "Seu texto aqui"}
+                                {formData.imageTextContent?.trim() || "Seu texto aqui"}
                               </div>
                             </div>
                           </div>
@@ -1645,11 +1756,11 @@ ${formData.description}
                       )}
 
                       {/* Alerta quando toggle ativo mas sem texto */}
-                      {formData.videoIncludeText && !formData.videoTextContent?.trim() && (
+                      {formData.imageIncludeText && !formData.imageTextContent?.trim() && (
                         <div className="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/30 rounded-lg">
                           <AlertCircle className="h-4 w-4 text-destructive flex-shrink-0" />
                           <p className="text-xs text-destructive font-medium">
-                            Por favor, digite o texto que deseja exibir no vídeo
+                            Por favor, digite o texto que deseja exibir na imagem
                           </p>
                         </div>
                       )}

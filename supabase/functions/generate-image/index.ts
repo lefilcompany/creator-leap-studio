@@ -305,6 +305,37 @@ function buildDetailedPrompt(formData: any): string {
   if (objective) promptParts.push(`Objetivo: ${objective}`);
   if (additionalInfo) promptParts.push(`Elementos visuais adicionais: ${additionalInfo}`);
 
+  // === INSTRUÇÕES SOBRE TEXTO NA IMAGEM ===
+  const includeText = formData.includeText ?? false;
+  const textContent = cleanInput(formData.textContent);
+  const textPosition = formData.textPosition || 'center';
+
+  if (!includeText) {
+    // Instrução CRÍTICA para prevenir texto indesejado
+    promptParts.push(
+      "CRÍTICO: NÃO incluir NENHUM texto, palavra, letra, número, símbolo ou caractere escrito visível na imagem. " +
+      "A imagem deve ser puramente visual, sem qualquer elemento de texto sobreposto. " +
+      "Absolutamente SEM TEXTO de nenhum tipo."
+    );
+  } else if (textContent?.trim()) {
+    // Reforçar instrução de texto específico com posição
+    const positionInstructions: Record<string, string> = {
+      'top': 'no topo da imagem',
+      'center': 'centralizado na imagem',
+      'bottom': 'na parte inferior da imagem',
+      'top-left': 'no canto superior esquerdo',
+      'top-right': 'no canto superior direito',
+      'bottom-left': 'no canto inferior esquerdo',
+      'bottom-right': 'no canto inferior direito'
+    };
+    
+    promptParts.push(
+      `IMPORTANTE: Incluir o seguinte texto ${positionInstructions[textPosition] || 'centralizado na imagem'}: "${textContent}". ` +
+      `O texto deve ser legível, bem visível, com tipografia apropriada e contraste adequado com o fundo. ` +
+      `A posição do texto deve ser exatamente como especificado.`
+    );
+  }
+
   // Advanced configuration processing
   const colorPaletteDescriptions: { [key: string]: string } = {
     warm: "Paleta de cores quentes e acolhedoras: tons de laranja, vermelho, amarelo e dourado que transmitem energia e calor",
