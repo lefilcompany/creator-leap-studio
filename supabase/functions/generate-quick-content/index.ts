@@ -344,12 +344,12 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
     enhancedPrompt += `\nEsta é a proporção FINAL, DEFINITIVA e OBRIGATÓRIA.`;
     enhancedPrompt += `\n${'='.repeat(60)}`;
 
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
-    if (!lovableApiKey) {
-      throw new Error('Lovable API key not configured');
+    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+    if (!GEMINI_API_KEY) {
+      throw new Error('GEMINI_API_KEY not configured');
     }
 
-    console.log('Calling Lovable AI for image generation with enhanced prompt...');
+    console.log('Calling Gemini API for image generation with enhanced prompt...');
 
     // Build messages array with optional reference images
     const messageContent: any[] = [
@@ -386,29 +386,44 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
       try {
         console.log(`Image generation attempt ${attempt}/${MAX_RETRIES}...`);
 
-        const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        // Converter messageContent para o formato do Gemini
+        const geminiParts = messageContent.map((item: any) => {
+          if (item.type === "text") {
+            return { text: item.text };
+          } else if (item.type === "image_url") {
+            const base64Data = item.image_url.url.split(',')[1];
+            const mimeType = item.image_url.url.match(/data:(.*?);/)?.[1] || 'image/png';
+            return { 
+              inlineData: { 
+                mimeType, 
+                data: base64Data 
+              } 
+            };
+          }
+        });
+
+        const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${lovableApiKey}`,
             'Content-Type': 'application/json',
+            'x-goog-api-key': GEMINI_API_KEY,
           },
           body: JSON.stringify({
-            model: 'google/gemini-2.5-flash-image-preview',
-            messages: [
-              {
-                role: 'user',
-                content: messageContent
-              }
-            ],
-            modalities: ['image', 'text']
+            contents: [{ parts: geminiParts }],
+            generationConfig: {
+              temperature: 0.7,
+              topP: 0.95,
+              topK: 40,
+              maxOutputTokens: 8192,
+            }
           }),
         });
 
         if (!response.ok) {
           const errorText = await response.text();
-          console.error(`Lovable AI error (attempt ${attempt}):`, response.status, errorText);
+          console.error(`Gemini API error (attempt ${attempt}):`, response.status, errorText);
           
-          // Don't retry on rate limit or payment errors
+          // Don't retry on rate limit errors
           if (response.status === 429) {
             return new Response(
               JSON.stringify({ error: 'Limite de requisições excedido. Tente novamente mais tarde.' }),
@@ -416,14 +431,7 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
             );
           }
           
-          if (response.status === 402) {
-            return new Response(
-              JSON.stringify({ error: 'Pagamento necessário. Adicione créditos ao seu workspace Lovable AI.' }),
-              { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-            );
-          }
-          
-          lastError = new Error(`Lovable AI error: ${response.status}`);
+          lastError = new Error(`Gemini API error: ${response.status}`);
           
           if (attempt < MAX_RETRIES) {
             console.log(`Retrying in 2 seconds... (attempt ${attempt + 1}/${MAX_RETRIES})`);
@@ -437,16 +445,25 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
         const data = await response.json();
         console.log('Image generation response received');
 
-        // Extract the generated image
-        imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-        description = data.choices?.[0]?.message?.content || 'Imagem gerada com sucesso';
+        // Extrair imagem da resposta do Gemini
+        const geminiImageData = data.candidates?.[0]?.content?.parts?.find(
+          (part: any) => part.inlineData
+        )?.inlineData;
 
-        if (!imageUrl) {
-          console.error('No image URL in response. Full response:', JSON.stringify(data, null, 2));
+        const textContent = data.candidates?.[0]?.content?.parts?.find(
+          (part: any) => part.text
+        )?.text;
+
+        if (textContent) {
+          description = textContent;
+        }
+
+        if (!geminiImageData) {
+          console.error('No image in response. Full response:', JSON.stringify(data, null, 2));
           lastError = new Error('A API não retornou uma imagem válida');
           
           if (attempt < MAX_RETRIES) {
-            console.log(`No image URL returned, retrying in 2 seconds... (attempt ${attempt + 1}/${MAX_RETRIES})`);
+            console.log(`No image returned, retrying in 2 seconds... (attempt ${attempt + 1}/${MAX_RETRIES})`);
             await new Promise(resolve => setTimeout(resolve, 2000));
             continue;
           }
@@ -459,6 +476,8 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
             { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
+
+        imageUrl = `data:${geminiImageData.mimeType};base64,${geminiImageData.data}`;
 
         // Success! Break out of retry loop
         break;

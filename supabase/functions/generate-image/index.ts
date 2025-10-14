@@ -502,16 +502,41 @@ async function generateImageWithRetry(prompt: string, referenceImages: string[] 
       text: isEdit ? `Edite esta imagem aplicando as seguintes alterações: ${prompt}` : prompt
     });
     
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+    if (!GEMINI_API_KEY) {
+      throw new Error("GEMINI_API_KEY não configurada");
+    }
+
+    // Converter messageContent para o formato do Gemini
+    const geminiParts = messageContent.map((item: any) => {
+      if (item.type === "text") {
+        return { text: item.text };
+      } else if (item.type === "image_url") {
+        const base64Data = item.image_url.url.split(',')[1];
+        const mimeType = item.image_url.url.match(/data:(.*?);/)?.[1] || 'image/png';
+        return { 
+          inlineData: { 
+            mimeType, 
+            data: base64Data 
+          } 
+        };
+      }
+    });
+
+    const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
+        "x-goog-api-key": GEMINI_API_KEY,
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-image-preview",
-        messages: [{ role: "user", content: messageContent }],
-        modalities: ["image", "text"],
+        contents: [{ parts: geminiParts }],
+        generationConfig: {
+          temperature: 0.7,
+          topP: 0.95,
+          topK: 40,
+          maxOutputTokens: 8192,
+        }
       }),
     });
 
@@ -522,23 +547,25 @@ async function generateImageWithRetry(prompt: string, referenceImages: string[] 
       if (response.status === 429) {
         throw new Error("RATE_LIMIT: Muitas requisições. Aguarde alguns segundos e tente novamente.");
       }
-      if (response.status === 402) {
-        throw new Error("PAYMENT_REQUIRED: Créditos insuficientes no Lovable AI.");
-      }
       if (response.status === 400) {
-        // Erro 400 geralmente indica problema com as imagens de referência
         throw new Error("IMAGE_PROCESSING_ERROR: Não foi possível processar as imagens de referência. Tente com menos imagens ou imagens menores.");
       }
       
-      throw new Error(`AI_GATEWAY_ERROR: Erro ${response.status} ao gerar imagem.`);
+      throw new Error(`GEMINI_API_ERROR: Erro ${response.status} ao gerar imagem.`);
     }
 
     const data = await response.json();
-    const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    
+    // Extrair imagem da resposta do Gemini
+    const geminiImageData = data.candidates?.[0]?.content?.parts?.find(
+      (part: any) => part.inlineData
+    )?.inlineData;
 
-    if (!imageUrl) {
+    if (!geminiImageData) {
       throw new Error("NO_IMAGE_GENERATED");
     }
+
+    const imageUrl = `data:${geminiImageData.mimeType};base64,${geminiImageData.data}`;
 
     console.log(`✅ Sucesso na tentativa ${attempt}/${MAX_RETRIES}`);
     return { imageUrl, attempt };
