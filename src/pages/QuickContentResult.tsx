@@ -252,26 +252,26 @@ export default function QuickContentResult() {
       <div className="container max-w-7xl mx-auto">
         {/* Header */}
         <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl border-b border-border/40 px-3 sm:px-4 lg:px-6 py-2.5 sm:py-3 lg:py-4 mb-4 sm:mb-6 lg:mb-8">
-          <div className="flex flex-col gap-3">
-            {/* Top row: Back button + Title */}
-            <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center justify-between gap-3">
+            {/* Left side: Back button + Title */}
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
               <Button
                 variant="outline"
                 size="icon"
                 onClick={() => navigate("/quick-content")}
-                className="hover:scale-105 transition-transform shrink-0 h-8 w-8 sm:h-9 sm:w-9 lg:h-10 lg:w-10"
+                className="hover:scale-105 transition-transform shrink-0 h-9 w-9"
               >
-                <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <ArrowLeft className="h-4 w-4" />
               </Button>
-              <div className="min-w-0 flex-1">
-                <h1 className="text-base sm:text-lg lg:text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent truncate">
+              <div className="min-w-0">
+                <h1 className="text-lg lg:text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent truncate">
                   Conteúdo Gerado
                 </h1>
-                <p className="text-[10px] sm:text-xs lg:text-sm text-muted-foreground truncate">Sua imagem foi criada com sucesso</p>
+                <p className="text-xs lg:text-sm text-muted-foreground truncate hidden sm:block">Sua imagem foi criada com sucesso</p>
               </div>
             </div>
             
-            {/* Bottom row: Action buttons */}
+            {/* Right side: Action buttons */}
             <div className="flex gap-3">
               <TooltipProvider>
                 <Tooltip>
