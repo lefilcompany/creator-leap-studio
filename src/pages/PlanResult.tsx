@@ -188,54 +188,85 @@ const PlanResult = () => {
           return;
         }
 
-        // H1 - Main headers
+        // H1 - Main headers (Arial 18pt, Bold, Black)
         if (trimmedLine.match(/^#\s+[^#]/)) {
           const text = trimmedLine.replace(/^#\s+/, '');
           paragraphs.push(new Paragraph({
-            text: text,
-            heading: HeadingLevel.HEADING_1,
+            children: [
+              new TextRun({
+                text: text,
+                font: "Arial",
+                size: 36, // 18pt (size is in half-points)
+                bold: true,
+                color: "000000",
+              })
+            ],
             spacing: { before: 240, after: 120 },
             alignment: AlignmentType.LEFT,
           }));
         }
-        // H2 - Section headers
+        // H2 - Section headers (Arial 16pt, Bold, Black)
         else if (trimmedLine.match(/^##\s+[^#]/)) {
           const text = trimmedLine.replace(/^##\s+/, '');
           paragraphs.push(new Paragraph({
-            text: text,
-            heading: HeadingLevel.HEADING_2,
+            children: [
+              new TextRun({
+                text: text,
+                font: "Arial",
+                size: 32, // 16pt
+                bold: true,
+                color: "000000",
+              })
+            ],
             spacing: { before: 200, after: 100 },
             alignment: AlignmentType.LEFT,
           }));
         }
-        // H3 - Subsection headers
+        // H3 - Subsection headers (Arial 14pt, Bold, Black)
         else if (trimmedLine.match(/^###\s+/)) {
           const text = trimmedLine.replace(/^###\s+/, '');
           paragraphs.push(new Paragraph({
-            text: text,
-            heading: HeadingLevel.HEADING_3,
+            children: [
+              new TextRun({
+                text: text,
+                font: "Arial",
+                size: 28, // 14pt
+                bold: true,
+                color: "000000",
+              })
+            ],
             spacing: { before: 160, after: 80 },
             alignment: AlignmentType.LEFT,
           }));
         }
-        // Bold text
+        // Bold text (Arial 12pt, Bold, Black)
         else if (trimmedLine.includes('**')) {
           const text = trimmedLine.replace(/\*\*/g, '');
           paragraphs.push(new Paragraph({
             children: [
               new TextRun({
                 text: text,
+                font: "Arial",
+                size: 24, // 12pt
                 bold: true,
+                color: "000000",
               })
             ],
             spacing: { after: 100 }
           }));
         }
-        // Numbered lists
+        // Numbered lists (Arial 12pt, Black)
         else if (trimmedLine.match(/^\d+\.\s+/)) {
           const text = trimmedLine.replace(/^\d+\.\s+/, '');
           paragraphs.push(new Paragraph({
-            text: text,
+            children: [
+              new TextRun({
+                text: text,
+                font: "Arial",
+                size: 24, // 12pt
+                color: "000000",
+              })
+            ],
             numbering: {
               reference: "default-numbering",
               level: 0
@@ -243,21 +274,35 @@ const PlanResult = () => {
             spacing: { after: 80 }
           }));
         }
-        // Bullet lists
+        // Bullet lists (Arial 12pt, Black)
         else if (trimmedLine.match(/^(\-|\*)\s+/)) {
           const text = trimmedLine.replace(/^(\-|\*)\s+/, '');
           paragraphs.push(new Paragraph({
-            text: text,
+            children: [
+              new TextRun({
+                text: text,
+                font: "Arial",
+                size: 24, // 12pt
+                color: "000000",
+              })
+            ],
             bullet: {
               level: 0
             },
             spacing: { after: 80 }
           }));
         }
-        // Regular text
+        // Regular text (Arial 12pt, Black)
         else {
           paragraphs.push(new Paragraph({
-            text: trimmedLine,
+            children: [
+              new TextRun({
+                text: trimmedLine,
+                font: "Arial",
+                size: 24, // 12pt
+                color: "000000",
+              })
+            ],
             spacing: { after: 100 }
           }));
         }
