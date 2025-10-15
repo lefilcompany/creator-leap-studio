@@ -61,7 +61,8 @@ export default function ActionView() {
           error
         } = await supabase.from('actions').select(`
             *,
-            brand:brands(id, name)
+            brand:brands(id, name),
+            user:profiles!actions_user_id_fkey(id, name, email)
           `).eq('id', actionId).single();
         if (error) throw error;
 
@@ -79,7 +80,8 @@ export default function ActionView() {
           revisions: data.revisions,
           details: data.details as Action['details'],
           result: data.result as Action['result'],
-          brand: data.brand as Action['brand']
+          brand: data.brand as Action['brand'],
+          user: data.user as Action['user']
         };
         setAction(transformedData);
       } catch (error) {
@@ -334,7 +336,7 @@ export default function ActionView() {
       {/* Content */}
       <div className="container mx-auto px-4 py-8 max-w-5xl">
         {/* Info Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <Card className="p-4">
             <div className="flex items-center gap-2 text-muted-foreground mb-1">
               <Clock className="h-4 w-4" />
@@ -349,6 +351,14 @@ export default function ActionView() {
               <span className="text-sm font-medium">Marca</span>
             </div>
             <p className="font-semibold">{action.brand?.name || 'Não especificada'}</p>
+          </Card>
+
+          <Card className="p-4">
+            <div className="flex items-center gap-2 text-muted-foreground mb-1">
+              <User className="h-4 w-4" />
+              <span className="text-sm font-medium">Criado por</span>
+            </div>
+            <p className="font-semibold truncate">{action.user?.name || 'Não especificado'}</p>
           </Card>
 
           <Card className="p-4">
