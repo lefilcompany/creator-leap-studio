@@ -694,8 +694,7 @@ export default function ActionView() {
                     <div className="flex gap-3">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="outline" size="icon" className="h-9 w-9">
-                            <Download className="h-4 w-4" />
+                          <Button variant="outline" size="icon" className="h-9 w-9 hover:border-accent hover:bg-accent/20 hover:text-accent
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="bg-card z-50">
