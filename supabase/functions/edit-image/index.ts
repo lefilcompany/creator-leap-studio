@@ -190,8 +190,18 @@ serve(async (req) => {
       }
       
       const imageBuffer = await imageResponse.arrayBuffer();
-      const base64 = btoa(String.fromCharCode(...new Uint8Array(imageBuffer)));
-      imageBase64 = base64;
+      
+      // Converter ArrayBuffer para base64 usando chunks para evitar stack overflow
+      const bytes = new Uint8Array(imageBuffer);
+      let binary = '';
+      const chunkSize = 8192; // Process in chunks to avoid stack overflow
+      
+      for (let i = 0; i < bytes.length; i += chunkSize) {
+        const chunk = bytes.subarray(i, Math.min(i + chunkSize, bytes.length));
+        binary += String.fromCharCode(...chunk);
+      }
+      
+      imageBase64 = btoa(binary);
       
       // Detectar mime type da resposta
       const contentType = imageResponse.headers.get('content-type');

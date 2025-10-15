@@ -169,8 +169,8 @@ export default function QuickContentResult() {
       const timestamp = Date.now();
       const imageUrlWithTimestamp = `${data.editedImageUrl}?t=${timestamp}`;
 
-      // Add to history
-      const newHistory = [...imageHistory, imageUrlWithTimestamp];
+      // Add to history (limite de 10 imagens para evitar quota exceeded)
+      const newHistory = [...imageHistory, imageUrlWithTimestamp].slice(-10);
       setImageHistory(newHistory);
       setCurrentImageUrl(imageUrlWithTimestamp);
 
@@ -179,8 +179,18 @@ export default function QuickContentResult() {
       const revisionsKey = `revisions_${contentId}`;
       const historyKey = `image_history_${contentId}`;
 
-      localStorage.setItem(revisionsKey, newRevisionCount.toString());
-      localStorage.setItem(historyKey, JSON.stringify(newHistory));
+      try {
+        localStorage.setItem(revisionsKey, newRevisionCount.toString());
+        localStorage.setItem(historyKey, JSON.stringify(newHistory));
+      } catch (error) {
+        console.error('Erro ao salvar no localStorage:', error);
+        // Se falhar, limpar histórico antigo e tentar novamente
+        if (error instanceof DOMException && error.name === 'QuotaExceededError') {
+          localStorage.removeItem(historyKey);
+          localStorage.setItem(historyKey, JSON.stringify([imageUrlWithTimestamp]));
+          toast.warning('Histórico de imagens foi resetado por limite de armazenamento');
+        }
+      }
 
       setTotalRevisions(newRevisionCount);
       setFreeRevisionsLeft(newFreeRevisionsLeft);
