@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export default function QuickContentResult() {
   const navigate = useNavigate();
@@ -271,43 +272,69 @@ export default function QuickContentResult() {
             </div>
             
             {/* Bottom row: Action buttons */}
-            <div className="flex gap-1.5 sm:gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleOpenReview}
-                className="hover:scale-105 transition-transform flex-1 h-8 sm:h-9 text-xs sm:text-sm px-2 sm:px-3"
-              >
-                <RefreshCw className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-1.5" />
-                <span className="hidden sm:inline">Revisar</span>
-              </Button>
+            <div className="flex gap-3">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={handleOpenReview}
+                      className="h-9 w-9 hover:text-accent hover:bg-accent/20 hover:border-accent transition-all"
+                    >
+                      <RefreshCw className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Revisar</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
               {totalRevisions > 0 && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleRevert}
-                  className="hover:scale-105 transition-transform flex-1 h-8 sm:h-9 text-xs sm:text-sm px-2 sm:px-3"
-                  title="Reverter última revisão"
-                >
-                  <Undo2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-1.5" />
-                  <span className="hidden sm:inline">Reverter</span>
-                </Button>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={handleRevert}
+                        className="h-9 w-9 hover:text-accent hover:bg-accent/20 hover:border-accent transition-all"
+                      >
+                        <Undo2 className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Reverter última revisão</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               )}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleDownload}
-                className="hover:scale-105 transition-transform flex-1 h-8 sm:h-9 text-xs sm:text-sm px-2 sm:px-3"
-              >
-                <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-1.5" />
-                <span className="hidden sm:inline">Baixar</span>
-              </Button>
+
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={handleDownload}
+                      className="h-9 w-9 hover:text-accent hover:bg-accent/20 hover:border-accent transition-all"
+                    >
+                      <Download className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Baixar</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
               <Button
                 size="sm"
                 onClick={() => navigate("/quick-content")}
-                className="hover:scale-105 transition-transform flex-1 h-8 sm:h-9 text-xs sm:text-sm px-2 sm:px-3"
+                className="hover:scale-105 transition-transform h-9 px-4"
               >
-                <span className="hidden sm:inline">Criar Novo</span>
+                <span>Criar Novo</span>
                 <span className="sm:hidden">Novo</span>
               </Button>
             </div>
