@@ -298,21 +298,21 @@ const PlanResult = () => {
               <DropdownMenuContent className="bg-background border shadow-lg z-50">
                 <DropdownMenuItem 
                   onClick={handleDownloadDocx}
-                  className="cursor-pointer hover:bg-accent/20 focus:bg-accent/20"
+                  className="cursor-pointer hover:bg-accent/20 hover:text-accent focus:bg-accent/20"
                 >
                   <FileText className="h-4 w-4 mr-2" />
                   Baixar como .docx (Word)
                 </DropdownMenuItem>
                 <DropdownMenuItem 
                   onClick={handleDownloadTxt}
-                  className="cursor-pointer hover:bg-accent/20 focus:bg-accent/20"
+                  className="cursor-pointer hover:bg-accent/20 hover:text-accent focus:bg-accent/20"
                 >
                   <File className="h-4 w-4 mr-2" />
                   Baixar como .txt (Texto)
                 </DropdownMenuItem>
                 <DropdownMenuItem 
                   onClick={handleDownloadMd}
-                  className="cursor-pointer hover:bg-accent/20 focus:bg-accent/20"
+                  className="cursor-pointer hover:bg-accent/20 hover:text-accent focus:bg-accent/20"
                 >
                   <FileCode className="h-4 w-4 mr-2" />
                   Baixar como .md (Markdown)
