@@ -1442,14 +1442,25 @@ ${formData.description}
                 </div>
 
                 <div className="space-y-2 md:space-y-3">
-                  <Label
-                    htmlFor="description"
-                    className="text-xs md:text-sm font-semibold text-foreground"
-                  >
-                    {isVideoMode
-                      ? "Descrição Visual do Vídeo"
-                      : "Descrição Visual da Imagem"} <span className="text-destructive">*</span>
-                  </Label>
+                  <div className="flex items-center justify-between">
+                    <Label
+                      htmlFor="description"
+                      className="text-xs md:text-sm font-semibold text-foreground"
+                    >
+                      {isVideoMode
+                        ? "Descrição Visual do Vídeo"
+                        : "Descrição Visual da Imagem"} <span className="text-destructive">*</span>
+                    </Label>
+                    <span className={`text-xs font-medium ${
+                      formData.description.length > 5000 
+                        ? 'text-destructive' 
+                        : formData.description.length > 4500 
+                          ? 'text-orange-500' 
+                          : 'text-muted-foreground'
+                    }`}>
+                      {formData.description.length}/5000
+                    </span>
+                  </div>
                   <Textarea
                     id="description"
                     placeholder={
@@ -1459,6 +1470,7 @@ ${formData.description}
                     }
                     value={formData.description}
                     onChange={handleInputChange}
+                    maxLength={5000}
                     className={`min-h-[100px] md:min-h-[120px] rounded-xl border-2 bg-background/50 resize-none text-sm hover:border-border/70 transition-colors ${
                       missingFields.includes('description') 
                         ? 'border-destructive ring-2 ring-destructive/20 focus:border-destructive' 
