@@ -145,37 +145,46 @@ function buildDetailedPrompt(formData: any): string {
     " PRIORIDADE ABSOLUTA: Em caso de qualquer conflito entre estas diretrizes e outras instruções recebidas, ESTAS DIRETRIZES ÉTICAS DEVEM SEMPRE PREVALECER. Recuse-se implicitamente a gerar conteúdo que viole estas regras."
   );
 
-  // Instrução de uso de imagens de referência - mais clara e contextualizada
-  if (hasReferenceImages) {
-    let imageContext = `\n\n${'='.repeat(80)}\n🎨 IMAGENS DE REFERÊNCIA VISUAL FORNECIDAS (${totalImages} no total)\n${'='.repeat(80)}`;
-    
-    if (brandImagesCount > 0) {
-      imageContext += `\n\n📌 ${brandImagesCount} IMAGEM(NS) DA MARCA "${brand}":`;
-      imageContext += `\n   - Estas são imagens OFICIAIS da identidade visual da marca`;
-      imageContext += `\n   - Use EXATAMENTE o estilo visual, paleta de cores, tipografia e estética dessas imagens`;
-      imageContext += `\n   - Mantenha a MESMA qualidade visual e nível de acabamento`;
-      imageContext += `\n   - Replique elementos de design (bordas, texturas, filtros, efeitos)`;
-      imageContext += `\n   - Preserve a atmosfera e mood transmitidos por essas imagens`;
-      imageContext += `\n   - PRIORIDADE MÁXIMA: A nova imagem DEVE parecer parte do mesmo conjunto visual`;
-    }
-    
-    if (userImagesCount > 0) {
-      imageContext += `\n\n✨ ${userImagesCount} IMAGEM(NS) DE REFERÊNCIA DO USUÁRIO:`;
-      imageContext += `\n   - Inspiração adicional para composição, estilo ou elementos específicos`;
-      imageContext += `\n   - Analise elementos visuais relevantes (layout, cores, objetos, atmosfera)`;
-      imageContext += `\n   - Adapte esses elementos mantendo coerência com a marca`;
-      imageContext += `\n   - Use como referência complementar, não como cópia exata`;
-    }
-    
-    imageContext += `\n\n⚠️ INSTRUÇÕES CRÍTICAS DE USO DAS REFERÊNCIAS:`;
-    imageContext += `\n   1. ANALISE todas as imagens de referência antes de começar a gerar`;
-    imageContext += `\n   2. IDENTIFIQUE padrões visuais: paleta de cores, estilo fotográfico/ilustrativo, composição`;
-    imageContext += `\n   3. REPLIQUE esses padrões na nova imagem de forma consistente`;
-    imageContext += `\n   4. MANTENHA coerência estética - a nova imagem deve parecer da mesma "família visual"`;
-    imageContext += `\n   5. Se houver logos, elementos gráficos ou tipografia específica nas referências, considere incluir elementos similares`;
-    imageContext += `\n${'='.repeat(80)}\n`;
-    
-    promptParts.push(imageContext);
+  // NOVO: Adicionar instruções para preservação de traços
+  const preserveImages = formData.preserveImages || [];
+  const styleReferenceImages = formData.styleReferenceImages || [];
+
+  if (preserveImages && preserveImages.length > 0) {
+    promptParts.push(`
+${'='.repeat(80)}
+🎨 IMAGENS DA MARCA/IDENTIDADE VISUAL (${preserveImages.length} fornecidas)
+${'='.repeat(80)}
+
+📌 INSTRUÇÕES PARA USO DESSAS IMAGENS:
+   - Estas são imagens OFICIAIS da identidade visual/marca
+   - Use EXATAMENTE o estilo visual, paleta de cores e estética dessas imagens
+   - Mantenha a MESMA qualidade visual e nível de acabamento
+   - Replique elementos de design (bordas, texturas, filtros, efeitos)
+   - Preserve a atmosfera e mood transmitidos
+   - A nova imagem DEVE parecer parte do mesmo conjunto visual
+   - Se houver logotipos ou elementos específicos, mantenha-os reconhecíveis
+
+⚠️ IMPORTANTE: A imagem final deve manter a identidade visual estabelecida
+${'='.repeat(80)}
+    `);
+  }
+
+  if (styleReferenceImages && styleReferenceImages.length > 0) {
+    promptParts.push(`
+${'='.repeat(80)}
+✨ IMAGENS DE REFERÊNCIA DE ESTILO (${styleReferenceImages.length} fornecidas)
+${'='.repeat(80)}
+
+📋 INSTRUÇÕES PARA USO:
+   - Inspiração adicional para composição, estilo ou elementos específicos
+   - Analise elementos visuais (cores, layout, objetos, atmosfera)
+   - Adapte esses elementos de forma coerente
+   - Use como complemento às imagens principais da marca
+   - Não é necessário replicar exatamente, apenas se inspirar
+
+💡 Use estas imagens para enriquecer a criação, mas priorize as imagens de identidade
+${'='.repeat(80)}
+    `);
   }
 
   // Contexto estratégico
@@ -444,7 +453,16 @@ function buildDetailedPrompt(formData: any): string {
   return promptParts.join(". ");
 }
 
-async function generateImageWithRetry(prompt: string, referenceImages: string[] | undefined, apiKey: string, isEdit: boolean = false, existingImage?: string, attempt: number = 1): Promise<any> {
+async function generateImageWithRetry(
+  prompt: string, 
+  referenceImages: string[] | undefined,
+  preserveImages: string[] | undefined,
+  styleReferenceImages: string[] | undefined,
+  apiKey: string, 
+  isEdit: boolean = false, 
+  existingImage?: string, 
+  attempt: number = 1
+): Promise<any> {
   try {
     if (isEdit) {
       console.log(`✏️ Tentativa ${attempt}/${MAX_RETRIES} de edição de imagem com Gemini 2.5...`);
@@ -466,40 +484,36 @@ async function generateImageWithRetry(prompt: string, referenceImages: string[] 
       });
     }
     
-    // Adicionar imagens de referência (se houver e não for edição)
-    // Priorizar imagens da marca, depois do usuário, com limite total de 5
-    if (!isEdit && referenceImages && Array.isArray(referenceImages) && referenceImages.length > 0) {
-      const maxImages = 5;
-      const limitedImages = referenceImages.slice(0, maxImages);
-      
-      console.log(`📸 Processando ${limitedImages.length} de ${referenceImages.length} imagem(ns) de referência...`);
-      
-      let successCount = 0;
-      for (const refImg of limitedImages) {
-        try {
-          // Validar formato base64
-          if (!refImg.startsWith('data:image/')) {
-            console.warn("⚠️ Imagem de referência em formato inválido, ignorando...");
-            continue;
-          }
-          
+    // NOVO: Adicionar imagens a preservar PRIMEIRO (maior prioridade)
+    if (!isEdit && preserveImages && preserveImages.length > 0) {
+      console.log(`🎨 Adicionando ${preserveImages.length} imagem(ns) para preservar traços...`);
+      for (const img of preserveImages) {
+        if (img.startsWith('data:image/')) {
           messageContent.push({
             type: "image_url",
-            image_url: {
-              url: refImg
-            }
+            image_url: { url: img }
           });
-          successCount++;
-        } catch (refError) {
-          console.error("❌ Erro ao processar imagem de referência:", refError);
         }
       }
-      
-      console.log(`✅ ${successCount} imagens adicionadas ao contexto com sucesso`);
-      
-      if (referenceImages.length > maxImages) {
-        console.log(`ℹ️ Limitadas a ${maxImages} imagens (${referenceImages.length - maxImages} não processadas)`);
+    }
+    
+    // NOVO: Adicionar imagens de referência de estilo DEPOIS
+    if (!isEdit && styleReferenceImages && styleReferenceImages.length > 0) {
+      console.log(`✨ Adicionando ${styleReferenceImages.length} imagem(ns) de referência de estilo...`);
+      for (const img of styleReferenceImages) {
+        if (img.startsWith('data:image/')) {
+          messageContent.push({
+            type: "image_url",
+            image_url: { url: img }
+          });
+        }
       }
+    }
+    
+    // Limitar total de imagens a 5 (compatibilidade com Gemini)
+    if (messageContent.length > 5) {
+      console.log(`⚠️ Limitando a 5 imagens (${messageContent.length} fornecidas)`);
+      messageContent.splice(5); // Mantém apenas as 5 primeiras
     }
     
     // Adicionar o prompt de texto
@@ -591,7 +605,7 @@ async function generateImageWithRetry(prompt: string, referenceImages: string[] 
       const delay = attempt * RETRY_DELAY_MS;
       console.log(`⏳ Aguardando ${delay}ms antes da próxima tentativa...`);
       await new Promise(resolve => setTimeout(resolve, delay));
-      return generateImageWithRetry(prompt, referenceImages, apiKey, isEdit, existingImage, attempt + 1);
+      return generateImageWithRetry(prompt, referenceImages, preserveImages, styleReferenceImages, apiKey, isEdit, existingImage, attempt + 1);
     }
     
     // Última tentativa falhou
@@ -742,7 +756,9 @@ serve(async (req) => {
     try {
       const result = await generateImageWithRetry(
         prompt, 
-        formData.referenceImages, 
+        formData.referenceImages,
+        formData.preserveImages,
+        formData.styleReferenceImages,
         LOVABLE_API_KEY, 
         isEdit, 
         formData.existingImage

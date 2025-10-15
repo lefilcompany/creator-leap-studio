@@ -200,7 +200,9 @@ serve(async (req) => {
 
     const { 
       prompt, 
-      referenceImage, 
+      referenceImage,
+      preserveImages = [],
+      styleReferenceImages = [],
       actionId,
       includeText = false,
       textContent = "",
@@ -211,6 +213,8 @@ serve(async (req) => {
     console.log('📝 Prompt:', prompt);
     console.log('🆔 Action ID:', actionId);
     console.log('🖼️ Imagem de referência:', referenceImage ? 'Sim' : 'Não');
+    console.log('🎨 Imagens para preservar:', preserveImages.length);
+    console.log('✨ Imagens de estilo:', styleReferenceImages.length);
     console.log('📝 Incluir texto:', includeText);
     console.log('📝 Conteúdo do texto:', textContent ? `"${textContent}"` : 'Nenhum');
     console.log('📍 Posição do texto:', textPosition);
@@ -286,6 +290,15 @@ serve(async (req) => {
     
     // Garantir que as diretrizes de texto sejam respeitadas no backend
     let enrichedPrompt = prompt;
+
+    // NOVO: Adicionar instruções sobre preservação de traços
+    if (preserveImages && preserveImages.length > 0) {
+      enrichedPrompt = `🎨 IDENTITY PRESERVATION: Use EXACTLY the visual style, color palette, and aesthetics from the ${preserveImages.length} reference image(s) provided. Maintain the SAME visual quality, design elements (borders, textures, filters, effects), atmosphere, and mood. The video MUST look like part of the same visual family. ${enrichedPrompt}`;
+    }
+
+    if (styleReferenceImages && styleReferenceImages.length > 0) {
+      enrichedPrompt = `✨ STYLE INSPIRATION: Use the ${styleReferenceImages.length} style reference image(s) for additional composition and style ideas. Analyze visual elements (colors, layout, objects, atmosphere) and adapt coherently. ${enrichedPrompt}`;
+    }
 
     if (!includeText) {
       // ⛔ RESTRIÇÃO ABSOLUTA: Sem texto

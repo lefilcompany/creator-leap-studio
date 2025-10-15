@@ -16,6 +16,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Sparkles, Zap, X, Info, ImageIcon, Video, Type, AlertCircle } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Slider } from "@/components/ui/slider";
@@ -134,6 +135,7 @@ export default function CreateContent() {
   const [contentType, setContentType] = useState<"organic" | "ads">("organic");
   const [platformGuidelines, setPlatformGuidelines] = useState<string[]>([]);
   const [recommendedAspectRatio, setRecommendedAspectRatio] = useState<string>("");
+  const [preserveImageIndices, setPreserveImageIndices] = useState<number[]>([]);
 
   const handlePaste = (e: React.ClipboardEvent) => {
     const items = e.clipboardData.items;
@@ -149,9 +151,26 @@ export default function CreateContent() {
     }
   };
 
+  const handleTogglePreserve = (index: number) => {
+    setPreserveImageIndices(prev => {
+      if (prev.includes(index)) {
+        return prev.filter(idx => idx !== index);
+      } else {
+        return [...prev, index];
+      }
+    });
+  };
+
   const handleRemoveFile = (indexToRemove: number) => {
     const updatedFiles = referenceFiles.filter((_, index) => index !== indexToRemove);
     setReferenceFiles(updatedFiles);
+    
+    // Atualizar índices de preservação (remover o índice e ajustar os maiores)
+    setPreserveImageIndices(prev => 
+      prev
+        .filter(idx => idx !== indexToRemove)
+        .map(idx => idx > indexToRemove ? idx - 1 : idx)
+    );
     
     // Limpa o input se não houver mais arquivos
     if (updatedFiles.length === 0 && fileInputRef.current) {
@@ -1382,24 +1401,55 @@ ${formData.description}
 
                     {referenceFiles.length > 0 && (
                       <div className="space-y-2 p-3 bg-primary/5 rounded-xl border border-primary/20">
-                        {referenceFiles.map((file, idx) => (
-                          <div key={idx} className="flex items-center justify-between bg-background/50 rounded-lg p-2">
-                            <span className="text-xs md:text-sm text-primary font-medium flex items-center gap-2 min-w-0 flex-1">
-                              <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0"></div>
-                              <span className="truncate">{file.name}</span>
+                        <p className="text-xs font-semibold text-primary mb-2">
+                          {referenceFiles.length} imagem(ns) selecionada(s):
+                        </p>
+                        <div className="space-y-2">
+                          {referenceFiles.map((file, idx) => (
+                            <div key={idx} className="bg-background/50 rounded-lg p-3 group hover:bg-background transition-colors">
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="text-sm text-foreground font-medium flex items-center gap-2 min-w-0 flex-1">
+                                  <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0"></div>
+                                  <span className="truncate">{file.name}</span>
+                                </span>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleRemoveFile(idx)}
+                                  className="h-6 w-6 p-0 text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full flex-shrink-0 ml-2"
+                                >
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              </div>
+                              
+                              <div className="flex items-start gap-2 mt-2 pt-2 border-t border-border/20">
+                                <Checkbox
+                                  id={`preserve-${idx}`}
+                                  checked={preserveImageIndices.includes(idx)}
+                                  onCheckedChange={() => handleTogglePreserve(idx)}
+                                  className="mt-0.5"
+                                />
+                                <Label
+                                  htmlFor={`preserve-${idx}`}
+                                  className="text-xs text-muted-foreground cursor-pointer leading-tight"
+                                >
+                                  Preservar traços desta imagem (cores, estilo, elementos visuais)
+                                </Label>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        
+                        <div className="mt-3 p-2 bg-accent/10 rounded-lg border border-accent/20">
+                          <p className="text-xs text-muted-foreground flex items-start gap-1.5">
+                            <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0 text-accent" />
+                            <span>
+                              <strong className="text-accent">Dica:</strong> Marque "Preservar traços" nas imagens da sua marca/identidade visual. 
+                              As outras servirão apenas como referência de estilo.
                             </span>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleRemoveFile(idx)}
-                              className="h-6 w-6 p-0 text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full flex-shrink-0 ml-2"
-                              title="Remover arquivo"
-                            >
-                              <X className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        ))}
+                          </p>
+                        </div>
                       </div>
                     )}
                   </div>
