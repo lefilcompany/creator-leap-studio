@@ -682,16 +682,15 @@ export default function ActionDetails({ action, isLoading = false }: ActionDetai
               <div className="space-y-2 mb-6">
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-medium text-muted-foreground">Planejamento Gerado</p>
-                  <div className="flex gap-2">
+                  <div className="flex gap-3">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
                           variant="outline"
-                          size="sm"
-                          className="gap-2 hover:text-accent hover:border-accent hover:bg-accent/20"
+                          size="icon"
+                          className="h-9 w-9 hover:text-accent hover:border-accent hover:bg-accent/20"
                         >
                           <Download className="h-4 w-4" />
-                          Download
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent className="bg-background border shadow-lg z-50">
@@ -720,12 +719,11 @@ export default function ActionDetails({ action, isLoading = false }: ActionDetai
                     </DropdownMenu>
                     <Button
                       variant="outline"
-                      size="sm"
+                      size="icon"
                       onClick={() => handleCopy(action.result.plan!)}
-                      className="gap-2"
+                      className="h-9 w-9 hover:text-accent hover:border-accent hover:bg-accent/20"
                     >
                       {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                      {isCopied ? "Copiado!" : "Copiar"}
                     </Button>
                   </div>
                 </div>
