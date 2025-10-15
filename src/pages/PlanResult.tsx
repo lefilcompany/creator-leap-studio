@@ -2,11 +2,10 @@ import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Copy, Check, Download, Calendar, FileText, File } from "lucide-react";
+import { ArrowLeft, Copy, Check, Download, Calendar, FileText, File, FileCode } from "lucide-react";
 import { toast } from "sonner";
 import ReactMarkdown from 'react-markdown';
-import jsPDF from 'jspdf';
-import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, UnderlineType } from 'docx';
+import { Document, Packer, Paragraph, TextRun, AlignmentType } from 'docx';
 import { saveAs } from 'file-saver';
 import {
   DropdownMenu,
@@ -38,134 +37,29 @@ const PlanResult = () => {
     }).catch(() => toast.error('Falha ao copiar.'));
   };
 
-  const handleDownload = () => {
+  const handleDownloadTxt = () => {
     if (!planContent) return;
     
     try {
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      const margin = 20;
-      const maxWidth = pageWidth - (margin * 2);
-      let yPosition = margin;
-
-      const checkPageBreak = (requiredSpace: number) => {
-        if (yPosition + requiredSpace > pageHeight - margin) {
-          pdf.addPage();
-          yPosition = margin;
-        }
-      };
-
-      // Process markdown content
-      const lines = planContent.split('\n');
-      
-      lines.forEach((line) => {
-        const trimmedLine = line.trim();
-        
-        // Skip empty lines but add small spacing
-        if (!trimmedLine) {
-          yPosition += 3;
-          return;
-        }
-
-        // H1 - Main headers
-        if (trimmedLine.match(/^#\s+[^#]/)) {
-          checkPageBreak(15);
-          const text = trimmedLine.replace(/^#\s+/, '');
-          pdf.setFontSize(16);
-          pdf.setFont('helvetica', 'bold');
-          pdf.setTextColor(41, 128, 185);
-          
-          const wrappedText = pdf.splitTextToSize(text, maxWidth);
-          wrappedText.forEach((textLine: string) => {
-            checkPageBreak(10);
-            pdf.text(textLine, margin, yPosition);
-            yPosition += 8;
-          });
-          yPosition += 3;
-        }
-        // H2 - Section headers
-        else if (trimmedLine.match(/^##\s+[^#]/)) {
-          checkPageBreak(12);
-          const text = trimmedLine.replace(/^##\s+/, '');
-          pdf.setFontSize(14);
-          pdf.setFont('helvetica', 'bold');
-          pdf.setTextColor(52, 152, 219);
-          
-          const wrappedText = pdf.splitTextToSize(text, maxWidth);
-          wrappedText.forEach((textLine: string) => {
-            checkPageBreak(9);
-            pdf.text(textLine, margin, yPosition);
-            yPosition += 7;
-          });
-          yPosition += 2;
-        }
-        // H3 - Subsection headers
-        else if (trimmedLine.match(/^###\s+/)) {
-          checkPageBreak(10);
-          const text = trimmedLine.replace(/^###\s+/, '');
-          pdf.setFontSize(12);
-          pdf.setFont('helvetica', 'bold');
-          pdf.setTextColor(44, 62, 80);
-          
-          const wrappedText = pdf.splitTextToSize(text, maxWidth);
-          wrappedText.forEach((textLine: string) => {
-            checkPageBreak(8);
-            pdf.text(textLine, margin, yPosition);
-            yPosition += 6;
-          });
-          yPosition += 2;
-        }
-        // Bold text
-        else if (trimmedLine.includes('**')) {
-          checkPageBreak(8);
-          const text = trimmedLine.replace(/\*\*/g, '');
-          pdf.setFontSize(11);
-          pdf.setFont('helvetica', 'bold');
-          pdf.setTextColor(44, 62, 80);
-          
-          const wrappedText = pdf.splitTextToSize(text, maxWidth);
-          wrappedText.forEach((textLine: string) => {
-            checkPageBreak(7);
-            pdf.text(textLine, margin, yPosition);
-            yPosition += 5.5;
-          });
-        }
-        // Numbered or bullet lists
-        else if (trimmedLine.match(/^(\d+\.|\-|\*)\s+/)) {
-          checkPageBreak(8);
-          pdf.setFontSize(10);
-          pdf.setFont('helvetica', 'normal');
-          pdf.setTextColor(52, 73, 94);
-          
-          const wrappedText = pdf.splitTextToSize(trimmedLine, maxWidth - 5);
-          wrappedText.forEach((textLine: string) => {
-            checkPageBreak(6);
-            pdf.text(textLine, margin + 5, yPosition);
-            yPosition += 5;
-          });
-        }
-        // Regular text
-        else {
-          checkPageBreak(8);
-          pdf.setFontSize(10);
-          pdf.setFont('helvetica', 'normal');
-          pdf.setTextColor(52, 73, 94);
-          
-          const wrappedText = pdf.splitTextToSize(trimmedLine, maxWidth);
-          wrappedText.forEach((textLine: string) => {
-            checkPageBreak(6);
-            pdf.text(textLine, margin, yPosition);
-            yPosition += 5;
-          });
-        }
-      });
-
-      pdf.save(`planejamento-${new Date().toISOString().split('T')[0]}.pdf`);
-      toast.success('Download do PDF iniciado!');
+      const blob = new Blob([planContent], { type: 'text/plain;charset=utf-8' });
+      saveAs(blob, `planejamento-${new Date().toISOString().split('T')[0]}.txt`);
+      toast.success('Download do TXT iniciado!');
     } catch (error) {
-      console.error('Error generating PDF:', error);
-      toast.error('Erro ao gerar PDF. Tente novamente.');
+      console.error('Error generating TXT:', error);
+      toast.error('Erro ao gerar TXT. Tente novamente.');
+    }
+  };
+
+  const handleDownloadMd = () => {
+    if (!planContent) return;
+    
+    try {
+      const blob = new Blob([planContent], { type: 'text/markdown;charset=utf-8' });
+      saveAs(blob, `planejamento-${new Date().toISOString().split('T')[0]}.md`);
+      toast.success('Download do Markdown iniciado!');
+    } catch (error) {
+      console.error('Error generating Markdown:', error);
+      toast.error('Erro ao gerar Markdown. Tente novamente.');
     }
   };
 
@@ -410,11 +304,18 @@ const PlanResult = () => {
                   Baixar como .docx (Word)
                 </DropdownMenuItem>
                 <DropdownMenuItem 
-                  onClick={handleDownload}
+                  onClick={handleDownloadTxt}
                   className="cursor-pointer hover:bg-accent/20 focus:bg-accent/20"
                 >
                   <File className="h-4 w-4 mr-2" />
-                  Baixar como .pdf
+                  Baixar como .txt (Texto)
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={handleDownloadMd}
+                  className="cursor-pointer hover:bg-accent/20 focus:bg-accent/20"
+                >
+                  <FileCode className="h-4 w-4 mr-2" />
+                  Baixar como .md (Markdown)
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
