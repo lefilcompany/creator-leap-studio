@@ -1,4 +1,4 @@
-import { History, Eye, Download, Copy, Check } from 'lucide-react';
+import { History, Eye, Download, Copy, Check, FileText, File, FileCode } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
@@ -9,7 +9,14 @@ import { Skeleton } from '@/components/ui/skeleton';
 import ReactMarkdown from 'react-markdown';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import jsPDF from 'jspdf';
+import { Document, Packer, Paragraph, TextRun, AlignmentType } from 'docx';
+import { saveAs } from 'file-saver';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface ActionDetailsProps {
   action: Action | null;
@@ -51,132 +58,228 @@ export default function ActionDetails({ action, isLoading = false }: ActionDetai
     }).catch(() => toast.error('Falha ao copiar.'));
   };
 
-  const handleDownloadPDF = (planContent: string) => {
+  const handleDownloadTxt = (planContent: string) => {
     try {
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      const margin = 20;
-      const maxWidth = pageWidth - (margin * 2);
-      let yPosition = margin;
+      const blob = new Blob([planContent], { type: 'text/plain;charset=utf-8' });
+      saveAs(blob, `planejamento-${new Date().toISOString().split('T')[0]}.txt`);
+      toast.success('Download do TXT iniciado!');
+    } catch (error) {
+      console.error('Error generating TXT:', error);
+      toast.error('Erro ao gerar TXT.');
+    }
+  };
 
-      const checkPageBreak = (requiredSpace: number) => {
-        if (yPosition + requiredSpace > pageHeight - margin) {
-          pdf.addPage();
-          yPosition = margin;
+  const handleDownloadMd = (planContent: string) => {
+    try {
+      const blob = new Blob([planContent], { type: 'text/markdown;charset=utf-8' });
+      saveAs(blob, `planejamento-${new Date().toISOString().split('T')[0]}.md`);
+      toast.success('Download do Markdown iniciado!');
+    } catch (error) {
+      console.error('Error generating Markdown:', error);
+      toast.error('Erro ao gerar Markdown.');
+    }
+  };
+
+  const handleDownloadDocx = async (planContent: string) => {
+    try {
+      // Helper function to process inline markdown (bold text)
+      const processInlineMarkdown = (text: string): TextRun[] => {
+        const parts: TextRun[] = [];
+        const boldRegex = /\*\*(.+?)\*\*/g;
+        let lastIndex = 0;
+        let match;
+        
+        while ((match = boldRegex.exec(text)) !== null) {
+          // Text before bold
+          if (match.index > lastIndex) {
+            parts.push(new TextRun({
+              text: text.substring(lastIndex, match.index),
+              font: "Arial",
+              size: 24, // 12pt
+              color: "000000",
+            }));
+          }
+          
+          // Bold text
+          parts.push(new TextRun({
+            text: match[1],
+            font: "Arial",
+            size: 24, // 12pt
+            color: "000000",
+            bold: true,
+          }));
+          
+          lastIndex = match.index + match[0].length;
         }
+        
+        // Remaining text
+        if (lastIndex < text.length) {
+          parts.push(new TextRun({
+            text: text.substring(lastIndex),
+            font: "Arial",
+            size: 24, // 12pt
+            color: "000000",
+          }));
+        }
+        
+        return parts.length > 0 ? parts : [new TextRun({
+          text: text,
+          font: "Arial",
+          size: 24, // 12pt
+          color: "000000",
+        })];
       };
 
-      // Process markdown content
+      const paragraphs: Paragraph[] = [];
       const lines = planContent.split('\n');
       
       lines.forEach((line) => {
         const trimmedLine = line.trim();
         
-        // Skip empty lines but add small spacing
+        // Skip empty lines but add spacing
         if (!trimmedLine) {
-          yPosition += 3;
+          paragraphs.push(new Paragraph({
+            text: "",
+            spacing: { after: 100 }
+          }));
           return;
         }
 
-        // H1 - Main headers
+        // H1 - Main headers (# Título) - MUST have space after #
         if (trimmedLine.match(/^#\s+[^#]/)) {
-          checkPageBreak(15);
           const text = trimmedLine.replace(/^#\s+/, '');
-          pdf.setFontSize(16);
-          pdf.setFont('helvetica', 'bold');
-          pdf.setTextColor(41, 128, 185);
-          
-          const wrappedText = pdf.splitTextToSize(text, maxWidth);
-          wrappedText.forEach((textLine: string) => {
-            checkPageBreak(10);
-            pdf.text(textLine, margin, yPosition);
-            yPosition += 8;
-          });
-          yPosition += 3;
+          paragraphs.push(new Paragraph({
+            children: [
+              new TextRun({
+                text: text,
+                font: "Arial",
+                size: 36, // 18pt
+                bold: true,
+                color: "000000",
+              })
+            ],
+            spacing: { before: 240, after: 120 },
+            alignment: AlignmentType.LEFT,
+          }));
         }
-        // H2 - Section headers
+        // H2 - Section headers (## Seção) - MUST have space after ##
         else if (trimmedLine.match(/^##\s+[^#]/)) {
-          checkPageBreak(12);
           const text = trimmedLine.replace(/^##\s+/, '');
-          pdf.setFontSize(14);
-          pdf.setFont('helvetica', 'bold');
-          pdf.setTextColor(52, 152, 219);
-          
-          const wrappedText = pdf.splitTextToSize(text, maxWidth);
-          wrappedText.forEach((textLine: string) => {
-            checkPageBreak(9);
-            pdf.text(textLine, margin, yPosition);
-            yPosition += 7;
-          });
-          yPosition += 2;
+          paragraphs.push(new Paragraph({
+            children: [
+              new TextRun({
+                text: text,
+                font: "Arial",
+                size: 32, // 16pt
+                bold: true,
+                color: "000000",
+              })
+            ],
+            spacing: { before: 200, after: 100 },
+            alignment: AlignmentType.LEFT,
+          }));
         }
-        // H3 - Subsection headers
+        // H3 - Subsection headers (### Subseção) - MUST have space after ###
         else if (trimmedLine.match(/^###\s+/)) {
-          checkPageBreak(10);
           const text = trimmedLine.replace(/^###\s+/, '');
-          pdf.setFontSize(12);
-          pdf.setFont('helvetica', 'bold');
-          pdf.setTextColor(44, 62, 80);
-          
-          const wrappedText = pdf.splitTextToSize(text, maxWidth);
-          wrappedText.forEach((textLine: string) => {
-            checkPageBreak(8);
-            pdf.text(textLine, margin, yPosition);
-            yPosition += 6;
-          });
-          yPosition += 2;
+          paragraphs.push(new Paragraph({
+            children: [
+              new TextRun({
+                text: text,
+                font: "Arial",
+                size: 28, // 14pt
+                bold: true,
+                color: "000000",
+              })
+            ],
+            spacing: { before: 160, after: 80 },
+            alignment: AlignmentType.LEFT,
+          }));
         }
-        // Bold text
-        else if (trimmedLine.includes('**')) {
-          checkPageBreak(8);
-          const text = trimmedLine.replace(/\*\*/g, '');
-          pdf.setFontSize(11);
-          pdf.setFont('helvetica', 'bold');
-          pdf.setTextColor(44, 62, 80);
-          
-          const wrappedText = pdf.splitTextToSize(text, maxWidth);
-          wrappedText.forEach((textLine: string) => {
-            checkPageBreak(7);
-            pdf.text(textLine, margin, yPosition);
-            yPosition += 5.5;
-          });
+        // Numbered lists (1. Item)
+        else if (trimmedLine.match(/^\d+\.\s+/)) {
+          const text = trimmedLine.replace(/^\d+\.\s+/, '');
+          paragraphs.push(new Paragraph({
+            children: processInlineMarkdown(text),
+            numbering: {
+              reference: "default-numbering",
+              level: 0
+            },
+            spacing: { after: 80 }
+          }));
         }
-        // Numbered or bullet lists
-        else if (trimmedLine.match(/^(\d+\.|\-|\*)\s+/)) {
-          checkPageBreak(8);
-          pdf.setFontSize(10);
-          pdf.setFont('helvetica', 'normal');
-          pdf.setTextColor(52, 73, 94);
-          
-          const wrappedText = pdf.splitTextToSize(trimmedLine, maxWidth - 5);
-          wrappedText.forEach((textLine: string) => {
-            checkPageBreak(6);
-            pdf.text(textLine, margin + 5, yPosition);
-            yPosition += 5;
-          });
+        // Bullet lists (- Item or * Item) - MUST have space after - or *
+        else if (trimmedLine.match(/^(\-|\*)\s+/)) {
+          const text = trimmedLine.replace(/^(\-|\*)\s+/, '');
+          paragraphs.push(new Paragraph({
+            children: processInlineMarkdown(text),
+            bullet: {
+              level: 0
+            },
+            spacing: { after: 80 }
+          }));
         }
-        // Regular text
+        // Hashtags (#LumiLife) - NO space after # = regular text
+        else if (trimmedLine.match(/^#[^\s]/)) {
+          paragraphs.push(new Paragraph({
+            children: [
+              new TextRun({
+                text: trimmedLine,
+                font: "Arial",
+                size: 24, // 12pt
+                color: "000000",
+              })
+            ],
+            spacing: { after: 80 }
+          }));
+        }
+        // Regular text with inline markdown processing
         else {
-          checkPageBreak(8);
-          pdf.setFontSize(10);
-          pdf.setFont('helvetica', 'normal');
-          pdf.setTextColor(52, 73, 94);
-          
-          const wrappedText = pdf.splitTextToSize(trimmedLine, maxWidth);
-          wrappedText.forEach((textLine: string) => {
-            checkPageBreak(6);
-            pdf.text(textLine, margin, yPosition);
-            yPosition += 5;
-          });
+          paragraphs.push(new Paragraph({
+            children: processInlineMarkdown(trimmedLine),
+            spacing: { after: 100 }
+          }));
         }
       });
 
-      pdf.save(`planejamento-${new Date().toISOString().split('T')[0]}.pdf`);
-      toast.success('Download do PDF iniciado!');
+      const doc = new Document({
+        numbering: {
+          config: [{
+            reference: "default-numbering",
+            levels: [{
+              level: 0,
+              format: "decimal",
+              text: "%1.",
+              alignment: AlignmentType.START,
+              style: {
+                paragraph: {
+                  indent: { left: 720, hanging: 360 }
+                }
+              }
+            }]
+          }]
+        },
+        sections: [{
+          properties: {
+            page: {
+              margin: {
+                top: 1440,
+                right: 1440,
+                bottom: 1440,
+                left: 1440
+              }
+            }
+          },
+          children: paragraphs
+        }]
+      });
+
+      const blob = await Packer.toBlob(doc);
+      saveAs(blob, `planejamento-${new Date().toISOString().split('T')[0]}.docx`);
+      toast.success('Download do DOCX iniciado!');
     } catch (error) {
-      console.error('Error generating PDF:', error);
-      toast.error('Erro ao gerar PDF.');
+      console.error('Error generating DOCX:', error);
+      toast.error('Erro ao gerar DOCX.');
     }
   };
 
@@ -580,15 +683,41 @@ export default function ActionDetails({ action, isLoading = false }: ActionDetai
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-medium text-muted-foreground">Planejamento Gerado</p>
                   <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDownloadPDF(action.result.plan!)}
-                      className="gap-2"
-                    >
-                      <Download className="h-4 w-4" />
-                      PDF
-                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="gap-2 hover:text-accent hover:border-accent hover:bg-accent/20"
+                        >
+                          <Download className="h-4 w-4" />
+                          Download
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="bg-background border shadow-lg z-50">
+                        <DropdownMenuItem 
+                          onClick={() => handleDownloadDocx(action.result.plan!)}
+                          className="cursor-pointer hover:bg-accent/20 hover:text-accent focus:bg-accent/20"
+                        >
+                          <FileText className="h-4 w-4 mr-2" />
+                          Baixar como .docx (Word)
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => handleDownloadTxt(action.result.plan!)}
+                          className="cursor-pointer hover:bg-accent/20 hover:text-accent focus:bg-accent/20"
+                        >
+                          <File className="h-4 w-4 mr-2" />
+                          Baixar como .txt (Texto)
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => handleDownloadMd(action.result.plan!)}
+                          className="cursor-pointer hover:bg-accent/20 hover:text-accent focus:bg-accent/20"
+                        >
+                          <FileCode className="h-4 w-4 mr-2" />
+                          Baixar como .md (Markdown)
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                     <Button
                       variant="outline"
                       size="sm"
