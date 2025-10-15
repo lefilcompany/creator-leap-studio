@@ -457,21 +457,7 @@ export default function ActionView() {
 
         {/* Result Section */}
         {action.result && <Card className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">Resultado</h2>
-              {/* Action buttons for the whole result */}
-              {(action.result.imageUrl || action.result.videoUrl || action.result.plan) && <div className="flex gap-2">
-                  {action.result.videoUrl && <Button variant="outline" size="sm" onClick={() => handleDownloadVideo(action.result.videoUrl!, 'video')}>
-                      <Download className="mr-2 h-4 w-4" />
-                      Baixar Vídeo
-                    </Button>}
-                  {action.result.imageUrl && <Button variant="outline" size="sm" onClick={() => handleDownloadImage(action.result.imageUrl!, 'resultado')}>
-                      <Download className="mr-2 h-4 w-4" />
-                      Baixar Imagem
-                    </Button>}
-                  {action.result.plan}
-                </div>}
-            </div>
+            
             
             {/* Video Result */}
             {action.result.videoUrl && <div className="mb-6">
