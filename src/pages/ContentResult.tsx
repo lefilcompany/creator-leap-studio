@@ -104,7 +104,12 @@ export default function ContentResult() {
         }
 
         // ✅ ETAPA 3: Validar dados DEPOIS de definir o estado
-        if (!data.mediaUrl || !data.caption) {
+        // Verificar se tem dados no formato antigo OU no novo formato
+        const hasOldFormat = !!data.caption;
+        const hasNewFormat = !!(data.title && data.body && data.hashtags);
+        const hasValidContent = hasOldFormat || hasNewFormat;
+
+        if (!data.mediaUrl || !hasValidContent) {
           toast.error("Dados incompletos, mas exibindo o que foi gerado");
         }
 
