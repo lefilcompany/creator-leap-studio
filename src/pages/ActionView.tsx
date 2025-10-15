@@ -6,11 +6,18 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import { ArrowLeft, Download, Copy, CheckCircle, Sparkles, Calendar, Loader2, Clock, User, Tag, Check } from 'lucide-react';
+import { ArrowLeft, Download, Copy, CheckCircle, Sparkles, Calendar, Loader2, Clock, User, Tag, Check, FileText, File, FileCode } from 'lucide-react';
 import type { Action } from '@/types/action';
 import { ACTION_TYPE_DISPLAY } from '@/types/action';
 import ReactMarkdown from 'react-markdown';
-import jsPDF from 'jspdf';
+import { Document, Packer, Paragraph, TextRun, AlignmentType } from 'docx';
+import { saveAs } from 'file-saver';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 const formatDate = (dateString: string) => {
   if (!dateString) return '';
   const date = new Date(dateString);
@@ -97,78 +104,151 @@ export default function ActionView() {
       setCopying(false);
     }
   };
-  const handleDownloadPDF = (planContent: string) => {
+  const handleDownloadTxt = (planContent: string) => {
     try {
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      const margin = 20;
-      const maxWidth = pageWidth - margin * 2;
-      let yPosition = margin;
-      const checkPageBreak = (requiredSpace: number) => {
-        if (yPosition + requiredSpace > pageHeight - margin) {
-          pdf.addPage();
-          yPosition = margin;
-        }
-      };
-      const addText = (text: string, fontSize: number, fontStyle: 'normal' | 'bold' = 'normal', color: [number, number, number] = [0, 0, 0]) => {
-        pdf.setFontSize(fontSize);
-        pdf.setFont('helvetica', fontStyle);
-        pdf.setTextColor(...color);
-        const lines = pdf.splitTextToSize(text, maxWidth);
-        lines.forEach((line: string) => {
-          checkPageBreak(fontSize / 2);
-          pdf.text(line, margin, yPosition);
-          yPosition += fontSize / 2;
-        });
-      };
+      const blob = new Blob([planContent], { type: 'text/plain;charset=utf-8' });
+      saveAs(blob, `planejamento-${new Date().toISOString().split('T')[0]}.txt`);
+      toast.success('Download do TXT iniciado!');
+    } catch (error) {
+      console.error('Error generating TXT:', error);
+      toast.error('Erro ao gerar TXT.');
+    }
+  };
+
+  const handleDownloadMd = (planContent: string) => {
+    try {
+      const blob = new Blob([planContent], { type: 'text/markdown;charset=utf-8' });
+      saveAs(blob, `planejamento-${new Date().toISOString().split('T')[0]}.md`);
+      toast.success('Download do MD iniciado!');
+    } catch (error) {
+      console.error('Error generating MD:', error);
+      toast.error('Erro ao gerar MD.');
+    }
+  };
+
+  const processInlineMarkdown = (text: string): TextRun[] => {
+    const runs: TextRun[] = [];
+    const boldRegex = /\*\*(.*?)\*\*/g;
+    let lastIndex = 0;
+    let match;
+
+    while ((match = boldRegex.exec(text)) !== null) {
+      if (match.index > lastIndex) {
+        runs.push(new TextRun({
+          text: text.substring(lastIndex, match.index),
+          font: 'Arial',
+          color: '000000',
+        }));
+      }
+      runs.push(new TextRun({
+        text: match[1],
+        bold: true,
+        font: 'Arial',
+        color: '000000',
+      }));
+      lastIndex = match.index + match[0].length;
+    }
+
+    if (lastIndex < text.length) {
+      runs.push(new TextRun({
+        text: text.substring(lastIndex),
+        font: 'Arial',
+        color: '000000',
+      }));
+    }
+
+    return runs.length > 0 ? runs : [new TextRun({ text, font: 'Arial', color: '000000' })];
+  };
+
+  const handleDownloadDocx = async (planContent: string) => {
+    try {
       const lines = planContent.split('\n');
-      lines.forEach(line => {
+      const paragraphs: Paragraph[] = [];
+
+      lines.forEach((line) => {
         line = line.trim();
+
         if (!line) {
-          yPosition += 3;
+          paragraphs.push(new Paragraph({ text: '' }));
           return;
         }
+
         if (line.startsWith('# ') && !line.startsWith('## ')) {
-          checkPageBreak(15);
           const text = line.replace(/^#\s+/, '');
-          addText(text, 16, 'bold', [41, 128, 185]);
-          yPosition += 5;
+          paragraphs.push(new Paragraph({
+            children: [new TextRun({ text, bold: true, size: 36, font: 'Arial', color: '000000' })],
+            alignment: AlignmentType.LEFT,
+            spacing: { before: 240, after: 120 },
+          }));
         } else if (line.startsWith('## ')) {
-          checkPageBreak(12);
           const text = line.replace(/^##\s+/, '');
-          addText(text, 14, 'bold', [52, 152, 219]);
-          yPosition += 4;
+          paragraphs.push(new Paragraph({
+            children: [new TextRun({ text, bold: true, size: 32, font: 'Arial', color: '000000' })],
+            alignment: AlignmentType.LEFT,
+            spacing: { before: 200, after: 100 },
+          }));
         } else if (line.startsWith('### ')) {
-          checkPageBreak(10);
           const text = line.replace(/^###\s+/, '');
-          addText(text, 12, 'bold', [44, 62, 80]);
-          yPosition += 3;
-        } else if (line.includes('**')) {
-          const text = line.replace(/\*\*/g, '');
-          addText(text, 11, 'bold', [44, 62, 80]);
-          yPosition += 2;
-        } else if (line.match(/^[\d]+\.\s/) || line.startsWith('- ') || line.startsWith('* ')) {
-          checkPageBreak(8);
-          pdf.setFontSize(10);
-          pdf.setFont('helvetica', 'normal');
-          pdf.setTextColor(52, 73, 94);
-          const lines = pdf.splitTextToSize(line, maxWidth - 5);
-          lines.forEach((l: string) => {
-            checkPageBreak(6);
-            pdf.text(l, margin + 5, yPosition);
-            yPosition += 5;
-          });
+          paragraphs.push(new Paragraph({
+            children: [new TextRun({ text, bold: true, size: 28, font: 'Arial', color: '000000' })],
+            alignment: AlignmentType.LEFT,
+            spacing: { before: 160, after: 80 },
+          }));
+        } else if (line.match(/^[\d]+\.\s/)) {
+          const text = line.replace(/^[\d]+\.\s/, '');
+          paragraphs.push(new Paragraph({
+            children: processInlineMarkdown(text),
+            alignment: AlignmentType.LEFT,
+            spacing: { before: 80, after: 80 },
+            numbering: { reference: 'numbered-list', level: 0 },
+          }));
+        } else if (line.startsWith('- ') || line.startsWith('* ')) {
+          const text = line.replace(/^[-*]\s/, '');
+          paragraphs.push(new Paragraph({
+            children: processInlineMarkdown(text),
+            alignment: AlignmentType.LEFT,
+            spacing: { before: 80, after: 80 },
+            bullet: { level: 0 },
+          }));
+        } else if (line.startsWith('#')) {
+          paragraphs.push(new Paragraph({
+            children: [new TextRun({ text: line, size: 24, font: 'Arial', color: '0066CC' })],
+            alignment: AlignmentType.LEFT,
+            spacing: { before: 80, after: 80 },
+          }));
         } else {
-          addText(line, 10, 'normal', [52, 73, 94]);
-          yPosition += 2;
+          paragraphs.push(new Paragraph({
+            children: processInlineMarkdown(line),
+            alignment: AlignmentType.LEFT,
+            spacing: { before: 80, after: 80 },
+          }));
         }
       });
-      pdf.save(`planejamento-${new Date().toISOString().split('T')[0]}.pdf`);
-      toast.success('Download do PDF iniciado!');
+
+      const doc = new Document({
+        numbering: {
+          config: [{
+            reference: 'numbered-list',
+            levels: [{
+              level: 0,
+              format: 'decimal',
+              text: '%1.',
+              alignment: AlignmentType.LEFT,
+            }],
+          }],
+        },
+        sections: [{
+          properties: {},
+          children: paragraphs,
+        }],
+      });
+
+      const blob = await Packer.toBlob(doc);
+      saveAs(blob, `planejamento-${new Date().toISOString().split('T')[0]}.docx`);
+      toast.success('Download do DOCX iniciado!');
     } catch (error) {
-      console.error('Error generating PDF:', error);
-      toast.error('Erro ao gerar PDF.');
+      console.error('Error generating DOCX:', error);
+      toast.error('Erro ao gerar DOCX.');
     }
   };
   const handleDownloadImage = (imageUrl: string, filename: string = 'imagem') => {
@@ -611,19 +691,30 @@ export default function ActionView() {
               {action.result.plan && <div>
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm font-medium text-muted-foreground">Plano de Conteúdo</span>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm" onClick={() => handleDownloadPDF(action.result.plan!)}>
-                        <Download className="mr-2 h-4 w-4" />
-                        PDF
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={() => handleCopyText(action.result.plan!)} disabled={copying}>
-                        {isCopied ? <>
-                            <Check className="mr-2 h-4 w-4" />
-                            Copiado!
-                          </> : <>
-                            <Copy className="mr-2 h-4 w-4" />
-                            Copiar
-                          </>}
+                    <div className="flex gap-3">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" size="icon" className="h-9 w-9">
+                            <Download className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="bg-card z-50">
+                          <DropdownMenuItem onClick={() => handleDownloadDocx(action.result.plan!)} className="cursor-pointer hover:text-accent">
+                            <FileText className="mr-2 h-4 w-4" />
+                            Download DOCX
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleDownloadTxt(action.result.plan!)} className="cursor-pointer hover:text-accent">
+                            <File className="mr-2 h-4 w-4" />
+                            Download TXT
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleDownloadMd(action.result.plan!)} className="cursor-pointer hover:text-accent">
+                            <FileCode className="mr-2 h-4 w-4" />
+                            Download MD
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                      <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => handleCopyText(action.result.plan!)} disabled={copying}>
+                        {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                       </Button>
                     </div>
                   </div>
