@@ -1356,16 +1356,27 @@ ${formData.description}
                 )}
 
                 <div className="space-y-2 md:space-y-3">
-                  <Label
-                    htmlFor="referenceFile"
-                    className="text-xs md:text-sm font-semibold text-foreground"
-                  >
-                    {isVideoMode
-                      ? transformationType === "image_to_video"
-                        ? "Imagem de Referência"
-                        : "Vídeo de Referência"
-                      : "Imagem de Referência"} <span className="text-destructive">*</span>
-                  </Label>
+                  <div className="flex items-center justify-between">
+                    <Label
+                      htmlFor="referenceFile"
+                      className="text-xs md:text-sm font-semibold text-foreground"
+                    >
+                      {isVideoMode
+                        ? transformationType === "image_to_video"
+                          ? "Imagem de Referência"
+                          : "Vídeo de Referência"
+                        : "Imagem de Referência"} <span className="text-destructive">*</span>
+                    </Label>
+                    <span className={`text-xs font-medium ${
+                      referenceFiles.length >= 10 
+                        ? 'text-destructive' 
+                        : referenceFiles.length >= 8 
+                          ? 'text-orange-500' 
+                          : 'text-muted-foreground'
+                    }`}>
+                      {referenceFiles.length}/10 imagens
+                    </span>
+                  </div>
 
                   <div className="space-y-2 md:space-y-3">
                     <Input
