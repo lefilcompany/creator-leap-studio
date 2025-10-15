@@ -1368,13 +1368,13 @@ ${formData.description}
                         : "Imagem de Referência"} <span className="text-destructive">*</span>
                     </Label>
                     <span className={`text-xs font-medium ${
-                      referenceFiles.length >= 10 
+                      referenceFiles.length >= 5 
                         ? 'text-destructive' 
-                        : referenceFiles.length >= 8 
+                        : referenceFiles.length >= 4 
                           ? 'text-orange-500' 
                           : 'text-muted-foreground'
                     }`}>
-                      {referenceFiles.length}/10 imagens
+                      {referenceFiles.length}/5 imagens
                     </span>
                   </div>
 
@@ -1384,11 +1384,17 @@ ${formData.description}
                       type="file"
                       accept={isVideoMode && transformationType === "video_to_video" ? "video/*" : "image/*"}
                       multiple
+                      disabled={referenceFiles.length >= 5}
                       onChange={(e) => {
                         const files = Array.from(e.target.files || []);
-                        setReferenceFiles((prev) =>
-                          [...prev, ...files].slice(0, 10)
-                        );
+                        const remainingSlots = 5 - referenceFiles.length;
+                        const filesToAdd = files.slice(0, remainingSlots);
+                        
+                        if (files.length > remainingSlots) {
+                          toast.error(`Você pode adicionar no máximo 5 imagens. ${filesToAdd.length} imagem(ns) adicionada(s).`);
+                        }
+                        
+                        setReferenceFiles((prev) => [...prev, ...filesToAdd]);
                       }}
                       className={`h-12 md:h-14 rounded-xl border-2 bg-background/50 flex items-center file:mr-3 md:file:mr-4 file:h-full file:py-0 file:px-4 md:file:px-5 file:rounded-l-[10px] file:border-0 file:text-xs md:file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 hover:border-primary/30 transition-all cursor-pointer ${
                         missingFields.includes('referenceFiles') ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/50'
