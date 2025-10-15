@@ -114,8 +114,9 @@ serve(async (req) => {
       .select('*')
       .in('id', themes);
 
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
-    if (!lovableApiKey) {
+    const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
+    if (!openaiApiKey) {
+      console.error('OpenAI API key not configured');
       return new Response(
         JSON.stringify({ error: 'Service configuration error' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -201,49 +202,68 @@ Tema ${index + 1}:
 
     const userPrompt = `${brandContext}\n${themesContext}\n\nPlataforma: ${platform}\nQuantidade de Posts: ${quantity}\nObjetivo: ${objective}\n${additionalInfo ? `Informações Adicionais: ${additionalInfo}` : ''}\n\nPor favor, gere um plano estratégico completo com EXATAMENTE ${quantity} post(s) seguindo a estrutura fornecida.`;
 
-    console.log('Calling Lovable AI API...');
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    console.log('Calling OpenAI API with gpt-4o model...');
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${lovableApiKey}`,
+        'Authorization': `Bearer ${openaiApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'gpt-4o',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
         ],
+        temperature: 0.7,
+        max_tokens: 4000,
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('AI API error:', response.status, errorText);
+      console.error('OpenAI API error:', response.status, errorText);
       
       if (response.status === 429) {
         return new Response(
-          JSON.stringify({ error: 'Rate limit exceeded. Please try again in a moment.' }),
+          JSON.stringify({ error: 'Limite de requisições excedido. Tente novamente em alguns instantes.' }),
           { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
       
-      if (response.status === 402) {
+      if (response.status === 401) {
+        console.error('OpenAI API authentication failed');
         return new Response(
-          JSON.stringify({ error: 'AI credits exhausted. Please contact support.' }),
+          JSON.stringify({ error: 'Erro de autenticação com o serviço de IA. Entre em contato com o suporte.' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      if (response.status === 402 || response.status === 403) {
+        return new Response(
+          JSON.stringify({ error: 'Créditos de IA esgotados. Entre em contato com o suporte.' }),
           { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
       
       return new Response(
-        JSON.stringify({ error: `AI service error: ${errorText}` }),
+        JSON.stringify({ error: `Erro no serviço de IA: ${response.status}` }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
     
-    console.log('AI API response received successfully');
+    console.log('OpenAI API response received successfully');
 
     const data = await response.json();
+    
+    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+      console.error('Invalid OpenAI response format:', JSON.stringify(data));
+      return new Response(
+        JSON.stringify({ error: 'Resposta inválida do serviço de IA' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
     const generatedPlan = data.choices[0].message.content;
 
     // Decrement credits
