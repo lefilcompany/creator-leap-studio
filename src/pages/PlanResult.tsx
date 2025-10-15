@@ -2,10 +2,18 @@ import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Copy, Check, Download, Calendar } from "lucide-react";
+import { ArrowLeft, Copy, Check, Download, Calendar, FileText, File } from "lucide-react";
 import { toast } from "sonner";
 import ReactMarkdown from 'react-markdown';
 import jsPDF from 'jspdf';
+import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, UnderlineType } from 'docx';
+import { saveAs } from 'file-saver';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const PlanResult = () => {
   const navigate = useNavigate();
@@ -161,6 +169,141 @@ const PlanResult = () => {
     }
   };
 
+  const handleDownloadDocx = async () => {
+    if (!planContent) return;
+    
+    try {
+      const paragraphs: Paragraph[] = [];
+      const lines = planContent.split('\n');
+      
+      lines.forEach((line) => {
+        const trimmedLine = line.trim();
+        
+        // Skip empty lines but add spacing
+        if (!trimmedLine) {
+          paragraphs.push(new Paragraph({
+            text: "",
+            spacing: { after: 100 }
+          }));
+          return;
+        }
+
+        // H1 - Main headers
+        if (trimmedLine.match(/^#\s+[^#]/)) {
+          const text = trimmedLine.replace(/^#\s+/, '');
+          paragraphs.push(new Paragraph({
+            text: text,
+            heading: HeadingLevel.HEADING_1,
+            spacing: { before: 240, after: 120 },
+            alignment: AlignmentType.LEFT,
+          }));
+        }
+        // H2 - Section headers
+        else if (trimmedLine.match(/^##\s+[^#]/)) {
+          const text = trimmedLine.replace(/^##\s+/, '');
+          paragraphs.push(new Paragraph({
+            text: text,
+            heading: HeadingLevel.HEADING_2,
+            spacing: { before: 200, after: 100 },
+            alignment: AlignmentType.LEFT,
+          }));
+        }
+        // H3 - Subsection headers
+        else if (trimmedLine.match(/^###\s+/)) {
+          const text = trimmedLine.replace(/^###\s+/, '');
+          paragraphs.push(new Paragraph({
+            text: text,
+            heading: HeadingLevel.HEADING_3,
+            spacing: { before: 160, after: 80 },
+            alignment: AlignmentType.LEFT,
+          }));
+        }
+        // Bold text
+        else if (trimmedLine.includes('**')) {
+          const text = trimmedLine.replace(/\*\*/g, '');
+          paragraphs.push(new Paragraph({
+            children: [
+              new TextRun({
+                text: text,
+                bold: true,
+              })
+            ],
+            spacing: { after: 100 }
+          }));
+        }
+        // Numbered lists
+        else if (trimmedLine.match(/^\d+\.\s+/)) {
+          const text = trimmedLine.replace(/^\d+\.\s+/, '');
+          paragraphs.push(new Paragraph({
+            text: text,
+            numbering: {
+              reference: "default-numbering",
+              level: 0
+            },
+            spacing: { after: 80 }
+          }));
+        }
+        // Bullet lists
+        else if (trimmedLine.match(/^(\-|\*)\s+/)) {
+          const text = trimmedLine.replace(/^(\-|\*)\s+/, '');
+          paragraphs.push(new Paragraph({
+            text: text,
+            bullet: {
+              level: 0
+            },
+            spacing: { after: 80 }
+          }));
+        }
+        // Regular text
+        else {
+          paragraphs.push(new Paragraph({
+            text: trimmedLine,
+            spacing: { after: 100 }
+          }));
+        }
+      });
+
+      const doc = new Document({
+        numbering: {
+          config: [{
+            reference: "default-numbering",
+            levels: [{
+              level: 0,
+              format: "decimal",
+              text: "%1.",
+              alignment: AlignmentType.START,
+              style: {
+                paragraph: {
+                  indent: { left: 720, hanging: 360 }
+                }
+              }
+            }]
+          }]
+        },
+        sections: [{
+          properties: {
+            page: {
+              margin: {
+                top: 1440,
+                right: 1440,
+                bottom: 1440,
+                left: 1440
+              }
+            }
+          },
+          children: paragraphs
+        }]
+      });
+
+      const blob = await Packer.toBlob(doc);
+      saveAs(blob, `planejamento-${new Date().toISOString().split('T')[0]}.docx`);
+      toast.success('Download do DOCX iniciado!');
+    } catch (error) {
+      console.error('Error generating DOCX:', error);
+      toast.error('Erro ao gerar DOCX. Tente novamente.');
+    }
+  };
+
   if (!planContent) return null;
 
   return (
@@ -178,14 +321,33 @@ const PlanResult = () => {
           </Button>
 
           <div className="flex flex-wrap gap-2">
-            <Button 
-              variant="outline"
-              onClick={handleDownload}
-              className="flex items-center gap-2 hover:text-accent hover:border-accent hover:bg-accent/20"
-            >
-              <Download className="h-4 w-4" />
-              Download
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="outline"
+                  className="flex items-center gap-2 hover:text-accent hover:border-accent hover:bg-accent/20"
+                >
+                  <Download className="h-4 w-4" />
+                  Download
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="bg-background border shadow-lg z-50">
+                <DropdownMenuItem 
+                  onClick={handleDownloadDocx}
+                  className="cursor-pointer hover:bg-accent/20 focus:bg-accent/20"
+                >
+                  <FileText className="h-4 w-4 mr-2" />
+                  Baixar como .docx (Word)
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={handleDownload}
+                  className="cursor-pointer hover:bg-accent/20 focus:bg-accent/20"
+                >
+                  <File className="h-4 w-4 mr-2" />
+                  Baixar como .pdf
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Button 
               onClick={handleCopy}
               className="flex items-center gap-2"
