@@ -173,6 +173,54 @@ const PlanResult = () => {
     if (!planContent) return;
     
     try {
+      // Helper function to process inline markdown (bold text)
+      const processInlineMarkdown = (text: string): TextRun[] => {
+        const parts: TextRun[] = [];
+        const boldRegex = /\*\*(.+?)\*\*/g;
+        let lastIndex = 0;
+        let match;
+        
+        while ((match = boldRegex.exec(text)) !== null) {
+          // Text before bold
+          if (match.index > lastIndex) {
+            parts.push(new TextRun({
+              text: text.substring(lastIndex, match.index),
+              font: "Arial",
+              size: 24, // 12pt
+              color: "000000",
+            }));
+          }
+          
+          // Bold text
+          parts.push(new TextRun({
+            text: match[1],
+            font: "Arial",
+            size: 24, // 12pt
+            color: "000000",
+            bold: true,
+          }));
+          
+          lastIndex = match.index + match[0].length;
+        }
+        
+        // Remaining text
+        if (lastIndex < text.length) {
+          parts.push(new TextRun({
+            text: text.substring(lastIndex),
+            font: "Arial",
+            size: 24, // 12pt
+            color: "000000",
+          }));
+        }
+        
+        return parts.length > 0 ? parts : [new TextRun({
+          text: text,
+          font: "Arial",
+          size: 24, // 12pt
+          color: "000000",
+        })];
+      };
+
       const paragraphs: Paragraph[] = [];
       const lines = planContent.split('\n');
       
@@ -188,7 +236,7 @@ const PlanResult = () => {
           return;
         }
 
-        // H1 - Main headers (Arial 18pt, Bold, Black)
+        // H1 - Main headers (# Título) - MUST have space after #
         if (trimmedLine.match(/^#\s+[^#]/)) {
           const text = trimmedLine.replace(/^#\s+/, '');
           paragraphs.push(new Paragraph({
@@ -196,7 +244,7 @@ const PlanResult = () => {
               new TextRun({
                 text: text,
                 font: "Arial",
-                size: 36, // 18pt (size is in half-points)
+                size: 36, // 18pt
                 bold: true,
                 color: "000000",
               })
@@ -205,7 +253,7 @@ const PlanResult = () => {
             alignment: AlignmentType.LEFT,
           }));
         }
-        // H2 - Section headers (Arial 16pt, Bold, Black)
+        // H2 - Section headers (## Seção) - MUST have space after ##
         else if (trimmedLine.match(/^##\s+[^#]/)) {
           const text = trimmedLine.replace(/^##\s+/, '');
           paragraphs.push(new Paragraph({
@@ -222,7 +270,7 @@ const PlanResult = () => {
             alignment: AlignmentType.LEFT,
           }));
         }
-        // H3 - Subsection headers (Arial 14pt, Bold, Black)
+        // H3 - Subsection headers (### Subseção) - MUST have space after ###
         else if (trimmedLine.match(/^###\s+/)) {
           const text = trimmedLine.replace(/^###\s+/, '');
           paragraphs.push(new Paragraph({
@@ -239,34 +287,11 @@ const PlanResult = () => {
             alignment: AlignmentType.LEFT,
           }));
         }
-        // Bold text (Arial 12pt, Bold, Black)
-        else if (trimmedLine.includes('**')) {
-          const text = trimmedLine.replace(/\*\*/g, '');
-          paragraphs.push(new Paragraph({
-            children: [
-              new TextRun({
-                text: text,
-                font: "Arial",
-                size: 24, // 12pt
-                bold: true,
-                color: "000000",
-              })
-            ],
-            spacing: { after: 100 }
-          }));
-        }
-        // Numbered lists (Arial 12pt, Black)
+        // Numbered lists (1. Item)
         else if (trimmedLine.match(/^\d+\.\s+/)) {
           const text = trimmedLine.replace(/^\d+\.\s+/, '');
           paragraphs.push(new Paragraph({
-            children: [
-              new TextRun({
-                text: text,
-                font: "Arial",
-                size: 24, // 12pt
-                color: "000000",
-              })
-            ],
+            children: processInlineMarkdown(text),
             numbering: {
               reference: "default-numbering",
               level: 0
@@ -274,26 +299,19 @@ const PlanResult = () => {
             spacing: { after: 80 }
           }));
         }
-        // Bullet lists (Arial 12pt, Black)
+        // Bullet lists (- Item or * Item) - MUST have space after - or *
         else if (trimmedLine.match(/^(\-|\*)\s+/)) {
           const text = trimmedLine.replace(/^(\-|\*)\s+/, '');
           paragraphs.push(new Paragraph({
-            children: [
-              new TextRun({
-                text: text,
-                font: "Arial",
-                size: 24, // 12pt
-                color: "000000",
-              })
-            ],
+            children: processInlineMarkdown(text),
             bullet: {
               level: 0
             },
             spacing: { after: 80 }
           }));
         }
-        // Regular text (Arial 12pt, Black)
-        else {
+        // Hashtags (#LumiLife) - NO space after # = regular text
+        else if (trimmedLine.match(/^#[^\s]/)) {
           paragraphs.push(new Paragraph({
             children: [
               new TextRun({
@@ -303,6 +321,13 @@ const PlanResult = () => {
                 color: "000000",
               })
             ],
+            spacing: { after: 80 }
+          }));
+        }
+        // Regular text with inline markdown processing
+        else {
+          paragraphs.push(new Paragraph({
+            children: processInlineMarkdown(trimmedLine),
             spacing: { after: 100 }
           }));
         }
