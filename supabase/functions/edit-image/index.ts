@@ -171,9 +171,35 @@ serve(async (req) => {
 
     console.log('🤖 Chamando Gemini API para edição de imagem...');
 
-    // Converter imageUrl para base64
-    const imageBase64 = imageUrl.split(',')[1];
-    const imageMime = imageUrl.match(/data:(.*?);/)?.[1] || 'image/png';
+    // Verificar se é base64 ou URL e converter adequadamente
+    let imageBase64: string;
+    let imageMime = 'image/png';
+    
+    if (imageUrl.startsWith('data:')) {
+      // Já é base64
+      imageBase64 = imageUrl.split(',')[1];
+      imageMime = imageUrl.match(/data:(.*?);/)?.[1] || 'image/png';
+      console.log('📷 Imagem recebida como base64');
+    } else {
+      // É uma URL, precisa baixar e converter
+      console.log('📷 Baixando imagem da URL:', imageUrl);
+      const imageResponse = await fetch(imageUrl);
+      
+      if (!imageResponse.ok) {
+        throw new Error(`Erro ao baixar imagem: ${imageResponse.status}`);
+      }
+      
+      const imageBuffer = await imageResponse.arrayBuffer();
+      const base64 = btoa(String.fromCharCode(...new Uint8Array(imageBuffer)));
+      imageBase64 = base64;
+      
+      // Detectar mime type da resposta
+      const contentType = imageResponse.headers.get('content-type');
+      if (contentType) {
+        imageMime = contentType;
+      }
+      console.log('✅ Imagem convertida para base64, tipo:', imageMime);
+    }
 
     const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent', {
       method: 'POST',
