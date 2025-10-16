@@ -269,7 +269,7 @@ export default function QuickContentResult() {
                 variant="ghost"
                 size="icon"
                 onClick={() => navigate("/quick-content")}
-                className="hover:scale-105 transition-transform shrink-0 h-9 w-9 sm:h-10 sm:w-10"
+                className="hover:scale-105 transition-transform shrink-0 h-9 w-9 sm:h-10 sm:w-10 hover:bg-primary/20 hover:text-primary"
               >
                 <ArrowLeft className="h-4 w-4 sm:h-4.5 sm:w-4.5" />
               </Button>
