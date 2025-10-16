@@ -266,7 +266,7 @@ export default function QuickContentResult() {
             {/* Top: Back button + Title */}
             <div className="flex items-center gap-2 sm:gap-3 min-w-0">
               <Button
-                variant="outline"
+                variant="ghost"
                 size="icon"
                 onClick={() => navigate("/quick-content")}
                 className="hover:scale-105 transition-transform shrink-0 h-9 w-9 sm:h-10 sm:w-10"
