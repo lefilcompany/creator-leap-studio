@@ -262,7 +262,7 @@ export default function QuickContentResult() {
       <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-xl border-b border-border/40 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-3 sm:py-4 mb-4 sm:mb-6 lg:mb-8">
-          <div className="flex flex-col gap-3 sm:gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
             {/* Top: Back button + Title */}
             <div className="flex items-center gap-2 sm:gap-3 min-w-0">
               <Button
