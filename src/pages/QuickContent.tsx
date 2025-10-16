@@ -246,13 +246,16 @@ export default function QuickContent() {
                           <Zap className="h-4 w-4" />
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent whitespace-nowrap">
-                          {credits}
-                        </span>
-                        <p className="text-sm text-muted-foreground font-medium leading-tight whitespace-nowrap">
-                          Créditos
-                        </p>
+                      <div className="flex flex-col">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent whitespace-nowrap">
+                            {credits}
+                          </span>
+                          <p className="text-sm text-muted-foreground font-medium leading-tight whitespace-nowrap">
+                            Créditos
+                          </p>
+                        </div>
+                        <p className="text-xs text-muted-foreground">Disponíveis</p>
                       </div>
                     </div>
                   </CardContent>
