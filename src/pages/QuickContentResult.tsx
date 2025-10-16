@@ -261,91 +261,60 @@ export default function QuickContentResult() {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/10">
       <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-xl border-b border-border/40 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-3 sm:py-4 mb-4 sm:mb-6 lg:mb-8">
-          <div className="flex items-center justify-between gap-2 sm:gap-3">
+        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-xl border-b border-border/40 -mx-4 sm:-mx-6 lg:-mx-8 px-3 sm:px-6 lg:px-8 py-2.5 sm:py-4 mb-4 sm:mb-6 lg:mb-8">
+          <div className="flex items-center justify-between gap-2">
             {/* Left side: Back button + Title */}
-            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+            <div className="flex items-center gap-2 min-w-0 flex-1">
               <Button
                 variant="outline"
                 size="icon"
                 onClick={() => navigate("/quick-content")}
-                className="hover:scale-105 transition-transform shrink-0 h-8 w-8 sm:h-9 sm:w-9"
+                className="hover:scale-105 transition-transform shrink-0 h-9 w-9 sm:h-10 sm:w-10"
               >
-                <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <ArrowLeft className="h-4 w-4" />
               </Button>
-              <div className="min-w-0">
-                <h1 className="text-base sm:text-lg lg:text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent truncate">
-                  Conteúdo Gerado
-                </h1>
-                <p className="text-xs sm:text-sm text-muted-foreground truncate hidden sm:block">Sua imagem foi criada com sucesso</p>
-              </div>
+              <h1 className="text-base sm:text-lg lg:text-xl font-bold truncate">
+                Conteúdo Gerado
+              </h1>
             </div>
             
             {/* Right side: Action buttons */}
-            <div className="flex gap-1.5 sm:gap-2 lg:gap-3">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={handleOpenReview}
-                      className="h-8 w-8 sm:h-9 sm:w-9 hover:text-accent hover:bg-accent/20 hover:border-accent transition-all"
-                    >
-                      <RefreshCw className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Revisar</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleOpenReview}
+                className="h-9 w-9 sm:h-10 sm:w-10 hover:bg-accent/20 shrink-0"
+              >
+                <RefreshCw className="h-4 w-4" />
+              </Button>
 
               {totalRevisions > 0 && (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={handleRevert}
-                        className="h-8 w-8 sm:h-9 sm:w-9 hover:text-accent hover:bg-accent/20 hover:border-accent transition-all"
-                      >
-                        <Undo2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Reverter última revisão</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={handleRevert}
+                  className="h-9 w-9 sm:h-10 sm:w-10 hover:bg-accent/20 shrink-0"
+                >
+                  <Undo2 className="h-4 w-4" />
+                </Button>
               )}
 
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={handleDownload}
-                      className="h-8 w-8 sm:h-9 sm:w-9 hover:text-accent hover:bg-accent/20 hover:border-accent transition-all"
-                    >
-                      <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Baixar</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleDownload}
+                className="h-9 w-9 sm:h-10 sm:w-10 hover:bg-accent/20 shrink-0"
+              >
+                <Download className="h-4 w-4" />
+              </Button>
 
               <Button
                 size="sm"
                 onClick={() => navigate("/quick-content")}
-                className="hover:scale-105 transition-transform h-8 sm:h-9 px-3 sm:px-4"
+                className="h-9 sm:h-10 px-4 sm:px-5 font-semibold shrink-0"
               >
-                <span className="hidden sm:inline">Criar Novo</span>
-                <span className="sm:hidden">Novo</span>
+                Novo
               </Button>
             </div>
           </div>
