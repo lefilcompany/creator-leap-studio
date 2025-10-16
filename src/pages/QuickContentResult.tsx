@@ -262,41 +262,42 @@ export default function QuickContentResult() {
       <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-xl border-b border-border/40 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-3 sm:py-4 mb-4 sm:mb-6 lg:mb-8">
-          <div className="flex items-center justify-between gap-2 sm:gap-3">
-            {/* Left side: Back button + Title */}
-            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+          <div className="flex flex-col gap-3 sm:gap-4">
+            {/* Top: Back button + Title */}
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
               <Button
                 variant="outline"
                 size="icon"
                 onClick={() => navigate("/quick-content")}
-                className="hover:scale-105 transition-transform shrink-0 h-8 w-8 sm:h-9 sm:w-9"
+                className="hover:scale-105 transition-transform shrink-0 h-9 w-9 sm:h-10 sm:w-10"
               >
-                <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <ArrowLeft className="h-4 w-4 sm:h-4.5 sm:w-4.5" />
               </Button>
               <div className="min-w-0">
-                <h1 className="text-base sm:text-lg lg:text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent truncate">
+                <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-foreground">
                   Conteúdo Gerado
                 </h1>
-                <p className="text-xs sm:text-sm text-muted-foreground truncate hidden sm:block">Sua imagem foi criada com sucesso</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">Sua imagem foi criada com sucesso</p>
               </div>
             </div>
             
-            {/* Right side: Action buttons */}
-            <div className="flex gap-1.5 sm:gap-2 lg:gap-3">
+            {/* Bottom: Action buttons */}
+            <div className="flex flex-wrap gap-2">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
                       variant="outline"
-                      size="icon"
+                      size="sm"
                       onClick={handleOpenReview}
-                      className="h-8 w-8 sm:h-9 sm:w-9 hover:text-accent hover:bg-accent/20 hover:border-accent transition-all"
+                      className="hover:text-accent hover:bg-accent/20 hover:border-accent transition-all"
                     >
-                      <RefreshCw className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Revisar
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Revisar</p>
+                    <p>Revisar conteúdo</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -307,11 +308,12 @@ export default function QuickContentResult() {
                     <TooltipTrigger asChild>
                       <Button
                         variant="outline"
-                        size="icon"
+                        size="sm"
                         onClick={handleRevert}
-                        className="h-8 w-8 sm:h-9 sm:w-9 hover:text-accent hover:bg-accent/20 hover:border-accent transition-all"
+                        className="hover:text-accent hover:bg-accent/20 hover:border-accent transition-all"
                       >
-                        <Undo2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                        <Undo2 className="h-4 w-4 mr-2" />
+                        Reverter
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
@@ -326,15 +328,16 @@ export default function QuickContentResult() {
                   <TooltipTrigger asChild>
                     <Button
                       variant="outline"
-                      size="icon"
+                      size="sm"
                       onClick={handleDownload}
-                      className="h-8 w-8 sm:h-9 sm:w-9 hover:text-accent hover:bg-accent/20 hover:border-accent transition-all"
+                      className="hover:text-accent hover:bg-accent/20 hover:border-accent transition-all"
                     >
-                      <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                      <Download className="h-4 w-4 mr-2" />
+                      Baixar
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Baixar</p>
+                    <p>Baixar imagem</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -342,10 +345,9 @@ export default function QuickContentResult() {
               <Button
                 size="sm"
                 onClick={() => navigate("/quick-content")}
-                className="hover:scale-105 transition-transform h-8 sm:h-9 px-3 sm:px-4"
+                className="hover:scale-105 transition-transform"
               >
-                <span className="hidden sm:inline">Criar Novo</span>
-                <span className="sm:hidden">Novo</span>
+                Criar Novo
               </Button>
             </div>
           </div>
