@@ -295,8 +295,7 @@ const PlanContent = () => {
           {/* Configuration Form */}
           <Card className="backdrop-blur-sm bg-card/60 border border-border/20 shadow-lg shadow-black/5 rounded-2xl overflow-hidden">
             <CardHeader className="pb-4 bg-gradient-to-r from-primary/5 to-secondary/5">
-              <h2 className="text-xl font-semibold flex items-center gap-3">
-                <div className="w-2 h-2 bg-primary rounded-full"></div>
+              <h2 className="text-xl font-semibold">
                 Configuração Básica
               </h2>
               <p className="text-muted-foreground text-sm">Defina marca, tema e plataforma</p>
@@ -306,8 +305,7 @@ const PlanContent = () => {
                 {/* Primary Selection Row */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="space-y-3">
-                    <Label htmlFor="brand" className="text-sm font-semibold text-foreground flex items-center gap-2">
-                      <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
+                    <Label htmlFor="brand" className="text-sm font-semibold text-foreground">
                       Marca *
                     </Label>
                     {isLoadingData ? (
@@ -329,8 +327,7 @@ const PlanContent = () => {
                   </div>
 
                   <div className="space-y-3">
-                    <Label htmlFor="platform" className="text-sm font-semibold text-foreground flex items-center gap-2">
-                      <div className="w-1.5 h-1.5 bg-secondary rounded-full"></div>
+                    <Label htmlFor="platform" className="text-sm font-semibold text-foreground">
                       Plataforma *
                     </Label>
                     {isLoadingData ? (
@@ -351,8 +348,7 @@ const PlanContent = () => {
                   </div>
 
                   <div className="space-y-3">
-                    <Label htmlFor="quantity" className="text-sm font-semibold text-foreground flex items-center gap-2">
-                      <div className="w-1.5 h-1.5 bg-accent rounded-full"></div>
+                    <Label htmlFor="quantity" className="text-sm font-semibold text-foreground">
                       Quantidade de Posts *
                     </Label>
                     {isLoadingData ? (
@@ -376,8 +372,7 @@ const PlanContent = () => {
                 {/* Theme Selection Section */}
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="theme" className="text-sm font-semibold text-foreground flex items-center gap-2">
-                      <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
+                    <Label htmlFor="theme" className="text-sm font-semibold text-foreground">
                       Temas Estratégicos *
                     </Label>
                     <span className="text-xs text-muted-foreground bg-muted/30 px-2 py-1 rounded-full">
@@ -411,12 +406,7 @@ const PlanContent = () => {
                   <div className="relative">
                     {formData.theme.length === 0 ? (
                       <div className="flex items-center justify-center min-h-[80px] rounded-2xl border-2 border-dashed border-border/30 bg-muted/10 transition-all hover:bg-muted/20">
-                        <div className="text-center space-y-2">
-                          <div className="w-8 h-8 rounded-full bg-muted/40 mx-auto flex items-center justify-center">
-                            <div className="w-3 h-3 rounded-full bg-muted-foreground/30"></div>
-                          </div>
-                          <p className="text-sm text-muted-foreground">Nenhum tema selecionado</p>
-                        </div>
+                        <p className="text-sm text-muted-foreground">Nenhum tema selecionado</p>
                       </div>
                     ) : (
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 p-4 rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10">
@@ -450,8 +440,7 @@ const PlanContent = () => {
           {/* Planning Details */}
           <Card className="backdrop-blur-sm bg-card/60 border border-border/20 shadow-lg shadow-black/5 rounded-2xl overflow-hidden">
             <CardHeader className="pb-4 bg-gradient-to-r from-secondary/5 to-accent/5">
-              <h2 className="text-xl font-semibold flex items-center gap-3">
-                <div className="w-2 h-2 bg-secondary rounded-full"></div>
+              <h2 className="text-xl font-semibold">
                 Detalhes do Planejamento
               </h2>
               <p className="text-muted-foreground text-sm">Descreva os objetivos e informações adicionais</p>
