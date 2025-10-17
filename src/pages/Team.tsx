@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Rocket, Users, ClipboardCopy, Check, X, Crown, Loader2, UserPlus, UserMinus } from 'lucide-react';
+import { Rocket, Users, ClipboardCopy, Check, X, Crown, Loader2, UserPlus, UserMinus, BarChart3 } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
@@ -356,9 +356,20 @@ export default function Team() {
                   <Users className="h-6 w-6" />
                   Membros Aceitos
                 </div>
-                <span className="bg-gradient-to-r from-secondary to-accent text-white text-sm px-3 py-1.5 rounded-full font-medium shadow-sm">
-                  {members.length}
-                </span>
+                <div className="flex items-center gap-3">
+                  <Button
+                    onClick={() => navigate('/team-dashboard')}
+                    variant="outline"
+                    size="sm"
+                    className="border-primary/30 hover:bg-primary/10 hover:border-primary/50"
+                  >
+                    <BarChart3 className="h-4 w-4 mr-2" />
+                    Ver Dashboard
+                  </Button>
+                  <span className="bg-gradient-to-r from-secondary to-accent text-white text-sm px-3 py-1.5 rounded-full font-medium shadow-sm">
+                    {members.length}
+                  </span>
+                </div>
               </CardTitle>
               <CardDescription>
                 Usuários que foram aprovados e fazem parte da equipe
