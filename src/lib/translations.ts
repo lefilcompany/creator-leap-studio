@@ -1482,6 +1482,7 @@ export const translations = {
         },
       },
     },
+    personas: {} as any,
     history: {} as any,
     profilePage: {} as any,
     team: {} as any,
@@ -1497,16 +1498,16 @@ export const translations = {
   
   // Alemão (German)
   de: {
-    search: { placeholder: "Marken, Themen, Personas suchen...", searchContent: "Inhalt suchen", searching: "Suchen...", noResults: "Keine Ergebnisse gefunden", tryDifferent: "Versuchen Sie andere Suchbegriffe", startSearching: "Suche starten", minCharacters: "Mindestens 2 Zeichen eingeben" },
-    settings: { title: "Einstellungen", about: "Über Creator", privacy: "Datenschutz", logout: "Abmelden", logoutConfirm: "Möchten Sie sich wirklich abmelden?", logoutMessage: "Sie müssen sich erneut anmelden, um auf Ihr Konto zuzugreifen.", cancel: "Abbrechen" },
-    language: { title: "Sprachen" },
-    theme: { toggle: "Thema wechseln" },
+    search: {} as any,
+    settings: {} as any,
+    language: {} as any,
+    theme: {} as any,
     profile: "Profil",
-    sidebar: { home: "Startseite", brands: "Marken", themes: "Strategische Themen", personas: "Personas", quickContent: "Schnellerstellung", history: "Verlauf", createContent: "Inhalt erstellen", reviewContent: "Inhalt überprüfen", planContent: "Inhalt planen", team: "Team", plan: "Plan" },
-    dashboard: { welcome: "Hallo", welcomeBack: "Willkommen zurück", createNewContent: "Neuen Inhalt erstellen", creditsRemaining: "Verbleibende Credits", of: "von", creditsAvailable: "verfügbare Credits", myActions: "Meine Aktionen", totalActions: "durchgeführte Aktionen", brandsManaged: "Verwaltete Marken", totalBrands: "aktive Marken", viewPlans: "Pläne ansehen", quickActions: "Schnellaktionen", recentActivities: "Letzte Aktivitäten", viewDetails: "Details anzeigen", noRecentActivity: "Keine kürzlichen Aktivitäten", activitiesAppear: "Ihre Aktivitäten erscheinen hier", forBrand: "Für Marke", noBrand: "Keine Marke", createContentAction: "Inhalt erstellen", createContentDesc: "Neue Bilder und Texte generieren", reviewContentAction: "Inhalt überprüfen", reviewContentDesc: "KI-Feedback erhalten", managePersonas: "Personas verwalten", managePersonasDesc: "Personas hinzufügen oder bearbeiten" },
-    login: { title: "Anmelden", welcome: "Willkommen zurück!", welcomeMessage: "Melden Sie sich an", email: "E-Mail", password: "Passwort", rememberMe: "Angemeldet bleiben", forgotPassword: "Passwort vergessen?", signIn: "Anmelden", signingIn: "Anmeldung...", orContinueWith: "oder weiter mit", google: "Google", facebook: "Facebook", noAccount: "Noch kein Konto?", createAccount: "Konto erstellen", invalidCredentials: "Ungültige Anmeldedaten", incorrectCredentials: "Falsche Anmeldedaten", resetPasswordSuggestion: "Setzen Sie Ihr Passwort zurück", resetMyPassword: "Passwort zurücksetzen →", strategicContent: "Strategische Inhalte in der Geschwindigkeit Ihrer Ideen", strategicContentDesc: "Planen, erstellen und überprüfen mit KI", strategicOrganization: "Strategische Organisation", strategicOrganizationDesc: "Strukturieren Sie Ihre Kommunikation", personaSegmentation: "Persona-Segmentierung", personaSegmentationDesc: "Personalisierte Inhalte", completeCampaigns: "Vollständige Kampagnen", completeCampaignsDesc: "Komplette Kalender" },
-    register: { title: "Konto erstellen", fullName: "Vollständiger Name", email: "E-Mail", password: "Passwort", confirmPassword: "Passwort bestätigen", phone: "Telefon", state: "Bundesland", city: "Stadt", selectState: "Bundesland auswählen", selectCity: "Stadt auswählen", loadingStates: "Bundesländer werden geladen...", loadingCities: "Städte werden geladen...", selectStateFirst: "Wählen Sie zuerst das Bundesland", minCharacters: "Mindestens 6 Zeichen", passwordsMatch: "Passwörter stimmen überein", privacyPolicy: "Datenschutz", agreePrivacy: "Ich habe gelesen und stimme zu", createAccount: "KONTO ERSTELLEN", orSignUpWith: "oder registrieren mit", google: "Google", facebook: "Facebook", alreadyHaveAccount: "Haben Sie bereits ein Konto?", signIn: "Anmelden", mustAcceptPrivacy: "Sie müssen die Datenschutzrichtlinien akzeptieren", passwordsDontMatch: "Passwörter stimmen nicht überein", passwordMinLength: "Passwort muss mindestens 6 Zeichen haben", signupSuccess: "Konto erfolgreich erstellt!" },
-    common: { loading: "Laden...", save: "Speichern", delete: "Löschen", edit: "Bearbeiten", create: "Erstellen", back: "Zurück", next: "Weiter", previous: "Zurück", confirm: "Bestätigen", close: "Schließen", yes: "Ja", no: "Nein", cancel: "Abbrechen" },
+    sidebar: {} as any,
+    dashboard: {} as any,
+    login: {} as any,
+    register: {} as any,
+    common: {} as any,
     brands: {
       title: "Marken",
       newBrand: "Neue Marke",
