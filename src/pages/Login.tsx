@@ -332,11 +332,8 @@ const Login = () => {
       {/* Theme toggle and language selector */}
       <div className="absolute top-4 right-4 z-50 flex items-center gap-2">
         <Select value={language} onValueChange={setLanguage}>
-          <SelectTrigger className="h-10 w-[140px] bg-background/80 backdrop-blur-sm border-border/50">
-            <div className="flex items-center gap-2">
-              <Languages className="h-4 w-4" />
-              <SelectValue />
-            </div>
+          <SelectTrigger className="h-10 w-10 bg-background/80 backdrop-blur-sm border-border/50">
+            <Languages className="h-5 w-5" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="pt">🇧🇷 Português</SelectItem>
