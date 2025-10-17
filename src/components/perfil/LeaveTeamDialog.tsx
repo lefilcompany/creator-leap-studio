@@ -9,6 +9,9 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 
 interface LeaveTeamDialogProps {
   open: boolean;
@@ -18,16 +21,69 @@ interface LeaveTeamDialogProps {
 
 export default function LeaveTeamDialog({ open, onOpenChange, teamName }: LeaveTeamDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   const handleLeaveTeam = async () => {
+    if (!user) {
+      toast.error('Usuário não encontrado');
+      return;
+    }
+
     setIsLoading(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      toast.success('Você saiu da equipe com sucesso');
+      // Verificar se o usuário é admin da equipe
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('team_id')
+        .eq('id', user.id)
+        .single();
+
+      if (!profile?.team_id) {
+        toast.error('Você não está em nenhuma equipe');
+        return;
+      }
+
+      // Verificar se é admin
+      const { data: team } = await supabase
+        .from('teams')
+        .select('admin_id')
+        .eq('id', profile.team_id)
+        .single();
+
+      if (team?.admin_id === user.id) {
+        // Verificar se há outros membros
+        const { count } = await supabase
+          .from('profiles')
+          .select('id', { count: 'exact', head: true })
+          .eq('team_id', profile.team_id)
+          .neq('id', user.id);
+
+        if (count && count > 0) {
+          toast.error('Você precisa transferir a administração da equipe antes de sair. Vá até as configurações da equipe.');
+          setIsLoading(false);
+          return;
+        }
+      }
+
+      // Remover usuário da equipe (definir team_id como null)
+      const { error } = await supabase
+        .from('profiles')
+        .update({ team_id: null })
+        .eq('id', user.id);
+
+      if (error) {
+        throw error;
+      }
+
+      toast.success('Você saiu da equipe com sucesso! Agora você pode solicitar entrada em outra equipe.');
       onOpenChange(false);
-    } catch (error) {
-      toast.error('Erro ao sair da equipe. Tente novamente.');
+      
+      // Redirecionar para a página de dashboard que vai mostrar a tela de seleção de equipe
+      window.location.href = '/dashboard';
+    } catch (error: any) {
+      console.error('Erro ao sair da equipe:', error);
+      toast.error(error.message || 'Erro ao sair da equipe. Tente novamente.');
     } finally {
       setIsLoading(false);
     }
@@ -41,7 +97,7 @@ export default function LeaveTeamDialog({ open, onOpenChange, teamName }: LeaveT
           <AlertDialogDescription>
             Tem certeza que deseja sair da equipe <span className="font-bold">{teamName}</span>?
             <br /><br />
-            Você perderá acesso a todas as marcas, temas e conteúdos da equipe.
+            Você perderá acesso a todas as marcas, temas e conteúdos da equipe, mas poderá solicitar entrada em outra equipe após sair.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
