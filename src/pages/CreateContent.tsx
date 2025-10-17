@@ -567,9 +567,10 @@ export default function CreateContent() {
         platform: formData.platform,
         contentType: contentType,
         additionalInfo: formData.additionalInfo,
-        referenceImages: allReferenceImages,
-        brandImagesCount: finalBrandImages.length, // Informar quantas são da marca
-        userImagesCount: finalUserImages.length,   // Informar quantas são do usuário
+        preserveImages: finalBrandImages, // Imagens da marca para manter identidade visual
+        styleReferenceImages: finalUserImages, // Imagens do usuário como referência de estilo
+        brandImagesCount: finalBrandImages.length,
+        userImagesCount: finalUserImages.length,
         negativePrompt: formData.negativePrompt,
         colorPalette: formData.colorPalette,
         lighting: formData.lighting,
@@ -659,7 +660,7 @@ export default function CreateContent() {
             },
             body: JSON.stringify({
               prompt: videoPrompt,
-              referenceImage: allReferenceImages[0],
+              referenceImage: finalUserImages[0] || finalBrandImages[0], // Priorizar imagem do usuário
               actionId: actionData.id,
               includeText: formData.videoIncludeText || false,
               textContent: formData.videoTextContent?.trim() || "",
