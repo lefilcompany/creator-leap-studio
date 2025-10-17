@@ -301,7 +301,7 @@ export default function BrandDialog({ isOpen, onOpenChange, onSave, brandToEdit 
             <div>
               <DialogTitle>{brandToEdit ? t.brands.editBrand : t.brands.newBrand}</DialogTitle>
               <DialogDescription>
-                {brandToEdit ? t.brands.brandUpdated.replace('atualizada com sucesso!', 'as informações da sua marca.') : t.brands.createFirst.replace('Crie sua primeira marca para começar', 'Preencha os campos abaixo para adicionar uma nova marca.')}
+                {brandToEdit ? t.brands.editDescription : t.brands.createDescription}
               </DialogDescription>
             </div>
             {!brandToEdit && hasDraft() && (
@@ -324,65 +324,65 @@ export default function BrandDialog({ isOpen, onOpenChange, onSave, brandToEdit 
                   id="name"
                   value={formData.name}
                   onChange={handleInputChange}
-                  placeholder={t.login.email}
+                  placeholder={t.brands.placeholders.name}
                   className="h-9"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="values">Valores <span className="text-red-500">*</span></Label>
+                <Label htmlFor="values">{t.brands.values} <span className="text-red-500">*</span></Label>
                 <Textarea
                   id="values"
                   value={formData.values}
                   onChange={handleInputChange}
-                  placeholder="Descreva os princípios e valores fundamentais que guiam sua marca (ex: sustentabilidade, inovação, transparência)"
+                  placeholder={t.brands.placeholders.values}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="goals">Quais as metas do negócio? <span className="text-red-500">*</span></Label>
+                <Label htmlFor="goals">{t.brands.goals} <span className="text-red-500">*</span></Label>
                 <Textarea
                   id="goals"
                   value={formData.goals}
                   onChange={handleInputChange}
-                  placeholder="Defina objetivos específicos e mensuráveis (aumentar vendas em 30%, gerar 500 leads/mês)"
+                  placeholder={t.brands.placeholders.goals}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="successMetrics">Quais indicadores de sucesso? <span className="text-red-500">*</span></Label>
+                <Label htmlFor="successMetrics">{t.brands.successMetrics} <span className="text-red-500">*</span></Label>
                 <Textarea
                   id="successMetrics"
                   value={formData.successMetrics}
                   onChange={handleInputChange}
-                  placeholder="Liste métricas que medirão o sucesso (taxa de conversão, engajamento, ROI, NPS)"
+                  placeholder={t.brands.placeholders.successMetrics}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="specialDates">Quais datas especiais no ano?</Label>
-                <Textarea id="specialDates" value={formData.specialDates} onChange={handleInputChange} placeholder="Liste datas importantes para seu negócio (Black Friday, Natal, aniversário da empresa, sazonalidades)" />
+                <Label htmlFor="specialDates">{t.brands.specialDates}</Label>
+                <Textarea id="specialDates" value={formData.specialDates} onChange={handleInputChange} placeholder={t.brands.placeholders.specialDates} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="promise">Qual promessa você faz e ninguém entrega igual? <span className="text-red-500">*</span></Label>
+                <Label htmlFor="promise">{t.brands.promise} <span className="text-red-500">*</span></Label>
                 <Textarea
                   id="promise"
                   value={formData.promise}
                   onChange={handleInputChange}
-                  placeholder="Descreva sua proposta de valor única - o que diferencia sua marca da concorrência"
+                  placeholder={t.brands.placeholders.promise}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="milestones">Descreva marcos ou cases que reforçam autoridade e autenticidade da marca</Label>
-                <Textarea id="milestones" value={formData.milestones} onChange={handleInputChange} placeholder="Conte conquistas, prêmios, cases de sucesso ou momentos importantes da trajetória da marca" />
+                <Label htmlFor="milestones">{t.brands.milestones}</Label>
+                <Textarea id="milestones" value={formData.milestones} onChange={handleInputChange} placeholder={t.brands.placeholders.milestones} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="restrictions">Restrições <span className="text-red-500">*</span></Label>
+                <Label htmlFor="restrictions">{t.brands.restrictions} <span className="text-red-500">*</span></Label>
                 <Textarea
                   id="restrictions"
                   value={formData.restrictions}
                   onChange={handleInputChange}
-                  placeholder="Liste limitações, temas proibidos ou diretrizes que devem ser evitadas na comunicação"
+                  placeholder={t.brands.placeholders.restrictions}
                 />
               </div>
                <div className="space-y-2">
-                <Label htmlFor="referenceImage">Imagem de referência da marca</Label>
+                <Label htmlFor="referenceImage">{t.brands.referenceImage}</Label>
                 <div className="relative">
                   <Input
                     id="referenceImage"
@@ -410,7 +410,7 @@ export default function BrandDialog({ isOpen, onOpenChange, onSave, brandToEdit 
                           size="sm"
                           onClick={handleRemoveReferenceImage}
                           className="h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-100 dark:hover:bg-red-900/30 flex-shrink-0 rounded-full transition-all duration-200 relative z-20 ml-2"
-                          title="Remover arquivo"
+                          title={t.brands.removeFile}
                         >
                           <X className="h-3 w-3" />
                         </Button>
@@ -421,7 +421,7 @@ export default function BrandDialog({ isOpen, onOpenChange, onSave, brandToEdit 
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
                         <span className="text-xs text-gray-500 dark:text-gray-400 font-medium text-center">
-                          Clique para enviar imagem
+                          {t.brands.clickUploadImage}
                         </span>
                       </div>
                     )}
@@ -433,10 +433,10 @@ export default function BrandDialog({ isOpen, onOpenChange, onSave, brandToEdit 
             {/* Coluna 2 */}
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="responsible">Responsável da Marca <span className="text-red-500">*</span></Label>
+                <Label htmlFor="responsible">{t.brands.responsible} <span className="text-red-500">*</span></Label>
                 <Select onValueChange={(value) => setFormData(prev => ({ ...prev, responsible: value }))} value={formData.responsible}>
                   <SelectTrigger className="h-9">
-                    <SelectValue placeholder="Selecione" />
+                    <SelectValue placeholder={t.brands.selectMember} />
                   </SelectTrigger>
                   <SelectContent>
                     {members.map(m => (
@@ -446,41 +446,41 @@ export default function BrandDialog({ isOpen, onOpenChange, onSave, brandToEdit 
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="segment">Segmento <span className="text-red-500">*</span></Label>
+                <Label htmlFor="segment">{t.brands.segment} <span className="text-red-500">*</span></Label>
                 <Textarea
                   id="segment"
                   value={formData.segment}
                   onChange={handleInputChange}
-                  placeholder="Defina o setor de atuação da sua marca (tecnologia, moda, alimentação, etc.)"
+                  placeholder={t.brands.placeholders.segment}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="keywords">Palavras-Chave</Label>
-                <Textarea id="keywords" value={formData.keywords} onChange={handleInputChange} placeholder="Palavras que representam sua marca, separadas por vírgula (tecnologia, inovação, sustentabilidade)" />
+                <Label htmlFor="keywords">{t.brands.keywords}</Label>
+                <Textarea id="keywords" value={formData.keywords} onChange={handleInputChange} placeholder={t.brands.placeholders.keywords} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="inspirations">Quais perfis ou marcas inspiram a sua marca e por quê?</Label>
-                <Textarea id="inspirations" value={formData.inspirations} onChange={handleInputChange} placeholder="Mencione marcas/perfis de referência e explique o que admira neles (tom de voz, estratégia, valores)" />
+                <Label htmlFor="inspirations">{t.brands.inspirations}</Label>
+                <Textarea id="inspirations" value={formData.inspirations} onChange={handleInputChange} placeholder={t.brands.placeholders.inspirations} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="references">Quais conteúdos são referência para sua marca? <span className="text-red-500">*</span></Label>
+                <Label htmlFor="references">{t.brands.references} <span className="text-red-500">*</span></Label>
                 <Textarea
                   id="references"
                   value={formData.references}
                   onChange={handleInputChange}
-                  placeholder="Cole links de conteúdos que representam o estilo desejado (posts, vídeos, campanhas do Instagram, YouTube, etc.)"
+                  placeholder={t.brands.placeholders.references}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="crisisInfo">Existe alguma crise de marca? Ou pode existir?</Label>
-                <Textarea id="crisisInfo" value={formData.crisisInfo} onChange={handleInputChange} placeholder="Descreva situações de crise passadas ou potenciais riscos que devem ser considerados na comunicação" />
+                <Label htmlFor="crisisInfo">{t.brands.crisisInfo}</Label>
+                <Textarea id="crisisInfo" value={formData.crisisInfo} onChange={handleInputChange} placeholder={t.brands.placeholders.crisisInfo} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="collaborations">Existem ações com influenciadores, comunidades ou colaboradores?</Label>
-                <Textarea id="collaborations" value={formData.collaborations} onChange={handleInputChange} placeholder="Descreva parcerias ativas, embaixadores da marca ou colaborações relevantes para o posicionamento" />
+                <Label htmlFor="collaborations">{t.brands.collaborations}</Label>
+                <Textarea id="collaborations" value={formData.collaborations} onChange={handleInputChange} placeholder={t.brands.placeholders.collaborations} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="moodboard">Existem moodboard, referências visuais e identidade visual? <span className="text-red-500">*</span></Label>
+                <Label htmlFor="moodboard">{t.brands.moodboard} <span className="text-red-500">*</span></Label>
                 <div className="relative">
                   <Input
                     id="moodboard"
@@ -508,7 +508,7 @@ export default function BrandDialog({ isOpen, onOpenChange, onSave, brandToEdit 
                           size="sm"
                           onClick={handleRemoveFile}
                           className="h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-100 dark:hover:bg-red-900/30 flex-shrink-0 rounded-full transition-all duration-200 relative z-20 ml-2"
-                          title="Remover arquivo"
+                          title={t.brands.removeFile}
                         >
                           <X className="h-3 w-3" />
                         </Button>
@@ -519,7 +519,7 @@ export default function BrandDialog({ isOpen, onOpenChange, onSave, brandToEdit 
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                         <span className="text-xs text-gray-500 dark:text-gray-400 font-medium text-center">
-                          Clique para enviar moodboard
+                          {t.brands.clickUploadMoodboard}
                         </span>
                       </div>
                     )}
@@ -527,7 +527,7 @@ export default function BrandDialog({ isOpen, onOpenChange, onSave, brandToEdit 
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="logo">Logo da marca <span className="text-red-500">*</span></Label>
+                <Label htmlFor="logo">{t.brands.logo} <span className="text-red-500">*</span></Label>
                 <div className="relative">
                   <Input
                     id="logo"
@@ -555,7 +555,7 @@ export default function BrandDialog({ isOpen, onOpenChange, onSave, brandToEdit 
                           size="sm"
                           onClick={handleRemoveLogo}
                           className="h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-100 dark:hover:bg-red-900/30 flex-shrink-0 rounded-full transition-all duration-200 relative z-20 ml-2"
-                          title="Remover arquivo"
+                          title={t.brands.removeFile}
                         >
                           <X className="h-3 w-3" />
                         </Button>
@@ -566,7 +566,7 @@ export default function BrandDialog({ isOpen, onOpenChange, onSave, brandToEdit 
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                         </svg>
                         <span className="text-xs text-gray-500 dark:text-gray-400 font-medium text-center">
-                          Clique para enviar logo
+                          {t.brands.clickUploadLogo}
                         </span>
                       </div>
                     )}
