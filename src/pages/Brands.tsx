@@ -14,7 +14,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { useTranslation } from '@/hooks/useTranslation';
 
 // Definindo o tipo para os dados do formulário, que é um Brand parcial
 type BrandFormData = Omit<Brand, 'id' | 'createdAt' | 'updatedAt' | 'teamId' | 'userId'>;
@@ -22,7 +21,6 @@ type BrandFormData = Omit<Brand, 'id' | 'createdAt' | 'updatedAt' | 'teamId' | '
 export default function MarcasPage() {
   const { user, team } = useAuth();
   const isMobile = useIsMobile();
-  const { t } = useTranslation();
   const [brands, setBrands] = useState<BrandSummary[]>([]);
   const [isLoadingBrands, setIsLoadingBrands] = useState(true);
   const [selectedBrandSummary, setSelectedBrandSummary] = useState<BrandSummary | null>(null);
@@ -67,7 +65,7 @@ export default function MarcasPage() {
         setTotalPages(Math.ceil((count || 0) / ITEMS_PER_PAGE));
       } catch (error) {
         console.error('Erro ao carregar marcas:', error);
-        toast.error(t.brands.loadError);
+        toast.error('Erro ao carregar marcas');
       } finally {
         setIsLoadingBrands(false);
       }
@@ -79,7 +77,7 @@ export default function MarcasPage() {
   const handleOpenDialog = useCallback((brand: Brand | null = null) => {
     // Check if at limit before opening dialog for new brand
     if (!brand && team && brands.length >= team.plan.maxBrands) {
-      toast.error(`${t.brands.limitReached} ${team.plan.maxBrands} ${t.brands.brandsOfPlan}`);
+      toast.error(`Você atingiu o limite de ${team.plan.maxBrands} marcas do seu plano. Faça upgrade para criar mais marcas.`);
       return;
     }
     setBrandToEdit(brand);
@@ -130,7 +128,7 @@ export default function MarcasPage() {
       setSelectedBrand(fullBrand);
     } catch (error) {
       console.error('Erro ao carregar detalhes da marca:', error);
-      toast.error(t.brands.loadDetailsError);
+      toast.error('Erro ao carregar detalhes da marca');
     } finally {
       setIsLoadingBrandDetails(false);
     }
@@ -138,13 +136,13 @@ export default function MarcasPage() {
 
   const handleSaveBrand = useCallback(async (formData: BrandFormData) => {
     if (!user?.teamId || !user.id) {
-      toast.error(t.brands.notAuthenticated);
+      toast.error('Usuário não autenticado ou sem equipe');
       return;
     }
 
     const toastId = 'brand-operation';
     try {
-      toast.loading(brandToEdit ? t.brands.updating : t.brands.creating, { id: toastId });
+      toast.loading(brandToEdit ? 'Atualizando marca...' : 'Criando marca...', { id: toastId });
       
       if (brandToEdit) {
         // Update existing brand
@@ -191,7 +189,7 @@ export default function MarcasPage() {
           setSelectedBrand(updatedBrand);
         }
         
-        toast.success(t.brands.updateSuccess, { id: toastId });
+        toast.success('Marca atualizada com sucesso!', { id: toastId });
       } else {
         // Create new brand
         const { data, error } = await supabase
@@ -244,27 +242,27 @@ export default function MarcasPage() {
         setBrands(prev => [...prev, newBrandSummary]);
         setSelectedBrand(newBrand);
         setSelectedBrandSummary(newBrandSummary);
-        toast.success(t.brands.createSuccess, { id: toastId });
+        toast.success('Marca criada com sucesso!', { id: toastId });
       }
       
       setIsDialogOpen(false);
       setBrandToEdit(null);
     } catch (error) {
       console.error('Erro ao salvar marca:', error);
-      toast.error(t.brands.saveError, { id: toastId });
+      toast.error('Erro ao salvar marca. Tente novamente.', { id: toastId });
       throw error;
     }
-  }, [brandToEdit, selectedBrand?.id, user, t]);
+  }, [brandToEdit, selectedBrand?.id, user]);
 
   const handleDeleteBrand = useCallback(async () => {
     if (!selectedBrand || !user?.teamId || !user?.id) {
-      toast.error(t.brands.deleteConfirm);
+      toast.error('Não foi possível deletar a marca. Verifique se você está logado.');
       return;
     }
     
     const toastId = 'brand-operation';
     try {
-      toast.loading(t.brands.deleting, { id: toastId });
+      toast.loading('Deletando marca...', { id: toastId });
       
       const { error } = await supabase
         .from('brands')
@@ -284,12 +282,12 @@ export default function MarcasPage() {
         handleSelectBrand(remainingBrands[0]);
       }
       
-      toast.success(t.brands.deleteSuccess, { id: toastId });
+      toast.success('Marca deletada com sucesso!', { id: toastId });
     } catch (error) {
       console.error('Erro ao deletar marca:', error);
-      toast.error(t.brands.deleteError, { id: toastId });
+      toast.error('Erro ao deletar marca. Tente novamente.', { id: toastId });
     }
-  }, [selectedBrand, user, brands, handleSelectBrand, t]);
+  }, [selectedBrand, user, brands, handleSelectBrand]);
 
   // Verificar se o limite foi atingido
   const isAtBrandLimit = team ? brands.length >= team.plan.maxBrands : false;
@@ -305,10 +303,10 @@ export default function MarcasPage() {
               </div>
               <div>
                 <CardTitle className="text-xl lg:text-2xl font-bold">
-                  {t.brands.pageTitle}
+                  Suas Marcas
                 </CardTitle>
                 <p className="text-sm lg:text-base text-muted-foreground">
-                  {t.brands.pageDescription}
+                  Gerencie, edite ou crie novas marcas para seus projetos.
                 </p>
               </div>
             </div>
@@ -316,10 +314,10 @@ export default function MarcasPage() {
               onClick={() => handleOpenDialog()} 
               disabled={isAtBrandLimit}
               className="rounded-lg bg-gradient-to-r from-primary to-secondary px-4 lg:px-6 py-3 lg:py-5 text-sm lg:text-base disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
-              title={isAtBrandLimit ? `${t.brands.limitReachedTitle} ${team?.plan.maxBrands} ${t.brands.brandsReached}` : undefined}
+              title={isAtBrandLimit ? `Limite de ${team?.plan.maxBrands} marcas atingido` : undefined}
             >
               <Plus className="mr-2 h-4 w-4 lg:h-5 lg:w-5" />
-              {t.brands.newBrand}
+              Nova marca
             </Button>
           </div>
         </CardHeader>
@@ -341,7 +339,7 @@ export default function MarcasPage() {
       {!isMobile && (
         <Sheet open={isBrandDetailsOpen} onOpenChange={setIsBrandDetailsOpen}>
           <SheetContent side="right" className="w-1/2 max-w-none">
-            <SheetTitle className="text-left mb-4">{t.brands.brandDetails}</SheetTitle>
+            <SheetTitle className="text-left mb-4">Detalhes da Marca</SheetTitle>
             <BrandDetails
               brand={selectedBrand}
               onEdit={handleOpenDialog}
@@ -356,7 +354,7 @@ export default function MarcasPage() {
       {isMobile && (
         <Drawer open={isBrandDetailsOpen} onOpenChange={setIsBrandDetailsOpen}>
           <DrawerContent className="h-[85vh]">
-            <DrawerTitle className="text-left p-6 pb-0">{t.brands.brandDetails}</DrawerTitle>
+            <DrawerTitle className="text-left p-6 pb-0">Detalhes da Marca</DrawerTitle>
             <BrandDetails
               brand={selectedBrand}
               onEdit={handleOpenDialog}
