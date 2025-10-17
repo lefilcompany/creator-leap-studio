@@ -15,8 +15,11 @@ import ChangePasswordDialog from "@/components/perfil/ChangePasswordDialog";
 import { useOAuthCallback } from "@/hooks/useOAuthCallback";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useTranslation } from "@/hooks/useTranslation";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 const Login = () => {
+  const { t } = useTranslation();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -34,9 +37,9 @@ const Login = () => {
   useEffect(() => {
     const isNewUser = searchParams.get("newUser") === "true";
     if (isNewUser) {
-      toast.info("Complete seu cadastro configurando sua equipe após fazer login.");
+      toast.info(t.login.welcomeMessage);
     }
-  }, [searchParams]);
+  }, [searchParams, t]);
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -48,7 +51,7 @@ const Login = () => {
       if (error) {
         setFailedAttempts(failedAttempts + 1);
         setShowPasswordResetSuggestion(true);
-        toast.error('Credenciais de login inválidas. Considere redefinir sua senha usando "Esqueci a senha".', {
+        toast.error(t.login.invalidCredentials, {
           duration: 6000,
         });
         return;
@@ -67,7 +70,7 @@ const Login = () => {
           .single();
         if (profileError) {
           console.error("Erro ao carregar perfil:", profileError);
-          toast.error("Erro ao verificar dados do usuário");
+          toast.error(t.errors.somethingWrong);
           return;
         }
 
@@ -90,15 +93,15 @@ const Login = () => {
             await supabase.auth.signOut();
             return;
           }
-          toast.success("Login realizado com sucesso!");
+          toast.success(t.login.welcomeMessage);
           setShowTeamSelection(true);
         } else {
-          toast.success("Login realizado com sucesso!");
+          toast.success(t.login.welcomeMessage);
           navigate("/dashboard");
         }
       }
     } catch (error) {
-      toast.error("Erro ao fazer login. Tente novamente.");
+      toast.error(t.errors.somethingWrong);
     } finally {
       setLoading(false);
     }
@@ -114,7 +117,7 @@ const Login = () => {
             <Input
               id="email"
               type="email"
-              placeholder="E-mail"
+              placeholder={t.login.email}
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -129,7 +132,7 @@ const Login = () => {
             <Input
               id="password"
               type={showPassword ? "text" : "password"}
-              placeholder="Senha"
+              placeholder={t.login.password}
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -152,16 +155,15 @@ const Login = () => {
             <div className="flex items-start gap-3">
               <Mail className="h-5 w-5 text-destructive mt-0.5 flex-shrink-0" />
               <div className="flex-1">
-                <p className="text-sm font-semibold text-destructive mb-1">Credenciais incorretas</p>
+                <p className="text-sm font-semibold text-destructive mb-1">{t.login.incorrectCredentials}</p>
                 <p className="text-xs text-muted-foreground mb-2">
-                  Se você esqueceu sua senha ou está com dificuldades para entrar, redefina sua senha usando a opção
-                  abaixo.
+                  {t.login.resetPasswordSuggestion}
                 </p>
                 <a
                   href="/forgot-password"
                   className="text-sm text-destructive hover:text-destructive/80 font-semibold underline underline-offset-2"
                 >
-                  Redefinir minha senha →
+                  {t.login.resetMyPassword}
                 </a>
               </div>
             </div>
@@ -176,14 +178,14 @@ const Login = () => {
               onCheckedChange={(checked) => setRememberMe(checked as boolean)}
             />
             <Label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer">
-              Mantenha-me conectado
+              {t.login.rememberMe}
             </Label>
           </div>
           <a
             href="/forgot-password"
             className={`text-sm transition-all duration-300 ${showPasswordResetSuggestion ? "text-destructive hover:text-destructive/80 font-semibold animate-pulse" : "text-primary hover:text-primary/80"}`}
           >
-            Esqueceu a senha?
+            {t.login.forgotPassword}
           </a>
         </div>
 
@@ -195,17 +197,17 @@ const Login = () => {
           {loading ? (
             <div className="flex items-center gap-2">
               <Loader2 className="h-5 w-5 animate-spin" />
-              <span>Entrando...</span>
+              <span>{t.login.signingIn}</span>
             </div>
           ) : (
-            "Entrar"
+            t.login.signIn
           )}
         </Button>
 
         <div className="text-center mt-6">
-          <span className="text-muted-foreground text-sm">Não tem uma conta? </span>
+          <span className="text-muted-foreground text-sm">{t.login.noAccount} </span>
           <a href="/register" className="text-primary hover:text-primary/80 font-medium text-sm transition-colors">
-            Criar conta
+            {t.login.createAccount}
           </a>
         </div>
       </form>
@@ -248,7 +250,7 @@ const Login = () => {
         >
           <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
           <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-          <span className="sr-only">Alternar tema</span>
+          <span className="sr-only">{t.theme.toggle}</span>
         </Button>
       </div>
 
@@ -269,10 +271,10 @@ const Login = () => {
 
           <div className="mb-8">
             <h1 className="text-3xl lg:text-4xl font-bold text-foreground mb-4 leading-tight">
-              Conteúdo estratégico na velocidade das suas ideias
+              {t.login.strategicContent}
             </h1>
             <p className="text-lg text-muted-foreground leading-relaxed">
-              Planeje, crie e revise com inteligência artificial — simples, rápido e sem prompts
+              {t.login.strategicContentDesc}
             </p>
           </div>
 
@@ -280,24 +282,24 @@ const Login = () => {
             <div className="flex items-center gap-4 p-4 bg-card/30 backdrop-blur-sm rounded-xl border border-primary/20">
               <div className="w-3 h-3 bg-primary rounded-full"></div>
               <div>
-                <h3 className="font-semibold text-foreground text-base">Organização Estratégica</h3>
-                <p className="text-muted-foreground text-sm">Estruture sua comunicação de forma clara e integrada</p>
+                <h3 className="font-semibold text-foreground text-base">{t.login.strategicOrganization}</h3>
+                <p className="text-muted-foreground text-sm">{t.login.strategicOrganizationDesc}</p>
               </div>
             </div>
 
             <div className="flex items-center gap-4 p-4 bg-card/30 backdrop-blur-sm rounded-xl border border-secondary/20">
               <div className="w-3 h-3 bg-secondary rounded-full"></div>
               <div>
-                <h3 className="font-semibold text-foreground text-base">Segmentação por Personas</h3>
-                <p className="text-muted-foreground text-sm">Conteúdos personalizados para diferentes públicos</p>
+                <h3 className="font-semibold text-foreground text-base">{t.login.personaSegmentation}</h3>
+                <p className="text-muted-foreground text-sm">{t.login.personaSegmentationDesc}</p>
               </div>
             </div>
 
             <div className="flex items-center gap-4 p-4 bg-card/30 backdrop-blur-sm rounded-xl border border-accent/20">
               <div className="w-3 h-3 bg-accent rounded-full"></div>
               <div>
-                <h3 className="font-semibold text-foreground text-base">Campanhas Completas</h3>
-                <p className="text-muted-foreground text-sm">Calendários completos, não apenas posts isolados</p>
+                <h3 className="font-semibold text-foreground text-base">{t.login.completeCampaigns}</h3>
+                <p className="text-muted-foreground text-sm">{t.login.completeCampaignsDesc}</p>
               </div>
             </div>
           </div>
@@ -317,10 +319,10 @@ const Login = () => {
 
                 <div className="text-left space-y-4">
                   <h1 className="text-2xl font-bold text-foreground leading-tight text-left md:text-4xl">
-                    Conteúdo estratégico na velocidade das suas ideias
+                    {t.login.strategicContent}
                   </h1>
                   <p className="text-base text-muted-foreground leading-relaxed text-left md:text-lg">
-                    Planeje, crie e revise com inteligência artificial — simples, rápido e sem prompts
+                    {t.login.strategicContentDesc}
                   </p>
                 </div>
               </div>
@@ -331,7 +333,7 @@ const Login = () => {
               <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
                 <SheetTrigger asChild>
                   <Button className="w-full h-14 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground font-semibold rounded-2xl text-lg shadow-xl">
-                    Entrar
+                    {t.login.signIn}
                   </Button>
                 </SheetTrigger>
                 <SheetContent side="bottom" className="h-[90vh] rounded-t-3xl p-0 border-t-2">
@@ -353,7 +355,7 @@ const Login = () => {
                 onClick={() => navigate("/register")}
                 className="w-full h-14 bg-card/90 backdrop-blur-xl  font-semibold rounded-2xl text-lg hover:text-primary "
               >
-                Criar conta
+                {t.login.createAccount}
               </Button>
             </div>
           </div>
@@ -364,8 +366,8 @@ const Login = () => {
           <div className="w-full max-w-md">
             <div className="bg-card/90 backdrop-blur-xl border border-border/50 rounded-2xl shadow-2xl p-8">
               <div className="text-center mb-8">
-                <h2 className="text-2xl font-bold text-foreground mb-2">Acesse o Creator</h2>
-                <p className="text-muted-foreground">Sua plataforma de marketing estratégico</p>
+                <h2 className="text-2xl font-bold text-foreground mb-2">{t.login.title}</h2>
+                <p className="text-muted-foreground">{t.login.welcomeMessage}</p>
               </div>
 
               {loginForm}
