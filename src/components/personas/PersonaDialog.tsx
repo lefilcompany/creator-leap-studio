@@ -126,7 +126,7 @@ export default function PersonaDialog({ isOpen, onOpenChange, onSave, personaToE
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl">
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle>

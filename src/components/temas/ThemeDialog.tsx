@@ -239,7 +239,7 @@ export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit,
 
   return (
     <Dialog open={isOpen} onOpenChange={handleDialogClose}>
-      <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
+      <DialogContent className="max-w-4xl flex flex-col">
         <DialogHeader>
           <div className="flex items-center justify-between">
             <div>

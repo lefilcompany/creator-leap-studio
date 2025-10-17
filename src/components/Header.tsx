@@ -235,7 +235,7 @@ export const Header = () => {
 
       {/* Mobile Search Dialog */}
       <Dialog open={showMobileSearch} onOpenChange={setShowMobileSearch}>
-        <DialogContent className="max-w-[95vw] w-full max-h-[90vh] p-0 gap-0 border-border/20 shadow-2xl animate-scale-in">
+        <DialogContent className="max-w-[95vw] w-full p-0 gap-0 border-border/20 shadow-2xl animate-scale-in">
           <DialogHeader className="p-4 pb-3 border-b border-border/20">
             <DialogTitle className="text-left text-lg font-semibold flex items-center gap-2">
               <Search className="h-5 w-5 text-primary" />
