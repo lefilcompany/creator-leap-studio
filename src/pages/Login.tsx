@@ -7,13 +7,15 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { CreatorLogo } from "@/components/CreatorLogo";
-import { Eye, EyeOff, Chrome, Facebook, Mail, Lock, Sun, Moon, Loader2, ArrowRight } from "lucide-react";
+import { Eye, EyeOff, Chrome, Facebook, Mail, Lock, Sun, Moon, Loader2, ArrowRight, Languages } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { TeamSelectionDialog } from "@/components/auth/TeamSelectionDialog";
 import ChangePasswordDialog from "@/components/perfil/ChangePasswordDialog";
 import { useOAuthCallback } from "@/hooks/useOAuthCallback";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
@@ -29,6 +31,7 @@ const Login = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { theme, setTheme } = useTheme();
+  const { language, setLanguage } = useLanguage();
   const { showTeamDialog: oauthTeamDialog, handleTeamDialogClose: handleOAuthTeamDialogClose } = useOAuthCallback();
   useEffect(() => {
     const isNewUser = searchParams.get("newUser") === "true";
@@ -326,17 +329,38 @@ const Login = () => {
   );
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 flex relative">
-      {/* Theme toggle button */}
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-        className="absolute top-4 right-4 z-50 h-10 w-10 rounded-full"
-      >
-        <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-        <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-        <span className="sr-only">Alternar tema</span>
-      </Button>
+      {/* Theme toggle and language selector */}
+      <div className="absolute top-4 right-4 z-50 flex items-center gap-2">
+        <Select value={language} onValueChange={setLanguage}>
+          <SelectTrigger className="h-10 w-[140px] bg-background/80 backdrop-blur-sm border-border/50">
+            <div className="flex items-center gap-2">
+              <Languages className="h-4 w-4" />
+              <SelectValue />
+            </div>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="pt">🇧🇷 Português</SelectItem>
+            <SelectItem value="en">🇺🇸 English</SelectItem>
+            <SelectItem value="es">🇪🇸 Español</SelectItem>
+            <SelectItem value="de">🇩🇪 Deutsch</SelectItem>
+            <SelectItem value="fr">🇫🇷 Français</SelectItem>
+            <SelectItem value="it">🇮🇹 Italiano</SelectItem>
+            <SelectItem value="ru">🇷🇺 Русский</SelectItem>
+            <SelectItem value="zh">🇨🇳 中文</SelectItem>
+          </SelectContent>
+        </Select>
+        
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          className="h-10 w-10 rounded-full"
+        >
+          <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+          <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+          <span className="sr-only">Alternar tema</span>
+        </Button>
+      </div>
 
       {/* Background gradient for entire screen */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary/15 via-accent/10 via-secondary/15 to-primary/5"></div>
