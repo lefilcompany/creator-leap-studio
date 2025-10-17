@@ -1389,7 +1389,7 @@ export const translations = {
         restrictions: "Lista limitaciones, temas prohibidos o directrices que deben evitarse en la comunicación",
       },
     },
-    personas: {} as any,
+    personas: {},
     themes: {
       title: "Temas Estratégicos",
       newTheme: "Nuevo Tema",
@@ -1482,32 +1482,32 @@ export const translations = {
         },
       },
     },
-    personas: {} as any,
-    history: {} as any,
-    profilePage: {} as any,
-    team: {} as any,
-    plans: {} as any,
-    createContent: {} as any,
-    reviewContent: {} as any,
-    planContent: {} as any,
-    quickContent: {} as any,
-    notifications: {} as any,
-    trial: {} as any,
-    errors: {} as any,
+    personas: {},
+    history: {},
+    profilePage: {},
+    team: {},
+    plans: {},
+    createContent: {},
+    reviewContent: {},
+    planContent: {},
+    quickContent: {},
+    notifications: {},
+    trial: {},
+    errors: {},
   },
   
   // Alemão (German)
   de: {
-    search: {} as any,
-    settings: {} as any,
-    language: {} as any,
-    theme: {} as any,
+    search: {},
+    settings: {},
+    language: {},
+    theme: {},
     profile: "Profil",
-    sidebar: {} as any,
-    dashboard: {} as any,
-    login: {} as any,
-    register: {} as any,
-    common: {} as any,
+    sidebar: {},
+    dashboard: {},
+    login: {},
+    register: {},
+    common: {},
     brands: {
       title: "Marken",
       newBrand: "Neue Marke",
@@ -1597,7 +1597,7 @@ export const translations = {
     notifications: { title: "Benachrichtigungen", markAllRead: "Alle als gelesen markieren", noNotifications: "Keine Benachrichtigungen", youAreAllCaught: "Alles erledigt!" },
     trial: { daysLeft: "Tage übrig im Test", upgradeNow: "Jetzt upgraden", trialExpired: "Ihre Testphase ist abgelaufen", upgradeToAccess: "Upgraden Sie Ihren Plan", upgradePlan: "Plan upgraden" },
     errors: { somethingWrong: "Etwas ist schiefgelaufen", tryAgain: "Erneut versuchen", fieldRequired: "Dieses Feld ist erforderlich", invalidEmail: "Ungültige E-Mail", invalidPhone: "Ungültige Telefonnummer", passwordMismatch: "Passwörter stimmen nicht überein", minLength: "Minimum {count} Zeichen", maxLength: "Maximum {count} Zeichen", uploadFailed: "Upload fehlgeschlagen", networkError: "Netzwerkfehler", unauthorized: "Nicht autorisiert", notFound: "Nicht gefunden" }
-  } as any,
+  },
   
   // Francês (French)
   fr: {
@@ -1700,7 +1700,7 @@ export const translations = {
     notifications: { title: "Notifications", markAllRead: "Tout marquer comme lu", noNotifications: "Aucune notification", youAreAllCaught: "Tout est à jour!" },
     trial: { daysLeft: "jours restants d'essai", upgradeNow: "Mettre à niveau maintenant", trialExpired: "Votre période d'essai a expiré", upgradeToAccess: "Mettez à niveau votre plan", upgradePlan: "Mettre à niveau le plan" },
     errors: { somethingWrong: "Quelque chose s'est mal passé", tryAgain: "Réessayer", fieldRequired: "Ce champ est requis", invalidEmail: "E-mail invalide", invalidPhone: "Téléphone invalide", passwordMismatch: "Les mots de passe ne correspondent pas", minLength: "Minimum {count} caractères", maxLength: "Maximum {count} caractères", uploadFailed: "Échec du téléchargement", networkError: "Erreur réseau", unauthorized: "Non autorisé", notFound: "Non trouvé" }
-  } as any,
+  },
   
   // Italiano (Italian)
   it: {
@@ -1803,7 +1803,7 @@ export const translations = {
     notifications: { title: "Notifiche", markAllRead: "Segna tutto come letto", noNotifications: "Nessuna notifica", youAreAllCaught: "Tutto a posto!" },
     trial: { daysLeft: "giorni rimasti di prova", upgradeNow: "Aggiorna ora", trialExpired: "Il tuo periodo di prova è scaduto", upgradeToAccess: "Aggiorna il tuo piano", upgradePlan: "Aggiorna piano" },
     errors: { somethingWrong: "Qualcosa è andato storto", tryAgain: "Riprova", fieldRequired: "Questo campo è obbligatorio", invalidEmail: "E-mail non valida", invalidPhone: "Telefono non valido", passwordMismatch: "Le password non corrispondono", minLength: "Minimo {count} caratteri", maxLength: "Massimo {count} caratteri", uploadFailed: "Caricamento fallito", networkError: "Errore di rete", unauthorized: "Non autorizzato", notFound: "Non trovato" }
-  } as any,
+  },
   
   // Russo (Russian)
   ru: {
@@ -1906,7 +1906,7 @@ export const translations = {
     notifications: { title: "Уведомления", markAllRead: "Отметить все как прочитанные", noNotifications: "Нет уведомлений", youAreAllCaught: "Всё в порядке!" },
     trial: { daysLeft: "дней осталось пробного периода", upgradeNow: "Обновить сейчас", trialExpired: "Ваш пробный период истек", upgradeToAccess: "Обновите свой план", upgradePlan: "Обновить план" },
     errors: { somethingWrong: "Что-то пошло не так", tryAgain: "Попробуйте снова", fieldRequired: "Это поле обязательно", invalidEmail: "Неверный e-mail", invalidPhone: "Неверный телефон", passwordMismatch: "Пароли не совпадают", minLength: "Минимум {count} символов", maxLength: "Максимум {count} символов", uploadFailed: "Ошибка загрузки", networkError: "Ошибка сети", unauthorized: "Не авторизован", notFound: "Не найдено" }
-  } as any,
+  },
   
   // Chinês (Chinese)
   zh: {
@@ -2009,7 +2009,7 @@ export const translations = {
     notifications: { title: "通知", markAllRead: "全部标记为已读", noNotifications: "没有通知", youAreAllCaught: "全部完成！" },
     trial: { daysLeft: "试用剩余天数", upgradeNow: "立即升级", trialExpired: "您的试用期已过", upgradeToAccess: "升级您的计划", upgradePlan: "升级计划" },
     errors: { somethingWrong: "出错了", tryAgain: "重试", fieldRequired: "此字段必填", invalidEmail: "电子邮件无效", invalidPhone: "电话无效", passwordMismatch: "密码不匹配", minLength: "最少 {count} 个字符", maxLength: "最多 {count} 个字符", uploadFailed: "上传失败", networkError: "网络错误", unauthorized: "未授权", notFound: "未找到" }
-  } as any,
+  },
 };
 
 export type TranslationKey = typeof translations.pt;
