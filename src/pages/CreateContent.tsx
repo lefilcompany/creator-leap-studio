@@ -81,7 +81,7 @@ const toneOptions = [
 ];
 
 export default function CreateContent() {
-  const { user, reloadUserData } = useAuth();
+  const { user, session, reloadUserData } = useAuth();
   const navigate = useNavigate();
   const [formData, setFormData] = useState<FormData>({
     brand: "",
@@ -719,7 +719,7 @@ export default function CreateContent() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            Authorization: `Bearer ${session?.access_token}`,
           },
           body: JSON.stringify({
             ...requestData,
