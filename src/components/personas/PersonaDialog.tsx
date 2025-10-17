@@ -399,7 +399,7 @@ export default function PersonaDialog({ isOpen, onOpenChange, onSave, personaToE
 
             {/* Botões */}
             <div className="flex justify-end gap-2 pt-4">
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="hover:bg-destructive hover:border-destructive hover:text-white dark:hover:bg-destructive">
                 Cancelar
               </Button>
               <Button type="submit">

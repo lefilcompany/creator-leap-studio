@@ -589,7 +589,7 @@ export default function BrandDialog({ isOpen, onOpenChange, onSave, brandToEdit 
             <Button 
               type="button" 
               variant="outline" 
-              className="min-w-[120px] h-11 px-8 font-medium transition-all duration-300 hover:bg-destructive hover:border-destructive dark:hover:bg-destructive"
+              className="min-w-[120px] h-11 px-8 font-medium transition-all duration-300 hover:bg-destructive hover:border-destructive hover:text-white dark:hover:bg-destructive"
             >
               Cancelar
             </Button>
