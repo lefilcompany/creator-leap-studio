@@ -7,6 +7,8 @@ import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useTranslation } from "@/hooks/useTranslation";
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -33,30 +35,23 @@ export const Header = () => {
   const navigate = useNavigate();
   const { logout, isTrialExpired } = useAuth();
   const { theme, setTheme } = useTheme();
+  const { language, setLanguage } = useLanguage();
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [showMobileSearch, setShowMobileSearch] = useState(false);
-  const [currentLanguage, setCurrentLanguage] = useState(() => {
-    return localStorage.getItem('app-language') || 'pt';
-  });
   const searchRef = useRef<HTMLInputElement>(null);
 
   const languages = [
-    { code: 'pt', name: 'Português', flag: '🇧🇷' },
-    { code: 'en', name: 'English', flag: '🇺🇸' },
-    { code: 'es', name: 'Español', flag: '🇪🇸' },
-    { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
-    { code: 'fr', name: 'Français', flag: '🇫🇷' },
-    { code: 'it', name: 'Italiano', flag: '🇮🇹' },
-    { code: 'ru', name: 'Русский', flag: '🇷🇺' },
-    { code: 'zh', name: '中文', flag: '🇨🇳' },
+    { code: 'pt' as const, name: 'Português', flag: '🇧🇷' },
+    { code: 'en' as const, name: 'English', flag: '🇺🇸' },
+    { code: 'es' as const, name: 'Español', flag: '🇪🇸' },
+    { code: 'de' as const, name: 'Deutsch', flag: '🇩🇪' },
+    { code: 'fr' as const, name: 'Français', flag: '🇫🇷' },
+    { code: 'it' as const, name: 'Italiano', flag: '🇮🇹' },
+    { code: 'ru' as const, name: 'Русский', flag: '🇷🇺' },
+    { code: 'zh' as const, name: '中文', flag: '🇨🇳' },
   ];
-
-  const handleLanguageChange = (languageCode: string) => {
-    setCurrentLanguage(languageCode);
-    localStorage.setItem('app-language', languageCode);
-    // Aqui você pode adicionar lógica adicional para mudar o idioma da aplicação
-  };
   
   // Se o trial expirou, desabilita funcionalidades
   const isFunctionalityDisabled = isTrialExpired;
@@ -129,7 +124,7 @@ export const Header = () => {
             )}
             <Input
               type="search"
-              placeholder="Pesquisar marcas, temas, personas..."
+              placeholder={t.search.placeholder}
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
               disabled={isFunctionalityDisabled}
@@ -153,7 +148,7 @@ export const Header = () => {
             className="lg:hidden h-8 w-8 md:h-10 md:w-10 rounded-lg hover:bg-primary/10 transition-all duration-200 border border-transparent hover:border-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Search className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
-            <span className="sr-only">Pesquisar</span>
+            <span className="sr-only">{t.search.searchContent}</span>
           </Button>
 
           {/* Theme toggle button */}
@@ -165,7 +160,7 @@ export const Header = () => {
           >
             <Sun className="h-4 w-4 md:h-5 md:w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-muted-foreground group-hover:animate-[sun-rays_0.6s_ease-in-out] dark:group-hover:animate-none" />
             <Moon className="absolute h-4 w-4 md:h-5 md:w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 text-muted-foreground dark:group-hover:animate-[moon-glow_0.6s_ease-in-out]" />
-            <span className="sr-only">Alternar tema</span>
+            <span className="sr-only">{t.theme.toggle}</span>
           </Button>
 
           {/* Notifications */}
@@ -180,19 +175,19 @@ export const Header = () => {
                 className="h-8 w-8 md:h-10 md:w-10 rounded-lg xl:rounded-xl hover:bg-primary/10 transition-all duration-200 border border-transparent hover:border-primary/20 group"
               >
                 <Languages className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
-                <span className="sr-only">Idiomas</span>
+                <span className="sr-only">{t.language.title}</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 border-border/20 shadow-xl animate-scale-in">
               {languages.map((lang) => (
                 <DropdownMenuItem 
                   key={lang.code}
-                  className={`p-3 cursor-pointer ${currentLanguage === lang.code ? 'bg-primary/10' : ''}`}
-                  onClick={() => handleLanguageChange(lang.code)}
+                  className={`p-3 cursor-pointer ${language === lang.code ? 'bg-primary/10' : ''}`}
+                  onClick={() => setLanguage(lang.code)}
                 >
                   <span className="mr-3 text-lg">{lang.flag}</span>
                   <span>{lang.name}</span>
-                  {currentLanguage === lang.code && (
+                  {language === lang.code && (
                     <span className="ml-auto text-primary">✓</span>
                   )}
                 </DropdownMenuItem>
@@ -210,27 +205,27 @@ export const Header = () => {
                   className="h-8 w-8 md:h-10 md:w-10 rounded-lg xl:rounded-xl hover:bg-primary/10 transition-all duration-200 border border-transparent hover:border-primary/20 group"
                 >
                   <Settings className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground group-hover:animate-[gear-spin_0.3s_ease-in-out]" />
-                  <span className="sr-only">Configurações</span>
+                  <span className="sr-only">{t.settings.title}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 border-border/20 shadow-xl animate-scale-in">
                 <DropdownMenuItem className="p-3 cursor-pointer" asChild>
                   <Link to="/about" className="flex items-center">
                     <Info className="mr-3 h-4 w-4" />
-                    <span>Sobre o Creator</span>
+                    <span>{t.settings.about}</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem className="p-3 cursor-pointer" asChild>
                   <Link to="/privacy" className="flex items-center">
                     <Shield className="mr-3 h-4 w-4" />
-                    <span>Política de Privacidade</span>
+                    <span>{t.settings.privacy}</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DialogTrigger asChild>
                   <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10 p-3 cursor-pointer">
                     <LogOut className="mr-3 h-4 w-4" />
-                    <span>Sair da Conta</span>
+                    <span>{t.settings.logout}</span>
                   </DropdownMenuItem>
                 </DialogTrigger>
               </DropdownMenuContent>
@@ -242,15 +237,15 @@ export const Header = () => {
                 <div className="mb-6">
                   <CreatorLogo />
                 </div>
-                <DialogTitle className="text-2xl font-bold">Você tem certeza que deseja sair?</DialogTitle>
+                <DialogTitle className="text-2xl font-bold">{t.settings.logoutConfirm}</DialogTitle>
                 <DialogDescription className="text-base mt-2">
-                  Você precisará fazer login novamente para acessar sua conta e continuar criando conteúdo.
+                  {t.settings.logoutMessage}
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter className="flex-col-reverse sm:flex-row gap-3 mt-6">
                 <DialogClose asChild>
                   <Button type="button" variant="outline" className="w-full rounded-xl hover:border-accent hover:bg-accent/20 hover:text-accent h-12">
-                    Cancelar
+                    {t.settings.cancel}
                   </Button>
                 </DialogClose>
                 <Button 
@@ -259,7 +254,7 @@ export const Header = () => {
                   className="w-full rounded-xl h-12"
                   onClick={handleLogout}
                 >
-                  Sair da Conta
+                  {t.settings.logout}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -276,7 +271,7 @@ export const Header = () => {
           >
             <Link to="/profile">
               <User className="h-4 w-4 md:h-5 md:w-5" />
-              <span className="sr-only">Perfil</span>
+              <span className="sr-only">{t.profile}</span>
             </Link>
           </Button>
         </div>
@@ -288,7 +283,7 @@ export const Header = () => {
           <DialogHeader className="p-4 pb-3 border-b border-border/20">
             <DialogTitle className="text-left text-lg font-semibold flex items-center gap-2">
               <Search className="h-5 w-5 text-primary" />
-              Pesquisar Conteúdo
+              {t.search.searchContent}
             </DialogTitle>
           </DialogHeader>
 
@@ -300,7 +295,7 @@ export const Header = () => {
               )}
               <Input
                 ref={searchRef}
-                placeholder="Digite para pesquisar marcas, temas, personas..."
+                placeholder={t.search.placeholder}
                 value={searchQuery}
                 onChange={(e) => handleSearchChange(e.target.value)}
                 className="pl-10 pr-4 h-12 text-base bg-muted/50 border-border/50 rounded-xl 
@@ -315,14 +310,14 @@ export const Header = () => {
                 {isSearching ? (
                   <div className="flex items-center justify-center">
                     <Loader2 className="h-6 w-6 text-primary animate-spin mr-3" />
-                    <span className="text-muted-foreground">Pesquisando...</span>
+                    <span className="text-muted-foreground">{t.search.searching}</span>
                   </div>
                 ) : (
                   <div>
                     <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-lg font-medium text-muted-foreground mb-2">Nenhum resultado encontrado</p>
+                    <p className="text-lg font-medium text-muted-foreground mb-2">{t.search.noResults}</p>
                     <p className="text-sm text-muted-foreground/70">
-                      Tente pesquisar por diferentes palavras-chave
+                      {t.search.tryDifferent}
                     </p>
                   </div>
                 )}
@@ -332,9 +327,9 @@ export const Header = () => {
             {searchQuery.trim().length === 0 && (
               <div className="mt-4 p-8 text-center">
                 <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-lg font-medium text-muted-foreground mb-2">Comece a pesquisar</p>
+                <p className="text-lg font-medium text-muted-foreground mb-2">{t.search.startSearching}</p>
                 <p className="text-sm text-muted-foreground/70">
-                  Digite pelo menos 2 caracteres para ver os resultados
+                  {t.search.minCharacters}
                 </p>
               </div>
             )}
