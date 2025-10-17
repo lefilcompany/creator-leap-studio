@@ -219,7 +219,7 @@ const Login = () => {
             <div className="w-full border-t border-border/30"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="bg-card px-4 text-muted-foreground">ou continue com</span>
+            <span className="bg-card/90 px-4 text-muted-foreground">ou continue com</span>
           </div>
         </div>
 
