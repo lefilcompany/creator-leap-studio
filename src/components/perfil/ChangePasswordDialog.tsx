@@ -106,6 +106,15 @@ export default function ChangePasswordDialog({ isOpen, onOpenChange }: ChangePas
 
       if (error) throw error;
 
+      // Resetar o flag force_password_change se o usuário atual tiver esse flag ativo
+      if (user?.id) {
+        await supabase
+          .from('profiles')
+          .update({ force_password_change: false })
+          .eq('id', user.id)
+          .eq('force_password_change', true); // Só atualiza se estiver ativo
+      }
+
       toast.success('Senha alterada com sucesso!');
       onOpenChange(false);
       

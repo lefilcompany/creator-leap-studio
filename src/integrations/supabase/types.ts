@@ -376,6 +376,7 @@ export type Database = {
           city: string | null
           created_at: string | null
           email: string
+          force_password_change: boolean | null
           id: string
           migration_user: boolean | null
           name: string
@@ -391,6 +392,7 @@ export type Database = {
           city?: string | null
           created_at?: string | null
           email: string
+          force_password_change?: boolean | null
           id: string
           migration_user?: boolean | null
           name: string
@@ -406,6 +408,7 @@ export type Database = {
           city?: string | null
           created_at?: string | null
           email?: string
+          force_password_change?: boolean | null
           id?: string
           migration_user?: boolean | null
           name?: string

@@ -57,22 +57,22 @@ const Login = () => {
       setFailedAttempts(0);
       setShowPasswordResetSuggestion(false);
       
-      // Verificar se é o usuário específico que precisa trocar a senha
-      if (email.toLowerCase() === "heloyanya@gmail.com") {
-        setShowChangePassword(true);
-        return;
-      }
-      
       if (data.user) {
-        // Verificar se o usuário tem equipe
+        // Verificar se o usuário precisa trocar a senha
         const { data: profileData, error: profileError } = await supabase
           .from("profiles")
-          .select("team_id")
+          .select("team_id, force_password_change")
           .eq("id", data.user.id)
           .single();
         if (profileError) {
           console.error("Erro ao carregar perfil:", profileError);
           toast.error("Erro ao verificar dados do usuário");
+          return;
+        }
+
+        // Se precisa trocar senha, mostrar modal
+        if (profileData.force_password_change) {
+          setShowChangePassword(true);
           return;
         }
 
