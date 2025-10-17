@@ -21,7 +21,7 @@ interface LeaveTeamDialogProps {
 
 export default function LeaveTeamDialog({ open, onOpenChange, teamName }: LeaveTeamDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
 
   const handleLeaveTeam = async () => {
@@ -76,11 +76,12 @@ export default function LeaveTeamDialog({ open, onOpenChange, teamName }: LeaveT
         throw error;
       }
 
-      toast.success('Você saiu da equipe com sucesso! Agora você pode solicitar entrada em outra equipe.');
+      toast.success('Você saiu da equipe com sucesso!');
       onOpenChange(false);
       
-      // Redirecionar para a página de dashboard que vai mostrar a tela de seleção de equipe
-      window.location.href = '/dashboard';
+      // Fazer logout e redirecionar para home
+      await logout();
+      navigate('/');
     } catch (error: any) {
       console.error('Erro ao sair da equipe:', error);
       toast.error(error.message || 'Erro ao sair da equipe. Tente novamente.');
@@ -97,7 +98,7 @@ export default function LeaveTeamDialog({ open, onOpenChange, teamName }: LeaveT
           <AlertDialogDescription>
             Tem certeza que deseja sair da equipe <span className="font-bold">{teamName}</span>?
             <br /><br />
-            Você perderá acesso a todas as marcas, temas e conteúdos da equipe, mas poderá solicitar entrada em outra equipe após sair.
+            Você perderá acesso a todas as marcas, temas e conteúdos da equipe e será desconectado.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
