@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { CreatorLogo } from "@/components/CreatorLogo";
-import { Eye, EyeOff, Chrome, Facebook, Mail, Lock, Sun, Moon, Loader2, ArrowRight, Languages } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, Sun, Moon, Loader2, Languages } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { TeamSelectionDialog } from "@/components/auth/TeamSelectionDialog";
@@ -23,8 +23,6 @@ const Login = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showTeamSelection, setShowTeamSelection] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
-  const [facebookLoading, setFacebookLoading] = useState(false);
   const [failedAttempts, setFailedAttempts] = useState(0);
   const [showPasswordResetSuggestion, setShowPasswordResetSuggestion] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
@@ -103,63 +101,6 @@ const Login = () => {
       toast.error("Erro ao fazer login. Tente novamente.");
     } finally {
       setLoading(false);
-    }
-  };
-  const handleGoogleLogin = async () => {
-    setGoogleLoading(true);
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/login`,
-          queryParams: {
-            access_type: "offline",
-            prompt: "consent",
-          },
-        },
-      });
-      if (error) {
-        console.error("Google OAuth error:", error);
-        if (error.message.includes("provider is not enabled") || error.message.includes("Unsupported provider")) {
-          toast.error("Login com Google não está configurado. Entre em contato com o administrador.", {
-            duration: 5000,
-          });
-        } else {
-          toast.error(error.message);
-        }
-        setGoogleLoading(false);
-      }
-    } catch (error) {
-      console.error("Google login error:", error);
-      toast.error("Erro ao fazer login com Google. Tente novamente mais tarde.");
-      setGoogleLoading(false);
-    }
-  };
-  const handleFacebookLogin = async () => {
-    setFacebookLoading(true);
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "facebook",
-        options: {
-          redirectTo: `${window.location.origin}/login`,
-          scopes: "email,public_profile",
-        },
-      });
-      if (error) {
-        console.error("Facebook OAuth error:", error);
-        if (error.message.includes("provider is not enabled") || error.message.includes("Unsupported provider")) {
-          toast.error("Login com Facebook não está configurado. Entre em contato com o administrador.", {
-            duration: 5000,
-          });
-        } else {
-          toast.error(error.message);
-        }
-        setFacebookLoading(false);
-      }
-    } catch (error) {
-      console.error("Facebook login error:", error);
-      toast.error("Erro ao fazer login com Facebook. Tente novamente mais tarde.");
-      setFacebookLoading(false);
     }
   };
   const isMobile = useIsMobile();
@@ -261,51 +202,7 @@ const Login = () => {
           )}
         </Button>
 
-        <div className="relative my-6">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-border/30"></div>
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="bg-card/90 px-4 text-muted-foreground">ou continue com</span>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3 mb-6">
-          <Button
-            variant="outline"
-            onClick={handleGoogleLogin}
-            type="button"
-            disabled={googleLoading || loading}
-            className="h-12 border-border/50 hover:bg-primary/5 hover:border-primary/30 hover:text-primary transition-all duration-200"
-          >
-            {googleLoading ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : (
-              <>
-                <Chrome className="w-5 h-5 mr-2" />
-                Google
-              </>
-            )}
-          </Button>
-          <Button
-            variant="outline"
-            type="button"
-            onClick={handleFacebookLogin}
-            disabled={facebookLoading || loading}
-            className="h-12 border-border/50 hover:bg-secondary/5 hover:border-secondary/30 hover:text-secondary transition-all duration-200"
-          >
-            {facebookLoading ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : (
-              <>
-                <Facebook className="w-5 h-5 mr-2" />
-                Facebook
-              </>
-            )}
-          </Button>
-        </div>
-
-        <div className="text-center">
+        <div className="text-center mt-6">
           <span className="text-muted-foreground text-sm">Não tem uma conta? </span>
           <a href="/register" className="text-primary hover:text-primary/80 font-medium text-sm transition-colors">
             Criar conta
@@ -319,12 +216,8 @@ const Login = () => {
       showPassword,
       rememberMe,
       loading,
-      googleLoading,
-      facebookLoading,
       showPasswordResetSuggestion,
       handleLogin,
-      handleGoogleLogin,
-      handleFacebookLogin,
     ],
   );
   return (
