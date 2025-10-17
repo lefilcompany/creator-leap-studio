@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-type Language = 'pt' | 'en' | 'es' | 'de' | 'fr' | 'it' | 'ru' | 'zh';
+type Language = 'pt';
 
 interface LanguageContextType {
   language: Language;
@@ -10,14 +10,9 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [language, setLanguageState] = useState<Language>(() => {
-    const saved = localStorage.getItem('app-language');
-    return (saved as Language) || 'pt';
-  });
-
+  const language: Language = 'pt';
   const setLanguage = (lang: Language) => {
-    setLanguageState(lang);
-    localStorage.setItem('app-language', lang);
+    // Language is fixed to Portuguese
   };
 
   return (

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Search, Settings, User, Menu, Loader2, Info, FileText, Shield, LogOut, Moon, Sun, Languages } from "lucide-react";
+import { Search, Settings, User, Menu, Loader2, Info, FileText, Shield, LogOut, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -35,23 +35,11 @@ export const Header = () => {
   const navigate = useNavigate();
   const { logout, isTrialExpired } = useAuth();
   const { theme, setTheme } = useTheme();
-  const { language, setLanguage } = useLanguage();
   const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [showMobileSearch, setShowMobileSearch] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
-
-  const languages = [
-    { code: 'pt' as const, name: 'Português', flag: '🇧🇷' },
-    { code: 'en' as const, name: 'English', flag: '🇺🇸' },
-    { code: 'es' as const, name: 'Español', flag: '🇪🇸' },
-    { code: 'de' as const, name: 'Deutsch', flag: '🇩🇪' },
-    { code: 'fr' as const, name: 'Français', flag: '🇫🇷' },
-    { code: 'it' as const, name: 'Italiano', flag: '🇮🇹' },
-    { code: 'ru' as const, name: 'Русский', flag: '🇷🇺' },
-    { code: 'zh' as const, name: '中文', flag: '🇨🇳' },
-  ];
   
   // Se o trial expirou, desabilita funcionalidades
   const isFunctionalityDisabled = isTrialExpired;
@@ -165,35 +153,6 @@ export const Header = () => {
 
           {/* Notifications */}
           <Notifications />
-
-          {/* Language selector */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 w-8 md:h-10 md:w-10 rounded-lg xl:rounded-xl hover:bg-primary/10 transition-all duration-200 border border-transparent hover:border-primary/20 group"
-              >
-                <Languages className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
-                <span className="sr-only">{t.language.title}</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 border-border/20 shadow-xl animate-scale-in">
-              {languages.map((lang) => (
-                <DropdownMenuItem 
-                  key={lang.code}
-                  className={`p-3 cursor-pointer ${language === lang.code ? 'bg-primary/10' : ''}`}
-                  onClick={() => setLanguage(lang.code)}
-                >
-                  <span className="mr-3 text-lg">{lang.flag}</span>
-                  <span>{lang.name}</span>
-                  {language === lang.code && (
-                    <span className="ml-auto text-primary">✓</span>
-                  )}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
 
           {/* Settings dropdown */}
           <Dialog>

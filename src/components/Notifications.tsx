@@ -31,12 +31,7 @@ export default function Notifications() {
   const [isLoading, setIsLoading] = useState(true);
   
   const getDateLocale = () => {
-    switch (language) {
-      case 'pt': return ptBR;
-      case 'en': return enUS;
-      case 'es': return es;
-      default: return ptBR;
-    }
+    return ptBR;
   };
 
   // Load notifications from database

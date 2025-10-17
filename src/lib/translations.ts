@@ -146,6 +146,7 @@ export const translations = {
       yes: "Sim",
       no: "Não",
       cancel: "Cancelar",
+      fieldRequired: "Campo obrigatório",
     },
     
     // Brands
