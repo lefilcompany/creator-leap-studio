@@ -236,6 +236,19 @@ export default function Team() {
         </CardHeader>
       </Card>
 
+      {/* Dashboard Button */}
+      <div className="flex justify-end">
+        <Button
+          onClick={() => navigate('/team-dashboard')}
+          variant="outline"
+          size="default"
+          className="border-primary/30 hover:bg-primary/10 hover:border-primary/50"
+        >
+          <BarChart3 className="h-4 w-4 mr-2" />
+          Ver Dashboard de Membros
+        </Button>
+      </div>
+
       {/* Main Content */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         {/* Left Column - Team Info and Requests */}
@@ -356,20 +369,9 @@ export default function Team() {
                   <Users className="h-6 w-6" />
                   Membros Aceitos
                 </div>
-                <div className="flex items-center gap-3">
-                  <Button
-                    onClick={() => navigate('/team-dashboard')}
-                    variant="outline"
-                    size="sm"
-                    className="border-primary/30 hover:bg-primary/10 hover:border-primary/50"
-                  >
-                    <BarChart3 className="h-4 w-4 mr-2" />
-                    Ver Dashboard
-                  </Button>
-                  <span className="bg-gradient-to-r from-secondary to-accent text-white text-sm px-3 py-1.5 rounded-full font-medium shadow-sm">
-                    {members.length}
-                  </span>
-                </div>
+                <span className="bg-gradient-to-r from-secondary to-accent text-white text-sm px-3 py-1.5 rounded-full font-medium shadow-sm">
+                  {members.length}
+                </span>
               </CardTitle>
               <CardDescription>
                 Usuários que foram aprovados e fazem parte da equipe
