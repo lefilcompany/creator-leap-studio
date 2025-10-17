@@ -20,6 +20,7 @@ import { ColorPicker } from '@/components/ui/color-picker';
 import type { Brand, MoodboardFile, ColorItem } from '@/types/brand';
 import { useAuth } from '@/hooks/useAuth';
 import { useDraftForm } from '@/hooks/useDraftForm';
+import { useTranslation } from '@/hooks/useTranslation';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -57,6 +58,7 @@ const initialFormData: BrandFormData = {
 export default function BrandDialog({ isOpen, onOpenChange, onSave, brandToEdit }: BrandDialogProps) {
   const [formData, setFormData] = useState<BrandFormData>(initialFormData);
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [members, setMembers] = useState<{ email: string; name: string }[]>([]);
   
   // Hook para gerenciar rascunhos
@@ -94,8 +96,8 @@ export default function BrandDialog({ isOpen, onOpenChange, onSave, brandToEdit 
       const draft = loadDraft();
       if (draft) {
         setFormData(draft);
-        toast.info('Rascunho recuperado', {
-          description: 'Seus dados foram restaurados automaticamente.',
+        toast.info(t.personas.draftRecovered, {
+          description: t.personas.draftMessage,
           icon: <Save className="h-4 w-4" />,
         });
       } else {
@@ -253,7 +255,7 @@ export default function BrandDialog({ isOpen, onOpenChange, onSave, brandToEdit 
 
       if (missingFields.length > 0) {
         const fieldsList = missingFields.map(({ label }) => label).join(', ');
-        toast.error(`Os seguintes campos são obrigatórios: ${fieldsList}`);
+        toast.error(`${t.common.fieldRequired}: ${fieldsList}`);
         return;
       }
 
@@ -297,15 +299,15 @@ export default function BrandDialog({ isOpen, onOpenChange, onSave, brandToEdit 
         <DialogHeader>
           <div className="flex items-center justify-between">
             <div>
-              <DialogTitle>{brandToEdit ? 'Editar Marca' : 'Criar Nova Marca'}</DialogTitle>
+              <DialogTitle>{brandToEdit ? t.brands.editBrand : t.brands.newBrand}</DialogTitle>
               <DialogDescription>
-                {brandToEdit ? 'Altere as informações da sua marca.' : 'Preencha os campos abaixo para adicionar uma nova marca.'}
+                {brandToEdit ? t.brands.brandUpdated.replace('atualizada com sucesso!', 'as informações da sua marca.') : t.brands.createFirst.replace('Crie sua primeira marca para começar', 'Preencha os campos abaixo para adicionar uma nova marca.')}
               </DialogDescription>
             </div>
             {!brandToEdit && hasDraft() && (
               <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted px-3 py-1.5 rounded-full">
                 <Save className="h-3 w-3" />
-                <span>Rascunho salvo</span>
+                <span>{t.personas.draftSaved}</span>
               </div>
             )}
           </div>
@@ -317,12 +319,12 @@ export default function BrandDialog({ isOpen, onOpenChange, onSave, brandToEdit 
             {/* Coluna 1 */}
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Nome <span className="text-red-500">*</span></Label>
+                <Label htmlFor="name">{t.brands.brandName} <span className="text-red-500">*</span></Label>
                 <Input
                   id="name"
                   value={formData.name}
                   onChange={handleInputChange}
-                  placeholder="Digite o nome oficial ou comercial da sua marca"
+                  placeholder={t.login.email}
                   className="h-9"
                 />
               </div>
@@ -591,7 +593,7 @@ export default function BrandDialog({ isOpen, onOpenChange, onSave, brandToEdit 
               variant="outline" 
               className="min-w-[120px] h-11 px-8 font-medium transition-all duration-300 hover:bg-destructive hover:border-destructive hover:text-white dark:hover:bg-destructive"
             >
-              Cancelar
+              {t.common.cancel}
             </Button>
           </DialogClose>
           <Button 
@@ -600,7 +602,7 @@ export default function BrandDialog({ isOpen, onOpenChange, onSave, brandToEdit 
             disabled={!isFormValid()}
             className="min-w-[120px] h-11 px-8 font-medium bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg"
           >
-            {brandToEdit ? 'Atualizar' : 'Criar Marca'}
+            {brandToEdit ? t.common.save : t.brands.newBrand}
           </Button>
         </DialogFooter>
       </DialogContent>
