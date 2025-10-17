@@ -26,23 +26,9 @@ import {
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/hooks/useAuth";
+import { useTranslation } from "@/hooks/useTranslation";
 import logoCreatorPreta from "@/assets/logoCreatorPreta.png";
 import logoCreatorBranca from "@/assets/logoCreatorBranca.png";
-
-const navLinks = [
-  { id: "nav-home", href: "/dashboard", icon: Home, label: "Home" },
-  { id: "nav-marcas", href: "/brands", icon: Tag, label: "Marcas" },
-  { id: "nav-temas", href: "/themes", icon: Palette, label: "Temas Estratégicos" },
-  { id: "nav-personas", href: "/personas", icon: Users, label: "Personas" },
-  { id: "nav-rapido", href: "/quick-content", icon: Zap, label: "Criação Rápida" },
-  { id: "nav-historico", href: "/history", icon: History, label: "Histórico" },
-];
-
-const actionButtons = [
-    { id: "nav-criar", href: "/create", icon: Sparkles, label: "Criar Conteúdo", variant: "primary" as const },
-    { id: "nav-revisar", href: "/review", icon: CheckCircle, label: "Revisar Conteúdo", variant: "accent" as const },
-    { id: "nav-planejar", href: "/plan", icon: Calendar, label: "Planejar Conteúdo", variant: "secondary" as const },
-];
 
 function NavItem({ id, href, icon: Icon, label, collapsed, onNavigate, disabled }: {
   id: string;
@@ -146,11 +132,12 @@ function ActionButton({ id, href, icon: Icon, label, collapsed, variant, onNavig
     );
 }
 
-function TeamPlanSection({ teamName, planName, collapsed, onNavigate }: {
+function TeamPlanSection({ teamName, planName, collapsed, onNavigate, t }: {
   teamName: string;
   planName: string;
   collapsed: boolean;
   onNavigate?: () => void;
+  t: any;
 }) {
   if (collapsed) return null;
 
@@ -162,8 +149,8 @@ function TeamPlanSection({ teamName, planName, collapsed, onNavigate }: {
     >
       <Rocket className="h-6 w-6 flex-shrink-0" />
       <div className="flex flex-col items-start leading-tight">
-        <span className="font-bold text-sm">Equipe: {teamName}</span>
-        <span className="text-xs text-primary-foreground/80">Plano: {planName}</span>
+        <span className="font-bold text-sm">{t.sidebar.team}: {teamName}</span>
+        <span className="text-xs text-primary-foreground/80">{t.sidebar.plan}: {planName}</span>
       </div>
     </NavLink>
   );
@@ -174,6 +161,7 @@ export function AppSidebar() {
   const isMobile = useIsMobile();
   const { team, isTrialExpired } = useAuth();
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const logo = theme === 'dark' ? logoCreatorBranca : logoCreatorPreta;
   
   // No desktop, a sidebar é sempre fixa e não colapsa
@@ -181,6 +169,21 @@ export function AppSidebar() {
   
   // Se o trial expirou, desabilita navegação exceto histórico
   const isNavigationDisabled = isTrialExpired;
+
+  const navLinks = [
+    { id: "nav-home", href: "/dashboard", icon: Home, label: t.sidebar.home },
+    { id: "nav-marcas", href: "/brands", icon: Tag, label: t.sidebar.brands },
+    { id: "nav-temas", href: "/themes", icon: Palette, label: t.sidebar.themes },
+    { id: "nav-personas", href: "/personas", icon: Users, label: t.sidebar.personas },
+    { id: "nav-rapido", href: "/quick-content", icon: Zap, label: t.sidebar.quickContent },
+    { id: "nav-historico", href: "/history", icon: History, label: t.sidebar.history },
+  ];
+
+  const actionButtons = [
+      { id: "nav-criar", href: "/create", icon: Sparkles, label: t.sidebar.createContent, variant: "primary" as const },
+      { id: "nav-revisar", href: "/review", icon: CheckCircle, label: t.sidebar.reviewContent, variant: "accent" as const },
+      { id: "nav-planejar", href: "/plan", icon: Calendar, label: t.sidebar.planContent, variant: "secondary" as const },
+  ];
 
   const handleMobileNavigate = () => {
     if (isMobile) {
@@ -234,6 +237,7 @@ export function AppSidebar() {
               planName={team.plan?.name || 'Free'}
               collapsed={collapsed}
               onNavigate={handleMobileNavigate}
+              t={t}
             />
           </div>
         )}

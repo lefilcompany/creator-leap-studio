@@ -7,8 +7,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/hooks/useAuth';
+import { useTranslation } from '@/hooks/useTranslation';
 import { formatDistanceToNow } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { ptBR, enUS, es } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
@@ -23,10 +24,20 @@ interface Notification {
 
 export default function Notifications() {
   const { user } = useAuth();
+  const { t, language } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  
+  const getDateLocale = () => {
+    switch (language) {
+      case 'pt': return ptBR;
+      case 'en': return enUS;
+      case 'es': return es;
+      default: return ptBR;
+    }
+  };
 
   // Load notifications from database
   const loadNotifications = async () => {
@@ -107,7 +118,6 @@ export default function Notifications() {
       setNotifications((prev) =>
         prev.map((n) => (n.id === notificationId ? { ...n, read: true } : n))
       );
-      toast.success('Notificação marcada como lida');
     } catch (error) {
       console.error('Erro ao marcar notificação como lida:', error);
       toast.error('Erro ao marcar notificação como lida');
@@ -128,7 +138,6 @@ export default function Notifications() {
       if (error) throw error;
 
       setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-      toast.success('Todas as notificações foram marcadas como lidas');
     } catch (error) {
       console.error('Erro ao marcar todas como lidas:', error);
       toast.error('Erro ao marcar notificações como lidas');
@@ -160,10 +169,10 @@ export default function Notifications() {
     try {
       return formatDistanceToNow(new Date(dateString), {
         addSuffix: true,
-        locale: ptBR,
+        locale: getDateLocale(),
       });
     } catch {
-      return 'há pouco tempo';
+      return '';
     }
   };
 
@@ -192,7 +201,7 @@ export default function Notifications() {
             </span>
           )}
           <span className="sr-only">
-            Notificações {unreadCount > 0 && `(${unreadCount} não lidas)`}
+            {t.notifications.title} {unreadCount > 0 && `(${unreadCount})`}
           </span>
         </Button>
       </DropdownMenuTrigger>
@@ -205,7 +214,7 @@ export default function Notifications() {
         {/* Header */}
         <div className="flex items-center justify-between border-b bg-muted/30 px-4 py-3">
           <div className="flex items-center gap-2">
-            <h3 className="text-sm font-semibold">Notificações</h3>
+            <h3 className="text-sm font-semibold">{t.notifications.title}</h3>
             {unreadCount > 0 && (
               <span className="flex h-5 items-center justify-center rounded-full bg-primary/10 px-2 text-[11px] font-medium text-primary">
                 {unreadCount}
@@ -220,7 +229,7 @@ export default function Notifications() {
               className="h-7 gap-1 px-2 text-xs hover:bg-primary/80"
             >
               <CheckCheck className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Marcar todas</span>
+              <span className="hidden sm:inline">{t.notifications.markAllRead}</span>
             </Button>
           )}
         </div>
@@ -289,7 +298,6 @@ export default function Notifications() {
                             className="h-6 gap-1 px-2 text-xs opacity-0 transition-opacity group-hover:opacity-100 hover:bg-primary/50"
                           >
                             <Check className="h-3 w-3" />
-                            Marcar lida
                           </Button>
                         )}
                       </div>
@@ -309,10 +317,10 @@ export default function Notifications() {
                 <Bell className="h-6 w-6 text-muted-foreground/40" />
               </div>
               <p className="mb-1 text-sm font-medium text-foreground">
-                Tudo limpo!
+                {t.notifications.youAreAllCaught}
               </p>
               <p className="text-center text-xs text-muted-foreground/70 max-w-[250px]">
-                Você não tem notificações no momento
+                {t.notifications.noNotifications}
               </p>
             </div>
           )}
