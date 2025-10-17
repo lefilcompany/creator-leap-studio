@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { CreatorLogo } from "@/components/CreatorLogo";
-import { Eye, EyeOff, Mail, Lock, Sun, Moon, Loader2, Languages } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, Sun, Moon, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { TeamSelectionDialog } from "@/components/auth/TeamSelectionDialog";
@@ -32,7 +32,7 @@ const Login = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { theme, setTheme } = useTheme();
-  const { language, setLanguage } = useLanguage();
+  const { language } = useLanguage();
   const { showTeamDialog: oauthTeamDialog, handleTeamDialogClose: handleOAuthTeamDialogClose } = useOAuthCallback();
   useEffect(() => {
     const isNewUser = searchParams.get("newUser") === "true";
@@ -224,24 +224,8 @@ const Login = () => {
   );
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 flex relative">
-      {/* Theme toggle and language selector */}
-      <div className="absolute top-4 right-4 z-50 flex items-center gap-2">
-        <Select value={language} onValueChange={setLanguage}>
-          <SelectTrigger className="h-10 w-10 border-0 bg-transparent hover:bg-accent hover:text-accent-foreground rounded-full">
-            <Languages className="h-5 w-5" />
-          </SelectTrigger>
-          <SelectContent className="z-50 bg-popover">
-            <SelectItem value="pt">🇧🇷 Português</SelectItem>
-            <SelectItem value="en">🇺🇸 English</SelectItem>
-            <SelectItem value="es">🇪🇸 Español</SelectItem>
-            <SelectItem value="de">🇩🇪 Deutsch</SelectItem>
-            <SelectItem value="fr">🇫🇷 Français</SelectItem>
-            <SelectItem value="it">🇮🇹 Italiano</SelectItem>
-            <SelectItem value="ru">🇷🇺 Русский</SelectItem>
-            <SelectItem value="zh">🇨🇳 中文</SelectItem>
-          </SelectContent>
-        </Select>
-        
+      {/* Theme toggle */}
+      <div className="absolute top-4 right-4 z-50">
         <Button
           variant="ghost"
           size="icon"
