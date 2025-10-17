@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertTriangle, UserX, Trash2, ChevronDown, ChevronUp, Settings } from 'lucide-react';
+import { AlertTriangle, UserX, Trash2 } from 'lucide-react';
 import DeactivateAccountDialog from './DeactivateAccountDialog';
 import DeleteAccountDialog from './DeleteAccountDialog';
 
@@ -11,27 +11,8 @@ interface AccountManagementProps {
 }
 
 export default function AccountManagement({ userEmail }: AccountManagementProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
   const [isDeactivateDialogOpen, setIsDeactivateDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-
-  if (!isExpanded) {
-    return (
-      <Card className="shadow-lg border-0 bg-gradient-to-br from-card via-muted/[0.02] to-accent/[0.03]">
-        <CardContent className="p-6">
-          <Button
-            variant="ghost"
-            onClick={() => setIsExpanded(true)}
-            className="w-full h-12 flex items-center justify-center gap-2 text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted/50"
-          >
-            <Settings className="h-4 w-4" />
-            <span>Mostrar Opções Avançadas</span>
-            <ChevronDown className="h-4 w-4" />
-          </Button>
-        </CardContent>
-      </Card>
-    );
-  }
 
   return (
     <>
@@ -52,7 +33,8 @@ export default function AccountManagement({ userEmail }: AccountManagementProps)
           </div>
         </CardHeader>
 
-        <CardContent className="space-y-4 sm:space-y-6 p-4 sm:p-6 md:p-8">{/* Warning Alert */}
+        <CardContent className="space-y-4 sm:space-y-6 p-4 sm:p-6 md:p-8">
+          {/* Warning Alert */}
           <Alert className="bg-gradient-to-r from-destructive/5 to-accent/5 border-2 border-destructive/20 rounded-xl shadow-sm">
             <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-destructive" />
             <AlertDescription className="text-foreground ml-2 text-xs sm:text-sm">
@@ -111,18 +93,6 @@ export default function AccountManagement({ userEmail }: AccountManagementProps)
                 </Button>
               </CardContent>
             </Card>
-          </div>
-
-          {/* Hide Button */}
-          <div className="border-t border-primary/10 pt-4 sm:pt-6">
-            <Button
-              variant="ghost"
-              onClick={() => setIsExpanded(false)}
-              className="w-full h-10 sm:h-11 flex items-center justify-center gap-2 text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted/50 text-sm sm:text-base"
-            >
-              <span>Ocultar Opções Avançadas</span>
-              <ChevronUp className="h-4 w-4" />
-            </Button>
           </div>
         </CardContent>
       </Card>
