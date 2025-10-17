@@ -71,10 +71,10 @@ export default function Profile() {
         </div>
 
         {/* Main content */}
-        <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
-          <PersonalInfoForm initialData={profileData} />
-          <AccountManagement userEmail={user.email || ''} />
-        </div>
+        <PersonalInfoForm initialData={profileData} />
+        
+        {/* Advanced Settings */}
+        <AccountManagement userEmail={user.email || ''} />
       </div>
     </div>
   );
