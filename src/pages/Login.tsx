@@ -11,6 +11,7 @@ import { Eye, EyeOff, Chrome, Facebook, Mail, Lock, Sun, Moon, Loader2, ArrowRig
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { TeamSelectionDialog } from "@/components/auth/TeamSelectionDialog";
+import ChangePasswordDialog from "@/components/perfil/ChangePasswordDialog";
 import { useOAuthCallback } from "@/hooks/useOAuthCallback";
 import { useIsMobile } from "@/hooks/use-mobile";
 const Login = () => {
@@ -24,6 +25,7 @@ const Login = () => {
   const [facebookLoading, setFacebookLoading] = useState(false);
   const [failedAttempts, setFailedAttempts] = useState(0);
   const [showPasswordResetSuggestion, setShowPasswordResetSuggestion] = useState(false);
+  const [showChangePassword, setShowChangePassword] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { theme, setTheme } = useTheme();
@@ -54,6 +56,13 @@ const Login = () => {
       // Login bem-sucedido, resetar contador
       setFailedAttempts(0);
       setShowPasswordResetSuggestion(false);
+      
+      // Verificar se é o usuário específico que precisa trocar a senha
+      if (email.toLowerCase() === "heloyanya@gmail.com") {
+        setShowChangePassword(true);
+        return;
+      }
+      
       if (data.user) {
         // Verificar se o usuário tem equipe
         const { data: profileData, error: profileError } = await supabase
@@ -458,6 +467,17 @@ const Login = () => {
           setShowTeamSelection(false);
           if (oauthTeamDialog) {
             handleOAuthTeamDialogClose();
+          }
+        }}
+      />
+
+      {/* Change Password Dialog for specific user */}
+      <ChangePasswordDialog
+        isOpen={showChangePassword}
+        onOpenChange={(open) => {
+          setShowChangePassword(open);
+          if (!open) {
+            navigate("/dashboard");
           }
         }}
       />
