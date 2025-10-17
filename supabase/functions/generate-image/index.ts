@@ -340,10 +340,42 @@ serve(async (req) => {
       console.error('Error updating credits:', updateError);
     }
 
+    // Save to history (actions table)
+    const { data: actionData, error: actionError } = await supabase
+      .from('actions')
+      .insert({
+        type: 'CRIAR_CONTEUDO',
+        user_id: authenticatedUserId,
+        team_id: authenticatedTeamId,
+        brand_id: formData.brandId || null,
+        status: 'Aprovado',
+        approved: true,
+        details: {
+          description: formData.description,
+          brandId: formData.brandId,
+          themeId: formData.themeId,
+          personaId: formData.personaId,
+          platform: formData.platform,
+          preserveImagesCount: formData.preserveImages?.length || 0,
+          styleReferenceImagesCount: formData.styleReferenceImages?.length || 0
+        },
+        result: {
+          imageUrl: publicUrl,
+          description: description
+        }
+      })
+      .select()
+      .single();
+
+    if (actionError) {
+      console.error('Error creating action:', actionError);
+    }
+
     return new Response(
       JSON.stringify({ 
         imageUrl: publicUrl,
         description: description,
+        actionId: actionData?.id,
         success: true 
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

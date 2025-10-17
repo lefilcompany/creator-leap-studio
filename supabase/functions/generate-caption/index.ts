@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -507,6 +508,59 @@ Nossa conexão com ${audience} vai além das palavras. É uma conversa visual qu
       bodyLength: postContent.body?.length || 0,
       hashtagsCount: postContent.hashtags?.length || 0
     });
+
+    // Save to history (actions table)
+    try {
+      const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+      const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+      const supabase = createClient(supabaseUrl, supabaseKey);
+
+      const authHeader = req.headers.get('authorization');
+      const token = authHeader?.replace('Bearer ', '');
+      
+      if (token) {
+        const { data: { user } } = await supabase.auth.getUser(token);
+        
+        if (user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('team_id')
+            .eq('id', user.id)
+            .single();
+
+          if (profile?.team_id) {
+            await supabase
+              .from('actions')
+              .insert({
+                type: 'CRIAR_CONTEUDO',
+                user_id: user.id,
+                team_id: profile.team_id,
+                brand_id: formData.brandId || null,
+                status: 'Aprovado',
+                approved: true,
+                details: {
+                  brand: formData.brand,
+                  theme: formData.theme,
+                  platform: formData.platform,
+                  objective: formData.objective,
+                  imageDescription: formData.imageDescription,
+                  tone: formData.tone,
+                  persona: formData.persona,
+                  audience: formData.audience
+                },
+                result: {
+                  title: postContent.title,
+                  body: postContent.body,
+                  hashtags: postContent.hashtags
+                }
+              });
+          }
+        }
+      }
+    } catch (historyError) {
+      console.error("⚠️ [CAPTION] Erro ao salvar no histórico:", historyError);
+      // Continue anyway - don't fail the request
+    }
 
     return new Response(
       JSON.stringify({
