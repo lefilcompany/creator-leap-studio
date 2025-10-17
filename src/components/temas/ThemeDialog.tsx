@@ -21,7 +21,6 @@ import type { BrandSummary } from '@/types/brand';
 import { toast } from 'sonner';
 import { StrategicThemeColorPicker } from '../ui/strategic-theme-color-picker';
 import { useDraftForm } from '@/hooks/useDraftForm';
-import { useTranslation } from '@/hooks/useTranslation';
 
 type ThemeFormData = Omit<StrategicTheme, 'id' | 'createdAt' | 'updatedAt' | 'teamId' | 'userId'> & {
   colorPalette: string;
@@ -53,7 +52,6 @@ const initialFormData: ThemeFormData = {
 };
 
 export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit, brands = [] }: ThemeDialogProps) {
-  const { t } = useTranslation();
   const [formData, setFormData] = useState<ThemeFormData>(initialFormData);
   const [isLoading, setIsLoading] = useState(false);
   const [toneList, setToneList] = useState<string[]>([]);
