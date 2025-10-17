@@ -8,8 +8,10 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { ArrowLeft, BarChart3, Calendar, Search, Filter, TrendingUp, Activity } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { ArrowLeft, BarChart3, Calendar, Search, Filter, TrendingUp, Activity, Zap, FileText, CheckCircle, Lightbulb } from 'lucide-react';
 import { toast } from 'sonner';
+import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface MemberStats {
   id: string;
@@ -117,6 +119,22 @@ export default function TeamDashboard() {
   const totalTeamActions = memberStats.reduce((sum, member) => sum + member.totalActions, 0);
   const activeMembers = memberStats.filter(m => m.totalActions > 0).length;
 
+  // Dados para gráficos
+  const actionTypeData = [
+    { name: 'Criação Rápida', value: memberStats.reduce((sum, m) => sum + m.quickContent, 0), color: 'hsl(var(--primary))' },
+    { name: 'Criar Conteúdo', value: memberStats.reduce((sum, m) => sum + m.createContent, 0), color: 'hsl(var(--secondary))' },
+    { name: 'Revisar', value: memberStats.reduce((sum, m) => sum + m.reviewContent, 0), color: 'hsl(var(--accent))' },
+    { name: 'Planejar', value: memberStats.reduce((sum, m) => sum + m.planContent, 0), color: 'hsl(var(--chart-4))' },
+  ].filter(item => item.value > 0);
+
+  const topMembersData = [...filteredAndSortedStats]
+    .sort((a, b) => b.totalActions - a.totalActions)
+    .slice(0, 5)
+    .map(member => ({
+      name: member.name.split(' ')[0],
+      total: member.totalActions,
+    }));
+
   return (
     <div className="min-h-full space-y-6 animate-fade-in">
       {/* Header */}
@@ -149,45 +167,147 @@ export default function TeamDashboard() {
       </Card>
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total de Ações</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="text-3xl font-bold text-primary">{totalTeamActions}</div>
-              <Activity className="h-8 w-8 text-primary/50" />
-            </div>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {isLoading ? (
+          <>
+            {[1, 2, 3, 4].map((i) => (
+              <Card key={i}>
+                <CardHeader className="pb-3">
+                  <Skeleton className="h-4 w-24" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-10 w-20" />
+                </CardContent>
+              </Card>
+            ))}
+          </>
+        ) : (
+          <>
+            <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20 hover:shadow-lg transition-shadow">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  <Activity className="h-4 w-4" />
+                  Total de Ações
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-4xl font-bold text-primary">{totalTeamActions}</div>
+                <p className="text-xs text-muted-foreground mt-2">Todas as atividades</p>
+              </CardContent>
+            </Card>
 
-        <Card className="bg-gradient-to-br from-secondary/10 to-secondary/5 border-secondary/20">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Membros Ativos</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="text-3xl font-bold text-secondary">{activeMembers}/{memberStats.length}</div>
-              <TrendingUp className="h-8 w-8 text-secondary/50" />
-            </div>
-          </CardContent>
-        </Card>
+            <Card className="bg-gradient-to-br from-secondary/10 to-secondary/5 border-secondary/20 hover:shadow-lg transition-shadow">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4" />
+                  Membros Ativos
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-4xl font-bold text-secondary">{activeMembers}</div>
+                <p className="text-xs text-muted-foreground mt-2">De {memberStats.length} membros</p>
+              </CardContent>
+            </Card>
 
-        <Card className="bg-gradient-to-br from-accent/10 to-accent/5 border-accent/20">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Média por Membro</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="text-3xl font-bold text-accent">
-                {memberStats.length > 0 ? Math.round(totalTeamActions / memberStats.length) : 0}
-              </div>
-              <BarChart3 className="h-8 w-8 text-accent/50" />
-            </div>
-          </CardContent>
-        </Card>
+            <Card className="bg-gradient-to-br from-accent/10 to-accent/5 border-accent/20 hover:shadow-lg transition-shadow">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  <BarChart3 className="h-4 w-4" />
+                  Média por Membro
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-4xl font-bold text-accent">
+                  {memberStats.length > 0 ? Math.round(totalTeamActions / memberStats.length) : 0}
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">Ações por pessoa</p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-chart-4/10 to-chart-4/5 border-chart-4/20 hover:shadow-lg transition-shadow">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  <Zap className="h-4 w-4" />
+                  Mais Ativo
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-chart-4 truncate">
+                  {topMembersData[0]?.name || '-'}
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  {topMembersData[0]?.total || 0} ações
+                </p>
+              </CardContent>
+            </Card>
+          </>
+        )}
       </div>
+
+      {/* Charts */}
+      {!isLoading && memberStats.length > 0 && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Actions Distribution Pie Chart */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="h-5 w-5" />
+                Distribuição de Ações
+              </CardTitle>
+              <CardDescription>Por tipo de conteúdo</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={actionTypeData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {actionTypeData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          {/* Top Members Bar Chart */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5" />
+                Top 5 Membros
+              </CardTitle>
+              <CardDescription>Por total de ações</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={topMembersData}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis dataKey="name" className="text-xs" />
+                  <YAxis className="text-xs" />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'hsl(var(--card))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '6px'
+                    }}
+                  />
+                  <Bar dataKey="total" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Filters */}
       <Card>
@@ -256,11 +376,27 @@ export default function TeamDashboard() {
               </TableHeader>
               <TableBody>
                 {isLoading ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                      Carregando estatísticas...
-                    </TableCell>
-                  </TableRow>
+                  <>
+                    {[1, 2, 3].map((i) => (
+                      <TableRow key={i}>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <Skeleton className="h-10 w-10 rounded-full" />
+                            <div className="space-y-2">
+                              <Skeleton className="h-4 w-32" />
+                              <Skeleton className="h-3 w-48" />
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell><Skeleton className="h-4 w-8 mx-auto" /></TableCell>
+                        <TableCell><Skeleton className="h-4 w-8 mx-auto" /></TableCell>
+                        <TableCell><Skeleton className="h-4 w-8 mx-auto" /></TableCell>
+                        <TableCell><Skeleton className="h-4 w-8 mx-auto" /></TableCell>
+                        <TableCell><Skeleton className="h-4 w-8 mx-auto" /></TableCell>
+                        <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                      </TableRow>
+                    ))}
+                  </>
                 ) : filteredAndSortedStats.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
@@ -283,11 +419,35 @@ export default function TeamDashboard() {
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="text-center font-semibold">{member.totalActions}</TableCell>
-                      <TableCell className="text-center">{member.quickContent}</TableCell>
-                      <TableCell className="text-center">{member.createContent}</TableCell>
-                      <TableCell className="text-center">{member.reviewContent}</TableCell>
-                      <TableCell className="text-center">{member.planContent}</TableCell>
+                      <TableCell className="text-center">
+                        <span className="inline-flex items-center justify-center font-semibold text-lg px-3 py-1 bg-primary/10 text-primary rounded-full">
+                          {member.totalActions}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <span className="inline-flex items-center gap-1 text-sm">
+                          <Zap className="h-3 w-3 text-yellow-500" />
+                          {member.quickContent}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <span className="inline-flex items-center gap-1 text-sm">
+                          <FileText className="h-3 w-3 text-blue-500" />
+                          {member.createContent}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <span className="inline-flex items-center gap-1 text-sm">
+                          <CheckCircle className="h-3 w-3 text-green-500" />
+                          {member.reviewContent}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <span className="inline-flex items-center gap-1 text-sm">
+                          <Lightbulb className="h-3 w-3 text-purple-500" />
+                          {member.planContent}
+                        </span>
+                      </TableCell>
                       <TableCell>
                         {member.lastActivity ? (
                           <div className="flex items-center gap-2 text-sm">
