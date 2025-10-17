@@ -9,6 +9,7 @@ import { Rocket, Users, ClipboardCopy, Check, X, Crown, Loader2, UserPlus, UserM
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
+import TeamInfoCard from '@/components/perfil/TeamInfoCard';
 
 interface TeamMember {
   id: string;
@@ -32,18 +33,12 @@ export default function Team() {
 
   useEffect(() => {
     if (user && team) {
-      // Só verifica se é admin se já tiver user e team
-      if (!user.isAdmin) {
-        toast.warning("🔒 Acesso Restrito", {
-          description: "Apenas o administrador da equipe pode acessar esta página.",
-          duration: 5000,
-        });
-        navigate('/dashboard');
-        return;
+      // Apenas admins carregam dados de gerenciamento
+      if (user.isAdmin) {
+        loadTeamData();
       }
-      loadTeamData();
     }
-  }, [user, team, navigate]);
+  }, [user, team]);
 
   const loadTeamData = async () => {
     if (!team) return;
@@ -194,6 +189,34 @@ export default function Team() {
     );
   }
 
+  // Se não é admin, mostra visualização de membro
+  if (!user?.isAdmin) {
+    return (
+      <div className="min-h-full space-y-6 animate-fade-in">
+        {/* Header */}
+        <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5 hover:shadow-xl transition-shadow duration-300">
+          <CardHeader className="pb-4">
+            <div className="flex items-center gap-3">
+              <div className="flex-shrink-0 bg-primary/10 text-primary rounded-lg p-3">
+                <Users className="h-8 w-8" />
+              </div>
+              <div>
+                <CardTitle className="text-3xl font-bold">
+                  Minha Equipe
+                </CardTitle>
+                <p className="text-muted-foreground">Informações sobre a sua equipe e créditos disponíveis.</p>
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
+
+        {/* Team Info Card */}
+        <TeamInfoCard team={team} userRole="member" />
+      </div>
+    );
+  }
+
+  // Se é admin, mostra painel completo de gerenciamento
   return (
     <div className="min-h-full space-y-6 animate-fade-in">
       {/* Header */}

@@ -71,10 +71,7 @@ export default function Profile() {
         </div>
 
         {/* Main content */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
-          <PersonalInfoForm initialData={profileData} />
-          <TeamInfoCard team={team} userRole={user.isAdmin ? 'admin' : 'member'} />
-        </div>
+        <PersonalInfoForm initialData={profileData} />
         
         {/* Advanced Settings */}
         <AccountManagement userEmail={user.email || ''} />
