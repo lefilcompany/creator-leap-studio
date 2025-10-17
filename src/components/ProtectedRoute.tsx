@@ -28,10 +28,10 @@ export function ProtectedRoute({ children, requireTeam = true }: ProtectedRouteP
         return;
       }
 
-      // Se o período de teste expirou, permite apenas histórico e planos
+      // Se o período de teste expirou, permite apenas histórico, planos e perfil
       if (requireTeam && team && isTrialExpired) {
         const currentPath = window.location.pathname;
-        const allowedPaths = ['/plans', '/history'];
+        const allowedPaths = ['/plans', '/history', '/profile'];
         const isAllowedPath = allowedPaths.some(path => currentPath.startsWith(path));
         
         if (!isAllowedPath) {
