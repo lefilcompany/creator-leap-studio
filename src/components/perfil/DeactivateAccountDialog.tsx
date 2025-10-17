@@ -98,63 +98,40 @@ export default function DeactivateAccountDialog({ open, onOpenChange }: Deactiva
         return;
       }
 
-      // Se precisa transferir administração
-      if (needsAdminTransfer && selectedNewAdmin && team) {
-        // Atualizar o admin da equipe
-        const { error: updateTeamError } = await supabase
-          .from('teams')
-          .update({ admin_id: selectedNewAdmin })
-          .eq('id', team.id);
+      // Chamar edge function para inativar conta
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
 
-        if (updateTeamError) {
-          throw updateTeamError;
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/deactivate-account`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            newAdminId: needsAdminTransfer ? selectedNewAdmin : null,
+          }),
         }
+      );
 
-        // Remover role de admin do usuário atual
-        const { error: deleteRoleError } = await supabase
-          .from('user_roles')
-          .delete()
-          .eq('user_id', user?.id)
-          .eq('role', 'admin');
-
-        if (deleteRoleError) {
-          throw deleteRoleError;
-        }
-
-        // Adicionar role de admin ao novo usuário
-        const { error: insertRoleError } = await supabase
-          .from('user_roles')
-          .insert({
-            user_id: selectedNewAdmin,
-            role: 'admin'
-          });
-
-        if (insertRoleError) {
-          throw insertRoleError;
-        }
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Erro ao inativar conta');
       }
 
-      // Remover usuário da equipe
-      const { error: updateProfileError } = await supabase
-        .from('profiles')
-        .update({ team_id: null })
-        .eq('id', user?.id);
-
-      if (updateProfileError) {
-        throw updateProfileError;
-      }
-
-      toast.success('Conta inativada com sucesso');
+      toast.success('Conta inativada com sucesso. Você será desconectado.');
       
-      // Fazer logout
+      // Fazer logout e redirecionar
       await logout();
-      navigate('/login');
+      navigate('/');
       onOpenChange(false);
       setPassword('');
       setSelectedNewAdmin('');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao inativar conta:', error);
-      toast.error('Erro ao inativar conta. Tente novamente.');
+      toast.error(error.message || 'Erro ao inativar conta. Tente novamente.');
     } finally {
       setIsLoading(false);
     }

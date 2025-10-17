@@ -13,6 +13,9 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { AlertTriangle } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 
 interface DeleteAccountDialogProps {
   open: boolean;
@@ -25,6 +28,8 @@ export default function DeleteAccountDialog({ open, onOpenChange, userEmail }: D
   const [emailConfirm, setEmailConfirm] = useState('');
   const [understood, setUnderstood] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const { logout } = useAuth();
+  const navigate = useNavigate();
 
   const handleDelete = async () => {
     if (!password) {
@@ -44,15 +49,50 @@ export default function DeleteAccountDialog({ open, onOpenChange, userEmail }: D
 
     setIsLoading(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Verificar a senha
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: userEmail,
+        password: password,
+      });
+
+      if (signInError) {
+        toast.error('Senha incorreta');
+        setIsLoading(false);
+        return;
+      }
+
+      // Chamar edge function para deletar conta
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-account`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Erro ao deletar conta');
+      }
+
       toast.success('Conta deletada com sucesso');
+      
+      // Fazer logout e redirecionar para home
+      await logout();
+      navigate('/');
       onOpenChange(false);
       setPassword('');
       setEmailConfirm('');
       setUnderstood(false);
-    } catch (error) {
-      toast.error('Erro ao deletar conta. Tente novamente.');
+    } catch (error: any) {
+      console.error('Erro ao deletar conta:', error);
+      toast.error(error.message || 'Erro ao deletar conta. Tente novamente.');
     } finally {
       setIsLoading(false);
     }
