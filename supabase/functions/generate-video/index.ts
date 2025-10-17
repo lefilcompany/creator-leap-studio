@@ -18,7 +18,8 @@ async function processVideoGeneration(operationName: string, actionId: string, t
     let isDone = false;
     let videoUri = null;
     let attempts = 0;
-    const maxAttempts = 60; // 10 minutos (60 tentativas x 5 segundos)
+    const maxAttempts = 60; // 10 minutos máximo
+    const pollingInterval = 3000; // 3 segundos (reduzido para Veo 3 Fast)
 
     console.log('Background: Starting video processing for operation:', operationName);
 
@@ -26,7 +27,7 @@ async function processVideoGeneration(operationName: string, actionId: string, t
       attempts++;
       console.log(`Background: Polling attempt ${attempts}/${maxAttempts}...`);
       
-      await new Promise(resolve => setTimeout(resolve, 5000)); // Verificar a cada 5 segundos
+      await new Promise(resolve => setTimeout(resolve, pollingInterval));
       
       const statusResponse = await fetch(
         `${BASE_URL}/${operationName}`,
@@ -79,7 +80,7 @@ async function processVideoGeneration(operationName: string, actionId: string, t
     }
 
     if (!videoUri) {
-      throw new Error(`Video URI not found in response after ${attempts} attempts (${attempts * 5} seconds)`);
+      throw new Error(`Video URI not found in response after ${attempts} attempts (~${Math.round(attempts * pollingInterval / 1000)} seconds)`);
     }
 
     // Download do vídeo
@@ -145,7 +146,7 @@ async function processVideoGeneration(operationName: string, actionId: string, t
       .update({
         result: { 
           videoUrl,
-          processingTime: `${attempts * 5} seconds`,
+          processingTime: `~${Math.round(attempts * pollingInterval / 1000)} seconds`,
           attempts: attempts
         },
         status: 'completed',
@@ -288,6 +289,15 @@ serve(async (req) => {
 
     const BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
     
+    // Select model based on reference images
+    // Veo 3 Fast: 2-3x faster, but NO image-to-video support
+    // Veo 3 Standard: Supports image-to-video, but slower
+    const hasReferenceImages = !!referenceImage || (preserveImages && preserveImages.length > 0) || (styleReferenceImages && styleReferenceImages.length > 0);
+    const modelId = hasReferenceImages ? 'veo-3.0-generate-001' : 'veo-3.0-fast-generate-001';
+    
+    console.log(`🎯 Model selected: ${modelId}`);
+    console.log(`⚡ Using ${hasReferenceImages ? 'Veo 3 Standard (with images)' : 'Veo 3 Fast (text-to-video only, 2-3x faster)'}`);
+    
     // Garantir que as diretrizes de texto sejam respeitadas no backend
     let enrichedPrompt = prompt;
 
@@ -339,9 +349,9 @@ serve(async (req) => {
     }
 
     // Start video generation
-    console.log('Starting video generation operation...');
+    console.log(`Starting video generation operation with ${modelId}...`);
     const generateResponse = await fetch(
-      `${BASE_URL}/models/veo-3.0-generate-001:predictLongRunning`,
+      `${BASE_URL}/models/${modelId}:predictLongRunning`,
       {
         method: 'POST',
         headers: {
