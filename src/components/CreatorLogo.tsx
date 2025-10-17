@@ -12,6 +12,6 @@ export const CreatorLogo = ({
   } = useTheme();
   const logo = theme === 'dark' ? logoCreatorBranca : logoCreatorPreta;
   return <div className={`flex items-center gap-2 ${className}`}>
-      <img src={logo} alt="Creator Logo" className="h-8 w-auto object-contain justify-center items-center " />
+      <img src={logo} alt="Creator Logo" className="h-14 w-auto object-contain justify-center items-center " />
     </div>;
 };
