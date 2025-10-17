@@ -201,24 +201,33 @@ export default function ContentResult() {
       toast.error("Erro ao copiar legenda");
     }
   };
-  const handleDownload = () => {
+  const handleDownload = async () => {
     if (!contentData) return;
     try {
-      // Convert base64 to blob (apenas para imagens)
-      const base64Data = contentData.mediaUrl.split(",")[1];
-      if (!base64Data) {
-        toast.error("Formato de imagem inválido");
-        return;
+      toast.info("Preparando download...");
+      
+      let blob: Blob;
+      
+      // Check if it's a base64 image or URL
+      if (contentData.mediaUrl.startsWith('data:')) {
+        // Handle base64 images
+        const base64Data = contentData.mediaUrl.split(",")[1];
+        if (!base64Data) {
+          toast.error("Formato de imagem inválido");
+          return;
+        }
+        const byteCharacters = atob(base64Data);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        blob = new Blob([byteArray], { type: "image/png" });
+      } else {
+        // Handle URL images (fetch and convert to blob)
+        const response = await fetch(contentData.mediaUrl);
+        blob = await response.blob();
       }
-      const byteCharacters = atob(base64Data);
-      const byteNumbers = new Array(byteCharacters.length);
-      for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
-      }
-      const byteArray = new Uint8Array(byteNumbers);
-      const blob = new Blob([byteArray], {
-        type: "image/png"
-      });
 
       // Create download link
       const url = window.URL.createObjectURL(blob);
@@ -234,7 +243,8 @@ export default function ContentResult() {
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
-      toast.success(`Download da imagem iniciado!`);
+      
+      toast.success("Download concluído!");
     } catch (error) {
       console.error("Erro ao fazer download:", error);
       toast.error("Erro ao fazer download da imagem");
