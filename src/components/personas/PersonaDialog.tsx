@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Save } from 'lucide-react';
 import type { Persona } from '@/types/persona';
 import type { BrandSummary } from '@/types/brand';
@@ -143,8 +144,10 @@ export default function PersonaDialog({ isOpen, onOpenChange, onSave, personaToE
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-            {/* Informações básicas */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <ScrollArea className="h-[60vh] pr-4">
+              <div className="space-y-6">
+                {/* Informações básicas */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="brandId"
@@ -396,6 +399,8 @@ export default function PersonaDialog({ isOpen, onOpenChange, onSave, personaToE
                 </FormItem>
               )}
             />
+              </div>
+            </ScrollArea>
 
             {/* Botões */}
             <div className="flex justify-end gap-2 pt-4">
