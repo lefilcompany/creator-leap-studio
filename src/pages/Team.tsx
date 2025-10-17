@@ -241,48 +241,33 @@ export default function Team() {
         {/* Left Column - Team Info and Requests */}
         <div className="space-y-6">
           {/* Team Information Card */}
+          <TeamInfoCard team={team} userRole="admin" />
+          
+          {/* Access Code Card */}
           <Card className="shadow-lg border-2 border-primary/20 bg-gradient-to-br from-card via-primary/5 to-secondary/10 hover:border-primary/30 hover:shadow-xl transition-all duration-300">
             <CardHeader className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-t-lg pb-3">
               <CardTitle className="text-xl bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                {team.name}
+                Código de Acesso
               </CardTitle>
-              <CardDescription className="bg-gradient-to-r from-secondary to-accent bg-clip-text text-transparent font-medium">
-                Plano {team.plan?.displayName || team.plan?.name || 'Não definido'}
+              <CardDescription>
+                Compartilhe para novos membros solicitarem entrada
               </CardDescription>
             </CardHeader>
             <CardContent className="p-6">
-              <div className="flex flex-col md:flex-row gap-4">
-                {/* Access Code */}
-                <div className="flex-1 space-y-2">
-                  <Label className="text-primary font-semibold">Código de Acesso</Label>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      value={team.code || 'TIMELEFIL'}
-                      readOnly
-                      className="bg-gradient-to-r from-muted/50 to-primary/5 cursor-not-allowed border-primary/20 font-mono"
-                    />
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={copyToClipboard}
-                      className="border-primary/30 hover:bg-primary/10 hover:border-primary/50 hover:scale-105 active:scale-95 transition-all duration-200"
-                    >
-                      <ClipboardCopy className="h-4 w-4 text-primary" />
-                    </Button>
-                  </div>
-                  <p className="text-xs text-muted-foreground">Compartilhe para novos membros solicitarem entrada.</p>
-                </div>
-
-                {/* Members Count */}
-                <div className="flex-shrink-0 space-y-2 md:min-w-[160px]">
-                  <Label className="text-secondary font-semibold">Membros Aceitos</Label>
-                  <div className="flex items-center gap-3 text-2xl font-bold p-3 rounded-lg bg-gradient-to-r from-secondary/10 to-accent/10 border border-secondary/20 hover:border-secondary/30 transition-all duration-200">
-                    <Users className="h-5 w-5 text-secondary" />
-                    <span className="bg-gradient-to-r from-secondary to-accent bg-clip-text text-transparent">
-                      {members.length} / {team.plan?.maxMembers || 1000}
-                    </span>
-                  </div>
-                </div>
+              <div className="flex items-center gap-2">
+                <Input
+                  value={team.code || 'TIMELEFIL'}
+                  readOnly
+                  className="bg-gradient-to-r from-muted/50 to-primary/5 cursor-not-allowed border-primary/20 font-mono text-lg"
+                />
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={copyToClipboard}
+                  className="border-primary/30 hover:bg-primary/10 hover:border-primary/50 hover:scale-105 active:scale-95 transition-all duration-200"
+                >
+                  <ClipboardCopy className="h-4 w-4 text-primary" />
+                </Button>
               </div>
             </CardContent>
           </Card>
