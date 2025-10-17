@@ -64,15 +64,25 @@ export default function QuickContentResult() {
     }
   }, [imageUrl, navigate, actionId]);
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     try {
+      toast.info("Preparando download...");
+      
+      // Fetch image as blob to avoid CORS issues
+      const response = await fetch(currentImageUrl);
+      const blob = await response.blob();
+      
+      // Create object URL and download
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
-      link.href = currentImageUrl;
+      link.href = url;
       link.download = `creator-quick-${Date.now()}.png`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      toast.success("Download iniciado!");
+      window.URL.revokeObjectURL(url);
+      
+      toast.success("Download concluído!");
     } catch (error) {
       console.error("Error downloading image:", error);
       toast.error("Erro ao baixar imagem");
