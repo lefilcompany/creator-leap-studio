@@ -52,7 +52,7 @@ export default function Profile() {
 
   return (
     <div className="min-h-full w-full">
-      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6 px-2 sm:px-4 lg:px-0">
+      <div className="max-w-7xl mx-auto flex gap-4 sm:gap-6 px-2 sm:px-4 lg:px-0">
         {/* Header Card */}
         <div className="bg-gradient-to-r from-primary/15 via-secondary/15 to-accent/15 p-4 sm:p-6 rounded-xl border border-primary/30 shadow-lg backdrop-blur-md">
           <div className="flex items-center gap-3 sm:gap-4 md:gap-6">
