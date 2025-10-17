@@ -1086,21 +1086,146 @@ export const translations = {
     errors: {} as any,
   },
   
-  // Temporarily using English for other languages
-  de: {} as any,
-  fr: {} as any,
-  it: {} as any,
-  ru: {} as any,
-  zh: {} as any,
+  // Alemão (German)
+  de: {
+    search: { placeholder: "Marken, Themen, Personas suchen...", searchContent: "Inhalt suchen", searching: "Suchen...", noResults: "Keine Ergebnisse gefunden", tryDifferent: "Versuchen Sie andere Suchbegriffe", startSearching: "Suche starten", minCharacters: "Mindestens 2 Zeichen eingeben" },
+    settings: { title: "Einstellungen", about: "Über Creator", privacy: "Datenschutz", logout: "Abmelden", logoutConfirm: "Möchten Sie sich wirklich abmelden?", logoutMessage: "Sie müssen sich erneut anmelden, um auf Ihr Konto zuzugreifen.", cancel: "Abbrechen" },
+    language: { title: "Sprachen" },
+    theme: { toggle: "Thema wechseln" },
+    profile: "Profil",
+    sidebar: { home: "Startseite", brands: "Marken", themes: "Strategische Themen", personas: "Personas", quickContent: "Schnellerstellung", history: "Verlauf", createContent: "Inhalt erstellen", reviewContent: "Inhalt überprüfen", planContent: "Inhalt planen", team: "Team", plan: "Plan" },
+    dashboard: { welcome: "Hallo", welcomeBack: "Willkommen zurück", createNewContent: "Neuen Inhalt erstellen", creditsRemaining: "Verbleibende Credits", of: "von", creditsAvailable: "verfügbare Credits", myActions: "Meine Aktionen", totalActions: "durchgeführte Aktionen", brandsManaged: "Verwaltete Marken", totalBrands: "aktive Marken", viewPlans: "Pläne ansehen", quickActions: "Schnellaktionen", recentActivities: "Letzte Aktivitäten", viewDetails: "Details anzeigen", noRecentActivity: "Keine kürzlichen Aktivitäten", activitiesAppear: "Ihre Aktivitäten erscheinen hier", forBrand: "Für Marke", noBrand: "Keine Marke", createContentAction: "Inhalt erstellen", createContentDesc: "Neue Bilder und Texte generieren", reviewContentAction: "Inhalt überprüfen", reviewContentDesc: "KI-Feedback erhalten", managePersonas: "Personas verwalten", managePersonasDesc: "Personas hinzufügen oder bearbeiten" },
+    login: { title: "Anmelden", welcome: "Willkommen zurück!", welcomeMessage: "Melden Sie sich an", email: "E-Mail", password: "Passwort", rememberMe: "Angemeldet bleiben", forgotPassword: "Passwort vergessen?", signIn: "Anmelden", signingIn: "Anmeldung...", orContinueWith: "oder weiter mit", google: "Google", facebook: "Facebook", noAccount: "Noch kein Konto?", createAccount: "Konto erstellen", invalidCredentials: "Ungültige Anmeldedaten", incorrectCredentials: "Falsche Anmeldedaten", resetPasswordSuggestion: "Setzen Sie Ihr Passwort zurück", resetMyPassword: "Passwort zurücksetzen →", strategicContent: "Strategische Inhalte in der Geschwindigkeit Ihrer Ideen", strategicContentDesc: "Planen, erstellen und überprüfen mit KI", strategicOrganization: "Strategische Organisation", strategicOrganizationDesc: "Strukturieren Sie Ihre Kommunikation", personaSegmentation: "Persona-Segmentierung", personaSegmentationDesc: "Personalisierte Inhalte", completeCampaigns: "Vollständige Kampagnen", completeCampaignsDesc: "Komplette Kalender" },
+    register: { ...translations.en.register },
+    common: { loading: "Laden...", save: "Speichern", delete: "Löschen", edit: "Bearbeiten", create: "Erstellen", back: "Zurück", next: "Weiter", previous: "Zurück", confirm: "Bestätigen", close: "Schließen", yes: "Ja", no: "Nein", cancel: "Abbrechen" },
+    brands: { ...translations.en.brands },
+    personas: { ...translations.en.personas },
+    themes: { ...translations.en.themes },
+    history: { ...translations.en.history },
+    profilePage: { ...translations.en.profilePage },
+    team: { ...translations.en.team },
+    plans: { ...translations.en.plans },
+    createContent: { ...translations.en.createContent },
+    reviewContent: { ...translations.en.reviewContent },
+    planContent: { ...translations.en.planContent },
+    quickContent: { ...translations.en.quickContent },
+    notifications: { title: "Benachrichtigungen", markAllRead: "Alle als gelesen markieren", noNotifications: "Keine Benachrichtigungen", youAreAllCaught: "Alles erledigt!" },
+    trial: { ...translations.en.trial },
+    errors: { somethingWrong: "Etwas ist schiefgelaufen", tryAgain: "Erneut versuchen", fieldRequired: "Dieses Feld ist erforderlich", invalidEmail: "Ungültige E-Mail", invalidPhone: "Ungültige Telefonnummer", passwordMismatch: "Passwörter stimmen nicht überein", minLength: "Minimum {count} Zeichen", maxLength: "Maximum {count} Zeichen", uploadFailed: "Upload fehlgeschlagen", networkError: "Netzwerkfehler", unauthorized: "Nicht autorisiert", notFound: "Nicht gefunden" }
+  } as any,
+  
+  // Francês (French)
+  fr: {
+    search: { placeholder: "Rechercher marques, thèmes, personas...", searchContent: "Rechercher du contenu", searching: "Recherche...", noResults: "Aucun résultat trouvé", tryDifferent: "Essayez d'autres mots-clés", startSearching: "Commencer la recherche", minCharacters: "Saisissez au moins 2 caractères" },
+    settings: { title: "Paramètres", about: "À propos", privacy: "Confidentialité", logout: "Se déconnecter", logoutConfirm: "Voulez-vous vraiment vous déconnecter?", logoutMessage: "Vous devrez vous reconnecter pour accéder à votre compte.", cancel: "Annuler" },
+    language: { title: "Langues" },
+    theme: { toggle: "Changer de thème" },
+    profile: "Profil",
+    sidebar: { home: "Accueil", brands: "Marques", themes: "Thèmes stratégiques", personas: "Personas", quickContent: "Création rapide", history: "Historique", createContent: "Créer du contenu", reviewContent: "Réviser le contenu", planContent: "Planifier le contenu", team: "Équipe", plan: "Plan" },
+    dashboard: { welcome: "Bonjour", welcomeBack: "Bienvenue", createNewContent: "Créer du nouveau contenu", creditsRemaining: "Crédits restants", of: "sur", creditsAvailable: "crédits disponibles", myActions: "Mes actions", totalActions: "actions effectuées", brandsManaged: "Marques gérées", totalBrands: "marques actives", viewPlans: "Voir les plans", quickActions: "Actions rapides", recentActivities: "Activités récentes", viewDetails: "Voir les détails", noRecentActivity: "Aucune activité récente", activitiesAppear: "Vos activités apparaîtront ici", forBrand: "Pour la marque", noBrand: "Aucune marque", createContentAction: "Créer du contenu", createContentDesc: "Générer des images et textes", reviewContentAction: "Réviser le contenu", reviewContentDesc: "Obtenir des retours IA", managePersonas: "Gérer les personas", managePersonasDesc: "Ajouter ou modifier vos personas" },
+    login: { title: "Connexion", welcome: "Bienvenue!", welcomeMessage: "Connectez-vous", email: "E-mail", password: "Mot de passe", rememberMe: "Rester connecté", forgotPassword: "Mot de passe oublié?", signIn: "Se connecter", signingIn: "Connexion...", orContinueWith: "ou continuer avec", google: "Google", facebook: "Facebook", noAccount: "Pas de compte?", createAccount: "Créer un compte", invalidCredentials: "Identifiants invalides", incorrectCredentials: "Identifiants incorrects", resetPasswordSuggestion: "Réinitialisez votre mot de passe", resetMyPassword: "Réinitialiser →", strategicContent: "Contenu stratégique à la vitesse de vos idées", strategicContentDesc: "Planifiez, créez et révisez avec l'IA", strategicOrganization: "Organisation stratégique", strategicOrganizationDesc: "Structurez votre communication", personaSegmentation: "Segmentation par personas", personaSegmentationDesc: "Contenus personnalisés", completeCampaigns: "Campagnes complètes", completeCampaignsDesc: "Calendriers complets" },
+    register: { ...translations.en.register },
+    common: { loading: "Chargement...", save: "Enregistrer", delete: "Supprimer", edit: "Modifier", create: "Créer", back: "Retour", next: "Suivant", previous: "Précédent", confirm: "Confirmer", close: "Fermer", yes: "Oui", no: "Non", cancel: "Annuler" },
+    brands: { ...translations.en.brands },
+    personas: { ...translations.en.personas },
+    themes: { ...translations.en.themes },
+    history: { ...translations.en.history },
+    profilePage: { ...translations.en.profilePage },
+    team: { ...translations.en.team },
+    plans: { ...translations.en.plans },
+    createContent: { ...translations.en.createContent },
+    reviewContent: { ...translations.en.reviewContent },
+    planContent: { ...translations.en.planContent },
+    quickContent: { ...translations.en.quickContent },
+    notifications: { title: "Notifications", markAllRead: "Tout marquer comme lu", noNotifications: "Aucune notification", youAreAllCaught: "Tout est à jour!" },
+    trial: { ...translations.en.trial },
+    errors: { somethingWrong: "Quelque chose s'est mal passé", tryAgain: "Réessayer", fieldRequired: "Ce champ est requis", invalidEmail: "E-mail invalide", invalidPhone: "Téléphone invalide", passwordMismatch: "Les mots de passe ne correspondent pas", minLength: "Minimum {count} caractères", maxLength: "Maximum {count} caractères", uploadFailed: "Échec du téléchargement", networkError: "Erreur réseau", unauthorized: "Non autorisé", notFound: "Non trouvé" }
+  } as any,
+  
+  // Italiano (Italian)
+  it: {
+    search: { placeholder: "Cerca marchi, temi, personas...", searchContent: "Cerca contenuti", searching: "Ricerca...", noResults: "Nessun risultato trovato", tryDifferent: "Prova parole chiave diverse", startSearching: "Inizia la ricerca", minCharacters: "Digita almeno 2 caratteri" },
+    settings: { title: "Impostazioni", about: "Informazioni", privacy: "Privacy", logout: "Disconnetti", logoutConfirm: "Vuoi davvero disconnetterti?", logoutMessage: "Dovrai accedere nuovamente per accedere al tuo account.", cancel: "Annulla" },
+    language: { title: "Lingue" },
+    theme: { toggle: "Cambia tema" },
+    profile: "Profilo",
+    sidebar: { home: "Home", brands: "Marchi", themes: "Temi strategici", personas: "Personas", quickContent: "Creazione rapida", history: "Cronologia", createContent: "Crea contenuti", reviewContent: "Rivedi contenuti", planContent: "Pianifica contenuti", team: "Team", plan: "Piano" },
+    dashboard: { welcome: "Ciao", welcomeBack: "Bentornato", createNewContent: "Crea nuovo contenuto", creditsRemaining: "Crediti rimanenti", of: "di", creditsAvailable: "crediti disponibili", myActions: "Le mie azioni", totalActions: "azioni eseguite", brandsManaged: "Marchi gestiti", totalBrands: "marchi attivi", viewPlans: "Visualizza piani", quickActions: "Azioni rapide", recentActivities: "Attività recenti", viewDetails: "Vedi dettagli", noRecentActivity: "Nessuna attività recente", activitiesAppear: "Le tue attività appariranno qui", forBrand: "Per il marchio", noBrand: "Nessun marchio", createContentAction: "Crea contenuti", createContentDesc: "Genera immagini e testi", reviewContentAction: "Rivedi contenuti", reviewContentDesc: "Ottieni feedback IA", managePersonas: "Gestisci personas", managePersonasDesc: "Aggiungi o modifica le tue personas" },
+    login: { title: "Accedi", welcome: "Bentornato!", welcomeMessage: "Accedi al tuo account", email: "E-mail", password: "Password", rememberMe: "Resta connesso", forgotPassword: "Password dimenticata?", signIn: "Accedi", signingIn: "Accesso...", orContinueWith: "o continua con", google: "Google", facebook: "Facebook", noAccount: "Non hai un account?", createAccount: "Crea account", invalidCredentials: "Credenziali non valide", incorrectCredentials: "Credenziali errate", resetPasswordSuggestion: "Reimposta la tua password", resetMyPassword: "Reimposta →", strategicContent: "Contenuti strategici alla velocità delle tue idee", strategicContentDesc: "Pianifica, crea e rivedi con l'IA", strategicOrganization: "Organizzazione strategica", strategicOrganizationDesc: "Struttura la tua comunicazione", personaSegmentation: "Segmentazione per personas", personaSegmentationDesc: "Contenuti personalizzati", completeCampaigns: "Campagne complete", completeCampaignsDesc: "Calendari completi" },
+    register: { ...translations.en.register },
+    common: { loading: "Caricamento...", save: "Salva", delete: "Elimina", edit: "Modifica", create: "Crea", back: "Indietro", next: "Avanti", previous: "Precedente", confirm: "Conferma", close: "Chiudi", yes: "Sì", no: "No", cancel: "Annulla" },
+    brands: { ...translations.en.brands },
+    personas: { ...translations.en.personas },
+    themes: { ...translations.en.themes },
+    history: { ...translations.en.history },
+    profilePage: { ...translations.en.profilePage },
+    team: { ...translations.en.team },
+    plans: { ...translations.en.plans },
+    createContent: { ...translations.en.createContent },
+    reviewContent: { ...translations.en.reviewContent },
+    planContent: { ...translations.en.planContent },
+    quickContent: { ...translations.en.quickContent },
+    notifications: { title: "Notifiche", markAllRead: "Segna tutto come letto", noNotifications: "Nessuna notifica", youAreAllCaught: "Tutto a posto!" },
+    trial: { ...translations.en.trial },
+    errors: { somethingWrong: "Qualcosa è andato storto", tryAgain: "Riprova", fieldRequired: "Questo campo è obbligatorio", invalidEmail: "E-mail non valida", invalidPhone: "Telefono non valido", passwordMismatch: "Le password non corrispondono", minLength: "Minimo {count} caratteri", maxLength: "Massimo {count} caratteri", uploadFailed: "Caricamento fallito", networkError: "Errore di rete", unauthorized: "Non autorizzato", notFound: "Non trovato" }
+  } as any,
+  
+  // Russo (Russian)
+  ru: {
+    search: { placeholder: "Поиск брендов, тем, персон...", searchContent: "Поиск контента", searching: "Поиск...", noResults: "Ничего не найдено", tryDifferent: "Попробуйте другие ключевые слова", startSearching: "Начать поиск", minCharacters: "Введите минимум 2 символа" },
+    settings: { title: "Настройки", about: "О Creator", privacy: "Конфиденциальность", logout: "Выйти", logoutConfirm: "Вы уверены, что хотите выйти?", logoutMessage: "Вам нужно будет снова войти в систему.", cancel: "Отмена" },
+    language: { title: "Языки" },
+    theme: { toggle: "Сменить тему" },
+    profile: "Профиль",
+    sidebar: { home: "Главная", brands: "Бренды", themes: "Стратегические темы", personas: "Персоны", quickContent: "Быстрое создание", history: "История", createContent: "Создать контент", reviewContent: "Проверить контент", planContent: "Планировать контент", team: "Команда", plan: "План" },
+    dashboard: { welcome: "Привет", welcomeBack: "Добро пожаловать обратно", createNewContent: "Создать новый контент", creditsRemaining: "Осталось кредитов", of: "из", creditsAvailable: "доступных кредитов", myActions: "Мои действия", totalActions: "выполненных действий", brandsManaged: "Управляемые бренды", totalBrands: "активных брендов", viewPlans: "Просмотр планов", quickActions: "Быстрые действия", recentActivities: "Недавние активности", viewDetails: "Просмотр деталей", noRecentActivity: "Нет недавней активности", activitiesAppear: "Ваши действия появятся здесь", forBrand: "Для бренда", noBrand: "Нет бренда", createContentAction: "Создать контент", createContentDesc: "Генерировать изображения и тексты", reviewContentAction: "Проверить контент", reviewContentDesc: "Получить обратную связь ИИ", managePersonas: "Управлять персонами", managePersonasDesc: "Добавить или изменить ваши персоны" },
+    login: { title: "Войти", welcome: "Добро пожаловать!", welcomeMessage: "Войдите в свой аккаунт", email: "E-mail", password: "Пароль", rememberMe: "Запомнить меня", forgotPassword: "Забыли пароль?", signIn: "Войти", signingIn: "Вход...", orContinueWith: "или продолжить с", google: "Google", facebook: "Facebook", noAccount: "Нет аккаунта?", createAccount: "Создать аккаунт", invalidCredentials: "Неверные учетные данные", incorrectCredentials: "Неправильные данные", resetPasswordSuggestion: "Сбросьте свой пароль", resetMyPassword: "Сбросить →", strategicContent: "Стратегический контент со скоростью ваших идей", strategicContentDesc: "Планируйте, создавайте и проверяйте с ИИ", strategicOrganization: "Стратегическая организация", strategicOrganizationDesc: "Структурируйте вашу коммуникацию", personaSegmentation: "Сегментация по персонам", personaSegmentationDesc: "Персонализированный контент", completeCampaigns: "Полные кампании", completeCampaignsDesc: "Полные календари" },
+    register: { ...translations.en.register },
+    common: { loading: "Загрузка...", save: "Сохранить", delete: "Удалить", edit: "Редактировать", create: "Создать", back: "Назад", next: "Далее", previous: "Назад", confirm: "Подтвердить", close: "Закрыть", yes: "Да", no: "Нет", cancel: "Отмена" },
+    brands: { ...translations.en.brands },
+    personas: { ...translations.en.personas },
+    themes: { ...translations.en.themes },
+    history: { ...translations.en.history },
+    profilePage: { ...translations.en.profilePage },
+    team: { ...translations.en.team },
+    plans: { ...translations.en.plans },
+    createContent: { ...translations.en.createContent },
+    reviewContent: { ...translations.en.reviewContent },
+    planContent: { ...translations.en.planContent },
+    quickContent: { ...translations.en.quickContent },
+    notifications: { title: "Уведомления", markAllRead: "Отметить все как прочитанные", noNotifications: "Нет уведомлений", youAreAllCaught: "Всё в порядке!" },
+    trial: { ...translations.en.trial },
+    errors: { somethingWrong: "Что-то пошло не так", tryAgain: "Попробуйте снова", fieldRequired: "Это поле обязательно", invalidEmail: "Неверный e-mail", invalidPhone: "Неверный телефон", passwordMismatch: "Пароли не совпадают", minLength: "Минимум {count} символов", maxLength: "Максимум {count} символов", uploadFailed: "Ошибка загрузки", networkError: "Ошибка сети", unauthorized: "Не авторизован", notFound: "Не найдено" }
+  } as any,
+  
+  // Chinês (Chinese)
+  zh: {
+    search: { placeholder: "搜索品牌、主题、角色...", searchContent: "搜索内容", searching: "搜索中...", noResults: "未找到结果", tryDifferent: "尝试不同的关键词", startSearching: "开始搜索", minCharacters: "至少输入2个字符" },
+    settings: { title: "设置", about: "关于Creator", privacy: "隐私政策", logout: "退出登录", logoutConfirm: "您确定要退出吗？", logoutMessage: "您需要重新登录才能访问您的帐户。", cancel: "取消" },
+    language: { title: "语言" },
+    theme: { toggle: "切换主题" },
+    profile: "个人资料",
+    sidebar: { home: "主页", brands: "品牌", themes: "战略主题", personas: "角色", quickContent: "快速创建", history: "历史记录", createContent: "创建内容", reviewContent: "审查内容", planContent: "规划内容", team: "团队", plan: "计划" },
+    dashboard: { welcome: "您好", welcomeBack: "欢迎回来", createNewContent: "创建新内容", creditsRemaining: "剩余积分", of: "/", creditsAvailable: "可用积分", myActions: "我的操作", totalActions: "执行的操作", brandsManaged: "管理的品牌", totalBrands: "活跃品牌", viewPlans: "查看计划", quickActions: "快速操作", recentActivities: "最近活动", viewDetails: "查看详情", noRecentActivity: "没有最近的活动", activitiesAppear: "您的活动将显示在这里", forBrand: "品牌", noBrand: "无品牌", createContentAction: "创建内容", createContentDesc: "生成图片和文本", reviewContentAction: "审查内容", reviewContentDesc: "获取AI反馈", managePersonas: "管理角色", managePersonasDesc: "添加或编辑您的角色" },
+    login: { title: "登录", welcome: "欢迎回来！", welcomeMessage: "登录您的帐户", email: "电子邮件", password: "密码", rememberMe: "记住我", forgotPassword: "忘记密码？", signIn: "登录", signingIn: "登录中...", orContinueWith: "或继续使用", google: "Google", facebook: "Facebook", noAccount: "没有帐户？", createAccount: "创建帐户", invalidCredentials: "无效的登录凭据", incorrectCredentials: "凭据错误", resetPasswordSuggestion: "重置您的密码", resetMyPassword: "重置 →", strategicContent: "以您的想法速度创建战略内容", strategicContentDesc: "使用AI规划、创建和审查", strategicOrganization: "战略组织", strategicOrganizationDesc: "构建您的沟通", personaSegmentation: "角色细分", personaSegmentationDesc: "个性化内容", completeCampaigns: "完整活动", completeCampaignsDesc: "完整日历" },
+    register: { ...translations.en.register },
+    common: { loading: "加载中...", save: "保存", delete: "删除", edit: "编辑", create: "创建", back: "返回", next: "下一步", previous: "上一步", confirm: "确认", close: "关闭", yes: "是", no: "否", cancel: "取消" },
+    brands: { ...translations.en.brands },
+    personas: { ...translations.en.personas },
+    themes: { ...translations.en.themes },
+    history: { ...translations.en.history },
+    profilePage: { ...translations.en.profilePage },
+    team: { ...translations.en.team },
+    plans: { ...translations.en.plans },
+    createContent: { ...translations.en.createContent },
+    reviewContent: { ...translations.en.reviewContent },
+    planContent: { ...translations.en.planContent },
+    quickContent: { ...translations.en.quickContent },
+    notifications: { title: "通知", markAllRead: "全部标记为已读", noNotifications: "没有通知", youAreAllCaught: "全部完成！" },
+    trial: { ...translations.en.trial },
+    errors: { somethingWrong: "出了点问题", tryAgain: "重试", fieldRequired: "此字段为必填项", invalidEmail: "无效的电子邮件", invalidPhone: "无效的电话号码", passwordMismatch: "密码不匹配", minLength: "最少 {count} 个字符", maxLength: "最多 {count} 个字符", uploadFailed: "上传失败", networkError: "网络错误", unauthorized: "未授权", notFound: "未找到" }
+  } as any,
 };
-
-// Fill missing languages with English as base
-translations.de = { ...translations.en };
-translations.fr = { ...translations.en };
-translations.it = { ...translations.en };
-translations.ru = { ...translations.en };
-translations.zh = { ...translations.en };
-translations.es = { ...translations.en, ...translations.es };
 
 export type TranslationKey = typeof translations.pt;
 export type Language = keyof typeof translations;
