@@ -161,20 +161,51 @@ serve(async (req) => {
         console.log(`Image generation attempt ${attempt}/${MAX_RETRIES}...`);
 
         // Convert messageContent to Gemini format
-        const geminiParts = messageContent.map((item: any) => {
+        const geminiParts = await Promise.all(messageContent.map(async (item: any) => {
           if (item.type === "text") {
             return { text: item.text };
           } else if (item.type === "image_url") {
-            const base64Data = item.image_url.url.split(',')[1];
-            const mimeType = item.image_url.url.match(/data:(.*?);/)?.[1] || 'image/png';
-            return { 
-              inlineData: { 
-                mimeType, 
-                data: base64Data 
-              } 
-            };
+            const url = item.image_url.url;
+            
+            // If it's already base64
+            if (url.startsWith('data:')) {
+              const base64Data = url.split(',')[1];
+              const mimeType = url.match(/data:(.*?);/)?.[1] || 'image/png';
+              return { 
+                inlineData: { 
+                  mimeType, 
+                  data: base64Data 
+                } 
+              };
+            }
+            
+            // If it's a URL, fetch and convert to base64
+            try {
+              const imageResponse = await fetch(url);
+              if (!imageResponse.ok) {
+                console.error(`Failed to fetch image from ${url}: ${imageResponse.status}`);
+                return null;
+              }
+              
+              const arrayBuffer = await imageResponse.arrayBuffer();
+              const base64Data = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+              
+              // Detect mime type from content-type header or default to png
+              const contentType = imageResponse.headers.get('content-type') || 'image/png';
+              
+              return { 
+                inlineData: { 
+                  mimeType: contentType, 
+                  data: base64Data 
+                } 
+              };
+            } catch (fetchError) {
+              console.error(`Error fetching image from ${url}:`, fetchError);
+              return null;
+            }
           }
-        });
+          return null;
+        })).then(parts => parts.filter(p => p !== null));
 
         const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent', {
           method: 'POST',
