@@ -2008,7 +2008,20 @@ export const translations = {
     quickContent: { title: "快速创建", prompt: "描述内容", selectBrand: "选择品牌", generate: "生成", generating: "生成中...", contentGenerated: "内容生成成功！" },
     notifications: { title: "通知", markAllRead: "全部标记为已读", noNotifications: "没有通知", youAreAllCaught: "全部完成！" },
     trial: { daysLeft: "试用剩余天数", upgradeNow: "立即升级", trialExpired: "您的试用期已过", upgradeToAccess: "升级您的计划", upgradePlan: "升级计划" },
-    errors: { somethingWrong: "出错了", tryAgain: "重试", fieldRequired: "此字段必填", invalidEmail: "电子邮件无效", invalidPhone: "电话无效", passwordMismatch: "密码不匹配", minLength: "最少 {count} 个字符", maxLength: "最多 {count} 个字符", uploadFailed: "上传失败", networkError: "网络错误", unauthorized: "未授权", notFound: "未找到" }
+    errors: {
+      somethingWrong: "出错了",
+      tryAgain: "重试",
+      fieldRequired: "此字段必填",
+      invalidEmail: "电子邮件无效",
+      invalidPhone: "电话无效",
+      passwordMismatch: "密码不匹配",
+      minLength: "最少 {count} 个字符",
+      maxLength: "最多 {count} 个字符",
+      uploadFailed: "上传失败",
+      networkError: "网络错误",
+      unauthorized: "未授权",
+      notFound: "未找到",
+    },
   },
 };
 
