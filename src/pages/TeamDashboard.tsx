@@ -35,12 +35,32 @@ export default function TeamDashboard() {
   const [sortBy, setSortBy] = useState<string>('totalActions');
 
   useEffect(() => {
-    if (!user?.isAdmin) {
-      toast.error('Apenas administradores podem acessar o dashboard');
-      navigate('/team');
-      return;
-    }
-    loadMemberStats();
+    const checkAccess = async () => {
+      if (!user || !team) {
+        console.log('Aguardando user e team...', { user, team });
+        return;
+      }
+
+      // Verificar se o usuário é admin da equipe
+      const isTeamAdmin = team.admin_id === user.id;
+      
+      console.log('Verificação de admin:', {
+        userId: user.id,
+        teamAdminId: team.admin_id,
+        isAdmin: user.isAdmin,
+        isTeamAdmin
+      });
+
+      if (!isTeamAdmin && !user.isAdmin) {
+        toast.error('Apenas administradores podem acessar o dashboard');
+        navigate('/team');
+        return;
+      }
+
+      loadMemberStats();
+    };
+
+    checkAccess();
   }, [user, team, navigate]);
 
   const loadMemberStats = async () => {
