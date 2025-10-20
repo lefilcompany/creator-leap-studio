@@ -7,12 +7,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Slider } from "@/components/ui/slider";
 import { Loader2, Sparkles, Zap, X, ImageIcon, Settings2, Info } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Brand } from "@/types/brand";
-import { getPlatformImageSpec } from "@/lib/platformSpecs";
+import { getPlatformImageSpec, platformSpecs } from "@/lib/platformSpecs";
 export default function QuickContent() {
   const navigate = useNavigate();
   const {
@@ -29,7 +30,17 @@ export default function QuickContent() {
     platform: "",
     aspectRatio: "1:1",
     style: "auto",
-    quality: "standard"
+    quality: "standard",
+    // Advanced configurations
+    negativePrompt: "",
+    colorPalette: "auto",
+    lighting: "natural",
+    composition: "auto",
+    cameraAngle: "eye_level",
+    detailLevel: 7,
+    mood: "auto",
+    width: "",
+    height: ""
   });
   const [referenceFiles, setReferenceFiles] = useState<File[]>([]);
   const [preserveImageIndices, setPreserveImageIndices] = useState<number[]>([]);
@@ -426,6 +437,10 @@ export default function QuickContent() {
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="px-4 pb-4 space-y-4 bg-muted/20">
+                  <p className="text-xs text-muted-foreground mb-4">
+                    Controles profissionais para designers. Deixe em "Auto" para resultados inteligentes.
+                  </p>
+
                   {/* Aspect Ratio */}
                   <div className="space-y-2">
                     <Label htmlFor="aspectRatio" className="text-sm font-medium text-foreground">
@@ -490,6 +505,197 @@ export default function QuickContent() {
                     <p className="text-xs text-muted-foreground">
                       Alta definição leva mais tempo mas produz resultados mais detalhados
                     </p>
+                  </div>
+
+                  {/* Negative Prompt */}
+                  <div className="space-y-2">
+                    <Label htmlFor="negativePrompt" className="text-xs font-medium flex items-center gap-2">
+                      Prompt Negativo
+                      <Info className="h-3 w-3 text-muted-foreground" />
+                    </Label>
+                    <Textarea
+                      id="negativePrompt"
+                      placeholder="O que NÃO incluir (ex: texto, pessoas, fundo branco...)"
+                      value={formData.negativePrompt}
+                      onChange={(e) => setFormData({...formData, negativePrompt: e.target.value})}
+                      className="min-h-[60px] rounded-lg border-2 border-border/50 bg-background/50 resize-none text-xs"
+                    />
+                  </div>
+
+                  {/* Color Palette */}
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium">Paleta de Cores</Label>
+                    <Select
+                      value={formData.colorPalette}
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, colorPalette: value }))}
+                    >
+                      <SelectTrigger className="h-9 rounded-lg border-2 border-border/50 bg-background/50 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="auto">Automático</SelectItem>
+                        <SelectItem value="warm">Quente (Laranja, Vermelho, Amarelo)</SelectItem>
+                        <SelectItem value="cool">Frio (Azul, Verde, Roxo)</SelectItem>
+                        <SelectItem value="monochrome">Monocromático</SelectItem>
+                        <SelectItem value="vibrant">Vibrante</SelectItem>
+                        <SelectItem value="pastel">Pastel</SelectItem>
+                        <SelectItem value="earth">Tons Terrosos</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Lighting */}
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium">Iluminação</Label>
+                    <Select
+                      value={formData.lighting}
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, lighting: value }))}
+                    >
+                      <SelectTrigger className="h-9 rounded-lg border-2 border-border/50 bg-background/50 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="natural">Natural (Luz do Dia)</SelectItem>
+                        <SelectItem value="studio">Estúdio (Controlada)</SelectItem>
+                        <SelectItem value="golden_hour">Golden Hour (Dourada)</SelectItem>
+                        <SelectItem value="dramatic">Dramática (Alto Contraste)</SelectItem>
+                        <SelectItem value="soft">Suave (Difusa)</SelectItem>
+                        <SelectItem value="backlight">Contraluz</SelectItem>
+                        <SelectItem value="neon">Neon</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Image Dimensions */}
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium flex items-center gap-2">
+                      Dimensões da Imagem
+                      <Info className="h-3 w-3 text-muted-foreground" />
+                    </Label>
+                    <Select
+                      value={formData.width && formData.height ? `${formData.width}x${formData.height}` : ''}
+                      onValueChange={(value) => {
+                        const [width, height] = value.split('x');
+                        setFormData(prev => ({ ...prev, width, height }));
+                      }}
+                    >
+                      <SelectTrigger className="h-9 rounded-lg border-2 border-border/50 bg-background/50 text-xs">
+                        <SelectValue placeholder="Selecione as dimensões" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {formData.platform && platformSpecs[formData.platform] && (
+                          <>
+                            {platformSpecs[formData.platform].organic?.image.dimensions.map((dim) => (
+                              <SelectItem 
+                                key={`${dim.width}x${dim.height}`} 
+                                value={`${dim.width}x${dim.height}`}
+                              >
+                                {dim.width}x{dim.height} ({dim.aspectRatio}) - {dim.description}
+                              </SelectItem>
+                            ))}
+                          </>
+                        )}
+                        {!formData.platform && (
+                          <SelectItem value="1080x1080" disabled>
+                            Selecione uma plataforma primeiro
+                          </SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
+                    {formData.width && formData.height && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Selecionado: {formData.width}x{formData.height}px
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Composition */}
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium">Composição</Label>
+                    <Select
+                      value={formData.composition}
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, composition: value }))}
+                    >
+                      <SelectTrigger className="h-9 rounded-lg border-2 border-border/50 bg-background/50 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="auto">Automático</SelectItem>
+                        <SelectItem value="center">Centralizado</SelectItem>
+                        <SelectItem value="rule_of_thirds">Regra dos Terços</SelectItem>
+                        <SelectItem value="symmetric">Simétrico</SelectItem>
+                        <SelectItem value="asymmetric">Assimétrico</SelectItem>
+                        <SelectItem value="dynamic">Dinâmico</SelectItem>
+                        <SelectItem value="minimalist">Minimalista</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Camera Angle */}
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium">Ângulo da Câmera</Label>
+                    <Select
+                      value={formData.cameraAngle}
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, cameraAngle: value }))}
+                    >
+                      <SelectTrigger className="h-9 rounded-lg border-2 border-border/50 bg-background/50 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="eye_level">Nível dos Olhos</SelectItem>
+                        <SelectItem value="top_down">Vista Superior</SelectItem>
+                        <SelectItem value="low_angle">Ângulo Baixo</SelectItem>
+                        <SelectItem value="high_angle">Ângulo Alto</SelectItem>
+                        <SelectItem value="close_up">Close-up</SelectItem>
+                        <SelectItem value="wide_shot">Plano Geral</SelectItem>
+                        <SelectItem value="dutch_angle">Ângulo Holandês</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Mood */}
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium">Atmosfera</Label>
+                    <Select
+                      value={formData.mood}
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, mood: value }))}
+                    >
+                      <SelectTrigger className="h-9 rounded-lg border-2 border-border/50 bg-background/50 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="auto">Automático</SelectItem>
+                        <SelectItem value="professional">Profissional</SelectItem>
+                        <SelectItem value="casual">Casual</SelectItem>
+                        <SelectItem value="elegant">Elegante</SelectItem>
+                        <SelectItem value="playful">Divertido</SelectItem>
+                        <SelectItem value="serious">Sério</SelectItem>
+                        <SelectItem value="mysterious">Misterioso</SelectItem>
+                        <SelectItem value="energetic">Energético</SelectItem>
+                        <SelectItem value="calm">Calmo</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Detail Level Slider */}
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <Label className="text-xs font-medium">Nível de Detalhes</Label>
+                      <span className="text-xs text-muted-foreground font-medium">{formData.detailLevel}/10</span>
+                    </div>
+                    <Slider
+                      value={[formData.detailLevel || 7]}
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, detailLevel: value[0] }))}
+                      min={1}
+                      max={10}
+                      step={1}
+                      className="w-full"
+                    />
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>Minimalista</span>
+                      <span>Equilibrado</span>
+                      <span>Muito Detalhado</span>
+                    </div>
                   </div>
                 </AccordionContent>
               </AccordionItem>
