@@ -34,6 +34,15 @@ export function useAuth() {
   const [isLoading, setIsLoading] = useState(true);
   const [isTrialExpired, setIsTrialExpired] = useState(false);
   const [trialDaysRemaining, setTrialDaysRemaining] = useState<number | null>(null);
+  const [lastReloadTime, setLastReloadTime] = useState<number>(0);
+  const [dataCache, setDataCache] = useState<{
+    timestamp: number;
+    user: User | null;
+    team: Team | null;
+  } | null>(null);
+
+  const RELOAD_DEBOUNCE_MS = 5000; // 5 segundos entre reloads
+  const CACHE_VALIDITY_MS = 60000; // 1 minuto de validade do cache
 
   const reloadUserData = async () => {
     if (session?.user) {
@@ -47,30 +56,39 @@ export function useAuth() {
       async (event, session) => {
         console.log('Auth state changed:', event);
         
-        // Handle token refresh errors
+        // Eventos que NÃO requerem reload de dados
         if (event === 'TOKEN_REFRESHED') {
-          console.log('Token refreshed successfully');
+          console.log('Token refreshed successfully - updating session only');
+          setSession(session);
+          return; // ✅ Apenas atualiza sessão, não recarrega dados
         }
         
+        // Evento de sign out
         if (event === 'SIGNED_OUT') {
           setSession(null);
           setUser(null);
           setTeam(null);
+          setDataCache(null); // Limpar cache
           setIsLoading(false);
           return;
         }
         
-        setSession(session);
-        
-        // Defer Supabase calls with setTimeout to prevent deadlock
-        if (session?.user) {
-          setTimeout(() => {
-            loadUserData(session.user);
-          }, 0);
+        // Apenas para SIGNED_IN e INITIAL_SESSION, recarregar dados
+        if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+          setSession(session);
+          
+          if (session?.user) {
+            setTimeout(() => {
+              loadUserData(session.user);
+            }, 0);
+          } else {
+            setUser(null);
+            setTeam(null);
+            setIsLoading(false);
+          }
         } else {
-          setUser(null);
-          setTeam(null);
-          setIsLoading(false);
+          // Para outros eventos, apenas atualizar sessão
+          setSession(session);
         }
       }
     );
@@ -122,7 +140,26 @@ export function useAuth() {
   };
 
   const loadUserData = async (supabaseUser: SupabaseUser) => {
+    // Debounce: não recarregar se recarregou recentemente
+    const now = Date.now();
+    if (now - lastReloadTime < RELOAD_DEBOUNCE_MS) {
+      console.log('Skipping reload - debounced');
+      setIsLoading(false);
+      return;
+    }
+
+    // Verificar cache
+    if (dataCache && now - dataCache.timestamp < CACHE_VALIDITY_MS) {
+      console.log('Using cached user data');
+      setUser(dataCache.user);
+      setTeam(dataCache.team);
+      setIsLoading(false);
+      return;
+    }
+
     try {
+      setLastReloadTime(now);
+      
       // Load profile
       const { data: profile } = await supabase
         .from('profiles')
@@ -156,15 +193,15 @@ export function useAuth() {
             const planData = teamData.plans as any;
             
             // Calculate trial expiration
-            const now = new Date();
+            const nowDate = new Date();
             const periodEnd = teamData.subscription_period_end ? new Date(teamData.subscription_period_end) : null;
-            const daysRemaining = periodEnd ? Math.ceil((periodEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)) : null;
-            const isExpired = teamData.plan_id === 'free' && periodEnd && periodEnd < now;
+            const daysRemaining = periodEnd ? Math.ceil((periodEnd.getTime() - nowDate.getTime()) / (1000 * 60 * 60 * 24)) : null;
+            const isExpired = teamData.plan_id === 'free' && periodEnd && periodEnd < nowDate;
             
             setIsTrialExpired(isExpired || false);
             setTrialDaysRemaining(daysRemaining);
             
-            setTeam({
+            const loadedTeam = {
               id: teamData.id,
               name: teamData.name,
               code: teamData.code,
@@ -193,6 +230,21 @@ export function useAuth() {
                 contentReviews: teamData.credits_reviews,
                 contentPlans: teamData.credits_plans,
               }
+            };
+
+            setTeam(loadedTeam);
+
+            // Atualizar cache com dados carregados
+            setDataCache({
+              timestamp: now,
+              user: {
+                id: profile.id,
+                email: profile.email,
+                name: profile.name,
+                teamId: profile.team_id,
+                isAdmin: isTeamAdmin
+              },
+              team: loadedTeam
             });
           }
         }

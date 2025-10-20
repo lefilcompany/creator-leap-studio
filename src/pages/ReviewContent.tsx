@@ -13,6 +13,7 @@ import type { StrategicTheme, Team } from '@/types/theme';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { useFormPersistence } from '@/hooks/useFormPersistence';
 
 // Tipos para os dados leves do formulário
 type LightBrand = Pick<Brand, 'id' | 'name'>;
@@ -38,6 +39,34 @@ const ReviewContent = () => {
   const [themes, setThemes] = useState<LightTheme[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [filteredThemes, setFilteredThemes] = useState<LightTheme[]>([]);
+
+  // Persistência de formulário
+  const { loadPersistedData, clearPersistedData } = useFormPersistence({
+    key: 'review-content-form',
+    formData: { 
+      reviewType, 
+      brand, 
+      theme, 
+      adjustmentsPrompt, 
+      captionText, 
+      textForImage 
+    },
+    excludeFields: ['imageFile', 'previewUrl'] // Não persistir arquivo de imagem
+  });
+
+  // Carregar dados persistidos na montagem
+  useEffect(() => {
+    const persisted = loadPersistedData();
+    if (persisted) {
+      if (persisted.reviewType) setReviewType(persisted.reviewType);
+      if (persisted.brand) setBrand(persisted.brand);
+      if (persisted.theme) setTheme(persisted.theme);
+      if (persisted.adjustmentsPrompt) setAdjustmentsPrompt(persisted.adjustmentsPrompt);
+      if (persisted.captionText) setCaptionText(persisted.captionText);
+      if (persisted.textForImage) setTextForImage(persisted.textForImage);
+      toast.info('Rascunho recuperado');
+    }
+  }, []);
 
   useEffect(() => {
     const loadData = async () => {
@@ -186,6 +215,7 @@ const ReviewContent = () => {
       }
 
       if (result?.review) {
+        clearPersistedData(); // Limpar rascunho após sucesso
         navigate('/review-result', {
           state: {
             reviewType,

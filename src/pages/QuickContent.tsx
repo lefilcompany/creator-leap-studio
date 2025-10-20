@@ -14,6 +14,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Brand } from "@/types/brand";
 import { getPlatformImageSpec, platformSpecs } from "@/lib/platformSpecs";
+import { useFormPersistence } from '@/hooks/useFormPersistence';
+
 export default function QuickContent() {
   const navigate = useNavigate();
   const {
@@ -46,6 +48,23 @@ export default function QuickContent() {
   const [preserveImageIndices, setPreserveImageIndices] = useState<number[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pasteAreaRef = useRef<HTMLDivElement>(null);
+
+  // Persistência de formulário
+  const { loadPersistedData, clearPersistedData } = useFormPersistence({
+    key: 'quick-content-form',
+    formData,
+    excludeFields: ['referenceFiles'] // Não persistir arquivos
+  });
+
+  // Carregar dados persistidos na montagem
+  useEffect(() => {
+    const persisted = loadPersistedData();
+    if (persisted) {
+      setFormData(prev => ({ ...prev, ...persisted }));
+      toast.info('Rascunho recuperado');
+    }
+  }, []);
+
   const handlePaste = (e: React.ClipboardEvent) => {
     const items = e.clipboardData.items;
     const files: File[] = [];
@@ -188,6 +207,7 @@ export default function QuickContent() {
       toast.success("Conteúdo gerado com sucesso!", {
         id: toastId
       });
+      clearPersistedData(); // Limpar rascunho após sucesso
 
       // Navigate to result page
       navigate("/quick-content-result", {

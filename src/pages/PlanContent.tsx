@@ -11,6 +11,7 @@ import { Calendar, ArrowLeft, MessageSquareQuote, Zap, Clipboard, Check, X, Load
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useFormPersistence } from '@/hooks/useFormPersistence';
 
 interface FormData {
   brand: string;
@@ -38,6 +39,22 @@ const PlanContent = () => {
   const [themes, setThemes] = useState<any[]>([]);
   const [creditsRemaining, setCreditsRemaining] = useState<number>(0);
   const [isLoadingData, setIsLoadingData] = useState(true);
+
+  // Persistência de formulário
+  const { loadPersistedData, clearPersistedData } = useFormPersistence({
+    key: 'plan-content-form',
+    formData,
+    excludeFields: [] // Persistir todos os campos
+  });
+
+  // Carregar dados persistidos na montagem
+  useEffect(() => {
+    const persisted = loadPersistedData();
+    if (persisted) {
+      setFormData(prev => ({ ...prev, ...persisted }));
+      toast.info('Rascunho recuperado');
+    }
+  }, []);
 
   useEffect(() => {
     const loadData = async () => {
@@ -200,6 +217,7 @@ const PlanContent = () => {
       }
 
       // Navigate to result page with the generated plan
+      clearPersistedData(); // Limpar rascunho após sucesso
       navigate("/plan-result", {
         state: {
           plan: data.plan,

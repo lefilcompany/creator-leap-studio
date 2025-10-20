@@ -28,6 +28,7 @@ import type { Persona, PersonaSummary } from "@/types/persona";
 import type { Team } from "@/types/theme";
 import { useAuth } from "@/hooks/useAuth";
 import { getPlatformImageSpec, getCaptionGuidelines, platformSpecs } from "@/lib/platformSpecs";
+import { useFormPersistence } from '@/hooks/useFormPersistence';
 
 enum GenerationStep {
   IDLE = "IDLE",
@@ -136,6 +137,22 @@ export default function CreateContent() {
   const [platformGuidelines, setPlatformGuidelines] = useState<string[]>([]);
   const [recommendedAspectRatio, setRecommendedAspectRatio] = useState<string>("");
   const [preserveImageIndices, setPreserveImageIndices] = useState<number[]>([]);
+
+  // Persistência de formulário
+  const { loadPersistedData, clearPersistedData } = useFormPersistence({
+    key: 'create-content-form',
+    formData,
+    excludeFields: ['referenceFiles'] // Não persistir arquivos
+  });
+
+  // Carregar dados persistidos na montagem
+  useEffect(() => {
+    const persisted = loadPersistedData();
+    if (persisted) {
+      setFormData(prev => ({ ...prev, ...persisted }));
+      toast.info('Rascunho recuperado');
+    }
+  }, []);
 
   const handlePaste = (e: React.ClipboardEvent) => {
     const items = e.clipboardData.items;
@@ -873,6 +890,8 @@ ${formData.description}
         description: "Imagem e legenda criados com Gemini 2.5 🚀",
         duration: 1500,
       });
+      
+      clearPersistedData(); // Limpar rascunho após sucesso
       
       // Navegação imediata para melhor performance
       navigate("/result", { 
