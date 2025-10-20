@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -9,39 +9,41 @@ interface ProtectedRouteProps {
   requireTeam?: boolean;
 }
 
-export function ProtectedRoute({ children, requireTeam = true }: ProtectedRouteProps) {
-  const { user, team, isLoading, isTrialExpired } = useAuth();
+export default function ProtectedRoute({ children, requireTeam = true }: ProtectedRouteProps) {
+  const { user, session, team, isLoading, isTrialExpired, trialDaysRemaining } = useAuth();
+  const location = useLocation();
   const navigate = useNavigate();
+  const hasRedirected = useRef(false);
 
   useEffect(() => {
-    if (!isLoading) {
-      // Se não há usuário, redireciona para login
-      if (!user) {
-        toast.error('Você precisa fazer login para acessar esta página');
-        navigate('/login');
-        return;
-      }
+    if (isLoading || hasRedirected.current) return;
 
-      // Se requer equipe e o usuário não tem equipe, mostra mensagem
-      if (requireTeam && !team) {
-        toast.error('Você precisa estar em uma equipe para ver esta página');
-        return;
-      }
+    if (!session || !user) {
+      console.log("No session or user, redirecting to login");
+      hasRedirected.current = true;
+      navigate("/", { replace: true });
+      return;
+    }
 
-      // Se o período de teste expirou, permite apenas histórico, planos e perfil
-      if (requireTeam && team && isTrialExpired) {
-        const currentPath = window.location.pathname;
-        const allowedPaths = ['/plans', '/history', '/profile'];
-        const isAllowedPath = allowedPaths.some(path => currentPath.startsWith(path));
-        
-        if (!isAllowedPath) {
-          toast.error('Seu período de teste expirou. Escolha um plano para continuar.');
-          navigate('/plans?expired=true');
-          return;
-        }
+    // Se requer equipe e o usuário não tem equipe, mostra mensagem
+    if (requireTeam && !team) {
+      toast.error('Você precisa estar em uma equipe para ver esta página');
+      return;
+    }
+
+    // Se o período de teste expirou, permite apenas histórico, planos e perfil
+    if (requireTeam && team && isTrialExpired) {
+      const currentPath = window.location.pathname;
+      const allowedPaths = ['/plans', '/history', '/profile'];
+      const isAllowedPath = allowedPaths.some(path => currentPath.startsWith(path));
+      
+      if (!isAllowedPath) {
+        toast.error('Seu período de teste expirou. Escolha um plano para continuar.');
+        navigate('/plans?expired=true');
+        return;
       }
     }
-  }, [user, team, isLoading, isTrialExpired, navigate, requireTeam]);
+  }, [user, team, session, isLoading, isTrialExpired, navigate, requireTeam]);
 
   // Mostra loading enquanto verifica autenticação
   if (isLoading) {
