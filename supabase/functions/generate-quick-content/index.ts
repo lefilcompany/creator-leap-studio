@@ -84,7 +84,16 @@ serve(async (req) => {
       styleReferenceImages = [],
       aspectRatio = '1:1',
       style = 'auto',
-      quality = 'standard'
+      quality = 'standard',
+      negativePrompt = '',
+      colorPalette = 'auto',
+      lighting = 'natural',
+      composition = 'auto',
+      cameraAngle = 'eye_level',
+      detailLevel = 7,
+      mood = 'auto',
+      width = '',
+      height = ''
     } = body;
 
     // Map aspect ratios from platformSpecs to AI model supported ratios
@@ -119,6 +128,14 @@ serve(async (req) => {
       referenceImagesCount: referenceImages?.length || 0,
       preserveImagesCount: preserveImages?.length || 0,
       styleReferenceImagesCount: styleReferenceImages?.length || 0,
+      negativePrompt: negativePrompt ? 'Yes' : 'No',
+      colorPalette,
+      lighting,
+      composition,
+      cameraAngle,
+      detailLevel,
+      mood,
+      customDimensions: width && height ? `${width}x${height}` : 'None',
       userId: authenticatedUserId, 
       teamId: authenticatedTeamId 
     });
@@ -254,6 +271,138 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
         enhancedPrompt += `\n\nEstilo Visual: ${styleDesc}`;
       }
     }
+
+    // ============ OPÇÕES AVANÇADAS ============
+
+    // Negative Prompt
+    if (negativePrompt && negativePrompt.trim() !== '') {
+      enhancedPrompt += `\n\n🚫 ELEMENTOS A EVITAR (Negative Prompt):`;
+      enhancedPrompt += `\nNÃO incluir os seguintes elementos na imagem:`;
+      enhancedPrompt += `\n- ${negativePrompt}`;
+      enhancedPrompt += `\nRemova completamente estes elementos da composição.`;
+    }
+
+    // Color Palette
+    if (colorPalette !== 'auto') {
+      const paletteDescriptions: Record<string, string> = {
+        'vibrant': 'Paleta de cores vibrantes e saturadas, com alto contraste e energia visual.',
+        'pastel': 'Paleta de cores pastel suaves e delicadas, transmitindo leveza e serenidade.',
+        'monochrome': 'Paleta monocromática com variações de uma única cor, criando coesão visual.',
+        'warm': 'Paleta de cores quentes (vermelhos, laranjas, amarelos) transmitindo energia e calor.',
+        'cool': 'Paleta de cores frias (azuis, verdes, roxos) transmitindo calma e profissionalismo.',
+        'earth': 'Paleta de tons terrosos (marrons, bege, verde oliva) com atmosfera natural e orgânica.',
+        'neon': 'Paleta neon vibrante e fluorescente, moderna e impactante.',
+        'brand': 'Use EXCLUSIVAMENTE as cores da identidade visual da marca fornecida.'
+      };
+      const paletteDesc = paletteDescriptions[colorPalette];
+      if (paletteDesc) {
+        enhancedPrompt += `\n\n🎨 PALETA DE CORES:`;
+        enhancedPrompt += `\n${paletteDesc}`;
+        enhancedPrompt += `\nMantenha consistência cromática em toda a composição.`;
+      }
+    }
+
+    // Lighting
+    if (lighting !== 'natural') {
+      const lightingDescriptions: Record<string, string> = {
+        'natural': 'Iluminação natural e equilibrada.',
+        'studio': 'Iluminação de estúdio profissional, uniforme e sem sombras duras.',
+        'dramatic': 'Iluminação dramática com alto contraste entre luz e sombra, criando profundidade.',
+        'soft': 'Iluminação suave e difusa, com transições suaves e atmosfera delicada.',
+        'golden_hour': 'Iluminação de golden hour (luz dourada do pôr/nascer do sol) com tons quentes.',
+        'backlit': 'Iluminação traseira (backlight) criando contornos luminosos e atmosfera etérea.',
+        'low_key': 'Iluminação low-key com predominância de sombras e áreas escuras.',
+        'high_key': 'Iluminação high-key com predominância de tons claros e brilhantes.'
+      };
+      const lightingDesc = lightingDescriptions[lighting];
+      if (lightingDesc) {
+        enhancedPrompt += `\n\n💡 ILUMINAÇÃO:`;
+        enhancedPrompt += `\n${lightingDesc}`;
+      }
+    }
+
+    // Composition
+    if (composition !== 'auto') {
+      const compositionDescriptions: Record<string, string> = {
+        'centered': 'Composição centralizada com elemento principal no centro da imagem.',
+        'rule_of_thirds': 'Composição seguindo a regra dos terços, com elementos principais nos pontos de intersecção.',
+        'symmetrical': 'Composição simétrica e equilibrada, transmitindo ordem e harmonia.',
+        'asymmetrical': 'Composição assimétrica com equilíbrio visual dinâmico.',
+        'diagonal': 'Composição diagonal criando movimento e dinamismo visual.',
+        'frame_within_frame': 'Composição com moldura dentro da moldura (frame within frame).',
+        'leading_lines': 'Composição com linhas guia que direcionam o olhar para o elemento principal.'
+      };
+      const compositionDesc = compositionDescriptions[composition];
+      if (compositionDesc) {
+        enhancedPrompt += `\n\n📐 COMPOSIÇÃO:`;
+        enhancedPrompt += `\n${compositionDesc}`;
+      }
+    }
+
+    // Camera Angle
+    if (cameraAngle !== 'eye_level') {
+      const angleDescriptions: Record<string, string> = {
+        'eye_level': 'Ângulo na altura dos olhos (eye level), perspectiva natural.',
+        'high_angle': 'Ângulo alto (high angle) olhando de cima para baixo.',
+        'low_angle': 'Ângulo baixo (low angle) olhando de baixo para cima, transmitindo imponência.',
+        'birds_eye': 'Ângulo aéreo (bird\'s eye view) diretamente de cima.',
+        'worms_eye': 'Ângulo do chão (worm\'s eye view) diretamente de baixo.',
+        'dutch_angle': 'Ângulo holandês (dutch angle) inclinado para criar tensão visual.'
+      };
+      const angleDesc = angleDescriptions[cameraAngle];
+      if (angleDesc) {
+        enhancedPrompt += `\n\n📷 ÂNGULO DE CÂMERA:`;
+        enhancedPrompt += `\n${angleDesc}`;
+      }
+    }
+
+    // Detail Level
+    const detailDescriptions: Record<number, string> = {
+      1: 'Minimalista - Pouquíssimos detalhes, formas simples e limpas.',
+      2: 'Muito simples - Detalhes básicos, composição clean.',
+      3: 'Simples - Alguns detalhes essenciais, ainda bastante clean.',
+      4: 'Moderadamente simples - Detalhes moderados com foco no essencial.',
+      5: 'Equilibrado - Nível médio de detalhamento, nem muito simples nem complexo.',
+      6: 'Moderadamente detalhado - Bom nível de detalhes sem excessos.',
+      7: 'Detalhado - Riqueza de detalhes visível e equilibrada.',
+      8: 'Muito detalhado - Alto nível de detalhamento em todos elementos.',
+      9: 'Extremamente detalhado - Detalhes intrincados e complexos.',
+      10: 'Hiper-detalhado - Máximo nível de detalhamento possível, textura rica.'
+    };
+    const detailDesc = detailDescriptions[detailLevel] || detailDescriptions[7];
+    enhancedPrompt += `\n\n🔍 NÍVEL DE DETALHAMENTO (${detailLevel}/10):`;
+    enhancedPrompt += `\n${detailDesc}`;
+
+    // Mood
+    if (mood !== 'auto') {
+      const moodDescriptions: Record<string, string> = {
+        'professional': 'Atmosfera profissional, séria e corporativa.',
+        'energetic': 'Atmosfera energética, vibrante e dinâmica.',
+        'calm': 'Atmosfera calma, serena e tranquila.',
+        'mysterious': 'Atmosfera misteriosa e intrigante.',
+        'playful': 'Atmosfera lúdica, divertida e descontraída.',
+        'elegant': 'Atmosfera elegante, sofisticada e refinada.',
+        'dramatic': 'Atmosfera dramática, intensa e impactante.',
+        'warm': 'Atmosfera calorosa, acolhedora e confortável.',
+        'futuristic': 'Atmosfera futurista, moderna e tecnológica.'
+      };
+      const moodDesc = moodDescriptions[mood];
+      if (moodDesc) {
+        enhancedPrompt += `\n\n✨ MOOD/ATMOSFERA:`;
+        enhancedPrompt += `\n${moodDesc}`;
+        enhancedPrompt += `\nA imagem deve transmitir essa atmosfera em todos os elementos.`;
+      }
+    }
+
+    // Custom Dimensions
+    if (width && height) {
+      enhancedPrompt += `\n\n📏 DIMENSÕES CUSTOMIZADAS:`;
+      enhancedPrompt += `\nLargura: ${width}px`;
+      enhancedPrompt += `\nAltura: ${height}px`;
+      enhancedPrompt += `\nGere a imagem considerando estas dimensões específicas.`;
+    }
+
+    enhancedPrompt += `\n\n${'='.repeat(60)}`;
 
     // Add aspect ratio information - CRITICAL: Must be enforced
     const aspectRatioDescriptions: Record<string, string> = {
@@ -523,6 +672,14 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
           originalAspectRatio: aspectRatio,
           style,
           quality,
+          negativePrompt,
+          colorPalette,
+          lighting,
+          composition,
+          cameraAngle,
+          detailLevel,
+          mood,
+          customDimensions: width && height ? `${width}x${height}` : null,
           referenceImagesCount: referenceImages?.length || 0,
           preserveImagesCount: preserveImages?.length || 0,
           styleReferenceImagesCount: styleReferenceImages?.length || 0,

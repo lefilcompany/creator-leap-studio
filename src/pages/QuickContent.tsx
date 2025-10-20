@@ -166,7 +166,16 @@ export default function QuickContent() {
           styleReferenceImages,
           aspectRatio: formData.aspectRatio,
           style: formData.style,
-          quality: formData.quality
+          quality: formData.quality,
+          negativePrompt: formData.negativePrompt,
+          colorPalette: formData.colorPalette,
+          lighting: formData.lighting,
+          composition: formData.composition,
+          cameraAngle: formData.cameraAngle,
+          detailLevel: formData.detailLevel,
+          mood: formData.mood,
+          width: formData.width,
+          height: formData.height
         }
       });
       if (error) {
