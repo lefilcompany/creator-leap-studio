@@ -6,7 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const MAX_PROMPT_LENGTH = 3950;
+const MAX_PROMPT_LENGTH = 8000;
 
 function cleanInput(text: string | undefined | null): string {
   if (!text) return '';
@@ -19,70 +19,109 @@ function buildRevisionPrompt(
   adjustment: string, 
   brandData: any | null, 
   themeData: any | null,
-  hasLogo: boolean
+  hasLogo: boolean,
+  platform?: string,
+  aspectRatio?: string
 ): string {
   let promptParts: string[] = [
-    "Atue como um diretor de arte e especialista em design para mídias sociais.",
-    "IMPORTANTE: Mantenha a composição e elementos principais da imagem original. Faça APENAS os ajustes solicitados pelo usuário, sem alterar completamente a imagem.",
-    `Ajuste solicitado: "${cleanInput(adjustment)}". Aplique esta alteração de forma sutil e integrada à imagem existente.`
+    "🎨 Você é um diretor de arte especializado em design para redes sociais e edição de imagens com IA.",
+    "",
+    "📋 OBJETIVO PRINCIPAL:",
+    `Editar a imagem fornecida aplicando este ajuste: "${cleanInput(adjustment)}"`,
+    "",
+    "⚠️ IMPORTANTE:",
+    "- Aplique o ajuste solicitado de forma VISÍVEL e CLARA",
+    "- Mantenha a QUALIDADE PROFISSIONAL da imagem",
+    "- Preserve elementos que funcionam bem, mas não tenha medo de fazer mudanças significativas se solicitado",
+    "- Se o ajuste pedir mudanças de composição, cores ou elementos, execute-as com confiança",
+    ""
   ];
+
+  // Adicionar contexto de plataforma se disponível
+  if (platform || aspectRatio) {
+    promptParts.push("📱 CONTEXTO DA PLATAFORMA:");
+    if (platform) promptParts.push(`- Plataforma: ${platform}`);
+    if (aspectRatio) promptParts.push(`- Proporção: ${aspectRatio}`);
+    promptParts.push("");
+  }
 
   if (hasLogo) {
     promptParts.push(
-      "\n--- INSTRUÇÃO DE LOGO (IMPORTANTE) ---",
-      "A marca possui um logo definido. Se apropriado para o contexto, mantenha espaço para o logo ou garanta que a estética da imagem esteja alinhada com a identidade visual da marca representada pelo logo."
+      "🏷️ LOGO DA MARCA:",
+      "- A marca possui um logo definido",
+      "- Reserve espaço apropriado para o logo se for o caso",
+      "- Garanta que a estética se alinhe com a identidade visual da marca",
+      ""
     );
   }
 
   if (brandData) {
-    promptParts.push("\n--- DIRETRIZES DE IDENTIDADE DA MARCA (OBRIGATÓRIO SEGUIR) ---");
+    promptParts.push("🎯 IDENTIDADE DA MARCA (seguir estas diretrizes):");
     
-    if (brandData.name) promptParts.push(`Nome da Marca (Obrigatório): ${cleanInput(brandData.name)}`);
-    if (brandData.values) promptParts.push(`Valores (Obrigatório): ${cleanInput(brandData.values)}`);
-    if (brandData.segment) promptParts.push(`Segmento (Obrigatório): ${cleanInput(brandData.segment)}`);
-    if (brandData.promise) promptParts.push(`Promessa Única (Obrigatório): ${cleanInput(brandData.promise)}`);
-    if (brandData.restrictions) promptParts.push(`Restrições - o que NÃO fazer (Obrigatório): ${cleanInput(brandData.restrictions)}`);
-    if (brandData.keywords) promptParts.push(`Palavras-chave: ${cleanInput(brandData.keywords)}`);
-    if (brandData.goals) promptParts.push(`Metas de negócio (Obrigatório): ${cleanInput(brandData.goals)}`);
-    if (brandData.success_metrics) promptParts.push(`Indicadores de sucesso (Obrigatório): ${cleanInput(brandData.success_metrics)}`);
-    if (brandData.inspirations) promptParts.push(`Inspirações: ${cleanInput(brandData.inspirations)}`);
+    if (brandData.name) promptParts.push(`📌 Nome: ${cleanInput(brandData.name)}`);
+    if (brandData.segment) promptParts.push(`🏢 Segmento: ${cleanInput(brandData.segment)}`);
+    if (brandData.values) promptParts.push(`💎 Valores: ${cleanInput(brandData.values)}`);
+    if (brandData.promise) promptParts.push(`✨ Promessa: ${cleanInput(brandData.promise)}`);
     
     if (brandData.color_palette) {
       try {
         const colors = typeof brandData.color_palette === 'string' 
           ? JSON.parse(brandData.color_palette) 
           : brandData.color_palette;
-        promptParts.push(`Paleta de Cores da Marca: ${JSON.stringify(colors)}. Use estas cores de forma harmoniosa.`);
+        promptParts.push(`🎨 Paleta de Cores: ${JSON.stringify(colors)} - Use estas cores harmoniosamente`);
       } catch (e) {
         console.error('Erro ao processar paleta de cores:', e);
       }
     }
+    
+    if (brandData.restrictions) {
+      promptParts.push(`🚫 NÃO FAZER: ${cleanInput(brandData.restrictions)}`);
+    }
+    
+    if (brandData.keywords) promptParts.push(`🔑 Palavras-chave: ${cleanInput(brandData.keywords)}`);
+    if (brandData.goals) promptParts.push(`🎯 Metas: ${cleanInput(brandData.goals)}`);
+    
+    promptParts.push("");
   }
 
   if (themeData) {
-    promptParts.push("\n--- DIRETRIZES DO TEMA ESTRATÉGICO (OBRIGATÓRIO SEGUIR) ---");
+    promptParts.push("🎭 TEMA ESTRATÉGICO:");
     
-    if (themeData.title) promptParts.push(`Título do Tema (Obrigatório): ${cleanInput(themeData.title)}`);
-    if (themeData.description) promptParts.push(`Descrição: ${cleanInput(themeData.description)}`);
-    if (themeData.tone_of_voice) promptParts.push(`Tom de Voz (Obrigatório): ${cleanInput(themeData.tone_of_voice)}`);
-    if (themeData.objectives) promptParts.push(`Objetivos do Tema (Obrigatório): ${cleanInput(themeData.objectives)}`);
-    if (themeData.content_format) promptParts.push(`Formatos de Conteúdo (Obrigatório): ${cleanInput(themeData.content_format)}`);
-    if (themeData.expected_action) promptParts.push(`Ação Esperada do Público (Obrigatório): ${cleanInput(themeData.expected_action)}`);
-    if (themeData.target_audience) promptParts.push(`Público-alvo: ${cleanInput(themeData.target_audience)}`);
-    if (themeData.hashtags) promptParts.push(`Hashtags: ${cleanInput(themeData.hashtags)}`);
-    if (themeData.color_palette) promptParts.push(`Paleta de Cores do Tema: ${themeData.color_palette}. Priorize estas cores, se aplicável.`);
+    if (themeData.title) promptParts.push(`📋 Título: ${cleanInput(themeData.title)}`);
+    if (themeData.description) promptParts.push(`📝 Descrição: ${cleanInput(themeData.description)}`);
+    if (themeData.tone_of_voice) promptParts.push(`🗣️ Tom de Voz: ${cleanInput(themeData.tone_of_voice)}`);
+    if (themeData.objectives) promptParts.push(`🎯 Objetivos: ${cleanInput(themeData.objectives)}`);
+    if (themeData.target_audience) promptParts.push(`👥 Público: ${cleanInput(themeData.target_audience)}`);
+    if (themeData.content_format) promptParts.push(`📄 Formato: ${cleanInput(themeData.content_format)}`);
+    if (themeData.expected_action) promptParts.push(`⚡ Ação Esperada: ${cleanInput(themeData.expected_action)}`);
+    
+    if (themeData.color_palette) {
+      promptParts.push(`🎨 Paleta do Tema: ${themeData.color_palette}`);
+    }
+    
+    if (themeData.hashtags) promptParts.push(`#️⃣ Hashtags: ${cleanInput(themeData.hashtags)}`);
+    
+    promptParts.push("");
   }
 
-  promptParts.push("\n--- INSTRUÇÃO FINAL ---");
-  
-  if (brandData || themeData) {
-    promptParts.push("Refine a imagem com alta qualidade, realismo e impacto visual, mantendo os elementos principais da imagem original, mas garantindo que as diretrizes de marca e tema acima sejam perfeitamente refletidas no resultado final.");
-  } else {
-    promptParts.push("Refine a imagem com alta qualidade, realismo e impacto visual, mantendo EXATAMENTE a composição e elementos principais da imagem original. Faça apenas o ajuste solicitado pelo usuário.");
-  }
+  promptParts.push(
+    "✅ RESULTADO ESPERADO:",
+    "- Imagem editada com ALTA QUALIDADE e REALISMO PROFISSIONAL",
+    "- Ajuste solicitado aplicado de forma VISÍVEL e EFETIVA",
+    "- Alinhamento perfeito com identidade de marca e tema (se fornecidos)",
+    "- Composição visualmente impactante e apropriada para redes sociais",
+    ""
+  );
 
   const finalPrompt = promptParts.join('\n');
-  return finalPrompt.length > MAX_PROMPT_LENGTH ? finalPrompt.substring(0, MAX_PROMPT_LENGTH) : finalPrompt;
+  
+  // Se exceder o limite, priorizar as informações mais importantes
+  if (finalPrompt.length > MAX_PROMPT_LENGTH) {
+    console.warn(`⚠️ Prompt muito longo (${finalPrompt.length} chars), truncando...`);
+    return finalPrompt.substring(0, MAX_PROMPT_LENGTH);
+  }
+  
+  return finalPrompt;
 }
 
 serve(async (req) => {
@@ -91,7 +130,7 @@ serve(async (req) => {
   }
 
   try {
-    const { reviewPrompt, imageUrl, brandId, themeId } = await req.json();
+    const { reviewPrompt, imageUrl, brandId, themeId, platform, aspectRatio } = await req.json();
 
     console.log('📝 [EDIT-IMAGE] Dados recebidos:', {
       brandId,
@@ -155,9 +194,15 @@ serve(async (req) => {
 
     // Build detailed prompt with brand and theme context
     const hasLogo = brandData?.logo ? true : false;
-    const detailedPrompt = buildRevisionPrompt(reviewPrompt, brandData, themeData, hasLogo);
+    const detailedPrompt = buildRevisionPrompt(reviewPrompt, brandData, themeData, hasLogo, platform, aspectRatio);
 
-    console.log('📝 Prompt construído com', detailedPrompt.length, 'caracteres');
+    console.log('📝 [EDIT-IMAGE] Prompt detalhado gerado:');
+    console.log('   - Comprimento:', detailedPrompt.length, 'caracteres');
+    console.log('   - Tem dados de marca:', !!brandData);
+    console.log('   - Tem dados de tema:', !!themeData);
+    console.log('   - Plataforma:', platform || 'não especificada');
+    console.log('   - Aspect Ratio:', aspectRatio || 'não especificado');
+    console.log('   - Ajuste solicitado:', reviewPrompt.substring(0, 100) + '...');
 
     const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
     
@@ -230,9 +275,9 @@ serve(async (req) => {
           ]
         }],
         generationConfig: {
-          temperature: 0.7,
+          temperature: 0.9,
           topP: 0.95,
-          topK: 40,
+          topK: 64,
           maxOutputTokens: 8192,
         }
       })
@@ -256,6 +301,22 @@ serve(async (req) => {
 
     const aiData = await response.json();
     console.log('✅ Resposta da AI recebida');
+
+    // Verificar se a resposta tem conteúdo válido
+    if (!aiData.candidates || aiData.candidates.length === 0) {
+      console.error('❌ Resposta da API sem candidates');
+      console.error('📊 Resposta completa:', JSON.stringify(aiData, null, 2));
+      throw new Error('Resposta inválida da API - sem candidates');
+    }
+
+    // Log do primeiro candidate para debugging
+    const firstCandidate = aiData.candidates[0];
+    console.log('📋 Candidate status:', {
+      hasContent: !!firstCandidate?.content,
+      hasParts: !!firstCandidate?.content?.parts,
+      partsCount: firstCandidate?.content?.parts?.length || 0,
+      finishReason: firstCandidate?.finishReason
+    });
 
     // Extrair imagem da resposta do Gemini
     const geminiImageData = aiData.candidates?.[0]?.content?.parts?.find(

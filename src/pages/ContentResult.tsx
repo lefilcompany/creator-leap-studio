@@ -335,7 +335,9 @@ export default function ContentResult() {
               reviewPrompt,
               imageUrl: contentData.mediaUrl,
               brandId: originalFormData.brandId,
-              themeId: originalFormData.themeId || null
+              themeId: originalFormData.themeId || null,
+              platform: contentData.platform || originalFormData.platform,
+              aspectRatio: originalFormData.aspectRatio
             }
           });
           console.log("📡 Resposta recebida de edit-image:", {
@@ -346,6 +348,38 @@ export default function ContentResult() {
           });
           if (error) {
             console.error("❌ Erro ao editar imagem:", error);
+            
+            // Mensagens de erro mais específicas
+            let errorMessage = "Erro ao processar a edição da imagem";
+            
+            if (error.message?.includes('rate limit') || error.message?.includes('429')) {
+              errorMessage = "Limite de requisições atingido. Aguarde alguns segundos e tente novamente.";
+              toast.error("Erro na Edição", {
+                description: errorMessage,
+                duration: 6000
+              });
+              setShowReviewDialog(false);
+              setIsReviewing(false);
+              return;
+            } else if (error.message?.includes('API key')) {
+              errorMessage = "Erro de configuração do servidor. Contacte o suporte.";
+              toast.error("Erro na Edição", {
+                description: errorMessage,
+                duration: 6000
+              });
+              setShowReviewDialog(false);
+              setIsReviewing(false);
+              return;
+            } else if (error.message?.includes('timeout')) {
+              errorMessage = "A edição está demorando mais que o esperado. Tente novamente com um ajuste mais simples.";
+              toast.error("Erro na Edição", {
+                description: errorMessage,
+                duration: 6000
+              });
+              setShowReviewDialog(false);
+              setIsReviewing(false);
+              return;
+            }
 
             // Tratar erro de violação de compliance de forma amigável
             if (error.message?.includes('compliance_violation')) {
