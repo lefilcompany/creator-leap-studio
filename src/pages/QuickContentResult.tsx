@@ -68,25 +68,116 @@ export default function QuickContentResult() {
     try {
       toast.info("Preparando download...");
       
-      // Fetch image as blob to avoid CORS issues
-      const response = await fetch(currentImageUrl);
-      const blob = await response.blob();
+      // Detectar se é base64 ou URL
+      const isBase64 = currentImageUrl.startsWith('data:');
       
-      // Create object URL and download
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `creator-quick-${Date.now()}.png`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      if (isBase64) {
+        // Para base64, fazer download direto
+        const link = document.createElement("a");
+        link.href = currentImageUrl;
+        link.download = `creator-quick-${Date.now()}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast.success("Download concluído!");
+        return;
+      }
       
-      toast.success("Download concluído!");
+      // Para URLs HTTP/HTTPS, tentar múltiplos métodos
+      try {
+        // Método 1: Fetch + Blob (ideal)
+        const response = await fetch(currentImageUrl, { 
+          mode: 'cors',
+          credentials: 'omit'
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `creator-quick-${Date.now()}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        toast.success("Download concluído!");
+        
+      } catch (fetchError) {
+        console.warn("Fetch method failed, trying alternative:", fetchError);
+        
+        // Método 2: Download direto com attribute
+        try {
+          const link = document.createElement("a");
+          link.href = currentImageUrl;
+          link.download = `creator-quick-${Date.now()}.png`;
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          
+          // Aguardar um pouco para ver se funcionou
+          await new Promise(resolve => setTimeout(resolve, 500));
+          toast.success("Download iniciado!");
+          
+        } catch (directError) {
+          console.warn("Direct download failed, trying canvas method:", directError);
+          
+          // Método 3: Via Canvas (último recurso)
+          try {
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            
+            await new Promise((resolve, reject) => {
+              img.onload = resolve;
+              img.onerror = reject;
+              img.src = currentImageUrl;
+            });
+            
+            const canvas = document.createElement("canvas");
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext("2d");
+            ctx?.drawImage(img, 0, 0);
+            
+            canvas.toBlob((blob) => {
+              if (blob) {
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.href = url;
+                link.download = `creator-quick-${Date.now()}.png`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
+                toast.success("Download concluído!");
+              } else {
+                throw new Error("Falha ao criar blob do canvas");
+              }
+            });
+            
+          } catch (canvasError) {
+            console.error("Canvas method failed:", canvasError);
+            // Último recurso: abrir em nova aba
+            window.open(currentImageUrl, '_blank');
+            toast.info("Imagem aberta em nova aba. Use 'Salvar imagem como...' do navegador");
+          }
+        }
+      }
+      
     } catch (error) {
       console.error("Error downloading image:", error);
-      toast.error("Erro ao baixar imagem");
+      toast.error("Erro ao baixar imagem. Tente abrir em nova aba.");
     }
+  };
+
+  const handleOpenInNewTab = () => {
+    window.open(currentImageUrl, '_blank', 'noopener,noreferrer');
+    toast.success("Imagem aberta em nova aba");
   };
 
   const handleOpenReview = () => {
@@ -352,6 +443,25 @@ export default function QuickContentResult() {
                 </Tooltip>
               </TooltipProvider>
 
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleOpenInNewTab}
+                      className="hover:text-accent hover:bg-accent/20 hover:border-accent transition-all"
+                    >
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Nova Aba
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Abrir em nova aba</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
               <Button
                 size="sm"
                 onClick={() => navigate("/quick-content")}
@@ -477,16 +587,40 @@ export default function QuickContentResult() {
 
         {/* Image Dialog */}
         <Dialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen}>
-          <DialogContent className="max-w-[95vw] max-h-[95vh] p-2 overflow-auto border-0 bg-black/95">
+          <DialogContent 
+            className="max-w-[95vw] max-h-[95vh] p-2 overflow-auto border-0 bg-black/95"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="absolute top-4 right-4 z-50 flex gap-2">
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDownload();
+                }}
+                className="bg-white/10 hover:bg-white/20"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Baixar
+              </Button>
+            </div>
             <DialogHeader className="sr-only">
               <DialogTitle>Visualização da Imagem</DialogTitle>
               <DialogDescription>Imagem ampliada do conteúdo gerado</DialogDescription>
             </DialogHeader>
-            <div className="flex items-center justify-center min-h-full">
+            <div 
+              className="flex items-center justify-center min-h-full"
+              onClick={(e) => e.stopPropagation()}
+            >
               <img 
                 src={currentImageUrl} 
                 alt="Conteúdo gerado ampliado" 
-                className="max-w-full max-h-full object-contain"
+                className="max-w-full max-h-full object-contain cursor-default"
+                onClick={(e) => e.stopPropagation()}
+                onContextMenu={(e) => {
+                  e.stopPropagation();
+                }}
               />
             </div>
           </DialogContent>
