@@ -362,10 +362,25 @@ const Register = () => {
         <div className="absolute inset-0 flex items-center">
           <div className="w-full border-t border-border/30"></div>
         </div>
-        
+        <div className="relative flex justify-center text-sm">
+          <span className="bg-card px-4 text-muted-foreground">ou cadastre-se com</span>
+        </div>
       </div>
 
-      
+      <div className="grid grid-cols-2 gap-3 mb-4">
+        <Button variant="outline" onClick={handleGoogleSignup} type="button" disabled={googleLoading || isLoading || !privacyChecked || !privacyAccepted} className="h-10 lg:h-11 border-border/50 hover:bg-primary/5 hover:border-primary/30 hover:text-primary transition-all duration-200">
+          {googleLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>
+              <Chrome className="w-4 h-4 mr-2" />
+              Google
+            </>}
+        </Button>
+        <Button variant="outline" type="button" onClick={handleFacebookSignup} disabled={facebookLoading || isLoading || !privacyChecked || !privacyAccepted} className="h-10 lg:h-11 border-border/50 hover:bg-secondary/5 hover:border-secondary/30 hover:text-secondary transition-all duration-200">
+          {facebookLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>
+              <Facebook className="w-4 h-4 mr-2" />
+              Facebook
+            </>}
+        </Button>
+      </div>
       
       <div className="text-center">
         <span className="text-muted-foreground text-sm">Já tem uma conta? </span>
