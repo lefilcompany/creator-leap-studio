@@ -204,12 +204,12 @@ export const PlatformChatbot = () => {
           </div>
 
           {/* Mensagens */}
-          <ScrollArea className="flex-1 p-4" ref={scrollRef}>
-            <div className="space-y-4">
+          <ScrollArea className="flex-1 p-4">
+            <div className="space-y-4" ref={scrollRef}>
               {messages.map((msg, idx) => (
                 <div
                   key={idx}
-                  className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+                  className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"} animate-fade-in`}
                 >
                   <div
                     className={`max-w-[80%] rounded-lg px-4 py-2 ${
@@ -218,12 +218,17 @@ export const PlatformChatbot = () => {
                         : "bg-muted text-foreground"
                     }`}
                   >
-                    <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                    <p className="text-sm whitespace-pre-wrap">
+                      {msg.content}
+                      {isLoading && idx === messages.length - 1 && msg.role === "assistant" && (
+                        <span className="inline-block w-1 h-4 ml-1 bg-current animate-pulse" />
+                      )}
+                    </p>
                   </div>
                 </div>
               ))}
               {isLoading && messages[messages.length - 1]?.role === "user" && (
-                <div className="flex justify-start">
+                <div className="flex justify-start animate-fade-in">
                   <div className="bg-muted rounded-lg px-4 py-2">
                     <Loader2 className="h-4 w-4 animate-spin" />
                   </div>
