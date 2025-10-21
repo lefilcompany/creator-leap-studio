@@ -3,6 +3,7 @@ import { AppSidebar } from "./AppSidebar";
 import { Header } from "./Header";
 import { Outlet } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { PlatformChatbot } from "./PlatformChatbot";
 
 export const DashboardLayout = () => {
   const isMobile = useIsMobile();
@@ -19,6 +20,7 @@ export const DashboardLayout = () => {
             </div>
           </main>
         </div>
+        <PlatformChatbot />
       </div>
     </SidebarProvider>
   );
