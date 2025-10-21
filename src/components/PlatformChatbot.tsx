@@ -155,7 +155,7 @@ export const PlatformChatbot = () => {
       {!isOpen && (
         <Button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg z-50 bg-primary hover:bg-primary/90"
+          className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg z-[9999] bg-primary hover:bg-primary/90"
           size="icon"
         >
           <MessageCircle className="h-6 w-6" />
@@ -164,7 +164,7 @@ export const PlatformChatbot = () => {
 
       {/* Janela do chat */}
       {isOpen && (
-        <Card className="fixed bottom-6 right-6 w-[380px] h-[500px] shadow-2xl z-50 flex flex-col border-2">
+        <Card className="fixed bottom-6 right-6 w-[380px] h-[500px] shadow-2xl z-[9999] flex flex-col border-2 bg-background">
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b bg-primary text-primary-foreground rounded-t-lg">
             <div className="flex items-center gap-2">
