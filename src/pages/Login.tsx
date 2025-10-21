@@ -17,6 +17,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslation } from "@/hooks/useTranslation";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useAuth } from "@/hooks/useAuth";
 
 const Login = () => {
   const { t } = useTranslation();
@@ -29,25 +30,39 @@ const Login = () => {
   const [failedAttempts, setFailedAttempts] = useState(0);
   const [showPasswordResetSuggestion, setShowPasswordResetSuggestion] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
+  const [waitingForAuth, setWaitingForAuth] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { theme, setTheme } = useTheme();
   const { language } = useLanguage();
+  const { user, team, isLoading: authLoading } = useAuth();
   const { showTeamDialog: oauthTeamDialog, handleTeamDialogClose: handleOAuthTeamDialogClose } = useOAuthCallback();
+  
   useEffect(() => {
     const isNewUser = searchParams.get("newUser") === "true";
     if (isNewUser) {
       toast.info(t.login.welcomeMessage);
     }
   }, [searchParams, t]);
+
+  // Redireciona automaticamente quando autenticado
+  useEffect(() => {
+    if (waitingForAuth && !authLoading && user && team && !showChangePassword && !showTeamSelection) {
+      console.log('[Login] Auth complete, redirecting to dashboard');
+      navigate("/dashboard", { replace: true });
+    }
+  }, [waitingForAuth, authLoading, user, team, showChangePassword, showTeamSelection, navigate]);
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setWaitingForAuth(false);
+    
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
+      
       if (error) {
         setFailedAttempts(failedAttempts + 1);
         setShowPasswordResetSuggestion(true);
@@ -68,6 +83,7 @@ const Login = () => {
           .select("team_id, force_password_change")
           .eq("id", data.user.id)
           .single();
+          
         if (profileError) {
           console.error("Erro ao carregar perfil:", profileError);
           toast.error(t.errors.somethingWrong);
@@ -88,19 +104,23 @@ const Login = () => {
             .eq("user_id", data.user.id)
             .eq("status", "pending")
             .maybeSingle();
+            
           if (pendingRequest) {
             toast.info("Sua solicitação está pendente. Aguarde a aprovação do administrador da equipe.");
             await supabase.auth.signOut();
             return;
           }
+          
           toast.success(t.login.welcomeMessage);
           setShowTeamSelection(true);
         } else {
+          // Tem equipe - aguardar AuthContext carregar
           toast.success(t.login.welcomeMessage);
-          navigate("/dashboard");
+          setWaitingForAuth(true);
         }
       }
     } catch (error) {
+      console.error("Erro no login:", error);
       toast.error(t.errors.somethingWrong);
     } finally {
       setLoading(false);
