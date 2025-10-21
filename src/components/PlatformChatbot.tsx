@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { MessageCircle, X, Send, Loader2 } from "lucide-react";
+import { MessageCircle, X, Send, Loader2, RotateCcw } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 
@@ -149,6 +149,16 @@ export const PlatformChatbot = () => {
     }
   };
 
+  const handleReset = () => {
+    setMessages([
+      {
+        role: "assistant",
+        content: "Olá! Sou o assistente da plataforma Creator. Como posso ajudá-lo hoje?",
+      },
+    ]);
+    setInput("");
+  };
+
   return (
     <>
       {/* Botão flutuante */}
@@ -171,14 +181,26 @@ export const PlatformChatbot = () => {
               <MessageCircle className="h-5 w-5" />
               <h3 className="font-semibold">Assistente Creator</h3>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setIsOpen(false)}
-              className="h-8 w-8 hover:bg-primary-foreground/20 text-primary-foreground"
-            >
-              <X className="h-4 w-4" />
-            </Button>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleReset}
+                className="h-8 w-8 hover:bg-primary-foreground/20 text-primary-foreground"
+                title="Resetar conversa"
+              >
+                <RotateCcw className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsOpen(false)}
+                className="h-8 w-8 hover:bg-primary-foreground/20 text-primary-foreground"
+                title="Fechar"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
 
           {/* Mensagens */}
