@@ -5,6 +5,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { MessageCircle, X, Send, Loader2, RotateCcw } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { ChatbotTooltip } from "./ChatbotTooltip";
 
 type Message = {
   role: "user" | "assistant";
@@ -161,6 +162,9 @@ export const PlatformChatbot = () => {
 
   return (
     <>
+      {/* Tooltip explicativo */}
+      <ChatbotTooltip />
+      
       {/* Botão flutuante */}
       {!isOpen && (
         <Button
