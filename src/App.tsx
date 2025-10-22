@@ -31,6 +31,7 @@ import Team from "./pages/Team";
 import TeamDashboard from "./pages/TeamDashboard";
 import Profile from "./pages/Profile";
 import About from "./pages/About";
+import Contact from "./pages/Contact";
 import Privacy from "./pages/Privacy";
 import ActionView from "./pages/ActionView";
 import { DashboardLayout } from "./components/DashboardLayout";
@@ -75,6 +76,7 @@ const App = () => (
               <Route path="team-dashboard" element={<TeamDashboard />} />
               <Route path="profile" element={<Profile />} />
               <Route path="about" element={<About />} />
+              <Route path="contact" element={<Contact />} />
               <Route path="privacy" element={<Privacy />} />
             </Route>
 

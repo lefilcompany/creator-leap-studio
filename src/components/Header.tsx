@@ -175,6 +175,12 @@ export const Header = () => {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem className="p-3 cursor-pointer" asChild>
+                  <Link to="/contact" className="flex items-center">
+                    <FileText className="mr-3 h-4 w-4" />
+                    <span>Entre em Contato</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="p-3 cursor-pointer" asChild>
                   <Link to="/privacy" className="flex items-center">
                     <Shield className="mr-3 h-4 w-4" />
                     <span>{t.settings.privacy}</span>

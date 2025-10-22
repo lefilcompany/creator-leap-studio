@@ -1,6 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Mail, Phone, ArrowLeft, Heart, Users, Lightbulb, Target, Zap } from 'lucide-react';
+import { ArrowLeft, Heart, Users, Lightbulb, Target, Zap } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import logoCreatorPreta from '@/assets/logoCreatorPreta.png';
 
@@ -163,65 +162,6 @@ export default function About() {
           </CardContent>
         </Card>
 
-        {/* Seção de Contatos */}
-        <Card className="border-2 border-primary/30 shadow-xl bg-gradient-to-br from-primary/5 to-secondary/5">
-          <CardHeader className="text-center">
-            <CardTitle className="text-3xl text-primary mb-2">Entre em Contato</CardTitle>
-            <CardDescription className="text-lg">
-              Tem dúvidas? Quer saber mais? Estamos aqui para ajudar!
-            </CardDescription>
-            <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-green-500/20 to-green-600/20 border-2 border-green-500/40">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-sm font-semibold text-green-700 dark:text-green-400">
-                Resposta em até 24/48 horas
-              </span>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="flex items-center gap-4 p-4 rounded-xl bg-background/50 border border-border/50">
-                <div className="p-3 rounded-full bg-primary/10">
-                  <Mail className="h-6 w-6 text-primary" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-foreground">Email</h3>
-                  <p className="text-muted-foreground">lefil@lefil.com.br</p>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-4 p-4 rounded-xl bg-background/50 border border-border/50">
-                <div className="p-3 rounded-full bg-green-500/10">
-                  <Phone className="h-6 w-6 text-green-600" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-foreground">WhatsApp</h3>
-                  <p className="text-muted-foreground">+55 81 9966-0072</p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="text-center pt-4">
-              <p className="text-muted-foreground mb-4">
-                Nossa equipe está pronta para responder suas dúvidas e ajudar você a maximizar 
-                o potencial da sua marca com o Creator.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                  <a href="mailto:lefil@lefil.com.br" className="flex items-center gap-2">
-                    <Mail className="h-4 w-4" />
-                    Enviar Email
-                  </a>
-                </Button>
-                <Button asChild variant="outline" className="border-green-500 text-green-600 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-950">
-                  <a href="https://wa.me/558199660072" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
-                    <Phone className="h-4 w-4" />
-                    Chamar no WhatsApp
-                  </a>
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Footer */}
         <div className="text-center mt-12 py-8 border-t border-border/50">
