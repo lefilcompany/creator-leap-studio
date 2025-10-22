@@ -15,7 +15,7 @@ import {
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Sparkles, Zap, X, Info, ImageIcon, Video, Type, AlertCircle } from "lucide-react";
+import { Loader2, Sparkles, Zap, X, Info, ImageIcon, Video, Type, AlertCircle, FileText, ImagePlus } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -68,6 +68,7 @@ interface FormData {
   imageTextContent?: string;
   imageTextPosition?: 'top' | 'center' | 'bottom' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
   // VEO 3.1 NOVOS CAMPOS
+  videoGenerationType?: 'text_to_video' | 'image_to_video';
   videoAudioStyle?: 'dialogue' | 'sound_effects' | 'music' | 'none';
   videoVisualStyle?: 'cinematic' | 'animation' | 'realistic' | 'creative';
   videoAspectRatio?: '16:9' | '9:16';
@@ -107,6 +108,7 @@ export default function CreateContent() {
     colorPalette: "auto",
     lighting: "natural",
     // VEO 3.1 DEFAULTS
+    videoGenerationType: 'image_to_video',
     videoAudioStyle: 'sound_effects',
     videoVisualStyle: 'cinematic',
     videoAspectRatio: '9:16',
@@ -2183,7 +2185,128 @@ ${formData.description}
                   <Video className="h-5 w-5 md:h-6 md:w-6 text-purple-500 flex-shrink-0" />
                 </div>
               </CardHeader>
-              <CardContent className="p-4 md:p-6">
+              <CardContent className="p-4 md:p-6 space-y-6">
+                
+                {/* [1] MÉTODO DE GERAÇÃO */}
+                <div className="space-y-3">
+                  <Label className="text-sm font-semibold">Método de Geração</Label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button
+                      type="button"
+                      variant={formData.videoGenerationType === 'text_to_video' ? 'default' : 'outline'}
+                      onClick={() => setFormData(prev => ({ ...prev, videoGenerationType: 'text_to_video' }))}
+                      className="h-20 flex flex-col items-center justify-center gap-2"
+                    >
+                      <FileText className="h-5 w-5" />
+                      <span className="text-sm">Texto para Vídeo</span>
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={formData.videoGenerationType === 'image_to_video' ? 'default' : 'outline'}
+                      onClick={() => setFormData(prev => ({ ...prev, videoGenerationType: 'image_to_video' }))}
+                      className="h-20 flex flex-col items-center justify-center gap-2"
+                    >
+                      <ImagePlus className="h-5 w-5" />
+                      <span className="text-sm">Imagem para Vídeo</span>
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {formData.videoGenerationType === 'text_to_video' 
+                      ? 'O vídeo será gerado apenas a partir da descrição textual'
+                      : 'Use até 3 imagens como referência visual para o vídeo'}
+                  </p>
+                </div>
+
+                {/* [2] UPLOAD DE IMAGENS DE REFERÊNCIA (condicional) */}
+                {formData.videoGenerationType === 'image_to_video' && (
+                  <Card className="bg-muted/30 border-2 border-primary/20">
+                    <CardContent className="p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm font-semibold">Imagens de Referência</Label>
+                        <span className="text-xs font-medium text-muted-foreground">
+                          {referenceFiles.length}/3 imagens (Veo 3.1)
+                        </span>
+                      </div>
+                      
+                      {/* Input de upload */}
+                      <Input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        disabled={referenceFiles.length >= 3}
+                        onChange={(e) => {
+                          const files = Array.from(e.target.files || []);
+                          const availableSlots = 3 - referenceFiles.length;
+                          const filesToAdd = files.slice(0, availableSlots);
+                          
+                          if (filesToAdd.length > 0) {
+                            setReferenceFiles(prev => [...prev, ...filesToAdd]);
+                            toast.success(`${filesToAdd.length} imagem(ns) adicionada(s)`);
+                          }
+                          
+                          if (files.length > availableSlots) {
+                            toast.error(`Limite de 3 imagens. ${files.length - availableSlots} imagem(ns) ignorada(s)`);
+                          }
+                          
+                          e.target.value = '';
+                        }}
+                        className="h-12 rounded-xl border-2"
+                      />
+                      
+                      {/* Área de cole */}
+                      <div
+                        ref={pasteAreaRef}
+                        onPaste={handlePaste}
+                        className="border-2 border-dashed rounded-xl p-4 text-center hover:bg-muted/50 transition-colors cursor-pointer"
+                        tabIndex={0}
+                      >
+                        <p className="text-xs text-muted-foreground">
+                          Cole sua imagem aqui (Ctrl+V)
+                        </p>
+                      </div>
+                      
+                      {/* Lista de imagens com checkbox */}
+                      {referenceFiles.length > 0 && (
+                        <div className="space-y-2">
+                          {referenceFiles.map((file, idx) => (
+                            <div key={idx} className="flex items-center gap-3 p-3 bg-background rounded-lg">
+                              <Checkbox
+                                id={`preserve-${idx}`}
+                                checked={preserveImageIndices.includes(idx)}
+                                onCheckedChange={() => {
+                                  setPreserveImageIndices(prev =>
+                                    prev.includes(idx)
+                                      ? prev.filter(i => i !== idx)
+                                      : [...prev, idx]
+                                  );
+                                }}
+                              />
+                              <Label htmlFor={`preserve-${idx}`} className="flex-1 text-sm cursor-pointer">
+                                {file.name} {preserveImageIndices.includes(idx) && '(Preservar traços)'}
+                              </Label>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  setReferenceFiles(prev => prev.filter((_, i) => i !== idx));
+                                  setPreserveImageIndices(prev => 
+                                    prev.filter(i => i !== idx).map(i => i > idx ? i - 1 : i)
+                                  );
+                                  toast.success('Imagem removida');
+                                }}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* [3-8] CONFIGURAÇÕES DE ESTILO E QUALIDADE */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                   
                   {/* Estilo de Áudio */}
