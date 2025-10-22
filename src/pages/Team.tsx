@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Rocket, Users, ClipboardCopy, Check, X, Crown, Loader2, UserPlus, UserMinus, BarChart3 } from 'lucide-react';
+import { Rocket, Users, ClipboardCopy, Check, X, Crown, Loader2, UserPlus, UserMinus, BarChart3, CreditCard } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
@@ -251,8 +251,18 @@ export default function Team() {
         </CardHeader>
       </Card>
 
-      {/* Dashboard Button */}
-      <div className="flex justify-end">
+      {/* Action Buttons */}
+      <div className="flex justify-between items-center gap-4">
+        <Button
+          onClick={() => navigate('/plans')}
+          variant="default"
+          size="lg"
+          className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl transition-all duration-300 text-base font-semibold"
+        >
+          <CreditCard className="h-5 w-5 mr-2" />
+          Planos e Uso
+        </Button>
+        
         <Button
           onClick={() => navigate('/team-dashboard')}
           variant="outline"
