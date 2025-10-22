@@ -67,6 +67,14 @@ interface FormData {
   imageIncludeText?: boolean;
   imageTextContent?: string;
   imageTextPosition?: 'top' | 'center' | 'bottom' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+  // VEO 3.1 NOVOS CAMPOS
+  videoAudioStyle?: 'dialogue' | 'sound_effects' | 'music' | 'none';
+  videoVisualStyle?: 'cinematic' | 'animation' | 'realistic' | 'creative';
+  videoAspectRatio?: '16:9' | '9:16';
+  videoResolution?: '720p' | '1080p';
+  videoDuration?: 4 | 6 | 8;
+  videoNegativePrompt?: string;
+  videoReferenceImages?: File[];
 }
 
 const toneOptions = [
@@ -98,6 +106,13 @@ export default function CreateContent() {
     negativePrompt: "",
     colorPalette: "auto",
     lighting: "natural",
+    // VEO 3.1 DEFAULTS
+    videoAudioStyle: 'sound_effects',
+    videoVisualStyle: 'cinematic',
+    videoAspectRatio: '9:16',
+    videoResolution: '1080p',
+    videoDuration: 8,
+    videoNegativePrompt: '',
     composition: "auto",
     cameraAngle: "eye_level",
     detailLevel: 7,
@@ -624,9 +639,21 @@ export default function CreateContent() {
 
       // Se estiver em modo vídeo, gerar vídeo
       if (isVideoMode) {
-        toast.loading("Iniciando geração de vídeo...", {
+        // VALIDAÇÃO VEO 3.1: Máximo de 3 imagens de referência
+        if (referenceFiles.length > 3) {
+          toast.error("Veo 3.1 suporta no máximo 3 imagens de referência para vídeo", { id: toastId });
+          return;
+        }
+
+        // VALIDAÇÃO: Texto é obrigatório se toggle estiver ativo
+        if (formData.videoIncludeText && !formData.videoTextContent?.trim()) {
+          toast.error("Por favor, digite o texto que deseja exibir no vídeo", { id: toastId });
+          return;
+        }
+
+        toast.loading("Iniciando geração de vídeo com Veo 3.1...", {
           id: toastId,
-          description: "Criando registro e iniciando processamento com Veo3.",
+          description: `🔊 ${formData.videoAudioStyle} • 🎬 ${formData.videoVisualStyle} • ⏱️ ${formData.videoDuration}s`,
         });
 
         const videoPrompt = buildVideoPrompt();
@@ -651,11 +678,16 @@ export default function CreateContent() {
               theme: requestData.theme,
               persona: requestData.persona,
               additionalInfo: requestData.additionalInfo,
-              aspectRatio: ratio,
-              // NOVOS CAMPOS DE METADATA
+              // NOVOS CAMPOS DE METADATA VEO 3.1
               includeText: formData.videoIncludeText || false,
               textContent: formData.videoTextContent?.trim() || "",
-              textPosition: formData.videoTextPosition || "center"
+              textPosition: formData.videoTextPosition || "center",
+              audioStyle: formData.videoAudioStyle || 'sound_effects',
+              visualStyle: formData.videoVisualStyle || 'cinematic',
+              aspectRatio: formData.videoAspectRatio || '9:16',
+              resolution: formData.videoResolution || '1080p',
+              duration: formData.videoDuration || 8,
+              negativePrompt: formData.videoNegativePrompt || ''
             },
             result: null
           })
@@ -666,7 +698,18 @@ export default function CreateContent() {
           throw new Error(`Erro ao criar registro: ${actionError?.message}`);
         }
 
-        // Iniciar geração de vídeo em background
+        // Preparar imagens de referência Veo 3.1 (até 3)
+        const veo31ReferenceImages = await Promise.all(
+          referenceFiles.slice(0, 3).map(async (file) => {
+            return await new Promise<string>((resolve) => {
+              const reader = new FileReader();
+              reader.onloadend = () => resolve(reader.result as string);
+              reader.readAsDataURL(file);
+            });
+          })
+        );
+
+        // Iniciar geração de vídeo em background com Veo 3.1
         const videoResponse = await fetch(
           `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-video`,
           {
@@ -677,11 +720,24 @@ export default function CreateContent() {
             },
             body: JSON.stringify({
               prompt: videoPrompt,
-              referenceImage: finalUserImages[0] || finalBrandImages[0], // Priorizar imagem do usuário
+              // Compatibilidade: imagem única
+              referenceImage: finalUserImages[0] || finalBrandImages[0],
+              // VEO 3.1: Múltiplas imagens de referência
+              referenceImages: veo31ReferenceImages.length > 0 ? veo31ReferenceImages : undefined,
+              preserveImages: finalBrandImages,
+              styleReferenceImages: finalUserImages,
               actionId: actionData.id,
+              // Configurações de texto
               includeText: formData.videoIncludeText || false,
               textContent: formData.videoTextContent?.trim() || "",
-              textPosition: formData.videoTextPosition || "center"
+              textPosition: formData.videoTextPosition || "center",
+              // NOVOS PARÂMETROS VEO 3.1
+              audioStyle: formData.videoAudioStyle || 'sound_effects',
+              visualStyle: formData.videoVisualStyle || 'cinematic',
+              aspectRatio: formData.videoAspectRatio || '9:16',
+              resolution: formData.videoResolution || '1080p',
+              duration: formData.videoDuration || 8,
+              negativePrompt: formData.videoNegativePrompt || ''
             }),
           }
         );
@@ -1388,13 +1444,13 @@ ${formData.description}
                         : "Imagem de Referência"} <span className="text-destructive">*</span>
                     </Label>
                     <span className={`text-xs font-medium ${
-                      referenceFiles.length >= 5 
+                      referenceFiles.length >= (isVideoMode ? 3 : 5)
                         ? 'text-destructive' 
-                        : referenceFiles.length >= 4 
+                        : referenceFiles.length >= (isVideoMode ? 2 : 4)
                           ? 'text-orange-500' 
                           : 'text-muted-foreground'
                     }`}>
-                      {referenceFiles.length}/5 imagens
+                      {referenceFiles.length}/{isVideoMode ? 3 : 5} imagens {isVideoMode && '(Veo 3.1)'}
                     </span>
                   </div>
 
@@ -1404,14 +1460,15 @@ ${formData.description}
                       type="file"
                       accept={isVideoMode && transformationType === "video_to_video" ? "video/*" : "image/*"}
                       multiple
-                      disabled={referenceFiles.length >= 5}
+                      disabled={isVideoMode ? referenceFiles.length >= 3 : referenceFiles.length >= 5}
                       onChange={(e) => {
                         const files = Array.from(e.target.files || []);
-                        const remainingSlots = 5 - referenceFiles.length;
+                        const maxFiles = isVideoMode ? 3 : 5;
+                        const remainingSlots = maxFiles - referenceFiles.length;
                         const filesToAdd = files.slice(0, remainingSlots);
                         
                         if (files.length > remainingSlots) {
-                          toast.error(`Você pode adicionar no máximo 5 imagens. ${filesToAdd.length} imagem(ns) adicionada(s).`);
+                          toast.error(`${isVideoMode ? 'Veo 3.1 suporta no máximo 3 imagens' : 'Você pode adicionar no máximo 5 imagens'}. ${filesToAdd.length} imagem(ns) adicionada(s).`);
                         }
                         
                         setReferenceFiles((prev) => [...prev, ...filesToAdd]);
@@ -1439,7 +1496,7 @@ ${formData.description}
                     {referenceFiles.length > 0 && (
                       <div className="space-y-2 p-3 bg-primary/5 rounded-xl border border-primary/20">
                         <p className="text-xs font-semibold text-primary mb-2">
-                          {referenceFiles.length} imagem(ns) selecionada(s):
+                          {referenceFiles.length} imagem(ns) selecionada(s){isVideoMode && ` (máx: 3 para Veo 3.1)`}:
                         </p>
                         <div className="space-y-2">
                           {referenceFiles.map((file, idx) => (
@@ -1758,6 +1815,191 @@ ${formData.description}
                           )}
                         </div>
                       )}
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Configurações Avançadas de Vídeo Veo 3.1 - NOVO BLOCO */}
+                {isVideoMode && (
+                  <Card className="bg-gradient-to-br from-purple-500/5 to-blue-500/5 border-2 border-purple-500/20 rounded-xl">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                          <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                            <Video className="h-4 w-4 text-purple-500" />
+                            Configurações Avançadas de Vídeo (Veo 3.1)
+                          </h3>
+                          <p className="text-xs text-muted-foreground">
+                            Controle o áudio nativo, estilo visual e qualidade do vídeo
+                          </p>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      
+                      {/* Estilo de Áudio */}
+                      <div className="space-y-2">
+                        <Label className="text-xs font-semibold">Estilo de Áudio</Label>
+                        <Select 
+                          value={formData.videoAudioStyle || 'sound_effects'}
+                          onValueChange={(value) => 
+                            setFormData(prev => ({ ...prev, videoAudioStyle: value as any }))
+                          }
+                        >
+                          <SelectTrigger className="h-10 rounded-xl border-2 bg-background/50">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="dialogue">
+                              🗣️ Diálogos - Conversas naturais com vozes sincronizadas
+                            </SelectItem>
+                            <SelectItem value="sound_effects">
+                              🔊 Efeitos Sonoros - Sons ambientes e efeitos sincronizados
+                            </SelectItem>
+                            <SelectItem value="music">
+                              🎵 Música - Trilha sonora de fundo adequada à cena
+                            </SelectItem>
+                            <SelectItem value="none">
+                              🔇 Sem Áudio - Vídeo silencioso
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Estilo Visual */}
+                      <div className="space-y-2">
+                        <Label className="text-xs font-semibold">Estilo Visual</Label>
+                        <Select 
+                          value={formData.videoVisualStyle || 'cinematic'}
+                          onValueChange={(value) => 
+                            setFormData(prev => ({ ...prev, videoVisualStyle: value as any }))
+                          }
+                        >
+                          <SelectTrigger className="h-10 rounded-xl border-2 bg-background/50">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="cinematic">
+                              🎬 Cinematográfico - Qualidade de cinema profissional
+                            </SelectItem>
+                            <SelectItem value="animation">
+                              🎨 Animação Criativa - Estilo animado e vibrante
+                            </SelectItem>
+                            <SelectItem value="realistic">
+                              📷 Realismo Fotográfico - Aparência ultra-realista
+                            </SelectItem>
+                            <SelectItem value="creative">
+                              ✨ Criativo Experimental - Abordagem artística única
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Aspect Ratio e Resolução */}
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-2">
+                          <Label className="text-xs font-semibold">Proporção</Label>
+                          <Select 
+                            value={formData.videoAspectRatio || '9:16'}
+                            onValueChange={(value) => 
+                              setFormData(prev => ({ ...prev, videoAspectRatio: value as any }))
+                            }
+                          >
+                            <SelectTrigger className="h-10 rounded-xl border-2 bg-background/50">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="9:16">9:16 (Vertical)</SelectItem>
+                              <SelectItem value="16:9">16:9 (Horizontal)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label className="text-xs font-semibold">Resolução</Label>
+                          <Select 
+                            value={formData.videoResolution || '1080p'}
+                            onValueChange={(value) => 
+                              setFormData(prev => ({ ...prev, videoResolution: value as any }))
+                            }
+                          >
+                            <SelectTrigger className="h-10 rounded-xl border-2 bg-background/50">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="720p">720p (HD)</SelectItem>
+                              <SelectItem value="1080p">1080p (Full HD)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+
+                      {/* Duração */}
+                      <div className="space-y-2">
+                        <Label className="text-xs font-semibold">Duração do Vídeo</Label>
+                        <Select 
+                          value={String(formData.videoDuration || 8)}
+                          onValueChange={(value) => 
+                            setFormData(prev => ({ ...prev, videoDuration: Number(value) as any }))
+                          }
+                        >
+                          <SelectTrigger className="h-10 rounded-xl border-2 bg-background/50">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="4">4 segundos</SelectItem>
+                            <SelectItem value="6">6 segundos</SelectItem>
+                            <SelectItem value="8">8 segundos (Recomendado)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Prompt Negativo */}
+                      <div className="space-y-2">
+                        <Label className="text-xs font-semibold">Prompt Negativo (Opcional)</Label>
+                        <Textarea
+                          placeholder="O que EVITAR no vídeo (ex: barking, woofing, texto indesejado, watermark...)"
+                          value={formData.videoNegativePrompt || ""}
+                          onChange={(e) => 
+                            setFormData(prev => ({ ...prev, videoNegativePrompt: e.target.value }))
+                          }
+                          className="min-h-[60px] rounded-xl border-2 bg-background/50 resize-none text-sm"
+                          maxLength={500}
+                        />
+                        <p className="text-xs text-muted-foreground text-right">
+                          {formData.videoNegativePrompt?.length || 0}/500 caracteres
+                        </p>
+                      </div>
+
+                      {/* Badges informativos */}
+                      <div className="flex flex-wrap gap-2 pt-2 border-t border-purple-500/20">
+                        {formData.videoAudioStyle !== 'none' && (
+                          <Badge variant="secondary" className="text-xs">
+                            🔊 {formData.videoAudioStyle}
+                          </Badge>
+                        )}
+                        <Badge variant="secondary" className="text-xs">
+                          🎬 {formData.videoVisualStyle}
+                        </Badge>
+                        <Badge variant="secondary" className="text-xs">
+                          📐 {formData.videoAspectRatio} • {formData.videoResolution}
+                        </Badge>
+                        <Badge variant="secondary" className="text-xs">
+                          ⏱️ {formData.videoDuration}s
+                        </Badge>
+                      </div>
+
+                      {/* Info sobre Veo 3.1 */}
+                      <div className="flex items-start gap-2 p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl">
+                        <Info className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                        <div className="text-xs text-muted-foreground">
+                          <strong className="text-blue-500">Veo 3.1:</strong> Modelo avançado com 
+                          áudio nativo (diálogos, efeitos sonoros, música), controle de estilo 
+                          cinematográfico, e suporte a múltiplas imagens de referência para 
+                          consistência de personagens e cenários.
+                        </div>
+                      </div>
+
                     </CardContent>
                   </Card>
                 )}

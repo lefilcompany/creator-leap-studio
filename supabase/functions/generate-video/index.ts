@@ -146,7 +146,11 @@ async function processVideoGeneration(operationName: string, actionId: string, t
         result: { 
           videoUrl,
           processingTime: `${attempts * 5} seconds`,
-          attempts: attempts
+          attempts: attempts,
+          // Metadata Veo 3.1
+          veoVersion: '3.1',
+          audioStyle: Deno.env.get('VIDEO_AUDIO_STYLE') || 'sound_effects',
+          visualStyle: Deno.env.get('VIDEO_VISUAL_STYLE') || 'cinematic'
         },
         status: 'completed',
         updated_at: new Date().toISOString()
@@ -206,10 +210,18 @@ serve(async (req) => {
       actionId,
       includeText = false,
       textContent = "",
-      textPosition = "center"
+      textPosition = "center",
+      // NOVOS PARÂMETROS VEO 3.1
+      audioStyle = 'sound_effects',
+      visualStyle = 'cinematic',
+      referenceImages = [],
+      aspectRatio = '9:16',
+      resolution = '1080p',
+      duration = 8,
+      negativePrompt = ''
     } = await req.json();
     
-    console.log('🎬 Iniciando geração de vídeo com Gemini Veo 3');
+    console.log('🎬 Iniciando geração de vídeo com Gemini Veo 3.1');
     console.log('📝 Prompt:', prompt);
     console.log('🆔 Action ID:', actionId);
     console.log('🖼️ Imagem de referência:', referenceImage ? 'Sim' : 'Não');
@@ -218,6 +230,12 @@ serve(async (req) => {
     console.log('📝 Incluir texto:', includeText);
     console.log('📝 Conteúdo do texto:', textContent ? `"${textContent}"` : 'Nenhum');
     console.log('📍 Posição do texto:', textPosition);
+    console.log('🔊 Áudio:', audioStyle);
+    console.log('🎨 Estilo Visual:', visualStyle);
+    console.log('📐 Proporção:', aspectRatio);
+    console.log('🎞️ Resolução:', resolution);
+    console.log('⏱️ Duração:', duration + 's');
+    console.log('🖼️ Imagens de referência Veo 3.1:', referenceImages.length);
 
     if (!actionId) {
       return new Response(
@@ -288,8 +306,21 @@ serve(async (req) => {
 
     const BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
     
+    // Função para enriquecer prompt com estilo visual
+    function enrichPromptWithStyle(basePrompt: string, style: string): string {
+      const styleInstructions: Record<string, string> = {
+        cinematic: '🎬 CINEMATIC STYLE: Professional cinematography with smooth camera movements, cinematic lighting, depth of field, film grain, and dramatic composition. Use Hollywood production quality with proper color grading.',
+        animation: '🎨 ANIMATION STYLE: Creative animated aesthetics with vibrant colors, stylized movements, cartoon-like or anime-inspired visuals, exaggerated expressions, and playful energy.',
+        realistic: '📷 REALISTIC STYLE: Photorealistic rendering with natural lighting, accurate physics, real-world textures, authentic colors, and documentary-like capture.',
+        creative: '✨ CREATIVE STYLE: Artistic and experimental approach with unique visual effects, creative transitions, bold colors, and innovative cinematography.'
+      };
+      
+      const instruction = styleInstructions[style] || styleInstructions.cinematic;
+      return `${instruction}\n\n${basePrompt}`;
+    }
+    
     // Garantir que as diretrizes de texto sejam respeitadas no backend
-    let enrichedPrompt = prompt;
+    let enrichedPrompt = enrichPromptWithStyle(prompt, visualStyle);
 
     // NOVO: Adicionar instruções sobre preservação de traços
     if (preserveImages && preserveImages.length > 0) {
@@ -320,15 +351,44 @@ serve(async (req) => {
 
     console.log('📏 Enriched prompt length:', enrichedPrompt.length);
     
-    // Prepare request body
+    // Prepare request body for Veo 3.1
     const requestBody: any = {
       instances: [{
         prompt: enrichedPrompt,
-      }]
+      }],
+      parameters: {
+        aspect_ratio: aspectRatio,
+        resolution: resolution,
+        duration_seconds: duration
+      }
     };
 
-    // Add reference image if provided
-    if (referenceImage) {
+    // Adicionar configuração de áudio nativo
+    if (audioStyle && audioStyle !== 'none') {
+      requestBody.instances[0].audio_config = {
+        generate_audio: true,
+        audio_style: audioStyle
+      };
+      console.log('🔊 Audio native enabled:', audioStyle);
+    }
+
+    // Adicionar prompt negativo se fornecido
+    if (negativePrompt && negativePrompt.trim()) {
+      requestBody.parameters.negative_prompt = negativePrompt;
+      console.log('⛔ Negative prompt:', negativePrompt);
+    }
+
+    // PRIORIDADE: Usar referenceImages (Veo 3.1) se fornecido
+    if (referenceImages && referenceImages.length > 0) {
+      console.log(`📸 Using ${referenceImages.length} Veo 3.1 reference images`);
+      requestBody.instances[0].reference_images = referenceImages.map((img: string) => ({
+        bytesBase64Encoded: img.split(',')[1],
+        mimeType: img.split(';')[0].split(':')[1]
+      }));
+    } 
+    // FALLBACK: Usar referenceImage única (compatibilidade com Veo 3.0)
+    else if (referenceImage) {
+      console.log('📸 Using single reference image (Veo 3.0 compatibility)');
       const mimeType = referenceImage.split(';')[0].split(':')[1];
       const base64Data = referenceImage.split(',')[1];
       
@@ -338,10 +398,10 @@ serve(async (req) => {
       };
     }
 
-    // Start video generation
-    console.log('Starting video generation operation...');
+    // Start video generation with Veo 3.1
+    console.log('Starting video generation with Veo 3.1...');
     const generateResponse = await fetch(
-      `${BASE_URL}/models/veo-3.0-generate-001:predictLongRunning`,
+      `${BASE_URL}/models/veo-3.1-generate-preview:predictLongRunning`,
       {
         method: 'POST',
         headers: {

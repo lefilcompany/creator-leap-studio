@@ -26,6 +26,10 @@ interface VideoResultData {
   originalFormData?: any;
   actionId?: string;
   isProcessing?: boolean;
+  // Veo 3.1 metadata
+  audioStyle?: string;
+  visualStyle?: string;
+  veoVersion?: string;
 }
 
 export default function VideoResult() {
@@ -68,6 +72,9 @@ export default function VideoResult() {
                 caption?: string;
                 processingTime?: string;
                 attempts?: number;
+                audioStyle?: string;
+                visualStyle?: string;
+                veoVersion?: string;
               } | null;
 
               if (actionData?.status === 'completed' && result?.videoUrl) {
@@ -75,7 +82,10 @@ export default function VideoResult() {
                   ...prev,
                   mediaUrl: result.videoUrl,
                   caption: result.caption || prev.caption,
-                  isProcessing: false
+                  isProcessing: false,
+                  audioStyle: result.audioStyle,
+                  visualStyle: result.visualStyle,
+                  veoVersion: result.veoVersion
                 } : null);
                 
                 // Mostrar toast apenas uma vez e limpar o intervalo
@@ -255,13 +265,15 @@ export default function VideoResult() {
                       <p className="text-sm text-muted-foreground">Isso pode levar alguns minutos</p>
                     </div>
                   </div>
-                ) : videoData.mediaUrl ? (
+                 ) : videoData.mediaUrl ? (
                   <video
                     src={videoData.mediaUrl}
                     controls
                     className="w-full h-full object-contain bg-black"
                     autoPlay
                     loop
+                    playsInline
+                    preload="metadata"
                   />
                 ) : (
                   <div className="text-center text-muted-foreground p-8">
@@ -291,6 +303,30 @@ export default function VideoResult() {
                     <span className="text-sm font-medium text-muted-foreground">Marca</span>
                     <Badge variant="outline" className="font-medium">{videoData.brand}</Badge>
                   </div>
+                  {videoData.audioStyle && videoData.audioStyle !== 'none' && (
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-purple-500/10">
+                      <span className="text-sm font-medium text-muted-foreground">Áudio</span>
+                      <Badge variant="outline" className="font-medium text-purple-500 border-purple-500/50">
+                        🔊 {videoData.audioStyle}
+                      </Badge>
+                    </div>
+                  )}
+                  {videoData.visualStyle && (
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-blue-500/10">
+                      <span className="text-sm font-medium text-muted-foreground">Estilo</span>
+                      <Badge variant="outline" className="font-medium text-blue-500 border-blue-500/50">
+                        🎬 {videoData.visualStyle}
+                      </Badge>
+                    </div>
+                  )}
+                  {videoData.veoVersion && (
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-green-500/10">
+                      <span className="text-sm font-medium text-muted-foreground">Modelo</span>
+                      <Badge variant="outline" className="font-medium text-green-500 border-green-500/50">
+                        Veo {videoData.veoVersion}
+                      </Badge>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
