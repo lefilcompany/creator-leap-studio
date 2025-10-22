@@ -3,27 +3,18 @@ import { Button } from '@/components/ui/button';
 import { Mail, Phone, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import logoCreatorPreta from '@/assets/logoCreatorPreta.png';
-
 export default function Contact() {
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/10">
+  return <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/10">
       <div className="max-w-4xl mx-auto px-6 py-8">
         {/* Header */}
         <div className="mb-8">
-          <Link 
-            to="/dashboard"
-            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6"
-          >
+          <Link to="/dashboard" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6">
             <ArrowLeft className="h-4 w-4" />
             Voltar ao início
           </Link>
           
           <div className="flex items-center gap-4 mb-6">
-            <img
-              src={logoCreatorPreta}
-              alt="Logo Creator"
-              className="h-12 w-auto"
-            />
+            <img src={logoCreatorPreta} alt="Logo Creator" className="h-12 w-auto" />
           </div>
           
           <h1 className="text-4xl font-bold text-foreground mb-4">
@@ -43,9 +34,7 @@ export default function Contact() {
             </CardDescription>
             <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-green-500/20 to-green-600/20 border-2 border-green-500/40">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-sm font-semibold text-green-700 dark:text-green-400">
-                Resposta em até 24/48 horas
-              </span>
+              <span className="text-sm font-semibold text-green-700 dark:text-green-400">Resposta em até 2 dias úteis</span>
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -126,6 +115,5 @@ export default function Contact() {
           </p>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 }
