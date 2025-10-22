@@ -486,12 +486,12 @@ const Plans = () => {
       </div>
 
       {/* Botão Ver Todos os Planos em Destaque */}
-      <div className="flex justify-center">
+      <div>
         <Button
           variant="default"
           size="lg"
           onClick={() => setShowPlansSelection(true)}
-          className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl transition-all duration-300 text-base font-semibold px-8"
+          className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl transition-all duration-300 text-base font-semibold px-8"
         >
           <Crown className="h-5 w-5 mr-2" />
           Ver Todos os Planos
