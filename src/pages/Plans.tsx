@@ -491,7 +491,7 @@ const Plans = () => {
           variant="default"
           size="lg"
           onClick={() => setShowPlansSelection(true)}
-          className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl transition-all duration-300 text-base font-semibold px-8"
+          className="w-full bg-gradient-to-r from-primary via-primary/90 to-secondary hover:from-primary/90 hover:via-primary/80 hover:to-secondary/90 shadow-lg hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 text-base font-semibold px-8 active:scale-[0.98]"
         >
           <Crown className="h-5 w-5 mr-2" />
           Ver Todos os Planos
