@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, BarChart3, Calendar, Search, Filter, TrendingUp, Activity, Zap, FileText, CheckCircle, Lightbulb, Loader2, Users } from 'lucide-react';
+import { ArrowLeft, BarChart3, Calendar, Search, Filter, TrendingUp, Activity, Zap, FileText, CheckCircle, Lightbulb, Loader2, Users, Video } from 'lucide-react';
 import { toast } from 'sonner';
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
@@ -22,6 +22,7 @@ interface MemberStats {
   createContent: number;
   reviewContent: number;
   planContent: number;
+  videoContent: number;
   lastActivity: string | null;
 }
 
@@ -94,10 +95,11 @@ export default function TeamDashboard() {
           name: member.name,
           email: member.email,
           totalActions: memberActions.length,
-          quickContent: memberActions.filter(a => a.type === 'CRIACAO_RAPIDA').length,
+          quickContent: memberActions.filter(a => a.type === 'CRIAR_CONTEUDO_RAPIDO').length,
           createContent: memberActions.filter(a => a.type === 'CRIAR_CONTEUDO').length,
           reviewContent: memberActions.filter(a => a.type === 'REVISAR_CONTEUDO').length,
           planContent: memberActions.filter(a => a.type === 'PLANEJAR_CONTEUDO').length,
+          videoContent: memberActions.filter(a => a.type === 'GERAR_VIDEO').length,
           lastActivity: memberActions[0]?.created_at || null,
         };
       });
@@ -122,6 +124,7 @@ export default function TeamDashboard() {
                         actionTypeFilter === 'create' ? member.createContent > 0 :
                         actionTypeFilter === 'review' ? member.reviewContent > 0 :
                         actionTypeFilter === 'plan' ? member.planContent > 0 :
+                        actionTypeFilter === 'video' ? member.videoContent > 0 :
                         member.totalActions > 0;
       
       return matchesSearch && hasActions;
@@ -145,6 +148,7 @@ export default function TeamDashboard() {
     { name: 'Criar Conteúdo', value: memberStats.reduce((sum, m) => sum + m.createContent, 0), color: 'hsl(var(--secondary))' },
     { name: 'Revisar', value: memberStats.reduce((sum, m) => sum + m.reviewContent, 0), color: 'hsl(var(--accent))' },
     { name: 'Planejar', value: memberStats.reduce((sum, m) => sum + m.planContent, 0), color: 'hsl(var(--chart-4))' },
+    { name: 'Gerar Vídeo', value: memberStats.reduce((sum, m) => sum + m.videoContent, 0), color: 'hsl(var(--chart-5))' },
   ].filter(item => item.value > 0);
 
   const topMembersData = [...filteredAndSortedStats]
@@ -352,6 +356,7 @@ export default function TeamDashboard() {
                 <SelectItem value="create">Criar Conteúdo</SelectItem>
                 <SelectItem value="review">Revisar Conteúdo</SelectItem>
                 <SelectItem value="plan">Planejar Conteúdo</SelectItem>
+                <SelectItem value="video">Gerar Vídeo</SelectItem>
               </SelectContent>
             </Select>
             <Select value={sortBy} onValueChange={setSortBy}>
@@ -385,13 +390,14 @@ export default function TeamDashboard() {
                   <TableHead className="text-center font-semibold">Criar Conteúdo</TableHead>
                   <TableHead className="text-center font-semibold">Revisar</TableHead>
                   <TableHead className="text-center font-semibold">Planejar</TableHead>
+                  <TableHead className="text-center font-semibold">Gerar Vídeo</TableHead>
                   <TableHead className="font-semibold">Última Atividade</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredAndSortedStats.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-12">
+                    <TableCell colSpan={8} className="text-center py-12">
                       <div className="flex flex-col items-center gap-3">
                         <div className="bg-gradient-to-br from-secondary/10 to-accent/10 rounded-full w-16 h-16 flex items-center justify-center">
                           <Users className="h-8 w-8 text-secondary" />
@@ -444,6 +450,12 @@ export default function TeamDashboard() {
                         <span className="inline-flex items-center gap-1.5 text-sm font-medium">
                           <Lightbulb className="h-4 w-4 text-purple-500" />
                           {member.planContent}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <span className="inline-flex items-center gap-1.5 text-sm font-medium">
+                          <Video className="h-4 w-4 text-pink-500" />
+                          {member.videoContent}
                         </span>
                       </TableCell>
                       <TableCell>
