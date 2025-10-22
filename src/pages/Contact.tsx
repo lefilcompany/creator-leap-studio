@@ -106,14 +106,10 @@ export default function Contact() {
             <div className="space-y-3">
               <div className="flex justify-between items-center p-3 rounded-lg bg-muted/30">
                 <span className="font-medium text-foreground">Segunda a Sexta</span>
-                <span className="text-muted-foreground">9h às 18h</span>
+                <span className="text-muted-foreground">08h às 18h</span>
               </div>
               <div className="flex justify-between items-center p-3 rounded-lg bg-muted/30">
-                <span className="font-medium text-foreground">Sábado</span>
-                <span className="text-muted-foreground">9h às 13h</span>
-              </div>
-              <div className="flex justify-between items-center p-3 rounded-lg bg-muted/30">
-                <span className="font-medium text-foreground">Domingo</span>
+                <span className="font-medium text-foreground">Finais de Semana</span>
                 <span className="text-muted-foreground">Fechado</span>
               </div>
             </div>
