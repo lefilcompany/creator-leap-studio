@@ -1360,196 +1360,122 @@ ${formData.description}
                   </Card>
                 )}
 
-                {isVideoMode && (
-                  <>
-                    <div className="space-y-2 md:space-y-3">
+
+                {!isVideoMode && (
+                  <div className="space-y-2 md:space-y-3">
+                    <div className="flex items-center justify-between">
                       <Label
-                        htmlFor="transformation"
+                        htmlFor="referenceFile"
                         className="text-xs md:text-sm font-semibold text-foreground"
                       >
-                        Tipo de Transformação <span className="text-destructive">*</span>
+                        Imagem de Referência <span className="text-destructive">*</span>
                       </Label>
-                      <Select
-                        value={transformationType}
-                        onValueChange={(value) =>
-                          setTransformationType(value as any)
-                        }
-                      >
-                        <SelectTrigger className="h-10 md:h-11 rounded-xl border-2 border-border/50 bg-background/50 text-sm hover:border-border/70 transition-colors">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="image_to_video">
-                            Imagem para Vídeo
-                          </SelectItem>
-                          <SelectItem value="video_to_video">
-                            Vídeo para Vídeo
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <span className={`text-xs font-medium ${
+                        referenceFiles.length >= 5
+                          ? 'text-destructive' 
+                          : referenceFiles.length >= 4
+                            ? 'text-orange-500' 
+                            : 'text-muted-foreground'
+                      }`}>
+                        {referenceFiles.length}/5 imagens
+                      </span>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
-                      <div className="space-y-2 md:space-y-3">
-                        <Label
-                          htmlFor="ratio"
-                          className="text-xs md:text-sm font-semibold text-foreground"
-                        >
-                          Proporção <span className="text-destructive">*</span>
-                        </Label>
-                        <Select value={ratio} onValueChange={setRatio}>
-                          <SelectTrigger className="h-10 md:h-11 rounded-xl border-2 border-border/50 bg-background/50 text-sm hover:border-border/70 transition-colors">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="768:1280">
-                              Vertical (9:16)
-                            </SelectItem>
-                            <SelectItem value="1280:768">
-                              Horizontal (16:9)
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
+
+                    <div className="space-y-2 md:space-y-3">
+                      <Input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        disabled={referenceFiles.length >= 5}
+                        onChange={(e) => {
+                          const files = Array.from(e.target.files || []);
+                          const maxFiles = 5;
+                          const remainingSlots = maxFiles - referenceFiles.length;
+                          const filesToAdd = files.slice(0, remainingSlots);
+                          
+                          if (files.length > remainingSlots) {
+                            toast.error(`Você pode adicionar no máximo 5 imagens. ${filesToAdd.length} imagem(ns) adicionada(s).`);
+                          }
+                          
+                          setReferenceFiles((prev) => [...prev, ...filesToAdd]);
+                        }}
+                        className={`h-12 md:h-14 rounded-xl border-2 bg-background/50 flex items-center file:mr-3 md:file:mr-4 file:h-full file:py-0 file:px-4 md:file:px-5 file:rounded-l-[10px] file:border-0 file:text-xs md:file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 hover:border-primary/30 transition-all cursor-pointer ${
+                          missingFields.includes('referenceFiles') ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/50'
+                        }`}
+                      />
+
+                      <div
+                        ref={pasteAreaRef}
+                        tabIndex={0}
+                        onPaste={handlePaste}
+                        className={`border-2 border-dashed rounded-xl p-3 md:p-4 text-center bg-muted/20 hover:bg-muted/30 transition-colors cursor-pointer focus:outline-none focus:ring-2 ${
+                          missingFields.includes('referenceFiles') 
+                            ? 'border-destructive ring-destructive/50' 
+                            : 'border-border/50 focus:ring-primary/50'
+                        }`}
+                      >
+                        <p className="text-xs md:text-sm text-muted-foreground">
+                          Cole sua imagem aqui (Ctrl+V)
+                        </p>
                       </div>
-                      {transformationType === "image_to_video" && (
-                        <div className="space-y-2 md:space-y-3">
-                          <Label
-                            htmlFor="duration"
-                            className="text-xs md:text-sm font-semibold text-foreground"
-                          >
-                            Duração (s) <span className="text-destructive">*</span>
-                          </Label>
-                          <Select value={duration} onValueChange={setDuration}>
-                            <SelectTrigger className="h-10 md:h-11 rounded-xl border-2 border-border/50 bg-background/50 text-sm hover:border-border/70 transition-colors">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="5">5s</SelectItem>
-                              <SelectItem value="10">10s</SelectItem>
-                            </SelectContent>
-                          </Select>
+
+                      {referenceFiles.length > 0 && (
+                        <div className="space-y-2 p-3 bg-primary/5 rounded-xl border border-primary/20">
+                          <p className="text-xs font-semibold text-primary mb-2">
+                            {referenceFiles.length} imagem(ns) selecionada(s):
+                          </p>
+                          <div className="space-y-2">
+                            {referenceFiles.map((file, idx) => (
+                              <div key={idx} className="bg-background/50 rounded-lg p-3 group hover:bg-background transition-colors">
+                                <div className="flex items-center justify-between mb-2">
+                                  <span className="text-sm text-foreground font-medium flex items-center gap-2 min-w-0 flex-1">
+                                    <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0"></div>
+                                    <span className="truncate">{file.name}</span>
+                                  </span>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleRemoveFile(idx)}
+                                    className="h-6 w-6 p-0 text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full flex-shrink-0 ml-2"
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                                
+                                <div className="flex items-start gap-2 mt-2 pt-2 border-t border-border/20">
+                                  <Checkbox
+                                    id={`preserve-${idx}`}
+                                    checked={preserveImageIndices.includes(idx)}
+                                    onCheckedChange={() => handleTogglePreserve(idx)}
+                                    className="mt-0.5"
+                                  />
+                                  <Label
+                                    htmlFor={`preserve-${idx}`}
+                                    className="text-xs text-muted-foreground cursor-pointer leading-tight"
+                                  >
+                                    Preservar traços desta imagem (cores, estilo, elementos visuais)
+                                  </Label>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          
+                          <div className="mt-3 p-2 bg-accent/10 rounded-lg border border-accent/20">
+                            <p className="text-xs text-muted-foreground flex items-start gap-1.5">
+                              <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0 text-accent" />
+                              <span>
+                                <strong className="text-accent">Dica:</strong> Marque "Preservar traços" nas imagens da sua marca/identidade visual. 
+                                As outras servirão apenas como referência de estilo.
+                              </span>
+                            </p>
+                          </div>
                         </div>
                       )}
                     </div>
-                  </>
+                  </div>
                 )}
-
-                <div className="space-y-2 md:space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label
-                      htmlFor="referenceFile"
-                      className="text-xs md:text-sm font-semibold text-foreground"
-                    >
-                      {isVideoMode
-                        ? transformationType === "image_to_video"
-                          ? "Imagem de Referência"
-                          : "Vídeo de Referência"
-                        : "Imagem de Referência"} <span className="text-destructive">*</span>
-                    </Label>
-                    <span className={`text-xs font-medium ${
-                      referenceFiles.length >= (isVideoMode ? 3 : 5)
-                        ? 'text-destructive' 
-                        : referenceFiles.length >= (isVideoMode ? 2 : 4)
-                          ? 'text-orange-500' 
-                          : 'text-muted-foreground'
-                    }`}>
-                      {referenceFiles.length}/{isVideoMode ? 3 : 5} imagens {isVideoMode && '(Veo 3.1)'}
-                    </span>
-                  </div>
-
-                  <div className="space-y-2 md:space-y-3">
-                    <Input
-                      ref={fileInputRef}
-                      type="file"
-                      accept={isVideoMode && transformationType === "video_to_video" ? "video/*" : "image/*"}
-                      multiple
-                      disabled={isVideoMode ? referenceFiles.length >= 3 : referenceFiles.length >= 5}
-                      onChange={(e) => {
-                        const files = Array.from(e.target.files || []);
-                        const maxFiles = isVideoMode ? 3 : 5;
-                        const remainingSlots = maxFiles - referenceFiles.length;
-                        const filesToAdd = files.slice(0, remainingSlots);
-                        
-                        if (files.length > remainingSlots) {
-                          toast.error(`${isVideoMode ? 'Veo 3.1 suporta no máximo 3 imagens' : 'Você pode adicionar no máximo 5 imagens'}. ${filesToAdd.length} imagem(ns) adicionada(s).`);
-                        }
-                        
-                        setReferenceFiles((prev) => [...prev, ...filesToAdd]);
-                      }}
-                      className={`h-12 md:h-14 rounded-xl border-2 bg-background/50 flex items-center file:mr-3 md:file:mr-4 file:h-full file:py-0 file:px-4 md:file:px-5 file:rounded-l-[10px] file:border-0 file:text-xs md:file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 hover:border-primary/30 transition-all cursor-pointer ${
-                        missingFields.includes('referenceFiles') ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/50'
-                      }`}
-                    />
-
-                    <div
-                      ref={pasteAreaRef}
-                      tabIndex={0}
-                      onPaste={handlePaste}
-                      className={`border-2 border-dashed rounded-xl p-3 md:p-4 text-center bg-muted/20 hover:bg-muted/30 transition-colors cursor-pointer focus:outline-none focus:ring-2 ${
-                        missingFields.includes('referenceFiles') 
-                          ? 'border-destructive ring-destructive/50' 
-                          : 'border-border/50 focus:ring-primary/50'
-                      }`}
-                    >
-                      <p className="text-xs md:text-sm text-muted-foreground">
-                        Cole sua imagem aqui (Ctrl+V)
-                      </p>
-                    </div>
-
-                    {referenceFiles.length > 0 && (
-                      <div className="space-y-2 p-3 bg-primary/5 rounded-xl border border-primary/20">
-                        <p className="text-xs font-semibold text-primary mb-2">
-                          {referenceFiles.length} imagem(ns) selecionada(s){isVideoMode && ` (máx: 3 para Veo 3.1)`}:
-                        </p>
-                        <div className="space-y-2">
-                          {referenceFiles.map((file, idx) => (
-                            <div key={idx} className="bg-background/50 rounded-lg p-3 group hover:bg-background transition-colors">
-                              <div className="flex items-center justify-between mb-2">
-                                <span className="text-sm text-foreground font-medium flex items-center gap-2 min-w-0 flex-1">
-                                  <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0"></div>
-                                  <span className="truncate">{file.name}</span>
-                                </span>
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleRemoveFile(idx)}
-                                  className="h-6 w-6 p-0 text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full flex-shrink-0 ml-2"
-                                >
-                                  <X className="h-3 w-3" />
-                                </Button>
-                              </div>
-                              
-                              <div className="flex items-start gap-2 mt-2 pt-2 border-t border-border/20">
-                                <Checkbox
-                                  id={`preserve-${idx}`}
-                                  checked={preserveImageIndices.includes(idx)}
-                                  onCheckedChange={() => handleTogglePreserve(idx)}
-                                  className="mt-0.5"
-                                />
-                                <Label
-                                  htmlFor={`preserve-${idx}`}
-                                  className="text-xs text-muted-foreground cursor-pointer leading-tight"
-                                >
-                                  Preservar traços desta imagem (cores, estilo, elementos visuais)
-                                </Label>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                        
-                        <div className="mt-3 p-2 bg-accent/10 rounded-lg border border-accent/20">
-                          <p className="text-xs text-muted-foreground flex items-start gap-1.5">
-                            <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0 text-accent" />
-                            <span>
-                              <strong className="text-accent">Dica:</strong> Marque "Preservar traços" nas imagens da sua marca/identidade visual. 
-                              As outras servirão apenas como referência de estilo.
-                            </span>
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
               </CardContent>
             </Card>
           </div>
@@ -2218,15 +2144,18 @@ ${formData.description}
                 </div>
 
                 {/* [2] UPLOAD DE IMAGENS DE REFERÊNCIA (condicional) */}
-                {formData.videoGenerationType === 'image_to_video' && (
-                  <Card className="bg-muted/30 border-2 border-primary/20">
+                  <Card className="bg-muted/30 border-2 border-primary/20 rounded-xl">
                     <CardContent className="p-4 space-y-3">
                       <div className="flex items-center justify-between">
-                        <Label className="text-sm font-semibold">Imagens de Referência</Label>
-                        <span className="text-xs font-medium text-muted-foreground">
-                          {referenceFiles.length}/3 imagens (Veo 3.1)
-                        </span>
+                        <Label className="text-sm font-semibold">📸 Imagens de Referência</Label>
+                        <Badge variant="outline" className="text-xs font-medium border-primary/40 text-primary bg-primary/10">
+                          {referenceFiles.length}/3 imagens
+                        </Badge>
                       </div>
+                      
+                      <p className="text-xs text-muted-foreground">
+                        Adicione até 3 imagens que servirão como base visual para o vídeo. O Veo 3.1 analisará composição, cores e elementos para criar consistência visual.
+                      </p>
                       
                       {/* Input de upload */}
                       <Input
@@ -2251,7 +2180,7 @@ ${formData.description}
                           
                           e.target.value = '';
                         }}
-                        className="h-12 rounded-xl border-2"
+                        className="h-12 rounded-xl border-2 file:mr-4 file:h-full file:py-0 file:px-5 file:rounded-l-[10px] file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
                       />
                       
                       {/* Área de cole */}
@@ -2261,16 +2190,17 @@ ${formData.description}
                         className="border-2 border-dashed rounded-xl p-4 text-center hover:bg-muted/50 transition-colors cursor-pointer"
                         tabIndex={0}
                       >
+                        <ImagePlus className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
                         <p className="text-xs text-muted-foreground">
-                          Cole sua imagem aqui (Ctrl+V)
+                          Clique para fazer upload ou cole aqui (Ctrl+V)
                         </p>
                       </div>
                       
                       {/* Lista de imagens com checkbox */}
                       {referenceFiles.length > 0 && (
-                        <div className="space-y-2">
+                        <div className="space-y-2 p-3 bg-background/50 rounded-lg border border-border/30">
                           {referenceFiles.map((file, idx) => (
-                            <div key={idx} className="flex items-center gap-3 p-3 bg-background rounded-lg">
+                            <div key={idx} className="flex items-center gap-3 p-3 bg-card rounded-lg border border-border/50 hover:border-primary/50 transition-colors">
                               <Checkbox
                                 id={`preserve-${idx}`}
                                 checked={preserveImageIndices.includes(idx)}
@@ -2283,7 +2213,10 @@ ${formData.description}
                                 }}
                               />
                               <Label htmlFor={`preserve-${idx}`} className="flex-1 text-sm cursor-pointer">
-                                {file.name} {preserveImageIndices.includes(idx) && '(Preservar traços)'}
+                                <span className="font-medium">{file.name}</span>
+                                {preserveImageIndices.includes(idx) && (
+                                  <span className="ml-2 text-xs text-primary">(Preservar traços)</span>
+                                )}
                               </Label>
                               <Button
                                 variant="ghost"
@@ -2295,11 +2228,18 @@ ${formData.description}
                                   );
                                   toast.success('Imagem removida');
                                 }}
+                                className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
                               >
                                 <X className="h-4 w-4" />
                               </Button>
                             </div>
                           ))}
+                          <div className="flex items-start gap-2 p-2 mt-2 bg-accent/5 rounded-lg border border-accent/20">
+                            <Info className="h-4 w-4 mt-0.5 flex-shrink-0 text-accent" />
+                            <p className="text-xs text-muted-foreground leading-tight">
+                              Marque "Preservar traços" para manter a identidade visual da imagem no vídeo final.
+                            </p>
+                          </div>
                         </div>
                       )}
                     </CardContent>
@@ -2338,11 +2278,11 @@ ${formData.description}
                         </SelectItem>
                       </SelectContent>
                     </Select>
-                    <p className="text-xs text-muted-foreground">
-                      {formData.videoAudioStyle === 'dialogue' && 'Conversas naturais com vozes sincronizadas'}
-                      {formData.videoAudioStyle === 'sound_effects' && 'Sons ambientes e efeitos sincronizados'}
-                      {formData.videoAudioStyle === 'music' && 'Trilha sonora de fundo adequada à cena'}
-                      {formData.videoAudioStyle === 'none' && 'Vídeo silencioso'}
+                    <p className="text-xs text-muted-foreground leading-tight">
+                      {formData.videoAudioStyle === 'dialogue' && '💬 Diálogos realistas com vozes sincronizadas aos movimentos'}
+                      {formData.videoAudioStyle === 'sound_effects' && '🔊 Efeitos sonoros ambientes e ações sincronizadas'}
+                      {formData.videoAudioStyle === 'music' && '🎵 Trilha sonora musical de fundo adequada à cena'}
+                      {formData.videoAudioStyle === 'none' && '🔇 Vídeo completamente silencioso'}
                     </p>
                   </div>
 
@@ -2375,11 +2315,11 @@ ${formData.description}
                         </SelectItem>
                       </SelectContent>
                     </Select>
-                    <p className="text-xs text-muted-foreground">
-                      {formData.videoVisualStyle === 'cinematic' && 'Qualidade de cinema profissional'}
-                      {formData.videoVisualStyle === 'animation' && 'Estilo animado e vibrante'}
-                      {formData.videoVisualStyle === 'realistic' && 'Aparência ultra-realista'}
-                      {formData.videoVisualStyle === 'creative' && 'Abordagem artística única'}
+                    <p className="text-xs text-muted-foreground leading-tight">
+                      {formData.videoVisualStyle === 'cinematic' && '🎬 Qualidade cinematográfica com movimentos suaves e iluminação profissional'}
+                      {formData.videoVisualStyle === 'animation' && '🎨 Estilo animado vibrante com cores saturadas e movimentos expressivos'}
+                      {formData.videoVisualStyle === 'realistic' && '📷 Ultra-realismo fotográfico com física e texturas naturais'}
+                      {formData.videoVisualStyle === 'creative' && '✨ Abordagem artística experimental com efeitos únicos'}
                     </p>
                   </div>
 
@@ -2467,13 +2407,34 @@ ${formData.description}
                   </div>
                 </div>
 
-                {/* Info sobre Veo 3.1 */}
-                <div className="flex items-start gap-2 p-3 md:p-4 mt-6 bg-accent/10 rounded-xl border border-accent/20">
-                  <Info className="h-4 w-4 text-accent mt-0.5 flex-shrink-0" />
-                  <div className="text-xs md:text-sm text-muted-foreground">
-                    <strong className="text-accent">Veo 3.1:</strong> Modelo avançado com 
-                    áudio nativo, controle de estilo cinematográfico e suporte a múltiplas 
-                    imagens de referência para consistência de personagens e cenários.
+                {/* Info sobre Veo 3.1 - Melhorado */}
+                <div className="space-y-3 p-4 mt-6 bg-gradient-to-br from-purple-500/5 via-blue-500/5 to-accent/5 rounded-xl border-2 border-purple-500/20">
+                  <div className="flex items-start gap-3">
+                    <Info className="h-5 w-5 text-purple-500 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1 space-y-2">
+                      <h4 className="text-sm font-semibold text-foreground">Gemini Veo 3.1 - Geração Avançada de Vídeo</h4>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        Modelo de última geração da Google com capacidades revolucionárias:
+                      </p>
+                      <ul className="text-xs text-muted-foreground space-y-1.5 ml-1">
+                        <li className="flex items-start gap-2">
+                          <span className="text-purple-500 mt-0.5">•</span>
+                          <span><strong>Áudio Nativo:</strong> Geração simultânea de áudio sincronizado com a ação visual</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-purple-500 mt-0.5">•</span>
+                          <span><strong>Múltiplas Imagens:</strong> Use até 3 imagens para garantir consistência de personagens e cenários</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-purple-500 mt-0.5">•</span>
+                          <span><strong>Controle Cinematográfico:</strong> Estilos visuais profissionais com física realista</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-purple-500 mt-0.5">•</span>
+                          <span><strong>Alta Resolução:</strong> Suporte para 1080p com até 8 segundos de duração</span>
+                        </li>
+                      </ul>
+                    </div>
                   </div>
                 </div>
               </CardContent>

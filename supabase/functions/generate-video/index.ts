@@ -204,17 +204,17 @@ serve(async (req) => {
 
     const { 
       prompt, 
-      referenceImage,
+      generationType = 'image_to_video',
+      referenceImages = [],
       preserveImages = [],
       styleReferenceImages = [],
       actionId,
       includeText = false,
       textContent = "",
       textPosition = "center",
-      // NOVOS PARÂMETROS VEO 3.1
+      // PARÂMETROS VEO 3.1
       audioStyle = 'sound_effects',
       visualStyle = 'cinematic',
-      referenceImages = [],
       aspectRatio = '9:16',
       resolution = '1080p',
       duration = 8,
@@ -222,9 +222,10 @@ serve(async (req) => {
     } = await req.json();
     
     console.log('🎬 Iniciando geração de vídeo com Gemini Veo 3.1');
+    console.log('🎯 Tipo de geração:', generationType);
     console.log('📝 Prompt:', prompt);
     console.log('🆔 Action ID:', actionId);
-    console.log('🖼️ Imagem de referência:', referenceImage ? 'Sim' : 'Não');
+    console.log('🖼️ Imagens de referência Veo 3.1:', referenceImages.length);
     console.log('🎨 Imagens para preservar:', preserveImages.length);
     console.log('✨ Imagens de estilo:', styleReferenceImages.length);
     console.log('📝 Incluir texto:', includeText);
@@ -235,7 +236,19 @@ serve(async (req) => {
     console.log('📐 Proporção:', aspectRatio);
     console.log('🎞️ Resolução:', resolution);
     console.log('⏱️ Duração:', duration + 's');
-    console.log('🖼️ Imagens de referência Veo 3.1:', referenceImages.length);
+
+    // Validações baseadas no tipo de geração
+    if (generationType === 'image_to_video' && referenceImages.length === 0) {
+      console.error('❌ Modo image_to_video requer pelo menos uma imagem de referência');
+      return new Response(
+        JSON.stringify({ error: 'Imagens de referência são obrigatórias para o modo Imagem para Vídeo' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (generationType === 'text_to_video' && referenceImages.length > 0) {
+      console.log('⚠️ Aviso: Imagens de referência fornecidas serão ignoradas no modo Texto para Vídeo');
+    }
 
     if (!actionId) {
       return new Response(
@@ -378,25 +391,16 @@ serve(async (req) => {
       console.log('⛔ Negative prompt:', negativePrompt);
     }
 
-    // PRIORIDADE: Usar referenceImages (Veo 3.1) se fornecido
-    if (referenceImages && referenceImages.length > 0) {
-      console.log(`📸 Using ${referenceImages.length} Veo 3.1 reference images`);
+
+    // USAR APENAS referenceImages (Veo 3.1) para image_to_video
+    if (generationType === 'image_to_video' && referenceImages && referenceImages.length > 0) {
+      console.log(`📸 Usando ${referenceImages.length} imagem(ns) de referência Veo 3.1`);
       requestBody.instances[0].reference_images = referenceImages.map((img: string) => ({
         bytesBase64Encoded: img.split(',')[1],
         mimeType: img.split(';')[0].split(':')[1]
       }));
-    } 
-    // FALLBACK: Usar referenceImage única (compatibilidade com Veo 3.0)
-    else if (referenceImage) {
-      console.log('📸 Using single reference image (Veo 3.0 compatibility)');
-      const mimeType = referenceImage.split(';')[0].split(':')[1];
-      const base64Data = referenceImage.split(',')[1];
-      
-      requestBody.instances[0].image = {
-        bytesBase64Encoded: base64Data,
-        mimeType: mimeType
-      };
     }
+
 
     // Start video generation with Veo 3.1
     console.log('Starting video generation with Veo 3.1...');
