@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useLocation, Link } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Download, Copy, Check, Maximize2, RefreshCw, Undo2, ExternalLink } from "lucide-react";
-import { Header } from "@/components/Header";
+import { Download, Copy, Check, Maximize2, RefreshCw, Undo2 } from "lucide-react";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -425,22 +424,19 @@ export default function QuickContentResult() {
   if (!imageUrl) return null;
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-background via-background to-muted/10">
-      <Header />
-      
-      <div className="flex-1 container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        {/* Page Header */}
-        <div className="mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-2">
-            Conteúdo Gerado
-          </h1>
-          <p className="text-sm sm:text-base text-muted-foreground">
-            Sua imagem foi criada com sucesso
-          </p>
-        </div>
+    <div className="container max-w-7xl mx-auto space-y-6 sm:space-y-8">
+      {/* Page Header */}
+      <div>
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-2">
+          Conteúdo Gerado
+        </h1>
+        <p className="text-sm sm:text-base text-muted-foreground">
+          Sua imagem foi criada com sucesso
+        </p>
+      </div>
 
-        {/* Action Buttons */}
-        <div className="flex flex-wrap gap-2 mb-6 sm:mb-8">
+      {/* Action Buttons */}
+      <div className="flex flex-wrap gap-2">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -606,16 +602,15 @@ export default function QuickContentResult() {
                         Esta criação foi salva no histórico
                       </p>
                     </div>
-                    <Link to={`/action/${actionId}`} className="flex-shrink-0 w-full sm:w-auto">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="hover:scale-105 transition-transform w-full sm:w-auto"
-                      >
-                        <ExternalLink className="mr-2 h-4 w-4" />
-                        Ver detalhes
-                      </Button>
-                    </Link>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate(`/action/${actionId}`)}
+                      className="hover:scale-105 transition-transform w-full sm:w-auto"
+                    >
+                      <Check className="mr-2 h-4 w-4 text-green-500" />
+                      Ver detalhes
+                    </Button>
                   </div>
                 </div>
               </Card>
@@ -744,7 +739,6 @@ export default function QuickContentResult() {
             </div>
           </DialogContent>
         </Dialog>
-      </div>
     </div>
   );
 }
