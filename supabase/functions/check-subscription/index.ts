@@ -12,7 +12,7 @@ const logStep = (step: string, details?: any) => {
   console.log(`[CHECK-SUBSCRIPTION] ${step}${detailsStr}`);
 };
 
-// Mapeamento de Stripe Product ID para Plan ID
+// Mapping from Stripe Product IDs to Plan IDs
 const STRIPE_PRODUCT_TO_PLAN: Record<string, string> = {
   'prod_T9jUCs242AIVtk': 'basic',
   'prod_T9jXbWuVLAjyRy': 'pro',
@@ -48,12 +48,17 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
+    const stripe = new Stripe(stripeKey, { apiVersion: "2024-12-18.acacia" });
+    
+    // Find customer by email
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     
     if (customers.data.length === 0) {
       logStep("No customer found");
-      return new Response(JSON.stringify({ subscribed: false }), {
+      return new Response(JSON.stringify({ 
+        subscribed: false,
+        message: "No Stripe customer found"
+      }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
       });
@@ -62,100 +67,115 @@ serve(async (req) => {
     const customerId = customers.data[0].id;
     logStep("Found Stripe customer", { customerId });
 
-    // Verificar subscriptions com status active, trialing ou past_due
+    // List active subscriptions
     const subscriptions = await stripe.subscriptions.list({
       customer: customerId,
-      limit: 10, // Aumentar limite para pegar todas as subscriptions recentes
+      status: "active",
+      limit: 1,
     });
-    
-    logStep("Subscriptions found", { 
-      count: subscriptions.data.length,
-      statuses: subscriptions.data.map((s: any) => s.status)
-    });
-    
-    // Procurar por subscription válida (active, trialing, ou recém-criada)
-    const validSubscription = subscriptions.data.find((s: any) => 
-      s.status === 'active' || 
-      s.status === 'trialing' || 
-      s.status === 'incomplete'
-    );
-    
-    const hasActiveSub = !!validSubscription;
-    let productId = null;
-    let subscriptionEnd = null;
-    let planId = null;
-    let subscriptionStatus = null;
 
-    if (hasActiveSub && validSubscription) {
-      const subscription = validSubscription;
-      
-      // Verificar se current_period_end existe e é válido
-      if (subscription.current_period_end) {
-        subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
-      }
-      subscriptionStatus = subscription.status;
-      
-      logStep("Valid subscription found", { 
-        subscriptionId: subscription.id, 
-        status: subscription.status,
-        endDate: subscriptionEnd,
-        periodEnd: subscription.current_period_end
-      });
-      
-      productId = subscription.items.data[0].price.product as string;
-      planId = STRIPE_PRODUCT_TO_PLAN[productId] || null;
-      logStep("Determined subscription tier", { productId, planId, status: subscriptionStatus });
-
-      // Buscar team_id do usuário
-      const { data: profile } = await supabaseClient
-        .from('profiles')
-        .select('team_id')
-        .eq('id', user.id)
-        .single();
-
-      if (profile?.team_id && planId) {
-        // Buscar créditos do novo plano
-        const { data: planData } = await supabaseClient
-          .from('plans')
-          .select('credits_quick_content, credits_suggestions, credits_plans, credits_reviews')
-          .eq('id', planId)
-          .single();
-
-        if (planData) {
-          // Atualizar team com novo plano e restaurar créditos
-          const { error: updateError } = await supabaseClient
-            .from('teams')
-            .update({
-              plan_id: planId,
-              subscription_period_end: subscriptionEnd,
-              subscription_status: subscription.status,
-              stripe_subscription_id: subscription.id,
-              stripe_customer_id: customerId,
-              credits_quick_content: planData.credits_quick_content,
-              credits_suggestions: planData.credits_suggestions,
-              credits_plans: planData.credits_plans,
-              credits_reviews: planData.credits_reviews,
-            })
-            .eq('id', profile.team_id);
-
-          if (updateError) {
-            logStep("Error updating team", { error: updateError });
-          } else {
-            logStep("Team updated successfully with new plan and credits");
-          }
-        }
-      }
-    } else {
+    if (subscriptions.data.length === 0) {
       logStep("No active subscription found");
+      return new Response(JSON.stringify({ 
+        subscribed: false,
+        message: "No active subscription"
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
     }
 
+    const subscription = subscriptions.data[0];
+    const subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
+    const productId = subscription.items.data[0].price.product as string;
+    const planId = STRIPE_PRODUCT_TO_PLAN[productId];
+    
+    logStep("Active subscription found", { 
+      subscriptionId: subscription.id, 
+      productId,
+      planId,
+      endDate: subscriptionEnd 
+    });
+
+    // Get user's profile to find team_id
+    const { data: profile, error: profileError } = await supabaseClient
+      .from('profiles')
+      .select('team_id')
+      .eq('id', user.id)
+      .single();
+
+    if (profileError || !profile?.team_id) {
+      logStep("Error fetching profile or no team_id", { error: profileError });
+      return new Response(JSON.stringify({ 
+        subscribed: true,
+        message: "Subscription active but no team found"
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
+    const teamId = profile.team_id;
+    logStep("Found team", { teamId });
+
+    if (!planId) {
+      logStep("Unknown product ID", { productId });
+      return new Response(JSON.stringify({ 
+        subscribed: true,
+        message: "Subscription active but plan not recognized"
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
+    // Get plan details
+    const { data: plan, error: planError } = await supabaseClient
+      .from('plans')
+      .select('*')
+      .eq('id', planId)
+      .single();
+
+    if (planError || !plan) {
+      logStep("Error fetching plan", { error: planError });
+      return new Response(JSON.stringify({ 
+        subscribed: true,
+        message: "Subscription active but plan details not found"
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
+    // Update team with subscription info and credits
+    const { error: updateError } = await supabaseClient
+      .from('teams')
+      .update({
+        plan_id: planId,
+        stripe_customer_id: customerId,
+        stripe_subscription_id: subscription.id,
+        subscription_status: 'active',
+        subscription_period_end: subscriptionEnd,
+        credits_quick_content: plan.credits_quick_content,
+        credits_suggestions: plan.credits_suggestions,
+        credits_reviews: plan.credits_reviews,
+        credits_plans: plan.credits_plans,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', teamId);
+
+    if (updateError) {
+      logStep("Error updating team", { error: updateError });
+      throw new Error(`Failed to update team: ${updateError.message}`);
+    }
+
+    logStep("Team updated successfully", { teamId, planId });
+
     return new Response(JSON.stringify({
-      subscribed: hasActiveSub,
-      product_id: productId,
+      subscribed: true,
       plan_id: planId,
       subscription_end: subscriptionEnd,
-      subscription_status: subscriptionStatus,
-      processing: subscriptionStatus === 'incomplete'
+      message: "Subscription verified and team updated"
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,

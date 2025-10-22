@@ -120,7 +120,7 @@ const Plans = () => {
 
   const checkSubscriptionStatus = useCallback(async () => {
     if (checkingSubscription.current) {
-      console.log("Subscription check already in progress, skipping...");
+      console.log("[CHECK-SUBSCRIPTION] Verificação já em andamento, ignorando...");
       return false;
     }
 
@@ -133,6 +133,8 @@ const Plans = () => {
       try {
         currentRetry++;
 
+        console.log(`[CHECK-SUBSCRIPTION] Tentativa ${currentRetry}/${MAX_RETRIES}`);
+        
         toast.info(`Verificando pagamento... (${currentRetry}/${MAX_RETRIES})`, {
           id: "subscription-check",
           description: "Aguarde enquanto confirmamos sua assinatura",
@@ -140,12 +142,17 @@ const Plans = () => {
 
         const { data, error } = await supabase.functions.invoke("check-subscription");
 
-        if (error) throw error;
+        if (error) {
+          console.error("[CHECK-SUBSCRIPTION] Erro:", error);
+          throw error;
+        }
+
+        console.log("[CHECK-SUBSCRIPTION] Resposta:", data);
 
         if (data?.subscribed) {
-          toast.success("Pagamento confirmado!", {
+          toast.success("✓ Pagamento confirmado!", {
             id: "subscription-check",
-            description: "Sua assinatura foi ativada com sucesso",
+            description: `Plano ${data.plan_id} ativado com sucesso`,
           });
 
           checkingSubscription.current = false;
@@ -156,16 +163,17 @@ const Plans = () => {
         if (currentRetry >= MAX_RETRIES) {
           toast.error("Tempo limite excedido", {
             id: "subscription-check",
-            description: 'Clique em "Verificar Status" para tentar novamente',
+            description: 'O pagamento pode estar sendo processado. Tente novamente em alguns minutos.',
           });
           checkingSubscription.current = false;
           return false;
         }
 
+        console.log("[CHECK-SUBSCRIPTION] Assinatura não encontrada, tentando novamente...");
         await new Promise((resolve) => setTimeout(resolve, RETRY_INTERVAL));
         return attemptCheck();
       } catch (error) {
-        console.error("Error checking subscription:", error);
+        console.error("[CHECK-SUBSCRIPTION] Erro na tentativa:", error);
 
         if (currentRetry >= MAX_RETRIES) {
           toast.error("Erro ao verificar pagamento", {
@@ -215,20 +223,35 @@ const Plans = () => {
 
     try {
       setLoadingPlanId(plan.id);
+      
+      console.log('[CREATE-CHECKOUT] Iniciando checkout:', { planId: plan.id, stripePriceId: plan.stripePriceId });
 
       const { data, error } = await supabase.functions.invoke("create-checkout", {
         body: { price_id: plan.stripePriceId },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('[CREATE-CHECKOUT] Erro:', error);
+        throw error;
+      }
+
+      console.log('[CREATE-CHECKOUT] Resposta:', data);
 
       if (data?.url) {
-        window.open(data.url, "_blank");
-        toast.success("Redirecionando para o checkout...");
+        toast.success("Redirecionando para pagamento...", {
+          description: "Você será redirecionado para o Stripe em instantes"
+        });
+        
+        // Redirect to Stripe Checkout
+        setTimeout(() => {
+          window.location.href = data.url;
+        }, 1000);
       }
     } catch (error) {
-      console.error("Error:", error);
-      toast.error("Erro ao iniciar assinatura. Tente novamente.");
+      console.error("[CREATE-CHECKOUT] Erro ao criar sessão:", error);
+      toast.error("Erro ao iniciar assinatura", {
+        description: error instanceof Error ? error.message : "Tente novamente em alguns instantes"
+      });
     } finally {
       setLoadingPlanId(null);
     }
