@@ -141,7 +141,7 @@ SISTEMA DE PLANOS E PREÇOS:
    - Período de teste: 7 dias
    
    💼 PLANO BASIC:
-   - Preço: Consulte a página de planos
+   - Preço: R$ 59,90/mês
    - 3 membros
    - 5 marcas
    - 10 temas estratégicos
@@ -153,7 +153,7 @@ SISTEMA DE PLANOS E PREÇOS:
    - Período de teste: 7 dias
    
    🚀 PLANO PRO (Mais Popular):
-   - Preço: Consulte a página de planos
+   - Preço: R$ 99,90/mês
    - 10 membros
    - 20 marcas
    - Temas estratégicos ilimitados
@@ -165,7 +165,7 @@ SISTEMA DE PLANOS E PREÇOS:
    - Período de teste: 14 dias
    
    👑 PLANO ENTERPRISE (Premium):
-   - Preço: Personalizado (contato via WhatsApp)
+   - Preço: R$ 499,90/mês
    - Membros ilimitados
    - Marcas ilimitadas
    - Temas ilimitados
