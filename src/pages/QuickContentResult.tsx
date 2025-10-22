@@ -665,35 +665,35 @@ export default function QuickContentResult() {
                 <p className="text-sm text-muted-foreground leading-relaxed">{prompt}</p>
               </div>
             </Card>
-          </div>
 
-          {/* Action Link */}
-          {actionId && (
-            <Card className="backdrop-blur-sm bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/30 shadow-lg rounded-xl overflow-hidden animate-fade-in hover:shadow-xl hover:shadow-primary/10 transition-all duration-300" style={{ animationDelay: "300ms" }}>
-              <div className="p-4 sm:p-5 lg:p-6">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-                  <div className="space-y-1 flex-1 min-w-0">
-                    <h3 className="font-semibold text-sm flex items-center gap-2">
-                      <div className="w-1 h-4 bg-gradient-to-b from-primary to-primary/60 rounded-full flex-shrink-0" />
-                      Ação registrada
-                    </h3>
-                    <p className="text-xs text-muted-foreground">
-                      Esta criação foi salva no histórico
-                    </p>
+            {/* Action Link */}
+            {actionId && (
+              <Card className="backdrop-blur-sm bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/30 shadow-lg rounded-xl overflow-hidden animate-fade-in hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 flex-1" style={{ animationDelay: "300ms" }}>
+                <div className="p-4 sm:p-5 lg:p-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+                    <div className="space-y-1 flex-1 min-w-0">
+                      <h3 className="font-semibold text-sm flex items-center gap-2">
+                        <div className="w-1 h-4 bg-gradient-to-b from-primary to-primary/60 rounded-full flex-shrink-0" />
+                        Ação registrada
+                      </h3>
+                      <p className="text-xs text-muted-foreground">
+                        Esta criação foi salva no histórico
+                      </p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate(`/action/${actionId}`)}
+                      className="hover:scale-105 transition-transform w-full sm:w-auto"
+                    >
+                      <Check className="mr-2 h-4 w-4 text-green-500" />
+                      Ver detalhes
+                    </Button>
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => navigate(`/action/${actionId}`)}
-                    className="hover:scale-105 transition-transform w-full sm:w-auto"
-                  >
-                    <Check className="mr-2 h-4 w-4 text-green-500" />
-                    Ver detalhes
-                  </Button>
                 </div>
-              </div>
-            </Card>
-          )}
+              </Card>
+            )}
+          </div>
         </div>
 
         {/* Image Dialog */}
