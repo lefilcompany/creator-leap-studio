@@ -281,8 +281,8 @@ export default function Team() {
           {/* Team Information Card */}
           <TeamInfoCard team={team} userRole="admin" />
           
-          {/* Access Code Card */}
-          <Card className="shadow-lg border-2 border-primary/20 bg-gradient-to-br from-card via-primary/5 to-secondary/10 hover:border-primary/30 hover:shadow-xl transition-all duration-300">
+          {/* Access Code Card - Visível apenas em telas menores que xl */}
+          <Card className="xl:hidden shadow-lg border-2 border-primary/20 bg-gradient-to-br from-card via-primary/5 to-secondary/10 hover:border-primary/30 hover:shadow-xl transition-all duration-300">
             <CardHeader className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-t-lg pb-3">
               <CardTitle className="text-xl bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                 Código de Acesso
@@ -386,7 +386,37 @@ export default function Team() {
         </div>
 
         {/* Right Column - Team Members */}
-        <div className="w-full xl:w-1/2 flex flex-col">
+        <div className="w-full xl:w-1/2 flex flex-col space-y-6">
+          {/* Access Code Card - Visível apenas em desktop xl */}
+          <Card className="hidden xl:block shadow-lg border-2 border-primary/20 bg-gradient-to-br from-card via-primary/5 to-secondary/10 hover:border-primary/30 hover:shadow-xl transition-all duration-300">
+            <CardHeader className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-t-lg pb-3">
+              <CardTitle className="text-xl bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                Código de Acesso
+              </CardTitle>
+              <CardDescription>
+                Compartilhe para novos membros solicitarem entrada
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-2">
+                <Input
+                  value={team.code || 'TIMELEFIL'}
+                  readOnly
+                  className="bg-gradient-to-r from-muted/50 to-primary/5 cursor-not-allowed border-primary/20 font-mono text-lg"
+                />
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={copyToClipboard}
+                  className="border-primary/30 hover:bg-primary/10 hover:border-primary/50 hover:scale-105 active:scale-95 transition-all duration-200"
+                >
+                  <ClipboardCopy className="h-4 w-4 text-primary" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+          
+          {/* Team Members Card */}
           <Card className="flex flex-col overflow-hidden bg-gradient-to-br from-card via-secondary/5 to-accent/5 border-secondary/20 shadow-lg hover:shadow-xl transition-all duration-300">
             <CardHeader className="bg-gradient-to-r from-secondary/10 to-accent/10 rounded-t-lg pb-4 flex-shrink-0">
               <CardTitle className="flex items-center justify-between">
