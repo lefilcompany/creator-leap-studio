@@ -362,7 +362,7 @@ const Plans = () => {
                         rel="noopener noreferrer"
                         className="flex items-center justify-center gap-2"
                       >
-                        {isCurrentPlan ? "✓ Plano Atual" : "💬 Falar no WhatsApp"}
+                        {isCurrentPlan ? "Plano Atual" : "Falar no WhatsApp"}
                       </a>
                     </Button>
                   ) : (
@@ -378,12 +378,12 @@ const Plans = () => {
                       disabled={isCurrentPlan || loadingPlanId === plan.id || (plan.price > 0 && !plan.stripePriceId)}
                     >
                       {isCurrentPlan
-                        ? "✓ Plano Atual"
+                        ? "Plano Atual"
                         : loadingPlanId === plan.id
-                          ? "⏳ Processando..."
+                          ? "Processando..."
                           : plan.price > 0 && !plan.stripePriceId
-                            ? "🔜 Em Breve"
-                            : "🚀 Assinar Agora"}
+                            ? "Em Breve"
+                            : "Assinar Agora"}
                     </Button>
                   )}
                 </CardContent>
