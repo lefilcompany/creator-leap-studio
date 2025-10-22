@@ -583,9 +583,9 @@ export default function QuickContentResult() {
       </Card>
 
         {/* Content Grid */}
-        <div className="flex flex-col gap-4 sm:gap-5 md:gap-6">
+        <div className="flex flex-col xl:flex-row gap-4 sm:gap-5 md:gap-6 xl:gap-8">
           {/* Image Display */}
-          <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-xl sm:rounded-2xl overflow-hidden animate-fade-in hover:shadow-xl transition-shadow duration-300">
+          <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-xl sm:rounded-2xl overflow-hidden animate-fade-in hover:shadow-xl transition-shadow duration-300 xl:flex-1">
             <div className="p-4 sm:p-5 lg:p-6 space-y-3 sm:space-y-4">
               <div className="flex items-center justify-between">
                 <h2 className="text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">
@@ -623,9 +623,9 @@ export default function QuickContentResult() {
           </Card>
 
           {/* Details Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
+          <div className="flex flex-col gap-4 sm:gap-5 xl:flex-1">
             {/* Description */}
-            <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-xl overflow-hidden animate-fade-in hover:shadow-xl transition-shadow duration-300" style={{ animationDelay: "100ms" }}>
+            <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-xl overflow-hidden animate-fade-in hover:shadow-xl transition-shadow duration-300 flex-1" style={{ animationDelay: "100ms" }}>
               <div className="p-4 sm:p-5 lg:p-6 space-y-2 sm:space-y-3">
                 <h2 className="text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">
                   <div className="w-1 h-5 bg-gradient-to-b from-primary to-primary/60 rounded-full" />
@@ -636,7 +636,7 @@ export default function QuickContentResult() {
             </Card>
 
             {/* Prompt */}
-            <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-xl overflow-hidden animate-fade-in hover:shadow-xl transition-shadow duration-300" style={{ animationDelay: "200ms" }}>
+            <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-xl overflow-hidden animate-fade-in hover:shadow-xl transition-shadow duration-300 flex-1" style={{ animationDelay: "200ms" }}>
               <div className="p-4 sm:p-5 lg:p-6 space-y-2 sm:space-y-3">
                 <div className="flex items-center justify-between gap-2">
                   <h2 className="text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">
