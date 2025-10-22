@@ -3,7 +3,8 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Download, Copy, Check, Maximize2, RefreshCw, Undo2 } from "lucide-react";
+import { Download, Copy, Check, Maximize2, RefreshCw, Undo2, Zap, ArrowLeft } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -424,16 +425,74 @@ export default function QuickContentResult() {
   if (!imageUrl) return null;
 
   return (
-    <div className="container max-w-7xl mx-auto space-y-6 sm:space-y-8">
-      {/* Page Header */}
-      <div>
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-2">
-          Conteúdo Gerado
-        </h1>
-        <p className="text-sm sm:text-base text-muted-foreground">
-          Sua imagem foi criada com sucesso
-        </p>
-      </div>
+    <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-5 md:space-y-6">
+      {/* Header Card */}
+      <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-md rounded-xl overflow-hidden animate-fade-in">
+        <div className="p-3 sm:p-4 md:p-5">
+          {/* Mobile Layout */}
+          <div className="flex sm:hidden items-center justify-between gap-2">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => navigate("/quick-content")} 
+              className="rounded-xl hover:bg-primary/10 hover:border-primary/20 border border-transparent hover-scale transition-all duration-200 flex-shrink-0 hover:shadow-md hover:text-primary h-8 w-8"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <div className="flex-shrink-0 bg-primary/10 text-primary rounded-xl p-2">
+              <Zap className="h-5 w-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <h1 className="font-bold text-foreground leading-tight text-base">Criação Rápida</h1>
+              <p className="text-muted-foreground text-xs leading-tight truncate">
+                Imagem gerada com sucesso
+              </p>
+            </div>
+            <div className="flex items-center gap-1.5 flex-shrink-0">
+              <Badge variant="outline" className="bg-muted/50 text-muted-foreground border-border/30 gap-1 px-2 py-1 text-xs h-7">
+                <RefreshCw className="h-3 w-3" />
+                <span>{freeRevisionsLeft > 0 ? freeRevisionsLeft : team?.credits?.contentReviews || 0}</span>
+              </Badge>
+            </div>
+          </div>
+
+          {/* Desktop/Tablet Layout */}
+          <div className="hidden sm:flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => navigate("/quick-content")} 
+                className="rounded-xl hover:bg-primary/10 hover:border-primary/20 border border-transparent hover-scale transition-all duration-200 flex-shrink-0 hover:shadow-md hover:text-primary"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <div className="flex-shrink-0 bg-primary/10 text-primary rounded-xl p-2.5 lg:p-3">
+                  <Zap className="h-5 w-5 lg:h-6 lg:w-6" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-foreground truncate">
+                    Criação Rápida
+                  </h1>
+                  <p className="text-muted-foreground text-sm truncate">
+                    Imagem gerada com sucesso
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <Badge variant="outline" className="bg-muted/50 text-muted-foreground border-border/30 gap-2 px-3 py-1.5 text-xs">
+                <RefreshCw className="h-3 w-3" />
+                <span>
+                  {freeRevisionsLeft > 0 ? <>{freeRevisionsLeft} revisões grátis</> : <>{team?.credits?.contentReviews || 0} créditos</>}
+                </span>
+              </Badge>
+            </div>
+          </div>
+        </div>
+      </Card>
 
       {/* Action Buttons */}
       <div className="flex flex-wrap gap-2">
@@ -507,33 +566,35 @@ export default function QuickContentResult() {
         </div>
 
         {/* Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
+        <div className="flex flex-col gap-4 sm:gap-5 md:gap-6">
           {/* Image Display */}
-          <Card className="group overflow-hidden border-border/50 bg-card/50 backdrop-blur-sm hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300">
+          <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-xl sm:rounded-2xl overflow-hidden animate-fade-in hover:shadow-xl transition-shadow duration-300">
             <div className="p-4 sm:p-5 lg:p-6 space-y-3 sm:space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-sm sm:text-base lg:text-lg font-semibold flex items-center gap-2">
-                  <div className="w-1 h-4 sm:h-5 bg-gradient-to-b from-primary to-primary/60 rounded-full" />
+                <h2 className="text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">
+                  <div className="w-1 h-5 bg-gradient-to-b from-primary to-primary/60 rounded-full" />
                   Imagem Gerada
                 </h2>
-                <Button variant="ghost" size="sm" onClick={() => setIsImageDialogOpen(true)} className="gap-1.5 sm:gap-2 h-8 sm:h-9">
-                  <Maximize2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                  <span className="hidden sm:inline text-xs sm:text-sm">Ampliar</span>
+                <Button variant="ghost" size="sm" onClick={() => setIsImageDialogOpen(true)} className="gap-2 hover:scale-105 transition-transform">
+                  <Maximize2 className="h-4 w-4" />
+                  <span className="hidden sm:inline text-sm">Ampliar</span>
                 </Button>
               </div>
               <div
-                className="relative aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-muted/50 to-muted border border-border/50 shadow-inner group-hover:scale-[1.02] transition-transform duration-300 cursor-pointer"
+                className="relative aspect-square max-h-[500px] sm:max-h-[600px] rounded-xl overflow-hidden bg-muted/30 cursor-pointer group"
                 onClick={() => setIsImageDialogOpen(true)}
               >
                 <img
                   src={currentImageUrl}
                   alt="Conteúdo gerado"
-                  className="w-full h-full object-contain"
+                  className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
                   key={currentImageUrl}
                 />
+                {/* Overlay gradient */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
               </div>
               {totalRevisions > 0 && (
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/30 px-3 py-2 rounded-lg">
                   <RefreshCw className="h-3 w-3" />
                   <span>
                     {totalRevisions} revisão{totalRevisions !== 1 ? "ões" : ""} realizada
@@ -544,78 +605,78 @@ export default function QuickContentResult() {
             </div>
           </Card>
 
-          {/* Details */}
-            <div className="space-y-4 sm:space-y-6">
+          {/* Details Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
             {/* Description */}
-            <Card className="border-border/50 bg-card/50 backdrop-blur-sm hover:shadow-lg hover:shadow-primary/5 transition-all duration-300">
+            <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-xl overflow-hidden animate-fade-in hover:shadow-xl transition-shadow duration-300" style={{ animationDelay: "100ms" }}>
               <div className="p-4 sm:p-5 lg:p-6 space-y-2 sm:space-y-3">
-                <h2 className="text-sm sm:text-base lg:text-lg font-semibold flex items-center gap-2">
-                  <div className="w-1 h-4 sm:h-5 bg-gradient-to-b from-primary to-primary/60 rounded-full" />
+                <h2 className="text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">
+                  <div className="w-1 h-5 bg-gradient-to-b from-primary to-primary/60 rounded-full" />
                   Descrição
                 </h2>
-                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed pl-3">{description}</p>
+                <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
               </div>
             </Card>
 
             {/* Prompt */}
-            <Card className="border-border/50 bg-card/50 backdrop-blur-sm hover:shadow-lg hover:shadow-primary/5 transition-all duration-300">
+            <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-xl overflow-hidden animate-fade-in hover:shadow-xl transition-shadow duration-300" style={{ animationDelay: "200ms" }}>
               <div className="p-4 sm:p-5 lg:p-6 space-y-2 sm:space-y-3">
                 <div className="flex items-center justify-between gap-2">
-                  <h2 className="text-sm sm:text-base lg:text-lg font-semibold flex items-center gap-2">
-                    <div className="w-1 h-4 sm:h-5 bg-gradient-to-b from-primary to-primary/60 rounded-full" />
+                  <h2 className="text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">
+                    <div className="w-1 h-5 bg-gradient-to-b from-primary to-primary/60 rounded-full" />
                     Prompt Utilizado
                   </h2>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={handleCopyPrompt}
-                    className="hover:scale-105 transition-transform h-8 sm:h-9 shrink-0"
+                    className="hover:scale-105 transition-transform"
                   >
                     {isCopied ? (
                       <>
-                        <Check className="mr-1 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                        <span className="text-xs sm:text-sm">Copiado</span>
+                        <Check className="mr-2 h-4 w-4" />
+                        <span className="text-sm">Copiado</span>
                       </>
                     ) : (
                       <>
-                        <Copy className="mr-1 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                        <span className="text-xs sm:text-sm">Copiar</span>
+                        <Copy className="mr-2 h-4 w-4" />
+                        <span className="text-sm">Copiar</span>
                       </>
                     )}
                   </Button>
                 </div>
-                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed pl-3">{prompt}</p>
+                <p className="text-sm text-muted-foreground leading-relaxed">{prompt}</p>
               </div>
             </Card>
-
-            {/* Action Link */}
-            {actionId && (
-              <Card className="border-primary/30 bg-gradient-to-br from-primary/10 to-primary/5 backdrop-blur-sm hover:shadow-lg hover:shadow-primary/10 transition-all duration-300">
-                <div className="p-4 sm:p-5 lg:p-6">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-                    <div className="space-y-1 flex-1 min-w-0">
-                      <h3 className="font-semibold text-xs sm:text-sm flex items-center gap-2">
-                        <div className="w-1 h-3.5 sm:h-4 bg-gradient-to-b from-primary to-primary/60 rounded-full flex-shrink-0" />
-                        Ação registrada
-                      </h3>
-                      <p className="text-[10px] sm:text-xs text-muted-foreground pl-3 break-words">
-                        Esta criação foi salva no histórico
-                      </p>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => navigate(`/action/${actionId}`)}
-                      className="hover:scale-105 transition-transform w-full sm:w-auto"
-                    >
-                      <Check className="mr-2 h-4 w-4 text-green-500" />
-                      Ver detalhes
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            )}
           </div>
+
+          {/* Action Link */}
+          {actionId && (
+            <Card className="backdrop-blur-sm bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/30 shadow-lg rounded-xl overflow-hidden animate-fade-in hover:shadow-xl hover:shadow-primary/10 transition-all duration-300" style={{ animationDelay: "300ms" }}>
+              <div className="p-4 sm:p-5 lg:p-6">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+                  <div className="space-y-1 flex-1 min-w-0">
+                    <h3 className="font-semibold text-sm flex items-center gap-2">
+                      <div className="w-1 h-4 bg-gradient-to-b from-primary to-primary/60 rounded-full flex-shrink-0" />
+                      Ação registrada
+                    </h3>
+                    <p className="text-xs text-muted-foreground">
+                      Esta criação foi salva no histórico
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate(`/action/${actionId}`)}
+                    className="hover:scale-105 transition-transform w-full sm:w-auto"
+                  >
+                    <Check className="mr-2 h-4 w-4 text-green-500" />
+                    Ver detalhes
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          )}
         </div>
 
         {/* Image Dialog */}
