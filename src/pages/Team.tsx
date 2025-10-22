@@ -10,6 +10,14 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import TeamInfoCard from '@/components/perfil/TeamInfoCard';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 interface TeamMember {
   id: string;
@@ -30,6 +38,13 @@ export default function Team() {
   const [isLoading, setIsLoading] = useState(false);
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [pendingRequests, setPendingRequests] = useState<JoinRequest[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const membersPerPage = 5;
+
+  // Resetar página quando membros mudarem
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [members.length]);
 
   useEffect(() => {
     if (user && team) {
@@ -250,9 +265,9 @@ export default function Team() {
       </div>
 
       {/* Main Content */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+      <div className="flex flex-col xl:flex-row gap-6">
         {/* Left Column - Team Info and Requests */}
-        <div className="space-y-6">
+        <div className="w-full xl:w-1/2 space-y-6 flex flex-col">
           {/* Team Information Card */}
           <TeamInfoCard team={team} userRole="admin" />
           
@@ -286,8 +301,8 @@ export default function Team() {
           </Card>
 
           {/* Pending Requests Card */}
-          <Card className="flex-1 flex flex-col bg-gradient-to-br from-card via-accent/5 to-primary/5 border-accent/20 shadow-lg hover:shadow-xl transition-all duration-300">
-            <CardHeader className="bg-gradient-to-r from-accent/10 to-primary/10 rounded-t-lg pb-3">
+          <Card className="flex flex-col bg-gradient-to-br from-card via-accent/5 to-primary/5 border-accent/20 shadow-lg hover:shadow-xl transition-all duration-300 h-fit max-h-[500px]">
+            <CardHeader className="bg-gradient-to-r from-accent/10 to-primary/10 rounded-t-lg pb-3 flex-shrink-0">
               <CardTitle className="flex items-center gap-2 text-accent text-xl">
                 <UserPlus className="h-5 w-5" />
                 Solicitações para Aprovação
@@ -299,7 +314,7 @@ export default function Team() {
               </CardTitle>
               <CardDescription>Aprove ou recuse as solicitações para entrar na sua equipe.</CardDescription>
             </CardHeader>
-            <CardContent className="p-6">
+            <CardContent className="p-6 overflow-y-auto flex-1">
               {pendingRequests.length > 0 ? (
                 <div className="space-y-3">
                   {pendingRequests.map(request => (
@@ -361,9 +376,9 @@ export default function Team() {
         </div>
 
         {/* Right Column - Team Members */}
-        <div className="flex flex-col">
-          <Card className="flex-1 flex flex-col overflow-hidden bg-gradient-to-br from-card via-secondary/5 to-accent/5 border-secondary/20 shadow-lg hover:shadow-xl transition-all duration-300">
-            <CardHeader className="bg-gradient-to-r from-secondary/10 to-accent/10 rounded-t-lg pb-4">
+        <div className="w-full xl:w-1/2 flex flex-col">
+          <Card className="flex flex-col overflow-hidden bg-gradient-to-br from-card via-secondary/5 to-accent/5 border-secondary/20 shadow-lg hover:shadow-xl transition-all duration-300">
+            <CardHeader className="bg-gradient-to-r from-secondary/10 to-accent/10 rounded-t-lg pb-4 flex-shrink-0">
               <CardTitle className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-secondary text-xl">
                   <Users className="h-6 w-6" />
@@ -377,10 +392,11 @@ export default function Team() {
                 Usuários que foram aprovados e fazem parte da equipe
               </CardDescription>
             </CardHeader>
-            <CardContent className="p-6">
+            <CardContent className="p-6 flex flex-col flex-1">
               {members.length > 0 ? (
-                <div className="space-y-4">
-                  {members.map(member => (
+                <>
+                  <div className="space-y-4 flex-1">
+                    {members.slice((currentPage - 1) * membersPerPage, currentPage * membersPerPage).map(member => (
                     <div
                       key={member.id}
                       className="group relative flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-background/90 via-background/70 to-secondary/5 border border-secondary/10 hover:border-secondary/30 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]"
@@ -444,6 +460,44 @@ export default function Team() {
                     </div>
                   ))}
                 </div>
+                
+                {/* Paginação */}
+                {members.length > membersPerPage && (
+                  <div className="mt-6 pt-4 border-t">
+                    <Pagination>
+                      <PaginationContent>
+                        <PaginationItem>
+                          <PaginationPrevious 
+                            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                            disabled={currentPage === 1}
+                            className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                          />
+                        </PaginationItem>
+                        
+                        {Array.from({ length: Math.ceil(members.length / membersPerPage) }, (_, i) => i + 1).map((page) => (
+                          <PaginationItem key={page}>
+                            <PaginationLink
+                              onClick={() => setCurrentPage(page)}
+                              isActive={currentPage === page}
+                              className="cursor-pointer"
+                            >
+                              {page}
+                            </PaginationLink>
+                          </PaginationItem>
+                        ))}
+                        
+                        <PaginationItem>
+                          <PaginationNext 
+                            onClick={() => setCurrentPage(prev => Math.min(Math.ceil(members.length / membersPerPage), prev + 1))}
+                            disabled={currentPage === Math.ceil(members.length / membersPerPage)}
+                            className={currentPage === Math.ceil(members.length / membersPerPage) ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                          />
+                        </PaginationItem>
+                      </PaginationContent>
+                    </Pagination>
+                  </div>
+                )}
+              </>
               ) : (
                 <div className="flex flex-col items-center justify-center text-center py-12">
                   <div className="bg-gradient-to-br from-secondary/10 to-accent/10 rounded-full w-16 h-16 flex items-center justify-center mb-4">
