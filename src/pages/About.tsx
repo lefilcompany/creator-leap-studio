@@ -170,6 +170,12 @@ export default function About() {
             <CardDescription className="text-lg">
               Tem dúvidas? Quer saber mais? Estamos aqui para ajudar!
             </CardDescription>
+            <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-green-500/20 to-green-600/20 border-2 border-green-500/40">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="text-sm font-semibold text-green-700 dark:text-green-400">
+                Resposta em até 24/48 horas
+              </span>
+            </div>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid md:grid-cols-2 gap-6">
