@@ -2144,6 +2144,7 @@ ${formData.description}
                 </div>
 
                 {/* [2] UPLOAD DE IMAGENS DE REFERÊNCIA (condicional) */}
+                {formData.videoGenerationType === 'image_to_video' && (
                   <Card className="bg-muted/30 border-2 border-primary/20 rounded-xl">
                     <CardContent className="p-4 space-y-3">
                       <div className="flex items-center justify-between">
