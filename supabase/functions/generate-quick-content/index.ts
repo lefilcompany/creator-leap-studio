@@ -254,6 +254,33 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
     enhancedPrompt += `\nQualidade fotográfica profissional com foco nítido e textura rica.`;
     enhancedPrompt += `\n${'='.repeat(80)}`;
 
+    // HD/4K Quality Specifications
+    enhancedPrompt += `\n\n${'='.repeat(80)}`;
+    enhancedPrompt += `\n🎨 ESPECIFICAÇÕES TÉCNICAS DE QUALIDADE HD/4K`;
+    enhancedPrompt += `\n${'='.repeat(80)}`;
+    enhancedPrompt += `\n\n📐 RESOLUÇÃO E QUALIDADE:`;
+    enhancedPrompt += `\n• Resolução mínima: Full HD (1920x1080 pixels)`;
+    enhancedPrompt += `\n• Resolução ideal: 4K (3840x2160 pixels) ou superior`;
+    enhancedPrompt += `\n• DPI: 300 DPI para impressão profissional`;
+    enhancedPrompt += `\n• Nitidez máxima em todos os elementos da imagem`;
+    enhancedPrompt += `\n• Textura rica e detalhamento profissional`;
+    enhancedPrompt += `\n• Sem artefatos de compressão ou ruído digital`;
+    enhancedPrompt += `\n• Adequada para uso comercial, impressão e ampliação`;
+    enhancedPrompt += `\n${'='.repeat(80)}`;
+
+    // Add platform-specific guidelines with target resolution
+    const resolutionMap: Record<string, string> = {
+      '1:1': '4096x4096px (4K quadrado - Instagram Feed, LinkedIn)',
+      '4:5': '3240x4050px (Alta resolução portrait - Instagram Feed)',
+      '9:16': '2160x3840px (4K vertical - Stories, Reels, TikTok)',
+      '16:9': '3840x2160px (4K landscape - YouTube, TV, apresentações)',
+      '3:4': '3240x4320px (Alta resolução portrait - Pinterest)'
+    };
+    
+    const targetResolution = resolutionMap[normalizedAspectRatio] || 'Resolução 4K ou superior';
+    
+    enhancedPrompt += `\n\n📏 RESOLUÇÃO ALVO: ${targetResolution}`;
+    
     // Add platform-specific guidelines using normalized aspect ratio
     if (platform && platformSpecs[platform]) {
       const spec = platformSpecs[platform];
@@ -528,6 +555,18 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
       enhancedPrompt += `\n   - Extraia apenas o estilo e recomponha no formato correto`;
       enhancedPrompt += `\n${'='.repeat(80)}`;
     }
+
+    // Final quality reminder
+    enhancedPrompt += `\n\n${'='.repeat(80)}`;
+    enhancedPrompt += `\n⚠️ LEMBRETE FINAL - QUALIDADE MÁXIMA OBRIGATÓRIA`;
+    enhancedPrompt += `\n${'='.repeat(80)}`;
+    enhancedPrompt += `\n\n✅ A imagem DEVE ter:`;
+    enhancedPrompt += `\n• Nitidez profissional de nível comercial`;
+    enhancedPrompt += `\n• Textura rica e detalhamento máximo`;
+    enhancedPrompt += `\n• Resolução HD/4K ou superior (${targetResolution})`;
+    enhancedPrompt += `\n• Qualidade adequada para impressão e ampliação`;
+    enhancedPrompt += `\n• Ausência total de artefatos de compressão`;
+    enhancedPrompt += `\n${'='.repeat(80)}`;
 
     // Final reinforcement of aspect ratio
     enhancedPrompt += `\n\n${'='.repeat(60)}`;
