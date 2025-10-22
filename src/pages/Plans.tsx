@@ -351,8 +351,7 @@ const Plans = () => {
 
                   {plan.name.toUpperCase() === "FREE" ? null : plan.name.toUpperCase() === "ENTERPRISE" ? (
                     <Button
-                      className="w-full text-xs md:text-sm"
-                      variant="outline"
+                      className="w-full text-sm font-semibold bg-gradient-to-r from-secondary via-secondary/90 to-accent hover:from-secondary/90 hover:via-secondary/80 hover:to-accent/90 shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-300 active:scale-[0.98]"
                       size="sm"
                       disabled={isCurrentPlan}
                       asChild
@@ -361,25 +360,30 @@ const Plans = () => {
                         href="https://wa.me/558199660072" 
                         target="_blank" 
                         rel="noopener noreferrer"
+                        className="flex items-center justify-center gap-2"
                       >
-                        {isCurrentPlan ? "Plano Atual" : "Falar no WhatsApp"}
+                        {isCurrentPlan ? "✓ Plano Atual" : "💬 Falar no WhatsApp"}
                       </a>
                     </Button>
                   ) : (
                     <Button
-                      className="w-full text-xs md:text-sm"
+                      className={`w-full text-sm font-semibold shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-300 active:scale-[0.98] ${
+                        isPopular 
+                          ? "bg-gradient-to-r from-primary via-primary/90 to-secondary hover:from-primary/90 hover:via-primary/80 hover:to-secondary/90" 
+                          : "border-2 border-primary/30 hover:bg-primary/10 hover:border-primary/50"
+                      }`}
                       variant={isPopular ? "default" : "outline"}
                       size="sm"
                       onClick={() => handleSubscribe(plan)}
                       disabled={isCurrentPlan || loadingPlanId === plan.id || (plan.price > 0 && !plan.stripePriceId)}
                     >
                       {isCurrentPlan
-                        ? "Plano Atual"
+                        ? "✓ Plano Atual"
                         : loadingPlanId === plan.id
-                          ? "Processando..."
+                          ? "⏳ Processando..."
                           : plan.price > 0 && !plan.stripePriceId
-                            ? "Em Breve"
-                            : "Assinar Agora"}
+                            ? "🔜 Em Breve"
+                            : "🚀 Assinar Agora"}
                     </Button>
                   )}
                 </CardContent>
