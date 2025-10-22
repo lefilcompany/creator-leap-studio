@@ -377,11 +377,21 @@ export default function CreateContent() {
     field: keyof Omit<FormData, "tone">,
     value: string
   ) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    if (field === "brand") {
-      setFormData((prev) => ({ 
-        ...prev,
-        brand: value,
+    try {
+      // Validação defensiva
+      if (!field || value === undefined) {
+        console.error('❌ handleSelectChange: Invalid field or value', { field, value });
+        toast.error("Erro ao atualizar campo", {
+          description: "Por favor, tente novamente.",
+        });
+        return;
+      }
+
+      setFormData((prev) => ({ ...prev, [field]: value }));
+      if (field === "brand") {
+        setFormData((prev) => ({ 
+          ...prev,
+          brand: value,
         theme: "",
         persona: ""
       }));
@@ -400,6 +410,12 @@ export default function CreateContent() {
           duration: 4000
         });
       }
+    }
+    } catch (error) {
+      console.error('❌ handleSelectChange error:', error);
+      toast.error("Erro ao atualizar campo", {
+        description: "Por favor, tente novamente.",
+      });
     }
   };
 
