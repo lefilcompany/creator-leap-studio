@@ -253,9 +253,11 @@ export default function ActionView() {
       toast.error('Erro ao gerar DOCX.');
     }
   };
-  const handleDownloadImage = (imageUrl: string, filename: string = 'imagem') => {
+  const handleDownloadImage = async (imageUrl: string, filename: string = 'imagem') => {
     try {
-      // Se for base64
+      toast.info('Preparando download em alta qualidade...');
+      
+      // Se for base64 - download direto para preservar qualidade máxima
       if (imageUrl.startsWith('data:image')) {
         const link = document.createElement('a');
         link.href = imageUrl;
@@ -263,11 +265,26 @@ export default function ActionView() {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        toast.success('Download iniciado!');
+        toast.success('Download concluído em qualidade máxima!');
       } else {
-        // Se for URL externa
-        window.open(imageUrl, '_blank');
-        toast.success('Imagem aberta em nova aba');
+        // Se for URL - fazer fetch para preservar qualidade original
+        try {
+          const response = await fetch(imageUrl, { mode: 'cors' });
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `${filename}-${new Date().toISOString().split('T')[0]}.png`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+          toast.success('Download concluído em qualidade máxima!');
+        } catch (fetchError) {
+          // Fallback: abrir em nova aba
+          window.open(imageUrl, '_blank');
+          toast.success('Imagem aberta em nova aba');
+        }
       }
     } catch (error) {
       toast.error('Erro ao fazer download da imagem');

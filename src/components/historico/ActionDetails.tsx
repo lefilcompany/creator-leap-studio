@@ -283,19 +283,38 @@ export default function ActionDetails({ action, isLoading = false }: ActionDetai
     }
   };
 
-  const handleDownloadImage = (imageUrl: string) => {
+  const handleDownloadImage = async (imageUrl: string) => {
     try {
+      toast.info('Preparando download em alta qualidade...');
+      
       if (imageUrl.startsWith('data:image')) {
+        // Base64 - download direto para preservar qualidade máxima
         const link = document.createElement('a');
         link.href = imageUrl;
         link.download = `imagem-${new Date().toISOString().split('T')[0]}.png`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        toast.success('Download iniciado!');
+        toast.success('Download concluído em qualidade máxima!');
       } else {
-        window.open(imageUrl, '_blank');
-        toast.success('Imagem aberta em nova aba');
+        // URL - fazer fetch para preservar qualidade original
+        try {
+          const response = await fetch(imageUrl, { mode: 'cors' });
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `imagem-${new Date().toISOString().split('T')[0]}.png`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+          toast.success('Download concluído em qualidade máxima!');
+        } catch (fetchError) {
+          // Fallback: abrir em nova aba
+          window.open(imageUrl, '_blank');
+          toast.success('Imagem aberta em nova aba');
+        }
       }
     } catch (error) {
       toast.error('Erro ao fazer download');

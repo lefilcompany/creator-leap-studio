@@ -204,47 +204,45 @@ export default function ContentResult() {
   const handleDownload = async () => {
     if (!contentData) return;
     try {
-      toast.info("Preparando download...");
-      
-      let blob: Blob;
+      toast.info("Preparando download em alta qualidade...");
       
       // Check if it's a base64 image or URL
       if (contentData.mediaUrl.startsWith('data:')) {
-        // Handle base64 images
-        const base64Data = contentData.mediaUrl.split(",")[1];
-        if (!base64Data) {
-          toast.error("Formato de imagem inválido");
-          return;
-        }
-        const byteCharacters = atob(base64Data);
-        const byteNumbers = new Array(byteCharacters.length);
-        for (let i = 0; i < byteCharacters.length; i++) {
-          byteNumbers[i] = byteCharacters.charCodeAt(i);
-        }
-        const byteArray = new Uint8Array(byteNumbers);
-        blob = new Blob([byteArray], { type: "image/png" });
+        // Handle base64 images - download direto para preservar qualidade máxima
+        const link = document.createElement("a");
+        link.href = contentData.mediaUrl;
+        
+        // Generate filename
+        const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, -5);
+        link.download = `${contentData.brand.replace(/\s+/g, "_")}_${contentData.platform}_${timestamp}.png`;
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        toast.success("Download concluído em qualidade máxima!");
       } else {
-        // Handle URL images (fetch and convert to blob)
-        const response = await fetch(contentData.mediaUrl);
-        blob = await response.blob();
+        // Handle URL images (fetch preservando qualidade original)
+        const response = await fetch(contentData.mediaUrl, { mode: 'cors' });
+        const blob = await response.blob();
+        
+        // Create download link
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+
+        // Generate filename
+        const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, -5);
+        link.download = `${contentData.brand.replace(/\s+/g, "_")}_${contentData.platform}_${timestamp}.png`;
+
+        // Trigger download
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        
+        toast.success("Download concluído em qualidade máxima!");
       }
-
-      // Create download link
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-
-      // Generate filename
-      const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, -5);
-      link.download = `${contentData.brand.replace(/\s+/g, "_")}_${contentData.platform}_${timestamp}.png`;
-
-      // Trigger download
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-      
-      toast.success("Download concluído!");
     } catch (error) {
       console.error("Erro ao fazer download:", error);
       toast.error("Erro ao fazer download da imagem");

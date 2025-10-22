@@ -177,6 +177,7 @@ export default function QuickContentResult() {
             const ctx = canvas.getContext("2d");
             ctx?.drawImage(img, 0, 0);
             
+            // Usar PNG com qualidade máxima (1.0) para preservar qualidade Full HD/4K
             canvas.toBlob((blob) => {
               if (blob) {
                 const url = window.URL.createObjectURL(blob);
@@ -191,7 +192,7 @@ export default function QuickContentResult() {
               } else {
                 throw new Error("Falha ao criar blob do canvas");
               }
-            });
+            }, 'image/png', 1.0); // Qualidade máxima para imagens HD/4K
             
           } catch (canvasError) {
             console.error("Canvas method failed:", canvasError);
