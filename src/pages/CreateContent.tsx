@@ -1045,31 +1045,12 @@ ${formData.description}
                 </div>
               </div>
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full xl:w-auto">
-                <div className="flex items-center space-x-1 rounded-full bg-muted p-1 border flex-1 xl:flex-initial xl:w-auto">
+                <div className="flex items-center rounded-full bg-muted p-1 border flex-1 xl:flex-initial xl:w-auto">
                   <Button
-                    variant={!isVideoMode ? "default" : "ghost"}
-                    onClick={() => handleVideoModeChange(false)}
-                    className="w-full rounded-full font-semibold transition-all duration-200 ease-in-out hover:bg-background/50 hover:text-muted-foreground"
+                    variant="default"
+                    className="w-full rounded-full font-semibold"
                   >
                     Imagem
-                  </Button>
-                  <Button
-                    variant={isVideoMode ? "default" : "ghost"}
-                    onClick={() => handleVideoModeChange(true)}
-                    className="w-full rounded-full font-semibold transition-all duration-200 ease-in-out hover:bg-background/50 hover:text-muted-foreground"
-                  >
-                    <div className="flex items-center justify-center gap-1.5">
-                      Vídeo
-                      <span
-                        className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full leading-none transition-colors duration-200 ${
-                          isVideoMode
-                            ? "bg-background text-primary"
-                            : "border border-primary/50 bg-primary/20 text-primary"
-                        }`}
-                      >
-                        BETA
-                      </span>
-                    </div>
                   </Button>
                 </div>
                 {isLoadingData ? (
