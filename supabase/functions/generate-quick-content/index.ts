@@ -243,6 +243,17 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
     // Build enhanced prompt with all configurations
     let enhancedPrompt = prompt;
 
+    // Add photorealism and professional camera details
+    enhancedPrompt += `\n\n${'='.repeat(80)}`;
+    enhancedPrompt += `\n📸 FOTOGRAFIA COMERCIAL PROFISSIONAL`;
+    enhancedPrompt += `\n${'='.repeat(80)}`;
+    enhancedPrompt += `\n\nFotografia comercial de alta precisão e fotorrealismo profissional.`;
+    enhancedPrompt += `\nImagem capturada com câmera DSLR de alta qualidade, lente 85mm f/1.4.`;
+    enhancedPrompt += `\nProfundidade de campo rasa criando efeito bokeh suave no fundo.`;
+    enhancedPrompt += `\nAtenção detalhada aos aspectos de iluminação, composição e qualidade visual.`;
+    enhancedPrompt += `\nQualidade fotográfica profissional com foco nítido e textura rica.`;
+    enhancedPrompt += `\n${'='.repeat(80)}`;
+
     // Add platform-specific guidelines using normalized aspect ratio
     if (platform && platformSpecs[platform]) {
       const spec = platformSpecs[platform];
@@ -302,56 +313,56 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
       }
     }
 
-    // Lighting
+    // Lighting (Enhanced with cinematic descriptions)
     if (lighting !== 'natural') {
       const lightingDescriptions: Record<string, string> = {
-        'natural': 'Iluminação natural e equilibrada.',
-        'studio': 'Iluminação de estúdio profissional, uniforme e sem sombras duras.',
-        'dramatic': 'Iluminação dramática com alto contraste entre luz e sombra, criando profundidade.',
-        'soft': 'Iluminação suave e difusa, com transições suaves e atmosfera delicada.',
-        'golden_hour': 'Iluminação de golden hour (luz dourada do pôr/nascer do sol) com tons quentes.',
-        'backlit': 'Iluminação traseira (backlight) criando contornos luminosos e atmosfera etérea.',
-        'low_key': 'Iluminação low-key com predominância de sombras e áreas escuras.',
-        'high_key': 'Iluminação high-key com predominância de tons claros e brilhantes.'
+        'natural': 'Iluminação natural equilibrada e orgânica, simulando luz do dia.',
+        'studio': 'Iluminação de estúdio profissional com setup de três pontos (key light, fill light, back light). Iluminação uniforme sem sombras duras. Qualidade comercial.',
+        'dramatic': 'Iluminação cinematográfica dramática com alto contraste entre luz e sombra (técnica chiaroscuro). Sombras profundas e definidas criando profundidade tridimensional e atmosfera intensa.',
+        'soft': 'Iluminação suave e difusa usando softbox ou luz natural filtrada. Transições suaves entre luz e sombra. Sombras quase imperceptíveis. Atmosfera delicada e etérea.',
+        'golden_hour': 'Iluminação mágica de golden hour (luz dourada do nascer/pôr do sol). Tons quentes (laranja, dourado, âmbar). Raios de luz atravessando o cenário. Long shadows e atmosfera nostálgica.',
+        'backlit': 'Iluminação traseira (backlight/contre-jour) criando contornos luminosos e halos de luz ao redor dos elementos. Silhuetas definidas. Atmosfera etérea e dramática.',
+        'low_key': 'Iluminação low-key com predominância de tons escuros e sombras profundas. Iluminação pontual e seletiva destacando apenas elementos-chave. Atmosfera misteriosa e dramática.',
+        'high_key': 'Iluminação high-key com predominância de tons claros e brilhantes. Sombras mínimas. Atmosfera limpa, alegre e otimista.'
       };
       const lightingDesc = lightingDescriptions[lighting];
       if (lightingDesc) {
-        enhancedPrompt += `\n\n💡 ILUMINAÇÃO:`;
+        enhancedPrompt += `\n\n💡 ILUMINAÇÃO PROFISSIONAL:`;
         enhancedPrompt += `\n${lightingDesc}`;
       }
     }
 
-    // Composition
+    // Composition (Enhanced with technical details)
     if (composition !== 'auto') {
       const compositionDescriptions: Record<string, string> = {
-        'centered': 'Composição centralizada com elemento principal no centro da imagem.',
-        'rule_of_thirds': 'Composição seguindo a regra dos terços, com elementos principais nos pontos de intersecção.',
-        'symmetrical': 'Composição simétrica e equilibrada, transmitindo ordem e harmonia.',
-        'asymmetrical': 'Composição assimétrica com equilíbrio visual dinâmico.',
-        'diagonal': 'Composição diagonal criando movimento e dinamismo visual.',
-        'frame_within_frame': 'Composição com moldura dentro da moldura (frame within frame).',
-        'leading_lines': 'Composição com linhas guia que direcionam o olhar para o elemento principal.'
+        'centered': 'Composição centralizada com elemento principal no centro geométrico da imagem. Equilíbrio simétrico transmitindo estabilidade e foco.',
+        'rule_of_thirds': 'Composição profissional seguindo a regra dos terços. Elementos principais posicionados nos pontos de intersecção das linhas imaginárias (hotspots). Equilíbrio visual dinâmico.',
+        'symmetrical': 'Composição perfeitamente simétrica e espelhada. Equilíbrio bilateral transmitindo ordem, harmonia e formalidade.',
+        'asymmetrical': 'Composição assimétrica com equilíbrio visual dinâmico. Pesos visuais distribuídos de forma não-uniforme criando tensão e interesse visual.',
+        'diagonal': 'Composição diagonal com elementos principais seguindo linhas diagonais. Cria movimento, dinamismo e energia visual. Quebra a estaticidade.',
+        'frame_within_frame': 'Composição frame-within-frame usando elementos naturais (portas, janelas, arcos) para emoldurar o elemento principal. Adiciona profundidade e foco.',
+        'leading_lines': 'Composição com linhas guia (leading lines) convergindo para o elemento principal. Estradas, trilhos, cercas ou linhas arquitetônicas direcionando o olhar do espectador.'
       };
       const compositionDesc = compositionDescriptions[composition];
       if (compositionDesc) {
-        enhancedPrompt += `\n\n📐 COMPOSIÇÃO:`;
+        enhancedPrompt += `\n\n📐 COMPOSIÇÃO FOTOGRÁFICA:`;
         enhancedPrompt += `\n${compositionDesc}`;
       }
     }
 
-    // Camera Angle
+    // Camera Angle (Enhanced with technical details)
     if (cameraAngle !== 'eye_level') {
       const angleDescriptions: Record<string, string> = {
-        'eye_level': 'Ângulo na altura dos olhos (eye level), perspectiva natural.',
-        'high_angle': 'Ângulo alto (high angle) olhando de cima para baixo.',
-        'low_angle': 'Ângulo baixo (low angle) olhando de baixo para cima, transmitindo imponência.',
-        'birds_eye': 'Ângulo aéreo (bird\'s eye view) diretamente de cima.',
-        'worms_eye': 'Ângulo do chão (worm\'s eye view) diretamente de baixo.',
-        'dutch_angle': 'Ângulo holandês (dutch angle) inclinado para criar tensão visual.'
+        'eye_level': 'Ângulo de câmera na altura dos olhos (eye level). Perspectiva natural e neutra criando conexão direta com o espectador.',
+        'high_angle': 'Ângulo alto (high angle) com câmera posicionada acima olhando para baixo. Cria sensação de vulnerabilidade ou visão panorâmica.',
+        'low_angle': 'Ângulo baixo (low angle) com câmera posicionada abaixo olhando para cima. Transmite imponência, poder e grandiosidade do elemento.',
+        'birds_eye': 'Ângulo aéreo (bird\'s eye view) diretamente de cima. Visão de topo (top-down) criando padrões gráficos e perspectiva única.',
+        'worms_eye': 'Ângulo do chão (worm\'s eye view) diretamente de baixo. Perspectiva extrema olhando para cima transmitindo escala monumental.',
+        'dutch_angle': 'Ângulo holandês (dutch angle/canted angle) com câmera inclinada. Horizonte diagonal criando tensão visual, desconforto ou dinamismo.'
       };
       const angleDesc = angleDescriptions[cameraAngle];
       if (angleDesc) {
-        enhancedPrompt += `\n\n📷 ÂNGULO DE CÂMERA:`;
+        enhancedPrompt += `\n\n📷 ÂNGULO DE CÂMERA PROFISSIONAL:`;
         enhancedPrompt += `\n${angleDesc}`;
       }
     }
@@ -373,24 +384,32 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
     enhancedPrompt += `\n\n🔍 NÍVEL DE DETALHAMENTO (${detailLevel}/10):`;
     enhancedPrompt += `\n${detailDesc}`;
 
-    // Mood
+    // Mood (Rich cinematic ToneMap)
     if (mood !== 'auto') {
       const moodDescriptions: Record<string, string> = {
-        'professional': 'Atmosfera profissional, séria e corporativa.',
-        'energetic': 'Atmosfera energética, vibrante e dinâmica.',
-        'calm': 'Atmosfera calma, serena e tranquila.',
-        'mysterious': 'Atmosfera misteriosa e intrigante.',
-        'playful': 'Atmosfera lúdica, divertida e descontraída.',
-        'elegant': 'Atmosfera elegante, sofisticada e refinada.',
-        'dramatic': 'Atmosfera dramática, intensa e impactante.',
-        'warm': 'Atmosfera calorosa, acolhedora e confortável.',
-        'futuristic': 'Atmosfera futurista, moderna e tecnológica.'
+        'professional': 'Estética corporativa limpa com iluminação neutra de estúdio, foco nítido, fundo minimalista e paleta de cores sóbria (cinzas, azuis, brancos). Atmosfera séria, confiável e de alta credibilidade. Transmite competência e profissionalismo.',
+        
+        'energetic': 'Cores vibrantes e saturadas com iluminação dinâmica criando alto contraste. Motion blur leve sugerindo movimento e ação. Elementos diagonais e composição dinâmica. Atmosfera de ação, vitalidade e energia pulsante.',
+        
+        'calm': 'Luz natural suave e difusa, com tons pastel (azul claro, verde menta, lavanda) e transições suaves entre luz e sombra. Elementos fluidos e orgânicos. Sombras delicadas. Atmosfera serena, contemplativa e relaxante.',
+        
+        'mysterious': 'Iluminação low-key com predominância de sombras profundas, raios de luz estratégicos cortando a escuridão. Paleta escura com toques de luz pontual (azul escuro, roxo profundo, preto). Névoa sutil. Atmosfera enigmática, intrigante e cheia de mistério.',
+        
+        'playful': 'Paleta vibrante e saturada com cores primárias e complementares (vermelho, amarelo, azul, verde). Iluminação alegre e uniforme. Elementos gráficos lúdicos e composição dinâmica. Atmosfera divertida, descontraída e alegre.',
+        
+        'elegant': 'Paleta refinada com tons neutros nobres (cinza chumbo, dourado discreto, branco pérola, preto profundo). Iluminação suave e direcionada. Texturas sofisticadas como mármore, veludo ou seda. Composição equilibrada. Atmosfera luxuosa, sofisticada e de alta classe.',
+        
+        'dramatic': 'Iluminação cinematográfica com alto contraste entre luz e sombra (chiaroscuro). Sombras profundas e áreas de luz intensa. Paleta de cores saturadas ou monocromática dramática. Composição teatral. Atmosfera intensa, épica e emocionalmente carregada.',
+        
+        'warm': 'Iluminação golden hour com tons dourados, laranjas e vermelhos quentes. Raios de sol atravessando o cenário. Long shadows. Paleta calorosa e aconchegante. Atmosfera acolhedora, calorosa, confortável e nostálgica.',
+        
+        'futuristic': 'Iluminação neon com cores ciano, magenta e roxo. Formas geométricas angulares e linhas limpas. Reflexos metálicos e superfícies espelhadas. Elementos tecnológicos. Atmosfera tecnológica, sci-fi e vanguardista.'
       };
       const moodDesc = moodDescriptions[mood];
       if (moodDesc) {
-        enhancedPrompt += `\n\n✨ MOOD/ATMOSFERA:`;
+        enhancedPrompt += `\n\n✨ MOOD/ATMOSFERA CINEMATOGRÁFICA:`;
         enhancedPrompt += `\n${moodDesc}`;
-        enhancedPrompt += `\nA imagem deve transmitir essa atmosfera em todos os elementos.`;
+        enhancedPrompt += `\n\nTodos os elementos visuais (iluminação, cores, composição, textura) devem trabalhar juntos para transmitir essa atmosfera de forma coesa e impactante.`;
       }
     }
 
@@ -400,6 +419,35 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
       enhancedPrompt += `\nLargura: ${width}px`;
       enhancedPrompt += `\nAltura: ${height}px`;
       enhancedPrompt += `\nGere a imagem considerando estas dimensões específicas.`;
+    }
+
+    // Text Instructions - CRITICAL (more emphatic when no text is wanted)
+    if (!body.includeText) {
+      enhancedPrompt += `\n\n${'='.repeat(80)}`;
+      enhancedPrompt += `\n🚫 REGRA ABSOLUTA - NENHUM TEXTO NA IMAGEM`;
+      enhancedPrompt += `\n${'='.repeat(80)}`;
+      enhancedPrompt += `\n\n⛔ PROIBIÇÕES CRÍTICAS:`;
+      enhancedPrompt += `\n• NÃO incluir NENHUM texto, palavra, letra, número ou caractere escrito`;
+      enhancedPrompt += `\n• NÃO incluir placas, letreiros, logos com texto visível`;
+      enhancedPrompt += `\n• NÃO incluir watermarks, assinaturas ou marcas d'água`;
+      enhancedPrompt += `\n• NÃO incluir textos em objetos, embalagens ou elementos da cena`;
+      enhancedPrompt += `\n• A imagem deve ser PURAMENTE VISUAL sem qualquer elemento textual`;
+      enhancedPrompt += `\n\n✅ CORRETO: Imagem totalmente visual, sem nenhum tipo de texto ou escrita`;
+      enhancedPrompt += `\n${'='.repeat(80)}`;
+    } else if (body.textContent) {
+      enhancedPrompt += `\n\n${'='.repeat(80)}`;
+      enhancedPrompt += `\n📝 INCLUSÃO DE TEXTO NA IMAGEM`;
+      enhancedPrompt += `\n${'='.repeat(80)}`;
+      enhancedPrompt += `\n\nTexto a incluir: "${body.textContent}"`;
+      enhancedPrompt += `\n\n📋 DIRETRIZES DE TIPOGRAFIA:`;
+      enhancedPrompt += `\n• Use tipografia clara, legível e profissional`;
+      enhancedPrompt += `\n• Garanta alto contraste entre texto e fundo para máxima legibilidade`;
+      enhancedPrompt += `\n• Posicione o texto de forma harmoniosa na composição`;
+      enhancedPrompt += `\n• O texto deve ser parte integrada do design, não uma "colagem"`;
+      if (body.textPosition) {
+        enhancedPrompt += `\n• Posição do texto: ${body.textPosition}`;
+      }
+      enhancedPrompt += `\n${'='.repeat(80)}`;
     }
 
     enhancedPrompt += `\n\n${'='.repeat(60)}`;
