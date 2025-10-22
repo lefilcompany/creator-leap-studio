@@ -52,8 +52,29 @@ export function useFormPersistence({
     }
   };
 
+  // Verificar se há dados relevantes (não apenas valores padrão)
+  const hasRelevantData = (data: any): boolean => {
+    if (!data) return false;
+    
+    return !!(
+      data.prompt?.trim().length > 0 ||
+      data.brandId ||
+      data.platform ||
+      data.negativePrompt?.trim().length > 0 ||
+      (data.colorPalette && data.colorPalette !== 'auto') ||
+      (data.lighting && data.lighting !== 'natural') ||
+      (data.composition && data.composition !== 'auto') ||
+      (data.cameraAngle && data.cameraAngle !== 'eye_level') ||
+      (data.detailLevel && data.detailLevel !== 7) ||
+      (data.mood && data.mood !== 'auto') ||
+      data.width ||
+      data.height
+    );
+  };
+
   return {
     loadPersistedData,
-    clearPersistedData
+    clearPersistedData,
+    hasRelevantData
   };
 }

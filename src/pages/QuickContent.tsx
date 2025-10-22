@@ -50,7 +50,7 @@ export default function QuickContent() {
   const pasteAreaRef = useRef<HTMLDivElement>(null);
 
   // Persistência de formulário
-  const { loadPersistedData, clearPersistedData } = useFormPersistence({
+  const { loadPersistedData, clearPersistedData, hasRelevantData } = useFormPersistence({
     key: 'quick-content-form',
     formData,
     excludeFields: ['referenceFiles'] // Não persistir arquivos
@@ -61,7 +61,13 @@ export default function QuickContent() {
     const persisted = loadPersistedData();
     if (persisted) {
       setFormData(prev => ({ ...prev, ...persisted }));
-      toast.info('Rascunho recuperado');
+      
+      // Só mostrar toast se houver dados realmente relevantes
+      if (hasRelevantData(persisted)) {
+        toast.info('Rascunho recuperado', {
+          description: 'Continuando de onde você parou'
+        });
+      }
     }
   }, []);
 
