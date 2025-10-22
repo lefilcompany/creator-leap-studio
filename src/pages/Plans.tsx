@@ -472,28 +472,30 @@ const Plans = () => {
     <div className="space-y-4 md:space-y-6 animate-fade-in">
       {/* Header com design limpo */}
       <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-background rounded-2xl p-6 md:p-8 shadow-lg">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div className="flex items-center gap-4">
-            <div className="flex-shrink-0 bg-primary/10 text-primary rounded-2xl p-4">
-              <Crown className="h-8 w-8 md:h-10 md:w-10" />
-            </div>
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-1">Planos e Uso</h1>
-              <p className="text-sm md:text-base text-muted-foreground">
-                Gerencie seu plano e acompanhe o uso de recursos
-              </p>
-            </div>
+        <div className="flex items-center gap-4">
+          <div className="flex-shrink-0 bg-primary/10 text-primary rounded-2xl p-4">
+            <Crown className="h-8 w-8 md:h-10 md:w-10" />
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowPlansSelection(true)}
-            className="border-primary/20 hover:bg-primary/5 text-muted-foreground hover:text-muted-foreground"
-          >
-            <Crown className="h-4 w-4 mr-2 text-muted-foreground hover:text-foreground" />
-            Ver Todos os Planos
-          </Button>
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-1">Planos e Uso</h1>
+            <p className="text-sm md:text-base text-muted-foreground">
+              Gerencie seu plano e acompanhe o uso de recursos
+            </p>
+          </div>
         </div>
+      </div>
+
+      {/* Botão Ver Todos os Planos em Destaque */}
+      <div className="flex justify-center">
+        <Button
+          variant="default"
+          size="lg"
+          onClick={() => setShowPlansSelection(true)}
+          className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl transition-all duration-300 text-base font-semibold px-8"
+        >
+          <Crown className="h-5 w-5 mr-2" />
+          Ver Todos os Planos
+        </Button>
       </div>
 
       {/* Grid principal: Esquerda (conteúdo) + Direita (sidebar) */}
