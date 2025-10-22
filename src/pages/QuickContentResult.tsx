@@ -296,19 +296,18 @@ export default function QuickContentResult() {
         throw new Error("Imagem editada não foi retornada");
       }
 
-      if (!data.editedImageUrl.startsWith("http")) {
+      // Aceitar tanto URLs HTTP quanto imagens base64
+      const isBase64 = data.editedImageUrl.startsWith('data:');
+      const isHttpUrl = data.editedImageUrl.startsWith('http');
+      
+      if (!isBase64 && !isHttpUrl) {
         throw new Error("URL da imagem editada é inválida");
       }
 
-      const timestamp = Date.now();
-      const imageUrlWithTimestamp = `${data.editedImageUrl}?t=${timestamp}`;
-
-      // Prevenir armazenamento de imagens base64 (muito grandes)
-      if (imageUrlWithTimestamp.startsWith('data:')) {
-        toast.error('Não é possível armazenar esta imagem no histórico (formato base64). Use o botão Baixar para salvá-la.');
-        setCurrentImageUrl(imageUrlWithTimestamp);
-        return;
-      }
+      // Para imagens base64, usar diretamente; para URLs, adicionar timestamp
+      const imageUrlWithTimestamp = isBase64 
+        ? data.editedImageUrl 
+        : `${data.editedImageUrl}?t=${Date.now()}`;
 
       // Add to history (limite de 5 URLs para economizar espaço)
       const newHistory = [...imageHistory, imageUrlWithTimestamp].slice(-5);
