@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, BarChart3, Calendar, Search, Filter, TrendingUp, Activity, Zap, FileText, CheckCircle, Lightbulb } from 'lucide-react';
+import { ArrowLeft, BarChart3, Calendar, Search, Filter, TrendingUp, Activity, Zap, FileText, CheckCircle, Lightbulb, Loader2, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
@@ -155,10 +155,21 @@ export default function TeamDashboard() {
       total: member.totalActions,
     }));
 
+  if (isLoading) {
+    return (
+      <div className="flex h-full w-full items-center justify-center">
+        <div className="text-center space-y-4">
+          <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
+          <p className="text-muted-foreground">Carregando dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-full space-y-6 animate-fade-in">
       {/* Header */}
-      <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5">
+      <Card className="shadow-lg border-0 bg-gradient-to-br from-primary/10 via-primary/5 to-background hover:shadow-xl transition-shadow duration-300">
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -166,19 +177,19 @@ export default function TeamDashboard() {
                 variant="ghost"
                 size="icon"
                 onClick={() => navigate('/team')}
-                className="hover:bg-primary/10"
+                className="hover:bg-primary/10 hover:scale-105 transition-all duration-200"
               >
                 <ArrowLeft className="h-5 w-5" />
               </Button>
-              <div className="flex items-center gap-3">
-                <div className="flex-shrink-0 bg-primary/10 text-primary rounded-lg p-3">
-                  <BarChart3 className="h-8 w-8" />
+              <div className="flex items-center gap-4">
+                <div className="flex-shrink-0 bg-primary/10 text-primary rounded-2xl p-4">
+                  <BarChart3 className="h-8 w-8 md:h-10 md:w-10" />
                 </div>
                 <div>
-                  <CardTitle className="text-3xl font-bold">
+                  <CardTitle className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                     Dashboard de Membros
                   </CardTitle>
-                  <p className="text-muted-foreground">Acompanhe o uso e atividade dos membros da equipe</p>
+                  <p className="text-sm md:text-base text-muted-foreground">Acompanhe o uso e atividade dos membros da equipe</p>
                 </div>
               </div>
             </div>
@@ -187,96 +198,79 @@ export default function TeamDashboard() {
       </Card>
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {isLoading ? (
-          <>
-            {[1, 2, 3, 4].map((i) => (
-              <Card key={i}>
-                <CardHeader className="pb-3">
-                  <Skeleton className="h-4 w-24" />
-                </CardHeader>
-                <CardContent>
-                  <Skeleton className="h-10 w-20" />
-                </CardContent>
-              </Card>
-            ))}
-          </>
-        ) : (
-          <>
-            <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20 hover:shadow-lg transition-shadow">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <Activity className="h-4 w-4" />
-                  Total de Ações
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-4xl font-bold text-primary">{totalTeamActions}</div>
-                <p className="text-xs text-muted-foreground mt-2">Todas as atividades</p>
-              </CardContent>
-            </Card>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+        <Card className="bg-gradient-to-br from-primary/10 via-primary/5 to-background border-2 border-primary/20 shadow-lg hover:shadow-xl hover:border-primary/30 transition-all duration-300">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <Activity className="h-5 w-5 text-primary" />
+              Total de Ações
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">{totalTeamActions}</div>
+            <p className="text-xs text-muted-foreground mt-2">Todas as atividades</p>
+          </CardContent>
+        </Card>
 
-            <Card className="bg-gradient-to-br from-secondary/10 to-secondary/5 border-secondary/20 hover:shadow-lg transition-shadow">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4" />
-                  Membros Ativos
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-4xl font-bold text-secondary">{activeMembers}</div>
-                <p className="text-xs text-muted-foreground mt-2">De {memberStats.length} membros</p>
-              </CardContent>
-            </Card>
+        <Card className="bg-gradient-to-br from-secondary/10 via-secondary/5 to-background border-2 border-secondary/20 shadow-lg hover:shadow-xl hover:border-secondary/30 transition-all duration-300">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <Users className="h-5 w-5 text-secondary" />
+              Membros Ativos
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-4xl font-bold bg-gradient-to-r from-secondary to-secondary/80 bg-clip-text text-transparent">{activeMembers}</div>
+            <p className="text-xs text-muted-foreground mt-2">De {memberStats.length} membros</p>
+          </CardContent>
+        </Card>
 
-            <Card className="bg-gradient-to-br from-accent/10 to-accent/5 border-accent/20 hover:shadow-lg transition-shadow">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <BarChart3 className="h-4 w-4" />
-                  Média por Membro
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-4xl font-bold text-accent">
-                  {memberStats.length > 0 ? Math.round(totalTeamActions / memberStats.length) : 0}
-                </div>
-                <p className="text-xs text-muted-foreground mt-2">Ações por pessoa</p>
-              </CardContent>
-            </Card>
+        <Card className="bg-gradient-to-br from-accent/10 via-accent/5 to-background border-2 border-accent/20 shadow-lg hover:shadow-xl hover:border-accent/30 transition-all duration-300">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <BarChart3 className="h-5 w-5 text-accent" />
+              Média por Membro
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-4xl font-bold bg-gradient-to-r from-accent to-accent/80 bg-clip-text text-transparent">
+              {memberStats.length > 0 ? Math.round(totalTeamActions / memberStats.length) : 0}
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">Ações por pessoa</p>
+          </CardContent>
+        </Card>
 
-            <Card className="bg-gradient-to-br from-chart-4/10 to-chart-4/5 border-chart-4/20 hover:shadow-lg transition-shadow">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <Zap className="h-4 w-4" />
-                  Mais Ativo
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-chart-4 truncate">
-                  {topMembersData[0]?.name || '-'}
-                </div>
-                <p className="text-xs text-muted-foreground mt-2">
-                  {topMembersData[0]?.total || 0} ações
-                </p>
-              </CardContent>
-            </Card>
-          </>
-        )}
+        <Card className="bg-gradient-to-br from-chart-4/10 via-chart-4/5 to-background border-2 border-chart-4/20 shadow-lg hover:shadow-xl hover:border-chart-4/30 transition-all duration-300">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <Zap className="h-5 w-5 text-chart-4" />
+              Mais Ativo
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold bg-gradient-to-r from-chart-4 to-chart-4/80 bg-clip-text text-transparent truncate">
+              {topMembersData[0]?.name || '-'}
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">
+              {topMembersData[0]?.total || 0} ações
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Charts */}
-      {!isLoading && memberStats.length > 0 && (
+      {memberStats.length > 0 && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Actions Distribution Pie Chart */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+          <Card className="shadow-lg border-2 border-primary/10 bg-gradient-to-br from-card via-primary/5 to-background hover:shadow-xl hover:border-primary/20 transition-all duration-300">
+            <CardHeader className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-t-lg">
+              <CardTitle className="flex items-center gap-2 text-primary">
                 <Activity className="h-5 w-5" />
                 Distribuição de Ações
               </CardTitle>
               <CardDescription>Por tipo de conteúdo</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-6">
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
@@ -300,15 +294,15 @@ export default function TeamDashboard() {
           </Card>
 
           {/* Top Members Bar Chart */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+          <Card className="shadow-lg border-2 border-secondary/10 bg-gradient-to-br from-card via-secondary/5 to-background hover:shadow-xl hover:border-secondary/20 transition-all duration-300">
+            <CardHeader className="bg-gradient-to-r from-secondary/10 to-accent/10 rounded-t-lg">
+              <CardTitle className="flex items-center gap-2 text-secondary">
                 <TrendingUp className="h-5 w-5" />
                 Top 5 Membros
               </CardTitle>
               <CardDescription>Por total de ações</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-6">
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={topMembersData}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
@@ -330,14 +324,14 @@ export default function TeamDashboard() {
       )}
 
       {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+      <Card className="shadow-lg border-2 border-accent/10 bg-gradient-to-br from-card via-accent/5 to-background hover:shadow-xl hover:border-accent/20 transition-all duration-300">
+        <CardHeader className="bg-gradient-to-r from-accent/10 to-primary/10 rounded-t-lg">
+          <CardTitle className="flex items-center gap-2 text-accent">
             <Filter className="h-5 w-5" />
             Filtros e Busca
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -345,11 +339,11 @@ export default function TeamDashboard() {
                 placeholder="Buscar por nome ou email..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-10 border-accent/20 focus:border-accent/40"
               />
             </div>
             <Select value={actionTypeFilter} onValueChange={setActionTypeFilter}>
-              <SelectTrigger className="w-full md:w-[200px]">
+              <SelectTrigger className="w-full md:w-[200px] border-accent/20">
                 <SelectValue placeholder="Tipo de ação" />
               </SelectTrigger>
               <SelectContent>
@@ -361,7 +355,7 @@ export default function TeamDashboard() {
               </SelectContent>
             </Select>
             <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-full md:w-[200px]">
+              <SelectTrigger className="w-full md:w-[200px] border-accent/20">
                 <SelectValue placeholder="Ordenar por" />
               </SelectTrigger>
               <SelectContent>
@@ -375,103 +369,87 @@ export default function TeamDashboard() {
       </Card>
 
       {/* Members Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Estatísticas Detalhadas</CardTitle>
+      <Card className="shadow-lg border-2 border-secondary/10 bg-gradient-to-br from-card via-secondary/5 to-background hover:shadow-xl hover:border-secondary/20 transition-all duration-300">
+        <CardHeader className="bg-gradient-to-r from-secondary/10 to-accent/10 rounded-t-lg">
+          <CardTitle className="text-secondary">Estatísticas Detalhadas</CardTitle>
           <CardDescription>Uso individual de cada membro da equipe</CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="rounded-md border">
+        <CardContent className="pt-6">
+          <div className="rounded-lg border-2 border-secondary/10 overflow-hidden">
             <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Membro</TableHead>
-                  <TableHead className="text-center">Total</TableHead>
-                  <TableHead className="text-center">Criação Rápida</TableHead>
-                  <TableHead className="text-center">Criar Conteúdo</TableHead>
-                  <TableHead className="text-center">Revisar</TableHead>
-                  <TableHead className="text-center">Planejar</TableHead>
-                  <TableHead>Última Atividade</TableHead>
+              <TableHeader className="bg-gradient-to-r from-secondary/5 to-accent/5">
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="font-semibold">Membro</TableHead>
+                  <TableHead className="text-center font-semibold">Total</TableHead>
+                  <TableHead className="text-center font-semibold">Criação Rápida</TableHead>
+                  <TableHead className="text-center font-semibold">Criar Conteúdo</TableHead>
+                  <TableHead className="text-center font-semibold">Revisar</TableHead>
+                  <TableHead className="text-center font-semibold">Planejar</TableHead>
+                  <TableHead className="font-semibold">Última Atividade</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {isLoading ? (
-                  <>
-                    {[1, 2, 3].map((i) => (
-                      <TableRow key={i}>
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            <Skeleton className="h-10 w-10 rounded-full" />
-                            <div className="space-y-2">
-                              <Skeleton className="h-4 w-32" />
-                              <Skeleton className="h-3 w-48" />
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell><Skeleton className="h-4 w-8 mx-auto" /></TableCell>
-                        <TableCell><Skeleton className="h-4 w-8 mx-auto" /></TableCell>
-                        <TableCell><Skeleton className="h-4 w-8 mx-auto" /></TableCell>
-                        <TableCell><Skeleton className="h-4 w-8 mx-auto" /></TableCell>
-                        <TableCell><Skeleton className="h-4 w-8 mx-auto" /></TableCell>
-                        <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                      </TableRow>
-                    ))}
-                  </>
-                ) : filteredAndSortedStats.length === 0 ? (
+                {filteredAndSortedStats.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                      Nenhum membro encontrado
+                    <TableCell colSpan={7} className="text-center py-12">
+                      <div className="flex flex-col items-center gap-3">
+                        <div className="bg-gradient-to-br from-secondary/10 to-accent/10 rounded-full w-16 h-16 flex items-center justify-center">
+                          <Users className="h-8 w-8 text-secondary" />
+                        </div>
+                        <p className="text-muted-foreground font-medium">Nenhum membro encontrado</p>
+                        <p className="text-sm text-muted-foreground">Tente ajustar os filtros de busca</p>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ) : (
                   filteredAndSortedStats.map((member) => (
-                    <TableRow key={member.id}>
+                    <TableRow key={member.id} className="hover:bg-secondary/5 transition-colors duration-200">
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          <Avatar className="h-10 w-10">
-                            <AvatarFallback className="bg-primary/10 text-primary">
+                          <Avatar className="h-11 w-11 ring-2 ring-secondary/20">
+                            <AvatarFallback className="bg-gradient-to-br from-primary/20 to-secondary/20 text-primary font-bold text-base">
                               {member.name.charAt(0).toUpperCase()}
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <p className="font-medium">{member.name}</p>
+                            <p className="font-semibold text-foreground">{member.name}</p>
                             <p className="text-sm text-muted-foreground">{member.email}</p>
                           </div>
                         </div>
                       </TableCell>
                       <TableCell className="text-center">
-                        <span className="inline-flex items-center justify-center font-semibold text-lg px-3 py-1 bg-primary/10 text-primary rounded-full">
+                        <span className="inline-flex items-center justify-center font-bold text-lg px-3 py-1.5 bg-gradient-to-r from-primary/20 to-primary/10 text-primary rounded-full border border-primary/20">
                           {member.totalActions}
                         </span>
                       </TableCell>
                       <TableCell className="text-center">
-                        <span className="inline-flex items-center gap-1 text-sm">
-                          <Zap className="h-3 w-3 text-yellow-500" />
+                        <span className="inline-flex items-center gap-1.5 text-sm font-medium">
+                          <Zap className="h-4 w-4 text-yellow-500" />
                           {member.quickContent}
                         </span>
                       </TableCell>
                       <TableCell className="text-center">
-                        <span className="inline-flex items-center gap-1 text-sm">
-                          <FileText className="h-3 w-3 text-blue-500" />
+                        <span className="inline-flex items-center gap-1.5 text-sm font-medium">
+                          <FileText className="h-4 w-4 text-blue-500" />
                           {member.createContent}
                         </span>
                       </TableCell>
                       <TableCell className="text-center">
-                        <span className="inline-flex items-center gap-1 text-sm">
-                          <CheckCircle className="h-3 w-3 text-green-500" />
+                        <span className="inline-flex items-center gap-1.5 text-sm font-medium">
+                          <CheckCircle className="h-4 w-4 text-green-500" />
                           {member.reviewContent}
                         </span>
                       </TableCell>
                       <TableCell className="text-center">
-                        <span className="inline-flex items-center gap-1 text-sm">
-                          <Lightbulb className="h-3 w-3 text-purple-500" />
+                        <span className="inline-flex items-center gap-1.5 text-sm font-medium">
+                          <Lightbulb className="h-4 w-4 text-purple-500" />
                           {member.planContent}
                         </span>
                       </TableCell>
                       <TableCell>
                         {member.lastActivity ? (
-                          <div className="flex items-center gap-2 text-sm">
-                            <Calendar className="h-4 w-4 text-muted-foreground" />
+                          <div className="flex items-center gap-2 text-sm font-medium">
+                            <Calendar className="h-4 w-4 text-secondary" />
                             {new Date(member.lastActivity).toLocaleDateString('pt-BR', {
                               day: '2-digit',
                               month: '2-digit',
@@ -479,7 +457,7 @@ export default function TeamDashboard() {
                             })}
                           </div>
                         ) : (
-                          <span className="text-muted-foreground text-sm">Sem atividade</span>
+                          <span className="text-muted-foreground text-sm italic">Sem atividade</span>
                         )}
                       </TableCell>
                     </TableRow>
