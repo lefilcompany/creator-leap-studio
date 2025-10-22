@@ -428,7 +428,7 @@ export default function QuickContentResult() {
     <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-5 md:space-y-6">
       {/* Header Card */}
       <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-md rounded-xl overflow-hidden animate-fade-in">
-        <div className="p-3 sm:p-4 md:p-5">
+        <div className="p-3 sm:p-4 md:p-5 space-y-3 sm:space-y-4">
           {/* Mobile Layout */}
           <div className="flex sm:hidden items-center justify-between gap-2">
             <Button 
@@ -491,79 +491,96 @@ export default function QuickContentResult() {
               </Badge>
             </div>
           </div>
+
+          {/* Action Buttons - Mobile */}
+          <div className="flex sm:hidden flex-wrap gap-2 pt-2 border-t border-border/30">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleOpenReview}
+              className="flex-1 hover:text-primary hover:bg-primary/10 hover:border-primary transition-all"
+            >
+              <RefreshCw className="h-4 w-4 mr-1.5" />
+              <span className="text-xs">Revisar</span>
+            </Button>
+
+            {totalRevisions > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRevert}
+                disabled={imageHistory.length <= 1}
+                className="flex-1 hover:text-primary hover:bg-primary/10 hover:border-primary transition-all disabled:opacity-50"
+              >
+                <Undo2 className="h-4 w-4 mr-1.5" />
+                <span className="text-xs">Reverter</span>
+              </Button>
+            )}
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDownload}
+              className="flex-1 hover:text-primary hover:bg-primary/10 hover:border-primary transition-all"
+            >
+              <Download className="h-4 w-4 mr-1.5" />
+              <span className="text-xs">Baixar</span>
+            </Button>
+
+            <Button
+              size="sm"
+              onClick={() => navigate("/quick-content")}
+              className="flex-1 hover:scale-105 transition-transform"
+            >
+              <span className="text-xs">Criar Novo</span>
+            </Button>
+          </div>
+
+          {/* Action Buttons - Desktop/Tablet */}
+          <div className="hidden sm:flex items-center gap-2 pt-2 border-t border-border/30">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleOpenReview}
+              className="hover:text-primary hover:bg-primary/10 hover:border-primary transition-all hover-scale"
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Revisar
+            </Button>
+
+            {totalRevisions > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRevert}
+                disabled={imageHistory.length <= 1}
+                className="hover:text-primary hover:bg-primary/10 hover:border-primary transition-all hover-scale disabled:opacity-50"
+              >
+                <Undo2 className="h-4 w-4 mr-2" />
+                Reverter
+              </Button>
+            )}
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDownload}
+              className="hover:text-primary hover:bg-primary/10 hover:border-primary transition-all hover-scale"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Baixar
+            </Button>
+
+            <Button
+              size="sm"
+              onClick={() => navigate("/quick-content")}
+              className="ml-auto hover:scale-105 transition-transform"
+            >
+              Criar Novo
+            </Button>
+          </div>
         </div>
       </Card>
-
-      {/* Action Buttons */}
-      <div className="flex flex-wrap gap-2">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleOpenReview}
-                  className="hover:text-primary hover:bg-primary/10 hover:border-primary transition-all"
-                >
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Revisar
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Revisar conteúdo</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-
-          {totalRevisions > 0 && (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleRevert}
-                    disabled={imageHistory.length <= 1}
-                    className="hover:text-primary hover:bg-primary/10 hover:border-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <Undo2 className="h-4 w-4 mr-2" />
-                    Reverter
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Reverter última revisão</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          )}
-
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleDownload}
-                  className="hover:text-primary hover:bg-primary/10 hover:border-primary transition-all"
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Baixar
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Baixar imagem em alta qualidade</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-
-          <Button
-            size="sm"
-            onClick={() => navigate("/quick-content")}
-            className="hover:scale-105 transition-transform"
-          >
-            Criar Novo
-          </Button>
-        </div>
 
         {/* Content Grid */}
         <div className="flex flex-col gap-4 sm:gap-5 md:gap-6">
