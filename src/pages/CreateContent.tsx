@@ -2187,131 +2187,155 @@ ${formData.description}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                   
                   {/* Estilo de Áudio */}
-                  <div className="space-y-2">
-                    <Label className="text-xs md:text-sm font-semibold">Estilo de Áudio</Label>
+                  <div className="space-y-2 md:space-y-3">
+                    <Label className="text-xs md:text-sm font-semibold text-foreground">
+                      Estilo de Áudio
+                    </Label>
                     <Select 
                       value={formData.videoAudioStyle || 'sound_effects'}
                       onValueChange={(value) => 
                         setFormData(prev => ({ ...prev, videoAudioStyle: value as any }))
                       }
                     >
-                      <SelectTrigger className="h-10 md:h-11 rounded-xl border-2 bg-background/50 hover:border-border/70 transition-colors">
+                      <SelectTrigger className="h-10 md:h-11 rounded-xl border-2 border-border/50 bg-background/50 text-sm hover:border-border/70 transition-colors">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="dialogue">
-                          🗣️ Diálogos - Conversas naturais com vozes sincronizadas
+                      <SelectContent className="rounded-xl border-border/20">
+                        <SelectItem value="dialogue" className="rounded-lg">
+                          Diálogos
                         </SelectItem>
-                        <SelectItem value="sound_effects">
-                          🔊 Efeitos Sonoros - Sons ambientes e efeitos sincronizados
+                        <SelectItem value="sound_effects" className="rounded-lg">
+                          Efeitos Sonoros
                         </SelectItem>
-                        <SelectItem value="music">
-                          🎵 Música - Trilha sonora de fundo adequada à cena
+                        <SelectItem value="music" className="rounded-lg">
+                          Música
                         </SelectItem>
-                        <SelectItem value="none">
-                          🔇 Sem Áudio - Vídeo silencioso
+                        <SelectItem value="none" className="rounded-lg">
+                          Sem Áudio
                         </SelectItem>
                       </SelectContent>
                     </Select>
+                    <p className="text-xs text-muted-foreground">
+                      {formData.videoAudioStyle === 'dialogue' && 'Conversas naturais com vozes sincronizadas'}
+                      {formData.videoAudioStyle === 'sound_effects' && 'Sons ambientes e efeitos sincronizados'}
+                      {formData.videoAudioStyle === 'music' && 'Trilha sonora de fundo adequada à cena'}
+                      {formData.videoAudioStyle === 'none' && 'Vídeo silencioso'}
+                    </p>
                   </div>
 
                   {/* Estilo Visual */}
-                  <div className="space-y-2">
-                    <Label className="text-xs md:text-sm font-semibold">Estilo Visual</Label>
+                  <div className="space-y-2 md:space-y-3">
+                    <Label className="text-xs md:text-sm font-semibold text-foreground">
+                      Estilo Visual
+                    </Label>
                     <Select 
                       value={formData.videoVisualStyle || 'cinematic'}
                       onValueChange={(value) => 
                         setFormData(prev => ({ ...prev, videoVisualStyle: value as any }))
                       }
                     >
-                      <SelectTrigger className="h-10 md:h-11 rounded-xl border-2 bg-background/50 hover:border-border/70 transition-colors">
+                      <SelectTrigger className="h-10 md:h-11 rounded-xl border-2 border-border/50 bg-background/50 text-sm hover:border-border/70 transition-colors">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="cinematic">
-                          🎬 Cinematográfico - Qualidade de cinema profissional
+                      <SelectContent className="rounded-xl border-border/20">
+                        <SelectItem value="cinematic" className="rounded-lg">
+                          Cinematográfico
                         </SelectItem>
-                        <SelectItem value="animation">
-                          🎨 Animação Criativa - Estilo animado e vibrante
+                        <SelectItem value="animation" className="rounded-lg">
+                          Animação Criativa
                         </SelectItem>
-                        <SelectItem value="realistic">
-                          📷 Realismo Fotográfico - Aparência ultra-realista
+                        <SelectItem value="realistic" className="rounded-lg">
+                          Realismo Fotográfico
                         </SelectItem>
-                        <SelectItem value="creative">
-                          ✨ Criativo Experimental - Abordagem artística única
+                        <SelectItem value="creative" className="rounded-lg">
+                          Criativo Experimental
                         </SelectItem>
                       </SelectContent>
                     </Select>
+                    <p className="text-xs text-muted-foreground">
+                      {formData.videoVisualStyle === 'cinematic' && 'Qualidade de cinema profissional'}
+                      {formData.videoVisualStyle === 'animation' && 'Estilo animado e vibrante'}
+                      {formData.videoVisualStyle === 'realistic' && 'Aparência ultra-realista'}
+                      {formData.videoVisualStyle === 'creative' && 'Abordagem artística única'}
+                    </p>
                   </div>
 
                   {/* Duração */}
-                  <div className="space-y-2">
-                    <Label className="text-xs md:text-sm font-semibold">Duração do Vídeo</Label>
+                  <div className="space-y-2 md:space-y-3">
+                    <Label className="text-xs md:text-sm font-semibold text-foreground">
+                      Duração do Vídeo
+                    </Label>
                     <Select 
                       value={String(formData.videoDuration || 8)}
                       onValueChange={(value) => 
                         setFormData(prev => ({ ...prev, videoDuration: Number(value) as any }))
                       }
                     >
-                      <SelectTrigger className="h-10 md:h-11 rounded-xl border-2 bg-background/50 hover:border-border/70 transition-colors">
+                      <SelectTrigger className="h-10 md:h-11 rounded-xl border-2 border-border/50 bg-background/50 text-sm hover:border-border/70 transition-colors">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="4">4 segundos</SelectItem>
-                        <SelectItem value="6">6 segundos</SelectItem>
-                        <SelectItem value="8">8 segundos (Recomendado)</SelectItem>
+                      <SelectContent className="rounded-xl border-border/20">
+                        <SelectItem value="4" className="rounded-lg">4 segundos</SelectItem>
+                        <SelectItem value="6" className="rounded-lg">6 segundos</SelectItem>
+                        <SelectItem value="8" className="rounded-lg">8 segundos</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   {/* Proporção */}
-                  <div className="space-y-2">
-                    <Label className="text-xs md:text-sm font-semibold">Proporção</Label>
+                  <div className="space-y-2 md:space-y-3">
+                    <Label className="text-xs md:text-sm font-semibold text-foreground">
+                      Proporção
+                    </Label>
                     <Select 
                       value={formData.videoAspectRatio || '9:16'}
                       onValueChange={(value) => 
                         setFormData(prev => ({ ...prev, videoAspectRatio: value as any }))
                       }
                     >
-                      <SelectTrigger className="h-10 md:h-11 rounded-xl border-2 bg-background/50 hover:border-border/70 transition-colors">
+                      <SelectTrigger className="h-10 md:h-11 rounded-xl border-2 border-border/50 bg-background/50 text-sm hover:border-border/70 transition-colors">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="9:16">9:16 (Vertical)</SelectItem>
-                        <SelectItem value="16:9">16:9 (Horizontal)</SelectItem>
+                      <SelectContent className="rounded-xl border-border/20">
+                        <SelectItem value="9:16" className="rounded-lg">9:16 (Vertical)</SelectItem>
+                        <SelectItem value="16:9" className="rounded-lg">16:9 (Horizontal)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   {/* Resolução */}
-                  <div className="space-y-2">
-                    <Label className="text-xs md:text-sm font-semibold">Resolução</Label>
+                  <div className="space-y-2 md:space-y-3">
+                    <Label className="text-xs md:text-sm font-semibold text-foreground">
+                      Resolução
+                    </Label>
                     <Select 
                       value={formData.videoResolution || '1080p'}
                       onValueChange={(value) => 
                         setFormData(prev => ({ ...prev, videoResolution: value as any }))
                       }
                     >
-                      <SelectTrigger className="h-10 md:h-11 rounded-xl border-2 bg-background/50 hover:border-border/70 transition-colors">
+                      <SelectTrigger className="h-10 md:h-11 rounded-xl border-2 border-border/50 bg-background/50 text-sm hover:border-border/70 transition-colors">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="720p">720p (HD)</SelectItem>
-                        <SelectItem value="1080p">1080p (Full HD)</SelectItem>
+                      <SelectContent className="rounded-xl border-border/20">
+                        <SelectItem value="720p" className="rounded-lg">720p (HD)</SelectItem>
+                        <SelectItem value="1080p" className="rounded-lg">1080p (Full HD)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   {/* Prompt Negativo - Full width */}
-                  <div className="space-y-2 md:col-span-2 lg:col-span-3">
-                    <Label className="text-xs md:text-sm font-semibold">Prompt Negativo (Opcional)</Label>
+                  <div className="space-y-2 md:space-y-3 md:col-span-2 lg:col-span-3">
+                    <Label className="text-xs md:text-sm font-semibold text-foreground">
+                      Prompt Negativo (Opcional)
+                    </Label>
                     <Textarea
-                      placeholder="O que EVITAR no vídeo (ex: barking, woofing, texto indesejado, watermark...)"
+                      placeholder="O que evitar no vídeo (ex: texto indesejado, watermark, elementos específicos...)"
                       value={formData.videoNegativePrompt || ""}
                       onChange={(e) => 
                         setFormData(prev => ({ ...prev, videoNegativePrompt: e.target.value }))
                       }
-                      className="min-h-[80px] md:min-h-[100px] rounded-xl border-2 bg-background/50 resize-none text-sm hover:border-border/70 focus:border-primary/50 transition-colors"
+                      className="min-h-[80px] md:min-h-[100px] rounded-xl border-2 border-border/50 bg-background/50 resize-none text-sm hover:border-border/70 focus:border-primary/50 transition-colors"
                       maxLength={500}
                     />
                     <p className="text-xs text-muted-foreground text-right">
@@ -2320,32 +2344,13 @@ ${formData.description}
                   </div>
                 </div>
 
-                {/* Badges informativos */}
-                <div className="flex flex-wrap gap-2 pt-4 mt-4 border-t border-purple-500/20">
-                  {formData.videoAudioStyle !== 'none' && (
-                    <Badge variant="secondary" className="text-xs">
-                      🔊 Áudio: {formData.videoAudioStyle}
-                    </Badge>
-                  )}
-                  <Badge variant="secondary" className="text-xs">
-                    🎬 Estilo: {formData.videoVisualStyle}
-                  </Badge>
-                  <Badge variant="secondary" className="text-xs">
-                    📐 {formData.videoAspectRatio} • {formData.videoResolution}
-                  </Badge>
-                  <Badge variant="secondary" className="text-xs">
-                    ⏱️ {formData.videoDuration}s
-                  </Badge>
-                </div>
-
                 {/* Info sobre Veo 3.1 */}
-                <div className="flex items-start gap-2 p-3 md:p-4 mt-4 bg-blue-500/10 border border-blue-500/20 rounded-xl">
-                  <Info className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                <div className="flex items-start gap-2 p-3 md:p-4 mt-6 bg-accent/10 rounded-xl border border-accent/20">
+                  <Info className="h-4 w-4 text-accent mt-0.5 flex-shrink-0" />
                   <div className="text-xs md:text-sm text-muted-foreground">
-                    <strong className="text-blue-500">Veo 3.1:</strong> Modelo avançado com 
-                    áudio nativo (diálogos, efeitos sonoros, música), controle de estilo 
-                    cinematográfico, e suporte a múltiplas imagens de referência para 
-                    consistência de personagens e cenários.
+                    <strong className="text-accent">Veo 3.1:</strong> Modelo avançado com 
+                    áudio nativo, controle de estilo cinematográfico e suporte a múltiplas 
+                    imagens de referência para consistência de personagens e cenários.
                   </div>
                 </div>
               </CardContent>
