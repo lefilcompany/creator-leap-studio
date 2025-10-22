@@ -36,6 +36,39 @@ export default function QuickContentResult() {
       setCurrentImageUrl(imageUrl);
       setImageHistory([imageUrl]); // Initialize history with original image
 
+      // Limpar históricos antigos (>7 dias) automaticamente
+      const cleanupOldHistories = () => {
+        const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
+        const now = Date.now();
+        const keysToRemove: string[] = [];
+
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key?.startsWith('image_history_') || key?.startsWith('revisions_')) {
+            try {
+              // Extrair timestamp do contentId se possível
+              const match = key.match(/quick_content_(\d+)/);
+              if (match) {
+                const timestamp = parseInt(match[1]);
+                if (now - timestamp > SEVEN_DAYS) {
+                  keysToRemove.push(key);
+                }
+              }
+            } catch (e) {
+              // Ignorar erros de parsing
+            }
+          }
+        }
+
+        // Remover históricos antigos
+        if (keysToRemove.length > 0) {
+          keysToRemove.forEach(key => localStorage.removeItem(key));
+          console.log(`🧹 Limpeza automática: ${keysToRemove.length} históricos antigos removidos`);
+        }
+      };
+
+      cleanupOldHistories();
+
       // Load revision count and history from localStorage
       const contentId = `quick_content_${actionId || Date.now()}`;
       const revisionsKey = `revisions_${contentId}`;
@@ -270,8 +303,15 @@ export default function QuickContentResult() {
       const timestamp = Date.now();
       const imageUrlWithTimestamp = `${data.editedImageUrl}?t=${timestamp}`;
 
-      // Add to history (limite de 10 imagens para evitar quota exceeded)
-      const newHistory = [...imageHistory, imageUrlWithTimestamp].slice(-10);
+      // Prevenir armazenamento de imagens base64 (muito grandes)
+      if (imageUrlWithTimestamp.startsWith('data:')) {
+        toast.error('Não é possível armazenar esta imagem no histórico (formato base64). Use o botão Baixar para salvá-la.');
+        setCurrentImageUrl(imageUrlWithTimestamp);
+        return;
+      }
+
+      // Add to history (limite de 5 URLs para economizar espaço)
+      const newHistory = [...imageHistory, imageUrlWithTimestamp].slice(-5);
       setImageHistory(newHistory);
       setCurrentImageUrl(imageUrlWithTimestamp);
 
@@ -281,15 +321,44 @@ export default function QuickContentResult() {
       const historyKey = `image_history_${contentId}`;
 
       try {
+        // Verificar espaço disponível no localStorage antes de salvar
+        const testKey = 'test_storage_' + Date.now();
+        try {
+          localStorage.setItem(testKey, 'test');
+          localStorage.removeItem(testKey);
+        } catch (e) {
+          throw new DOMException('Storage quota check failed', 'QuotaExceededError');
+        }
+
         localStorage.setItem(revisionsKey, newRevisionCount.toString());
         localStorage.setItem(historyKey, JSON.stringify(newHistory));
       } catch (error) {
         console.error('Erro ao salvar no localStorage:', error);
-        // Se falhar, limpar histórico antigo e tentar novamente
+        
         if (error instanceof DOMException && error.name === 'QuotaExceededError') {
-          localStorage.removeItem(historyKey);
-          localStorage.setItem(historyKey, JSON.stringify([imageUrlWithTimestamp]));
-          toast.warning('Histórico de imagens foi resetado por limite de armazenamento');
+          // Limpar históricos antigos (>7 dias) de outros conteúdos
+          const keysToRemove: string[] = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key?.startsWith('image_history_') || key?.startsWith('revisions_')) {
+              keysToRemove.push(key);
+            }
+          }
+          
+          // Remover metade dos históricos antigos
+          const toRemove = keysToRemove.slice(0, Math.ceil(keysToRemove.length / 2));
+          toRemove.forEach(key => localStorage.removeItem(key));
+          
+          // Tentar salvar novamente
+          try {
+            localStorage.setItem(revisionsKey, newRevisionCount.toString());
+            localStorage.setItem(historyKey, JSON.stringify(newHistory));
+            toast.info('Históricos antigos foram limpos para liberar espaço');
+          } catch (retryError) {
+            // Último recurso: salvar apenas a imagem atual
+            localStorage.setItem(historyKey, JSON.stringify([imageUrlWithTimestamp]));
+            toast.warning('Histórico limitado à versão atual por espaço');
+          }
         }
       }
 

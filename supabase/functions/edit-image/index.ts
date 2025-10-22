@@ -24,16 +24,19 @@ function buildRevisionPrompt(
   aspectRatio?: string
 ): string {
   let promptParts: string[] = [
-    "🎨 Você é um diretor de arte especializado em design para redes sociais e edição de imagens com IA.",
+    "🎨 VOCÊ É UM EDITOR DE IMAGENS ESPECIALIZADO. SUA MISSÃO: APLICAR EXATAMENTE O QUE O USUÁRIO SOLICITOU.",
     "",
-    "📋 OBJETIVO PRINCIPAL:",
-    `Editar a imagem fornecida aplicando este ajuste: "${cleanInput(adjustment)}"`,
+    "🎯 INSTRUÇÃO DO USUÁRIO (EXECUTE ISTO COM PRECISÃO):",
+    `"${cleanInput(adjustment)}"`,
     "",
-    "⚠️ IMPORTANTE:",
-    "- Aplique o ajuste solicitado de forma VISÍVEL e CLARA",
-    "- Mantenha a QUALIDADE PROFISSIONAL da imagem",
-    "- Preserve elementos que funcionam bem, mas não tenha medo de fazer mudanças significativas se solicitado",
-    "- Se o ajuste pedir mudanças de composição, cores ou elementos, execute-as com confiança",
+    "⚠️ REGRAS CRÍTICAS:",
+    "1. VOCÊ DEVE aplicar modificações VISÍVEIS e SIGNIFICATIVAS conforme solicitado",
+    "2. Se o usuário pedir para mudar COR, altere as cores de forma CLARA",
+    "3. Se pedir para adicionar/remover OBJETOS, faça isso CLARAMENTE",
+    "4. Se pedir para mudar TAMANHO/POSIÇÃO, execute EXATAMENTE",
+    "5. NUNCA retorne a imagem original sem modificações",
+    "6. Mantenha qualidade profissional e realismo",
+    "7. Se a instrução não for clara, interprete da forma mais lógica e aplique mudanças visíveis",
     ""
   ];
 
@@ -275,9 +278,9 @@ serve(async (req) => {
           ]
         }],
         generationConfig: {
-          temperature: 0.9,
+          temperature: 0.7,
           topP: 0.95,
-          topK: 64,
+          topK: 40,
           maxOutputTokens: 8192,
         }
       })
@@ -326,10 +329,27 @@ serve(async (req) => {
     if (!geminiImageData) {
       console.error('❌ Imagem editada não foi retornada pela API');
       console.error('📊 Dados recebidos:', JSON.stringify(aiData, null, 2));
-      throw new Error('Imagem editada não foi retornada pela API');
+      throw new Error('A IA não conseguiu processar sua solicitação. Tente reformular o pedido de edição de forma mais específica.');
     }
 
     const editedImageBase64 = `data:${geminiImageData.mimeType};base64,${geminiImageData.data}`;
+    
+    // Validar se a imagem mudou (comparar tamanhos como proxy simples)
+    const originalSize = imageBase64.length;
+    const editedSize = geminiImageData.data.length;
+    const sizeDifference = Math.abs(originalSize - editedSize) / originalSize;
+    
+    console.log('📏 Comparação de tamanhos:', {
+      originalSize,
+      editedSize,
+      differencePercent: (sizeDifference * 100).toFixed(2) + '%'
+    });
+    
+    // Se a diferença for muito pequena (< 0.5%), pode ser que não houve mudança real
+    if (sizeDifference < 0.005) {
+      console.warn('⚠️ AVISO: A imagem editada parece muito similar à original. Diferença: ' + (sizeDifference * 100).toFixed(3) + '%');
+      console.warn('📝 Prompt usado:', detailedPrompt.substring(0, 500));
+    }
 
     console.log('📤 Fazendo upload da imagem editada para Storage...');
 
