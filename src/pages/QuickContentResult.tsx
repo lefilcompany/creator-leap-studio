@@ -3,7 +3,8 @@ import { useNavigate, useLocation, Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { ArrowLeft, Download, Copy, Check, ExternalLink, Maximize2, RefreshCw, Undo2 } from "lucide-react";
+import { Download, Copy, Check, Maximize2, RefreshCw, Undo2, ExternalLink } from "lucide-react";
+import { Header } from "@/components/Header";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -209,10 +210,6 @@ export default function QuickContentResult() {
     }
   };
 
-  const handleOpenInNewTab = () => {
-    window.open(currentImageUrl, '_blank', 'noopener,noreferrer');
-    toast.success("Imagem aberta em nova aba");
-  };
 
   const handleOpenReview = () => {
     setShowReviewDialog(true);
@@ -428,121 +425,93 @@ export default function QuickContentResult() {
   if (!imageUrl) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/10">
-      <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-xl border-b border-border/40 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-3 sm:py-4 mb-4 sm:mb-6 lg:mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-            {/* Top: Back button + Title */}
-            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate("/quick-content")}
-                className="hover:scale-105 transition-transform shrink-0 h-9 w-9 sm:h-10 sm:w-10 hover:bg-primary/20 hover:text-primary"
-              >
-                <ArrowLeft className="h-4 w-4 sm:h-4.5 sm:w-4.5" />
-              </Button>
-              <div className="min-w-0">
-                <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-foreground">
-                  Conteúdo Gerado
-                </h1>
-                <p className="text-xs sm:text-sm text-muted-foreground">Sua imagem foi criada com sucesso</p>
-              </div>
-            </div>
-            
-            {/* Bottom: Action buttons */}
-            <div className="flex flex-wrap gap-2">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleOpenReview}
-                      className="hover:text-accent hover:bg-accent/20 hover:border-accent transition-all"
-                    >
-                      <RefreshCw className="h-4 w-4 mr-2" />
-                      Revisar
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Revisar conteúdo</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-
-              {totalRevisions > 0 && (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleRevert}
-                        className="hover:text-accent hover:bg-accent/20 hover:border-accent transition-all"
-                      >
-                        <Undo2 className="h-4 w-4 mr-2" />
-                        Reverter
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Reverter última revisão</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              )}
-
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleDownload}
-                      className="hover:text-accent hover:bg-accent/20 hover:border-accent transition-all"
-                    >
-                      <Download className="h-4 w-4 mr-2" />
-                      Baixar
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Baixar imagem</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleOpenInNewTab}
-                      className="hover:text-accent hover:bg-accent/20 hover:border-accent transition-all"
-                    >
-                      <ExternalLink className="h-4 w-4 mr-2" />
-                      Nova Aba
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Abrir em nova aba</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-
-              <Button
-                size="sm"
-                onClick={() => navigate("/quick-content")}
-                className="hover:scale-105 transition-transform"
-              >
-                Criar Novo
-              </Button>
-            </div>
-          </div>
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-background via-background to-muted/10">
+      <Header />
+      
+      <div className="flex-1 container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        {/* Page Header */}
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-2">
+            Conteúdo Gerado
+          </h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
+            Sua imagem foi criada com sucesso
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 pb-6 sm:pb-8">
+        {/* Action Buttons */}
+        <div className="flex flex-wrap gap-2 mb-6 sm:mb-8">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleOpenReview}
+                  className="hover:text-primary hover:bg-primary/10 hover:border-primary transition-all"
+                >
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Revisar
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Revisar conteúdo</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          {totalRevisions > 0 && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleRevert}
+                    disabled={imageHistory.length <= 1}
+                    className="hover:text-primary hover:bg-primary/10 hover:border-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Undo2 className="h-4 w-4 mr-2" />
+                    Reverter
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Reverter última revisão</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleDownload}
+                  className="hover:text-primary hover:bg-primary/10 hover:border-primary transition-all"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Baixar
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Baixar imagem em alta qualidade</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <Button
+            size="sm"
+            onClick={() => navigate("/quick-content")}
+            className="hover:scale-105 transition-transform"
+          >
+            Criar Novo
+          </Button>
+        </div>
+
+        {/* Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
           {/* Image Display */}
           <Card className="group overflow-hidden border-border/50 bg-card/50 backdrop-blur-sm hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300">
             <div className="p-4 sm:p-5 lg:p-6 space-y-3 sm:space-y-4">
