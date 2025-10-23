@@ -9,6 +9,7 @@ interface User {
   name: string;
   teamId?: string;
   isAdmin: boolean;
+  avatarUrl?: string;
 }
 
 interface Team {
@@ -151,7 +152,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email: supabaseUser.email || '',
         name: profile.name || profile.email || '',
         teamId: profile.team_id,
-        isAdmin
+        isAdmin,
+        avatarUrl: profile.avatar_url
       };
 
       let teamData: Team | null = null;
@@ -268,7 +270,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(prev => prev ? {
           ...prev,
           name: profile.name || profile.email || prev.name,
-          teamId: profile.team_id
+          teamId: profile.team_id,
+          avatarUrl: profile.avatar_url
         } : null);
 
         dataCache.current = null;

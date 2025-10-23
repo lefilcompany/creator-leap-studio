@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Camera, Loader2, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 import AvatarEditor from './AvatarEditor';
 
 interface AvatarUploadProps {
@@ -24,6 +25,7 @@ export default function AvatarUpload({
   const [editorOpen, setEditorOpen] = useState(false);
   const [imageToEdit, setImageToEdit] = useState<string>('');
   const { toast } = useToast();
+  const { refreshProfile } = useAuth();
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
@@ -109,6 +111,7 @@ export default function AvatarUpload({
       if (updateError) throw updateError;
 
       onAvatarUpdate(publicUrl);
+      await refreshProfile();
       
       toast({
         title: 'Sucesso',
@@ -156,6 +159,7 @@ export default function AvatarUpload({
       if (updateError) throw updateError;
 
       onAvatarUpdate(null);
+      await refreshProfile();
       
       toast({
         title: 'Sucesso',
