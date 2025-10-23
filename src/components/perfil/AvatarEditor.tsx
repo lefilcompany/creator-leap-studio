@@ -26,9 +26,22 @@ export default function AvatarEditor({ imageUrl, onSave, onCancel, open }: Avata
       img.crossOrigin = 'anonymous';
       img.onload = () => {
         setImage(img);
+        // Calcular zoom inicial para caber a imagem inteira no círculo
+        const canvasSize = 300;
+        const imgAspect = img.width / img.height;
+        let initialZoom: number;
+        
+        if (imgAspect > 1) {
+          // Imagem horizontal - ajustar pela altura
+          initialZoom = canvasSize / img.height;
+        } else {
+          // Imagem vertical ou quadrada - ajustar pela largura
+          initialZoom = canvasSize / img.width;
+        }
+        
         // Centralizar imagem
         setPosition({ x: 0, y: 0 });
-        setZoom(1);
+        setZoom(initialZoom);
         setRotation(0);
       };
       img.src = imageUrl;
@@ -168,9 +181,9 @@ export default function AvatarEditor({ imageUrl, onSave, onCancel, open }: Avata
             <Slider
               value={[zoom]}
               onValueChange={handleZoomChange}
-              min={0.5}
+              min={0.1}
               max={3}
-              step={0.1}
+              step={0.05}
               className="w-full"
             />
           </div>
