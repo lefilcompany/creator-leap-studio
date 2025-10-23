@@ -41,23 +41,20 @@ const PlanContent = () => {
   const [isLoadingData, setIsLoadingData] = useState(true);
 
   // Persistência de formulário
-  const { loadPersistedData, clearPersistedData, hasRelevantData } = useFormPersistence({
+  const { loadPersistedData, clearPersistedData } = useFormPersistence({
     key: 'plan-content-form',
     formData,
     excludeFields: [] // Persistir todos os campos
   });
 
-  // Carregar dados persistidos na montagem (apenas uma vez)
+  // Carregar dados persistidos na montagem
   useEffect(() => {
     const persisted = loadPersistedData();
-    if (persisted && hasRelevantData(persisted)) {
+    if (persisted) {
       setFormData(prev => ({ ...prev, ...persisted }));
-      toast.info('Rascunho recuperado', {
-        description: 'Continuando de onde você parou'
-      });
+      toast.info('Rascunho recuperado');
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Executar apenas na montagem inicial
+  }, []);
 
   useEffect(() => {
     const loadData = async () => {

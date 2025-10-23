@@ -156,23 +156,20 @@ export default function CreateContent() {
   const [preserveImageIndices, setPreserveImageIndices] = useState<number[]>([]);
 
   // Persistência de formulário
-  const { loadPersistedData, clearPersistedData, hasRelevantData } = useFormPersistence({
+  const { loadPersistedData, clearPersistedData } = useFormPersistence({
     key: 'create-content-form',
     formData,
     excludeFields: ['referenceFiles'] // Não persistir arquivos
   });
 
-  // Carregar dados persistidos na montagem (apenas uma vez)
+  // Carregar dados persistidos na montagem
   useEffect(() => {
     const persisted = loadPersistedData();
-    if (persisted && hasRelevantData(persisted)) {
+    if (persisted) {
       setFormData(prev => ({ ...prev, ...persisted }));
-      toast.info('Rascunho recuperado', {
-        description: 'Continuando de onde você parou'
-      });
+      toast.info('Rascunho recuperado');
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Executar apenas na montagem inicial
+  }, []);
 
   const handlePaste = (e: React.ClipboardEvent) => {
     const items = e.clipboardData.items;

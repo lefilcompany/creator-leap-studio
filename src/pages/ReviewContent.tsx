@@ -41,7 +41,7 @@ const ReviewContent = () => {
   const [filteredThemes, setFilteredThemes] = useState<LightTheme[]>([]);
 
   // Persistência de formulário
-  const { loadPersistedData, clearPersistedData, hasRelevantData } = useFormPersistence({
+  const { loadPersistedData, clearPersistedData } = useFormPersistence({
     key: 'review-content-form',
     formData: { 
       reviewType, 
@@ -54,23 +54,19 @@ const ReviewContent = () => {
     excludeFields: ['imageFile', 'previewUrl'] // Não persistir arquivo de imagem
   });
 
-  // Carregar dados persistidos na montagem (apenas uma vez)
+  // Carregar dados persistidos na montagem
   useEffect(() => {
     const persisted = loadPersistedData();
-    if (persisted && hasRelevantData(persisted)) {
+    if (persisted) {
       if (persisted.reviewType) setReviewType(persisted.reviewType);
       if (persisted.brand) setBrand(persisted.brand);
       if (persisted.theme) setTheme(persisted.theme);
       if (persisted.adjustmentsPrompt) setAdjustmentsPrompt(persisted.adjustmentsPrompt);
       if (persisted.captionText) setCaptionText(persisted.captionText);
       if (persisted.textForImage) setTextForImage(persisted.textForImage);
-      
-      toast.info('Rascunho recuperado', {
-        description: 'Continuando de onde você parou'
-      });
+      toast.info('Rascunho recuperado');
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Executar apenas na montagem inicial
+  }, []);
 
   useEffect(() => {
     const loadData = async () => {
