@@ -459,16 +459,17 @@ serve(async (req) => {
       console.log('🖼️ Imagens de referência:', referenceImages.length);
     }
     
-    // Prepare request body seguindo estrutura oficial Google Cloud API
-    // IMPORTANTE: Parâmetros devem estar DENTRO de instances[0], não em parameters separado
+    // Prepare request body seguindo estrutura oficial Google AI API
+    // IMPORTANTE: prompt e image vão em instances[0], outros parâmetros vão em parameters separado
     const requestBody: any = {
       instances: [{
-        prompt: enrichedPrompt,
+        prompt: enrichedPrompt
+      }],
+      parameters: {
         aspectRatio: aspectRatio,  // 9:16, 16:9, etc
         resolution: resolution,  // 720p, 1080p
-        durationSeconds: duration,  // 4-8 segundos
-        generateAudio: audioStyle !== 'none'
-      }]
+        durationSeconds: duration  // 4-8 segundos
+      }
     };
 
     // Veo 3.1: Estrutura otimizada seguindo documentação oficial Google Cloud
@@ -503,9 +504,9 @@ serve(async (req) => {
       console.log(`🖼️ [Veo 3.1] ${referenceImages.length} imagem(ns) de referência adicionadas`);
     }
 
-    // Adicionar prompt negativo se fornecido (dentro de instances[0])
+    // Adicionar prompt negativo se fornecido (vai em parameters, não em instances)
     if (negativePrompt && negativePrompt.trim()) {
-      requestBody.instances[0].negativePrompt = negativePrompt;
+      requestBody.parameters.negativePrompt = negativePrompt;
       console.log('⛔ Negative prompt:', negativePrompt);
     }
     
