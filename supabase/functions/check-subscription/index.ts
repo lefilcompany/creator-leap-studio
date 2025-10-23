@@ -48,7 +48,7 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    const stripe = new Stripe(stripeKey, { apiVersion: "2024-12-18.acacia" });
+    const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
     
     // Find customer by email
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
@@ -87,6 +87,19 @@ serve(async (req) => {
 
     const subscription = subscriptions.data[0];
     const subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
+    
+    // Validate subscription items exist
+    if (!subscription.items?.data || subscription.items.data.length === 0) {
+      logStep("No subscription items found");
+      return new Response(JSON.stringify({ 
+        subscribed: false,
+        message: "Invalid subscription structure"
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+    
     const productId = subscription.items.data[0].price.product as string;
     const planId = STRIPE_PRODUCT_TO_PLAN[productId];
     
