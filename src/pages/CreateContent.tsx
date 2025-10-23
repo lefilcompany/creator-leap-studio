@@ -107,8 +107,8 @@ export default function CreateContent() {
     negativePrompt: "",
     colorPalette: "auto",
     lighting: "natural",
-    // VEO 3.1 DEFAULTS
-    videoGenerationType: 'image_to_video',
+    // VEO 3.1 DEFAULTS (apenas text_to_video suportado)
+    videoGenerationType: 'text_to_video',
     videoAudioStyle: 'sound_effects',
     videoVisualStyle: 'cinematic',
     videoAspectRatio: '9:16',
@@ -553,16 +553,13 @@ export default function CreateContent() {
     if (formData.tone.length === 0) missing.push('tone');
     
     if (isVideoMode) {
-      // Validar modo de geração de vídeo
-      if (formData.videoGenerationType === 'image_to_video' && referenceFiles.length === 0) {
-        missing.push('referenceFiles');
-        toast.error('Adicione pelo menos 1 imagem de referência para o modo Imagem para Vídeo');
-      }
+      // Veo 3.1 suporta apenas text-to-video
+      // Não é necessário validar imagens de referência
       
-      // Validar máximo de 3 imagens
-      if (referenceFiles.length > 3) {
-        missing.push('referenceFiles');
-        toast.error('Veo 3.1 suporta no máximo 3 imagens de referência');
+      // Validar texto se includeText estiver ativo
+      if (formData.videoIncludeText && !formData.videoTextContent?.trim()) {
+        missing.push('videoTextContent');
+        toast.error('Digite o texto que deseja exibir no vídeo');
       }
       
       // Validar texto obrigatório quando toggle ativado
@@ -766,18 +763,10 @@ export default function CreateContent() {
           throw new Error(`Erro ao criar registro: ${actionError?.message}`);
         }
 
-        // Preparar imagens de referência Veo 3.1 (até 3)
-        const veo31ReferenceImages = await Promise.all(
-          referenceFiles.slice(0, 3).map(async (file) => {
-            return await new Promise<string>((resolve) => {
-              const reader = new FileReader();
-              reader.onloadend = () => resolve(reader.result as string);
-              reader.readAsDataURL(file);
-            });
-          })
-        );
+        // Veo 3.1 não suporta imagens de referência
+        // Removido: preparação de veo31ReferenceImages
 
-        // Iniciar geração de vídeo em background com Veo 3.1
+        // Iniciar geração de vídeo em background com Veo 3.1 (apenas text-to-video)
         const videoResponse = await fetch(
           `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-video`,
           {
@@ -788,18 +777,14 @@ export default function CreateContent() {
             },
             body: JSON.stringify({
               prompt: videoPrompt,
-              // Compatibilidade: imagem única
-              referenceImage: finalUserImages[0] || finalBrandImages[0],
-              // VEO 3.1: Múltiplas imagens de referência
-              referenceImages: veo31ReferenceImages.length > 0 ? veo31ReferenceImages : undefined,
-              preserveImages: finalBrandImages,
-              styleReferenceImages: finalUserImages,
+              // Veo 3.1 suporta APENAS text_to_video
+              generationType: 'text_to_video',
               actionId: actionData.id,
               // Configurações de texto
               includeText: formData.videoIncludeText || false,
               textContent: formData.videoTextContent?.trim() || "",
               textPosition: formData.videoTextPosition || "center",
-              // NOVOS PARÂMETROS VEO 3.1
+              // PARÂMETROS VEO 3.1
               audioStyle: formData.videoAudioStyle || 'sound_effects',
               visualStyle: formData.videoVisualStyle || 'cinematic',
               aspectRatio: formData.videoAspectRatio || '9:16',
@@ -2174,37 +2159,26 @@ ${formData.description}
                   <Label className="text-sm font-semibold text-foreground">
                     Método de Geração <span className="text-destructive">*</span>
                   </Label>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 gap-3">
                     <Button
                       type="button"
-                      variant={formData.videoGenerationType === 'text_to_video' ? 'default' : 'outline'}
-                      onClick={() => {
-                        setFormData(prev => ({ ...prev, videoGenerationType: 'text_to_video' }));
-                        if (formData.videoGenerationType !== 'text_to_video') {
-                          setReferenceFiles([]);
-                          setPreserveImageIndices([]);
-                        }
-                      }}
-                      className="h-20 flex flex-col items-center justify-center gap-2"
+                      variant="default"
+                      disabled
+                      className="h-20 flex flex-col items-center justify-center gap-2 cursor-default"
                     >
                       <FileText className="h-5 w-5" />
                       <span className="text-sm">Texto para Vídeo</span>
                     </Button>
-                    <Button
-                      type="button"
-                      variant={formData.videoGenerationType === 'image_to_video' ? 'default' : 'outline'}
-                      onClick={() => setFormData(prev => ({ ...prev, videoGenerationType: 'image_to_video' }))}
-                      className="h-20 flex flex-col items-center justify-center gap-2"
-                    >
-                      <ImagePlus className="h-5 w-5" />
-                      <span className="text-sm">Imagem para Vídeo</span>
-                    </Button>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    {formData.videoGenerationType === 'text_to_video' 
-                      ? 'O vídeo será gerado apenas a partir da descrição textual sem imagens de referência'
-                      : 'Use até 3 imagens como base visual para garantir consistência no vídeo'}
+                    O vídeo será gerado a partir da descrição textual. Veo 3.1 atualmente suporta apenas text-to-video.
                   </p>
+                  <div className="flex items-start gap-2 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                    <Info className="h-4 w-4 mt-0.5 flex-shrink-0 text-blue-500" />
+                    <p className="text-xs text-muted-foreground leading-tight">
+                      <strong className="text-blue-500">Modo Image-to-Video temporariamente indisponível:</strong> O modelo Veo 3.1 atualmente suporta apenas geração text-to-video. Descreva sua visão com o máximo de detalhes para melhores resultados.
+                    </p>
+                  </div>
                 </div>
 
                 {/* Descrição Visual do Vídeo */}
@@ -2238,8 +2212,8 @@ ${formData.description}
               </CardContent>
             </Card>
 
-            {/* CARD 2: IMAGENS DE REFERÊNCIA (condicional - apenas image_to_video) */}
-            {formData.videoGenerationType === 'image_to_video' && (
+            {/* CARD 2: IMAGENS DE REFERÊNCIA - DESABILITADO (Veo 3.1 não suporta) */}
+            {false && formData.videoGenerationType === 'image_to_video' && (
               <Card className="backdrop-blur-sm bg-gradient-to-br from-card/80 to-card border-2 border-primary/20 shadow-lg rounded-2xl">
                 <CardHeader className="pb-3 md:pb-4 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-t-2xl">
                   <div className="flex items-start justify-between">

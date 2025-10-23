@@ -222,12 +222,9 @@ serve(async (req) => {
     } = await req.json();
     
     console.log('🎬 Iniciando geração de vídeo com Gemini Veo 3.1');
-    console.log('🎯 Tipo de geração:', generationType);
+    console.log('🎯 Tipo de geração: text_to_video (único modo suportado)');
     console.log('📝 Prompt:', prompt);
     console.log('🆔 Action ID:', actionId);
-    console.log('🖼️ Imagens de referência Veo 3.1:', referenceImages.length);
-    console.log('🎨 Imagens para preservar:', preserveImages.length);
-    console.log('✨ Imagens de estilo:', styleReferenceImages.length);
     console.log('📝 Incluir texto:', includeText);
     console.log('📝 Conteúdo do texto:', textContent ? `"${textContent}"` : 'Nenhum');
     console.log('📍 Posição do texto:', textPosition);
@@ -237,18 +234,8 @@ serve(async (req) => {
     console.log('🎞️ Resolução:', resolution);
     console.log('⏱️ Duração:', duration + 's');
 
-    // Validações baseadas no tipo de geração
-    if (generationType === 'image_to_video' && referenceImages.length === 0) {
-      console.error('❌ Modo image_to_video requer pelo menos uma imagem de referência');
-      return new Response(
-        JSON.stringify({ error: 'Imagens de referência são obrigatórias para o modo Imagem para Vídeo' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    if (generationType === 'text_to_video' && referenceImages.length > 0) {
-      console.log('⚠️ Aviso: Imagens de referência fornecidas serão ignoradas no modo Texto para Vídeo');
-    }
+    // Veo 3.1 suporta APENAS text_to_video
+    // Não validar imagens de referência
 
     if (!actionId) {
       return new Response(
@@ -392,13 +379,11 @@ serve(async (req) => {
     }
 
 
-    // USAR APENAS referenceImages (Veo 3.1) para image_to_video
+    // NOTA: Veo 3.1 NÃO suporta reference_images
+    // Se o usuário enviou imagens, vamos ignorá-las e processar apenas como text_to_video
     if (generationType === 'image_to_video' && referenceImages && referenceImages.length > 0) {
-      console.log(`📸 Usando ${referenceImages.length} imagem(ns) de referência Veo 3.1`);
-      requestBody.instances[0].reference_images = referenceImages.map((img: string) => ({
-        bytesBase64Encoded: img.split(',')[1],
-        mimeType: img.split(';')[0].split(':')[1]
-      }));
+      console.log(`⚠️ AVISO: Veo 3.1 não suporta reference_images. Processando como text_to_video.`);
+      console.log(`📝 ${referenceImages.length} imagem(ns) de referência foram ignoradas.`);
     }
 
 
