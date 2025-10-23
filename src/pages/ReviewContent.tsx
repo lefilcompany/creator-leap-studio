@@ -41,7 +41,7 @@ const ReviewContent = () => {
   const [filteredThemes, setFilteredThemes] = useState<LightTheme[]>([]);
 
   // Persistência de formulário
-  const { loadPersistedData, clearPersistedData } = useFormPersistence({
+  const { loadPersistedData, clearPersistedData, hasRelevantData } = useFormPersistence({
     key: 'review-content-form',
     formData: { 
       reviewType, 
@@ -54,34 +54,23 @@ const ReviewContent = () => {
     excludeFields: ['imageFile', 'previewUrl'] // Não persistir arquivo de imagem
   });
 
-  // Carregar dados persistidos na montagem
+  // Carregar dados persistidos na montagem (apenas uma vez)
   useEffect(() => {
     const persisted = loadPersistedData();
-    if (persisted) {
-      // Verificar se há dados realmente relevantes
-      const hasData = !!(
-        persisted.reviewType ||
-        persisted.brand ||
-        persisted.theme ||
-        persisted.adjustmentsPrompt?.trim() ||
-        persisted.captionText?.trim() ||
-        persisted.textForImage?.trim()
-      );
+    if (persisted && hasRelevantData(persisted)) {
+      if (persisted.reviewType) setReviewType(persisted.reviewType);
+      if (persisted.brand) setBrand(persisted.brand);
+      if (persisted.theme) setTheme(persisted.theme);
+      if (persisted.adjustmentsPrompt) setAdjustmentsPrompt(persisted.adjustmentsPrompt);
+      if (persisted.captionText) setCaptionText(persisted.captionText);
+      if (persisted.textForImage) setTextForImage(persisted.textForImage);
       
-      if (hasData) {
-        if (persisted.reviewType) setReviewType(persisted.reviewType);
-        if (persisted.brand) setBrand(persisted.brand);
-        if (persisted.theme) setTheme(persisted.theme);
-        if (persisted.adjustmentsPrompt) setAdjustmentsPrompt(persisted.adjustmentsPrompt);
-        if (persisted.captionText) setCaptionText(persisted.captionText);
-        if (persisted.textForImage) setTextForImage(persisted.textForImage);
-        
-        toast.info('Rascunho recuperado', {
-          description: 'Continuando de onde você parou'
-        });
-      }
+      toast.info('Rascunho recuperado', {
+        description: 'Continuando de onde você parou'
+      });
     }
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Executar apenas na montagem inicial
 
   useEffect(() => {
     const loadData = async () => {

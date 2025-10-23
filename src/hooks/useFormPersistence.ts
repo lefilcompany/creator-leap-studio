@@ -56,20 +56,38 @@ export function useFormPersistence({
   const hasRelevantData = (data: any): boolean => {
     if (!data) return false;
     
-    return !!(
-      data.prompt?.trim().length > 0 ||
-      data.brandId ||
+    // Verificar campos comuns em todos os formulários
+    const hasCommonFields = !!(
+      data.brand ||
       data.platform ||
+      data.objective?.trim().length > 0 ||
+      data.description?.trim().length > 0 ||
+      data.additionalInfo?.trim().length > 0
+    );
+    
+    // Verificar campos específicos de CreateContent
+    const hasCreateContentFields = !!(
+      data.theme ||
+      data.persona ||
+      (data.tone && data.tone.length > 0) ||
       data.negativePrompt?.trim().length > 0 ||
       (data.colorPalette && data.colorPalette !== 'auto') ||
       (data.lighting && data.lighting !== 'natural') ||
       (data.composition && data.composition !== 'auto') ||
       (data.cameraAngle && data.cameraAngle !== 'eye_level') ||
       (data.detailLevel && data.detailLevel !== 7) ||
-      (data.mood && data.mood !== 'auto') ||
-      data.width ||
-      data.height
+      (data.mood && data.mood !== 'auto')
     );
+    
+    // Verificar campos específicos de ReviewContent
+    const hasReviewContentFields = !!(
+      data.reviewType ||
+      data.adjustmentsPrompt?.trim().length > 0 ||
+      data.captionText?.trim().length > 0 ||
+      data.textForImage?.trim().length > 0
+    );
+    
+    return hasCommonFields || hasCreateContentFields || hasReviewContentFields;
   };
 
   return {

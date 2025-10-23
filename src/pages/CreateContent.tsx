@@ -162,7 +162,7 @@ export default function CreateContent() {
     excludeFields: ['referenceFiles'] // Não persistir arquivos
   });
 
-  // Carregar dados persistidos na montagem
+  // Carregar dados persistidos na montagem (apenas uma vez)
   useEffect(() => {
     const persisted = loadPersistedData();
     if (persisted && hasRelevantData(persisted)) {
@@ -171,7 +171,8 @@ export default function CreateContent() {
         description: 'Continuando de onde você parou'
       });
     }
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Executar apenas na montagem inicial
 
   const handlePaste = (e: React.ClipboardEvent) => {
     const items = e.clipboardData.items;
