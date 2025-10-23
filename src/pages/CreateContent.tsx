@@ -156,7 +156,7 @@ export default function CreateContent() {
   const [preserveImageIndices, setPreserveImageIndices] = useState<number[]>([]);
 
   // Persistência de formulário
-  const { loadPersistedData, clearPersistedData } = useFormPersistence({
+  const { loadPersistedData, clearPersistedData, hasRelevantData } = useFormPersistence({
     key: 'create-content-form',
     formData,
     excludeFields: ['referenceFiles'] // Não persistir arquivos
@@ -165,9 +165,11 @@ export default function CreateContent() {
   // Carregar dados persistidos na montagem
   useEffect(() => {
     const persisted = loadPersistedData();
-    if (persisted) {
+    if (persisted && hasRelevantData(persisted)) {
       setFormData(prev => ({ ...prev, ...persisted }));
-      toast.info('Rascunho recuperado');
+      toast.info('Rascunho recuperado', {
+        description: 'Continuando de onde você parou'
+      });
     }
   }, []);
 

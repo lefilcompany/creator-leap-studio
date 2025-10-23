@@ -58,13 +58,28 @@ const ReviewContent = () => {
   useEffect(() => {
     const persisted = loadPersistedData();
     if (persisted) {
-      if (persisted.reviewType) setReviewType(persisted.reviewType);
-      if (persisted.brand) setBrand(persisted.brand);
-      if (persisted.theme) setTheme(persisted.theme);
-      if (persisted.adjustmentsPrompt) setAdjustmentsPrompt(persisted.adjustmentsPrompt);
-      if (persisted.captionText) setCaptionText(persisted.captionText);
-      if (persisted.textForImage) setTextForImage(persisted.textForImage);
-      toast.info('Rascunho recuperado');
+      // Verificar se há dados realmente relevantes
+      const hasData = !!(
+        persisted.reviewType ||
+        persisted.brand ||
+        persisted.theme ||
+        persisted.adjustmentsPrompt?.trim() ||
+        persisted.captionText?.trim() ||
+        persisted.textForImage?.trim()
+      );
+      
+      if (hasData) {
+        if (persisted.reviewType) setReviewType(persisted.reviewType);
+        if (persisted.brand) setBrand(persisted.brand);
+        if (persisted.theme) setTheme(persisted.theme);
+        if (persisted.adjustmentsPrompt) setAdjustmentsPrompt(persisted.adjustmentsPrompt);
+        if (persisted.captionText) setCaptionText(persisted.captionText);
+        if (persisted.textForImage) setTextForImage(persisted.textForImage);
+        
+        toast.info('Rascunho recuperado', {
+          description: 'Continuando de onde você parou'
+        });
+      }
     }
   }, []);
 
