@@ -1063,10 +1063,20 @@ ${formData.description}
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full xl:w-auto">
                 <div className="flex items-center rounded-full bg-muted p-1 border flex-1 xl:flex-initial xl:w-auto">
                   <Button
-                    variant="default"
-                    className="w-full rounded-full font-semibold"
+                    variant={!isVideoMode ? "default" : "ghost"}
+                    className="flex-1 rounded-full font-semibold gap-2"
+                    onClick={() => handleVideoModeChange(false)}
                   >
+                    <ImageIcon className="h-4 w-4" />
                     Imagem
+                  </Button>
+                  <Button
+                    variant={isVideoMode ? "default" : "ghost"}
+                    className="flex-1 rounded-full font-semibold gap-2"
+                    onClick={() => handleVideoModeChange(true)}
+                  >
+                    <Video className="h-4 w-4" />
+                    Vídeo
                   </Button>
                 </div>
                 {isLoadingData ? (
