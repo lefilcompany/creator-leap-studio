@@ -371,40 +371,50 @@ serve(async (req) => {
       console.log('📝 Modo: Texto para Vídeo (Veo 3.1)');
     }
     
-    // Prepare request body
+    // Prepare request body com estrutura correta para cada modelo
     const requestBody: any = {
       instances: [{
         prompt: enrichedPrompt,
       }],
       parameters: {
-        aspect_ratio: aspectRatio,
+        aspectRatio: aspectRatio,  // Formato correto: camelCase
         resolution: resolution,
-        duration_seconds: duration
+        durationSeconds: duration,  // Formato correto: camelCase
+        generateAudio: audioStyle !== 'none'  // Booleano nos parameters
       }
     };
 
-    // Adicionar imagens de referência se for image_to_video com Veo 3.0
-    if (generationType === 'image_to_video' && referenceImages && referenceImages.length > 0) {
-      requestBody.instances[0].image = {
-        bytesBase64Encoded: referenceImages[0] // Veo 3.0 aceita uma imagem de referência
-      };
-      console.log('🖼️ Imagem de referência adicionada ao payload');
-    }
-
-    // Adicionar configuração de áudio nativo
-    if (audioStyle && audioStyle !== 'none') {
-      requestBody.instances[0].audio_config = {
-        generate_audio: true,
-        audio_style: audioStyle
-      };
-      console.log('🔊 Audio native enabled:', audioStyle);
+    // Estrutura diferente para cada modelo
+    if (generationType === 'image_to_video') {
+      // Veo 3.0: usa 'image' diretamente nas instances
+      if (referenceImages && referenceImages.length > 0) {
+        requestBody.instances[0].image = {
+          bytesBase64Encoded: referenceImages[0],
+          mimeType: 'image/jpeg'
+        };
+        console.log('🖼️ [Veo 3.0] Imagem de referência adicionada ao payload');
+      }
+    } else {
+      // Veo 3.1: usa 'referenceImages' array nas instances (se houver)
+      if (referenceImages && referenceImages.length > 0) {
+        requestBody.instances[0].referenceImages = referenceImages.map((img: string) => ({
+          image: {
+            bytesBase64Encoded: img,
+            mimeType: 'image/jpeg'
+          },
+          referenceType: 'asset'  // 'asset' para conteúdo, 'style' para estilo
+        }));
+        console.log(`🖼️ [Veo 3.1] ${referenceImages.length} imagem(ns) de referência adicionadas ao payload`);
+      }
     }
 
     // Adicionar prompt negativo se fornecido
     if (negativePrompt && negativePrompt.trim()) {
-      requestBody.parameters.negative_prompt = negativePrompt;
+      requestBody.parameters.negativePrompt = negativePrompt;
       console.log('⛔ Negative prompt:', negativePrompt);
     }
+    
+    console.log('📦 Request body preparado:', JSON.stringify(requestBody, null, 2));
 
     // Start video generation with selected model
     console.log(`Starting video generation with ${modelName}...`);
