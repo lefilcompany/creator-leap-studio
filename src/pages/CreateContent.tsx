@@ -2273,7 +2273,7 @@ ${formData.description}
                     >
                       <div className="text-left">
                         <div className="font-semibold text-sm mb-1">Imagem para Vídeo</div>
-                        <div className="text-xs opacity-80">Veo 3.1 - Com imagens de referência</div>
+                        <div className="text-xs opacity-80">Veo 3.0 - Com imagens de referência</div>
                       </div>
                     </Button>
                   </div>
