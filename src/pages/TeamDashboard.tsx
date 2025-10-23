@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, BarChart3, Calendar, Search, Filter, TrendingUp, Activity, Zap, FileText, CheckCircle, Lightbulb, Loader2, Users, Video } from 'lucide-react';
 import { toast } from 'sonner';
@@ -17,6 +17,7 @@ interface MemberStats {
   id: string;
   name: string;
   email: string;
+  avatar_url?: string;
   totalActions: number;
   quickContent: number;
   createContent: number;
@@ -72,7 +73,7 @@ export default function TeamDashboard() {
       // Buscar todos os membros da equipe
       const { data: members, error: membersError } = await supabase
         .from('profiles')
-        .select('id, name, email')
+        .select('id, name, email, avatar_url')
         .eq('team_id', team.id);
 
       if (membersError) throw membersError;
@@ -94,6 +95,7 @@ export default function TeamDashboard() {
           id: member.id,
           name: member.name,
           email: member.email,
+          avatar_url: member.avatar_url,
           totalActions: memberActions.length,
           quickContent: memberActions.filter(a => a.type === 'CRIAR_CONTEUDO_RAPIDO').length,
           createContent: memberActions.filter(a => a.type === 'CRIAR_CONTEUDO').length,
@@ -413,6 +415,7 @@ export default function TeamDashboard() {
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <Avatar className="h-11 w-11 ring-2 ring-secondary/20">
+                            <AvatarImage src={member.avatar_url} alt={member.name} />
                             <AvatarFallback className="bg-gradient-to-br from-primary/20 to-secondary/20 text-primary font-bold text-base">
                               {member.name.charAt(0).toUpperCase()}
                             </AvatarFallback>

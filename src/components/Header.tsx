@@ -9,6 +9,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslation } from "@/hooks/useTranslation";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -33,12 +35,14 @@ export const Header = () => {
   const { setOpen } = useSidebar();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
-  const { logout, isTrialExpired } = useAuth();
+  const { logout, isTrialExpired, user } = useAuth();
   const { theme, setTheme } = useTheme();
   const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [showMobileSearch, setShowMobileSearch] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string>('');
+  const [userName, setUserName] = useState<string>('');
   const searchRef = useRef<HTMLInputElement>(null);
   
   // Se o trial expirou, desabilita funcionalidades
@@ -48,6 +52,26 @@ export const Header = () => {
     await logout();
     navigate("/login");
   };
+
+  // Load user avatar
+  useEffect(() => {
+    const loadUserData = async () => {
+      if (!user?.id) return;
+      
+      const { data } = await supabase
+        .from('profiles')
+        .select('avatar_url, name')
+        .eq('id', user.id)
+        .single();
+      
+      if (data) {
+        setAvatarUrl(data.avatar_url || '');
+        setUserName(data.name || '');
+      }
+    };
+
+    loadUserData();
+  }, [user?.id]);
 
   // Focus search on mobile when opened
   useEffect(() => {
@@ -226,19 +250,15 @@ export const Header = () => {
           </Dialog>
 
           {/* Profile button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            asChild
-            className="h-8 w-8 md:h-10 md:w-10 rounded-lg xl:rounded-xl bg-gradient-to-br from-primary via-primary/80 to-secondary text-primary-foreground
-              transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-primary/25
-              border-2 border-transparent hover:border-white/20"
-          >
-            <Link to="/profile">
-              <User className="h-4 w-4 md:h-5 md:w-5" />
-              <span className="sr-only">{t.profile}</span>
-            </Link>
-          </Button>
+          <Link to="/profile" className="transition-all duration-300 hover:scale-105">
+            <Avatar className="h-8 w-8 md:h-10 md:w-10 border-2 border-primary/20 hover:border-primary/40 transition-all duration-300 hover:shadow-lg hover:shadow-primary/25">
+              <AvatarImage src={avatarUrl} alt={userName} />
+              <AvatarFallback className="bg-gradient-to-br from-primary via-primary/80 to-secondary text-primary-foreground text-xs md:text-sm font-semibold">
+                {userName ? userName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) : <User className="h-4 w-4 md:h-5 md:w-5" />}
+              </AvatarFallback>
+            </Avatar>
+            <span className="sr-only">{t.profile}</span>
+          </Link>
         </div>
       </div>
 

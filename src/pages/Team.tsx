@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Rocket, Users, ClipboardCopy, Check, X, Crown, Loader2, UserPlus, UserMinus, BarChart3, CreditCard } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -23,6 +23,7 @@ interface TeamMember {
   id: string;
   name: string;
   email: string;
+  avatar_url?: string;
 }
 
 interface JoinRequest {
@@ -30,6 +31,7 @@ interface JoinRequest {
   name: string;
   email: string;
   created_at: string;
+  avatar_url?: string;
 }
 
 export default function Team() {
@@ -63,13 +65,13 @@ export default function Team() {
       // Carregar membros da equipe
       const { data: membersData, error: membersError } = await supabase
         .from('profiles')
-        .select('id, name, email')
+        .select('id, name, email, avatar_url')
         .eq('team_id', team.id);
 
       if (membersError) throw membersError;
       setMembers(membersData || []);
 
-      // Carregar solicitações pendentes
+      // Buscar solicitações pendentes
       const { data: requestsData, error: requestsError } = await supabase
         .from('team_join_requests')
         .select(`
@@ -87,7 +89,7 @@ export default function Team() {
         const userIds = requestsData.map((req: any) => req.user_id);
         const { data: profilesData } = await supabase
           .from('profiles')
-          .select('id, name, email')
+          .select('id, name, email, avatar_url')
           .in('id', userIds);
 
         const profilesMap = new Map(profilesData?.map(p => [p.id, p]) || []);
@@ -98,6 +100,7 @@ export default function Team() {
             id: req.id,
             name: profile?.name || 'Usuário',
             email: profile?.email || '',
+            avatar_url: profile?.avatar_url || '',
             created_at: req.created_at,
           };
         });
@@ -331,6 +334,7 @@ export default function Team() {
                     <div key={request.id} className="flex items-center justify-between p-4 bg-gradient-to-r from-background/70 to-accent/5 rounded-lg shadow-sm border border-accent/10 hover:border-accent/30 hover:shadow-md transition-all duration-200">
                       <div className='flex items-center gap-3 flex-1 min-w-0'>
                         <Avatar className="h-11 w-11 flex-shrink-0 ring-2 ring-accent/20">
+                          <AvatarImage src={request.avatar_url} alt={request.name} />
                           <AvatarFallback className="bg-gradient-to-br from-accent/20 to-primary/20 text-accent font-bold">
                             {request.name.charAt(0).toUpperCase()}
                           </AvatarFallback>
@@ -442,6 +446,7 @@ export default function Team() {
                       className="group relative flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-background/90 via-background/70 to-secondary/5 border border-secondary/10 hover:border-secondary/30 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]"
                     >
                       <Avatar className="h-14 w-14 ring-2 ring-secondary/15 group-hover:ring-secondary/30 transition-all duration-300 flex-shrink-0">
+                        <AvatarImage src={member.avatar_url} alt={member.name} />
                         <AvatarFallback className="bg-gradient-to-br from-secondary/20 to-accent/20 text-secondary font-bold text-lg">
                           {member.name.charAt(0).toUpperCase()}
                         </AvatarFallback>

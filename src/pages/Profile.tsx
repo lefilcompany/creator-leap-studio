@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import PersonalInfoForm from '@/components/perfil/PersonalInfoForm';
 import TeamInfoCard from '@/components/perfil/TeamInfoCard';
 import AccountManagement from '@/components/perfil/AccountManagement';
+import AvatarUpload from '@/components/perfil/AvatarUpload';
 import { useAuth } from '@/hooks/useAuth';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -16,6 +17,7 @@ export default function Profile() {
     phone: '',
     state: '',
     city: '',
+    avatarUrl: '',
   });
 
   useEffect(() => {
@@ -35,6 +37,7 @@ export default function Profile() {
           phone: data.phone || '',
           state: data.state || '',
           city: data.city || '',
+          avatarUrl: data.avatar_url || '',
         });
       }
     };
@@ -68,6 +71,17 @@ export default function Profile() {
               </p>
             </div>
           </div>
+        </div>
+
+        {/* Avatar Section */}
+        <div className="bg-card border border-border rounded-xl p-6">
+          <h2 className="text-xl font-semibold mb-6">Foto de Perfil</h2>
+          <AvatarUpload
+            userId={user.id}
+            currentAvatarUrl={profileData.avatarUrl}
+            userName={profileData.name}
+            onAvatarUpdate={(url) => setProfileData(prev => ({ ...prev, avatarUrl: url || '' }))}
+          />
         </div>
 
         {/* Main content */}
