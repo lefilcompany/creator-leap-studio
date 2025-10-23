@@ -458,7 +458,7 @@ export default function CreateContent() {
       }));
       
       toast.info('Modo Vídeo Ativado', {
-        description: 'Interface adaptada para geração de vídeo com Veo 3.1',
+        description: 'Interface adaptada para geração de vídeo com Veo',
         duration: 3000
       });
     } else {
@@ -467,7 +467,7 @@ export default function CreateContent() {
       setPreserveImageIndices([]);
       setFormData(prev => ({
         ...prev,
-        videoGenerationType: 'image_to_video',
+        videoGenerationType: 'text_to_video',
         videoIncludeText: false,
         videoTextContent: '',
         videoTextPosition: 'center',
@@ -476,6 +476,25 @@ export default function CreateContent() {
       
       toast.info('Modo Imagem Ativado', {
         description: 'Interface adaptada para geração de imagem',
+        duration: 3000
+      });
+    }
+  };
+
+  const handleVideoGenerationTypeChange = (type: 'text_to_video' | 'image_to_video') => {
+    setFormData(prev => ({
+      ...prev,
+      videoGenerationType: type
+    }));
+    
+    if (type === 'image_to_video') {
+      toast.info('Modo Imagem para Vídeo', {
+        description: 'Adicione imagens de referência para gerar o vídeo (Veo 3.0)',
+        duration: 3000
+      });
+    } else {
+      toast.info('Modo Texto para Vídeo', {
+        description: 'Descreva o vídeo que deseja criar (Veo 3.1)',
         duration: 3000
       });
     }
@@ -553,19 +572,19 @@ export default function CreateContent() {
     if (formData.tone.length === 0) missing.push('tone');
     
     if (isVideoMode) {
-      // Veo 3.1 suporta apenas text-to-video
-      // Não é necessário validar imagens de referência
-      
-      // Validar texto se includeText estiver ativo
-      if (formData.videoIncludeText && !formData.videoTextContent?.trim()) {
-        missing.push('videoTextContent');
-        toast.error('Digite o texto que deseja exibir no vídeo');
+      if (!formData.description?.trim()) {
+        toast.error('Por favor, preencha a descrição visual do vídeo');
+        return false;
       }
       
-      // Validar texto obrigatório quando toggle ativado
+      if (formData.videoGenerationType === 'image_to_video' && (!referenceFiles || referenceFiles.length === 0)) {
+        toast.error('Por favor, adicione pelo menos uma imagem de referência para geração de vídeo');
+        return false;
+      }
+      
       if (formData.videoIncludeText && !formData.videoTextContent?.trim()) {
-        missing.push('videoTextContent');
-        toast.error("Digite o texto que deseja exibir no vídeo");
+        toast.error('Por favor, preencha o texto a ser exibido no vídeo');
+        return false;
       }
       
       // Validar tamanho total das imagens
@@ -763,10 +782,21 @@ export default function CreateContent() {
           throw new Error(`Erro ao criar registro: ${actionError?.message}`);
         }
 
-        // Veo 3.1 não suporta imagens de referência
-        // Removido: preparação de veo31ReferenceImages
+        // Preparar imagens de referência se for image_to_video
+        let referenceImagesBase64: string[] = [];
+        if (formData.videoGenerationType === 'image_to_video' && referenceFiles && referenceFiles.length > 0) {
+          for (const file of referenceFiles) {
+            const base64 = await new Promise<string>((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(reader.result as string);
+              reader.onerror = reject;
+              reader.readAsDataURL(file);
+            });
+            referenceImagesBase64.push(base64.split(',')[1]); // Remove o prefixo data:image/...;base64,
+          }
+        }
 
-        // Iniciar geração de vídeo em background com Veo 3.1 (apenas text-to-video)
+        // Iniciar geração de vídeo em background
         const videoResponse = await fetch(
           `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-video`,
           {
@@ -777,14 +807,14 @@ export default function CreateContent() {
             },
             body: JSON.stringify({
               prompt: videoPrompt,
-              // Veo 3.1 suporta APENAS text_to_video
-              generationType: 'text_to_video',
+              generationType: formData.videoGenerationType || 'text_to_video',
+              referenceImages: referenceImagesBase64.length > 0 ? referenceImagesBase64 : undefined,
               actionId: actionData.id,
               // Configurações de texto
               includeText: formData.videoIncludeText || false,
               textContent: formData.videoTextContent?.trim() || "",
               textPosition: formData.videoTextPosition || "center",
-              // PARÂMETROS VEO 3.1
+              // PARÂMETROS VEO
               audioStyle: formData.videoAudioStyle || 'sound_effects',
               visualStyle: formData.videoVisualStyle || 'cinematic',
               aspectRatio: formData.videoAspectRatio || '9:16',
@@ -2156,29 +2186,36 @@ ${formData.description}
                 
                 {/* Método de Geração */}
                 <div className="space-y-3">
-                  <Label className="text-sm font-semibold text-foreground">
-                    Método de Geração <span className="text-destructive">*</span>
-                  </Label>
-                  <div className="grid grid-cols-1 gap-3">
+                  <Label className="text-sm font-semibold text-foreground">Tipo de Geração</Label>
+                  <div className="flex gap-2">
                     <Button
                       type="button"
-                      variant="default"
-                      disabled
-                      className="h-20 flex flex-col items-center justify-center gap-2 cursor-default"
+                      variant={formData.videoGenerationType === 'text_to_video' ? 'default' : 'outline'}
+                      onClick={() => handleVideoGenerationTypeChange('text_to_video')}
+                      className="flex-1 h-auto py-3 px-4 justify-start items-start"
                     >
-                      <FileText className="h-5 w-5" />
-                      <span className="text-sm">Texto para Vídeo</span>
+                      <div className="text-left">
+                        <div className="font-semibold text-sm mb-1">Texto para Vídeo</div>
+                        <div className="text-xs opacity-80">Veo 3.1</div>
+                      </div>
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={formData.videoGenerationType === 'image_to_video' ? 'default' : 'outline'}
+                      onClick={() => handleVideoGenerationTypeChange('image_to_video')}
+                      className="flex-1 h-auto py-3 px-4 justify-start items-start"
+                    >
+                      <div className="text-left">
+                        <div className="font-semibold text-sm mb-1">Imagem para Vídeo</div>
+                        <div className="text-xs opacity-80">Veo 3.0</div>
+                      </div>
                     </Button>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    O vídeo será gerado a partir da descrição textual. Veo 3.1 atualmente suporta apenas text-to-video.
+                    {formData.videoGenerationType === 'text_to_video' 
+                      ? 'Veo 3.1: Modelo mais recente para geração de vídeo a partir de texto.'
+                      : 'Veo 3.0: Modelo para geração de vídeo a partir de imagens de referência.'}
                   </p>
-                  <div className="flex items-start gap-2 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                    <Info className="h-4 w-4 mt-0.5 flex-shrink-0 text-blue-500" />
-                    <p className="text-xs text-muted-foreground leading-tight">
-                      <strong className="text-blue-500">Modo Image-to-Video temporariamente indisponível:</strong> O modelo Veo 3.1 atualmente suporta apenas geração text-to-video. Descreva sua visão com o máximo de detalhes para melhores resultados.
-                    </p>
-                  </div>
                 </div>
 
                 {/* Descrição Visual do Vídeo */}
@@ -2212,8 +2249,8 @@ ${formData.description}
               </CardContent>
             </Card>
 
-            {/* CARD 2: IMAGENS DE REFERÊNCIA - DESABILITADO (Veo 3.1 não suporta) */}
-            {false && formData.videoGenerationType === 'image_to_video' && (
+            {/* CARD 2: IMAGENS DE REFERÊNCIA */}
+            {formData.videoGenerationType === 'image_to_video' && (
               <Card className="backdrop-blur-sm bg-gradient-to-br from-card/80 to-card border-2 border-primary/20 shadow-lg rounded-2xl">
                 <CardHeader className="pb-3 md:pb-4 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-t-2xl">
                   <div className="flex items-start justify-between">

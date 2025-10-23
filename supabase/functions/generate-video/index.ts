@@ -147,8 +147,8 @@ async function processVideoGeneration(operationName: string, actionId: string, t
           videoUrl,
           processingTime: `${attempts * 5} seconds`,
           attempts: attempts,
-          // Metadata Veo 3.1
-          veoVersion: '3.1',
+          // Metadata do modelo usado
+          modelUsed: operationName.includes('veo-3.1') ? 'veo-3.1' : 'veo-3.0',
           audioStyle: Deno.env.get('VIDEO_AUDIO_STYLE') || 'sound_effects',
           visualStyle: Deno.env.get('VIDEO_VISUAL_STYLE') || 'cinematic'
         },
@@ -221,8 +221,8 @@ serve(async (req) => {
       negativePrompt = ''
     } = await req.json();
     
-    console.log('🎬 Iniciando geração de vídeo com Gemini Veo 3.1');
-    console.log('🎯 Tipo de geração: text_to_video (único modo suportado)');
+    console.log('🎬 Iniciando geração de vídeo com Gemini Veo');
+    console.log('🎯 Tipo de geração:', generationType);
     console.log('📝 Prompt:', prompt);
     console.log('🆔 Action ID:', actionId);
     console.log('📝 Incluir texto:', includeText);
@@ -234,8 +234,13 @@ serve(async (req) => {
     console.log('🎞️ Resolução:', resolution);
     console.log('⏱️ Duração:', duration + 's');
 
-    // Veo 3.1 suporta APENAS text_to_video
-    // Não validar imagens de referência
+    // Validar imagens de referência se for image_to_video
+    if (generationType === 'image_to_video' && (!referenceImages || referenceImages.length === 0)) {
+      return new Response(
+        JSON.stringify({ error: 'Reference images are required for image_to_video generation' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     if (!actionId) {
       return new Response(
@@ -351,7 +356,14 @@ serve(async (req) => {
 
     console.log('📏 Enriched prompt length:', enrichedPrompt.length);
     
-    // Prepare request body for Veo 3.1
+    // Selecionar modelo baseado no tipo de geração
+    const modelName = generationType === 'image_to_video' 
+      ? 'veo-3.0-generate-001' 
+      : 'veo-3.1-generate-preview';
+    
+    console.log('🤖 Modelo selecionado:', modelName);
+    
+    // Prepare request body
     const requestBody: any = {
       instances: [{
         prompt: enrichedPrompt,
@@ -362,6 +374,14 @@ serve(async (req) => {
         duration_seconds: duration
       }
     };
+
+    // Adicionar imagens de referência se for image_to_video com Veo 3.0
+    if (generationType === 'image_to_video' && referenceImages && referenceImages.length > 0) {
+      requestBody.instances[0].image = {
+        bytesBase64Encoded: referenceImages[0] // Veo 3.0 aceita uma imagem de referência
+      };
+      console.log('🖼️ Imagem de referência adicionada ao payload');
+    }
 
     // Adicionar configuração de áudio nativo
     if (audioStyle && audioStyle !== 'none') {
@@ -387,10 +407,10 @@ serve(async (req) => {
     }
 
 
-    // Start video generation with Veo 3.1
-    console.log('Starting video generation with Veo 3.1...');
+    // Start video generation with selected model
+    console.log(`Starting video generation with ${modelName}...`);
     const generateResponse = await fetch(
-      `${BASE_URL}/models/veo-3.1-generate-preview:predictLongRunning`,
+      `${BASE_URL}/models/${modelName}:predictLongRunning`,
       {
         method: 'POST',
         headers: {
