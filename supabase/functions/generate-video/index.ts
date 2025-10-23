@@ -450,61 +450,79 @@ serve(async (req) => {
 
     console.log('📏 Enriched prompt length:', enrichedPrompt.length);
     
-    // Usar Veo 3.1 para ambos os tipos de geração
-    const modelName = 'veo-3.1-generate-preview';
+    // ✅ SELEÇÃO DINÂMICA DE MODELO
+    // Veo 3.0 para image_to_video (melhor para conversão de imagem)
+    // Veo 3.1 para text_to_video (melhor para geração a partir de texto)
+    const modelName = generationType === 'image_to_video' 
+      ? 'veo-3.0-generate-001'      // ✅ VEO 3.0 - Otimizado para image-to-video
+      : 'veo-3.1-generate-preview';  // ✅ VEO 3.1 - Otimizado para text-to-video
     
-    console.log('🤖 Modelo: Veo 3.1 (veo-3.1-generate-preview)');
-    console.log('🎯 Tipo de geração:', generationType);
+    console.log(`🤖 Modelo selecionado: ${modelName}`);
+    console.log(`🎯 Tipo de geração: ${generationType}`);
+    console.log(`📐 Configurações: ${aspectRatio} • ${resolution} • ${duration}s`);
+    
     if (referenceImages && referenceImages.length > 0) {
       console.log('🖼️ Imagens de referência:', referenceImages.length);
     }
     
-    // Prepare request body seguindo estrutura oficial Google AI API
-    // IMPORTANTE: prompt e image vão em instances[0], outros parâmetros vão em parameters separado
-    const requestBody: any = {
-      instances: [{
-        prompt: enrichedPrompt
-      }],
-      parameters: {
-        aspectRatio: aspectRatio,  // 9:16, 16:9, etc
-        resolution: resolution,  // 720p, 1080p
-        durationSeconds: duration  // 4-8 segundos
-      }
-    };
-
-    // Veo 3.1: Estrutura otimizada seguindo documentação oficial Google Cloud
-    if (generationType === 'image_to_video' && referenceImages && referenceImages.length > 0) {
-      // Usar a PRIMEIRA imagem como base principal (seguindo documentação Google Cloud)
-      requestBody.instances[0].image = {
-        bytesBase64Encoded: referenceImages[0], // ✅ Formato correto da API
-        mimeType: 'image/png'
-      };
-      console.log(`🖼️ [Veo 3.1] Imagem principal definida para image-to-video`);
+    // Prepare request body com estrutura específica por modelo
+    let requestBody: any;
+    
+    if (generationType === 'image_to_video') {
+      // ✅ VEO 3.0: Estrutura específica para image-to-video
+      // Documentação: https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/veo
       
-      // Imagens adicionais como referências de estilo (se houver)
+      if (!referenceImages || referenceImages.length === 0) {
+        throw new Error('Image-to-video requires at least one reference image');
+      }
+      
+      requestBody = {
+        instances: [{
+          prompt: enrichedPrompt,
+          image: {
+            bytesBase64Encoded: referenceImages[0],  // Veo 3.0 usa apenas a primeira imagem
+            mimeType: 'image/png'
+          }
+        }],
+        parameters: {
+          aspectRatio: aspectRatio,
+          resolution: resolution,
+          durationSeconds: duration
+        }
+      };
+      
+      console.log(`🖼️ [Veo 3.0] Usando 1 imagem para image-to-video`);
+      
       if (referenceImages.length > 1) {
-        requestBody.instances[0].referenceImages = referenceImages.slice(1).map((img: string) => ({
+        console.warn(`⚠️ [Veo 3.0] ${referenceImages.length} imagens fornecidas, mas apenas a primeira será usada`);
+      }
+    } else {
+      // ✅ VEO 3.1: Estrutura para text-to-video
+      requestBody = {
+        instances: [{
+          prompt: enrichedPrompt
+        }],
+        parameters: {
+          aspectRatio: aspectRatio,
+          resolution: resolution,
+          durationSeconds: duration
+        }
+      };
+      
+      // Imagens de referência opcionais para text-to-video
+      if (referenceImages && referenceImages.length > 0) {
+        requestBody.instances[0].referenceImages = referenceImages.map((img: string) => ({
           image: {
             bytesBase64Encoded: img,
             mimeType: 'image/png'
           },
-          referenceType: 'style'
+          referenceType: 'asset'
         }));
-        console.log(`🎨 [Veo 3.1] ${referenceImages.length - 1} imagem(ns) adicional(is) como estilo`);
+        console.log(`🖼️ [Veo 3.1] ${referenceImages.length} imagem(ns) de referência opcionais adicionadas`);
       }
-    } else if (referenceImages && referenceImages.length > 0) {
-      // Para text_to_video ou outros tipos, usar referenceImages
-      requestBody.instances[0].referenceImages = referenceImages.map((img: string) => ({
-        image: {
-          bytesBase64Encoded: img,
-          mimeType: 'image/png'
-        },
-        referenceType: 'asset'
-      }));
-      console.log(`🖼️ [Veo 3.1] ${referenceImages.length} imagem(ns) de referência adicionadas`);
     }
 
-    // Adicionar prompt negativo se fornecido (vai em parameters, não em instances)
+    // Adicionar prompt negativo se fornecido (vai em parameters)
     if (negativePrompt && negativePrompt.trim()) {
       requestBody.parameters.negativePrompt = negativePrompt;
       console.log('⛔ Negative prompt:', negativePrompt);

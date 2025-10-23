@@ -488,13 +488,13 @@ export default function CreateContent() {
     }));
     
     if (type === 'image_to_video') {
-      toast.info('Modo Imagem para Vídeo', {
-        description: 'Adicione imagens de referência para gerar o vídeo (Veo 3.1)',
+      toast.info('Modo Imagem para Vídeo (Veo 3.0)', {
+        description: 'Adicione 1 imagem de referência para gerar o vídeo',
         duration: 3000
       });
     } else {
-      toast.info('Modo Texto para Vídeo', {
-        description: 'Descreva o vídeo que deseja criar (Veo 3.1)',
+      toast.info('Modo Texto para Vídeo (Veo 3.1)', {
+        description: 'Descreva o vídeo que deseja criar. Imagens são opcionais.',
         duration: 3000
       });
     }
@@ -502,21 +502,26 @@ export default function CreateContent() {
 
   // Memorizar se o formulário é válido
   const isFormValid = useMemo(() => {
+    // Validação base (sem imagens obrigatórias por padrão)
     const baseValid =
       formData.brand &&
       formData.objective &&
       formData.platform &&
       formData.description &&
-      formData.tone.length > 0 &&
-      referenceFiles.length > 0;
+      formData.tone.length > 0;
     
-    if (isVideoMode) {
-      return (
-        baseValid &&
-        ratio &&
-        (transformationType !== "image_to_video" || duration)
-      );
+    if (!isVideoMode) {
+      // Modo imagem: exige pelo menos 1 imagem de referência
+      return baseValid && referenceFiles.length > 0;
     }
+    
+    // Modo vídeo
+    if (formData.videoGenerationType === 'image_to_video') {
+      // Image-to-video (Veo 3.0): exige pelo menos 1 imagem
+      return baseValid && referenceFiles.length > 0;
+    }
+    
+    // Text-to-video (Veo 3.1): NÃO exige imagens
     return baseValid;
   }, [
     formData.brand,
@@ -526,9 +531,7 @@ export default function CreateContent() {
     formData.tone.length,
     referenceFiles.length,
     isVideoMode,
-    ratio,
-    transformationType,
-    duration
+    formData.videoGenerationType
   ]);
 
   // Função auxiliar para construir prompt de vídeo
@@ -723,10 +726,26 @@ export default function CreateContent() {
 
       // Se estiver em modo vídeo, gerar vídeo
       if (isVideoMode) {
-        // VALIDAÇÃO VEO 3.1: Máximo de 3 imagens de referência
-        if (referenceFiles.length > 3) {
-          toast.error("Veo 3.1 suporta no máximo 3 imagens de referência para vídeo", { id: toastId });
-          return;
+        // VALIDAÇÃO ESPECÍFICA POR MODO
+        if (formData.videoGenerationType === 'image_to_video') {
+          // Veo 3.0: Requer exatamente 1 imagem
+          if (!referenceFiles || referenceFiles.length === 0) {
+            toast.error("Selecione pelo menos 1 imagem para gerar o vídeo (Veo 3.0)", { id: toastId });
+            return;
+          }
+          
+          if (referenceFiles.length > 1) {
+            toast.warning("Veo 3.0 usará apenas a primeira imagem selecionada", { 
+              id: toastId,
+              duration: 4000 
+            });
+          }
+        } else {
+          // Veo 3.1: Imagens são opcionais, mas se fornecidas, máximo de 3
+          if (referenceFiles.length > 3) {
+            toast.error("Veo 3.1 suporta no máximo 3 imagens de referência para vídeo", { id: toastId });
+            return;
+          }
         }
 
         // VALIDAÇÃO: Texto é obrigatório se toggle estiver ativo
@@ -735,9 +754,15 @@ export default function CreateContent() {
           return;
         }
 
-        toast.loading("Iniciando geração de vídeo com Veo 3.1...", {
+        // Mensagem de toast específica por modelo
+        const modelName = formData.videoGenerationType === 'image_to_video' ? 'Veo 3.0' : 'Veo 3.1';
+        const modeDescription = formData.videoGenerationType === 'image_to_video' 
+          ? '🖼️ Imagem para Vídeo' 
+          : '📝 Texto para Vídeo';
+        
+        toast.loading(`Iniciando geração de vídeo com ${modelName}...`, {
           id: toastId,
-          description: `🔊 ${formData.videoAudioStyle} • 🎬 ${formData.videoVisualStyle} • ⏱️ ${formData.videoDuration}s`,
+          description: `${modeDescription} • ${formData.videoDuration}s • ${formData.videoAspectRatio}`,
         });
 
         const videoPrompt = buildVideoPrompt();
@@ -787,19 +812,35 @@ export default function CreateContent() {
           throw new Error(`Erro ao criar registro: ${actionError?.message}`);
         }
 
-        // Preparar imagens de referência se for image_to_video
+        // Preparar imagens de referência
         let referenceImagesBase64: string[] = [];
+        
         if (formData.videoGenerationType === 'image_to_video') {
+          // Veo 3.0: Requer pelo menos 1 imagem
           if (!referenceFiles || referenceFiles.length === 0) {
-            toast.error("Selecione pelo menos 1 imagem de referência para gerar o vídeo", { id: toastId });
+            toast.error("Selecione pelo menos 1 imagem para image-to-video (Veo 3.0)", { id: toastId });
             return;
           }
           
-          // Veo 3.1: máximo 3 imagens
-          let filesToProcess = referenceFiles;
+          // Veo 3.0: usa apenas a primeira imagem
+          const file = referenceFiles[0];
+          const base64 = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          });
+          referenceImagesBase64.push(base64.split(',')[1]); // Remove o prefixo data:image/...;base64,
+          
+          if (referenceFiles.length > 1) {
+            console.log(`⚠️ Veo 3.0: ${referenceFiles.length} imagens fornecidas, usando apenas a primeira`);
+          }
+        } else if (referenceFiles.length > 0) {
+          // Veo 3.1: imagens opcionais, máximo 3
+          let filesToProcess = referenceFiles.slice(0, 3);
+          
           if (referenceFiles.length > 3) {
-            toast.warning("Usando apenas as 3 primeiras imagens (limite Veo 3.1)", { id: toastId });
-            filesToProcess = referenceFiles.slice(0, 3);
+            toast.info("Usando as 3 primeiras imagens (limite Veo 3.1)", { duration: 3000 });
           }
           
           for (const file of filesToProcess) {
@@ -809,7 +850,7 @@ export default function CreateContent() {
               reader.onerror = reject;
               reader.readAsDataURL(file);
             });
-            referenceImagesBase64.push(base64.split(',')[1]); // Remove o prefixo data:image/...;base64,
+            referenceImagesBase64.push(base64.split(',')[1]);
           }
         }
 
