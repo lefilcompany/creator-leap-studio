@@ -254,10 +254,10 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Buscar team_id do action
+    // Buscar team_id e details do action
     const { data: actionData, error: actionError } = await supabase
       .from('actions')
-      .select('team_id')
+      .select('team_id, details')
       .eq('id', actionId)
       .single();
 
@@ -268,6 +268,46 @@ serve(async (req) => {
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    // Buscar dados completos para enriquecer o prompt
+    let brandData = null;
+    let themeData = null;
+    let personaData = null;
+
+    const { brand_id, theme_id, persona_id } = actionData.details || {};
+
+    if (brand_id) {
+      const { data: brand } = await supabase
+        .from('brands')
+        .select('*')
+        .eq('id', brand_id)
+        .maybeSingle();
+      brandData = brand;
+    }
+
+    if (theme_id) {
+      const { data: theme } = await supabase
+        .from('strategic_themes')
+        .select('*')
+        .eq('id', theme_id)
+        .maybeSingle();
+      themeData = theme;
+    }
+
+    if (persona_id) {
+      const { data: persona } = await supabase
+        .from('personas')
+        .select('*')
+        .eq('id', persona_id)
+        .maybeSingle();
+      personaData = persona;
+    }
+
+    console.log('📊 Dados contextuais carregados:', {
+      brand: brandData?.name || 'N/A',
+      theme: themeData?.title || 'N/A',
+      persona: personaData?.name || 'N/A'
+    });
 
     // Verificar créditos disponíveis
     const { data: teamData, error: teamError } = await supabase
@@ -311,47 +351,101 @@ serve(async (req) => {
 
     const BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
     
-    // Função para enriquecer prompt com estilo visual
-    function enrichPromptWithStyle(basePrompt: string, style: string): string {
+    // Função completa para enriquecer prompt com contexto estratégico
+    function buildEnrichedPrompt(
+      basePrompt: string,
+      brandData: any,
+      themeData: any,
+      personaData: any,
+      visualStyle: string,
+      includeText: boolean,
+      textContent: string,
+      textPosition: string
+    ): string {
+      let enrichedPrompt = '';
+      
+      // 1. IDENTIDADE DA MARCA
+      if (brandData) {
+        enrichedPrompt += `🏢 BRAND CONTEXT:\n`;
+        enrichedPrompt += `- Brand: ${brandData.name}\n`;
+        if (brandData.values) enrichedPrompt += `- Values: ${brandData.values}\n`;
+        if (brandData.keywords) enrichedPrompt += `- Visual Identity: ${brandData.keywords}\n`;
+        if (brandData.promise) enrichedPrompt += `- Brand Promise: ${brandData.promise}\n`;
+        enrichedPrompt += `\n`;
+      }
+      
+      // 2. TEMA ESTRATÉGICO
+      if (themeData) {
+        enrichedPrompt += `📋 STRATEGIC THEME:\n`;
+        enrichedPrompt += `- Campaign: ${themeData.title}\n`;
+        if (themeData.objectives) enrichedPrompt += `- Objective: ${themeData.objectives}\n`;
+        if (themeData.toneOfVoice) enrichedPrompt += `- Tone of Voice: ${themeData.toneOfVoice}\n`;
+        if (themeData.expectedAction) enrichedPrompt += `- Expected Action: ${themeData.expectedAction}\n`;
+        enrichedPrompt += `\n`;
+      }
+      
+      // 3. PÚBLICO-ALVO
+      if (personaData) {
+        enrichedPrompt += `👥 TARGET AUDIENCE:\n`;
+        enrichedPrompt += `- Persona: ${personaData.name}\n`;
+        enrichedPrompt += `- Demographics: ${personaData.gender}, ${personaData.age}, ${personaData.location}\n`;
+        if (personaData.beliefs_and_interests) enrichedPrompt += `- Interests: ${personaData.beliefs_and_interests}\n`;
+        if (personaData.main_goal) enrichedPrompt += `- Main Goal: ${personaData.main_goal}\n`;
+        if (personaData.challenges) enrichedPrompt += `- Challenges: ${personaData.challenges}\n`;
+        if (personaData.preferred_tone_of_voice) enrichedPrompt += `- Preferred Tone: ${personaData.preferred_tone_of_voice}\n`;
+        enrichedPrompt += `\n`;
+      }
+      
+      // 4. ESTILO VISUAL
       const styleInstructions: Record<string, string> = {
         cinematic: '🎬 CINEMATIC STYLE: Professional cinematography with smooth camera movements, cinematic lighting, depth of field, film grain, and dramatic composition. Use Hollywood production quality with proper color grading.',
         animation: '🎨 ANIMATION STYLE: Creative animated aesthetics with vibrant colors, stylized movements, cartoon-like or anime-inspired visuals, exaggerated expressions, and playful energy.',
         realistic: '📷 REALISTIC STYLE: Photorealistic rendering with natural lighting, accurate physics, real-world textures, authentic colors, and documentary-like capture.',
         creative: '✨ CREATIVE STYLE: Artistic and experimental approach with unique visual effects, creative transitions, bold colors, and innovative cinematography.'
       };
+      enrichedPrompt += `${styleInstructions[visualStyle] || styleInstructions.cinematic}\n\n`;
       
-      const instruction = styleInstructions[style] || styleInstructions.cinematic;
-      return `${instruction}\n\n${basePrompt}`;
+      // 5. PROMPT BASE
+      enrichedPrompt += `🎯 VIDEO CONTENT:\n${basePrompt}\n\n`;
+      
+      // 6. TEXTO OVERLAY
+      if (includeText && textContent?.trim()) {
+        const positionMap: Record<string, string> = {
+          'top': 'at the TOP of the frame',
+          'center': 'CENTERED in the frame',
+          'bottom': 'at the BOTTOM of the frame',
+          'top-left': 'in the TOP-LEFT corner',
+          'top-right': 'in the TOP-RIGHT corner',
+          'bottom-left': 'in the BOTTOM-LEFT corner',
+          'bottom-right': 'in the BOTTOM-RIGHT corner'
+        };
+        enrichedPrompt += `🎯 MANDATORY TEXT OVERLAY: Display "${textContent}" ${positionMap[textPosition] || 'centered'}. Text must be clearly visible with high contrast throughout the video.\n\n`;
+      } else {
+        enrichedPrompt += `⛔ NO TEXT: This video must be completely text-free. No words, letters, captions, or written characters.\n\n`;
+      }
+      
+      return enrichedPrompt;
     }
     
-    // Garantir que as diretrizes de texto sejam respeitadas no backend
-    let enrichedPrompt = enrichPromptWithStyle(prompt, visualStyle);
+    // Usar nova função de prompt com contexto completo
+    let enrichedPrompt = buildEnrichedPrompt(
+      prompt,
+      brandData,
+      themeData,
+      personaData,
+      visualStyle,
+      includeText,
+      textContent,
+      textPosition
+    );
 
-    // NOVO: Adicionar instruções sobre preservação de traços
+    // Adicionar instruções sobre preservação de traços (se houver)
     if (preserveImages && preserveImages.length > 0) {
       enrichedPrompt = `🎨 IDENTITY PRESERVATION: Use EXACTLY the visual style, color palette, and aesthetics from the ${preserveImages.length} reference image(s) provided. Maintain the SAME visual quality, design elements (borders, textures, filters, effects), atmosphere, and mood. The video MUST look like part of the same visual family. ${enrichedPrompt}`;
     }
 
     if (styleReferenceImages && styleReferenceImages.length > 0) {
       enrichedPrompt = `✨ STYLE INSPIRATION: Use the ${styleReferenceImages.length} style reference image(s) for additional composition and style ideas. Analyze visual elements (colors, layout, objects, atmosphere) and adapt coherently. ${enrichedPrompt}`;
-    }
-
-    if (!includeText) {
-      // ⛔ RESTRIÇÃO ABSOLUTA: Sem texto
-      enrichedPrompt = `⛔ CRITICAL - NO TEXT ALLOWED: This video must be completely text-free. Do NOT include any text, words, letters, numbers, captions, subtitles, labels, watermarks, symbols, or written characters in any language. The video must be 100% visual content only. ${enrichedPrompt} [FINAL REMINDER: Absolutely NO text overlay or written content of any kind in this video.]`;
-    } else if (textContent?.trim()) {
-      // 🎯 OBRIGATÓRIO: Incluir texto específico com posição
-      const positionInstructions: Record<string, string> = {
-        'top': 'at the TOP of the frame, positioned near the upper edge',
-        'center': 'CENTERED in the frame, at the middle of the screen',
-        'bottom': 'at the BOTTOM of the frame, positioned near the lower edge',
-        'top-left': 'in the TOP-LEFT corner of the frame',
-        'top-right': 'in the TOP-RIGHT corner of the frame',
-        'bottom-left': 'in the BOTTOM-LEFT corner of the frame',
-        'bottom-right': 'in the BOTTOM-RIGHT corner of the frame'
-      };
-      
-      enrichedPrompt = `🎯 MANDATORY TEXT OVERLAY: Display the following text throughout the video: "${textContent}" positioned ${positionInstructions[textPosition] || 'centered in the frame'}. The text must be clearly visible, use professional typography with high contrast for maximum readability, and remain consistent throughout the entire video duration. THIS IS THE ONLY TEXT THAT SHOULD APPEAR. ${enrichedPrompt} [TEXT REMINDER: Include the specified text "${textContent}" ${positionInstructions[textPosition] || 'centered'} - this is required.]`;
     }
 
     console.log('📏 Enriched prompt length:', enrichedPrompt.length);
@@ -378,16 +472,36 @@ serve(async (req) => {
       }
     };
 
-    // Veo 3.1: usa 'referenceImages' array para ambos os tipos de geração
-    if (referenceImages && referenceImages.length > 0) {
+    // Veo 3.1: Estrutura otimizada seguindo exemplo Google
+    if (generationType === 'image_to_video' && referenceImages && referenceImages.length > 0) {
+      // Usar a PRIMEIRA imagem como base principal (seguindo exemplo Google)
+      requestBody.instances[0].image = {
+        imageBytes: referenceImages[0], // base64 sem prefixo data:
+        mimeType: 'image/png'
+      };
+      console.log(`🖼️ [Veo 3.1] Imagem principal definida para image-to-video`);
+      
+      // Imagens adicionais como referências de estilo (se houver)
+      if (referenceImages.length > 1) {
+        requestBody.instances[0].referenceImages = referenceImages.slice(1).map((img: string) => ({
+          image: {
+            bytesBase64Encoded: img,
+            mimeType: 'image/jpeg'
+          },
+          referenceType: 'style'
+        }));
+        console.log(`🎨 [Veo 3.1] ${referenceImages.length - 1} imagem(ns) adicional(is) como estilo`);
+      }
+    } else if (referenceImages && referenceImages.length > 0) {
+      // Para text_to_video ou outros tipos, manter estrutura original
       requestBody.instances[0].referenceImages = referenceImages.map((img: string) => ({
         image: {
           bytesBase64Encoded: img,
           mimeType: 'image/jpeg'
         },
-        referenceType: 'asset'  // 'asset' para conteúdo, 'style' para estilo
+        referenceType: 'asset'
       }));
-      console.log(`🖼️ [Veo 3.1] ${referenceImages.length} imagem(ns) de referência adicionadas ao payload`);
+      console.log(`🖼️ [Veo 3.1] ${referenceImages.length} imagem(ns) de referência adicionadas`);
     }
 
     // Adicionar prompt negativo se fornecido

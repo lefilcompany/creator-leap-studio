@@ -755,6 +755,11 @@ export default function CreateContent() {
             revisions: 0,
             details: {
               prompt: videoPrompt,
+              // IDs para buscar dados completos no backend
+              brand_id: formData.brand,
+              theme_id: formData.theme || null,
+              persona_id: formData.persona || null,
+              // Dados legíveis
               objective: requestData.objective,
               platform: requestData.platform,
               tone: requestData.tone,
@@ -784,8 +789,20 @@ export default function CreateContent() {
 
         // Preparar imagens de referência se for image_to_video
         let referenceImagesBase64: string[] = [];
-        if (formData.videoGenerationType === 'image_to_video' && referenceFiles && referenceFiles.length > 0) {
-          for (const file of referenceFiles) {
+        if (formData.videoGenerationType === 'image_to_video') {
+          if (!referenceFiles || referenceFiles.length === 0) {
+            toast.error("Selecione pelo menos 1 imagem de referência para gerar o vídeo", { id: toastId });
+            return;
+          }
+          
+          // Veo 3.1: máximo 3 imagens
+          let filesToProcess = referenceFiles;
+          if (referenceFiles.length > 3) {
+            toast.warning("Usando apenas as 3 primeiras imagens (limite Veo 3.1)", { id: toastId });
+            filesToProcess = referenceFiles.slice(0, 3);
+          }
+          
+          for (const file of filesToProcess) {
             const base64 = await new Promise<string>((resolve, reject) => {
               const reader = new FileReader();
               reader.onload = () => resolve(reader.result as string);
@@ -843,11 +860,19 @@ export default function CreateContent() {
           duration: 3000,
         });
         
-        // Navegar para a tela de resultado de vídeo
+        // Navegar para a tela de resultado de vídeo com feedback detalhado
         navigate("/video-result", {
           state: {
             contentData: {
               mediaUrl: "", // Será atualizado quando o vídeo estiver pronto
+              processingSteps: [
+                '✅ Vídeo iniciado',
+                '⏳ Analisando contexto da marca',
+                '⏳ Aplicando tema estratégico',
+                '⏳ Gerando movimento e transições',
+                '⏳ Aplicando estilo visual',
+                '⏳ Renderizando vídeo final'
+              ],
               caption: videoPrompt || formData.description || "Legenda sendo gerada...",
               platform: formData.platform,
               brand: selectedBrand?.name || "Marca não especificada",
