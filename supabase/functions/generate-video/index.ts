@@ -205,7 +205,6 @@ serve(async (req) => {
     const { 
       prompt, 
       generationType = 'image_to_video',
-      referenceImages = [],
       preserveImages = [],
       styleReferenceImages = [],
       actionId,
@@ -233,11 +232,13 @@ serve(async (req) => {
     console.log('📐 Proporção:', aspectRatio);
     console.log('🎞️ Resolução:', resolution);
     console.log('⏱️ Duração:', duration + 's');
+    console.log('🖼️ Imagens preservadas:', preserveImages?.length || 0);
+    console.log('🎨 Imagens de estilo:', styleReferenceImages?.length || 0);
 
     // Validar imagens de referência se for image_to_video
-    if (generationType === 'image_to_video' && (!referenceImages || referenceImages.length === 0)) {
+    if (generationType === 'image_to_video' && (!preserveImages || preserveImages.length === 0)) {
       return new Response(
-        JSON.stringify({ error: 'Reference images are required for image_to_video generation' }),
+        JSON.stringify({ error: 'Pelo menos uma imagem é necessária para geração image-to-video (Veo 3.0)' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -534,10 +535,6 @@ STYLE: Maintain the general aesthetic of the reference image while adding dynami
     console.log(`🎯 Tipo de geração: ${generationType}`);
     console.log(`📐 Configurações: ${aspectRatio} • ${resolution} • ${duration}s`);
     
-    if (referenceImages && referenceImages.length > 0) {
-      console.log('🖼️ Imagens de referência:', referenceImages.length);
-    }
-    
     // Prepare request body com estrutura específica por modelo
     let requestBody: any;
     
@@ -545,15 +542,11 @@ STYLE: Maintain the general aesthetic of the reference image while adding dynami
       // ✅ VEO 3.0: Estrutura específica para image-to-video
       // Documentação: https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/veo
       
-      if (!referenceImages || referenceImages.length === 0) {
-        throw new Error('Image-to-video requires at least one reference image');
-      }
-      
       requestBody = {
         instances: [{
           prompt: optimizedPrompt,
           image: {
-            bytesBase64Encoded: preserveImages?.[0] || referenceImages?.[0],
+            bytesBase64Encoded: preserveImages[0],
             mimeType: 'image/png'
           }
         }],
@@ -565,10 +558,6 @@ STYLE: Maintain the general aesthetic of the reference image while adding dynami
       };
       
       console.log(`🖼️ [Veo 3.0] Usando 1 imagem para image-to-video`);
-      
-      if ((preserveImages?.length || 0) + (referenceImages?.length || 0) > 1) {
-        console.warn(`⚠️ [Veo 3.0] Múltiplas imagens fornecidas, mas apenas a primeira será usada`);
-      }
     } else {
       // ✅ VEO 3.1: Estrutura para text-to-video
       requestBody = {
@@ -616,20 +605,6 @@ STYLE: Maintain the general aesthetic of the reference image while adding dynami
         } else {
           console.log(`⚠️ [Veo 3.1] Limite de 3 imagens atingido, ignorando imagens de estilo`);
         }
-      }
-      
-      // Fallback: Se não houver preserve nem style, mas houver referenceImages antigas
-      if ((!preserveImages || preserveImages.length === 0) && 
-          (!styleReferenceImages || styleReferenceImages.length === 0) &&
-          referenceImages && referenceImages.length > 0) {
-        requestBody.instances[0].referenceImages = referenceImages.slice(0, 3).map((img: string) => ({
-          image: {
-            bytesBase64Encoded: img,
-            mimeType: 'image/png'
-          },
-          referenceType: 'asset'
-        }));
-        console.log(`🖼️ [Veo 3.1] ${Math.min(referenceImages.length, 3)} imagem(ns) de referência (fallback)`);
       }
     }
 
