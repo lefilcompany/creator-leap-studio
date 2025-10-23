@@ -212,6 +212,33 @@ export default function CreateContent() {
     }
   };
 
+  // Separar imagens preservadas de imagens de estilo
+  const getSeparatedImages = () => {
+    const preserveImages: string[] = [];
+    const styleImages: string[] = [];
+    
+    referenceFiles.forEach((file, index) => {
+      const reader = new FileReader();
+      const promise = new Promise<string>((resolve) => {
+        reader.onloadend = () => {
+          const base64 = reader.result as string;
+          const base64Data = base64.split(',')[1];
+          resolve(base64Data);
+        };
+      });
+      
+      reader.readAsDataURL(file);
+      
+      if (preserveImageIndices.includes(index)) {
+        preserveImages.push(promise as any);
+      } else {
+        styleImages.push(promise as any);
+      }
+    });
+    
+    return { preserveImages, styleImages };
+  };
+
   useEffect(() => {
     const loadData = async () => {
       if (!user?.teamId || !user?.id) {
@@ -812,45 +839,81 @@ export default function CreateContent() {
           throw new Error(`Erro ao criar registro: ${actionError?.message}`);
         }
 
-        // Preparar imagens de referência
-        let referenceImagesBase64: string[] = [];
+        // Preparar imagens de referência - SEPARAR EM DOIS ARRAYS
+        let preserveImagesBase64: string[] = [];
+        let styleImagesBase64: string[] = [];
         
         if (formData.videoGenerationType === 'image_to_video') {
-          // Veo 3.0: Requer pelo menos 1 imagem
+          // Veo 3.0: Requer pelo menos 1 imagem marcada com "Manter Identidade"
           if (!referenceFiles || referenceFiles.length === 0) {
             toast.error("Selecione pelo menos 1 imagem para image-to-video (Veo 3.0)", { id: toastId });
             return;
           }
           
-          // Veo 3.0: usa apenas a primeira imagem
-          const file = referenceFiles[0];
+          // Para Veo 3.0, a primeira imagem marcada com preservar é usada
+          const preservedIndices = preserveImageIndices.length > 0 ? preserveImageIndices : [0];
+          const firstPreservedIndex = preservedIndices[0];
+          
+          const file = referenceFiles[firstPreservedIndex];
           const base64 = await new Promise<string>((resolve, reject) => {
             const reader = new FileReader();
             reader.onload = () => resolve(reader.result as string);
             reader.onerror = reject;
             reader.readAsDataURL(file);
           });
-          referenceImagesBase64.push(base64.split(',')[1]); // Remove o prefixo data:image/...;base64,
+          preserveImagesBase64.push(base64.split(',')[1]); // Remove o prefixo data:image/...;base64,
           
-          if (referenceFiles.length > 1) {
-            console.log(`⚠️ Veo 3.0: ${referenceFiles.length} imagens fornecidas, usando apenas a primeira`);
+          if (preserveImageIndices.length === 0) {
+            toast.info("⚠️ Nenhuma imagem marcada com 'Manter Identidade'. Usando a primeira imagem.", { duration: 3000 });
           }
         } else if (referenceFiles.length > 0) {
-          // Veo 3.1: imagens opcionais, máximo 3
-          let filesToProcess = referenceFiles.slice(0, 3);
+          // Veo 3.1: imagens opcionais, máximo 3 total
+          // Separar em preserveImages e styleImages
+          const preservedIndices = preserveImageIndices;
+          const maxImages = 3;
+          
+          // Processar imagens com "Manter Identidade" primeiro
+          for (let i = 0; i < referenceFiles.length && preserveImagesBase64.length < maxImages; i++) {
+            if (preservedIndices.includes(i)) {
+              const file = referenceFiles[i];
+              const base64 = await new Promise<string>((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result as string);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+              });
+              preserveImagesBase64.push(base64.split(',')[1]);
+            }
+          }
+          
+          // Processar imagens de estilo (não marcadas) se houver espaço
+          const remainingSlots = maxImages - preserveImagesBase64.length;
+          if (remainingSlots > 0) {
+            for (let i = 0; i < referenceFiles.length && styleImagesBase64.length < remainingSlots; i++) {
+              if (!preservedIndices.includes(i)) {
+                const file = referenceFiles[i];
+                const base64 = await new Promise<string>((resolve, reject) => {
+                  const reader = new FileReader();
+                  reader.onload = () => resolve(reader.result as string);
+                  reader.onerror = reject;
+                  reader.readAsDataURL(file);
+                });
+                styleImagesBase64.push(base64.split(',')[1]);
+              }
+            }
+          }
           
           if (referenceFiles.length > 3) {
             toast.info("Usando as 3 primeiras imagens (limite Veo 3.1)", { duration: 3000 });
           }
           
-          for (const file of filesToProcess) {
-            const base64 = await new Promise<string>((resolve, reject) => {
-              const reader = new FileReader();
-              reader.onload = () => resolve(reader.result as string);
-              reader.onerror = reject;
-              reader.readAsDataURL(file);
-            });
-            referenceImagesBase64.push(base64.split(',')[1]);
+          // Feedback sobre tipos de imagens
+          if (preserveImagesBase64.length > 0 && styleImagesBase64.length > 0) {
+            toast.info(`✅ ${preserveImagesBase64.length} imagem(ns) com identidade preservada + ${styleImagesBase64.length} imagem(ns) de estilo`, { duration: 3000 });
+          } else if (preserveImagesBase64.length > 0) {
+            toast.info(`✅ ${preserveImagesBase64.length} imagem(ns) com identidade preservada`, { duration: 3000 });
+          } else if (styleImagesBase64.length > 0) {
+            toast.info(`ℹ️ ${styleImagesBase64.length} imagem(ns) de inspiração (sem preservação de identidade)`, { duration: 3000 });
           }
         }
 
@@ -866,7 +929,9 @@ export default function CreateContent() {
             body: JSON.stringify({
               prompt: videoPrompt,
               generationType: formData.videoGenerationType || 'text_to_video',
-              referenceImages: referenceImagesBase64.length > 0 ? referenceImagesBase64 : undefined,
+              // ENVIAR ARRAYS SEPARADOS
+              preserveImages: preserveImagesBase64.length > 0 ? preserveImagesBase64 : undefined,
+              styleReferenceImages: styleImagesBase64.length > 0 ? styleImagesBase64 : undefined,
               actionId: actionData.id,
               // Configurações de texto
               includeText: formData.videoIncludeText || false,
