@@ -1570,43 +1570,40 @@ ${formData.description}
                   />
                 </div>
 
-                <div className="space-y-2 md:space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label
-                      htmlFor="description"
-                      className="text-xs md:text-sm font-semibold text-foreground"
-                    >
-                      {isVideoMode
-                        ? "Descrição Visual do Vídeo"
-                        : "Descrição Visual da Imagem"} <span className="text-destructive">*</span>
-                    </Label>
-                    <span className={`text-xs font-medium ${
-                      formData.description.length > 5000 
-                        ? 'text-destructive' 
-                        : formData.description.length > 4500 
-                          ? 'text-orange-500' 
-                          : 'text-muted-foreground'
-                    }`}>
-                      {formData.description.length}/5000
-                    </span>
+                {/* Descrição Visual - APENAS EM MODO IMAGEM */}
+                {!isVideoMode && (
+                  <div className="space-y-2 md:space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label
+                        htmlFor="description"
+                        className="text-xs md:text-sm font-semibold text-foreground"
+                      >
+                        Descrição Visual da Imagem <span className="text-destructive">*</span>
+                      </Label>
+                      <span className={`text-xs font-medium ${
+                        formData.description.length > 5000 
+                          ? 'text-destructive' 
+                          : formData.description.length > 4500 
+                            ? 'text-orange-500' 
+                            : 'text-muted-foreground'
+                      }`}>
+                        {formData.description.length}/5000
+                      </span>
+                    </div>
+                    <Textarea
+                      id="description"
+                      placeholder="Como um diretor de arte: descreva a cena, iluminação e emoção..."
+                      value={formData.description}
+                      onChange={handleInputChange}
+                      maxLength={5000}
+                      className={`min-h-[100px] md:min-h-[120px] rounded-xl border-2 bg-background/50 resize-none text-sm hover:border-border/70 transition-colors ${
+                        missingFields.includes('description') 
+                          ? 'border-destructive ring-2 ring-destructive/20 focus:border-destructive' 
+                          : 'border-border/50 focus:border-primary/50'
+                      }`}
+                    />
                   </div>
-                  <Textarea
-                    id="description"
-                    placeholder={
-                      isVideoMode
-                        ? "Como um roteirista: descreva a ação, câmera e atmosfera..."
-                        : "Como um diretor de arte: descreva a cena, iluminação e emoção..."
-                    }
-                    value={formData.description}
-                    onChange={handleInputChange}
-                    maxLength={5000}
-                    className={`min-h-[100px] md:min-h-[120px] rounded-xl border-2 bg-background/50 resize-none text-sm hover:border-border/70 transition-colors ${
-                      missingFields.includes('description') 
-                        ? 'border-destructive ring-2 ring-destructive/20 focus:border-destructive' 
-                        : 'border-border/50 focus:border-primary/50'
-                    }`}
-                  />
-                </div>
+                )}
 
                 <div className="space-y-2 md:space-y-3">
                   <Label
