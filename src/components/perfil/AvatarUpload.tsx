@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Camera, Loader2, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import AvatarEditor from './AvatarEditor';
 
 interface AvatarUploadProps {
   userId: string;
@@ -20,12 +21,12 @@ export default function AvatarUpload({
 }: AvatarUploadProps) {
   const [uploading, setUploading] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [imageToEdit, setImageToEdit] = useState<string>('');
   const { toast } = useToast();
 
-  const uploadAvatar = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
-      setUploading(true);
-
       if (!event.target.files || event.target.files.length === 0) {
         return;
       }
@@ -52,6 +53,30 @@ export default function AvatarUpload({
         return;
       }
 
+      // Criar URL temporária para edição
+      const tempUrl = URL.createObjectURL(file);
+      setImageToEdit(tempUrl);
+      setEditorOpen(true);
+    } catch (error) {
+      console.error('Erro ao selecionar arquivo:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao carregar imagem',
+        variant: 'destructive',
+      });
+    } finally {
+      // Limpar input
+      if (event.target) {
+        event.target.value = '';
+      }
+    }
+  };
+
+  const uploadAvatar = async (blob: Blob) => {
+    try {
+      setUploading(true);
+      setEditorOpen(false);
+
       // Deletar avatar anterior se existir
       if (currentAvatarUrl) {
         const oldPath = currentAvatarUrl.split('/').pop();
@@ -61,13 +86,12 @@ export default function AvatarUpload({
       }
 
       // Upload novo avatar
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}.${fileExt}`;
+      const fileName = `${Date.now()}.png`;
       const filePath = `${userId}/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(filePath, file);
+        .upload(filePath, blob);
 
       if (uploadError) throw uploadError;
 
@@ -99,9 +123,10 @@ export default function AvatarUpload({
       });
     } finally {
       setUploading(false);
-      // Limpar input
-      if (event.target) {
-        event.target.value = '';
+      // Limpar URL temporária
+      if (imageToEdit) {
+        URL.revokeObjectURL(imageToEdit);
+        setImageToEdit('');
       }
     }
   };
@@ -158,54 +183,69 @@ export default function AvatarUpload({
   };
 
   return (
-    <div className="flex flex-col items-center gap-4">
-      <Avatar className="h-32 w-32">
-        <AvatarImage src={currentAvatarUrl} alt={userName} />
-        <AvatarFallback className="text-3xl bg-gradient-to-br from-primary to-secondary text-white">
-          {getInitials(userName)}
-        </AvatarFallback>
-      </Avatar>
-      
-      <div className="flex gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={uploading || deleting}
-          onClick={() => document.getElementById('avatar-upload')?.click()}
-        >
-          {uploading ? (
-            <Loader2 className="h-4 w-4 animate-spin mr-2" />
-          ) : (
-            <Camera className="h-4 w-4 mr-2" />
-          )}
-          {currentAvatarUrl ? 'Alterar foto' : 'Adicionar foto'}
-        </Button>
+    <>
+      <div className="flex flex-col items-center gap-4">
+        <Avatar className="h-32 w-32">
+          <AvatarImage src={currentAvatarUrl} alt={userName} />
+          <AvatarFallback className="text-3xl bg-gradient-to-br from-primary to-secondary text-white">
+            {getInitials(userName)}
+          </AvatarFallback>
+        </Avatar>
         
-        {currentAvatarUrl && (
+        <div className="flex gap-2">
           <Button
-            variant="destructive"
+            variant="outline"
             size="sm"
             disabled={uploading || deleting}
-            onClick={deleteAvatar}
+            onClick={() => document.getElementById('avatar-upload')?.click()}
           >
-            {deleting ? (
+            {uploading ? (
               <Loader2 className="h-4 w-4 animate-spin mr-2" />
             ) : (
-              <Trash2 className="h-4 w-4 mr-2" />
+              <Camera className="h-4 w-4 mr-2" />
             )}
-            Remover
+            {currentAvatarUrl ? 'Alterar foto' : 'Adicionar foto'}
           </Button>
-        )}
+          
+          {currentAvatarUrl && (
+            <Button
+              variant="destructive"
+              size="sm"
+              disabled={uploading || deleting}
+              onClick={deleteAvatar}
+            >
+              {deleting ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : (
+                <Trash2 className="h-4 w-4 mr-2" />
+              )}
+              Remover
+            </Button>
+          )}
+        </div>
+
+        <input
+          id="avatar-upload"
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleFileSelect}
+          disabled={uploading || deleting}
+        />
       </div>
 
-      <input
-        id="avatar-upload"
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={uploadAvatar}
-        disabled={uploading || deleting}
+      <AvatarEditor
+        imageUrl={imageToEdit}
+        open={editorOpen}
+        onSave={uploadAvatar}
+        onCancel={() => {
+          setEditorOpen(false);
+          if (imageToEdit) {
+            URL.revokeObjectURL(imageToEdit);
+            setImageToEdit('');
+          }
+        }}
       />
-    </div>
+    </>
   );
 }
