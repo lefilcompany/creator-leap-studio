@@ -363,6 +363,14 @@ serve(async (req) => {
     
     console.log('🤖 Modelo selecionado:', modelName);
     
+    // Log detalhado sobre o modelo e imagens
+    if (generationType === 'image_to_video') {
+      console.log('📸 Modo: Imagem para Vídeo (Veo 3.0)');
+      console.log('🖼️ Imagens de referência:', referenceImages?.length || 0);
+    } else {
+      console.log('📝 Modo: Texto para Vídeo (Veo 3.1)');
+    }
+    
     // Prepare request body
     const requestBody: any = {
       instances: [{
@@ -397,15 +405,6 @@ serve(async (req) => {
       requestBody.parameters.negative_prompt = negativePrompt;
       console.log('⛔ Negative prompt:', negativePrompt);
     }
-
-
-    // NOTA: Veo 3.1 NÃO suporta reference_images
-    // Se o usuário enviou imagens, vamos ignorá-las e processar apenas como text_to_video
-    if (generationType === 'image_to_video' && referenceImages && referenceImages.length > 0) {
-      console.log(`⚠️ AVISO: Veo 3.1 não suporta reference_images. Processando como text_to_video.`);
-      console.log(`📝 ${referenceImages.length} imagem(ns) de referência foram ignoradas.`);
-    }
-
 
     // Start video generation with selected model
     console.log(`Starting video generation with ${modelName}...`);
