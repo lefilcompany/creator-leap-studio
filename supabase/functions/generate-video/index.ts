@@ -472,11 +472,11 @@ serve(async (req) => {
       }
     };
 
-    // Veo 3.1: Estrutura otimizada seguindo exemplo Google
+    // Veo 3.1: Estrutura otimizada seguindo documentação oficial Google Cloud
     if (generationType === 'image_to_video' && referenceImages && referenceImages.length > 0) {
-      // Usar a PRIMEIRA imagem como base principal (seguindo exemplo Google)
+      // Usar a PRIMEIRA imagem como base principal (seguindo documentação Google Cloud)
       requestBody.instances[0].image = {
-        imageBytes: referenceImages[0], // base64 sem prefixo data:
+        bytesBase64Encoded: referenceImages[0], // ✅ Formato correto da API
         mimeType: 'image/png'
       };
       console.log(`🖼️ [Veo 3.1] Imagem principal definida para image-to-video`);
@@ -486,18 +486,18 @@ serve(async (req) => {
         requestBody.instances[0].referenceImages = referenceImages.slice(1).map((img: string) => ({
           image: {
             bytesBase64Encoded: img,
-            mimeType: 'image/jpeg'
+            mimeType: 'image/png'
           },
           referenceType: 'style'
         }));
         console.log(`🎨 [Veo 3.1] ${referenceImages.length - 1} imagem(ns) adicional(is) como estilo`);
       }
     } else if (referenceImages && referenceImages.length > 0) {
-      // Para text_to_video ou outros tipos, manter estrutura original
+      // Para text_to_video ou outros tipos, usar referenceImages
       requestBody.instances[0].referenceImages = referenceImages.map((img: string) => ({
         image: {
           bytesBase64Encoded: img,
-          mimeType: 'image/jpeg'
+          mimeType: 'image/png'
         },
         referenceType: 'asset'
       }));
