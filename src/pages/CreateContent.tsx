@@ -489,7 +489,7 @@ export default function CreateContent() {
     
     if (type === 'image_to_video') {
       toast.info('Modo Imagem para Vídeo', {
-        description: 'Adicione imagens de referência para gerar o vídeo (Veo 3.0)',
+        description: 'Adicione imagens de referência para gerar o vídeo (Veo 3.1)',
         duration: 3000
       });
     } else {
@@ -2196,7 +2196,7 @@ ${formData.description}
                     >
                       <div className="text-left">
                         <div className="font-semibold text-sm mb-1">Texto para Vídeo</div>
-                        <div className="text-xs opacity-80">Veo 3.1</div>
+                        <div className="text-xs opacity-80">Veo 3.1 - Geração por descrição</div>
                       </div>
                     </Button>
                     <Button
@@ -2207,14 +2207,14 @@ ${formData.description}
                     >
                       <div className="text-left">
                         <div className="font-semibold text-sm mb-1">Imagem para Vídeo</div>
-                        <div className="text-xs opacity-80">Veo 3.0</div>
+                        <div className="text-xs opacity-80">Veo 3.1 - Com imagens de referência</div>
                       </div>
                     </Button>
                   </div>
                   <p className="text-xs text-muted-foreground">
                     {formData.videoGenerationType === 'text_to_video' 
-                      ? 'Veo 3.1: Modelo mais recente para geração de vídeo a partir de texto.'
-                      : 'Veo 3.0: Modelo para geração de vídeo a partir de imagens de referência.'}
+                      ? 'Veo 3.1: Modelo mais recente para geração de vídeo a partir de texto, com suporte a imagens de referência opcionais.'
+                      : 'Veo 3.1: Geração de vídeo com imagens de referência obrigatórias para guiar a geração.'}
                   </p>
                 </div>
 

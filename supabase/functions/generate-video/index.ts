@@ -356,19 +356,13 @@ serve(async (req) => {
 
     console.log('📏 Enriched prompt length:', enrichedPrompt.length);
     
-    // Selecionar modelo baseado no tipo de geração
-    const modelName = generationType === 'image_to_video' 
-      ? 'veo-3.0-generate-001' 
-      : 'veo-3.1-generate-preview';
+    // Usar Veo 3.1 para ambos os tipos de geração
+    const modelName = 'veo-3.1-generate-preview';
     
-    console.log('🤖 Modelo selecionado:', modelName);
-    
-    // Log detalhado sobre o modelo e imagens
-    if (generationType === 'image_to_video') {
-      console.log('📸 Modo: Imagem para Vídeo (Veo 3.0)');
-      console.log('🖼️ Imagens de referência:', referenceImages?.length || 0);
-    } else {
-      console.log('📝 Modo: Texto para Vídeo (Veo 3.1)');
+    console.log('🤖 Modelo: Veo 3.1 (veo-3.1-generate-preview)');
+    console.log('🎯 Tipo de geração:', generationType);
+    if (referenceImages && referenceImages.length > 0) {
+      console.log('🖼️ Imagens de referência:', referenceImages.length);
     }
     
     // Prepare request body com estrutura correta para cada modelo
@@ -384,28 +378,16 @@ serve(async (req) => {
       }
     };
 
-    // Estrutura diferente para cada modelo
-    if (generationType === 'image_to_video') {
-      // Veo 3.0: usa 'image' diretamente nas instances
-      if (referenceImages && referenceImages.length > 0) {
-        requestBody.instances[0].image = {
-          bytesBase64Encoded: referenceImages[0],
+    // Veo 3.1: usa 'referenceImages' array para ambos os tipos de geração
+    if (referenceImages && referenceImages.length > 0) {
+      requestBody.instances[0].referenceImages = referenceImages.map((img: string) => ({
+        image: {
+          bytesBase64Encoded: img,
           mimeType: 'image/jpeg'
-        };
-        console.log('🖼️ [Veo 3.0] Imagem de referência adicionada ao payload');
-      }
-    } else {
-      // Veo 3.1: usa 'referenceImages' array nas instances (se houver)
-      if (referenceImages && referenceImages.length > 0) {
-        requestBody.instances[0].referenceImages = referenceImages.map((img: string) => ({
-          image: {
-            bytesBase64Encoded: img,
-            mimeType: 'image/jpeg'
-          },
-          referenceType: 'asset'  // 'asset' para conteúdo, 'style' para estilo
-        }));
-        console.log(`🖼️ [Veo 3.1] ${referenceImages.length} imagem(ns) de referência adicionadas ao payload`);
-      }
+        },
+        referenceType: 'asset'  // 'asset' para conteúdo, 'style' para estilo
+      }));
+      console.log(`🖼️ [Veo 3.1] ${referenceImages.length} imagem(ns) de referência adicionadas ao payload`);
     }
 
     // Adicionar prompt negativo se fornecido
