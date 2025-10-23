@@ -2158,7 +2158,7 @@ ${formData.description}
                   <div className="space-y-1">
                     <h2 className="text-lg md:text-xl font-semibold flex items-center gap-3 text-foreground">
                       <div className="w-2 h-2 bg-primary rounded-full"></div>
-                      📹 Configuração do Vídeo
+                      Configuração do Vídeo
                     </h2>
                     <p className="text-muted-foreground text-xs md:text-sm">
                       Método de geração e descrição visual do vídeo
@@ -2246,7 +2246,7 @@ ${formData.description}
                     <div className="space-y-1">
                       <h2 className="text-lg md:text-xl font-semibold flex items-center gap-3 text-foreground">
                         <div className="w-2 h-2 bg-primary rounded-full"></div>
-                        📸 Imagens de Referência
+                        Imagens de Referência
                       </h2>
                       <p className="text-muted-foreground text-xs md:text-sm">
                         Adicione até 3 imagens como base visual (obrigatório para este modo)
@@ -2330,7 +2330,7 @@ ${formData.description}
                               className="text-xs h-8 px-3"
                             >
                               {preserveImageIndices.includes(idx) ? (
-                                <>🎨 Mantendo ID</>
+                                <>Mantendo Identidade</>
                               ) : (
                                 <>Manter Identidade</>
                               )}
@@ -2475,7 +2475,7 @@ ${formData.description}
                     {/* Preview Visual da Posição */}
                     <div className="space-y-2">
                       <Label className="text-xs font-medium text-muted-foreground">
-                        👁️ Preview da Posição
+                        Preview da Posição
                       </Label>
                       <div className="relative w-full aspect-video bg-gradient-to-br from-muted/50 to-muted/30 rounded-lg border-2 border-dashed border-border/50 overflow-hidden">
                         <div 
@@ -2515,7 +2515,7 @@ ${formData.description}
                 <AccordionTrigger className="text-sm md:text-base font-semibold text-foreground hover:no-underline py-4">
                   <div className="flex items-center gap-2">
                     <Sparkles className="h-5 w-5 text-purple-500" />
-                    ⚙️ Configurações Avançadas de Vídeo (Veo 3.1)
+                    Configurações Avançadas de Vídeo (Veo 3.1)
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="space-y-6 pt-2 pb-4">
@@ -2529,7 +2529,7 @@ ${formData.description}
                     {/* Estilo de Áudio */}
                     <div className="space-y-2">
                       <Label className="text-xs md:text-sm font-semibold text-foreground">
-                        🔊 Áudio
+                        Áudio
                       </Label>
                       <Select 
                         value={formData.videoAudioStyle || 'sound_effects'}
@@ -2548,17 +2548,17 @@ ${formData.description}
                         </SelectContent>
                       </Select>
                       <p className="text-xs text-muted-foreground leading-tight">
-                        {formData.videoAudioStyle === 'dialogue' && '💬 Diálogos realistas com vozes sincronizadas'}
-                        {formData.videoAudioStyle === 'sound_effects' && '🔊 Efeitos sonoros ambientes e ações'}
-                        {formData.videoAudioStyle === 'music' && '🎵 Trilha sonora musical de fundo'}
-                        {formData.videoAudioStyle === 'none' && '🔇 Vídeo completamente silencioso'}
+                        {formData.videoAudioStyle === 'dialogue' && 'Diálogos realistas com vozes sincronizadas'}
+                        {formData.videoAudioStyle === 'sound_effects' && 'Efeitos sonoros ambientes e ações'}
+                        {formData.videoAudioStyle === 'music' && 'Trilha sonora musical de fundo'}
+                        {formData.videoAudioStyle === 'none' && 'Vídeo completamente silencioso'}
                       </p>
                     </div>
 
                     {/* Estilo Visual */}
                     <div className="space-y-2">
                       <Label className="text-xs md:text-sm font-semibold text-foreground">
-                        🎨 Estilo Visual
+                        Estilo Visual
                       </Label>
                       <Select 
                         value={formData.videoVisualStyle || 'cinematic'}
@@ -2577,17 +2577,17 @@ ${formData.description}
                         </SelectContent>
                       </Select>
                       <p className="text-xs text-muted-foreground leading-tight">
-                        {formData.videoVisualStyle === 'cinematic' && '🎬 Qualidade cinematográfica profissional'}
-                        {formData.videoVisualStyle === 'animation' && '🎨 Estilo animado vibrante'}
-                        {formData.videoVisualStyle === 'realistic' && '📷 Ultra-realismo fotográfico'}
-                        {formData.videoVisualStyle === 'creative' && '✨ Abordagem artística experimental'}
+                        {formData.videoVisualStyle === 'cinematic' && 'Qualidade cinematográfica profissional'}
+                        {formData.videoVisualStyle === 'animation' && 'Estilo animado vibrante'}
+                        {formData.videoVisualStyle === 'realistic' && 'Ultra-realismo fotográfico'}
+                        {formData.videoVisualStyle === 'creative' && 'Abordagem artística experimental'}
                       </p>
                     </div>
 
                     {/* Duração */}
                     <div className="space-y-2">
                       <Label className="text-xs md:text-sm font-semibold text-foreground">
-                        ⏱️ Duração
+                        Duração
                       </Label>
                       <Select 
                         value={String(formData.videoDuration || 8)}
@@ -2609,7 +2609,7 @@ ${formData.description}
                     {/* Proporção */}
                     <div className="space-y-2">
                       <Label className="text-xs md:text-sm font-semibold text-foreground">
-                        📐 Proporção
+                        Proporção
                       </Label>
                       <Select 
                         value={formData.videoAspectRatio || '9:16'}
@@ -2630,7 +2630,7 @@ ${formData.description}
                     {/* Resolução */}
                     <div className="space-y-2 md:col-span-2">
                       <Label className="text-xs md:text-sm font-semibold text-foreground">
-                        🎞️ Resolução
+                        Resolução
                       </Label>
                       <Select 
                         value={formData.videoResolution || '1080p'}
