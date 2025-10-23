@@ -438,14 +438,45 @@ export default function CreateContent() {
     }));
   };
 
-  const handleVideoModeChange = (checked: boolean) => {
-    setIsVideoMode(checked);
-    if (checked) {
-      toast.info("Geração de Vídeo (Beta) Ativada", {
-        description:
-          "Este recurso está em desenvolvimento e a geração pode levar mais tempo.",
-        duration: 4000,
-        icon: <Info className="h-5 w-5 text-accent" />,
+  const handleVideoModeChange = (isVideo: boolean) => {
+    setIsVideoMode(isVideo);
+    
+    if (isVideo) {
+      // Limpar estados específicos de imagem
+      setFormData(prev => ({
+        ...prev,
+        width: undefined,
+        height: undefined,
+        colorPalette: undefined,
+        lighting: undefined,
+        composition: undefined,
+        cameraAngle: undefined,
+        detailLevel: undefined,
+        mood: undefined,
+        imageIncludeText: false,
+        imageTextContent: '',
+      }));
+      
+      toast.info('Modo Vídeo Ativado', {
+        description: 'Interface adaptada para geração de vídeo com Veo 3.1',
+        duration: 3000
+      });
+    } else {
+      // Limpar estados específicos de vídeo
+      setReferenceFiles([]);
+      setPreserveImageIndices([]);
+      setFormData(prev => ({
+        ...prev,
+        videoGenerationType: 'image_to_video',
+        videoIncludeText: false,
+        videoTextContent: '',
+        videoTextPosition: 'center',
+        videoNegativePrompt: '',
+      }));
+      
+      toast.info('Modo Imagem Ativado', {
+        description: 'Interface adaptada para geração de imagem',
+        duration: 3000
       });
     }
   };
@@ -520,16 +551,35 @@ export default function CreateContent() {
     if (!formData.platform) missing.push('platform');
     if (!formData.description) missing.push('description');
     if (formData.tone.length === 0) missing.push('tone');
-    if (referenceFiles.length === 0) missing.push('referenceFiles');
     
     if (isVideoMode) {
-      if (!ratio) missing.push('ratio');
-      if (transformationType === "image_to_video" && !duration) missing.push('duration');
-      // NOVA VALIDAÇÃO: Texto obrigatório quando toggle ativado
+      // Validar modo de geração de vídeo
+      if (formData.videoGenerationType === 'image_to_video' && referenceFiles.length === 0) {
+        missing.push('referenceFiles');
+        toast.error('Adicione pelo menos 1 imagem de referência para o modo Imagem para Vídeo');
+      }
+      
+      // Validar máximo de 3 imagens
+      if (referenceFiles.length > 3) {
+        missing.push('referenceFiles');
+        toast.error('Veo 3.1 suporta no máximo 3 imagens de referência');
+      }
+      
+      // Validar texto obrigatório quando toggle ativado
       if (formData.videoIncludeText && !formData.videoTextContent?.trim()) {
         missing.push('videoTextContent');
-        toast.error("Por favor, digite o texto que deseja exibir no vídeo");
+        toast.error("Digite o texto que deseja exibir no vídeo");
       }
+      
+      // Validar tamanho total das imagens
+      const totalSize = referenceFiles.reduce((acc, f) => acc + f.size, 0);
+      if (totalSize > 20 * 1024 * 1024) {
+        missing.push('referenceFiles');
+        toast.error('Tamanho total das imagens excede 20MB');
+      }
+    } else {
+      // Modo imagem
+      if (referenceFiles.length === 0) missing.push('referenceFiles');
     }
     
     setMissingFields(missing);
@@ -2100,34 +2150,44 @@ ${formData.description}
           </div>
         </div>
 
-        {/* Configurações Avançadas de Vídeo (Veo 3.1) - Full Width */}
+        {/* 📹 INTERFACE DE VÍDEO - VEO 3.1 */}
         {isVideoMode && (
-          <div className="pt-4 md:pt-6">
-            <Card className="backdrop-blur-sm bg-gradient-to-br from-purple-500/5 to-blue-500/5 border-2 border-purple-500/20 shadow-lg rounded-2xl">
-              <CardHeader className="pb-3 md:pb-4 bg-gradient-to-r from-purple-500/5 to-blue-500/5 rounded-t-2xl">
+          <div className="pt-4 md:pt-6 space-y-6">
+            
+            {/* CARD 1: CONFIGURAÇÃO BÁSICA DO VÍDEO */}
+            <Card className="backdrop-blur-sm bg-gradient-to-br from-primary/5 to-secondary/5 border-2 border-primary/20 shadow-lg rounded-2xl">
+              <CardHeader className="pb-3 md:pb-4 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-t-2xl">
                 <div className="flex items-start justify-between">
                   <div className="space-y-1">
                     <h2 className="text-lg md:text-xl font-semibold flex items-center gap-3 text-foreground">
-                      <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                      Configurações Avançadas de Vídeo (Veo 3.1)
+                      <div className="w-2 h-2 bg-primary rounded-full"></div>
+                      📹 Configuração do Vídeo
                     </h2>
                     <p className="text-muted-foreground text-xs md:text-sm">
-                      Controle o áudio nativo, estilo visual e qualidade do vídeo com as capacidades do Veo 3.1
+                      Método de geração e descrição visual do vídeo
                     </p>
                   </div>
-                  <Video className="h-5 w-5 md:h-6 md:w-6 text-purple-500 flex-shrink-0" />
+                  <Video className="h-5 w-5 md:h-6 md:w-6 text-primary flex-shrink-0" />
                 </div>
               </CardHeader>
               <CardContent className="p-4 md:p-6 space-y-6">
                 
-                {/* [1] MÉTODO DE GERAÇÃO */}
+                {/* Método de Geração */}
                 <div className="space-y-3">
-                  <Label className="text-sm font-semibold">Método de Geração</Label>
+                  <Label className="text-sm font-semibold text-foreground">
+                    Método de Geração <span className="text-destructive">*</span>
+                  </Label>
                   <div className="grid grid-cols-2 gap-3">
                     <Button
                       type="button"
                       variant={formData.videoGenerationType === 'text_to_video' ? 'default' : 'outline'}
-                      onClick={() => setFormData(prev => ({ ...prev, videoGenerationType: 'text_to_video' }))}
+                      onClick={() => {
+                        setFormData(prev => ({ ...prev, videoGenerationType: 'text_to_video' }));
+                        if (formData.videoGenerationType !== 'text_to_video') {
+                          setReferenceFiles([]);
+                          setPreserveImageIndices([]);
+                        }
+                      }}
                       className="h-20 flex flex-col items-center justify-center gap-2"
                     >
                       <FileText className="h-5 w-5" />
@@ -2145,308 +2205,514 @@ ${formData.description}
                   </div>
                   <p className="text-xs text-muted-foreground">
                     {formData.videoGenerationType === 'text_to_video' 
-                      ? 'O vídeo será gerado apenas a partir da descrição textual'
-                      : 'Use até 3 imagens como referência visual para o vídeo'}
+                      ? 'O vídeo será gerado apenas a partir da descrição textual sem imagens de referência'
+                      : 'Use até 3 imagens como base visual para garantir consistência no vídeo'}
                   </p>
                 </div>
 
-                {/* [2] UPLOAD DE IMAGENS DE REFERÊNCIA (condicional) */}
-                {formData.videoGenerationType === 'image_to_video' && (
-                  <Card className="bg-muted/30 border-2 border-primary/20 rounded-xl">
-                    <CardContent className="p-4 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <Label className="text-sm font-semibold">📸 Imagens de Referência</Label>
-                        <Badge variant="outline" className="text-xs font-medium border-primary/40 text-primary bg-primary/10">
-                          {referenceFiles.length}/3 imagens
-                        </Badge>
-                      </div>
-                      
-                      <p className="text-xs text-muted-foreground">
-                        Adicione até 3 imagens que servirão como base visual para o vídeo. O Veo 3.1 analisará composição, cores e elementos para criar consistência visual.
-                      </p>
-                      
-                      {/* Input de upload */}
-                      <Input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/*"
-                        multiple
-                        disabled={referenceFiles.length >= 3}
-                        onChange={(e) => {
-                          const files = Array.from(e.target.files || []);
-                          const availableSlots = 3 - referenceFiles.length;
-                          const filesToAdd = files.slice(0, availableSlots);
-                          
-                          if (filesToAdd.length > 0) {
-                            setReferenceFiles(prev => [...prev, ...filesToAdd]);
-                            toast.success(`${filesToAdd.length} imagem(ns) adicionada(s)`);
-                          }
-                          
-                          if (files.length > availableSlots) {
-                            toast.error(`Limite de 3 imagens. ${files.length - availableSlots} imagem(ns) ignorada(s)`);
-                          }
-                          
-                          e.target.value = '';
-                        }}
-                        className="h-12 rounded-xl border-2 file:mr-4 file:h-full file:py-0 file:px-5 file:rounded-l-[10px] file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
-                      />
-                      
-                      {/* Área de cole */}
-                      <div
-                        ref={pasteAreaRef}
-                        onPaste={handlePaste}
-                        className="border-2 border-dashed rounded-xl p-4 text-center hover:bg-muted/50 transition-colors cursor-pointer"
-                        tabIndex={0}
-                      >
-                        <ImagePlus className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
-                        <p className="text-xs text-muted-foreground">
-                          Clique para fazer upload ou cole aqui (Ctrl+V)
-                        </p>
-                      </div>
-                      
-                      {/* Lista de imagens com checkbox */}
-                      {referenceFiles.length > 0 && (
-                        <div className="space-y-2 p-3 bg-background/50 rounded-lg border border-border/30">
-                          {referenceFiles.map((file, idx) => (
-                            <div key={idx} className="flex items-center gap-3 p-3 bg-card rounded-lg border border-border/50 hover:border-primary/50 transition-colors">
-                              <Checkbox
-                                id={`preserve-${idx}`}
-                                checked={preserveImageIndices.includes(idx)}
-                                onCheckedChange={() => {
-                                  setPreserveImageIndices(prev =>
-                                    prev.includes(idx)
-                                      ? prev.filter(i => i !== idx)
-                                      : [...prev, idx]
-                                  );
-                                }}
-                              />
-                              <Label htmlFor={`preserve-${idx}`} className="flex-1 text-sm cursor-pointer">
-                                <span className="font-medium">{file.name}</span>
-                                {preserveImageIndices.includes(idx) && (
-                                  <span className="ml-2 text-xs text-primary">(Preservar traços)</span>
-                                )}
-                              </Label>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => {
-                                  setReferenceFiles(prev => prev.filter((_, i) => i !== idx));
-                                  setPreserveImageIndices(prev => 
-                                    prev.filter(i => i !== idx).map(i => i > idx ? i - 1 : i)
-                                  );
-                                  toast.success('Imagem removida');
-                                }}
-                                className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-                              >
-                                <X className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          ))}
-                          <div className="flex items-start gap-2 p-2 mt-2 bg-accent/5 rounded-lg border border-accent/20">
-                            <Info className="h-4 w-4 mt-0.5 flex-shrink-0 text-accent" />
-                            <p className="text-xs text-muted-foreground leading-tight">
-                              Marque "Preservar traços" para manter a identidade visual da imagem no vídeo final.
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                )}
-
-                {/* [3-8] CONFIGURAÇÕES DE ESTILO E QUALIDADE */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                  
-                  {/* Estilo de Áudio */}
-                  <div className="space-y-2 md:space-y-3">
-                    <Label className="text-xs md:text-sm font-semibold text-foreground">
-                      Estilo de Áudio
-                    </Label>
-                    <Select 
-                      value={formData.videoAudioStyle || 'sound_effects'}
-                      onValueChange={(value) => 
-                        setFormData(prev => ({ ...prev, videoAudioStyle: value as any }))
-                      }
-                    >
-                      <SelectTrigger className="h-10 md:h-11 rounded-xl border-2 border-border/50 bg-background/50 text-sm hover:border-border/70 transition-colors">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl border-border/20">
-                        <SelectItem value="dialogue" className="rounded-lg">
-                          Diálogos
-                        </SelectItem>
-                        <SelectItem value="sound_effects" className="rounded-lg">
-                          Efeitos Sonoros
-                        </SelectItem>
-                        <SelectItem value="music" className="rounded-lg">
-                          Música
-                        </SelectItem>
-                        <SelectItem value="none" className="rounded-lg">
-                          Sem Áudio
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <p className="text-xs text-muted-foreground leading-tight">
-                      {formData.videoAudioStyle === 'dialogue' && '💬 Diálogos realistas com vozes sincronizadas aos movimentos'}
-                      {formData.videoAudioStyle === 'sound_effects' && '🔊 Efeitos sonoros ambientes e ações sincronizadas'}
-                      {formData.videoAudioStyle === 'music' && '🎵 Trilha sonora musical de fundo adequada à cena'}
-                      {formData.videoAudioStyle === 'none' && '🔇 Vídeo completamente silencioso'}
+                {/* Descrição Visual do Vídeo */}
+                <div className="space-y-2">
+                  <Label htmlFor="description" className="text-sm font-semibold text-foreground">
+                    Descrição Visual do Vídeo <span className="text-destructive">*</span>
+                  </Label>
+                  <Textarea
+                    id="description"
+                    placeholder="Como um diretor: descreva a ação principal, movimentos de câmera (zoom, pan, tracking), atmosfera desejada (tensão, alegria, tranquilidade) e elementos visuais importantes. Ex: 'Close-up de uma xícara de café fumegante em slow motion, câmera faz zoom out revelando um café aconchegante com luz suave da manhã entrando pela janela.'"
+                    value={formData.description}
+                    onChange={handleInputChange}
+                    className={`min-h-[120px] md:min-h-[150px] rounded-xl border-2 bg-background/50 resize-none text-sm hover:border-border/70 transition-colors ${
+                      missingFields.includes('description') ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/50'
+                    }`}
+                    maxLength={5000}
+                  />
+                  <div className="flex justify-between items-center">
+                    <p className="text-xs text-muted-foreground">
+                      Seja específico sobre movimentos, ações e atmosfera
                     </p>
-                  </div>
-
-                  {/* Estilo Visual */}
-                  <div className="space-y-2 md:space-y-3">
-                    <Label className="text-xs md:text-sm font-semibold text-foreground">
-                      Estilo Visual
-                    </Label>
-                    <Select 
-                      value={formData.videoVisualStyle || 'cinematic'}
-                      onValueChange={(value) => 
-                        setFormData(prev => ({ ...prev, videoVisualStyle: value as any }))
-                      }
-                    >
-                      <SelectTrigger className="h-10 md:h-11 rounded-xl border-2 border-border/50 bg-background/50 text-sm hover:border-border/70 transition-colors">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl border-border/20">
-                        <SelectItem value="cinematic" className="rounded-lg">
-                          Cinematográfico
-                        </SelectItem>
-                        <SelectItem value="animation" className="rounded-lg">
-                          Animação Criativa
-                        </SelectItem>
-                        <SelectItem value="realistic" className="rounded-lg">
-                          Realismo Fotográfico
-                        </SelectItem>
-                        <SelectItem value="creative" className="rounded-lg">
-                          Criativo Experimental
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <p className="text-xs text-muted-foreground leading-tight">
-                      {formData.videoVisualStyle === 'cinematic' && '🎬 Qualidade cinematográfica com movimentos suaves e iluminação profissional'}
-                      {formData.videoVisualStyle === 'animation' && '🎨 Estilo animado vibrante com cores saturadas e movimentos expressivos'}
-                      {formData.videoVisualStyle === 'realistic' && '📷 Ultra-realismo fotográfico com física e texturas naturais'}
-                      {formData.videoVisualStyle === 'creative' && '✨ Abordagem artística experimental com efeitos únicos'}
-                    </p>
-                  </div>
-
-                  {/* Duração */}
-                  <div className="space-y-2 md:space-y-3">
-                    <Label className="text-xs md:text-sm font-semibold text-foreground">
-                      Duração do Vídeo
-                    </Label>
-                    <Select 
-                      value={String(formData.videoDuration || 8)}
-                      onValueChange={(value) => 
-                        setFormData(prev => ({ ...prev, videoDuration: Number(value) as any }))
-                      }
-                    >
-                      <SelectTrigger className="h-10 md:h-11 rounded-xl border-2 border-border/50 bg-background/50 text-sm hover:border-border/70 transition-colors">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl border-border/20">
-                        <SelectItem value="4" className="rounded-lg">4 segundos</SelectItem>
-                        <SelectItem value="6" className="rounded-lg">6 segundos</SelectItem>
-                        <SelectItem value="8" className="rounded-lg">8 segundos</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Proporção */}
-                  <div className="space-y-2 md:space-y-3">
-                    <Label className="text-xs md:text-sm font-semibold text-foreground">
-                      Proporção
-                    </Label>
-                    <Select 
-                      value={formData.videoAspectRatio || '9:16'}
-                      onValueChange={(value) => 
-                        setFormData(prev => ({ ...prev, videoAspectRatio: value as any }))
-                      }
-                    >
-                      <SelectTrigger className="h-10 md:h-11 rounded-xl border-2 border-border/50 bg-background/50 text-sm hover:border-border/70 transition-colors">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl border-border/20">
-                        <SelectItem value="9:16" className="rounded-lg">9:16 (Vertical)</SelectItem>
-                        <SelectItem value="16:9" className="rounded-lg">16:9 (Horizontal)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Resolução */}
-                  <div className="space-y-2 md:space-y-3">
-                    <Label className="text-xs md:text-sm font-semibold text-foreground">
-                      Resolução
-                    </Label>
-                    <Select 
-                      value={formData.videoResolution || '1080p'}
-                      onValueChange={(value) => 
-                        setFormData(prev => ({ ...prev, videoResolution: value as any }))
-                      }
-                    >
-                      <SelectTrigger className="h-10 md:h-11 rounded-xl border-2 border-border/50 bg-background/50 text-sm hover:border-border/70 transition-colors">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl border-border/20">
-                        <SelectItem value="720p" className="rounded-lg">720p (HD)</SelectItem>
-                        <SelectItem value="1080p" className="rounded-lg">1080p (Full HD)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Prompt Negativo - Full width */}
-                  <div className="space-y-2 md:space-y-3 md:col-span-2 lg:col-span-3">
-                    <Label className="text-xs md:text-sm font-semibold text-foreground">
-                      Prompt Negativo (Opcional)
-                    </Label>
-                    <Textarea
-                      placeholder="O que evitar no vídeo (ex: texto indesejado, watermark, elementos específicos...)"
-                      value={formData.videoNegativePrompt || ""}
-                      onChange={(e) => 
-                        setFormData(prev => ({ ...prev, videoNegativePrompt: e.target.value }))
-                      }
-                      className="min-h-[80px] md:min-h-[100px] rounded-xl border-2 border-border/50 bg-background/50 resize-none text-sm hover:border-border/70 focus:border-primary/50 transition-colors"
-                      maxLength={500}
-                    />
-                    <p className="text-xs text-muted-foreground text-right">
-                      {formData.videoNegativePrompt?.length || 0}/500 caracteres
-                    </p>
-                  </div>
-                </div>
-
-                {/* Info sobre Veo 3.1 - Melhorado */}
-                <div className="space-y-3 p-4 mt-6 bg-gradient-to-br from-purple-500/5 via-blue-500/5 to-accent/5 rounded-xl border-2 border-purple-500/20">
-                  <div className="flex items-start gap-3">
-                    <Info className="h-5 w-5 text-purple-500 mt-0.5 flex-shrink-0" />
-                    <div className="flex-1 space-y-2">
-                      <h4 className="text-sm font-semibold text-foreground">Gemini Veo 3.1 - Geração Avançada de Vídeo</h4>
-                      <p className="text-xs text-muted-foreground leading-relaxed">
-                        Modelo de última geração da Google com capacidades revolucionárias:
-                      </p>
-                      <ul className="text-xs text-muted-foreground space-y-1.5 ml-1">
-                        <li className="flex items-start gap-2">
-                          <span className="text-purple-500 mt-0.5">•</span>
-                          <span><strong>Áudio Nativo:</strong> Geração simultânea de áudio sincronizado com a ação visual</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <span className="text-purple-500 mt-0.5">•</span>
-                          <span><strong>Múltiplas Imagens:</strong> Use até 3 imagens para garantir consistência de personagens e cenários</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <span className="text-purple-500 mt-0.5">•</span>
-                          <span><strong>Controle Cinematográfico:</strong> Estilos visuais profissionais com física realista</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <span className="text-purple-500 mt-0.5">•</span>
-                          <span><strong>Alta Resolução:</strong> Suporte para 1080p com até 8 segundos de duração</span>
-                        </li>
-                      </ul>
-                    </div>
+                    <span className={`text-xs font-medium transition-colors ${
+                      formData.description.length > 4500 ? 'text-destructive' : 
+                      formData.description.length > 3750 ? 'text-orange-500' : 
+                      'text-muted-foreground'
+                    }`}>
+                      {formData.description.length}/5000
+                    </span>
                   </div>
                 </div>
               </CardContent>
             </Card>
+
+            {/* CARD 2: IMAGENS DE REFERÊNCIA (condicional - apenas image_to_video) */}
+            {formData.videoGenerationType === 'image_to_video' && (
+              <Card className="backdrop-blur-sm bg-gradient-to-br from-card/80 to-card border-2 border-primary/20 shadow-lg rounded-2xl">
+                <CardHeader className="pb-3 md:pb-4 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-t-2xl">
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-1">
+                      <h2 className="text-lg md:text-xl font-semibold flex items-center gap-3 text-foreground">
+                        <div className="w-2 h-2 bg-primary rounded-full"></div>
+                        📸 Imagens de Referência
+                      </h2>
+                      <p className="text-muted-foreground text-xs md:text-sm">
+                        Adicione até 3 imagens como base visual (obrigatório para este modo)
+                      </p>
+                    </div>
+                    <Badge variant="outline" className="text-xs font-medium border-primary/40 text-primary bg-primary/10">
+                      {referenceFiles.length}/3
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-4 md:p-6 space-y-4">
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    As imagens servirão como base visual para o vídeo. O Veo 3.1 analisará composição, cores, elementos e movimento para criar consistência.
+                  </p>
+                  
+                  {/* Input de upload */}
+                  <div className="space-y-3">
+                    <Input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      disabled={referenceFiles.length >= 3}
+                      onChange={(e) => {
+                        const files = Array.from(e.target.files || []);
+                        const availableSlots = 3 - referenceFiles.length;
+                        const filesToAdd = files.slice(0, availableSlots);
+                        
+                        if (filesToAdd.length > 0) {
+                          setReferenceFiles(prev => [...prev, ...filesToAdd]);
+                          toast.success(`${filesToAdd.length} imagem(ns) adicionada(s)`);
+                        }
+                        
+                        if (files.length > availableSlots) {
+                          toast.error(`Limite de 3 imagens. ${files.length - availableSlots} imagem(ns) ignorada(s)`);
+                        }
+                        
+                        e.target.value = '';
+                      }}
+                      className={`h-12 rounded-xl border-2 file:mr-4 file:h-full file:py-0 file:px-5 file:rounded-l-[10px] file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 ${
+                        missingFields.includes('referenceFiles') ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/50'
+                      }`}
+                    />
+                    
+                    {/* Área de cole */}
+                    <div
+                      ref={pasteAreaRef}
+                      onPaste={handlePaste}
+                      className="border-2 border-dashed rounded-xl p-4 text-center hover:bg-muted/50 transition-colors cursor-pointer"
+                      tabIndex={0}
+                    >
+                      <ImagePlus className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
+                      <p className="text-xs text-muted-foreground">
+                        Clique para fazer upload ou cole aqui (Ctrl+V)
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {/* Lista de imagens */}
+                  {referenceFiles.length > 0 && (
+                    <div className="space-y-2 p-3 bg-background/50 rounded-lg border border-border/30">
+                      {referenceFiles.map((file, idx) => (
+                        <div key={idx} className="flex items-center justify-between p-3 bg-card rounded-lg border border-border/50 hover:border-primary/50 transition-colors">
+                          <div className="flex items-center gap-3 flex-1">
+                            <img 
+                              src={URL.createObjectURL(file)} 
+                              className="h-12 w-12 rounded object-cover" 
+                              alt={`Preview ${idx + 1}`}
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium truncate">{file.name}</p>
+                              <p className="text-xs text-muted-foreground">{(file.size / 1024).toFixed(1)} KB</p>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant={preserveImageIndices.includes(idx) ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => handleTogglePreserve(idx)}
+                              className="text-xs h-8 px-3"
+                            >
+                              {preserveImageIndices.includes(idx) ? (
+                                <>🎨 Mantendo ID</>
+                              ) : (
+                                <>Manter Identidade</>
+                              )}
+                            </Button>
+                            
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleRemoveFile(idx)}
+                              className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                      
+                      <div className="flex items-start gap-2 p-2 mt-2 bg-primary/5 rounded-lg border border-primary/20">
+                        <Info className="h-4 w-4 mt-0.5 flex-shrink-0 text-primary" />
+                        <p className="text-xs text-muted-foreground leading-tight">
+                          <strong className="text-primary">Manter Identidade Visual:</strong> preserva cores, estilo e composição visual da imagem no vídeo gerado
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Alerta se não houver imagens */}
+                  {referenceFiles.length === 0 && missingFields.includes('referenceFiles') && (
+                    <div className="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/30 rounded-lg">
+                      <AlertCircle className="h-4 w-4 text-destructive flex-shrink-0" />
+                      <p className="text-xs text-destructive font-medium">
+                        Adicione pelo menos 1 imagem de referência para o modo Imagem para Vídeo
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* CARD 3: TEXTO NO VÍDEO */}
+            <Card className="backdrop-blur-sm bg-gradient-to-br from-card/80 to-card border-2 border-primary/20 shadow-lg rounded-2xl">
+              <CardContent className="space-y-4 p-4 md:p-6">
+                {/* Toggle Switch */}
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
+                      <Type className="h-4 w-4 text-primary" />
+                      Adicionar Texto ao Vídeo?
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      Texto visível sobreposto no vídeo final
+                    </p>
+                  </div>
+                  <Switch
+                    checked={formData.videoIncludeText || false}
+                    onCheckedChange={(checked) => 
+                      setFormData(prev => ({ 
+                        ...prev, 
+                        videoIncludeText: checked,
+                        videoTextContent: checked ? prev.videoTextContent : "",
+                        videoTextPosition: checked ? prev.videoTextPosition : "center"
+                      }))
+                    }
+                    className="data-[state=checked]:bg-primary"
+                  />
+                </div>
+
+                {/* Campos condicionais quando toggle está ativado */}
+                {formData.videoIncludeText && (
+                  <div className="space-y-4 pt-2 border-t border-primary/20">
+                    {/* Campo de Texto */}
+                    <div className="space-y-2">
+                      <Label 
+                        htmlFor="videoTextContent"
+                        className="text-xs md:text-sm font-semibold text-foreground"
+                      >
+                        Texto a Exibir <span className="text-destructive">*</span>
+                      </Label>
+                      <Textarea
+                        id="videoTextContent"
+                        placeholder="Digite o texto que aparecerá de forma visível no vídeo final (máx. 200 caracteres)"
+                        value={formData.videoTextContent || ""}
+                        onChange={(e) => 
+                          setFormData(prev => ({ 
+                            ...prev, 
+                            videoTextContent: e.target.value 
+                          }))
+                        }
+                        className={`min-h-[80px] rounded-xl border-2 bg-background/50 resize-none text-sm hover:border-border/70 transition-colors ${
+                          formData.videoIncludeText && !formData.videoTextContent?.trim()
+                            ? 'border-destructive ring-2 ring-destructive/20 focus:border-destructive' 
+                            : 'border-border/50 focus:border-primary/50'
+                        }`}
+                        maxLength={200}
+                      />
+                      <div className="flex justify-between items-center">
+                        <p className="text-xs text-muted-foreground">
+                          Mantenha curto e legível
+                        </p>
+                        <span className={`text-xs font-medium transition-colors ${
+                          (formData.videoTextContent?.length || 0) > 180 ? 'text-destructive' : 
+                          (formData.videoTextContent?.length || 0) > 150 ? 'text-orange-500' : 
+                          'text-muted-foreground'
+                        }`}>
+                          {formData.videoTextContent?.length || 0}/200
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Select de Posição */}
+                    <div className="space-y-2">
+                      <Label 
+                        htmlFor="videoTextPosition"
+                        className="text-xs md:text-sm font-semibold text-foreground"
+                      >
+                        Posição do Texto
+                      </Label>
+                      <Select 
+                        value={formData.videoTextPosition || "center"}
+                        onValueChange={(value) =>
+                          setFormData(prev => ({ 
+                            ...prev, 
+                            videoTextPosition: value as any
+                          }))
+                        }
+                      >
+                        <SelectTrigger className="h-10 rounded-xl border-2 border-border/50 bg-background/50">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="top">Topo</SelectItem>
+                          <SelectItem value="center">Centro</SelectItem>
+                          <SelectItem value="bottom">Inferior</SelectItem>
+                          <SelectItem value="top-left">Superior Esquerdo</SelectItem>
+                          <SelectItem value="top-right">Superior Direito</SelectItem>
+                          <SelectItem value="bottom-left">Inferior Esquerdo</SelectItem>
+                          <SelectItem value="bottom-right">Inferior Direito</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Preview Visual da Posição */}
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium text-muted-foreground">
+                        👁️ Preview da Posição
+                      </Label>
+                      <div className="relative w-full aspect-video bg-gradient-to-br from-muted/50 to-muted/30 rounded-lg border-2 border-dashed border-border/50 overflow-hidden">
+                        <div 
+                          className={`absolute text-xs font-bold bg-primary/90 text-primary-foreground px-3 py-1.5 rounded-md shadow-lg ${
+                            formData.videoTextPosition === 'top' ? 'top-4 left-1/2 -translate-x-1/2' :
+                            formData.videoTextPosition === 'center' ? 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2' :
+                            formData.videoTextPosition === 'bottom' ? 'bottom-4 left-1/2 -translate-x-1/2' :
+                            formData.videoTextPosition === 'top-left' ? 'top-4 left-4' :
+                            formData.videoTextPosition === 'top-right' ? 'top-4 right-4' :
+                            formData.videoTextPosition === 'bottom-left' ? 'bottom-4 left-4' :
+                            formData.videoTextPosition === 'bottom-right' ? 'bottom-4 right-4' :
+                            'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2'
+                          }`}
+                        >
+                          {formData.videoTextContent?.trim() || "Seu texto aqui"}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Alerta quando toggle ativo mas sem texto */}
+                {formData.videoIncludeText && !formData.videoTextContent?.trim() && (
+                  <div className="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/30 rounded-lg">
+                    <AlertCircle className="h-4 w-4 text-destructive flex-shrink-0" />
+                    <p className="text-xs text-destructive font-medium">
+                      Por favor, digite o texto que deseja exibir no vídeo
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* CARD 4: CONFIGURAÇÕES AVANÇADAS - ACCORDION */}
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="advanced" className="border-2 border-primary/20 rounded-2xl px-4 bg-gradient-to-br from-purple-500/5 to-blue-500/5">
+                <AccordionTrigger className="text-sm md:text-base font-semibold text-foreground hover:no-underline py-4">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-5 w-5 text-purple-500" />
+                    ⚙️ Configurações Avançadas de Vídeo (Veo 3.1)
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="space-y-6 pt-2 pb-4">
+                  <p className="text-xs text-muted-foreground">
+                    Controles profissionais de áudio, estilo visual, duração e qualidade
+                  </p>
+
+                  {/* Grid Responsivo */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                    
+                    {/* Estilo de Áudio */}
+                    <div className="space-y-2">
+                      <Label className="text-xs md:text-sm font-semibold text-foreground">
+                        🔊 Áudio
+                      </Label>
+                      <Select 
+                        value={formData.videoAudioStyle || 'sound_effects'}
+                        onValueChange={(value) => 
+                          setFormData(prev => ({ ...prev, videoAudioStyle: value as any }))
+                        }
+                      >
+                        <SelectTrigger className="h-10 rounded-xl border-2 border-border/50 bg-background/50 text-sm">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl">
+                          <SelectItem value="dialogue" className="rounded-lg">Diálogos</SelectItem>
+                          <SelectItem value="sound_effects" className="rounded-lg">Efeitos Sonoros</SelectItem>
+                          <SelectItem value="music" className="rounded-lg">Música</SelectItem>
+                          <SelectItem value="none" className="rounded-lg">Sem Áudio</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground leading-tight">
+                        {formData.videoAudioStyle === 'dialogue' && '💬 Diálogos realistas com vozes sincronizadas'}
+                        {formData.videoAudioStyle === 'sound_effects' && '🔊 Efeitos sonoros ambientes e ações'}
+                        {formData.videoAudioStyle === 'music' && '🎵 Trilha sonora musical de fundo'}
+                        {formData.videoAudioStyle === 'none' && '🔇 Vídeo completamente silencioso'}
+                      </p>
+                    </div>
+
+                    {/* Estilo Visual */}
+                    <div className="space-y-2">
+                      <Label className="text-xs md:text-sm font-semibold text-foreground">
+                        🎨 Estilo Visual
+                      </Label>
+                      <Select 
+                        value={formData.videoVisualStyle || 'cinematic'}
+                        onValueChange={(value) => 
+                          setFormData(prev => ({ ...prev, videoVisualStyle: value as any }))
+                        }
+                      >
+                        <SelectTrigger className="h-10 rounded-xl border-2 border-border/50 bg-background/50 text-sm">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl">
+                          <SelectItem value="cinematic" className="rounded-lg">Cinematográfico</SelectItem>
+                          <SelectItem value="animation" className="rounded-lg">Animação Criativa</SelectItem>
+                          <SelectItem value="realistic" className="rounded-lg">Realismo Fotográfico</SelectItem>
+                          <SelectItem value="creative" className="rounded-lg">Criativo Experimental</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground leading-tight">
+                        {formData.videoVisualStyle === 'cinematic' && '🎬 Qualidade cinematográfica profissional'}
+                        {formData.videoVisualStyle === 'animation' && '🎨 Estilo animado vibrante'}
+                        {formData.videoVisualStyle === 'realistic' && '📷 Ultra-realismo fotográfico'}
+                        {formData.videoVisualStyle === 'creative' && '✨ Abordagem artística experimental'}
+                      </p>
+                    </div>
+
+                    {/* Duração */}
+                    <div className="space-y-2">
+                      <Label className="text-xs md:text-sm font-semibold text-foreground">
+                        ⏱️ Duração
+                      </Label>
+                      <Select 
+                        value={String(formData.videoDuration || 8)}
+                        onValueChange={(value) => 
+                          setFormData(prev => ({ ...prev, videoDuration: Number(value) as any }))
+                        }
+                      >
+                        <SelectTrigger className="h-10 rounded-xl border-2 border-border/50 bg-background/50 text-sm">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl">
+                          <SelectItem value="4" className="rounded-lg">4 segundos</SelectItem>
+                          <SelectItem value="6" className="rounded-lg">6 segundos</SelectItem>
+                          <SelectItem value="8" className="rounded-lg">8 segundos</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Proporção */}
+                    <div className="space-y-2">
+                      <Label className="text-xs md:text-sm font-semibold text-foreground">
+                        📐 Proporção
+                      </Label>
+                      <Select 
+                        value={formData.videoAspectRatio || '9:16'}
+                        onValueChange={(value) => 
+                          setFormData(prev => ({ ...prev, videoAspectRatio: value as any }))
+                        }
+                      >
+                        <SelectTrigger className="h-10 rounded-xl border-2 border-border/50 bg-background/50 text-sm">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl">
+                          <SelectItem value="9:16" className="rounded-lg">9:16 (Vertical)</SelectItem>
+                          <SelectItem value="16:9" className="rounded-lg">16:9 (Horizontal)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Resolução */}
+                    <div className="space-y-2 md:col-span-2">
+                      <Label className="text-xs md:text-sm font-semibold text-foreground">
+                        🎞️ Resolução
+                      </Label>
+                      <Select 
+                        value={formData.videoResolution || '1080p'}
+                        onValueChange={(value) => 
+                          setFormData(prev => ({ ...prev, videoResolution: value as any }))
+                        }
+                      >
+                        <SelectTrigger className="h-10 rounded-xl border-2 border-border/50 bg-background/50 text-sm">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl">
+                          <SelectItem value="720p" className="rounded-lg">720p (HD)</SelectItem>
+                          <SelectItem value="1080p" className="rounded-lg">1080p (Full HD)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Prompt Negativo - Full width */}
+                  <div className="space-y-2">
+                    <Label className="text-xs md:text-sm font-semibold text-foreground">
+                      Prompt Negativo (Opcional)
+                    </Label>
+                    <Textarea
+                      placeholder="Elementos indesejados no vídeo (ex: 'texto ilegível, watermark, logos, distorção facial, qualidade baixa')"
+                      value={formData.videoNegativePrompt || ""}
+                      onChange={(e) => 
+                        setFormData(prev => ({ ...prev, videoNegativePrompt: e.target.value }))
+                      }
+                      className="min-h-[80px] rounded-xl border-2 border-border/50 bg-background/50 resize-none text-sm hover:border-border/70 focus:border-primary/50 transition-colors"
+                      maxLength={500}
+                    />
+                    <div className="flex justify-between items-center">
+                      <p className="text-xs text-muted-foreground">
+                        O que você NÃO quer ver no vídeo
+                      </p>
+                      <span className={`text-xs font-medium transition-colors ${
+                        (formData.videoNegativePrompt?.length || 0) > 450 ? 'text-destructive' : 
+                        (formData.videoNegativePrompt?.length || 0) > 375 ? 'text-orange-500' : 
+                        'text-muted-foreground'
+                      }`}>
+                        {formData.videoNegativePrompt?.length || 0}/500
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Info sobre Veo 3.1 */}
+                  <div className="space-y-3 p-4 bg-gradient-to-br from-purple-500/5 via-blue-500/5 to-accent/5 rounded-xl border-2 border-purple-500/20">
+                    <div className="flex items-start gap-3">
+                      <Info className="h-5 w-5 text-purple-500 mt-0.5 flex-shrink-0" />
+                      <div className="flex-1 space-y-2">
+                        <h4 className="text-sm font-semibold text-foreground">Gemini Veo 3.1 - Geração Avançada de Vídeo</h4>
+                        <p className="text-xs text-muted-foreground leading-relaxed">
+                          Modelo de última geração da Google com capacidades revolucionárias
+                        </p>
+                        <ul className="text-xs text-muted-foreground space-y-1.5 ml-1">
+                          <li className="flex items-start gap-2">
+                            <span className="text-purple-500 mt-0.5">•</span>
+                            <span><strong>Áudio Nativo:</strong> Geração simultânea de áudio sincronizado</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <span className="text-purple-500 mt-0.5">•</span>
+                            <span><strong>Múltiplas Imagens:</strong> Até 3 imagens para consistência visual</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <span className="text-purple-500 mt-0.5">•</span>
+                            <span><strong>Controle Cinematográfico:</strong> Estilos visuais profissionais</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <span className="text-purple-500 mt-0.5">•</span>
+                            <span><strong>Alta Resolução:</strong> 1080p com até 8 segundos</span>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </div>
         )}
 
