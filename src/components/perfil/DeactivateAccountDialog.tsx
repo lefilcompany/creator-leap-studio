@@ -99,26 +99,18 @@ export default function DeactivateAccountDialog({ open, onOpenChange }: Deactiva
       }
 
       // Chamar edge function para inativar conta
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData.session?.access_token;
+      const { data, error: functionError } = await supabase.functions.invoke('deactivate-account', {
+        body: {
+          newAdminId: needsAdminTransfer ? selectedNewAdmin : null,
+        },
+      });
 
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/deactivate-account`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            newAdminId: needsAdminTransfer ? selectedNewAdmin : null,
-          }),
-        }
-      );
+      if (functionError) {
+        throw new Error(functionError.message || 'Erro ao inativar conta');
+      }
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Erro ao inativar conta');
+      if (data?.error) {
+        throw new Error(data.error);
       }
 
       toast.success('Conta inativada com sucesso. Você será desconectado.');
