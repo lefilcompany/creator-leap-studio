@@ -14,7 +14,6 @@ export default function ProtectedRoute({ children, requireTeam = true }: Protect
   const location = useLocation();
   const navigate = useNavigate();
   const hasRedirected = useRef(false);
-  const hasShownTeamError = useRef(false);
 
   useEffect(() => {
     if (isLoading || hasRedirected.current) return;
@@ -26,9 +25,8 @@ export default function ProtectedRoute({ children, requireTeam = true }: Protect
       return;
     }
 
-    // Se requer equipe e o usuário não tem equipe, mostra mensagem apenas uma vez
-    if (requireTeam && !team && !hasShownTeamError.current) {
-      hasShownTeamError.current = true;
+    // Se requer equipe e o usuário não tem equipe, mostra mensagem
+    if (requireTeam && !team) {
       toast.error('Você precisa estar em uma equipe para ver esta página');
       return;
     }
