@@ -37,9 +37,6 @@ verify_jwt = true
 [functions.create-checkout]
 verify_jwt = true
 
-[functions.check-subscription]
-verify_jwt = true
-
 [functions.generate-video]
 verify_jwt = true
 
@@ -59,4 +56,10 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.delete-account]
+verify_jwt = true
+
+[functions.platform-chat]
+verify_jwt = true
+
+[functions.reset-user-password]
 verify_jwt = true
