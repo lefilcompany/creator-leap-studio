@@ -28,7 +28,7 @@ function getPasswordResetEmailTemplate(resetUrl: string): string {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Recuperação de Senha - Creator IA</title>
+  <title>Recuperação de Senha - Creator AI</title>
   <style>
     body {
       background: linear-gradient(120deg, hsl(288,80%,98%) 0%, hsl(0,0%,100%) 100%);
@@ -146,12 +146,12 @@ function getPasswordResetEmailTemplate(resetUrl: string): string {
 <body>
   <div class="container">
     <div class="header">
-      <img src="${logoUrl}" alt="Logo Creator IA" class="logo">
+      <img src="${logoUrl}" alt="Logo Creator AI" class="logo">
       <h1>Recuperação de Senha</h1>
     </div>
     <div class="content">
       <h2>Olá!</h2>
-      <p>Recebemos uma solicitação para redefinir a senha da sua conta na plataforma <strong>Creator IA</strong>.</p>
+      <p>Recebemos uma solicitação para redefinir a senha da sua conta na plataforma <strong>Creator AI</strong>.</p>
       <p>Para criar uma nova senha, clique no botão abaixo. Este link é seguro e exclusivo para você.</p>
       <div class="button-container">
         <a href="${resetUrl}" class="reset-button">Redefinir Minha Senha</a>
