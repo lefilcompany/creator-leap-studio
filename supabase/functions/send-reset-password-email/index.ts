@@ -174,7 +174,7 @@ serve(async (req) => {
     `;
 
     const { error } = await resend.emails.send({
-      from: 'Equipe Creator <suporte@creator.lefil.com.br>',
+      from: 'Creator Leap Studio <onboarding@resend.dev>',
       to: [email],
       subject: 'Redefina sua Senha - Creator Leap Studio',
       html: htmlTemplate,
