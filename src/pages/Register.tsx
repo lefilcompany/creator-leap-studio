@@ -172,6 +172,27 @@ const Register = () => {
       }
       if (data.user) {
         toast.success("Cadastro realizado com sucesso!");
+        
+        // Enviar evento para RD Station
+        try {
+          await supabase.functions.invoke('rd-station-integration', {
+            body: {
+              eventType: 'user_registered',
+              userData: {
+                email: formData.email,
+                name: formData.name,
+                phone: formData.phone,
+                city: formData.city,
+                state: formData.state,
+                tags: ['novo_usuario', 'criador_conta']
+              }
+            }
+          });
+        } catch (rdError) {
+          console.error('Erro ao enviar para RD Station:', rdError);
+          // Não impede o fluxo se houver erro
+        }
+        
         setShowTeamSelection(true);
       }
     } catch (err) {

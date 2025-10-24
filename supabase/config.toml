@@ -66,3 +66,6 @@ verify_jwt = true
 
 [functions.send-reset-password-email]
 verify_jwt = false
+
+[functions.rd-station-integration]
+verify_jwt = true
