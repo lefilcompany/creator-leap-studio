@@ -204,8 +204,21 @@ serve(async (req) => {
 
     console.log('Generating password reset link for:', email);
 
-    // Generate password reset link using Supabase Admin
-    const appUrl = 'https://pla.creator.lefil.com.br';
+    // Detectar o domínio de origem da requisição
+    const origin = req.headers.get('origin') || req.headers.get('referer') || '';
+    let appUrl = 'https://pla.creator.lefil.com.br'; // Fallback para domínio principal
+    
+    // Extrair domínio base do origin/referer
+    if (origin) {
+      try {
+        const url = new URL(origin);
+        appUrl = `${url.protocol}//${url.host}`;
+      } catch (e) {
+        console.log('Could not parse origin, using default domain');
+      }
+    }
+    
+    console.log('Using app URL for redirect:', appUrl);
     const redirectUrl = `${appUrl}/reset-password`;
     
     const { data, error: resetError } = await supabaseAdmin.auth.admin.generateLink({
