@@ -1,46 +1,70 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { Webhook } from "https://esm.sh/standardwebhooks@1.0.0";
 import { Resend } from "https://esm.sh/resend@2.0.0";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const resend = new Resend(Deno.env.get('RESEND_API_KEY') as string);
-const hookSecret = Deno.env.get('SEND_EMAIL_HOOK_SECRET') as string;
+const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
+const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false
+  }
+});
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
 
 serve(async (req) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
   if (req.method !== 'POST') {
     return new Response('not allowed', { status: 400 });
   }
 
-  const payload = await req.text();
-  const headers = Object.fromEntries(req.headers);
-  const wh = new Webhook(hookSecret);
-  
   try {
-    const {
-      user,
-      email_data: { token, token_hash, redirect_to, email_action_type },
-    } = wh.verify(payload, headers) as {
-      user: {
-        email: string;
-      };
-      email_data: {
-        token: string;
-        token_hash: string;
-        redirect_to: string;
-        email_action_type: string;
-        site_url: string;
-      };
-    };
+    const { email } = await req.json();
 
-    // Only handle password recovery emails
-    if (email_action_type !== 'recovery') {
-      return new Response(JSON.stringify({ message: 'Not a recovery email' }), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      });
+    if (!email) {
+      return new Response(
+        JSON.stringify({ error: 'Email is required' }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
     }
 
-    const siteUrl = Deno.env.get('SUPABASE_URL') ?? '';
-    const confirmationUrl = `${siteUrl}/auth/v1/verify?token=${token_hash}&type=recovery&redirect_to=${redirect_to}`;
+    console.log('Generating password reset link for:', email);
+
+    // Generate password reset link using Supabase Admin
+    const { data, error: resetError } = await supabaseAdmin.auth.admin.generateLink({
+      type: 'recovery',
+      email: email,
+      options: {
+        redirectTo: `${Deno.env.get('SUPABASE_URL')?.replace('.supabase.co', '.lovable.app')}/reset-password`,
+      }
+    });
+
+    if (resetError || !data.properties?.action_link) {
+      console.error('Error generating reset link:', resetError);
+      return new Response(
+        JSON.stringify({ error: 'Failed to generate reset link' }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
+    const confirmationUrl = data.properties.action_link;
+    console.log('Reset link generated successfully');
 
     // HTML email template
     const htmlTemplate = `
@@ -145,7 +169,7 @@ serve(async (req) => {
 
     const { error } = await resend.emails.send({
       from: 'Equipe Creator <suporte@creator.lefil.com.br>',
-      to: [user.email],
+      to: [email],
       subject: 'Redefina sua Senha - Creator Leap Studio',
       html: htmlTemplate,
     });
@@ -155,11 +179,11 @@ serve(async (req) => {
       throw error;
     }
 
-    console.log('Password reset email sent successfully to:', user.email);
+    console.log('Password reset email sent successfully to:', email);
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
     console.error('Error in send-reset-password-email function:', error);
@@ -171,8 +195,8 @@ serve(async (req) => {
         },
       }),
       {
-        status: 401,
-        headers: { 'Content-Type': 'application/json' },
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     );
   }

@@ -30,9 +30,9 @@ const ForgotPassword = () => {
         return;
       }
 
-      // Enviar link de recuperação (Supabase valida internamente se o email existe)
-      const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
-        redirectTo: `${window.location.origin}/reset-password`,
+      // Chamar edge function para enviar email customizado
+      const { error } = await supabase.functions.invoke('send-reset-password-email', {
+        body: { email: normalizedEmail }
       });
 
       if (error) {
