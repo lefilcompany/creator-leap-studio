@@ -79,48 +79,48 @@ serve(async (req) => {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Redefina sua Senha - Creator Leap Studio</title>
+  <title>Redefina sua Senha - Creator IA</title>
 </head>
-<body style="margin: 0; padding: 0; background-color: #F3F4F6; font-family: Arial, Helvetica, sans-serif;">
+<body style="margin: 0; padding: 0; background: linear-gradient(135deg, #F5E6F0 0%, #E8DEFF 100%); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', Helvetica, Arial, sans-serif;">
   <!-- Wrapper Table -->
-  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #F3F4F6; min-height: 100vh;">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background: linear-gradient(135deg, #F5E6F0 0%, #E8DEFF 100%); min-height: 100vh;">
     <tr>
       <td align="center" style="padding: 40px 20px;">
         
         <!-- Main Card Table -->
-        <table width="600" border="0" cellspacing="0" cellpadding="0" style="background-color: #FFFFFF; border-radius: 8px; max-width: 600px; width: 100%;">
+        <table width="600" border="0" cellspacing="0" cellpadding="0" style="background: linear-gradient(180deg, #FFFFFF 0%, #FEFCFF 100%); border-radius: 16px; max-width: 600px; width: 100%; box-shadow: 0 20px 60px rgba(194, 22, 96, 0.15), 0 0 0 1px rgba(194, 22, 96, 0.1);">
           
-          <!-- Logo Row -->
+          <!-- Logo Row with Gradient Background -->
           <tr>
-            <td align="center" style="padding: 40px 30px 20px 30px;">
-              <img src="https://afxwqkrneraatgovhpkb.supabase.co/storage/v1/object/public/content-images/logoCreatorPreta.png" alt="Creator Leap Studio" width="150" style="display: block; max-width: 150px; height: auto; border: 0;">
+            <td align="center" style="padding: 48px 30px 32px 30px; background: linear-gradient(135deg, #C21660 0%, #7445C4 100%); border-top-left-radius: 16px; border-top-right-radius: 16px;">
+              <img src="https://afxwqkrneraatgovhpkb.supabase.co/storage/v1/object/public/content-images/logoCreatorPreta.png" alt="Creator IA" width="160" style="display: block; max-width: 160px; height: auto; border: 0; filter: brightness(0) invert(1);">
             </td>
           </tr>
           
           <!-- Title Row -->
           <tr>
-            <td align="center" style="padding: 0 30px 20px 30px;">
-              <h1 style="margin: 0; font-size: 24px; font-weight: bold; color: #374151; font-family: Arial, Helvetica, sans-serif;">Redefina sua Senha</h1>
+            <td align="center" style="padding: 40px 30px 24px 30px;">
+              <h1 style="margin: 0; font-size: 28px; font-weight: 700; background: linear-gradient(135deg, #C21660 0%, #7445C4 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', Helvetica, Arial, sans-serif;">Redefina sua Senha</h1>
             </td>
           </tr>
           
           <!-- Body Text Row -->
           <tr>
-            <td style="padding: 0 30px 30px 30px;">
-              <p style="margin: 0 0 20px 0; font-size: 16px; color: #374151; line-height: 1.5; font-family: Arial, Helvetica, sans-serif;">
-                Olá, recebemos uma solicitação para redefinir a senha da sua conta. Clique no botão abaixo para escolher uma nova senha:
+            <td style="padding: 0 40px 32px 40px;">
+              <p style="margin: 0; font-size: 16px; color: #374151; line-height: 1.6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', Helvetica, Arial, sans-serif; text-align: center;">
+                Olá! Recebemos uma solicitação para redefinir a senha da sua conta. Clique no botão abaixo para escolher uma nova senha:
               </p>
             </td>
           </tr>
           
           <!-- Button Row -->
           <tr>
-            <td align="center" style="padding: 0 30px 30px 30px;">
+            <td align="center" style="padding: 0 40px 32px 40px;">
               <!-- Button as Table for maximum compatibility -->
               <table border="0" cellspacing="0" cellpadding="0">
                 <tr>
-                  <td align="center" style="background-color: #6366F1; border-radius: 8px;">
-                    <a href="${confirmationUrl}" target="_blank" style="display: inline-block; padding: 12px 24px; font-size: 16px; color: #FFFFFF; text-decoration: none; font-weight: bold; font-family: Arial, Helvetica, sans-serif;">
+                  <td align="center" style="background: linear-gradient(135deg, #C21660 0%, #7445C4 100%); border-radius: 12px; box-shadow: 0 8px 24px rgba(194, 22, 96, 0.3);">
+                    <a href="${confirmationUrl}" target="_blank" style="display: inline-block; padding: 16px 40px; font-size: 16px; color: #FFFFFF; text-decoration: none; font-weight: 600; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', Helvetica, Arial, sans-serif; letter-spacing: 0.5px;">
                       Redefinir Senha
                     </a>
                   </td>
@@ -129,13 +129,20 @@ serve(async (req) => {
             </td>
           </tr>
           
+          <!-- Divider -->
+          <tr>
+            <td style="padding: 0 40px;">
+              <div style="height: 1px; background: linear-gradient(90deg, transparent 0%, rgba(194, 22, 96, 0.2) 50%, transparent 100%);"></div>
+            </td>
+          </tr>
+          
           <!-- Alternative Link Row -->
           <tr>
-            <td style="padding: 0 30px 20px 30px;">
-              <p style="margin: 0 0 10px 0; font-size: 14px; color: #374151; line-height: 1.5; font-family: Arial, Helvetica, sans-serif;">
+            <td style="padding: 32px 40px 24px 40px;">
+              <p style="margin: 0 0 12px 0; font-size: 14px; color: #6B7280; line-height: 1.5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', Helvetica, Arial, sans-serif; text-align: center;">
                 Se o botão não funcionar, copie e cole este link no seu navegador:
               </p>
-              <p style="margin: 0; font-size: 12px; color: #6366F1; line-height: 1.5; word-break: break-all; font-family: Arial, Helvetica, sans-serif;">
+              <p style="margin: 0; font-size: 12px; color: #7445C4; line-height: 1.6; word-break: break-all; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', Helvetica, Arial, sans-serif; text-align: center; background-color: #F9FAFB; padding: 12px; border-radius: 8px; border: 1px solid #E5E7EB;">
                 ${confirmationUrl}
               </p>
             </td>
@@ -143,21 +150,21 @@ serve(async (req) => {
           
           <!-- Footer Row -->
           <tr>
-            <td style="padding: 0 30px 40px 30px;">
-              <p style="margin: 0; font-size: 14px; color: #6B7280; line-height: 1.5; font-family: Arial, Helvetica, sans-serif;">
-                Se você não solicitou isso, pode ignorar este e-mail.
+            <td style="padding: 24px 40px 40px 40px;">
+              <p style="margin: 0; font-size: 14px; color: #9CA3AF; line-height: 1.5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', Helvetica, Arial, sans-serif; text-align: center;">
+                Se você não solicitou isso, pode ignorar este e-mail com segurança.
               </p>
             </td>
           </tr>
           
-          <!-- Bottom Footer -->
+          <!-- Bottom Footer with Gradient -->
           <tr>
-            <td align="center" style="padding: 20px 30px; background-color: #F9FAFB; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;">
-              <p style="margin: 0 0 5px 0; font-size: 14px; color: #374151; font-weight: bold; font-family: Arial, Helvetica, sans-serif;">
-                Creator Leap Studio
+            <td align="center" style="padding: 24px 30px; background: linear-gradient(135deg, rgba(194, 22, 96, 0.03) 0%, rgba(116, 69, 196, 0.03) 100%); border-bottom-left-radius: 16px; border-bottom-right-radius: 16px;">
+              <p style="margin: 0 0 6px 0; font-size: 16px; background: linear-gradient(135deg, #C21660 0%, #7445C4 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: 700; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', Helvetica, Arial, sans-serif;">
+                Creator IA
               </p>
-              <p style="margin: 0; font-size: 12px; color: #6B7280; font-family: Arial, Helvetica, sans-serif;">
-                © 2025 Creator Leap Studio. Todos os direitos reservados.
+              <p style="margin: 0; font-size: 12px; color: #9CA3AF; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', Helvetica, Arial, sans-serif;">
+                © 2025 Creator IA. Todos os direitos reservados.
               </p>
             </td>
           </tr>
@@ -174,9 +181,9 @@ serve(async (req) => {
     `;
 
     const { error } = await resend.emails.send({
-      from: 'Creator Leap Studio <send@notifications.creator.lefil.com.br>',
+      from: 'Creator IA <send@notifications.creator.lefil.com.br>',
       to: [email],
-      subject: 'Redefina sua Senha - Creator Leap Studio',
+      subject: 'Redefina sua Senha - Creator IA',
       html: htmlTemplate,
     });
 
