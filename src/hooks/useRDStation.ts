@@ -7,10 +7,17 @@ import { useAuth } from "./useAuth";
  * IMPORTANTE: Todos os eventos enviados incluem automaticamente:
  * - cf_origem: "Creator" (identifica a plataforma)
  * - cf_produto: "Creator Platform" (identifica o produto)
+ * - cf_subscription_status: Status da assinatura (trialing, active, expired)
+ * - cf_credits_*: Créditos por tipo de ação
  * 
  * Esses campos são adicionados pela Edge Function e permitem
  * filtrar todos os leads do Creator no RD Station através da
  * segmentação: cf_origem = "Creator"
+ * 
+ * Eventos especiais:
+ * - trial_expired: Quando o período de trial grátis expira
+ * - credits_depleted_*: Quando créditos específicos zeram
+ * - credits_low: Quando créditos ficam baixos (threshold: 10)
  */
 
 interface RDStationUserData {
@@ -25,6 +32,11 @@ interface RDStationUserData {
   actionType?: string;
   creditsRemaining?: number;
   tags?: string[];
+  subscriptionStatus?: string;
+  creditsQuickContent?: number;
+  creditsSuggestions?: number;
+  creditsPlans?: number;
+  creditsReviews?: number;
 }
 
 export const useRDStation = () => {
@@ -37,11 +49,17 @@ export const useRDStation = () => {
     }
 
     try {
-      // Buscar dados do perfil
+      // Buscar dados do perfil e team completo
       const { data: profile } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
+        .single();
+
+      const { data: teamData } = await supabase
+        .from('teams')
+        .select('*, plans(*)')
+        .eq('id', team?.id)
         .single();
 
       const userData: RDStationUserData = {
@@ -50,9 +68,14 @@ export const useRDStation = () => {
         phone: profile?.phone,
         city: profile?.city,
         state: profile?.state,
-        teamName: team?.name,
-        plan: team?.plan?.name,
+        teamName: teamData?.name,
+        plan: teamData?.plans?.name,
         userRole: user.isAdmin ? 'admin' : 'member',
+        subscriptionStatus: teamData?.subscription_status,
+        creditsQuickContent: teamData?.credits_quick_content,
+        creditsSuggestions: teamData?.credits_suggestions,
+        creditsPlans: teamData?.credits_plans,
+        creditsReviews: teamData?.credits_reviews,
         ...customData
       };
 
@@ -109,11 +132,46 @@ export const useRDStation = () => {
       });
     },
 
-    // Evento: Créditos baixos
+    // Evento: Créditos baixos (geral)
     trackCreditsLow: (creditsRemaining: number) => {
       return sendToRDStation('credits_low', {
         creditsRemaining,
         tags: ['creditos_baixos', 'upsell_opportunity']
+      });
+    },
+
+    // Evento: Trial expirado
+    trackTrialExpired: () => {
+      return sendToRDStation('trial_expired', {
+        tags: ['trial_expirado', 'conversao_urgente', 'plano_gratis_acabou']
+      });
+    },
+
+    // Evento: Créditos de Conteúdo Rápido esgotados
+    trackCreditsDepletedQuickContent: () => {
+      return sendToRDStation('credits_depleted_quick_content', {
+        tags: ['creditos_zerados', 'conteudo_rapido', 'upgrade_necessario']
+      });
+    },
+
+    // Evento: Créditos de Sugestões esgotados
+    trackCreditsDepletedSuggestions: () => {
+      return sendToRDStation('credits_depleted_suggestions', {
+        tags: ['creditos_zerados', 'sugestoes', 'upgrade_necessario']
+      });
+    },
+
+    // Evento: Créditos de Planejamento esgotados
+    trackCreditsDepletedPlans: () => {
+      return sendToRDStation('credits_depleted_plans', {
+        tags: ['creditos_zerados', 'planejamento', 'upgrade_necessario']
+      });
+    },
+
+    // Evento: Créditos de Revisões esgotados
+    trackCreditsDepletedReviews: () => {
+      return sendToRDStation('credits_depleted_reviews', {
+        tags: ['creditos_zerados', 'revisoes', 'upgrade_necessario']
       });
     },
 

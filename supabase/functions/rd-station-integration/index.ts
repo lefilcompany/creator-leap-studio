@@ -25,6 +25,11 @@ interface RDStationEvent {
     cf_credits_remaining?: number;
     cf_origem?: string;
     cf_produto?: string;
+    cf_subscription_status?: string;
+    cf_credits_quick_content?: number;
+    cf_credits_suggestions?: number;
+    cf_credits_plans?: number;
+    cf_credits_reviews?: number;
   };
 }
 
@@ -55,6 +60,11 @@ serve(async (req) => {
       'content_generated': 'CONVERSION',
       'content_approved': 'CONVERSION',
       'credits_low': 'CONVERSION',
+      'trial_expired': 'CONVERSION',
+      'credits_depleted_quick_content': 'CONVERSION',
+      'credits_depleted_suggestions': 'CONVERSION',
+      'credits_depleted_plans': 'CONVERSION',
+      'credits_depleted_reviews': 'CONVERSION',
     };
 
     const rdEvent: RDStationEvent = {
@@ -76,6 +86,11 @@ serve(async (req) => {
         ...(userData.userRole && { cf_user_role: userData.userRole }),
         ...(userData.actionType && { cf_action_type: userData.actionType }),
         ...(userData.creditsRemaining !== undefined && { cf_credits_remaining: userData.creditsRemaining }),
+        ...(userData.subscriptionStatus && { cf_subscription_status: userData.subscriptionStatus }),
+        ...(userData.creditsQuickContent !== undefined && { cf_credits_quick_content: userData.creditsQuickContent }),
+        ...(userData.creditsSuggestions !== undefined && { cf_credits_suggestions: userData.creditsSuggestions }),
+        ...(userData.creditsPlans !== undefined && { cf_credits_plans: userData.creditsPlans }),
+        ...(userData.creditsReviews !== undefined && { cf_credits_reviews: userData.creditsReviews }),
       }
     };
 
