@@ -1,27 +1,27 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const resend = new Resend(Deno.env.get('RESEND_API_KEY') as string);
-const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+const resend = new Resend(Deno.env.get("RESEND_API_KEY") as string);
+const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
   auth: {
     autoRefreshToken: false,
-    persistSession: false
-  }
+    persistSession: false,
+  },
 });
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
 // Template de email de recuperação de senha
 function getPasswordResetEmailTemplate(resetUrl: string): string {
-  const logoUrl = 'https://pla.creator.lefil.com.br/logoCreatorPreta.png';
-  
+  const logoUrl = "https://pla.creator.lefil.com.br/logoCreatorBranca.png";
+
   return `
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -175,17 +175,17 @@ function getPasswordResetEmailTemplate(resetUrl: string): string {
 
 serve(async (req) => {
   // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { 
+  if (req.method === "OPTIONS") {
+    return new Response(null, {
       headers: corsHeaders,
-      status: 200
+      status: 200,
     });
   }
 
-  if (req.method !== 'POST') {
-    return new Response('not allowed', { 
+  if (req.method !== "POST") {
+    return new Response("not allowed", {
       status: 400,
-      headers: corsHeaders
+      headers: corsHeaders,
     });
   }
 
@@ -193,81 +193,75 @@ serve(async (req) => {
     const { email } = await req.json();
 
     if (!email) {
-      return new Response(
-        JSON.stringify({ error: 'Email is required' }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
-      );
+      return new Response(JSON.stringify({ error: "Email is required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    console.log('Generating password reset link for:', email);
+    console.log("Generating password reset link for:", email);
 
     // Detectar o domínio de origem da requisição
-    const origin = req.headers.get('origin') || req.headers.get('referer') || '';
-    let appUrl = 'https://pla.creator.lefil.com.br'; // Fallback para domínio principal
-    
+    const origin = req.headers.get("origin") || req.headers.get("referer") || "";
+    let appUrl = "https://pla.creator.lefil.com.br"; // Fallback para domínio principal
+
     // Extrair domínio base do origin/referer
     if (origin) {
       try {
         const url = new URL(origin);
         appUrl = `${url.protocol}//${url.host}`;
       } catch (e) {
-        console.log('Could not parse origin, using default domain');
+        console.log("Could not parse origin, using default domain");
       }
     }
-    
-    console.log('Using app URL for redirect:', appUrl);
+
+    console.log("Using app URL for redirect:", appUrl);
     const redirectUrl = `${appUrl}/reset-password`;
-    
+
     const { data, error: resetError } = await supabaseAdmin.auth.admin.generateLink({
-      type: 'recovery',
+      type: "recovery",
       email: email,
       options: {
         redirectTo: redirectUrl,
-      }
+      },
     });
 
     if (resetError || !data.properties?.action_link) {
-      console.error('Error generating reset link:', resetError);
-      return new Response(
-        JSON.stringify({ error: 'Failed to generate reset link' }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
-      );
+      console.error("Error generating reset link:", resetError);
+      return new Response(JSON.stringify({ error: "Failed to generate reset link" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const confirmationUrl = data.properties.action_link;
-    console.log('Reset link generated successfully');
-    console.log('Redirect URL:', redirectUrl);
+    console.log("Reset link generated successfully");
+    console.log("Redirect URL:", redirectUrl);
 
     // Usar o template de email TypeScript
     const htmlTemplate = getPasswordResetEmailTemplate(confirmationUrl);
 
     const { error } = await resend.emails.send({
-      from: 'Creator AI <send@notifications.creator.lefil.com.br>',
+      from: "Creator AI <send@notifications.creator.lefil.com.br>",
       to: [email],
-      subject: 'Redefina sua Senha - Creator AI',
+      subject: "Redefina sua Senha - Creator AI",
       html: htmlTemplate,
     });
 
     if (error) {
-      console.error('Error sending email:', error);
+      console.error("Error sending email:", error);
       throw error;
     }
 
-    console.log('Password reset email sent successfully to:', email);
+    console.log("Password reset email sent successfully to:", email);
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error('Error in send-reset-password-email function:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error("Error in send-reset-password-email function:", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return new Response(
       JSON.stringify({
         error: {
@@ -276,8 +270,8 @@ serve(async (req) => {
       }),
       {
         status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
     );
   }
 });
