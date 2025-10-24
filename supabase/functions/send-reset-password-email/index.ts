@@ -20,7 +20,7 @@ const corsHeaders = {
 
 // Template de email de recuperação de senha
 function getPasswordResetEmailTemplate(resetUrl: string): string {
-  const logoUrl = 'https://afxwqkrneraatgovhpkb.supabase.co/storage/v1/object/public/content-images/logoCreatorBranca.png';
+  const logoUrl = 'https://afxwqkrneraatgovhpkb.supabase.co/storage/v1/object/public/content-images/logoCreatorPreta.png';
   
   return `
 <!DOCTYPE html>
@@ -205,8 +205,7 @@ serve(async (req) => {
     console.log('Generating password reset link for:', email);
 
     // Generate password reset link using Supabase Admin
-    // A URL de redirecionamento deve apontar para a aplicação Lovable
-    const appUrl = Deno.env.get('SUPABASE_URL')?.replace('https://afxwqkrneraatgovhpkb.supabase.co', 'https://afxwqkrneraatgovhpkb.lovable.app') || 'https://afxwqkrneraatgovhpkb.lovable.app';
+    const appUrl = 'https://creator-v4.lovable.app';
     const redirectUrl = `${appUrl}/reset-password`;
     
     const { data, error: resetError } = await supabaseAdmin.auth.admin.generateLink({
