@@ -1,6 +1,18 @@
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 
+/**
+ * Hook para integração com RD Station
+ * 
+ * IMPORTANTE: Todos os eventos enviados incluem automaticamente:
+ * - cf_origem: "Creator" (identifica a plataforma)
+ * - cf_produto: "Creator Platform" (identifica o produto)
+ * 
+ * Esses campos são adicionados pela Edge Function e permitem
+ * filtrar todos os leads do Creator no RD Station através da
+ * segmentação: cf_origem = "Creator"
+ */
+
 interface RDStationUserData {
   email: string;
   name?: string;

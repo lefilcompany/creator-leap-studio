@@ -23,6 +23,8 @@ interface RDStationEvent {
     cf_user_role?: string;
     cf_action_type?: string;
     cf_credits_remaining?: number;
+    cf_origem?: string;
+    cf_produto?: string;
   };
 }
 
@@ -44,7 +46,7 @@ serve(async (req) => {
 
     const { eventType, userData } = await req.json();
 
-    console.log('Recebendo evento RD Station:', { eventType, email: userData.email });
+    console.log('Recebendo evento RD Station:', { eventType, email: userData.email, origem: 'Creator' });
 
     // Mapear tipo de evento
     const eventMap: Record<string, string> = {
@@ -67,6 +69,8 @@ serve(async (req) => {
         state: userData.state,
         available_for_mailing: true,
         tags: userData.tags || [],
+        cf_origem: 'Creator',
+        cf_produto: 'Creator Platform',
         ...(userData.teamName && { cf_team_name: userData.teamName }),
         ...(userData.plan && { cf_plan: userData.plan }),
         ...(userData.userRole && { cf_user_role: userData.userRole }),
@@ -75,7 +79,13 @@ serve(async (req) => {
       }
     };
 
-    console.log('Enviando para RD Station:', rdEvent);
+    console.log('Enviando para RD Station:', {
+      ...rdEvent,
+      campos_origem: {
+        cf_origem: rdEvent.payload.cf_origem,
+        cf_produto: rdEvent.payload.cf_produto
+      }
+    });
 
     const response = await fetch('https://api.rd.services/platform/conversions?api_key=' + rdApiKey, {
       method: 'POST',
