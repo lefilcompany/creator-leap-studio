@@ -20,7 +20,7 @@ const corsHeaders = {
 
 // Template de email de recuperação de senha
 function getPasswordResetEmailTemplate(resetUrl: string): string {
-  const logoUrl = 'https://afxwqkrneraatgovhpkb.supabase.co/storage/v1/object/public/content-images/logoCreatorPreta.png';
+  const logoUrl = 'https://pla.creator.lefil.com.br/logoCreatorPreta.png';
   
   return `
 <!DOCTYPE html>
