@@ -205,7 +205,7 @@ serve(async (req) => {
     console.log('Generating password reset link for:', email);
 
     // Generate password reset link using Supabase Admin
-    const appUrl = 'https://creator-v4.lovable.app';
+    const appUrl = 'https://pla.creator.lefil.com.br';
     const redirectUrl = `${appUrl}/reset-password`;
     
     const { data, error: resetError } = await supabaseAdmin.auth.admin.generateLink({
