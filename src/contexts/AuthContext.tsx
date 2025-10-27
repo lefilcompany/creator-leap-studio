@@ -304,12 +304,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const initializeAuth = async () => {
       try {
+        console.log('[AuthContext] 🔍 Checking localStorage for session...');
+        
+        // Check what's in localStorage
+        const storageKeys = Object.keys(localStorage).filter(key => 
+          key.includes('supabase') || key.includes('auth')
+        );
+        console.log('[AuthContext] 📦 Storage keys found:', storageKeys);
+        
         // First, get the session from localStorage
-        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        const { data: { session: currentSession }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('[AuthContext] ❌ Error getting session:', error);
+        }
         
         if (!mounted) return;
 
-        console.log('[AuthContext] Initial session:', currentSession ? 'found' : 'not found');
+        if (currentSession) {
+          console.log('[AuthContext] ✅ Session found in localStorage');
+          console.log('[AuthContext] 🔑 Access token:', currentSession.access_token?.substring(0, 20) + '...');
+          console.log('[AuthContext] 👤 User ID:', currentSession.user?.id);
+          console.log('[AuthContext] ⏰ Expires at:', new Date(currentSession.expires_at! * 1000).toLocaleString());
+        } else {
+          console.log('[AuthContext] ❌ No session found in localStorage');
+        }
+        
         setSession(currentSession);
 
         if (currentSession?.user) {
@@ -317,10 +337,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           isInitialized.current = true;
           await loadUserData(currentSession.user);
         } else {
+          console.log('[AuthContext] No user in session, setting loading to false');
           setIsLoading(false);
         }
       } catch (error) {
-        console.error('[AuthContext] Error initializing auth:', error);
+        console.error('[AuthContext] ❌ Error initializing auth:', error);
         if (mounted) {
           setIsLoading(false);
         }
@@ -333,18 +354,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Then set up the listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, newSession) => {
-        console.log('[AuthContext] Auth event:', event);
+        console.log('[AuthContext] 🔔 Auth event:', event);
+        
+        if (event === 'SIGNED_OUT') {
+          console.log('[AuthContext] ⚠️ SIGNED_OUT event triggered!');
+          console.trace('[AuthContext] Stack trace for SIGNED_OUT');
+        }
 
         if (!mounted) return;
 
         if (event === 'TOKEN_REFRESHED') {
-          console.log('[AuthContext] Token refreshed - updating session');
+          console.log('[AuthContext] 🔄 Token refreshed - updating session');
+          if (newSession) {
+            console.log('[AuthContext] 🔑 New token:', newSession.access_token?.substring(0, 20) + '...');
+          }
           setSession(newSession);
           return;
         }
 
         if (event === 'SIGNED_OUT') {
-          console.log('[AuthContext] User signed out');
+          console.log('[AuthContext] 👋 User signed out - clearing state');
           setSession(null);
           setUser(null);
           setTeam(null);
@@ -357,21 +386,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         if (event === 'SIGNED_IN') {
-          console.log('[AuthContext] User signed in');
+          console.log('[AuthContext] 👤 User signed in');
           setSession(newSession);
           
           if (newSession?.user) {
+            console.log('[AuthContext] ✅ User data available, loading...');
             isInitialized.current = true;
             loadUserData(newSession.user);
           } else {
+            console.log('[AuthContext] ❌ No user data in session');
             setUser(null);
             setTeam(null);
             setIsLoading(false);
           }
         } else if (event === 'INITIAL_SESSION') {
           // Skip INITIAL_SESSION since we already handled it in initializeAuth
-          console.log('[AuthContext] Skipping INITIAL_SESSION event (already handled)');
+          console.log('[AuthContext] ⏭️ Skipping INITIAL_SESSION event (already handled)');
         } else {
+          console.log('[AuthContext] 📝 Other event, updating session');
           setSession(newSession);
         }
       }
