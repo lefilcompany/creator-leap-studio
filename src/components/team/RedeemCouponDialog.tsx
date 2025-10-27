@@ -157,24 +157,6 @@ export default function RedeemCouponDialog({ open, onOpenChange, onSuccess }: Re
             )}
           </div>
 
-          {/* Seção informativa */}
-          <Alert className="bg-primary/5 border-primary/20">
-            <Gift className="h-4 w-4 text-primary" />
-            <AlertTitle className="text-primary">Como funciona?</AlertTitle>
-            <AlertDescription>
-              <ul className="list-disc pl-4 space-y-1 text-sm mt-2">
-                <li><strong className="font-semibold">B4-XXXXXX-XX:</strong> 14 dias extras no plano Basic</li>
-                <li><strong className="font-semibold">P7-XXXXXX-XX:</strong> 7 dias extras no plano Pro</li>
-                <li><strong className="font-semibold">C1-XXXXXX-XX:</strong> 100 créditos distribuídos</li>
-                <li><strong className="font-semibold">C2-XXXXXX-XX:</strong> 200 créditos distribuídos</li>
-                <li><strong className="font-semibold">C4-XXXXXX-XX:</strong> 40 créditos distribuídos</li>
-              </ul>
-              <p className="text-xs text-muted-foreground mt-2">
-                Os créditos são distribuídos proporcionalmente entre todas as funcionalidades.
-              </p>
-            </AlertDescription>
-          </Alert>
-
           {/* Feedback de validação - Erro */}
           {validationError && (
             <Alert variant="destructive">
