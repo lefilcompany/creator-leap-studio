@@ -69,3 +69,6 @@ verify_jwt = false
 
 [functions.rd-station-integration]
 verify_jwt = true
+
+[functions.redeem-coupon]
+verify_jwt = true

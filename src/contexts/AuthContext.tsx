@@ -62,6 +62,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   reloadUserData: () => Promise<void>;
   refreshProfile: () => Promise<void>;
+  refreshTeamData: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -420,6 +421,69 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const isAuthenticated = useMemo(() => !!session && !!user, [session, user]);
 
+  const refreshTeamData = useCallback(async () => {
+    if (!user?.teamId) {
+      console.log('[AuthContext] Cannot refresh team data - no team ID');
+      return;
+    }
+
+    try {
+      console.log('[AuthContext] 🔄 Refreshing team data...');
+      
+      const { data: teamData, error } = await supabase
+        .from('teams')
+        .select(`
+          *,
+          plan:plans(*)
+        `)
+        .eq('id', user.teamId)
+        .single();
+
+      if (error) {
+        console.error('[AuthContext] Error refreshing team data:', error);
+        return;
+      }
+
+      if (teamData) {
+        setTeam({
+          id: teamData.id,
+          name: teamData.name,
+          code: teamData.code,
+          admin: teamData.admin_id,
+          admin_id: teamData.admin_id,
+          plan_id: teamData.plan_id,
+          subscription_status: teamData.subscription_status,
+          subscription_period_end: teamData.subscription_period_end,
+          plan: {
+            id: teamData.plan.id,
+            name: teamData.plan.id,
+            displayName: teamData.plan.name,
+            price: teamData.plan.price_monthly,
+            trialDays: teamData.plan.trial_days,
+            maxMembers: teamData.plan.max_members,
+            maxBrands: teamData.plan.max_brands,
+            maxStrategicThemes: teamData.plan.max_strategic_themes,
+            maxPersonas: teamData.plan.max_personas,
+            quickContentCreations: teamData.plan.credits_quick_content,
+            customContentSuggestions: teamData.plan.credits_suggestions,
+            contentPlans: teamData.plan.credits_plans,
+            contentReviews: teamData.plan.credits_reviews,
+            isActive: teamData.plan.is_active
+          },
+          credits: {
+            quickContentCreations: teamData.credits_quick_content,
+            contentSuggestions: teamData.credits_suggestions,
+            contentReviews: teamData.credits_reviews,
+            contentPlans: teamData.credits_plans
+          }
+        });
+        console.log('[AuthContext] ✅ Team data refreshed successfully');
+      }
+    } catch (error) {
+      console.error('[AuthContext] Error in refreshTeamData:', error);
+    }
+  }, [user?.teamId]);
+
   const value = useMemo(
     () => ({
       user,
@@ -431,9 +495,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       trialDaysRemaining,
       logout,
       reloadUserData,
-      refreshProfile
+      refreshProfile,
+      refreshTeamData
     }),
-    [user, session, team, isAuthenticated, isLoading, isTrialExpired, trialDaysRemaining, logout, reloadUserData, refreshProfile]
+    [user, session, team, isAuthenticated, isLoading, isTrialExpired, trialDaysRemaining, logout, reloadUserData, refreshProfile, refreshTeamData]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

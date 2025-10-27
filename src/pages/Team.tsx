@@ -5,11 +5,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Rocket, Users, ClipboardCopy, Check, X, Crown, Loader2, UserPlus, UserMinus, BarChart3, CreditCard } from 'lucide-react';
+import { Rocket, Users, ClipboardCopy, Check, X, Crown, Loader2, UserPlus, UserMinus, BarChart3, CreditCard, Gift } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import TeamInfoCard from '@/components/perfil/TeamInfoCard';
+import RedeemCouponDialog from '@/components/team/RedeemCouponDialog';
 import {
   Pagination,
   PaginationContent,
@@ -42,6 +43,7 @@ export default function Team() {
   const [pendingRequests, setPendingRequests] = useState<JoinRequest[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const membersPerPage = 5;
+  const [showCouponDialog, setShowCouponDialog] = useState(false);
 
   // Resetar página quando membros mudarem
   useEffect(() => {
@@ -255,7 +257,7 @@ export default function Team() {
       </Card>
 
       {/* Action Buttons */}
-      <div className="flex justify-between items-center gap-4">
+      <div className="flex flex-wrap justify-between items-center gap-4">
         <Button
           onClick={() => navigate('/plans')}
           variant="default"
@@ -266,16 +268,38 @@ export default function Team() {
           Planos e Uso
         </Button>
         
-        <Button
-          onClick={() => navigate('/team-dashboard')}
-          variant="outline"
-          size="default"
-          className="border-primary/30 hover:bg-primary/10 hover:border-primary/50"
-        >
-          <BarChart3 className="h-4 w-4 mr-2" />
-          Ver Dashboard de Membros
-        </Button>
+        <div className="flex gap-3">
+          <Button
+            onClick={() => setShowCouponDialog(true)}
+            variant="outline"
+            size="default"
+            className="border-primary/30 hover:bg-primary/10 hover:border-primary/50"
+          >
+            <Gift className="h-4 w-4 mr-2" />
+            Resgatar Cupom
+          </Button>
+          
+          <Button
+            onClick={() => navigate('/team-dashboard')}
+            variant="outline"
+            size="default"
+            className="border-primary/30 hover:bg-primary/10 hover:border-primary/50"
+          >
+            <BarChart3 className="h-4 w-4 mr-2" />
+            Ver Dashboard de Membros
+          </Button>
+        </div>
       </div>
+
+      {/* Coupon Dialog */}
+      <RedeemCouponDialog
+        open={showCouponDialog}
+        onOpenChange={setShowCouponDialog}
+        onSuccess={() => {
+          loadTeamData();
+          toast.success('Benefícios aplicados com sucesso!');
+        }}
+      />
 
       {/* Main Content */}
       <div className="flex flex-col xl:flex-row gap-6">

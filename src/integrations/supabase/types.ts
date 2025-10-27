@@ -170,6 +170,50 @@ export type Database = {
           },
         ]
       }
+      coupons_used: {
+        Row: {
+          coupon_code: string
+          coupon_prefix: string
+          created_at: string
+          id: string
+          prize_type: string
+          prize_value: number
+          redeemed_at: string
+          redeemed_by: string
+          team_id: string
+        }
+        Insert: {
+          coupon_code: string
+          coupon_prefix: string
+          created_at?: string
+          id?: string
+          prize_type: string
+          prize_value: number
+          redeemed_at?: string
+          redeemed_by: string
+          team_id: string
+        }
+        Update: {
+          coupon_code?: string
+          coupon_prefix?: string
+          created_at?: string
+          id?: string
+          prize_type?: string
+          prize_value?: number
+          redeemed_at?: string
+          redeemed_by?: string
+          team_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupons_used_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string | null
@@ -635,7 +679,7 @@ export type Database = {
     }
     Functions: {
       align_team_credits_and_setup_trial: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           action_taken: string
           plan_id: string
@@ -643,10 +687,7 @@ export type Database = {
           team_name: string
         }[]
       }
-      check_team_access: {
-        Args: { p_team_id: string }
-        Returns: boolean
-      }
+      check_team_access: { Args: { p_team_id: string }; Returns: boolean }
       create_team_for_user: {
         Args: {
           p_plan_id?: string
@@ -660,10 +701,7 @@ export type Database = {
           team_name: string
         }[]
       }
-      get_team_id_by_code: {
-        Args: { p_team_code: string }
-        Returns: string
-      }
+      get_team_id_by_code: { Args: { p_team_code: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
