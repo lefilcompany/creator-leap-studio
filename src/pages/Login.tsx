@@ -72,35 +72,6 @@ const Login = () => {
         return;
       }
 
-      // ✅ Aguardar a sessão ser salva no localStorage
-      console.log('[Login] ✅ Login successful, waiting for session to persist...');
-      
-      let retries = 0;
-      const maxRetries = 10;
-      let sessionSaved = false;
-
-      while (retries < maxRetries && !sessionSaved) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
-        const storageKeys = Object.keys(localStorage).filter(key => 
-          key.includes('supabase') && key.includes('auth')
-        );
-        
-        if (storageKeys.length > 0) {
-          console.log('[Login] ✅ Session persisted to localStorage');
-          sessionSaved = true;
-        } else {
-          console.log(`[Login] ⏳ Waiting for session to persist (attempt ${retries + 1}/${maxRetries})...`);
-          retries++;
-        }
-      }
-
-      if (!sessionSaved) {
-        console.error('[Login] ❌ Session failed to persist to localStorage after', maxRetries, 'attempts');
-        toast.error('Erro ao salvar sessão. Tente novamente.');
-        return;
-      }
-
       // Login bem-sucedido, resetar contador
       setFailedAttempts(0);
       setShowPasswordResetSuggestion(false);
