@@ -304,6 +304,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const initializeAuth = async () => {
       try {
+        setIsLoading(true); // ✅ Garantir que está loading durante verificação
         console.log('[AuthContext] 🔍 Checking localStorage for session...');
         
         // Check what's in localStorage
