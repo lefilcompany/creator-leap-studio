@@ -298,17 +298,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     isMounted.current = true;
+    let mounted = true;
 
     console.log('[AuthContext] Initializing auth listener');
 
+    const initializeAuth = async () => {
+      try {
+        // First, get the session from localStorage
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        
+        if (!mounted) return;
+
+        console.log('[AuthContext] Initial session:', currentSession ? 'found' : 'not found');
+        setSession(currentSession);
+
+        if (currentSession?.user) {
+          console.log('[AuthContext] Loading user data from cached session');
+          isInitialized.current = true;
+          await loadUserData(currentSession.user);
+        } else {
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error('[AuthContext] Error initializing auth:', error);
+        if (mounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    // Initialize auth state from localStorage first
+    initializeAuth();
+
+    // Then set up the listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, newSession) => {
         console.log('[AuthContext] Auth event:', event);
 
-        if (!isMounted.current) return;
+        if (!mounted) return;
 
         if (event === 'TOKEN_REFRESHED') {
-          console.log('[AuthContext] Token refreshed - updating session only');
+          console.log('[AuthContext] Token refreshed - updating session');
           setSession(newSession);
           return;
         }
@@ -322,55 +352,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setTrialDaysRemaining(null);
           setIsLoading(false);
           dataCache.current = null;
+          isInitialized.current = false;
           return;
         }
 
-        if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+        if (event === 'SIGNED_IN') {
+          console.log('[AuthContext] User signed in');
           setSession(newSession);
           
           if (newSession?.user) {
-            if (!isInitialized.current || event === 'SIGNED_IN') {
-              console.log('[AuthContext] Loading user data for event:', event);
-              isInitialized.current = true;
-              loadUserData(newSession.user);
-            }
+            isInitialized.current = true;
+            loadUserData(newSession.user);
           } else {
             setUser(null);
             setTeam(null);
             setIsLoading(false);
           }
+        } else if (event === 'INITIAL_SESSION') {
+          // Skip INITIAL_SESSION since we already handled it in initializeAuth
+          console.log('[AuthContext] Skipping INITIAL_SESSION event (already handled)');
         } else {
           setSession(newSession);
         }
       }
     );
 
-    const initializeAuth = async () => {
-      try {
-        const { data: { session: currentSession } } = await supabase.auth.getSession();
-        
-        if (!isMounted.current) return;
-
-        setSession(currentSession);
-
-        if (currentSession?.user) {
-          console.log('[AuthContext] Initial session found');
-          await loadUserData(currentSession.user);
-        } else {
-          setIsLoading(false);
-        }
-      } catch (error) {
-        console.error('[AuthContext] Error initializing auth:', error);
-        if (isMounted.current) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    initializeAuth();
-
     return () => {
       console.log('[AuthContext] Cleanup - unsubscribing');
+      mounted = false;
       isMounted.current = false;
       subscription.unsubscribe();
     };
