@@ -42,7 +42,7 @@ export default function RedeemCouponDialog({ open, onOpenChange, onSuccess, curr
       value = value.slice(0, 9) + '-' + value.slice(9);
     }
     
-    setCouponCode(value.slice(0, 13)); // XX-YYYYYY-CC = 13 chars
+    setCouponCode(value.slice(0, 12)); // XX-YYYYYY-CC = 12 chars
     
     // Validar formato
     const regex = /^(B4|P7|C2|C1|C4)-[A-Z0-9]{6}-[A-Z0-9]{2}$/;
