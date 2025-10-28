@@ -36,19 +36,23 @@ export function CreateTeamDialog({ open, onClose, onSuccess }: CreateTeamDialogP
   const handleCouponInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
     
+    // Limitar a exatamente 10 caracteres (sem hífens)
+    value = value.slice(0, 10);
+    
     // Adicionar hífens automaticamente
+    let formatted = value;
     if (value.length > 2) {
-      value = value.slice(0, 2) + '-' + value.slice(2);
+      formatted = value.slice(0, 2) + '-' + value.slice(2);
     }
-    if (value.length > 9) {
-      value = value.slice(0, 9) + '-' + value.slice(9);
+    if (value.length > 8) {
+      formatted = value.slice(0, 2) + '-' + value.slice(2, 8) + '-' + value.slice(8);
     }
     
-    setCouponCode(value.slice(0, 13)); // XX-YYYYYY-CC = 13 chars
+    setCouponCode(formatted);
     
     // Validar formato
     const regex = /^(B4|P7|C2|C1|C4)-[A-Z0-9]{6}-[A-Z0-9]{2}$/;
-    const isValid = regex.test(value);
+    const isValid = regex.test(formatted);
     setIsValidCouponFormat(isValid);
     
     // Limpar erro ao alterar input
@@ -237,11 +241,11 @@ export function CreateTeamDialog({ open, onClose, onSuccess }: CreateTeamDialogP
             </Label>
             <Input
               id="couponCode"
-              placeholder="XX-YYYYYY-CC"
+              placeholder="B4-ABC123-XY"
               value={couponCode}
               onChange={handleCouponInput}
               disabled={isLoading}
-              maxLength={13}
+              maxLength={12}
               className="font-mono tracking-wider"
             />
             {couponCode && (
