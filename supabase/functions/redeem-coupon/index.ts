@@ -89,6 +89,21 @@ function getPrizeInfo(prefix: string): { type: string; value: number; descriptio
   }
 }
 
+// Função para buscar créditos de um plano
+async function getPlanCredits(planId: string, supabaseAdmin: any) {
+  const { data: plan, error } = await supabaseAdmin
+    .from('plans')
+    .select('credits_quick_content, credits_suggestions, credits_reviews, credits_plans')
+    .eq('id', planId)
+    .single();
+  
+  if (error || !plan) {
+    throw new Error(`Plano ${planId} não encontrado`);
+  }
+  
+  return plan;
+}
+
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
@@ -232,17 +247,24 @@ serve(async (req) => {
         );
       }
       
-      // Fazer upgrade para Basic + 14 dias
+      // Buscar créditos do plano Basic
+      const basicPlanCredits = await getPlanCredits('basic', supabaseAdmin);
+      
+      // Fazer upgrade para Basic + 14 dias + créditos do plano
       const newEnd = new Date();
       newEnd.setDate(newEnd.getDate() + 14);
       
       updateData = {
         plan_id: 'basic',
         subscription_period_end: newEnd.toISOString(),
-        subscription_status: 'active'
+        subscription_status: 'active',
+        credits_quick_content: basicPlanCredits.credits_quick_content,
+        credits_suggestions: basicPlanCredits.credits_suggestions,
+        credits_reviews: basicPlanCredits.credits_reviews,
+        credits_plans: basicPlanCredits.credits_plans
       };
       
-      console.log(`[redeem-coupon] Upgrading to Basic until ${newEnd.toISOString()}`);
+      console.log(`[redeem-coupon] Upgrading to Basic until ${newEnd.toISOString()} with credits:`, basicPlanCredits);
       
     } else if (prizeInfo.type === 'days_pro') {
       // P7: Upgrade para Pro (apenas se for Free ou Basic)
@@ -257,17 +279,24 @@ serve(async (req) => {
         );
       }
       
-      // Fazer upgrade para Pro + 7 dias
+      // Buscar créditos do plano Pro
+      const proPlanCredits = await getPlanCredits('pro', supabaseAdmin);
+      
+      // Fazer upgrade para Pro + 7 dias + créditos do plano
       const newEnd = new Date();
       newEnd.setDate(newEnd.getDate() + 7);
       
       updateData = {
         plan_id: 'pro',
         subscription_period_end: newEnd.toISOString(),
-        subscription_status: 'active'
+        subscription_status: 'active',
+        credits_quick_content: proPlanCredits.credits_quick_content,
+        credits_suggestions: proPlanCredits.credits_suggestions,
+        credits_reviews: proPlanCredits.credits_reviews,
+        credits_plans: proPlanCredits.credits_plans
       };
       
-      console.log(`[redeem-coupon] Upgrading to Pro until ${newEnd.toISOString()}`);
+      console.log(`[redeem-coupon] Upgrading to Pro until ${newEnd.toISOString()} with credits:`, proPlanCredits);
     } else if (prizeInfo.type === 'credits') {
       // Cupons de créditos: distribuir igualitariamente
       const totalCredits = prizeInfo.value;
