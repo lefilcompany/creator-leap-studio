@@ -295,6 +295,7 @@ export default function Team() {
       <RedeemCouponDialog
         open={showCouponDialog}
         onOpenChange={setShowCouponDialog}
+        currentPlanId={team?.plan_id || 'free'}
         onSuccess={() => {
           loadTeamData();
           toast.success('Benefícios aplicados com sucesso!');

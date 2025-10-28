@@ -20,9 +20,10 @@ interface RedeemCouponDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
+  currentPlanId: string;
 }
 
-export default function RedeemCouponDialog({ open, onOpenChange, onSuccess }: RedeemCouponDialogProps) {
+export default function RedeemCouponDialog({ open, onOpenChange, onSuccess, currentPlanId }: RedeemCouponDialogProps) {
   const { reloadUserData } = useAuth();
   const [couponCode, setCouponCode] = useState('');
   const [isRedeeming, setIsRedeeming] = useState(false);
@@ -55,9 +56,27 @@ export default function RedeemCouponDialog({ open, onOpenChange, onSuccess }: Re
     }
   };
 
+  const validatePlanCompatibility = (prefix: string): string | null => {
+    if (prefix === 'B4' && currentPlanId !== 'free') {
+      return 'Este cupom só pode ser usado por equipes no plano Free.';
+    }
+    if (prefix === 'P7' && currentPlanId !== 'free' && currentPlanId !== 'basic') {
+      return 'Este cupom só pode ser usado por equipes nos planos Free ou Basic.';
+    }
+    return null;
+  };
+
   const handleRedeem = async () => {
     if (!isValidFormat) {
       setValidationError('Formato de cupom inválido');
+      return;
+    }
+
+    // Validar compatibilidade de plano
+    const prefix = couponCode.split('-')[0];
+    const planError = validatePlanCompatibility(prefix);
+    if (planError) {
+      setValidationError(planError);
       return;
     }
 

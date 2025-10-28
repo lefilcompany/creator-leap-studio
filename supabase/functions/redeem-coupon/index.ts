@@ -81,9 +81,9 @@ function getPrizeInfo(prefix: string): { type: string; value: number; descriptio
   const value = PREFIX_VALUES[prefix];
   
   if (prefix === 'B4') {
-    return { type: 'days_basic', value, description: '14 dias extras no plano Basic' };
+    return { type: 'days_basic', value, description: 'Upgrade para Basic por 14 dias' };
   } else if (prefix === 'P7') {
-    return { type: 'days_pro', value, description: '7 dias extras no plano Pro' };
+    return { type: 'days_pro', value, description: 'Upgrade para Pro por 7 dias' };
   } else {
     return { type: 'credits', value, description: `${value} créditos` };
   }
@@ -292,18 +292,10 @@ serve(async (req) => {
       console.log(`[redeem-coupon] Adding credits:`, creditsToAdd);
     }
 
-    // 7. Atualizar equipe e registrar cupom (transação)
-    const { error: updateError } = await supabaseAdmin
-      .from('teams')
-      .update(updateData)
-      .eq('id', team.id);
+    console.log(`[redeem-coupon] Applying prize: ${JSON.stringify(updateData)}`);
 
-    if (updateError) {
-      console.error('[redeem-coupon] Error updating team:', updateError);
-      throw new Error('Erro ao aplicar benefícios');
-    }
-
-    // Registrar cupom usado
+    // 7. Registrar cupom PRIMEIRO (previne uso duplo)
+    console.log(`[redeem-coupon] Registering coupon in database...`);
     const { error: insertError } = await supabaseAdmin
       .from('coupons_used')
       .insert({
@@ -317,8 +309,37 @@ serve(async (req) => {
 
     if (insertError) {
       console.error('[redeem-coupon] Error registering coupon:', insertError);
-      // Rollback: reverter mudanças na equipe
-      throw new Error('Erro ao registrar cupom');
+      
+      // Se for erro de duplicidade (unique constraint)
+      if (insertError.code === '23505') {
+        return new Response(
+          JSON.stringify({ valid: false, error: 'Este cupom já foi utilizado.' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+        );
+      }
+      
+      throw new Error('Erro ao registrar cupom. Tente novamente.');
+    }
+
+    console.log(`[redeem-coupon] Coupon registered. Applying benefits...`);
+
+    // 8. Aplicar benefícios DEPOIS (se falhar, cupom já está protegido)
+    const { error: updateError } = await supabaseAdmin
+      .from('teams')
+      .update(updateData)
+      .eq('id', team.id);
+
+    if (updateError) {
+      console.error('[redeem-coupon] Error updating team:', updateError);
+      // Cupom já está marcado como usado, mas benefícios não foram aplicados
+      // Isso requer atenção do suporte, mas previne fraude
+      return new Response(
+        JSON.stringify({ 
+          valid: false, 
+          error: 'Cupom registrado, mas erro ao aplicar benefícios. Contate o suporte com o código: ' + normalizedCode 
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      );
     }
 
     console.log(`[redeem-coupon] ✅ Coupon redeemed successfully: ${normalizedCode}`);
