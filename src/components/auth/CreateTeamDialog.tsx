@@ -12,9 +12,10 @@ interface CreateTeamDialogProps {
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  context?: 'login' | 'register';
 }
 
-export function CreateTeamDialog({ open, onClose, onSuccess }: CreateTeamDialogProps) {
+export function CreateTeamDialog({ open, onClose, onSuccess, context = 'login' }: CreateTeamDialogProps) {
   const [teamName, setTeamName] = useState("");
   const [teamCode, setTeamCode] = useState("");
   const [showCode, setShowCode] = useState(false);
@@ -158,8 +159,21 @@ export function CreateTeamDialog({ open, onClose, onSuccess }: CreateTeamDialogP
       }
       
       // 4. Fechar dialog e redirecionar
-      onSuccess();
-      navigate("/dashboard");
+      if (context === 'register') {
+        // Cenário de REGISTRO: fazer logout e redirecionar para login
+        toast.success("Equipe criada com sucesso! Faça login para acessar o sistema.");
+        
+        await supabase.auth.signOut();
+        
+        onSuccess();
+        navigate("/");
+      } else {
+        // Cenário de LOGIN: ir direto ao dashboard
+        toast.success("Equipe criada com sucesso!");
+        
+        onSuccess();
+        navigate("/dashboard");
+      }
     } catch (error: any) {
       console.error('Erro ao criar equipe:', error);
       toast.error(error.message || "Erro ao criar equipe. Tente novamente.");

@@ -7,9 +7,10 @@ import { JoinTeamDialog } from "./JoinTeamDialog";
 interface TeamSelectionDialogProps {
   open: boolean;
   onClose: () => void;
+  context?: 'login' | 'register';
 }
 
-export function TeamSelectionDialog({ open, onClose }: TeamSelectionDialogProps) {
+export function TeamSelectionDialog({ open, onClose, context = 'login' }: TeamSelectionDialogProps) {
   const [showCreateTeam, setShowCreateTeam] = useState(false);
   const [showJoinTeam, setShowJoinTeam] = useState(false);
 
@@ -65,6 +66,7 @@ export function TeamSelectionDialog({ open, onClose }: TeamSelectionDialogProps)
         open={showCreateTeam}
         onClose={() => setShowCreateTeam(false)}
         onSuccess={onClose}
+        context={context}
       />
 
       <JoinTeamDialog

@@ -389,6 +389,7 @@ const Login = () => {
             handleOAuthTeamDialogClose();
           }
         }}
+        context="login"
       />
 
       {/* Change Password Dialog for specific user */}

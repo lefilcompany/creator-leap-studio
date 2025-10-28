@@ -746,6 +746,7 @@ const Register = () => {
             navigate("/");
           }
         }}
+        context="register"
       />
     </>
   );
