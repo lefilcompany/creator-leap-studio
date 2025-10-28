@@ -219,49 +219,67 @@ serve(async (req) => {
     // 6. Aplicar benefícios
     let updateData: any = {};
 
-    if (prizeInfo.type === 'days_basic' || prizeInfo.type === 'days_pro') {
-      // Cupons de dias: verificar compatibilidade com plano
-      const requiredPlan = prizeInfo.type === 'days_basic' ? 'basic' : 'pro';
-      
-      if (team.plan_id !== requiredPlan) {
-        console.log(`[redeem-coupon] Plan incompatible: ${team.plan_id} vs ${requiredPlan}`);
+    if (prizeInfo.type === 'days_basic') {
+      // B4: Upgrade para Basic (apenas se for Free)
+      if (team.plan_id !== 'free') {
+        console.log(`[redeem-coupon] Plan incompatible: ${team.plan_id} must be 'free' for B4`);
         return new Response(
           JSON.stringify({ 
             valid: false, 
-            error: `Este cupom é válido apenas para o plano ${requiredPlan === 'basic' ? 'Basic' : 'Pro'}.` 
+            error: 'Este cupom só pode ser usado por equipes no plano Free.' 
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
         );
       }
-
-      // Estender período de assinatura
-      const currentEnd = team.subscription_period_end ? new Date(team.subscription_period_end) : new Date();
-      const newEnd = new Date(currentEnd);
-      newEnd.setDate(newEnd.getDate() + prizeInfo.value);
+      
+      // Fazer upgrade para Basic + 14 dias
+      const newEnd = new Date();
+      newEnd.setDate(newEnd.getDate() + 14);
       
       updateData = {
+        plan_id: 'basic',
         subscription_period_end: newEnd.toISOString(),
         subscription_status: 'active'
       };
-
-      console.log(`[redeem-coupon] Extending subscription from ${currentEnd.toISOString()} to ${newEnd.toISOString()}`);
-    } else if (prizeInfo.type === 'credits') {
-      // Cupons de créditos: distribuir proporcionalmente
-      const totalCredits = prizeInfo.value;
       
-      // Distribuição baseada no plano Free (5/15/10/5 = 35 total)
-      const distribution = {
-        quick: 5/35,       // ~14%
-        suggestions: 15/35, // ~43%
-        reviews: 10/35,    // ~29%
-        plans: 5/35        // ~14%
+      console.log(`[redeem-coupon] Upgrading to Basic until ${newEnd.toISOString()}`);
+      
+    } else if (prizeInfo.type === 'days_pro') {
+      // P7: Upgrade para Pro (apenas se for Free ou Basic)
+      if (team.plan_id !== 'free' && team.plan_id !== 'basic') {
+        console.log(`[redeem-coupon] Plan incompatible: ${team.plan_id} must be 'free' or 'basic' for P7`);
+        return new Response(
+          JSON.stringify({ 
+            valid: false, 
+            error: 'Este cupom só pode ser usado por equipes nos planos Free ou Basic.' 
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+        );
+      }
+      
+      // Fazer upgrade para Pro + 7 dias
+      const newEnd = new Date();
+      newEnd.setDate(newEnd.getDate() + 7);
+      
+      updateData = {
+        plan_id: 'pro',
+        subscription_period_end: newEnd.toISOString(),
+        subscription_status: 'active'
       };
       
+      console.log(`[redeem-coupon] Upgrading to Pro until ${newEnd.toISOString()}`);
+    } else if (prizeInfo.type === 'credits') {
+      // Cupons de créditos: distribuir igualitariamente
+      const totalCredits = prizeInfo.value;
+      
+      // Distribuição IGUALITÁRIA (25% para cada tipo)
+      const creditsPerType = Math.floor(totalCredits / 4);
+      
       const creditsToAdd = {
-        quick: Math.floor(totalCredits * distribution.quick),
-        suggestions: Math.floor(totalCredits * distribution.suggestions),
-        reviews: Math.floor(totalCredits * distribution.reviews),
-        plans: Math.floor(totalCredits * distribution.plans)
+        quick: creditsPerType,
+        suggestions: creditsPerType,
+        reviews: creditsPerType,
+        plans: creditsPerType
       };
 
       updateData = {
