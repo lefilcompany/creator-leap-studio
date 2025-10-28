@@ -241,7 +241,7 @@ export function CreateTeamDialog({ open, onClose, onSuccess }: CreateTeamDialogP
             </Label>
             <Input
               id="couponCode"
-              placeholder="B4-ABC123-XY"
+              placeholder="XX-YYYYYY-CC"
               value={couponCode}
               onChange={handleCouponInput}
               disabled={isLoading}
