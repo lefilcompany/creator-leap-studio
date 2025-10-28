@@ -19,6 +19,9 @@ export function CreateTeamDialog({ open, onClose, onSuccess }: CreateTeamDialogP
   const [teamCode, setTeamCode] = useState("");
   const [showCode, setShowCode] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [couponCode, setCouponCode] = useState("");
+  const [isValidCouponFormat, setIsValidCouponFormat] = useState(false);
+  const [couponValidationError, setCouponValidationError] = useState("");
   const navigate = useNavigate();
 
   const generateRandomCode = () => {
@@ -28,6 +31,30 @@ export function CreateTeamDialog({ open, onClose, onSuccess }: CreateTeamDialogP
       code += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     return code;
+  };
+
+  const handleCouponInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    
+    // Adicionar hífens automaticamente
+    if (value.length > 2) {
+      value = value.slice(0, 2) + '-' + value.slice(2);
+    }
+    if (value.length > 9) {
+      value = value.slice(0, 9) + '-' + value.slice(9);
+    }
+    
+    setCouponCode(value.slice(0, 13)); // XX-YYYYYY-CC = 13 chars
+    
+    // Validar formato
+    const regex = /^(B4|P7|C2|C1|C4)-[A-Z0-9]{6}-[A-Z0-9]{2}$/;
+    const isValid = regex.test(value);
+    setIsValidCouponFormat(isValid);
+    
+    // Limpar erro ao alterar input
+    if (couponValidationError) {
+      setCouponValidationError('');
+    }
   };
 
   const handleCreateTeam = async () => {
@@ -41,10 +68,16 @@ export function CreateTeamDialog({ open, onClose, onSuccess }: CreateTeamDialogP
       return;
     }
 
+    // Validar formato do cupom se preenchido
+    if (couponCode.trim() && !isValidCouponFormat) {
+      setCouponValidationError("Formato de cupom inválido (XX-YYYYYY-CC)");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      // Verificar sessão ativa
+      // 1. Criar equipe
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session?.user) {
@@ -55,7 +88,6 @@ export function CreateTeamDialog({ open, onClose, onSuccess }: CreateTeamDialogP
 
       console.log("Criando equipe para usuário:", session.user.id);
 
-      // Usar a função segura do banco de dados que bypassa RLS
       const { data, error } = await supabase.rpc('create_team_for_user', {
         p_user_id: session.user.id,
         p_team_name: teamName,
@@ -71,8 +103,28 @@ export function CreateTeamDialog({ open, onClose, onSuccess }: CreateTeamDialogP
       console.log("Equipe criada com sucesso:", data);
 
       toast.success("Equipe criada com sucesso!");
-      
-      // Enviar evento para RD Station
+
+      // 2. Se houver cupom, tentar resgatá-lo
+      if (couponCode.trim() && isValidCouponFormat) {
+        try {
+          const { data: couponData, error: couponError } = await supabase.functions.invoke('redeem-coupon', {
+            body: { couponCode: couponCode.trim() }
+          });
+
+          if (couponError) throw couponError;
+
+          if (couponData.valid) {
+            toast.success(`🎉 ${couponData.prize.description} aplicado(s) à sua equipe!`);
+          } else {
+            toast.warning(`Cupom inválido: ${couponData.error}. Equipe criada sem benefícios.`);
+          }
+        } catch (couponError: any) {
+          console.error('Erro ao resgatar cupom:', couponError);
+          toast.warning('Equipe criada, mas não foi possível aplicar o cupom.');
+        }
+      }
+
+      // 3. Enviar evento RD Station
       try {
         const { data: profile } = await supabase
           .from('profiles')
@@ -99,10 +151,9 @@ export function CreateTeamDialog({ open, onClose, onSuccess }: CreateTeamDialogP
         }
       } catch (rdError) {
         console.error('Erro ao enviar para RD Station:', rdError);
-        // Não impede o fluxo
       }
       
-      // Fechar dialog e redirecionar para dashboard
+      // 4. Fechar dialog e redirecionar
       onSuccess();
       navigate("/dashboard");
     } catch (error: any) {
@@ -126,7 +177,9 @@ export function CreateTeamDialog({ open, onClose, onSuccess }: CreateTeamDialogP
           </p>
           
           <div className="space-y-2">
-            <Label htmlFor="teamName">Nome da equipe</Label>
+            <Label htmlFor="teamName">
+              Nome da equipe <span className="text-red-500">*</span>
+            </Label>
             <Input
               id="teamName"
               placeholder="Ex: Minha Empresa, Time Marketing..."
@@ -137,7 +190,9 @@ export function CreateTeamDialog({ open, onClose, onSuccess }: CreateTeamDialogP
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="teamCode">Código de acesso</Label>
+            <Label htmlFor="teamCode">
+              Código de acesso <span className="text-red-500">*</span>
+            </Label>
             <div className="relative">
               <Input
                 id="teamCode"
@@ -172,6 +227,40 @@ export function CreateTeamDialog({ open, onClose, onSuccess }: CreateTeamDialogP
             >
               Gerar código aleatório
             </Button>
+          </div>
+
+          {/* Campo opcional de cupom */}
+          <div className="space-y-2 pt-2 border-t">
+            <Label htmlFor="couponCode" className="flex items-center gap-2">
+              Cupom de premiação
+              <span className="text-xs text-muted-foreground font-normal">(opcional)</span>
+            </Label>
+            <Input
+              id="couponCode"
+              placeholder="XX-YYYYYY-CC"
+              value={couponCode}
+              onChange={handleCouponInput}
+              disabled={isLoading}
+              maxLength={13}
+              className="font-mono tracking-wider"
+            />
+            {couponCode && (
+              <p className="text-xs text-muted-foreground">
+                {isValidCouponFormat ? (
+                  <span className="text-green-600 font-medium">✓ Formato válido</span>
+                ) : (
+                  <span className="text-amber-600">Formato: XX-YYYYYY-CC</span>
+                )}
+              </p>
+            )}
+            {couponValidationError && (
+              <p className="text-xs text-red-600 font-medium">
+                {couponValidationError}
+              </p>
+            )}
+            <p className="text-xs text-muted-foreground">
+              Insira um cupom de premiação para receber benefícios instantâneos. Este campo é opcional.
+            </p>
           </div>
         </div>
         
