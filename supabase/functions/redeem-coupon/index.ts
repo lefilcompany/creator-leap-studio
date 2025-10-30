@@ -93,7 +93,7 @@ function getPrizeInfo(prefix: string): { type: string; value: number; descriptio
 async function getPlanCredits(planId: string, supabaseAdmin: any) {
   const { data: plan, error } = await supabaseAdmin
     .from('plans')
-    .select('credits_quick_content, credits_suggestions, credits_reviews, credits_plans, credits_videos')
+    .select('credits_quick_content, credits_suggestions, credits_reviews, credits_plans')
     .eq('id', planId)
     .single();
   
@@ -261,8 +261,7 @@ serve(async (req) => {
         credits_quick_content: basicPlanCredits.credits_quick_content,
         credits_suggestions: basicPlanCredits.credits_suggestions,
         credits_reviews: basicPlanCredits.credits_reviews,
-        credits_plans: basicPlanCredits.credits_plans,
-        credits_videos: basicPlanCredits.credits_videos
+        credits_plans: basicPlanCredits.credits_plans
       };
       
       console.log(`[redeem-coupon] Upgrading to Basic until ${newEnd.toISOString()} with credits:`, basicPlanCredits);
@@ -294,16 +293,15 @@ serve(async (req) => {
         credits_quick_content: proPlanCredits.credits_quick_content,
         credits_suggestions: proPlanCredits.credits_suggestions,
         credits_reviews: proPlanCredits.credits_reviews,
-        credits_plans: proPlanCredits.credits_plans,
-        credits_videos: proPlanCredits.credits_videos
+        credits_plans: proPlanCredits.credits_plans
       };
       
       console.log(`[redeem-coupon] Upgrading to Pro until ${newEnd.toISOString()} with credits:`, proPlanCredits);
     } else if (prizeInfo.type === 'credits') {
-      // Cupons de créditos: distribuir igualitariamente (SEM vídeos)
+      // Cupons de créditos: distribuir igualitariamente
       const totalCredits = prizeInfo.value;
       
-      // Distribuição IGUALITÁRIA (25% para cada tipo - 4 tipos apenas)
+      // Distribuição IGUALITÁRIA (25% para cada tipo)
       const creditsPerType = Math.floor(totalCredits / 4);
       
       const creditsToAdd = {

@@ -35,7 +35,6 @@ interface Team {
     customContentSuggestions: number;
     contentPlans: number;
     contentReviews: number;
-    videoCredits: number;
     isActive: boolean;
   };
   credits?: {
@@ -43,7 +42,6 @@ interface Team {
     contentSuggestions: number;
     contentReviews: number;
     contentPlans: number;
-    videoCredits: number;
   };
 }
 
@@ -212,7 +210,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               customContentSuggestions: planData.credits_suggestions,
               contentPlans: planData.credits_plans,
               contentReviews: planData.credits_reviews,
-              videoCredits: planData.credits_videos,
               isActive: planData.is_active,
             },
             credits: {
@@ -220,7 +217,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               contentSuggestions: teamInfo.credits_suggestions,
               contentReviews: teamInfo.credits_reviews,
               contentPlans: teamInfo.credits_plans,
-              videoCredits: teamInfo.credits_videos,
             }
           };
         }
@@ -472,15 +468,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             customContentSuggestions: teamData.plan.credits_suggestions,
             contentPlans: teamData.plan.credits_plans,
             contentReviews: teamData.plan.credits_reviews,
-            videoCredits: teamData.plan.credits_videos,
             isActive: teamData.plan.is_active
           },
           credits: {
             quickContentCreations: teamData.credits_quick_content,
             contentSuggestions: teamData.credits_suggestions,
             contentReviews: teamData.credits_reviews,
-            contentPlans: teamData.credits_plans,
-            videoCredits: teamData.credits_videos
+            contentPlans: teamData.credits_plans
           }
         });
         console.log('[AuthContext] ✅ Team data refreshed successfully');

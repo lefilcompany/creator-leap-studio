@@ -347,7 +347,6 @@ export type Database = {
           credits_quick_content: number
           credits_reviews: number
           credits_suggestions: number
-          credits_videos: number
           description: string | null
           features: Json | null
           id: string
@@ -372,7 +371,6 @@ export type Database = {
           credits_quick_content?: number
           credits_reviews?: number
           credits_suggestions?: number
-          credits_videos?: number
           description?: string | null
           features?: Json | null
           id: string
@@ -397,7 +395,6 @@ export type Database = {
           credits_quick_content?: number
           credits_reviews?: number
           credits_suggestions?: number
-          credits_videos?: number
           description?: string | null
           features?: Json | null
           id?: string
@@ -602,7 +599,6 @@ export type Database = {
           credits_quick_content: number | null
           credits_reviews: number | null
           credits_suggestions: number | null
-          credits_videos: number
           id: string
           name: string
           plan_id: string
@@ -620,7 +616,6 @@ export type Database = {
           credits_quick_content?: number | null
           credits_reviews?: number | null
           credits_suggestions?: number | null
-          credits_videos?: number
           id?: string
           name: string
           plan_id?: string
@@ -638,7 +633,6 @@ export type Database = {
           credits_quick_content?: number | null
           credits_reviews?: number | null
           credits_suggestions?: number | null
-          credits_videos?: number
           id?: string
           name?: string
           plan_id?: string

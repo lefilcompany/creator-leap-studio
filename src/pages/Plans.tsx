@@ -24,7 +24,6 @@ import {
   ArrowLeft,
   Tag,
   Building2,
-  Video,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Plan } from "@/types/plan";
@@ -74,7 +73,6 @@ const Plans = () => {
           customContentSuggestions: p.credits_suggestions,
           contentPlans: p.credits_plans,
           contentReviews: p.credits_reviews,
-          videoCredits: p.credits_videos,
           isActive: p.is_active,
           stripePriceId: p.stripe_price_id_monthly,
         }));
@@ -366,16 +364,6 @@ const Plans = () => {
                       <CheckCircle className="h-3 w-3 md:h-4 md:w-4 text-green-500 flex-shrink-0 mt-0.5" />
                       <span className="text-left">{plan.customContentSuggestions} sugestões</span>
                     </div>
-                    <div className="flex items-start gap-2">
-                      <CheckCircle className="h-3 w-3 md:h-4 md:w-4 text-green-500 flex-shrink-0 mt-0.5" />
-                      <span className="text-left">{plan.contentReviews} revisões</span>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <CheckCircle className="h-3 w-3 md:h-4 md:w-4 text-green-500 flex-shrink-0 mt-0.5" />
-                      <span className="text-left">
-                        {plan.videoCredits === 1 ? '1 vídeo' : `${plan.videoCredits} vídeos`}
-                      </span>
-                    </div>
                     {isPremium && (
                       <div className="flex items-start gap-2">
                         <CheckCircle className="h-3 w-3 md:h-4 md:w-4 text-green-500 flex-shrink-0 mt-0.5" />
@@ -467,7 +455,6 @@ const Plans = () => {
     contentSuggestions: 0,
     contentReviews: 0,
     contentPlans: 0,
-    videoCredits: 0,
   };
   const isEnterprisePlan = plan?.name === "ENTERPRISE";
 
@@ -503,14 +490,6 @@ const Plans = () => {
       icon: Calendar,
       color: "text-purple-600",
       bgColor: "bg-purple-500/10",
-    },
-    {
-      name: "Vídeos",
-      current: credits?.videoCredits || 0,
-      limit: isEnterprisePlan ? credits?.videoCredits || 0 : plan?.videoCredits || 0,
-      icon: Video,
-      color: "text-pink-600",
-      bgColor: "bg-pink-500/10",
     },
   ];
   const totalCredits = creditData.reduce((acc, credit) => acc + credit.current, 0);
