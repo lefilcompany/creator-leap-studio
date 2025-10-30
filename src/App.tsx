@@ -56,6 +56,7 @@ const App = () => (
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/privacy" element={<Privacy />} />
             
             {/* Dashboard routes with sidebar layout */}
             <Route path="/" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
@@ -79,7 +80,6 @@ const App = () => (
               <Route path="profile" element={<Profile />} />
               <Route path="about" element={<About />} />
               <Route path="contact" element={<Contact />} />
-              <Route path="privacy" element={<Privacy />} />
             </Route>
 
             {/* Action View - Outside dashboard layout for full screen */}
