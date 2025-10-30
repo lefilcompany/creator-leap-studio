@@ -300,26 +300,24 @@ serve(async (req) => {
       
       console.log(`[redeem-coupon] Upgrading to Pro until ${newEnd.toISOString()} with credits:`, proPlanCredits);
     } else if (prizeInfo.type === 'credits') {
-      // Cupons de créditos: distribuir igualitariamente
+      // Cupons de créditos: distribuir igualitariamente (SEM vídeos)
       const totalCredits = prizeInfo.value;
       
-      // Distribuição IGUALITÁRIA (20% para cada tipo, incluindo vídeo)
-      const creditsPerType = Math.floor(totalCredits / 5);
+      // Distribuição IGUALITÁRIA (25% para cada tipo - 4 tipos apenas)
+      const creditsPerType = Math.floor(totalCredits / 4);
       
       const creditsToAdd = {
         quick: creditsPerType,
         suggestions: creditsPerType,
         reviews: creditsPerType,
-        plans: creditsPerType,
-        videos: creditsPerType
+        plans: creditsPerType
       };
 
       updateData = {
         credits_quick_content: team.credits_quick_content + creditsToAdd.quick,
         credits_suggestions: team.credits_suggestions + creditsToAdd.suggestions,
         credits_reviews: team.credits_reviews + creditsToAdd.reviews,
-        credits_plans: team.credits_plans + creditsToAdd.plans,
-        credits_videos: team.credits_videos + creditsToAdd.videos
+        credits_plans: team.credits_plans + creditsToAdd.plans
       };
 
       console.log(`[redeem-coupon] Adding credits:`, creditsToAdd);
