@@ -778,8 +778,21 @@ const Plans = () => {
                   <Badge className="bg-primary text-primary-foreground text-xs">Seu Plano</Badge>
                 </div>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-3xl font-bold text-primary">R${(plan?.price || 0).toFixed(2)}</span>
-                  <span className="text-sm text-muted-foreground">/mês</span>
+                  {plan?.id === 'free' && team?.subscription_status === 'trialing' ? (
+                    <>
+                      <span className="text-3xl font-bold text-primary">Teste Grátis</span>
+                      <span className="text-sm text-muted-foreground">
+                        {team?.subscription_period_end && 
+                          `- ${Math.ceil((new Date(team.subscription_period_end).getTime() - Date.now()) / (1000 * 60 * 60 * 24))} dias restantes`
+                        }
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-3xl font-bold text-primary">R${(plan?.price || 0).toFixed(2)}</span>
+                      <span className="text-sm text-muted-foreground">/mês</span>
+                    </>
+                  )}
                 </div>
               </CardHeader>
               <CardContent className="space-y-2.5">
