@@ -93,7 +93,7 @@ function getPrizeInfo(prefix: string): { type: string; value: number; descriptio
 async function getPlanCredits(planId: string, supabaseAdmin: any) {
   const { data: plan, error } = await supabaseAdmin
     .from('plans')
-    .select('credits_quick_content, credits_suggestions, credits_reviews, credits_plans')
+    .select('credits_quick_content, credits_suggestions, credits_reviews, credits_plans, credits_videos')
     .eq('id', planId)
     .single();
   
@@ -261,7 +261,8 @@ serve(async (req) => {
         credits_quick_content: basicPlanCredits.credits_quick_content,
         credits_suggestions: basicPlanCredits.credits_suggestions,
         credits_reviews: basicPlanCredits.credits_reviews,
-        credits_plans: basicPlanCredits.credits_plans
+        credits_plans: basicPlanCredits.credits_plans,
+        credits_videos: basicPlanCredits.credits_videos
       };
       
       console.log(`[redeem-coupon] Upgrading to Basic until ${newEnd.toISOString()} with credits:`, basicPlanCredits);
@@ -293,7 +294,8 @@ serve(async (req) => {
         credits_quick_content: proPlanCredits.credits_quick_content,
         credits_suggestions: proPlanCredits.credits_suggestions,
         credits_reviews: proPlanCredits.credits_reviews,
-        credits_plans: proPlanCredits.credits_plans
+        credits_plans: proPlanCredits.credits_plans,
+        credits_videos: proPlanCredits.credits_videos
       };
       
       console.log(`[redeem-coupon] Upgrading to Pro until ${newEnd.toISOString()} with credits:`, proPlanCredits);
@@ -301,21 +303,23 @@ serve(async (req) => {
       // Cupons de créditos: distribuir igualitariamente
       const totalCredits = prizeInfo.value;
       
-      // Distribuição IGUALITÁRIA (25% para cada tipo)
-      const creditsPerType = Math.floor(totalCredits / 4);
+      // Distribuição IGUALITÁRIA (20% para cada tipo, incluindo vídeo)
+      const creditsPerType = Math.floor(totalCredits / 5);
       
       const creditsToAdd = {
         quick: creditsPerType,
         suggestions: creditsPerType,
         reviews: creditsPerType,
-        plans: creditsPerType
+        plans: creditsPerType,
+        videos: creditsPerType
       };
 
       updateData = {
         credits_quick_content: team.credits_quick_content + creditsToAdd.quick,
         credits_suggestions: team.credits_suggestions + creditsToAdd.suggestions,
         credits_reviews: team.credits_reviews + creditsToAdd.reviews,
-        credits_plans: team.credits_plans + creditsToAdd.plans
+        credits_plans: team.credits_plans + creditsToAdd.plans,
+        credits_videos: team.credits_videos + creditsToAdd.videos
       };
 
       console.log(`[redeem-coupon] Adding credits:`, creditsToAdd);

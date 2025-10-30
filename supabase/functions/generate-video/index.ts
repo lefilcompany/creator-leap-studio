@@ -125,11 +125,17 @@ async function processVideoGeneration(operationName: string, actionId: string, t
     const videoUrl = publicUrlData.publicUrl;
     console.log('Background: Video uploaded to storage:', videoUrl);
 
-    // Decrementar crédito do time após sucesso
+    // Decrementar crédito de vídeo do time após sucesso
+    const { data: currentTeam } = await supabase
+      .from('teams')
+      .select('credits_videos')
+      .eq('id', teamId)
+      .single();
+    
     const { error: creditError } = await supabase
       .from('teams')
       .update({
-        credits_suggestions: supabase.rpc('decrement', { x: 1, row_id: teamId })
+        credits_videos: (currentTeam?.credits_videos || 1) - 1
       })
       .eq('id', teamId);
 
@@ -310,10 +316,10 @@ serve(async (req) => {
       persona: personaData?.name || 'N/A'
     });
 
-    // Verificar créditos disponíveis
+    // Verificar créditos de vídeo disponíveis
     const { data: teamData, error: teamError } = await supabase
       .from('teams')
-      .select('credits_suggestions')
+      .select('credits_videos')
       .eq('id', actionData.team_id)
       .single();
 
@@ -325,9 +331,9 @@ serve(async (req) => {
       );
     }
 
-    // Verificar se há créditos suficientes
-    if (teamData.credits_suggestions < 1) {
-      console.log('Insufficient credits for video generation');
+    // Verificar se há créditos de vídeo suficientes
+    if (teamData.credits_videos < 1) {
+      console.log('Insufficient video credits for generation');
       
       // Atualizar action como failed
       await supabase
@@ -335,20 +341,20 @@ serve(async (req) => {
         .update({
           status: 'failed',
           result: { 
-            error: 'Créditos insuficientes para gerar vídeo',
-            creditsAvailable: teamData.credits_suggestions
+            error: 'Créditos de vídeo insuficientes',
+            videoCreditsAvailable: teamData.credits_videos
           },
           updated_at: new Date().toISOString()
         })
         .eq('id', actionId);
 
       return new Response(
-        JSON.stringify({ error: 'Créditos insuficientes. Por favor, atualize seu plano.' }),
+        JSON.stringify({ error: 'Créditos de vídeo insuficientes. Por favor, atualize seu plano.' }),
         { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('Credits available:', teamData.credits_suggestions);
+    console.log('Video credits available:', teamData.credits_videos);
 
     const BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
     

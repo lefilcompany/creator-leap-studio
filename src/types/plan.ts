@@ -12,6 +12,7 @@ export interface Plan {
   customContentSuggestions: number;
   contentPlans: number;
   contentReviews: number;
+  videoCredits: number;
   isActive: boolean;
   stripePriceId?: string | null;
 }
@@ -21,4 +22,5 @@ export interface TeamCredits {
   contentSuggestions: number;
   contentReviews: number;
   contentPlans: number;
+  videoCredits: number;
 }

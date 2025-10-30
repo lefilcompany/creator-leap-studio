@@ -173,6 +173,7 @@ serve(async (req) => {
         credits_suggestions: plan.credits_suggestions,
         credits_reviews: plan.credits_reviews,
         credits_plans: plan.credits_plans,
+        credits_videos: plan.credits_videos,
         updated_at: new Date().toISOString()
       })
       .eq('id', teamId);
