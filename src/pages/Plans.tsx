@@ -426,7 +426,9 @@ const Plans = () => {
                           ? "Processando..."
                           : !plan.stripePriceId
                             ? "Em Breve"
-                            : "Iniciar Trial de 7 dias"}
+                            : subscriptionStatus?.isExpired
+                              ? "Assinar Agora"
+                              : "Iniciar Trial de 7 dias"}
                     </Button>
                   ) : plan.name === "Enterprise" ? (
                     <Button
