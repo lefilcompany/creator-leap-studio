@@ -54,8 +54,7 @@ const Plans = () => {
       const { data: plansData, error } = await supabase
         .from("plans")
         .select("*")
-        .eq("is_active", true)
-        .order("price_monthly", { ascending: true });
+        .eq("is_active", true);
 
       if (error) throw error;
 
@@ -78,7 +77,14 @@ const Plans = () => {
           isActive: p.is_active,
           stripePriceId: p.stripe_price_id_monthly,
         }));
-        setPlans(formattedPlans);
+        
+        // Ordenar manualmente: Light, Básico, Pro, Enterprise
+        const planOrder = { free: 1, basic: 2, pro: 3, enterprise: 4 };
+        const sortedPlans = formattedPlans.sort((a, b) => {
+          return (planOrder[a.id as keyof typeof planOrder] || 999) - (planOrder[b.id as keyof typeof planOrder] || 999);
+        });
+        
+        setPlans(sortedPlans);
       }
     } catch (error) {
       console.error("Error loading plans:", error);
