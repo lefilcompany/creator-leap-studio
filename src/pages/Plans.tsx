@@ -24,6 +24,7 @@ import {
   ArrowLeft,
   Tag,
   Building2,
+  Video,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Plan } from "@/types/plan";
@@ -73,6 +74,7 @@ const Plans = () => {
           customContentSuggestions: p.credits_suggestions,
           contentPlans: p.credits_plans,
           contentReviews: p.credits_reviews,
+          videoCredits: p.credits_videos,
           isActive: p.is_active,
           stripePriceId: p.stripe_price_id_monthly,
         }));
@@ -296,8 +298,8 @@ const Plans = () => {
           {plans.map((plan) => {
             const isCurrentPlan = subscriptionStatus?.plan?.id === plan.id;
             const isSelected = selectedPlan === plan.name;
-            const isPopular = plan.name === "PRO";
-            const isPremium = plan.name === "ENTERPRISE";
+            const isPopular = plan.name === "Pro";
+            const isPremium = plan.name === "Enterprise";
             return (
               <Card
                 key={plan.id}
@@ -318,9 +320,13 @@ const Plans = () => {
                 <CardHeader className="text-center pb-4">
                   <CardTitle className="text-xl md:text-2xl">{plan.displayName}</CardTitle>
                   <div className="text-2xl md:text-3xl font-bold text-primary">
-                    {plan.price === 0 ? "Grátis" : `R$ ${plan.price.toFixed(2)}`}
+                    {plan.name === "Enterprise" 
+                      ? "Sob consulta"
+                      : plan.price === 0 && plan.name !== "Light"
+                        ? "Grátis" 
+                        : `R$ ${plan.price.toFixed(2)}`}
                   </div>
-                  {plan.price > 0 && <div className="text-xs text-muted-foreground">por mês</div>}
+                  {plan.price > 0 && plan.name !== "Enterprise" && <div className="text-xs text-muted-foreground">por mês</div>}
                   {plan.trialDays > 0 && (
                     <Badge variant="outline" className="mx-auto text-xs mt-2">
                       {plan.trialDays} dias grátis
@@ -364,15 +370,59 @@ const Plans = () => {
                       <CheckCircle className="h-3 w-3 md:h-4 md:w-4 text-green-500 flex-shrink-0 mt-0.5" />
                       <span className="text-left">{plan.customContentSuggestions} sugestões</span>
                     </div>
+                    <div className="flex items-start gap-2">
+                      <CheckCircle className="h-3 w-3 md:h-4 md:w-4 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-left">{plan.contentPlans} planejamentos</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <CheckCircle className="h-3 w-3 md:h-4 md:w-4 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-left">{plan.contentReviews} revisões</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <CheckCircle className="h-3 w-3 md:h-4 md:w-4 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-left">
+                        {plan.videoCredits === 1 ? '1 vídeo' : `${plan.videoCredits || 0} vídeos`}
+                      </span>
+                    </div>
                     {isPremium && (
-                      <div className="flex items-start gap-2">
-                        <CheckCircle className="h-3 w-3 md:h-4 md:w-4 text-green-500 flex-shrink-0 mt-0.5" />
-                        <span className="text-left font-medium text-secondary">Integrações avançadas</span>
-                      </div>
+                      <>
+                        <div className="flex items-start gap-2">
+                          <CheckCircle className="h-3 w-3 md:h-4 md:w-4 text-green-500 flex-shrink-0 mt-0.5" />
+                          <span className="text-left text-xs">Estratégia personalizada</span>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <CheckCircle className="h-3 w-3 md:h-4 md:w-4 text-green-500 flex-shrink-0 mt-0.5" />
+                          <span className="text-left text-xs">Acompanhamento dedicado</span>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <CheckCircle className="h-3 w-3 md:h-4 md:w-4 text-green-500 flex-shrink-0 mt-0.5" />
+                          <span className="text-left text-xs">Gerente de sucesso</span>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <CheckCircle className="h-3 w-3 md:h-4 md:w-4 text-green-500 flex-shrink-0 mt-0.5" />
+                          <span className="text-left text-xs">Atendimento prioritário</span>
+                        </div>
+                      </>
                     )}
                   </div>
 
-                  {plan.name.toUpperCase() === "FREE" ? null : plan.name.toUpperCase() === "ENTERPRISE" ? (
+                  {plan.name === "Light" ? (
+                    <Button
+                      className="w-full text-sm font-semibold shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-300 active:scale-[0.98] border-2 border-primary/30 hover:bg-primary/10 hover:border-primary/50"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleSubscribe(plan)}
+                      disabled={isCurrentPlan || loadingPlanId === plan.id || !plan.stripePriceId}
+                    >
+                      {isCurrentPlan
+                        ? "Plano Atual"
+                        : loadingPlanId === plan.id
+                          ? "Processando..."
+                          : !plan.stripePriceId
+                            ? "Em Breve"
+                            : "Iniciar Trial de 7 dias"}
+                    </Button>
+                  ) : plan.name === "Enterprise" ? (
                     <Button
                       className="w-full text-sm font-semibold bg-gradient-to-r from-secondary via-secondary/90 to-accent hover:from-secondary/90 hover:via-secondary/80 hover:to-accent/90 shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-300 active:scale-[0.98]"
                       size="sm"
@@ -398,13 +448,13 @@ const Plans = () => {
                       variant={isPopular ? "default" : "outline"}
                       size="sm"
                       onClick={() => handleSubscribe(plan)}
-                      disabled={isCurrentPlan || loadingPlanId === plan.id || (plan.price > 0 && !plan.stripePriceId)}
+                      disabled={isCurrentPlan || loadingPlanId === plan.id || !plan.stripePriceId}
                     >
                       {isCurrentPlan
                         ? "Plano Atual"
                         : loadingPlanId === plan.id
                           ? "Processando..."
-                          : plan.price > 0 && !plan.stripePriceId
+                          : !plan.stripePriceId
                             ? "Em Breve"
                             : "Assinar Agora"}
                     </Button>
@@ -455,8 +505,9 @@ const Plans = () => {
     contentSuggestions: 0,
     contentReviews: 0,
     contentPlans: 0,
+    videoCredits: 0,
   };
-  const isEnterprisePlan = plan?.name === "ENTERPRISE";
+  const isEnterprisePlan = plan?.name === "Enterprise";
 
   const creditData = [
     {
@@ -490,6 +541,14 @@ const Plans = () => {
       icon: Calendar,
       color: "text-purple-600",
       bgColor: "bg-purple-500/10",
+    },
+    {
+      name: "Vídeos",
+      current: credits?.videoCredits || 0,
+      limit: isEnterprisePlan ? credits?.videoCredits || 0 : plan?.videoCredits || 0,
+      icon: Video,
+      color: "text-pink-600",
+      bgColor: "bg-pink-500/10",
     },
   ];
   const totalCredits = creditData.reduce((acc, credit) => acc + credit.current, 0);
@@ -731,7 +790,7 @@ const Plans = () => {
                   },
                   {
                     label: "Integrações avançadas",
-                    included: plan?.name === "ENTERPRISE",
+                    included: plan?.name === "Enterprise",
                   },
                 ].map((feature, idx) => (
                   <div key={idx} className="flex items-center gap-2.5">
