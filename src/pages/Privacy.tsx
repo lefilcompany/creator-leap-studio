@@ -1,4 +1,6 @@
 import { Shield, Info, Database, Scale, Target, Brain, Share2, Cookie, UserCheck, Clock, Lock, RefreshCw, Mail } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 const Privacy = () => {
   const sections = [
@@ -8,7 +10,7 @@ const Privacy = () => {
       content: (
         <>
           <p className="text-muted-foreground leading-relaxed">
-            Esta Política de Privacidade tem como objetivo explicar, de forma clara e transparente, como coletamos, utilizamos, armazenamos e protegemos os dados dos usuários de nossa plataforma. Nosso compromisso é assegurar segurança, ética digital e conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018 – LGPD) e demais legislações aplicáveis.
+            Esta Política de Privacidade tem como objetivo explicar, de forma clara e transparente, como coletamos, utilizamos, armazenamos e protegemos os dados dos usuários de nossa plataforma. Nosso compromisso é assegurar <strong>segurança, ética digital e conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018 – LGPD)</strong> e demais legislações aplicáveis.
           </p>
           <p className="text-muted-foreground leading-relaxed mt-3">
             Ao utilizar a plataforma, o usuário concorda com os termos descritos nesta Política.
@@ -201,8 +203,17 @@ const Privacy = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background py-12 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/10 py-12 px-4">
       <div className="container max-w-4xl mx-auto">
+        {/* Back button */}
+        <div className="mb-8">
+          <Link to="/dashboard">
+            <Button variant="ghost" className="gap-2">
+              ← Voltar ao Dashboard
+            </Button>
+          </Link>
+        </div>
+
         {/* Header */}
         <div className="text-center mb-12">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
@@ -237,6 +248,12 @@ const Privacy = () => {
               </div>
             );
           })}
+        </div>
+
+        {/* Footer */}
+        <div className="mt-12 text-center text-sm text-muted-foreground border-t border-border pt-6">
+          <p>© 2025 Creator. Todos os direitos reservados.</p>
+          <p className="mt-2">Última atualização: Janeiro de 2025</p>
         </div>
       </div>
     </div>

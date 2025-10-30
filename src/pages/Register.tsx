@@ -691,12 +691,14 @@ const Register = () => {
                 <div className="pt-1 md:pt-3">
                   <p className="font-medium text-foreground text-xs md:text-sm">
                     📌 Ao continuar, você concorda com nossa{" "}
-                    <button
-                      type="button"
+                    <a
+                      href="/privacy"
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="underline text-primary hover:text-secondary transition-colors font-semibold"
                     >
                       Política de Privacidade completa
-                    </button>
+                    </a>
                     .
                   </p>
                 </div>
