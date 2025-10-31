@@ -246,14 +246,14 @@ const Plans = () => {
       console.log('[CREATE-CHECKOUT] Resposta:', data);
 
       if (data?.url) {
-        toast.success("Redirecionando para pagamento...", {
-          description: "Você será redirecionado para o Stripe em instantes"
+        toast.success("Abrindo página de pagamento...", {
+          description: "Uma nova aba será aberta com o checkout do Stripe"
         });
         
-        // Redirect to Stripe Checkout
+        // Open Stripe Checkout in new tab
         setTimeout(() => {
-          window.location.href = data.url;
-        }, 1000);
+          window.open(data.url, '_blank');
+        }, 500);
       }
     } catch (error) {
       console.error("[CREATE-CHECKOUT] Erro ao criar sessão:", error);
