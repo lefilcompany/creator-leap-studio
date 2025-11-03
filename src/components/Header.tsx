@@ -148,9 +148,9 @@ export const Header = () => {
             variant="outline"
             size="sm"
             onClick={() => setShowCouponDialog(true)}
-            className="h-8 md:h-10 px-3 rounded-lg hover:bg-primary/10 transition-all duration-200 border-2 border-primary/30 hover:border-primary/50 group"
+            className="h-8 md:h-10 px-2 lg:px-3 rounded-lg hover:bg-primary/10 transition-all duration-200 border-2 border-primary/30 hover:border-primary/50 group"
           >
-            <span className="text-xs md:text-sm font-medium bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 bg-clip-text text-transparent mr-2">Cupom de presente</span>
+            <span className="hidden lg:inline text-sm font-medium bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 bg-clip-text text-transparent mr-2">Cupom de presente</span>
             <Gift className="h-4 w-4 md:h-5 md:w-5 text-primary" />
           </Button>
 
