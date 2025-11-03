@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Search, Settings, User, Menu, Loader2, Info, FileText, Shield, LogOut, Moon, Sun, Ticket } from "lucide-react";
+import { Search, Settings, User, Menu, Loader2, Info, FileText, Shield, LogOut, Moon, Sun, Gift } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -150,7 +150,7 @@ export const Header = () => {
             onClick={() => setShowCouponDialog(true)}
             className="h-8 w-8 md:h-10 md:w-10 rounded-lg hover:bg-primary/10 transition-all duration-200 border border-transparent hover:border-primary/20 group"
           >
-            <Ticket className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
+            <Gift className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
             <span className="sr-only">Inserir cupom</span>
           </Button>
 
