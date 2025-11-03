@@ -148,10 +148,10 @@ export const Header = () => {
             variant="ghost"
             size="sm"
             onClick={() => setShowCouponDialog(true)}
-            className="h-8 w-8 md:h-10 md:w-10 rounded-lg hover:bg-primary/10 transition-all duration-200 border border-transparent hover:border-primary/20 group"
+            className="h-8 md:h-10 px-3 rounded-lg hover:bg-primary/10 transition-all duration-200 border border-transparent hover:border-primary/20 group"
           >
+            <span className="text-xs md:text-sm font-medium text-muted-foreground mr-2">CUPOM DE PRESENTE</span>
             <Gift className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
-            <span className="sr-only">Inserir cupom</span>
           </Button>
 
           {/* Theme toggle button */}
