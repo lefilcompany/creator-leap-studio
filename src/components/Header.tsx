@@ -145,13 +145,13 @@ export const Header = () => {
 
           {/* Coupon button */}
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
             onClick={() => setShowCouponDialog(true)}
-            className="h-8 md:h-10 px-3 rounded-lg hover:bg-primary/10 transition-all duration-200 border border-transparent hover:border-primary/20 group"
+            className="h-8 md:h-10 px-3 rounded-lg hover:bg-primary/10 transition-all duration-200 border-2 border-primary/30 hover:border-primary/50 group"
           >
-            <span className="text-xs md:text-sm font-medium text-muted-foreground mr-2">CUPOM DE PRESENTE</span>
-            <Gift className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
+            <span className="text-xs md:text-sm font-medium bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 bg-clip-text text-transparent mr-2">Cupom de presente</span>
+            <Gift className="h-4 w-4 md:h-5 md:w-5 text-primary" />
           </Button>
 
           {/* Theme toggle button */}
