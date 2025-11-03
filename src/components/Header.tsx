@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Search, Settings, User, Menu, Loader2, Info, FileText, Shield, LogOut, Moon, Sun } from "lucide-react";
+import { Search, Settings, User, Menu, Loader2, Info, FileText, Shield, LogOut, Moon, Sun, Ticket } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/dialog";
 import { CreatorLogo } from "./CreatorLogo";
 import Notifications from "./Notifications";
+import RedeemCouponDialog from "./team/RedeemCouponDialog";
 
 export const Header = () => {
   const { setOpen } = useSidebar();
@@ -41,6 +42,7 @@ export const Header = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [showMobileSearch, setShowMobileSearch] = useState(false);
+  const [showCouponDialog, setShowCouponDialog] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   
   // Se o trial expirou, desabilita funcionalidades
@@ -139,6 +141,17 @@ export const Header = () => {
           >
             <Search className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
             <span className="sr-only">{t.search.searchContent}</span>
+          </Button>
+
+          {/* Coupon button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowCouponDialog(true)}
+            className="h-8 w-8 md:h-10 md:w-10 rounded-lg hover:bg-primary/10 transition-all duration-200 border border-transparent hover:border-primary/20 group"
+          >
+            <Ticket className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
+            <span className="sr-only">Inserir cupom</span>
           </Button>
 
           {/* Theme toggle button */}
@@ -299,6 +312,16 @@ export const Header = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Redeem Coupon Dialog */}
+      <RedeemCouponDialog
+        open={showCouponDialog}
+        onOpenChange={setShowCouponDialog}
+        onSuccess={() => {
+          setShowCouponDialog(false);
+        }}
+        currentPlanId={user?.teamId || ''}
+      />
     </header>
   );
 };
