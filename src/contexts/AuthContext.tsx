@@ -69,7 +69,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const RELOAD_DEBOUNCE_MS = 5000;
+const RELOAD_DEBOUNCE_MS = 1000; // Reduzido para 1s
 const CACHE_VALIDITY_MS = 60000;
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -84,6 +84,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const dataCache = useRef<DataCache | null>(null);
   const isMounted = useRef(true);
   const isInitialized = useRef(false);
+  const isInitialLoad = useRef(true);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const checkIfAdmin = useCallback(async (userId: string): Promise<boolean> => {
     try {
@@ -106,16 +108,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const loadUserData = useCallback(async (supabaseUser: SupabaseUser) => {
+  const loadUserData = useCallback(async (supabaseUser: SupabaseUser, forceLoad = false) => {
     const now = Date.now();
     
-    if (now - lastReloadTime.current < RELOAD_DEBOUNCE_MS) {
+    // Permitir load inicial sempre, ignorar debounce
+    const shouldSkipDebounce = isInitialLoad.current || forceLoad;
+    
+    if (!shouldSkipDebounce && now - lastReloadTime.current < RELOAD_DEBOUNCE_MS) {
       console.log('[AuthContext] Skipping reload - debounced');
       setIsLoading(false);
       return;
     }
 
-    if (dataCache.current && now - dataCache.current.timestamp < CACHE_VALIDITY_MS) {
+    // Usar cache apenas se não for load inicial e não for force
+    if (!shouldSkipDebounce && dataCache.current && now - dataCache.current.timestamp < CACHE_VALIDITY_MS) {
       console.log('[AuthContext] Using cached user data');
       setUser(dataCache.current.user);
       setTeam(dataCache.current.team);
@@ -123,8 +129,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
+    // Cancelar requisição anterior se existir
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = new AbortController();
+
     try {
       lastReloadTime.current = now;
+      isInitialLoad.current = false; // Marcar que já não é inicial
       console.log('[AuthContext] Loading user data for:', supabaseUser.id);
 
       const [profileResult, isAdmin] = await Promise.all([
@@ -252,7 +265,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (currentSession?.user) {
       dataCache.current = null;
       lastReloadTime.current = 0;
-      await loadUserData(currentSession.user);
+      await loadUserData(currentSession.user, true); // Force load
     }
   }, [loadUserData]);
 
@@ -309,45 +322,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const initializeAuth = async () => {
       try {
-        setIsLoading(true); // ✅ Marca como loading ao iniciar
-        console.log('[AuthContext] 🔍 Checking localStorage for session...');
+        setIsLoading(true);
+        console.log('[AuthContext] 🔍 [INIT] Checking localStorage for session...');
         
-        // Check what's in localStorage
         const storageKeys = Object.keys(localStorage).filter(key => 
           key.includes('supabase') || key.includes('auth')
         );
-        console.log('[AuthContext] 📦 Storage keys found:', storageKeys);
+        console.log('[AuthContext] 📦 [INIT] Storage keys found:', storageKeys);
         
-        // First, get the session from localStorage
         const { data: { session: currentSession }, error } = await supabase.auth.getSession();
         
         if (error) {
-          console.error('[AuthContext] ❌ Error getting session:', error);
+          console.error('[AuthContext] ❌ [INIT] Error getting session:', error);
         }
         
         if (!mounted) return;
 
         if (currentSession) {
-          console.log('[AuthContext] ✅ Session found in localStorage');
-          console.log('[AuthContext] 🔑 Access token:', currentSession.access_token?.substring(0, 20) + '...');
-          console.log('[AuthContext] 👤 User ID:', currentSession.user?.id);
-          console.log('[AuthContext] ⏰ Expires at:', new Date(currentSession.expires_at! * 1000).toLocaleString());
+          console.log('[AuthContext] ✅ [INIT] Session found in localStorage');
+          console.log('[AuthContext] 🔑 [INIT] Access token:', currentSession.access_token?.substring(0, 20) + '...');
+          console.log('[AuthContext] 👤 [INIT] User ID:', currentSession.user?.id);
+          console.log('[AuthContext] ⏰ [INIT] Expires at:', new Date(currentSession.expires_at! * 1000).toLocaleString());
         } else {
-          console.log('[AuthContext] ❌ No session found in localStorage');
+          console.log('[AuthContext] ❌ [INIT] No session found in localStorage');
         }
         
         setSession(currentSession);
 
         if (currentSession?.user) {
-          console.log('[AuthContext] Loading user data from cached session');
+          console.log('[AuthContext] 🚀 [INIT] Loading user data from cached session');
           isInitialized.current = true;
-          await loadUserData(currentSession.user);
+          // isInitialLoad é true, então vai carregar sem debounce
+          await loadUserData(currentSession.user, true);
         } else {
-          console.log('[AuthContext] No user in session, setting loading to false');
+          console.log('[AuthContext] ⚠️ [INIT] No user in session, setting loading to false');
           setIsLoading(false);
         }
       } catch (error) {
-        console.error('[AuthContext] ❌ Error initializing auth:', error);
+        console.error('[AuthContext] ❌ [INIT] Error initializing auth:', error);
         if (mounted) {
           setIsLoading(false);
         }
@@ -360,26 +372,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Then set up the listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, newSession) => {
-        console.log('[AuthContext] 🔔 Auth event:', event);
+        console.log('[AuthContext] 🔔 [EVENT] Auth event:', event);
         
-        if (event === 'SIGNED_OUT') {
-          console.log('[AuthContext] ⚠️ SIGNED_OUT event triggered!');
-          console.trace('[AuthContext] Stack trace for SIGNED_OUT');
+        if (!mounted) {
+          console.log('[AuthContext] ⚠️ [EVENT] Component unmounted, skipping event');
+          return;
         }
 
-        if (!mounted) return;
-
+        // Handle TOKEN_REFRESHED - apenas atualiza sessão, mantém dados do usuário
         if (event === 'TOKEN_REFRESHED') {
-          console.log('[AuthContext] 🔄 Token refreshed - updating session');
+          console.log('[AuthContext] 🔄 [TOKEN_REFRESHED] Token refreshed - updating session only');
           if (newSession) {
-            console.log('[AuthContext] 🔑 New token:', newSession.access_token?.substring(0, 20) + '...');
+            console.log('[AuthContext] 🔑 [TOKEN_REFRESHED] New token:', newSession.access_token?.substring(0, 20) + '...');
           }
           setSession(newSession);
           return;
         }
 
+        // Handle SIGNED_OUT
         if (event === 'SIGNED_OUT') {
-          console.log('[AuthContext] 👋 User signed out - clearing state');
+          console.log('[AuthContext] 👋 [SIGNED_OUT] User signed out - clearing all state');
           setSession(null);
           setUser(null);
           setTeam(null);
@@ -388,37 +400,60 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setIsLoading(false);
           dataCache.current = null;
           isInitialized.current = false;
+          isInitialLoad.current = true; // Reset para próximo login
           return;
         }
 
+        // Handle SIGNED_IN - apenas se não foi inicializado ainda
         if (event === 'SIGNED_IN') {
-          console.log('[AuthContext] 👤 User signed in');
+          console.log('[AuthContext] 👤 [SIGNED_IN] User signed in');
+          
+          // Evitar processar SIGNED_IN se já inicializamos
+          if (isInitialized.current) {
+            console.log('[AuthContext] ⏭️ [SIGNED_IN] Already initialized, skipping duplicate load');
+            setSession(newSession);
+            return;
+          }
+          
           setSession(newSession);
           
           if (newSession?.user) {
-            console.log('[AuthContext] ✅ User data available, loading...');
+            console.log('[AuthContext] ✅ [SIGNED_IN] User data available, loading...');
             isInitialized.current = true;
-            loadUserData(newSession.user);
+            // Usar setTimeout para evitar deadlock
+            setTimeout(() => {
+              if (mounted) {
+                loadUserData(newSession.user, true);
+              }
+            }, 0);
           } else {
-            console.log('[AuthContext] ❌ No user data in session');
+            console.log('[AuthContext] ❌ [SIGNED_IN] No user data in session');
             setUser(null);
             setTeam(null);
             setIsLoading(false);
           }
-        } else if (event === 'INITIAL_SESSION') {
-          // Skip INITIAL_SESSION since we already handled it in initializeAuth
-          console.log('[AuthContext] ⏭️ Skipping INITIAL_SESSION event (already handled)');
-        } else {
-          console.log('[AuthContext] 📝 Other event, updating session');
-          setSession(newSession);
+          return;
         }
+
+        // Handle INITIAL_SESSION - já foi tratado em initializeAuth
+        if (event === 'INITIAL_SESSION') {
+          console.log('[AuthContext] ⏭️ [INITIAL_SESSION] Skipping (already handled in init)');
+          return;
+        }
+
+        // Outros eventos
+        console.log('[AuthContext] 📝 [OTHER] Other event, updating session only');
+        setSession(newSession);
       }
     );
 
     return () => {
-      console.log('[AuthContext] Cleanup - unsubscribing');
+      console.log('[AuthContext] 🧹 [CLEANUP] Cleanup - unsubscribing');
       mounted = false;
       isMounted.current = false;
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
       subscription.unsubscribe();
     };
   }, [loadUserData]);

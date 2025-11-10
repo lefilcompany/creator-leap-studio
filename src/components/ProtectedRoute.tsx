@@ -16,10 +16,23 @@ export default function ProtectedRoute({ children, requireTeam = true }: Protect
   const hasRedirected = useRef(false);
 
   useEffect(() => {
-    if (isLoading || hasRedirected.current) return;
+    if (isLoading) return;
+    
+    if (hasRedirected.current) return;
 
+    // Verificar se realmente não há sessão ativa antes de redirecionar
     if (!session || !user) {
-      console.log("No session or user, redirecting to login");
+      console.log("[ProtectedRoute] No session or user found after loading completed");
+      
+      // Double check: verificar localStorage antes de redirecionar
+      const hasStoredSession = localStorage.getItem('sb-afxwqkrneraatgovhpkb-auth-token');
+      
+      if (hasStoredSession) {
+        console.log("[ProtectedRoute] Found stored session, waiting for auth to complete...");
+        return; // Aguardar auth context processar
+      }
+      
+      console.log("[ProtectedRoute] No stored session, redirecting to login");
       hasRedirected.current = true;
       navigate("/", { replace: true });
       return;
