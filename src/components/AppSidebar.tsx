@@ -16,7 +16,6 @@ import {
 import {
   Sidebar,
   SidebarContent,
-  SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
 import {
@@ -24,12 +23,6 @@ import {
   SheetContent,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/hooks/useAuth";
@@ -49,44 +42,36 @@ function NavItem({ id, href, icon: Icon, label, collapsed, onNavigate, disabled 
   const location = useLocation();
   const isActive = location.pathname === href;
 
-  const content = (
+  if (disabled) {
+    return (
+      <div
+        className={cn(
+          "flex items-center gap-4 p-3 rounded-lg transition-colors duration-200 cursor-not-allowed opacity-50",
+          "text-muted-foreground bg-background"
+        )}
+      >
+        <Icon className="h-5 w-5 flex-shrink-0" />
+        {!collapsed && <span className="font-medium text-sm">{label}</span>}
+      </div>
+    );
+  }
+
+  return (
     <NavLink
       id={id}
       to={href}
       onClick={onNavigate}
       className={cn(
         "flex items-center gap-4 p-3 rounded-lg transition-colors duration-200 group",
-        collapsed ? "justify-center" : "",
-        disabled 
-          ? "cursor-not-allowed opacity-50 text-muted-foreground bg-background"
-          : isActive
-            ? "bg-primary/10 text-primary"
-            : "text-muted-foreground bg-background hover:bg-muted hover:text-foreground"
+        isActive
+          ? "bg-primary/10 text-primary"
+          : "text-muted-foreground bg-background hover:bg-muted hover:text-foreground"
       )}
     >
       <Icon className="h-5 w-5 flex-shrink-0" />
       {!collapsed && <span className="font-medium text-sm">{label}</span>}
     </NavLink>
   );
-
-  if (disabled) {
-    return content;
-  }
-
-  if (collapsed) {
-    return (
-      <Tooltip>
-        <TooltipTrigger asChild>
-          {content}
-        </TooltipTrigger>
-        <TooltipContent side="right">
-          <p>{label}</p>
-        </TooltipContent>
-      </Tooltip>
-    );
-  }
-
-  return content;
 }
 
 function ActionButton({ id, href, icon: Icon, label, collapsed, variant, onNavigate, disabled }: {
@@ -117,44 +102,34 @@ function ActionButton({ id, href, icon: Icon, label, collapsed, variant, onNavig
         },
     };
 
-    const content = (
+    if (disabled) {
+        return (
+            <div
+                className={cn(
+                    "flex items-center gap-3 p-3 rounded-lg cursor-not-allowed opacity-50",
+                    "bg-muted text-muted-foreground"
+                )}
+            >
+                <Icon className="h-5 w-5 flex-shrink-0" />
+                {!collapsed && <span className="font-medium text-sm">{label}</span>}
+            </div>
+        );
+    }
+
+    return (
         <NavLink
             id={id}
             to={href}
             onClick={onNavigate}
             className={cn(
                 "flex items-center gap-3 p-3 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-105",
-                collapsed ? "justify-center" : "",
-                disabled 
-                    ? "cursor-not-allowed opacity-50 bg-muted text-muted-foreground"
-                    : isActive 
-                        ? variantClasses[variant].active 
-                        : variantClasses[variant].inactive
+                isActive ? variantClasses[variant].active : variantClasses[variant].inactive
             )}
         >
             <Icon className="h-5 w-5 flex-shrink-0" />
             {!collapsed && <span className="font-medium text-sm">{label}</span>}
         </NavLink>
     );
-
-    if (disabled) {
-        return content;
-    }
-
-    if (collapsed) {
-        return (
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    {content}
-                </TooltipTrigger>
-                <TooltipContent side="right">
-                    <p>{label}</p>
-                </TooltipContent>
-            </Tooltip>
-        );
-    }
-
-    return content;
 }
 
 function TeamPlanSection({ teamName, planName, collapsed, onNavigate, t }: {
@@ -189,8 +164,8 @@ export function AppSidebar() {
   const { t } = useTranslation();
   const logo = theme === 'dark' ? logoCreatorBranca : logoCreatorPreta;
   
-  // No desktop, usa o estado do sidebar para colapsar
-  const collapsed = state === "collapsed";
+  // No desktop, a sidebar é sempre fixa e não colapsa
+  const collapsed = false;
   
   // Se o trial expirou, desabilita navegação exceto histórico
   const isNavigationDisabled = isTrialExpired;
@@ -217,23 +192,18 @@ export function AppSidebar() {
   };
 
   const sidebarContent = () => (
-    <TooltipProvider>
-      <div className="pt-6 pb-2 mb-2 flex justify-center items-center gap-2">
-        <NavLink 
-          to="/dashboard" 
-          onClick={handleMobileNavigate}
-          className="cursor-pointer hover:opacity-80 transition-opacity"
-        >
-          <img
-            src={logo}
-            alt="Creator Logo"
-            className={cn("w-auto transition-all duration-300", collapsed ? "h-6" : "h-8")}
-          />
-        </NavLink>
-        {!isMobile && (
-          <SidebarTrigger className="ml-auto" />
-        )}
-      </div>
+    <>
+      <NavLink 
+        to="/dashboard" 
+        onClick={handleMobileNavigate}
+        className="pt-6 pb-2 mb-2 flex justify-center cursor-pointer hover:opacity-80 transition-opacity"
+      >
+        <img
+          src={logo}
+          alt="Creator Logo"
+          className="h-8 w-auto"
+        />
+      </NavLink>
       
       <nav className="flex-1 flex flex-col gap-6 px-4 overflow-hidden">
         <div className="flex flex-col gap-2">
@@ -272,7 +242,7 @@ export function AppSidebar() {
           </div>
         )}
       </nav>
-    </TooltipProvider>
+    </>
   );
 
   // No mobile/tablet, renderiza um Sheet em vez da Sidebar normal
@@ -288,14 +258,11 @@ export function AppSidebar() {
     );
   }
 
-  // Desktop: renderiza a Sidebar normal colapsável
+  // Desktop: renderiza a Sidebar normal sempre fixa
   return (
     <Sidebar 
-      className={cn(
-        "fixed left-0 top-0 h-screen border-r border-primary/10 shadow-md shadow-primary/20 z-40 transition-all duration-300",
-        collapsed ? "w-16" : "w-64"
-      )}
-      collapsible="icon"
+      className="fixed left-0 top-0 h-screen w-64 border-r border-primary/10 shadow-md shadow-primary/20 z-40" 
+      collapsible="none"
       side="left"
       variant="sidebar"
     >
