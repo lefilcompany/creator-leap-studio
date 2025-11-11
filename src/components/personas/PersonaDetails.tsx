@@ -14,6 +14,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Persona } from '@/types/persona';
 import type { BrandSummary } from '@/types/brand';
+import { formTranslations } from '@/lib/formTranslations';
 
 interface PersonaDetailsProps {
   persona: Persona | null;
@@ -35,12 +36,58 @@ const formatDate = (dateString: string) => {
   });
 };
 
-const DetailField = ({ label, value }: { label: string; value?: string }) => {
+const translateField = (field: string, value: string): string => {
+  const translations = formTranslations.pt.forms.personas;
+  
+  // Traduzir gênero
+  if (field === 'gender') {
+    const genderMap: Record<string, string> = {
+      'male': translations.genderOptions.male,
+      'female': translations.genderOptions.female,
+      'non-binary': translations.genderOptions.nonBinary,
+      'nonBinary': translations.genderOptions.nonBinary,
+      'other': translations.genderOptions.preferNotToSay,
+      'preferNotToSay': translations.genderOptions.preferNotToSay
+    };
+    return genderMap[value] || genderMap[value.toLowerCase()] || value;
+  }
+  
+  // Traduzir tom de voz
+  if (field === 'preferredToneOfVoice') {
+    const toneMap: Record<string, string> = {
+      'professional': translations.toneOptions.professional,
+      'casual': translations.toneOptions.casual,
+      'friendly': translations.toneOptions.friendly,
+      'inspiring': translations.toneOptions.inspiring,
+      'direct': translations.toneOptions.direct,
+      'educational': translations.toneOptions.educational
+    };
+    return toneMap[value] || toneMap[value.toLowerCase()] || value;
+  }
+  
+  // Traduzir estágio da jornada de compra
+  if (field === 'purchaseJourneyStage') {
+    const stageMap: Record<string, string> = {
+      'awareness': translations.journeyStages.awareness,
+      'consideration': translations.journeyStages.consideration,
+      'decision': translations.journeyStages.decision,
+      'postPurchase': translations.journeyStages.postPurchase,
+      'advocacy': translations.journeyStages.advocacy,
+      'retention': translations.journeyStages.postPurchase
+    };
+    return stageMap[value] || stageMap[value.toLowerCase()] || value;
+  }
+  
+  return value;
+};
+
+const DetailField = ({ label, value, field }: { label: string; value?: string; field?: string }) => {
   if (!value) return null;
+  const displayValue = field ? translateField(field, value) : value;
   return (
     <div className="p-3 bg-muted/50 rounded-lg break-words">
       <p className="text-sm text-muted-foreground">{label}</p>
-      <p className="font-semibold text-foreground whitespace-pre-wrap">{value}</p>
+      <p className="font-semibold text-foreground whitespace-pre-wrap">{displayValue}</p>
     </div>
   );
 };
@@ -108,7 +155,7 @@ export default function PersonaDetails({ persona, brands, onEdit, onDelete, isLo
           <div>
             <h3 className="text-lg font-semibold text-foreground mb-4">Informações Básicas</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <DetailField label="Gênero" value={persona.gender} />
+              <DetailField label="Gênero" value={persona.gender} field="gender" />
               <DetailField label="Idade" value={persona.age} />
               <DetailField label="Localização" value={persona.location} />
               <DetailField label="Contexto Profissional" value={persona.professionalContext} />
@@ -130,8 +177,8 @@ export default function PersonaDetails({ persona, brands, onEdit, onDelete, isLo
             <h3 className="text-lg font-semibold text-foreground mb-4">Comportamento de Consumo</h3>
             <div className="space-y-4">
               <DetailField label="Rotina de Consumo de Conteúdo" value={persona.contentConsumptionRoutine} />
-              <DetailField label="Tom de Voz Preferido" value={persona.preferredToneOfVoice} />
-              <DetailField label="Estágio da Jornada de Compra" value={persona.purchaseJourneyStage} />
+              <DetailField label="Tom de Voz Preferido" value={persona.preferredToneOfVoice} field="preferredToneOfVoice" />
+              <DetailField label="Estágio da Jornada de Compra" value={persona.purchaseJourneyStage} field="purchaseJourneyStage" />
               <DetailField label="Gatilhos de Interesse" value={persona.interestTriggers} />
             </div>
           </div>
