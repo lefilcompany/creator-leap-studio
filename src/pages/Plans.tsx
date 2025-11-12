@@ -370,19 +370,19 @@ const Plans = () => {
                     </div>
                     <div className="flex items-start gap-2">
                       <CheckCircle className="h-3 w-3 md:h-4 md:w-4 text-green-500 flex-shrink-0 mt-0.5" />
-                      <span className="text-left">{plan.quickContentCreations} criações rápidas</span>
+                      <span className="text-left">{plan.quickContentCreations} Criações Rápidas</span>
                     </div>
                     <div className="flex items-start gap-2">
                       <CheckCircle className="h-3 w-3 md:h-4 md:w-4 text-green-500 flex-shrink-0 mt-0.5" />
-                      <span className="text-left">{plan.customContentSuggestions} sugestões</span>
+                      <span className="text-left">{plan.customContentSuggestions} Criações Personalizadas</span>
                     </div>
                     <div className="flex items-start gap-2">
                       <CheckCircle className="h-3 w-3 md:h-4 md:w-4 text-green-500 flex-shrink-0 mt-0.5" />
-                      <span className="text-left">{plan.contentPlans} planejamentos</span>
+                      <span className="text-left">{plan.contentPlans} Planejamentos de Conteúdo</span>
                     </div>
                     <div className="flex items-start gap-2">
                       <CheckCircle className="h-3 w-3 md:h-4 md:w-4 text-green-500 flex-shrink-0 mt-0.5" />
-                      <span className="text-left">{plan.contentReviews} revisões</span>
+                      <span className="text-left">{plan.contentReviews} Revisões de Conteúdo</span>
                     </div>
                     <div className="flex items-start gap-2">
                       <CheckCircle className="h-3 w-3 md:h-4 md:w-4 text-green-500 flex-shrink-0 mt-0.5" />

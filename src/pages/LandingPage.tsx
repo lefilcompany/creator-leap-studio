@@ -5,6 +5,7 @@ import { Features } from "@/components/landing/Features";
 import { HowItWorks } from "@/components/landing/HowItWorks";
 import { Pricing } from "@/components/landing/Pricing";
 import { Stats } from "@/components/landing/Stats";
+import { CreditsExplanation } from "@/components/landing/CreditsExplanation";
 import { FinalCTA } from "@/components/landing/FinalCTA";
 import { LandingFooter } from "@/components/landing/LandingFooter";
 
@@ -18,6 +19,7 @@ const LandingPage = () => {
         <Features />
         <HowItWorks />
         <Stats />
+        <CreditsExplanation />
         <Pricing />
         <FinalCTA />
       </main>
