@@ -8,7 +8,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ErrorBoundary from "./components/ErrorBoundary";
-import Index from "./pages/Index";
+import LandingPage from "./pages/LandingPage";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -51,7 +51,10 @@ const App = () => (
               <Sonner />
               <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Login />} />
+            {/* Public Landing Page */}
+            <Route path="/" element={<LandingPage />} />
+            
+            {/* Auth Routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -59,7 +62,7 @@ const App = () => (
             <Route path="/privacy" element={<Privacy />} />
             
             {/* Dashboard routes with sidebar layout */}
-            <Route path="/" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
+            <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="brands" element={<Brands />} />
               <Route path="themes" element={<Themes />} />

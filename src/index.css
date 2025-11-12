@@ -132,3 +132,20 @@
   0% { transform: rotate(0deg); }
   100% { transform: rotate(90deg); }
 }
+
+/* --- ANIMAÇÃO DE GRADIENTE PARA LANDING PAGE --- */
+@keyframes gradient {
+  0%, 100% {
+    background-size: 200% 200%;
+    background-position: 0% 50%;
+  }
+  50% {
+    background-size: 200% 200%;
+    background-position: 100% 50%;
+  }
+}
+
+.animate-gradient {
+  animation: gradient 8s ease infinite;
+  background-size: 200% 200%;
+}
