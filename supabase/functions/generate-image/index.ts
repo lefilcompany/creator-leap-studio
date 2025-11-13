@@ -88,7 +88,14 @@ serve(async (req) => {
       userId: authenticatedUserId, 
       teamId: authenticatedTeamId,
       preserveImagesCount: formData.preserveImages?.length || 0,
-      styleReferenceImagesCount: formData.styleReferenceImages?.length || 0
+      styleReferenceImagesCount: formData.styleReferenceImages?.length || 0,
+      // Log do tamanho das imagens para debug
+      preserveImagesSizes: formData.preserveImages?.map((img: string) => 
+        `${(img.length / 1024).toFixed(0)}KB`
+      ) || [],
+      styleReferenceImagesSizes: formData.styleReferenceImages?.map((img: string) => 
+        `${(img.length / 1024).toFixed(0)}KB`
+      ) || []
     });
 
     // Check team credits
@@ -131,7 +138,9 @@ serve(async (req) => {
     // Add preserve images first (highest priority - brand images)
     const preserveImages = formData.preserveImages || [];
     if (preserveImages && preserveImages.length > 0) {
-      preserveImages.forEach((img: string) => {
+      console.log(`✅ Adicionando ${preserveImages.length} imagem(ns) da marca/identidade...`);
+      preserveImages.forEach((img: string, index: number) => {
+        console.log(`  - Imagem marca ${index + 1}: ${(img.length / 1024).toFixed(0)}KB`);
         messageContent.push({
           type: 'image_url',
           image_url: { url: img }
@@ -142,13 +151,17 @@ serve(async (req) => {
     // Add style reference images after (user uploads)
     const styleReferenceImages = formData.styleReferenceImages || [];
     if (styleReferenceImages && styleReferenceImages.length > 0) {
-      styleReferenceImages.forEach((img: string) => {
+      console.log(`✅ Adicionando ${styleReferenceImages.length} imagem(ns) de referência do usuário...`);
+      styleReferenceImages.forEach((img: string, index: number) => {
+        console.log(`  - Imagem usuário ${index + 1}: ${(img.length / 1024).toFixed(0)}KB`);
         messageContent.push({
           type: 'image_url',
           image_url: { url: img }
         });
       });
     }
+    
+    console.log(`📦 Total de conteúdos na mensagem: ${messageContent.length} (1 texto + ${messageContent.length - 1} imagens)`);
 
     // Retry logic for image generation
     const MAX_RETRIES = 3;
