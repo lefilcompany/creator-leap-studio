@@ -41,7 +41,6 @@ export default function ContentResult() {
   const [reviewType, setReviewType] = useState<"image" | "caption" | null>(null);
   const [reviewPrompt, setReviewPrompt] = useState("");
   const [isReviewing, setIsReviewing] = useState(false);
-  const [freeRevisionsLeft, setFreeRevisionsLeft] = useState(2);
   const [totalRevisions, setTotalRevisions] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const [isSavedToHistory, setIsSavedToHistory] = useState(false);
@@ -142,12 +141,11 @@ export default function ContentResult() {
 
         // Load revision count
         const revisionsKey = `revisions_${contentId}`;
-        const savedRevisions = localStorage.getItem(revisionsKey);
-        if (savedRevisions) {
-          const count = parseInt(savedRevisions);
-          setTotalRevisions(count);
-          setFreeRevisionsLeft(Math.max(0, 2 - count));
-        }
+          const savedRevisions = localStorage.getItem(revisionsKey);
+          if (savedRevisions) {
+            const count = parseInt(savedRevisions);
+            setTotalRevisions(count);
+          }
       } else {
         // Try to load from localStorage
         const saved = localStorage.getItem("currentContent");
@@ -169,7 +167,6 @@ export default function ContentResult() {
             if (savedRevisions) {
               const count = parseInt(savedRevisions);
               setTotalRevisions(count);
-              setFreeRevisionsLeft(Math.max(0, 2 - count));
             }
             setIsLoading(false);
           } catch (error) {
@@ -256,18 +253,14 @@ export default function ContentResult() {
   const handleSubmitReview = async () => {
     if (!reviewPrompt.trim() || !contentData || !reviewType) return;
 
-    // Check if user can still review
-    const needsCredit = totalRevisions >= 2;
-
-    // Bloquear se não tem revisões gratuitas E não tem créditos
-    if (needsCredit && (!team?.credits || team.credits <= 0)) {
-      toast.error("Você não tem créditos de revisão disponíveis");
+    // Sempre verificar créditos (custo: 1 crédito)
+    if (!team?.credits || team.credits < 1) {
+      toast.error("Você não tem créditos disponíveis. Cada revisão custa 1 crédito.");
       return;
     }
     setIsReviewing(true);
     try {
       const newRevisionCount = totalRevisions + 1;
-      const newFreeRevisionsLeft = Math.max(0, freeRevisionsLeft - 1);
 
       // Get original form data from localStorage
       const saved = JSON.parse(localStorage.getItem("currentContent") || "{}");
@@ -466,7 +459,7 @@ export default function ContentResult() {
         hashtags: updatedContent.hashtags,
         type: reviewType,
         reviewPrompt,
-        usedCredit: needsCredit
+        usedCredit: true
       };
 
       // Atualizar versões
@@ -488,7 +481,7 @@ export default function ContentResult() {
           type: reviewType,
           prompt: reviewPrompt,
           timestamp: new Date().toISOString(),
-          usedCredit: needsCredit
+          usedCredit: true
         }]
       };
       try {
@@ -502,7 +495,20 @@ export default function ContentResult() {
       const revisionsKey = `revisions_${saved.id}`;
       localStorage.setItem(revisionsKey, newRevisionCount.toString());
       setTotalRevisions(newRevisionCount);
-      setFreeRevisionsLeft(newFreeRevisionsLeft);
+
+      // Deduzir 1 crédito da equipe
+      if (team?.id) {
+        const { error: creditError } = await supabase
+          .from("teams")
+          .update({
+            credits: ((team as any).credits || 0) - 1,
+          } as any)
+          .eq("id", team.id);
+
+        if (creditError) {
+          console.error("Error updating team credits:", creditError);
+        }
+      }
 
       // Atualizar registro no histórico (tabela actions) se já estiver salvo
       if (saved.actionId && saved.savedToHistory) {
@@ -523,11 +529,7 @@ export default function ContentResult() {
           console.error("Erro ao atualizar histórico:", updateError);
         }
       }
-      if (needsCredit) {
-        toast.success("Revisão concluída! 1 crédito foi consumido.");
-      } else {
-        toast.success(`Revisão concluída! ${newFreeRevisionsLeft} revis${newFreeRevisionsLeft !== 1 ? "ões" : "ão"} gratuita${newFreeRevisionsLeft !== 1 ? "s" : ""} restante${newFreeRevisionsLeft !== 1 ? "s" : ""}.`);
-      }
+      toast.success("Revisão concluída! 1 crédito foi consumido.");
       setShowReviewDialog(false);
       setReviewPrompt("");
     } catch (error) {
@@ -651,7 +653,7 @@ export default function ContentResult() {
                 <div className="flex items-center gap-1.5 flex-shrink-0">
                   <Badge variant="outline" className="bg-muted/50 text-muted-foreground border-border/30 gap-1 px-2 py-1 text-xs h-7">
                     <RefreshCw className="h-3 w-3" />
-                    <span>{freeRevisionsLeft > 0 ? freeRevisionsLeft : team?.credits || 0}</span>
+                    <span>{team?.credits || 0} créditos</span>
                   </Badge>
                   <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 p-1.5 h-7 w-7 flex items-center justify-center">
                     {contentData.type === "video" ? <Video className="h-3.5 w-3.5" /> : <ImageIcon className="h-3.5 w-3.5" />}
@@ -684,8 +686,8 @@ export default function ContentResult() {
               <div className="flex items-center gap-2 flex-shrink-0">
                 <Badge variant="outline" className="bg-muted/50 text-muted-foreground border-border/30 gap-2 px-3 py-1.5 text-xs">
                   <RefreshCw className="h-3 w-3" />
-                  <span>
-                    {freeRevisionsLeft > 0 ? <>{freeRevisionsLeft} revisões grátis</> : <>{team?.credits || 0} créditos</>}
+                  <span>{team?.credits || 0} créditos</span>
+                </Badge>
                   </span>
                 </Badge>
                 <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 gap-2 px-3 py-1.5 text-xs">
@@ -733,14 +735,12 @@ export default function ContentResult() {
                   <span className="hidden xs:inline">Download</span>
                 </Button>
                 <div className="relative group">
-                  <Button onClick={handleOpenReview} variant="secondary" className="w-full flex-1 sm:flex-initial rounded-xl gap-2 hover-scale transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 group" size="lg" disabled={freeRevisionsLeft === 0 && (!team?.credits || team.credits <= 0)}>
+                  <Button onClick={handleOpenReview} variant="secondary" className="w-full flex-1 sm:flex-initial rounded-xl gap-2 hover-scale transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 group" size="lg" disabled={!team?.credits || team.credits <= 0}>
                     <RefreshCw className="h-4 w-4 group-hover:rotate-180 transition-transform duration-500" />
                     <span className="sm:hidden">Revisar</span>
-                    {freeRevisionsLeft > 0 && <Badge variant="secondary" className="ml-1 text-xs px-1.5 py-0.5 bg-white text-secondary border-secondary/30">
-                        {freeRevisionsLeft}
-                      </Badge>}
+                    <span className="hidden sm:inline">Revisar</span>
                   </Button>
-                  {freeRevisionsLeft === 0 && (!team?.credits || team.credits <= 0) && <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-destructive text-destructive-foreground px-3 py-1.5 rounded-lg text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 shadow-lg">
+                  {(!team?.credits || team.credits <= 0) && <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-destructive text-destructive-foreground px-3 py-1.5 rounded-lg text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 shadow-lg">
                       Sem créditos disponíveis
                     </div>}
                 </div>
@@ -860,13 +860,10 @@ export default function ContentResult() {
             <DialogDescription>
               {reviewType ? <>
                   Descreva as alterações que deseja fazer.
-                  {freeRevisionsLeft > 0 ? <span className="text-primary font-medium">
-                      {" "}
-                      {freeRevisionsLeft} revisão(ões) gratuita(s) restante(s).
-                    </span> : team?.credits && team.credits > 0 ? <span className="text-orange-600 font-medium">
-                      {" "}
-                      Esta revisão consumirá 2 créditos. Você tem {team.credits} crédito(s).
-                    </span> : <span className="text-destructive font-medium"> Sem créditos disponíveis para revisão.</span>}
+                  <span className="text-orange-600 font-medium">
+                    {" "}
+                    Esta revisão consumirá 1 crédito. Você tem {team?.credits || 0} crédito(s).
+                  </span>
                 </> : "Selecione o que você deseja revisar neste conteúdo."}
             </DialogDescription>
           </DialogHeader>
@@ -897,25 +894,13 @@ export default function ContentResult() {
                   </Label>
                 </div>
               </RadioGroup> : <>
-                {freeRevisionsLeft > 0 && <Alert className="border-primary/50 bg-primary/10">
-                    <RefreshCw className="h-4 w-4 text-primary" />
-                    <AlertDescription className="text-sm">
-                      <span className="font-semibold text-primary">
-                        {freeRevisionsLeft > 1 ? "Revisões Gratuitas" : "Revisão Gratuita"}:
-                      </span>{" "}
-                      Você tem {freeRevisionsLeft}{" "}
-                      {freeRevisionsLeft > 1 ? "revisões gratuitas disponíveis" : "revisão gratuita disponível"} para este conteúdo.
-                    </AlertDescription>
-                  </Alert>}
-
-                {freeRevisionsLeft === 0 && <Alert className="border-orange-500/50 bg-orange-500/10">
-                    <RefreshCw className="h-4 w-4 text-orange-600" />
-                    <AlertDescription className="text-sm">
-                      <span className="font-semibold text-orange-600">Atenção:</span> Revisões gratuitas esgotadas. Esta
-                      revisão consumirá 2 créditos do seu plano.
-                      {team?.credits !== undefined && <span className="block mt-1 text-muted-foreground">
-                          {team.credits > 0 ? <>
-                              Você tem {team.credits} crédito
+                <Alert className="border-orange-500/50 bg-orange-500/10">
+                  <RefreshCw className="h-4 w-4 text-orange-600" />
+                  <AlertDescription className="text-sm">
+                    <span className="font-semibold text-orange-600">Atenção:</span> Esta revisão consumirá 1 crédito do seu plano.
+                    {team?.credits !== undefined && <span className="block mt-1 text-muted-foreground">
+                        {team.credits > 0 ? <>
+                            Você tem {team.credits} crédito
                               {team.credits !== 1 ? "s" : ""} disponível
                               {team.credits !== 1 ? "eis" : ""}.
                             </> : <span className="text-destructive font-medium">
@@ -937,13 +922,13 @@ export default function ContentResult() {
               }} className="flex-1" disabled={isReviewing}>
                     Voltar
                   </Button>
-                  <Button onClick={handleSubmitReview} className="flex-1 gap-2" disabled={!reviewPrompt.trim() || isReviewing || freeRevisionsLeft === 0 && (!team?.credits || team.credits <= 0)}>
+                  <Button onClick={handleSubmitReview} className="flex-1 gap-2" disabled={!reviewPrompt.trim() || isReviewing || !team?.credits || team.credits <= 0}>
                     {isReviewing ? <>
                         <RefreshCw className="h-4 w-4 animate-spin" />
                         Revisando...
                       </> : <>
                         <Check className="h-4 w-4" />
-                        {freeRevisionsLeft === 0 ? "Confirmar e Usar Crédito" : "Confirmar Revisão"}
+                        Confirmar e Usar 1 Crédito
                       </>}
                   </Button>
                 </div>
