@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 export function useOAuthCallback() {
   const navigate = useNavigate();
@@ -24,11 +24,7 @@ export function useOAuthCallback() {
         
         if (sessionError) throw sessionError;
         if (!session) {
-          toast({
-            title: "Erro de autenticação",
-            description: "Não foi possível obter a sessão do usuário.",
-            variant: "destructive",
-          });
+          toast.error("Não foi possível obter a sessão do usuário.");
           setIsProcessing(false);
           return;
         }
@@ -52,11 +48,7 @@ export function useOAuthCallback() {
             .single();
 
           if (retryError) {
-            toast({
-              title: "Erro ao carregar perfil",
-              description: "Não foi possível carregar seus dados. Tente fazer login novamente.",
-              variant: "destructive",
-            });
+            toast.error("Não foi possível carregar seus dados. Tente fazer login novamente.");
             await supabase.auth.signOut();
             navigate('/login');
             setIsProcessing(false);
@@ -66,26 +58,20 @@ export function useOAuthCallback() {
           if (!retryProfile.team_id) {
             setShowTeamDialog(true);
           } else {
+            toast.success(`Bem-vindo(a), ${retryProfile.name}!`);
             navigate('/dashboard');
           }
         } else {
           if (!profile.team_id) {
             setShowTeamDialog(true);
           } else {
-            toast({
-              title: "Login realizado com sucesso!",
-              description: `Bem-vindo(a), ${profile.name}!`,
-            });
+            toast.success(`Bem-vindo(a), ${profile.name}!`);
             navigate('/dashboard');
           }
         }
       } catch (error) {
         console.error('OAuth callback error:', error);
-        toast({
-          title: "Erro no login",
-          description: "Ocorreu um erro durante a autenticação. Tente novamente.",
-          variant: "destructive",
-        });
+        toast.error("Ocorreu um erro durante a autenticação. Tente novamente.");
         navigate('/login');
       } finally {
         setIsProcessing(false);

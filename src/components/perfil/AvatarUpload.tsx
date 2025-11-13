@@ -3,7 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Camera, Loader2, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import AvatarEditor from './AvatarEditor';
 
@@ -24,7 +24,6 @@ export default function AvatarUpload({
   const [deleting, setDeleting] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
   const [imageToEdit, setImageToEdit] = useState<string>('');
-  const { toast } = useToast();
   const { refreshProfile } = useAuth();
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -37,21 +36,13 @@ export default function AvatarUpload({
       
       // Validar tipo de arquivo
       if (!file.type.startsWith('image/')) {
-        toast({
-          title: 'Erro',
-          description: 'Por favor, selecione uma imagem válida',
-          variant: 'destructive',
-        });
+        toast.error('Por favor, selecione uma imagem válida');
         return;
       }
 
       // Validar tamanho (5MB)
       if (file.size > 5 * 1024 * 1024) {
-        toast({
-          title: 'Erro',
-          description: 'A imagem deve ter no máximo 5MB',
-          variant: 'destructive',
-        });
+        toast.error('A imagem deve ter no máximo 5MB');
         return;
       }
 
@@ -61,11 +52,7 @@ export default function AvatarUpload({
       setEditorOpen(true);
     } catch (error) {
       console.error('Erro ao selecionar arquivo:', error);
-      toast({
-        title: 'Erro',
-        description: 'Erro ao carregar imagem',
-        variant: 'destructive',
-      });
+      toast.error('Erro ao carregar imagem');
     } finally {
       // Limpar input
       if (event.target) {
@@ -113,17 +100,10 @@ export default function AvatarUpload({
       onAvatarUpdate(publicUrl);
       await refreshProfile();
       
-      toast({
-        title: 'Sucesso',
-        description: 'Foto de perfil atualizada',
-      });
+      toast.success('Foto de perfil atualizada');
     } catch (error) {
       console.error('Erro ao fazer upload:', error);
-      toast({
-        title: 'Erro',
-        description: 'Erro ao atualizar foto de perfil',
-        variant: 'destructive',
-      });
+      toast.error('Erro ao atualizar foto de perfil');
     } finally {
       setUploading(false);
       // Limpar URL temporária
@@ -161,17 +141,10 @@ export default function AvatarUpload({
       onAvatarUpdate(null);
       await refreshProfile();
       
-      toast({
-        title: 'Sucesso',
-        description: 'Foto de perfil removida',
-      });
+      toast.success('Foto de perfil removida');
     } catch (error) {
       console.error('Erro ao deletar:', error);
-      toast({
-        title: 'Erro',
-        description: 'Erro ao remover foto de perfil',
-        variant: 'destructive',
-      });
+      toast.error('Erro ao remover foto de perfil');
     } finally {
       setDeleting(false);
     }

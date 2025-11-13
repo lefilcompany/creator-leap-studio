@@ -11,7 +11,7 @@ import type { StrategicTheme, StrategicThemeSummary } from '@/types/theme';
 import type { BrandSummary } from '@/types/brand';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
 type ThemeFormData = Omit<StrategicTheme, 'id' | 'createdAt' | 'updatedAt' | 'teamId' | 'userId'>;
@@ -19,7 +19,6 @@ type ThemeFormData = Omit<StrategicTheme, 'id' | 'createdAt' | 'updatedAt' | 'te
 export default function Themes() {
   const { user, team } = useAuth();
   const isMobile = useIsMobile();
-  const { toast } = useToast();
   const [themes, setThemes] = useState<StrategicThemeSummary[]>([]);
   const [brands, setBrands] = useState<BrandSummary[]>([]);
   const [isLoadingThemes, setIsLoadingThemes] = useState(true);
@@ -62,18 +61,14 @@ export default function Themes() {
         setBrands(brands);
       } catch (error) {
         console.error('Erro ao carregar marcas:', error);
-        toast({
-          title: "Erro",
-          description: "Erro ao carregar marcas",
-          variant: "destructive"
-        });
+        toast.error("Não foi possível carregar as marcas");
       } finally {
         setIsLoadingBrands(false);
       }
     };
     
     loadBrands();
-  }, [user?.teamId, toast]);
+  }, [user?.teamId]);
 
   // Load themes from database
   useEffect(() => {
@@ -104,41 +99,29 @@ export default function Themes() {
         setTotalPages(Math.ceil((count || 0) / ITEMS_PER_PAGE));
       } catch (error) {
         console.error('Erro ao carregar temas:', error);
-        toast({
-          title: "Erro",
-          description: "Erro ao carregar temas",
-          variant: "destructive"
-        });
+        toast.error("Não foi possível carregar os temas estratégicos");
       } finally {
         setIsLoadingThemes(false);
       }
     };
     
     loadThemes();
-  }, [user?.teamId, currentPage, toast]);
+  }, [user?.teamId, currentPage]);
 
   const handleOpenDialog = useCallback((theme: StrategicTheme | null = null) => {
     // Check if at limit before opening dialog for new theme
     if (!theme && team && themes.length >= team.plan.maxStrategicThemes) {
-      toast({
-        title: "Limite atingido",
-        description: `Você atingiu o limite de ${team.plan.maxStrategicThemes} temas do seu plano. Faça upgrade para criar mais temas.`,
-        variant: "destructive"
-      });
+      toast.error(`Você atingiu o limite de ${team.plan.maxStrategicThemes} temas estratégicos do seu plano.`);
       return;
     }
     setThemeToEdit(theme);
     setIsDialogOpen(true);
-  }, [team, themes.length, toast]);
+  }, [team, themes.length]);
 
   const handleSaveTheme = useCallback(
     async (formData: ThemeFormData): Promise<StrategicTheme> => {
       if (!user?.teamId || !user.id) {
-        toast({
-          title: "Erro",
-          description: "Usuário não autenticado ou sem equipe",
-          variant: "destructive"
-        });
+        toast.error("Informações do usuário não disponíveis");
         throw new Error('User not authenticated');
       }
 
@@ -187,10 +170,7 @@ export default function Themes() {
             setSelectedThemeSummary(summary);
           }
 
-          toast({
-            title: "Sucesso!",
-            description: 'Tema atualizado com sucesso!'
-          });
+          toast.success(themeToEdit ? 'Tema atualizado com sucesso!' : 'Tema criado com sucesso!');
 
           setIsDialogOpen(false);
           setThemeToEdit(null);
@@ -243,10 +223,7 @@ export default function Themes() {
           setSelectedTheme(saved);
           setSelectedThemeSummary(summary);
 
-          toast({
-            title: "Sucesso!",
-            description: 'Tema criado com sucesso!'
-          });
+          toast.success('Tema criado com sucesso!');
 
           setIsDialogOpen(false);
           setThemeToEdit(null);
@@ -255,24 +232,16 @@ export default function Themes() {
         }
       } catch (error) {
         console.error('Erro ao salvar tema:', error);
-        toast({
-          title: "Erro",
-          description: "Erro ao salvar tema. Tente novamente.",
-          variant: "destructive"
-        });
+        toast.error("Erro ao salvar tema. Tente novamente.");
         throw error;
       }
     },
-    [themeToEdit, selectedTheme?.id, user, toast]
+    [themeToEdit, selectedTheme?.id, user]
   );
 
   const handleDeleteTheme = useCallback(async () => {
     if (!selectedTheme || !user?.teamId || !user?.id) {
-      toast({
-        title: "Erro",
-        description: "Não foi possível deletar o tema. Verifique se você está logado.",
-        variant: "destructive"
-      });
+      toast.error("Não foi possível deletar o tema. Verifique se você está logado.");
       return;
     }
 
@@ -291,19 +260,12 @@ export default function Themes() {
       setIsDialogOpen(false);
       setThemeToEdit(null);
       
-      toast({
-        title: "Sucesso!",
-        description: "Tema deletado com sucesso!"
-      });
+      toast.success("Tema deletado com sucesso!");
     } catch (error) {
       console.error('Erro ao deletar tema:', error);
-      toast({
-        title: "Erro",
-        description: "Erro ao deletar tema. Tente novamente.",
-        variant: "destructive"
-      });
+      toast.error("Erro ao deletar tema. Tente novamente.");
     }
-  }, [selectedTheme, user, toast]);
+  }, [selectedTheme, user]);
 
   const handleSelectTheme = useCallback(async (theme: StrategicThemeSummary) => {
     setSelectedThemeSummary(theme);
@@ -344,15 +306,11 @@ export default function Themes() {
       setSelectedTheme(fullTheme);
     } catch (error) {
       console.error('Erro ao carregar detalhes do tema:', error);
-      toast({
-        title: "Erro",
-        description: "Erro ao carregar detalhes do tema",
-        variant: "destructive"
-      });
+      toast.error("Erro ao carregar detalhes do tema");
     } finally {
       setIsLoadingThemeDetails(false);
     }
-  }, [toast]);
+  }, []);
 
   // Verificar se o limite foi atingido
   const isAtThemeLimit = team ? themes.length >= team.plan.maxStrategicThemes : false;

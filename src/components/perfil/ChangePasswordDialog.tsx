@@ -68,16 +68,7 @@ export default function ChangePasswordDialog({ isOpen, onOpenChange }: ChangePas
   const handleConfirmPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setConfirmPassword(value);
-    
-    if (toastTimeoutRef.current) {
-      clearTimeout(toastTimeoutRef.current);
-    }
-    
-    if (value && newPassword && value !== newPassword) {
-      toastTimeoutRef.current = setTimeout(() => {
-        toast.error('As senhas não coincidem. Verifique e tente novamente.');
-      }, 800);
-    }
+    // Removido toast redundante - validação visual já existe
   };
 
   useEffect(() => {
