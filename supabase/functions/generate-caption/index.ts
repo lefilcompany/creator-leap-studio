@@ -301,6 +301,76 @@ serve(async (req) => {
       audience: formData?.audience
     });
     
+    // Authenticate user
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    if (!supabaseUrl || !supabaseServiceKey) {
+      return new Response(
+        JSON.stringify({ error: 'Server configuration error' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Authorization required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    
+    if (authError || !user) {
+      console.error('❌ [CAPTION] Auth error:', authError);
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Get user's team
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('team_id')
+      .eq('id', user.id)
+      .single();
+
+    if (profileError || !profile?.team_id) {
+      console.error('❌ [CAPTION] Profile error:', profileError);
+      return new Response(
+        JSON.stringify({ error: 'Team not found' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const authenticatedTeamId = profile.team_id;
+
+    // Check team credits
+    const { data: teamData, error: teamError } = await supabase
+      .from('teams')
+      .select('credits')
+      .eq('id', authenticatedTeamId)
+      .single();
+
+    if (teamError) {
+      console.error('❌ [CAPTION] Team error:', teamError);
+      return new Response(
+        JSON.stringify({ error: 'Error checking credits' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (!teamData || teamData.credits <= 0) {
+      return new Response(
+        JSON.stringify({ error: 'Créditos insuficientes para gerar legenda' }),
+        { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
     // Input validation
     if (!formData || typeof formData !== 'object') {
       return new Response(
@@ -560,6 +630,17 @@ Nossa conexão com ${audience} vai além das palavras. É uma conversa visual qu
     } catch (historyError) {
       console.error("⚠️ [CAPTION] Erro ao salvar no histórico:", historyError);
       // Continue anyway - don't fail the request
+    }
+
+    // Decrement team credits
+    const { error: updateError } = await supabase
+      .from('teams')
+      .update({ credits: teamData.credits - 1 })
+      .eq('id', authenticatedTeamId);
+
+    if (updateError) {
+      console.error('❌ [CAPTION] Error updating credits:', updateError);
+      // Continue anyway - caption was generated
     }
 
     return new Response(
