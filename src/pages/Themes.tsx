@@ -13,11 +13,13 @@ import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { CreditConfirmationDialog } from '@/components/CreditConfirmationDialog';
+import { Coins } from 'lucide-react';
 
 type ThemeFormData = Omit<StrategicTheme, 'id' | 'createdAt' | 'updatedAt' | 'teamId' | 'userId'>;
 
 export default function Themes() {
-  const { user, team } = useAuth();
+  const { user, team, refreshTeamData } = useAuth();
   const isMobile = useIsMobile();
   const [themes, setThemes] = useState<StrategicThemeSummary[]>([]);
   const [brands, setBrands] = useState<BrandSummary[]>([]);
@@ -29,6 +31,7 @@ export default function Themes() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [themeToEdit, setThemeToEdit] = useState<StrategicTheme | null>(null);
   const [isThemeDetailsOpen, setIsThemeDetailsOpen] = useState(false);
+  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
 
   // Estados para paginação
   const [currentPage, setCurrentPage] = useState(1);
@@ -109,20 +112,34 @@ export default function Themes() {
   }, [user?.teamId, currentPage]);
 
   const handleOpenDialog = useCallback((theme: StrategicTheme | null = null) => {
-    // Verificar créditos antes de abrir o diálogo para novo tema
-    if (!theme && team) {
-      if (team.credits < 1) {
-        toast.error('Créditos insuficientes. Criar um tema custa 1 crédito.');
-        return;
-      }
+    // Para edição, abrir direto
+    if (theme) {
+      setThemeToEdit(theme);
+      setIsDialogOpen(true);
+      return;
+    }
+
+    // Para novo tema, verificar limites
+    if (team) {
       if (themes.length >= team.plan.maxStrategicThemes) {
         toast.error(`Você atingiu o limite de ${team.plan.maxStrategicThemes} temas estratégicos do seu plano.`);
         return;
       }
+      if (team.credits < 1) {
+        toast.error('Créditos insuficientes. Criar um tema custa 1 crédito.');
+        return;
+      }
     }
-    setThemeToEdit(theme);
-    setIsDialogOpen(true);
+
+    // Abrir diálogo de confirmação
+    setThemeToEdit(null);
+    setIsConfirmDialogOpen(true);
   }, [team, themes.length]);
+
+  const handleConfirmCreate = useCallback(() => {
+    setIsConfirmDialogOpen(false);
+    setIsDialogOpen(true);
+  }, []);
 
   const handleSaveTheme = useCallback(
     async (formData: ThemeFormData): Promise<StrategicTheme> => {
@@ -235,13 +252,13 @@ export default function Themes() {
             .update({ credits: team.credits - 1 } as any)
             .eq('id', user.teamId);
 
+          // Atualizar créditos sem reload
+          await refreshTeamData();
+
           toast.success('Tema criado com sucesso!');
 
           setIsDialogOpen(false);
           setThemeToEdit(null);
-          
-          // Recarregar dados do team para atualizar créditos na UI
-          window.location.reload();
           
           return saved;
         }
@@ -356,6 +373,10 @@ export default function Themes() {
             >
               <Plus className="mr-2 h-5 w-5" />
               Novo tema
+              <span className="ml-2 flex items-center gap-1 text-xs opacity-90">
+                <Coins className="h-3 w-3" />
+                1
+              </span>
             </Button>
           </div>
         </CardHeader>
@@ -412,6 +433,15 @@ export default function Themes() {
         onSave={handleSaveTheme}
         themeToEdit={themeToEdit}
         brands={brands}
+      />
+
+      <CreditConfirmationDialog
+        isOpen={isConfirmDialogOpen}
+        onOpenChange={setIsConfirmDialogOpen}
+        onConfirm={handleConfirmCreate}
+        currentBalance={team?.credits || 0}
+        cost={1}
+        resourceType="tema estratégico"
       />
     </div>
   );

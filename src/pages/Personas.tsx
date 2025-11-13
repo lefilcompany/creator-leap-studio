@@ -15,12 +15,14 @@ import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { CreditConfirmationDialog } from '@/components/CreditConfirmationDialog';
+import { Coins } from 'lucide-react';
 
 // Definindo o tipo para os dados do formulário, que é uma Persona parcial
 type PersonaFormData = Omit<Persona, 'id' | 'createdAt' | 'updatedAt' | 'teamId' | 'userId'>;
 
 export default function PersonasPage() {
-  const { user, team } = useAuth();
+  const { user, team, refreshTeamData } = useAuth();
   const isMobile = useIsMobile();
   const [personas, setPersonas] = useState<PersonaSummary[]>([]);
   const [brands, setBrands] = useState<BrandSummary[]>([]);
@@ -32,6 +34,7 @@ export default function PersonasPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [personaToEdit, setPersonaToEdit] = useState<Persona | null>(null);
   const [isPersonaDetailsOpen, setIsPersonaDetailsOpen] = useState(false);
+  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
 
   // Estados para paginação
   const [currentPage, setCurrentPage] = useState(1);
@@ -112,14 +115,34 @@ export default function PersonasPage() {
   }, [user?.teamId, currentPage]);
 
   const handleOpenDialog = useCallback((persona: Persona | null = null) => {
-    // Check if at limit before opening dialog for new persona
-    if (!persona && team && personas.length >= team.plan.maxPersonas) {
-      toast.error(`Você atingiu o limite de ${team.plan.maxPersonas} personas do seu plano. Faça upgrade para criar mais personas.`);
+    // Para edição, abrir direto
+    if (persona) {
+      setPersonaToEdit(persona);
+      setIsDialogOpen(true);
       return;
     }
-    setPersonaToEdit(persona);
-    setIsDialogOpen(true);
+
+    // Para nova persona, verificar limites
+    if (team) {
+      if (personas.length >= team.plan.maxPersonas) {
+        toast.error(`Você atingiu o limite de ${team.plan.maxPersonas} personas do seu plano. Faça upgrade para criar mais personas.`);
+        return;
+      }
+      if (team.credits < 1) {
+        toast.error('Créditos insuficientes. Criar uma persona custa 1 crédito.');
+        return;
+      }
+    }
+
+    // Abrir diálogo de confirmação
+    setPersonaToEdit(null);
+    setIsConfirmDialogOpen(true);
   }, [team, personas.length]);
+
+  const handleConfirmCreate = useCallback(() => {
+    setIsConfirmDialogOpen(false);
+    setIsDialogOpen(true);
+  }, []);
 
   const handleSelectPersona = useCallback(async (persona: PersonaSummary) => {
     setSelectedPersonaSummary(persona);
@@ -268,16 +291,14 @@ export default function PersonasPage() {
           .update({ credits: team.credits - 1 } as any)
           .eq('id', user.teamId);
         
+        // Atualizar créditos sem reload
+        await refreshTeamData();
+        
         toast.success('Persona criada com sucesso!', { id: toastId });
       }
       
       setIsDialogOpen(false);
       setPersonaToEdit(null);
-      
-      // Recarregar dados do team para atualizar créditos na UI
-      if (!personaToEdit) {
-        window.location.reload();
-      }
     } catch (error) {
       console.error('Erro ao salvar persona:', error);
       toast.error('Erro ao salvar persona. Tente novamente.', { id: toastId });
@@ -343,6 +364,10 @@ export default function PersonasPage() {
             >
               <Plus className="mr-2 h-4 w-4 lg:h-5 lg:w-5" />
               Nova persona
+              <span className="ml-2 flex items-center gap-1 text-xs opacity-90">
+                <Coins className="h-3 w-3" />
+                1
+              </span>
             </Button>
           </div>
         </CardHeader>
@@ -399,6 +424,15 @@ export default function PersonasPage() {
         onSave={handleSavePersona}
         personaToEdit={personaToEdit}
         brands={brands}
+      />
+
+      <CreditConfirmationDialog
+        isOpen={isConfirmDialogOpen}
+        onOpenChange={setIsConfirmDialogOpen}
+        onConfirm={handleConfirmCreate}
+        currentBalance={team?.credits || 0}
+        cost={1}
+        resourceType="persona"
       />
     </div>
   );

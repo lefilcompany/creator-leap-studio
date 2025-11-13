@@ -15,12 +15,14 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useTranslation } from '@/hooks/useTranslation';
+import { CreditConfirmationDialog } from '@/components/CreditConfirmationDialog';
+import { Coins } from 'lucide-react';
 
 // Definindo o tipo para os dados do formulário, que é um Brand parcial
 type BrandFormData = Omit<Brand, 'id' | 'createdAt' | 'updatedAt' | 'teamId' | 'userId'>;
 
 export default function MarcasPage() {
-  const { user, team } = useAuth();
+  const { user, team, refreshTeamData } = useAuth();
   const isMobile = useIsMobile();
   const { t } = useTranslation();
   const [brands, setBrands] = useState<BrandSummary[]>([]);
@@ -31,6 +33,7 @@ export default function MarcasPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [brandToEdit, setBrandToEdit] = useState<Brand | null>(null);
   const [isBrandDetailsOpen, setIsBrandDetailsOpen] = useState(false);
+  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
 
   // Estados para paginação
   const [currentPage, setCurrentPage] = useState(1);
@@ -77,20 +80,34 @@ export default function MarcasPage() {
   }, [user?.teamId, currentPage]);
 
   const handleOpenDialog = useCallback((brand: Brand | null = null) => {
-    // Verificar créditos antes de abrir o diálogo para nova marca
-    if (!brand && team) {
-      if (team.credits < 1) {
-        toast.error('Créditos insuficientes. Criar uma marca custa 1 crédito.');
-        return;
-      }
+    // Para edição, abrir direto
+    if (brand) {
+      setBrandToEdit(brand);
+      setIsDialogOpen(true);
+      return;
+    }
+
+    // Para nova marca, verificar limites
+    if (team) {
       if (brands.length >= team.plan.maxBrands) {
         toast.error(`${t.brands.limitReached} ${team.plan.maxBrands} ${t.brands.brandsOfPlan}`);
         return;
       }
+      if (team.credits < 1) {
+        toast.error('Créditos insuficientes. Criar uma marca custa 1 crédito.');
+        return;
+      }
     }
-    setBrandToEdit(brand);
-    setIsDialogOpen(true);
+
+    // Abrir diálogo de confirmação
+    setBrandToEdit(null);
+    setIsConfirmDialogOpen(true);
   }, [team, brands.length, t]);
+
+  const handleConfirmCreate = useCallback(() => {
+    setIsConfirmDialogOpen(false);
+    setIsDialogOpen(true);
+  }, []);
 
   const handleSelectBrand = useCallback(async (brand: BrandSummary) => {
     setSelectedBrandSummary(brand);
@@ -257,16 +274,14 @@ export default function MarcasPage() {
           .update({ credits: team.credits - 1 } as any)
           .eq('id', user.teamId);
         
+        // Atualizar créditos sem reload
+        await refreshTeamData();
+        
         toast.success(t.brands.createSuccess, { id: toastId });
       }
       
       setIsDialogOpen(false);
       setBrandToEdit(null);
-      
-      // Recarregar dados do team para atualizar créditos na UI
-      if (!brandToEdit) {
-        window.location.reload();
-      }
     } catch (error) {
       console.error('Erro ao salvar marca:', error);
       toast.error(t.brands.saveError, { id: toastId });
@@ -338,6 +353,10 @@ export default function MarcasPage() {
             >
               <Plus className="mr-2 h-4 w-4 lg:h-5 lg:w-5" />
               {t.brands.newBrand}
+              <span className="ml-2 flex items-center gap-1 text-xs opacity-90">
+                <Coins className="h-3 w-3" />
+                1
+              </span>
             </Button>
           </div>
         </CardHeader>
@@ -390,6 +409,15 @@ export default function MarcasPage() {
         onOpenChange={setIsDialogOpen}
         onSave={handleSaveBrand}
         brandToEdit={brandToEdit}
+      />
+
+      <CreditConfirmationDialog
+        isOpen={isConfirmDialogOpen}
+        onOpenChange={setIsConfirmDialogOpen}
+        onConfirm={handleConfirmCreate}
+        currentBalance={team?.credits || 0}
+        cost={1}
+        resourceType="marca"
       />
     </div>
   );
