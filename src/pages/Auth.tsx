@@ -176,10 +176,8 @@ const Auth = () => {
             return;
           }
           
-          toast.success(t.login.welcomeMessage);
           setShowTeamSelection(true);
         } else {
-          toast.success(t.login.welcomeMessage);
           setWaitingForAuth(true);
         }
       }
