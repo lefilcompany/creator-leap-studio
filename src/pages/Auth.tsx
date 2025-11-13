@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Switch } from "@/components/ui/switch";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -14,6 +13,7 @@ import { Eye, EyeOff, Mail, Lock, Sun, Moon, Loader2, User, Phone } from "lucide
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { TeamSelectionDialog } from "@/components/auth/TeamSelectionDialog";
+import { AuthModeToggle } from "@/components/auth/AuthModeToggle";
 import ChangePasswordDialog from "@/components/perfil/ChangePasswordDialog";
 import { useOAuthCallback } from "@/hooks/useOAuthCallback";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -735,18 +735,11 @@ const Auth = () => {
                       <div className="w-12 h-1.5 bg-muted-foreground/20 rounded-full mx-auto mb-6"></div>
 
                       {/* Mode toggle */}
-                      <div className="flex items-center justify-center gap-4 mb-8 p-4 bg-muted/30 rounded-xl">
-                        <span className={`text-sm font-medium transition-colors ${isLoginMode ? "text-foreground" : "text-muted-foreground"}`}>
-                          Login
-                        </span>
-                        <Switch
-                          checked={!isLoginMode}
-                          onCheckedChange={(checked) => setIsLoginMode(!checked)}
-                          className="data-[state=checked]:bg-primary"
+                      <div className="flex items-center justify-center mb-8">
+                        <AuthModeToggle 
+                          isLoginMode={isLoginMode}
+                          onToggle={setIsLoginMode}
                         />
-                        <span className={`text-sm font-medium transition-colors ${!isLoginMode ? "text-foreground" : "text-muted-foreground"}`}>
-                          Cadastro
-                        </span>
                       </div>
 
                       <div className="text-center mb-8">
@@ -772,18 +765,11 @@ const Auth = () => {
             <div className="w-full max-w-md">
               <div className="bg-card/90 backdrop-blur-xl border border-border/50 rounded-2xl shadow-2xl p-8">
                 {/* Mode toggle */}
-                <div className="flex items-center justify-center gap-4 mb-8 p-4 bg-muted/30 rounded-xl">
-                  <span className={`text-sm font-medium transition-colors ${isLoginMode ? "text-foreground" : "text-muted-foreground"}`}>
-                    Login
-                  </span>
-                  <Switch
-                    checked={!isLoginMode}
-                    onCheckedChange={(checked) => setIsLoginMode(!checked)}
-                    className="data-[state=checked]:bg-primary"
+                <div className="flex items-center justify-center mb-8">
+                  <AuthModeToggle 
+                    isLoginMode={isLoginMode}
+                    onToggle={setIsLoginMode}
                   />
-                  <span className={`text-sm font-medium transition-colors ${!isLoginMode ? "text-foreground" : "text-muted-foreground"}`}>
-                    Cadastro
-                  </span>
                 </div>
 
                 <div className="text-center mb-8">
