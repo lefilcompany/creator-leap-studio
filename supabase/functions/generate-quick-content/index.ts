@@ -1,6 +1,8 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
+import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
+import { recordCreditUsage } from '../_shared/creditHistory.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -155,9 +157,9 @@ serve(async (req) => {
       );
     }
 
-    if (!teamData || teamData.credits <= 0) {
+    if (!teamData || teamData.credits < CREDIT_COSTS.QUICK_IMAGE) {
       return new Response(
-        JSON.stringify({ error: 'Créditos insuficientes para criação rápida' }),
+        JSON.stringify({ error: `Créditos insuficientes. Necessário: ${CREDIT_COSTS.QUICK_IMAGE} créditos` }),
         { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -732,14 +734,29 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
     }
 
     // Decrement team credits
+    const creditsBefore = teamData.credits;
+    const creditsAfter = creditsBefore - CREDIT_COSTS.QUICK_IMAGE;
+    
     const { error: updateError } = await supabase
       .from('teams')
-      .update({ credits: teamData.credits - 1 })
+      .update({ credits: creditsAfter })
       .eq('id', authenticatedTeamId);
 
     if (updateError) {
       console.error('Error updating credits:', updateError);
     }
+
+    // Record credit usage
+    await recordCreditUsage(supabase, {
+      teamId: authenticatedTeamId,
+      userId: authenticatedUserId,
+      actionType: 'QUICK_IMAGE',
+      creditsUsed: CREDIT_COSTS.QUICK_IMAGE,
+      creditsBefore,
+      creditsAfter,
+      description: 'Criação rápida de imagem',
+      metadata: { platform, aspectRatio, style, quality }
+    });
 
     // Create action record with all configurations
     const { data: actionData, error: actionError } = await supabase
@@ -789,7 +806,7 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
         imageUrl,
         description,
         actionId: actionData?.id,
-        creditsRemaining: teamData.credits - 1
+        creditsRemaining: creditsAfter
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

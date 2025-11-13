@@ -13,6 +13,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { ContentResultSkeleton } from "@/components/ContentResultSkeleton";
+import { CREDIT_COSTS } from "@/lib/creditCosts";
 interface ContentResultData {
   type: "image" | "video";
   mediaUrl: string;
@@ -253,9 +254,9 @@ export default function ContentResult() {
   const handleSubmitReview = async () => {
     if (!reviewPrompt.trim() || !contentData || !reviewType) return;
 
-    // Sempre verificar créditos (custo: 1 crédito)
-    if (!team?.credits || team.credits < 1) {
-      toast.error("Você não tem créditos disponíveis. Cada revisão custa 1 crédito.");
+    // Sempre verificar créditos (custo: 2 créditos para revisões)
+    if (!team?.credits || team.credits < CREDIT_COSTS.IMAGE_REVIEW) {
+      toast.error(`Você não tem créditos disponíveis. Cada revisão custa ${CREDIT_COSTS.IMAGE_REVIEW} créditos.`);
       return;
     }
     setIsReviewing(true);

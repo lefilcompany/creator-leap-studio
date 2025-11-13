@@ -1,6 +1,8 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
+import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
+import { recordCreditUsage } from '../_shared/creditHistory.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -267,9 +269,12 @@ Tema ${index + 1}:
     const generatedPlan = data.choices[0].message.content;
 
     // Decrement credits
+    const creditsBefore = teamData.credits;
+    const creditsAfter = creditsBefore - CREDIT_COSTS.CONTENT_PLAN;
+    
     const { error: updateError } = await supabase
       .from('teams')
-      .update({ credits: teamData.credits - 1 })
+      .update({ credits: creditsAfter })
       .eq('id', teamId);
 
     if (updateError) {
@@ -278,6 +283,18 @@ Tema ${index + 1}:
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    // Record credit usage
+    await recordCreditUsage(supabase, {
+      teamId,
+      userId,
+      actionType: 'CONTENT_PLAN',
+      creditsUsed: CREDIT_COSTS.CONTENT_PLAN,
+      creditsBefore,
+      creditsAfter,
+      description: 'Planejamento de conteúdo',
+      metadata: { platform, quantity, themes }
+    });
 
     // Save action
     const { data: actionData, error: insertError } = await supabase
@@ -306,7 +323,7 @@ Tema ${index + 1}:
       JSON.stringify({ 
         plan: generatedPlan,
         actionId: actionData.id,
-        creditsRemaining: teamData.credits - 1 
+        creditsRemaining: creditsAfter 
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
