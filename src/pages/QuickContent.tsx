@@ -25,7 +25,6 @@ export default function QuickContent() {
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
   const [brands, setBrands] = useState<Brand[]>([]);
-  const [credits, setCredits] = useState(0);
   const [formData, setFormData] = useState({
     prompt: "",
     brandId: "",
@@ -113,18 +112,15 @@ export default function QuickContent() {
     try {
       setLoadingData(true);
 
-      // Carregar todos os dados em paralelo
-      const [{
-        data: brandsData,
-        error: brandsError
-      }, {
-        data: teamData,
-        error: teamError
-      }] = await Promise.all([supabase.from("brands").select("*").eq("team_id", team?.id).order("name"), supabase.from("teams").select("credits_quick_content").eq("id", team?.id).single()]);
+      // Carregar marcas
+      const { data: brandsData, error: brandsError } = await supabase
+        .from("brands")
+        .select("*")
+        .eq("team_id", team?.id)
+        .order("name");
+        
       if (brandsError) throw brandsError;
-      if (teamError) throw teamError;
       setBrands((brandsData || []) as any);
-      setCredits(teamData?.credits_quick_content || 0);
     } catch (error) {
       console.error("Error loading data:", error);
       toast.error("Erro ao carregar dados");
@@ -137,7 +133,7 @@ export default function QuickContent() {
       toast.error("Por favor, descreva o que deseja criar");
       return;
     }
-    if (credits <= 0) {
+    if ((team?.credits || 0) <= 0) {
       toast.error("Você não possui créditos suficientes para criação rápida");
       return;
     }
@@ -208,8 +204,6 @@ export default function QuickContent() {
         throw error;
       }
 
-      // Update credits
-      setCredits(data.creditsRemaining);
       toast.success("Conteúdo gerado com sucesso!", {
         id: toastId
       });
@@ -295,7 +289,7 @@ export default function QuickContent() {
                       <div className="flex flex-col">
                         <div className="flex items-center gap-2">
                           <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent whitespace-nowrap">
-                            {credits}
+                            {team?.credits || 0}
                           </span>
                           <p className="text-sm text-muted-foreground font-medium leading-tight whitespace-nowrap">
                             Créditos
@@ -674,7 +668,7 @@ export default function QuickContent() {
 
         {/* Generate Button */}
         <div className="flex justify-end pb-6">
-          <Button onClick={generateQuickContent} disabled={loading || !formData.prompt.trim() || credits <= 0} size="lg" className="bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_100%] animate-gradient text-primary-foreground hover:opacity-90 transition-opacity shadow-lg">
+          <Button onClick={generateQuickContent} disabled={loading || !formData.prompt.trim() || (team?.credits || 0) <= 0} size="lg" className="bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_100%] animate-gradient text-primary-foreground hover:opacity-90 transition-opacity shadow-lg">
             {loading ? <>
                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                 Gerando...
