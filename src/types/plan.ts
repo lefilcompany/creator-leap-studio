@@ -1,26 +1,19 @@
 export interface Plan {
   id: string;
   name: string;
-  displayName: string;
+  description: string;
   price: number;
-  trialDays: number;
+  credits: number; // Créditos unificados
   maxMembers: number;
   maxBrands: number;
   maxStrategicThemes: number;
   maxPersonas: number;
-  quickContentCreations: number;
-  customContentSuggestions: number;
-  contentPlans: number;
-  contentReviews: number;
-  videoCredits: number;
+  trialDays: number;
   isActive: boolean;
   stripePriceId?: string | null;
+  stripeProductId?: string | null;
 }
 
 export interface TeamCredits {
-  quickContentCreations: number;
-  contentSuggestions: number;
-  contentReviews: number;
-  contentPlans: number;
-  videoCredits: number;
+  credits: number; // Créditos unificados
 }
