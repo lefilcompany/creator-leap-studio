@@ -81,13 +81,6 @@ const Auth = () => {
   const passwordsMatch = formData.password === confirmPassword;
   const isPasswordValid = formData.password && formData.password.length >= 6;
 
-  useEffect(() => {
-    const isNewUser = searchParams.get("newUser") === "true";
-    if (isNewUser) {
-      toast.info(t.login.welcomeMessage);
-    }
-  }, [searchParams, t]);
-
   // Redireciona automaticamente quando autenticado
   useEffect(() => {
     if (waitingForAuth && !authLoading && user && team && !showChangePassword && !showTeamSelection) {
