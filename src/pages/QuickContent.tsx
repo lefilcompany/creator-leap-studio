@@ -260,7 +260,8 @@ export default function QuickContent() {
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>;
   }
-  return <div className="min-h-full bg-gradient-to-br from-background via-background to-muted/20">
+  return (
+    <div className="min-h-full bg-gradient-to-br from-background via-background to-muted/20">
       <div className="max-w-5xl mx-auto space-y-4 md:space-y-6">
         {/* Header */}
         <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5">
