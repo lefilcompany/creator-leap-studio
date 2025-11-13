@@ -328,8 +328,8 @@ export default function MarcasPage() {
     }
   }, [selectedBrand, user, brands, handleSelectBrand, t]);
 
-  // Verificar se o limite foi atingido
-  const isAtBrandLimit = team ? brands.length >= team.plan.maxBrands : false;
+  // Verificar se o limite foi atingido ou se team ainda não carregou
+  const isButtonDisabled = !team || brands.length >= team.plan.maxBrands;
 
   return (
     <div className="h-full flex flex-col gap-4 lg:gap-6 overflow-hidden">
@@ -351,9 +351,9 @@ export default function MarcasPage() {
             </div>
             <Button 
               onClick={() => handleOpenDialog()} 
-              disabled={isAtBrandLimit}
+              disabled={isButtonDisabled}
               className="rounded-lg bg-gradient-to-r from-primary to-secondary px-4 lg:px-6 py-3 lg:py-5 text-sm lg:text-base disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
-              title={isAtBrandLimit ? `${t.brands.limitReachedTitle} ${team?.plan.maxBrands} ${t.brands.brandsReached}` : undefined}
+              title={!team ? 'Carregando...' : (brands.length >= team.plan.maxBrands ? `${t.brands.limitReachedTitle} ${team.plan.maxBrands} ${t.brands.brandsReached}` : undefined)}
             >
               <Plus className="mr-2 h-4 w-4 lg:h-5 lg:w-5" />
               {t.brands.newBrand}
