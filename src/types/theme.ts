@@ -1,3 +1,5 @@
+import type { Plan } from "./plan";
+
 export type StrategicTheme = {
   id: string;
   teamId: string;
@@ -33,31 +35,9 @@ export interface Team {
   members: string[];
   pending: string[];
   plan: Plan | null;
-  credits?: {
-    quickContentCreations: number;
-    contentSuggestions: number;
-    contentReviews: number;
-    contentPlans: number;
-  };
+  credits: number; // Créditos unificados
 }
 
-export interface Plan {
-  id: string;
-  name: string;
-  displayName: string;
-  price: number;
-  trialDays: number;
-  maxMembers: number;
-  maxBrands: number;
-  maxStrategicThemes: number;
-  maxPersonas: number;
-  quickContentCreations: number;
-  customContentSuggestions: number;
-  contentPlans: number;
-  contentReviews: number;
-  isActive: boolean;
-  stripePriceId?: string | null;
-}
 
 export interface TeamSummary {
   id: string;
