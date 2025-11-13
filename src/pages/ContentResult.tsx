@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Download, Copy, Sparkles, ArrowLeft, Check, ImageIcon, Video, RefreshCw, FileText, Loader } from "lucide-react";
+import { Download, Copy, Sparkles, ArrowLeft, Check, ImageIcon, Video, RefreshCw, FileText, Loader, Coins } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -734,13 +734,17 @@ export default function ContentResult() {
                   <span className="hidden xs:inline">Download</span>
                 </Button>
                 <div className="relative group">
-                  <Button onClick={handleOpenReview} variant="secondary" className="w-full flex-1 sm:flex-initial rounded-xl gap-2 hover-scale transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 group" size="lg" disabled={!team?.credits || team.credits <= 0}>
+                  <Button onClick={handleOpenReview} variant="secondary" className="w-full flex-1 sm:flex-initial rounded-xl gap-2 hover-scale transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 group" size="lg" disabled={!team?.credits || team.credits < CREDIT_COSTS.IMAGE_REVIEW}>
                     <RefreshCw className="h-4 w-4 group-hover:rotate-180 transition-transform duration-500" />
                     <span className="sm:hidden">Revisar</span>
                     <span className="hidden sm:inline">Revisar</span>
+                    <Badge variant="outline" className="ml-1 gap-1 border-secondary-foreground/30">
+                      <Coins className="h-3 w-3" />
+                      {CREDIT_COSTS.IMAGE_REVIEW}
+                    </Badge>
                   </Button>
-                  {(!team?.credits || team.credits <= 0) && <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-destructive text-destructive-foreground px-3 py-1.5 rounded-lg text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 shadow-lg">
-                      Sem créditos disponíveis
+                  {(!team?.credits || team.credits < CREDIT_COSTS.IMAGE_REVIEW) && <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-destructive text-destructive-foreground px-3 py-1.5 rounded-lg text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 shadow-lg">
+                      Créditos insuficientes ({CREDIT_COSTS.IMAGE_REVIEW} necessários)
                     </div>}
                 </div>
               </div>
@@ -859,9 +863,9 @@ export default function ContentResult() {
             <DialogDescription>
               {reviewType ? <>
                   Descreva as alterações que deseja fazer.
-                  <span className="text-orange-600 font-medium">
-                    {" "}
-                    Esta revisão consumirá 1 crédito. Você tem {team?.credits || 0} crédito(s).
+                  <span className="text-orange-600 font-medium flex items-center gap-1 mt-1">
+                    <Coins className="h-3.5 w-3.5" />
+                    Esta revisão consumirá {CREDIT_COSTS.IMAGE_REVIEW} créditos. Você tem {team?.credits || 0} crédito(s).
                   </span>
                 </> : "Selecione o que você deseja revisar neste conteúdo."}
             </DialogDescription>

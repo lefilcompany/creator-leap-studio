@@ -15,7 +15,8 @@ import {
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Sparkles, Zap, X, Info, ImageIcon, Video, Type, AlertCircle, FileText, ImagePlus } from "lucide-react";
+import { Loader2, Sparkles, Zap, X, Info, ImageIcon, Video, Type, AlertCircle, FileText, ImagePlus, Coins } from "lucide-react";
+import { CREDIT_COSTS } from "@/lib/creditCosts";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -3044,7 +3045,7 @@ ${formData.description}
                 <Button
                   onClick={handleGenerateContent}
                   disabled={loading || !isFormValid}
-                  className="w-full max-w-sm md:max-w-md h-12 md:h-14 rounded-2xl text-base md:text-lg font-bold bg-gradient-to-r from-primary via-accent to-secondary hover:from-primary/90 hover:via-accent/90 hover:to-secondary/90 shadow-xl transition-all duration-500 disabled:opacity-50"
+                  className="w-full max-w-sm md:max-w-md h-12 md:h-14 rounded-2xl text-base md:text-lg font-bold bg-gradient-to-r from-primary via-accent to-secondary hover:from-primary/90 hover:via-accent/90 hover:to-secondary/90 shadow-xl transition-all duration-500 disabled:opacity-50 gap-2"
                 >
                   {loading ? (
                     <>
@@ -3055,6 +3056,10 @@ ${formData.description}
                     <>
                       <Sparkles className="mr-2 md:mr-3 h-4 w-4 md:h-5 md:w-5" />
                       <span className="text-sm md:text-base">Gerar Conteúdo</span>
+                      <Badge variant="secondary" className="ml-2 bg-primary-foreground/20 text-primary-foreground border-primary-foreground/30 gap-1">
+                        <Coins className="h-3 w-3" />
+                        {CREDIT_COSTS.COMPLETE_IMAGE}
+                      </Badge>
                     </>
                   )}
                 </Button>
