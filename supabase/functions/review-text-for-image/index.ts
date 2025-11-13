@@ -75,7 +75,7 @@ serve(async (req) => {
     // Check credits
     const { data: team, error: teamError } = await supabase
       .from('teams')
-      .select('credits_reviews')
+      .select('credits')
       .eq('id', authenticatedTeamId)
       .single();
 
@@ -86,7 +86,7 @@ serve(async (req) => {
       );
     }
 
-    if (team.credits_reviews <= 0) {
+    if (team.credits <= 0) {
       return new Response(
         JSON.stringify({ error: 'Insufficient credits' }),
         { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -259,7 +259,7 @@ Analise o texto que será colocado NA IMAGEM do post e retorne uma revisão comp
     // Deduct credit
     const { error: updateError } = await supabase
       .from('teams')
-      .update({ credits_reviews: team.credits_reviews - 1 })
+      .update({ credits: team.credits - 1 })
       .eq('id', authenticatedTeamId);
 
     if (updateError) {
