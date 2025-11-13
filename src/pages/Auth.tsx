@@ -622,61 +622,14 @@ const Auth = () => {
 
   return (
     <>
-      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex relative overflow-hidden">
-        {/* Animated background patterns */}
-        <div className="absolute inset-0 opacity-30">
-          <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_30%_20%,hsl(var(--primary)/0.15),transparent_50%)]"></div>
-          <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(circle_at_70%_60%,hsl(var(--secondary)/0.12),transparent_50%)]"></div>
-          <div className="absolute bottom-0 left-0 w-full h-full bg-[radial-gradient(circle_at_20%_80%,hsl(var(--accent)/0.1),transparent_50%)]"></div>
-        </div>
-
-        {/* Floating geometric shapes */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <motion.div 
-            className="absolute top-20 left-20 w-32 h-32 border-2 border-primary/20 rounded-2xl rotate-12"
-            animate={{ 
-              rotate: [12, 22, 12],
-              y: [0, -20, 0]
-            }}
-            transition={{ 
-              duration: 8,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-          />
-          <motion.div 
-            className="absolute top-40 right-32 w-24 h-24 border-2 border-secondary/20 rounded-full"
-            animate={{ 
-              scale: [1, 1.2, 1],
-              x: [0, 20, 0]
-            }}
-            transition={{ 
-              duration: 6,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-          />
-          <motion.div 
-            className="absolute bottom-32 left-40 w-40 h-40 border-2 border-accent/15 rounded-3xl rotate-45"
-            animate={{ 
-              rotate: [45, 60, 45],
-              y: [0, 30, 0]
-            }}
-            transition={{ 
-              duration: 10,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-          />
-        </div>
-
+      <div className="min-h-screen bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 flex relative">
         {/* Theme toggle */}
-        <div className="absolute top-6 right-6 z-50">
+        <div className="absolute top-4 right-4 z-50">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="h-11 w-11 rounded-xl bg-background/50 backdrop-blur-lg border border-border/50 hover:bg-background/80 hover:border-border transition-all duration-300 shadow-lg"
+            className="h-10 w-10 rounded-full"
           >
             <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
             <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
@@ -684,94 +637,47 @@ const Auth = () => {
           </Button>
         </div>
 
+        {/* Background gradient for entire screen */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/15 via-accent/10 via-secondary/15 to-primary/5"></div>
+        <div className="absolute inset-0 bg-gradient-to-tl from-secondary/10 via-transparent to-accent/15 opacity-70"></div>
+
         {/* Left side - Marketing content */}
-        <div className="hidden lg:flex lg:w-1/2 flex-col justify-center px-16 py-12 relative">
-          {/* Large decorative blobs with animation */}
-          <motion.div 
-            className="absolute top-1/4 left-10 w-80 h-80 bg-gradient-to-br from-primary/20 to-primary/5 rounded-full blur-3xl"
-            animate={{ 
-              scale: [1, 1.1, 1],
-              opacity: [0.5, 0.7, 0.5]
-            }}
-            transition={{ 
-              duration: 8,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-          />
-          <motion.div 
-            className="absolute bottom-1/4 right-10 w-96 h-96 bg-gradient-to-br from-secondary/20 to-accent/10 rounded-full blur-3xl"
-            animate={{ 
-              scale: [1, 1.15, 1],
-              opacity: [0.4, 0.6, 0.4]
-            }}
-            transition={{ 
-              duration: 10,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: 1
-            }}
-          />
+        <div className="hidden lg:flex lg:w-1/2 flex-col justify-center px-16 py-8 relative overflow-hidden">
+          {/* Decorative elements */}
+          <div className="absolute top-1/4 left-10 w-64 h-64 bg-primary/10 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-1/4 right-10 w-64 h-64 bg-secondary/10 rounded-full blur-3xl"></div>
 
-          <div className="relative max-w-lg z-10">
-            <motion.div 
-              className="mb-8"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-            >
-              <CreatorLogo className="mb-8 scale-110" />
-            </motion.div>
+          <div className="relative max-w-lg">
+            <div className="mb-6">
+              <CreatorLogo className="mb-6" />
+            </div>
 
-            <motion.div 
-              className="mb-12"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-            >
-              <h1 className="text-4xl lg:text-5xl font-bold text-foreground mb-6 leading-tight bg-gradient-to-r from-foreground via-foreground to-foreground/80 bg-clip-text">
+            <div className="mb-8">
+              <h1 className="text-3xl lg:text-4xl font-bold text-foreground mb-4 leading-tight">
                 {isLoginMode ? t.login.strategicContent : "Conteúdo estratégico na velocidade das suas ideias"}
               </h1>
-              <p className="text-xl text-muted-foreground leading-relaxed">
+              <p className="text-lg text-muted-foreground leading-relaxed">
                 {isLoginMode ? t.login.strategicContentDesc : "Planeje, crie e revise com inteligência artificial — simples, rápido e sem prompts"}
               </p>
-            </motion.div>
+            </div>
 
-            <div className="space-y-5">
-              <motion.div 
-                className="group flex items-start gap-5 p-6 bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-xl rounded-2xl border border-primary/30 shadow-xl hover:shadow-2xl hover:scale-[1.02] transition-all duration-300"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.3 }}
-              >
-                <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                  <svg className="w-6 h-6 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                  </svg>
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-bold text-foreground text-lg mb-2">
+            <div className="space-y-4">
+              <div className="flex items-center gap-4 p-4 bg-card/30 backdrop-blur-sm rounded-xl border border-primary/20">
+                <div className="w-3 h-3 bg-primary rounded-full"></div>
+                <div>
+                  <h3 className="font-semibold text-foreground text-base">
                     {isLoginMode ? t.login.strategicOrganization : "Organização Estratégica"}
                   </h3>
-                  <p className="text-muted-foreground leading-relaxed">
+                  <p className="text-muted-foreground text-sm">
                     {isLoginMode ? t.login.strategicOrganizationDesc : "Estruture sua comunicação de forma clara e integrada"}
                   </p>
                 </div>
-              </motion.div>
+              </div>
 
-              <motion.div 
-                className="group flex items-start gap-5 p-6 bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-xl rounded-2xl border border-secondary/30 shadow-xl hover:shadow-2xl hover:scale-[1.02] transition-all duration-300"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.4 }}
-              >
-                <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-secondary to-secondary/70 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                  <svg className="w-6 h-6 text-secondary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-bold text-foreground text-lg mb-2">
+              <div className="flex items-center gap-4 p-4 bg-card/30 backdrop-blur-sm rounded-xl border border-secondary/20">
+                <div className="w-3 h-3 bg-secondary rounded-full"></div>
+                <div>
+                  <h3 className="font-semibold text-foreground text-base">
                     {isLoginMode ? t.login.personaSegmentation : "Segmentação por Personas"}
                   </h3>
                   <p className="text-muted-foreground text-sm">
