@@ -143,7 +143,7 @@ serve(async (req) => {
     // Check team credits
     const { data: teamData, error: teamError } = await supabase
       .from('teams')
-      .select('credits_quick_content')
+      .select('credits')
       .eq('id', authenticatedTeamId)
       .single();
 
@@ -155,7 +155,7 @@ serve(async (req) => {
       );
     }
 
-    if (!teamData || teamData.credits_quick_content <= 0) {
+    if (!teamData || teamData.credits <= 0) {
       return new Response(
         JSON.stringify({ error: 'Créditos insuficientes para criação rápida' }),
         { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -734,7 +734,7 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
     // Decrement team credits
     const { error: updateError } = await supabase
       .from('teams')
-      .update({ credits_quick_content: teamData.credits_quick_content - 1 })
+      .update({ credits: teamData.credits - 1 })
       .eq('id', authenticatedTeamId);
 
     if (updateError) {
