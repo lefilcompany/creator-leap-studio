@@ -24,27 +24,20 @@ interface Team {
   plan: {
     id: string;
     name: string;
-    displayName: string;
+    description: string;
     price: number;
-    trialDays: number;
+    credits: number; // Créditos unificados
     maxMembers: number;
     maxBrands: number;
     maxStrategicThemes: number;
     maxPersonas: number;
-    quickContentCreations: number;
-    customContentSuggestions: number;
-    contentPlans: number;
-    contentReviews: number;
-    videoCredits: number;
+    trialDays: number;
     isActive: boolean;
   };
-  credits?: {
-    quickContentCreations: number;
-    contentSuggestions: number;
-    contentReviews: number;
-    contentPlans: number;
-    videoCredits: number;
-  };
+  credits: number; // Créditos unificados da equipe
+  free_brands_used: number;
+  free_personas_used: number;
+  free_themes_used: number;
 }
 
 interface DataCache {
@@ -214,27 +207,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             plan: {
               id: planData.id,
               name: planData.name,
-              displayName: planData.name,
+              description: planData.description || '',
               price: planData.price_monthly || 0,
-              trialDays: planData.trial_days,
+              credits: planData.credits || 0,
               maxMembers: planData.max_members,
               maxBrands: planData.max_brands,
               maxStrategicThemes: planData.max_strategic_themes,
               maxPersonas: planData.max_personas,
-              quickContentCreations: planData.credits_quick_content,
-              customContentSuggestions: planData.credits_suggestions,
-              contentPlans: planData.credits_plans,
-              contentReviews: planData.credits_reviews,
-              videoCredits: planData.credits_videos,
+              trialDays: planData.trial_days,
               isActive: planData.is_active,
             },
-            credits: {
-              quickContentCreations: teamInfo.credits_quick_content,
-              contentSuggestions: teamInfo.credits_suggestions,
-              contentReviews: teamInfo.credits_reviews,
-              contentPlans: teamInfo.credits_plans,
-              videoCredits: teamInfo.credits_videos,
-            }
+            credits: teamInfo.credits || 0,
+            free_brands_used: teamInfo.free_brands_used || 0,
+            free_personas_used: teamInfo.free_personas_used || 0,
+            free_themes_used: teamInfo.free_themes_used || 0,
           };
         }
       }
@@ -495,28 +481,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           subscription_period_end: teamData.subscription_period_end,
           plan: {
             id: teamData.plan.id,
-            name: teamData.plan.id,
-            displayName: teamData.plan.name,
+            name: teamData.plan.name,
+            description: teamData.plan.description || '',
             price: teamData.plan.price_monthly,
-            trialDays: teamData.plan.trial_days,
+            credits: teamData.plan.credits || 0,
             maxMembers: teamData.plan.max_members,
             maxBrands: teamData.plan.max_brands,
             maxStrategicThemes: teamData.plan.max_strategic_themes,
             maxPersonas: teamData.plan.max_personas,
-            quickContentCreations: teamData.plan.credits_quick_content,
-            customContentSuggestions: teamData.plan.credits_suggestions,
-            contentPlans: teamData.plan.credits_plans,
-            contentReviews: teamData.plan.credits_reviews,
-            videoCredits: teamData.plan.credits_videos,
+            trialDays: teamData.plan.trial_days,
             isActive: teamData.plan.is_active
           },
-          credits: {
-            quickContentCreations: teamData.credits_quick_content,
-            contentSuggestions: teamData.credits_suggestions,
-            contentReviews: teamData.credits_reviews,
-            contentPlans: teamData.credits_plans,
-            videoCredits: teamData.credits_videos,
-          }
+          credits: teamData.credits || 0,
+          free_brands_used: teamData.free_brands_used || 0,
+          free_personas_used: teamData.free_personas_used || 0,
+          free_themes_used: teamData.free_themes_used || 0,
         });
         console.log('[AuthContext] ✅ Team data refreshed successfully');
       }
