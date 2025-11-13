@@ -122,16 +122,20 @@ export default function PersonasPage() {
       return;
     }
 
-    // Para nova persona, verificar limites
-    if (team) {
-      if (personas.length >= team.plan.maxPersonas) {
-        toast.error(`Você atingiu o limite de ${team.plan.maxPersonas} personas do seu plano. Faça upgrade para criar mais personas.`);
-        return;
-      }
-      if (team.credits < 1) {
-        toast.error('Créditos insuficientes. Criar uma persona custa 1 crédito.');
-        return;
-      }
+    // Para nova persona, verificar se team está carregado
+    if (!team) {
+      toast.error('Carregando dados da equipe...');
+      return;
+    }
+
+    // Verificar limites
+    if (personas.length >= team.plan.maxPersonas) {
+      toast.error(`Você atingiu o limite de ${team.plan.maxPersonas} personas do seu plano. Faça upgrade para criar mais personas.`);
+      return;
+    }
+    if (team.credits < 1) {
+      toast.error('Créditos insuficientes. Criar uma persona custa 1 crédito.');
+      return;
     }
 
     // Abrir diálogo de confirmação

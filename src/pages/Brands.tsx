@@ -87,16 +87,20 @@ export default function MarcasPage() {
       return;
     }
 
-    // Para nova marca, verificar limites
-    if (team) {
-      if (brands.length >= team.plan.maxBrands) {
-        toast.error(`${t.brands.limitReached} ${team.plan.maxBrands} ${t.brands.brandsOfPlan}`);
-        return;
-      }
-      if (team.credits < 1) {
-        toast.error('Créditos insuficientes. Criar uma marca custa 1 crédito.');
-        return;
-      }
+    // Para nova marca, verificar se team está carregado
+    if (!team) {
+      toast.error('Carregando dados da equipe...');
+      return;
+    }
+
+    // Verificar limites
+    if (brands.length >= team.plan.maxBrands) {
+      toast.error(`${t.brands.limitReached} ${team.plan.maxBrands} ${t.brands.brandsOfPlan}`);
+      return;
+    }
+    if (team.credits < 1) {
+      toast.error('Créditos insuficientes. Criar uma marca custa 1 crédito.');
+      return;
     }
 
     // Abrir diálogo de confirmação

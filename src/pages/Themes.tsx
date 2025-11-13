@@ -119,16 +119,20 @@ export default function Themes() {
       return;
     }
 
-    // Para novo tema, verificar limites
-    if (team) {
-      if (themes.length >= team.plan.maxStrategicThemes) {
-        toast.error(`Você atingiu o limite de ${team.plan.maxStrategicThemes} temas estratégicos do seu plano.`);
-        return;
-      }
-      if (team.credits < 1) {
-        toast.error('Créditos insuficientes. Criar um tema custa 1 crédito.');
-        return;
-      }
+    // Para novo tema, verificar se team está carregado
+    if (!team) {
+      toast.error('Carregando dados da equipe...');
+      return;
+    }
+
+    // Verificar limites
+    if (themes.length >= team.plan.maxStrategicThemes) {
+      toast.error(`Você atingiu o limite de ${team.plan.maxStrategicThemes} temas estratégicos do seu plano.`);
+      return;
+    }
+    if (team.credits < 1) {
+      toast.error('Créditos insuficientes. Criar um tema custa 1 crédito.');
+      return;
     }
 
     // Abrir diálogo de confirmação
