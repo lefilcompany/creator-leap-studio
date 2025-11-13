@@ -83,7 +83,7 @@ serve(async (req) => {
     // Check team credits
     const { data: teamData, error: teamError } = await supabase
       .from('teams')
-      .select('credits_plans')
+      .select('credits')
       .eq('id', teamId)
       .single();
 
@@ -94,7 +94,7 @@ serve(async (req) => {
       );
     }
 
-    if (teamData.credits_plans <= 0) {
+    if (teamData.credits <= 0) {
       return new Response(
         JSON.stringify({ error: 'Insufficient credits' }),
         { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -269,7 +269,7 @@ Tema ${index + 1}:
     // Decrement credits
     const { error: updateError } = await supabase
       .from('teams')
-      .update({ credits_plans: teamData.credits_plans - 1 })
+      .update({ credits: teamData.credits - 1 })
       .eq('id', teamId);
 
     if (updateError) {
@@ -306,7 +306,7 @@ Tema ${index + 1}:
       JSON.stringify({ 
         plan: generatedPlan,
         actionId: actionData.id,
-        creditsRemaining: teamData.credits_plans - 1 
+        creditsRemaining: teamData.credits - 1 
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

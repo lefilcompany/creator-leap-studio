@@ -126,17 +126,23 @@ async function processVideoGeneration(operationName: string, actionId: string, t
     console.log('Background: Video uploaded to storage:', videoUrl);
 
     // Decrementar crédito do time após sucesso
-    const { error: creditError } = await supabase
+    const { data: currentTeam, error: fetchError } = await supabase
       .from('teams')
-      .update({
-        credits_suggestions: supabase.rpc('decrement', { x: 1, row_id: teamId })
-      })
-      .eq('id', teamId);
+      .select('credits')
+      .eq('id', teamId)
+      .single();
+    
+    if (!fetchError && currentTeam) {
+      const { error: creditError } = await supabase
+        .from('teams')
+        .update({ credits: currentTeam.credits - 1 })
+        .eq('id', teamId);
 
-    if (creditError) {
-      console.error('Background: Error decrementing credit:', creditError);
-    } else {
-      console.log('Background: Credit decremented successfully for team:', teamId);
+      if (creditError) {
+        console.error('Background: Error decrementing credit:', creditError);
+      } else {
+        console.log('Background: Credit decremented successfully for team:', teamId);
+      }
     }
 
     // Atualizar o action no banco com a URL do vídeo
@@ -313,7 +319,7 @@ serve(async (req) => {
     // Verificar créditos disponíveis
     const { data: teamData, error: teamError } = await supabase
       .from('teams')
-      .select('credits_suggestions')
+      .select('credits')
       .eq('id', actionData.team_id)
       .single();
 
@@ -326,7 +332,7 @@ serve(async (req) => {
     }
 
     // Verificar se há créditos suficientes
-    if (teamData.credits_suggestions < 1) {
+    if (teamData.credits < 1) {
       console.log('Insufficient credits for video generation');
       
       // Atualizar action como failed
@@ -336,7 +342,7 @@ serve(async (req) => {
           status: 'failed',
           result: { 
             error: 'Créditos insuficientes para gerar vídeo',
-            creditsAvailable: teamData.credits_suggestions
+            creditsAvailable: teamData.credits
           },
           updated_at: new Date().toISOString()
         })
@@ -348,7 +354,7 @@ serve(async (req) => {
       );
     }
 
-    console.log('Credits available:', teamData.credits_suggestions);
+    console.log('Credits available:', teamData.credits);
 
     const BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
     

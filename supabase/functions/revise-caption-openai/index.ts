@@ -52,7 +52,7 @@ serve(async (req) => {
     // Check team credits
     const { data: teamData, error: teamError } = await supabaseClient
       .from('teams')
-      .select('credits_reviews')
+      .select('credits')
       .eq('id', teamId)
       .single();
 
@@ -64,7 +64,7 @@ serve(async (req) => {
       );
     }
 
-    if (!teamData || teamData.credits_reviews <= 0) {
+    if (!teamData || teamData.credits <= 0) {
       return new Response(
         JSON.stringify({ error: 'Créditos de revisão insuficientes' }),
         { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -185,7 +185,7 @@ Responda ESTRITAMENTE em formato JSON com as chaves "title", "body" (legenda com
     // Deduct credit
     const { error: updateError } = await supabaseClient
       .from('teams')
-      .update({ credits_reviews: teamData.credits_reviews - 1 })
+      .update({ credits: teamData.credits - 1 })
       .eq('id', teamId);
 
     if (updateError) {
