@@ -79,7 +79,7 @@ export default function PersonalInfoForm({ initialData }: PersonalInfoFormProps)
         setLoadingStates(false);
       })
       .catch(() => {
-        toast.error('Erro ao carregar lista de estados');
+        // Falha silenciosa - não atrapalha o uso do formulário
         setLoadingStates(false);
       });
   }, []);
@@ -94,7 +94,7 @@ export default function PersonalInfoForm({ initialData }: PersonalInfoFormProps)
           setLoadingCities(false);
         })
         .catch(() => {
-          toast.error('Erro ao carregar lista de cidades');
+          // Falha silenciosa - não atrapalha o uso do formulário
           setLoadingCities(false);
         });
     }

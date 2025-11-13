@@ -12,13 +12,12 @@ import type { BrandSummary } from '@/types/brand';
 import { ACTION_TYPE_DISPLAY } from '@/types/action';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
 export default function History() {
   const { user } = useAuth();
   const isMobile = useIsMobile();
-  const { toast } = useToast();
   const [actions, setActions] = useState<ActionSummary[]>([]);
   const [brands, setBrands] = useState<BrandSummary[]>([]);
   const [selectedActionSummary, setSelectedActionSummary] = useState<ActionSummary | null>(null);
@@ -136,11 +135,7 @@ export default function History() {
 
       } catch (error) {
         console.error('Error loading data:', error);
-        toast({
-          title: "Erro",
-          description: "Erro ao carregar dados",
-          variant: "destructive"
-        });
+        toast.error("Não foi possível carregar o histórico. Tente novamente.");
       } finally {
         setIsLoadingBrands(false);
         setIsLoadingActions(false);
@@ -148,7 +143,7 @@ export default function History() {
     };
 
     loadData();
-  }, [user?.teamId, brandFilter, typeFilter, currentPage, toast]);
+  }, [user?.teamId, brandFilter, typeFilter, currentPage]);
 
   const handleSelectAction = useCallback(async (action: ActionSummary) => {
     setSelectedActionSummary(action);
@@ -206,15 +201,11 @@ export default function History() {
       setSelectedAction(fullAction);
     } catch (error) {
       console.error('Error loading action details:', error);
-      toast({
-        title: "Erro",
-        description: "Erro ao carregar detalhes da ação",
-        variant: "destructive"
-      });
+      toast.error("Não foi possível carregar os detalhes. Tente novamente.");
     } finally {
       setIsLoadingActionDetails(false);
     }
-  }, [toast]);
+  }, []);
 
   // Reset to first page when filters change
   useEffect(() => {

@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { MessageCircle, X, Send, Loader2, RotateCcw } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from 'sonner';
 import { ChatbotTooltip } from "./ChatbotTooltip";
 
 type Message = {
@@ -23,7 +23,6 @@ export const PlatformChatbot = () => {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const { toast } = useToast();
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -48,19 +47,11 @@ export const PlatformChatbot = () => {
 
       if (!response.ok) {
         if (response.status === 429) {
-          toast({
-            title: "Limite excedido",
-            description: "Muitas requisições. Aguarde alguns instantes.",
-            variant: "destructive",
-          });
+          toast.error("Você atingiu o limite de mensagens. Tente novamente mais tarde.");
           return;
         }
         if (response.status === 402) {
-          toast({
-            title: "Créditos insuficientes",
-            description: "Entre em contato com o suporte.",
-            variant: "destructive",
-          });
+          toast.error("Créditos insuficientes. Faça upgrade do seu plano para continuar.");
           return;
         }
         throw new Error("Erro ao processar requisição");
@@ -120,11 +111,7 @@ export const PlatformChatbot = () => {
       }
     } catch (error) {
       console.error("Erro no chat:", error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível processar sua mensagem.",
-        variant: "destructive",
-      });
+      toast.error("Não foi possível processar sua mensagem.");
       
       // Remove a mensagem vazia do assistente em caso de erro
       setMessages(prev => prev.slice(0, -1));
