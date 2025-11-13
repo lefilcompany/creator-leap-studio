@@ -22,7 +22,6 @@ export default function QuickContentResult() {
   const [showReviewDialog, setShowReviewDialog] = useState(false);
   const [reviewPrompt, setReviewPrompt] = useState("");
   const [isReviewing, setIsReviewing] = useState(false);
-  const [freeRevisionsLeft, setFreeRevisionsLeft] = useState(2);
   const [totalRevisions, setTotalRevisions] = useState(0);
   const [currentImageUrl, setCurrentImageUrl] = useState("");
   const [imageHistory, setImageHistory] = useState<string[]>([]);
@@ -79,7 +78,6 @@ export default function QuickContentResult() {
       if (savedRevisions) {
         const count = parseInt(savedRevisions);
         setTotalRevisions(count);
-        setFreeRevisionsLeft(Math.max(0, 2 - count));
       }
 
       // Load image history if exists
@@ -261,10 +259,9 @@ export default function QuickContentResult() {
       return;
     }
 
-    const needsCredit = totalRevisions >= 2;
-
-    if (needsCredit && (!team?.credits || team.credits <= 0)) {
-      toast.error("Você não tem créditos de revisão disponíveis");
+    // Sempre verificar créditos (custo: 1 crédito)
+    if (!team?.credits || team.credits < 1) {
+      toast.error("Você não tem créditos disponíveis. Cada revisão custa 1 crédito.");
       return;
     }
 
@@ -272,7 +269,6 @@ export default function QuickContentResult() {
 
     try {
       const newRevisionCount = totalRevisions + 1;
-      const newFreeRevisionsLeft = Math.max(0, freeRevisionsLeft - 1);
 
       toast.info("Editando imagem com base no seu feedback...");
 
@@ -360,14 +356,13 @@ export default function QuickContentResult() {
       }
 
       setTotalRevisions(newRevisionCount);
-      setFreeRevisionsLeft(newFreeRevisionsLeft);
 
-      // Decrement team credits if needed
-      if (needsCredit && team?.id) {
+      // Deduzir 1 crédito da equipe
+      if (team?.id) {
         const { error: creditError } = await supabase
           .from("teams")
           .update({
-            credits: ((team as any).credits || 0) - 2,
+            credits: ((team as any).credits || 0) - 1,
           } as any)
           .eq("id", team.id);
 
@@ -393,13 +388,7 @@ export default function QuickContentResult() {
           .eq("id", actionId);
       }
 
-      if (needsCredit) {
-        toast.success("Revisão concluída! 1 crédito foi consumido.");
-      } else {
-        toast.success(
-          `Revisão concluída! ${newFreeRevisionsLeft} ${newFreeRevisionsLeft !== 1 ? "revisões" : "revisão"} gratuita${newFreeRevisionsLeft !== 1 ? "s" : ""} restante${newFreeRevisionsLeft !== 1 ? "s" : ""}.`,
-        );
-      }
+      toast.success("Revisão concluída! 1 crédito foi consumido.");
 
       setShowReviewDialog(false);
       setReviewPrompt("");
@@ -451,7 +440,7 @@ export default function QuickContentResult() {
             <div className="flex items-center gap-1.5 flex-shrink-0">
               <Badge variant="outline" className="bg-muted/50 text-muted-foreground border-border/30 gap-1 px-2 py-1 text-xs h-7">
                 <RefreshCw className="h-3 w-3" />
-                <span>{freeRevisionsLeft > 0 ? freeRevisionsLeft : team?.credits || 0}</span>
+                <span>{team?.credits || 0} créditos</span>
               </Badge>
             </div>
           </div>
@@ -485,9 +474,7 @@ export default function QuickContentResult() {
             <div className="flex items-center gap-2 flex-shrink-0">
               <Badge variant="outline" className="bg-muted/50 text-muted-foreground border-border/30 gap-2 px-3 py-1.5 text-xs">
                 <RefreshCw className="h-3 w-3" />
-                <span>
-                  {freeRevisionsLeft > 0 ? <>{freeRevisionsLeft} revisões grátis</> : <>{team?.credits || 0} créditos</>}
-                </span>
+                <span>{team?.credits || 0} créditos</span>
               </Badge>
             </div>
           </div>
@@ -755,23 +742,17 @@ export default function QuickContentResult() {
               {/* Revision counter */}
               <Alert>
                 <AlertDescription className="text-xs sm:text-sm">
-                  {freeRevisionsLeft > 0 ? (
-                    <span>
-                      <strong>{freeRevisionsLeft}</strong> {freeRevisionsLeft > 1 ? "revisões gratuitas restantes" : "revisão gratuita restante"}
-                    </span>
-                  ) : (
-                    <span>
-                      Esta revisão consumirá <strong>2 créditos</strong>.
-                      {team?.credits && team.credits > 0 && (
-                        <>
-                          {" "}
-                          Você tem <strong>{team.credits}</strong>{" "}
-                          {team.credits !== 1 ? "créditos" : "crédito"}{" "}
-                          {team.credits !== 1 ? "disponíveis" : "disponível"}.
-                        </>
-                      )}
-                    </span>
-                  )}
+                  <span>
+                    Esta revisão consumirá <strong>1 crédito</strong>.
+                    {team?.credits && team.credits > 0 && (
+                      <>
+                        {" "}
+                        Você tem <strong>{team.credits}</strong>{" "}
+                        {team.credits !== 1 ? "créditos" : "crédito"}{" "}
+                        {team.credits !== 1 ? "disponíveis" : "disponível"}.
+                      </>
+                    )}
+                  </span>
                 </AlertDescription>
               </Alert>
 
