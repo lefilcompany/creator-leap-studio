@@ -109,10 +109,16 @@ export default function Themes() {
   }, [user?.teamId, currentPage]);
 
   const handleOpenDialog = useCallback((theme: StrategicTheme | null = null) => {
-    // Check if at limit before opening dialog for new theme
-    if (!theme && team && themes.length >= team.plan.maxStrategicThemes) {
-      toast.error(`Você atingiu o limite de ${team.plan.maxStrategicThemes} temas estratégicos do seu plano.`);
-      return;
+    // Verificar créditos antes de abrir o diálogo para novo tema
+    if (!theme && team) {
+      if (team.credits < 1) {
+        toast.error('Créditos insuficientes. Criar um tema custa 1 crédito.');
+        return;
+      }
+      if (themes.length >= team.plan.maxStrategicThemes) {
+        toast.error(`Você atingiu o limite de ${team.plan.maxStrategicThemes} temas estratégicos do seu plano.`);
+        return;
+      }
     }
     setThemeToEdit(theme);
     setIsDialogOpen(true);
@@ -223,10 +229,19 @@ export default function Themes() {
           setSelectedTheme(saved);
           setSelectedThemeSummary(summary);
 
+          // Deduzir 1 crédito após criar tema
+          await supabase
+            .from('teams')
+            .update({ credits: team.credits - 1 } as any)
+            .eq('id', user.teamId);
+
           toast.success('Tema criado com sucesso!');
 
           setIsDialogOpen(false);
           setThemeToEdit(null);
+          
+          // Recarregar dados do team para atualizar créditos na UI
+          window.location.reload();
           
           return saved;
         }

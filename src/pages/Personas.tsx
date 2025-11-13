@@ -261,11 +261,23 @@ export default function PersonasPage() {
         setPersonas(prev => [...prev, newPersonaSummary]);
         setSelectedPersona(newPersona);
         setSelectedPersonaSummary(newPersonaSummary);
+        
+        // Deduzir 1 crédito após criar persona
+        await supabase
+          .from('teams')
+          .update({ credits: team.credits - 1 } as any)
+          .eq('id', user.teamId);
+        
         toast.success('Persona criada com sucesso!', { id: toastId });
       }
       
       setIsDialogOpen(false);
       setPersonaToEdit(null);
+      
+      // Recarregar dados do team para atualizar créditos na UI
+      if (!personaToEdit) {
+        window.location.reload();
+      }
     } catch (error) {
       console.error('Erro ao salvar persona:', error);
       toast.error('Erro ao salvar persona. Tente novamente.', { id: toastId });

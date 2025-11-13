@@ -12,12 +12,6 @@ export const CREDIT_COSTS = {
   CREATE_THEME: 1,
 } as const;
 
-export const FREE_RESOURCE_LIMITS = {
-  BRANDS: 3,
-  PERSONAS: 3,
-  THEMES: 3,
-} as const;
-
 export const getCreditCostLabel = (action: keyof typeof CREDIT_COSTS): string => {
   const labels: Record<keyof typeof CREDIT_COSTS, string> = {
     QUICK_IMAGE: "Imagem rápida",
