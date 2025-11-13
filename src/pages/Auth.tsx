@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTheme } from "next-themes";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -742,16 +743,26 @@ const Auth = () => {
                         />
                       </div>
 
-                      <div className="text-center mb-8">
-                        <h2 className="text-2xl font-bold text-foreground mb-2">
-                          {isLoginMode ? "Bem-vindo de volta!" : "Crie sua conta"}
-                        </h2>
-                        <p className="text-muted-foreground">
-                          {isLoginMode ? "Acesse sua plataforma de conteúdo estratégico" : "Comece a criar conteúdo estratégico hoje"}
-                        </p>
-                      </div>
+                      <AnimatePresence mode="wait">
+                        <motion.div
+                          key={isLoginMode ? "login" : "register"}
+                          initial={{ opacity: 0, x: isLoginMode ? -20 : 20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: isLoginMode ? 20 : -20 }}
+                          transition={{ duration: 0.3, ease: "easeInOut" }}
+                        >
+                          <div className="text-center mb-8">
+                            <h2 className="text-2xl font-bold text-foreground mb-2">
+                              {isLoginMode ? "Bem-vindo de volta!" : "Crie sua conta"}
+                            </h2>
+                            <p className="text-muted-foreground">
+                              {isLoginMode ? "Acesse sua plataforma de conteúdo estratégico" : "Comece a criar conteúdo estratégico hoje"}
+                            </p>
+                          </div>
 
-                      {isLoginMode ? loginForm : registerForm}
+                          {isLoginMode ? loginForm : registerForm}
+                        </motion.div>
+                      </AnimatePresence>
                     </div>
                   </SheetContent>
                 </Sheet>
@@ -772,16 +783,26 @@ const Auth = () => {
                   />
                 </div>
 
-                <div className="text-center mb-8">
-                  <h2 className="text-2xl font-bold text-foreground mb-2">
-                    {isLoginMode ? t.login.title : "Crie sua conta"}
-                  </h2>
-                  <p className="text-muted-foreground">
-                    {isLoginMode ? t.login.welcomeMessage : "Comece a criar conteúdo estratégico hoje"}
-                  </p>
-                </div>
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={isLoginMode ? "login" : "register"}
+                    initial={{ opacity: 0, x: isLoginMode ? -20 : 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: isLoginMode ? 20 : -20 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                  >
+                    <div className="text-center mb-8">
+                      <h2 className="text-2xl font-bold text-foreground mb-2">
+                        {isLoginMode ? t.login.title : "Crie sua conta"}
+                      </h2>
+                      <p className="text-muted-foreground">
+                        {isLoginMode ? t.login.welcomeMessage : "Comece a criar conteúdo estratégico hoje"}
+                      </p>
+                    </div>
 
-                {isLoginMode ? loginForm : registerForm}
+                    {isLoginMode ? loginForm : registerForm}
+                  </motion.div>
+                </AnimatePresence>
               </div>
             </div>
           </div>
