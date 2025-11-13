@@ -35,9 +35,6 @@ interface Team {
     isActive: boolean;
   };
   credits: number; // Créditos unificados da equipe
-  free_brands_used: number;
-  free_personas_used: number;
-  free_themes_used: number;
 }
 
 interface DataCache {
@@ -218,9 +215,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               isActive: planData.is_active,
             },
             credits: (teamInfo as any).credits || 0,
-            free_brands_used: (teamInfo as any).free_brands_used || 0,
-            free_personas_used: (teamInfo as any).free_personas_used || 0,
-            free_themes_used: (teamInfo as any).free_themes_used || 0,
           };
         }
       }
@@ -493,9 +487,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             isActive: teamData.plan.is_active
           },
           credits: (teamData as any).credits || 0,
-          free_brands_used: (teamData as any).free_brands_used || 0,
-          free_personas_used: (teamData as any).free_personas_used || 0,
-          free_themes_used: (teamData as any).free_themes_used || 0,
         });
         console.log('[AuthContext] ✅ Team data refreshed successfully');
       }

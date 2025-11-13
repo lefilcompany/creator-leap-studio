@@ -77,14 +77,20 @@ export default function MarcasPage() {
   }, [user?.teamId, currentPage]);
 
   const handleOpenDialog = useCallback((brand: Brand | null = null) => {
-    // Check if at limit before opening dialog for new brand
-    if (!brand && team && brands.length >= team.plan.maxBrands) {
-      toast.error(`${t.brands.limitReached} ${team.plan.maxBrands} ${t.brands.brandsOfPlan}`);
-      return;
+    // Verificar créditos antes de abrir o diálogo para nova marca
+    if (!brand && team) {
+      if (team.credits < 1) {
+        toast.error('Créditos insuficientes. Criar uma marca custa 1 crédito.');
+        return;
+      }
+      if (brands.length >= team.plan.maxBrands) {
+        toast.error(`${t.brands.limitReached} ${team.plan.maxBrands} ${t.brands.brandsOfPlan}`);
+        return;
+      }
     }
     setBrandToEdit(brand);
     setIsDialogOpen(true);
-  }, [team, brands.length]);
+  }, [team, brands.length, t]);
 
   const handleSelectBrand = useCallback(async (brand: BrandSummary) => {
     setSelectedBrandSummary(brand);
@@ -244,11 +250,23 @@ export default function MarcasPage() {
         setBrands(prev => [...prev, newBrandSummary]);
         setSelectedBrand(newBrand);
         setSelectedBrandSummary(newBrandSummary);
+        
+        // Deduzir 1 crédito após criar marca
+        await supabase
+          .from('teams')
+          .update({ credits: team.credits - 1 } as any)
+          .eq('id', user.teamId);
+        
         toast.success(t.brands.createSuccess, { id: toastId });
       }
       
       setIsDialogOpen(false);
       setBrandToEdit(null);
+      
+      // Recarregar dados do team para atualizar créditos na UI
+      if (!brandToEdit) {
+        window.location.reload();
+      }
     } catch (error) {
       console.error('Erro ao salvar marca:', error);
       toast.error(t.brands.saveError, { id: toastId });
