@@ -7,19 +7,41 @@ interface AuthModeToggleProps {
 
 export const AuthModeToggle = ({ isLoginMode, onToggle }: AuthModeToggleProps) => {
   return (
-    <div className="relative inline-flex items-center gap-0 p-1 bg-muted/50 rounded-full border border-border/50 shadow-sm backdrop-blur-sm">
-      {/* Animated background pill */}
+    <div className="relative inline-flex items-center gap-0 p-1.5 bg-muted/30 rounded-full border-2 border-border/50 shadow-lg backdrop-blur-sm overflow-hidden">
+      {/* Animated background that drags */}
       <motion.div
-        className="absolute h-[calc(100%-8px)] rounded-full bg-gradient-to-br from-primary to-primary/80 shadow-lg"
+        className="absolute inset-0 bg-gradient-to-r from-primary via-primary/90 to-primary/80 rounded-full shadow-xl"
         initial={false}
         animate={{
-          left: isLoginMode ? 4 : "50%",
-          right: isLoginMode ? "50%" : 4,
+          x: isLoginMode ? "0%" : "50%",
         }}
         transition={{
           type: "spring",
-          stiffness: 400,
+          stiffness: 300,
           damping: 30,
+          mass: 0.8,
+        }}
+        style={{
+          width: "50%",
+        }}
+      />
+      
+      {/* Glow effect that follows */}
+      <motion.div
+        className="absolute inset-0 blur-xl opacity-50"
+        initial={false}
+        animate={{
+          x: isLoginMode ? "0%" : "50%",
+        }}
+        transition={{
+          type: "spring",
+          stiffness: 300,
+          damping: 30,
+          mass: 0.8,
+        }}
+        style={{
+          width: "50%",
+          background: "radial-gradient(circle, hsl(var(--primary)) 0%, transparent 70%)",
         }}
       />
       
@@ -27,10 +49,10 @@ export const AuthModeToggle = ({ isLoginMode, onToggle }: AuthModeToggleProps) =
       <button
         type="button"
         onClick={() => onToggle(true)}
-        className={`relative z-10 px-6 py-2.5 text-sm font-semibold rounded-full transition-colors duration-200 min-w-[100px]
+        className={`relative z-10 px-6 py-3 text-sm font-bold rounded-full transition-all duration-300 min-w-[110px]
           ${isLoginMode 
-            ? "text-primary-foreground" 
-            : "text-muted-foreground hover:text-foreground"
+            ? "text-primary-foreground scale-105" 
+            : "text-muted-foreground hover:text-foreground hover:scale-105"
           }`}
       >
         Login
@@ -40,10 +62,10 @@ export const AuthModeToggle = ({ isLoginMode, onToggle }: AuthModeToggleProps) =
       <button
         type="button"
         onClick={() => onToggle(false)}
-        className={`relative z-10 px-6 py-2.5 text-sm font-semibold rounded-full transition-colors duration-200 min-w-[100px]
+        className={`relative z-10 px-6 py-3 text-sm font-bold rounded-full transition-all duration-300 min-w-[110px]
           ${!isLoginMode 
-            ? "text-primary-foreground" 
-            : "text-muted-foreground hover:text-foreground"
+            ? "text-primary-foreground scale-105" 
+            : "text-muted-foreground hover:text-foreground hover:scale-105"
           }`}
       >
         Cadastro
