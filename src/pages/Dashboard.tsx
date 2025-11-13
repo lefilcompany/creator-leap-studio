@@ -95,21 +95,9 @@ const Dashboard = () => {
     );
   }
 
-  // Calcular créditos - soma de todos os tipos incluindo vídeos
-  const totalCredits = 
-    (team.plan?.quickContentCreations || 0) +
-    (team.plan?.customContentSuggestions || 0) +
-    (team.plan?.contentPlans || 0) +
-    (team.plan?.contentReviews || 0) +
-    (team.plan?.videoCredits || 0);
-  
-  const remainingCredits = 
-    (team.credits?.quickContentCreations || 0) +
-    (team.credits?.contentSuggestions || 0) +
-    (team.credits?.contentPlans || 0) +
-    (team.credits?.contentReviews || 0) +
-    (team.credits?.videoCredits || 0);
-  
+  // Calcular créditos - agora é um valor único
+  const totalCredits = team.plan?.credits || 0;
+  const remainingCredits = team.credits || 0;
   const progressPercentage = totalCredits > 0 ? ((remainingCredits / totalCredits) * 100) : 0;
 
   const stats = [

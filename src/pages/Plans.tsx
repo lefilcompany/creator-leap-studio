@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/hooks/useAuth";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import {
   Rocket,
   Users,
@@ -62,20 +63,17 @@ const Plans = () => {
         const formattedPlans: Plan[] = plansData.map((p) => ({
           id: p.id,
           name: p.name,
-          displayName: p.name,
+          description: p.description || '',
           price: p.price_monthly || 0,
-          trialDays: p.trial_days || 0,
+          credits: (p as any).credits || 0,
           maxMembers: p.max_members,
           maxBrands: p.max_brands,
           maxStrategicThemes: p.max_strategic_themes,
           maxPersonas: p.max_personas,
-          quickContentCreations: p.credits_quick_content,
-          customContentSuggestions: p.credits_suggestions,
-          contentPlans: p.credits_plans,
-          contentReviews: p.credits_reviews,
-          videoCredits: p.credits_videos,
+          trialDays: p.trial_days || 0,
           isActive: p.is_active,
           stripePriceId: p.stripe_price_id_monthly,
+          stripeProductId: p.stripe_product_id,
         }));
         
         // Ordenar manualmente: Light, Básico, Pro, Enterprise
@@ -324,7 +322,7 @@ const Plans = () => {
                 {isCurrentPlan && <Badge className="absolute -top-2 right-2 bg-green-500 text-xs">Atual</Badge>}
 
                 <CardHeader className="text-center pb-4">
-                  <CardTitle className="text-xl md:text-2xl">{plan.displayName}</CardTitle>
+                  <CardTitle className="text-xl md:text-2xl">{plan.name}</CardTitle>
                   <div className="text-2xl md:text-3xl font-bold text-primary">
                     {plan.name === "Enterprise" 
                       ? "Sob consulta"
@@ -370,25 +368,7 @@ const Plans = () => {
                     </div>
                     <div className="flex items-start gap-2">
                       <CheckCircle className="h-3 w-3 md:h-4 md:w-4 text-green-500 flex-shrink-0 mt-0.5" />
-                      <span className="text-left">{plan.quickContentCreations} criações rápidas</span>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <CheckCircle className="h-3 w-3 md:h-4 md:w-4 text-green-500 flex-shrink-0 mt-0.5" />
-                      <span className="text-left">{plan.customContentSuggestions} sugestões</span>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <CheckCircle className="h-3 w-3 md:h-4 md:w-4 text-green-500 flex-shrink-0 mt-0.5" />
-                      <span className="text-left">{plan.contentPlans} planejamentos</span>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <CheckCircle className="h-3 w-3 md:h-4 md:w-4 text-green-500 flex-shrink-0 mt-0.5" />
-                      <span className="text-left">{plan.contentReviews} revisões</span>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <CheckCircle className="h-3 w-3 md:h-4 md:w-4 text-green-500 flex-shrink-0 mt-0.5" />
-                      <span className="text-left">
-                        {plan.videoCredits === 1 ? '1 vídeo' : `${plan.videoCredits || 0} vídeos`}
-                      </span>
+                      <span className="text-left">{plan.credits} créditos mensais</span>
                     </div>
                     {isPremium && (
                       <>
@@ -508,59 +488,20 @@ const Plans = () => {
   }
 
   const plan = team.plan;
-  const credits = team.credits || {
-    quickContentCreations: 0,
-    contentSuggestions: 0,
-    contentReviews: 0,
-    contentPlans: 0,
-    videoCredits: 0,
-  };
+  const credits = team.credits || 0;
   const isEnterprisePlan = plan?.name === "Enterprise";
 
-  const creditData = [
-    {
-      name: "Criações Rápidas",
-      current: credits?.quickContentCreations || 0,
-      limit: isEnterprisePlan ? credits?.quickContentCreations || 0 : plan?.quickContentCreations || 0,
-      icon: Zap,
-      color: "text-orange-600",
-      bgColor: "bg-orange-500/10",
-    },
-    {
-      name: "Sugestões",
-      current: credits?.contentSuggestions || 0,
-      limit: isEnterprisePlan ? credits?.contentSuggestions || 0 : plan?.customContentSuggestions || 0,
-      icon: Sparkles,
-      color: "text-blue-600",
-      bgColor: "bg-blue-500/10",
-    },
-    {
-      name: "Revisões",
-      current: credits?.contentReviews || 0,
-      limit: isEnterprisePlan ? credits?.contentReviews || 0 : plan?.contentReviews || 0,
-      icon: CheckCircle,
-      color: "text-green-600",
-      bgColor: "bg-green-500/10",
-    },
-    {
-      name: "Planejamentos",
-      current: credits?.contentPlans || 0,
-      limit: isEnterprisePlan ? credits?.contentPlans || 0 : plan?.contentPlans || 0,
-      icon: Calendar,
-      color: "text-purple-600",
-      bgColor: "bg-purple-500/10",
-    },
-    {
-      name: "Vídeos",
-      current: credits?.videoCredits || 0,
-      limit: isEnterprisePlan ? credits?.videoCredits || 0 : plan?.videoCredits || 0,
-      icon: Video,
-      color: "text-pink-600",
-      bgColor: "bg-pink-500/10",
-    },
-  ];
-  const totalCredits = creditData.reduce((acc, credit) => acc + credit.current, 0);
-  const totalLimits = isEnterprisePlan ? totalCredits : creditData.reduce((acc, credit) => acc + credit.limit, 0);
+  const creditData = {
+    name: "Créditos",
+    current: credits,
+    limit: isEnterprisePlan ? credits : plan?.credits || 0,
+    icon: Zap,
+    color: "text-orange-600",
+    bgColor: "bg-orange-500/10",
+  };
+  
+  const totalCredits = credits;
+  const totalLimits = isEnterprisePlan ? totalCredits : plan?.credits || 0;
   const usagePercentage = totalLimits > 0 ? ((totalLimits - totalCredits) / totalLimits) * 100 : 0;
   return (
     <div className="space-y-4 md:space-y-6 animate-fade-in">
@@ -602,12 +543,12 @@ const Plans = () => {
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
                   <div className="flex-shrink-0 bg-primary text-primary-foreground rounded-xl px-3 py-1.5 font-semibold text-sm">
-                    {plan?.displayName || "Plano"}
+                    {plan?.name || "Plano"}
                   </div>
                   <div>
                     <h2 className="text-lg font-semibold text-foreground">Plano Atual</h2>
                     <p className="text-sm text-muted-foreground">
-                      Você está usando o plano {plan?.displayName || "atual"}
+                      Você está usando o plano {plan?.name || "atual"}
                     </p>
                   </div>
                 </div>
@@ -623,45 +564,29 @@ const Plans = () => {
             </CardContent>
           </Card>
 
-          {/* Grid de Cards de Créditos - 4 colunas */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-            {creditData.map((credit, index) => {
-              const usedCredits = Math.max(0, credit.limit - credit.current);
-              const percentage = credit.limit > 0 ? (credit.current / credit.limit) * 100 : 0;
-              const isLow = credit.current <= credit.limit * 0.2;
-              const isAtLimit = credit.current <= 0;
-              const Icon = credit.icon;
-              return (
-                <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-all">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className={`p-2 rounded-xl ${credit.bgColor}`}>
-                        <Icon className={`h-4 w-4 ${credit.color}`} />
-                      </div>
-                      <h3 className="font-semibold text-xs xl:text-sm text-foreground">{credit.name}</h3>
-                    </div>
-
-                    <div className="space-y-2">
-                      <div>
-                        <div className="text-2xl xl:text-3xl font-bold text-foreground mb-1">
-                          {credit.current.toLocaleString()}
-                        </div>
-                        <p className="text-xs text-muted-foreground">de {credit.limit.toLocaleString()} disponíveis</p>
-                      </div>
-
-                      <Progress value={percentage} className="h-3 bg-primary/20 mb-3" />
-
-                      <p
-                        className={`text-xs font-medium ${isAtLimit ? "text-destructive" : isLow ? "text-yellow-600" : "text-green-600"}`}
-                      >
-                        {isAtLimit ? "⚠ Créditos esgotados" : isLow ? "⚡ Poucos créditos" : "✓ Créditos disponíveis"}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
+          {/* Card de créditos único */}
+          <Card className="border-0 shadow-lg hover:shadow-xl transition-all">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center", creditData.bgColor)}>
+                    <creditData.icon className={cn("h-5 w-5", creditData.color)} />
+                  </div>
+                  <h3 className="font-semibold text-foreground">{creditData.name}</h3>
+                </div>
+                <span className="text-xs text-muted-foreground">Disponíveis</span>
+              </div>
+              <div className="space-y-2">
+                <div className="text-3xl font-bold text-foreground">{creditData.current}</div>
+                {!isEnterprisePlan && (
+                  <>
+                    <Progress value={(creditData.current / creditData.limit) * 100} className="h-2" />
+                    <p className="text-xs text-muted-foreground">de {creditData.limit} no total</p>
+                  </>
+                )}
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Limites de Recursos */}
           <Card className="shadow-lg">
@@ -774,7 +699,7 @@ const Plans = () => {
             <Card className="bg-gradient-to-br from-primary/5 to-background shadow-xl flex-1">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between mb-2">
-                  <CardTitle className="text-lg font-bold">{plan?.displayName || "Plano Atual"}</CardTitle>
+                  <CardTitle className="text-lg font-bold">{plan?.name || "Plano Atual"}</CardTitle>
                   <Badge className="bg-primary text-primary-foreground text-xs">Seu Plano</Badge>
                 </div>
                 <div className="flex items-baseline gap-1">

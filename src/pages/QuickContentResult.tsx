@@ -263,7 +263,7 @@ export default function QuickContentResult() {
 
     const needsCredit = totalRevisions >= 2;
 
-    if (needsCredit && (!team?.credits?.contentReviews || team.credits.contentReviews <= 0)) {
+    if (needsCredit && (!team?.credits || team.credits <= 0)) {
       toast.error("Você não tem créditos de revisão disponíveis");
       return;
     }
@@ -367,8 +367,8 @@ export default function QuickContentResult() {
         const { error: creditError } = await supabase
           .from("teams")
           .update({
-            credits_reviews: (team.credits.contentReviews || 0) - 1,
-          })
+            credits: ((team as any).credits || 0) - 2,
+          } as any)
           .eq("id", team.id);
 
         if (creditError) {
@@ -451,7 +451,7 @@ export default function QuickContentResult() {
             <div className="flex items-center gap-1.5 flex-shrink-0">
               <Badge variant="outline" className="bg-muted/50 text-muted-foreground border-border/30 gap-1 px-2 py-1 text-xs h-7">
                 <RefreshCw className="h-3 w-3" />
-                <span>{freeRevisionsLeft > 0 ? freeRevisionsLeft : team?.credits?.contentReviews || 0}</span>
+                <span>{freeRevisionsLeft > 0 ? freeRevisionsLeft : team?.credits || 0}</span>
               </Badge>
             </div>
           </div>
@@ -486,7 +486,7 @@ export default function QuickContentResult() {
               <Badge variant="outline" className="bg-muted/50 text-muted-foreground border-border/30 gap-2 px-3 py-1.5 text-xs">
                 <RefreshCw className="h-3 w-3" />
                 <span>
-                  {freeRevisionsLeft > 0 ? <>{freeRevisionsLeft} revisões grátis</> : <>{team?.credits?.contentReviews || 0} créditos</>}
+                  {freeRevisionsLeft > 0 ? <>{freeRevisionsLeft} revisões grátis</> : <>{team?.credits || 0} créditos</>}
                 </span>
               </Badge>
             </div>
@@ -761,13 +761,13 @@ export default function QuickContentResult() {
                     </span>
                   ) : (
                     <span>
-                      Esta revisão consumirá <strong>1 crédito</strong> de revisão.
-                      {team?.credits?.contentReviews && (
+                      Esta revisão consumirá <strong>2 créditos</strong>.
+                      {team?.credits && team.credits > 0 && (
                         <>
                           {" "}
-                          Você tem <strong>{team.credits.contentReviews}</strong>{" "}
-                          {team.credits.contentReviews !== 1 ? "créditos" : "crédito"}{" "}
-                          {team.credits.contentReviews !== 1 ? "disponíveis" : "disponível"}.
+                          Você tem <strong>{team.credits}</strong>{" "}
+                          {team.credits !== 1 ? "créditos" : "crédito"}{" "}
+                          {team.credits !== 1 ? "disponíveis" : "disponível"}.
                         </>
                       )}
                     </span>

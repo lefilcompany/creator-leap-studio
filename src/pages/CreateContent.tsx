@@ -293,26 +293,18 @@ export default function CreateContent() {
           plan: teamData.plan ? {
             id: teamData.plan.id,
             name: teamData.plan.name,
-            displayName: teamData.plan.name,
+            description: (teamData.plan as any).description || '',
             price: Number(teamData.plan.price_monthly || 0),
-            trialDays: teamData.plan.trial_days,
+            credits: (teamData.plan as any).credits || 0,
             maxMembers: teamData.plan.max_members,
             maxBrands: teamData.plan.max_brands,
             maxStrategicThemes: teamData.plan.max_strategic_themes,
             maxPersonas: teamData.plan.max_personas,
-            quickContentCreations: teamData.plan.credits_quick_content,
-            customContentSuggestions: teamData.plan.credits_suggestions,
-            contentPlans: teamData.plan.credits_plans,
-            contentReviews: teamData.plan.credits_reviews,
+            trialDays: teamData.plan.trial_days || 0,
             isActive: teamData.plan.is_active,
             stripePriceId: teamData.plan.stripe_price_id_monthly,
           } : null,
-          credits: {
-            quickContentCreations: teamData.credits_quick_content,
-            contentSuggestions: teamData.credits_suggestions,
-            contentReviews: teamData.credits_reviews,
-            contentPlans: teamData.credits_plans,
-          }
+          credits: (teamData as any).credits || 0,
         };
 
         // Mapear dados

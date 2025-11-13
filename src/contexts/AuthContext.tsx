@@ -209,7 +209,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               name: planData.name,
               description: planData.description || '',
               price: planData.price_monthly || 0,
-              credits: planData.credits || 0,
+              credits: (planData as any).credits || 0,
               maxMembers: planData.max_members,
               maxBrands: planData.max_brands,
               maxStrategicThemes: planData.max_strategic_themes,
@@ -217,10 +217,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               trialDays: planData.trial_days,
               isActive: planData.is_active,
             },
-            credits: teamInfo.credits || 0,
-            free_brands_used: teamInfo.free_brands_used || 0,
-            free_personas_used: teamInfo.free_personas_used || 0,
-            free_themes_used: teamInfo.free_themes_used || 0,
+            credits: (teamInfo as any).credits || 0,
+            free_brands_used: (teamInfo as any).free_brands_used || 0,
+            free_personas_used: (teamInfo as any).free_personas_used || 0,
+            free_themes_used: (teamInfo as any).free_themes_used || 0,
           };
         }
       }
@@ -484,7 +484,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             name: teamData.plan.name,
             description: teamData.plan.description || '',
             price: teamData.plan.price_monthly,
-            credits: teamData.plan.credits || 0,
+            credits: (teamData.plan as any).credits || 0,
             maxMembers: teamData.plan.max_members,
             maxBrands: teamData.plan.max_brands,
             maxStrategicThemes: teamData.plan.max_strategic_themes,
@@ -492,10 +492,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             trialDays: teamData.plan.trial_days,
             isActive: teamData.plan.is_active
           },
-          credits: teamData.credits || 0,
-          free_brands_used: teamData.free_brands_used || 0,
-          free_personas_used: teamData.free_personas_used || 0,
-          free_themes_used: teamData.free_themes_used || 0,
+          credits: (teamData as any).credits || 0,
+          free_brands_used: (teamData as any).free_brands_used || 0,
+          free_personas_used: (teamData as any).free_personas_used || 0,
+          free_themes_used: (teamData as any).free_themes_used || 0,
         });
         console.log('[AuthContext] ✅ Team data refreshed successfully');
       }
