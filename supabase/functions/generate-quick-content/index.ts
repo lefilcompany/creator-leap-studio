@@ -789,7 +789,7 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
         imageUrl,
         description,
         actionId: actionData?.id,
-        creditsRemaining: teamData.credits_quick_content - 1
+        creditsRemaining: teamData.credits - 1
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
