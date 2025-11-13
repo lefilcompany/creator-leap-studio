@@ -688,8 +688,6 @@ export default function ContentResult() {
                   <RefreshCw className="h-3 w-3" />
                   <span>{team?.credits || 0} créditos</span>
                 </Badge>
-                  </span>
-                </Badge>
                 <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 gap-2 px-3 py-1.5 text-xs">
                   {contentData.type === "video" ? <Video className="h-4 w-4" /> : <ImageIcon className="h-4 w-4" />}
                   <span>{contentData.type === "video" ? "Vídeo" : "Imagem"}</span>
@@ -898,17 +896,21 @@ export default function ContentResult() {
                   <RefreshCw className="h-4 w-4 text-orange-600" />
                   <AlertDescription className="text-sm">
                     <span className="font-semibold text-orange-600">Atenção:</span> Esta revisão consumirá 1 crédito do seu plano.
-                    {team?.credits !== undefined && <span className="block mt-1 text-muted-foreground">
-                        {team.credits > 0 ? <>
-                            Você tem {team.credits} crédito
-                              {team.credits !== 1 ? "s" : ""} disponível
-                              {team.credits !== 1 ? "eis" : ""}.
-                            </> : <span className="text-destructive font-medium">
-                              Você não tem créditos disponíveis. Faça upgrade do seu plano.
-                            </span>}
-                        </span>}
-                    </AlertDescription>
-                  </Alert>}
+                    {team?.credits !== undefined && (
+                      <span className="block mt-1 text-muted-foreground">
+                        {team.credits > 0 ? (
+                          <>
+                            Você tem {team.credits} crédito{team.credits !== 1 ? "s" : ""} disponível{team.credits !== 1 ? "eis" : ""}.
+                          </>
+                        ) : (
+                          <span className="text-destructive font-medium">
+                            Você não tem créditos disponíveis. Faça upgrade do seu plano.
+                          </span>
+                        )}
+                      </span>
+                    )}
+                  </AlertDescription>
+                </Alert>
 
                 <div className="space-y-2">
                   <Label htmlFor="review-prompt">O que você quer melhorar?</Label>
