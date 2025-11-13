@@ -7,7 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Calendar, ArrowLeft, MessageSquareQuote, Zap, Clipboard, Check, X, Loader2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Calendar, ArrowLeft, MessageSquareQuote, Zap, Clipboard, Check, X, Loader2, Coins } from "lucide-react";
+import { CREDIT_COSTS } from "@/lib/creditCosts";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -506,7 +508,7 @@ const PlanContent = () => {
                     !formData.platform ||
                     !formData.objective
                   }
-                  className="w-full max-w-lg h-12 sm:h-14 rounded-2xl text-base sm:text-lg font-bold bg-gradient-to-r from-primary via-purple-600 to-secondary hover:from-primary/90 shadow-xl transition-all duration-500 disabled:opacity-50"
+                  className="w-full max-w-lg h-12 sm:h-14 rounded-2xl text-base sm:text-lg font-bold bg-gradient-to-r from-primary via-purple-600 to-secondary hover:from-primary/90 shadow-xl transition-all duration-500 disabled:opacity-50 gap-2"
                 >
                   {loading ? (
                     <>
@@ -517,6 +519,10 @@ const PlanContent = () => {
                     <>
                       <Calendar className="mr-2 sm:mr-3 h-4 w-4 sm:h-5 sm:w-5" />
                       <span>Gerar Planejamento</span>
+                      <Badge variant="secondary" className="ml-2 bg-primary-foreground/20 text-primary-foreground border-primary-foreground/30 gap-1">
+                        <Coins className="h-3 w-3" />
+                        {CREDIT_COSTS.CONTENT_PLAN}
+                      </Badge>
                     </>
                   )}
                 </Button>

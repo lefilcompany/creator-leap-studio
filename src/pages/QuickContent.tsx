@@ -8,7 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Slider } from "@/components/ui/slider";
-import { Loader2, Sparkles, Zap, X, ImageIcon, Settings2, Info } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Loader2, Sparkles, Zap, X, ImageIcon, Settings2, Info, Coins } from "lucide-react";
+import { CREDIT_COSTS } from "@/lib/creditCosts";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -668,16 +670,21 @@ export default function QuickContent() {
 
         {/* Generate Button */}
         <div className="flex justify-end pb-6">
-          <Button onClick={generateQuickContent} disabled={loading || !formData.prompt.trim() || (team?.credits || 0) <= 0} size="lg" className="bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_100%] animate-gradient text-primary-foreground hover:opacity-90 transition-opacity shadow-lg">
+          <Button onClick={generateQuickContent} disabled={loading || !formData.prompt.trim() || (team?.credits || 0) < CREDIT_COSTS.QUICK_IMAGE} size="lg" className="bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_100%] animate-gradient text-primary-foreground hover:opacity-90 transition-opacity shadow-lg gap-2">
             {loading ? <>
                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                 Gerando...
               </> : <>
                 <Zap className="mr-2 h-5 w-5" />
-                Gerar Conteúdo
+                Gerar Imagem Rápida
+                <Badge variant="secondary" className="ml-2 bg-primary-foreground/20 text-primary-foreground border-primary-foreground/30 gap-1">
+                  <Coins className="h-3 w-3" />
+                  {CREDIT_COSTS.QUICK_IMAGE}
+                </Badge>
               </>}
           </Button>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 }

@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Download, Copy, Check, Maximize2, RefreshCw, Undo2, Zap, ArrowLeft } from "lucide-react";
+import { Download, Copy, Check, Maximize2, RefreshCw, Undo2, Zap, ArrowLeft, Coins } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
@@ -486,10 +486,14 @@ export default function QuickContentResult() {
               variant="outline"
               size="sm"
               onClick={handleOpenReview}
-              className="flex-1 hover:text-primary hover:bg-primary/10 hover:border-primary transition-all"
+              className="flex-1 hover:text-primary hover:bg-primary/10 hover:border-primary transition-all gap-1"
             >
               <RefreshCw className="h-4 w-4 mr-1.5" />
               <span className="text-xs">Revisar</span>
+              <Badge variant="outline" className="ml-1 gap-1 text-[10px] px-1 h-4">
+                <Coins className="h-2.5 w-2.5" />
+                {CREDIT_COSTS.IMAGE_REVIEW}
+              </Badge>
             </Button>
 
             {totalRevisions > 0 && (
@@ -530,10 +534,14 @@ export default function QuickContentResult() {
               variant="outline"
               size="sm"
               onClick={handleOpenReview}
-              className="hover:text-primary hover:bg-primary/10 hover:border-primary transition-all hover-scale"
+              className="hover:text-primary hover:bg-primary/10 hover:border-primary transition-all hover-scale gap-1"
             >
               <RefreshCw className="h-4 w-4 mr-2" />
               Revisar
+              <Badge variant="outline" className="ml-1 gap-1">
+                <Coins className="h-3 w-3" />
+                {CREDIT_COSTS.IMAGE_REVIEW}
+              </Badge>
             </Button>
 
             {totalRevisions > 0 && (
@@ -780,8 +788,9 @@ export default function QuickContentResult() {
                 </Button>
                 <Button
                   onClick={handleSubmitReview}
-                  disabled={isReviewing || !reviewPrompt.trim()}
-                  className="w-full sm:w-auto min-w-[100px] sm:min-w-[120px] text-xs sm:text-sm h-9 sm:h-10"
+                  disabled={!reviewPrompt.trim() || isReviewing || (team?.credits || 0) < CREDIT_COSTS.IMAGE_REVIEW}
+                  className="w-full sm:w-auto bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-xs sm:text-sm gap-1"
+                  size="default"
                 >
                   {isReviewing ? (
                     <>
@@ -792,6 +801,10 @@ export default function QuickContentResult() {
                     <>
                       <RefreshCw className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       Revisar
+                      <Badge variant="secondary" className="ml-1 bg-primary-foreground/20 text-primary-foreground border-primary-foreground/30 gap-1">
+                        <Coins className="h-3 w-3" />
+                        {CREDIT_COSTS.IMAGE_REVIEW}
+                      </Badge>
                     </>
                   )}
                 </Button>
