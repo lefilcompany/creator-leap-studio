@@ -139,7 +139,7 @@ const ReviewContent = () => {
     if (!user || !authTeam) return;
     if (!brand) return setError('Por favor, selecione uma marca');
     
-    if ((authTeam.credits?.contentReviews || 0) <= 0) {
+    if ((authTeam.credits || 0) <= 0) {
       return toast.error('Seus créditos para revisões de conteúdo acabaram.');
     }
 
@@ -291,10 +291,10 @@ const ReviewContent = () => {
                       </div>
                       <div className="text-left gap-4 flex justify-center items-center">
                         <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                          {authTeam.credits?.contentReviews || 0}
+                          {authTeam.credits || 0}
                         </span>
                         <p className="text-md text-muted-foreground font-medium leading-tight">
-                          Revisões Restantes
+                          Créditos Restantes
                         </p>
                       </div>
                     </div>

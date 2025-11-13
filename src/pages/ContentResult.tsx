@@ -260,7 +260,7 @@ export default function ContentResult() {
     const needsCredit = totalRevisions >= 2;
 
     // Bloquear se não tem revisões gratuitas E não tem créditos
-    if (needsCredit && (!team?.credits?.contentReviews || team.credits.contentReviews <= 0)) {
+    if (needsCredit && (!team?.credits || team.credits <= 0)) {
       toast.error("Você não tem créditos de revisão disponíveis");
       return;
     }
@@ -651,7 +651,7 @@ export default function ContentResult() {
                 <div className="flex items-center gap-1.5 flex-shrink-0">
                   <Badge variant="outline" className="bg-muted/50 text-muted-foreground border-border/30 gap-1 px-2 py-1 text-xs h-7">
                     <RefreshCw className="h-3 w-3" />
-                    <span>{freeRevisionsLeft > 0 ? freeRevisionsLeft : team?.credits?.contentReviews || 0}</span>
+                    <span>{freeRevisionsLeft > 0 ? freeRevisionsLeft : team?.credits || 0}</span>
                   </Badge>
                   <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 p-1.5 h-7 w-7 flex items-center justify-center">
                     {contentData.type === "video" ? <Video className="h-3.5 w-3.5" /> : <ImageIcon className="h-3.5 w-3.5" />}
@@ -685,7 +685,7 @@ export default function ContentResult() {
                 <Badge variant="outline" className="bg-muted/50 text-muted-foreground border-border/30 gap-2 px-3 py-1.5 text-xs">
                   <RefreshCw className="h-3 w-3" />
                   <span>
-                    {freeRevisionsLeft > 0 ? <>{freeRevisionsLeft} revisões grátis</> : <>{team?.credits?.contentReviews || 0} créditos</>}
+                    {freeRevisionsLeft > 0 ? <>{freeRevisionsLeft} revisões grátis</> : <>{team?.credits || 0} créditos</>}
                   </span>
                 </Badge>
                 <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 gap-2 px-3 py-1.5 text-xs">
@@ -733,14 +733,14 @@ export default function ContentResult() {
                   <span className="hidden xs:inline">Download</span>
                 </Button>
                 <div className="relative group">
-                  <Button onClick={handleOpenReview} variant="secondary" className="w-full flex-1 sm:flex-initial rounded-xl gap-2 hover-scale transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 group" size="lg" disabled={freeRevisionsLeft === 0 && (!team?.credits?.contentReviews || team.credits.contentReviews <= 0)}>
+                  <Button onClick={handleOpenReview} variant="secondary" className="w-full flex-1 sm:flex-initial rounded-xl gap-2 hover-scale transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 group" size="lg" disabled={freeRevisionsLeft === 0 && (!team?.credits || team.credits <= 0)}>
                     <RefreshCw className="h-4 w-4 group-hover:rotate-180 transition-transform duration-500" />
                     <span className="sm:hidden">Revisar</span>
                     {freeRevisionsLeft > 0 && <Badge variant="secondary" className="ml-1 text-xs px-1.5 py-0.5 bg-white text-secondary border-secondary/30">
                         {freeRevisionsLeft}
                       </Badge>}
                   </Button>
-                  {freeRevisionsLeft === 0 && (!team?.credits?.contentReviews || team.credits.contentReviews <= 0) && <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-destructive text-destructive-foreground px-3 py-1.5 rounded-lg text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 shadow-lg">
+                  {freeRevisionsLeft === 0 && (!team?.credits || team.credits <= 0) && <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-destructive text-destructive-foreground px-3 py-1.5 rounded-lg text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 shadow-lg">
                       Sem créditos disponíveis
                     </div>}
                 </div>
@@ -863,9 +863,9 @@ export default function ContentResult() {
                   {freeRevisionsLeft > 0 ? <span className="text-primary font-medium">
                       {" "}
                       {freeRevisionsLeft} revisão(ões) gratuita(s) restante(s).
-                    </span> : team?.credits?.contentReviews && team.credits.contentReviews > 0 ? <span className="text-orange-600 font-medium">
+                    </span> : team?.credits && team.credits > 0 ? <span className="text-orange-600 font-medium">
                       {" "}
-                      Esta revisão consumirá 1 crédito. Você tem {team.credits.contentReviews} crédito(s).
+                      Esta revisão consumirá 2 créditos. Você tem {team.credits} crédito(s).
                     </span> : <span className="text-destructive font-medium"> Sem créditos disponíveis para revisão.</span>}
                 </> : "Selecione o que você deseja revisar neste conteúdo."}
             </DialogDescription>
@@ -912,12 +912,12 @@ export default function ContentResult() {
                     <RefreshCw className="h-4 w-4 text-orange-600" />
                     <AlertDescription className="text-sm">
                       <span className="font-semibold text-orange-600">Atenção:</span> Revisões gratuitas esgotadas. Esta
-                      revisão consumirá 1 crédito do seu plano.
-                      {team?.credits?.contentReviews !== undefined && <span className="block mt-1 text-muted-foreground">
-                          {team.credits.contentReviews > 0 ? <>
-                              Você tem {team.credits.contentReviews} crédito
-                              {team.credits.contentReviews !== 1 ? "s" : ""} disponível
-                              {team.credits.contentReviews !== 1 ? "eis" : ""}.
+                      revisão consumirá 2 créditos do seu plano.
+                      {team?.credits !== undefined && <span className="block mt-1 text-muted-foreground">
+                          {team.credits > 0 ? <>
+                              Você tem {team.credits} crédito
+                              {team.credits !== 1 ? "s" : ""} disponível
+                              {team.credits !== 1 ? "eis" : ""}.
                             </> : <span className="text-destructive font-medium">
                               Você não tem créditos disponíveis. Faça upgrade do seu plano.
                             </span>}
@@ -937,7 +937,7 @@ export default function ContentResult() {
               }} className="flex-1" disabled={isReviewing}>
                     Voltar
                   </Button>
-                  <Button onClick={handleSubmitReview} className="flex-1 gap-2" disabled={!reviewPrompt.trim() || isReviewing || freeRevisionsLeft === 0 && (!team?.credits?.contentReviews || team.credits.contentReviews <= 0)}>
+                  <Button onClick={handleSubmitReview} className="flex-1 gap-2" disabled={!reviewPrompt.trim() || isReviewing || freeRevisionsLeft === 0 && (!team?.credits || team.credits <= 0)}>
                     {isReviewing ? <>
                         <RefreshCw className="h-4 w-4 animate-spin" />
                         Revisando...

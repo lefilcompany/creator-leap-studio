@@ -72,7 +72,7 @@ const PlanContent = () => {
         ] = await Promise.all([
           supabase.from("brands").select("id, name").eq("team_id", user.teamId),
           supabase.from("strategic_themes").select("id, title, brand_id").eq("team_id", user.teamId),
-          supabase.from("teams").select("credits_plans").eq("id", user.teamId).maybeSingle(),
+          supabase.from("teams").select("credits").eq("id", user.teamId).maybeSingle(),
         ]);
 
         if (brandsError) throw brandsError;
@@ -82,7 +82,7 @@ const PlanContent = () => {
         // Atualizar todos os estados de uma vez para evitar múltiplas renderizações
         setBrands(brandsData || []);
         setThemes(themesData || []);
-        setCreditsRemaining(teamData?.credits_plans || 0);
+        setCreditsRemaining((teamData as any)?.credits || 0);
         setIsLoadingData(false);
       } catch (error) {
         console.error("Error loading data:", error);

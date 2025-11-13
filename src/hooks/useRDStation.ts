@@ -28,6 +28,7 @@ interface RDStationUserData {
   state?: string;
   teamName?: string;
   plan?: string;
+  credits?: number;
   userRole?: string;
   actionType?: string;
   creditsRemaining?: number;
@@ -72,10 +73,7 @@ export const useRDStation = () => {
         plan: teamData?.plans?.name,
         userRole: user.isAdmin ? 'admin' : 'member',
         subscriptionStatus: teamData?.subscription_status,
-        creditsQuickContent: teamData?.credits_quick_content,
-        creditsSuggestions: teamData?.credits_suggestions,
-        creditsPlans: teamData?.credits_plans,
-        creditsReviews: teamData?.credits_reviews,
+        credits: (teamData as any).credits || 0,
         ...customData
       };
 
