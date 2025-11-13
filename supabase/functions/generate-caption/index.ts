@@ -1,6 +1,8 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
+import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
+import { recordCreditUsage } from '../_shared/creditHistory.ts';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -364,9 +366,9 @@ serve(async (req) => {
       );
     }
 
-    if (!teamData || teamData.credits <= 0) {
+    if (!teamData || teamData.credits < CREDIT_COSTS.COMPLETE_IMAGE) {
       return new Response(
-        JSON.stringify({ error: 'Créditos insuficientes para gerar legenda' }),
+        JSON.stringify({ error: `Créditos insuficientes. Necessário: ${CREDIT_COSTS.COMPLETE_IMAGE} créditos` }),
         { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -633,15 +635,30 @@ Nossa conexão com ${audience} vai além das palavras. É uma conversa visual qu
     }
 
     // Decrement team credits
+    const creditsBefore = teamData.credits;
+    const creditsAfter = creditsBefore - CREDIT_COSTS.COMPLETE_IMAGE;
+    
     const { error: updateError } = await supabase
       .from('teams')
-      .update({ credits: teamData.credits - 1 })
+      .update({ credits: creditsAfter })
       .eq('id', authenticatedTeamId);
 
     if (updateError) {
       console.error('❌ [CAPTION] Error updating credits:', updateError);
       // Continue anyway - caption was generated
     }
+
+    // Record credit usage
+    await recordCreditUsage(supabase, {
+      teamId: authenticatedTeamId,
+      userId: user.id,
+      actionType: 'COMPLETE_IMAGE',
+      creditsUsed: CREDIT_COSTS.COMPLETE_IMAGE,
+      creditsBefore,
+      creditsAfter,
+      description: 'Criação completa de imagem com legenda',
+      metadata: { platform: formData.platform, brand: formData.brand }
+    });
 
     return new Response(
       JSON.stringify({

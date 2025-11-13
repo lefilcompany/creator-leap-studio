@@ -1,7 +1,7 @@
 import { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 export async function recordCreditUsage(
-  supabase: SupabaseClient,
+  supabase: any, // Changed from SupabaseClient to any to avoid type issues
   params: {
     teamId: string;
     userId: string;

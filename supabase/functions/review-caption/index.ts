@@ -1,6 +1,8 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
+import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
+import { recordCreditUsage } from '../_shared/creditHistory.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -242,14 +244,29 @@ Analise a legenda e retorne uma revisão completa em markdown seguindo EXATAMENT
     }
 
     // Deduct credit
+    const creditsBefore = team.credits;
+    const creditsAfter = creditsBefore - CREDIT_COSTS.CAPTION_REVIEW;
+    
     const { error: updateError } = await supabase
       .from('teams')
-      .update({ credits: team.credits - 1 })
+      .update({ credits: creditsAfter })
       .eq('id', authenticatedTeamId);
 
     if (updateError) {
       console.error('Error updating credits:', updateError);
     }
+
+    // Record credit usage
+    await recordCreditUsage(supabase, {
+      teamId: authenticatedTeamId,
+      userId: authenticatedUserId,
+      actionType: 'CAPTION_REVIEW',
+      creditsUsed: CREDIT_COSTS.CAPTION_REVIEW,
+      creditsBefore,
+      creditsAfter,
+      description: 'Revisão de legenda',
+      metadata: { brandName, themeName }
+    });
 
     return new Response(
       JSON.stringify({ review, actionId: actionData?.id }),

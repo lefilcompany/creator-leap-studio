@@ -1,6 +1,8 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
+import { recordCreditUsage } from '../_shared/creditHistory.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -183,14 +185,29 @@ Responda ESTRITAMENTE em formato JSON com as chaves "title", "body" (legenda com
     }
 
     // Deduct credit
+    const creditsBefore = teamData.credits;
+    const creditsAfter = creditsBefore - CREDIT_COSTS.CAPTION_REVIEW;
+    
     const { error: updateError } = await supabaseClient
       .from('teams')
-      .update({ credits: teamData.credits - 1 })
+      .update({ credits: creditsAfter })
       .eq('id', teamId);
 
     if (updateError) {
       console.error('Erro ao deduzir crédito:', updateError);
     }
+
+    // Record credit usage
+    await recordCreditUsage(supabaseClient, {
+      teamId,
+      userId,
+      actionType: 'CAPTION_REVIEW',
+      creditsUsed: CREDIT_COSTS.CAPTION_REVIEW,
+      creditsBefore,
+      creditsAfter,
+      description: 'Revisão de legenda (OpenAI)',
+      metadata: { brand, theme }
+    });
 
     console.log('✅ Revisão concluída e salva no histórico');
 

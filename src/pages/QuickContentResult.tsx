@@ -12,6 +12,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { CREDIT_COSTS } from "@/lib/creditCosts";
 
 export default function QuickContentResult() {
   const navigate = useNavigate();
@@ -259,9 +260,9 @@ export default function QuickContentResult() {
       return;
     }
 
-    // Sempre verificar créditos (custo: 1 crédito)
-    if (!team?.credits || team.credits < 1) {
-      toast.error("Você não tem créditos disponíveis. Cada revisão custa 1 crédito.");
+    // Sempre verificar créditos (custo: 2 créditos)
+    if (!team?.credits || team.credits < CREDIT_COSTS.IMAGE_REVIEW) {
+      toast.error(`Você não tem créditos disponíveis. Cada revisão de imagem custa ${CREDIT_COSTS.IMAGE_REVIEW} créditos.`);
       return;
     }
 

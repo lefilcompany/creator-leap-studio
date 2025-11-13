@@ -1,6 +1,8 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
+import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
+import { recordCreditUsage } from '../_shared/creditHistory.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -113,9 +115,9 @@ serve(async (req) => {
       );
     }
 
-    if (!teamData || teamData.credits <= 0) {
+    if (!teamData || teamData.credits < CREDIT_COSTS.IMAGE_GENERATION) {
       return new Response(
-        JSON.stringify({ error: 'Créditos insuficientes para criação de imagem' }),
+        JSON.stringify({ error: `Créditos insuficientes. Necessário: ${CREDIT_COSTS.IMAGE_GENERATION} créditos` }),
         { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -344,14 +346,29 @@ serve(async (req) => {
     console.log('Image uploaded successfully:', publicUrl);
 
     // Decrement team credits
+    const creditsBefore = teamData.credits;
+    const creditsAfter = creditsBefore - CREDIT_COSTS.IMAGE_GENERATION;
+    
     const { error: updateError } = await supabase
       .from('teams')
-      .update({ credits: teamData.credits - 1 })
+      .update({ credits: creditsAfter })
       .eq('id', authenticatedTeamId);
 
     if (updateError) {
       console.error('Error updating credits:', updateError);
     }
+
+    // Record credit usage
+    await recordCreditUsage(supabase, {
+      teamId: authenticatedTeamId,
+      userId: authenticatedUserId,
+      actionType: 'IMAGE_GENERATION',
+      creditsUsed: CREDIT_COSTS.IMAGE_GENERATION,
+      creditsBefore,
+      creditsAfter,
+      description: 'Geração standalone de imagem',
+      metadata: { platform: formData.platform }
+    });
 
     // Save to history (actions table)
     const { data: actionData, error: actionError } = await supabase

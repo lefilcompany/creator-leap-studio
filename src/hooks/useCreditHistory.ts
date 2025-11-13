@@ -22,7 +22,8 @@ export const useCreditHistory = (teamId: string | null | undefined) => {
     queryFn: async () => {
       if (!teamId) return [];
 
-      const { data, error } = await supabase
+      // Use rpc or raw query to bypass type checking until types are regenerated
+      const { data, error } = await (supabase as any)
         .from("credit_history")
         .select(`
           *,
