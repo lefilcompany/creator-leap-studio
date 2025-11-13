@@ -38,12 +38,6 @@ const Login = () => {
   const { user, team, isLoading: authLoading } = useAuth();
   const { showTeamDialog: oauthTeamDialog, handleTeamDialogClose: handleOAuthTeamDialogClose } = useOAuthCallback();
   
-  useEffect(() => {
-    const isNewUser = searchParams.get("newUser") === "true";
-    if (isNewUser) {
-      toast.info(t.login.welcomeMessage);
-    }
-  }, [searchParams, t]);
 
   // Redireciona automaticamente quando autenticado
   useEffect(() => {
@@ -111,11 +105,9 @@ const Login = () => {
             return;
           }
           
-          toast.success(t.login.welcomeMessage);
           setShowTeamSelection(true);
         } else {
           // Tem equipe - aguardar AuthContext carregar
-          toast.success(t.login.welcomeMessage);
           setWaitingForAuth(true);
         }
       }
