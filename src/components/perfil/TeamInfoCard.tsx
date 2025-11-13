@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Users, Crown, Activity, LogOut, Shield } from 'lucide-react';
+import { Users, Crown, Activity, LogOut, Shield, History } from 'lucide-react';
 import LeaveTeamDialog from './LeaveTeamDialog';
+import { useNavigate } from 'react-router-dom';
 
 interface TeamInfoCardProps {
   team: any;
@@ -12,6 +13,7 @@ interface TeamInfoCardProps {
 
 export default function TeamInfoCard({ team, userRole }: TeamInfoCardProps) {
   const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false);
+  const navigate = useNavigate();
 
   if (!team) {
     return (
@@ -188,6 +190,16 @@ export default function TeamInfoCard({ team, userRole }: TeamInfoCardProps) {
                   {(100 - progressPercentage).toFixed(1)}% utilizado
                 </span>
               </div>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate("/credit-history")}
+                className="w-full gap-2 mt-2 hover:bg-accent/10 hover:border-accent"
+              >
+                <History className="h-4 w-4" />
+                Ver Histórico Completo
+              </Button>
             </div>
           </div>
         </CardContent>

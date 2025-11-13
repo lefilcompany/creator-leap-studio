@@ -30,6 +30,7 @@ import Plans from "./pages/Plans";
 import Team from "./pages/Team";
 import TeamDashboard from "./pages/TeamDashboard";
 import Profile from "./pages/Profile";
+import CreditHistory from "./pages/CreditHistory";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Privacy from "./pages/Privacy";
@@ -77,6 +78,7 @@ const App = () => (
               <Route path="team" element={<Team />} />
               <Route path="team-dashboard" element={<TeamDashboard />} />
               <Route path="profile" element={<Profile />} />
+              <Route path="credit-history" element={<CreditHistory />} />
               <Route path="about" element={<About />} />
               <Route path="contact" element={<Contact />} />
             </Route>
