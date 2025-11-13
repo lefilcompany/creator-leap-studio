@@ -128,11 +128,7 @@ export default function PersonasPage() {
       return;
     }
 
-    // Verificar limites
-    if (personas.length >= team.plan.maxPersonas) {
-      toast.error(`Você atingiu o limite de ${team.plan.maxPersonas} personas do seu plano. Faça upgrade para criar mais personas.`);
-      return;
-    }
+    // Verificar apenas créditos
     if (team.credits < 1) {
       toast.error('Créditos insuficientes. Criar uma persona custa 1 crédito.');
       return;
@@ -339,8 +335,8 @@ export default function PersonasPage() {
     }
   }, [selectedPersona, user]);
 
-  // Verificar se o limite foi atingido
-  const isAtPersonaLimit = team ? personas.length >= team.plan.maxPersonas : false;
+  // Desabilitar apenas se não tiver créditos ou se team não carregou
+  const isButtonDisabled = !team || team.credits < 1;
 
   return (
     <div className="h-full flex flex-col gap-4 lg:gap-6 overflow-hidden">
@@ -362,9 +358,9 @@ export default function PersonasPage() {
             </div>
             <Button 
               onClick={() => handleOpenDialog()} 
-              disabled={isAtPersonaLimit}
+              disabled={isButtonDisabled}
               className="rounded-lg bg-gradient-to-r from-primary to-secondary px-4 lg:px-6 py-3 lg:py-5 text-sm lg:text-base disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
-              title={isAtPersonaLimit ? `Limite de ${team?.plan.maxPersonas} personas atingido` : undefined}
+              title={!team ? 'Carregando...' : (team.credits < 1 ? 'Créditos insuficientes' : undefined)}
             >
               <Plus className="mr-2 h-4 w-4 lg:h-5 lg:w-5" />
               Nova persona

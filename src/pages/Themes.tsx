@@ -125,11 +125,7 @@ export default function Themes() {
       return;
     }
 
-    // Verificar limites
-    if (themes.length >= team.plan.maxStrategicThemes) {
-      toast.error(`Você atingiu o limite de ${team.plan.maxStrategicThemes} temas estratégicos do seu plano.`);
-      return;
-    }
+    // Verificar apenas créditos
     if (team.credits < 1) {
       toast.error('Créditos insuficientes. Criar um tema custa 1 crédito.');
       return;
@@ -348,8 +344,8 @@ export default function Themes() {
     }
   }, []);
 
-  // Verificar se o limite foi atingido
-  const isAtThemeLimit = team ? themes.length >= team.plan.maxStrategicThemes : false;
+  // Desabilitar apenas se não tiver créditos ou se team não carregou
+  const isButtonDisabled = !team || team.credits < 1;
 
   return (
     <div className="min-h-full flex flex-col gap-6">
@@ -371,9 +367,9 @@ export default function Themes() {
             </div>
             <Button
               onClick={() => handleOpenDialog()}
-              disabled={isAtThemeLimit}
+              disabled={isButtonDisabled}
               className="rounded-lg bg-gradient-to-r from-primary to-secondary px-6 py-5 text-base disabled:opacity-50 disabled:cursor-not-allowed"
-              title={isAtThemeLimit ? `Limite de ${team?.plan.maxStrategicThemes} temas atingido` : undefined}
+              title={!team ? 'Carregando...' : (team.credits < 1 ? 'Créditos insuficientes' : undefined)}
             >
               <Plus className="mr-2 h-5 w-5" />
               Novo tema
