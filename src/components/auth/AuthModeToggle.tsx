@@ -49,7 +49,7 @@ export const AuthModeToggle = ({ isLoginMode, onToggle }: AuthModeToggleProps) =
       <button
         type="button"
         onClick={() => onToggle(true)}
-        className={`relative z-10 px-7 py-3 text-sm font-bold rounded-full transition-all duration-200 min-w-[115px]
+        className={`relative z-10 px-12 py-3 text-sm font-bold rounded-full transition-all duration-200 min-w-[140px]
           ${isLoginMode 
             ? "text-primary-foreground scale-[1.02]" 
             : "text-muted-foreground hover:text-foreground"
@@ -62,7 +62,7 @@ export const AuthModeToggle = ({ isLoginMode, onToggle }: AuthModeToggleProps) =
       <button
         type="button"
         onClick={() => onToggle(false)}
-        className={`relative z-10 px-7 py-3 text-sm font-bold rounded-full transition-all duration-200 min-w-[115px]
+        className={`relative z-10 px-12 py-3 text-sm font-bold rounded-full transition-all duration-200 min-w-[140px]
           ${!isLoginMode 
             ? "text-primary-foreground scale-[1.02]" 
             : "text-muted-foreground hover:text-foreground"
