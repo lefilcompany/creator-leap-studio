@@ -645,17 +645,67 @@ export default function CreateContent() {
     });
 
     try {
-      // Converter imagens de referência (upload do usuário) para base64
-      const referenceImagesBase64: string[] = [];
-      for (const file of referenceFiles) {
-        const base64 = await new Promise<string>((resolve, reject) => {
+      // Função para comprimir e converter imagem para base64
+      const compressImage = async (file: File): Promise<string> => {
+        return new Promise((resolve, reject) => {
           const reader = new FileReader();
-          reader.onload = () => resolve(reader.result as string);
+          reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+              const canvas = document.createElement('canvas');
+              const ctx = canvas.getContext('2d')!;
+              
+              // Limitar tamanho máximo mantendo proporções
+              const MAX_WIDTH = 1024;
+              const MAX_HEIGHT = 1024;
+              let width = img.width;
+              let height = img.height;
+              
+              if (width > height) {
+                if (width > MAX_WIDTH) {
+                  height *= MAX_WIDTH / width;
+                  width = MAX_WIDTH;
+                }
+              } else {
+                if (height > MAX_HEIGHT) {
+                  width *= MAX_HEIGHT / height;
+                  height = MAX_HEIGHT;
+                }
+              }
+              
+              canvas.width = width;
+              canvas.height = height;
+              ctx.drawImage(img, 0, 0, width, height);
+              
+              // Converter para base64 com qualidade reduzida
+              const base64 = canvas.toDataURL('image/jpeg', 0.8);
+              resolve(base64);
+            };
+            img.onerror = reject;
+            img.src = e.target?.result as string;
+          };
           reader.onerror = reject;
           reader.readAsDataURL(file);
         });
+      };
+
+      // Converter imagens de referência (upload do usuário) para base64
+      const referenceImagesBase64: string[] = [];
+      for (let i = 0; i < referenceFiles.length; i++) {
+        const file = referenceFiles[i];
+        toast.loading("🎨 Processando imagens de referência...", {
+          id: toastId,
+          description: `Comprimindo imagem ${i + 1}/${referenceFiles.length}...`,
+        });
+        
+        const base64 = await compressImage(file);
         referenceImagesBase64.push(base64);
+        
+        console.log(`✅ Imagem ${i + 1} processada: ${(base64.length / 1024).toFixed(0)}KB`);
       }
+      
+      console.log(`📊 Total de imagens do usuário: ${referenceImagesBase64.length}`);
+      console.log(`📦 Tamanho total: ${(referenceImagesBase64.join('').length / 1024 / 1024).toFixed(2)}MB`);
 
       setGenerationProgress(10);
       toast.loading("🎨 Preparando geração...", {
