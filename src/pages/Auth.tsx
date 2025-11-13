@@ -743,23 +743,32 @@ const Auth = () => {
                         />
                       </div>
 
-                      <AnimatePresence mode="wait">
+                      <div className="text-center mb-8">
+                        <AnimatePresence mode="wait">
+                          <motion.h2 
+                            key={isLoginMode ? "login-title" : "register-title"}
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 10 }}
+                            transition={{ duration: 0.2 }}
+                            className="text-2xl font-bold text-foreground mb-2"
+                          >
+                            {isLoginMode ? "Bem-vindo de volta!" : "Crie sua conta"}
+                          </motion.h2>
+                        </AnimatePresence>
+                        <p className="text-muted-foreground">
+                          {isLoginMode ? "Acesse sua plataforma de conteúdo estratégico" : "Comece a criar conteúdo estratégico hoje"}
+                        </p>
+                      </div>
+
+                      <AnimatePresence mode="wait" initial={false}>
                         <motion.div
                           key={isLoginMode ? "login" : "register"}
-                          initial={{ opacity: 0, x: isLoginMode ? -20 : 20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          exit={{ opacity: 0, x: isLoginMode ? 20 : -20 }}
-                          transition={{ duration: 0.3, ease: "easeInOut" }}
+                          initial={{ opacity: 0, scale: 0.98 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.98 }}
+                          transition={{ duration: 0.2, ease: "easeInOut" }}
                         >
-                          <div className="text-center mb-8">
-                            <h2 className="text-2xl font-bold text-foreground mb-2">
-                              {isLoginMode ? "Bem-vindo de volta!" : "Crie sua conta"}
-                            </h2>
-                            <p className="text-muted-foreground">
-                              {isLoginMode ? "Acesse sua plataforma de conteúdo estratégico" : "Comece a criar conteúdo estratégico hoje"}
-                            </p>
-                          </div>
-
                           {isLoginMode ? loginForm : registerForm}
                         </motion.div>
                       </AnimatePresence>
@@ -783,23 +792,32 @@ const Auth = () => {
                   />
                 </div>
 
-                <AnimatePresence mode="wait">
+                <div className="text-center mb-8">
+                  <AnimatePresence mode="wait">
+                    <motion.h2 
+                      key={isLoginMode ? "login-title" : "register-title"}
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 10 }}
+                      transition={{ duration: 0.2 }}
+                      className="text-2xl font-bold text-foreground mb-2"
+                    >
+                      {isLoginMode ? t.login.title : "Crie sua conta"}
+                    </motion.h2>
+                  </AnimatePresence>
+                  <p className="text-muted-foreground">
+                    {isLoginMode ? t.login.welcomeMessage : "Comece a criar conteúdo estratégico hoje"}
+                  </p>
+                </div>
+
+                <AnimatePresence mode="wait" initial={false}>
                   <motion.div
                     key={isLoginMode ? "login" : "register"}
-                    initial={{ opacity: 0, x: isLoginMode ? -20 : 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: isLoginMode ? 20 : -20 }}
-                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    initial={{ opacity: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.98 }}
+                    transition={{ duration: 0.2, ease: "easeInOut" }}
                   >
-                    <div className="text-center mb-8">
-                      <h2 className="text-2xl font-bold text-foreground mb-2">
-                        {isLoginMode ? t.login.title : "Crie sua conta"}
-                      </h2>
-                      <p className="text-muted-foreground">
-                        {isLoginMode ? t.login.welcomeMessage : "Comece a criar conteúdo estratégico hoje"}
-                      </p>
-                    </div>
-
                     {isLoginMode ? loginForm : registerForm}
                   </motion.div>
                 </AnimatePresence>
