@@ -293,7 +293,7 @@ export default function CreateContent() {
           plan: teamData.plan ? {
             id: teamData.plan.id,
             name: teamData.plan.name,
-            description: (teamData.plan as any).description || '',
+            description: teamData.plan.description || '',
             price: Number(teamData.plan.price_monthly || 0),
             credits: (teamData.plan as any).credits || 0,
             maxMembers: teamData.plan.max_members,
@@ -627,7 +627,7 @@ export default function CreateContent() {
   const handleGenerateContent = async () => {
     if (!team) return toast.error("Equipe não encontrada.");
     
-    const availableCredits = team?.credits?.contentSuggestions || 0;
+    const availableCredits = team?.credits || 0;
     if (availableCredits <= 0)
       return toast.error("Seus créditos para criação de conteúdo acabaram.");
       
@@ -1282,7 +1282,7 @@ ${formData.description}
                           </div>
                           <div className="flex items-center gap-2">
                             <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent whitespace-nowrap">
-                              {team?.credits?.contentSuggestions || 0}
+                              {team?.credits || 0}
                             </span>
                             <p className="text-sm text-muted-foreground font-medium leading-tight whitespace-nowrap">
                               Criações Restantes
