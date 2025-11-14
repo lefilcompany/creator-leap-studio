@@ -246,8 +246,8 @@ const Login = () => {
           loop
           muted
           playsInline
-          className="absolute inset-0 w-full h-full object-cover opacity-20 pointer-events-none"
-          style={{ filter: "blur(20px)" }}
+          className="absolute inset-0 w-full h-full object-cover opacity-40 pointer-events-none"
+          style={{ filter: "blur(12px)" }}
         >
           <source src={backgroundVideo} type="video/mp4" />
         </video>
