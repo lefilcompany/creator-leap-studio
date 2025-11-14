@@ -660,94 +660,50 @@ const Auth = () => {
             }}
           />
           
-          {/* Vídeos decorativos com motion blur nos cantos */}
-          <motion.video
+          {/* Vídeos decorativos em duas fileiras horizontais */}
+          {/* Fileira superior */}
+          <video
             autoPlay
             loop
             muted
             playsInline
-            className="absolute top-1/4 right-1/4 w-64 h-64 object-cover opacity-50"
+            className="absolute top-8 left-8 w-72 h-40 object-cover opacity-50"
             style={{ filter: "blur(3px)" }}
-            animate={{
-              x: [0, 60, -30, 0],
-              y: [0, -40, 40, 0],
-              rotate: [0, 15, -15, 0],
-              scale: [1, 1.15, 0.95, 1],
-            }}
-            transition={{
-              duration: 18,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
           >
             <source src={backgroundVideo} type="video/mp4" />
-          </motion.video>
-          <motion.video
+          </video>
+          <video
             autoPlay
             loop
             muted
             playsInline
-            className="absolute bottom-1/3 left-1/3 w-48 h-48 object-cover opacity-45"
+            className="absolute top-8 right-8 w-72 h-40 object-cover opacity-50"
             style={{ filter: "blur(3px)" }}
-            animate={{
-              x: [0, -50, 50, 0],
-              y: [0, 60, -30, 0],
-              rotate: [0, -20, 20, 0],
-              scale: [1, 0.9, 1.1, 1],
-            }}
-            transition={{
-              duration: 22,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: 1,
-            }}
           >
             <source src={backgroundVideo} type="video/mp4" />
-          </motion.video>
-          <motion.video
+          </video>
+          
+          {/* Fileira inferior */}
+          <video
             autoPlay
             loop
             muted
             playsInline
-            className="absolute top-1/3 left-1/5 w-40 h-40 object-cover opacity-40"
+            className="absolute bottom-8 left-8 w-72 h-40 object-cover opacity-50"
             style={{ filter: "blur(3px)" }}
-            animate={{
-              x: [0, 40, -40, 0],
-              y: [0, -50, 50, 0],
-              rotate: [0, 25, -25, 0],
-              scale: [1, 1.2, 0.85, 1],
-            }}
-            transition={{
-              duration: 20,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: 2,
-            }}
           >
             <source src={backgroundVideo} type="video/mp4" />
-          </motion.video>
-          <motion.video
+          </video>
+          <video
             autoPlay
             loop
             muted
             playsInline
-            className="absolute bottom-1/4 right-1/5 w-56 h-56 object-cover opacity-48"
+            className="absolute bottom-8 right-8 w-72 h-40 object-cover opacity-50"
             style={{ filter: "blur(3px)" }}
-            animate={{
-              x: [0, -40, 40, 0],
-              y: [0, 50, -50, 0],
-              rotate: [0, -18, 18, 0],
-              scale: [1, 1.1, 0.9, 1],
-            }}
-            transition={{
-              duration: 19,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: 0.5,
-            }}
           >
             <source src={backgroundVideo} type="video/mp4" />
-          </motion.video>
+          </video>
         </div>
 
         {/* Botão de tema no canto superior direito */}
