@@ -93,9 +93,12 @@ export default function MarcasPage() {
       return;
     }
 
-    // Verificar apenas créditos
-    if (team.credits < 1) {
-      toast.error('Créditos insuficientes. Criar uma marca custa 1 crédito.');
+    const freeBrandsUsed = team.free_brands_used || 0;
+    const isFree = freeBrandsUsed < 3;
+
+    // Se não for gratuita, verificar créditos
+    if (!isFree && team.credits < 1) {
+      toast.error('Créditos insuficientes. Criar uma marca custa 1 crédito (as 3 primeiras são gratuitas).');
       return;
     }
 
@@ -217,6 +220,9 @@ export default function MarcasPage() {
         toast.success(t.brands.updateSuccess, { id: toastId });
       } else {
         // Create new brand
+        const freeBrandsUsed = team.free_brands_used || 0;
+        const isFree = freeBrandsUsed < 3;
+
         const { data, error } = await supabase
           .from('brands')
           .insert({
@@ -268,16 +274,43 @@ export default function MarcasPage() {
         setSelectedBrand(newBrand);
         setSelectedBrandSummary(newBrandSummary);
         
-        // Deduzir 1 crédito após criar marca
-        await supabase
-          .from('teams')
-          .update({ credits: team.credits - 1 } as any)
-          .eq('id', user.teamId);
+        // Atualizar contador ou deduzir crédito
+        if (isFree) {
+          // Incrementar contador de marcas gratuitas
+          await supabase
+            .from('teams')
+            .update({ free_brands_used: freeBrandsUsed + 1 } as any)
+            .eq('id', user.teamId);
+        } else {
+          // Deduzir 1 crédito
+          await supabase
+            .from('teams')
+            .update({ credits: team.credits - 1 } as any)
+            .eq('id', user.teamId);
+
+          // Registrar no histórico de créditos
+          await supabase
+            .from('credit_history')
+            .insert({
+              team_id: user.teamId,
+              user_id: user.id,
+              action_type: 'CREATE_BRAND',
+              credits_used: 1,
+              credits_before: team.credits,
+              credits_after: team.credits - 1,
+              description: `Criação da marca: ${formData.name}`,
+              metadata: { brand_id: data.id, brand_name: formData.name }
+            });
+        }
         
         // Atualizar créditos sem reload
         await refreshTeamData();
         
-        toast.success(t.brands.createSuccess, { id: toastId });
+        toast.success(isFree 
+          ? `${t.brands.createSuccess} (${3 - freeBrandsUsed - 1} marcas gratuitas restantes)` 
+          : t.brands.createSuccess, 
+          { id: toastId }
+        );
       }
       
       setIsDialogOpen(false);

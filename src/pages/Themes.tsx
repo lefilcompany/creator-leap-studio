@@ -125,9 +125,12 @@ export default function Themes() {
       return;
     }
 
-    // Verificar apenas créditos
-    if (team.credits < 1) {
-      toast.error('Créditos insuficientes. Criar um tema custa 1 crédito.');
+    const freeThemesUsed = team.free_themes_used || 0;
+    const isFree = freeThemesUsed < 3;
+
+    // Se não for gratuito, verificar créditos
+    if (!isFree && team.credits < 1) {
+      toast.error('Créditos insuficientes. Criar um tema custa 1 crédito (os 3 primeiros são gratuitos).');
       return;
     }
 
@@ -246,16 +249,45 @@ export default function Themes() {
           setSelectedTheme(saved);
           setSelectedThemeSummary(summary);
 
-          // Deduzir 1 crédito após criar tema
-          await supabase
-            .from('teams')
-            .update({ credits: team.credits - 1 } as any)
-            .eq('id', user.teamId);
+          // Atualizar contador ou deduzir crédito
+          const freeThemesUsed = team.free_themes_used || 0;
+          const isFree = freeThemesUsed < 3;
+
+          if (isFree) {
+            // Incrementar contador de temas gratuitos
+            await supabase
+              .from('teams')
+              .update({ free_themes_used: freeThemesUsed + 1 } as any)
+              .eq('id', user.teamId);
+          } else {
+            // Deduzir 1 crédito
+            await supabase
+              .from('teams')
+              .update({ credits: team.credits - 1 } as any)
+              .eq('id', user.teamId);
+
+            // Registrar no histórico de créditos
+            await supabase
+              .from('credit_history')
+              .insert({
+                team_id: user.teamId,
+                user_id: user.id,
+                action_type: 'CREATE_THEME',
+                credits_used: 1,
+                credits_before: team.credits,
+                credits_after: team.credits - 1,
+                description: `Criação do tema: ${formData.title}`,
+                metadata: { theme_id: saved.id, theme_title: formData.title }
+              });
+          }
 
           // Atualizar créditos sem reload
           await refreshTeamData();
 
-          toast.success('Tema criado com sucesso!');
+          toast.success(isFree 
+            ? `Tema criado com sucesso! (${3 - freeThemesUsed - 1} temas gratuitos restantes)` 
+            : 'Tema criado com sucesso!'
+          );
 
           setIsDialogOpen(false);
           setThemeToEdit(null);

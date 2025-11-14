@@ -128,9 +128,12 @@ export default function PersonasPage() {
       return;
     }
 
-    // Verificar apenas créditos
-    if (team.credits < 1) {
-      toast.error('Créditos insuficientes. Criar uma persona custa 1 crédito.');
+    const freePersonasUsed = team.free_personas_used || 0;
+    const isFree = freePersonasUsed < 3;
+
+    // Se não for gratuita, verificar créditos
+    if (!isFree && team.credits < 1) {
+      toast.error('Créditos insuficientes. Criar uma persona custa 1 crédito (as 3 primeiras são gratuitas).');
       return;
     }
 
@@ -285,16 +288,46 @@ export default function PersonasPage() {
         setSelectedPersona(newPersona);
         setSelectedPersonaSummary(newPersonaSummary);
         
-        // Deduzir 1 crédito após criar persona
-        await supabase
-          .from('teams')
-          .update({ credits: team.credits - 1 } as any)
-          .eq('id', user.teamId);
+        // Atualizar contador ou deduzir crédito
+        const freePersonasUsed = team.free_personas_used || 0;
+        const isFree = freePersonasUsed < 3;
+
+        if (isFree) {
+          // Incrementar contador de personas gratuitas
+          await supabase
+            .from('teams')
+            .update({ free_personas_used: freePersonasUsed + 1 } as any)
+            .eq('id', user.teamId);
+        } else {
+          // Deduzir 1 crédito
+          await supabase
+            .from('teams')
+            .update({ credits: team.credits - 1 } as any)
+            .eq('id', user.teamId);
+
+          // Registrar no histórico de créditos
+          await supabase
+            .from('credit_history')
+            .insert({
+              team_id: user.teamId,
+              user_id: user.id,
+              action_type: 'CREATE_PERSONA',
+              credits_used: 1,
+              credits_before: team.credits,
+              credits_after: team.credits - 1,
+              description: `Criação da persona: ${formData.name}`,
+              metadata: { persona_id: data.id, persona_name: formData.name }
+            });
+        }
         
         // Atualizar créditos sem reload
         await refreshTeamData();
         
-        toast.success('Persona criada com sucesso!', { id: toastId });
+        toast.success(isFree 
+          ? `Persona criada com sucesso! (${3 - freePersonasUsed - 1} personas gratuitas restantes)` 
+          : 'Persona criada com sucesso!', 
+          { id: toastId }
+        );
       }
       
       setIsDialogOpen(false);

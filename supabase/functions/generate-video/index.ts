@@ -133,15 +133,30 @@ async function processVideoGeneration(operationName: string, actionId: string, t
       .single();
     
     if (!fetchError && currentTeam) {
+      const VIDEO_CREDIT_COST = 20;
       const { error: creditError } = await supabase
         .from('teams')
-        .update({ credits: currentTeam.credits - 1 })
+        .update({ credits: currentTeam.credits - VIDEO_CREDIT_COST })
         .eq('id', teamId);
 
       if (creditError) {
-        console.error('Background: Error decrementing credit:', creditError);
+        console.error('Background: Error decrementing credits:', creditError);
       } else {
-        console.log('Background: Credit decremented successfully for team:', teamId);
+        console.log(`Background: ${VIDEO_CREDIT_COST} credits decremented successfully for team:`, teamId);
+        
+        // Registrar no histórico de créditos
+        await supabase
+          .from('credit_history')
+          .insert({
+            team_id: teamId,
+            user_id: actionId, // Usar actionId como referência temporária
+            action_type: 'VIDEO_GENERATION',
+            credits_used: VIDEO_CREDIT_COST,
+            credits_before: currentTeam.credits,
+            credits_after: currentTeam.credits - VIDEO_CREDIT_COST,
+            description: 'Geração de vídeo completa',
+            metadata: { action_id: actionId, operation_name: operationName }
+          });
       }
     }
 

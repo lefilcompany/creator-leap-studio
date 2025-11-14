@@ -163,6 +163,68 @@ serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // Get authorization header
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Não autorizado' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Get user from token
+    const { data: { user }, error: userError } = await supabase.auth.getUser(
+      authHeader.replace('Bearer ', '')
+    );
+
+    if (userError || !user) {
+      console.error('❌ Erro ao obter usuário:', userError);
+      return new Response(
+        JSON.stringify({ error: 'Não autorizado' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Get user profile to get team_id
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('team_id')
+      .eq('id', user.id)
+      .single();
+
+    if (profileError || !profile?.team_id) {
+      console.error('❌ Erro ao obter perfil do usuário:', profileError);
+      return new Response(
+        JSON.stringify({ error: 'Perfil não encontrado' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const teamId = profile.team_id;
+
+    // Check team credits
+    const IMAGE_EDIT_COST = 1;
+    const { data: team, error: teamError } = await supabase
+      .from('teams')
+      .select('credits')
+      .eq('id', teamId)
+      .single();
+
+    if (teamError || !team) {
+      console.error('❌ Erro ao obter equipe:', teamError);
+      return new Response(
+        JSON.stringify({ error: 'Equipe não encontrada' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (team.credits < IMAGE_EDIT_COST) {
+      return new Response(
+        JSON.stringify({ error: 'Créditos insuficientes' }),
+        { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Fetch complete brand data if brandId is provided
     let brandData = null;
     if (brandId) {
@@ -388,6 +450,38 @@ serve(async (req) => {
       .getPublicUrl(fileName);
 
     console.log('✅ Imagem editada com sucesso e armazenada:', publicUrl);
+
+    // Deduzir 1 crédito após edição bem-sucedida
+    const { error: deductError } = await supabase
+      .from('teams')
+      .update({ credits: team.credits - IMAGE_EDIT_COST })
+      .eq('id', teamId);
+
+    if (deductError) {
+      console.error('❌ Erro ao deduzir créditos:', deductError);
+    } else {
+      console.log(`✅ ${IMAGE_EDIT_COST} crédito deduzido da equipe ${teamId}`);
+      
+      // Registrar no histórico de créditos
+      await supabase
+        .from('credit_history')
+        .insert({
+          team_id: teamId,
+          user_id: user.id,
+          action_type: 'IMAGE_EDIT',
+          credits_used: IMAGE_EDIT_COST,
+          credits_before: team.credits,
+          credits_after: team.credits - IMAGE_EDIT_COST,
+          description: 'Edição de imagem',
+          metadata: {
+            image_url: publicUrl,
+            brand_id: brandId,
+            theme_id: themeId,
+            platform: platform,
+            aspect_ratio: aspectRatio
+          }
+        });
+    }
 
     return new Response(
       JSON.stringify({ editedImageUrl: publicUrl }),
