@@ -184,6 +184,7 @@ export function AppSidebar() {
       { id: "nav-criar", href: "/create", icon: Sparkles, label: t.sidebar.createContent, variant: "primary" as const },
       { id: "nav-revisar", href: "/review", icon: CheckCircle, label: t.sidebar.reviewContent, variant: "accent" as const },
       { id: "nav-planejar", href: "/plan", icon: Calendar, label: t.sidebar.planContent, variant: "secondary" as const },
+      { id: "nav-credits", href: "/credits", icon: Coins, label: "Comprar Créditos", variant: "secondary" as const },
   ];
 
   const handleMobileNavigate = () => {
