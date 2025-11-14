@@ -290,8 +290,8 @@ const Login = () => {
             loop
             muted
             playsInline
-            className="absolute top-1/4 right-1/4 w-64 h-64 object-cover rounded-full opacity-30"
-            style={{ filter: "blur(8px)" }}
+            className="absolute top-1/4 right-1/4 w-64 h-64 object-cover opacity-50"
+            style={{ filter: "blur(3px)" }}
             animate={{
               x: [0, 60, -30, 0],
               y: [0, -40, 40, 0],
@@ -311,8 +311,8 @@ const Login = () => {
             loop
             muted
             playsInline
-            className="absolute bottom-1/3 left-1/3 w-48 h-48 object-cover rounded-full opacity-25"
-            style={{ filter: "blur(10px)" }}
+            className="absolute bottom-1/3 left-1/3 w-48 h-48 object-cover opacity-45"
+            style={{ filter: "blur(3px)" }}
             animate={{
               x: [0, -50, 50, 0],
               y: [0, 60, -30, 0],
@@ -333,8 +333,8 @@ const Login = () => {
             loop
             muted
             playsInline
-            className="absolute top-1/3 left-1/5 w-40 h-40 object-cover rounded-full opacity-20"
-            style={{ filter: "blur(12px)" }}
+            className="absolute top-1/3 left-1/5 w-40 h-40 object-cover opacity-40"
+            style={{ filter: "blur(3px)" }}
             animate={{
               x: [0, 40, -40, 0],
               y: [0, -50, 50, 0],
@@ -355,8 +355,8 @@ const Login = () => {
             loop
             muted
             playsInline
-            className="absolute bottom-1/4 right-1/5 w-56 h-56 object-cover rounded-full opacity-28"
-            style={{ filter: "blur(9px)" }}
+            className="absolute bottom-1/4 right-1/5 w-56 h-56 object-cover opacity-48"
+            style={{ filter: "blur(3px)" }}
             animate={{
               x: [0, -40, 40, 0],
               y: [0, 50, -50, 0],
