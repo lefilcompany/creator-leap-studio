@@ -286,7 +286,7 @@ const Login = () => {
           
           {/* Fileira superior - animação para a direita */}
           <motion.div
-            className="absolute top-20 left-0 flex gap-4"
+            className="absolute top-20 left-0 flex items-center"
             animate={{
               x: [0, -1000],
             }}
@@ -296,14 +296,23 @@ const Login = () => {
               ease: "linear",
             }}
           >
-            {[...Array(8)].map((_, i) => (
+            {[
+              { width: 'w-48', height: 'h-28', gap: 'mr-3' },
+              { width: 'w-64', height: 'h-36', gap: 'mr-6' },
+              { width: 'w-52', height: 'h-30', gap: 'mr-4' },
+              { width: 'w-72', height: 'h-40', gap: 'mr-8' },
+              { width: 'w-56', height: 'h-32', gap: 'mr-5' },
+              { width: 'w-60', height: 'h-34', gap: 'mr-3' },
+              { width: 'w-44', height: 'h-26', gap: 'mr-7' },
+              { width: 'w-68', height: 'h-38', gap: 'mr-4' },
+            ].map((style, i) => (
               <video
                 key={i}
                 autoPlay
                 loop
                 muted
                 playsInline
-                className="w-56 h-32 object-cover opacity-50 flex-shrink-0"
+                className={`${style.width} ${style.height} ${style.gap} object-cover opacity-50 flex-shrink-0`}
                 style={{ filter: "blur(3px)" }}
               >
                 <source src={backgroundVideo} type="video/mp4" />
@@ -313,7 +322,7 @@ const Login = () => {
           
           {/* Fileira inferior - animação para a esquerda */}
           <motion.div
-            className="absolute bottom-20 left-0 flex gap-4"
+            className="absolute bottom-20 left-0 flex items-center"
             animate={{
               x: [-1000, 0],
             }}
@@ -323,14 +332,23 @@ const Login = () => {
               ease: "linear",
             }}
           >
-            {[...Array(8)].map((_, i) => (
+            {[
+              { width: 'w-56', height: 'h-32', gap: 'mr-5' },
+              { width: 'w-68', height: 'h-38', gap: 'mr-3' },
+              { width: 'w-60', height: 'h-34', gap: 'mr-7' },
+              { width: 'w-48', height: 'h-28', gap: 'mr-4' },
+              { width: 'w-72', height: 'h-40', gap: 'mr-6' },
+              { width: 'w-52', height: 'h-30', gap: 'mr-3' },
+              { width: 'w-64', height: 'h-36', gap: 'mr-8' },
+              { width: 'w-44', height: 'h-26', gap: 'mr-5' },
+            ].map((style, i) => (
               <video
                 key={i}
                 autoPlay
                 loop
                 muted
                 playsInline
-                className="w-56 h-32 object-cover opacity-50 flex-shrink-0"
+                className={`${style.width} ${style.height} ${style.gap} object-cover opacity-50 flex-shrink-0`}
                 style={{ filter: "blur(3px)" }}
               >
                 <source src={backgroundVideo} type="video/mp4" />
