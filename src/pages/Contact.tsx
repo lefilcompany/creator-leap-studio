@@ -45,7 +45,7 @@ export default function Contact() {
                 </div>
                 <div>
                   <h3 className="font-semibold text-foreground">Email</h3>
-                  <p className="text-muted-foreground">lefil@lefil.com.br</p>
+                  <p className="text-muted-foreground">suporte.creator@lefil.com.br</p>
                 </div>
               </div>
               
