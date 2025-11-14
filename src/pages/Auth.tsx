@@ -613,177 +613,115 @@ const Auth = () => {
 
   return (
     <>
-      <div className="min-h-screen bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 flex relative">
-        {/* Theme toggle */}
-        <div className="absolute top-4 right-4 z-50">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="h-10 w-10 rounded-full"
-          >
-            <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-            <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-            <span className="sr-only">{t.theme.toggle}</span>
-          </Button>
+      <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden bg-gradient-to-br from-background via-background to-primary/5">
+        {/* Elementos decorativos animados com motion blur */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <motion.div
+            className="absolute top-20 -left-20 w-96 h-96 rounded-full bg-gradient-to-r from-primary/20 to-primary/5"
+            style={{ filter: "blur(80px)" }}
+            animate={{
+              x: [0, 100, 0],
+              y: [0, -50, 0],
+              scale: [1, 1.2, 1],
+            }}
+            transition={{
+              duration: 20,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          />
+          <motion.div
+            className="absolute bottom-20 -right-20 w-[500px] h-[500px] rounded-full bg-gradient-to-l from-primary/15 to-accent/10"
+            style={{ filter: "blur(100px)" }}
+            animate={{
+              x: [0, -80, 0],
+              y: [0, 60, 0],
+              scale: [1, 1.1, 1],
+            }}
+            transition={{
+              duration: 25,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          />
+          <motion.div
+            className="absolute top-1/2 left-1/4 w-64 h-64 rounded-full bg-primary/10"
+            style={{ filter: "blur(60px)" }}
+            animate={{
+              x: [0, -50, 50, 0],
+              y: [0, 50, -50, 0],
+            }}
+            transition={{
+              duration: 15,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          />
+          
+          {/* Partículas flutuantes */}
+          {[...Array(6)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-2 h-2 rounded-full bg-primary/30"
+              style={{
+                left: `${20 + i * 15}%`,
+                top: `${10 + i * 10}%`,
+              }}
+              animate={{
+                y: [0, -100, 0],
+                opacity: [0.3, 0.8, 0.3],
+              }}
+              transition={{
+                duration: 3 + i,
+                repeat: Infinity,
+                ease: "easeInOut",
+                delay: i * 0.5,
+              }}
+            />
+          ))}
         </div>
 
-        {/* Background gradient for entire screen */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/15 via-accent/10 via-secondary/15 to-primary/5"></div>
-        <div className="absolute inset-0 bg-gradient-to-tl from-secondary/10 via-transparent to-accent/15 opacity-70"></div>
+        {/* Botão de tema no canto superior direito */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute top-4 right-4 z-50"
+          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+        >
+          {theme === "dark" ? (
+            <Sun className="h-5 w-5" />
+          ) : (
+            <Moon className="h-5 w-5" />
+          )}
+        </Button>
 
-        {/* Left side - Marketing content */}
-        <div className="hidden lg:flex lg:w-1/2 flex-col justify-center px-16 py-8 relative overflow-hidden">
-          {/* Decorative elements */}
-          <div className="absolute top-1/4 left-10 w-64 h-64 bg-primary/10 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-1/4 right-10 w-64 h-64 bg-secondary/10 rounded-full blur-3xl"></div>
+        {/* Logo no topo */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="mb-8 z-10"
+        >
+          <CreatorLogo className="mb-4" />
+        </motion.div>
 
-          <div className="relative max-w-lg">
-            <div className="mb-6">
-              <CreatorLogo className="mb-6" />
-            </div>
-
-            <div className="mb-8">
-              <h1 className="text-3xl lg:text-4xl font-bold text-foreground mb-4 leading-tight">
-                {isLoginMode ? t.login.strategicContent : "Conteúdo estratégico na velocidade das suas ideias"}
-              </h1>
-              <p className="text-lg text-muted-foreground leading-relaxed">
-                {isLoginMode ? t.login.strategicContentDesc : "Planeje, crie e revise com inteligência artificial — simples, rápido e sem prompts"}
-              </p>
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex items-center gap-4 p-4 bg-card/30 backdrop-blur-sm rounded-xl border border-primary/20">
-                <div className="w-3 h-3 bg-primary rounded-full"></div>
-                <div>
-                  <h3 className="font-semibold text-foreground text-base">
-                    {isLoginMode ? t.login.strategicOrganization : "Organização Estratégica"}
-                  </h3>
-                  <p className="text-muted-foreground text-sm">
-                    {isLoginMode ? t.login.strategicOrganizationDesc : "Estruture sua comunicação de forma clara e integrada"}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-4 p-4 bg-card/30 backdrop-blur-sm rounded-xl border border-secondary/20">
-                <div className="w-3 h-3 bg-secondary rounded-full"></div>
-                <div>
-                  <h3 className="font-semibold text-foreground text-base">
-                    {isLoginMode ? t.login.personaSegmentation : "Segmentação por Personas"}
-                  </h3>
-                  <p className="text-muted-foreground text-sm">
-                    {isLoginMode ? t.login.personaSegmentationDesc : "Conteúdos personalizados para diferentes públicos"}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-4 p-4 bg-card/30 backdrop-blur-sm rounded-xl border border-accent/20">
-                <div className="w-3 h-3 bg-accent rounded-full"></div>
-                <div>
-                  <h3 className="font-semibold text-foreground text-base">
-                    {isLoginMode ? t.login.completeCampaigns : "Campanhas Completas"}
-                  </h3>
-                  <p className="text-muted-foreground text-sm">
-                    {isLoginMode ? t.login.completeCampaignsDesc : "Calendários completos, não apenas posts isolados"}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Mobile/Tablet version with Sheet */}
+        {/* Card de auth centralizado */}
         {isMobile ? (
-          <div className="w-full flex flex-col relative min-h-screen">
-            {/* Hero section */}
-            <div className="flex-1 flex flex-col items-center justify-center p-8 relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-secondary/10 to-accent/20"></div>
-
-              <div className="relative z-10 mb-32 w-full">
-                <div className="flex flex-col items-start gap-8">
-                  <CreatorLogo className="flex-shrink-0" />
-
-                  <div className="text-left space-y-4">
-                    <h1 className="text-2xl font-bold text-foreground leading-tight text-left md:text-4xl">
-                      {isLoginMode ? t.login.strategicContent : "Transforme ideias em impacto"}
-                    </h1>
-                    <p className="text-base text-muted-foreground leading-relaxed text-left md:text-lg">
-                      {isLoginMode ? t.login.strategicContentDesc : "Junte-se à comunidade que está redefinindo a criação de conteúdo com inteligência artificial"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Fixed buttons at bottom */}
-              <div className="absolute bottom-8 left-0 right-0 px-8 space-y-3">
-                <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-                  <SheetTrigger asChild>
-                    <Button className="w-full h-14 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground font-semibold rounded-2xl text-lg shadow-xl">
-                      {isLoginMode ? t.login.signIn : "Criar conta"}
-                    </Button>
-                  </SheetTrigger>
-                  <SheetContent side="bottom" className="h-[90vh] rounded-t-3xl p-0 border-t-2">
-                    <div className="h-full overflow-y-auto p-6 pt-8">
-                      <div className="w-12 h-1.5 bg-muted-foreground/20 rounded-full mx-auto mb-6"></div>
-
-                      {/* Mode toggle */}
-                      <div className="flex items-center justify-center mb-8">
-                        <AuthModeToggle 
-                          isLoginMode={isLoginMode}
-                          onToggle={setIsLoginMode}
-                        />
-                      </div>
-
-                      <div className="text-center mb-8">
-                        <AnimatePresence mode="wait">
-                          <motion.h2 
-                            key={isLoginMode ? "login-title" : "register-title"}
-                            initial={{ opacity: 0, y: -10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: 10 }}
-                            transition={{ duration: 0.2 }}
-                            className="text-2xl font-bold text-foreground mb-2"
-                          >
-                            {isLoginMode ? "Bem-vindo de volta!" : "Crie sua conta"}
-                          </motion.h2>
-                        </AnimatePresence>
-                        <p className="text-muted-foreground">
-                          {isLoginMode ? "Acesse sua plataforma de conteúdo estratégico" : "Comece a criar conteúdo estratégico hoje"}
-                        </p>
-                      </div>
-
-                      <AnimatePresence mode="wait" initial={false}>
-                        <motion.div
-                          key={isLoginMode ? "login" : "register"}
-                          initial={{ opacity: 0, scale: 0.98 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.98 }}
-                          transition={{ duration: 0.2, ease: "easeInOut" }}
-                        >
-                          {isLoginMode ? loginForm : registerForm}
-                        </motion.div>
-                      </AnimatePresence>
-                    </div>
-                  </SheetContent>
-                </Sheet>
-              </div>
-            </div>
-          </div>
-        ) : (
-          /* Desktop version - Right side - Auth form */
-          <div className="w-full lg:w-1/2 flex items-center justify-center p-8 relative">
-            {/* Auth card */}
-            <div className="w-full max-w-md">
-              <div className="bg-card/90 backdrop-blur-xl border border-border/50 rounded-2xl shadow-2xl p-8">
-                {/* Mode toggle */}
-                <div className="flex items-center justify-center mb-8">
+          <Sheet open={true}>
+            <SheetContent 
+              side="bottom" 
+              className="h-[90vh] rounded-t-3xl border-t-2 border-primary/20 px-6 pt-6"
+            >
+              <div className="h-full overflow-y-auto pb-8">
+                {/* Toggle de modo */}
+                <div className="flex items-center justify-center mb-6">
                   <AuthModeToggle 
                     isLoginMode={isLoginMode}
                     onToggle={setIsLoginMode}
                   />
                 </div>
 
-                <div className="text-center mb-8">
+                <div className="text-center mb-6">
                   <AnimatePresence mode="wait">
                     <motion.h2 
                       key={isLoginMode ? "login-title" : "register-title"}
@@ -793,7 +731,7 @@ const Auth = () => {
                       transition={{ duration: 0.2 }}
                       className="text-2xl font-bold text-foreground mb-2"
                     >
-                      {isLoginMode ? t.login.title : "Crie sua conta"}
+                      {isLoginMode ? t.login.welcome : "Crie sua conta"}
                     </motion.h2>
                   </AnimatePresence>
                   <p className="text-muted-foreground">
@@ -813,8 +751,55 @@ const Auth = () => {
                   </motion.div>
                 </AnimatePresence>
               </div>
+            </SheetContent>
+          </Sheet>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="w-full max-w-md px-6 relative z-10"
+          >
+            <div className="bg-card/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-primary/10 p-8">
+              {/* Toggle de modo */}
+              <div className="flex items-center justify-center mb-6">
+                <AuthModeToggle 
+                  isLoginMode={isLoginMode}
+                  onToggle={setIsLoginMode}
+                />
+              </div>
+
+              <div className="mb-6 text-center">
+                <AnimatePresence mode="wait">
+                  <motion.h1 
+                    key={isLoginMode ? "login-title" : "register-title"}
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    transition={{ duration: 0.2 }}
+                    className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent mb-2"
+                  >
+                    {isLoginMode ? t.login.welcome : "Crie sua conta"}
+                  </motion.h1>
+                </AnimatePresence>
+                <p className="text-muted-foreground">
+                  {isLoginMode ? t.login.welcomeMessage : "Comece a criar conteúdo estratégico hoje"}
+                </p>
+              </div>
+
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.div
+                  key={isLoginMode ? "login" : "register"}
+                  initial={{ opacity: 0, scale: 0.98 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.98 }}
+                  transition={{ duration: 0.2, ease: "easeInOut" }}
+                >
+                  {isLoginMode ? loginForm : registerForm}
+                </motion.div>
+              </AnimatePresence>
             </div>
-          </div>
+          </motion.div>
         )}
       </div>
 
@@ -865,45 +850,34 @@ const Auth = () => {
                 </ul>
                 <div className="pt-1 md:pt-3">
                   <p className="font-medium text-foreground text-xs md:text-sm">
-                    📌 Ao continuar, você concorda com nossa{" "}
-                    <a
-                      href="/privacy"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="underline text-primary hover:text-secondary transition-colors font-semibold"
-                    >
-                      Política de Privacidade completa
-                    </a>
-                    .
+                    🤝 Ao aceitar, você concorda com esses termos e pode usar nossa plataforma com segurança e
+                    tranquilidade.
                   </p>
                 </div>
               </div>
             </div>
 
-            <DialogFooter className="flex-shrink-0 p-3 md:p-6 pt-2 md:pt-4 border-t bg-background">
-              <div className="flex flex-col-reverse md:flex-row gap-2 md:gap-2 w-full">
+            <DialogFooter className="flex-shrink-0 p-3 md:p-6 pt-2 md:pt-4 border-t">
+              <div className="flex flex-col sm:flex-row gap-2 w-full">
                 <Button
                   variant="outline"
-                  type="button"
-                  className="w-full md:w-auto md:min-w-[120px] h-11 md:h-10 text-xs md:text-sm font-medium"
                   onClick={() => {
                     setPrivacyModalOpen(false);
                     setPrivacyChecked(false);
-                    setPrivacyAccepted(false);
                   }}
+                  className="flex-1 h-10 md:h-11 text-xs md:text-sm"
                 >
-                  Não aceito
+                  Recusar
                 </Button>
                 <Button
-                  type="button"
-                  className="w-full md:w-auto md:min-w-[120px] h-11 md:h-10 bg-gradient-to-r from-primary to-secondary font-bold text-xs md:text-sm"
                   onClick={() => {
-                    setPrivacyModalOpen(false);
-                    setPrivacyChecked(true);
                     setPrivacyAccepted(true);
+                    setPrivacyChecked(true);
+                    setPrivacyModalOpen(false);
                   }}
+                  className="flex-1 h-10 md:h-11 text-xs md:text-sm bg-primary hover:bg-primary/90"
                 >
-                  Aceito e concordo
+                  Aceitar e continuar
                 </Button>
               </div>
             </DialogFooter>
@@ -911,25 +885,28 @@ const Auth = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Team Selection Dialog */}
-      <TeamSelectionDialog
-        open={showTeamSelection || oauthTeamDialog}
+      <TeamSelectionDialog 
+        open={showTeamSelection} 
         onClose={() => {
           setShowTeamSelection(false);
-          if (oauthTeamDialog) {
-            handleOAuthTeamDialogClose();
-          }
+          setWaitingForAuth(true);
         }}
-        context={isLoginMode ? "login" : "register"}
       />
 
-      {/* Change Password Dialog */}
+      <TeamSelectionDialog 
+        open={oauthTeamDialog} 
+        onClose={() => {
+          handleOAuthTeamDialogClose();
+          navigate("/dashboard", { replace: true });
+        }}
+      />
+
       <ChangePasswordDialog
         isOpen={showChangePassword}
         onOpenChange={(open) => {
           setShowChangePassword(open);
           if (!open) {
-            navigate("/dashboard");
+            setWaitingForAuth(true);
           }
         }}
       />
