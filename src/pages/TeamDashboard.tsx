@@ -317,8 +317,8 @@ export default function TeamDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-chart-4 dark:text-chart-4 truncate">
-              {mostActiveMember?.name || '-'}
+            <div className="text-base md:text-lg font-bold text-chart-4 dark:text-chart-4 line-clamp-2 leading-tight">
+              {mostActiveMember?.name.split(' ').slice(0, 2).join(' ') || '-'}
             </div>
             <p className="text-xs text-muted-foreground mt-2">
               {mostActiveMember?.totalActions || 0} ações
@@ -340,7 +340,7 @@ export default function TeamDashboard() {
               <CardDescription>Por tipo de conteúdo</CardDescription>
             </CardHeader>
             <CardContent className="pt-6">
-              <ResponsiveContainer width="100%" height={300} className="md:h-[350px]">
+              <ResponsiveContainer width="100%" height={280} className="md:h-[350px]">
                 <PieChart>
                   <Pie
                     data={actionTypeData}
@@ -348,8 +348,7 @@ export default function TeamDashboard() {
                     cy="50%"
                     labelLine={false}
                     label={CustomPieLabel}
-                    outerRadius="70%"
-                    fill="#8884d8"
+                    outerRadius="65%"
                     dataKey="value"
                     animationBegin={0}
                     animationDuration={800}
@@ -361,9 +360,13 @@ export default function TeamDashboard() {
                   <Tooltip content={<CustomTooltip />} />
                   <Legend 
                     verticalAlign="bottom" 
-                    height={36}
+                    height={60}
                     iconType="circle"
-                    wrapperStyle={{ paddingTop: '20px' }}
+                    wrapperStyle={{ 
+                      paddingTop: '10px',
+                      fontSize: '11px'
+                    }}
+                    formatter={(value) => <span className="text-xs">{value}</span>}
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -380,8 +383,8 @@ export default function TeamDashboard() {
               <CardDescription>Por total de ações</CardDescription>
             </CardHeader>
             <CardContent className="pt-6">
-              <ResponsiveContainer width="100%" height={300} className="md:h-[350px]">
-                <BarChart data={topMembersData} layout="horizontal">
+              <ResponsiveContainer width="100%" height={280} className="md:h-[350px]">
+                <BarChart data={topMembersData} layout="horizontal" margin={{ left: -10, right: 10, top: 5, bottom: 5 }}>
                   <defs>
                     <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.8}/>
@@ -392,11 +395,15 @@ export default function TeamDashboard() {
                   <XAxis 
                     dataKey="name" 
                     className="text-xs" 
-                    tick={{ fill: 'hsl(var(--foreground))' }}
+                    tick={{ fill: 'hsl(var(--foreground))', fontSize: 11 }}
+                    angle={-15}
+                    textAnchor="end"
+                    height={60}
                   />
                   <YAxis 
                     className="text-xs" 
-                    tick={{ fill: 'hsl(var(--foreground))' }}
+                    tick={{ fill: 'hsl(var(--foreground))', fontSize: 11 }}
+                    width={40}
                   />
                   <Tooltip content={<CustomTooltip />} />
                   <Bar 
@@ -482,22 +489,22 @@ export default function TeamDashboard() {
                   value={member.id}
                   className="border-2 border-secondary/10 rounded-lg overflow-hidden hover:border-secondary/30 transition-all duration-300"
                 >
-                  <AccordionTrigger className="hover:no-underline px-4 py-4 hover:bg-secondary/5 transition-colors duration-200">
-                    <div className="flex items-center justify-between w-full pr-4">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-11 w-11 ring-2 ring-secondary/20">
+                  <AccordionTrigger className="hover:no-underline px-3 md:px-4 py-3 md:py-4 hover:bg-secondary/5 transition-colors duration-200">
+                    <div className="flex items-center justify-between w-full pr-2 md:pr-4 gap-2">
+                      <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
+                        <Avatar className="h-9 w-9 md:h-11 md:w-11 ring-2 ring-secondary/20 flex-shrink-0">
                           <AvatarImage src={member.avatar_url} alt={member.name} />
-                          <AvatarFallback className="bg-gradient-to-br from-primary/20 to-secondary/20 text-primary font-bold text-base">
+                          <AvatarFallback className="bg-gradient-to-br from-primary/20 to-secondary/20 text-primary font-bold text-sm md:text-base">
                             {member.name.charAt(0).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
-                        <div className="text-left">
-                          <p className="font-semibold text-foreground">{member.name}</p>
-                          <p className="text-sm text-muted-foreground">{member.email}</p>
+                        <div className="text-left min-w-0 flex-1">
+                          <p className="font-semibold text-foreground text-sm md:text-base truncate">{member.name}</p>
+                          <p className="text-xs md:text-sm text-muted-foreground truncate">{member.email}</p>
                         </div>
                       </div>
-                      <Badge variant="secondary" className="bg-gradient-to-r from-primary/20 to-primary/10 text-primary border border-primary/20 text-base px-3 py-1">
-                        {member.totalActions} {member.totalActions === 1 ? 'ação' : 'ações'}
+                      <Badge variant="secondary" className="bg-gradient-to-r from-primary/20 to-primary/10 text-primary border border-primary/20 text-xs md:text-sm px-2 md:px-2.5 py-0.5 md:py-1 whitespace-nowrap flex-shrink-0">
+                        {member.totalActions}
                       </Badge>
                     </div>
                   </AccordionTrigger>
@@ -509,41 +516,41 @@ export default function TeamDashboard() {
                       transition={{ duration: 0.3, ease: "easeInOut" }}
                       className="px-4 pb-4 pt-2"
                     >
-                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                        <div className="flex flex-col items-center gap-2 p-3 bg-gradient-to-br from-yellow-500/10 to-yellow-500/5 rounded-lg border border-yellow-500/20">
-                          <Zap className="h-6 w-6 text-yellow-500" />
-                          <span className="text-xs text-muted-foreground text-center">Criação Rápida</span>
-                          <span className="text-xl font-bold text-foreground">{member.quickContent}</span>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
+                        <div className="flex flex-col items-center gap-1.5 md:gap-2 p-2.5 md:p-3 bg-gradient-to-br from-yellow-500/10 to-yellow-500/5 rounded-lg border border-yellow-500/20">
+                          <Zap className="h-5 w-5 md:h-6 md:w-6 text-yellow-500" />
+                          <span className="text-[10px] md:text-xs text-muted-foreground text-center leading-tight">Criação Rápida</span>
+                          <span className="text-lg md:text-xl font-bold text-foreground">{member.quickContent}</span>
                         </div>
                         
-                        <div className="flex flex-col items-center gap-2 p-3 bg-gradient-to-br from-blue-500/10 to-blue-500/5 rounded-lg border border-blue-500/20">
-                          <FileText className="h-6 w-6 text-blue-500" />
-                          <span className="text-xs text-muted-foreground text-center">Criar Conteúdo</span>
-                          <span className="text-xl font-bold text-foreground">{member.createContent}</span>
+                        <div className="flex flex-col items-center gap-1.5 md:gap-2 p-2.5 md:p-3 bg-gradient-to-br from-blue-500/10 to-blue-500/5 rounded-lg border border-blue-500/20">
+                          <FileText className="h-5 w-5 md:h-6 md:w-6 text-blue-500" />
+                          <span className="text-[10px] md:text-xs text-muted-foreground text-center leading-tight">Criar Conteúdo</span>
+                          <span className="text-lg md:text-xl font-bold text-foreground">{member.createContent}</span>
                         </div>
                         
-                        <div className="flex flex-col items-center gap-2 p-3 bg-gradient-to-br from-green-500/10 to-green-500/5 rounded-lg border border-green-500/20">
-                          <CheckCircle className="h-6 w-6 text-green-500" />
-                          <span className="text-xs text-muted-foreground text-center">Revisar</span>
-                          <span className="text-xl font-bold text-foreground">{member.reviewContent}</span>
+                        <div className="flex flex-col items-center gap-1.5 md:gap-2 p-2.5 md:p-3 bg-gradient-to-br from-green-500/10 to-green-500/5 rounded-lg border border-green-500/20">
+                          <CheckCircle className="h-5 w-5 md:h-6 md:w-6 text-green-500" />
+                          <span className="text-[10px] md:text-xs text-muted-foreground text-center leading-tight">Revisar</span>
+                          <span className="text-lg md:text-xl font-bold text-foreground">{member.reviewContent}</span>
                         </div>
                         
-                        <div className="flex flex-col items-center gap-2 p-3 bg-gradient-to-br from-purple-500/10 to-purple-500/5 rounded-lg border border-purple-500/20">
-                          <Lightbulb className="h-6 w-6 text-purple-500" />
-                          <span className="text-xs text-muted-foreground text-center">Planejar</span>
-                          <span className="text-xl font-bold text-foreground">{member.planContent}</span>
+                        <div className="flex flex-col items-center gap-1.5 md:gap-2 p-2.5 md:p-3 bg-gradient-to-br from-purple-500/10 to-purple-500/5 rounded-lg border border-purple-500/20">
+                          <Lightbulb className="h-5 w-5 md:h-6 md:w-6 text-purple-500" />
+                          <span className="text-[10px] md:text-xs text-muted-foreground text-center leading-tight">Planejar</span>
+                          <span className="text-lg md:text-xl font-bold text-foreground">{member.planContent}</span>
                         </div>
                         
-                        <div className="flex flex-col items-center gap-2 p-3 bg-gradient-to-br from-pink-500/10 to-pink-500/5 rounded-lg border border-pink-500/20">
-                          <Video className="h-6 w-6 text-pink-500" />
-                          <span className="text-xs text-muted-foreground text-center">Gerar Vídeo</span>
-                          <span className="text-xl font-bold text-foreground">{member.videoContent}</span>
+                        <div className="flex flex-col items-center gap-1.5 md:gap-2 p-2.5 md:p-3 bg-gradient-to-br from-pink-500/10 to-pink-500/5 rounded-lg border border-pink-500/20">
+                          <Video className="h-5 w-5 md:h-6 md:w-6 text-pink-500" />
+                          <span className="text-[10px] md:text-xs text-muted-foreground text-center leading-tight">Gerar Vídeo</span>
+                          <span className="text-lg md:text-xl font-bold text-foreground">{member.videoContent}</span>
                         </div>
                         
-                        <div className="flex flex-col items-center gap-2 p-3 bg-gradient-to-br from-secondary/10 to-secondary/5 rounded-lg border border-secondary/20">
-                          <Calendar className="h-6 w-6 text-secondary" />
-                          <span className="text-xs text-muted-foreground text-center">Última Atividade</span>
-                          <span className="text-xs font-medium text-foreground text-center">
+                        <div className="flex flex-col items-center gap-1.5 md:gap-2 p-2.5 md:p-3 bg-gradient-to-br from-secondary/10 to-secondary/5 rounded-lg border border-secondary/20">
+                          <Calendar className="h-5 w-5 md:h-6 md:w-6 text-secondary" />
+                          <span className="text-[10px] md:text-xs text-muted-foreground text-center leading-tight">Última Atividade</span>
+                          <span className="text-[10px] md:text-xs font-medium text-foreground text-center leading-tight">
                             {member.lastActivity ? (
                               new Date(member.lastActivity).toLocaleDateString('pt-BR', {
                                 day: '2-digit',
