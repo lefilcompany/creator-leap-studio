@@ -240,18 +240,6 @@ const Login = () => {
   return (
     <>
       <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden bg-gradient-to-br from-background via-background to-primary/5">
-        {/* Vídeo de fundo embaçado */}
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover opacity-60 pointer-events-none"
-          style={{ filter: "blur(6px)" }}
-        >
-          <source src={backgroundVideo} type="video/mp4" />
-        </video>
-
         {/* Elementos decorativos animados com motion blur */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <motion.div
@@ -296,11 +284,13 @@ const Login = () => {
             }}
           />
           
-          {/* Imagens decorativas com motion blur */}
-          <motion.img
-            src={decorativeElement}
-            alt=""
-            className="absolute top-1/4 right-1/4 w-64 h-64 object-contain opacity-10"
+          {/* Vídeos decorativos com motion blur nos cantos */}
+          <motion.video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute top-1/4 right-1/4 w-64 h-64 object-cover rounded-full opacity-30"
             style={{ filter: "blur(8px)" }}
             animate={{
               x: [0, 60, -30, 0],
@@ -313,11 +303,15 @@ const Login = () => {
               repeat: Infinity,
               ease: "easeInOut",
             }}
-          />
-          <motion.img
-            src={decorativeElement}
-            alt=""
-            className="absolute bottom-1/3 left-1/3 w-48 h-48 object-contain opacity-8"
+          >
+            <source src={backgroundVideo} type="video/mp4" />
+          </motion.video>
+          <motion.video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute bottom-1/3 left-1/3 w-48 h-48 object-cover rounded-full opacity-25"
             style={{ filter: "blur(10px)" }}
             animate={{
               x: [0, -50, 50, 0],
@@ -331,11 +325,15 @@ const Login = () => {
               ease: "easeInOut",
               delay: 1,
             }}
-          />
-          <motion.img
-            src={decorativeElement}
-            alt=""
-            className="absolute top-1/3 left-1/5 w-40 h-40 object-contain opacity-6"
+          >
+            <source src={backgroundVideo} type="video/mp4" />
+          </motion.video>
+          <motion.video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute top-1/3 left-1/5 w-40 h-40 object-cover rounded-full opacity-20"
             style={{ filter: "blur(12px)" }}
             animate={{
               x: [0, 40, -40, 0],
@@ -349,7 +347,31 @@ const Login = () => {
               ease: "easeInOut",
               delay: 2,
             }}
-          />
+          >
+            <source src={backgroundVideo} type="video/mp4" />
+          </motion.video>
+          <motion.video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute bottom-1/4 right-1/5 w-56 h-56 object-cover rounded-full opacity-28"
+            style={{ filter: "blur(9px)" }}
+            animate={{
+              x: [0, -40, 40, 0],
+              y: [0, 50, -50, 0],
+              rotate: [0, -18, 18, 0],
+              scale: [1, 1.1, 0.9, 1],
+            }}
+            transition={{
+              duration: 19,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 0.5,
+            }}
+          >
+            <source src={backgroundVideo} type="video/mp4" />
+          </motion.video>
           
           {/* Partículas flutuantes */}
           {[...Array(6)].map((_, i) => (
