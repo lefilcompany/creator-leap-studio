@@ -285,13 +285,13 @@ const Login = () => {
           />
           
           {/* Vídeos decorativos em duas fileiras horizontais */}
-          {/* Fileira superior */}
+          {/* Fileira superior - 4 vídeos */}
           <video
             autoPlay
             loop
             muted
             playsInline
-            className="absolute top-8 left-8 w-72 h-40 object-cover opacity-50"
+            className="absolute top-8 left-8 w-56 h-32 object-cover opacity-50"
             style={{ filter: "blur(3px)" }}
           >
             <source src={backgroundVideo} type="video/mp4" />
@@ -301,19 +301,39 @@ const Login = () => {
             loop
             muted
             playsInline
-            className="absolute top-8 right-8 w-72 h-40 object-cover opacity-50"
+            className="absolute top-8 left-[22%] w-56 h-32 object-cover opacity-50"
+            style={{ filter: "blur(3px)" }}
+          >
+            <source src={backgroundVideo} type="video/mp4" />
+          </video>
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute top-8 right-[22%] w-56 h-32 object-cover opacity-50"
+            style={{ filter: "blur(3px)" }}
+          >
+            <source src={backgroundVideo} type="video/mp4" />
+          </video>
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute top-8 right-8 w-56 h-32 object-cover opacity-50"
             style={{ filter: "blur(3px)" }}
           >
             <source src={backgroundVideo} type="video/mp4" />
           </video>
           
-          {/* Fileira inferior */}
+          {/* Fileira inferior - 4 vídeos */}
           <video
             autoPlay
             loop
             muted
             playsInline
-            className="absolute bottom-8 left-8 w-72 h-40 object-cover opacity-50"
+            className="absolute bottom-8 left-8 w-56 h-32 object-cover opacity-50"
             style={{ filter: "blur(3px)" }}
           >
             <source src={backgroundVideo} type="video/mp4" />
@@ -323,7 +343,27 @@ const Login = () => {
             loop
             muted
             playsInline
-            className="absolute bottom-8 right-8 w-72 h-40 object-cover opacity-50"
+            className="absolute bottom-8 left-[22%] w-56 h-32 object-cover opacity-50"
+            style={{ filter: "blur(3px)" }}
+          >
+            <source src={backgroundVideo} type="video/mp4" />
+          </video>
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute bottom-8 right-[22%] w-56 h-32 object-cover opacity-50"
+            style={{ filter: "blur(3px)" }}
+          >
+            <source src={backgroundVideo} type="video/mp4" />
+          </video>
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute bottom-8 right-8 w-56 h-32 object-cover opacity-50"
             style={{ filter: "blur(3px)" }}
           >
             <source src={backgroundVideo} type="video/mp4" />
