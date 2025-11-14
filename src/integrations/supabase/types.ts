@@ -268,6 +268,62 @@ export type Database = {
           },
         ]
       }
+      credit_purchases: {
+        Row: {
+          amount_paid: number
+          completed_at: string | null
+          created_at: string
+          credits_purchased: number
+          id: string
+          metadata: Json | null
+          plan_id: string | null
+          purchase_type: string
+          status: string
+          stripe_checkout_session_id: string
+          stripe_payment_intent_id: string | null
+          team_id: string
+          user_id: string
+        }
+        Insert: {
+          amount_paid: number
+          completed_at?: string | null
+          created_at?: string
+          credits_purchased: number
+          id?: string
+          metadata?: Json | null
+          plan_id?: string | null
+          purchase_type: string
+          status?: string
+          stripe_checkout_session_id: string
+          stripe_payment_intent_id?: string | null
+          team_id: string
+          user_id: string
+        }
+        Update: {
+          amount_paid?: number
+          completed_at?: string | null
+          created_at?: string
+          credits_purchased?: number
+          id?: string
+          metadata?: Json | null
+          plan_id?: string | null
+          purchase_type?: string
+          status?: string
+          stripe_checkout_session_id?: string
+          stripe_payment_intent_id?: string | null
+          team_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_purchases_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string | null

@@ -27,6 +27,7 @@ import PlanResult from "./pages/PlanResult";
 import QuickContent from "./pages/QuickContent";
 import QuickContentResult from "./pages/QuickContentResult";
 import Plans from "./pages/Plans";
+import Credits from "./pages/Credits";
 import Team from "./pages/Team";
 import TeamDashboard from "./pages/TeamDashboard";
 import Profile from "./pages/Profile";
@@ -75,6 +76,7 @@ const App = () => (
               <Route path="quick-content" element={<QuickContent />} />
               <Route path="quick-content-result" element={<QuickContentResult />} />
               <Route path="plans" element={<Plans />} />
+              <Route path="credits" element={<Credits />} />
               <Route path="team" element={<Team />} />
               <Route path="team-dashboard" element={<TeamDashboard />} />
               <Route path="profile" element={<Profile />} />

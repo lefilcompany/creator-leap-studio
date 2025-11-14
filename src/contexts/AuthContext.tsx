@@ -58,6 +58,7 @@ interface AuthContextType {
   reloadUserData: () => Promise<void>;
   refreshProfile: () => Promise<void>;
   refreshTeamData: () => Promise<void>;
+  refreshTeamCredits: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -446,6 +447,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const isAuthenticated = useMemo(() => !!session && !!user, [session, user]);
 
+  const refreshTeamCredits = async () => {
+    if (!user?.email || !team?.id) return;
+    
+    const { data } = await supabase
+      .from('teams')
+      .select('credits')
+      .eq('id', team.id)
+      .single();
+      
+    if (data) {
+      setTeam(prev => prev ? { ...prev, credits: data.credits } : null);
+    }
+  };
+
   const refreshTeamData = useCallback(async () => {
     if (!user?.teamId) {
       console.log('[AuthContext] Cannot refresh team data - no team ID');
@@ -516,9 +531,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       logout,
       reloadUserData,
       refreshProfile,
-      refreshTeamData
+      refreshTeamData,
+      refreshTeamCredits
     }),
-    [user, session, team, isAuthenticated, isLoading, isTrialExpired, trialDaysRemaining, logout, reloadUserData, refreshProfile, refreshTeamData]
+    [user, session, team, isAuthenticated, isLoading, isTrialExpired, trialDaysRemaining, logout, reloadUserData, refreshProfile, refreshTeamData, refreshTeamCredits]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

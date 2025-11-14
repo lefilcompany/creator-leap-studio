@@ -41,12 +41,24 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    const { price_id } = await req.json();
-    if (!price_id) throw new Error("price_id is required");
-    logStep("Price ID received", { price_id });
+    // Buscar team_id do usuário
+    const { data: profile } = await supabaseClient
+      .from('profiles')
+      .select('team_id')
+      .eq('id', user.id)
+      .single();
+    
+    const teamId = profile?.team_id;
+    if (!teamId) throw new Error("User has no team");
+    logStep("Team ID found", { teamId });
+
+    const { type, price_id, plan_id, credits } = await req.json();
+    if (!type || !['plan', 'custom'].includes(type)) {
+      throw new Error("type is required and must be 'plan' or 'custom'");
+    }
+    logStep("Request data received", { type, price_id, plan_id, credits });
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2024-12-18.acacia" });
-    logStep("Using price ID", { price_id });
     
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     let customerId;
@@ -58,22 +70,66 @@ serve(async (req) => {
     }
 
     const origin = req.headers.get("origin") || "http://localhost:3000";
-    
-    const session = await stripe.checkout.sessions.create({
-      customer: customerId,
-      customer_email: customerId ? undefined : user.email,
-      line_items: [
-        {
-          price: price_id,
-          quantity: 1,
-        },
-      ],
-      mode: "subscription",
-      success_url: `${origin}/plans?success=true`,
-      cancel_url: `${origin}/plans?canceled=true`,
-    });
+    let session;
 
-    logStep("Checkout session created", { sessionId: session.id, url: session.url });
+    if (type === 'plan') {
+      // Compra de plano fixo
+      if (!price_id || !plan_id) throw new Error("price_id and plan_id are required for plan purchase");
+      
+      session = await stripe.checkout.sessions.create({
+        customer: customerId,
+        customer_email: customerId ? undefined : user.email,
+        line_items: [
+          {
+            price: price_id,
+            quantity: 1,
+          },
+        ],
+        mode: "payment",
+        success_url: `${origin}/credits?success=true&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${origin}/credits?canceled=true`,
+        metadata: {
+          team_id: teamId,
+          user_id: user.id,
+          purchase_type: 'plan',
+          plan_id: plan_id,
+        }
+      });
+      logStep("Plan checkout session created", { sessionId: session.id });
+    } else {
+      // Compra avulsa
+      if (!credits || credits < 20) throw new Error("credits is required and must be at least 20");
+      
+      const amountInCents = credits * 200; // R$ 2,00 por crédito = 200 centavos
+      
+      session = await stripe.checkout.sessions.create({
+        customer: customerId,
+        customer_email: customerId ? undefined : user.email,
+        line_items: [
+          {
+            price_data: {
+              currency: 'brl',
+              product_data: {
+                name: `${credits} Créditos Creator`,
+                description: `Compra avulsa de ${credits} créditos`,
+              },
+              unit_amount: amountInCents,
+            },
+            quantity: 1,
+          },
+        ],
+        mode: "payment",
+        success_url: `${origin}/credits?success=true&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${origin}/credits?canceled=true`,
+        metadata: {
+          team_id: teamId,
+          user_id: user.id,
+          purchase_type: 'custom',
+          credits: credits.toString(),
+        }
+      });
+      logStep("Custom checkout session created", { sessionId: session.id, credits, amount: amountInCents });
+    }
 
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
