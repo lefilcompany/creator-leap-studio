@@ -19,6 +19,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
 import { motion } from "framer-motion";
+import decorativeElement from "@/assets/decorative-element.png";
 
 const Login = () => {
   const { t } = useTranslation();
@@ -279,6 +280,61 @@ const Login = () => {
               duration: 15,
               repeat: Infinity,
               ease: "easeInOut",
+            }}
+          />
+          
+          {/* Imagens decorativas com motion blur */}
+          <motion.img
+            src={decorativeElement}
+            alt=""
+            className="absolute top-1/4 right-1/4 w-64 h-64 object-contain opacity-10"
+            style={{ filter: "blur(8px)" }}
+            animate={{
+              x: [0, 60, -30, 0],
+              y: [0, -40, 40, 0],
+              rotate: [0, 15, -15, 0],
+              scale: [1, 1.15, 0.95, 1],
+            }}
+            transition={{
+              duration: 18,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          />
+          <motion.img
+            src={decorativeElement}
+            alt=""
+            className="absolute bottom-1/3 left-1/3 w-48 h-48 object-contain opacity-8"
+            style={{ filter: "blur(10px)" }}
+            animate={{
+              x: [0, -50, 50, 0],
+              y: [0, 60, -30, 0],
+              rotate: [0, -20, 20, 0],
+              scale: [1, 0.9, 1.1, 1],
+            }}
+            transition={{
+              duration: 22,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 1,
+            }}
+          />
+          <motion.img
+            src={decorativeElement}
+            alt=""
+            className="absolute top-1/3 left-1/5 w-40 h-40 object-contain opacity-6"
+            style={{ filter: "blur(12px)" }}
+            animate={{
+              x: [0, 40, -40, 0],
+              y: [0, -50, 50, 0],
+              rotate: [0, 25, -25, 0],
+              scale: [1, 1.2, 0.85, 1],
+            }}
+            transition={{
+              duration: 20,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 2,
             }}
           />
           
