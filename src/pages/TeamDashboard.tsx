@@ -503,7 +503,7 @@ export default function TeamDashboard() {
                           <p className="text-xs md:text-sm text-muted-foreground truncate">{member.email}</p>
                         </div>
                       </div>
-                      <Badge variant="secondary" className="bg-gradient-to-r from-secondary/10 to-secondary/5 text-secondary border border-secondary/15 text-xs md:text-sm px-2 md:px-2.5 py-0.5 md:py-1 whitespace-nowrap flex-shrink-0">
+                      <Badge variant="secondary" className="bg-primary/20 text-primary border border-primary/20 text-xs md:text-sm px-2 md:px-2.5 py-0.5 md:py-1 whitespace-nowrap flex-shrink-0">
                         {member.totalActions}
                       </Badge>
                     </div>
