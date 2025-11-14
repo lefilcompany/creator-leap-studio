@@ -164,11 +164,11 @@ export default function TeamDashboard() {
   const activeMembers = useMemo(() => memberStats.filter(m => m.totalActions > 0).length, [memberStats]);
 
   const actionTypeData = useMemo(() => [
-    { name: 'Criação Rápida', value: memberStats.reduce((sum, m) => sum + m.quickContent, 0), color: 'hsl(var(--chart-1))' },
-    { name: 'Criar Conteúdo', value: memberStats.reduce((sum, m) => sum + m.createContent, 0), color: 'hsl(var(--chart-2))' },
-    { name: 'Revisar', value: memberStats.reduce((sum, m) => sum + m.reviewContent, 0), color: 'hsl(var(--chart-3))' },
-    { name: 'Planejar', value: memberStats.reduce((sum, m) => sum + m.planContent, 0), color: 'hsl(var(--chart-4))' },
-    { name: 'Gerar Vídeo', value: memberStats.reduce((sum, m) => sum + m.videoContent, 0), color: 'hsl(var(--chart-5))' },
+    { name: 'Criação Rápida', value: memberStats.reduce((sum, m) => sum + m.quickContent, 0), color: 'hsl(var(--primary))' },
+    { name: 'Criar Conteúdo', value: memberStats.reduce((sum, m) => sum + m.createContent, 0), color: 'hsl(var(--accent))' },
+    { name: 'Revisar', value: memberStats.reduce((sum, m) => sum + m.reviewContent, 0), color: 'hsl(var(--success))' },
+    { name: 'Planejar', value: memberStats.reduce((sum, m) => sum + m.planContent, 0), color: 'hsl(var(--secondary))' },
+    { name: 'Gerar Vídeo', value: memberStats.reduce((sum, m) => sum + m.videoContent, 0), color: 'hsl(var(--destructive))' },
   ].filter(item => item.value > 0), [memberStats]);
 
   const topMembersData = useMemo(() => 
