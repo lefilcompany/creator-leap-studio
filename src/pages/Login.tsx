@@ -286,7 +286,7 @@ const Login = () => {
           
           {/* Fileira superior - animação para a direita */}
           <motion.div
-            className="absolute top-20 left-0 flex items-center"
+            className="absolute top-4 left-0 flex items-center"
             animate={{
               x: [0, -1000],
             }}
@@ -322,7 +322,7 @@ const Login = () => {
           
           {/* Fileira inferior - animação para a esquerda */}
           <motion.div
-            className="absolute bottom-20 left-0 flex items-center"
+            className="absolute bottom-4 left-0 flex items-center"
             animate={{
               x: [-1000, 0],
             }}
