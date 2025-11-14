@@ -22,7 +22,6 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useAuth } from "@/hooks/useAuth";
 import decorativeElement from "@/assets/decorative-element.png";
-import backgroundVideo from "@/assets/background-video.mp4";
 
 // Interfaces para os dados do IBGE
 interface State {
@@ -660,77 +659,82 @@ const Auth = () => {
             }}
           />
           
-          {/* Fileira superior - animação para a direita */}
-          <motion.div
-            className="absolute top-4 left-0 flex items-center"
+          {/* Imagens decorativas com motion blur */}
+          <motion.img
+            src={decorativeElement}
+            alt=""
+            className="absolute top-1/4 right-1/4 w-64 h-64 object-contain opacity-10"
+            style={{ filter: "blur(8px)" }}
             animate={{
-              x: [0, -1000],
+              x: [0, 60, -30, 0],
+              y: [0, -40, 40, 0],
+              rotate: [0, 15, -15, 0],
+              scale: [1, 1.15, 0.95, 1],
             }}
             transition={{
-              duration: 30,
+              duration: 18,
               repeat: Infinity,
-              ease: "linear",
+              ease: "easeInOut",
             }}
-          >
-            {[
-              { width: 'w-48', height: 'h-28', gap: 'mr-3' },
-              { width: 'w-64', height: 'h-36', gap: 'mr-6' },
-              { width: 'w-52', height: 'h-30', gap: 'mr-4' },
-              { width: 'w-72', height: 'h-40', gap: 'mr-8' },
-              { width: 'w-56', height: 'h-32', gap: 'mr-5' },
-              { width: 'w-60', height: 'h-34', gap: 'mr-3' },
-              { width: 'w-44', height: 'h-26', gap: 'mr-7' },
-              { width: 'w-68', height: 'h-38', gap: 'mr-4' },
-            ].map((style, i) => (
-              <video
-                key={i}
-                autoPlay
-                loop
-                muted
-                playsInline
-                className={`${style.width} ${style.height} ${style.gap} object-cover opacity-50 flex-shrink-0`}
-                style={{ filter: "blur(3px)" }}
-              >
-                <source src={backgroundVideo} type="video/mp4" />
-              </video>
-            ))}
-          </motion.div>
+          />
+          <motion.img
+            src={decorativeElement}
+            alt=""
+            className="absolute bottom-1/3 left-1/3 w-48 h-48 object-contain opacity-8"
+            style={{ filter: "blur(10px)" }}
+            animate={{
+              x: [0, -50, 50, 0],
+              y: [0, 60, -30, 0],
+              rotate: [0, -20, 20, 0],
+              scale: [1, 0.9, 1.1, 1],
+            }}
+            transition={{
+              duration: 22,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 1,
+            }}
+          />
+          <motion.img
+            src={decorativeElement}
+            alt=""
+            className="absolute top-1/3 left-1/5 w-40 h-40 object-contain opacity-6"
+            style={{ filter: "blur(12px)" }}
+            animate={{
+              x: [0, 40, -40, 0],
+              y: [0, -50, 50, 0],
+              rotate: [0, 25, -25, 0],
+              scale: [1, 1.2, 0.85, 1],
+            }}
+            transition={{
+              duration: 20,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 2,
+            }}
+          />
           
-          {/* Fileira inferior - animação para a esquerda */}
-          <motion.div
-            className="absolute bottom-4 left-0 flex items-center"
-            animate={{
-              x: [-1000, 0],
-            }}
-            transition={{
-              duration: 30,
-              repeat: Infinity,
-              ease: "linear",
-            }}
-          >
-            {[
-              { width: 'w-56', height: 'h-32', gap: 'mr-5' },
-              { width: 'w-68', height: 'h-38', gap: 'mr-3' },
-              { width: 'w-60', height: 'h-34', gap: 'mr-7' },
-              { width: 'w-48', height: 'h-28', gap: 'mr-4' },
-              { width: 'w-72', height: 'h-40', gap: 'mr-6' },
-              { width: 'w-52', height: 'h-30', gap: 'mr-3' },
-              { width: 'w-64', height: 'h-36', gap: 'mr-8' },
-              { width: 'w-44', height: 'h-26', gap: 'mr-5' },
-            ].map((style, i) => (
-              <video
-                key={i}
-                autoPlay
-                loop
-                muted
-                playsInline
-                className={`${style.width} ${style.height} ${style.gap} object-cover opacity-50 flex-shrink-0`}
-                style={{ filter: "blur(3px)" }}
-              >
-                <source src={backgroundVideo} type="video/mp4" />
-              </video>
-            ))}
-          </motion.div>
+          {/* Partículas flutuantes */}
+          {[...Array(6)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-2 h-2 rounded-full bg-primary/30"
+              style={{
+                left: `${20 + i * 15}%`,
+                top: `${10 + i * 10}%`,
+              }}
+              animate={{
+                y: [0, -100, 0],
+                opacity: [0.3, 0.8, 0.3],
+              }}
+              transition={{
+                duration: 3 + i,
+                repeat: Infinity,
+                ease: "easeInOut",
+                delay: i * 0.5,
+              }}
+            />
+          ))}
         </div>
 
         {/* Botão de tema no canto superior direito */}
