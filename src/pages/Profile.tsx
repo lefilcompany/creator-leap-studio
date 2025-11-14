@@ -1,4 +1,4 @@
-import { User as UserIcon } from 'lucide-react';
+import { User as UserIcon, Coins } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import PersonalInfoForm from '@/components/perfil/PersonalInfoForm';
 import TeamInfoCard from '@/components/perfil/TeamInfoCard';
@@ -7,6 +7,7 @@ import AvatarUpload from '@/components/perfil/AvatarUpload';
 import { useAuth } from '@/hooks/useAuth';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
 
 export default function Profile() {
   const { user, team, isLoading } = useAuth();
@@ -83,6 +84,28 @@ export default function Profile() {
             onAvatarUpdate={(url) => setProfileData(prev => ({ ...prev, avatarUrl: url || '' }))}
           />
         </div>
+
+        {/* Team Section with Buy Credits Button */}
+        {team && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                Minha Equipe
+              </h2>
+              <Button
+                onClick={() => window.location.href = '/plans'}
+                className="bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90"
+              >
+                <Coins className="h-4 w-4 mr-2" />
+                Comprar Créditos
+              </Button>
+            </div>
+            <TeamInfoCard 
+              team={team} 
+              userRole={team.admin_id === user.id ? 'admin' : 'member'} 
+            />
+          </div>
+        )}
 
         {/* Main content */}
         <div className="flex flex-col xl:flex-row gap-4 sm:gap-6">
