@@ -36,6 +36,9 @@ export interface Team {
   pending: string[];
   plan: Plan | null;
   credits: number; // Créditos unificados
+  free_brands_used: number; // Contador de marcas gratuitas usadas
+  free_personas_used: number; // Contador de personas gratuitas usadas
+  free_themes_used: number; // Contador de temas gratuitos usados
 }
 
 

@@ -214,6 +214,60 @@ export type Database = {
           },
         ]
       }
+      credit_history: {
+        Row: {
+          action_type: string
+          created_at: string
+          credits_after: number
+          credits_before: number
+          credits_used: number
+          description: string | null
+          id: string
+          metadata: Json | null
+          team_id: string
+          user_id: string
+        }
+        Insert: {
+          action_type: string
+          created_at?: string
+          credits_after: number
+          credits_before: number
+          credits_used: number
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          team_id: string
+          user_id: string
+        }
+        Update: {
+          action_type?: string
+          created_at?: string
+          credits_after?: number
+          credits_before?: number
+          credits_used?: number
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          team_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_history_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "credit_history_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string | null
@@ -343,11 +397,7 @@ export type Database = {
         Row: {
           can_subscribe_online: boolean | null
           created_at: string | null
-          credits_plans: number
-          credits_quick_content: number
-          credits_reviews: number
-          credits_suggestions: number
-          credits_videos: number
+          credits: number
           description: string | null
           features: Json | null
           id: string
@@ -368,11 +418,7 @@ export type Database = {
         Insert: {
           can_subscribe_online?: boolean | null
           created_at?: string | null
-          credits_plans?: number
-          credits_quick_content?: number
-          credits_reviews?: number
-          credits_suggestions?: number
-          credits_videos?: number
+          credits?: number
           description?: string | null
           features?: Json | null
           id: string
@@ -393,11 +439,7 @@ export type Database = {
         Update: {
           can_subscribe_online?: boolean | null
           created_at?: string | null
-          credits_plans?: number
-          credits_quick_content?: number
-          credits_reviews?: number
-          credits_suggestions?: number
-          credits_videos?: number
+          credits?: number
           description?: string | null
           features?: Json | null
           id?: string
@@ -598,11 +640,10 @@ export type Database = {
           admin_id: string
           code: string | null
           created_at: string | null
-          credits_plans: number | null
-          credits_quick_content: number | null
-          credits_reviews: number | null
-          credits_suggestions: number | null
-          credits_videos: number
+          credits: number | null
+          free_brands_used: number | null
+          free_personas_used: number | null
+          free_themes_used: number | null
           id: string
           name: string
           plan_id: string
@@ -616,11 +657,10 @@ export type Database = {
           admin_id: string
           code?: string | null
           created_at?: string | null
-          credits_plans?: number | null
-          credits_quick_content?: number | null
-          credits_reviews?: number | null
-          credits_suggestions?: number | null
-          credits_videos?: number
+          credits?: number | null
+          free_brands_used?: number | null
+          free_personas_used?: number | null
+          free_themes_used?: number | null
           id?: string
           name: string
           plan_id?: string
@@ -634,11 +674,10 @@ export type Database = {
           admin_id?: string
           code?: string | null
           created_at?: string | null
-          credits_plans?: number | null
-          credits_quick_content?: number | null
-          credits_reviews?: number | null
-          credits_suggestions?: number | null
-          credits_videos?: number
+          credits?: number | null
+          free_brands_used?: number | null
+          free_personas_used?: number | null
+          free_themes_used?: number | null
           id?: string
           name?: string
           plan_id?: string

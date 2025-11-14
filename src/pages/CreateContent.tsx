@@ -306,6 +306,9 @@ export default function CreateContent() {
             stripePriceId: teamData.plan.stripe_price_id_monthly,
           } : null,
           credits: (teamData as any).credits || 0,
+          free_brands_used: (teamData as any).free_brands_used || 0,
+          free_personas_used: (teamData as any).free_personas_used || 0,
+          free_themes_used: (teamData as any).free_themes_used || 0,
         };
 
         // Mapear dados
