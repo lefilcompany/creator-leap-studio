@@ -748,28 +748,6 @@ const Auth = () => {
           >
             <source src={backgroundVideo} type="video/mp4" />
           </motion.video>
-          
-          {/* Partículas flutuantes */}
-          {[...Array(6)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute w-2 h-2 rounded-full bg-primary/30"
-              style={{
-                left: `${20 + i * 15}%`,
-                top: `${10 + i * 10}%`,
-              }}
-              animate={{
-                y: [0, -100, 0],
-                opacity: [0.3, 0.8, 0.3],
-              }}
-              transition={{
-                duration: 3 + i,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: i * 0.5,
-              }}
-            />
-          ))}
         </div>
 
         {/* Botão de tema no canto superior direito */}
