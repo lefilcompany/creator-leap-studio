@@ -18,6 +18,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslation } from "@/hooks/useTranslation";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
+import { motion } from "framer-motion";
 
 const Login = () => {
   const { t } = useTranslation();
@@ -235,166 +236,160 @@ const Login = () => {
     ],
   );
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 flex relative">
-      {/* Theme toggle */}
-      <div className="absolute top-4 right-4 z-50">
+    <>
+      <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden bg-gradient-to-br from-background via-background to-primary/5">
+        {/* Elementos decorativos animados com motion blur */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <motion.div
+            className="absolute top-20 -left-20 w-96 h-96 rounded-full bg-gradient-to-r from-primary/20 to-primary/5"
+            style={{ filter: "blur(80px)" }}
+            animate={{
+              x: [0, 100, 0],
+              y: [0, -50, 0],
+              scale: [1, 1.2, 1],
+            }}
+            transition={{
+              duration: 20,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          />
+          <motion.div
+            className="absolute bottom-20 -right-20 w-[500px] h-[500px] rounded-full bg-gradient-to-l from-primary/15 to-accent/10"
+            style={{ filter: "blur(100px)" }}
+            animate={{
+              x: [0, -80, 0],
+              y: [0, 60, 0],
+              scale: [1, 1.1, 1],
+            }}
+            transition={{
+              duration: 25,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          />
+          <motion.div
+            className="absolute top-1/2 left-1/4 w-64 h-64 rounded-full bg-primary/10"
+            style={{ filter: "blur(60px)" }}
+            animate={{
+              x: [0, -50, 50, 0],
+              y: [0, 50, -50, 0],
+            }}
+            transition={{
+              duration: 15,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          />
+          
+          {/* Partículas flutuantes */}
+          {[...Array(6)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-2 h-2 rounded-full bg-primary/30"
+              style={{
+                left: `${20 + i * 15}%`,
+                top: `${10 + i * 10}%`,
+              }}
+              animate={{
+                y: [0, -100, 0],
+                opacity: [0.3, 0.8, 0.3],
+              }}
+              transition={{
+                duration: 3 + i,
+                repeat: Infinity,
+                ease: "easeInOut",
+                delay: i * 0.5,
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Botão de tema no canto superior direito */}
         <Button
           variant="ghost"
           size="icon"
+          className="absolute top-4 right-4 z-50"
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          className="h-10 w-10 rounded-full"
         >
-          <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-          <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-          <span className="sr-only">{t.theme.toggle}</span>
+          {theme === "dark" ? (
+            <Sun className="h-5 w-5" />
+          ) : (
+            <Moon className="h-5 w-5" />
+          )}
         </Button>
-      </div>
 
-      {/* Background gradient for entire screen */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/15 via-accent/10 via-secondary/15 to-primary/5"></div>
-      <div className="absolute inset-0 bg-gradient-to-tl from-secondary/10 via-transparent to-accent/15 opacity-70"></div>
+        {/* Logo no topo */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="mb-8 z-10"
+        >
+          <CreatorLogo className="mb-4" />
+        </motion.div>
 
-      {/* Left side - Marketing content */}
-      <div className="hidden lg:flex lg:w-1/2 flex-col justify-center px-16 py-8 relative overflow-hidden">
-        {/* Decorative elements */}
-        <div className="absolute top-1/4 left-10 w-64 h-64 bg-primary/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-1/4 right-10 w-64 h-64 bg-secondary/10 rounded-full blur-3xl"></div>
-
-        <div className="relative max-w-lg">
-          <div className="mb-6">
-            <CreatorLogo className="mb-6" />
-          </div>
-
-          <div className="mb-8">
-            <h1 className="text-3xl lg:text-4xl font-bold text-foreground mb-4 leading-tight">
-              {t.login.strategicContent}
-            </h1>
-            <p className="text-lg text-muted-foreground leading-relaxed">
-              {t.login.strategicContentDesc}
-            </p>
-          </div>
-
-          <div className="space-y-4">
-            <div className="flex items-center gap-4 p-4 bg-card/30 backdrop-blur-sm rounded-xl border border-primary/20">
-              <div className="w-3 h-3 bg-primary rounded-full"></div>
-              <div>
-                <h3 className="font-semibold text-foreground text-base">{t.login.strategicOrganization}</h3>
-                <p className="text-muted-foreground text-sm">{t.login.strategicOrganizationDesc}</p>
+        {/* Card de login centralizado */}
+        {isMobile ? (
+          <Sheet open={true}>
+            <SheetContent 
+              side="bottom" 
+              className="h-[85vh] rounded-t-3xl border-t-2 border-primary/20 px-6 pt-6"
+            >
+              <div className="h-full overflow-y-auto pb-8">
+                {loginForm}
               </div>
-            </div>
-
-            <div className="flex items-center gap-4 p-4 bg-card/30 backdrop-blur-sm rounded-xl border border-secondary/20">
-              <div className="w-3 h-3 bg-secondary rounded-full"></div>
-              <div>
-                <h3 className="font-semibold text-foreground text-base">{t.login.personaSegmentation}</h3>
-                <p className="text-muted-foreground text-sm">{t.login.personaSegmentationDesc}</p>
+            </SheetContent>
+          </Sheet>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="w-full max-w-md px-6 relative z-10"
+          >
+            <div className="bg-card/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-primary/10 p-8">
+              <div className="mb-6 text-center">
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent mb-2">
+                  {t.login.welcome}
+                </h1>
+                <p className="text-muted-foreground">
+                  {t.login.welcomeMessage}
+                </p>
               </div>
-            </div>
-
-            <div className="flex items-center gap-4 p-4 bg-card/30 backdrop-blur-sm rounded-xl border border-accent/20">
-              <div className="w-3 h-3 bg-accent rounded-full"></div>
-              <div>
-                <h3 className="font-semibold text-foreground text-base">{t.login.completeCampaigns}</h3>
-                <p className="text-muted-foreground text-sm">{t.login.completeCampaignsDesc}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile/Tablet version with Sheet */}
-      {isMobile ? (
-        <div className="w-full flex flex-col relative min-h-screen">
-          {/* Hero section */}
-          <div className="flex-1 flex flex-col items-center justify-center p-8 relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-secondary/10 to-accent/20"></div>
-
-            <div className="relative z-10 mb-32 w-full">
-              <div className="flex flex-col items-start gap-8">
-                <CreatorLogo className="flex-shrink-0" />
-
-                <div className="text-left space-y-4">
-                  <h1 className="text-2xl font-bold text-foreground leading-tight text-left md:text-4xl">
-                    {t.login.strategicContent}
-                  </h1>
-                  <p className="text-base text-muted-foreground leading-relaxed text-left md:text-lg">
-                    {t.login.strategicContentDesc}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Fixed buttons at bottom */}
-            <div className="absolute bottom-8 left-0 right-0 px-8 space-y-3">
-              <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-                <SheetTrigger asChild>
-                  <Button className="w-full h-14 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground font-semibold rounded-2xl text-lg shadow-xl">
-                    {t.login.signIn}
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="bottom" className="h-[90vh] rounded-t-3xl p-0 border-t-2">
-                  <div className="h-full overflow-y-auto p-6 pt-8">
-                    <div className="w-12 h-1.5 bg-muted-foreground/20 rounded-full mx-auto mb-8"></div>
-
-                    <div className="text-center mb-8">
-                      <h2 className="text-2xl font-bold text-foreground mb-2">Bem-vindo de volta! </h2>
-                      <p className="text-muted-foreground">Acesse sua plataforma de conteúdo estratégico</p>
-                    </div>
-
-                    {loginForm}
-                  </div>
-                </SheetContent>
-              </Sheet>
-
-              <Button
-                variant="outline"
-                onClick={() => navigate("/register")}
-                className="w-full h-14 bg-card/90 backdrop-blur-xl  font-semibold rounded-2xl text-lg hover:text-primary "
-              >
-                {t.login.createAccount}
-              </Button>
-            </div>
-          </div>
-        </div> /* Desktop version - Right side - Login form */
-      ) : (
-        <div className="w-full lg:w-1/2 flex items-center justify-center p-8 relative">
-          {/* Login card */}
-          <div className="w-full max-w-md">
-            <div className="bg-card/90 backdrop-blur-xl border border-border/50 rounded-2xl shadow-2xl p-8">
-              <div className="text-center mb-8">
-                <h2 className="text-2xl font-bold text-foreground mb-2">{t.login.title}</h2>
-                <p className="text-muted-foreground">{t.login.welcomeMessage}</p>
-              </div>
-
               {loginForm}
             </div>
-          </div>
-        </div>
-      )}
+          </motion.div>
+        )}
+      </div>
 
-      {/* Team Selection Dialog */}
-      <TeamSelectionDialog
-        open={showTeamSelection || oauthTeamDialog}
+      <TeamSelectionDialog 
+        open={showTeamSelection} 
         onClose={() => {
           setShowTeamSelection(false);
-          if (oauthTeamDialog) {
-            handleOAuthTeamDialogClose();
-          }
+          setWaitingForAuth(true);
         }}
-        context="login"
       />
 
-      {/* Change Password Dialog for specific user */}
+      <TeamSelectionDialog 
+        open={oauthTeamDialog} 
+        onClose={() => {
+          handleOAuthTeamDialogClose();
+          navigate("/dashboard", { replace: true });
+        }}
+      />
+
       <ChangePasswordDialog
         isOpen={showChangePassword}
         onOpenChange={(open) => {
           setShowChangePassword(open);
           if (!open) {
-            navigate("/dashboard");
+            setWaitingForAuth(true);
           }
         }}
       />
-    </div>
+    </>
   );
 };
+
 export default Login;
