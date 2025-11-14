@@ -20,6 +20,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAuth } from "@/hooks/useAuth";
 import { motion } from "framer-motion";
 import decorativeElement from "@/assets/decorative-element.png";
+import backgroundVideo from "@/assets/background-video.mp4";
 
 const Login = () => {
   const { t } = useTranslation();
@@ -239,6 +240,18 @@ const Login = () => {
   return (
     <>
       <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden bg-gradient-to-br from-background via-background to-primary/5">
+        {/* Vídeo de fundo embaçado */}
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover opacity-20 pointer-events-none"
+          style={{ filter: "blur(20px)" }}
+        >
+          <source src={backgroundVideo} type="video/mp4" />
+        </video>
+
         {/* Elementos decorativos animados com motion blur */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <motion.div
