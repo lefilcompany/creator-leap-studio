@@ -52,6 +52,16 @@ export default function TeamDashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [actionTypeFilter, setActionTypeFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('totalActions');
+  const [isDarkMode, setIsDarkMode] = useState(document.documentElement.classList.contains('dark'));
+
+  // Detectar mudanças de tema
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsDarkMode(document.documentElement.classList.contains('dark'));
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const checkAccess = async () => {
@@ -163,13 +173,22 @@ export default function TeamDashboard() {
   const totalTeamActions = useMemo(() => memberStats.reduce((sum, member) => sum + member.totalActions, 0), [memberStats]);
   const activeMembers = useMemo(() => memberStats.filter(m => m.totalActions > 0).length, [memberStats]);
 
+  // Cores do sistema com valores HSL exatos baseados no tema
+  const systemColors = useMemo(() => ({
+    primary: isDarkMode ? 'hsl(330, 100%, 50%)' : 'hsl(330, 100%, 38%)',
+    accent: isDarkMode ? 'hsl(201, 73%, 50%)' : 'hsl(201, 73%, 40%)',
+    success: isDarkMode ? 'hsl(142.1, 70.2%, 50%)' : 'hsl(142.1, 76.2%, 36.3%)',
+    secondary: isDarkMode ? 'hsl(271, 72%, 45%)' : 'hsl(269, 66%, 48%)',
+    destructive: isDarkMode ? 'hsl(0, 62.8%, 50%)' : 'hsl(0, 84.2%, 60.2%)',
+  }), [isDarkMode]);
+
   const actionTypeData = useMemo(() => [
-    { name: 'Criação Rápida', value: memberStats.reduce((sum, m) => sum + m.quickContent, 0), color: 'hsl(var(--primary))' },
-    { name: 'Criar Conteúdo', value: memberStats.reduce((sum, m) => sum + m.createContent, 0), color: 'hsl(var(--accent))' },
-    { name: 'Revisar', value: memberStats.reduce((sum, m) => sum + m.reviewContent, 0), color: 'hsl(var(--success))' },
-    { name: 'Planejar', value: memberStats.reduce((sum, m) => sum + m.planContent, 0), color: 'hsl(var(--secondary))' },
-    { name: 'Gerar Vídeo', value: memberStats.reduce((sum, m) => sum + m.videoContent, 0), color: 'hsl(var(--destructive))' },
-  ].filter(item => item.value > 0), [memberStats]);
+    { name: 'Criação Rápida', value: memberStats.reduce((sum, m) => sum + m.quickContent, 0), color: systemColors.primary },
+    { name: 'Criar Conteúdo', value: memberStats.reduce((sum, m) => sum + m.createContent, 0), color: systemColors.accent },
+    { name: 'Revisar', value: memberStats.reduce((sum, m) => sum + m.reviewContent, 0), color: systemColors.success },
+    { name: 'Planejar', value: memberStats.reduce((sum, m) => sum + m.planContent, 0), color: systemColors.secondary },
+    { name: 'Gerar Vídeo', value: memberStats.reduce((sum, m) => sum + m.videoContent, 0), color: systemColors.destructive },
+  ].filter(item => item.value > 0), [memberStats, systemColors]);
 
   const topMembersData = useMemo(() => 
     [...memberStats]
