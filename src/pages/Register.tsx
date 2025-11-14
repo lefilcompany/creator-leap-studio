@@ -485,7 +485,7 @@ const Register = () => {
 
         <div className="text-center">
           <span className="text-muted-foreground text-sm">Já tem uma conta? </span>
-          <a href="/login" className="text-primary hover:text-primary/80 font-medium text-sm transition-colors">
+          <a href="/" className="text-primary hover:text-primary/80 font-medium text-sm transition-colors">
             Conecte-se
           </a>
         </div>
@@ -616,7 +616,7 @@ const Register = () => {
 
                 <Button
                   variant="outline"
-                  onClick={() => navigate("/login")}
+                  onClick={() => navigate("/")}
                   className="w-full h-14 bg-card/90 backdrop-blur-xl border-2 font-semibold rounded-2xl text-lg hover:text-primary "
                 >
                   Já tenho conta

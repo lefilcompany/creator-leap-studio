@@ -124,7 +124,7 @@ const ForgotPassword = () => {
                 <div className="mt-6 text-center">
                   <Button
                     variant="ghost"
-                    onClick={() => navigate("/login")}
+                    onClick={() => navigate("/")}
                     className="text-muted-foreground hover:text-accent hover:bg-accent/20"
                   >
                     <ArrowLeft className="w-4 h-4 mr-2" />
@@ -153,7 +153,7 @@ const ForgotPassword = () => {
 
                 <Button
                   variant="outline"
-                  onClick={() => navigate("/login")}
+                  onClick={() => navigate("/")}
                   className="w-full h-12"
                 >
                   <ArrowLeft className="w-4 h-4 mr-2" />

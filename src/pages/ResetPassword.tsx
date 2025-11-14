@@ -26,7 +26,7 @@ const ResetPassword = () => {
 
     if (!accessToken || type !== 'recovery') {
       toast.error("Link de recuperação inválido ou expirado");
-      navigate("/login");
+      navigate("/");
     }
   }, [navigate]);
 
@@ -66,7 +66,7 @@ const ResetPassword = () => {
       
       // Redirecionar após 2 segundos
       setTimeout(() => {
-        navigate("/login");
+        navigate("/");
       }, 2000);
     } catch (error) {
       toast.error("Erro ao redefinir senha. Tente novamente.");
