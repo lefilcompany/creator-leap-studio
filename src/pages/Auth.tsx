@@ -660,90 +660,59 @@ const Auth = () => {
             }}
           />
           
-          {/* Vídeos decorativos em duas fileiras horizontais */}
-          {/* Fileira superior - 4 vídeos */}
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="absolute top-8 left-8 w-56 h-32 object-cover opacity-50"
-            style={{ filter: "blur(3px)" }}
+          {/* Fileira superior - animação para a direita */}
+          <motion.div
+            className="absolute top-8 left-0 flex gap-4"
+            animate={{
+              x: [0, -1000],
+            }}
+            transition={{
+              duration: 30,
+              repeat: Infinity,
+              ease: "linear",
+            }}
           >
-            <source src={backgroundVideo} type="video/mp4" />
-          </video>
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="absolute top-8 left-[22%] w-56 h-32 object-cover opacity-50"
-            style={{ filter: "blur(3px)" }}
-          >
-            <source src={backgroundVideo} type="video/mp4" />
-          </video>
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="absolute top-8 right-[22%] w-56 h-32 object-cover opacity-50"
-            style={{ filter: "blur(3px)" }}
-          >
-            <source src={backgroundVideo} type="video/mp4" />
-          </video>
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="absolute top-8 right-8 w-56 h-32 object-cover opacity-50"
-            style={{ filter: "blur(3px)" }}
-          >
-            <source src={backgroundVideo} type="video/mp4" />
-          </video>
+            {[...Array(8)].map((_, i) => (
+              <video
+                key={i}
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="w-56 h-32 object-cover opacity-50 flex-shrink-0"
+                style={{ filter: "blur(3px)" }}
+              >
+                <source src={backgroundVideo} type="video/mp4" />
+              </video>
+            ))}
+          </motion.div>
           
-          {/* Fileira inferior - 4 vídeos */}
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="absolute bottom-8 left-8 w-56 h-32 object-cover opacity-50"
-            style={{ filter: "blur(3px)" }}
+          {/* Fileira inferior - animação para a esquerda */}
+          <motion.div
+            className="absolute bottom-8 left-0 flex gap-4"
+            animate={{
+              x: [-1000, 0],
+            }}
+            transition={{
+              duration: 30,
+              repeat: Infinity,
+              ease: "linear",
+            }}
           >
-            <source src={backgroundVideo} type="video/mp4" />
-          </video>
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="absolute bottom-8 left-[22%] w-56 h-32 object-cover opacity-50"
-            style={{ filter: "blur(3px)" }}
-          >
-            <source src={backgroundVideo} type="video/mp4" />
-          </video>
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="absolute bottom-8 right-[22%] w-56 h-32 object-cover opacity-50"
-            style={{ filter: "blur(3px)" }}
-          >
-            <source src={backgroundVideo} type="video/mp4" />
-          </video>
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="absolute bottom-8 right-8 w-56 h-32 object-cover opacity-50"
-            style={{ filter: "blur(3px)" }}
-          >
-            <source src={backgroundVideo} type="video/mp4" />
-          </video>
+            {[...Array(8)].map((_, i) => (
+              <video
+                key={i}
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="w-56 h-32 object-cover opacity-50 flex-shrink-0"
+                style={{ filter: "blur(3px)" }}
+              >
+                <source src={backgroundVideo} type="video/mp4" />
+              </video>
+            ))}
+          </motion.div>
         </div>
 
         {/* Botão de tema no canto superior direito */}
