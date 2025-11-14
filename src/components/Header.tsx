@@ -50,7 +50,7 @@ export const Header = () => {
 
   const handleLogout = async () => {
     await logout();
-    navigate("/login");
+    navigate("/");
   };
 
   // Focus search on mobile when opened

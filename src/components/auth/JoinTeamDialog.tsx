@@ -35,7 +35,7 @@ export function JoinTeamDialog({ open, onClose, onBack, onSuccess }: JoinTeamDia
       
       if (!session?.user) {
         toast.error("Sessão expirada. Por favor, faça login novamente.");
-        navigate("/login");
+        navigate("/");
         return;
       }
 
@@ -74,7 +74,7 @@ export function JoinTeamDialog({ open, onClose, onBack, onSuccess }: JoinTeamDia
         } else if (existingRequest.status === 'approved') {
           toast.info("Sua solicitação já foi aprovada");
           await supabase.auth.signOut();
-          navigate("/login");
+          navigate("/");
           return;
         }
       }
@@ -99,7 +99,7 @@ export function JoinTeamDialog({ open, onClose, onBack, onSuccess }: JoinTeamDia
       await supabase.auth.signOut();
       
       onSuccess();
-      navigate("/login");
+      navigate("/");
     } catch (error: any) {
       console.error('Erro ao solicitar entrada:', error);
       toast.error(error.message || "Erro ao solicitar entrada na equipe. Tente novamente.");

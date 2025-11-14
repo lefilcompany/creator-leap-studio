@@ -216,7 +216,7 @@ const Plans = () => {
   }, [loadData, checkSubscriptionStatus]);
   const handleSubscribe = async (plan: Plan) => {
     if (!user || !team) {
-      navigate("/login");
+      navigate("/");
       return;
     }
 

@@ -219,7 +219,7 @@ const Login = () => {
 
         <div className="text-center mt-6">
           <span className="text-muted-foreground text-sm">{t.login.noAccount} </span>
-          <a href="/register" className="text-primary hover:text-primary/80 font-medium text-sm transition-colors">
+          <a href="/?mode=register" className="text-primary hover:text-primary/80 font-medium text-sm transition-colors">
             {t.login.createAccount}
           </a>
         </div>

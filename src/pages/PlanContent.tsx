@@ -172,7 +172,7 @@ const PlanContent = () => {
         console.error("Session error:", sessionError);
         toast.error("Sessão expirada. Faça login novamente.");
         setLoading(false);
-        navigate("/login");
+        navigate("/");
         return;
       }
 
@@ -198,7 +198,7 @@ const PlanContent = () => {
         if (error.message?.includes("JWT")) {
           toast.error("Sessão inválida. Fazendo login novamente...");
           await supabase.auth.signOut();
-          navigate("/login");
+          navigate("/");
           return;
         }
 
