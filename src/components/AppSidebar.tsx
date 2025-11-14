@@ -11,7 +11,8 @@ import {
   CheckCircle,
   Rocket,
   Palette,
-  Zap
+  Zap,
+  Coins
 } from "lucide-react";
 import {
   Sidebar,
@@ -231,7 +232,15 @@ export function AppSidebar() {
         </div>
 
         {team && (
-          <div className="mt-auto mb-4">
+          <div className="mt-auto mb-4 flex flex-col gap-3">
+            <NavLink
+              to="/plans"
+              onClick={handleMobileNavigate}
+              className="flex items-center gap-3 p-3 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-105 bg-gradient-to-r from-primary to-secondary text-primary-foreground shadow-lg"
+            >
+              <Coins className="h-5 w-5 flex-shrink-0" />
+              {!collapsed && <span className="font-medium text-sm">Comprar Créditos</span>}
+            </NavLink>
             <TeamPlanSection
               teamName={team.name}
               planName={team.plan?.name || 'Free'}
