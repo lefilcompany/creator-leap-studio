@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -125,40 +126,22 @@ async function processVideoGeneration(operationName: string, actionId: string, t
     const videoUrl = publicUrlData.publicUrl;
     console.log('Background: Video uploaded to storage:', videoUrl);
 
-    // Decrementar crédito do time após sucesso
-    const { data: currentTeam, error: fetchError } = await supabase
-      .from('teams')
-      .select('credits')
-      .eq('id', teamId)
-      .single();
-    
-    if (!fetchError && currentTeam) {
-      const VIDEO_CREDIT_COST = 20;
-      const { error: creditError } = await supabase
-        .from('teams')
-        .update({ credits: currentTeam.credits - VIDEO_CREDIT_COST })
-        .eq('id', teamId);
-
-      if (creditError) {
-        console.error('Background: Error decrementing credits:', creditError);
-      } else {
-        console.log(`Background: ${VIDEO_CREDIT_COST} credits decremented successfully for team:`, teamId);
-        
-        // Registrar no histórico de créditos
-        await supabase
-          .from('credit_history')
-          .insert({
-            team_id: teamId,
-            user_id: actionId, // Usar actionId como referência temporária
-            action_type: 'VIDEO_GENERATION',
-            credits_used: VIDEO_CREDIT_COST,
-            credits_before: currentTeam.credits,
-            credits_after: currentTeam.credits - VIDEO_CREDIT_COST,
-            description: 'Geração de vídeo completa',
-            metadata: { action_id: actionId, operation_name: operationName }
-          });
-      }
-    }
+    // Atualizar histórico com status de conclusão
+    await supabase
+      .from('credit_history')
+      .update({
+        metadata: { 
+          action_id: actionId, 
+          operation_name: operationName,
+          status: 'completed',
+          processing_time: `${attempts * 5} seconds`
+        }
+      })
+      .eq('team_id', teamId)
+      .eq('action_type', 'VIDEO_GENERATION')
+      .eq('metadata->>action_id', actionId)
+      .order('created_at', { ascending: false })
+      .limit(1);
 
     // Atualizar o action no banco com a URL do vídeo
     const { error: updateError } = await supabase
@@ -204,6 +187,25 @@ async function processVideoGeneration(operationName: string, actionId: string, t
         updated_at: new Date().toISOString()
       })
       .eq('id', actionId);
+    
+    // Atualizar histórico com status de falha
+    await supabase
+      .from('credit_history')
+      .update({
+        metadata: { 
+          action_id: actionId,
+          status: 'failed',
+          error: error instanceof Error ? error.message : 'Unknown error'
+        }
+      })
+      .eq('team_id', teamId)
+      .eq('action_type', 'VIDEO_GENERATION')
+      .eq('metadata->>action_id', actionId)
+      .order('created_at', { ascending: false })
+      .limit(1);
+    
+    // NOTA: Créditos NÃO são devolvidos em caso de falha,
+    // pois o processamento já foi iniciado e consumiu recursos da API
   }
 }
 
@@ -276,10 +278,10 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Buscar team_id e details do action
+    // Buscar team_id, user_id e details do action
     const { data: actionData, error: actionError } = await supabase
       .from('actions')
-      .select('team_id, details')
+      .select('team_id, user_id, details')
       .eq('id', actionId)
       .single();
 
@@ -347,8 +349,8 @@ serve(async (req) => {
     }
 
     // Verificar se há créditos suficientes
-    if (teamData.credits < 1) {
-      console.log('Insufficient credits for video generation');
+    if (teamData.credits < CREDIT_COSTS.VIDEO_GENERATION) {
+      console.log(`Insufficient credits for video generation. Required: ${CREDIT_COSTS.VIDEO_GENERATION}, Available: ${teamData.credits}`);
       
       // Atualizar action como failed
       await supabase
@@ -357,19 +359,64 @@ serve(async (req) => {
           status: 'failed',
           result: { 
             error: 'Créditos insuficientes para gerar vídeo',
-            creditsAvailable: teamData.credits
+            required: CREDIT_COSTS.VIDEO_GENERATION,
+            available: teamData.credits
           },
           updated_at: new Date().toISOString()
         })
         .eq('id', actionId);
 
       return new Response(
-        JSON.stringify({ error: 'Créditos insuficientes. Por favor, atualize seu plano.' }),
+        JSON.stringify({ 
+          error: 'Créditos insuficientes', 
+          required: CREDIT_COSTS.VIDEO_GENERATION,
+          available: teamData.credits,
+          message: `São necessários ${CREDIT_COSTS.VIDEO_GENERATION} créditos. Você tem ${teamData.credits}.`
+        }),
         { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     console.log('Credits available:', teamData.credits);
+    
+    // Decrementar créditos IMEDIATAMENTE antes de iniciar processamento
+    console.log('Decrementing credits before starting video generation...');
+
+    const creditsBefore = teamData.credits;
+    const creditsAfter = creditsBefore - CREDIT_COSTS.VIDEO_GENERATION;
+
+    const { error: creditUpdateError } = await supabase
+      .from('teams')
+      .update({ credits: creditsAfter })
+      .eq('id', actionData.team_id);
+
+    if (creditUpdateError) {
+      console.error('Error decrementing credits:', creditUpdateError);
+      return new Response(
+        JSON.stringify({ error: 'Erro ao decrementar créditos' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Registrar no histórico IMEDIATAMENTE
+    await supabase
+      .from('credit_history')
+      .insert({
+        team_id: actionData.team_id,
+        user_id: actionData.user_id,
+        action_type: 'VIDEO_GENERATION',
+        credits_used: CREDIT_COSTS.VIDEO_GENERATION,
+        credits_before: creditsBefore,
+        credits_after: creditsAfter,
+        description: 'Geração de vídeo iniciada',
+        metadata: { 
+          action_id: actionId, 
+          generation_type: generationType,
+          status: 'processing_started'
+        }
+      });
+
+    console.log(`Credits decremented: ${creditsBefore} → ${creditsAfter}`);
 
     const BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
     

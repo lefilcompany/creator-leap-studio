@@ -17,3 +17,35 @@ export const FREE_RESOURCE_LIMITS = {
   PERSONAS: 3,
   THEMES: 3,
 } as const;
+
+/**
+ * Valida se um time tem créditos suficientes para uma ação
+ * @param currentCredits - Saldo atual de créditos
+ * @param actionType - Tipo da ação (chave de CREDIT_COSTS)
+ * @returns true se tem créditos suficientes, false caso contrário
+ */
+export function hasEnoughCredits(
+  currentCredits: number, 
+  actionType: keyof typeof CREDIT_COSTS
+): boolean {
+  return currentCredits >= CREDIT_COSTS[actionType];
+}
+
+/**
+ * Retorna mensagem de erro formatada para créditos insuficientes
+ * @param currentCredits - Saldo atual de créditos
+ * @param actionType - Tipo da ação (chave de CREDIT_COSTS)
+ * @returns Objeto de erro formatado
+ */
+export function getInsufficientCreditsError(
+  currentCredits: number,
+  actionType: keyof typeof CREDIT_COSTS
+) {
+  const required = CREDIT_COSTS[actionType];
+  return {
+    error: 'Créditos insuficientes',
+    required,
+    available: currentCredits,
+    message: `São necessários ${required} créditos. Você tem ${currentCredits}.`
+  };
+}
