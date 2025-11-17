@@ -2,6 +2,38 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
+// Import credit history utility
+async function recordCreditUsage(
+  supabase: any,
+  params: {
+    teamId: string;
+    userId: string;
+    actionType: string;
+    creditsUsed: number;
+    creditsBefore: number;
+    creditsAfter: number;
+    description?: string;
+    metadata?: any;
+  }
+) {
+  const { error } = await supabase
+    .from('credit_history')
+    .insert({
+      team_id: params.teamId,
+      user_id: params.userId,
+      action_type: params.actionType,
+      credits_used: params.creditsUsed,
+      credits_before: params.creditsBefore,
+      credits_after: params.creditsAfter,
+      description: params.description,
+      metadata: params.metadata || {},
+    });
+
+  if (error) {
+    console.error('Failed to record credit usage:', error);
+  }
+}
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -131,6 +163,17 @@ serve(async (req) => {
     const teamId = profile.team_id;
     logStep("Found team", { teamId });
 
+    // Get current team data to check for period changes
+    const { data: currentTeam, error: teamError } = await supabaseClient
+      .from('teams')
+      .select('subscription_period_end, credits')
+      .eq('id', teamId)
+      .single();
+
+    if (teamError) {
+      logStep("Error fetching current team data", { error: teamError });
+    }
+
     if (!planId) {
       logStep("Unknown product ID", { productId });
       return new Response(JSON.stringify({ 
@@ -160,6 +203,22 @@ serve(async (req) => {
       });
     }
 
+    // Check if this is a new billing period (monthly renewal)
+    const isNewPeriod = !currentTeam?.subscription_period_end || 
+      new Date(subscriptionEnd) > new Date(currentTeam.subscription_period_end);
+
+    // If new period, reset credits to plan amount; otherwise keep current credits
+    const creditsToSet = isNewPeriod ? plan.credits : (currentTeam?.credits || plan.credits);
+    
+    logStep("Credit reset decision", { 
+      isNewPeriod, 
+      currentPeriodEnd: currentTeam?.subscription_period_end,
+      newPeriodEnd: subscriptionEnd,
+      currentCredits: currentTeam?.credits,
+      planCredits: plan.credits,
+      creditsToSet 
+    });
+
     // Update team with subscription info and credits
     const { error: updateError } = await supabaseClient
       .from('teams')
@@ -169,10 +228,7 @@ serve(async (req) => {
         stripe_subscription_id: subscription.id,
         subscription_status: 'active',
         subscription_period_end: subscriptionEnd,
-        credits_quick_content: plan.credits_quick_content,
-        credits_suggestions: plan.credits_suggestions,
-        credits_reviews: plan.credits_reviews,
-        credits_plans: plan.credits_plans,
+        credits: creditsToSet,
         updated_at: new Date().toISOString()
       })
       .eq('id', teamId);
@@ -182,13 +238,44 @@ serve(async (req) => {
       throw new Error(`Failed to update team: ${updateError.message}`);
     }
 
-    logStep("Team updated successfully", { teamId, planId });
+    logStep("Team updated successfully", { teamId, planId, creditsSet: creditsToSet });
+
+    // Record credit reset in history if it was a new period
+    if (isNewPeriod && currentTeam) {
+      const creditsBefore = currentTeam.credits || 0;
+      const creditsAdded = creditsToSet - creditsBefore;
+      
+      await recordCreditUsage(supabaseClient, {
+        teamId,
+        userId: user.id,
+        actionType: 'MONTHLY_RESET',
+        creditsUsed: -creditsAdded, // Negative because it's adding credits
+        creditsBefore,
+        creditsAfter: creditsToSet,
+        description: 'Renovação mensal - créditos resetados',
+        metadata: {
+          plan_id: planId,
+          previous_period_end: currentTeam.subscription_period_end,
+          new_period_end: subscriptionEnd,
+          subscription_id: subscription.id
+        }
+      });
+      
+      logStep("Credit reset recorded in history", { 
+        creditsBefore, 
+        creditsAfter: creditsToSet,
+        creditsAdded 
+      });
+    }
 
     return new Response(JSON.stringify({
       subscribed: true,
       plan_id: planId,
       subscription_end: subscriptionEnd,
-      message: "Subscription verified and team updated"
+      credits_reset: isNewPeriod,
+      message: isNewPeriod 
+        ? "Subscription verified, credits reset for new period"
+        : "Subscription verified and team updated"
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
