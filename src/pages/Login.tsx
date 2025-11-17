@@ -44,10 +44,11 @@ const Login = () => {
   // Redireciona automaticamente quando autenticado
   useEffect(() => {
     if (waitingForAuth && !authLoading && user && team && !showChangePassword && !showTeamSelection) {
-      console.log('[Login] Auth complete, redirecting to dashboard');
-      navigate("/dashboard", { replace: true });
+      const returnUrl = searchParams.get('returnUrl') || '/dashboard';
+      console.log('[Login] Auth complete, redirecting to:', returnUrl);
+      navigate(returnUrl, { replace: true });
     }
-  }, [waitingForAuth, authLoading, user, team, showChangePassword, showTeamSelection, navigate]);
+  }, [waitingForAuth, authLoading, user, team, showChangePassword, showTeamSelection, navigate, searchParams]);
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);

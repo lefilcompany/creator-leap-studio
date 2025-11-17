@@ -40,6 +40,8 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+import Subscribe from "./pages/Subscribe";
+
 const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
@@ -55,6 +57,7 @@ const App = () => (
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/privacy" element={<Privacy />} />
+            <Route path="/subscribe" element={<Subscribe />} />
             
             {/* Dashboard routes with sidebar layout */}
             <Route path="/" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
