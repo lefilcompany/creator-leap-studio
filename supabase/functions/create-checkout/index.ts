@@ -52,7 +52,24 @@ serve(async (req) => {
     if (!teamId) throw new Error("User has no team");
     logStep("Team ID found", { teamId });
 
-    const { type, price_id, plan_id, credits } = await req.json();
+    // Verificar se usuário é admin da equipe
+    const { data: teamData, error: teamError } = await supabaseClient
+      .from('teams')
+      .select('admin_id')
+      .eq('id', teamId)
+      .single();
+
+    if (teamError || !teamData) {
+      throw new Error("Team not found");
+    }
+
+    if (teamData.admin_id !== user.id) {
+      logStep("ERROR: User is not team admin", { userId: user.id, adminId: teamData.admin_id });
+      throw new Error("Only team administrators can purchase plans");
+    }
+    logStep("User confirmed as team admin");
+
+    const { type, price_id, plan_id, credits, return_url } = await req.json();
     if (!type || !['plan', 'custom'].includes(type)) {
       throw new Error("type is required and must be 'plan' or 'custom'");
     }
@@ -70,6 +87,12 @@ serve(async (req) => {
     }
 
     const origin = req.headers.get("origin") || "http://localhost:3000";
+    
+    // Definir success_url baseado no contexto
+    const successUrl = return_url 
+      ? `${origin}${return_url}?success=true&session_id={CHECKOUT_SESSION_ID}`
+      : `${origin}/credits?success=true&session_id={CHECKOUT_SESSION_ID}`;
+    
     let session;
 
     if (type === 'plan') {
@@ -86,13 +109,14 @@ serve(async (req) => {
           },
         ],
         mode: "payment",
-        success_url: `${origin}/credits?success=true&session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${origin}/credits?canceled=true`,
+        success_url: successUrl,
+        cancel_url: `${origin}/subscribe?canceled=true`,
         metadata: {
           team_id: teamId,
           user_id: user.id,
           purchase_type: 'plan',
           plan_id: plan_id,
+          return_url: return_url || '/credits',
         }
       });
       logStep("Plan checkout session created", { sessionId: session.id });

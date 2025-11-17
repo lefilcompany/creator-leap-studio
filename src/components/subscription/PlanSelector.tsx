@@ -118,6 +118,7 @@ export function PlanSelector({ onPlanSelected, onCheckoutComplete, showCurrentPl
           type: 'plan',
           price_id: plan.stripePriceId,
           plan_id: plan.id,
+          return_url: '/dashboard',
         }
       });
 
@@ -127,8 +128,9 @@ export function PlanSelector({ onPlanSelected, onCheckoutComplete, showCurrentPl
         // Abrir Stripe Checkout em nova aba
         window.open(data.url, '_blank');
         
-        toast.success("Redirecionando para o pagamento...", {
-          description: "Uma nova aba foi aberta. Complete o pagamento e retorne aqui."
+        toast.info('Janela do Stripe aberta!', {
+          description: "Complete o pagamento na nova aba e retorne aqui.",
+          duration: 10000,
         });
 
         if (onPlanSelected) {
