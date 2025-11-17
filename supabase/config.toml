@@ -4,6 +4,9 @@ project_id = "afxwqkrneraatgovhpkb"
 subject = "Redefinir sua senha - Creator"
 content_path = "./email-templates/reset-password.html"
 
+[functions.daily-subscription-check]
+verify_jwt = false
+
 [functions.check-subscription]
 verify_jwt = true
 
