@@ -12,7 +12,7 @@ interface CreateTeamDialogProps {
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  context?: 'login' | 'register';
+  context?: 'login' | 'register' | 'onboarding';
 }
 
 export function CreateTeamDialog({ open, onClose, onSuccess, context = 'login' }: CreateTeamDialogProps) {
@@ -167,6 +167,10 @@ export function CreateTeamDialog({ open, onClose, onSuccess, context = 'login' }
         
         onSuccess();
         navigate("/");
+      } else if (context === 'onboarding') {
+        // Cenário de ONBOARDING: não redirecionar, deixar o componente pai controlar
+        toast.success("Equipe criada com sucesso!");
+        onSuccess();
       } else {
         // Cenário de LOGIN: ir direto ao dashboard
         toast.success("Equipe criada com sucesso!");
