@@ -95,6 +95,15 @@ export default function Subscribe() {
     }
   }, [registerData.state]);
 
+  // Verificar cancelamento de pagamento
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    if (searchParams.get('canceled') === 'true') {
+      toast.info('Pagamento cancelado. Você pode tentar novamente quando quiser.');
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, []);
+
   // Determinar o passo atual baseado no estado da autenticação
   useEffect(() => {
     if (authLoading) return;
@@ -564,47 +573,8 @@ export default function Subscribe() {
     );
   }
 
-  // Caso 4: Equipe já tem plano ativo
-  if (team.subscription_status === 'active' && team.plan.id !== 'free') {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-br from-background via-background to-primary/5">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="w-full max-w-md space-y-8"
-        >
-          <div className="text-center space-y-4">
-            <CreatorLogo className="mx-auto" />
-          </div>
-
-          <Alert>
-            <CheckCircle className="h-4 w-4" />
-            <AlertTitle>Plano Ativo</AlertTitle>
-            <AlertDescription className="space-y-4">
-              <p>
-                Sua equipe já possui o plano {team.plan.name} ativo.
-              </p>
-              <Button
-                className="w-full mt-4"
-                onClick={() => navigate('/plans')}
-              >
-                Ver Meu Plano
-              </Button>
-            </AlertDescription>
-          </Alert>
-
-          <Button
-            variant="outline"
-            className="w-full"
-            onClick={() => navigate('/dashboard')}
-          >
-            Ir para o Dashboard
-          </Button>
-        </motion.div>
-      </div>
-    );
-  }
+  // Caso 4: Equipe já tem plano ativo - permitir visualizar para upgrade
+  const hasActivePaidPlan = team.subscription_status === 'active' && team.plan.id !== 'free';
 
   // Caso 5: Usuário autenticado, tem equipe, é admin - mostrar seleção de planos
   return (
@@ -625,6 +595,25 @@ export default function Subscribe() {
               Selecione o plano ideal para sua equipe e comece a criar conteúdo incrível.
             </p>
           </div>
+
+          {hasActivePaidPlan && (
+            <Alert className="max-w-2xl mx-auto">
+              <CheckCircle className="h-4 w-4" />
+              <AlertTitle>Plano Ativo</AlertTitle>
+              <AlertDescription className="space-y-2">
+                <p>Sua equipe já possui o plano <strong>{team.plan.name}</strong> ativo.</p>
+                <p>Você pode fazer upgrade para um plano superior abaixo.</p>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => navigate('/plans')} 
+                  className="mt-2"
+                >
+                  Gerenciar Plano Atual
+                </Button>
+              </AlertDescription>
+            </Alert>
+          )}
 
           <PlanSelector
             onCheckoutComplete={() => {

@@ -33,6 +33,23 @@ const Dashboard = () => {
   const [isDataLoaded, setIsDataLoaded] = useState(false);
 
   useEffect(() => {
+    // Verificar se veio do pagamento bem-sucedido
+    const searchParams = new URLSearchParams(window.location.search);
+    if (searchParams.get('success') === 'true' && team) {
+      toast.success(
+        `🎉 Pagamento confirmado! Bem-vindo ao ${team.plan?.name || 'seu novo plano'}!`,
+        {
+          description: `Você tem ${team.credits || 0} créditos disponíveis. Comece a criar!`,
+          duration: 5000,
+        }
+      );
+      
+      // Limpar query parameter
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, [team]);
+
+  useEffect(() => {
     let isMounted = true;
 
     const loadData = async () => {
