@@ -194,7 +194,16 @@ const Register = () => {
           // Não impede o fluxo se houver erro
         }
         
-        setShowTeamSelection(true);
+        // Verificar se há returnUrl para redirecionar após cadastro
+        const returnUrl = searchParams.get('returnUrl');
+        
+        if (returnUrl) {
+          // Se há returnUrl, redirecionar para lá (ex: /subscribe)
+          navigate(returnUrl);
+        } else {
+          // Fluxo padrão - mostrar seleção de equipe
+          setShowTeamSelection(true);
+        }
       }
     } catch (err) {
       setError("Ocorreu um erro ao tentar se cadastrar.");
@@ -210,10 +219,15 @@ const Register = () => {
     }
     setGoogleLoading(true);
     try {
+      const returnUrl = searchParams.get('returnUrl');
+      const redirectTo = returnUrl 
+        ? `${window.location.origin}/register?returnUrl=${encodeURIComponent(returnUrl)}`
+        : `${window.location.origin}/register`;
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/register`,
+          redirectTo,
           queryParams: {
             access_type: "offline",
             prompt: "consent",
@@ -244,10 +258,15 @@ const Register = () => {
     }
     setFacebookLoading(true);
     try {
+      const returnUrl = searchParams.get('returnUrl');
+      const redirectTo = returnUrl 
+        ? `${window.location.origin}/register?returnUrl=${encodeURIComponent(returnUrl)}`
+        : `${window.location.origin}/register`;
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "facebook",
         options: {
-          redirectTo: `${window.location.origin}/register`,
+          redirectTo,
           scopes: "email,public_profile",
         },
       });
