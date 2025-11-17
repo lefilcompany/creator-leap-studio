@@ -203,20 +203,29 @@ serve(async (req) => {
       });
     }
 
-    // Check if this is a new billing period (monthly renewal)
-    const isNewPeriod = !currentTeam?.subscription_period_end || 
-      new Date(subscriptionEnd) > new Date(currentTeam.subscription_period_end);
+    // Check if this is a new billing period (monthly renewal) using timestamps
+    const stripePeriodTimestamp = new Date(subscriptionEnd).getTime();
+    const dbPeriodTimestamp = currentTeam?.subscription_period_end 
+      ? new Date(currentTeam.subscription_period_end).getTime() 
+      : 0;
+    const isNewPeriod = stripePeriodTimestamp > dbPeriodTimestamp;
 
-    // If new period, reset credits to plan amount; otherwise keep current credits
-    const creditsToSet = isNewPeriod ? plan.credits : (currentTeam?.credits || plan.credits);
+    // Credit accumulation policy: accumulate up to 2x plan credits
+    const currentCredits = currentTeam?.credits || 0;
+    const creditsToSet = isNewPeriod 
+      ? Math.min(currentCredits + plan.credits, plan.credits * 2)
+      : currentCredits;
     
     logStep("Credit reset decision", { 
       isNewPeriod, 
       currentPeriodEnd: currentTeam?.subscription_period_end,
       newPeriodEnd: subscriptionEnd,
+      stripePeriodTimestamp,
+      dbPeriodTimestamp,
       currentCredits: currentTeam?.credits,
       planCredits: plan.credits,
-      creditsToSet 
+      creditsToSet,
+      accumulationPolicy: 'up_to_2x'
     });
 
     // Update team with subscription info and credits
@@ -257,7 +266,10 @@ serve(async (req) => {
           plan_id: planId,
           previous_period_end: currentTeam.subscription_period_end,
           new_period_end: subscriptionEnd,
-          subscription_id: subscription.id
+          subscription_id: subscription.id,
+          reset_method: 'manual_check',
+          stripe_subscription_status: subscription.status,
+          credits_policy: 'accumulate_up_to_2x'
         }
       });
       
