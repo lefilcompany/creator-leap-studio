@@ -88,9 +88,13 @@ serve(async (req) => {
       );
     }
 
-    if (team.credits <= 0) {
+    if (team.credits < CREDIT_COSTS.IMAGE_REVIEW) {
       return new Response(
-        JSON.stringify({ error: 'Insufficient credits' }),
+        JSON.stringify({ 
+          error: 'Créditos insuficientes', 
+          required: CREDIT_COSTS.IMAGE_REVIEW,
+          available: team.credits 
+        }),
         { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
