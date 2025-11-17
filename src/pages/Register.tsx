@@ -574,11 +574,11 @@ const Register = () => {
         {isMobile ? (
           <div className="w-full flex flex-col relative min-h-screen">
             {/* Hero section */}
-            <div className="flex-1 flex flex-col items-center justify-center p-8 relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-secondary/10 to-accent/20"></div>
+          <div className="flex-1 flex flex-col items-center justify-center py-16 px-8 relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-secondary/10 to-accent/20"></div>
 
-              <div className="relative z-10 mb-32 w-full">
-                <div className="flex flex-col items-start gap-8">
+            <div className="relative z-10 mb-40 w-full">
+                <div className="flex flex-col items-start gap-8 mt-8">
                   <CreatorLogo className="flex-shrink-0" />
 
                   <div className="text-left space-y-4">
@@ -625,7 +625,7 @@ const Register = () => {
             </div>
           </div> /* Desktop version - Right side - Register form */
         ) : (
-          <div className="w-full lg:w-1/2 flex items-center justify-center p-8 relative">
+          <div className="w-full lg:w-1/2 flex items-center justify-center py-16 px-8 relative">
             {/* Register card */}
             <div className="w-full max-w-md">
               <div className="bg-card/90 backdrop-blur-xl border border-border/50 rounded-2xl shadow-2xl p-8">
