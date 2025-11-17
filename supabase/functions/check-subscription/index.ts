@@ -210,10 +210,12 @@ serve(async (req) => {
       : 0;
     const isNewPeriod = stripePeriodTimestamp > dbPeriodTimestamp;
 
-    // Credit accumulation policy: accumulate up to 2x plan credits
+    // Credit accumulation policy: accumulate up to 2x, reset if at limit
     const currentCredits = currentTeam?.credits || 0;
     const creditsToSet = isNewPeriod 
-      ? Math.min(currentCredits + plan.credits, plan.credits * 2)
+      ? (currentCredits >= (plan.credits * 2)
+          ? plan.credits  // Reset to base if at max limit
+          : Math.min(currentCredits + plan.credits, plan.credits * 2))
       : currentCredits;
     
     logStep("Credit reset decision", { 
@@ -269,7 +271,9 @@ serve(async (req) => {
           subscription_id: subscription.id,
           reset_method: 'manual_check',
           stripe_subscription_status: subscription.status,
-          credits_policy: 'accumulate_up_to_2x'
+          credits_policy: 'accumulate_up_to_2x_with_reset',
+          was_at_limit: currentCredits >= (plan.credits * 2),
+          policy_action: currentCredits >= (plan.credits * 2) ? 'reset' : 'accumulate'
         }
       });
       

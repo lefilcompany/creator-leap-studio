@@ -136,9 +136,11 @@ serve(async (req) => {
             throw new Error(`Failed to fetch plan: ${planError?.message}`);
           }
 
-          // Credit accumulation policy: accumulate up to 2x plan credits
+          // Credit accumulation policy: accumulate up to 2x, reset if at limit
           const creditsBefore = team.credits || 0;
-          const creditsAfter = Math.min(creditsBefore + plan.credits, plan.credits * 2);
+          const creditsAfter = creditsBefore >= (plan.credits * 2)
+            ? plan.credits  // Reset to base if at max limit
+            : Math.min(creditsBefore + plan.credits, plan.credits * 2);
 
           // Update team with new period and reset credits
           const { error: updateError } = await supabaseClient
@@ -171,7 +173,9 @@ serve(async (req) => {
               reset_method: 'daily_cron',
               stripe_subscription_status: subscription.status,
               stripe_current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-              credits_policy: 'accumulate_up_to_2x'
+              credits_policy: 'accumulate_up_to_2x_with_reset',
+              was_at_limit: creditsBefore >= (plan.credits * 2),
+              policy_action: creditsBefore >= (plan.credits * 2) ? 'reset' : 'accumulate'
             }
           });
 
