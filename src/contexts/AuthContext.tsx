@@ -447,19 +447,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const isAuthenticated = useMemo(() => !!session && !!user, [session, user]);
 
-  const refreshTeamCredits = async () => {
-    if (!user?.email || !team?.id) return;
+  const refreshTeamCredits = useCallback(async () => {
+    if (!user?.email || !team?.id) {
+      console.log('[AuthContext] Cannot refresh credits - no user or team');
+      return;
+    }
     
-    const { data } = await supabase
+    console.log('[AuthContext] Refreshing team credits...');
+    
+    const { data, error } = await supabase
       .from('teams')
       .select('credits')
       .eq('id', team.id)
       .single();
       
+    if (error) {
+      console.error('[AuthContext] Error refreshing credits:', error);
+      return;
+    }
+      
     if (data) {
       setTeam(prev => prev ? { ...prev, credits: data.credits } : null);
+      console.log('[AuthContext] ✅ Credits refreshed:', data.credits);
     }
-  };
+  }, [user?.email, team?.id]);
 
   const refreshTeamData = useCallback(async () => {
     if (!user?.teamId) {

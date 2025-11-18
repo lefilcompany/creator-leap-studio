@@ -23,7 +23,7 @@ type ReviewType = 'image' | 'caption' | 'text-for-image';
 
 const ReviewContent = () => {
   const navigate = useNavigate();
-  const { user, team: authTeam } = useAuth();
+  const { user, team: authTeam, refreshTeamCredits } = useAuth();
   const [reviewType, setReviewType] = useState<ReviewType | null>(null);
   const [brand, setBrand] = useState('');
   const [theme, setTheme] = useState('');
@@ -216,6 +216,15 @@ const ReviewContent = () => {
 
       if (result?.review) {
         clearPersistedData(); // Limpar rascunho após sucesso
+        
+        // Atualizar créditos antes de navegar
+        try {
+          await refreshTeamCredits();
+          console.log('✅ Créditos atualizados no contexto');
+        } catch (error) {
+          console.error('Erro ao atualizar créditos:', error);
+        }
+        
         navigate('/review-result', {
           state: {
             reviewType,
