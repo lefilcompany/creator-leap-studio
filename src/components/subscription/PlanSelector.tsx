@@ -57,21 +57,23 @@ export function PlanSelector({ onPlanSelected, onCheckoutComplete, showCurrentPl
       if (error) throw error;
 
       if (plansData) {
-        const formattedPlans: Plan[] = plansData.map((p) => ({
-          id: p.id,
-          name: p.name,
-          description: p.description || '',
-          price: p.price_monthly || 0,
-          credits: (p as any).credits || 0,
-          maxMembers: p.max_members,
-          maxBrands: p.max_brands,
-          maxStrategicThemes: p.max_strategic_themes,
-          maxPersonas: p.max_personas,
-          trialDays: p.trial_days || 0,
-          isActive: p.is_active,
-          stripePriceId: p.stripe_price_id_monthly,
-          stripeProductId: p.stripe_product_id,
-        }));
+        const formattedPlans: Plan[] = plansData
+          .filter((p) => p.id !== 'pack_trial' && p.id !== 'starter')
+          .map((p) => ({
+            id: p.id,
+            name: p.name,
+            description: p.description || '',
+            price: p.price_monthly || 0,
+            credits: (p as any).credits || 0,
+            maxMembers: p.max_members,
+            maxBrands: p.max_brands,
+            maxStrategicThemes: p.max_strategic_themes,
+            maxPersonas: p.max_personas,
+            trialDays: p.trial_days || 0,
+            isActive: p.is_active,
+            stripePriceId: p.stripe_price_id_monthly,
+            stripeProductId: p.stripe_product_id,
+          }));
         
         // Ordenar: free, basic, pro, enterprise
         const planOrder = { free: 1, basic: 2, pro: 3, enterprise: 4 };
