@@ -268,7 +268,7 @@ const Onboarding = () => {
         p_user_id: userData.id,
         p_team_name: teamName,
         p_team_code: teamCode,
-        p_plan_id: 'free'
+        p_plan_id: 'pack_trial'
       });
 
       if (error) throw error;
