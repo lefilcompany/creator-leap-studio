@@ -545,7 +545,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       refreshTeamData,
       refreshTeamCredits
     }),
-    [user, session, team, isAuthenticated, isLoading, isTrialExpired, trialDaysRemaining, logout, reloadUserData, refreshProfile, refreshTeamData, refreshTeamCredits]
+    [user, session, team, isAuthenticated, isLoading, isTrialExpired, trialDaysRemaining, logout, reloadUserData, refreshProfile, refreshTeamData]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
