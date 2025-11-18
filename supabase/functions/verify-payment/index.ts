@@ -109,14 +109,26 @@ serve(async (req) => {
     const creditsAfter = creditsBefore + creditsToAdd;
     logStep("Credit calculation", { creditsBefore, creditsToAdd, creditsAfter });
 
-    // Adicionar créditos
+    // Preparar atualização da equipe
+    const teamUpdate: any = { credits: creditsAfter };
+    
+    // Se for compra de plano, atualizar também plan_id, subscription_status e period_end
+    if (purchase_type === 'plan' && plan_id) {
+      teamUpdate.plan_id = plan_id;
+      teamUpdate.subscription_status = 'active';
+      // 30 dias a partir de agora
+      teamUpdate.subscription_period_end = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+      logStep("Adding plan subscription data", { plan_id, subscription_period_end: teamUpdate.subscription_period_end });
+    }
+
+    // Adicionar créditos e atualizar plano (se aplicável)
     const { error: updateError } = await supabase
       .from('teams')
-      .update({ credits: creditsAfter })
+      .update(teamUpdate)
       .eq('id', team_id);
 
     if (updateError) throw updateError;
-    logStep("Team credits updated");
+    logStep("Team updated with credits and plan data");
 
     // Registrar compra
     const { error: purchaseError } = await supabase
