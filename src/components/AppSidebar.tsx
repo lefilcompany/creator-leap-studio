@@ -259,11 +259,12 @@ export function AppSidebar() {
     return (
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent side="left" className="w-64 p-0 bg-card shadow-md shadow-primary/20">
-          <div className="h-full flex flex-col">
-            {sidebarContent()}
-          </div>
-        </SheetContent>
-      </Sheet>
+-          <div className="h-full flex flex-col">
++          <div className="h-full flex flex-col overflow-y-auto">
+             {sidebarContent()}
+           </div>
+         </SheetContent>
+       </Sheet>
     );
   }
 
