@@ -8,10 +8,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { CreatorLogo } from "@/components/CreatorLogo";
-import { Eye, EyeOff, User, Mail, Phone, Lock, Loader2, CheckCircle, Building2, Code, LogIn, Package } from "lucide-react";
+import { Eye, EyeOff, User, Mail, Phone, Lock, Loader2, CheckCircle, Building2, Code, LogIn } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { PlanSelector } from "@/components/subscription/PlanSelector";
+
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -27,7 +27,7 @@ interface City {
 }
 
 type OnboardingMode = 'new' | 'existing';
-type Step = 'login' | 'register' | 'team' | 'plan';
+type Step = 'login' | 'register' | 'team';
 
 const Onboarding = () => {
   const navigate = useNavigate();
@@ -174,7 +174,7 @@ const Onboarding = () => {
       
       setUserData(authData.user);
       setTeamData(teamInfo);
-      setCurrentStep('plan');
+      navigate('/dashboard');
 
     } catch (error: any) {
       console.error('Erro no login:', error);
@@ -280,8 +280,11 @@ const Onboarding = () => {
 
       console.log("Equipe criada:", data);
       setTeamData(data);
-      toast.success("Equipe criada com sucesso! Agora faça login para continuar.");
-      setCurrentStep('login');
+      toast.success("Equipe criada com sucesso! Redirecionando...");
+      
+      // Recarregar dados do usuário e redirecionar para dashboard
+      await reloadUserData();
+      navigate('/dashboard');
     } catch (error: any) {
       console.error("Erro ao criar equipe:", error);
       toast.error(error.message || "Erro ao criar equipe");
@@ -290,24 +293,11 @@ const Onboarding = () => {
     }
   };
 
-  const handlePlanSelected = async (planId: string) => {
-    console.log('Plano selecionado:', planId);
-    
-    if (mode) {
-      sessionStorage.setItem('onboarding_mode', mode);
-    }
-    
-    if (planId === 'free') {
-      toast.success('Plano gratuito ativado!');
-      navigate(mode === 'existing' ? '/dashboard' : '/');
-    }
-  };
 
   const getSteps = () => {
     if (mode === 'existing') {
       return [
         { id: 'login' as const, label: 'Login', icon: LogIn },
-        { id: 'plan' as const, label: 'Plano', icon: Package },
       ];
     }
     
@@ -315,7 +305,6 @@ const Onboarding = () => {
       { id: 'register' as const, label: 'Cadastro', icon: User },
       { id: 'team' as const, label: 'Equipe', icon: Building2 },
       { id: 'login' as const, label: 'Login', icon: LogIn },
-      { id: 'plan' as const, label: 'Plano', icon: Package },
     ];
   };
 
@@ -499,15 +488,6 @@ const Onboarding = () => {
     </Card>
   );
 
-  const renderPlanStep = () => (
-    <div className="w-full">
-      <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold mb-2">Escolha seu Plano</h2>
-        <p className="text-muted-foreground">{mode === 'existing' ? 'Faça upgrade do seu plano atual' : 'Comece com o plano FREE ou escolha um plano pago'}</p>
-      </div>
-      <PlanSelector onPlanSelected={handlePlanSelected} showCurrentPlan={mode === 'existing'} />
-    </div>
-  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center p-4">
@@ -603,7 +583,6 @@ const Onboarding = () => {
         )}
         {mode === 'new' && currentStep === 'register' && renderRegisterStep()}
         {mode === 'new' && currentStep === 'team' && renderTeamStep()}
-        {currentStep === 'plan' && renderPlanStep()}
         <Dialog open={privacyModalOpen} onOpenChange={setPrivacyModalOpen}>
           <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
             <DialogHeader><DialogTitle>Política de Privacidade</DialogTitle></DialogHeader>
