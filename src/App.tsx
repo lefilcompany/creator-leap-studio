@@ -41,6 +41,9 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 import Subscribe from "./pages/Subscribe";
+import Onboarding from "./pages/Onboarding";
+import OnboardingSuccess from "./pages/OnboardingSuccess";
+import OnboardingCanceled from "./pages/OnboardingCanceled";
 
 const App = () => (
   <ErrorBoundary>
@@ -58,6 +61,9 @@ const App = () => (
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/subscribe" element={<Subscribe />} />
+            <Route path="/onboarding" element={<Onboarding />} />
+            <Route path="/onboarding/success" element={<OnboardingSuccess />} />
+            <Route path="/onboarding/canceled" element={<OnboardingCanceled />} />
             
             {/* Dashboard routes with sidebar layout */}
             <Route path="/" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>

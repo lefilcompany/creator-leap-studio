@@ -113,12 +113,17 @@ export function PlanSelector({ onPlanSelected, onCheckoutComplete, showCurrentPl
     setLoadingPlanId(plan.id);
 
     try {
+      // Definir return_url baseado no contexto
+      const returnUrl = window.location.pathname.includes('/onboarding') 
+        ? `${window.location.origin}/onboarding/success`
+        : `${window.location.origin}/dashboard`;
+
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: {
           type: 'plan',
           price_id: plan.stripePriceId,
           plan_id: plan.id,
-          return_url: '/dashboard',
+          return_url: returnUrl,
         }
       });
 
