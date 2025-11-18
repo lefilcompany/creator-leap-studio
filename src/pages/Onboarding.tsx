@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { CreatorLogo } from "@/components/CreatorLogo";
-import { Eye, EyeOff, User, Mail, Phone, Lock, Loader2, CheckCircle, Building2, Code, LogIn, Package } from "lucide-react";
+import { Eye, EyeOff, User, Mail, Phone, Lock, Loader2, CheckCircle, Building2, Code, LogIn, Package, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { PlanSelector } from "@/components/subscription/PlanSelector";
@@ -512,6 +512,17 @@ const Onboarding = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center p-4">
       <div className="w-full max-w-4xl space-y-6">
+        <div className="flex justify-start mb-4">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => navigate('/')}
+            className="gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Voltar
+          </Button>
+        </div>
         <div className="flex justify-center mb-8"><CreatorLogo /></div>
         {!mode && (
           <Card className="w-full max-w-2xl mx-auto">
