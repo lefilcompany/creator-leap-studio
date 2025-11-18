@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { CreatorLogo } from "@/components/CreatorLogo";
-import { Eye, EyeOff, User, Mail, Phone, Lock, Loader2, CheckCircle, Building2, Code, LogIn, Package } from "lucide-react";
+import { Eye, EyeOff, User, Mail, Phone, Lock, Loader2, CheckCircle, Building2, Code, LogIn, Package, Shield } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { PlanSelector } from "@/components/subscription/PlanSelector";
@@ -26,7 +26,7 @@ interface City {
 }
 
 type OnboardingMode = 'new' | 'existing';
-type Step = 'login' | 'register' | 'team' | 'plan';
+type Step = 'login' | 'register' | 'team' | 'validating' | 'plan';
 
 const Onboarding = () => {
   const navigate = useNavigate();
@@ -45,6 +45,7 @@ const Onboarding = () => {
   });
   const [confirmPassword, setConfirmPassword] = useState("");
   const [userData, setUserData] = useState<any>(null);
+  const [credentials, setCredentials] = useState<{ email: string; password: string } | null>(null);
   
   const [teamName, setTeamName] = useState("");
   const [teamCode, setTeamCode] = useState("");
@@ -225,6 +226,7 @@ const Onboarding = () => {
 
       if (data.user) {
         setUserData(data.user);
+        setCredentials({ email: formData.email, password: formData.password });
         toast.success("Cadastro realizado com sucesso!");
         setCurrentStep('team');
       }
@@ -275,11 +277,55 @@ const Onboarding = () => {
 
       console.log("Equipe criada:", data);
       setTeamData(data);
-      toast.success("Equipe criada com sucesso! Escolha seu plano.");
-      setCurrentStep('plan');
+      toast.success("Equipe criada com sucesso!");
+      setCurrentStep('validating');
     } catch (error: any) {
       console.error("Erro ao criar equipe:", error);
       toast.error(error.message || "Erro ao criar equipe");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAuthentication = async () => {
+    if (!credentials) {
+      toast.error("Credenciais não encontradas. Por favor, refaça o cadastro.");
+      setCurrentStep('register');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      console.log("Autenticando usuário...");
+      
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email: credentials.email,
+        password: credentials.password,
+      });
+
+      if (authError) throw authError;
+      
+      if (!authData.session) {
+        throw new Error("Sessão não criada após login");
+      }
+
+      console.log("Autenticação bem-sucedida!");
+      
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      toast.success("Autenticação validada! Escolha seu plano.");
+      setCurrentStep('plan');
+      
+    } catch (error: any) {
+      console.error("Erro ao autenticar:", error);
+      toast.error("Erro na autenticação", {
+        description: "Por favor, faça login manualmente para continuar."
+      });
+      
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
     } finally {
       setIsLoading(false);
     }
@@ -298,6 +344,12 @@ const Onboarding = () => {
     }
   };
 
+  useEffect(() => {
+    if (currentStep === 'validating' && credentials) {
+      handleAuthentication();
+    }
+  }, [currentStep, credentials]);
+
   const getSteps = () => {
     if (mode === 'existing') {
       return [
@@ -309,6 +361,7 @@ const Onboarding = () => {
     return [
       { id: 'register' as const, label: 'Cadastro', icon: User },
       { id: 'team' as const, label: 'Equipe', icon: Building2 },
+      { id: 'validating' as const, label: 'Validação', icon: Shield },
       { id: 'plan' as const, label: 'Plano', icon: Package },
     ];
   };
@@ -557,6 +610,22 @@ const Onboarding = () => {
         )}
         {mode === 'new' && currentStep === 'register' && renderRegisterStep()}
         {mode === 'new' && currentStep === 'team' && renderTeamStep()}
+        {mode === 'new' && currentStep === 'validating' && (
+          <Card className="w-full max-w-2xl mx-auto">
+            <CardHeader className="text-center">
+              <CardTitle>Validando sua conta</CardTitle>
+              <CardDescription>
+                Estamos autenticando sua sessão para continuar...
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col items-center justify-center py-8">
+              <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+              <p className="text-sm text-muted-foreground">
+                Aguarde um momento enquanto preparamos tudo para você
+              </p>
+            </CardContent>
+          </Card>
+        )}
         {currentStep === 'plan' && renderPlanStep()}
         <Dialog open={privacyModalOpen} onOpenChange={setPrivacyModalOpen}>
           <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
