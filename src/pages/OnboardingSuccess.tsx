@@ -55,7 +55,13 @@ const OnboardingSuccess = () => {
             
             if (timeLeft <= 0) {
               clearInterval(countdownInterval);
-              navigate('/');
+              
+              // Redirecionar baseado no modo de onboarding
+              const onboardingMode = sessionStorage.getItem('onboarding_mode');
+              const redirectTo = onboardingMode === 'existing' ? '/dashboard' : '/';
+              sessionStorage.removeItem('onboarding_mode');
+              
+              navigate(redirectTo);
             }
           }, 1000);
 
@@ -75,7 +81,10 @@ const OnboardingSuccess = () => {
   }, [searchParams, navigate]);
 
   const handleGoToLogin = () => {
-    navigate('/');
+    const onboardingMode = sessionStorage.getItem('onboarding_mode');
+    const redirectTo = onboardingMode === 'existing' ? '/dashboard' : '/';
+    sessionStorage.removeItem('onboarding_mode');
+    navigate(redirectTo);
   };
 
   return (
