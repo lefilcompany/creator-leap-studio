@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Search, Settings, User, Menu, Loader2, Info, FileText, Shield, LogOut, Moon, Sun, Gift } from "lucide-react";
+import { Search, Settings, User, Menu, Loader2, Info, FileText, Shield, LogOut, Moon, Sun, Gift, History } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -199,6 +199,12 @@ export const Header = () => {
                   <Link to="/privacy" className="flex items-center">
                     <Shield className="mr-3 h-4 w-4" />
                     <span>{t.settings.privacy}</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="p-3 cursor-pointer" asChild>
+                  <Link to="/history" className="flex items-center">
+                    <History className="mr-3 h-4 w-4" />
+                    <span>Histórico</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
