@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import Stripe from "https://esm.sh/stripe@18.5.0";
+import Stripe from "https://esm.sh/stripe@13.11.0?target=deno";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
 const logStep = (step: string, details?: any) => {
@@ -31,7 +31,7 @@ serve(async (req) => {
     
     if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
     
-    const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
+    const stripe = new Stripe(stripeKey, { apiVersion: "2024-11-20.acacia" });
 
     // Get the signature from the headers
     const signature = req.headers.get("stripe-signature");
