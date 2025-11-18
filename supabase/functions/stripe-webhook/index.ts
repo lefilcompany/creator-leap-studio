@@ -9,11 +9,11 @@ const logStep = (step: string, details?: any) => {
 
 // Mapeamento de produtos Stripe para planos
 const productToPlanMap: Record<string, { planId: string, credits: number }> = {
-  'prod_TQFRF4g5MPxoSG': { planId: 'pack_basic', credits: 40 },
-  'prod_TQFSnXcPofocWV': { planId: 'pack_pro', credits: 80 },
-  'prod_TQFSDtV5XhpDH0': { planId: 'pack_premium', credits: 160 },
-  'prod_TQFTk9Rh4tMH3U': { planId: 'pack_business', credits: 320 },
-  'prod_TQFTH5994CZA2y': { planId: 'pack_enterprise', credits: 640 },
+  'prod_TQFRF4g5MPxoSG': { planId: 'pack_basic', credits: 80 },
+  'prod_TQFSnXcPofocWV': { planId: 'pack_pro', credits: 160 },
+  'prod_TQFSDtV5XhpDH0': { planId: 'pack_premium', credits: 320 },
+  'prod_TQFTk9Rh4tMH3U': { planId: 'pack_business', credits: 640 },
+  'prod_TQFTH5994CZA2y': { planId: 'pack_enterprise', credits: 1280 },
 };
 
 serve(async (req) => {
