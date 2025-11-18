@@ -8,11 +8,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { CreatorLogo } from "@/components/CreatorLogo";
-import { Eye, EyeOff, User, Mail, Phone, Lock, Loader2, CheckCircle, Building2, Code, LogIn, Package, Shield } from "lucide-react";
+import { Eye, EyeOff, User, Mail, Phone, Lock, Loader2, CheckCircle, Building2, Code, LogIn, Package } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { PlanSelector } from "@/components/subscription/PlanSelector";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
 
 interface State {
   id: number;
@@ -26,10 +27,11 @@ interface City {
 }
 
 type OnboardingMode = 'new' | 'existing';
-type Step = 'login' | 'register' | 'team' | 'validating' | 'plan';
+type Step = 'login' | 'register' | 'team' | 'plan';
 
 const Onboarding = () => {
   const navigate = useNavigate();
+  const { reloadUserData } = useAuth();
   const [mode, setMode] = useState<OnboardingMode | null>(null);
   const [currentStep, setCurrentStep] = useState<Step>('register');
   const [showPassword, setShowPassword] = useState(false);
@@ -45,7 +47,6 @@ const Onboarding = () => {
   });
   const [confirmPassword, setConfirmPassword] = useState("");
   const [userData, setUserData] = useState<any>(null);
-  const [credentials, setCredentials] = useState<{ email: string; password: string } | null>(null);
   
   const [teamName, setTeamName] = useState("");
   const [teamCode, setTeamCode] = useState("");
@@ -166,7 +167,10 @@ const Onboarding = () => {
         return;
       }
 
-      toast.success(`Bem-vindo, administrador da equipe ${teamInfo.name}!`);
+      toast.success(`Bem-vindo${mode === 'new' ? '' : ', administrador da equipe ' + teamInfo.name}!`);
+      
+      // Recarregar dados do contexto para garantir que user e team estejam disponíveis
+      await reloadUserData();
       
       setUserData(authData.user);
       setTeamData(teamInfo);
@@ -226,7 +230,6 @@ const Onboarding = () => {
 
       if (data.user) {
         setUserData(data.user);
-        setCredentials({ email: formData.email, password: formData.password });
         toast.success("Cadastro realizado com sucesso!");
         setCurrentStep('team');
       }
@@ -277,55 +280,11 @@ const Onboarding = () => {
 
       console.log("Equipe criada:", data);
       setTeamData(data);
-      toast.success("Equipe criada com sucesso!");
-      setCurrentStep('validating');
+      toast.success("Equipe criada com sucesso! Agora faça login para continuar.");
+      setCurrentStep('login');
     } catch (error: any) {
       console.error("Erro ao criar equipe:", error);
       toast.error(error.message || "Erro ao criar equipe");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleAuthentication = async () => {
-    if (!credentials) {
-      toast.error("Credenciais não encontradas. Por favor, refaça o cadastro.");
-      setCurrentStep('register');
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      console.log("Autenticando usuário...");
-      
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email: credentials.email,
-        password: credentials.password,
-      });
-
-      if (authError) throw authError;
-      
-      if (!authData.session) {
-        throw new Error("Sessão não criada após login");
-      }
-
-      console.log("Autenticação bem-sucedida!");
-      
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      toast.success("Autenticação validada! Escolha seu plano.");
-      setCurrentStep('plan');
-      
-    } catch (error: any) {
-      console.error("Erro ao autenticar:", error);
-      toast.error("Erro na autenticação", {
-        description: "Por favor, faça login manualmente para continuar."
-      });
-      
-      setTimeout(() => {
-        navigate('/login');
-      }, 2000);
     } finally {
       setIsLoading(false);
     }
@@ -344,12 +303,6 @@ const Onboarding = () => {
     }
   };
 
-  useEffect(() => {
-    if (currentStep === 'validating' && credentials) {
-      handleAuthentication();
-    }
-  }, [currentStep, credentials]);
-
   const getSteps = () => {
     if (mode === 'existing') {
       return [
@@ -361,7 +314,7 @@ const Onboarding = () => {
     return [
       { id: 'register' as const, label: 'Cadastro', icon: User },
       { id: 'team' as const, label: 'Equipe', icon: Building2 },
-      { id: 'validating' as const, label: 'Validação', icon: Shield },
+      { id: 'login' as const, label: 'Login', icon: LogIn },
       { id: 'plan' as const, label: 'Plano', icon: Package },
     ];
   };
@@ -577,23 +530,49 @@ const Onboarding = () => {
           </Card>
         )}
         {mode && renderStepIndicator()}
-        {mode === 'existing' && currentStep === 'login' && (
+        {currentStep === 'login' && (
           <Card className="w-full max-w-2xl mx-auto">
             <CardHeader>
-              <CardTitle>Faça login para assinar um plano</CardTitle>
-              <CardDescription>Entre com seu email e senha para verificar se você é administrador da equipe</CardDescription>
+              <CardTitle>
+                {mode === 'existing' ? 'Faça login para assinar um plano' : 'Confirme seu login'}
+              </CardTitle>
+              <CardDescription>
+                {mode === 'existing' 
+                  ? 'Entre com seu email e senha para verificar se você é administrador da equipe'
+                  : 'Digite seu email e senha para autenticar e continuar'}
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleExistingUserLogin} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} required placeholder="seu@email.com" />
+                  <Input 
+                    id="email" 
+                    type="email" 
+                    value={formData.email} 
+                    onChange={(e) => setFormData({...formData, email: e.target.value})} 
+                    required 
+                    placeholder="seu@email.com" 
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="password">Senha</Label>
                   <div className="relative">
-                    <Input id="password" type={showPassword ? "text" : "password"} value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} required placeholder="••••••••" />
-                    <Button type="button" variant="ghost" size="sm" className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent" onClick={() => setShowPassword(!showPassword)}>
+                    <Input 
+                      id="password" 
+                      type={showPassword ? "text" : "password"} 
+                      value={formData.password} 
+                      onChange={(e) => setFormData({...formData, password: e.target.value})} 
+                      required 
+                      placeholder="••••••••" 
+                    />
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      size="sm" 
+                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent" 
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </Button>
                   </div>
@@ -602,7 +581,21 @@ const Onboarding = () => {
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Continuar
                 </Button>
                 <div className="text-center">
-                  <Button type="button" variant="link" onClick={() => { setMode(null); setCurrentStep('register'); setFormData({ name: '', email: '', password: '', phone: '', state: '', city: '' }); }}>Voltar</Button>
+                  <Button 
+                    type="button" 
+                    variant="link" 
+                    onClick={() => {
+                      if (mode === 'existing') {
+                        setMode(null);
+                        setCurrentStep('register');
+                        setFormData({ name: '', email: '', password: '', phone: '', state: '', city: '' });
+                      } else {
+                        setCurrentStep('team');
+                      }
+                    }}
+                  >
+                    Voltar
+                  </Button>
                 </div>
               </form>
             </CardContent>
@@ -610,22 +603,6 @@ const Onboarding = () => {
         )}
         {mode === 'new' && currentStep === 'register' && renderRegisterStep()}
         {mode === 'new' && currentStep === 'team' && renderTeamStep()}
-        {mode === 'new' && currentStep === 'validating' && (
-          <Card className="w-full max-w-2xl mx-auto">
-            <CardHeader className="text-center">
-              <CardTitle>Validando sua conta</CardTitle>
-              <CardDescription>
-                Estamos autenticando sua sessão para continuar...
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col items-center justify-center py-8">
-              <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-              <p className="text-sm text-muted-foreground">
-                Aguarde um momento enquanto preparamos tudo para você
-              </p>
-            </CardContent>
-          </Card>
-        )}
         {currentStep === 'plan' && renderPlanStep()}
         <Dialog open={privacyModalOpen} onOpenChange={setPrivacyModalOpen}>
           <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
