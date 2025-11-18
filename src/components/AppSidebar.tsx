@@ -270,12 +270,12 @@ export function AppSidebar() {
   // Desktop: renderiza a Sidebar normal sempre fixa
   return (
     <Sidebar 
-      className="fixed left-0 top-0 h-screen w-64 border-r border-primary/10 shadow-md shadow-primary/20 z-40" 
+      className="fixed left-0 top-0 h-screen w-64 border-r border-primary/10 shadow-md shadow-primary/20 z-40 overflow-hidden" 
       collapsible="none"
       side="left"
       variant="sidebar"
     >
-      <SidebarContent className="bg-card flex flex-col h-full">
+      <SidebarContent className="bg-card flex flex-col h-full overflow-y-auto">
         {sidebarContent()}
       </SidebarContent>
     </Sidebar>
