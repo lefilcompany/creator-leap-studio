@@ -22,7 +22,8 @@ export default function QuickContent() {
   const navigate = useNavigate();
   const {
     user,
-    team
+    team,
+    refreshTeamCredits
   } = useAuth();
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
@@ -210,6 +211,14 @@ export default function QuickContent() {
         id: toastId
       });
       clearPersistedData(); // Limpar rascunho após sucesso
+
+      // Atualizar créditos antes de navegar
+      try {
+        await refreshTeamCredits();
+        console.log('✅ Créditos atualizados no contexto');
+      } catch (error) {
+        console.error('Erro ao atualizar créditos:', error);
+      }
 
       // Navigate to result page
       navigate("/quick-content-result", {

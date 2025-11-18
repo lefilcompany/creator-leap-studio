@@ -25,7 +25,7 @@ interface FormData {
 }
 
 const PlanContent = () => {
-  const { user } = useAuth();
+  const { user, refreshTeamCredits } = useAuth();
   const navigate = useNavigate();
   const [formData, setFormData] = useState<FormData>({
     brand: "",
@@ -220,6 +220,15 @@ const PlanContent = () => {
 
       // Navigate to result page with the generated plan
       clearPersistedData(); // Limpar rascunho após sucesso
+      
+      // Atualizar créditos antes de navegar
+      try {
+        await refreshTeamCredits();
+        console.log('✅ Créditos atualizados no contexto');
+      } catch (error) {
+        console.error('Erro ao atualizar créditos:', error);
+      }
+      
       navigate("/plan-result", {
         state: {
           plan: data.plan,
