@@ -97,7 +97,7 @@ export function CreateTeamDialog({ open, onClose, onSuccess, context = 'login' }
         p_user_id: session.user.id,
         p_team_name: teamName,
         p_team_code: teamCode,
-        p_plan_id: 'free'
+        p_plan_id: 'pack_trial'
       });
 
       if (error) {
