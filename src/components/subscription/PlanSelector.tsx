@@ -107,37 +107,38 @@ export function PlanSelector({ onPlanSelected, onCheckoutComplete, showCurrentPl
       return;
     }
 
+    if (!plan.stripePriceId) {
+      toast.error("Plano sem configuração de preço no Stripe");
+      return;
+    }
+
     setLoadingPlanId(plan.id);
 
     try {
-      // Mapeamento de links diretos do Stripe
-      const stripeLinks: Record<string, string> = {
-        'pack_basic': 'https://buy.stripe.com/00wcN4gyBccI4t7aO83oA07',
-        'pack_pro': 'https://buy.stripe.com/9B6aEW9696So7Fje0k3oA08',
-        'pack_premium': 'https://buy.stripe.com/5kQ3cu969ccI6Bf7BW3oA09',
-        'pack_business': 'https://buy.stripe.com/6oU4gyfuxb8E5xb6xS3oA0a',
-        'pack_enterprise': 'https://buy.stripe.com/14AdR84PTa4A3p33lG3oA0b',
-      };
+      // Chamar edge function para criar sessão de checkout
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: {
+          type: 'plan',
+          price_id: plan.stripePriceId,
+          plan_id: plan.id,
+          return_url: '/payment-success'
+        }
+      });
 
-      const checkoutUrl = stripeLinks[plan.id];
-      
-      if (!checkoutUrl) {
-        toast.error("Este plano não está disponível para compra online. Entre em contato conosco.");
-        return;
+      if (error) {
+        console.error("Checkout error:", error);
+        throw error;
       }
 
-      // Adicionar parâmetros de retorno na URL
-      const returnUrl = window.location.pathname.includes('/onboarding') 
-        ? `${window.location.origin}/onboarding-success`
-        : `${window.location.origin}/payment-success`;
+      if (!data?.url) {
+        throw new Error("URL de checkout não retornada");
+      }
+
+      // Abrir checkout do Stripe em nova aba
+      window.open(data.url, '_blank');
       
-      const urlWithParams = `${checkoutUrl}?client_reference_id=${team.id}&prefilled_email=${user.email}`;
-      
-      // Abrir Stripe Checkout em nova aba
-      window.open(urlWithParams, '_blank');
-      
-      toast.info('Janela do Stripe aberta!', {
-        description: "Complete o pagamento na nova aba. Após a confirmação, seus créditos serão adicionados automaticamente.",
+      toast.info("Redirecionando para o checkout do Stripe...", {
+        description: "Complete o pagamento na janela que acabou de abrir. Seus créditos serão adicionados automaticamente.",
         duration: 10000,
       });
 
