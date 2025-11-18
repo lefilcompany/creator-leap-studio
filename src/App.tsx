@@ -44,6 +44,7 @@ import Subscribe from "./pages/Subscribe";
 import Onboarding from "./pages/Onboarding";
 import OnboardingSuccess from "./pages/OnboardingSuccess";
 import OnboardingCanceled from "./pages/OnboardingCanceled";
+import PaymentSuccess from "./pages/PaymentSuccess";
 
 const App = () => (
   <ErrorBoundary>
@@ -64,6 +65,7 @@ const App = () => (
             <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/onboarding/success" element={<OnboardingSuccess />} />
             <Route path="/onboarding/canceled" element={<OnboardingCanceled />} />
+            <Route path="/payment-success" element={<PaymentSuccess />} />
             
             {/* Dashboard routes with sidebar layout */}
             <Route path="/" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
