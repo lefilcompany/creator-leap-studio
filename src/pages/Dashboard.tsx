@@ -15,7 +15,8 @@ import {
   Tags,
   Tag,
   Rocket,
-  Loader2
+  Loader2,
+  History
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -285,6 +286,20 @@ const Dashboard = () => {
             <p className="text-sm text-muted-foreground">{stats[2].subtitle}</p>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Histórico Button */}
+      <div className="mb-6">
+        <Link to="/history">
+          <Button 
+            variant="outline" 
+            className="w-full h-14 text-lg font-medium border-primary/20 hover:bg-primary/10 hover:border-primary/40 transition-all duration-300 group"
+          >
+            <History className="mr-3 h-5 w-5 text-primary group-hover:scale-110 transition-transform" />
+            Ver Histórico Completo
+            <ArrowRight className="ml-auto h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+          </Button>
+        </Link>
       </div>
 
       {/* Main Content Grid */}

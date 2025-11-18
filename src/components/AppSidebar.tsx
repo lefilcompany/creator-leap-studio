@@ -177,7 +177,6 @@ export function AppSidebar() {
     { id: "nav-temas", href: "/themes", icon: Palette, label: t.sidebar.themes },
     { id: "nav-personas", href: "/personas", icon: Users, label: t.sidebar.personas },
     { id: "nav-rapido", href: "/quick-content", icon: Zap, label: t.sidebar.quickContent },
-    { id: "nav-historico", href: "/history", icon: History, label: t.sidebar.history },
   ];
 
   const actionButtons = [
@@ -214,7 +213,7 @@ export function AppSidebar() {
               {...link} 
               collapsed={collapsed} 
               onNavigate={handleMobileNavigate}
-              disabled={isNavigationDisabled && link.href !== '/history'}
+              disabled={isNavigationDisabled}
             />
           ))}
         </div>
