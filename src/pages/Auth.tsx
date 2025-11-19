@@ -414,7 +414,7 @@ const Auth = () => {
 
   const loginButton = useMemo(
     () => (
-      <div className="space-y-4 pt-4 sm:pt-6 border-t border-border/50">
+      <div className="pt-4 sm:pt-6">
         <Button
           type="button"
           onClick={handleLogin}
@@ -430,17 +430,6 @@ const Auth = () => {
             t.login.signIn
           )}
         </Button>
-
-        <div className="text-center">
-          <span className="text-muted-foreground text-xs sm:text-sm">{t.login.noAccount} </span>
-          <button
-            type="button"
-            onClick={() => setIsLoginMode(false)}
-            className="text-primary hover:text-primary/80 font-medium text-xs sm:text-sm transition-colors"
-          >
-            {t.login.createAccount}
-          </button>
-        </div>
       </div>
     ),
     [loading, handleLogin, t],
