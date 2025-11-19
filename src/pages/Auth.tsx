@@ -799,7 +799,7 @@ const Auth = () => {
           >
             <div className="bg-card/80 backdrop-blur-xl rounded-t-3xl sm:rounded-2xl shadow-2xl border border-primary/10 p-4 sm:p-6 md:p-8 flex flex-col max-h-[70vh] sm:max-h-[78vh]">
               {/* Novo Sistema de Tabs Modernas */}
-              <div className="flex border-b border-border mb-4 sm:mb-6 flex-shrink-0">
+              <div className="flex mb-4 sm:mb-6 flex-shrink-0">
                 <button
                   onClick={() => setIsLoginMode(true)}
                   className={`flex-1 pb-3 text-center font-semibold transition-all relative ${
