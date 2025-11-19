@@ -614,12 +614,12 @@ const Auth = () => {
 
   return (
     <>
-      <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden bg-gradient-to-br from-background via-background to-primary/5">
+      <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden bg-gradient-to-br from-background via-background to-primary/5 pt-16 sm:pt-20">
         {/* Elementos decorativos animados com motion blur */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <motion.div
             className="absolute top-20 -left-20 w-96 h-96 rounded-full bg-gradient-to-r from-primary/20 to-primary/5"
-            style={{ filter: "blur(80px)" }}
+            style={{ filter: "blur(60px) sm:blur(80px)" }}
             animate={{
               x: [0, 100, 0],
               y: [0, -50, 0],
@@ -633,7 +633,7 @@ const Auth = () => {
           />
           <motion.div
             className="absolute bottom-20 -right-20 w-[500px] h-[500px] rounded-full bg-gradient-to-l from-primary/15 to-accent/10"
-            style={{ filter: "blur(100px)" }}
+            style={{ filter: "blur(80px) sm:blur(100px)" }}
             animate={{
               x: [0, -80, 0],
               y: [0, 60, 0],
@@ -735,7 +735,7 @@ const Auth = () => {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="mb-4 z-10"
+          className="mb-6 sm:mb-8 md:mb-4 z-10"
         >
           <CreatorLogo />
         </motion.div>
@@ -745,12 +745,12 @@ const Auth = () => {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="w-full max-w-[95%] sm:max-w-md px-4 sm:px-6 relative z-10"
+          className="w-full max-w-[90%] sm:max-w-md px-3 sm:px-4 md:px-6 relative z-10"
         >
-          <div className="bg-card/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-primary/10 p-4 sm:p-6 md:p-8">
+          <div className="bg-card/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-primary/10 p-3 sm:p-5 md:p-8">
             {/* Toggle de modo */}
-            <div className="flex items-center justify-center mb-4 sm:mb-6">
-              <AuthModeToggle 
+            <div className="flex items-center justify-center mb-6 md:mb-8">
+              <AuthModeToggle
                 isLoginMode={isLoginMode}
                 onToggle={setIsLoginMode}
               />
