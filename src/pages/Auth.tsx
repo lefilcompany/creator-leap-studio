@@ -230,10 +230,27 @@ const Auth = () => {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Validar campos obrigatórios
+    if (!formData.name || !formData.email || !formData.password || !formData.phone || !formData.state || !formData.city) {
+      toast.error("Por favor, preencha todos os campos obrigatórios");
+      return;
+    }
+
     if (!privacyChecked || !privacyAccepted) {
       toast.error("É necessário aceitar a Política de Privacidade para se cadastrar.");
       return;
     }
+
+    if (!passwordsMatch) {
+      toast.error("As senhas não coincidem");
+      return;
+    }
+
+    if (!isPasswordValid) {
+      toast.error("A senha deve ter no mínimo 6 caracteres");
+      return;
+    }
+    
     if (formData.password !== confirmPassword) {
       toast.error("As senhas não coincidem");
       return;
@@ -503,55 +520,60 @@ const Auth = () => {
           </div>
         )}
 
-        {/* Grupo 3: Informações Adicionais (Collapsible) */}
-        <Collapsible>
-          <CollapsibleTrigger className="flex items-center justify-between w-full p-2 rounded-lg hover:bg-muted/30 transition-colors group">
-            <span className="text-xs sm:text-sm text-muted-foreground font-medium">
-              Informações Adicionais (opcional)
-            </span>
-            <ChevronDown className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
-          </CollapsibleTrigger>
-          <CollapsibleContent className="space-y-2 pt-2">
-            <div className="relative">
-              <Phone className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
-              <Input
-                id="phone"
-                placeholder="Telefone (opcional)"
-                value={formData.phone}
-                onChange={handleInputChange}
-                className="pl-9 sm:pl-10 h-9 sm:h-10 text-sm"
-              />
-            </div>
+        {/* Grupo 3: Informações de Contato - OBRIGATÓRIO */}
+        <div className="space-y-2 p-3 rounded-lg bg-muted/20 border border-border/40">
+          <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+            Informações de Contato
+          </Label>
+          
+          <div className="relative">
+            <Phone className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
+            <Input
+              id="phone"
+              placeholder="Telefone"
+              required
+              value={formData.phone}
+              onChange={handleInputChange}
+              className="pl-9 sm:pl-10 h-9 sm:h-10 text-sm"
+            />
+          </div>
 
-            <Select onValueChange={(value) => handleSelectChange("state", value)} disabled={loadingStates}>
+          <Select 
+            onValueChange={(value) => handleSelectChange("state", value)} 
+            disabled={loadingStates}
+            required
+          >
+            <SelectTrigger className="h-9 sm:h-10 text-sm">
+              <SelectValue placeholder={loadingStates ? "Carregando estados..." : "Estado"} />
+            </SelectTrigger>
+            <SelectContent>
+              {states.map((state) => (
+                <SelectItem key={state.id} value={state.sigla}>
+                  {state.nome}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {formData.state && (
+            <Select 
+              onValueChange={(value) => handleSelectChange("city", value)} 
+              disabled={loadingCities}
+              required
+            >
               <SelectTrigger className="h-9 sm:h-10 text-sm">
-                <SelectValue placeholder={loadingStates ? "Carregando estados..." : "Estado (opcional)"} />
+                <SelectValue placeholder={loadingCities ? "Carregando cidades..." : "Cidade"} />
               </SelectTrigger>
               <SelectContent>
-                {states.map((state) => (
-                  <SelectItem key={state.id} value={state.sigla}>
-                    {state.nome}
+                {cities.map((city) => (
+                  <SelectItem key={city.id} value={city.nome}>
+                    {city.nome}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-
-            {formData.state && (
-              <Select onValueChange={(value) => handleSelectChange("city", value)} disabled={loadingCities}>
-                <SelectTrigger className="h-9 sm:h-10 text-sm">
-                  <SelectValue placeholder={loadingCities ? "Carregando cidades..." : "Cidade (opcional)"} />
-                </SelectTrigger>
-                <SelectContent>
-                  {cities.map((city) => (
-                    <SelectItem key={city.id} value={city.nome}>
-                      {city.nome}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          </CollapsibleContent>
-        </Collapsible>
+          )}
+        </div>
 
         <div className="flex items-start gap-2 mt-2">
           <Checkbox
@@ -617,7 +639,7 @@ const Auth = () => {
 
   return (
     <>
-      <div className="h-screen flex flex-col items-center justify-center relative overflow-hidden bg-gradient-to-br from-background via-background to-primary/5 p-4 sm:p-6 pb-8 sm:pb-12">
+      <div className="h-screen flex flex-col items-center justify-center relative overflow-hidden bg-gradient-to-br from-background via-background to-primary/5 p-4 sm:p-6">
         {/* Elementos decorativos animados com motion blur */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <motion.div
@@ -728,24 +750,26 @@ const Auth = () => {
           {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
         </Button>
 
-        {/* Logo no topo */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="mb-4 z-10 flex-shrink-0"
-        >
-          <CreatorLogo />
-        </motion.div>
+        {/* Container centralizado para Logo + Card */}
+        <div className="flex flex-col items-center gap-6 sm:gap-8 z-10 w-full max-w-[95%] sm:max-w-md">
+          {/* Logo no topo */}
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="flex-shrink-0"
+          >
+            <CreatorLogo />
+          </motion.div>
 
-        {/* Card de auth centralizado - Responsivo para todos os dispositivos */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="w-full max-w-[95%] sm:max-w-md relative z-10 flex-shrink-0 mb-4 sm:mb-8"
-        >
-          <div className="bg-card/80 backdrop-blur-xl rounded-t-3xl sm:rounded-2xl shadow-2xl border border-primary/10 p-4 sm:p-8 flex flex-col max-h-[75vh] sm:max-h-[85vh]">
+          {/* Card de auth centralizado - Responsivo para todos os dispositivos */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="w-full relative flex-shrink-0"
+          >
+            <div className="bg-card/80 backdrop-blur-xl rounded-t-3xl sm:rounded-2xl shadow-2xl border border-primary/10 p-4 sm:p-6 md:p-8 flex flex-col max-h-[65vh] sm:max-h-[70vh]">
             {/* Novo Sistema de Tabs Modernas */}
             <div className="flex border-b border-border mb-4 sm:mb-6 flex-shrink-0">
               <button
@@ -841,6 +865,7 @@ const Auth = () => {
             </div>
           </div>
         </motion.div>
+        </div> {/* Fim do container centralizado */}
       </div>
 
       {/* Modal de Política de Privacidade - Melhorado para Mobile/Tablet */}
