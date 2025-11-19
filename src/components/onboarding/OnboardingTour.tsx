@@ -41,10 +41,14 @@ export function OnboardingTour({ tourType, steps, startDelay = 500 }: Onboarding
 
       if (status === STATUS.FINISHED) {
         markTourAsCompleted(tourType);
+        toast({
+          title: 'Tour concluído! 🎉',
+          description: 'Você pode refazer os tours a qualquer momento nas Configurações (ícone de engrenagem no canto superior direito).',
+        });
       } else if (status === STATUS.SKIPPED && action === 'close') {
         toast({
           title: 'Tour pulado',
-          description: 'Você pode refazer os tours a qualquer momento na página de Perfil.',
+          description: 'Você pode refazer os tours a qualquer momento nas Configurações (ícone de engrenagem no canto superior direito).',
         });
       }
     }
