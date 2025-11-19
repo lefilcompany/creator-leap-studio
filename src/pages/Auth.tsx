@@ -599,7 +599,7 @@ const Auth = () => {
 
   return (
     <>
-      <div className="min-h-screen flex flex-col items-center justify-start sm:justify-center relative overflow-hidden bg-gradient-to-br from-background via-background to-primary/5 p-4 sm:p-6 py-8 sm:py-6">
+      <div className="h-screen flex flex-col items-center justify-center relative overflow-hidden bg-gradient-to-br from-background via-background to-primary/5 p-4 sm:p-6 pb-8 sm:pb-12">
         {/* Elementos decorativos animados com motion blur */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <motion.div
@@ -730,7 +730,7 @@ const Auth = () => {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="w-full max-w-[95%] sm:max-w-md relative z-10 flex-shrink-0"
+          className="w-full max-w-[95%] sm:max-w-md relative z-10 flex-shrink-0 mb-4 sm:mb-8"
         >
           <div className="bg-card/80 backdrop-blur-xl rounded-t-3xl sm:rounded-2xl shadow-2xl border border-primary/10 p-4 sm:p-8 flex flex-col max-h-[75vh] sm:max-h-[85vh]">
             {/* Novo Sistema de Tabs Modernas */}
