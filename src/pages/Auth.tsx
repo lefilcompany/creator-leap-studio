@@ -231,7 +231,14 @@ const Auth = () => {
     e.preventDefault();
 
     // Validar campos obrigatórios
-    if (!formData.name || !formData.email || !formData.password || !formData.phone || !formData.state || !formData.city) {
+    if (
+      !formData.name ||
+      !formData.email ||
+      !formData.password ||
+      !formData.phone ||
+      !formData.state ||
+      !formData.city
+    ) {
       toast.error("Por favor, preencha todos os campos obrigatórios");
       return;
     }
@@ -250,7 +257,7 @@ const Auth = () => {
       toast.error("A senha deve ter no mínimo 6 caracteres");
       return;
     }
-    
+
     if (formData.password !== confirmPassword) {
       toast.error("As senhas não coincidem");
       return;
@@ -525,7 +532,7 @@ const Auth = () => {
           <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
             Informações de Contato
           </Label>
-          
+
           <div className="relative">
             <Phone className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
             <Input
@@ -538,11 +545,7 @@ const Auth = () => {
             />
           </div>
 
-          <Select 
-            onValueChange={(value) => handleSelectChange("state", value)} 
-            disabled={loadingStates}
-            required
-          >
+          <Select onValueChange={(value) => handleSelectChange("state", value)} disabled={loadingStates} required>
             <SelectTrigger className="h-9 sm:h-10 text-sm">
               <SelectValue placeholder={loadingStates ? "Carregando estados..." : "Estado"} />
             </SelectTrigger>
@@ -556,11 +559,7 @@ const Auth = () => {
           </Select>
 
           {formData.state && (
-            <Select 
-              onValueChange={(value) => handleSelectChange("city", value)} 
-              disabled={loadingCities}
-              required
-            >
+            <Select onValueChange={(value) => handleSelectChange("city", value)} disabled={loadingCities} required>
               <SelectTrigger className="h-9 sm:h-10 text-sm">
                 <SelectValue placeholder={loadingCities ? "Carregando cidades..." : "Cidade"} />
               </SelectTrigger>
@@ -646,7 +645,8 @@ const Auth = () => {
           <motion.div
             className="absolute top-20 -left-20 w-96 h-96 rounded-full"
             style={{
-              background: "radial-gradient(circle, hsl(var(--primary) / 0.25) 0%, hsl(330 100% 50% / 0.1) 70%, transparent 100%)",
+              background:
+                "radial-gradient(circle, hsl(var(--primary) / 0.25) 0%, hsl(330 100% 50% / 0.1) 70%, transparent 100%)",
               filter: "blur(50px) sm:blur(70px)",
             }}
             animate={{
@@ -660,11 +660,12 @@ const Auth = () => {
               ease: "easeInOut",
             }}
           />
-          
+
           <motion.div
             className="absolute bottom-20 -right-20 w-[500px] h-[500px] rounded-full"
             style={{
-              background: "radial-gradient(circle, hsl(190 100% 50% / 0.2) 0%, hsl(220 100% 50% / 0.1) 70%, transparent 100%)",
+              background:
+                "radial-gradient(circle, hsl(190 100% 50% / 0.2) 0%, hsl(220 100% 50% / 0.1) 70%, transparent 100%)",
               filter: "blur(60px) sm:blur(90px)",
             }}
             animate={{
@@ -684,7 +685,7 @@ const Auth = () => {
             src={decorativeElement}
             alt=""
             className="absolute top-[10%] right-[8%] w-64 h-64 sm:w-72 sm:h-72 object-contain opacity-8"
-            style={{ filter: "blur(4px)" }}
+            style={{ filter: "blur(12px)" }}
             animate={{
               y: [0, -35, 35, 0],
               rotate: [0, 12, -12, 0],
@@ -696,12 +697,12 @@ const Auth = () => {
               ease: "easeInOut",
             }}
           />
-          
+
           <motion.img
             src={decorativeElement}
             alt=""
             className="absolute top-[45%] left-[6%] w-56 h-56 sm:w-68 sm:h-68 object-contain opacity-8"
-            style={{ filter: "blur(5px)" }}
+            style={{ filter: "blur(12px)" }}
             animate={{
               x: [0, 30, -30, 0],
               y: [0, -40, 25, 0],
@@ -715,12 +716,12 @@ const Auth = () => {
               delay: 1.5,
             }}
           />
-          
+
           <motion.img
             src={decorativeElement}
             alt=""
             className="absolute bottom-[15%] right-[10%] w-60 h-60 sm:w-70 sm:h-70 object-contain opacity-8"
-            style={{ filter: "blur(5px)" }}
+            style={{ filter: "blur(12px)" }}
             animate={{
               x: [0, -40, 40, 0],
               y: [0, 45, -30, 0],
@@ -735,7 +736,6 @@ const Auth = () => {
             }}
           />
         </div>
-
         {/* Botão de tema no canto superior direito */}
         <Button
           variant="ghost"
@@ -745,7 +745,6 @@ const Auth = () => {
         >
           {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
         </Button>
-
         {/* Container centralizado para Logo + Card */}
         <div className="flex flex-col items-center gap-6 sm:gap-8 z-10 w-full max-w-[95%] sm:max-w-md">
           {/* Logo no topo */}
@@ -766,102 +765,103 @@ const Auth = () => {
             className="w-full relative flex-shrink-0"
           >
             <div className="bg-card/80 backdrop-blur-xl rounded-t-3xl sm:rounded-2xl shadow-2xl border border-primary/10 p-4 sm:p-6 md:p-8 flex flex-col max-h-[65vh] sm:max-h-[70vh]">
-            {/* Novo Sistema de Tabs Modernas */}
-            <div className="flex border-b border-border mb-4 sm:mb-6 flex-shrink-0">
-              <button
-                onClick={() => setIsLoginMode(true)}
-                className={`flex-1 pb-3 text-center font-semibold transition-all relative ${
-                  isLoginMode ? "text-primary" : "text-muted-foreground"
-                }`}
-              >
-                Login
-                {isLoginMode && (
-                  <motion.div
-                    layoutId="activeTab"
-                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
-                    transition={{
-                      type: "spring",
-                      stiffness: 500,
-                      damping: 30,
-                    }}
-                  />
-                )}
-              </button>
-              <button
-                onClick={() => setIsLoginMode(false)}
-                className={`flex-1 pb-3 text-center font-semibold transition-all relative ${
-                  !isLoginMode ? "text-primary" : "text-muted-foreground"
-                }`}
-              >
-                Cadastro
-                {!isLoginMode && (
-                  <motion.div
-                    layoutId="activeTab"
-                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
-                    transition={{
-                      type: "spring",
-                      stiffness: 500,
-                      damping: 30,
-                    }}
-                  />
-                )}
-              </button>
-            </div>
-
-            <div className="text-center mb-2 sm:mb-3 md:mb-4 flex-shrink-0">
-              <AnimatePresence mode="wait">
-                <motion.h2
-                  key={isLoginMode ? "login-title" : "register-title"}
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  transition={{ duration: 0.2 }}
-                  className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent mb-2"
+              {/* Novo Sistema de Tabs Modernas */}
+              <div className="flex border-b border-border mb-4 sm:mb-6 flex-shrink-0">
+                <button
+                  onClick={() => setIsLoginMode(true)}
+                  className={`flex-1 pb-3 text-center font-semibold transition-all relative ${
+                    isLoginMode ? "text-primary" : "text-muted-foreground"
+                  }`}
                 >
-                  {isLoginMode ? t.login.welcome : "Crie sua conta"}
-                </motion.h2>
-              </AnimatePresence>
-              <p className="text-sm sm:text-base text-muted-foreground">
-                {isLoginMode ? t.login.welcomeMessage : "Comece a criar conteúdo estratégico hoje"}
-              </p>
-            </div>
-
-            <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0 -mx-1 px-1 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
-              <AnimatePresence mode="wait" initial={false}>
-                <motion.div
-                  key={isLoginMode ? "login" : "register"}
-                  initial={{
-                    opacity: 0,
-                    y: 15,
-                    filter: "blur(4px)",
-                    scale: 0.96,
-                  }}
-                  animate={{
-                    opacity: 1,
-                    y: 0,
-                    filter: "blur(0px)",
-                    scale: 1,
-                  }}
-                  exit={{
-                    opacity: 0,
-                    y: -15,
-                    filter: "blur(4px)",
-                    scale: 0.96,
-                    transition: { duration: 0.2, ease: [0.4, 0, 0.6, 1] },
-                  }}
-                  transition={{
-                    duration: 0.4,
-                    ease: [0.16, 1, 0.3, 1],
-                    filter: { duration: 0.3 },
-                  }}
+                  Login
+                  {isLoginMode && (
+                    <motion.div
+                      layoutId="activeTab"
+                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
+                      transition={{
+                        type: "spring",
+                        stiffness: 500,
+                        damping: 30,
+                      }}
+                    />
+                  )}
+                </button>
+                <button
+                  onClick={() => setIsLoginMode(false)}
+                  className={`flex-1 pb-3 text-center font-semibold transition-all relative ${
+                    !isLoginMode ? "text-primary" : "text-muted-foreground"
+                  }`}
                 >
-                  {isLoginMode ? loginForm : registerForm}
-                </motion.div>
-              </AnimatePresence>
+                  Cadastro
+                  {!isLoginMode && (
+                    <motion.div
+                      layoutId="activeTab"
+                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
+                      transition={{
+                        type: "spring",
+                        stiffness: 500,
+                        damping: 30,
+                      }}
+                    />
+                  )}
+                </button>
+              </div>
+
+              <div className="text-center mb-2 sm:mb-3 md:mb-4 flex-shrink-0">
+                <AnimatePresence mode="wait">
+                  <motion.h2
+                    key={isLoginMode ? "login-title" : "register-title"}
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    transition={{ duration: 0.2 }}
+                    className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent mb-2"
+                  >
+                    {isLoginMode ? t.login.welcome : "Crie sua conta"}
+                  </motion.h2>
+                </AnimatePresence>
+                <p className="text-sm sm:text-base text-muted-foreground">
+                  {isLoginMode ? t.login.welcomeMessage : "Comece a criar conteúdo estratégico hoje"}
+                </p>
+              </div>
+
+              <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0 -mx-1 px-1 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.div
+                    key={isLoginMode ? "login" : "register"}
+                    initial={{
+                      opacity: 0,
+                      y: 15,
+                      filter: "blur(4px)",
+                      scale: 0.96,
+                    }}
+                    animate={{
+                      opacity: 1,
+                      y: 0,
+                      filter: "blur(0px)",
+                      scale: 1,
+                    }}
+                    exit={{
+                      opacity: 0,
+                      y: -15,
+                      filter: "blur(4px)",
+                      scale: 0.96,
+                      transition: { duration: 0.2, ease: [0.4, 0, 0.6, 1] },
+                    }}
+                    transition={{
+                      duration: 0.4,
+                      ease: [0.16, 1, 0.3, 1],
+                      filter: { duration: 0.3 },
+                    }}
+                  >
+                    {isLoginMode ? loginForm : registerForm}
+                  </motion.div>
+                </AnimatePresence>
+              </div>
             </div>
-          </div>
-        </motion.div>
-        </div> {/* Fim do container centralizado */}
+          </motion.div>
+        </div>{" "}
+        {/* Fim do container centralizado */}
       </div>
 
       {/* Modal de Política de Privacidade - Melhorado para Mobile/Tablet */}
