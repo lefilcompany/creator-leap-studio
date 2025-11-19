@@ -639,12 +639,15 @@ const Auth = () => {
 
   return (
     <>
-      <div className="h-screen flex flex-col items-center justify-center relative overflow-hidden bg-gradient-to-br from-background via-background to-primary/5 p-4 sm:p-6">
+      <div className="h-screen flex flex-col items-center justify-center relative overflow-hidden bg-gradient-to-br from-background via-purple-50/5 to-pink-50/10 dark:via-purple-950/5 dark:to-pink-950/10 p-4 sm:p-6">
         {/* Elementos decorativos animados com motion blur */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <motion.div
-            className="absolute top-20 -left-20 w-96 h-96 rounded-full bg-gradient-to-r from-primary/20 to-primary/5"
-            style={{ filter: "blur(60px) sm:blur(80px)" }}
+            className="absolute top-20 -left-20 w-96 h-96 rounded-full"
+            style={{
+              background: "radial-gradient(circle, hsl(var(--primary) / 0.25) 0%, hsl(330 100% 50% / 0.1) 70%, transparent 100%)",
+              filter: "blur(50px) sm:blur(70px)",
+            }}
             animate={{
               x: [0, 100, 0],
               y: [0, -50, 0],
@@ -657,8 +660,11 @@ const Auth = () => {
             }}
           />
           <motion.div
-            className="absolute bottom-20 -right-20 w-[500px] h-[500px] rounded-full bg-gradient-to-l from-primary/15 to-accent/10"
-            style={{ filter: "blur(80px) sm:blur(100px)" }}
+            className="absolute bottom-20 -right-20 w-[500px] h-[500px] rounded-full"
+            style={{
+              background: "radial-gradient(circle, hsl(190 100% 50% / 0.2) 0%, hsl(220 100% 50% / 0.1) 70%, transparent 100%)",
+              filter: "blur(60px) sm:blur(90px)",
+            }}
             animate={{
               x: [0, -80, 0],
               y: [0, 60, 0],
@@ -671,8 +677,11 @@ const Auth = () => {
             }}
           />
           <motion.div
-            className="absolute top-1/2 left-1/4 w-64 h-64 rounded-full bg-primary/10"
-            style={{ filter: "blur(60px)" }}
+            className="absolute top-1/2 left-1/4 w-64 h-64 rounded-full"
+            style={{
+              background: "hsl(280 100% 50% / 0.15)",
+              filter: "blur(50px)",
+            }}
             animate={{
               x: [0, -50, 50, 0],
               y: [0, 50, -50, 0],
@@ -688,16 +697,15 @@ const Auth = () => {
           <motion.img
             src={decorativeElement}
             alt=""
-            className="absolute top-1/4 right-[5%] w-64 h-64 object-contain opacity-10"
-            style={{ filter: "blur(8px)" }}
+            className="absolute top-[15%] right-[8%] w-72 h-72 sm:w-80 sm:h-80 object-contain opacity-20"
+            style={{ filter: "blur(4px)" }}
             animate={{
-              x: [0, 60, -30, 0],
-              y: [0, -40, 40, 0],
-              rotate: [0, 15, -15, 0],
-              scale: [1, 1.15, 0.95, 1],
+              y: [0, -30, 30, 0],
+              rotate: [0, 10, -10, 0],
+              scale: [1, 1.05, 0.95, 1],
             }}
             transition={{
-              duration: 18,
+              duration: 20,
               repeat: Infinity,
               ease: "easeInOut",
             }}
@@ -705,12 +713,29 @@ const Auth = () => {
           <motion.img
             src={decorativeElement}
             alt=""
-            className="absolute bottom-1/3 left-1/3 w-48 h-48 object-contain opacity-8"
-            style={{ filter: "blur(10px)" }}
+            className="absolute bottom-[25%] left-[15%] w-56 h-56 sm:w-64 sm:h-64 object-contain opacity-18"
+            style={{ filter: "blur(5px)" }}
             animate={{
-              x: [0, -50, 50, 0],
-              y: [0, 60, -30, 0],
-              rotate: [0, -20, 20, 0],
+              x: [0, 30, -30, 0],
+              y: [0, 40, -20, 0],
+              rotate: [0, -15, 15, 0],
+            }}
+            transition={{
+              duration: 25,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 2,
+            }}
+          />
+          <motion.img
+            src={decorativeElement}
+            alt=""
+            className="absolute top-[20%] left-[10%] w-52 h-52 sm:w-60 sm:h-60 object-contain opacity-15"
+            style={{ filter: "blur(6px)" }}
+            animate={{
+              x: [0, -20, 20, 0],
+              y: [0, -40, 20, 0],
+              rotate: [0, 20, -20, 0],
               scale: [1, 0.9, 1.1, 1],
             }}
             transition={{
@@ -723,19 +748,19 @@ const Auth = () => {
           <motion.img
             src={decorativeElement}
             alt=""
-            className="absolute top-1/3 left-1/5 w-40 h-40 object-contain opacity-6"
-            style={{ filter: "blur(12px)" }}
+            className="absolute bottom-[20%] right-[12%] w-44 h-44 sm:w-56 sm:h-56 object-contain opacity-16"
+            style={{ filter: "blur(5px)" }}
             animate={{
-              x: [0, 40, -40, 0],
-              y: [0, -50, 50, 0],
-              rotate: [0, 25, -25, 0],
-              scale: [1, 1.2, 0.85, 1],
+              x: [0, -40, 40, 0],
+              y: [0, 50, -30, 0],
+              rotate: [0, -18, 18, 0],
+              scale: [1, 1.1, 0.9, 1],
             }}
             transition={{
-              duration: 20,
+              duration: 24,
               repeat: Infinity,
               ease: "easeInOut",
-              delay: 2,
+              delay: 3,
             }}
           />
         </div>
