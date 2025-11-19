@@ -24,6 +24,9 @@ import { toast } from "sonner";
 import { TrialBanner } from "@/components/TrialBanner";
 import { ExpiredTrialBlocker } from "@/components/ExpiredTrialBlocker";
 
+import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
+import { navbarSteps, dashboardSteps } from '@/components/onboarding/tourSteps';
+
 const Dashboard = () => {
   const { user, team, isLoading } = useAuth();
   const [dashboardData, setDashboardData] = useState({
@@ -200,6 +203,9 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-6">
+      <OnboardingTour tourType="navbar" steps={navbarSteps} startDelay={1000} />
+      <OnboardingTour tourType="dashboard" steps={dashboardSteps} startDelay={2000} />
+      
       {/* Bloqueador de Trial Expirado */}
       <ExpiredTrialBlocker />
       
@@ -238,9 +244,9 @@ const Dashboard = () => {
       </Card>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div id="dashboard-stats" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Créditos Card - Destaque com 2 colunas */}
-        <Card className="lg:col-span-2 bg-card shadow-lg border-2 border-primary/20 hover:border-primary/30 transition-all duration-200">
+        <Card id="dashboard-credits-card" className="lg:col-span-2 bg-card shadow-lg border-2 border-primary/20 hover:border-primary/30 transition-all duration-200">
           <CardHeader className="flex flex-row items-center justify-between pb-3">
             <CardTitle className="text-base font-medium text-primary">
               {stats[0].title}
@@ -306,7 +312,7 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Quick Actions */}
         <div className="lg:col-span-1">
-          <Card className="shadow-lg border-0 bg-gradient-to-r from-secondary/5 via-primary/5 to-secondary/5 animate-fade-in">
+          <Card id="dashboard-quick-actions" className="shadow-lg border-0 bg-gradient-to-r from-secondary/5 via-primary/5 to-secondary/5 animate-fade-in">
             <CardHeader className="pb-4">
               <div className="flex items-center gap-4">
                 <div className="flex-shrink-0 bg-secondary/10 text-secondary rounded-lg p-3">
@@ -338,7 +344,7 @@ const Dashboard = () => {
 
         {/* Recent Activities */}
         <div className="lg:col-span-2">
-          <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5 animate-fade-in">
+          <Card id="dashboard-recent-actions" className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5 animate-fade-in">
             <CardHeader className="pb-4 border-b border-border/50">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">

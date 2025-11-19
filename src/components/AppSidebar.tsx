@@ -172,17 +172,17 @@ export function AppSidebar() {
   const isNavigationDisabled = isTrialExpired;
 
   const navLinks = [
-    { id: "nav-home", href: "/dashboard", icon: Home, label: t.sidebar.home },
-    { id: "nav-marcas", href: "/brands", icon: Tag, label: t.sidebar.brands },
-    { id: "nav-temas", href: "/themes", icon: Palette, label: t.sidebar.themes },
+    { id: "nav-dashboard", href: "/dashboard", icon: Home, label: t.sidebar.home },
+    { id: "nav-brands", href: "/brands", icon: Tag, label: t.sidebar.brands },
+    { id: "nav-themes", href: "/themes", icon: Palette, label: t.sidebar.themes },
     { id: "nav-personas", href: "/personas", icon: Users, label: t.sidebar.personas },
-    { id: "nav-rapido", href: "/quick-content", icon: Zap, label: t.sidebar.quickContent },
+    { id: "nav-quick-content", href: "/quick-content", icon: Zap, label: t.sidebar.quickContent },
   ];
 
   const actionButtons = [
-      { id: "nav-criar", href: "/create", icon: Sparkles, label: t.sidebar.createContent, variant: "primary" as const },
-      { id: "nav-revisar", href: "/review", icon: CheckCircle, label: t.sidebar.reviewContent, variant: "accent" as const },
-      { id: "nav-planejar", href: "/plan", icon: Calendar, label: t.sidebar.planContent, variant: "secondary" as const },
+      { id: "nav-create-content", href: "/create", icon: Sparkles, label: t.sidebar.createContent, variant: "primary" as const },
+      { id: "nav-review-content", href: "/review", icon: CheckCircle, label: t.sidebar.reviewContent, variant: "accent" as const },
+      { id: "nav-plan-content", href: "/plan", icon: Calendar, label: t.sidebar.planContent, variant: "secondary" as const },
   ];
 
   const handleMobileNavigate = () => {
@@ -196,6 +196,7 @@ export function AppSidebar() {
       <NavLink 
         to="/dashboard" 
         onClick={handleMobileNavigate}
+        id="sidebar-logo"
         className="pt-6 pb-2 mb-2 flex justify-center cursor-pointer hover:opacity-80 transition-opacity"
       >
         <img
@@ -232,7 +233,16 @@ export function AppSidebar() {
 
         {team && (
           <div className="mt-auto mb-4 flex flex-col gap-3">
+            <NavItem
+              id="nav-history"
+              href="/history"
+              icon={History}
+              label={t.sidebar.history}
+              collapsed={collapsed}
+              onNavigate={handleMobileNavigate}
+            />
             <NavLink
+              id="nav-credits"
               to="/plans"
               onClick={handleMobileNavigate}
               className="flex items-center gap-3 p-3 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-105 bg-gradient-to-r from-primary to-secondary text-primary-foreground shadow-lg"

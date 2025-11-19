@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import { AuthProvider } from "./contexts/AuthContext";
+import { OnboardingProvider } from "./components/onboarding/OnboardingProvider";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -52,7 +53,8 @@ const App = () => (
       <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
         <LanguageProvider>
           <AuthProvider>
-            <TooltipProvider>
+            <OnboardingProvider>
+              <TooltipProvider>
               <Toaster />
               <Sonner />
               <BrowserRouter>
@@ -99,11 +101,12 @@ const App = () => (
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
             </Routes>
-            </BrowserRouter>
-          </TooltipProvider>
-        </AuthProvider>
-      </LanguageProvider>
-    </ThemeProvider>
+              </BrowserRouter>
+              </TooltipProvider>
+            </OnboardingProvider>
+          </AuthProvider>
+        </LanguageProvider>
+      </ThemeProvider>
   </QueryClientProvider>
   </ErrorBoundary>
 );

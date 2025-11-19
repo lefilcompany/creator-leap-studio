@@ -17,6 +17,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useTranslation } from '@/hooks/useTranslation';
 import { CreditConfirmationDialog } from '@/components/CreditConfirmationDialog';
 import { Coins } from 'lucide-react';
+import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
+import { brandsSteps } from '@/components/onboarding/tourSteps';
 
 // Definindo o tipo para os dados do formulário, que é um Brand parcial
 type BrandFormData = Omit<Brand, 'id' | 'createdAt' | 'updatedAt' | 'teamId' | 'userId'>;
@@ -362,6 +364,8 @@ export default function MarcasPage() {
 
   return (
     <div className="h-full flex flex-col gap-4 lg:gap-6 overflow-hidden">
+      <OnboardingTour tourType="brands" steps={brandsSteps} />
+      
       <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5 flex-shrink-0">
         <CardHeader className="pb-3 lg:pb-4">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 lg:gap-4">
@@ -378,7 +382,8 @@ export default function MarcasPage() {
                 </p>
               </div>
             </div>
-            <Button 
+            <Button
+              id="brands-create-button"
               onClick={() => handleOpenDialog()} 
               disabled={isButtonDisabled}
               className="rounded-lg bg-gradient-to-r from-primary to-secondary px-4 lg:px-6 py-3 lg:py-5 text-sm lg:text-base disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
@@ -395,7 +400,7 @@ export default function MarcasPage() {
         </CardHeader>
       </Card>
 
-      <main className="grid gap-4 lg:gap-6 flex-1 min-h-0 overflow-hidden grid-cols-1">
+      <main id="brands-list" className="grid gap-4 lg:gap-6 flex-1 min-h-0 overflow-hidden grid-cols-1">
         <BrandList
           brands={brands}
           selectedBrand={selectedBrandSummary}
