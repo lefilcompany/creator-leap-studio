@@ -17,8 +17,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useTranslation } from '@/hooks/useTranslation';
 import { CreditConfirmationDialog } from '@/components/CreditConfirmationDialog';
 import { Coins } from 'lucide-react';
-import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
-import { brandsSteps } from '@/components/onboarding/tourSteps';
+import { TourSelector } from '@/components/onboarding/TourSelector';
+import { brandsSteps, navbarSteps } from '@/components/onboarding/tourSteps';
 
 // Definindo o tipo para os dados do formulário, que é um Brand parcial
 type BrandFormData = Omit<Brand, 'id' | 'createdAt' | 'updatedAt' | 'teamId' | 'userId'>;
@@ -364,7 +364,23 @@ export default function MarcasPage() {
 
   return (
     <div className="h-full flex flex-col gap-4 lg:gap-6 overflow-hidden">
-      <OnboardingTour tourType="brands" steps={brandsSteps} />
+      <TourSelector 
+        tours={[
+          {
+            tourType: 'navbar',
+            steps: navbarSteps,
+            label: 'Tour da Navegação',
+            targetElement: '#sidebar-logo'
+          },
+          {
+            tourType: 'brands',
+            steps: brandsSteps,
+            label: 'Tour de Marcas',
+            targetElement: '#brands-create-button'
+          }
+        ]}
+        startDelay={500}
+      />
       
       <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5 flex-shrink-0">
         <CardHeader className="pb-3 lg:pb-4">

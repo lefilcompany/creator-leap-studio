@@ -14,8 +14,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
-import { historySteps } from '@/components/onboarding/tourSteps';
+import { TourSelector } from '@/components/onboarding/TourSelector';
+import { historySteps, navbarSteps } from '@/components/onboarding/tourSteps';
 
 export default function History() {
   const { user } = useAuth();
@@ -300,7 +300,23 @@ export default function History() {
         </Drawer>
       )}
 
-      <OnboardingTour tourType="history" steps={historySteps} />
+      <TourSelector 
+        tours={[
+          {
+            tourType: 'navbar',
+            steps: navbarSteps,
+            label: 'Tour da Navegação',
+            targetElement: '#sidebar-logo'
+          },
+          {
+            tourType: 'history',
+            steps: historySteps,
+            label: 'Tour de Histórico',
+            targetElement: '#history-list'
+          }
+        ]}
+        startDelay={500}
+      />
     </div>
   );
 }

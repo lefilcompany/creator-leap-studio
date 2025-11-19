@@ -15,8 +15,8 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { CreditConfirmationDialog } from '@/components/CreditConfirmationDialog';
 import { Coins } from 'lucide-react';
-import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
-import { themesSteps } from '@/components/onboarding/tourSteps';
+import { TourSelector } from '@/components/onboarding/TourSelector';
+import { themesSteps, navbarSteps } from '@/components/onboarding/tourSteps';
 
 type ThemeFormData = Omit<StrategicTheme, 'id' | 'createdAt' | 'updatedAt' | 'teamId' | 'userId'>;
 
@@ -481,7 +481,23 @@ export default function Themes() {
         resourceType="tema estratégico"
       />
 
-      <OnboardingTour tourType="themes" steps={themesSteps} />
+      <TourSelector 
+        tours={[
+          {
+            tourType: 'navbar',
+            steps: navbarSteps,
+            label: 'Tour da Navegação',
+            targetElement: '#sidebar-logo'
+          },
+          {
+            tourType: 'themes',
+            steps: themesSteps,
+            label: 'Tour de Temas Estratégicos',
+            targetElement: '#themes-create-button'
+          }
+        ]}
+        startDelay={500}
+      />
     </div>
   );
 }

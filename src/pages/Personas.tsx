@@ -17,8 +17,8 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { CreditConfirmationDialog } from '@/components/CreditConfirmationDialog';
 import { Coins } from 'lucide-react';
-import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
-import { personasSteps } from '@/components/onboarding/tourSteps';
+import { TourSelector } from '@/components/onboarding/TourSelector';
+import { personasSteps, navbarSteps } from '@/components/onboarding/tourSteps';
 
 // Definindo o tipo para os dados do formulário, que é uma Persona parcial
 type PersonaFormData = Omit<Persona, 'id' | 'createdAt' | 'updatedAt' | 'teamId' | 'userId'>;
@@ -473,7 +473,23 @@ export default function PersonasPage() {
         resourceType="persona"
       />
 
-      <OnboardingTour tourType="personas" steps={personasSteps} />
+      <TourSelector 
+        tours={[
+          {
+            tourType: 'navbar',
+            steps: navbarSteps,
+            label: 'Tour da Navegação',
+            targetElement: '#sidebar-logo'
+          },
+          {
+            tourType: 'personas',
+            steps: personasSteps,
+            label: 'Tour de Personas',
+            targetElement: '#personas-create-button'
+          }
+        ]}
+        startDelay={500}
+      />
     </div>
   );
 }
