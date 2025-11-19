@@ -177,18 +177,63 @@ export const createContentSteps: Step[] = [
 export const quickContentSteps: Step[] = [
   {
     target: '#quick-content-form',
-    content: 'O Conteúdo Rápido é perfeito quando você precisa de uma legenda sem configurações complexas.',
+    content: 'A Criação Rápida permite gerar imagens com IA de forma simples e intuitiva, sem precisar configurar marca, persona ou tema estratégico.',
     disableBeacon: true,
     placement: 'top',
   },
   {
     target: '#quick-brand-select',
-    content: 'Selecione apenas a marca e descreva o que você quer.',
+    content: 'Marca (opcional): Selecionar uma marca ajuda a IA a criar conteúdo alinhado com sua identidade visual, usando cores e estilo da marca.',
+    placement: 'bottom',
+  },
+  {
+    target: '#quick-platform-select',
+    content: 'Plataforma (opcional): Escolha onde o conteúdo será publicado. A proporção da imagem será ajustada automaticamente para a plataforma selecionada.',
     placement: 'bottom',
   },
   {
     target: '#quick-description',
-    content: 'Digite o tema ou ideia para sua legenda aqui.',
+    content: 'Prompt principal (obrigatório): Descreva detalhadamente o que você quer criar. Seja específico sobre cena, iluminação, cores e estilo desejado para melhores resultados.',
+    placement: 'top',
+  },
+  {
+    target: '#quick-reference-images',
+    content: 'Imagens de Referência (opcional): Adicione até 5 imagens para guiar a geração. Você pode fazer upload, arrastar arquivos ou colar (Ctrl+V) diretamente.',
+    placement: 'top',
+  },
+  {
+    target: '#quick-preserve-traits',
+    content: 'Preservar traços: Marque esta opção para que a IA mantenha características específicas das imagens de referência, como estilo, composição ou elementos visuais.',
+    placement: 'top',
+  },
+  {
+    target: '#advanced-options',
+    content: 'Opções Avançadas: Controles profissionais para ajustar detalhes da geração. Deixe em "Automático" se preferir resultados inteligentes sem configurações complexas.',
+    placement: 'bottom',
+  },
+  {
+    target: '#advanced-negative-prompt',
+    content: 'Prompt Negativo: Especifique o que NÃO deve aparecer na imagem (ex: texto, pessoas, fundo branco). Útil para evitar elementos indesejados.',
+    placement: 'top',
+  },
+  {
+    target: '#advanced-color-palette',
+    content: 'Paleta de Cores: Escolha o esquema de cores desejado - quente, frio, vibrante, pastel, monocromático ou deixe automático.',
+    placement: 'bottom',
+  },
+  {
+    target: '#advanced-lighting',
+    content: 'Iluminação: Defina o tipo de luz da imagem - natural, estúdio, golden hour, dramática ou suave. Afeta muito a atmosfera da imagem.',
+    placement: 'bottom',
+  },
+  {
+    target: '#advanced-detail-level',
+    content: 'Nível de Detalhes: Ajuste o quão detalhada será a imagem, de minimalista (1) a muito detalhado (10). O padrão (7) oferece bom equilíbrio.',
+    placement: 'top',
+  },
+  {
+    target: '#quick-generate-button',
+    content: 'Quando tudo estiver configurado, clique aqui para gerar sua imagem. A ação consome 5 créditos. Certifique-se de que o prompt principal está preenchido.',
     placement: 'top',
   },
 ];

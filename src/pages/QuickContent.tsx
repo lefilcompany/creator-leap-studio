@@ -379,7 +379,7 @@ export default function QuickContent() {
                 });
               }
             }}>
-                <SelectTrigger id="platform" className="h-11 rounded-xl border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors">
+                <SelectTrigger id="quick-platform-select" className="h-11 rounded-xl border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors">
                   <SelectValue placeholder="Nenhuma plataforma selecionada" />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl border-border/20">
@@ -419,7 +419,7 @@ export default function QuickContent() {
                 Imagens de Referência <span className="text-muted-foreground font-normal">(opcional, máx. 5)</span>
               </Label>
               
-              <div className="space-y-3">
+              <div id="quick-reference-images" className="space-y-3">
                 <Input ref={fileInputRef} type="file" accept="image/*" multiple onChange={e => {
                 const files = Array.from(e.target.files || []);
                 setReferenceFiles(prev => [...prev, ...files].slice(0, 5));
@@ -451,7 +451,7 @@ export default function QuickContent() {
                             </Button>
                           </div>
                           <div className="flex items-center gap-2 pl-4">
-                            <input type="checkbox" id={`preserve-${idx}`} checked={preserveImageIndices.includes(idx)} onChange={() => handleTogglePreserve(idx)} className="h-4 w-4 rounded border-border/50 text-primary focus:ring-2 focus:ring-primary/50" />
+                            <input type="checkbox" id={idx === 0 ? "quick-preserve-traits" : `preserve-${idx}`} checked={preserveImageIndices.includes(idx)} onChange={() => handleTogglePreserve(idx)} className="h-4 w-4 rounded border-border/50 text-primary focus:ring-2 focus:ring-primary/50" />
                             <Label htmlFor={`preserve-${idx}`} className="text-xs text-muted-foreground cursor-pointer">Preservar traços desta imagem na geração final</Label>
                           </div>
                         </div>)}
@@ -473,7 +473,7 @@ export default function QuickContent() {
             {/* Advanced Options (Accordion) */}
             <Accordion type="single" collapsible className="border-2 border-border/30 rounded-xl overflow-hidden">
               <AccordionItem value="advanced" className="border-0">
-                <AccordionTrigger className="px-4 py-3 hover:bg-muted/50 transition-colors hover:no-underline">
+                <AccordionTrigger id="advanced-options" className="px-4 py-3 hover:bg-muted/50 transition-colors hover:no-underline">
                   <div className="flex items-center gap-2 text-sm font-semibold">
                     <Settings2 className="h-4 w-4 text-primary" />
                     <span>Opções Avançadas</span>
@@ -487,12 +487,12 @@ export default function QuickContent() {
 
                   {/* Negative Prompt */}
                   <div className="space-y-2">
-                    <Label htmlFor="negativePrompt" className="text-xs font-medium flex items-center gap-2">
+                    <Label htmlFor="advanced-negative-prompt" className="text-xs font-medium flex items-center gap-2">
                       Prompt Negativo
                       <Info className="h-3 w-3 text-muted-foreground" />
                     </Label>
                     <Textarea
-                      id="negativePrompt"
+                      id="advanced-negative-prompt"
                       placeholder="O que NÃO incluir (ex: texto, pessoas, fundo branco...)"
                       value={formData.negativePrompt}
                       onChange={(e) => setFormData({...formData, negativePrompt: e.target.value})}
@@ -507,7 +507,7 @@ export default function QuickContent() {
                       value={formData.colorPalette}
                       onValueChange={(value) => setFormData(prev => ({ ...prev, colorPalette: value }))}
                     >
-                      <SelectTrigger className="h-9 rounded-lg border-2 border-border/50 bg-background/50 text-xs">
+                      <SelectTrigger id="advanced-color-palette" className="h-9 rounded-lg border-2 border-border/50 bg-background/50 text-xs">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -529,7 +529,7 @@ export default function QuickContent() {
                       value={formData.lighting}
                       onValueChange={(value) => setFormData(prev => ({ ...prev, lighting: value }))}
                     >
-                      <SelectTrigger className="h-9 rounded-lg border-2 border-border/50 bg-background/50 text-xs">
+                      <SelectTrigger id="advanced-lighting" className="h-9 rounded-lg border-2 border-border/50 bg-background/50 text-xs">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -662,6 +662,7 @@ export default function QuickContent() {
                       <span className="text-xs text-muted-foreground font-medium">{formData.detailLevel}/10</span>
                     </div>
                     <Slider
+                      id="advanced-detail-level"
                       value={[formData.detailLevel || 7]}
                       onValueChange={(value) => setFormData(prev => ({ ...prev, detailLevel: value[0] }))}
                       min={1}
@@ -683,7 +684,7 @@ export default function QuickContent() {
 
         {/* Generate Button */}
         <div className="flex justify-end pb-6">
-          <Button onClick={generateQuickContent} disabled={loading || !formData.prompt.trim() || (team?.credits || 0) < CREDIT_COSTS.QUICK_IMAGE} size="lg" className="bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_100%] animate-gradient text-primary-foreground hover:opacity-90 transition-opacity shadow-lg gap-2">
+          <Button id="quick-generate-button" onClick={generateQuickContent} disabled={loading || !formData.prompt.trim() || (team?.credits || 0) < CREDIT_COSTS.QUICK_IMAGE} size="lg" className="bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_100%] animate-gradient text-primary-foreground hover:opacity-90 transition-opacity shadow-lg gap-2">
             {loading ? <>
                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                 Gerando...
