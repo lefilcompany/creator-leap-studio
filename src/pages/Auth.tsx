@@ -320,7 +320,7 @@ const Auth = () => {
 
   const loginForm = useMemo(
     () => (
-      <form onSubmit={handleLogin} className="space-y-4 sm:space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         <div className="space-y-2">
           <div className="relative">
             <Mail className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
@@ -400,9 +400,24 @@ const Auth = () => {
             {t.login.forgotPassword}
           </a>
         </div>
+      </div>
+    ),
+    [
+      loginEmail,
+      loginPassword,
+      showPassword,
+      rememberMe,
+      showPasswordResetSuggestion,
+      t,
+    ],
+  );
 
+  const loginButton = useMemo(
+    () => (
+      <div className="space-y-4 pt-4 sm:pt-6 border-t border-border/50">
         <Button
-          type="submit"
+          type="button"
+          onClick={handleLogin}
           disabled={loading}
           className="w-full h-9 sm:h-10 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-medium rounded-lg sm:rounded-xl transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 text-sm"
         >
@@ -415,9 +430,20 @@ const Auth = () => {
             t.login.signIn
           )}
         </Button>
-      </form>
+
+        <div className="text-center">
+          <span className="text-muted-foreground text-xs sm:text-sm">{t.login.noAccount} </span>
+          <button
+            type="button"
+            onClick={() => setIsLoginMode(false)}
+            className="text-primary hover:text-primary/80 font-medium text-xs sm:text-sm transition-colors"
+          >
+            {t.login.createAccount}
+          </button>
+        </div>
+      </div>
     ),
-    [loginEmail, loginPassword, showPassword, rememberMe, loading, showPasswordResetSuggestion, handleLogin, t],
+    [loading, handleLogin, t],
   );
 
   const registerForm = useMemo(
@@ -858,6 +884,18 @@ const Auth = () => {
                   </motion.div>
                 </AnimatePresence>
               </div>
+              
+              {/* Botão fixo fora do scroll apenas para login */}
+              {isLoginMode && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  transition={{ duration: 0.3, delay: 0.2 }}
+                >
+                  {loginButton}
+                </motion.div>
+              )}
             </div>
           </motion.div>
         </div>{" "}
