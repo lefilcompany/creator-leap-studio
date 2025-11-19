@@ -30,6 +30,8 @@ import type { Team } from "@/types/theme";
 import { useAuth } from "@/hooks/useAuth";
 import { getPlatformImageSpec, getCaptionGuidelines, platformSpecs } from "@/lib/platformSpecs";
 import { useFormPersistence } from '@/hooks/useFormPersistence';
+import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
+import { createContentSteps } from '@/components/onboarding/tourSteps';
 
 enum GenerationStep {
   IDLE = "IDLE",
@@ -1284,6 +1286,7 @@ ${formData.description}
 
   return (
     <div className="min-h-full bg-gradient-to-br from-background via-background to-muted/20">
+      <OnboardingTour tourType="create_content" steps={createContentSteps} />
       <div className="max-w-7xl mx-auto space-y-4 md:space-y-6">
         {/* Header */}
         <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5">
@@ -1383,7 +1386,7 @@ ${formData.description}
                       value={formData.brand}
                       disabled={brands.length === 0}
                     >
-                      <SelectTrigger className={`h-10 md:h-11 rounded-xl border-2 bg-background/50 text-sm hover:border-border/70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                      <SelectTrigger id="select-brand" className={`h-10 md:h-11 rounded-xl border-2 bg-background/50 text-sm hover:border-border/70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                         missingFields.includes('brand') ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/50'
                       }`}>
                         <SelectValue 
@@ -1437,7 +1440,7 @@ ${formData.description}
                       value={formData.theme}
                       disabled={!formData.brand || filteredThemes.length === 0}
                     >
-                      <SelectTrigger className="h-10 md:h-11 rounded-xl border-2 border-border/50 bg-background/50 disabled:opacity-50 text-sm hover:border-border/70 transition-colors">
+                      <SelectTrigger id="select-theme" className="h-10 md:h-11 rounded-xl border-2 border-border/50 bg-background/50 disabled:opacity-50 text-sm hover:border-border/70 transition-colors">
                         <SelectValue
                           placeholder={
                             !formData.brand
@@ -1480,7 +1483,7 @@ ${formData.description}
                       value={formData.persona}
                       disabled={!formData.brand || filteredPersonas.length === 0}
                     >
-                      <SelectTrigger className="h-10 md:h-11 rounded-xl border-2 border-border/50 bg-background/50 disabled:opacity-50 text-sm hover:border-border/70 transition-colors">
+                      <SelectTrigger id="select-persona" className="h-10 md:h-11 rounded-xl border-2 border-border/50 bg-background/50 disabled:opacity-50 text-sm hover:border-border/70 transition-colors">
                         <SelectValue
                           placeholder={
                             !formData.brand
@@ -1517,7 +1520,7 @@ ${formData.description}
                     }
                     value={formData.platform}
                   >
-                    <SelectTrigger className={`h-10 md:h-11 rounded-xl border-2 bg-background/50 text-sm hover:border-border/70 transition-colors ${
+                    <SelectTrigger id="platform-selector" className={`h-10 md:h-11 rounded-xl border-2 bg-background/50 text-sm hover:border-border/70 transition-colors ${
                       missingFields.includes('platform') ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/50'
                     }`}>
                       <SelectValue placeholder="Onde será postado?" />
@@ -1550,7 +1553,7 @@ ${formData.description}
                   <Label className="text-xs md:text-sm font-semibold text-foreground">
                     Tipo de Conteúdo <span className="text-destructive">*</span>
                   </Label>
-                  <div className="flex items-center space-x-1 rounded-xl bg-muted p-1 border-2 border-border/30">
+                  <div id="content-type-selector" className="flex items-center space-x-1 rounded-xl bg-muted p-1 border-2 border-border/30">
                     <Button
                       type="button"
                       variant={contentType === "organic" ? "default" : "ghost"}
@@ -1783,7 +1786,7 @@ ${formData.description}
                       </span>
                     </div>
                     <Textarea
-                      id="description"
+                      id="content-description"
                       placeholder="Como um diretor de arte: descreva a cena, iluminação e emoção..."
                       value={formData.description}
                       onChange={handleInputChange}
@@ -2127,7 +2130,7 @@ ${formData.description}
 
                 {/* Advanced Configuration Accordion */}
                 {!isVideoMode && (
-                  <Accordion type="single" collapsible className="w-full">
+                  <Accordion id="advanced-options" type="single" collapsible className="w-full">
                     <AccordionItem value="advanced" className="border border-border/20 rounded-xl px-4 bg-muted/10">
                       <AccordionTrigger className="text-xs md:text-sm font-semibold text-foreground hover:no-underline py-3">
                         <div className="flex items-center gap-2">
@@ -3046,6 +3049,7 @@ ${formData.description}
             <CardContent className="p-4 md:p-6">
               <div className="flex flex-col items-center gap-3 md:gap-4">
                 <Button
+                  id="generate-button"
                   onClick={handleGenerateContent}
                   disabled={loading || !isFormValid}
                   className="w-full max-w-sm md:max-w-md h-12 md:h-14 rounded-2xl text-base md:text-lg font-bold bg-gradient-to-r from-primary via-accent to-secondary hover:from-primary/90 hover:via-accent/90 hover:to-secondary/90 shadow-xl transition-all duration-500 disabled:opacity-50 gap-2"
