@@ -370,7 +370,7 @@ const Login = () => {
           <Sheet open={true}>
             <SheetContent 
               side="bottom" 
-              className="h-[85vh] rounded-t-3xl border-t-2 border-primary/20 px-6 pt-6"
+              className="h-[85vh] rounded-t-3xl border-t-2 border-primary/20 px-6 pt-6 overflow-x-hidden"
             >
               <div className="h-full overflow-y-auto pb-8">
                 {loginForm}
@@ -384,7 +384,7 @@ const Login = () => {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="w-full max-w-md px-6 relative z-10"
           >
-            <div className="bg-card/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-primary/10 p-8">
+            <div className="bg-card/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-primary/10 p-8 overflow-x-hidden">
               <div className="mb-6 text-center">
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent mb-2">
                   {t.login.welcome}
