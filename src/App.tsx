@@ -93,10 +93,8 @@ const App = () => (
               <Route path="credit-history" element={<CreditHistory />} />
               <Route path="about" element={<About />} />
               <Route path="contact" element={<Contact />} />
+              <Route path="action/:actionId" element={<ActionView />} />
             </Route>
-
-            {/* Action View - Outside dashboard layout for full screen */}
-            <Route path="/action/:actionId" element={<ProtectedRoute><ActionView /></ProtectedRoute>} />
             
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
