@@ -654,9 +654,17 @@ export default function ActionView() {
               </div>}
 
             {/* Image Result */}
-            {action.result.imageUrl && !action.result.review && <div className="mb-6">
+            {action.result.imageUrl && <div className="mb-6">
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-sm font-medium text-muted-foreground">Imagem Gerada</span>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => handleDownloadImage(action.result.imageUrl!, `imagem-${action.id}`)}
+                  >
+                    <Download className="mr-2 h-4 w-4" />
+                    Baixar Imagem
+                  </Button>
                 </div>
                 <div className="rounded-lg overflow-hidden border bg-muted/30 max-w-2xl mx-auto">
                   <img src={action.result.imageUrl} alt="Imagem gerada" className="w-full h-auto" />
