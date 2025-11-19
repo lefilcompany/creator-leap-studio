@@ -813,16 +813,16 @@ const Auth = () => {
 
       {/* Modal de Política de Privacidade - Melhorado para Mobile/Tablet */}
       <Dialog open={privacyModalOpen} onOpenChange={setPrivacyModalOpen}>
-        <DialogContent className="max-w-[95vw] sm:max-w-lg w-full max-h-[90vh] p-0 flex flex-col">
+        <DialogContent className="max-w-[95vw] sm:max-w-lg w-full h-[90vh] p-0 flex flex-col overflow-hidden">
           {/* Header Fixo */}
-          <DialogHeader className="flex-shrink-0 sticky top-0 z-20 bg-background border-b p-4 sm:p-6 pb-3 sm:pb-4">
+          <DialogHeader className="flex-shrink-0 bg-background border-b p-4 sm:p-6 pb-3 sm:pb-4">
             <DialogTitle className="text-base sm:text-lg font-bold leading-tight pr-8 text-foreground">
               Política de Privacidade – Uso de Dados e IA
             </DialogTitle>
           </DialogHeader>
 
           {/* Conteúdo Scrollável */}
-          <div className="flex-1 overflow-y-auto px-4 py-3 sm:px-6 sm:py-4 max-h-[calc(90vh-180px)]">
+          <div className="flex-1 overflow-y-auto overflow-x-hidden px-4 py-3 sm:px-6 sm:py-4 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
             <div className="space-y-3 sm:space-y-4 text-sm text-muted-foreground">
               <p className="font-medium text-foreground text-sm leading-relaxed">
                 👋 Olá! Antes de usar nossa plataforma, é importante que você saiba como cuidamos dos seus dados:
@@ -867,7 +867,7 @@ const Auth = () => {
           </div>
 
           {/* Footer Fixo com Botões Sempre Visíveis */}
-          <DialogFooter className="flex-shrink-0 sticky bottom-0 z-20 bg-background border-t shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] p-4 sm:p-6 pt-3 sm:pt-4">
+          <DialogFooter className="flex-shrink-0 bg-background border-t shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] p-4 sm:p-6 pt-3 sm:pt-4">
             <div className="flex flex-col-reverse sm:flex-row gap-3 w-full">
               <Button
                 variant="outline"
