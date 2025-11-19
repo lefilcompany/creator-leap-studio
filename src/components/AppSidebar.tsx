@@ -144,6 +144,7 @@ function TeamPlanSection({ teamName, planName, collapsed, onNavigate, t }: {
 
   return (
     <NavLink
+      id="nav-team"
       to="/team"
       onClick={onNavigate}
       className="flex items-center gap-4 p-3 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-105 bg-gradient-to-tr from-primary to-fuchsia-600 text-primary-foreground shadow-lg"
