@@ -8,48 +8,53 @@ export const navbarSteps: Step[] = [
     placement: 'right',
   },
   {
-    target: '#nav-dashboard',
-    content: 'Dashboard: visualize suas estatísticas, créditos disponíveis e ações recentes.',
-    placement: 'right',
-  },
-  {
     target: '#nav-brands',
-    content: 'Marcas: crie e gerencie as marcas que você trabalha. Cada marca tem sua identidade única.',
+    content: 'Marcas: crie e gerencie as marcas que você trabalha. Cada marca tem sua identidade única com logo, paleta de cores e valores.',
     placement: 'right',
   },
   {
     target: '#nav-themes',
-    content: 'Temas: defina temas estratégicos para suas campanhas de conteúdo.',
+    content: 'Temas Estratégicos: defina temas para suas campanhas, incluindo objetivos, público-alvo e tom de voz.',
     placement: 'right',
   },
   {
     target: '#nav-personas',
-    content: 'Personas: crie perfis detalhados do seu público-alvo para conteúdo mais direcionado.',
-    placement: 'right',
-  },
-  {
-    target: '#nav-create-content',
-    content: 'Criar Conteúdo: gere posts completos com texto e imagem para suas redes sociais.',
+    content: 'Personas: crie perfis detalhados do seu público-alvo para conteúdo mais direcionado e eficaz.',
     placement: 'right',
   },
   {
     target: '#nav-quick-content',
-    content: 'Conteúdo Rápido: crie legendas rapidamente sem precisar de configurações avançadas.',
-    placement: 'right',
-  },
-  {
-    target: '#nav-plan-content',
-    content: 'Planejar: organize seu calendário editorial e planeje suas publicações.',
+    content: 'Criação Rápida: gere legendas e textos rapidamente sem precisar de configurações complexas.',
     placement: 'right',
   },
   {
     target: '#nav-history',
-    content: 'Histórico: acesse todo o conteúdo que você já criou na plataforma.',
+    content: 'Histórico: acesse e gerencie todo o conteúdo que você já criou na plataforma.',
+    placement: 'right',
+  },
+  {
+    target: '#nav-create-content',
+    content: 'Criar Conteúdo: gere posts completos com texto e imagem personalizada para suas redes sociais.',
+    placement: 'right',
+  },
+  {
+    target: '#nav-review-content',
+    content: 'Revisar Conteúdo: envie seus textos para revisão e melhoria profissional.',
+    placement: 'right',
+  },
+  {
+    target: '#nav-plan-content',
+    content: 'Planejar Conteúdo: organize seu calendário editorial e planeje suas publicações estrategicamente.',
     placement: 'right',
   },
   {
     target: '#nav-credits',
-    content: 'Créditos: compre créditos para continuar criando conteúdo incrível.',
+    content: 'Créditos: visualize seu saldo e compre mais créditos para continuar criando conteúdo incrível.',
+    placement: 'right',
+  },
+  {
+    target: '#nav-team',
+    content: 'Equipe: gerencie membros da equipe, visualize seu plano e configure suas preferências.',
     placement: 'right',
   },
 ];
