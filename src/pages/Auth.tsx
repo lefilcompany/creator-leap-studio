@@ -437,7 +437,7 @@ const Auth = () => {
 
   const registerForm = useMemo(
     () => (
-      <form onSubmit={handleRegister} className="space-y-3 sm:space-y-4">
+      <div className="space-y-3 sm:space-y-4">
         {/* Grupo 1: Informações Pessoais */}
         <div className="space-y-2 p-3 rounded-lg bg-muted/20 border border-border/40">
           <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
@@ -521,19 +521,20 @@ const Auth = () => {
                   {isPasswordValid && <span className="text-white text-[8px] sm:text-[10px]">✓</span>}
                 </div>
                 <span
-                  className={`font-medium transition-colors ${isPasswordValid ? "text-green-700 dark:text-green-400" : "text-red-500"}`}
+                  className={`font-medium transition-colors ${isPasswordValid ? "text-green-700 dark:text-green-300" : "text-red-700 dark:text-red-300"}`}
                 >
                   Mínimo 6 caracteres
                 </span>
               </div>
+
               <div className="flex items-center gap-2 text-xs sm:text-sm">
                 <div
-                  className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full flex items-center justify-center transition-all ${passwordsMatch && confirmPassword ? "bg-green-500" : "bg-red-500"}`}
+                  className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full flex items-center justify-center transition-all ${passwordsMatch ? "bg-green-500" : "bg-red-500"}`}
                 >
-                  {passwordsMatch && confirmPassword && <span className="text-white text-[8px] sm:text-[10px]">✓</span>}
+                  {passwordsMatch && <span className="text-white text-[8px] sm:text-[10px]">✓</span>}
                 </div>
                 <span
-                  className={`font-medium transition-colors ${passwordsMatch && confirmPassword ? "text-green-700 dark:text-green-400" : "text-red-500"}`}
+                  className={`font-medium transition-colors ${passwordsMatch ? "text-green-700 dark:text-green-300" : "text-red-700 dark:text-red-300"}`}
                 >
                   Senhas coincidem
                 </span>
@@ -542,27 +543,29 @@ const Auth = () => {
           </div>
         )}
 
-        {/* Grupo 3: Informações de Contato - OBRIGATÓRIO */}
+        {/* Grupo 3: Informações de Contato */}
         <div className="space-y-2 p-3 rounded-lg bg-muted/20 border border-border/40">
           <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
             Informações de Contato
           </Label>
-
           <div className="relative">
             <Phone className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
             <Input
               id="phone"
-              placeholder="Telefone"
-              required
+              placeholder="Telefone (opcional)"
               value={formData.phone}
               onChange={handleInputChange}
               className="pl-9 sm:pl-10 h-9 sm:h-10 text-sm"
             />
           </div>
 
-          <Select onValueChange={(value) => handleSelectChange("state", value)} disabled={loadingStates} required>
-            <SelectTrigger className="h-9 sm:h-10 text-sm">
-              <SelectValue placeholder={loadingStates ? "Carregando estados..." : "Estado"} />
+          <Select
+            value={formData.state}
+            onValueChange={(value) => handleSelectChange("state", value)}
+            disabled={loadingStates}
+          >
+            <SelectTrigger className="w-full h-9 sm:h-10 text-sm">
+              <SelectValue placeholder="Estado" />
             </SelectTrigger>
             <SelectContent>
               {states.map((state) => (
@@ -574,9 +577,13 @@ const Auth = () => {
           </Select>
 
           {formData.state && (
-            <Select onValueChange={(value) => handleSelectChange("city", value)} disabled={loadingCities} required>
-              <SelectTrigger className="h-9 sm:h-10 text-sm">
-                <SelectValue placeholder={loadingCities ? "Carregando cidades..." : "Cidade"} />
+            <Select
+              value={formData.city}
+              onValueChange={(value) => handleSelectChange("city", value)}
+              disabled={loadingCities}
+            >
+              <SelectTrigger className="w-full h-9 sm:h-10 text-sm">
+                <SelectValue placeholder="Cidade" />
               </SelectTrigger>
               <SelectContent>
                 {cities.map((city) => (
@@ -588,8 +595,27 @@ const Auth = () => {
             </Select>
           )}
         </div>
+      </div>
+    ),
+    [
+      formData,
+      confirmPassword,
+      showPassword,
+      states,
+      cities,
+      loadingStates,
+      loadingCities,
+      passwordsMatch,
+      isPasswordValid,
+      handleInputChange,
+      handleSelectChange,
+    ],
+  );
 
-        <div className="flex items-start gap-2 mt-2">
+  const registerButton = useMemo(
+    () => (
+      <div className="space-y-4 pt-4 sm:pt-6">
+        <div className="flex items-start gap-2">
           <Checkbox
             id="privacy"
             checked={privacyChecked}
@@ -616,7 +642,8 @@ const Auth = () => {
         </div>
 
         <Button
-          type="submit"
+          type="button"
+          onClick={handleRegister}
           className="w-full h-10 lg:h-11 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-medium rounded-xl transition-all duration-300 transform hover:scale-[1.02]"
           disabled={
             loading ||
@@ -630,24 +657,15 @@ const Auth = () => {
         >
           {loading ? <Loader2 className="animate-spin h-4 w-4" /> : "CRIAR CONTA"}
         </Button>
-      </form>
+      </div>
     ),
     [
-      formData,
-      confirmPassword,
-      showPassword,
       loading,
       privacyChecked,
       privacyAccepted,
-      states,
-      cities,
-      loadingStates,
-      loadingCities,
-      passwordsMatch,
-      isPasswordValid,
+      formData,
+      confirmPassword,
       handleRegister,
-      handleInputChange,
-      handleSelectChange,
     ],
   );
 
@@ -883,6 +901,18 @@ const Auth = () => {
                   transition={{ duration: 0.3, delay: 0.2 }}
                 >
                   {loginButton}
+                </motion.div>
+              )}
+              
+              {/* Botão fixo fora do scroll para registro */}
+              {!isLoginMode && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  transition={{ duration: 0.3, delay: 0.2 }}
+                >
+                  {registerButton}
                 </motion.div>
               )}
             </div>
