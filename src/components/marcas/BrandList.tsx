@@ -95,7 +95,7 @@ export default function BrandList({ brands, selectedBrand, onSelectBrand, isLoad
                 <button
                   onClick={() => onSelectBrand(brand)}
                   className={cn(
-                    "w-full text-left p-4 rounded-lg border-2 transition-all duration-200 flex items-center justify-between hover-scale",
+                    "brand-card w-full text-left p-4 rounded-lg border-2 transition-all duration-200 flex items-center justify-between hover-scale",
                     selectedBrand?.id === brand.id
                       ? "bg-primary/10 border-primary shadow-md"
                       : "bg-muted/50 border-transparent hover:border-primary/50 hover:bg-primary/5"
@@ -105,7 +105,7 @@ export default function BrandList({ brands, selectedBrand, onSelectBrand, isLoad
                     <div className="bg-gradient-to-br from-primary to-secondary text-white rounded-lg w-10 h-10 flex items-center justify-center font-bold text-xl mr-4">
                       {brand.name.charAt(0).toUpperCase()}
                     </div>
-                    <div>
+                    <div className="brand-actions">
                       <p className="font-semibold text-lg text-foreground">{brand.name}</p>
                       <p className="text-sm text-muted-foreground">Responsável: {brand.responsible}</p>
                     </div>

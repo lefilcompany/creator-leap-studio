@@ -15,6 +15,8 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { CreditConfirmationDialog } from '@/components/CreditConfirmationDialog';
 import { Coins } from 'lucide-react';
+import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
+import { themesSteps } from '@/components/onboarding/tourSteps';
 
 type ThemeFormData = Omit<StrategicTheme, 'id' | 'createdAt' | 'updatedAt' | 'teamId' | 'userId'>;
 
@@ -398,6 +400,7 @@ export default function Themes() {
               </div>
             </div>
             <Button
+              id="themes-create-button"
               onClick={() => handleOpenDialog()}
               disabled={isButtonDisabled}
               className="rounded-lg bg-gradient-to-r from-primary to-secondary px-6 py-5 text-base disabled:opacity-50 disabled:cursor-not-allowed"
@@ -415,7 +418,8 @@ export default function Themes() {
       </Card>
 
       <main className="grid gap-4 lg:gap-6 flex-1 min-h-0 overflow-hidden grid-cols-1">
-        <ThemeList
+        <div id="themes-list">
+          <ThemeList
           themes={themes}
           brands={brands}
           selectedTheme={selectedThemeSummary}
@@ -425,6 +429,7 @@ export default function Themes() {
           totalPages={totalPages}
           onPageChange={setCurrentPage}
         />
+        </div>
       </main>
 
       {/* Sheet para desktop/tablet (da direita) */}
@@ -475,6 +480,8 @@ export default function Themes() {
         cost={1}
         resourceType="tema estratégico"
       />
+
+      <OnboardingTour tourType="themes" steps={themesSteps} />
     </div>
   );
 }

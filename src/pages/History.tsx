@@ -14,6 +14,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
+import { historySteps } from '@/components/onboarding/tourSteps';
 
 export default function History() {
   const { user } = useAuth();
@@ -230,7 +232,7 @@ export default function History() {
                 </p>
               </div>
             </div>
-            <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+            <div id="history-filters" className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
               {/* Filtro de Marca */}
               <Select onValueChange={setBrandFilter} value={brandFilter}>
                 <SelectTrigger className="w-full sm:w-[180px] rounded-lg">
@@ -260,7 +262,7 @@ export default function History() {
         </CardHeader>
       </Card>
 
-      <div className="flex-1 min-h-0 overflow-hidden">
+      <div id="history-list" className="flex-1 min-h-0 overflow-hidden">
         <ActionList
           actions={actions}
           selectedAction={selectedActionSummary}
@@ -297,6 +299,8 @@ export default function History() {
           </DrawerContent>
         </Drawer>
       )}
+
+      <OnboardingTour tourType="history" steps={historySteps} />
     </div>
   );
 }

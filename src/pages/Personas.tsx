@@ -17,6 +17,8 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { CreditConfirmationDialog } from '@/components/CreditConfirmationDialog';
 import { Coins } from 'lucide-react';
+import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
+import { personasSteps } from '@/components/onboarding/tourSteps';
 
 // Definindo o tipo para os dados do formulário, que é uma Persona parcial
 type PersonaFormData = Omit<Persona, 'id' | 'createdAt' | 'updatedAt' | 'teamId' | 'userId'>;
@@ -390,6 +392,7 @@ export default function PersonasPage() {
               </div>
             </div>
             <Button 
+              id="personas-create-button"
               onClick={() => handleOpenDialog()} 
               disabled={isButtonDisabled}
               className="rounded-lg bg-gradient-to-r from-primary to-secondary px-4 lg:px-6 py-3 lg:py-5 text-sm lg:text-base disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
@@ -407,16 +410,18 @@ export default function PersonasPage() {
       </Card>
 
       <main className="grid gap-4 lg:gap-6 flex-1 min-h-0 overflow-hidden grid-cols-1">
-        <PersonaList
-          personas={personas}
-          brands={brands}
-          selectedPersona={selectedPersonaSummary}
-          onSelectPersona={handleSelectPersona}
-          isLoading={isLoadingPersonas}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-        />
+        <div id="personas-list">
+          <PersonaList
+            personas={personas}
+            brands={brands}
+            selectedPersona={selectedPersonaSummary}
+            onSelectPersona={handleSelectPersona}
+            isLoading={isLoadingPersonas}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
+        </div>
       </main>
 
       {/* Sheet para desktop/tablet (da direita) */}
@@ -467,6 +472,8 @@ export default function PersonasPage() {
         cost={1}
         resourceType="persona"
       />
+
+      <OnboardingTour tourType="personas" steps={personasSteps} />
     </div>
   );
 }

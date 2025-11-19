@@ -102,7 +102,7 @@ export default function PersonaList({ personas, brands, selectedPersona, onSelec
                 <button
                   onClick={() => onSelectPersona(persona)}
                   className={cn(
-                    "w-full text-left p-4 rounded-lg border-2 transition-all duration-200 flex items-center justify-between hover-scale",
+                    "persona-card w-full text-left p-4 rounded-lg border-2 transition-all duration-200 flex items-center justify-between hover-scale",
                     selectedPersona?.id === persona.id
                       ? "bg-primary/10 border-primary shadow-md"
                       : "bg-muted/50 border-transparent hover:border-primary/50 hover:bg-primary/5"
