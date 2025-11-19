@@ -24,7 +24,7 @@ export const navbarSteps: Step[] = [
   },
   {
     target: '#nav-quick-content',
-    content: 'Criação Rápida: gere legendas e textos rapidamente sem precisar de configurações complexas.',
+    content: 'Criação Rápida: crie imagens personalizadas rapidamente sem precisar de configurações complexas ou burocracias.',
     placement: 'right',
   },
   {
@@ -45,16 +45,6 @@ export const navbarSteps: Step[] = [
   {
     target: '#nav-plan-content',
     content: 'Planejar Conteúdo: organize seu calendário editorial e planeje suas publicações estrategicamente.',
-    placement: 'right',
-  },
-  {
-    target: '#nav-credits',
-    content: 'Créditos: visualize seu saldo e compre mais créditos para continuar criando conteúdo incrível.',
-    placement: 'right',
-  },
-  {
-    target: '#nav-team',
-    content: 'Equipe: gerencie membros da equipe, visualize seu plano e configure suas preferências.',
     placement: 'right',
   },
 ];
