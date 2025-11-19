@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Search, Settings, User, Menu, Loader2, Info, FileText, Shield, LogOut, Moon, Sun, Gift, History, AlertTriangle, UserX, Trash2 } from "lucide-react";
+import { Search, Settings, User, Menu, Loader2, Info, FileText, Shield, LogOut, Moon, Sun, Gift, History } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -31,8 +31,6 @@ import {
 import { CreatorLogo } from "./CreatorLogo";
 import Notifications from "./Notifications";
 import RedeemCouponDialog from "./team/RedeemCouponDialog";
-import DeactivateAccountDialog from "./perfil/DeactivateAccountDialog";
-import DeleteAccountDialog from "./perfil/DeleteAccountDialog";
 
 export const Header = () => {
   const { setOpen } = useSidebar();
@@ -45,9 +43,6 @@ export const Header = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [showMobileSearch, setShowMobileSearch] = useState(false);
   const [showCouponDialog, setShowCouponDialog] = useState(false);
-  const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
-  const [showDeactivateDialog, setShowDeactivateDialog] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   
   // Se o trial expirou, desabilita funcionalidades
@@ -213,15 +208,6 @@ export const Header = () => {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem 
-                  id="advanced-settings-button"
-                  className="p-3 cursor-pointer text-muted-foreground hover:text-destructive focus:text-destructive focus:bg-destructive/10"
-                  onClick={() => setShowAdvancedSettings(true)}
-                >
-                  <AlertTriangle className="mr-3 h-4 w-4" />
-                  <span>Configurações Avançadas</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
                 <DialogTrigger asChild>
                   <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10 p-3 cursor-pointer">
                     <LogOut className="mr-3 h-4 w-4" />
@@ -341,84 +327,6 @@ export const Header = () => {
           setShowCouponDialog(false);
         }}
         currentPlanId={user?.teamId || ''}
-      />
-
-      {/* Advanced Settings Dialog */}
-      <Dialog open={showAdvancedSettings} onOpenChange={setShowAdvancedSettings}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-gradient-to-br from-destructive/20 to-accent/20 rounded-xl">
-                <AlertTriangle className="h-6 w-6 text-destructive" />
-              </div>
-              <DialogTitle className="text-2xl font-bold">Configurações Avançadas</DialogTitle>
-            </div>
-            <DialogDescription>
-              Gerencie as opções avançadas da sua conta. Estas ações são irreversíveis.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-            {/* Deactivate Account Card */}
-            <div className="border rounded-lg p-6 space-y-4 bg-gradient-to-br from-muted/50 to-accent/5 hover:shadow-lg transition-all">
-              <div className="flex flex-col items-center gap-3 text-center">
-                <div className="p-3 bg-gradient-to-br from-muted to-accent/20 rounded-2xl">
-                  <UserX className="h-8 w-8 text-muted-foreground" />
-                </div>
-                <h3 className="font-bold text-lg">Inativar Conta</h3>
-                <p className="text-sm text-muted-foreground">
-                  Dados preservados. Reative facilmente cadastrando-se novamente.
-                </p>
-              </div>
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={() => {
-                  setShowAdvancedSettings(false);
-                  setTimeout(() => setShowDeactivateDialog(true), 100);
-                }}
-              >
-                Inativar Conta
-              </Button>
-            </div>
-
-            {/* Delete Account Card */}
-            <div className="border rounded-lg p-6 space-y-4 bg-gradient-to-br from-destructive/5 to-destructive/10 hover:shadow-lg transition-all">
-              <div className="flex flex-col items-center gap-3 text-center">
-                <div className="p-3 bg-gradient-to-br from-destructive/20 to-destructive/30 rounded-2xl">
-                  <Trash2 className="h-8 w-8 text-destructive" />
-                </div>
-                <h3 className="font-bold text-lg text-destructive">Deletar Conta</h3>
-                <p className="text-sm text-muted-foreground">
-                  <span className="font-bold text-destructive">PERMANENTE!</span> Todos os dados serão removidos.
-                </p>
-              </div>
-              <Button
-                variant="destructive"
-                className="w-full"
-                onClick={() => {
-                  setShowAdvancedSettings(false);
-                  setTimeout(() => setShowDeleteDialog(true), 100);
-                }}
-              >
-                Deletar Conta
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Deactivate Account Dialog */}
-      <DeactivateAccountDialog
-        open={showDeactivateDialog}
-        onOpenChange={setShowDeactivateDialog}
-      />
-
-      {/* Delete Account Dialog */}
-      <DeleteAccountDialog
-        open={showDeleteDialog}
-        onOpenChange={setShowDeleteDialog}
-        userEmail={user?.email || ''}
       />
     </header>
   );

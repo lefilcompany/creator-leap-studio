@@ -2,6 +2,7 @@ import { User as UserIcon, Coins, RefreshCw } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import PersonalInfoForm from '@/components/perfil/PersonalInfoForm';
 import TeamInfoCard from '@/components/perfil/TeamInfoCard';
+import AccountManagement from '@/components/perfil/AccountManagement';
 import AvatarUpload from '@/components/perfil/AvatarUpload';
 import { useAuth } from '@/hooks/useAuth';
 import { Loader2 } from 'lucide-react';
@@ -136,6 +137,8 @@ export default function Profile() {
                 </Button>
               </CardContent>
             </Card>
+            
+            <AccountManagement userEmail={user.email || ''} />
           </div>
         </div>
       </div>
