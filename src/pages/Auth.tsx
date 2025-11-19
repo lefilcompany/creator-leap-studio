@@ -382,7 +382,7 @@ const Auth = () => {
           </div>
         )}
 
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
           <div className="flex items-center space-x-2">
             <Checkbox
               id="remember"
