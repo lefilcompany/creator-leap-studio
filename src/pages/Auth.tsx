@@ -680,6 +680,25 @@ const Auth = () => {
             }}
           />
 
+          <motion.div
+            className="absolute bottom-20 -right-20 w-[500px] h-[500px] rounded-full"
+            style={{
+              background:
+                "radial-gradient(circle, hsl(190 100% 50% / 0.2) 0%, hsl(220 100% 50% / 0.1) 70%, transparent 100%)",
+              filter: "blur(60px) sm:blur(90px)",
+            }}
+            animate={{
+              x: [10, -65, 12],
+              y: [0, 35, 15],
+              scale: [1, 1.1, 1],
+            }}
+            transition={{
+              duration: 25,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          />
+
           {/* Apenas 3 logos flutuantes bem distribuídos */}
           <motion.img
             src={decorativeElement}
