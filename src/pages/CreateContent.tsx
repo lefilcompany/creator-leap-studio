@@ -30,8 +30,8 @@ import type { Team } from "@/types/theme";
 import { useAuth } from "@/hooks/useAuth";
 import { getPlatformImageSpec, getCaptionGuidelines, platformSpecs } from "@/lib/platformSpecs";
 import { useFormPersistence } from '@/hooks/useFormPersistence';
-import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
-import { createContentSteps } from '@/components/onboarding/tourSteps';
+import { TourSelector } from '@/components/onboarding/TourSelector';
+import { createContentSteps, navbarSteps } from '@/components/onboarding/tourSteps';
 
 enum GenerationStep {
   IDLE = "IDLE",
@@ -1286,7 +1286,23 @@ ${formData.description}
 
   return (
     <div className="min-h-full bg-gradient-to-br from-background via-background to-muted/20">
-      <OnboardingTour tourType="create_content" steps={createContentSteps} />
+      <TourSelector 
+        tours={[
+          {
+            tourType: 'navbar',
+            steps: navbarSteps,
+            label: 'Tour da Navegação',
+            targetElement: '#sidebar-logo'
+          },
+          {
+            tourType: 'create_content',
+            steps: createContentSteps,
+            label: 'Tour de Criar Conteúdo',
+            targetElement: '#select-brand'
+          }
+        ]}
+        startDelay={500}
+      />
       <div className="max-w-7xl mx-auto space-y-4 md:space-y-6">
         {/* Header */}
         <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5">

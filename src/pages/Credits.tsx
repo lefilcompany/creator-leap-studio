@@ -9,8 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Loader2, Check, Coins, Sparkles } from "lucide-react";
-import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
-import { creditsSteps } from "@/components/onboarding/tourSteps";
+import { TourSelector } from "@/components/onboarding/TourSelector";
+import { creditsSteps, navbarSteps } from "@/components/onboarding/tourSteps";
 
 interface Plan {
   id: string;
@@ -293,7 +293,23 @@ const Credits = () => {
         </Card>
       </section>
 
-      <OnboardingTour tourType="credits" steps={creditsSteps} />
+      <TourSelector 
+        tours={[
+          {
+            tourType: 'navbar',
+            steps: navbarSteps,
+            label: 'Tour da Navegação',
+            targetElement: '#sidebar-logo'
+          },
+          {
+            tourType: 'credits',
+            steps: creditsSteps,
+            label: 'Tour de Créditos',
+            targetElement: '#credits-balance'
+          }
+        ]}
+        startDelay={500}
+      />
     </div>
   );
 };

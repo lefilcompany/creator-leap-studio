@@ -14,8 +14,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useFormPersistence } from '@/hooks/useFormPersistence';
-import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
-import { planContentSteps } from "@/components/onboarding/tourSteps";
+import { TourSelector } from "@/components/onboarding/TourSelector";
+import { planContentSteps, navbarSteps } from "@/components/onboarding/tourSteps";
 
 interface FormData {
   brand: string;
@@ -267,7 +267,23 @@ const PlanContent = () => {
 
   return (
     <div className="min-h-full w-full p-3 sm:p-6">
-      <OnboardingTour tourType="plan_content" steps={planContentSteps} />
+      <TourSelector 
+        tours={[
+          {
+            tourType: 'navbar',
+            steps: navbarSteps,
+            label: 'Tour da Navegação',
+            targetElement: '#sidebar-logo'
+          },
+          {
+            tourType: 'plan_content',
+            steps: planContentSteps,
+            label: 'Tour de Planejar Conteúdo',
+            targetElement: '#plan-calendar'
+          }
+        ]}
+        startDelay={500}
+      />
       <div className="max-w-7xl mx-auto space-y-4 sm:space-y-8">
         {/* Header Card */}
         <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5">
