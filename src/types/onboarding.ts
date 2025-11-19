@@ -29,4 +29,5 @@ export interface OnboardingContextType {
   markTourAsCompleted: (tourType: OnboardingTourType) => Promise<void>;
   resetAllTours: () => Promise<void>;
   isTourCompleted: (tourType: OnboardingTourType) => boolean;
+  shouldShowTour: (tourType: OnboardingTourType) => boolean;
 }

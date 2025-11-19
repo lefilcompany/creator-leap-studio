@@ -126,6 +126,40 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     return state[fieldName];
   };
 
+  // Define a ordem de precedência dos tours
+  const tourOrder: OnboardingTourType[] = [
+    'navbar',
+    'dashboard',
+    'brands',
+    'themes',
+    'personas',
+    'create_content',
+    'quick_content',
+    'plan_content',
+    'history',
+    'credits',
+  ];
+
+  // Verifica se um tour deve ser exibido baseado na ordem
+  const shouldShowTour = (tourType: OnboardingTourType): boolean => {
+    // Se já foi completado, não mostrar
+    if (isTourCompleted(tourType)) {
+      return false;
+    }
+
+    // Encontrar o índice do tour atual
+    const currentIndex = tourOrder.indexOf(tourType);
+    
+    // Verificar se todos os tours anteriores foram completados
+    for (let i = 0; i < currentIndex; i++) {
+      if (!isTourCompleted(tourOrder[i])) {
+        return false; // Ainda há tours anteriores pendentes
+      }
+    }
+
+    return true; // Pode mostrar este tour
+  };
+
   return (
     <OnboardingContext.Provider
       value={{
@@ -134,6 +168,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
         markTourAsCompleted,
         resetAllTours,
         isTourCompleted,
+        shouldShowTour,
       }}
     >
       {children}
