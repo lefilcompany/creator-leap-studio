@@ -599,7 +599,7 @@ const Auth = () => {
 
   return (
     <>
-      <div className="h-screen flex flex-col items-center justify-end pb-8 sm:justify-center sm:gap-0 relative overflow-hidden bg-gradient-to-br from-background via-background to-primary/5 p-4 sm:p-6">
+      <div className="min-h-screen flex flex-col items-center justify-start sm:justify-center relative overflow-hidden bg-gradient-to-br from-background via-background to-primary/5 p-4 sm:p-6 py-8 sm:py-6">
         {/* Elementos decorativos animados com motion blur */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <motion.div
@@ -720,7 +720,7 @@ const Auth = () => {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="mb-6 sm:mb-12 md:mb-16 z-10 flex-shrink-0"
+          className="mb-4 sm:mb-8 z-10 flex-shrink-0"
         >
           <CreatorLogo />
         </motion.div>
@@ -730,9 +730,9 @@ const Auth = () => {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="w-full max-w-[95%] sm:max-w-md relative z-10 h-auto max-h-[70vh] sm:max-h-none"
+          className="w-full max-w-[95%] sm:max-w-md relative z-10 flex-shrink-0"
         >
-          <div className="bg-card/80 backdrop-blur-xl rounded-t-3xl sm:rounded-2xl shadow-2xl border border-primary/10 p-4 sm:p-8 flex flex-col h-full max-h-[70vh] sm:max-h-none">
+          <div className="bg-card/80 backdrop-blur-xl rounded-t-3xl sm:rounded-2xl shadow-2xl border border-primary/10 p-4 sm:p-8 flex flex-col max-h-[75vh] sm:max-h-[85vh]">
             {/* Novo Sistema de Tabs Modernas */}
             <div className="flex border-b border-border mb-4 sm:mb-6 flex-shrink-0">
               <button
