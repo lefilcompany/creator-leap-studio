@@ -43,7 +43,7 @@ const Auth = () => {
   const [showTeamSelection, setShowTeamSelection] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [waitingForAuth, setWaitingForAuth] = useState(false);
-  
+
   // Login states
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
@@ -85,7 +85,7 @@ const Auth = () => {
   // Redireciona automaticamente quando autenticado
   useEffect(() => {
     if (waitingForAuth && !authLoading && user && team && !showChangePassword && !showTeamSelection) {
-      console.log('[Auth] Auth complete, redirecting to dashboard');
+      console.log("[Auth] Auth complete, redirecting to dashboard");
       navigate("/dashboard", { replace: true });
     }
   }, [waitingForAuth, authLoading, user, team, showChangePassword, showTeamSelection, navigate]);
@@ -126,13 +126,13 @@ const Auth = () => {
     e.preventDefault();
     setLoading(true);
     setWaitingForAuth(false);
-    
+
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email: loginEmail,
         password: loginPassword,
       });
-      
+
       if (error) {
         setFailedAttempts(failedAttempts + 1);
         setShowPasswordResetSuggestion(true);
@@ -144,14 +144,14 @@ const Auth = () => {
 
       setFailedAttempts(0);
       setShowPasswordResetSuggestion(false);
-      
+
       if (data.user) {
         const { data: profileData, error: profileError } = await supabase
           .from("profiles")
           .select("team_id, force_password_change")
           .eq("id", data.user.id)
           .single();
-          
+
         if (profileError) {
           console.error("Erro ao carregar perfil:", profileError);
           toast.error(t.errors.somethingWrong);
@@ -170,13 +170,13 @@ const Auth = () => {
             .eq("user_id", data.user.id)
             .eq("status", "pending")
             .maybeSingle();
-            
+
           if (pendingRequest) {
             toast.info("Sua solicitação está pendente. Aguarde a aprovação do administrador da equipe.");
             await supabase.auth.signOut();
             return;
           }
-          
+
           setShowTeamSelection(true);
         } else {
           setWaitingForAuth(true);
@@ -266,25 +266,25 @@ const Auth = () => {
 
       if (data.user) {
         toast.success("Cadastro realizado com sucesso!");
-        
+
         try {
-          await supabase.functions.invoke('rd-station-integration', {
+          await supabase.functions.invoke("rd-station-integration", {
             body: {
-              eventType: 'user_registered',
+              eventType: "user_registered",
               userData: {
                 email: formData.email,
                 name: formData.name,
                 phone: formData.phone,
                 city: formData.city,
                 state: formData.state,
-                tags: ['novo_usuario', 'criador_conta']
-              }
-            }
+                tags: ["novo_usuario", "criador_conta"],
+              },
+            },
           });
         } catch (rdError) {
-          console.error('Erro ao enviar para RD Station:', rdError);
+          console.error("Erro ao enviar para RD Station:", rdError);
         }
-        
+
         setShowTeamSelection(true);
       }
     } catch (err) {
@@ -331,7 +331,11 @@ const Auth = () => {
               className="absolute top-1/2 -translate-y-1/2 right-0.5 h-8 w-8 sm:h-9 sm:w-9 text-muted-foreground hover:bg-accent/60"
               onClick={() => setShowPassword(!showPassword)}
             >
-              {showPassword ? <EyeOff size={16} className="sm:w-5 sm:h-5" /> : <Eye size={16} className="sm:w-5 sm:h-5" />}
+              {showPassword ? (
+                <EyeOff size={16} className="sm:w-5 sm:h-5" />
+              ) : (
+                <Eye size={16} className="sm:w-5 sm:h-5" />
+              )}
             </Button>
           </div>
         </div>
@@ -342,9 +346,7 @@ const Auth = () => {
               <Mail className="h-5 w-5 text-destructive mt-0.5 flex-shrink-0" />
               <div className="flex-1">
                 <p className="text-sm font-semibold text-destructive mb-1">{t.login.incorrectCredentials}</p>
-                <p className="text-xs text-muted-foreground mb-2">
-                  {t.login.resetPasswordSuggestion}
-                </p>
+                <p className="text-xs text-muted-foreground mb-2">{t.login.resetPasswordSuggestion}</p>
                 <a
                   href="/forgot-password"
                   className="text-sm text-destructive hover:text-destructive/80 font-semibold underline underline-offset-2"
@@ -391,7 +393,7 @@ const Auth = () => {
         </Button>
       </form>
     ),
-    [loginEmail, loginPassword, showPassword, rememberMe, loading, showPasswordResetSuggestion, handleLogin, t]
+    [loginEmail, loginPassword, showPassword, rememberMe, loading, showPasswordResetSuggestion, handleLogin, t],
   );
 
   const registerForm = useMemo(
@@ -430,9 +432,7 @@ const Auth = () => {
 
         {/* Grupo 2: Segurança */}
         <div className="space-y-2 p-3 rounded-lg bg-muted/20 border border-border/40">
-          <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-            Segurança
-          </Label>
+          <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Segurança</Label>
           <div className="flex flex-col sm:grid sm:grid-cols-2 gap-2">
             <div className="relative">
               <Lock className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
@@ -506,7 +506,9 @@ const Auth = () => {
         {/* Grupo 3: Informações Adicionais (Collapsible) */}
         <Collapsible>
           <CollapsibleTrigger className="flex items-center justify-between w-full p-2 rounded-lg hover:bg-muted/30 transition-colors group">
-            <span className="text-xs sm:text-sm text-muted-foreground font-medium">Informações Adicionais (opcional)</span>
+            <span className="text-xs sm:text-sm text-muted-foreground font-medium">
+              Informações Adicionais (opcional)
+            </span>
             <ChevronDown className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
           </CollapsibleTrigger>
           <CollapsibleContent className="space-y-2 pt-2">
@@ -594,7 +596,23 @@ const Auth = () => {
         </Button>
       </form>
     ),
-    [formData, confirmPassword, showPassword, loading, privacyChecked, privacyAccepted, states, cities, loadingStates, loadingCities, passwordsMatch, isPasswordValid, handleRegister, handleInputChange, handleSelectChange]
+    [
+      formData,
+      confirmPassword,
+      showPassword,
+      loading,
+      privacyChecked,
+      privacyAccepted,
+      states,
+      cities,
+      loadingStates,
+      loadingCities,
+      passwordsMatch,
+      isPasswordValid,
+      handleRegister,
+      handleInputChange,
+      handleSelectChange,
+    ],
   );
 
   return (
@@ -643,7 +661,7 @@ const Auth = () => {
               ease: "easeInOut",
             }}
           />
-          
+
           {/* Imagens decorativas com motion blur */}
           <motion.img
             src={decorativeElement}
@@ -698,7 +716,6 @@ const Auth = () => {
               delay: 2,
             }}
           />
-          
         </div>
 
         {/* Botão de tema no canto superior direito */}
@@ -708,11 +725,7 @@ const Auth = () => {
           className="absolute top-4 right-4 z-50"
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
         >
-          {theme === "dark" ? (
-            <Sun className="h-5 w-5" />
-          ) : (
-            <Moon className="h-5 w-5" />
-          )}
+          {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
         </Button>
 
         {/* Logo no topo */}
@@ -720,7 +733,7 @@ const Auth = () => {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="mb-4 sm:mb-8 z-10 flex-shrink-0"
+          className="mb-4 z-10 flex-shrink-0"
         >
           <CreatorLogo />
         </motion.div>
@@ -738,9 +751,7 @@ const Auth = () => {
               <button
                 onClick={() => setIsLoginMode(true)}
                 className={`flex-1 pb-3 text-center font-semibold transition-all relative ${
-                  isLoginMode 
-                    ? 'text-primary' 
-                    : 'text-muted-foreground'
+                  isLoginMode ? "text-primary" : "text-muted-foreground"
                 }`}
               >
                 Login
@@ -748,10 +759,10 @@ const Auth = () => {
                   <motion.div
                     layoutId="activeTab"
                     className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
-                    transition={{ 
+                    transition={{
                       type: "spring",
                       stiffness: 500,
-                      damping: 30
+                      damping: 30,
                     }}
                   />
                 )}
@@ -759,9 +770,7 @@ const Auth = () => {
               <button
                 onClick={() => setIsLoginMode(false)}
                 className={`flex-1 pb-3 text-center font-semibold transition-all relative ${
-                  !isLoginMode 
-                    ? 'text-primary' 
-                    : 'text-muted-foreground'
+                  !isLoginMode ? "text-primary" : "text-muted-foreground"
                 }`}
               >
                 Cadastro
@@ -769,10 +778,10 @@ const Auth = () => {
                   <motion.div
                     layoutId="activeTab"
                     className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
-                    transition={{ 
+                    transition={{
                       type: "spring",
                       stiffness: 500,
-                      damping: 30
+                      damping: 30,
                     }}
                   />
                 )}
@@ -781,7 +790,7 @@ const Auth = () => {
 
             <div className="text-center mb-2 sm:mb-3 md:mb-4 flex-shrink-0">
               <AnimatePresence mode="wait">
-                <motion.h2 
+                <motion.h2
                   key={isLoginMode ? "login-title" : "register-title"}
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -798,37 +807,37 @@ const Auth = () => {
             </div>
 
             <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0 -mx-1 px-1 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={isLoginMode ? "login" : "register"}
-                initial={{ 
-                  opacity: 0, 
-                  y: 15,
-                  filter: "blur(4px)",
-                  scale: 0.96
-                }}
-                animate={{ 
-                  opacity: 1, 
-                  y: 0,
-                  filter: "blur(0px)",
-                  scale: 1
-                }}
-                exit={{ 
-                  opacity: 0, 
-                  y: -15,
-                  filter: "blur(4px)",
-                  scale: 0.96,
-                  transition: { duration: 0.2, ease: [0.4, 0, 0.6, 1] }
-                }}
-                transition={{ 
-                  duration: 0.4, 
-                  ease: [0.16, 1, 0.3, 1],
-                  filter: { duration: 0.3 }
-                }}
-              >
-                {isLoginMode ? loginForm : registerForm}
-              </motion.div>
-            </AnimatePresence>
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.div
+                  key={isLoginMode ? "login" : "register"}
+                  initial={{
+                    opacity: 0,
+                    y: 15,
+                    filter: "blur(4px)",
+                    scale: 0.96,
+                  }}
+                  animate={{
+                    opacity: 1,
+                    y: 0,
+                    filter: "blur(0px)",
+                    scale: 1,
+                  }}
+                  exit={{
+                    opacity: 0,
+                    y: -15,
+                    filter: "blur(4px)",
+                    scale: 0.96,
+                    transition: { duration: 0.2, ease: [0.4, 0, 0.6, 1] },
+                  }}
+                  transition={{
+                    duration: 0.4,
+                    ease: [0.16, 1, 0.3, 1],
+                    filter: { duration: 0.3 },
+                  }}
+                >
+                  {isLoginMode ? loginForm : registerForm}
+                </motion.div>
+              </AnimatePresence>
             </div>
           </div>
         </motion.div>
@@ -852,8 +861,8 @@ const Auth = () => {
               </p>
               <ul className="list-disc pl-4 sm:pl-5 space-y-2.5 sm:space-y-3">
                 <li className="leading-relaxed text-sm">
-                  <span className="font-semibold text-foreground">O que coletamos:</span> informações de cadastro
-                  (nome, e-mail, telefone), dados de navegação, histórico de uso e, quando necessário, informações de
+                  <span className="font-semibold text-foreground">O que coletamos:</span> informações de cadastro (nome,
+                  e-mail, telefone), dados de navegação, histórico de uso e, quando necessário, informações de
                   pagamento.
                 </li>
                 <li className="leading-relaxed text-sm">
@@ -862,13 +871,12 @@ const Auth = () => {
                 </li>
                 <li className="leading-relaxed text-sm">
                   <span className="font-semibold text-foreground">Inteligência Artificial:</span> usamos IA para
-                  recomendar conteúdos, apoiar no suporte e ajudar na criação de materiais. Mas sempre com
-                  transparência e sem usar dados sensíveis sem sua permissão.
+                  recomendar conteúdos, apoiar no suporte e ajudar na criação de materiais. Mas sempre com transparência
+                  e sem usar dados sensíveis sem sua permissão.
                 </li>
                 <li className="leading-relaxed text-sm">
-                  <span className="font-semibold text-foreground">Compartilhamento:</span> nunca vendemos seus dados.
-                  Só compartilhamos com parceiros essenciais para o funcionamento da plataforma ou quando a lei
-                  exigir.
+                  <span className="font-semibold text-foreground">Compartilhamento:</span> nunca vendemos seus dados. Só
+                  compartilhamos com parceiros essenciais para o funcionamento da plataforma ou quando a lei exigir.
                 </li>
                 <li className="leading-relaxed text-sm">
                   <span className="font-semibold text-foreground">Seus direitos:</span> você pode pedir acesso,
@@ -887,7 +895,7 @@ const Auth = () => {
                 </p>
               </div>
             </div>
-            
+
             {/* Fade Indicator - Gradiente no final do scroll */}
             <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background via-background/80 to-transparent pointer-events-none" />
           </div>
@@ -919,16 +927,16 @@ const Auth = () => {
         </DialogContent>
       </Dialog>
 
-      <TeamSelectionDialog 
-        open={showTeamSelection} 
+      <TeamSelectionDialog
+        open={showTeamSelection}
         onClose={() => {
           setShowTeamSelection(false);
           setWaitingForAuth(true);
         }}
       />
 
-      <TeamSelectionDialog 
-        open={oauthTeamDialog} 
+      <TeamSelectionDialog
+        open={oauthTeamDialog}
         onClose={() => {
           handleOAuthTeamDialogClose();
           navigate("/dashboard", { replace: true });
