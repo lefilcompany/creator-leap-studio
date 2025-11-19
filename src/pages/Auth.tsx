@@ -821,9 +821,9 @@ const Auth = () => {
             </DialogTitle>
           </DialogHeader>
 
-          {/* Conteúdo Scrollável */}
-          <div className="flex-1 overflow-y-auto overflow-x-hidden px-4 py-3 sm:px-6 sm:py-4 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
-            <div className="space-y-3 sm:space-y-4 text-sm text-muted-foreground">
+          {/* Conteúdo Scrollável com Fade Indicator */}
+          <div className="flex-1 overflow-y-auto overflow-x-hidden px-4 py-3 sm:px-6 sm:py-4 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent relative">
+            <div className="space-y-3 sm:space-y-4 text-sm text-muted-foreground pb-8">
               <p className="font-medium text-foreground text-sm leading-relaxed">
                 👋 Olá! Antes de usar nossa plataforma, é importante que você saiba como cuidamos dos seus dados:
               </p>
@@ -864,6 +864,9 @@ const Auth = () => {
                 </p>
               </div>
             </div>
+            
+            {/* Fade Indicator - Gradiente no final do scroll */}
+            <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background via-background/80 to-transparent pointer-events-none" />
           </div>
 
           {/* Footer Fixo com Botões Sempre Visíveis */}
