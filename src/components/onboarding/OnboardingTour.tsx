@@ -13,7 +13,7 @@ interface OnboardingTourProps {
 }
 
 export function OnboardingTour({ tourType, steps, startDelay = 500 }: OnboardingTourProps) {
-  const { isTourCompleted, markTourAsCompleted } = useOnboarding();
+  const { shouldShowTour, markTourAsCompleted } = useOnboarding();
   const [run, setRun] = useState(false);
   const isMobile = useIsMobile();
 
@@ -23,15 +23,15 @@ export function OnboardingTour({ tourType, steps, startDelay = 500 }: Onboarding
       return;
     }
 
-    // Check if tour should run
-    if (!isTourCompleted(tourType)) {
+    // Check if tour should run (respecting order)
+    if (shouldShowTour(tourType)) {
       const timer = setTimeout(() => {
         setRun(true);
       }, startDelay);
 
       return () => clearTimeout(timer);
     }
-  }, [tourType, isTourCompleted, startDelay, isMobile]);
+  }, [tourType, shouldShowTour, startDelay, isMobile]);
 
   const handleJoyrideCallback = (data: CallBackProps) => {
     const { status, action } = data;
