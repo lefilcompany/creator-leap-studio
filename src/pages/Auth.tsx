@@ -550,55 +550,6 @@ const Auth = () => {
             )}
           </CollapsibleContent>
         </Collapsible>
-              </SelectTrigger>
-              <SelectContent className="bg-background border border-border shadow-lg max-h-[200px]">
-                {states.map((state) => (
-                  <SelectItem
-                    key={state.id}
-                    value={state.sigla}
-                    className="hover:bg-accent hover:text-accent-foreground cursor-pointer"
-                  >
-                    {state.nome}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-1">
-            <Label htmlFor="city" className="text-muted-foreground text-xs">
-              Cidade
-            </Label>
-            <Select
-              value={formData.city}
-              onValueChange={(value) => handleSelectChange("city", value)}
-              disabled={!formData.state || loadingCities}
-            >
-              <SelectTrigger className="h-10 lg:h-11 disabled:opacity-50 disabled:cursor-wait">
-                <SelectValue
-                  placeholder={
-                    !formData.state
-                      ? "Primeiro selecione o estado"
-                      : loadingCities
-                        ? "Carregando cidades..."
-                        : "Selecione a cidade"
-                  }
-                />
-              </SelectTrigger>
-              <SelectContent className="bg-background border border-border shadow-lg max-h-[200px]">
-                {cities.map((city) => (
-                  <SelectItem
-                    key={city.id}
-                    value={city.nome}
-                    className="hover:bg-accent hover:text-accent-foreground cursor-pointer"
-                  >
-                    {city.nome}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
 
         <div className="flex items-start gap-2 mt-2">
           <Checkbox
