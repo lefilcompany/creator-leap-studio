@@ -96,7 +96,7 @@ export default function ThemeList({ themes, brands, selectedTheme, onSelectTheme
                 <button
                   onClick={() => onSelectTheme(theme)}
                   className={cn(
-                    "w-full text-left p-4 rounded-lg border-2 transition-all duration-200 flex items-center justify-between hover-scale",
+                    "theme-card w-full text-left p-4 rounded-lg border-2 transition-all duration-200 flex items-center justify-between hover-scale",
                     selectedTheme?.id === theme.id
                       ? "bg-primary/10 border-primary shadow-md"
                       : "bg-muted/50 border-transparent hover:border-primary/50 hover:bg-primary/5"

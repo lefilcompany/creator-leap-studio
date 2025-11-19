@@ -9,6 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Loader2, Check, Coins, Sparkles } from "lucide-react";
+import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
+import { creditsSteps } from "@/components/onboarding/tourSteps";
 
 interface Plan {
   id: string;
@@ -164,7 +166,7 @@ const Credits = () => {
         </div>
       )}
 
-      <div className="mb-8">
+      <div id="credits-balance" className="mb-8">
         <h1 className="text-4xl font-bold mb-2">Comprar Créditos</h1>
         <div className="flex items-center gap-2 text-muted-foreground">
           <Coins className="h-5 w-5" />
@@ -210,6 +212,7 @@ const Credits = () => {
                   </div>
                 </div>
                 <Button 
+                  id="buy-credits-button"
                   onClick={() => handleBuyPlan(plan.id, plan.stripe_price_id_monthly)}
                   disabled={loading}
                   className="w-full"
@@ -289,6 +292,8 @@ const Credits = () => {
           </CardContent>
         </Card>
       </section>
+
+      <OnboardingTour tourType="credits" steps={creditsSteps} />
     </div>
   );
 };

@@ -17,6 +17,8 @@ import { toast } from "sonner";
 import type { Brand } from "@/types/brand";
 import { getPlatformImageSpec, platformSpecs } from "@/lib/platformSpecs";
 import { useFormPersistence } from '@/hooks/useFormPersistence';
+import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
+import { quickContentSteps } from "@/components/onboarding/tourSteps";
 
 export default function QuickContent() {
   const navigate = useNavigate();

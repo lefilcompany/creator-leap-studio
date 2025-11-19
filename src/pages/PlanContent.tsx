@@ -14,6 +14,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useFormPersistence } from '@/hooks/useFormPersistence';
+import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
+import { planContentSteps } from "@/components/onboarding/tourSteps";
 
 interface FormData {
   brand: string;
