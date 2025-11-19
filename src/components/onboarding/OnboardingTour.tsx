@@ -10,9 +10,10 @@ interface OnboardingTourProps {
   tourType: OnboardingTourType;
   steps: Step[];
   startDelay?: number;
+  onComplete?: () => void;
 }
 
-export function OnboardingTour({ tourType, steps, startDelay = 500 }: OnboardingTourProps) {
+export function OnboardingTour({ tourType, steps, startDelay = 500, onComplete }: OnboardingTourProps) {
   const { shouldShowTour, markTourAsCompleted } = useOnboarding();
   const [run, setRun] = useState(false);
   const isMobile = useIsMobile();
@@ -43,14 +44,17 @@ export function OnboardingTour({ tourType, steps, startDelay = 500 }: Onboarding
         markTourAsCompleted(tourType);
         toast({
           title: 'Tour concluído! 🎉',
-          description: 'Você pode refazer os tours a qualquer momento nas Configurações (ícone de engrenagem no canto superior direito).',
+          description: 'Você pode refazer os tours nas Configurações (ícone de engrenagem).',
         });
       } else if (status === STATUS.SKIPPED && action === 'close') {
         toast({
           title: 'Tour pulado',
-          description: 'Você pode refazer os tours a qualquer momento nas Configurações (ícone de engrenagem no canto superior direito).',
+          description: 'Você pode refazer os tours nas Configurações (ícone de engrenagem).',
         });
       }
+
+      // Chamar callback de conclusão se fornecido
+      onComplete?.();
     }
   };
 
