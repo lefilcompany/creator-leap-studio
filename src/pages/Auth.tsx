@@ -599,7 +599,7 @@ const Auth = () => {
 
   return (
     <>
-      <div className="h-screen flex flex-col items-center justify-end pb-8 sm:justify-center relative overflow-hidden bg-gradient-to-br from-background via-background to-primary/5 p-4 sm:p-6">
+      <div className="h-screen flex flex-col items-center justify-end pb-8 sm:justify-center sm:gap-0 relative overflow-hidden bg-gradient-to-br from-background via-background to-primary/5 p-4 sm:p-6">
         {/* Elementos decorativos animados com motion blur */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <motion.div
@@ -720,7 +720,7 @@ const Auth = () => {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="mb-3 sm:mb-4 z-10 flex-shrink-0"
+          className="mb-6 sm:mb-12 md:mb-16 z-10 flex-shrink-0"
         >
           <CreatorLogo />
         </motion.div>
