@@ -9,12 +9,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { CreatorLogo } from "@/components/CreatorLogo";
-import { Eye, EyeOff, Mail, Lock, Sun, Moon, Loader2, User, Phone } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, Sun, Moon, Loader2, User, Phone, ChevronDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { TeamSelectionDialog } from "@/components/auth/TeamSelectionDialog";
-import { AuthModeToggle } from "@/components/auth/AuthModeToggle";
 import ChangePasswordDialog from "@/components/perfil/ChangePasswordDialog";
 import { useOAuthCallback } from "@/hooks/useOAuthCallback";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -296,10 +296,10 @@ const Auth = () => {
 
   const loginForm = useMemo(
     () => (
-      <form onSubmit={handleLogin} className="space-y-6">
+      <form onSubmit={handleLogin} className="space-y-4 sm:space-y-6">
         <div className="space-y-2">
           <div className="relative">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <Mail className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
             <Input
               id="login-email"
               type="email"
@@ -307,14 +307,14 @@ const Auth = () => {
               required
               value={loginEmail}
               onChange={(e) => setLoginEmail(e.target.value)}
-              className="pl-10 h-12"
+              className="pl-9 sm:pl-10 h-9 sm:h-10 text-sm"
             />
           </div>
         </div>
 
         <div className="space-y-2">
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <Lock className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
             <Input
               id="login-password"
               type={showPassword ? "text" : "password"}
@@ -322,16 +322,16 @@ const Auth = () => {
               required
               value={loginPassword}
               onChange={(e) => setLoginPassword(e.target.value)}
-              className="pl-10 pr-10 h-12"
+              className="pl-9 sm:pl-10 pr-9 sm:pr-10 h-9 sm:h-10 text-sm"
             />
             <Button
               type="button"
               variant="ghost"
               size="icon"
-              className="absolute top-1/2 -translate-y-1/2 right-1 h-10 w-10 text-muted-foreground hover:bg-accent/60"
+              className="absolute top-1/2 -translate-y-1/2 right-0.5 h-8 w-8 sm:h-9 sm:w-9 text-muted-foreground hover:bg-accent/60"
               onClick={() => setShowPassword(!showPassword)}
             >
-              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              {showPassword ? <EyeOff size={16} className="sm:w-5 sm:h-5" /> : <Eye size={16} className="sm:w-5 sm:h-5" />}
             </Button>
           </div>
         </div>
@@ -378,11 +378,11 @@ const Auth = () => {
         <Button
           type="submit"
           disabled={loading}
-          className="w-full h-12 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-medium rounded-xl transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50"
+          className="w-full h-9 sm:h-10 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-medium rounded-lg sm:rounded-xl transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 text-sm"
         >
           {loading ? (
             <div className="flex items-center gap-2">
-              <Loader2 className="h-5 w-5 animate-spin" />
+              <Loader2 className="h-4 w-4 animate-spin" />
               <span>{t.login.signingIn}</span>
             </div>
           ) : (
@@ -396,78 +396,90 @@ const Auth = () => {
 
   const registerForm = useMemo(
     () => (
-      <form onSubmit={handleRegister} className="space-y-2 sm:space-y-3 lg:space-y-4">
-        <div className="relative">
-          <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            id="name"
-            placeholder="Nome Completo"
-            required
-            value={formData.name}
-            onChange={handleInputChange}
-            className="pl-10 h-10 lg:h-11"
-          />
-        </div>
-
-        <div className="relative">
-          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            id="email"
-            type="email"
-            placeholder="E-mail"
-            required
-            value={formData.email}
-            onChange={handleInputChange}
-            className="pl-10 h-10 lg:h-11"
-          />
-        </div>
-
-        <div className="flex flex-col sm:grid sm:grid-cols-2 gap-2 sm:gap-3 lg:gap-4">
+      <form onSubmit={handleRegister} className="space-y-3 sm:space-y-4">
+        {/* Grupo 1: Informações Pessoais */}
+        <div className="space-y-2 p-3 rounded-lg bg-muted/20 border border-border/40">
+          <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+            Informações Pessoais
+          </Label>
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <User className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
             <Input
-              id="password"
-              type={showPassword ? "text" : "password"}
-              placeholder="Senha"
+              id="name"
+              placeholder="Nome Completo"
               required
-              minLength={6}
-              value={formData.password}
+              value={formData.name}
               onChange={handleInputChange}
-              className="pl-10 pr-10 h-10 lg:h-11"
+              className="pl-9 sm:pl-10 h-9 sm:h-10 text-sm"
             />
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8"
-              onClick={() => setShowPassword(!showPassword)}
-            >
-              {showPassword ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
-            </Button>
           </div>
 
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Mail className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
             <Input
-              id="confirmPassword"
-              type={showPassword ? "text" : "password"}
-              placeholder="Confirmar Senha"
+              id="email"
+              type="email"
+              placeholder="E-mail"
               required
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="pl-10 h-10 lg:h-11"
+              value={formData.email}
+              onChange={handleInputChange}
+              className="pl-9 sm:pl-10 h-9 sm:h-10 text-sm"
             />
+          </div>
+        </div>
+
+        {/* Grupo 2: Segurança */}
+        <div className="space-y-2 p-3 rounded-lg bg-muted/20 border border-border/40">
+          <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+            Segurança
+          </Label>
+          <div className="flex flex-col sm:grid sm:grid-cols-2 gap-2">
+            <div className="relative">
+              <Lock className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Senha"
+                required
+                minLength={6}
+                value={formData.password}
+                onChange={handleInputChange}
+                className="pl-9 sm:pl-10 pr-9 sm:pr-10 h-9 sm:h-10 text-sm"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="absolute right-0.5 top-1/2 transform -translate-y-1/2 h-8 w-8"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+              </Button>
+            </div>
+
+            <div className="relative">
+              <Lock className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
+              <Input
+                id="confirmPassword"
+                type={showPassword ? "text" : "password"}
+                placeholder="Confirmar Senha"
+                required
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="pl-9 sm:pl-10 h-9 sm:h-10 text-sm"
+              />
+            </div>
           </div>
         </div>
 
         {formData.password && (
-          <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 p-3 rounded-lg border border-green-200/50 dark:border-green-800/50 shadow-md">
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-              <div className="flex items-center gap-2 text-sm">
+          <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 p-2 sm:p-3 rounded-lg border border-green-200/50 dark:border-green-800/50">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1.5 sm:gap-2">
+              <div className="flex items-center gap-2 text-xs sm:text-sm">
                 <div
-                  className={`w-3 h-3 rounded-full flex items-center justify-center transition-all ${isPasswordValid ? "bg-green-500 shadow-sm" : "bg-red-500"}`}
+                  className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full flex items-center justify-center transition-all ${isPasswordValid ? "bg-green-500" : "bg-red-500"}`}
                 >
-                  {isPasswordValid && <span className="text-white text-[10px]">✓</span>}
+                  {isPasswordValid && <span className="text-white text-[8px] sm:text-[10px]">✓</span>}
                 </div>
                 <span
                   className={`font-medium transition-colors ${isPasswordValid ? "text-green-700 dark:text-green-400" : "text-red-500"}`}
@@ -475,11 +487,11 @@ const Auth = () => {
                   Mínimo 6 caracteres
                 </span>
               </div>
-              <div className="flex items-center gap-2 text-sm">
+              <div className="flex items-center gap-2 text-xs sm:text-sm">
                 <div
-                  className={`w-3 h-3 rounded-full flex items-center justify-center transition-all ${passwordsMatch && confirmPassword ? "bg-green-500 shadow-sm" : "bg-red-500"}`}
+                  className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full flex items-center justify-center transition-all ${passwordsMatch && confirmPassword ? "bg-green-500" : "bg-red-500"}`}
                 >
-                  {passwordsMatch && confirmPassword && <span className="text-white text-[10px]">✓</span>}
+                  {passwordsMatch && confirmPassword && <span className="text-white text-[8px] sm:text-[10px]">✓</span>}
                 </div>
                 <span
                   className={`font-medium transition-colors ${passwordsMatch && confirmPassword ? "text-green-700 dark:text-green-400" : "text-red-500"}`}
@@ -491,31 +503,53 @@ const Auth = () => {
           </div>
         )}
 
-        <div className="relative">
-          <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            id="phone"
-            type="tel"
-            placeholder="(XX) XXXXX-XXXX"
-            value={formData.phone}
-            onChange={handleInputChange}
-            className="pl-10 h-10 lg:h-11"
-            maxLength={15}
-          />
-        </div>
+        {/* Grupo 3: Informações Adicionais (Collapsible) */}
+        <Collapsible>
+          <CollapsibleTrigger className="flex items-center justify-between w-full p-2 rounded-lg hover:bg-muted/30 transition-colors group">
+            <span className="text-xs sm:text-sm text-muted-foreground font-medium">Informações Adicionais (opcional)</span>
+            <ChevronDown className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+          </CollapsibleTrigger>
+          <CollapsibleContent className="space-y-2 pt-2">
+            <div className="relative">
+              <Phone className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
+              <Input
+                id="phone"
+                placeholder="Telefone (opcional)"
+                value={formData.phone}
+                onChange={handleInputChange}
+                className="pl-9 sm:pl-10 h-9 sm:h-10 text-sm"
+              />
+            </div>
 
-        <div className="flex flex-col sm:grid sm:grid-cols-2 gap-2 sm:gap-3 lg:gap-4">
-          <div className="space-y-1">
-            <Label htmlFor="state" className="text-muted-foreground text-xs">
-              Estado
-            </Label>
-            <Select
-              value={formData.state}
-              onValueChange={(value) => handleSelectChange("state", value)}
-              disabled={loadingStates}
-            >
-              <SelectTrigger className="h-10 lg:h-11 disabled:opacity-50 disabled:cursor-wait">
-                <SelectValue placeholder={loadingStates ? "Carregando estados..." : "Selecione o estado"} />
+            <Select onValueChange={(value) => handleSelectChange("state", value)} disabled={loadingStates}>
+              <SelectTrigger className="h-9 sm:h-10 text-sm">
+                <SelectValue placeholder={loadingStates ? "Carregando estados..." : "Estado (opcional)"} />
+              </SelectTrigger>
+              <SelectContent>
+                {states.map((state) => (
+                  <SelectItem key={state.id} value={state.sigla}>
+                    {state.nome}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {formData.state && (
+              <Select onValueChange={(value) => handleSelectChange("city", value)} disabled={loadingCities}>
+                <SelectTrigger className="h-9 sm:h-10 text-sm">
+                  <SelectValue placeholder={loadingCities ? "Carregando cidades..." : "Cidade (opcional)"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {cities.map((city) => (
+                    <SelectItem key={city.id} value={city.nome}>
+                      {city.nome}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </CollapsibleContent>
+        </Collapsible>
               </SelectTrigger>
               <SelectContent className="bg-background border border-border shadow-lg max-h-[200px]">
                 {states.map((state) => (
@@ -614,7 +648,7 @@ const Auth = () => {
 
   return (
     <>
-      <div className="h-screen flex flex-col items-center justify-center relative overflow-hidden bg-gradient-to-br from-background via-background to-primary/5 p-4 sm:p-6">
+      <div className="h-screen flex flex-col items-center justify-end pb-8 sm:justify-center relative overflow-hidden bg-gradient-to-br from-background via-background to-primary/5 p-4 sm:p-6">
         {/* Elementos decorativos animados com motion blur */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <motion.div
@@ -745,15 +779,53 @@ const Auth = () => {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="w-full max-w-[90%] sm:max-w-md relative z-10 flex-1 flex flex-col min-h-0"
+          className="w-full max-w-[95%] sm:max-w-md relative z-10 h-auto max-h-[70vh] sm:max-h-none"
         >
-          <div className="bg-card/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-primary/10 p-3 sm:p-5 md:p-8 overflow-hidden flex flex-col h-full">
-            {/* Toggle de modo */}
-            <div className="flex items-center justify-center mb-4 sm:mb-6 md:mb-8 flex-shrink-0">
-              <AuthModeToggle
-                isLoginMode={isLoginMode}
-                onToggle={setIsLoginMode}
-              />
+          <div className="bg-card/80 backdrop-blur-xl rounded-t-3xl sm:rounded-2xl shadow-2xl border border-primary/10 p-4 sm:p-8 flex flex-col h-full max-h-[70vh] sm:max-h-none">
+            {/* Novo Sistema de Tabs Modernas */}
+            <div className="flex border-b border-border mb-4 sm:mb-6 flex-shrink-0">
+              <button
+                onClick={() => setIsLoginMode(true)}
+                className={`flex-1 pb-3 text-center font-semibold transition-all relative ${
+                  isLoginMode 
+                    ? 'text-primary' 
+                    : 'text-muted-foreground'
+                }`}
+              >
+                Login
+                {isLoginMode && (
+                  <motion.div
+                    layoutId="activeTab"
+                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
+                    transition={{ 
+                      type: "spring",
+                      stiffness: 500,
+                      damping: 30
+                    }}
+                  />
+                )}
+              </button>
+              <button
+                onClick={() => setIsLoginMode(false)}
+                className={`flex-1 pb-3 text-center font-semibold transition-all relative ${
+                  !isLoginMode 
+                    ? 'text-primary' 
+                    : 'text-muted-foreground'
+                }`}
+              >
+                Cadastro
+                {!isLoginMode && (
+                  <motion.div
+                    layoutId="activeTab"
+                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
+                    transition={{ 
+                      type: "spring",
+                      stiffness: 500,
+                      damping: 30
+                    }}
+                  />
+                )}
+              </button>
             </div>
 
             <div className="text-center mb-2 sm:mb-3 md:mb-4 flex-shrink-0">
