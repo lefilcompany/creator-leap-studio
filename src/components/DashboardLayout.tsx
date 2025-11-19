@@ -4,15 +4,12 @@ import { Header } from "./Header";
 import { Outlet } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { PlatformChatbot } from "./PlatformChatbot";
-import { OnboardingTour } from "./onboarding/OnboardingTour";
-import { navbarSteps } from "./onboarding/tourSteps";
 
 export const DashboardLayout = () => {
   const isMobile = useIsMobile();
   
   return (
     <SidebarProvider defaultOpen={false}>
-      <OnboardingTour tourType="navbar" steps={navbarSteps} startDelay={500} />
       <div className="min-h-screen flex w-full bg-gradient-to-br from-background via-background to-muted/10">
         <AppSidebar />
         <div className={`flex flex-1 flex-col min-w-0 ${isMobile ? 'ml-0' : 'ml-64'}`}>

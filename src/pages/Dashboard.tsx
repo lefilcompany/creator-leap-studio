@@ -25,7 +25,8 @@ import { TrialBanner } from "@/components/TrialBanner";
 import { ExpiredTrialBlocker } from "@/components/ExpiredTrialBlocker";
 
 import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
-import { dashboardSteps } from '@/components/onboarding/tourSteps';
+import { dashboardSteps, navbarSteps } from '@/components/onboarding/tourSteps';
+import { TourSelector } from '@/components/onboarding/TourSelector';
 
 const Dashboard = () => {
   const { user, team, isLoading } = useAuth();
@@ -203,7 +204,23 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-6">
-      <OnboardingTour tourType="dashboard" steps={dashboardSteps} startDelay={1000} />
+      <TourSelector 
+        tours={[
+          {
+            tourType: 'navbar',
+            steps: navbarSteps,
+            label: 'Tour da Navegação',
+            targetElement: '#sidebar-logo'
+          },
+          {
+            tourType: 'dashboard',
+            steps: dashboardSteps,
+            label: 'Tour do Dashboard',
+            targetElement: '#dashboard-credits-card'
+          }
+        ]}
+        startDelay={1000}
+      />
       
       {/* Bloqueador de Trial Expirado */}
       <ExpiredTrialBlocker />
