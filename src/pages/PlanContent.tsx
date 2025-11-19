@@ -267,6 +267,7 @@ const PlanContent = () => {
 
   return (
     <div className="min-h-full w-full p-3 sm:p-6">
+      <OnboardingTour tourType="plan_content" steps={planContentSteps} />
       <div className="max-w-7xl mx-auto space-y-4 sm:space-y-8">
         {/* Header Card */}
         <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5">
@@ -311,7 +312,7 @@ const PlanContent = () => {
         </Card>
 
         {/* Configuration Form */}
-        <Card className="backdrop-blur-sm bg-card/60 border border-border/20 shadow-lg shadow-black/5 rounded-2xl overflow-hidden">
+        <Card id="plan-filters" className="backdrop-blur-sm bg-card/60 border border-border/20 shadow-lg shadow-black/5 rounded-2xl overflow-hidden">
           <CardHeader className="pb-4 bg-gradient-to-r from-primary/5 to-secondary/5">
             <h2 className="text-xl font-semibold">Configuração Básica</h2>
             <p className="text-muted-foreground text-sm">Defina marca, tema e plataforma</p>
@@ -511,6 +512,7 @@ const PlanContent = () => {
             <CardContent className="p-4 sm:p-6">
               <div className="flex flex-col items-center gap-4">
                 <Button
+                  id="create-plan-button"
                   onClick={generatePlan}
                   disabled={
                     loading ||

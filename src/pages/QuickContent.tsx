@@ -273,6 +273,7 @@ export default function QuickContent() {
   }
   return (
     <div className="min-h-full bg-gradient-to-br from-background via-background to-muted/20">
+      <OnboardingTour tourType="quick_content" steps={quickContentSteps} />
       <div className="max-w-5xl mx-auto space-y-4 md:space-y-6">
         {/* Header */}
         <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5">
@@ -319,7 +320,7 @@ export default function QuickContent() {
         </Card>
 
         {/* Main Form */}
-        <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-2xl">
+        <Card id="quick-content-form" className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-2xl">
           <CardHeader className="pb-3 md:pb-4 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-t-2xl">
             <h2 className="text-lg md:text-xl font-semibold flex items-center gap-3 text-foreground">
               <Sparkles className="h-5 w-5 text-primary" />
@@ -339,7 +340,7 @@ export default function QuickContent() {
               ...formData,
               brandId: value
             })}>
-                <SelectTrigger id="brand" className="h-11 rounded-xl border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors">
+                <SelectTrigger id="quick-brand-select" className="h-11 rounded-xl border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors">
                   <SelectValue placeholder="Nenhuma marca selecionada" />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl border-border/20">
@@ -401,7 +402,7 @@ export default function QuickContent() {
               <Label htmlFor="prompt" className="text-sm font-semibold text-foreground">
                 Descreva o que você quer criar <span className="text-destructive">*</span>
               </Label>
-              <Textarea id="prompt" placeholder="Ex: Uma imagem de um café sendo servido numa manhã ensolarada, com uma estética minimalista e moderna. Cores quentes, iluminação natural suave..." value={formData.prompt} onChange={e => setFormData({
+              <Textarea id="quick-description" placeholder="Ex: Uma imagem de um café sendo servido numa manhã ensolarada, com uma estética minimalista e moderna. Cores quentes, iluminação natural suave..." value={formData.prompt} onChange={e => setFormData({
               ...formData,
               prompt: e.target.value
             })} rows={6} className="resize-none rounded-xl border-2 border-border/50 bg-background/50 hover:border-border/70 focus:border-primary/50 transition-colors" />
