@@ -7,7 +7,7 @@ interface AuthModeToggleProps {
 
 export const AuthModeToggle = ({ isLoginMode, onToggle }: AuthModeToggleProps) => {
   return (
-    <div className="relative inline-flex items-center gap-0 p-1.5 bg-muted/40 rounded-full border-2 border-border/40 shadow-lg backdrop-blur-md overflow-hidden">
+    <div className="relative inline-flex items-center gap-0 p-1 sm:p-1.5 bg-muted/40 rounded-full border-2 border-border/40 shadow-lg backdrop-blur-md overflow-hidden w-fit">
       {/* Animated background with smooth spring physics */}
       <motion.div
         className="absolute inset-y-1.5 rounded-full bg-gradient-to-r from-primary via-primary/95 to-primary z-0"
@@ -59,7 +59,7 @@ export const AuthModeToggle = ({ isLoginMode, onToggle }: AuthModeToggleProps) =
         type="button"
         onClick={() => onToggle(true)}
         whileTap={{ scale: 0.97 }}
-        className={`relative z-10 px-12 py-3 text-sm font-bold rounded-full min-w-[140px]
+        className={`relative z-10 px-6 sm:px-8 md:px-12 py-2 sm:py-2.5 md:py-3 text-xs sm:text-sm font-bold rounded-full min-w-[100px] sm:min-w-[120px] md:min-w-[140px]
           ${isLoginMode 
             ? "text-primary-foreground" 
             : "text-muted-foreground"
@@ -85,7 +85,7 @@ export const AuthModeToggle = ({ isLoginMode, onToggle }: AuthModeToggleProps) =
         type="button"
         onClick={() => onToggle(false)}
         whileTap={{ scale: 0.97 }}
-        className={`relative z-10 px-12 py-3 text-sm font-bold rounded-full min-w-[140px]
+        className={`relative z-10 px-6 sm:px-8 md:px-12 py-2 sm:py-2.5 md:py-3 text-xs sm:text-sm font-bold rounded-full min-w-[100px] sm:min-w-[120px] md:min-w-[140px]
           ${!isLoginMode 
             ? "text-primary-foreground" 
             : "text-muted-foreground"
