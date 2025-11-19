@@ -95,11 +95,6 @@ export const brandsSteps: Step[] = [
     content: 'Cada card mostra informações da marca: nome, segmento e data de criação.',
     placement: 'top',
   },
-  {
-    target: '.brand-actions',
-    content: 'Use estes botões para editar ou excluir uma marca.',
-    placement: 'left',
-  },
 ];
 
 export const themesSteps: Step[] = [
