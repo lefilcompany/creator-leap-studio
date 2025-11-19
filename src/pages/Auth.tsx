@@ -683,7 +683,7 @@ const Auth = () => {
           <motion.img
             src={decorativeElement}
             alt=""
-            className="absolute top-[10%] right-[8%] w-64 h-64 sm:w-72 sm:h-72 object-contain opacity-18"
+            className="absolute top-[10%] right-[8%] w-64 h-64 sm:w-72 sm:h-72 object-contain opacity-8"
             style={{ filter: "blur(4px)" }}
             animate={{
               y: [0, -35, 35, 0],
@@ -700,7 +700,7 @@ const Auth = () => {
           <motion.img
             src={decorativeElement}
             alt=""
-            className="absolute top-[45%] left-[6%] w-56 h-56 sm:w-68 sm:h-68 object-contain opacity-17"
+            className="absolute top-[45%] left-[6%] w-56 h-56 sm:w-68 sm:h-68 object-contain opacity-8"
             style={{ filter: "blur(5px)" }}
             animate={{
               x: [0, 30, -30, 0],
@@ -719,7 +719,7 @@ const Auth = () => {
           <motion.img
             src={decorativeElement}
             alt=""
-            className="absolute bottom-[15%] right-[10%] w-60 h-60 sm:w-70 sm:h-70 object-contain opacity-16"
+            className="absolute bottom-[15%] right-[10%] w-60 h-60 sm:w-70 sm:h-70 object-contain opacity-8"
             style={{ filter: "blur(5px)" }}
             animate={{
               x: [0, -40, 40, 0],
