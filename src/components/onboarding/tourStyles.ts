@@ -1,0 +1,52 @@
+export const tourStyles = {
+  options: {
+    arrowColor: 'hsl(var(--popover))',
+    backgroundColor: 'hsl(var(--popover))',
+    overlayColor: 'rgba(0, 0, 0, 0.5)',
+    primaryColor: 'hsl(var(--primary))',
+    textColor: 'hsl(var(--popover-foreground))',
+    width: 380,
+    zIndex: 10000,
+  },
+  buttonNext: {
+    backgroundColor: 'hsl(var(--primary))',
+    color: 'hsl(var(--primary-foreground))',
+    fontSize: '14px',
+    padding: '8px 16px',
+    borderRadius: '6px',
+    border: 'none',
+    cursor: 'pointer',
+    fontWeight: 500,
+  },
+  buttonBack: {
+    color: 'hsl(var(--muted-foreground))',
+    fontSize: '14px',
+    marginRight: '8px',
+    border: 'none',
+    background: 'transparent',
+    cursor: 'pointer',
+  },
+  buttonSkip: {
+    color: 'hsl(var(--muted-foreground))',
+    fontSize: '14px',
+    border: 'none',
+    background: 'transparent',
+    cursor: 'pointer',
+  },
+  tooltip: {
+    padding: '20px',
+    borderRadius: '8px',
+    boxShadow: '0 10px 40px rgba(0, 0, 0, 0.2)',
+  },
+  tooltipTitle: {
+    fontSize: '18px',
+    fontWeight: 600,
+    marginBottom: '8px',
+    color: 'hsl(var(--popover-foreground))',
+  },
+  tooltipContent: {
+    fontSize: '14px',
+    lineHeight: '1.6',
+    color: 'hsl(var(--muted-foreground))',
+  },
+};

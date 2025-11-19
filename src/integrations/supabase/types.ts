@@ -525,6 +525,16 @@ export type Database = {
           id: string
           migration_user: boolean | null
           name: string
+          onboarding_brands_completed: boolean | null
+          onboarding_create_content_completed: boolean | null
+          onboarding_credits_completed: boolean | null
+          onboarding_dashboard_completed: boolean | null
+          onboarding_history_completed: boolean | null
+          onboarding_navbar_completed: boolean | null
+          onboarding_personas_completed: boolean | null
+          onboarding_plan_content_completed: boolean | null
+          onboarding_quick_content_completed: boolean | null
+          onboarding_themes_completed: boolean | null
           password_reset_sent_at: string | null
           phone: string | null
           state: string | null
@@ -541,6 +551,16 @@ export type Database = {
           id: string
           migration_user?: boolean | null
           name: string
+          onboarding_brands_completed?: boolean | null
+          onboarding_create_content_completed?: boolean | null
+          onboarding_credits_completed?: boolean | null
+          onboarding_dashboard_completed?: boolean | null
+          onboarding_history_completed?: boolean | null
+          onboarding_navbar_completed?: boolean | null
+          onboarding_personas_completed?: boolean | null
+          onboarding_plan_content_completed?: boolean | null
+          onboarding_quick_content_completed?: boolean | null
+          onboarding_themes_completed?: boolean | null
           password_reset_sent_at?: string | null
           phone?: string | null
           state?: string | null
@@ -557,6 +577,16 @@ export type Database = {
           id?: string
           migration_user?: boolean | null
           name?: string
+          onboarding_brands_completed?: boolean | null
+          onboarding_create_content_completed?: boolean | null
+          onboarding_credits_completed?: boolean | null
+          onboarding_dashboard_completed?: boolean | null
+          onboarding_history_completed?: boolean | null
+          onboarding_navbar_completed?: boolean | null
+          onboarding_personas_completed?: boolean | null
+          onboarding_plan_content_completed?: boolean | null
+          onboarding_quick_content_completed?: boolean | null
+          onboarding_themes_completed?: boolean | null
           password_reset_sent_at?: string | null
           phone?: string | null
           state?: string | null

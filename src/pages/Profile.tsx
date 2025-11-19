@@ -1,4 +1,4 @@
-import { User as UserIcon, Coins } from 'lucide-react';
+import { User as UserIcon, Coins, RefreshCw } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import PersonalInfoForm from '@/components/perfil/PersonalInfoForm';
 import TeamInfoCard from '@/components/perfil/TeamInfoCard';
@@ -8,9 +8,12 @@ import { useAuth } from '@/hooks/useAuth';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
+import { useOnboarding } from '@/hooks/useOnboarding';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function Profile() {
   const { user, team, isLoading } = useAuth();
+  const { resetAllTours } = useOnboarding();
   
   const [profileData, setProfileData] = useState({
     name: '',
@@ -114,7 +117,27 @@ export default function Profile() {
           </div>
           
           {/* Advanced Settings */}
-          <div className="flex-1">
+          <div className="flex-1 space-y-4">
+            {/* Reset Tours Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Tours Interativos</CardTitle>
+                <CardDescription>
+                  Refaça os tours de apresentação da plataforma
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button
+                  onClick={resetAllTours}
+                  variant="outline"
+                  className="w-full"
+                >
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Refazer Todos os Tours
+                </Button>
+              </CardContent>
+            </Card>
+            
             <AccountManagement userEmail={user.email || ''} />
           </div>
         </div>
