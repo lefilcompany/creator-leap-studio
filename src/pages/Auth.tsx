@@ -396,7 +396,7 @@ const Auth = () => {
 
   const registerForm = useMemo(
     () => (
-      <form onSubmit={handleRegister} className="space-y-3 lg:space-y-4">
+      <form onSubmit={handleRegister} className="space-y-2 sm:space-y-3 lg:space-y-4">
         <div className="relative">
           <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -422,7 +422,7 @@ const Auth = () => {
           />
         </div>
 
-        <div className="flex flex-col sm:grid sm:grid-cols-2 gap-4">
+        <div className="flex flex-col sm:grid sm:grid-cols-2 gap-2 sm:gap-3 lg:gap-4">
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -504,7 +504,7 @@ const Auth = () => {
           />
         </div>
 
-        <div className="flex flex-col sm:grid sm:grid-cols-2 gap-4">
+        <div className="flex flex-col sm:grid sm:grid-cols-2 gap-2 sm:gap-3 lg:gap-4">
           <div className="space-y-1">
             <Label htmlFor="state" className="text-muted-foreground text-xs">
               Estado
@@ -614,7 +614,7 @@ const Auth = () => {
 
   return (
     <>
-      <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden bg-gradient-to-br from-background via-background to-primary/5 pt-16 sm:pt-20">
+      <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden bg-gradient-to-br from-background via-background to-primary/5 pt-16 sm:pt-20 pb-6 sm:pb-8">
         {/* Elementos decorativos animados com motion blur */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <motion.div
@@ -747,16 +747,16 @@ const Auth = () => {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="w-full max-w-[90%] sm:max-w-md px-3 sm:px-4 md:px-6 relative z-10"
         >
-          <div className="bg-card/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-primary/10 p-3 sm:p-5 md:p-8">
+          <div className="bg-card/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-primary/10 p-3 sm:p-5 md:p-8 max-h-[85vh] sm:max-h-none overflow-hidden flex flex-col">
             {/* Toggle de modo */}
-            <div className="flex items-center justify-center mb-6 md:mb-8">
+            <div className="flex items-center justify-center mb-4 sm:mb-6 md:mb-8 flex-shrink-0">
               <AuthModeToggle
                 isLoginMode={isLoginMode}
                 onToggle={setIsLoginMode}
               />
             </div>
 
-            <div className="text-center mb-4 sm:mb-6">
+            <div className="text-center mb-3 sm:mb-4 md:mb-6 flex-shrink-0">
               <AnimatePresence mode="wait">
                 <motion.h2 
                   key={isLoginMode ? "login-title" : "register-title"}
@@ -774,6 +774,7 @@ const Auth = () => {
               </p>
             </div>
 
+            <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0 -mx-1 px-1">
             <AnimatePresence mode="wait" initial={false}>
               <motion.div
                 key={isLoginMode ? "login" : "register"}
@@ -805,6 +806,7 @@ const Auth = () => {
                 {isLoginMode ? loginForm : registerForm}
               </motion.div>
             </AnimatePresence>
+            </div>
           </div>
         </motion.div>
       </div>
