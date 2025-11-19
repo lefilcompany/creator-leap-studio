@@ -614,7 +614,7 @@ const Auth = () => {
 
   return (
     <>
-      <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden bg-gradient-to-br from-background via-background to-primary/5 pt-16 sm:pt-20 pb-6 sm:pb-8">
+      <div className="h-screen flex flex-col items-center justify-center relative overflow-hidden bg-gradient-to-br from-background via-background to-primary/5 p-4 sm:p-6">
         {/* Elementos decorativos animados com motion blur */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <motion.div
@@ -735,7 +735,7 @@ const Auth = () => {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="mb-6 sm:mb-8 md:mb-4 z-10"
+          className="mb-3 sm:mb-4 z-10 flex-shrink-0"
         >
           <CreatorLogo />
         </motion.div>
@@ -745,9 +745,9 @@ const Auth = () => {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="w-full max-w-[90%] sm:max-w-md px-3 sm:px-4 md:px-6 relative z-10"
+          className="w-full max-w-[90%] sm:max-w-md relative z-10 flex-1 flex flex-col min-h-0"
         >
-          <div className="bg-card/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-primary/10 p-3 sm:p-5 md:p-8 max-h-[85vh] sm:max-h-none overflow-hidden flex flex-col">
+          <div className="bg-card/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-primary/10 p-3 sm:p-5 md:p-8 overflow-hidden flex flex-col h-full">
             {/* Toggle de modo */}
             <div className="flex items-center justify-center mb-4 sm:mb-6 md:mb-8 flex-shrink-0">
               <AuthModeToggle
@@ -756,7 +756,7 @@ const Auth = () => {
               />
             </div>
 
-            <div className="text-center mb-3 sm:mb-4 md:mb-6 flex-shrink-0">
+            <div className="text-center mb-2 sm:mb-3 md:mb-4 flex-shrink-0">
               <AnimatePresence mode="wait">
                 <motion.h2 
                   key={isLoginMode ? "login-title" : "register-title"}
@@ -774,7 +774,7 @@ const Auth = () => {
               </p>
             </div>
 
-            <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0 -mx-1 px-1">
+            <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0 -mx-1 px-1 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
             <AnimatePresence mode="wait" initial={false}>
               <motion.div
                 key={isLoginMode ? "login" : "register"}
