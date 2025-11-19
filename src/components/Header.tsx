@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Search, Settings, User, Menu, Loader2, Info, FileText, Shield, LogOut, Moon, Sun, Gift, History } from "lucide-react";
+import { Search, Settings, User, Menu, Loader2, Info, FileText, Shield, LogOut, Moon, Sun, Gift, History, RefreshCw } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useOnboarding } from "@/hooks/useOnboarding";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { 
@@ -31,6 +32,7 @@ import {
 import { CreatorLogo } from "./CreatorLogo";
 import Notifications from "./Notifications";
 import RedeemCouponDialog from "./team/RedeemCouponDialog";
+import { toast } from "@/hooks/use-toast";
 
 export const Header = () => {
   const { setOpen } = useSidebar();
@@ -39,6 +41,7 @@ export const Header = () => {
   const { logout, isTrialExpired, user } = useAuth();
   const { theme, setTheme } = useTheme();
   const { t } = useTranslation();
+  const { resetAllTours } = useOnboarding();
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [showMobileSearch, setShowMobileSearch] = useState(false);
@@ -206,6 +209,19 @@ export const Header = () => {
                     <History className="mr-3 h-4 w-4" />
                     <span>Histórico</span>
                   </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  className="p-3 cursor-pointer" 
+                  onClick={() => {
+                    resetAllTours();
+                    toast({
+                      title: "Tours reiniciados",
+                      description: "Todos os tours de apresentação foram reiniciados. Visite cada página para vê-los novamente.",
+                    });
+                  }}
+                >
+                  <RefreshCw className="mr-3 h-4 w-4" />
+                  <span>Refazer Tours</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DialogTrigger asChild>
