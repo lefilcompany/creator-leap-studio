@@ -692,12 +692,70 @@ const Auth = () => {
               ease: "easeInOut",
             }}
           />
+          
+          {/* Bolinhas adicionais para mais profundidade */}
+          <motion.div
+            className="absolute top-[10%] right-[20%] w-48 h-48 sm:w-64 sm:h-64 rounded-full"
+            style={{
+              background: "radial-gradient(circle, hsl(340 100% 60% / 0.18) 0%, transparent 70%)",
+              filter: "blur(45px)",
+            }}
+            animate={{
+              x: [0, 40, -20, 0],
+              y: [0, -30, 40, 0],
+              scale: [1, 1.15, 0.95, 1],
+            }}
+            transition={{
+              duration: 18,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 1,
+            }}
+          />
+          
+          <motion.div
+            className="absolute bottom-[15%] left-[40%] w-56 h-56 sm:w-72 sm:h-72 rounded-full"
+            style={{
+              background: "radial-gradient(circle, hsl(200 100% 60% / 0.16) 0%, hsl(180 100% 50% / 0.08) 50%, transparent 70%)",
+              filter: "blur(55px)",
+            }}
+            animate={{
+              x: [0, -60, 30, 0],
+              y: [0, 40, -50, 0],
+              scale: [1, 0.9, 1.2, 1],
+            }}
+            transition={{
+              duration: 22,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 2.5,
+            }}
+          />
+          
+          <motion.div
+            className="absolute top-[60%] right-[30%] w-40 h-40 sm:w-52 sm:h-52 rounded-full"
+            style={{
+              background: "radial-gradient(circle, hsl(290 100% 65% / 0.2) 0%, transparent 65%)",
+              filter: "blur(40px)",
+            }}
+            animate={{
+              x: [0, 50, -40, 0],
+              y: [0, -45, 35, 0],
+              scale: [1, 1.1, 0.85, 1],
+            }}
+            transition={{
+              duration: 19,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 0.8,
+            }}
+          />
 
-          {/* Imagens decorativas com motion blur */}
+          {/* Imagens decorativas com motion blur - melhor distribuição */}
           <motion.img
             src={decorativeElement}
             alt=""
-            className="absolute top-[15%] right-[8%] w-72 h-72 sm:w-80 sm:h-80 object-contain opacity-20"
+            className="absolute top-[8%] right-[5%] w-60 h-60 sm:w-72 sm:h-72 object-contain opacity-18"
             style={{ filter: "blur(4px)" }}
             animate={{
               y: [0, -30, 30, 0],
@@ -713,7 +771,7 @@ const Auth = () => {
           <motion.img
             src={decorativeElement}
             alt=""
-            className="absolute bottom-[25%] left-[15%] w-56 h-56 sm:w-64 sm:h-64 object-contain opacity-18"
+            className="absolute bottom-[12%] left-[8%] w-54 h-54 sm:w-64 sm:h-64 object-contain opacity-17"
             style={{ filter: "blur(5px)" }}
             animate={{
               x: [0, 30, -30, 0],
@@ -730,7 +788,7 @@ const Auth = () => {
           <motion.img
             src={decorativeElement}
             alt=""
-            className="absolute top-[20%] left-[10%] w-52 h-52 sm:w-60 sm:h-60 object-contain opacity-15"
+            className="absolute top-[35%] left-[5%] w-48 h-48 sm:w-56 sm:h-56 object-contain opacity-15"
             style={{ filter: "blur(6px)" }}
             animate={{
               x: [0, -20, 20, 0],
@@ -748,7 +806,7 @@ const Auth = () => {
           <motion.img
             src={decorativeElement}
             alt=""
-            className="absolute bottom-[20%] right-[12%] w-44 h-44 sm:w-56 sm:h-56 object-contain opacity-16"
+            className="absolute bottom-[35%] right-[6%] w-44 h-44 sm:w-54 sm:h-54 object-contain opacity-16"
             style={{ filter: "blur(5px)" }}
             animate={{
               x: [0, -40, 40, 0],
@@ -761,6 +819,24 @@ const Auth = () => {
               repeat: Infinity,
               ease: "easeInOut",
               delay: 3,
+            }}
+          />
+          <motion.img
+            src={decorativeElement}
+            alt=""
+            className="absolute top-[55%] right-[25%] w-40 h-40 sm:w-48 sm:h-48 object-contain opacity-14"
+            style={{ filter: "blur(7px)" }}
+            animate={{
+              x: [0, 35, -35, 0],
+              y: [0, -25, 45, 0],
+              rotate: [0, 12, -12, 0],
+              scale: [1, 0.95, 1.08, 1],
+            }}
+            transition={{
+              duration: 21,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 1.5,
             }}
           />
         </div>
