@@ -740,223 +740,154 @@ const Auth = () => {
           <CreatorLogo />
         </motion.div>
 
-        {/* Card de auth centralizado */}
-        {isMobile ? (
-          <Sheet open={true}>
-            <SheetContent 
-              side="bottom" 
-              className="h-[90vh] rounded-t-3xl border-t-2 border-primary/20 px-6 pt-6"
-            >
-              <div className="h-full overflow-y-auto pb-8">
-                {/* Toggle de modo */}
-                <div className="flex items-center justify-center mb-6">
-                  <AuthModeToggle 
-                    isLoginMode={isLoginMode}
-                    onToggle={setIsLoginMode}
-                  />
-                </div>
-
-                <div className="text-center mb-6">
-                  <AnimatePresence mode="wait">
-                    <motion.h2 
-                      key={isLoginMode ? "login-title" : "register-title"}
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 10 }}
-                      transition={{ duration: 0.2 }}
-                      className="text-2xl font-bold text-foreground mb-2"
-                    >
-                      {isLoginMode ? t.login.welcome : "Crie sua conta"}
-                    </motion.h2>
-                  </AnimatePresence>
-                  <p className="text-muted-foreground">
-                    {isLoginMode ? t.login.welcomeMessage : "Comece a criar conteúdo estratégico hoje"}
-                  </p>
-                </div>
-
-                <AnimatePresence mode="wait" initial={false}>
-                  <motion.div
-                    key={isLoginMode ? "login" : "register"}
-                    initial={{ 
-                      opacity: 0, 
-                      y: 15,
-                      filter: "blur(4px)",
-                      scale: 0.96
-                    }}
-                    animate={{ 
-                      opacity: 1, 
-                      y: 0,
-                      filter: "blur(0px)",
-                      scale: 1
-                    }}
-                    exit={{ 
-                      opacity: 0, 
-                      y: -15,
-                      filter: "blur(4px)",
-                      scale: 0.96,
-                      transition: { duration: 0.2, ease: [0.4, 0, 0.6, 1] }
-                    }}
-                    transition={{ 
-                      duration: 0.4, 
-                      ease: [0.16, 1, 0.3, 1],
-                      filter: { duration: 0.3 }
-                    }}
-                  >
-                    {isLoginMode ? loginForm : registerForm}
-                  </motion.div>
-                </AnimatePresence>
-              </div>
-            </SheetContent>
-          </Sheet>
-        ) : (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="w-full max-w-md px-6 relative z-10"
-          >
-            <div className="bg-card/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-primary/10 p-8">
-              {/* Toggle de modo */}
-              <div className="flex items-center justify-center mb-6">
-                <AuthModeToggle 
-                  isLoginMode={isLoginMode}
-                  onToggle={setIsLoginMode}
-                />
-              </div>
-
-              <div className="mb-6 text-center">
-                <AnimatePresence mode="wait">
-                  <motion.h1 
-                    key={isLoginMode ? "login-title" : "register-title"}
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 10 }}
-                    transition={{ duration: 0.2 }}
-                    className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent mb-2"
-                  >
-                    {isLoginMode ? t.login.welcome : "Crie sua conta"}
-                  </motion.h1>
-                </AnimatePresence>
-                <p className="text-muted-foreground">
-                  {isLoginMode ? t.login.welcomeMessage : "Comece a criar conteúdo estratégico hoje"}
-                </p>
-              </div>
-
-              <AnimatePresence mode="wait" initial={false}>
-                <motion.div
-                  key={isLoginMode ? "login" : "register"}
-                  initial={{ 
-                    opacity: 0, 
-                    y: 15,
-                    filter: "blur(4px)",
-                    scale: 0.96
-                  }}
-                  animate={{ 
-                    opacity: 1, 
-                    y: 0,
-                    filter: "blur(0px)",
-                    scale: 1
-                  }}
-                  exit={{ 
-                    opacity: 0, 
-                    y: -15,
-                    filter: "blur(4px)",
-                    scale: 0.96,
-                    transition: { duration: 0.2, ease: [0.4, 0, 0.6, 1] }
-                  }}
-                  transition={{ 
-                    duration: 0.4, 
-                    ease: [0.16, 1, 0.3, 1],
-                    filter: { duration: 0.3 }
-                  }}
-                >
-                  {isLoginMode ? loginForm : registerForm}
-                </motion.div>
-              </AnimatePresence>
+        {/* Card de auth centralizado - Responsivo para todos os dispositivos */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="w-full max-w-[95%] sm:max-w-md px-4 sm:px-6 relative z-10"
+        >
+          <div className="bg-card/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-primary/10 p-4 sm:p-6 md:p-8">
+            {/* Toggle de modo */}
+            <div className="flex items-center justify-center mb-4 sm:mb-6">
+              <AuthModeToggle 
+                isLoginMode={isLoginMode}
+                onToggle={setIsLoginMode}
+              />
             </div>
-          </motion.div>
-        )}
+
+            <div className="text-center mb-4 sm:mb-6">
+              <AnimatePresence mode="wait">
+                <motion.h2 
+                  key={isLoginMode ? "login-title" : "register-title"}
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  transition={{ duration: 0.2 }}
+                  className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent mb-2"
+                >
+                  {isLoginMode ? t.login.welcome : "Crie sua conta"}
+                </motion.h2>
+              </AnimatePresence>
+              <p className="text-sm sm:text-base text-muted-foreground">
+                {isLoginMode ? t.login.welcomeMessage : "Comece a criar conteúdo estratégico hoje"}
+              </p>
+            </div>
+
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={isLoginMode ? "login" : "register"}
+                initial={{ 
+                  opacity: 0, 
+                  y: 15,
+                  filter: "blur(4px)",
+                  scale: 0.96
+                }}
+                animate={{ 
+                  opacity: 1, 
+                  y: 0,
+                  filter: "blur(0px)",
+                  scale: 1
+                }}
+                exit={{ 
+                  opacity: 0, 
+                  y: -15,
+                  filter: "blur(4px)",
+                  scale: 0.96,
+                  transition: { duration: 0.2, ease: [0.4, 0, 0.6, 1] }
+                }}
+                transition={{ 
+                  duration: 0.4, 
+                  ease: [0.16, 1, 0.3, 1],
+                  filter: { duration: 0.3 }
+                }}
+              >
+                {isLoginMode ? loginForm : registerForm}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </motion.div>
       </div>
 
-      {/* Modal de Política de Privacidade */}
+      {/* Modal de Política de Privacidade - Melhorado para Mobile/Tablet */}
       <Dialog open={privacyModalOpen} onOpenChange={setPrivacyModalOpen}>
-        <DialogContent className="max-w-[100vw] md:max-w-lg w-full mx-0 md:mx-4 max-h-[100vh] md:max-h-[85vh] p-0 rounded-none md:rounded-lg border-0 md:border">
-          <div className="flex flex-col h-[100vh] md:h-auto md:max-h-[85vh]">
-            <DialogHeader className="flex-shrink-0 p-3 md:p-6 pb-2 md:pb-4 border-b bg-background">
-              <DialogTitle className="text-sm md:text-lg font-bold leading-tight pr-8 text-foreground">
-                Política de Privacidade – Uso de Dados e IA
-              </DialogTitle>
-            </DialogHeader>
+        <DialogContent className="max-w-[95vw] sm:max-w-lg w-full max-h-[90vh] p-0 flex flex-col">
+          {/* Header Fixo */}
+          <DialogHeader className="flex-shrink-0 sticky top-0 z-20 bg-background border-b p-4 sm:p-6 pb-3 sm:pb-4">
+            <DialogTitle className="text-base sm:text-lg font-bold leading-tight pr-8 text-foreground">
+              Política de Privacidade – Uso de Dados e IA
+            </DialogTitle>
+          </DialogHeader>
 
-            <div className="flex-1 overflow-y-auto p-3 md:p-6 pt-2 md:pt-4">
-              <div className="space-y-2 md:space-y-4 text-xs md:text-sm text-muted-foreground">
-                <p className="font-medium text-foreground text-xs md:text-sm">
-                  👋 Olá! Antes de usar nossa plataforma, é importante que você saiba como cuidamos dos seus dados:
+          {/* Conteúdo Scrollável */}
+          <div className="flex-1 overflow-y-auto px-4 py-3 sm:px-6 sm:py-4 max-h-[calc(90vh-180px)]">
+            <div className="space-y-3 sm:space-y-4 text-sm text-muted-foreground">
+              <p className="font-medium text-foreground text-sm leading-relaxed">
+                👋 Olá! Antes de usar nossa plataforma, é importante que você saiba como cuidamos dos seus dados:
+              </p>
+              <ul className="list-disc pl-4 sm:pl-5 space-y-2.5 sm:space-y-3">
+                <li className="leading-relaxed text-sm">
+                  <span className="font-semibold text-foreground">O que coletamos:</span> informações de cadastro
+                  (nome, e-mail, telefone), dados de navegação, histórico de uso e, quando necessário, informações de
+                  pagamento.
+                </li>
+                <li className="leading-relaxed text-sm">
+                  <span className="font-semibold text-foreground">Como usamos:</span> para oferecer e melhorar os
+                  serviços, personalizar sua experiência, enviar novidades e cumprir obrigações legais.
+                </li>
+                <li className="leading-relaxed text-sm">
+                  <span className="font-semibold text-foreground">Inteligência Artificial:</span> usamos IA para
+                  recomendar conteúdos, apoiar no suporte e ajudar na criação de materiais. Mas sempre com
+                  transparência e sem usar dados sensíveis sem sua permissão.
+                </li>
+                <li className="leading-relaxed text-sm">
+                  <span className="font-semibold text-foreground">Compartilhamento:</span> nunca vendemos seus dados.
+                  Só compartilhamos com parceiros essenciais para o funcionamento da plataforma ou quando a lei
+                  exigir.
+                </li>
+                <li className="leading-relaxed text-sm">
+                  <span className="font-semibold text-foreground">Seus direitos:</span> você pode pedir acesso,
+                  correção, exclusão ou portabilidade dos seus dados, além de cancelar comunicações de marketing a
+                  qualquer momento.
+                </li>
+                <li className="leading-relaxed text-sm">
+                  <span className="font-semibold text-foreground">Segurança:</span> seus dados ficam protegidos com
+                  medidas avançadas de segurança e só são armazenados pelo tempo necessário.
+                </li>
+              </ul>
+              <div className="pt-2 sm:pt-3">
+                <p className="font-medium text-foreground text-sm leading-relaxed">
+                  🤝 Ao aceitar, você concorda com esses termos e pode usar nossa plataforma com segurança e
+                  tranquilidade.
                 </p>
-                <ul className="list-disc pl-3 md:pl-5 space-y-1.5 md:space-y-3">
-                  <li className="leading-relaxed text-xs md:text-sm">
-                    <span className="font-semibold text-foreground">O que coletamos:</span> informações de cadastro
-                    (nome, e-mail, telefone), dados de navegação, histórico de uso e, quando necessário, informações de
-                    pagamento.
-                  </li>
-                  <li className="leading-relaxed text-xs md:text-sm">
-                    <span className="font-semibold text-foreground">Como usamos:</span> para oferecer e melhorar os
-                    serviços, personalizar sua experiência, enviar novidades e cumprir obrigações legais.
-                  </li>
-                  <li className="leading-relaxed text-xs md:text-sm">
-                    <span className="font-semibold text-foreground">Inteligência Artificial:</span> usamos IA para
-                    recomendar conteúdos, apoiar no suporte e ajudar na criação de materiais. Mas sempre com
-                    transparência e sem usar dados sensíveis sem sua permissão.
-                  </li>
-                  <li className="leading-relaxed text-xs md:text-sm">
-                    <span className="font-semibold text-foreground">Compartilhamento:</span> nunca vendemos seus dados.
-                    Só compartilhamos com parceiros essenciais para o funcionamento da plataforma ou quando a lei
-                    exigir.
-                  </li>
-                  <li className="leading-relaxed text-xs md:text-sm">
-                    <span className="font-semibold text-foreground">Seus direitos:</span> você pode pedir acesso,
-                    correção, exclusão ou portabilidade dos seus dados, além de cancelar comunicações de marketing a
-                    qualquer momento.
-                  </li>
-                  <li className="leading-relaxed text-xs md:text-sm">
-                    <span className="font-semibold text-foreground">Segurança:</span> seus dados ficam protegidos com
-                    medidas avançadas de segurança e só são armazenados pelo tempo necessário.
-                  </li>
-                </ul>
-                <div className="pt-1 md:pt-3">
-                  <p className="font-medium text-foreground text-xs md:text-sm">
-                    🤝 Ao aceitar, você concorda com esses termos e pode usar nossa plataforma com segurança e
-                    tranquilidade.
-                  </p>
-                </div>
               </div>
             </div>
-
-            <DialogFooter className="flex-shrink-0 p-3 md:p-6 pt-2 md:pt-4 border-t">
-              <div className="flex flex-col sm:flex-row gap-2 w-full">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setPrivacyModalOpen(false);
-                    setPrivacyChecked(false);
-                  }}
-                  className="flex-1 h-10 md:h-11 text-xs md:text-sm"
-                >
-                  Recusar
-                </Button>
-                <Button
-                  onClick={() => {
-                    setPrivacyAccepted(true);
-                    setPrivacyChecked(true);
-                    setPrivacyModalOpen(false);
-                  }}
-                  className="flex-1 h-10 md:h-11 text-xs md:text-sm bg-primary hover:bg-primary/90"
-                >
-                  Aceitar e continuar
-                </Button>
-              </div>
-            </DialogFooter>
           </div>
+
+          {/* Footer Fixo com Botões Sempre Visíveis */}
+          <DialogFooter className="flex-shrink-0 sticky bottom-0 z-20 bg-background border-t shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] p-4 sm:p-6 pt-3 sm:pt-4">
+            <div className="flex flex-col-reverse sm:flex-row gap-3 w-full">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setPrivacyModalOpen(false);
+                  setPrivacyChecked(false);
+                }}
+                className="flex-1 h-12 text-sm font-medium"
+              >
+                Recusar
+              </Button>
+              <Button
+                onClick={() => {
+                  setPrivacyAccepted(true);
+                  setPrivacyModalOpen(false);
+                }}
+                className="flex-1 h-12 text-sm font-medium"
+              >
+                Aceitar
+              </Button>
+            </div>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
