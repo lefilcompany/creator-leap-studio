@@ -770,7 +770,7 @@ const Auth = () => {
                 <button
                   onClick={() => setIsLoginMode(true)}
                   className={`flex-1 pb-3 text-center font-semibold transition-all relative ${
-                    isLoginMode ? "text-primary" : "text-muted-foreground"
+                    isLoginMode ? "text-primary" : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
                   Login
@@ -789,7 +789,7 @@ const Auth = () => {
                 <button
                   onClick={() => setIsLoginMode(false)}
                   className={`flex-1 pb-3 text-center font-semibold transition-all relative ${
-                    !isLoginMode ? "text-primary" : "text-muted-foreground"
+                    !isLoginMode ? "text-primary" : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
                   Cadastro
