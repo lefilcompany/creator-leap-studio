@@ -31,13 +31,16 @@ const ForgotPassword = () => {
       }
 
       // Chamar edge function para enviar email customizado
-      const { error } = await supabase.functions.invoke('send-reset-password-email', {
+      console.log('Invocando edge function para email:', normalizedEmail);
+      const { data, error } = await supabase.functions.invoke('send-reset-password-email', {
         body: { email: normalizedEmail }
       });
 
+      console.log('Resposta da edge function:', { data, error });
+
       if (error) {
         console.error('Erro ao enviar email:', error);
-        toast.error("Erro ao enviar email de recuperação. Tente novamente.");
+        toast.error(`Erro ao enviar email de recuperação: ${error.message}`);
         return;
       }
 
