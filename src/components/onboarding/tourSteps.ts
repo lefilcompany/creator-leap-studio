@@ -178,8 +178,13 @@ export const createContentSteps: Step[] = [
     placement: 'top',
   },
   {
+    target: '#tone-of-voice',
+    content: 'Tom de Voz: define como sua mensagem será transmitida (formal, casual, inspirador, técnico, etc). Este campo ajuda a manter a consistência da comunicação da marca e adaptar a linguagem ao público-alvo.',
+    placement: 'top',
+  },
+  {
     target: '#advanced-options',
-    content: 'Configure opções avançadas como tom de voz, CTA e hashtags.',
+    content: 'Configure opções avançadas como CTA e hashtags para personalizar ainda mais seu conteúdo.',
     placement: 'top',
   },
   {
