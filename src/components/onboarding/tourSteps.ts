@@ -187,34 +187,9 @@ export const quickContentSteps: Step[] = [
     placement: 'top',
   },
   {
-    target: '#quick-preserve-traits',
-    content: 'Preservar traços: Marque esta opção para que a IA mantenha características específicas das imagens de referência, como estilo, composição ou elementos visuais.',
-    placement: 'top',
-  },
-  {
     target: '#advanced-options',
-    content: 'Opções Avançadas: Controles profissionais para ajustar detalhes da geração. Deixe em "Automático" se preferir resultados inteligentes sem configurações complexas.',
+    content: 'Opções Avançadas: Controles profissionais para ajustar detalhes da geração como prompt negativo, paleta de cores, iluminação e nível de detalhes.',
     placement: 'bottom',
-  },
-  {
-    target: '#advanced-negative-prompt',
-    content: 'Prompt Negativo: Especifique o que NÃO deve aparecer na imagem (ex: texto, pessoas, fundo branco). Útil para evitar elementos indesejados.',
-    placement: 'top',
-  },
-  {
-    target: '#advanced-color-palette',
-    content: 'Paleta de Cores: Escolha o esquema de cores desejado - quente, frio, vibrante, pastel, monocromático ou deixe automático.',
-    placement: 'bottom',
-  },
-  {
-    target: '#advanced-lighting',
-    content: 'Iluminação: Defina o tipo de luz da imagem - natural, estúdio, golden hour, dramática ou suave. Afeta muito a atmosfera da imagem.',
-    placement: 'bottom',
-  },
-  {
-    target: '#advanced-detail-level',
-    content: 'Nível de Detalhes: Ajuste o quão detalhada será a imagem, de minimalista (1) a muito detalhado (10). O padrão (7) oferece bom equilíbrio.',
-    placement: 'top',
   },
   {
     target: '#quick-generate-button',
