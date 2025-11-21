@@ -1,5 +1,5 @@
 import { useState, ChangeEvent, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -26,6 +26,7 @@ type ReviewType = 'image' | 'caption' | 'text-for-image';
 
 const ReviewContent = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, team: authTeam, refreshTeamCredits } = useAuth();
   const { shouldShowTour, markTourAsCompleted } = useOnboarding();
   const [reviewType, setReviewType] = useState<ReviewType | null>(null);
@@ -72,6 +73,16 @@ const ReviewContent = () => {
       toast.info('Rascunho recuperado');
     }
   }, []);
+
+  // Detectar reset do sidebar e resetar estado
+  useEffect(() => {
+    const locationState = location.state as { reset?: boolean } | null;
+    if (locationState?.reset) {
+      handleReset();
+      // Limpar o state para não resetar em próximos renders
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state]);
 
   useEffect(() => {
     const loadData = async () => {
