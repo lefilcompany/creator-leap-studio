@@ -17,6 +17,7 @@ const initialState: OnboardingState = {
   onboarding_plan_content_completed: false,
   onboarding_history_completed: false,
   onboarding_credits_completed: false,
+  onboarding_review_content_completed: false,
 };
 
 export function OnboardingProvider({ children }: { children: ReactNode }) {
@@ -44,7 +45,8 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
           onboarding_quick_content_completed,
           onboarding_plan_content_completed,
           onboarding_history_completed,
-          onboarding_credits_completed
+          onboarding_credits_completed,
+          onboarding_review_content_completed
         `)
         .eq('id', user!.id)
         .single();

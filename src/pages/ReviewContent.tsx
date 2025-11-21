@@ -269,7 +269,7 @@ const ReviewContent = () => {
   return (
     <div className="min-h-full w-full p-6">
       <div className="max-w-7xl mx-auto space-y-8">
-        <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5">
+        <Card id="review-content-header" className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5">
           <CardHeader className="pb-4">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
               <div className="flex items-center gap-3">
@@ -315,7 +315,7 @@ const ReviewContent = () => {
         </Card>
 
         {!reviewType && (
-          <Card className="backdrop-blur-sm bg-card/60 border border-border/20 shadow-lg shadow-black/5 rounded-2xl">
+          <Card id="review-type-selection" className="backdrop-blur-sm bg-card/60 border border-border/20 shadow-lg shadow-black/5 rounded-2xl">
             <CardHeader className="pb-4 bg-gradient-to-r from-primary/5 to-secondary/5">
               <h2 className="text-xl font-semibold flex items-center gap-3">
                 <div className="w-2 h-2 bg-primary rounded-full"></div>
@@ -395,7 +395,7 @@ const ReviewContent = () => {
               </CardHeader>
               <CardContent className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-3">
+                  <div id="review-brand-field" className="space-y-3">
                     <Label htmlFor="brand" className="text-sm font-semibold text-foreground">Marca <span className="text-red-600">*</span></Label>
                     {isLoadingData ? <Skeleton className="h-11 w-full rounded-xl" /> : (
                       <Select onValueChange={handleBrandChange} value={brand}>
@@ -408,7 +408,7 @@ const ReviewContent = () => {
                       </Select>
                     )}
                   </div>
-                  <div className="space-y-3">
+                  <div id="review-theme-field" className="space-y-3">
                     <Label htmlFor="theme" className="text-sm font-semibold text-foreground">Tema Estratégico (Opcional)</Label>
                     {isLoadingData ? <Skeleton className="h-11 w-full rounded-xl" /> : (
                       <Select onValueChange={setTheme} value={theme} disabled={!brand || filteredThemes.length === 0}>
@@ -443,7 +443,7 @@ const ReviewContent = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {reviewType === 'image' && (
                     <>
-                      <div className="space-y-3">
+                      <div id="review-content-input" className="space-y-3">
                         <Label htmlFor="file-upload" className="text-sm font-semibold text-foreground">Sua Imagem *</Label>
                         <div className="relative mt-2 flex justify-center rounded-xl border-2 border-dashed border-border/50 p-8 h-64 items-center">
                           <div className="text-center w-full">
@@ -459,10 +459,10 @@ const ReviewContent = () => {
                           </div>
                         </div>
                       </div>
-                      <div className="space-y-3">
+                      <div id="review-adjustments-prompt" className="space-y-3">
                         <Label htmlFor="adjustmentsPrompt" className="text-sm font-semibold text-foreground">O que você gostaria de ajustar? *</Label>
                         <Textarea 
-                          id="adjustmentsPrompt" 
+                          id="adjustmentsPrompt"
                           placeholder="Descreva o objetivo e o que você espera da imagem. Ex: 'Quero que a imagem transmita mais energia e seja mais vibrante'" 
                           value={adjustmentsPrompt} 
                           onChange={(e) => setAdjustmentsPrompt(e.target.value)} 
@@ -474,7 +474,7 @@ const ReviewContent = () => {
 
                   {reviewType === 'caption' && (
                     <>
-                      <div className="space-y-3">
+                      <div id="review-content-input" className="space-y-3">
                         <Label htmlFor="captionText" className="text-sm font-semibold text-foreground">
                           Sua Legenda * 
                           <span className="text-xs font-normal text-muted-foreground ml-2">
@@ -490,7 +490,7 @@ const ReviewContent = () => {
                           className="h-64 rounded-xl border-2 border-border/50 bg-background/50 resize-none" 
                         />
                       </div>
-                      <div className="space-y-3">
+                      <div id="review-adjustments-prompt" className="space-y-3">
                         <Label htmlFor="adjustmentsPrompt" className="text-sm font-semibold text-foreground">
                           O que você quer melhorar? *
                           <span className="text-xs font-normal text-muted-foreground ml-2">
@@ -511,7 +511,7 @@ const ReviewContent = () => {
 
                   {reviewType === 'text-for-image' && (
                     <>
-                      <div className="space-y-3">
+                      <div id="review-content-input" className="space-y-3">
                         <Label htmlFor="textForImage" className="text-sm font-semibold text-foreground">
                           Texto que Irá na Imagem *
                           <span className="text-xs font-normal text-muted-foreground ml-2">
@@ -527,7 +527,7 @@ const ReviewContent = () => {
                           className="h-64 rounded-xl border-2 border-border/50 bg-background/50 resize-none" 
                         />
                       </div>
-                      <div className="space-y-3">
+                      <div id="review-adjustments-prompt" className="space-y-3">
                         <Label htmlFor="adjustmentsPrompt" className="text-sm font-semibold text-foreground">
                           Ajustes e Contexto da Imagem *
                           <span className="text-xs font-normal text-muted-foreground ml-2">
@@ -562,6 +562,7 @@ const ReviewContent = () => {
                         Voltar
                       </Button>
                       <Button 
+                        id="review-submit-button"
                         onClick={handleSubmit} 
                         disabled={loading || !brand || !adjustmentsPrompt || 
                           (reviewType === 'image' && !imageFile) ||

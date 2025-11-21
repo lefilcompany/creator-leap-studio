@@ -284,3 +284,42 @@ export const creditsSteps: Step[] = [
     placement: 'top',
   },
 ];
+
+export const reviewContentSteps: Step[] = [
+  {
+    target: '#review-content-header',
+    content: 'Bem-vindo à área de Revisão de Conteúdo! Aqui você pode usar IA para aprimorar imagens, legendas e textos para posts.',
+    disableBeacon: true,
+    placement: 'bottom',
+  },
+  {
+    target: '#review-type-selection',
+    content: 'Escolha o tipo de revisão: Imagem (ajustes visuais), Legenda (melhorar texto de posts), ou Texto para Imagem (otimizar frases que vão em arte).',
+    placement: 'bottom',
+  },
+  {
+    target: '#review-brand-field',
+    content: 'Selecione a marca para que a IA entenda o contexto e identidade visual da sua marca ao fazer as sugestões.',
+    placement: 'top',
+  },
+  {
+    target: '#review-theme-field',
+    content: 'Tema Estratégico (opcional): escolha um tema para alinhar a revisão com campanhas específicas e diretrizes criativas.',
+    placement: 'top',
+  },
+  {
+    target: '#review-content-input',
+    content: 'Aqui você insere o conteúdo a ser revisado (imagem, legenda ou texto) dependendo do tipo escolhido.',
+    placement: 'top',
+  },
+  {
+    target: '#review-adjustments-prompt',
+    content: 'Descreva os ajustes desejados ou melhorias que você espera. Seja específico: o que quer mudar, qual o objetivo, qual sensação deve transmitir.',
+    placement: 'top',
+  },
+  {
+    target: '#review-submit-button',
+    content: 'Pronto! Clique aqui para gerar a revisão com IA. Você receberá sugestões personalizadas baseadas na sua marca e nas diretrizes informadas.',
+    placement: 'top',
+  },
+];

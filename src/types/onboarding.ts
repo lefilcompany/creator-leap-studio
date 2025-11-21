@@ -8,7 +8,8 @@ export type OnboardingTourType =
   | 'quick_content'
   | 'plan_content'
   | 'history'
-  | 'credits';
+  | 'credits'
+  | 'review_content';
 
 export interface OnboardingState {
   onboarding_navbar_completed: boolean;
@@ -21,6 +22,7 @@ export interface OnboardingState {
   onboarding_plan_content_completed: boolean;
   onboarding_history_completed: boolean;
   onboarding_credits_completed: boolean;
+  onboarding_review_content_completed: boolean;
 }
 
 export interface OnboardingContextType {
