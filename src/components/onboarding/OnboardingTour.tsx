@@ -47,10 +47,12 @@ export function OnboardingTour({ tourType, steps, startDelay = 500, onComplete }
           description: 'Você pode refazer os tours nas Configurações (ícone de engrenagem).',
           duration: 5000,
         });
-      } else if (status === STATUS.SKIPPED && action === 'close') {
+      } else if (status === STATUS.SKIPPED) {
+        // Quando o tour é pulado, também marca como completo
+        markTourAsCompleted(tourType);
         toast({
           title: 'Tour pulado',
-          description: 'Você pode refazer os tours nas Configurações (ícone de engrenagem).',
+          description: 'Este tour foi marcado como concluído. Você pode refazê-lo nas Configurações.',
           duration: 5000,
         });
       }
