@@ -9,7 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CREDIT_COSTS } from "@/lib/creditCosts";
 
-type ContentCreationType = 'quick' | 'image' | 'video' | null;
+type ContentCreationType = "quick" | "image" | "video" | null;
 
 export default function ContentCreationSelector() {
   const navigate = useNavigate();
@@ -20,9 +20,9 @@ export default function ContentCreationSelector() {
     if (!contentType) return;
 
     const routes = {
-      quick: '/quick-content',
-      image: '/create-image',
-      video: '/create-video',
+      quick: "/quick-content",
+      image: "/create-image",
+      video: "/create-video",
     };
 
     navigate(routes[contentType]);
@@ -30,33 +30,33 @@ export default function ContentCreationSelector() {
 
   const contentOptions = [
     {
-      id: 'quick',
-      title: 'Criação Rápida',
-      description: 'Gere imagens rapidamente com configurações otimizadas',
+      id: "quick",
+      title: "Criação Rápida",
+      description: "Gere imagens rapidamente com configurações otimizadas",
       icon: Zap,
-      color: 'text-primary',
-      bgColor: 'bg-primary/10',
-      borderColor: 'border-primary/20 hover:border-primary/40',
+      color: "text-primary",
+      bgColor: "bg-primary/10",
+      borderColor: "border-primary/20 hover:border-primary/40",
       credits: CREDIT_COSTS.QUICK_IMAGE,
     },
     {
-      id: 'image',
-      title: 'Criação Personalizada',
-      description: 'Crie imagens com controle total de parâmetros e configurações',
+      id: "image",
+      title: "Criação Personalizada",
+      description: "Crie imagens com controle total de parâmetros e configurações",
       icon: Sparkles,
-      color: 'text-secondary',
-      bgColor: 'bg-secondary/10',
-      borderColor: 'border-secondary/20 hover:border-secondary/40',
+      color: "text-secondary",
+      bgColor: "bg-secondary/10",
+      borderColor: "border-secondary/20 hover:border-secondary/40",
       credits: CREDIT_COSTS.COMPLETE_IMAGE,
     },
     {
-      id: 'video',
-      title: 'Criação de Vídeo',
-      description: 'Produza vídeos profissionais com IA Veo 3.0 e 3.1',
+      id: "video",
+      title: "Criação de Vídeo",
+      description: "Produza vídeos profissionais com IA Veo 3.0 e 3.1",
       icon: Video,
-      color: 'text-accent',
-      bgColor: 'bg-accent/10',
-      borderColor: 'border-accent/20 hover:border-accent/40',
+      color: "text-accent",
+      bgColor: "bg-accent/10",
+      borderColor: "border-accent/20 hover:border-accent/40",
       credits: CREDIT_COSTS.VIDEO_GENERATION,
     },
   ];
@@ -73,18 +73,15 @@ export default function ContentCreationSelector() {
                   <Sparkles className="h-8 w-8" />
                 </div>
                 <div>
-                  <h1 className="text-2xl md:text-3xl font-bold text-foreground">
-                    Criar Conteúdo
-                  </h1>
+                  <h1 className="text-2xl md:text-3xl font-bold text-foreground">Criar Conteúdo</h1>
                   <p className="text-muted-foreground text-sm md:text-base">
-                    {!contentType 
+                    {!contentType
                       ? "Escolha o tipo de conteúdo que deseja criar"
-                      : contentOptions.find(opt => opt.id === contentType)?.description
-                    }
+                      : contentOptions.find((opt) => opt.id === contentType)?.description}
                   </p>
                 </div>
               </div>
-              
+
               {/* Display de créditos */}
               {team && (
                 <Card className="bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/20">
@@ -100,9 +97,7 @@ export default function ContentCreationSelector() {
                         <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                           {team?.credits || 0}
                         </span>
-                        <p className="text-sm text-muted-foreground font-medium">
-                          Criações Restantes
-                        </p>
+                        <p className="text-sm text-muted-foreground font-medium">Criações Restantes</p>
                       </div>
                     </div>
                   </CardContent>
@@ -122,17 +117,13 @@ export default function ContentCreationSelector() {
           </CardHeader>
           <CardContent>
             <RadioGroup
-              value={contentType || ''}
+              value={contentType || ""}
               onValueChange={(value) => setContentType(value as ContentCreationType)}
               className="grid grid-cols-1 md:grid-cols-3 gap-4"
             >
               {contentOptions.map((option) => (
                 <div key={option.id} className="relative flex">
-                  <RadioGroupItem
-                    value={option.id}
-                    id={option.id}
-                    className="peer sr-only"
-                  />
+                  <RadioGroupItem value={option.id} id={option.id} className="peer sr-only" />
                   <Label
                     htmlFor={option.id}
                     className={`
@@ -151,21 +142,15 @@ export default function ContentCreationSelector() {
                     </div>
 
                     {/* Title */}
-                    <h3 className="text-lg font-semibold text-foreground mb-2">
-                      {option.title}
-                    </h3>
+                    <h3 className="text-lg font-semibold text-foreground mb-2">{option.title}</h3>
 
                     {/* Description */}
-                    <p className="text-sm text-muted-foreground leading-relaxed mb-4 flex-1">
-                      {option.description}
-                    </p>
+                    <p className="text-xs text-muted-foreground leading-relaxed mb-4 flex-1">{option.description}</p>
 
                     {/* Credits Badge */}
                     <div className="flex items-center gap-2 pt-4 border-t border-border/50">
                       <Coins className="h-4 w-4 text-primary" />
-                      <span className="text-sm font-medium text-foreground">
-                        {option.credits} créditos
-                      </span>
+                      <span className="text-sm font-medium text-foreground">{option.credits} créditos</span>
                     </div>
                   </Label>
                 </div>
@@ -174,19 +159,14 @@ export default function ContentCreationSelector() {
 
             {/* Continue Button */}
             <div className="mt-6 flex justify-end">
-              <Button
-                size="lg"
-                onClick={handleContinue}
-                disabled={!contentType}
-                className="min-w-[200px]"
-              >
+              <Button size="lg" onClick={handleContinue} disabled={!contentType} className="min-w-[200px]">
                 Continuar
                 {contentType && (
                   <>
                     {" "}
-                    {contentType === 'quick' && '→ Rápida'}
-                    {contentType === 'image' && '→ Personalizada'}
-                    {contentType === 'video' && '→ Vídeo'}
+                    {contentType === "quick" && "→ Rápida"}
+                    {contentType === "image" && "→ Personalizada"}
+                    {contentType === "video" && "→ Vídeo"}
                   </>
                 )}
               </Button>
