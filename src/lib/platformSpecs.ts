@@ -58,6 +58,44 @@ export interface PlatformSpec {
   };
 }
 
+// Aspect Ratio Dimensions Mapping
+export const ASPECT_RATIO_DIMENSIONS: Record<string, { width: number; height: number; label: string }> = {
+  // Instagram
+  "1:1": { width: 1080, height: 1080, label: "Quadrado" },
+  "4:5": { width: 1080, height: 1350, label: "Retrato Instagram" },
+  "9:16": { width: 1080, height: 1920, label: "Stories/Reels" },
+  "1.91:1": { width: 1080, height: 566, label: "Paisagem Instagram" },
+  
+  // Facebook & General
+  "16:9": { width: 1920, height: 1080, label: "Paisagem HD" },
+  
+  // Twitter/X & Pinterest
+  "3:4": { width: 1080, height: 1440, label: "Retrato Twitter" },
+  
+  // LinkedIn
+  "4:1": { width: 1584, height: 396, label: "Capa LinkedIn" },
+};
+
+// Platform to Aspect Ratio Mapping
+export const PLATFORM_ASPECT_RATIOS: Record<string, string[]> = {
+  Instagram: ["1:1", "4:5", "9:16", "1.91:1", "16:9"],
+  Facebook: ["1:1", "4:5", "16:9", "9:16"],
+  TikTok: ["9:16", "1:1"],
+  "Twitter/X": ["16:9", "3:4", "4:5", "1:1"],
+  LinkedIn: ["1:1", "4:5", "16:9", "4:1"],
+  Comunidades: ["9:16", "1:1", "16:9"]
+};
+
+/**
+ * Gets recommended aspect ratio for a platform
+ * @param platform Platform name
+ * @returns Recommended aspect ratio (first in array is most recommended)
+ */
+export function getRecommendedAspectRatio(platform: string): string {
+  const ratios = PLATFORM_ASPECT_RATIOS[platform];
+  return ratios?.[0] || "1:1"; // First is the most recommended
+}
+
 export const platformSpecs: Record<string, PlatformSpec> = {
   Instagram: {
     name: "Instagram",
