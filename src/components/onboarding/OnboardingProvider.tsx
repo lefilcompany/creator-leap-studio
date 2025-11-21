@@ -18,6 +18,9 @@ const initialState: OnboardingState = {
   onboarding_history_completed: false,
   onboarding_credits_completed: false,
   onboarding_review_content_completed: false,
+  onboarding_review_content_image_completed: false,
+  onboarding_review_content_caption_completed: false,
+  onboarding_review_content_text_completed: false,
 };
 
 export function OnboardingProvider({ children }: { children: ReactNode }) {
@@ -46,7 +49,10 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
           onboarding_plan_content_completed,
           onboarding_history_completed,
           onboarding_credits_completed,
-          onboarding_review_content_completed
+          onboarding_review_content_completed,
+          onboarding_review_content_image_completed,
+          onboarding_review_content_caption_completed,
+          onboarding_review_content_text_completed
         `)
         .eq('id', user!.id)
         .single();

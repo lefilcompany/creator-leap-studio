@@ -285,45 +285,111 @@ export const creditsSteps: Step[] = [
   },
 ];
 
-export const reviewContentSteps: Step[] = [
+export const reviewContentInitialSteps: Step[] = [
   {
     target: '#review-content-header',
-    content: 'Bem-vindo à área de Revisão de Conteúdo! Aqui você pode usar IA para aprimorar imagens, legendas e textos que vão em artes de posts.',
+    content: 'Bem-vindo à área de Revisão de Conteúdo! Aqui você pode usar IA para aprimorar seus materiais de posts nas redes sociais.',
     disableBeacon: true,
     placement: 'bottom',
   },
   {
     target: '#review-type-selection',
-    content: `Escolha o tipo de revisão que faz mais sentido para o que você precisa agora:
+    content: `Escolha o tipo de revisão que você precisa:
 
-• Revisar Imagem: envie uma arte pronta para receber sugestões de melhorias visuais (cores, contraste, nitidez, equilíbrio, etc.).
-• Revisar Legenda: cole um texto que você já escreveu para o post e peça para a IA melhorar clareza, persuasão, call-to-action e adequação ao público.
-• Revisar Texto para Imagem: informe a frase que vai em cima da arte (headline/slogan) e peça ajuda para deixá-la mais curta, impactante e alinhada ao contexto do post.`,
+• **Revisar Imagem**: Envie uma arte pronta e receba sugestões para melhorar aspectos visuais (cores, contraste, composição, etc.)
+
+• **Revisar Legenda**: Cole uma legenda já escrita e peça melhorias em clareza, persuasão, call-to-action e adequação ao público
+
+• **Revisar Texto para Imagem**: Otimize frases que vão dentro da arte (headlines, slogans) para ficarem mais curtas, impactantes e alinhadas ao contexto
+
+💡 Clique em um dos tipos para ver um tour detalhado específico!`,
     placement: 'bottom',
   },
+];
+
+export const reviewContentImageSteps: Step[] = [
   {
     target: '#review-brand-field',
-    content: 'Selecione a marca para que a IA considere identidade visual, linguagem e posicionamento ao sugerir melhorias.',
+    content: 'Primeiro, selecione a marca. A IA usará a identidade visual, paleta de cores e posicionamento da marca para sugerir melhorias visuais coerentes.',
+    disableBeacon: true,
     placement: 'top',
   },
   {
     target: '#review-theme-field',
-    content: 'Tema Estratégico (opcional): use este campo para alinhar a revisão com campanhas específicas, objetivos de comunicação e linha editorial de conteúdo.',
+    content: 'Tema Estratégico (opcional): escolha um tema se quiser alinhar as sugestões visuais com uma campanha ou linha editorial específica.',
     placement: 'top',
   },
   {
     target: '#review-content-input',
-    content: 'Aqui você insere o conteúdo a ser revisado. Dependendo do tipo escolhido, pode ser uma imagem, uma legenda ou o texto que irá dentro da arte do post.',
+    content: 'Envie a imagem que você quer revisar. Arraste e solte ou clique para selecionar (PNG ou JPEG, máx. 4MB).',
     placement: 'top',
   },
   {
     target: '#review-adjustments-prompt',
-    content: 'Explique para a IA o que você quer ajustar: qual é o objetivo da peça, o público, o tom desejado e o tipo de melhoria que espera (mais impacto, mais clareza, mais emoção, etc.).',
+    content: 'Descreva o que você quer melhorar na imagem. Seja específico: "tornar mais vibrante", "melhorar contraste", "deixar mais profissional", etc. Informe também o objetivo (ex: post promocional, inspiracional) e público-alvo.',
     placement: 'top',
   },
   {
     target: '#review-submit-button',
-    content: 'Quando tudo estiver pronto, clique em "Gerar Revisão". A IA vai analisar o conteúdo e retornar sugestões personalizadas considerando marca, tema e instruções que você informou.',
+    content: 'Pronto! Clique em "Gerar Revisão" e a IA analisará sua imagem considerando marca, tema e suas instruções, retornando sugestões detalhadas de melhorias visuais.',
+    placement: 'top',
+  },
+];
+
+export const reviewContentCaptionSteps: Step[] = [
+  {
+    target: '#review-brand-field',
+    content: 'Selecione a marca para que a IA considere o tom de voz, linguagem e posicionamento ao sugerir melhorias na legenda.',
+    disableBeacon: true,
+    placement: 'top',
+  },
+  {
+    target: '#review-theme-field',
+    content: 'Tema Estratégico (opcional): use para alinhar a revisão da legenda com campanhas, objetivos de comunicação ou linha editorial específica.',
+    placement: 'top',
+  },
+  {
+    target: '#review-content-input',
+    content: 'Cole aqui a legenda que você já escreveu e quer melhorar. Pode ter até 8000 caracteres.',
+    placement: 'top',
+  },
+  {
+    target: '#review-adjustments-prompt',
+    content: 'Explique o que você quer melhorar: "tornar mais engajadora", "adicionar call-to-action", "simplificar linguagem", "aumentar persuasão", etc. Informe o público-alvo e objetivo do post.',
+    placement: 'top',
+  },
+  {
+    target: '#review-submit-button',
+    content: 'Clique em "Gerar Revisão" e a IA analisará sua legenda, retornando sugestões de melhorias considerando marca, tema e suas instruções.',
+    placement: 'top',
+  },
+];
+
+export const reviewContentTextSteps: Step[] = [
+  {
+    target: '#review-brand-field',
+    content: 'Selecione a marca para que a IA considere identidade verbal, tom de comunicação e posicionamento ao revisar o texto da arte.',
+    disableBeacon: true,
+    placement: 'top',
+  },
+  {
+    target: '#review-theme-field',
+    content: 'Tema Estratégico (opcional): escolha um tema para alinhar o texto com campanhas ou objetivos específicos de comunicação.',
+    placement: 'top',
+  },
+  {
+    target: '#review-content-input',
+    content: 'Cole o texto que vai aparecer dentro da imagem do post: frase, citação, headline, slogan, mensagem principal, etc. Máximo de 8000 caracteres.',
+    placement: 'top',
+  },
+  {
+    target: '#review-adjustments-prompt',
+    content: 'Descreva como quer melhorar o texto e forneça contexto da imagem onde ele será usado. Ex: "tornar mais curto e impactante para Instagram, será usado em post motivacional com fundo azul e foto de montanha".',
+    placement: 'top',
+  },
+  {
+    target: '#review-submit-button',
+    content: 'Clique em "Gerar Revisão" e a IA otimizará seu texto considerando marca, tema, contexto visual e suas instruções, retornando sugestões para deixá-lo mais impactante.',
     placement: 'top',
   },
 ];
