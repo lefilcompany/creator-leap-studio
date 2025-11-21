@@ -288,38 +288,42 @@ export const creditsSteps: Step[] = [
 export const reviewContentSteps: Step[] = [
   {
     target: '#review-content-header',
-    content: 'Bem-vindo à área de Revisão de Conteúdo! Aqui você pode usar IA para aprimorar imagens, legendas e textos para posts.',
+    content: 'Bem-vindo à área de Revisão de Conteúdo! Aqui você pode usar IA para aprimorar imagens, legendas e textos que vão em artes de posts.',
     disableBeacon: true,
     placement: 'bottom',
   },
   {
     target: '#review-type-selection',
-    content: 'Escolha o tipo de revisão: Imagem (ajustes visuais), Legenda (melhorar texto de posts), ou Texto para Imagem (otimizar frases que vão em arte).',
+    content: `Escolha o tipo de revisão que faz mais sentido para o que você precisa agora:
+
+• Revisar Imagem: envie uma arte pronta para receber sugestões de melhorias visuais (cores, contraste, nitidez, equilíbrio, etc.).
+• Revisar Legenda: cole um texto que você já escreveu para o post e peça para a IA melhorar clareza, persuasão, call-to-action e adequação ao público.
+• Revisar Texto para Imagem: informe a frase que vai em cima da arte (headline/slogan) e peça ajuda para deixá-la mais curta, impactante e alinhada ao contexto do post.`,
     placement: 'bottom',
   },
   {
     target: '#review-brand-field',
-    content: 'Selecione a marca para que a IA entenda o contexto e identidade visual da sua marca ao fazer as sugestões.',
+    content: 'Selecione a marca para que a IA considere identidade visual, linguagem e posicionamento ao sugerir melhorias.',
     placement: 'top',
   },
   {
     target: '#review-theme-field',
-    content: 'Tema Estratégico (opcional): escolha um tema para alinhar a revisão com campanhas específicas e diretrizes criativas.',
+    content: 'Tema Estratégico (opcional): use este campo para alinhar a revisão com campanhas específicas, objetivos de comunicação e linha editorial de conteúdo.',
     placement: 'top',
   },
   {
     target: '#review-content-input',
-    content: 'Aqui você insere o conteúdo a ser revisado (imagem, legenda ou texto) dependendo do tipo escolhido.',
+    content: 'Aqui você insere o conteúdo a ser revisado. Dependendo do tipo escolhido, pode ser uma imagem, uma legenda ou o texto que irá dentro da arte do post.',
     placement: 'top',
   },
   {
     target: '#review-adjustments-prompt',
-    content: 'Descreva os ajustes desejados ou melhorias que você espera. Seja específico: o que quer mudar, qual o objetivo, qual sensação deve transmitir.',
+    content: 'Explique para a IA o que você quer ajustar: qual é o objetivo da peça, o público, o tom desejado e o tipo de melhoria que espera (mais impacto, mais clareza, mais emoção, etc.).',
     placement: 'top',
   },
   {
     target: '#review-submit-button',
-    content: 'Pronto! Clique aqui para gerar a revisão com IA. Você receberá sugestões personalizadas baseadas na sua marca e nas diretrizes informadas.',
+    content: 'Quando tudo estiver pronto, clique em "Gerar Revisão". A IA vai analisar o conteúdo e retornar sugestões personalizadas considerando marca, tema e instruções que você informou.',
     placement: 'top',
   },
 ];
