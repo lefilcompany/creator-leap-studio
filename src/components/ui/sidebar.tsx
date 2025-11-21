@@ -330,7 +330,7 @@ const SidebarModeToggle = React.forwardRef<
           data-sidebar="mode-toggle"
           variant="ghost"
           size="icon"
-          className={cn("h-7 w-7 transition-all duration-200", className)}
+          className={cn("h-7 w-7 transition-all duration-200 hover:bg-primary/20 hover:text-primary", className)}
           onClick={(event) => {
             onClick?.(event);
             toggleMode();
