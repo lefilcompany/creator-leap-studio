@@ -1430,7 +1430,7 @@ ${formData.description}
                     <p className="text-xs text-muted-foreground">
                       Você precisa cadastrar uma marca antes de criar conteúdo.{" "}
                       <button
-                        onClick={() => navigate("/marcas")}
+                        onClick={() => navigate("/brands")}
                         className="text-primary hover:underline font-medium"
                       >
                         Ir para Marcas
