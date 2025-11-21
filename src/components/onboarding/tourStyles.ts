@@ -2,11 +2,12 @@ export const tourStyles = {
   options: {
     arrowColor: 'hsl(var(--popover))',
     backgroundColor: 'hsl(var(--popover))',
-    overlayColor: 'rgba(0, 0, 0, 0.5)',
+    overlayColor: 'rgba(0, 0, 0, 0.6)',
     primaryColor: 'hsl(var(--primary))',
     textColor: 'hsl(var(--popover-foreground))',
     width: 380,
     zIndex: 10000,
+    spotlightPadding: 8,
   },
   buttonNext: {
     backgroundColor: 'hsl(var(--primary))',
