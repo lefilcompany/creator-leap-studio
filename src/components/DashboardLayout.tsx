@@ -14,7 +14,7 @@ export const DashboardLayout = () => {
         <AppSidebar />
         <div className="flex flex-1 flex-col min-w-0">
           <Header />
-          <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 sm:p-6 lg:p-8 bg-gradient-to-b from-background/50 to-background">
+          <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gradient-to-b from-background/50 to-background">
             <div className="max-w-full mx-auto h-full">
               <Outlet />
             </div>
