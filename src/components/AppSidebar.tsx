@@ -17,6 +17,7 @@ import {
 import {
   Sidebar,
   SidebarContent,
+  SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar";
 import {
@@ -30,6 +31,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "@/hooks/useTranslation";
 import logoCreatorPreta from "@/assets/logoCreatorPreta.png";
 import logoCreatorBranca from "@/assets/logoCreatorBranca.png";
+import creatorSymbol from "@/assets/creator-symbol.png";
 
 function NavItem({ id, href, icon: Icon, label, collapsed, onNavigate, disabled }: {
   id: string;
@@ -64,6 +66,7 @@ function NavItem({ id, href, icon: Icon, label, collapsed, onNavigate, disabled 
       onClick={onNavigate}
       className={cn(
         "flex items-center gap-4 p-2.5 rounded-lg transition-colors duration-200 group",
+        collapsed ? "justify-center" : "",
         isActive
           ? "bg-primary/10 text-primary"
           : "text-muted-foreground bg-background hover:bg-muted hover:text-foreground"
@@ -134,6 +137,7 @@ function ActionButton({ id, href, icon: Icon, label, collapsed, variant, onNavig
             onClick={handleClick}
             className={cn(
                 "flex items-center gap-3 p-2.5 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-105",
+                collapsed ? "justify-center" : "",
                 isActive ? variantClasses[variant].active : variantClasses[variant].inactive
             )}
         >
@@ -176,8 +180,8 @@ export function AppSidebar() {
   const { t } = useTranslation();
   const logo = theme === 'dark' ? logoCreatorBranca : logoCreatorPreta;
   
-  // No desktop, a sidebar é sempre fixa e não colapsa
-  const collapsed = false;
+  // Verifica se a sidebar está colapsada no desktop
+  const collapsed = state === "collapsed";
   
   // Se o trial expirou, desabilita navegação exceto histórico
   const isNavigationDisabled = isTrialExpired;
@@ -211,14 +215,25 @@ export function AppSidebar() {
         id="sidebar-logo"
         className="pt-6 pb-2 mb-2 flex justify-center cursor-pointer hover:opacity-80 transition-opacity"
       >
-        <img
-          src={logo}
-          alt="Creator Logo"
-          className="h-8 w-auto"
-        />
+        {collapsed ? (
+          <img
+            src={creatorSymbol}
+            alt="Creator Symbol"
+            className="h-10 w-10 object-contain"
+          />
+        ) : (
+          <img
+            src={logo}
+            alt="Creator Logo"
+            className="h-8 w-auto"
+          />
+        )}
       </NavLink>
       
-      <nav className="flex-1 flex flex-col gap-5 px-4 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
+      <nav className={cn(
+        "flex-1 flex flex-col overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent",
+        collapsed ? "gap-3 px-2" : "gap-5 px-4"
+      )}>
         <div className="flex flex-col gap-1.5">
           {navLinks.map((link) => (
             <NavItem 
@@ -280,17 +295,18 @@ export function AppSidebar() {
     );
   }
 
-  // Desktop: renderiza a Sidebar normal sempre fixa
+  // Desktop: renderiza a Sidebar normal retrátil
   return (
     <Sidebar 
-      className="fixed left-0 top-0 h-screen w-64 border-r border-primary/10 shadow-md shadow-primary/20 z-40 overflow-hidden" 
-      collapsible="none"
+      collapsible="icon"
       side="left"
       variant="sidebar"
+      className="border-r border-primary/10 shadow-md shadow-primary/20"
     >
       <SidebarContent className="bg-card flex flex-col h-full overflow-y-auto">
         {sidebarContent()}
       </SidebarContent>
+      <SidebarRail />
     </Sidebar>
   );
 }
