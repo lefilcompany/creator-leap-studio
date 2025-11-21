@@ -806,7 +806,9 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
         imageUrl,
         description,
         actionId: actionData?.id,
-        creditsRemaining: creditsAfter
+        creditsRemaining: creditsAfter,
+        aspectRatio: aspectRatio, // NOVO - retornar aspect ratio original
+        platform: platform || null // NOVO - retornar platform
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

@@ -15,7 +15,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Brand } from "@/types/brand";
-import { getPlatformImageSpec, platformSpecs } from "@/lib/platformSpecs";
+import { getPlatformImageSpec, platformSpecs, ASPECT_RATIO_DIMENSIONS } from "@/lib/platformSpecs";
+import { processImageToAspectRatio } from "@/lib/imageProcessing";
 import { useFormPersistence } from '@/hooks/useFormPersistence';
 import { TourSelector } from "@/components/onboarding/TourSelector";
 import { quickContentSteps, navbarSteps } from "@/components/onboarding/tourSteps";
@@ -212,6 +213,32 @@ export default function QuickContent() {
       toast.success("Conteúdo gerado com sucesso!", {
         id: toastId
       });
+
+      // NOVO: Processar imagem para aspect ratio exato
+      let processedImageUrl = data.imageUrl;
+      try {
+        toast.loading("Ajustando proporções da imagem...", {
+          id: toastId,
+          description: "Garantindo qualidade e formato perfeitos."
+        });
+
+        processedImageUrl = await processImageToAspectRatio({
+          imageUrl: data.imageUrl,
+          aspectRatio: formData.aspectRatio,
+          mode: 'cover',
+          quality: 0.95,
+          outputFormat: 'image/png'
+        });
+
+        toast.success("Imagem otimizada!", { id: toastId });
+      } catch (processError) {
+        console.error("Error processing image:", processError);
+        // Fallback para imagem original se falhar
+        toast.warning("Usando imagem original", {
+          description: "Não foi possível otimizar a proporção"
+        });
+      }
+
       clearPersistedData(); // Limpar rascunho após sucesso
 
       // Atualizar créditos antes de navegar
@@ -222,13 +249,15 @@ export default function QuickContent() {
         console.error('Erro ao atualizar créditos:', error);
       }
 
-      // Navigate to result page
+      // Navigate to result page com imagem processada
       navigate("/quick-content-result", {
         state: {
-          imageUrl: data.imageUrl,
+          imageUrl: processedImageUrl, // USAR IMAGEM PROCESSADA
           description: data.description,
           actionId: data.actionId,
-          prompt: formData.prompt
+          prompt: formData.prompt,
+          aspectRatio: formData.aspectRatio, // NOVO
+          platform: formData.platform        // NOVO
         }
       });
     } catch (error: any) {
@@ -537,6 +566,28 @@ export default function QuickContent() {
                       onChange={(e) => setFormData({...formData, negativePrompt: e.target.value})}
                       className="min-h-[60px] rounded-lg border-2 border-border/50 bg-background/50 resize-none text-xs"
                     />
+                  </div>
+
+                  {/* Aspect Ratio - NOVO COM DIMENSÕES */}
+                  <div className="space-y-2">
+                    <Label htmlFor="aspectRatio" className="text-xs font-medium">Proporção da Imagem</Label>
+                    <Select value={formData.aspectRatio} onValueChange={value => setFormData({ ...formData, aspectRatio: value })}>
+                      <SelectTrigger className="h-9 rounded-lg border-2 border-border/50 bg-background/50 text-xs">
+                        <SelectValue placeholder="Selecionar proporção" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl">
+                        {Object.entries(ASPECT_RATIO_DIMENSIONS).map(([ratio, data]) => (
+                          <SelectItem key={ratio} value={ratio} className="rounded-lg">
+                            <div className="flex flex-col items-start py-0.5">
+                              <span className="font-medium text-xs">{ratio}</span>
+                              <span className="text-[10px] text-muted-foreground">
+                                {data.width}x{data.height}px - {data.label}
+                              </span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   {/* Color Palette */}
