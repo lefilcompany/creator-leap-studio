@@ -98,16 +98,24 @@ export const Header = () => {
   return (
     <header className="sticky top-0 z-50 w-full shadow-md shadow-primary/20 bg-card/95 backdrop-blur-md border-b border-primary/10 transition-all duration-300 animate-fade-in flex-shrink-0">
       <div className="flex h-14 md:h-16 lg:h-20 items-center justify-between px-3 md:px-4 lg:px-6 xl:px-8">
-        {/* Mobile sidebar trigger - only on mobile/tablet */}
-        <div className="lg:hidden">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setOpen(true)}
-            className="h-8 w-8 md:h-10 md:w-10 rounded-lg hover:bg-primary/10 transition-all duration-200"
-          >
-            <Menu className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
-          </Button>
+        {/* Sidebar triggers */}
+        <div className="flex items-center gap-2">
+          {/* Mobile sidebar trigger */}
+          <div className="lg:hidden">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setOpen(true)}
+              className="h-8 w-8 md:h-10 md:w-10 rounded-lg hover:bg-primary/10 transition-all duration-200"
+            >
+              <Menu className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
+            </Button>
+          </div>
+          
+          {/* Desktop sidebar trigger */}
+          <div className="hidden lg:block">
+            <SidebarTrigger className="h-10 w-10 rounded-lg hover:bg-primary/10 transition-all duration-200" />
+          </div>
         </div>
         
           {/* Search bar - Desktop only */}
