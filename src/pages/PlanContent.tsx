@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, ArrowLeft, MessageSquareQuote, Zap, Clipboard, Check, X, Loader2, Coins } from "lucide-react";
+import { Calendar, ArrowLeft, MessageSquareQuote, Zap, Clipboard, Check, X, Loader2, Coins, Info } from "lucide-react";
 import { CREDIT_COSTS } from "@/lib/creditCosts";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -344,18 +344,42 @@ const PlanContent = () => {
                   {isLoadingData ? (
                     <Skeleton className="h-12 w-full rounded-2xl" />
                   ) : (
-                    <Select onValueChange={handleBrandChange} value={formData.brand}>
-                      <SelectTrigger className="h-12 rounded-2xl border-2 border-border/50 bg-background/50 hover:border-primary/30 transition-colors">
-                        <SelectValue placeholder="Selecione a marca" />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-2xl border-border/20 bg-background/95 backdrop-blur-sm">
-                        {brands.map((brand) => (
-                          <SelectItem key={brand.id} value={brand.id} className="rounded-xl">
-                            {brand.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <>
+                      <Select 
+                        onValueChange={handleBrandChange} 
+                        value={formData.brand}
+                        disabled={brands.length === 0}
+                      >
+                        <SelectTrigger className="h-12 rounded-2xl border-2 border-border/50 bg-background/50 hover:border-primary/30 transition-colors">
+                          <SelectValue 
+                            placeholder={
+                              brands.length === 0 
+                                ? "Nenhuma marca cadastrada" 
+                                : "Selecione a marca"
+                            } 
+                          />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-2xl border-border/20 bg-background/95 backdrop-blur-sm">
+                          {brands.length === 0 ? (
+                            <div className="p-3 text-sm text-muted-foreground text-center">
+                              Você precisa cadastrar uma marca primeiro
+                            </div>
+                          ) : (
+                            brands.map((brand) => (
+                              <SelectItem key={brand.id} value={brand.id} className="rounded-xl">
+                                {brand.name}
+                              </SelectItem>
+                            ))
+                          )}
+                        </SelectContent>
+                      </Select>
+                      {brands.length === 0 && (
+                        <p className="text-xs text-amber-600 dark:text-amber-500 flex items-start gap-1.5">
+                          <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
+                          <span>Cadastre uma marca antes de criar conteúdo planejado</span>
+                        </p>
+                      )}
+                    </>
                   )}
                 </div>
 

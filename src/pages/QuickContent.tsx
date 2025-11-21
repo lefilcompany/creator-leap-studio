@@ -352,22 +352,45 @@ export default function QuickContent() {
               <Label htmlFor="brand" className="text-sm font-semibold text-foreground">
                 Marca <span className="text-muted-foreground font-normal">(opcional)</span>
               </Label>
-              <Select value={formData.brandId} onValueChange={value => setFormData({
-              ...formData,
-              brandId: value
-            })}>
+              <Select 
+                value={formData.brandId} 
+                onValueChange={value => setFormData({
+                  ...formData,
+                  brandId: value
+                })}
+                disabled={brands.length === 0}
+              >
                 <SelectTrigger id="quick-brand-select" className="h-11 rounded-xl border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors">
-                  <SelectValue placeholder="Nenhuma marca selecionada" />
+                  <SelectValue 
+                    placeholder={
+                      brands.length === 0 
+                        ? "Nenhuma marca cadastrada" 
+                        : "Nenhuma marca selecionada"
+                    } 
+                  />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl border-border/20">
-                  {brands.map(brand => <SelectItem key={brand.id} value={brand.id} className="rounded-lg">
-                      {brand.name}
-                    </SelectItem>)}
+                  {brands.length === 0 ? (
+                    <div className="p-3 text-sm text-muted-foreground text-center">
+                      Nenhuma marca cadastrada ainda
+                    </div>
+                  ) : (
+                    brands.map(brand => (
+                      <SelectItem key={brand.id} value={brand.id} className="rounded-lg">
+                        {brand.name}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground flex items-start gap-1.5">
                 <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
-                <span>Selecionar uma marca ajuda a IA a criar conteúdo alinhado com sua identidade visual</span>
+                <span>
+                  {brands.length === 0 
+                    ? "Cadastre uma marca para conteúdo personalizado com sua identidade visual" 
+                    : "Selecionar uma marca ajuda a IA a criar conteúdo alinhado com sua identidade visual"
+                  }
+                </span>
               </p>
             </div>
 

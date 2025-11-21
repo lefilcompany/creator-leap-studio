@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Save } from 'lucide-react';
+import { Save, Info } from 'lucide-react';
 import type { Persona } from '@/types/persona';
 import type { BrandSummary } from '@/types/brand';
 import { useDraftForm } from '@/hooks/useDraftForm';
@@ -154,21 +154,43 @@ export default function PersonaDialog({ isOpen, onOpenChange, onSave, personaToE
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Marca *</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      value={field.value}
+                      disabled={brands.length === 0}
+                    >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Selecione uma marca" />
+                          <SelectValue 
+                            placeholder={
+                              brands.length === 0 
+                                ? "Nenhuma marca cadastrada" 
+                                : "Selecione uma marca"
+                            } 
+                          />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {brands.map((brand) => (
-                          <SelectItem key={brand.id} value={brand.id}>
-                            {brand.name}
-                          </SelectItem>
-                        ))}
+                        {brands.length === 0 ? (
+                          <div className="p-3 text-sm text-muted-foreground text-center">
+                            Você precisa cadastrar uma marca primeiro
+                          </div>
+                        ) : (
+                          brands.map((brand) => (
+                            <SelectItem key={brand.id} value={brand.id}>
+                              {brand.name}
+                            </SelectItem>
+                          ))
+                        )}
                       </SelectContent>
                     </Select>
                     <FormMessage />
+                    {brands.length === 0 && (
+                      <p className="text-xs text-amber-600 dark:text-amber-500 flex items-start gap-1.5 mt-1">
+                        <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
+                        <span>Cadastre uma marca antes de criar personas</span>
+                      </p>
+                    )}
                   </FormItem>
                 )}
               />
