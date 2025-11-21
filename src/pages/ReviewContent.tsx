@@ -27,8 +27,9 @@ type ReviewType = 'image' | 'caption' | 'text-for-image';
 const ReviewContent = () => {
   const navigate = useNavigate();
   const { user, team: authTeam, refreshTeamCredits } = useAuth();
-  const { shouldShowTour } = useOnboarding();
+  const { shouldShowTour, markTourAsCompleted } = useOnboarding();
   const [reviewType, setReviewType] = useState<ReviewType | null>(null);
+  const [showDetailedTour, setShowDetailedTour] = useState(false);
   const [brand, setBrand] = useState('');
   const [theme, setTheme] = useState('');
   const [adjustmentsPrompt, setAdjustmentsPrompt] = useState('');
@@ -111,6 +112,16 @@ const ReviewContent = () => {
       setFilteredThemes([]);
     }
   }, [brand, brands, themes]);
+
+  // Quando um tipo de revisão é selecionado, mostrar tour detalhado
+  useEffect(() => {
+    if (reviewType && shouldShowTour('review_content')) {
+      const timer = setTimeout(() => {
+        setShowDetailedTour(true);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [reviewType, shouldShowTour]);
 
   const handleBrandChange = (value: string) => {
     setBrand(value);
@@ -270,12 +281,29 @@ const ReviewContent = () => {
     );
   }
 
+  // Passos do tour baseados no estado atual
+  const tourSteps = !reviewType 
+    ? reviewContentSteps.slice(0, 2) // Apenas header e seleção de tipo
+    : reviewContentSteps; // Todos os passos quando tipo está selecionado
+
   return (
     <div className="min-h-full w-full p-6">
-      <OnboardingTour 
-        tourType="review_content" 
-        steps={reviewContentSteps}
-      />
+      {!reviewType && (
+        <OnboardingTour 
+          tourType="review_content" 
+          steps={tourSteps}
+          onComplete={() => {
+            // Não marcar como completo ainda, apenas quando o tour completo for feito
+          }}
+        />
+      )}
+      {reviewType && showDetailedTour && (
+        <OnboardingTour 
+          tourType="review_content" 
+          steps={reviewContentSteps}
+          startDelay={0}
+        />
+      )}
       <div className="max-w-7xl mx-auto space-y-8">
         <Card id="review-content-header" className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5">
           <CardHeader className="pb-4">
