@@ -47,6 +47,36 @@ export const navbarSteps: Step[] = [
     content: 'Planejar Conteúdo: organize seu calendário editorial e planeje suas publicações estrategicamente.',
     placement: 'right',
   },
+  {
+    target: '#topbar-search',
+    content: 'Barra de Pesquisa: busque rapidamente por conteúdos, marcas ou qualquer informação na plataforma. Use Ctrl+K para abrir.',
+    placement: 'bottom',
+  },
+  {
+    target: '#topbar-coupon',
+    content: 'Cupom de Presente: resgate cupons promocionais para ganhar créditos ou benefícios especiais.',
+    placement: 'bottom',
+  },
+  {
+    target: '#topbar-theme',
+    content: 'Alternar Tema: mude entre o modo claro e escuro para sua preferência visual.',
+    placement: 'bottom',
+  },
+  {
+    target: '#topbar-notifications',
+    content: 'Notificações: acompanhe atualizações importantes, solicitações de equipe e alertas do sistema.',
+    placement: 'bottom',
+  },
+  {
+    target: '#topbar-settings',
+    content: 'Configurações: acesse informações sobre a plataforma, políticas de privacidade, histórico e opção de refazer os tours.',
+    placement: 'bottom',
+  },
+  {
+    target: '#topbar-profile',
+    content: 'Perfil: gerencie suas informações pessoais, avatar, dados de equipe e configurações da conta.',
+    placement: 'bottom',
+  },
 ];
 
 export const dashboardSteps: Step[] = [
