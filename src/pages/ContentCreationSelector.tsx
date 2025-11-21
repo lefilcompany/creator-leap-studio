@@ -127,7 +127,7 @@ export default function ContentCreationSelector() {
               className="grid grid-cols-1 md:grid-cols-3 gap-4"
             >
               {contentOptions.map((option) => (
-                <div key={option.id} className="relative">
+                <div key={option.id} className="relative flex">
                   <RadioGroupItem
                     value={option.id}
                     id={option.id}
@@ -137,7 +137,7 @@ export default function ContentCreationSelector() {
                     htmlFor={option.id}
                     className={`
                       flex flex-col cursor-pointer rounded-2xl border-2 p-6
-                      transition-all duration-200 min-h-[240px]
+                      transition-all duration-200 h-full
                       ${option.borderColor}
                       peer-data-[state=checked]:border-primary
                       peer-data-[state=checked]:bg-primary/5
@@ -156,12 +156,12 @@ export default function ContentCreationSelector() {
                     </h3>
 
                     {/* Description */}
-                    <p className="text-sm text-muted-foreground leading-relaxed mb-4 flex-grow">
+                    <p className="text-sm text-muted-foreground leading-relaxed mb-4 flex-1">
                       {option.description}
                     </p>
 
                     {/* Credits Badge */}
-                    <div className="flex items-center gap-2 mt-auto pt-4 border-t border-border/50">
+                    <div className="flex items-center gap-2 pt-4 border-t border-border/50">
                       <Coins className="h-4 w-4 text-primary" />
                       <span className="text-sm font-medium text-foreground">
                         {option.credits} créditos
