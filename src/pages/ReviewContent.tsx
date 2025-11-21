@@ -14,6 +14,9 @@ import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useFormPersistence } from '@/hooks/useFormPersistence';
+import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
+import { useOnboarding } from '@/hooks/useOnboarding';
+import { reviewContentSteps } from '@/components/onboarding/tourSteps';
 
 // Tipos para os dados leves do formulário
 type LightBrand = Pick<Brand, 'id' | 'name'>;
@@ -24,6 +27,7 @@ type ReviewType = 'image' | 'caption' | 'text-for-image';
 const ReviewContent = () => {
   const navigate = useNavigate();
   const { user, team: authTeam, refreshTeamCredits } = useAuth();
+  const { shouldShowTour } = useOnboarding();
   const [reviewType, setReviewType] = useState<ReviewType | null>(null);
   const [brand, setBrand] = useState('');
   const [theme, setTheme] = useState('');
@@ -268,6 +272,10 @@ const ReviewContent = () => {
 
   return (
     <div className="min-h-full w-full p-6">
+      <OnboardingTour 
+        tourType="review_content" 
+        steps={reviewContentSteps}
+      />
       <div className="max-w-7xl mx-auto space-y-8">
         <Card id="review-content-header" className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5">
           <CardHeader className="pb-4">
