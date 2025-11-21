@@ -110,8 +110,8 @@ export const Header = () => {
           </Button>
         </div>
         
-        {/* Search bar - Desktop only */}
-        <div className="hidden lg:flex flex-1 max-w-2xl mx-4 lg:mx-6">
+          {/* Search bar - Desktop only */}
+        <div id="topbar-search" className="hidden lg:flex flex-1 max-w-2xl mx-4 lg:mx-6">
           <div className="relative w-full group">
             <Search className="absolute left-3 lg:left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4 lg:h-5 lg:w-5 z-10 transition-colors duration-200" />
             {isSearching && (
@@ -148,6 +148,7 @@ export const Header = () => {
 
           {/* Coupon button */}
           <Button
+            id="topbar-coupon"
             variant="outline"
             size="sm"
             onClick={() => setShowCouponDialog(true)}
@@ -159,6 +160,7 @@ export const Header = () => {
 
           {/* Theme toggle button */}
           <Button
+            id="topbar-theme"
             variant="ghost"
             size="sm"
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
@@ -177,6 +179,7 @@ export const Header = () => {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
+                  id="topbar-settings"
                   variant="ghost"
                   size="sm"
                   className="h-8 w-8 md:h-10 md:w-10 rounded-lg xl:rounded-xl hover:bg-primary/10 transition-all duration-200 border border-transparent hover:border-primary/20 group"
@@ -264,7 +267,7 @@ export const Header = () => {
 
           {/* Profile button */}
           <Link to="/profile" className="transition-all duration-300 hover:scale-105">
-            <Avatar className="h-8 w-8 md:h-10 md:w-10 border-2 border-primary/20 hover:border-primary/40 transition-all duration-300 hover:shadow-lg hover:shadow-primary/25">
+            <Avatar id="topbar-profile" className="h-8 w-8 md:h-10 md:w-10 border-2 border-primary/20 hover:border-primary/40 transition-all duration-300 hover:shadow-lg hover:shadow-primary/25">
               <AvatarImage src={user?.avatarUrl || undefined} alt={user?.name || 'User'} />
               <AvatarFallback className="bg-gradient-to-br from-primary via-primary/80 to-secondary text-primary-foreground text-xs md:text-sm font-semibold">
                 {user?.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) : <User className="h-4 w-4 md:h-5 md:w-5" />}

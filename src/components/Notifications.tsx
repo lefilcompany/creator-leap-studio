@@ -175,6 +175,7 @@ export default function Notifications() {
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
         <Button
+          id="topbar-notifications"
           variant="ghost"
           size="sm"
           className={cn(
