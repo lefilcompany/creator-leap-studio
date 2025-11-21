@@ -218,7 +218,7 @@ export function AppSidebar() {
         />
       </NavLink>
       
-      <nav className="flex-1 flex flex-col gap-6 px-4 overflow-hidden">
+      <nav className="flex-1 flex flex-col gap-6 px-4 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
         <div className="flex flex-col gap-2">
           {navLinks.map((link) => (
             <NavItem 
