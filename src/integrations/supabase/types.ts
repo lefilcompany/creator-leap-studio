@@ -534,6 +534,7 @@ export type Database = {
           onboarding_personas_completed: boolean | null
           onboarding_plan_content_completed: boolean | null
           onboarding_quick_content_completed: boolean | null
+          onboarding_review_content_completed: boolean | null
           onboarding_themes_completed: boolean | null
           password_reset_sent_at: string | null
           phone: string | null
@@ -560,6 +561,7 @@ export type Database = {
           onboarding_personas_completed?: boolean | null
           onboarding_plan_content_completed?: boolean | null
           onboarding_quick_content_completed?: boolean | null
+          onboarding_review_content_completed?: boolean | null
           onboarding_themes_completed?: boolean | null
           password_reset_sent_at?: string | null
           phone?: string | null
@@ -586,6 +588,7 @@ export type Database = {
           onboarding_personas_completed?: boolean | null
           onboarding_plan_content_completed?: boolean | null
           onboarding_quick_content_completed?: boolean | null
+          onboarding_review_content_completed?: boolean | null
           onboarding_themes_completed?: boolean | null
           password_reset_sent_at?: string | null
           phone?: string | null
