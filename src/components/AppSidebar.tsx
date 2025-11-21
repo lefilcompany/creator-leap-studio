@@ -76,14 +76,14 @@ function NavItem({ id, href, icon: Icon, label, collapsed, onNavigate, disabled 
       to={href}
       onClick={onNavigate}
       className={cn(
-        "flex items-center gap-4 p-2.5 rounded-lg transition-colors duration-200 group",
-        collapsed ? "justify-center" : "",
+        "flex items-center gap-4 rounded-lg transition-colors duration-200 group",
+        collapsed ? "justify-center p-3" : "p-2.5",
         isActive
           ? "bg-primary/10 text-primary"
           : "text-muted-foreground bg-background hover:bg-muted hover:text-foreground"
       )}
     >
-      <Icon className="h-5 w-5 flex-shrink-0" />
+      <Icon className={cn("flex-shrink-0", collapsed ? "h-6 w-6" : "h-5 w-5")} />
       {!collapsed && (
         <span className="font-medium text-sm transition-opacity duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] animate-fade-in">
           {label}
@@ -170,12 +170,12 @@ function ActionButton({ id, href, icon: Icon, label, collapsed, variant, onNavig
             to={href}
             onClick={handleClick}
             className={cn(
-                "flex items-center gap-3 p-2.5 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-105",
-                collapsed ? "justify-center" : "",
+                "flex items-center gap-3 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-105",
+                collapsed ? "justify-center p-3" : "p-2.5",
                 isActive ? variantClasses[variant].active : variantClasses[variant].inactive
             )}
         >
-            <Icon className="h-5 w-5 flex-shrink-0" />
+            <Icon className={cn("flex-shrink-0", collapsed ? "h-6 w-6" : "h-5 w-5")} />
             {!collapsed && (
                 <span className="font-medium text-sm transition-opacity duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] animate-fade-in">
                     {label}
