@@ -1,5 +1,5 @@
 import React from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
 import {
   Home,
@@ -86,6 +86,7 @@ function ActionButton({ id, href, icon: Icon, label, collapsed, variant, onNavig
     disabled?: boolean;
 }) {
     const location = useLocation();
+    const navigate = useNavigate();
     const isActive = location.pathname === href;
 
     const variantClasses = {
@@ -117,11 +118,20 @@ function ActionButton({ id, href, icon: Icon, label, collapsed, variant, onNavig
         );
     }
 
+    const handleClick = (e: React.MouseEvent) => {
+        // Se já estiver na página, resetar com state
+        if (isActive) {
+            e.preventDefault();
+            navigate(href, { state: { reset: true }, replace: true });
+        }
+        onNavigate?.();
+    };
+
     return (
         <NavLink
             id={id}
             to={href}
-            onClick={onNavigate}
+            onClick={handleClick}
             className={cn(
                 "flex items-center gap-3 p-3 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-105",
                 isActive ? variantClasses[variant].active : variantClasses[variant].inactive
