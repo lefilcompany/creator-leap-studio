@@ -393,7 +393,7 @@ export function AppSidebar() {
       collapsible="icon"
       side="left"
       variant="sidebar"
-      className="border-r border-primary/10 shadow-md shadow-primary/20 data-[state=collapsed]:w-20"
+      className="border-r border-primary/10 shadow-md shadow-primary/20 data-[state=collapsed]:w-24"
     >
       <SidebarContent className="bg-card flex flex-col h-full overflow-y-auto">
         {sidebarContent()}
