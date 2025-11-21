@@ -400,6 +400,23 @@ const Auth = () => {
             {t.login.forgotPassword}
           </a>
         </div>
+
+        <div className="pt-4 sm:pt-6">
+          <Button
+            type="submit"
+            disabled={loading}
+            className="w-full h-9 sm:h-10 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-medium rounded-lg sm:rounded-xl transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 text-sm"
+          >
+            {loading ? (
+              <div className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>{t.login.signingIn}</span>
+              </div>
+            ) : (
+              t.login.signIn
+            )}
+          </Button>
+        </div>
       </form>
     ),
     [
@@ -408,32 +425,12 @@ const Auth = () => {
       showPassword,
       rememberMe,
       showPasswordResetSuggestion,
+      loading,
       t,
       handleLogin,
     ],
   );
 
-  const loginButton = useMemo(
-    () => (
-      <div className="pt-4 sm:pt-6">
-        <Button
-          type="submit"
-          disabled={loading}
-          className="w-full h-9 sm:h-10 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-medium rounded-lg sm:rounded-xl transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 text-sm"
-        >
-          {loading ? (
-            <div className="flex items-center gap-2">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span>{t.login.signingIn}</span>
-            </div>
-          ) : (
-            t.login.signIn
-          )}
-        </Button>
-      </div>
-    ),
-    [loading, t],
-  );
 
   const registerForm = useMemo(
     () => (
@@ -595,6 +592,50 @@ const Auth = () => {
             </Select>
           )}
         </div>
+
+        <div className="space-y-4 pt-4 sm:pt-6">
+          <div className="flex items-start gap-2">
+            <Checkbox
+              id="privacy"
+              checked={privacyChecked}
+              onCheckedChange={(checked) => {
+                if (checked) {
+                  setPrivacyModalOpen(true);
+                } else {
+                  setPrivacyChecked(false);
+                  setPrivacyAccepted(false);
+                }
+              }}
+              className="mt-1"
+            />
+            <Label htmlFor="privacy" className="text-xs text-muted-foreground select-none cursor-pointer leading-relaxed">
+              Li e concordo com a{" "}
+              <button
+                type="button"
+                className="underline text-primary hover:text-secondary transition-colors"
+                onClick={() => setPrivacyModalOpen(true)}
+              >
+                Política de Privacidade
+              </button>
+            </Label>
+          </div>
+
+          <Button
+            type="submit"
+            className="w-full h-10 lg:h-11 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-medium rounded-xl transition-all duration-300 transform hover:scale-[1.02]"
+            disabled={
+              loading ||
+              !formData.name ||
+              !formData.email ||
+              !formData.password ||
+              !confirmPassword ||
+              !privacyChecked ||
+              !privacyAccepted
+            }
+          >
+            {loading ? <Loader2 className="animate-spin h-4 w-4" /> : "CRIAR CONTA"}
+          </Button>
+        </div>
       </form>
     ),
     [
@@ -607,66 +648,18 @@ const Auth = () => {
       loadingCities,
       passwordsMatch,
       isPasswordValid,
+      privacyChecked,
+      privacyAccepted,
+      loading,
       handleInputChange,
       handleSelectChange,
       handleRegister,
+      setPrivacyModalOpen,
+      setPrivacyChecked,
+      setPrivacyAccepted,
     ],
   );
 
-  const registerButton = useMemo(
-    () => (
-      <div className="space-y-4 pt-4 sm:pt-6">
-        <div className="flex items-start gap-2">
-          <Checkbox
-            id="privacy"
-            checked={privacyChecked}
-            onCheckedChange={(checked) => {
-              if (checked) {
-                setPrivacyModalOpen(true);
-              } else {
-                setPrivacyChecked(false);
-                setPrivacyAccepted(false);
-              }
-            }}
-            className="mt-1"
-          />
-          <Label htmlFor="privacy" className="text-xs text-muted-foreground select-none cursor-pointer leading-relaxed">
-            Li e concordo com a{" "}
-            <button
-              type="button"
-              className="underline text-primary hover:text-secondary transition-colors"
-              onClick={() => setPrivacyModalOpen(true)}
-            >
-              Política de Privacidade
-            </button>
-          </Label>
-        </div>
-
-        <Button
-          type="submit"
-          className="w-full h-10 lg:h-11 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-medium rounded-xl transition-all duration-300 transform hover:scale-[1.02]"
-          disabled={
-            loading ||
-            !formData.name ||
-            !formData.email ||
-            !formData.password ||
-            !confirmPassword ||
-            !privacyChecked ||
-            !privacyAccepted
-          }
-        >
-          {loading ? <Loader2 className="animate-spin h-4 w-4" /> : "CRIAR CONTA"}
-        </Button>
-      </div>
-    ),
-    [
-      loading,
-      privacyChecked,
-      privacyAccepted,
-      formData,
-      confirmPassword,
-    ],
-  );
 
   return (
     <>
@@ -890,30 +883,6 @@ const Auth = () => {
                   </motion.div>
                 </AnimatePresence>
               </div>
-              
-              {/* Botão fixo fora do scroll apenas para login */}
-              {isLoginMode && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  transition={{ duration: 0.3, delay: 0.2 }}
-                >
-                  {loginButton}
-                </motion.div>
-              )}
-              
-              {/* Botão fixo fora do scroll para registro */}
-              {!isLoginMode && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  transition={{ duration: 0.3, delay: 0.2 }}
-                >
-                  {registerButton}
-                </motion.div>
-              )}
             </div>
           </motion.div>
         </div>{" "}
