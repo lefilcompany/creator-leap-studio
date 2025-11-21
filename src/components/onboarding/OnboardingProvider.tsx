@@ -90,6 +90,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
         title: 'Erro ao salvar progresso',
         description: 'Tente novamente mais tarde.',
         variant: 'destructive',
+        duration: 5000,
       });
     }
   };
@@ -113,6 +114,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
       toast({
         title: 'Tours resetados!',
         description: 'Você verá os tours novamente ao navegar pela plataforma.',
+        duration: 5000,
       });
     } catch (error) {
       console.error('Error resetting tours:', error);
@@ -120,6 +122,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
         title: 'Erro ao resetar tours',
         description: 'Tente novamente mais tarde.',
         variant: 'destructive',
+        duration: 5000,
       });
     }
   };

@@ -45,11 +45,13 @@ export function OnboardingTour({ tourType, steps, startDelay = 500, onComplete }
         toast({
           title: 'Tour concluído! 🎉',
           description: 'Você pode refazer os tours nas Configurações (ícone de engrenagem).',
+          duration: 5000,
         });
       } else if (status === STATUS.SKIPPED && action === 'close') {
         toast({
           title: 'Tour pulado',
           description: 'Você pode refazer os tours nas Configurações (ícone de engrenagem).',
+          duration: 5000,
         });
       }
 

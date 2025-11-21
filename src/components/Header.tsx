@@ -220,6 +220,7 @@ export const Header = () => {
                     toast({
                       title: "Tours reiniciados",
                       description: "Todos os tours de apresentação foram reiniciados. Visite cada página para vê-los novamente.",
+                      duration: 5000,
                     });
                   }}
                 >
