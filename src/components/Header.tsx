@@ -114,7 +114,7 @@ export const Header = () => {
           
           {/* Desktop sidebar mode toggle */}
           <div className="hidden lg:block">
-            <SidebarModeToggle className="h-10 w-10 rounded-lg hover:bg-primary/10 transition-all duration-200" />
+            <SidebarModeToggle className="h-10 w-10 rounded-lg hover:bg-primary/20 hover:text-primary transition-all duration-200" />
           </div>
         </div>
         
