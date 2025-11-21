@@ -479,6 +479,8 @@ export default function Themes() {
         currentBalance={team?.credits || 0}
         cost={1}
         resourceType="tema estratégico"
+        isFreeResource={(team?.free_themes_used || 0) < 3}
+        freeResourcesRemaining={3 - (team?.free_themes_used || 0)}
       />
 
       <TourSelector 
