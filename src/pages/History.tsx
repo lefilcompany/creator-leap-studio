@@ -240,9 +240,15 @@ export default function History() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todas as Marcas</SelectItem>
-                  {brands.map(brand => (
-                    <SelectItem key={brand.id} value={brand.id}>{brand.name}</SelectItem>
-                  ))}
+                  {brands.length === 0 ? (
+                    <div className="p-2 text-xs text-muted-foreground text-center italic">
+                      Nenhuma marca cadastrada
+                    </div>
+                  ) : (
+                    brands.map(brand => (
+                      <SelectItem key={brand.id} value={brand.id}>{brand.name}</SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
               {/* Filtro de Ação */}

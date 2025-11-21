@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, type ChangeEvent } from 'react';
-import { X, Save } from 'lucide-react';
+import { X, Save, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -263,14 +263,38 @@ export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit,
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="brandId">Marca <span className="text-red-500">*</span></Label>
-                <Select onValueChange={handleSelectChange} value={formData.brandId}>
-                  <SelectTrigger><SelectValue placeholder="Selecione a marca para criar o tema" /></SelectTrigger>
+                <Select 
+                  onValueChange={handleSelectChange} 
+                  value={formData.brandId}
+                  disabled={brands.length === 0}
+                >
+                  <SelectTrigger>
+                    <SelectValue 
+                      placeholder={
+                        brands.length === 0 
+                          ? "Nenhuma marca cadastrada" 
+                          : "Selecione a marca para criar o tema"
+                      } 
+                    />
+                  </SelectTrigger>
                   <SelectContent>
-                    {brands.map(brand => (
-                      <SelectItem key={brand.id} value={brand.id}>{brand.name}</SelectItem>
-                    ))}
+                    {brands.length === 0 ? (
+                      <div className="p-3 text-sm text-muted-foreground text-center">
+                        Você precisa cadastrar uma marca primeiro
+                      </div>
+                    ) : (
+                      brands.map(brand => (
+                        <SelectItem key={brand.id} value={brand.id}>{brand.name}</SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
+                {brands.length === 0 && (
+                  <p className="text-xs text-amber-600 dark:text-amber-500 flex items-start gap-1.5 mt-1">
+                    <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
+                    <span>Cadastre uma marca antes de criar temas estratégicos</span>
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="toneOfVoice">Tom de Voz <span className="text-red-500">*</span> (escolha um ou mais)</Label>
