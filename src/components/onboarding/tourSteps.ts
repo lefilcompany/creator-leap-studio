@@ -256,13 +256,8 @@ export const historySteps: Step[] = [
   },
   {
     target: '#history-filters',
-    content: 'Use os filtros para encontrar conteúdos específicos rapidamente.',
+    content: 'Use os filtros para encontrar conteúdos específicos rapidamente. Clique em qualquer item da lista para ver detalhes completos e fazer download.',
     placement: 'bottom',
-  },
-  {
-    target: '.action-card:first-child',
-    content: 'Clique em qualquer item para ver detalhes completos e fazer download.',
-    placement: 'top',
   },
 ];
 
