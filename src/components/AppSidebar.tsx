@@ -218,8 +218,8 @@ export function AppSidebar() {
         />
       </NavLink>
       
-      <nav className="flex-1 flex flex-col gap-4 px-4 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
-        <div className="flex flex-col gap-1">
+      <nav className="flex-1 flex flex-col gap-5 px-4 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
+        <div className="flex flex-col gap-1.5">
           {navLinks.map((link) => (
             <NavItem 
               key={link.href} 
@@ -231,7 +231,7 @@ export function AppSidebar() {
           ))}
         </div>
 
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2.5">
           {actionButtons.map((button) => (
             <ActionButton 
               key={button.id} 
@@ -244,7 +244,7 @@ export function AppSidebar() {
         </div>
 
         {team && (
-          <div className="mt-auto mb-3 flex flex-col gap-2">
+          <div className="mt-auto mb-3 flex flex-col gap-2.5">
             <NavLink
               id="nav-credits"
               to="/plans"
