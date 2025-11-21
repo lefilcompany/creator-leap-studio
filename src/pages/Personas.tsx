@@ -471,6 +471,8 @@ export default function PersonasPage() {
         currentBalance={team?.credits || 0}
         cost={1}
         resourceType="persona"
+        isFreeResource={(team?.free_personas_used || 0) < 3}
+        freeResourcesRemaining={3 - (team?.free_personas_used || 0)}
       />
 
       <TourSelector 

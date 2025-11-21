@@ -472,6 +472,8 @@ export default function MarcasPage() {
         currentBalance={team?.credits || 0}
         cost={1}
         resourceType="marca"
+        isFreeResource={(team?.free_brands_used || 0) < 3}
+        freeResourcesRemaining={3 - (team?.free_brands_used || 0)}
       />
     </div>
   );
