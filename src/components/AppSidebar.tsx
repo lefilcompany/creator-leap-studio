@@ -63,7 +63,7 @@ function NavItem({ id, href, icon: Icon, label, collapsed, onNavigate, disabled 
       to={href}
       onClick={onNavigate}
       className={cn(
-        "flex items-center gap-4 p-3 rounded-lg transition-colors duration-200 group",
+        "flex items-center gap-4 p-2.5 rounded-lg transition-colors duration-200 group",
         isActive
           ? "bg-primary/10 text-primary"
           : "text-muted-foreground bg-background hover:bg-muted hover:text-foreground"
@@ -133,7 +133,7 @@ function ActionButton({ id, href, icon: Icon, label, collapsed, variant, onNavig
             to={href}
             onClick={handleClick}
             className={cn(
-                "flex items-center gap-3 p-3 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-105",
+                "flex items-center gap-3 p-2.5 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-105",
                 isActive ? variantClasses[variant].active : variantClasses[variant].inactive
             )}
         >
@@ -218,8 +218,8 @@ export function AppSidebar() {
         />
       </NavLink>
       
-      <nav className="flex-1 flex flex-col gap-6 px-4 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
-        <div className="flex flex-col gap-2">
+      <nav className="flex-1 flex flex-col gap-4 px-4 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
+        <div className="flex flex-col gap-1">
           {navLinks.map((link) => (
             <NavItem 
               key={link.href} 
@@ -231,7 +231,7 @@ export function AppSidebar() {
           ))}
         </div>
 
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-2">
           {actionButtons.map((button) => (
             <ActionButton 
               key={button.id} 
@@ -244,7 +244,7 @@ export function AppSidebar() {
         </div>
 
         {team && (
-          <div className="mt-auto mb-4 flex flex-col gap-3">
+          <div className="mt-auto mb-3 flex flex-col gap-2">
             <NavLink
               id="nav-credits"
               to="/plans"
