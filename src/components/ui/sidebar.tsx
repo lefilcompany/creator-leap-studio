@@ -181,16 +181,33 @@ const Sidebar = React.forwardRef<
 >(({ side = "left", variant = "sidebar", collapsible = "offcanvas", className, children, ...props }, ref) => {
   const { isMobile, state, openMobile, setOpenMobile, mode, setOpen } = useSidebar();
   const [isHovering, setIsHovering] = React.useState(false);
+  const hoverTimeoutRef = React.useRef<NodeJS.Timeout>();
 
-  // No modo retrátil, expande ao hover
+  // No modo retrátil, expande ao hover com delay
   React.useEffect(() => {
     if (!isMobile && mode === "retractable") {
       if (isHovering) {
-        setOpen(true);
+        // Delay de 150ms antes de expandir
+        hoverTimeoutRef.current = setTimeout(() => {
+          setOpen(true);
+        }, 150);
       } else {
-        setOpen(false);
+        // Limpa o timeout se o mouse sair antes
+        if (hoverTimeoutRef.current) {
+          clearTimeout(hoverTimeoutRef.current);
+        }
+        // Delay de 200ms antes de colapsar
+        hoverTimeoutRef.current = setTimeout(() => {
+          setOpen(false);
+        }, 200);
       }
     }
+    
+    return () => {
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current);
+      }
+    };
   }, [isHovering, mode, isMobile, setOpen]);
 
   if (collapsible === "none") {
@@ -240,7 +257,7 @@ const Sidebar = React.forwardRef<
       {/* This is what handles the sidebar gap on desktop */}
       <div
         className={cn(
-          "relative h-svh w-[--sidebar-width] bg-transparent transition-[width] duration-300 ease-in-out",
+          "relative h-svh w-[--sidebar-width] bg-transparent transition-[width] duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]",
           "group-data-[collapsible=offcanvas]:w-0",
           "group-data-[side=right]:rotate-180",
           variant === "floating" || variant === "inset"
@@ -250,7 +267,7 @@ const Sidebar = React.forwardRef<
       />
       <div
         className={cn(
-          "fixed inset-y-0 z-10 hidden h-svh w-[--sidebar-width] transition-[left,right,width] duration-300 ease-in-out md:flex",
+          "fixed inset-y-0 z-10 hidden h-svh w-[--sidebar-width] transition-[left,right,width] duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] md:flex",
           side === "left"
             ? "left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]"
             : "right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]",
