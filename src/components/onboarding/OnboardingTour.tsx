@@ -69,8 +69,9 @@ export function OnboardingTour({ tourType, steps, startDelay = 500, onComplete }
       continuous
       showProgress
       showSkipButton
-      scrollToFirstStep
-      scrollOffset={100}
+      scrollToFirstStep={false}
+      scrollOffset={20}
+      disableScrollParentFix={true}
       callback={handleJoyrideCallback}
       styles={tourStyles}
       locale={{
