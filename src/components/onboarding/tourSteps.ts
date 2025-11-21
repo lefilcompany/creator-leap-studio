@@ -235,20 +235,45 @@ export const quickContentSteps: Step[] = [
 
 export const planContentSteps: Step[] = [
   {
-    target: '#plan-calendar',
-    content: 'Planeje suas publicações com antecedência usando o calendário editorial.',
+    target: '#plan-header',
+    content: 'Bem-vindo ao Planejamento de Conteúdo! 📅 Esta funcionalidade usa IA para gerar um calendário editorial estratégico com ideias de posts alinhados à sua marca, tema e plataforma escolhida.',
     disableBeacon: true,
     placement: 'bottom',
   },
   {
-    target: '#plan-filters',
-    content: 'Filtre por marca, período ou status para organizar melhor.',
+    target: '#plan-brand-field',
+    content: 'Marca (obrigatório): Selecione a marca para a qual você quer criar o planejamento. A IA considerará a identidade visual, valores e posicionamento da marca ao sugerir posts.',
     placement: 'bottom',
   },
   {
+    target: '#plan-platform-field',
+    content: 'Plataforma (obrigatório): Escolha a rede social onde os posts serão publicados. Cada plataforma tem características únicas que a IA levará em conta (formato, tom, audiência, etc.).',
+    placement: 'bottom',
+  },
+  {
+    target: '#plan-quantity-field',
+    content: 'Quantidade de Posts (obrigatório): Defina quantos posts você quer no planejamento (1 a 7). A IA criará ideias diversificadas e complementares para o período.',
+    placement: 'bottom',
+  },
+  {
+    target: '#plan-themes-field',
+    content: 'Temas Estratégicos (obrigatório): Selecione um ou mais temas que devem guiar o planejamento. Cada tema tem objetivos, público-alvo e tom de voz específicos que a IA usará para criar posts coerentes.',
+    placement: 'top',
+  },
+  {
+    target: '#plan-objective-field',
+    content: 'Objetivo dos Posts (obrigatório): Descreva o que você quer alcançar com esse planejamento. Ex: "Gerar engajamento com conteúdo educativo", "Aumentar vendas do produto X", "Fortalecer autoridade na área Y".',
+    placement: 'top',
+  },
+  {
+    target: '#plan-additional-info-field',
+    content: 'Informações Adicionais (opcional): Adicione contexto extra que ajude a IA a personalizar o planejamento. Ex: "Focar em público jovem", "Incluir dicas práticas", "Usar linguagem descontraída", "Mencionar promoções de fim de ano".',
+    placement: 'top',
+  },
+  {
     target: '#create-plan-button',
-    content: 'Crie um novo plano de conteúdo estratégico.',
-    placement: 'left',
+    content: 'Gerar Planejamento: Quando todos os campos obrigatórios estiverem preenchidos, clique aqui! A IA criará um calendário editorial completo com ideias de posts, sugestões de legendas e estratégias de publicação. Esta ação consome créditos.',
+    placement: 'top',
   },
 ];
 

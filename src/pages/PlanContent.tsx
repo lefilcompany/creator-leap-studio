@@ -279,14 +279,14 @@ const PlanContent = () => {
             tourType: 'plan_content',
             steps: planContentSteps,
             label: 'Tour de Planejar Conteúdo',
-            targetElement: '#plan-calendar'
+            targetElement: '#plan-header'
           }
         ]}
         startDelay={500}
       />
       <div className="max-w-7xl mx-auto space-y-4 sm:space-y-8">
         {/* Header Card */}
-        <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5">
+        <Card id="plan-header" className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5">
           <CardHeader className="p-4 sm:p-6">
             <div className="flex flex-col space-y-4 lg:flex-row lg:items-center lg:justify-between lg:space-y-0 gap-4">
               <div className="flex items-center gap-3">
@@ -337,7 +337,7 @@ const PlanContent = () => {
             <div className="space-y-8">
               {/* Primary Selection Row */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="space-y-3">
+                <div id="plan-brand-field" className="space-y-3">
                   <Label htmlFor="brand" className="text-sm font-semibold text-foreground">
                     Marca *
                   </Label>
@@ -383,7 +383,7 @@ const PlanContent = () => {
                   )}
                 </div>
 
-                <div className="space-y-3">
+                <div id="plan-platform-field" className="space-y-3">
                   <Label htmlFor="platform" className="text-sm font-semibold text-foreground">
                     Plataforma *
                   </Label>
@@ -412,7 +412,7 @@ const PlanContent = () => {
                   )}
                 </div>
 
-                <div className="space-y-3">
+                <div id="plan-quantity-field" className="space-y-3">
                   <Label htmlFor="quantity" className="text-sm font-semibold text-foreground">
                     Quantidade de Posts *
                   </Label>
@@ -435,7 +435,7 @@ const PlanContent = () => {
               </div>
 
               {/* Theme Selection Section */}
-              <div className="space-y-4">
+              <div id="plan-themes-field" className="space-y-4">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="theme" className="text-sm font-semibold text-foreground">
                     Temas Estratégicos *
@@ -518,7 +518,7 @@ const PlanContent = () => {
           </CardHeader>
           <CardContent className="p-4 sm:p-6">
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
-              <div className="space-y-3">
+              <div id="plan-objective-field" className="space-y-3">
                 <Label htmlFor="objective" className="text-sm font-semibold text-foreground">
                   Objetivo dos Posts *
                 </Label>
@@ -530,7 +530,7 @@ const PlanContent = () => {
                   className="h-32 sm:h-48 lg:h-64 rounded-xl border-2 border-border/50 bg-background/50 resize-none"
                 />
               </div>
-              <div className="space-y-3">
+              <div id="plan-additional-info-field" className="space-y-3">
                 <Label htmlFor="additionalInfo" className="text-sm font-semibold text-foreground">
                   Informações Adicionais
                 </Label>
