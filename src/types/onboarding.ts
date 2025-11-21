@@ -9,7 +9,10 @@ export type OnboardingTourType =
   | 'plan_content'
   | 'history'
   | 'credits'
-  | 'review_content';
+  | 'review_content'
+  | 'review_content_image'
+  | 'review_content_caption'
+  | 'review_content_text';
 
 export interface OnboardingState {
   onboarding_navbar_completed: boolean;
@@ -23,6 +26,9 @@ export interface OnboardingState {
   onboarding_history_completed: boolean;
   onboarding_credits_completed: boolean;
   onboarding_review_content_completed: boolean;
+  onboarding_review_content_image_completed: boolean;
+  onboarding_review_content_caption_completed: boolean;
+  onboarding_review_content_text_completed: boolean;
 }
 
 export interface OnboardingContextType {

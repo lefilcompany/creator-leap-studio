@@ -16,7 +16,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { useFormPersistence } from '@/hooks/useFormPersistence';
 import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
 import { useOnboarding } from '@/hooks/useOnboarding';
-import { reviewContentSteps } from '@/components/onboarding/tourSteps';
+import { 
+  reviewContentInitialSteps,
+  reviewContentImageSteps,
+  reviewContentCaptionSteps,
+  reviewContentTextSteps 
+} from '@/components/onboarding/tourSteps';
 
 // Tipos para os dados leves do formulário
 type LightBrand = Pick<Brand, 'id' | 'name'>;
@@ -28,9 +33,8 @@ const ReviewContent = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, team: authTeam, refreshTeamCredits } = useAuth();
-  const { shouldShowTour, markTourAsCompleted } = useOnboarding();
+  const { shouldShowTour } = useOnboarding();
   const [reviewType, setReviewType] = useState<ReviewType | null>(null);
-  const [showDetailedTour, setShowDetailedTour] = useState(false);
   const [brand, setBrand] = useState('');
   const [theme, setTheme] = useState('');
   const [adjustmentsPrompt, setAdjustmentsPrompt] = useState('');
@@ -124,15 +128,6 @@ const ReviewContent = () => {
     }
   }, [brand, brands, themes]);
 
-  // Quando um tipo de revisão é selecionado, mostrar tour detalhado
-  useEffect(() => {
-    if (reviewType && shouldShowTour('review_content')) {
-      const timer = setTimeout(() => {
-        setShowDetailedTour(true);
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [reviewType, shouldShowTour]);
 
   const handleBrandChange = (value: string) => {
     setBrand(value);
@@ -292,27 +287,40 @@ const ReviewContent = () => {
     );
   }
 
-  // Passos do tour baseados no estado atual
-  const tourSteps = !reviewType 
-    ? reviewContentSteps.slice(0, 2) // Apenas header e seleção de tipo
-    : reviewContentSteps; // Todos os passos quando tipo está selecionado
-
   return (
     <div className="min-h-full w-full p-6">
+      {/* Tour inicial - só aparece quando reviewType é null */}
       {!reviewType && (
         <OnboardingTour 
           tourType="review_content" 
-          steps={tourSteps}
-          onComplete={() => {
-            // Não marcar como completo ainda, apenas quando o tour completo for feito
-          }}
+          steps={reviewContentInitialSteps}
         />
       )}
-      {reviewType && showDetailedTour && (
+
+      {/* Tour específico de Revisar Imagem */}
+      {reviewType === 'image' && (
         <OnboardingTour 
-          tourType="review_content" 
-          steps={reviewContentSteps}
-          startDelay={0}
+          tourType="review_content_image" 
+          steps={reviewContentImageSteps}
+          startDelay={500}
+        />
+      )}
+
+      {/* Tour específico de Revisar Legenda */}
+      {reviewType === 'caption' && (
+        <OnboardingTour 
+          tourType="review_content_caption" 
+          steps={reviewContentCaptionSteps}
+          startDelay={500}
+        />
+      )}
+
+      {/* Tour específico de Revisar Texto para Imagem */}
+      {reviewType === 'text-for-image' && (
+        <OnboardingTour 
+          tourType="review_content_text" 
+          steps={reviewContentTextSteps}
+          startDelay={500}
         />
       )}
       <div className="max-w-7xl mx-auto space-y-8">
