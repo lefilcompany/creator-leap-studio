@@ -99,11 +99,6 @@ export const themesSteps: Step[] = [
     content: 'Visualize todos os temas criados e suas paletas de cores.',
     placement: 'bottom',
   },
-  {
-    target: '.theme-card:first-child',
-    content: 'Cada tema tem título, descrição, paleta de cores e tom de voz definidos.',
-    placement: 'top',
-  },
 ];
 
 export const personasSteps: Step[] = [
@@ -117,11 +112,6 @@ export const personasSteps: Step[] = [
     target: '#personas-list',
     content: 'Todas as suas personas cadastradas aparecem aqui.',
     placement: 'bottom',
-  },
-  {
-    target: '.persona-card:first-child',
-    content: 'Cada persona contém informações demográficas, desafios e interesses.',
-    placement: 'top',
   },
 ];
 
