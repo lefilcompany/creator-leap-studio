@@ -320,7 +320,7 @@ const Auth = () => {
 
   const loginForm = useMemo(
     () => (
-      <div className="space-y-4 sm:space-y-6">
+      <form onSubmit={handleLogin} className="space-y-4 sm:space-y-6">
         <div className="space-y-2">
           <div className="relative">
             <Mail className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
@@ -400,7 +400,7 @@ const Auth = () => {
             {t.login.forgotPassword}
           </a>
         </div>
-      </div>
+      </form>
     ),
     [
       loginEmail,
@@ -409,6 +409,7 @@ const Auth = () => {
       rememberMe,
       showPasswordResetSuggestion,
       t,
+      handleLogin,
     ],
   );
 
@@ -416,8 +417,7 @@ const Auth = () => {
     () => (
       <div className="pt-4 sm:pt-6">
         <Button
-          type="button"
-          onClick={handleLogin}
+          type="submit"
           disabled={loading}
           className="w-full h-9 sm:h-10 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-medium rounded-lg sm:rounded-xl transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 text-sm"
         >
@@ -432,12 +432,12 @@ const Auth = () => {
         </Button>
       </div>
     ),
-    [loading, handleLogin, t],
+    [loading, t],
   );
 
   const registerForm = useMemo(
     () => (
-      <div className="space-y-3 sm:space-y-4">
+      <form onSubmit={handleRegister} className="space-y-3 sm:space-y-4">
         {/* Grupo 1: Informações Pessoais */}
         <div className="space-y-2 p-3 rounded-lg bg-muted/20 border border-border/40">
           <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
@@ -595,7 +595,7 @@ const Auth = () => {
             </Select>
           )}
         </div>
-      </div>
+      </form>
     ),
     [
       formData,
@@ -609,6 +609,7 @@ const Auth = () => {
       isPasswordValid,
       handleInputChange,
       handleSelectChange,
+      handleRegister,
     ],
   );
 
@@ -642,8 +643,7 @@ const Auth = () => {
         </div>
 
         <Button
-          type="button"
-          onClick={handleRegister}
+          type="submit"
           className="w-full h-10 lg:h-11 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-medium rounded-xl transition-all duration-300 transform hover:scale-[1.02]"
           disabled={
             loading ||
@@ -665,7 +665,6 @@ const Auth = () => {
       privacyAccepted,
       formData,
       confirmPassword,
-      handleRegister,
     ],
   );
 
