@@ -76,11 +76,6 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
         ...prev,
         [fieldName]: true,
       }));
-
-      toast({
-        title: 'Tour concluído!',
-        description: 'Você pode refazer os tours a qualquer momento na página de Perfil.',
-      });
     } catch (error) {
       console.error('Error marking tour as completed:', error);
       toast({
