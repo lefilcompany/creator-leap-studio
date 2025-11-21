@@ -85,11 +85,6 @@ export const brandsSteps: Step[] = [
     content: 'Aqui estão todas as suas marcas cadastradas. Clique em uma para ver detalhes ou editar.',
     placement: 'bottom',
   },
-  {
-    target: '.brand-card:first-child',
-    content: 'Cada card mostra informações da marca: nome, segmento e data de criação.',
-    placement: 'top',
-  },
 ];
 
 export const themesSteps: Step[] = [
