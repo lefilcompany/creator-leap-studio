@@ -1816,7 +1816,7 @@ ${formData.description}
                   </div>
                 )}
 
-                <div className="space-y-2 md:space-y-3">
+                <div id="tone-of-voice" className="space-y-2 md:space-y-3">
                   <Label
                     htmlFor="tone"
                     className="text-xs md:text-sm font-semibold text-foreground"
