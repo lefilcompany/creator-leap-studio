@@ -105,6 +105,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const loadUserData = useCallback(async (supabaseUser: SupabaseUser, forceLoad = false) => {
     const now = Date.now();
     
+    // CRÍTICO: Validar consistência - se o user ID mudou, forçar reload
+    const userIdChanged = user?.id && user.id !== supabaseUser.id;
+    if (userIdChanged) {
+      console.log('[AuthContext] 🚨 User ID changed! Old:', user.id, 'New:', supabaseUser.id);
+      console.log('[AuthContext] 🧹 Clearing cache and forcing reload...');
+      dataCache.current = null;
+      lastReloadTime.current = 0;
+      forceLoad = true;
+    }
+    
     // Permitir load inicial sempre, ignorar debounce
     const shouldSkipDebounce = isInitialLoad.current || forceLoad;
     
@@ -114,8 +124,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // Usar cache apenas se não for load inicial e não for force
-    if (!shouldSkipDebounce && dataCache.current && now - dataCache.current.timestamp < CACHE_VALIDITY_MS) {
+    // Usar cache apenas se não for load inicial, não for force E o user ID não mudou
+    if (!shouldSkipDebounce && !userIdChanged && dataCache.current && now - dataCache.current.timestamp < CACHE_VALIDITY_MS) {
       console.log('[AuthContext] Using cached user data');
       setUser(dataCache.current.user);
       setTeam(dataCache.current.team);
@@ -157,6 +167,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
+      // CRÍTICO: Validação de segurança - garantir que o profile corresponde ao usuário
+      if (profile.id !== supabaseUser.id) {
+        console.error('[AuthContext] 🚨 SECURITY ALERT: Profile ID mismatch!');
+        console.error('[AuthContext] Expected:', supabaseUser.id, 'Got:', profile.id);
+        setUser(null);
+        setTeam(null);
+        setIsLoading(false);
+        return;
+      }
+
       const userData: User = {
         id: supabaseUser.id,
         email: supabaseUser.email || '',
@@ -165,6 +185,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isAdmin,
         avatarUrl: profile.avatar_url
       };
+      
+      console.log('[AuthContext] ✅ User data loaded and validated for:', userData.email);
 
       let teamData: Team | null = null;
       let trialExpired = false;
@@ -391,13 +413,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return;
         }
 
-        // Handle SIGNED_IN - apenas se não foi inicializado ainda
+        // Handle SIGNED_IN - SEMPRE validar e recarregar se for usuário diferente
         if (event === 'SIGNED_IN') {
           console.log('[AuthContext] 👤 [SIGNED_IN] User signed in');
+          console.log('[AuthContext] 🆔 [SIGNED_IN] New user ID:', newSession?.user?.id);
+          console.log('[AuthContext] 🆔 [SIGNED_IN] Current user ID:', user?.id);
           
-          // Evitar processar SIGNED_IN se já inicializamos
-          if (isInitialized.current) {
-            console.log('[AuthContext] ⏭️ [SIGNED_IN] Already initialized, skipping duplicate load');
+          // CRÍTICO: Verificar se é um usuário diferente
+          const isDifferentUser = newSession?.user?.id && user?.id && newSession.user.id !== user.id;
+          
+          if (isDifferentUser) {
+            console.log('[AuthContext] 🔄 [SIGNED_IN] Different user detected! Clearing all state and reloading...');
+            // Limpar TUDO se for usuário diferente
+            setUser(null);
+            setTeam(null);
+            setIsTrialExpired(false);
+            setTrialDaysRemaining(null);
+            dataCache.current = null;
+            lastReloadTime.current = 0;
+            isInitialized.current = false;
+            isInitialLoad.current = true;
+          }
+          
+          // Se já inicializamos E é o mesmo usuário, apenas atualizar sessão
+          if (isInitialized.current && !isDifferentUser && newSession?.user?.id === user?.id) {
+            console.log('[AuthContext] ⏭️ [SIGNED_IN] Same user already initialized, updating session only');
             setSession(newSession);
             return;
           }
@@ -405,7 +445,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setSession(newSession);
           
           if (newSession?.user) {
-            console.log('[AuthContext] ✅ [SIGNED_IN] User data available, loading...');
+            console.log('[AuthContext] ✅ [SIGNED_IN] Loading user data...');
             isInitialized.current = true;
             // Usar setTimeout para evitar deadlock
             setTimeout(() => {
