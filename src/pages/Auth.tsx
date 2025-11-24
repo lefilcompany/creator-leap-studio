@@ -405,7 +405,7 @@ const Auth = () => {
           <Button
             type="submit"
             disabled={loading}
-            className="w-full h-9 sm:h-10 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-medium rounded-lg sm:rounded-xl transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 text-sm"
+            className="w-full h-9 sm:h-10 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-medium rounded-lg sm:rounded-xl transition-all duration-300 hover:opacity-90 disabled:opacity-50 text-sm"
           >
             {loading ? (
               <div className="flex items-center gap-2">
@@ -622,7 +622,7 @@ const Auth = () => {
 
           <Button
             type="submit"
-            className="w-full h-10 lg:h-11 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-medium rounded-xl transition-all duration-300 transform hover:scale-[1.02]"
+            className="w-full h-10 lg:h-11 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-medium rounded-xl transition-all duration-300 hover:opacity-90"
             disabled={
               loading ||
               !formData.name ||

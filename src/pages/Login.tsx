@@ -207,7 +207,7 @@ const Login = () => {
         <Button
           type="submit"
           disabled={loading}
-          className="w-full h-12 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-medium rounded-xl transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50"
+          className="w-full h-12 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-medium rounded-xl transition-all duration-300 hover:opacity-90 disabled:opacity-50"
         >
           {loading ? (
             <div className="flex items-center gap-2">
