@@ -254,11 +254,9 @@ export default function ContentResult() {
   const handleSubmitReview = async () => {
     if (!reviewPrompt.trim() || !contentData || !reviewType) return;
 
-    // Verificar créditos conforme o tipo de revisão
-    const requiredCredits = reviewType === "image" ? CREDIT_COSTS.IMAGE_EDIT : CREDIT_COSTS.CAPTION_REVIEW;
-    if (!team?.credits || team.credits < requiredCredits) {
-      const creditType = reviewType === "image" ? "edição" : "revisão";
-      toast.error(`Você não tem créditos disponíveis. Cada ${creditType} custa ${requiredCredits} crédito${requiredCredits > 1 ? 's' : ''}.`);
+    // Sempre verificar créditos (custo: 2 créditos para revisões)
+    if (!team?.credits || team.credits < CREDIT_COSTS.IMAGE_REVIEW) {
+      toast.error(`Você não tem créditos disponíveis. Cada revisão custa ${CREDIT_COSTS.IMAGE_REVIEW} créditos.`);
       return;
     }
     setIsReviewing(true);

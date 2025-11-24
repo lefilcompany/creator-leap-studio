@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
-import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -204,6 +203,7 @@ serve(async (req) => {
     const teamId = profile.team_id;
 
     // Check team credits
+    const IMAGE_EDIT_COST = 1;
     const { data: team, error: teamError } = await supabase
       .from('teams')
       .select('credits')
@@ -218,7 +218,7 @@ serve(async (req) => {
       );
     }
 
-    if (team.credits < CREDIT_COSTS.IMAGE_EDIT) {
+    if (team.credits < IMAGE_EDIT_COST) {
       return new Response(
         JSON.stringify({ error: 'Créditos insuficientes' }),
         { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -454,13 +454,13 @@ serve(async (req) => {
     // Deduzir 1 crédito após edição bem-sucedida
     const { error: deductError } = await supabase
       .from('teams')
-      .update({ credits: team.credits - CREDIT_COSTS.IMAGE_EDIT })
+      .update({ credits: team.credits - IMAGE_EDIT_COST })
       .eq('id', teamId);
 
     if (deductError) {
       console.error('❌ Erro ao deduzir créditos:', deductError);
     } else {
-      console.log(`✅ ${CREDIT_COSTS.IMAGE_EDIT} crédito deduzido da equipe ${teamId}`);
+      console.log(`✅ ${IMAGE_EDIT_COST} crédito deduzido da equipe ${teamId}`);
       
       // Registrar no histórico de créditos
       await supabase
@@ -469,9 +469,9 @@ serve(async (req) => {
           team_id: teamId,
           user_id: user.id,
           action_type: 'IMAGE_EDIT',
-          credits_used: CREDIT_COSTS.IMAGE_EDIT,
+          credits_used: IMAGE_EDIT_COST,
           credits_before: team.credits,
-          credits_after: team.credits - CREDIT_COSTS.IMAGE_EDIT,
+          credits_after: team.credits - IMAGE_EDIT_COST,
           description: 'Edição de imagem',
           metadata: {
             image_url: publicUrl,

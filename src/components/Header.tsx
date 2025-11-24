@@ -3,7 +3,7 @@ import { Search, Settings, User, Menu, Loader2, Info, FileText, Shield, LogOut, 
 import { useTheme } from "next-themes";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { SidebarTrigger, SidebarModeToggle, useSidebar } from "@/components/ui/sidebar";
+import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -112,9 +112,9 @@ export const Header = () => {
             </Button>
           </div>
           
-          {/* Desktop sidebar mode toggle */}
+          {/* Desktop sidebar trigger */}
           <div className="hidden lg:block">
-            <SidebarModeToggle className="h-10 w-10 rounded-lg hover:bg-primary/20 hover:text-primary transition-all duration-200" />
+            <SidebarTrigger className="h-10 w-10 rounded-lg hover:bg-primary/10 transition-all duration-200" />
           </div>
         </div>
         

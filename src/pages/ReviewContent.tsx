@@ -288,7 +288,7 @@ const ReviewContent = () => {
   }
 
   return (
-    <div className="min-h-full w-full">
+    <div className="min-h-full w-full p-6">
       {/* Tour inicial - só aparece quando reviewType é null */}
       {!reviewType && (
         <OnboardingTour 

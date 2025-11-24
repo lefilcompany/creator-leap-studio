@@ -55,17 +55,12 @@ function NavItem({ id, href, icon: Icon, label, collapsed, onNavigate, disabled 
     return (
       <div
         className={cn(
-          "flex items-center gap-4 p-3 rounded-lg transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] cursor-not-allowed opacity-50",
-          collapsed ? "justify-center" : "",
+          "flex items-center gap-4 p-3 rounded-lg transition-colors duration-200 cursor-not-allowed opacity-50",
           "text-muted-foreground bg-background"
         )}
       >
         <Icon className="h-5 w-5 flex-shrink-0" />
-        {!collapsed && (
-          <span className="font-medium text-sm transition-opacity duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] animate-fade-in">
-            {label}
-          </span>
-        )}
+        {!collapsed && <span className="font-medium text-sm">{label}</span>}
       </div>
     );
   }
@@ -84,11 +79,7 @@ function NavItem({ id, href, icon: Icon, label, collapsed, onNavigate, disabled 
       )}
     >
       <Icon className="h-5 w-5 flex-shrink-0" />
-      {!collapsed && (
-        <span className="font-medium text-sm transition-opacity duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] animate-fade-in">
-          {label}
-        </span>
-      )}
+      {!collapsed && <span className="font-medium text-sm">{label}</span>}
     </NavLink>
   );
 
@@ -146,11 +137,7 @@ function ActionButton({ id, href, icon: Icon, label, collapsed, variant, onNavig
                 )}
             >
                 <Icon className="h-5 w-5 flex-shrink-0" />
-                {!collapsed && (
-                    <span className="font-medium text-sm transition-opacity duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] animate-fade-in">
-                        {label}
-                    </span>
-                )}
+                {!collapsed && <span className="font-medium text-sm">{label}</span>}
             </div>
         );
     }
@@ -176,11 +163,7 @@ function ActionButton({ id, href, icon: Icon, label, collapsed, variant, onNavig
             )}
         >
             <Icon className="h-5 w-5 flex-shrink-0" />
-            {!collapsed && (
-                <span className="font-medium text-sm transition-opacity duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] animate-fade-in">
-                    {label}
-                </span>
-            )}
+            {!collapsed && <span className="font-medium text-sm">{label}</span>}
         </NavLink>
     );
 
@@ -214,10 +197,10 @@ function TeamPlanSection({ teamName, planName, collapsed, onNavigate, t }: {
       id="nav-team"
       to="/team"
       onClick={onNavigate}
-      className="flex items-center gap-4 p-3 rounded-lg transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] transform hover:scale-105 bg-gradient-to-tr from-primary to-fuchsia-600 text-primary-foreground shadow-lg animate-fade-in"
+      className="flex items-center gap-4 p-3 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-105 bg-gradient-to-tr from-primary to-fuchsia-600 text-primary-foreground shadow-lg"
     >
       <Rocket className="h-6 w-6 flex-shrink-0" />
-      <div className="flex flex-col items-start leading-tight transition-opacity duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]">
+      <div className="flex flex-col items-start leading-tight">
         <span className="font-bold text-sm">{t.sidebar.team}: {teamName}</span>
         <span className="text-xs text-primary-foreground/80">{t.sidebar.plan}: {planName}</span>
       </div>
@@ -244,6 +227,7 @@ export function AppSidebar() {
     { id: "nav-brands", href: "/brands", icon: Tag, label: t.sidebar.brands },
     { id: "nav-themes", href: "/themes", icon: Palette, label: t.sidebar.themes },
     { id: "nav-personas", href: "/personas", icon: Users, label: t.sidebar.personas },
+    { id: "nav-quick-content", href: "/quick-content", icon: Zap, label: t.sidebar.quickContent },
     { id: "nav-history", href: "/history", icon: History, label: t.sidebar.history },
   ];
 
@@ -283,7 +267,7 @@ export function AppSidebar() {
       </NavLink>
       
       <nav className={cn(
-        "flex-1 flex flex-col overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]",
+        "flex-1 flex flex-col overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent",
         collapsed ? "gap-3 px-2" : "gap-5 px-4"
       )}>
         <div className="flex flex-col gap-1.5">
@@ -393,7 +377,7 @@ export function AppSidebar() {
       collapsible="icon"
       side="left"
       variant="sidebar"
-      className="border-r border-primary/10 shadow-md shadow-primary/20 data-[state=collapsed]:w-24"
+      className="border-r border-primary/10 shadow-md shadow-primary/20"
     >
       <SidebarContent className="bg-card flex flex-col h-full overflow-y-auto">
         {sidebarContent()}

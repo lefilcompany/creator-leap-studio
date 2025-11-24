@@ -46,7 +46,6 @@ import Onboarding from "./pages/Onboarding";
 import OnboardingSuccess from "./pages/OnboardingSuccess";
 import OnboardingCanceled from "./pages/OnboardingCanceled";
 import PaymentSuccess from "./pages/PaymentSuccess";
-import ContentCreationSelector from "./pages/ContentCreationSelector";
 
 const App = () => (
   <ErrorBoundary>
@@ -77,9 +76,7 @@ const App = () => (
               <Route path="themes" element={<Themes />} />
               <Route path="personas" element={<Personas />} />
               <Route path="history" element={<History />} />
-              <Route path="create" element={<ContentCreationSelector />} />
-              <Route path="create-image" element={<CreateContent />} />
-              <Route path="create-video" element={<CreateContent />} />
+              <Route path="create" element={<CreateContent />} />
               <Route path="result" element={<ContentResult />} />
               <Route path="video-result" element={<VideoResult />} />
               <Route path="review" element={<ReviewContent />} />

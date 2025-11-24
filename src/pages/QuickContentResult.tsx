@@ -13,8 +13,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { CREDIT_COSTS } from "@/lib/creditCosts";
-import { processImageToAspectRatio, getAspectRatioDimensions } from "@/lib/imageProcessing";
-import { ASPECT_RATIO_DIMENSIONS } from "@/lib/platformSpecs";
 
 export default function QuickContentResult() {
   const navigate = useNavigate();
@@ -29,7 +27,7 @@ export default function QuickContentResult() {
   const [currentImageUrl, setCurrentImageUrl] = useState("");
   const [imageHistory, setImageHistory] = useState<string[]>([]);
 
-  const { imageUrl, description, actionId, prompt, aspectRatio, platform } = location.state || {};
+  const { imageUrl, description, actionId, prompt } = location.state || {};
 
   useEffect(() => {
     if (!imageUrl) {
@@ -262,9 +260,9 @@ export default function QuickContentResult() {
       return;
     }
 
-    // Sempre verificar créditos (custo: 1 crédito para edição)
-    if (!team?.credits || team.credits < CREDIT_COSTS.IMAGE_EDIT) {
-      toast.error(`Você não tem créditos disponíveis. Cada edição de imagem custa ${CREDIT_COSTS.IMAGE_EDIT} crédito.`);
+    // Sempre verificar créditos (custo: 2 créditos)
+    if (!team?.credits || team.credits < CREDIT_COSTS.IMAGE_REVIEW) {
+      toast.error(`Você não tem créditos disponíveis. Cada revisão de imagem custa ${CREDIT_COSTS.IMAGE_REVIEW} créditos.`);
       return;
     }
 
@@ -293,30 +291,9 @@ export default function QuickContentResult() {
         throw new Error("Imagem editada não foi retornada");
       }
 
-      const newImageUrl = data.editedImageUrl;
-
-      // NOVO: Processar imagem revisada para aspect ratio correto
-      let processedImageUrl = newImageUrl;
-      try {
-        if (aspectRatio) {
-          processedImageUrl = await processImageToAspectRatio({
-            imageUrl: newImageUrl,
-            aspectRatio: aspectRatio,
-            mode: 'cover',
-            quality: 0.95,
-            outputFormat: 'image/png'
-          });
-          console.log('✅ Imagem revisada processada para', aspectRatio);
-        }
-      } catch (processError) {
-        console.error("Error processing revised image:", processError);
-        // Usar original se falhar
-        processedImageUrl = newImageUrl;
-      }
-
       // Aceitar tanto URLs HTTP quanto imagens base64
-      const isBase64 = processedImageUrl.startsWith('data:');
-      const isHttpUrl = processedImageUrl.startsWith('http');
+      const isBase64 = data.editedImageUrl.startsWith('data:');
+      const isHttpUrl = data.editedImageUrl.startsWith('http');
       
       if (!isBase64 && !isHttpUrl) {
         throw new Error("URL da imagem editada é inválida");
@@ -324,8 +301,8 @@ export default function QuickContentResult() {
 
       // Para imagens base64, usar diretamente; para URLs, adicionar timestamp
       const imageUrlWithTimestamp = isBase64 
-        ? processedImageUrl 
-        : `${processedImageUrl}?t=${Date.now()}`;
+        ? data.editedImageUrl 
+        : `${data.editedImageUrl}?t=${Date.now()}`;
 
       // Add to history (limite de 5 URLs para economizar espaço)
       const newHistory = [...imageHistory, imageUrlWithTimestamp].slice(-5);
@@ -668,7 +645,7 @@ export default function QuickContentResult() {
                     onClick={handleCopyPrompt}
                     className="hover:scale-105 transition-transform"
                   >
-                 {isCopied ? (
+                    {isCopied ? (
                       <>
                         <Check className="mr-2 h-4 w-4" />
                         <span className="text-sm">Copiado</span>
@@ -682,21 +659,6 @@ export default function QuickContentResult() {
                   </Button>
                 </div>
                 <p className="text-sm text-muted-foreground leading-relaxed">{prompt}</p>
-                
-                {/* Mostrar badge de aspect ratio se disponível */}
-                {aspectRatio && ASPECT_RATIO_DIMENSIONS[aspectRatio] && (
-                  <div className="pt-2 border-t border-border/20">
-                    <Badge variant="secondary" className="text-xs gap-1">
-                      <span className="font-semibold">{aspectRatio}</span>
-                      <span className="text-muted-foreground">•</span>
-                      <span className="text-muted-foreground">
-                        {ASPECT_RATIO_DIMENSIONS[aspectRatio].width}x{ASPECT_RATIO_DIMENSIONS[aspectRatio].height}px
-                      </span>
-                      <span className="text-muted-foreground">•</span>
-                      <span>{ASPECT_RATIO_DIMENSIONS[aspectRatio].label}</span>
-                    </Badge>
-                  </div>
-                )}
               </div>
             </Card>
 

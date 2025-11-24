@@ -19,8 +19,6 @@ const SIDEBAR_WIDTH_MOBILE = "18rem";
 const SIDEBAR_WIDTH_ICON = "3rem";
 const SIDEBAR_KEYBOARD_SHORTCUT = "b";
 
-type SidebarMode = "fixed" | "retractable";
-
 type SidebarContext = {
   state: "expanded" | "collapsed";
   open: boolean;
@@ -29,9 +27,6 @@ type SidebarContext = {
   setOpenMobile: (open: boolean) => void;
   isMobile: boolean;
   toggleSidebar: () => void;
-  mode: SidebarMode;
-  setMode: (mode: SidebarMode) => void;
-  toggleMode: () => void;
 };
 
 const SidebarContext = React.createContext<SidebarContext | null>(null);
@@ -51,21 +46,10 @@ const SidebarProvider = React.forwardRef<
     defaultOpen?: boolean;
     open?: boolean;
     onOpenChange?: (open: boolean) => void;
-    defaultMode?: SidebarMode;
   }
->(({ 
-  defaultOpen = true, 
-  open: openProp, 
-  onOpenChange: setOpenProp, 
-  defaultMode = "fixed",
-  className, 
-  style, 
-  children, 
-  ...props 
-}, ref) => {
+>(({ defaultOpen = true, open: openProp, onOpenChange: setOpenProp, className, style, children, ...props }, ref) => {
   const isMobile = useIsMobile();
   const [openMobile, setOpenMobile] = React.useState(false);
-  const [mode, setMode] = React.useState<SidebarMode>(defaultMode);
 
   // This is the internal state of the sidebar.
   // We use openProp and setOpenProp for control from outside the component.
@@ -73,11 +57,6 @@ const SidebarProvider = React.forwardRef<
   const open = openProp ?? _open;
   const setOpen = React.useCallback(
     (value: boolean | ((value: boolean) => boolean)) => {
-      // No modo fixo, não permite fechar no desktop
-      if (mode === "fixed" && !isMobile) {
-        return;
-      }
-      
       const openState = typeof value === "function" ? value(open) : value;
       if (setOpenProp) {
         setOpenProp(openState);
@@ -88,32 +67,13 @@ const SidebarProvider = React.forwardRef<
       // This sets the cookie to keep the sidebar state.
       document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
     },
-    [setOpenProp, open, mode, isMobile],
+    [setOpenProp, open],
   );
-
-  // Toggle do modo
-  const toggleMode = React.useCallback(() => {
-    const newMode = mode === "fixed" ? "retractable" : "fixed";
-    setMode(newMode);
-    
-    // Ao mudar para fixo, força expandir
-    if (newMode === "fixed") {
-      setOpen(true);
-    }
-    // Ao mudar para retrátil, força colapsar
-    if (newMode === "retractable") {
-      setOpen(false);
-    }
-  }, [mode, setOpen]);
 
   // Helper to toggle the sidebar.
   const toggleSidebar = React.useCallback(() => {
-    if (isMobile) {
-      setOpenMobile((open) => !open);
-    } else if (mode === "retractable") {
-      setOpen((open) => !open);
-    }
-  }, [isMobile, mode, setOpen, setOpenMobile]);
+    return isMobile ? setOpenMobile((open) => !open) : setOpen((open) => !open);
+  }, [isMobile, setOpen, setOpenMobile]);
 
   // Adds a keyboard shortcut to toggle the sidebar.
   React.useEffect(() => {
@@ -141,11 +101,8 @@ const SidebarProvider = React.forwardRef<
       openMobile,
       setOpenMobile,
       toggleSidebar,
-      mode,
-      setMode,
-      toggleMode,
     }),
-    [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar, mode, setMode, toggleMode],
+    [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar],
   );
 
   return (
@@ -179,36 +136,7 @@ const Sidebar = React.forwardRef<
     collapsible?: "offcanvas" | "icon" | "none";
   }
 >(({ side = "left", variant = "sidebar", collapsible = "offcanvas", className, children, ...props }, ref) => {
-  const { isMobile, state, openMobile, setOpenMobile, mode, setOpen } = useSidebar();
-  const [isHovering, setIsHovering] = React.useState(false);
-  const hoverTimeoutRef = React.useRef<NodeJS.Timeout>();
-
-  // No modo retrátil, expande ao hover com delay
-  React.useEffect(() => {
-    if (!isMobile && mode === "retractable") {
-      if (isHovering) {
-        // Delay de 150ms antes de expandir
-        hoverTimeoutRef.current = setTimeout(() => {
-          setOpen(true);
-        }, 150);
-      } else {
-        // Limpa o timeout se o mouse sair antes
-        if (hoverTimeoutRef.current) {
-          clearTimeout(hoverTimeoutRef.current);
-        }
-        // Delay de 200ms antes de colapsar
-        hoverTimeoutRef.current = setTimeout(() => {
-          setOpen(false);
-        }, 200);
-      }
-    }
-    
-    return () => {
-      if (hoverTimeoutRef.current) {
-        clearTimeout(hoverTimeoutRef.current);
-      }
-    };
-  }, [isHovering, mode, isMobile, setOpen]);
+  const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
 
   if (collapsible === "none") {
     return (
@@ -250,14 +178,11 @@ const Sidebar = React.forwardRef<
       data-collapsible={state === "collapsed" ? collapsible : ""}
       data-variant={variant}
       data-side={side}
-      data-mode={mode}
-      onMouseEnter={() => mode === "retractable" && setIsHovering(true)}
-      onMouseLeave={() => mode === "retractable" && setIsHovering(false)}
     >
       {/* This is what handles the sidebar gap on desktop */}
       <div
         className={cn(
-          "relative h-svh w-[--sidebar-width] bg-transparent transition-[width] duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]",
+          "relative h-svh w-[--sidebar-width] bg-transparent transition-[width] duration-200 ease-linear",
           "group-data-[collapsible=offcanvas]:w-0",
           "group-data-[side=right]:rotate-180",
           variant === "floating" || variant === "inset"
@@ -267,7 +192,7 @@ const Sidebar = React.forwardRef<
       />
       <div
         className={cn(
-          "fixed inset-y-0 z-10 hidden h-svh w-[--sidebar-width] transition-[left,right,width] duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] md:flex",
+          "fixed inset-y-0 z-10 hidden h-svh w-[--sidebar-width] transition-[left,right,width] duration-200 ease-linear md:flex",
           side === "left"
             ? "left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]"
             : "right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]",
@@ -315,41 +240,6 @@ const SidebarTrigger = React.forwardRef<React.ElementRef<typeof Button>, React.C
   },
 );
 SidebarTrigger.displayName = "SidebarTrigger";
-
-const SidebarModeToggle = React.forwardRef<
-  React.ElementRef<typeof Button>, 
-  React.ComponentProps<typeof Button>
->(({ className, onClick, ...props }, ref) => {
-  const { mode, toggleMode } = useSidebar();
-
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          ref={ref}
-          data-sidebar="mode-toggle"
-          variant="ghost"
-          size="icon"
-          className={cn("h-7 w-7 transition-all duration-200 hover:bg-primary/20 hover:text-primary", className)}
-          onClick={(event) => {
-            onClick?.(event);
-            toggleMode();
-          }}
-          {...props}
-        >
-          <PanelLeft className={cn("transition-transform duration-200", mode === "retractable" && "rotate-180")} />
-          <span className="sr-only">
-            {mode === "fixed" ? "Ativar modo retrátil" : "Ativar modo fixo"}
-          </span>
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent side="right">
-        <p>{mode === "fixed" ? "Ativar modo retrátil" : "Ativar modo fixo"}</p>
-      </TooltipContent>
-    </Tooltip>
-  );
-});
-SidebarModeToggle.displayName = "SidebarModeToggle";
 
 const SidebarRail = React.forwardRef<HTMLButtonElement, React.ComponentProps<"button">>(
   ({ className, ...props }, ref) => {
@@ -743,6 +633,5 @@ export {
   SidebarRail,
   SidebarSeparator,
   SidebarTrigger,
-  SidebarModeToggle,
   useSidebar,
 };

@@ -29,16 +29,9 @@ import type { Persona, PersonaSummary } from "@/types/persona";
 import type { Team } from "@/types/theme";
 import { useAuth } from "@/hooks/useAuth";
 import { getPlatformImageSpec, getCaptionGuidelines, platformSpecs } from "@/lib/platformSpecs";
-import { processImageToAspectRatio } from "@/lib/imageProcessing";
 import { useFormPersistence } from '@/hooks/useFormPersistence';
 import { TourSelector } from '@/components/onboarding/TourSelector';
 import { createContentSteps, navbarSteps } from '@/components/onboarding/tourSteps';
-import { AspectRatioPreview } from "@/components/AspectRatioPreview";
-import { CreationStep } from "@/types/canvas";
-import { CreationStepper } from "@/components/canvas/CreationStepper";
-import { ImageAdjustment } from "@/components/canvas/ImageAdjustment";
-import { CanvasEditor } from "@/components/canvas/CanvasEditor";
-import { FinalizeView } from "@/components/canvas/FinalizeView";
 
 enum GenerationStep {
   IDLE = "IDLE",
@@ -103,16 +96,6 @@ const toneOptions = [
 export default function CreateContent() {
   const { user, session, reloadUserData } = useAuth();
   const navigate = useNavigate();
-  
-  // Canvas Editor States
-  const [currentStep, setCurrentStep] = useState<CreationStep>(CreationStep.INFORMATIONS);
-  const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
-  const [adjustedImages, setAdjustedImages] = useState<string[]>([]);
-  const [canvasData, setCanvasData] = useState<any>(null);
-  const [finalImageUrl, setFinalImageUrl] = useState<string | null>(null);
-  const [captionData, setCaptionData] = useState<any>(null);
-  const [isSaving, setIsSaving] = useState(false);
-  
   const [formData, setFormData] = useState<FormData>({
     brand: "",
     theme: "",
@@ -1088,32 +1071,6 @@ export default function CreateContent() {
 
       const { imageUrl, attempt } = await imageResponse.json();
       
-      // Processar imagem para aspect ratio exato
-      let processedImageUrl = imageUrl;
-      try {
-        // Buscar aspect ratio correspondente às dimensões selecionadas
-        const platformSpec = platformSpecs[formData.platform]?.[formData.contentType === 'ads' ? 'ads' : 'organic'];
-        const selectedDimension = platformSpec?.image?.dimensions?.find(
-          dim => dim.width.toString() === formData.width && dim.height.toString() === formData.height
-        );
-        
-        if (selectedDimension && selectedDimension.aspectRatio) {
-          console.log(`📐 Processando imagem para aspect ratio ${selectedDimension.aspectRatio}...`);
-          processedImageUrl = await processImageToAspectRatio({
-            imageUrl: imageUrl,
-            aspectRatio: selectedDimension.aspectRatio,
-            mode: 'cover',
-            quality: 0.95,
-            outputFormat: 'image/png'
-          });
-          console.log(`✅ Imagem processada com sucesso para ${selectedDimension.aspectRatio}`);
-        }
-      } catch (error) {
-        console.error("⚠️ Erro ao processar aspect ratio da imagem:", error);
-        // Usar imagem original se falhar
-        processedImageUrl = imageUrl;
-      }
-      
       setGenerationStep(GenerationStep.GENERATING_CAPTION);
       setGenerationProgress(60);
       
@@ -1216,14 +1173,14 @@ ${formData.description}
       });
 
       // Validar dados completos antes de criar o objeto
-      if (!processedImageUrl || !captionData?.title || !captionData?.body) {
+      if (!imageUrl || !captionData?.title || !captionData?.body) {
         throw new Error("Dados incompletos na geração");
       }
 
       // Manter dados ESTRUTURADOS - não concatenar
       const generatedContent = {
         type: "image" as const,
-        mediaUrl: processedImageUrl,
+        mediaUrl: imageUrl,
         platform: formData.platform,
         brand: selectedBrand?.name || formData.brand,
         // Dados estruturados da legenda
@@ -1473,7 +1430,7 @@ ${formData.description}
                     <p className="text-xs text-muted-foreground">
                       Você precisa cadastrar uma marca antes de criar conteúdo.{" "}
                       <button
-                        onClick={() => navigate("/brands")}
+                        onClick={() => navigate("/marcas")}
                         className="text-primary hover:underline font-medium"
                       >
                         Ir para Marcas
@@ -1845,7 +1802,7 @@ ${formData.description}
                       </span>
                     </div>
                     <Textarea
-                      id="description"
+                      id="content-description"
                       placeholder="Como um diretor de arte: descreva a cena, iluminação e emoção..."
                       value={formData.description}
                       onChange={handleInputChange}
@@ -2294,28 +2251,17 @@ ${formData.description}
                                 <SelectItem value="1080x1080" disabled>
                                   Selecione uma plataforma primeiro
                                 </SelectItem>
+                              )}
+                            </SelectContent>
+                          </Select>
+                          {formData.width && formData.height && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Selecionado: {formData.width}x{formData.height}px
+                            </p>
                           )}
-                        </SelectContent>
-                      </Select>
-                      {formData.width && formData.height && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Selecionado: {formData.width}x{formData.height}px
-                        </p>
-                      )}
-                    </div>
+                        </div>
 
-                    {formData.width && formData.height && formData.platform && (() => {
-                      const platformData = platformSpecs[formData.platform];
-                      const contentTypeData = platformData?.[formData.contentType === 'ads' ? 'ads' : 'organic'];
-                      const selectedDimension = contentTypeData?.image.dimensions.find(
-                        d => d.width === parseInt(formData.width!) && d.height === parseInt(formData.height!)
-                      );
-                      return selectedDimension?.aspectRatio ? (
-                        <AspectRatioPreview aspectRatio={selectedDimension.aspectRatio} />
-                      ) : null;
-                    })()}
-
-                    {/* Composition */}
+                        {/* Composition */}
                         <div className="space-y-2">
                           <Label className="text-xs font-medium">Composição</Label>
                           <Select

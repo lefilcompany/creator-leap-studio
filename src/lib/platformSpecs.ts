@@ -58,34 +58,6 @@ export interface PlatformSpec {
   };
 }
 
-// Aspect Ratio Dimensions Mapping
-export const ASPECT_RATIO_DIMENSIONS: Record<string, { width: number; height: number; label: string }> = {
-  "1:1": { width: 1080, height: 1080, label: "Quadrado (1:1)" },
-  "9:16": { width: 1080, height: 1920, label: "Vertical (9:16)" },
-  "16:9": { width: 1920, height: 1080, label: "Horizontal (16:9)" },
-  "4:3": { width: 1440, height: 1080, label: "Retrato (4:3)" },
-};
-
-// Platform to Aspect Ratio Mapping
-export const PLATFORM_ASPECT_RATIOS: Record<string, string[]> = {
-  Instagram: ["1:1", "9:16", "16:9"],
-  Facebook: ["1:1", "16:9", "9:16"],
-  TikTok: ["9:16", "1:1"],
-  "Twitter/X": ["16:9", "1:1", "4:3"],
-  LinkedIn: ["1:1", "16:9", "4:3"],
-  Comunidades: ["1:1", "16:9", "4:3"]
-};
-
-/**
- * Gets recommended aspect ratio for a platform
- * @param platform Platform name
- * @returns Recommended aspect ratio (first in array is most recommended)
- */
-export function getRecommendedAspectRatio(platform: string): string {
-  const ratios = PLATFORM_ASPECT_RATIOS[platform];
-  return ratios?.[0] || "1:1"; // First is the most recommended
-}
-
 export const platformSpecs: Record<string, PlatformSpec> = {
   Instagram: {
     name: "Instagram",
@@ -94,21 +66,27 @@ export const platformSpecs: Record<string, PlatformSpec> = {
         dimensions: [
           {
             width: 1080,
+            height: 1350,
+            aspectRatio: "4:5",
+            description: "Feed Retrato (Melhor Performance)",
+          },
+          {
+            width: 1080,
             height: 1080,
             aspectRatio: "1:1",
             description: "Feed Quadrado",
           },
           {
             width: 1080,
+            height: 566,
+            aspectRatio: "1.91:1",
+            description: "Feed Paisagem",
+          },
+          {
+            width: 1080,
             height: 1920,
             aspectRatio: "9:16",
             description: "Stories/Reels",
-          },
-          {
-            width: 1920,
-            height: 1080,
-            aspectRatio: "16:9",
-            description: "Feed Horizontal",
           },
         ],
         formats: ["JPG", "PNG", "MP4"],
@@ -138,9 +116,9 @@ export const platformSpecs: Record<string, PlatformSpec> = {
         dimensions: [
           {
             width: 1080,
-            height: 1080,
-            aspectRatio: "1:1",
-            description: "Feed Quadrado",
+            height: 1350,
+            aspectRatio: "4:5",
+            description: "Feed (Recomendado)",
           },
           {
             width: 1080,
@@ -149,10 +127,10 @@ export const platformSpecs: Record<string, PlatformSpec> = {
             description: "Stories/Reels",
           },
           {
-            width: 1920,
+            width: 1080,
             height: 1080,
-            aspectRatio: "16:9",
-            description: "Feed Horizontal",
+            aspectRatio: "1:1",
+            description: "Feed Quadrado",
           },
         ],
         textRule: "Algoritmo favorece imagens com pouco ou nenhum texto sobreposto",
@@ -179,16 +157,22 @@ export const platformSpecs: Record<string, PlatformSpec> = {
       image: {
         dimensions: [
           {
+            width: 1200,
+            height: 630,
+            aspectRatio: "1.91:1",
+            description: "Feed Padrão/Links (Open Graph)",
+          },
+          {
             width: 1080,
             height: 1080,
             aspectRatio: "1:1",
             description: "Feed Quadrado",
           },
           {
-            width: 1920,
-            height: 1080,
-            aspectRatio: "16:9",
-            description: "Feed Horizontal",
+            width: 1080,
+            height: 1350,
+            aspectRatio: "4:5",
+            description: "Feed Retrato",
           },
           {
             width: 1080,
@@ -223,13 +207,13 @@ export const platformSpecs: Record<string, PlatformSpec> = {
             width: 1080,
             height: 1080,
             aspectRatio: "1:1",
-            description: "Feed Quadrado",
+            description: "Feed (Recomendado para impacto)",
           },
           {
-            width: 1920,
-            height: 1080,
-            aspectRatio: "16:9",
-            description: "Feed Horizontal",
+            width: 1200,
+            height: 630,
+            aspectRatio: "1.91:1",
+            description: "Feed/Tráfego",
           },
           {
             width: 1080,
@@ -264,22 +248,16 @@ export const platformSpecs: Record<string, PlatformSpec> = {
       image: {
         dimensions: [
           {
+            width: 1200,
+            height: 627,
+            aspectRatio: "1.91:1",
+            description: "Feed Padrão (Ideal para links de blog)",
+          },
+          {
             width: 1080,
             height: 1080,
             aspectRatio: "1:1",
             description: "Quadrado",
-          },
-          {
-            width: 1920,
-            height: 1080,
-            aspectRatio: "16:9",
-            description: "Feed Horizontal",
-          },
-          {
-            width: 1440,
-            height: 1080,
-            aspectRatio: "4:3",
-            description: "Retrato",
           },
         ],
         formats: ["JPG", "PNG", "PDF"],
@@ -306,22 +284,16 @@ export const platformSpecs: Record<string, PlatformSpec> = {
       image: {
         dimensions: [
           {
+            width: 1200,
+            height: 627,
+            aspectRatio: "1.91:1",
+            description: "Anúncio de Imagem Única",
+          },
+          {
             width: 1080,
             height: 1080,
             aspectRatio: "1:1",
-            description: "Carrossel",
-          },
-          {
-            width: 1920,
-            height: 1080,
-            aspectRatio: "16:9",
-            description: "Anúncio Horizontal",
-          },
-          {
-            width: 1440,
-            height: 1080,
-            aspectRatio: "4:3",
-            description: "Anúncio Retrato",
+            description: "Carrossel (por card)",
           },
         ],
       },
@@ -350,12 +322,6 @@ export const platformSpecs: Record<string, PlatformSpec> = {
             height: 1920,
             aspectRatio: "9:16",
             description: "Vídeo Vertical (3s a 10min)",
-          },
-          {
-            width: 1080,
-            height: 1080,
-            aspectRatio: "1:1",
-            description: "Quadrado",
           },
         ],
         formats: ["MP4"],
@@ -413,22 +379,16 @@ export const platformSpecs: Record<string, PlatformSpec> = {
       image: {
         dimensions: [
           {
-            width: 1920,
-            height: 1080,
+            width: 1600,
+            height: 900,
             aspectRatio: "16:9",
-            description: "Feed Horizontal",
+            description: "Feed (1 Imagem)",
           },
           {
-            width: 1080,
-            height: 1080,
-            aspectRatio: "1:1",
-            description: "Feed Quadrado",
-          },
-          {
-            width: 1440,
-            height: 1080,
-            aspectRatio: "4:3",
-            description: "Feed Retrato",
+            width: 800,
+            height: 418,
+            aspectRatio: "1.91:1",
+            description: "Links com Imagem (Twitter Card)",
           },
         ],
         formats: ["JPG", "PNG"],
@@ -453,22 +413,22 @@ export const platformSpecs: Record<string, PlatformSpec> = {
       image: {
         dimensions: [
           {
-            width: 1920,
-            height: 1080,
-            aspectRatio: "16:9",
-            description: "Anúncio Horizontal",
+            width: 800,
+            height: 418,
+            aspectRatio: "1.91:1",
+            description: "Website Card",
           },
           {
-            width: 1080,
-            height: 1080,
+            width: 800,
+            height: 800,
             aspectRatio: "1:1",
-            description: "Anúncio Quadrado",
+            description: "App Card",
           },
           {
-            width: 1440,
-            height: 1080,
-            aspectRatio: "4:3",
-            description: "Anúncio Retrato",
+            width: 600,
+            height: 335,
+            aspectRatio: "16:9",
+            description: "Imagem Simples (mínimo)",
           },
         ],
       },
@@ -501,15 +461,15 @@ export const platformSpecs: Record<string, PlatformSpec> = {
             description: "Quadrado (Universal - Recomendado)",
           },
           {
-            width: 1920,
-            height: 1080,
+            width: 1600,
+            height: 900,
             aspectRatio: "16:9",
             description: "Paisagem",
           },
           {
-            width: 1440,
-            height: 1080,
-            aspectRatio: "4:3",
+            width: 1080,
+            height: 1440,
+            aspectRatio: "3:4",
             description: "Retrato",
           },
         ],
