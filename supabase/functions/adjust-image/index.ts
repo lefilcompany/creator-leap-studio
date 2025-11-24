@@ -138,7 +138,29 @@ Mantenha a essência da imagem original, apenas faça os ajustes solicitados.`;
     if (!response.ok) {
       const errorText = await response.text();
       console.error("Erro da AI Gateway:", response.status, errorText);
-      throw new Error("Erro ao ajustar imagem com IA");
+      
+      // Erros específicos do Lovable AI Gateway
+      if (response.status === 402) {
+        return new Response(
+          JSON.stringify({ 
+            error: "Créditos do Lovable AI esgotados. Adicione créditos em Settings → Workspace → Usage.",
+            errorCode: "LOVABLE_AI_CREDITS_DEPLETED"
+          }),
+          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      
+      if (response.status === 429) {
+        return new Response(
+          JSON.stringify({ 
+            error: "Limite de requisições excedido. Aguarde alguns instantes e tente novamente.",
+            errorCode: "RATE_LIMIT_EXCEEDED"
+          }),
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      
+      throw new Error(`Erro ao ajustar imagem: ${response.status} - ${errorText}`);
     }
 
     const aiData = await response.json();
