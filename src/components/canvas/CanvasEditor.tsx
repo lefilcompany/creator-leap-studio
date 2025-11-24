@@ -30,6 +30,7 @@ export const CanvasEditor = ({
   const [selectedObject, setSelectedObject] = useState<FabricObject | null>(null);
   const [zoom, setZoom] = useState(1);
   const [isLoadingCanvas, setIsLoadingCanvas] = useState(true);
+  const [loadingError, setLoadingError] = useState<string | null>(null);
   const isInitialized = useRef(false);
   const layersRef = useRef<CanvasLayer[]>([]);
   
@@ -75,6 +76,7 @@ export const CanvasEditor = ({
     isInitialized.current = true;
     clearLayers(); // Limpa camadas antigas
     setIsLoadingCanvas(true);
+    setLoadingError(null);
     
     // Calcula tamanho baseado no espaço disponível (não limitar a 800px!)
     const availableWidth = typeof window !== 'undefined' 
@@ -103,11 +105,34 @@ export const CanvasEditor = ({
       preserveObjectStacking: true,
     });
 
-    console.log('🖼️ Carregando imagem de fundo:', backgroundImage.substring(0, 50) + '...');
+    // Timeout de segurança - se não carregar em 10s, mostrar erro
+    const timeoutId = setTimeout(() => {
+      if (isInitialized.current) {
+        console.error('⏱️ Timeout ao carregar canvas');
+        toast.error('Timeout ao carregar imagem', {
+          description: 'A imagem demorou muito para carregar. Tente novamente.'
+        });
+        setLoadingError('Timeout ao carregar imagem');
+        setIsLoadingCanvas(false);
+      }
+    }, 10000); // 10 segundos
 
-    // Carregar imagem de fundo
-    util.loadImage(backgroundImage, { crossOrigin: 'anonymous' })
+    // Detectar se é data URL ou URL remota
+    const isDataURL = backgroundImage.startsWith('data:');
+
+    console.log('🖼️ Carregando imagem de fundo:', {
+      type: isDataURL ? 'Data URL' : 'Remote URL',
+      length: backgroundImage.length,
+      preview: backgroundImage.substring(0, 100)
+    });
+
+    // Carregar imagem de fundo SEM crossOrigin para data URLs
+    const loadOptions = isDataURL ? undefined : { crossOrigin: 'anonymous' as const };
+
+    util.loadImage(backgroundImage, loadOptions)
       .then((img) => {
+        clearTimeout(timeoutId); // Limpar timeout se carregar com sucesso
+        
         console.log('✅ Imagem carregada com sucesso!', {
           imageWidth: img.width,
           imageHeight: img.height,
@@ -123,11 +148,15 @@ export const CanvasEditor = ({
         });
         
         canvas.backgroundImage = fabricImg;
+        
+        // Forçar re-render múltiplas vezes para garantir que aparece
         canvas.requestRenderAll();
+        setTimeout(() => canvas.requestRenderAll(), 50);
+        setTimeout(() => canvas.requestRenderAll(), 200);
 
-        console.log('✅ Background image set');
+        console.log('✅ Background image set, forced multiple re-renders');
 
-        // Adicionar camada de fundo
+        // Adicionar camada de fundo inicialmente sem thumbnail
         addLayer({
           id: 'background-layer',
           name: 'Imagem de Fundo',
@@ -137,8 +166,15 @@ export const CanvasEditor = ({
           locked: true,
           opacity: 1,
           zIndex: 0,
-          thumbnail: generateThumbnail(fabricImg, canvas),
+          thumbnail: '', // Inicialmente vazio
         });
+
+        // Gerar thumbnail de forma async para não bloquear
+        setTimeout(() => {
+          const thumbnail = generateThumbnail(fabricImg, canvas);
+          updateLayer('background-layer', { thumbnail });
+          console.log('✅ Thumbnail gerado de forma assíncrona');
+        }, 100);
 
         console.log('✅ Camada de fundo adicionada');
 
@@ -150,11 +186,31 @@ export const CanvasEditor = ({
         setTimeout(() => {
           setIsLoadingCanvas(false);
           console.log('✅ Canvas pronto! isLoadingCanvas:', false);
-        }, 100);
+        }, 150);
       })
       .catch((error) => {
-        console.error('❌ Erro ao carregar imagem de fundo:', error);
-        toast.error('Erro ao carregar imagem de fundo');
+        clearTimeout(timeoutId); // Limpar timeout se falhar
+        
+        console.error('❌ Erro ao carregar imagem de fundo:', {
+          error,
+          message: error.message,
+          imageType: backgroundImage.startsWith('data:') ? 'data URL' : 'remote URL',
+          imageSize: backgroundImage.length
+        });
+        
+        // Mostrar mensagem de erro específica
+        if (backgroundImage.length > 2000000) { // > 2MB
+          toast.error('Imagem muito grande para carregar', {
+            description: 'Tente gerar uma imagem com menor qualidade'
+          });
+          setLoadingError('Imagem muito grande para carregar');
+        } else {
+          toast.error('Erro ao carregar imagem de fundo', {
+            description: 'Tente novamente ou volte para ajustar'
+          });
+          setLoadingError(error.message || 'Erro ao carregar imagem');
+        }
+        
         setIsLoadingCanvas(false);
       });
 
@@ -190,6 +246,7 @@ export const CanvasEditor = ({
     canvas.on('object:modified', handleObjectModified);
 
     return () => {
+      clearTimeout(timeoutId);
       canvas.off('selection:created', handleSelection);
       canvas.off('selection:updated', handleSelection);
       canvas.off('selection:cleared', handleSelectionCleared);
@@ -735,16 +792,22 @@ export const CanvasEditor = ({
 
         {/* Área do Canvas Central - MUITO MAIOR AGORA */}
         <div className="flex-1 p-4 overflow-auto bg-muted/20 flex items-center justify-center relative">
-          {isLoadingCanvas ? (
-            <div className="bg-white rounded-lg shadow-2xl border-2 border-border/50 p-4 animate-pulse">
-              <div 
-                className="bg-muted rounded flex items-center justify-center text-muted-foreground"
-                style={{ 
-                  width: dimensions.width * 0.5, 
-                  height: dimensions.height * 0.5 
-                }}
-              >
-                Carregando imagem...
+          {loadingError ? (
+            <div className="bg-white rounded-lg shadow-2xl border-2 border-destructive p-8">
+              <div className="text-center">
+                <p className="text-destructive font-semibold mb-2">Erro ao carregar canvas</p>
+                <p className="text-sm text-muted-foreground mb-4">{loadingError}</p>
+                <Button onClick={() => window.location.reload()}>
+                  Tentar Novamente
+                </Button>
+              </div>
+            </div>
+          ) : isLoadingCanvas ? (
+            <div className="bg-white rounded-lg shadow-2xl border-2 border-border/50 p-8">
+              <div className="flex flex-col items-center gap-4">
+                <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                <p className="text-lg font-medium text-foreground">Carregando imagem...</p>
+                <p className="text-sm text-muted-foreground">Preparando o canvas para edição</p>
               </div>
             </div>
           ) : (
