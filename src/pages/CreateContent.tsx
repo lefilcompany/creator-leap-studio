@@ -34,6 +34,11 @@ import { useFormPersistence } from '@/hooks/useFormPersistence';
 import { TourSelector } from '@/components/onboarding/TourSelector';
 import { createContentSteps, navbarSteps } from '@/components/onboarding/tourSteps';
 import { AspectRatioPreview } from "@/components/AspectRatioPreview";
+import { CreationStep } from "@/types/canvas";
+import { CreationStepper } from "@/components/canvas/CreationStepper";
+import { ImageAdjustment } from "@/components/canvas/ImageAdjustment";
+import { CanvasEditor } from "@/components/canvas/CanvasEditor";
+import { FinalizeView } from "@/components/canvas/FinalizeView";
 
 enum GenerationStep {
   IDLE = "IDLE",
@@ -98,6 +103,16 @@ const toneOptions = [
 export default function CreateContent() {
   const { user, session, reloadUserData } = useAuth();
   const navigate = useNavigate();
+  
+  // Canvas Editor States
+  const [currentStep, setCurrentStep] = useState<CreationStep>(CreationStep.INFORMATIONS);
+  const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
+  const [adjustedImages, setAdjustedImages] = useState<string[]>([]);
+  const [canvasData, setCanvasData] = useState<any>(null);
+  const [finalImageUrl, setFinalImageUrl] = useState<string | null>(null);
+  const [captionData, setCaptionData] = useState<any>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  
   const [formData, setFormData] = useState<FormData>({
     brand: "",
     theme: "",
