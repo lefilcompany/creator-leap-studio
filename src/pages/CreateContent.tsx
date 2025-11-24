@@ -29,6 +29,7 @@ import type { Persona, PersonaSummary } from "@/types/persona";
 import type { Team } from "@/types/theme";
 import { useAuth } from "@/hooks/useAuth";
 import { getPlatformImageSpec, getCaptionGuidelines, platformSpecs } from "@/lib/platformSpecs";
+import { processImageToAspectRatio } from "@/lib/imageProcessing";
 import { useFormPersistence } from '@/hooks/useFormPersistence';
 import { TourSelector } from '@/components/onboarding/TourSelector';
 import { createContentSteps, navbarSteps } from '@/components/onboarding/tourSteps';
@@ -1071,6 +1072,32 @@ export default function CreateContent() {
 
       const { imageUrl, attempt } = await imageResponse.json();
       
+      // Processar imagem para aspect ratio exato
+      let processedImageUrl = imageUrl;
+      try {
+        // Buscar aspect ratio correspondente às dimensões selecionadas
+        const platformSpec = platformSpecs[formData.platform]?.[formData.contentType === 'ads' ? 'ads' : 'organic'];
+        const selectedDimension = platformSpec?.image?.dimensions?.find(
+          dim => dim.width.toString() === formData.width && dim.height.toString() === formData.height
+        );
+        
+        if (selectedDimension && selectedDimension.aspectRatio) {
+          console.log(`📐 Processando imagem para aspect ratio ${selectedDimension.aspectRatio}...`);
+          processedImageUrl = await processImageToAspectRatio({
+            imageUrl: imageUrl,
+            aspectRatio: selectedDimension.aspectRatio,
+            mode: 'cover',
+            quality: 0.95,
+            outputFormat: 'image/png'
+          });
+          console.log(`✅ Imagem processada com sucesso para ${selectedDimension.aspectRatio}`);
+        }
+      } catch (error) {
+        console.error("⚠️ Erro ao processar aspect ratio da imagem:", error);
+        // Usar imagem original se falhar
+        processedImageUrl = imageUrl;
+      }
+      
       setGenerationStep(GenerationStep.GENERATING_CAPTION);
       setGenerationProgress(60);
       
@@ -1173,14 +1200,14 @@ ${formData.description}
       });
 
       // Validar dados completos antes de criar o objeto
-      if (!imageUrl || !captionData?.title || !captionData?.body) {
+      if (!processedImageUrl || !captionData?.title || !captionData?.body) {
         throw new Error("Dados incompletos na geração");
       }
 
       // Manter dados ESTRUTURADOS - não concatenar
       const generatedContent = {
         type: "image" as const,
-        mediaUrl: imageUrl,
+        mediaUrl: processedImageUrl,
         platform: formData.platform,
         brand: selectedBrand?.name || formData.brand,
         // Dados estruturados da legenda
