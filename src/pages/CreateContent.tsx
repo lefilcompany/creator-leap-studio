@@ -1845,7 +1845,7 @@ ${formData.description}
                       </span>
                     </div>
                     <Textarea
-                      id="content-description"
+                      id="description"
                       placeholder="Como um diretor de arte: descreva a cena, iluminação e emoção..."
                       value={formData.description}
                       onChange={handleInputChange}
