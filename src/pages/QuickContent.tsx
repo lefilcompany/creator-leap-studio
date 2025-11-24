@@ -21,6 +21,11 @@ import { useFormPersistence } from '@/hooks/useFormPersistence';
 import { TourSelector } from "@/components/onboarding/TourSelector";
 import { quickContentSteps, navbarSteps } from "@/components/onboarding/tourSteps";
 import { AspectRatioPreview } from "@/components/AspectRatioPreview";
+import { CreationStep } from "@/types/canvas";
+import { CreationStepper } from "@/components/canvas/CreationStepper";
+import { ImageAdjustment } from "@/components/canvas/ImageAdjustment";
+import { CanvasEditor } from "@/components/canvas/CanvasEditor";
+import { FinalizeView } from "@/components/canvas/FinalizeView";
 
 export default function QuickContent() {
   const navigate = useNavigate();
@@ -54,6 +59,15 @@ export default function QuickContent() {
   const [preserveImageIndices, setPreserveImageIndices] = useState<number[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pasteAreaRef = useRef<HTMLDivElement>(null);
+  
+  // Multi-step canvas flow states
+  const [currentStep, setCurrentStep] = useState<CreationStep>(CreationStep.INFORMATIONS);
+  const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
+  const [adjustedImages, setAdjustedImages] = useState<string[]>([]);
+  const [canvasData, setCanvasData] = useState<any>(null);
+  const [finalImageUrl, setFinalImageUrl] = useState<string | null>(null);
+  const [captionData, setCaptionData] = useState<any>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Persistência de formulário
   const { loadPersistedData, clearPersistedData, hasRelevantData } = useFormPersistence({
@@ -146,6 +160,7 @@ export default function QuickContent() {
     }
     try {
       setLoading(true);
+      setCurrentStep(CreationStep.GENERATE_IMAGE);
       const toastId = toast.loading("Preparando criação...", {
         description: "Processando suas configurações."
       });
@@ -240,9 +255,15 @@ export default function QuickContent() {
         });
       }
 
-      clearPersistedData(); // Limpar rascunho após sucesso
+      // Salvar imagem gerada e caption
+      setGeneratedImageUrl(processedImageUrl);
+      setCaptionData({
+        title: data.description?.title || "",
+        body: data.description?.body || "",
+        hashtags: data.description?.hashtags || ""
+      });
 
-      // Atualizar créditos antes de navegar
+      // Atualizar créditos
       try {
         await refreshTeamCredits();
         console.log('✅ Créditos atualizados no contexto');
@@ -250,17 +271,9 @@ export default function QuickContent() {
         console.error('Erro ao atualizar créditos:', error);
       }
 
-      // Navigate to result page com imagem processada
-      navigate("/quick-content-result", {
-        state: {
-          imageUrl: processedImageUrl, // USAR IMAGEM PROCESSADA
-          description: data.description,
-          actionId: data.actionId,
-          prompt: formData.prompt,
-          aspectRatio: formData.aspectRatio, // NOVO
-          platform: formData.platform        // NOVO
-        }
-      });
+      // Avançar para step de ajuste de imagem
+      setCurrentStep(CreationStep.ADJUST_IMAGE);
+      toast.success("Imagem gerada! Ajuste se necessário ou continue para o canvas", { id: toastId });
     } catch (error: any) {
       console.error("Error:", error);
       
@@ -296,6 +309,214 @@ export default function QuickContent() {
       setLoading(false);
     }
   };
+
+  const handleImageAdjust = async (adjustmentPrompt: string) => {
+    if ((team?.credits || 0) < CREDIT_COSTS.IMAGE_EDIT) {
+      toast.error("Créditos insuficientes para ajuste");
+      return;
+    }
+
+    const toastId = toast.loading("Ajustando imagem com IA...");
+    
+    try {
+      const currentImage = adjustedImages[adjustedImages.length - 1] || generatedImageUrl;
+      
+      const { data, error } = await supabase.functions.invoke('adjust-image', {
+        body: {
+          imageUrl: currentImage,
+          adjustmentPrompt,
+          brandId: formData.brandId || null,
+        }
+      });
+
+      if (error) throw error;
+
+      // Processar imagem ajustada para aspect ratio
+      const processedImage = await processImageToAspectRatio({
+        imageUrl: data.adjustedImageUrl,
+        aspectRatio: formData.aspectRatio,
+        mode: 'cover',
+        quality: 0.95,
+        outputFormat: 'image/png'
+      });
+
+      setAdjustedImages(prev => [...prev, processedImage]);
+      toast.success("Imagem ajustada com sucesso!", { id: toastId });
+      
+      // Recarregar créditos
+      await refreshTeamCredits();
+      
+    } catch (error: any) {
+      console.error("Error adjusting image:", error);
+      toast.error(error.message || "Erro ao ajustar imagem", { id: toastId });
+    }
+  };
+
+  const handleCanvasComplete = async (canvasJSON: any, exportedImageURL: string) => {
+    const toastId = toast.loading("Processando imagem final...");
+    
+    try {
+      // Upload da imagem final para Supabase Storage
+      const blob = await (await fetch(exportedImageURL)).blob();
+      const fileName = `quick-content-${Date.now()}.png`;
+      
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('content-images')
+        .upload(`${team!.id}/${fileName}`, blob);
+        
+      if (uploadError) throw uploadError;
+      
+      const { data: publicUrlData } = supabase.storage
+        .from('content-images')
+        .getPublicUrl(uploadData.path);
+        
+      setCanvasData(canvasJSON);
+      setFinalImageUrl(publicUrlData.publicUrl);
+      setCurrentStep(CreationStep.FINALIZE);
+      
+      toast.success("Canvas finalizado!", { id: toastId });
+      
+    } catch (error: any) {
+      console.error("Error completing canvas:", error);
+      toast.error("Erro ao processar imagem final", { id: toastId });
+    }
+  };
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    const toastId = toast.loading("Salvando no histórico...");
+    
+    try {
+      const { error } = await supabase
+        .from('actions')
+        .insert({
+          team_id: team!.id,
+          user_id: user!.id,
+          type: 'CRIAR_CONTEUDO_RAPIDO',
+          status: 'approved',
+          result: {
+            imageUrl: finalImageUrl,
+            title: captionData.title,
+            body: captionData.body,
+            hashtags: captionData.hashtags,
+            canvasData: JSON.stringify(canvasData),
+            adjustmentHistory: adjustedImages,
+          },
+          details: {
+            prompt: formData.prompt,
+            platform: formData.platform,
+            aspectRatio: formData.aspectRatio,
+            brandId: formData.brandId,
+          }
+        });
+
+      if (error) throw error;
+
+      toast.success("Salvo no histórico com sucesso!", { id: toastId });
+      
+      // Resetar formulário e voltar ao início
+      setTimeout(() => {
+        setCurrentStep(CreationStep.INFORMATIONS);
+        setGeneratedImageUrl(null);
+        setAdjustedImages([]);
+        setCanvasData(null);
+        setFinalImageUrl(null);
+        setCaptionData(null);
+        setFormData({
+          prompt: "",
+          brandId: "",
+          platform: "",
+          aspectRatio: "1:1",
+          style: "auto",
+          quality: "standard",
+          negativePrompt: "",
+          colorPalette: "auto",
+          lighting: "natural",
+          composition: "auto",
+          cameraAngle: "eye_level",
+          detailLevel: 7,
+          mood: "auto",
+          width: "",
+          height: ""
+        });
+        clearPersistedData();
+        toast.info("Pronto para criar novo conteúdo!");
+      }, 1500);
+      
+    } catch (error: any) {
+      console.error("Error saving:", error);
+      toast.error("Erro ao salvar no histórico", { id: toastId });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDownload = () => {
+    if (!finalImageUrl) return;
+    
+    const link = document.createElement('a');
+    link.href = finalImageUrl;
+    link.download = `quick-content-${Date.now()}.png`;
+    link.click();
+    
+    toast.success("Download iniciado!");
+  };
+
+  const renderContent = () => {
+    switch (currentStep) {
+      case CreationStep.INFORMATIONS:
+        // Formulário atual (renderizado no return principal)
+        return null;
+
+      case CreationStep.GENERATE_IMAGE:
+        return (
+          <Card className="p-12 text-center">
+            <Loader2 className="h-16 w-16 animate-spin mx-auto mb-4 text-primary" />
+            <h3 className="text-xl font-semibold mb-2">Gerando sua imagem...</h3>
+            <p className="text-muted-foreground">Isso pode levar alguns segundos</p>
+          </Card>
+        );
+
+      case CreationStep.ADJUST_IMAGE:
+        return (
+          <ImageAdjustment
+            imageUrl={generatedImageUrl!}
+            brandId={formData.brandId}
+            themeId={null}
+            credits={team?.credits || 0}
+            onAdjust={handleImageAdjust}
+            onContinue={() => setCurrentStep(CreationStep.EDIT_CANVAS)}
+            onCreditsUpdate={refreshTeamCredits}
+          />
+        );
+
+      case CreationStep.EDIT_CANVAS:
+        const imageToUse = adjustedImages[adjustedImages.length - 1] || generatedImageUrl!;
+        return (
+          <CanvasEditor
+            backgroundImage={imageToUse}
+            aspectRatio={formData.aspectRatio}
+            onBack={() => setCurrentStep(CreationStep.ADJUST_IMAGE)}
+            onComplete={handleCanvasComplete}
+          />
+        );
+
+      case CreationStep.FINALIZE:
+        return (
+          <FinalizeView
+            imageUrl={finalImageUrl!}
+            caption={captionData}
+            onSave={handleSave}
+            onDownload={handleDownload}
+            isSaving={isSaving}
+          />
+        );
+
+      default:
+        return null;
+    }
+  };
+
   if (loadingData) {
     return <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -303,7 +524,8 @@ export default function QuickContent() {
   }
   return (
     <div className="min-h-full bg-gradient-to-br from-background via-background to-muted/20">
-      <TourSelector 
+      {currentStep === CreationStep.INFORMATIONS && (
+        <TourSelector
         tours={[
           {
             tourType: 'navbar',
@@ -320,9 +542,23 @@ export default function QuickContent() {
         ]}
         startDelay={500}
       />
+      )}
+      
+      {/* Stepper - mostrar quando não estiver no step de informações */}
+      {currentStep !== CreationStep.INFORMATIONS && (
+        <CreationStepper 
+          currentStep={currentStep} 
+          credits={team?.credits || 0} 
+        />
+      )}
+
       <div className="max-w-5xl mx-auto space-y-4 md:space-y-6">
-        {/* Header */}
-        <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5">
+        {/* Renderização condicional baseada no step */}
+        {currentStep !== CreationStep.INFORMATIONS && renderContent()}
+
+        {/* Header - só mostrar no step de informações */}
+        {currentStep === CreationStep.INFORMATIONS && (
+          <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5">
           <CardHeader className="p-3 md:p-4 lg:p-6">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4">
               <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -360,13 +596,15 @@ export default function QuickContent() {
                       </div>
                     </div>
                   </CardContent>
-                </Card>}
+                 </Card>}
             </div>
           </CardHeader>
         </Card>
+        )}
 
-        {/* Main Form */}
-        <Card id="quick-content-form" className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-2xl">
+        {/* Main Form - só mostrar no step de informações */}
+        {currentStep === CreationStep.INFORMATIONS && (
+          <Card id="quick-content-form" className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-2xl">
           <CardHeader className="pb-3 md:pb-4 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-t-2xl">
             <h2 className="text-lg md:text-xl font-semibold flex items-center gap-3 text-foreground">
               <Sparkles className="h-5 w-5 text-primary" />
@@ -776,9 +1014,11 @@ export default function QuickContent() {
             </Accordion>
           </CardContent>
         </Card>
+        )}
 
-        {/* Generate Button */}
-        <div className="flex justify-end pb-6">
+        {/* Generate Button - só mostrar no step de informações */}
+        {currentStep === CreationStep.INFORMATIONS && (
+          <div className="flex justify-end pb-6">
           <Button id="quick-generate-button" onClick={generateQuickContent} disabled={loading || !formData.prompt.trim() || (team?.credits || 0) < CREDIT_COSTS.QUICK_IMAGE} size="lg" className="bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_100%] animate-gradient text-primary-foreground hover:opacity-90 transition-opacity shadow-lg gap-2">
             {loading ? <>
                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
@@ -793,6 +1033,7 @@ export default function QuickContent() {
               </>}
           </Button>
         </div>
+        )}
       </div>
     </div>
   );
