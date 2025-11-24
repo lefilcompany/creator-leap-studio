@@ -159,7 +159,7 @@ Mantenha a essência da imagem original, apenas faça os ajustes solicitados.`;
             error: "Limite de requisições da API Gemini excedido. Aguarde e tente novamente.",
             errorCode: "GEMINI_RATE_LIMIT"
           }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
       
