@@ -55,12 +55,22 @@ const Login = () => {
     setWaitingForAuth(false);
     
     try {
+      console.log('[Login] 🔐 Attempting login for:', email);
+      
+      // CRÍTICO: Limpar qualquer sessão anterior antes de fazer login
+      const { data: currentSession } = await supabase.auth.getSession();
+      if (currentSession?.session) {
+        console.log('[Login] 🧹 Clearing previous session before login');
+        await supabase.auth.signOut({ scope: 'local' });
+      }
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
       
       if (error) {
+        console.error('[Login] ❌ Login failed:', error.message);
         setFailedAttempts(failedAttempts + 1);
         setShowPasswordResetSuggestion(true);
         toast.error(t.login.invalidCredentials, {
@@ -70,6 +80,8 @@ const Login = () => {
       }
 
       // Login bem-sucedido, resetar contador
+      console.log('[Login] ✅ Login successful for user:', data.user?.id);
+      console.log('[Login] 📧 Email:', data.user?.email);
       setFailedAttempts(0);
       setShowPasswordResetSuggestion(false);
       
