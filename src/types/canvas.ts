@@ -1,9 +1,33 @@
+import { FabricObject } from 'fabric';
+
 export enum CreationStep {
   INFORMATIONS = 1,
   GENERATE_IMAGE = 2,
   ADJUST_IMAGE = 3,
   EDIT_CANVAS = 4,
   FINALIZE = 5
+}
+
+export interface CanvasLayer {
+  id: string;
+  name: string;
+  type: 'background' | 'image' | 'text' | 'shape' | 'group';
+  fabricObject: FabricObject;
+  visible: boolean;
+  locked: boolean;
+  opacity: number;
+  zIndex: number;
+  thumbnail?: string;
+  isGroup?: boolean;
+  groupId?: string;
+  children?: string[];
+}
+
+export interface CanvasState {
+  layers: CanvasLayer[];
+  selectedLayerId: string | null;
+  zoom: number;
+  canvasData: any;
 }
 
 export interface CanvasElement {

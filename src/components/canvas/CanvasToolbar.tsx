@@ -9,17 +9,24 @@ import {
   Minus, 
   Undo, 
   Redo, 
-  Trash2 
+  Trash2,
+  ImagePlus,
+  Crop,
+  ZoomIn,
+  ZoomOut
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 interface CanvasToolbarProps {
   onAddText: () => void;
+  onUploadImage: () => void;
   onAddRect: () => void;
   onAddCircle: () => void;
   onAddTriangle: () => void;
   onAddStar: () => void;
   onAddLine: () => void;
+  onCrop: () => void;
+  onZoomIn: () => void;
+  onZoomOut: () => void;
   onUndo: () => void;
   onRedo: () => void;
   onDelete: () => void;
@@ -30,11 +37,15 @@ interface CanvasToolbarProps {
 
 export const CanvasToolbar = ({
   onAddText,
+  onUploadImage,
   onAddRect,
   onAddCircle,
   onAddTriangle,
   onAddStar,
   onAddLine,
+  onCrop,
+  onZoomIn,
+  onZoomOut,
   onUndo,
   onRedo,
   onDelete,
@@ -43,7 +54,8 @@ export const CanvasToolbar = ({
   hasSelection
 }: CanvasToolbarProps) => {
   return (
-    <div className="flex flex-col gap-2 p-4 bg-card border-r border-border w-16">
+    <div className="flex flex-col gap-1 p-3 bg-card border-r border-border w-16">
+      {/* Ferramentas de Conteúdo */}
       <Button
         variant="ghost"
         size="icon"
@@ -54,14 +66,25 @@ export const CanvasToolbar = ({
         <Type className="h-5 w-5" />
       </Button>
 
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={onUploadImage}
+        className="w-full aspect-square"
+        title="Upload de Imagem (I)"
+      >
+        <ImagePlus className="h-5 w-5" />
+      </Button>
+
       <Separator />
 
+      {/* Formas */}
       <Button
         variant="ghost"
         size="icon"
         onClick={onAddRect}
         className="w-full aspect-square"
-        title="Adicionar Retângulo"
+        title="Retângulo (R)"
       >
         <Square className="h-5 w-5" />
       </Button>
@@ -71,7 +94,7 @@ export const CanvasToolbar = ({
         size="icon"
         onClick={onAddCircle}
         className="w-full aspect-square"
-        title="Adicionar Círculo"
+        title="Círculo (C)"
       >
         <Circle className="h-5 w-5" />
       </Button>
@@ -81,7 +104,7 @@ export const CanvasToolbar = ({
         size="icon"
         onClick={onAddTriangle}
         className="w-full aspect-square"
-        title="Adicionar Triângulo"
+        title="Triângulo"
       >
         <Triangle className="h-5 w-5" />
       </Button>
@@ -91,7 +114,7 @@ export const CanvasToolbar = ({
         size="icon"
         onClick={onAddStar}
         className="w-full aspect-square"
-        title="Adicionar Estrela"
+        title="Estrela"
       >
         <Star className="h-5 w-5" />
       </Button>
@@ -101,13 +124,47 @@ export const CanvasToolbar = ({
         size="icon"
         onClick={onAddLine}
         className="w-full aspect-square"
-        title="Adicionar Linha"
+        title="Linha"
       >
         <Minus className="h-5 w-5" />
       </Button>
 
       <Separator />
 
+      {/* Ferramentas Extras */}
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={onCrop}
+        className="w-full aspect-square"
+        title="Recortar"
+      >
+        <Crop className="h-5 w-5" />
+      </Button>
+
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={onZoomIn}
+        className="w-full aspect-square"
+        title="Zoom In (+)"
+      >
+        <ZoomIn className="h-5 w-5" />
+      </Button>
+
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={onZoomOut}
+        className="w-full aspect-square"
+        title="Zoom Out (-)"
+      >
+        <ZoomOut className="h-5 w-5" />
+      </Button>
+
+      <Separator />
+
+      {/* Histórico */}
       <Button
         variant="ghost"
         size="icon"
@@ -135,10 +192,7 @@ export const CanvasToolbar = ({
         size="icon"
         onClick={onDelete}
         disabled={!hasSelection}
-        className={cn(
-          "w-full aspect-square",
-          hasSelection && "text-destructive hover:text-destructive"
-        )}
+        className="w-full aspect-square text-destructive hover:text-destructive disabled:text-muted-foreground"
         title="Deletar (Delete)"
       >
         <Trash2 className="h-5 w-5" />

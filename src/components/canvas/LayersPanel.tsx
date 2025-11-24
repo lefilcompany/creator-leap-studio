@@ -1,103 +1,110 @@
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { Eye, EyeOff, Lock, Unlock, Trash2 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { FabricObject } from 'fabric';
+import { FolderPlus } from "lucide-react";
+import { CanvasLayer } from "@/types/canvas";
+import { LayerItem } from "./LayerItem";
+import { DndContext, closestCenter, DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 
 interface LayersPanelProps {
-  objects: FabricObject[];
-  selectedObject: FabricObject | null;
-  onSelectObject: (obj: FabricObject) => void;
-  onToggleVisibility: (obj: FabricObject) => void;
-  onToggleLock: (obj: FabricObject) => void;
-  onDeleteObject: (obj: FabricObject) => void;
+  layers: CanvasLayer[];
+  selectedLayerId: string | null;
+  onSelectLayer: (id: string) => void;
+  onReorderLayers: (startIndex: number, endIndex: number) => void;
+  onToggleVisibility: (id: string) => void;
+  onToggleLock: (id: string) => void;
+  onDeleteLayer: (id: string) => void;
+  onDuplicateLayer: (id: string) => void;
+  onCreateGroup?: () => void;
 }
 
 export const LayersPanel = ({
-  objects,
-  selectedObject,
-  onSelectObject,
+  layers,
+  selectedLayerId,
+  onSelectLayer,
+  onReorderLayers,
   onToggleVisibility,
   onToggleLock,
-  onDeleteObject
+  onDeleteLayer,
+  onDuplicateLayer,
+  onCreateGroup
 }: LayersPanelProps) => {
-  const getObjectName = (obj: FabricObject): string => {
-    if (obj.type === 'textbox') return 'Texto';
-    if (obj.type === 'rect') return 'Retângulo';
-    if (obj.type === 'circle') return 'Círculo';
-    if (obj.type === 'triangle') return 'Triângulo';
-    if (obj.type === 'polygon') return 'Estrela';
-    if (obj.type === 'line') return 'Linha';
-    return 'Elemento';
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    if (!over || active.id === over.id) return;
+    
+    const oldIndex = layers.findIndex(l => l.id === active.id);
+    const newIndex = layers.findIndex(l => l.id === over.id);
+    
+    if (oldIndex !== -1 && newIndex !== -1) {
+      onReorderLayers(oldIndex, newIndex);
+    }
   };
 
   return (
-    <div className="w-64 bg-card border-l border-border p-4">
-      <h3 className="font-semibold text-sm mb-4">Camadas</h3>
-      <div className="space-y-1">
-        {objects.length === 0 ? (
-          <p className="text-xs text-muted-foreground text-center py-4">
-            Nenhuma camada ainda
-          </p>
-        ) : (
-          objects.map((obj, index) => (
-            <div
-              key={index}
-              className={cn(
-                "flex items-center gap-2 p-2 rounded-md cursor-pointer hover:bg-accent transition-colors",
-                selectedObject === obj && "bg-accent"
-              )}
-              onClick={() => onSelectObject(obj)}
-            >
-              <span className="flex-1 text-sm truncate">
-                {getObjectName(obj)}
-              </span>
-              <div className="flex items-center gap-1">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onToggleVisibility(obj);
-                  }}
-                >
-                  {obj.visible ? (
-                    <Eye className="h-3 w-3" />
-                  ) : (
-                    <EyeOff className="h-3 w-3" />
-                  )}
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onToggleLock(obj);
-                  }}
-                >
-                  {(obj as any).lockMovementX ? (
-                    <Lock className="h-3 w-3" />
-                  ) : (
-                    <Unlock className="h-3 w-3" />
-                  )}
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6 text-destructive hover:text-destructive"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDeleteObject(obj);
-                  }}
-                >
-                  <Trash2 className="h-3 w-3" />
-                </Button>
-              </div>
-            </div>
-          ))
-        )}
+    <div className="w-80 bg-card border-l border-border flex flex-col h-full">
+      <div className="p-4 border-b border-border">
+        <h3 className="font-semibold text-sm">Camadas</h3>
       </div>
+      
+      <ScrollArea className="flex-1">
+        {layers.length === 0 ? (
+          <div className="p-8 text-center">
+            <p className="text-sm text-muted-foreground">
+              Nenhuma camada ainda. Gere uma imagem ou adicione elementos para começar.
+            </p>
+          </div>
+        ) : (
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={layers.map(l => l.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="py-2">
+                {layers.map((layer) => (
+                  <LayerItem
+                    key={layer.id}
+                    layer={layer}
+                    isSelected={selectedLayerId === layer.id}
+                    onSelect={() => onSelectLayer(layer.id)}
+                    onToggleVisibility={() => onToggleVisibility(layer.id)}
+                    onToggleLock={() => onToggleLock(layer.id)}
+                    onDelete={() => onDeleteLayer(layer.id)}
+                    onDuplicate={() => onDuplicateLayer(layer.id)}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
+        )}
+      </ScrollArea>
+      
+      {onCreateGroup && (
+        <div className="p-2 border-t border-border bg-muted/30">
+          <Button
+            size="sm"
+            variant="ghost"
+            className="w-full justify-start"
+            onClick={onCreateGroup}
+          >
+            <FolderPlus className="mr-2 h-4 w-4" />
+            Criar Grupo
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
