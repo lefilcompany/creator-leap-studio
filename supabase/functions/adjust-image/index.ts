@@ -168,16 +168,18 @@ Mantenha a essência da imagem original, apenas faça os ajustes solicitados.`;
 
     const aiData = await response.json();
     
-    // Gemini retorna imagem em base64 no campo parts[0].inlineData.data
-    const imageBase64 = aiData.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+    // Encontrar a parte que contém a imagem retornada pela Gemini
+    const parts = aiData.candidates?.[0]?.content?.parts || [];
+    const imagePart = parts.find((part: any) => part.inlineData?.data);
+    const imageBase64 = imagePart?.inlineData?.data;
     
     if (!imageBase64) {
-      console.error("Resposta da API Gemini:", JSON.stringify(aiData));
+      console.error("Resposta da API Gemini (sem imagem):", JSON.stringify(aiData));
       throw new Error("IA não retornou imagem ajustada");
     }
 
     // Converter base64 para data URL
-    const mimeType = aiData.candidates?.[0]?.content?.parts?.[0]?.inlineData?.mimeType || 'image/png';
+    const mimeType = imagePart?.inlineData?.mimeType || 'image/png';
     const adjustedImageUrl = `data:${mimeType};base64,${imageBase64}`;
 
     if (!adjustedImageUrl) {
