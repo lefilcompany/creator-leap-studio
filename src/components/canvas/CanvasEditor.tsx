@@ -3,11 +3,13 @@ import { Canvas as FabricCanvas, Textbox, Rect, Circle, Triangle, Line, FabricOb
 import { CanvasToolbar } from "./CanvasToolbar";
 import { PropertiesPanel } from "./PropertiesPanel";
 import { LayersPanel } from "./LayersPanel";
+import { ZoomControls } from "./ZoomControls";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Download } from "lucide-react";
+import { ArrowLeft, Download, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { useCanvasHistory } from "@/hooks/useCanvasHistory";
-import { AVAILABLE_FONTS } from "@/types/canvas";
+import { useCanvasLayers } from "@/hooks/useCanvasLayers";
+import { CanvasLayer } from "@/types/canvas";
 
 interface CanvasEditorProps {
   backgroundImage: string;
@@ -25,8 +27,21 @@ export const CanvasEditor = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [fabricCanvas, setFabricCanvas] = useState<FabricCanvas | null>(null);
   const [selectedObject, setSelectedObject] = useState<FabricObject | null>(null);
-  const [objects, setObjects] = useState<FabricObject[]>([]);
+  const [zoom, setZoom] = useState(1);
   const { saveState, undo, redo, canUndo, canRedo } = useCanvasHistory();
+  const {
+    layers,
+    selectedLayerId,
+    setSelectedLayerId,
+    addLayer,
+    removeLayer,
+    updateLayer,
+    reorderLayers,
+    toggleVisibility,
+    toggleLock,
+    duplicateLayer,
+    generateThumbnail,
+  } = useCanvasLayers();
 
   // Determinar dimensões baseado no aspect ratio
   const getDimensions = () => {
@@ -41,6 +56,7 @@ export const CanvasEditor = ({
 
   const dimensions = getDimensions();
 
+  // Inicialização do canvas
   useEffect(() => {
     if (!canvasRef.current) return;
 
@@ -59,26 +75,55 @@ export const CanvasEditor = ({
         selectable: false,
         evented: false,
       });
+      
       canvas.backgroundImage = fabricImg;
       canvas.renderAll();
+
+      // Adicionar camada de fundo
+      addLayer({
+        id: 'background-layer',
+        name: 'Imagem de Fundo',
+        type: 'background',
+        fabricObject: fabricImg,
+        visible: true,
+        locked: true,
+        opacity: 1,
+        zIndex: 0,
+        thumbnail: generateThumbnail(fabricImg, canvas),
+      });
     });
 
     // Event listeners
     canvas.on('selection:created', (e: any) => {
-      setSelectedObject(e.selected[0]);
+      const selected = e.selected[0];
+      setSelectedObject(selected);
+      const layer = layers.find(l => l.fabricObject === selected);
+      if (layer) setSelectedLayerId(layer.id);
     });
 
     canvas.on('selection:updated', (e: any) => {
-      setSelectedObject(e.selected[0]);
+      const selected = e.selected[0];
+      setSelectedObject(selected);
+      const layer = layers.find(l => l.fabricObject === selected);
+      if (layer) setSelectedLayerId(layer.id);
     });
 
     canvas.on('selection:cleared', () => {
       setSelectedObject(null);
+      setSelectedLayerId(null);
     });
 
-    canvas.on('object:modified', () => {
+    canvas.on('object:modified', (e: any) => {
       saveState(JSON.stringify(canvas.toJSON()));
-      updateObjects(canvas);
+      // Atualizar thumbnail da camada modificada
+      if (e.target) {
+        const layer = layers.find(l => l.fabricObject === e.target);
+        if (layer) {
+          updateLayer(layer.id, {
+            thumbnail: generateThumbnail(e.target, canvas)
+          });
+        }
+      }
     });
 
     setFabricCanvas(canvas);
@@ -89,10 +134,17 @@ export const CanvasEditor = ({
     };
   }, []);
 
+  // Atalhos de teclado
   useEffect(() => {
     if (!fabricCanvas) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Prevenir atalhos se estiver editando texto
+      if ((e.target as HTMLElement).tagName === 'INPUT' || 
+          (e.target as HTMLElement).tagName === 'TEXTAREA') {
+        return;
+      }
+
       if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
         e.preventDefault();
         handleUndo();
@@ -102,18 +154,40 @@ export const CanvasEditor = ({
       } else if (e.key === 'Delete' || e.key === 'Backspace') {
         e.preventDefault();
         handleDelete();
+      } else if (e.key === 't' || e.key === 'T') {
+        e.preventDefault();
+        addText();
+      } else if (e.key === 'r' || e.key === 'R') {
+        e.preventDefault();
+        addRect();
+      } else if (e.key === 'c' || e.key === 'C') {
+        e.preventDefault();
+        addCircle();
+      } else if (e.key === '+' || e.key === '=') {
+        e.preventDefault();
+        handleZoomIn();
+      } else if (e.key === '-' || e.key === '_') {
+        e.preventDefault();
+        handleZoomOut();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [fabricCanvas, canUndo, canRedo]);
+  }, [fabricCanvas, canUndo, canRedo, layers, selectedLayerId]);
 
-  const updateObjects = (canvas: FabricCanvas) => {
-    const allObjects = canvas.getObjects().filter(obj => obj.type !== 'image');
-    setObjects([...allObjects]);
-  };
+  // Sincronizar seleção com camadas
+  useEffect(() => {
+    if (!fabricCanvas || !selectedLayerId) return;
+    
+    const layer = layers.find(l => l.id === selectedLayerId);
+    if (layer && layer.fabricObject !== fabricCanvas.getActiveObject()) {
+      fabricCanvas.setActiveObject(layer.fabricObject);
+      fabricCanvas.renderAll();
+    }
+  }, [selectedLayerId, layers, fabricCanvas]);
 
+  // Funções para adicionar elementos
   const addText = () => {
     if (!fabricCanvas) return;
 
@@ -131,9 +205,66 @@ export const CanvasEditor = ({
 
     fabricCanvas.add(text);
     fabricCanvas.setActiveObject(text);
+    
+    const layerId = `text-${Date.now()}`;
+    addLayer({
+      id: layerId,
+      name: 'Texto',
+      type: 'text',
+      fabricObject: text,
+      visible: true,
+      locked: false,
+      opacity: 1,
+      zIndex: layers.length,
+      thumbnail: generateThumbnail(text, fabricCanvas),
+    });
+    
     saveState(JSON.stringify(fabricCanvas.toJSON()));
-    updateObjects(fabricCanvas);
     toast.success("Texto adicionado");
+  };
+
+  const handleUploadImage = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file && fabricCanvas) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          util.loadImage(event.target?.result as string, { crossOrigin: 'anonymous' }).then((img) => {
+            const fabricImg = new FabricImage(img, {
+              left: 100,
+              top: 100,
+              scaleX: 0.3,
+              scaleY: 0.3,
+            });
+            
+            fabricCanvas.add(fabricImg);
+            fabricCanvas.setActiveObject(fabricImg);
+            
+            const layerId = `image-${Date.now()}`;
+            addLayer({
+              id: layerId,
+              name: 'Imagem',
+              type: 'image',
+              fabricObject: fabricImg,
+              visible: true,
+              locked: false,
+              opacity: 1,
+              zIndex: layers.length,
+              thumbnail: generateThumbnail(fabricImg, fabricCanvas),
+            });
+            
+            fabricCanvas.renderAll();
+            saveState(JSON.stringify(fabricCanvas.toJSON()));
+            toast.success("Imagem adicionada");
+          });
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+    input.click();
   };
 
   const addRect = () => {
@@ -151,8 +282,21 @@ export const CanvasEditor = ({
 
     fabricCanvas.add(rect);
     fabricCanvas.setActiveObject(rect);
+    
+    const layerId = `rect-${Date.now()}`;
+    addLayer({
+      id: layerId,
+      name: 'Retângulo',
+      type: 'shape',
+      fabricObject: rect,
+      visible: true,
+      locked: false,
+      opacity: 1,
+      zIndex: layers.length,
+      thumbnail: generateThumbnail(rect, fabricCanvas),
+    });
+    
     saveState(JSON.stringify(fabricCanvas.toJSON()));
-    updateObjects(fabricCanvas);
     toast.success("Retângulo adicionado");
   };
 
@@ -170,8 +314,21 @@ export const CanvasEditor = ({
 
     fabricCanvas.add(circle);
     fabricCanvas.setActiveObject(circle);
+    
+    const layerId = `circle-${Date.now()}`;
+    addLayer({
+      id: layerId,
+      name: 'Círculo',
+      type: 'shape',
+      fabricObject: circle,
+      visible: true,
+      locked: false,
+      opacity: 1,
+      zIndex: layers.length,
+      thumbnail: generateThumbnail(circle, fabricCanvas),
+    });
+    
     saveState(JSON.stringify(fabricCanvas.toJSON()));
-    updateObjects(fabricCanvas);
     toast.success("Círculo adicionado");
   };
 
@@ -190,15 +347,27 @@ export const CanvasEditor = ({
 
     fabricCanvas.add(triangle);
     fabricCanvas.setActiveObject(triangle);
+    
+    const layerId = `triangle-${Date.now()}`;
+    addLayer({
+      id: layerId,
+      name: 'Triângulo',
+      type: 'shape',
+      fabricObject: triangle,
+      visible: true,
+      locked: false,
+      opacity: 1,
+      zIndex: layers.length,
+      thumbnail: generateThumbnail(triangle, fabricCanvas),
+    });
+    
     saveState(JSON.stringify(fabricCanvas.toJSON()));
-    updateObjects(fabricCanvas);
     toast.success("Triângulo adicionado");
   };
 
   const addStar = () => {
     if (!fabricCanvas) return;
 
-    // Criar estrela usando polígono
     const points = [];
     const outerRadius = 50;
     const innerRadius = 25;
@@ -225,8 +394,21 @@ export const CanvasEditor = ({
 
     fabricCanvas.add(star);
     fabricCanvas.setActiveObject(star);
+    
+    const layerId = `star-${Date.now()}`;
+    addLayer({
+      id: layerId,
+      name: 'Estrela',
+      type: 'shape',
+      fabricObject: star,
+      visible: true,
+      locked: false,
+      opacity: 1,
+      zIndex: layers.length,
+      thumbnail: generateThumbnail(star, fabricCanvas),
+    });
+    
     saveState(JSON.stringify(fabricCanvas.toJSON()));
-    updateObjects(fabricCanvas);
     toast.success("Estrela adicionada");
   };
 
@@ -243,9 +425,57 @@ export const CanvasEditor = ({
 
     fabricCanvas.add(line);
     fabricCanvas.setActiveObject(line);
+    
+    const layerId = `line-${Date.now()}`;
+    addLayer({
+      id: layerId,
+      name: 'Linha',
+      type: 'shape',
+      fabricObject: line,
+      visible: true,
+      locked: false,
+      opacity: 1,
+      zIndex: layers.length,
+      thumbnail: generateThumbnail(line, fabricCanvas),
+    });
+    
     saveState(JSON.stringify(fabricCanvas.toJSON()));
-    updateObjects(fabricCanvas);
     toast.success("Linha adicionada");
+  };
+
+  // Zoom functions
+  const handleZoomIn = () => {
+    if (!fabricCanvas) return;
+    const newZoom = Math.min(zoom * 1.1, 2);
+    setZoom(newZoom);
+    fabricCanvas.setZoom(newZoom);
+    fabricCanvas.renderAll();
+  };
+
+  const handleZoomOut = () => {
+    if (!fabricCanvas) return;
+    const newZoom = Math.max(zoom / 1.1, 0.25);
+    setZoom(newZoom);
+    fabricCanvas.setZoom(newZoom);
+    fabricCanvas.renderAll();
+  };
+
+  const handleZoomChange = (value: number) => {
+    if (!fabricCanvas) return;
+    setZoom(value);
+    fabricCanvas.setZoom(value);
+    fabricCanvas.renderAll();
+  };
+
+  const handleFitToScreen = () => {
+    if (!fabricCanvas) return;
+    setZoom(1);
+    fabricCanvas.setZoom(1);
+    fabricCanvas.renderAll();
+  };
+
+  const handleCrop = () => {
+    toast.info('Ferramenta de recorte em desenvolvimento');
   };
 
   const handleUndo = () => {
@@ -254,7 +484,6 @@ export const CanvasEditor = ({
     if (state) {
       fabricCanvas.loadFromJSON(state, () => {
         fabricCanvas.renderAll();
-        updateObjects(fabricCanvas);
       });
     }
   };
@@ -265,16 +494,16 @@ export const CanvasEditor = ({
     if (state) {
       fabricCanvas.loadFromJSON(state, () => {
         fabricCanvas.renderAll();
-        updateObjects(fabricCanvas);
       });
     }
   };
 
   const handleDelete = () => {
-    if (!fabricCanvas || !selectedObject) return;
+    if (!fabricCanvas || !selectedObject || !selectedLayerId) return;
+    
     fabricCanvas.remove(selectedObject);
+    removeLayer(selectedLayerId);
     saveState(JSON.stringify(fabricCanvas.toJSON()));
-    updateObjects(fabricCanvas);
     toast.success("Elemento removido");
   };
 
@@ -282,7 +511,6 @@ export const CanvasEditor = ({
     if (!fabricCanvas || !selectedObject) return;
 
     if (property === 'fontFamily') {
-      // Load Google Font before applying
       if (typeof window !== 'undefined' && (window as any).WebFont) {
         (window as any).WebFont.load({
           google: { families: [value] },
@@ -300,10 +528,86 @@ export const CanvasEditor = ({
     }
   };
 
+  // Layer panel handlers
+  const handleSelectLayer = (id: string) => {
+    if (!fabricCanvas) return;
+    const layer = layers.find(l => l.id === id);
+    if (layer && !layer.locked) {
+      fabricCanvas.setActiveObject(layer.fabricObject);
+      fabricCanvas.renderAll();
+      setSelectedObject(layer.fabricObject);
+      setSelectedLayerId(id);
+    }
+  };
+
+  const handleToggleVisibility = (id: string) => {
+    const layer = layers.find(l => l.id === id);
+    if (layer) {
+      layer.fabricObject.visible = !layer.fabricObject.visible;
+      toggleVisibility(id);
+      fabricCanvas?.renderAll();
+    }
+  };
+
+  const handleToggleLock = (id: string) => {
+    const layer = layers.find(l => l.id === id);
+    if (layer) {
+      const locked = !layer.locked;
+      (layer.fabricObject as any).lockMovementX = locked;
+      (layer.fabricObject as any).lockMovementY = locked;
+      (layer.fabricObject as any).lockRotation = locked;
+      (layer.fabricObject as any).lockScalingX = locked;
+      (layer.fabricObject as any).lockScalingY = locked;
+      layer.fabricObject.selectable = !locked;
+      toggleLock(id);
+      fabricCanvas?.renderAll();
+    }
+  };
+
+  const handleDeleteLayer = (id: string) => {
+    const layer = layers.find(l => l.id === id);
+    if (layer && fabricCanvas) {
+      fabricCanvas.remove(layer.fabricObject);
+      removeLayer(id);
+      saveState(JSON.stringify(fabricCanvas.toJSON()));
+      toast.success("Camada removida");
+    }
+  };
+
+  const handleDuplicateLayer = (id: string) => {
+    if (fabricCanvas) {
+      duplicateLayer(id, fabricCanvas);
+      toast.success("Camada duplicada");
+    }
+  };
+
+  const handleReorderLayers = (startIndex: number, endIndex: number) => {
+    reorderLayers(startIndex, endIndex);
+    
+    // Atualizar z-index no canvas
+    if (fabricCanvas) {
+      const reorderedLayers = [...layers];
+      const [removed] = reorderedLayers.splice(startIndex, 1);
+      reorderedLayers.splice(endIndex, 0, removed);
+      
+      // Reordenar objetos no canvas
+      reorderedLayers.forEach((layer) => {
+        const currentIndex = fabricCanvas.getObjects().indexOf(layer.fabricObject);
+        const targetIndex = layer.zIndex;
+        
+        if (currentIndex !== targetIndex) {
+          fabricCanvas.remove(layer.fabricObject);
+          fabricCanvas.insertAt(targetIndex, layer.fabricObject);
+        }
+      });
+      
+      fabricCanvas.renderAll();
+    }
+  };
+
   const handleExport = async () => {
     if (!fabricCanvas) return;
 
-    // Export em alta resolução
     const multiplier = dimensions.width / fabricCanvas.width!;
     const dataURL = fabricCanvas.toDataURL({
       format: 'png',
@@ -312,27 +616,14 @@ export const CanvasEditor = ({
       enableRetinaScaling: false,
     });
 
-    // Serializar canvas completo com todos os objetos
     const canvasJSON = fabricCanvas.toJSON();
-    
-    // Forçar atualização dos objetos antes de exportar
     fabricCanvas.renderAll();
     
     console.log('📸 Canvas export:', {
-      totalObjects: fabricCanvas.getObjects().length,
+      totalLayers: layers.length,
       objectsInJSON: canvasJSON.objects?.length || 0,
       canvasSize: `${fabricCanvas.width}x${fabricCanvas.height}`,
-      hasBackgroundImage: !!canvasJSON.backgroundImage
     });
-    
-    // Validar que objetos foram capturados
-    if (fabricCanvas.getObjects().length > 0 && (!canvasJSON.objects || canvasJSON.objects.length === 0)) {
-      console.warn('⚠️ Canvas objects not captured in JSON, retrying...');
-      fabricCanvas.renderAll();
-      const retryJSON = fabricCanvas.toJSON();
-      onComplete(retryJSON, dataURL);
-      return;
-    }
     
     onComplete(canvasJSON, dataURL);
   };
@@ -354,78 +645,67 @@ export const CanvasEditor = ({
     toast.success("Preview baixado!");
   };
 
-  const handleSelectObject = (obj: FabricObject) => {
-    if (!fabricCanvas) return;
-    fabricCanvas.setActiveObject(obj);
-    fabricCanvas.renderAll();
-  };
-
-  const handleToggleVisibility = (obj: FabricObject) => {
-    obj.visible = !obj.visible;
-    fabricCanvas?.renderAll();
-    updateObjects(fabricCanvas!);
-  };
-
-  const handleToggleLock = (obj: FabricObject) => {
-    const locked = !(obj as any).lockMovementX;
-    (obj as any).lockMovementX = locked;
-    (obj as any).lockMovementY = locked;
-    (obj as any).lockRotation = locked;
-    (obj as any).lockScalingX = locked;
-    (obj as any).lockScalingY = locked;
-    obj.selectable = !locked;
-    fabricCanvas?.renderAll();
-    updateObjects(fabricCanvas!);
-  };
-
-  const handleDeleteObject = (obj: FabricObject) => {
-    if (!fabricCanvas) return;
-    fabricCanvas.remove(obj);
-    saveState(JSON.stringify(fabricCanvas.toJSON()));
-    updateObjects(fabricCanvas);
-    toast.success("Elemento removido");
-  };
-
   return (
     <div className="flex flex-col h-full">
+      {/* Main Content - 3 Colunas */}
       <div className="flex flex-1 overflow-hidden">
+        {/* Coluna 1: Toolbar */}
         <CanvasToolbar
           onAddText={addText}
+          onUploadImage={handleUploadImage}
           onAddRect={addRect}
           onAddCircle={addCircle}
           onAddTriangle={addTriangle}
           onAddStar={addStar}
           onAddLine={addLine}
+          onCrop={handleCrop}
+          onZoomIn={handleZoomIn}
+          onZoomOut={handleZoomOut}
           onUndo={handleUndo}
           onRedo={handleRedo}
           onDelete={handleDelete}
           canUndo={canUndo}
           canRedo={canRedo}
-          hasSelection={!!selectedObject}
+          hasSelection={!!selectedObject && !!selectedLayerId}
         />
 
-        <div className="flex-1 p-8 overflow-auto bg-muted/30 flex items-center justify-center">
-          <div className="bg-white rounded-lg shadow-lg p-4">
+        {/* Coluna 2: Canvas Central */}
+        <div className="flex-1 p-8 overflow-auto bg-muted/20 flex items-center justify-center relative">
+          <div className="bg-white rounded-lg shadow-2xl border-2 border-border/50 p-4">
             <canvas ref={canvasRef} />
           </div>
+
+          {/* Controles de Zoom */}
+          <ZoomControls
+            zoom={zoom}
+            onZoomIn={handleZoomIn}
+            onZoomOut={handleZoomOut}
+            onZoomChange={handleZoomChange}
+            onFitToScreen={handleFitToScreen}
+          />
         </div>
 
-        <div className="flex">
+        {/* Coluna 3: Propriedades + Camadas */}
+        <div className="flex w-80">
           <PropertiesPanel
             selectedObject={selectedObject}
             onPropertyChange={handlePropertyChange}
           />
-          <LayersPanel
-            objects={objects}
-            selectedObject={selectedObject}
-            onSelectObject={handleSelectObject}
-            onToggleVisibility={handleToggleVisibility}
-            onToggleLock={handleToggleLock}
-            onDeleteObject={handleDeleteObject}
-          />
         </div>
+        
+        <LayersPanel
+          layers={layers}
+          selectedLayerId={selectedLayerId}
+          onSelectLayer={handleSelectLayer}
+          onReorderLayers={handleReorderLayers}
+          onToggleVisibility={handleToggleVisibility}
+          onToggleLock={handleToggleLock}
+          onDeleteLayer={handleDeleteLayer}
+          onDuplicateLayer={handleDuplicateLayer}
+        />
       </div>
 
+      {/* Footer com ações */}
       <div className="border-t border-border p-4 bg-card">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <Button variant="outline" onClick={onBack}>
@@ -437,7 +717,8 @@ export const CanvasEditor = ({
               <Download className="mr-2 h-4 w-4" />
               Baixar Preview
             </Button>
-            <Button onClick={handleExport}>
+            <Button onClick={handleExport} className="bg-gradient-to-r from-primary to-primary/80">
+              <Sparkles className="mr-2 h-4 w-4" />
               Finalizar e Salvar
             </Button>
           </div>
