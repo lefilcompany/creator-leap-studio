@@ -33,6 +33,7 @@ import { processImageToAspectRatio } from "@/lib/imageProcessing";
 import { useFormPersistence } from '@/hooks/useFormPersistence';
 import { TourSelector } from '@/components/onboarding/TourSelector';
 import { createContentSteps, navbarSteps } from '@/components/onboarding/tourSteps';
+import { AspectRatioPreview } from "@/components/AspectRatioPreview";
 
 enum GenerationStep {
   IDLE = "IDLE",
@@ -2278,17 +2279,28 @@ ${formData.description}
                                 <SelectItem value="1080x1080" disabled>
                                   Selecione uma plataforma primeiro
                                 </SelectItem>
-                              )}
-                            </SelectContent>
-                          </Select>
-                          {formData.width && formData.height && (
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Selecionado: {formData.width}x{formData.height}px
-                            </p>
                           )}
-                        </div>
+                        </SelectContent>
+                      </Select>
+                      {formData.width && formData.height && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Selecionado: {formData.width}x{formData.height}px
+                        </p>
+                      )}
+                    </div>
 
-                        {/* Composition */}
+                    {formData.width && formData.height && formData.platform && (() => {
+                      const platformData = platformSpecs[formData.platform];
+                      const contentTypeData = platformData?.[formData.contentType === 'ads' ? 'ads' : 'organic'];
+                      const selectedDimension = contentTypeData?.image.dimensions.find(
+                        d => d.width === parseInt(formData.width!) && d.height === parseInt(formData.height!)
+                      );
+                      return selectedDimension?.aspectRatio ? (
+                        <AspectRatioPreview aspectRatio={selectedDimension.aspectRatio} />
+                      ) : null;
+                    })()}
+
+                    {/* Composition */}
                         <div className="space-y-2">
                           <Label className="text-xs font-medium">Composição</Label>
                           <Select
