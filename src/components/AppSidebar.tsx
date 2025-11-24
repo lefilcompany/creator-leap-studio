@@ -227,7 +227,6 @@ export function AppSidebar() {
     { id: "nav-brands", href: "/brands", icon: Tag, label: t.sidebar.brands },
     { id: "nav-themes", href: "/themes", icon: Palette, label: t.sidebar.themes },
     { id: "nav-personas", href: "/personas", icon: Users, label: t.sidebar.personas },
-    { id: "nav-quick-content", href: "/quick-content", icon: Zap, label: t.sidebar.quickContent },
     { id: "nav-history", href: "/history", icon: History, label: t.sidebar.history },
   ];
 
