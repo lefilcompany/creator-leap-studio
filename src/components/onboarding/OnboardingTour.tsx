@@ -40,8 +40,10 @@ export function OnboardingTour({ tourType, steps, startDelay = 500, onComplete }
     if (status === STATUS.FINISHED || status === STATUS.SKIPPED) {
       setRun(false);
 
+      // Marcar tour como concluído em ambos os casos (finalizado ou pulado)
+      markTourAsCompleted(tourType);
+
       if (status === STATUS.FINISHED) {
-        markTourAsCompleted(tourType);
         toast({
           title: 'Tour concluído! 🎉',
           description: 'Você pode refazer os tours nas Configurações (ícone de engrenagem).',
@@ -49,7 +51,7 @@ export function OnboardingTour({ tourType, steps, startDelay = 500, onComplete }
         });
       } else if (status === STATUS.SKIPPED && action === 'close') {
         toast({
-          title: 'Tour pulado',
+          title: 'Tour pulado e marcado como concluído',
           description: 'Você pode refazer os tours nas Configurações (ícone de engrenagem).',
           duration: 5000,
         });
