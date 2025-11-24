@@ -9,13 +9,13 @@ import { CREDIT_COSTS } from '@/lib/creditCosts';
 import { useAuth } from '@/hooks/useAuth';
 import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
 import { contentCreationSelectorSteps } from '@/components/onboarding/tourSteps';
-
 type CreationType = 'quick' | 'image' | 'video';
-
 export default function ContentCreationSelector() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { team } = useAuth();
+  const {
+    team
+  } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [creationType, setCreationType] = useState<CreationType | null>(null);
 
@@ -28,11 +28,16 @@ export default function ContentCreationSelector() {
 
   // Detectar reset do sidebar e resetar estado
   useEffect(() => {
-    const locationState = location.state as { reset?: boolean } | null;
+    const locationState = location.state as {
+      reset?: boolean;
+    } | null;
     if (locationState?.reset) {
       setCreationType(null);
       // Limpar o state para não resetar em próximos renders
-      navigate(location.pathname, { replace: true, state: {} });
+      navigate(location.pathname, {
+        replace: true,
+        state: {}
+      });
     }
   }, [location.state]);
 
@@ -47,23 +52,15 @@ export default function ContentCreationSelector() {
       navigate(routes[creationType]);
     }
   }, [creationType, navigate]);
-
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
+    return <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin text-accent" />
-      </div>
-    );
+      </div>;
   }
+  return <div className="min-h-full w-full bg-background">
+      <OnboardingTour tourType="create_content" steps={contentCreationSelectorSteps} />
 
-  return (
-    <div className="min-h-full w-full bg-background">
-      <OnboardingTour 
-        tourType="create_content" 
-        steps={contentCreationSelectorSteps}
-      />
-
-      <div className="max-w-7xl mx-auto space-y-8 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto space-y-8 px-4 sm:px-6 lg:px-0 py-0">
         <Card id="content-creation-header" className="border-0 bg-gradient-to-br from-card via-card to-primary/5 shadow-lg animate-fade-in">
           <CardHeader className="pb-6 pt-8">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
@@ -78,10 +75,7 @@ export default function ContentCreationSelector() {
                   </p>
                 </div>
               </div>
-              {isLoading ? (
-                <Skeleton className="h-24 w-56 rounded-2xl" />
-              ) : team && (
-                <Card className="border border-primary/20 bg-gradient-to-br from-primary/10 via-primary/5 to-secondary/10 shadow-md backdrop-blur-sm">
+              {isLoading ? <Skeleton className="h-24 w-56 rounded-2xl" /> : team && <Card className="border border-primary/20 bg-gradient-to-br from-primary/10 via-primary/5 to-secondary/10 shadow-md backdrop-blur-sm">
                   <CardContent className="p-5">
                     <div className="flex items-center gap-4">
                       <div className="bg-gradient-to-br from-primary via-primary to-secondary text-primary-foreground rounded-xl p-3 shadow-lg">
@@ -97,13 +91,14 @@ export default function ContentCreationSelector() {
                       </div>
                     </div>
                   </CardContent>
-                </Card>
-              )}
+                </Card>}
             </div>
           </CardHeader>
         </Card>
 
-        <Card id="creation-type-selection" className="border-0 bg-card shadow-lg animate-fade-in" style={{ animationDelay: '0.1s' }}>
+        <Card id="creation-type-selection" className="border-0 bg-card shadow-lg animate-fade-in" style={{
+        animationDelay: '0.1s'
+      }}>
           <CardHeader className="pb-6 pt-8">
             <div className="space-y-2">
               <h2 className="text-2xl font-bold text-foreground tracking-tight">
@@ -113,9 +108,11 @@ export default function ContentCreationSelector() {
             </div>
           </CardHeader>
           <CardContent className="px-8 pb-8">
-            <RadioGroup value={creationType || ''} onValueChange={(value) => setCreationType(value as CreationType)}>
+            <RadioGroup value={creationType || ''} onValueChange={value => setCreationType(value as CreationType)}>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <label htmlFor="quick" className="cursor-pointer group animate-scale-in" style={{ animationDelay: '0.2s' }}>
+                <label htmlFor="quick" className="cursor-pointer group animate-scale-in" style={{
+                animationDelay: '0.2s'
+              }}>
                   <Card className="h-full border-2 border-border/50 bg-gradient-to-br from-card to-accent/5 hover:border-accent hover:shadow-xl hover:shadow-accent/20 hover:-translate-y-1 transition-all duration-300">
                     <CardContent className="p-8 flex flex-col items-center text-center gap-6">
                       <RadioGroupItem value="quick" id="quick" className="sr-only" />
@@ -136,7 +133,9 @@ export default function ContentCreationSelector() {
                   </Card>
                 </label>
 
-                <label htmlFor="image" className="cursor-pointer group animate-scale-in" style={{ animationDelay: '0.3s' }}>
+                <label htmlFor="image" className="cursor-pointer group animate-scale-in" style={{
+                animationDelay: '0.3s'
+              }}>
                   <Card className="h-full border-2 border-border/50 bg-gradient-to-br from-card to-primary/5 hover:border-primary hover:shadow-xl hover:shadow-primary/20 hover:-translate-y-1 transition-all duration-300">
                     <CardContent className="p-8 flex flex-col items-center text-center gap-6">
                       <RadioGroupItem value="image" id="image" className="sr-only" />
@@ -157,7 +156,9 @@ export default function ContentCreationSelector() {
                   </Card>
                 </label>
 
-                <label htmlFor="video" className="cursor-pointer group animate-scale-in" style={{ animationDelay: '0.4s' }}>
+                <label htmlFor="video" className="cursor-pointer group animate-scale-in" style={{
+                animationDelay: '0.4s'
+              }}>
                   <Card className="h-full border-2 border-border/50 bg-gradient-to-br from-card to-secondary/5 hover:border-secondary hover:shadow-xl hover:shadow-secondary/20 hover:-translate-y-1 transition-all duration-300">
                     <CardContent className="p-8 flex flex-col items-center text-center gap-6">
                       <RadioGroupItem value="video" id="video" className="sr-only" />
@@ -182,6 +183,5 @@ export default function ContentCreationSelector() {
           </CardContent>
         </Card>
       </div>
-    </div>
-  );
+    </div>;
 }
