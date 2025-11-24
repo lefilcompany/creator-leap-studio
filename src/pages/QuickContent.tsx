@@ -427,6 +427,23 @@ export default function QuickContent() {
     const toastId = toast.loading("Salvando no histórico...");
     
     try {
+      // Validar dados antes de salvar
+      if (!finalImageUrl) {
+        throw new Error("Imagem final não encontrada");
+      }
+      
+      if (!canvasData) {
+        throw new Error("Dados do canvas não encontrados");
+      }
+      
+      // Validar que canvasData tem objetos (se houver edições)
+      const parsedCanvas = typeof canvasData === 'string' ? JSON.parse(canvasData) : canvasData;
+      console.log('💾 Saving action with canvas data:', {
+        objectCount: parsedCanvas.objects?.length || 0,
+        hasBackgroundImage: !!parsedCanvas.backgroundImage,
+        adjustments: adjustedImages.length
+      });
+      
       const { error } = await supabase
         .from('actions')
         .insert({
@@ -436,23 +453,24 @@ export default function QuickContent() {
           status: 'approved',
           result: {
             imageUrl: finalImageUrl,
-            title: captionData.title,
-            body: captionData.body,
-            hashtags: captionData.hashtags,
-            canvasData: JSON.stringify(canvasData),
+            title: captionData?.title || "",
+            body: captionData?.body || "",
+            hashtags: captionData?.hashtags || "",
+            canvasData: typeof canvasData === 'string' ? canvasData : JSON.stringify(canvasData),
             adjustmentHistory: adjustedImages,
+            objectCount: parsedCanvas.objects?.length || 0
           },
           details: {
             prompt: formData.prompt,
             platform: formData.platform,
             aspectRatio: formData.aspectRatio,
-            brandId: formData.brandId,
+            brandId: formData.brandId || null,
           }
         });
 
       if (error) throw error;
 
-      toast.success("Salvo no histórico com sucesso!", { id: toastId });
+      toast.success("Conteúdo salvo no histórico com sucesso!", { id: toastId });
       
       // Resetar formulário e voltar ao início
       setTimeout(() => {
@@ -484,8 +502,8 @@ export default function QuickContent() {
       }, 1500);
       
     } catch (error: any) {
-      console.error("Error saving:", error);
-      toast.error("Erro ao salvar no histórico", { id: toastId });
+      console.error("Error saving action:", error);
+      toast.error(error.message || "Erro ao salvar no histórico", { id: toastId });
     } finally {
       setIsSaving(false);
     }

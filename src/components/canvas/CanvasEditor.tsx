@@ -312,7 +312,28 @@ export const CanvasEditor = ({
       enableRetinaScaling: false,
     });
 
+    // Serializar canvas completo com todos os objetos
     const canvasJSON = fabricCanvas.toJSON();
+    
+    // Forçar atualização dos objetos antes de exportar
+    fabricCanvas.renderAll();
+    
+    console.log('📸 Canvas export:', {
+      totalObjects: fabricCanvas.getObjects().length,
+      objectsInJSON: canvasJSON.objects?.length || 0,
+      canvasSize: `${fabricCanvas.width}x${fabricCanvas.height}`,
+      hasBackgroundImage: !!canvasJSON.backgroundImage
+    });
+    
+    // Validar que objetos foram capturados
+    if (fabricCanvas.getObjects().length > 0 && (!canvasJSON.objects || canvasJSON.objects.length === 0)) {
+      console.warn('⚠️ Canvas objects not captured in JSON, retrying...');
+      fabricCanvas.renderAll();
+      const retryJSON = fabricCanvas.toJSON();
+      onComplete(retryJSON, dataURL);
+      return;
+    }
+    
     onComplete(canvasJSON, dataURL);
   };
 
