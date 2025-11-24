@@ -29,6 +29,7 @@ export const CanvasEditor = ({
   const [fabricCanvas, setFabricCanvas] = useState<FabricCanvas | null>(null);
   const [selectedObject, setSelectedObject] = useState<FabricObject | null>(null);
   const [zoom, setZoom] = useState(1);
+  const [isLoadingCanvas, setIsLoadingCanvas] = useState(true);
   const isInitialized = useRef(false);
   const layersRef = useRef<CanvasLayer[]>([]);
   
@@ -72,6 +73,7 @@ export const CanvasEditor = ({
     
     isInitialized.current = true;
     clearLayers(); // Limpa camadas antigas
+    setIsLoadingCanvas(true);
     
     // Calcula tamanho baseado no espaço disponível (não limitar a 800px!)
     const availableWidth = typeof window !== 'undefined' 
@@ -96,30 +98,52 @@ export const CanvasEditor = ({
     });
 
     // Carregar imagem de fundo
-    util.loadImage(backgroundImage, { crossOrigin: 'anonymous' }).then((img) => {
-      const fabricImg = new FabricImage(img, {
-        scaleX: canvas.width! / img.width,
-        scaleY: canvas.height! / img.height,
-        selectable: false,
-        evented: false,
-      });
-      
-      canvas.backgroundImage = fabricImg;
-      canvas.renderAll();
+    util.loadImage(backgroundImage, { crossOrigin: 'anonymous' })
+      .then((img) => {
+        console.log('🖼️ Imagem de fundo carregada:', {
+          imageWidth: img.width,
+          imageHeight: img.height,
+          canvasWidth: canvas.width,
+          canvasHeight: canvas.height,
+        });
 
-      // Adicionar camada de fundo
-      addLayer({
-        id: 'background-layer',
-        name: 'Imagem de Fundo',
-        type: 'background',
-        fabricObject: fabricImg,
-        visible: true,
-        locked: true,
-        opacity: 1,
-        zIndex: 0,
-        thumbnail: generateThumbnail(fabricImg, canvas),
+        const fabricImg = new FabricImage(img, {
+          scaleX: canvas.width! / img.width,
+          scaleY: canvas.height! / img.height,
+          selectable: false,
+          evented: false,
+        });
+        
+        canvas.backgroundImage = fabricImg;
+        canvas.requestRenderAll(); // Força re-render completo
+
+        console.log('✅ Background definido no canvas');
+
+        // Adicionar camada de fundo
+        addLayer({
+          id: 'background-layer',
+          name: 'Imagem de Fundo',
+          type: 'background',
+          fabricObject: fabricImg,
+          visible: true,
+          locked: true,
+          opacity: 1,
+          zIndex: 0,
+          thumbnail: generateThumbnail(fabricImg, canvas),
+        });
+
+        // ✅ SÓ AGORA setar o canvas no estado (depois da imagem estar carregada)
+        setFabricCanvas(canvas);
+        saveState(JSON.stringify(canvas.toJSON()));
+        setIsLoadingCanvas(false);
+        
+        console.log('✅ Canvas pronto e configurado!');
+      })
+      .catch((error) => {
+        console.error('❌ Erro ao carregar imagem de fundo:', error);
+        toast.error('Erro ao carregar imagem de fundo');
+        setIsLoadingCanvas(false);
       });
-    });
 
     // Event listeners (sem dependência em layers para evitar re-criação)
     const handleSelection = (e: any) => {
@@ -146,13 +170,11 @@ export const CanvasEditor = ({
       }
     };
 
+    // Event listeners (configurados antes do carregamento da imagem)
     canvas.on('selection:created', handleSelection);
     canvas.on('selection:updated', handleSelection);
     canvas.on('selection:cleared', handleSelectionCleared);
     canvas.on('object:modified', handleObjectModified);
-
-    setFabricCanvas(canvas);
-    saveState(JSON.stringify(canvas.toJSON()));
 
     return () => {
       canvas.off('selection:created', handleSelection);
@@ -700,17 +722,33 @@ export const CanvasEditor = ({
 
         {/* Área do Canvas Central - MUITO MAIOR AGORA */}
         <div className="flex-1 p-4 overflow-auto bg-muted/20 flex items-center justify-center relative">
-          <div className="bg-white rounded-lg shadow-2xl border-2 border-border/50 p-4">
-            <canvas ref={canvasRef} />
-          </div>
+          {isLoadingCanvas ? (
+            <div className="bg-white rounded-lg shadow-2xl border-2 border-border/50 p-4 animate-pulse">
+              <div 
+                className="bg-muted rounded flex items-center justify-center text-muted-foreground"
+                style={{ 
+                  width: dimensions.width * 0.5, 
+                  height: dimensions.height * 0.5 
+                }}
+              >
+                Carregando imagem...
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="bg-white rounded-lg shadow-2xl border-2 border-border/50 p-4">
+                <canvas ref={canvasRef} />
+              </div>
 
-          <ZoomControls
-            zoom={zoom}
-            onZoomIn={handleZoomIn}
-            onZoomOut={handleZoomOut}
-            onZoomChange={handleZoomChange}
-            onFitToScreen={handleFitToScreen}
-          />
+              <ZoomControls
+                zoom={zoom}
+                onZoomIn={handleZoomIn}
+                onZoomOut={handleZoomOut}
+                onZoomChange={handleZoomChange}
+                onFitToScreen={handleFitToScreen}
+              />
+            </>
+          )}
         </div>
 
         {/* Painel Lateral Único - Propriedades + Camadas Empilhados */}
