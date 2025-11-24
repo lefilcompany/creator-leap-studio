@@ -71,6 +71,7 @@ export const CanvasEditor = ({
   useEffect(() => {
     if (!canvasRef.current || isInitialized.current) return;
     
+    console.log('🎨 Iniciando canvas editor...');
     isInitialized.current = true;
     clearLayers(); // Limpa camadas antigas
     setIsLoadingCanvas(true);
@@ -90,17 +91,24 @@ export const CanvasEditor = ({
       1 // não aumentar além do tamanho real
     );
 
+    const canvasWidth = dimensions.width * scale;
+    const canvasHeight = dimensions.height * scale;
+
+    console.log('📐 Dimensões do canvas:', { canvasWidth, canvasHeight, scale });
+
     const canvas = new FabricCanvas(canvasRef.current, {
-      width: dimensions.width * scale,
-      height: dimensions.height * scale,
+      width: canvasWidth,
+      height: canvasHeight,
       backgroundColor: '#ffffff',
       preserveObjectStacking: true,
     });
 
+    console.log('🖼️ Carregando imagem de fundo:', backgroundImage.substring(0, 50) + '...');
+
     // Carregar imagem de fundo
     util.loadImage(backgroundImage, { crossOrigin: 'anonymous' })
       .then((img) => {
-        console.log('🖼️ Imagem de fundo carregada:', {
+        console.log('✅ Imagem carregada com sucesso!', {
           imageWidth: img.width,
           imageHeight: img.height,
           canvasWidth: canvas.width,
@@ -115,9 +123,9 @@ export const CanvasEditor = ({
         });
         
         canvas.backgroundImage = fabricImg;
-        canvas.requestRenderAll(); // Força re-render completo
+        canvas.requestRenderAll();
 
-        console.log('✅ Background definido no canvas');
+        console.log('✅ Background image set');
 
         // Adicionar camada de fundo
         addLayer({
@@ -132,12 +140,17 @@ export const CanvasEditor = ({
           thumbnail: generateThumbnail(fabricImg, canvas),
         });
 
-        // ✅ SÓ AGORA setar o canvas no estado (depois da imagem estar carregada)
+        console.log('✅ Camada de fundo adicionada');
+
+        // ✅ Atualizar estados
         setFabricCanvas(canvas);
         saveState(JSON.stringify(canvas.toJSON()));
-        setIsLoadingCanvas(false);
         
-        console.log('✅ Canvas pronto e configurado!');
+        // Usar setTimeout para garantir que o estado seja atualizado
+        setTimeout(() => {
+          setIsLoadingCanvas(false);
+          console.log('✅ Canvas pronto! isLoadingCanvas:', false);
+        }, 100);
       })
       .catch((error) => {
         console.error('❌ Erro ao carregar imagem de fundo:', error);
