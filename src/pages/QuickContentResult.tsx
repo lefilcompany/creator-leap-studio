@@ -262,9 +262,9 @@ export default function QuickContentResult() {
       return;
     }
 
-    // Sempre verificar créditos (custo: 2 créditos)
-    if (!team?.credits || team.credits < CREDIT_COSTS.IMAGE_REVIEW) {
-      toast.error(`Você não tem créditos disponíveis. Cada revisão de imagem custa ${CREDIT_COSTS.IMAGE_REVIEW} créditos.`);
+    // Sempre verificar créditos (custo: 1 crédito para edição)
+    if (!team?.credits || team.credits < CREDIT_COSTS.IMAGE_EDIT) {
+      toast.error(`Você não tem créditos disponíveis. Cada edição de imagem custa ${CREDIT_COSTS.IMAGE_EDIT} crédito.`);
       return;
     }
 
