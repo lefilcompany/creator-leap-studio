@@ -356,20 +356,43 @@ export default function QuickContent() {
     const toastId = toast.loading("Processando imagem final...");
     
     try {
-      // Upload da imagem final para Supabase Storage
-      const blob = await (await fetch(exportedImageURL)).blob();
+      // 1. Converter imagem para blob
+      const response = await fetch(exportedImageURL);
+      if (!response.ok) throw new Error("Falha ao processar imagem do canvas");
+      
+      const blob = await response.blob();
       const fileName = `quick-content-${Date.now()}.png`;
       
+      console.log("🔐 User auth status:", (await supabase.auth.getSession()).data.session?.user.id);
+      console.log("📦 Uploading to:", `edited-images/${fileName}`);
+      console.log("💾 Blob size:", blob.size, "bytes");
+      
+      // 2. Upload para Supabase Storage com estrutura padronizada
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('content-images')
-        .upload(`${team!.id}/${fileName}`, blob);
+        .upload(`edited-images/${fileName}`, blob, {
+          cacheControl: '3600',
+          upsert: false,
+          contentType: 'image/png'
+        });
         
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error("Upload error details:", uploadError);
+        throw new Error(`Erro ao fazer upload: ${uploadError.message}`);
+      }
       
+      console.log("✅ Upload result:", uploadData);
+      
+      // 3. Obter URL pública
       const { data: publicUrlData } = supabase.storage
         .from('content-images')
         .getPublicUrl(uploadData.path);
+      
+      if (!publicUrlData?.publicUrl) {
+        throw new Error("Falha ao obter URL pública da imagem");
+      }
         
+      // 4. Salvar estados e avançar
       setCanvasData(canvasJSON);
       setFinalImageUrl(publicUrlData.publicUrl);
       setCurrentStep(CreationStep.FINALIZE);
@@ -378,7 +401,24 @@ export default function QuickContent() {
       
     } catch (error: any) {
       console.error("Error completing canvas:", error);
-      toast.error("Erro ao processar imagem final", { id: toastId });
+      
+      // Mensagens de erro específicas
+      if (error.message?.includes('row-level security')) {
+        toast.error("Erro de permissão ao salvar imagem", { 
+          id: toastId,
+          description: "Entre em contato com o suporte." 
+        });
+      } else if (error.message?.includes('upload')) {
+        toast.error("Erro ao fazer upload da imagem", { 
+          id: toastId,
+          description: error.message 
+        });
+      } else {
+        toast.error("Erro ao processar imagem final", { 
+          id: toastId,
+          description: error.message || "Tente novamente." 
+        });
+      }
     }
   };
 
