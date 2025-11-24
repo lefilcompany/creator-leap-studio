@@ -20,6 +20,7 @@ import { processImageToAspectRatio } from "@/lib/imageProcessing";
 import { useFormPersistence } from '@/hooks/useFormPersistence';
 import { TourSelector } from "@/components/onboarding/TourSelector";
 import { quickContentSteps, navbarSteps } from "@/components/onboarding/tourSteps";
+import { AspectRatioPreview } from "@/components/AspectRatioPreview";
 
 export default function QuickContent() {
   const navigate = useNavigate();
@@ -589,6 +590,10 @@ export default function QuickContent() {
                       </SelectContent>
                     </Select>
                   </div>
+
+                  {formData.aspectRatio && (
+                    <AspectRatioPreview aspectRatio={formData.aspectRatio} />
+                  )}
 
                   {/* Color Palette */}
                   <div className="space-y-2">
