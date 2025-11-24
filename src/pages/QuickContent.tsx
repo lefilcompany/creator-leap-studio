@@ -311,8 +311,9 @@ export default function QuickContent() {
   };
 
   const handleImageAdjust = async (adjustmentPrompt: string) => {
+    // Validar créditos (1 crédito por ajuste)
     if ((team?.credits || 0) < CREDIT_COSTS.IMAGE_EDIT) {
-      toast.error("Créditos insuficientes para ajuste");
+      toast.error("Créditos insuficientes para ajuste de imagem");
       return;
     }
 
@@ -329,7 +330,36 @@ export default function QuickContent() {
         }
       });
 
-      if (error) throw error;
+      // Tratamento de erros específicos
+      if (error) {
+        console.error("Adjust image error:", error);
+        
+        if (error.message?.includes("402") || error.message?.includes("LOVABLE_AI_CREDITS_DEPLETED")) {
+          toast.error("Créditos do Lovable AI esgotados", { 
+            id: toastId,
+            description: "Adicione créditos em Settings → Workspace → Usage" 
+          });
+          return;
+        }
+        
+        if (error.message?.includes("429") || error.message?.includes("RATE_LIMIT_EXCEEDED")) {
+          toast.error("Limite de requisições excedido", { 
+            id: toastId,
+            description: "Aguarde alguns instantes e tente novamente" 
+          });
+          return;
+        }
+        
+        throw error;
+      }
+
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+
+      if (!data?.adjustedImageUrl) {
+        throw new Error("Imagem ajustada não foi retornada pela IA");
+      }
 
       // Processar imagem ajustada para aspect ratio
       const processedImage = await processImageToAspectRatio({
