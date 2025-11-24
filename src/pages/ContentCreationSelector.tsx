@@ -40,7 +40,7 @@ export default function ContentCreationSelector() {
   useEffect(() => {
     if (creationType) {
       const routes: Record<CreationType, string> = {
-        quick: '/create/quick',
+        quick: '/quick-content',
         image: '/create/image',
         video: '/create/video'
       };
@@ -57,13 +57,13 @@ export default function ContentCreationSelector() {
   }
 
   return (
-    <div className="min-h-full w-full p-6">
+    <div className="min-h-full w-full">
       <OnboardingTour 
         tourType="create_content" 
         steps={contentCreationSelectorSteps}
       />
 
-      <div className="max-w-7xl mx-auto space-y-8">
+      <div className="max-w-7xl mx-auto space-y-6 p-6">
         <Card id="content-creation-header" className="border border-border/40 bg-card shadow-sm">
           <CardHeader className="pb-6">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
@@ -126,9 +126,10 @@ export default function ContentCreationSelector() {
                           Gere imagens rapidamente com prompts simples e diretos
                         </p>
                       </div>
-                      <Badge variant="secondary" className="text-xs font-medium px-3 py-1">
-                        {CREDIT_COSTS.QUICK_IMAGE} créditos
-                      </Badge>
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-accent/10 border border-accent/20">
+                        <Zap className="h-3 w-3 text-accent" />
+                        <span className="text-xs font-semibold text-accent">{CREDIT_COSTS.QUICK_IMAGE} créditos</span>
+                      </div>
                     </CardContent>
                   </Card>
                 </label>
@@ -146,9 +147,10 @@ export default function ContentCreationSelector() {
                           Crie imagens profissionais com controle completo e editor de canvas
                         </p>
                       </div>
-                      <Badge variant="secondary" className="text-xs font-medium px-3 py-1">
-                        {CREDIT_COSTS.COMPLETE_IMAGE} créditos
-                      </Badge>
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
+                        <ImageIcon className="h-3 w-3 text-primary" />
+                        <span className="text-xs font-semibold text-primary">{CREDIT_COSTS.COMPLETE_IMAGE} créditos</span>
+                      </div>
                     </CardContent>
                   </Card>
                 </label>
@@ -166,9 +168,10 @@ export default function ContentCreationSelector() {
                           Gere vídeos impactantes com IA usando o modelo Veo
                         </p>
                       </div>
-                      <Badge variant="secondary" className="text-xs font-medium px-3 py-1">
-                        {CREDIT_COSTS.VIDEO_GENERATION} créditos
-                      </Badge>
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary/10 border border-secondary/20">
+                        <Video className="h-3 w-3 text-secondary" />
+                        <span className="text-xs font-semibold text-secondary">{CREDIT_COSTS.VIDEO_GENERATION} créditos</span>
+                      </div>
                     </CardContent>
                   </Card>
                 </label>
