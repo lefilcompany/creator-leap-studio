@@ -100,61 +100,64 @@ ${themeContext ? `Contexto do tema:\n${themeContext}\n` : ""}
 
 Mantenha a essência da imagem original, apenas faça os ajustes solicitados.`;
 
-    // Chamar Lovable AI para ajustar a imagem
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY não configurada");
+    // Chamar Google Gemini API diretamente
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+    if (!GEMINI_API_KEY) {
+      throw new Error("GEMINI_API_KEY não configurada");
     }
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash-image-preview",
-        messages: [
-          {
-            role: "user",
-            content: [
-              {
-                type: "text",
-                text: fullPrompt,
-              },
-              {
-                type: "image_url",
-                image_url: {
-                  url: imageUrl,
+    // Converter imagem para base64 se necessário
+    let imageData = imageUrl;
+    if (imageUrl.startsWith('http')) {
+      const imageResponse = await fetch(imageUrl);
+      const imageBlob = await imageResponse.blob();
+      const arrayBuffer = await imageBlob.arrayBuffer();
+      const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+      imageData = `data:${imageBlob.type};base64,${base64}`;
+    }
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                {
+                  text: fullPrompt,
                 },
-              },
-            ],
+                {
+                  inlineData: {
+                    mimeType: imageData.startsWith('data:image/png') ? 'image/png' : 'image/jpeg',
+                    data: imageData.split(',')[1], // Remove o prefixo data:image/...;base64,
+                  },
+                },
+              ],
+            },
+          ],
+          generationConfig: {
+            temperature: 0.4,
+            topK: 32,
+            topP: 1,
+            maxOutputTokens: 4096,
           },
-        ],
-        modalities: ["image", "text"],
-      }),
-    });
+        }),
+      }
+    );
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Erro da AI Gateway:", response.status, errorText);
-      
-      // Erros específicos do Lovable AI Gateway
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ 
-            error: "Créditos do Lovable AI esgotados. Adicione créditos em Settings → Workspace → Usage.",
-            errorCode: "LOVABLE_AI_CREDITS_DEPLETED"
-          }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
+      console.error("Erro da Gemini API:", response.status, errorText);
       
       if (response.status === 429) {
         return new Response(
           JSON.stringify({ 
-            error: "Limite de requisições excedido. Aguarde alguns instantes e tente novamente.",
-            errorCode: "RATE_LIMIT_EXCEEDED"
+            error: "Limite de requisições da API Gemini excedido. Aguarde e tente novamente.",
+            errorCode: "GEMINI_RATE_LIMIT"
           }),
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
@@ -164,7 +167,18 @@ Mantenha a essência da imagem original, apenas faça os ajustes solicitados.`;
     }
 
     const aiData = await response.json();
-    const adjustedImageUrl = aiData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    
+    // Gemini retorna imagem em base64 no campo parts[0].inlineData.data
+    const imageBase64 = aiData.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+    
+    if (!imageBase64) {
+      console.error("Resposta da API Gemini:", JSON.stringify(aiData));
+      throw new Error("IA não retornou imagem ajustada");
+    }
+
+    // Converter base64 para data URL
+    const mimeType = aiData.candidates?.[0]?.content?.parts?.[0]?.inlineData?.mimeType || 'image/png';
+    const adjustedImageUrl = `data:${mimeType};base64,${imageBase64}`;
 
     if (!adjustedImageUrl) {
       throw new Error("IA não retornou imagem ajustada");

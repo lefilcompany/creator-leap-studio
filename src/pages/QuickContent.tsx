@@ -334,16 +334,8 @@ export default function QuickContent() {
       if (error) {
         console.error("Adjust image error:", error);
         
-        if (error.message?.includes("402") || error.message?.includes("LOVABLE_AI_CREDITS_DEPLETED")) {
-          toast.error("Créditos do Lovable AI esgotados", { 
-            id: toastId,
-            description: "Adicione créditos em Settings → Workspace → Usage" 
-          });
-          return;
-        }
-        
-        if (error.message?.includes("429") || error.message?.includes("RATE_LIMIT_EXCEEDED")) {
-          toast.error("Limite de requisições excedido", { 
+        if (error.message?.includes("429") || error.message?.includes("GEMINI_RATE_LIMIT")) {
+          toast.error("Limite de requisições da API Gemini excedido", { 
             id: toastId,
             description: "Aguarde alguns instantes e tente novamente" 
           });
