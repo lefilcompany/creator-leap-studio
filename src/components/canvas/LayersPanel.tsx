@@ -51,19 +51,15 @@ export const LayersPanel = ({
   };
 
   return (
-    <div className="w-80 bg-card border-l border-border flex flex-col h-full">
-      <div className="p-4 border-b border-border">
-        <h3 className="font-semibold text-sm">Camadas</h3>
-      </div>
-      
-      <ScrollArea className="flex-1">
-        {layers.length === 0 ? (
-          <div className="p-8 text-center">
-            <p className="text-sm text-muted-foreground">
-              Nenhuma camada ainda. Gere uma imagem ou adicione elementos para começar.
-            </p>
-          </div>
-        ) : (
+    <div className="w-full bg-card flex flex-col h-full">
+      {layers.length === 0 ? (
+        <div className="flex-1 flex items-center justify-center p-6 text-center">
+          <p className="text-sm text-muted-foreground">
+            Nenhuma camada ainda. Adicione elementos para começar.
+          </p>
+        </div>
+      ) : (
+        <ScrollArea className="flex-1">
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
@@ -89,8 +85,8 @@ export const LayersPanel = ({
               </div>
             </SortableContext>
           </DndContext>
-        )}
-      </ScrollArea>
+        </ScrollArea>
+      )}
       
       {onCreateGroup && (
         <div className="p-2 border-t border-border bg-muted/30">

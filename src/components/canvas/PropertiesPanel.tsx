@@ -16,9 +16,9 @@ interface PropertiesPanelProps {
 export const PropertiesPanel = ({ selectedObject, onPropertyChange }: PropertiesPanelProps) => {
   if (!selectedObject) {
     return (
-      <div className="w-80 bg-card border-l border-border p-8 flex items-center justify-center">
-        <p className="text-sm text-muted-foreground text-center">
-          Selecione um elemento para editar suas propriedades
+      <div className="flex items-center justify-center text-center py-8">
+        <p className="text-sm text-muted-foreground">
+          Selecione um elemento para editar
         </p>
       </div>
     );
@@ -30,14 +30,9 @@ export const PropertiesPanel = ({ selectedObject, onPropertyChange }: Properties
   const opacity = (selectedObject.opacity || 1) * 100;
 
   return (
-    <ScrollArea className="w-80 bg-card border-l border-border h-full">
-      <div className="p-4 space-y-6">
-        <div className="border-b border-border pb-2">
-          <h3 className="font-semibold text-sm">Propriedades</h3>
-        </div>
-
-        {/* Propriedades Gerais */}
-        <PropertySection title="Geral">
+    <div className="w-full space-y-6">
+      {/* Propriedades Gerais */}
+      <PropertySection title="Geral">
           <div className="space-y-2">
             <Label className="text-xs text-muted-foreground">Opacidade</Label>
             <div className="space-y-2">
@@ -210,7 +205,6 @@ export const PropertiesPanel = ({ selectedObject, onPropertyChange }: Properties
             </div>
           </PropertySection>
         )}
-      </div>
-    </ScrollArea>
+    </div>
   );
 };

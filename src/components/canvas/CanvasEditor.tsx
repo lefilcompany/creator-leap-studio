@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Canvas as FabricCanvas, Textbox, Rect, Circle, Triangle, Line, FabricObject, util, FabricImage, Polygon } from "fabric";
 import { CanvasToolbar } from "./CanvasToolbar";
 import { PropertiesPanel } from "./PropertiesPanel";
 import { LayersPanel } from "./LayersPanel";
 import { ZoomControls } from "./ZoomControls";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Download, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { useCanvasHistory } from "@/hooks/useCanvasHistory";
@@ -28,6 +29,9 @@ export const CanvasEditor = ({
   const [fabricCanvas, setFabricCanvas] = useState<FabricCanvas | null>(null);
   const [selectedObject, setSelectedObject] = useState<FabricObject | null>(null);
   const [zoom, setZoom] = useState(1);
+  const isInitialized = useRef(false);
+  const layersRef = useRef<CanvasLayer[]>([]);
+  
   const { saveState, undo, redo, canUndo, canRedo } = useCanvasHistory();
   const {
     layers,
@@ -41,6 +45,7 @@ export const CanvasEditor = ({
     toggleLock,
     duplicateLayer,
     generateThumbnail,
+    clearLayers,
   } = useCanvasLayers();
 
   // Determinar dimensões baseado no aspect ratio
@@ -56,13 +61,36 @@ export const CanvasEditor = ({
 
   const dimensions = getDimensions();
 
+  // Sincroniza layersRef com layers para evitar re-renderizações nos listeners
+  useEffect(() => {
+    layersRef.current = layers;
+  }, [layers]);
+
   // Inicialização do canvas
   useEffect(() => {
-    if (!canvasRef.current) return;
+    if (!canvasRef.current || isInitialized.current) return;
+    
+    isInitialized.current = true;
+    clearLayers(); // Limpa camadas antigas
+    
+    // Calcula tamanho baseado no espaço disponível (não limitar a 800px!)
+    const availableWidth = typeof window !== 'undefined' 
+      ? window.innerWidth - 64 - 288 - 80  // toolbar (64px) + painel lateral (288px) + padding (80px)
+      : 1000;
+
+    const availableHeight = typeof window !== 'undefined'
+      ? window.innerHeight - 200  // header + footer
+      : 800;
+
+    const scale = Math.min(
+      availableWidth / dimensions.width,
+      availableHeight / dimensions.height,
+      1 // não aumentar além do tamanho real
+    );
 
     const canvas = new FabricCanvas(canvasRef.current, {
-      width: Math.min(dimensions.width, 800),
-      height: Math.min(dimensions.height, 800) * (dimensions.height / dimensions.width),
+      width: dimensions.width * scale,
+      height: dimensions.height * scale,
       backgroundColor: '#ffffff',
       preserveObjectStacking: true,
     });
@@ -93,46 +121,47 @@ export const CanvasEditor = ({
       });
     });
 
-    // Event listeners
-    canvas.on('selection:created', (e: any) => {
+    // Event listeners (sem dependência em layers para evitar re-criação)
+    const handleSelection = (e: any) => {
       const selected = e.selected[0];
       setSelectedObject(selected);
-      const layer = layers.find(l => l.fabricObject === selected);
+      const layer = layersRef.current.find(l => l.fabricObject === selected);
       if (layer) setSelectedLayerId(layer.id);
-    });
+    };
 
-    canvas.on('selection:updated', (e: any) => {
-      const selected = e.selected[0];
-      setSelectedObject(selected);
-      const layer = layers.find(l => l.fabricObject === selected);
-      if (layer) setSelectedLayerId(layer.id);
-    });
-
-    canvas.on('selection:cleared', () => {
+    const handleSelectionCleared = () => {
       setSelectedObject(null);
       setSelectedLayerId(null);
-    });
+    };
 
-    canvas.on('object:modified', (e: any) => {
+    const handleObjectModified = (e: any) => {
       saveState(JSON.stringify(canvas.toJSON()));
-      // Atualizar thumbnail da camada modificada
       if (e.target) {
-        const layer = layers.find(l => l.fabricObject === e.target);
+        const layer = layersRef.current.find(l => l.fabricObject === e.target);
         if (layer) {
           updateLayer(layer.id, {
             thumbnail: generateThumbnail(e.target, canvas)
           });
         }
       }
-    });
+    };
+
+    canvas.on('selection:created', handleSelection);
+    canvas.on('selection:updated', handleSelection);
+    canvas.on('selection:cleared', handleSelectionCleared);
+    canvas.on('object:modified', handleObjectModified);
 
     setFabricCanvas(canvas);
     saveState(JSON.stringify(canvas.toJSON()));
 
     return () => {
+      canvas.off('selection:created', handleSelection);
+      canvas.off('selection:updated', handleSelection);
+      canvas.off('selection:cleared', handleSelectionCleared);
+      canvas.off('object:modified', handleObjectModified);
       canvas.dispose();
     };
-  }, []);
+  }, [backgroundImage, aspectRatio]);
 
   // Atalhos de teclado
   useEffect(() => {
@@ -174,7 +203,7 @@ export const CanvasEditor = ({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [fabricCanvas, canUndo, canRedo, layers, selectedLayerId]);
+  }, [fabricCanvas, canUndo, canRedo]);
 
   // Sincronizar seleção com camadas
   useEffect(() => {
@@ -647,9 +676,9 @@ export const CanvasEditor = ({
 
   return (
     <div className="flex flex-col h-full">
-      {/* Main Content - 3 Colunas */}
+      {/* Main Content */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Coluna 1: Toolbar */}
+        {/* Toolbar Vertical */}
         <CanvasToolbar
           onAddText={addText}
           onUploadImage={handleUploadImage}
@@ -669,13 +698,12 @@ export const CanvasEditor = ({
           hasSelection={!!selectedObject && !!selectedLayerId}
         />
 
-        {/* Coluna 2: Canvas Central */}
-        <div className="flex-1 p-8 overflow-auto bg-muted/20 flex items-center justify-center relative">
+        {/* Área do Canvas Central - MUITO MAIOR AGORA */}
+        <div className="flex-1 p-4 overflow-auto bg-muted/20 flex items-center justify-center relative">
           <div className="bg-white rounded-lg shadow-2xl border-2 border-border/50 p-4">
             <canvas ref={canvasRef} />
           </div>
 
-          {/* Controles de Zoom */}
           <ZoomControls
             zoom={zoom}
             onZoomIn={handleZoomIn}
@@ -685,24 +713,37 @@ export const CanvasEditor = ({
           />
         </div>
 
-        {/* Coluna 3: Propriedades + Camadas */}
-        <div className="flex w-80">
-          <PropertiesPanel
-            selectedObject={selectedObject}
-            onPropertyChange={handlePropertyChange}
-          />
+        {/* Painel Lateral Único - Propriedades + Camadas Empilhados */}
+        <div className="flex flex-col w-72 border-l bg-card">
+          {/* Painel de Propriedades */}
+          <div className="flex-1 overflow-auto max-h-[50vh] p-4 border-b">
+            <div className="mb-4">
+              <h3 className="text-sm font-semibold">Propriedades</h3>
+              <Separator className="mt-2" />
+            </div>
+            <PropertiesPanel
+              selectedObject={selectedObject}
+              onPropertyChange={handlePropertyChange}
+            />
+          </div>
+
+          {/* Painel de Camadas */}
+          <div className="flex-1 overflow-auto">
+            <div className="p-4 border-b">
+              <h3 className="text-sm font-semibold">Camadas</h3>
+            </div>
+            <LayersPanel
+              layers={layers}
+              selectedLayerId={selectedLayerId}
+              onSelectLayer={handleSelectLayer}
+              onReorderLayers={handleReorderLayers}
+              onToggleVisibility={handleToggleVisibility}
+              onToggleLock={handleToggleLock}
+              onDeleteLayer={handleDeleteLayer}
+              onDuplicateLayer={handleDuplicateLayer}
+            />
+          </div>
         </div>
-        
-        <LayersPanel
-          layers={layers}
-          selectedLayerId={selectedLayerId}
-          onSelectLayer={handleSelectLayer}
-          onReorderLayers={handleReorderLayers}
-          onToggleVisibility={handleToggleVisibility}
-          onToggleLock={handleToggleLock}
-          onDeleteLayer={handleDeleteLayer}
-          onDuplicateLayer={handleDuplicateLayer}
-        />
       </div>
 
       {/* Footer com ações */}
