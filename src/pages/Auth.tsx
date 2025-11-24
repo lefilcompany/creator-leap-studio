@@ -633,7 +633,7 @@ const Auth = () => {
               !privacyAccepted
             }
           >
-            {loading ? <Loader2 className="animate-spin h-4 w-4" /> : "CRIAR CONTA"}
+            {loading ? <Loader2 className="animate-spin h-4 w-4" /> : "Criar Conta"}
           </Button>
         </div>
       </form>
