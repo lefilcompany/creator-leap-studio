@@ -18,6 +18,7 @@ import Themes from "./pages/Themes";
 import Personas from "./pages/Personas";
 import History from "./pages/History";
 import CreateContent from "./pages/CreateContent";
+import ContentCreationSelector from "./pages/ContentCreationSelector";
 import ContentResult from "./pages/ContentResult";
 import VideoResult from "./pages/VideoResult";
 import ReviewContent from "./pages/ReviewContent";
@@ -76,7 +77,10 @@ const App = () => (
               <Route path="themes" element={<Themes />} />
               <Route path="personas" element={<Personas />} />
               <Route path="history" element={<History />} />
-              <Route path="create" element={<CreateContent />} />
+              <Route path="create" element={<ContentCreationSelector />} />
+              <Route path="create/quick" element={<QuickContent />} />
+              <Route path="create/image" element={<CreateContent />} />
+              <Route path="create/video" element={<CreateContent />} />
               <Route path="result" element={<ContentResult />} />
               <Route path="video-result" element={<VideoResult />} />
               <Route path="review" element={<ReviewContent />} />
