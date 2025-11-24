@@ -233,6 +233,63 @@ export const quickContentSteps: Step[] = [
   },
 ];
 
+export const contentCreationSelectorSteps: Step[] = [
+  {
+    target: '#content-creation-header',
+    content: 'Bem-vindo à Criação de Conteúdo! Aqui você pode escolher entre três tipos diferentes de criação, cada um otimizado para necessidades específicas.',
+    disableBeacon: true,
+    placement: 'bottom',
+  },
+  {
+    target: '#creation-type-selection',
+    content: 'Escolha o tipo de criação que melhor atende sua necessidade. Cada tipo tem características e custos diferentes em créditos.',
+    placement: 'top',
+  },
+];
+
+export const createImageSteps: Step[] = [
+  {
+    target: '#image-creation-header',
+    content: 'Criação Personalizada de Imagem: crie imagens profissionais com controle total sobre detalhes, estilo e composição. Inclui editor de canvas completo.',
+    disableBeacon: true,
+    placement: 'bottom',
+  },
+  {
+    target: '#select-brand',
+    content: 'Selecione a marca para usar sua identidade visual (logo, cores, estilo) na geração da imagem.',
+    placement: 'bottom',
+  },
+  {
+    target: '#platform-selector',
+    content: 'Escolha a plataforma onde a imagem será publicada para otimizar proporções e estilo.',
+    placement: 'bottom',
+  },
+  {
+    target: '#image-reference-upload',
+    content: 'Adicione imagens de referência para guiar a IA. Você pode marcar quais devem preservar identidade visual.',
+    placement: 'top',
+  },
+];
+
+export const createVideoSteps: Step[] = [
+  {
+    target: '#video-creation-header',
+    content: 'Criação de Vídeo: gere vídeos impactantes usando o modelo Veo da Google. Suporta texto-para-vídeo e imagem-para-vídeo.',
+    disableBeacon: true,
+    placement: 'bottom',
+  },
+  {
+    target: '#video-generation-type',
+    content: 'Escolha o modo de geração: Veo 3.1 (texto-para-vídeo) permite criar vídeos apenas com descrição. Veo 3.0 (imagem-para-vídeo) requer uma imagem base.',
+    placement: 'bottom',
+  },
+  {
+    target: '#video-settings',
+    content: 'Configure duração, proporção (16:9 ou 9:16), resolução e estilo do vídeo para atender suas necessidades.',
+    placement: 'top',
+  },
+];
+
 export const planContentSteps: Step[] = [
   {
     target: '#plan-header',

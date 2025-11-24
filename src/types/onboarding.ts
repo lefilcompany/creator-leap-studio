@@ -5,6 +5,8 @@ export type OnboardingTourType =
   | 'themes'
   | 'personas'
   | 'create_content'
+  | 'create_image'
+  | 'create_video'
   | 'quick_content'
   | 'plan_content'
   | 'history'
@@ -21,6 +23,8 @@ export interface OnboardingState {
   onboarding_themes_completed: boolean;
   onboarding_personas_completed: boolean;
   onboarding_create_content_completed: boolean;
+  onboarding_create_image_completed: boolean;
+  onboarding_create_video_completed: boolean;
   onboarding_quick_content_completed: boolean;
   onboarding_plan_content_completed: boolean;
   onboarding_history_completed: boolean;
