@@ -40,6 +40,8 @@ import Privacy from "./pages/Privacy";
 import ActionView from "./pages/ActionView";
 import { DashboardLayout } from "./components/DashboardLayout";
 import NotFound from "./pages/NotFound";
+import Admin from "./pages/Admin";
+import { AdminRoute } from "./components/admin/AdminRoute";
 
 const queryClient = new QueryClient();
 
@@ -99,6 +101,7 @@ const App = () => (
               <Route path="about" element={<About />} />
               <Route path="contact" element={<Contact />} />
               <Route path="action/:actionId" element={<ActionView />} />
+              <Route path="admin" element={<AdminRoute><Admin /></AdminRoute>} />
             </Route>
             
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
