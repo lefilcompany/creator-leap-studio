@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { motion, AnimatePresence } from "framer-motion";
-import { Home, Tag, Users, Calendar, History, Sparkles, CheckCircle, Rocket, Palette, Zap, Coins } from "lucide-react";
+import { Home, Tag, Users, Calendar, History, Sparkles, CheckCircle, Rocket, Palette, Zap, Coins, Shield } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarRail, useSidebar } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/hooks/useAuth";
+import { useAdminRole } from "@/hooks/useAdminRole";
 import { useTranslation } from "@/hooks/useTranslation";
 import logoCreatorPreta from "@/assets/logoCreatorPreta.png";
 import logoCreatorBranca from "@/assets/logoCreatorBranca.png";
@@ -222,6 +223,7 @@ export function AppSidebar() {
     team,
     isTrialExpired
   } = useAuth();
+  const { isAdmin } = useAdminRole();
   const {
     theme
   } = useTheme();
@@ -257,7 +259,12 @@ export function AppSidebar() {
     href: "/history",
     icon: History,
     label: t.sidebar.history
-  }];
+  }, ...(isAdmin ? [{
+    id: "nav-admin",
+    href: "/admin",
+    icon: Shield,
+    label: "Administração"
+  }] : [])];
   const actionButtons = [{
     id: "nav-create-content",
     href: "/create",
