@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { motion, AnimatePresence } from "framer-motion";
-import { Home, Tag, Users, Calendar, History, Sparkles, CheckCircle, Rocket, Palette, Zap, Coins, Lock, Unlock } from "lucide-react";
+import { Home, Tag, Users, Calendar, History, Sparkles, CheckCircle, Rocket, Palette, Zap, Coins } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarRail, useSidebar } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
@@ -214,7 +214,8 @@ export function AppSidebar() {
   const {
     state,
     open,
-    setOpen
+    setOpen,
+    isFixed
   } = useSidebar();
   const isMobile = useIsMobile();
   const {
@@ -228,7 +229,6 @@ export function AppSidebar() {
     t
   } = useTranslation();
   const [isHovered, setIsHovered] = useState(false);
-  const [isFixed, setIsFixed] = useState(false);
   const logo = theme === 'dark' ? logoCreatorBranca : logoCreatorPreta;
   const collapsed = state === "collapsed";
   const isNavigationDisabled = isTrialExpired;
@@ -282,13 +282,6 @@ export function AppSidebar() {
       setOpen(false);
     }
   };
-  const toggleFixedMode = () => {
-    setIsFixed(!isFixed);
-    // Se estava retrátil e vamos fixar, expande
-    if (!isFixed) {
-      setOpen(true);
-    }
-  };
 
   // Hover-to-expand functionality for desktop (only when not fixed)
   useEffect(() => {
@@ -324,16 +317,6 @@ export function AppSidebar() {
           }} className={collapsed ? "h-10 w-10 object-contain" : "h-8 w-auto"} />
           </AnimatePresence>
         </NavLink>
-        
-        {/* Botão de Toggle Fixo/Retrátil (somente desktop) */}
-        {!isMobile && <Tooltip>
-            <TooltipTrigger asChild>
-              
-            </TooltipTrigger>
-            <TooltipContent side="right">
-              <p>{isFixed ? "Desbloquear sidebar (hover para expandir)" : "Bloquear sidebar aberta"}</p>
-            </TooltipContent>
-          </Tooltip>}
       </div>
       
       <motion.nav className={cn("flex-1 flex flex-col overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent", collapsed ? "gap-3 px-2" : "gap-5 px-4")} animate={{

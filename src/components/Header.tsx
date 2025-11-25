@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from "react";
-import { Search, Settings, User, Menu, Loader2, Info, FileText, Shield, LogOut, Moon, Sun, Gift, History, RefreshCw } from "lucide-react";
+import { Search, Settings, User, Menu, Loader2, Info, FileText, Shield, LogOut, Moon, Sun, Gift, History, RefreshCw, Lock, Unlock } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -35,7 +36,7 @@ import RedeemCouponDialog from "./team/RedeemCouponDialog";
 import { toast } from "@/hooks/use-toast";
 
 export const Header = () => {
-  const { setOpen } = useSidebar();
+  const { setOpen, isFixed, setIsFixed } = useSidebar();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const { logout, isTrialExpired, user } = useAuth();
@@ -95,6 +96,14 @@ export const Header = () => {
     }
   };
 
+  const toggleSidebarMode = () => {
+    const newIsFixed = !isFixed;
+    setIsFixed(newIsFixed);
+    if (newIsFixed) {
+      setOpen(true); // Expande ao fixar
+    }
+  };
+
   return (
     <header className="sticky top-0 z-50 w-full shadow-md shadow-primary/20 bg-card/95 backdrop-blur-md border-b border-primary/10 transition-all duration-300 animate-fade-in flex-shrink-0">
       <div className="flex h-14 md:h-16 lg:h-20 items-center justify-between px-3 md:px-4 lg:px-6 xl:px-8">
@@ -112,9 +121,30 @@ export const Header = () => {
             </Button>
           </div>
           
-          {/* Desktop sidebar trigger */}
+          {/* Desktop sidebar mode toggle */}
           <div className="hidden lg:block">
-            <SidebarTrigger className="h-10 w-10 rounded-lg hover:bg-primary/20 hover:text-primary transition-all duration-200" />
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={toggleSidebarMode}
+                  className="h-10 w-10 rounded-lg hover:bg-primary/20 hover:text-primary transition-all duration-200"
+                >
+                  {isFixed ? (
+                    <Lock className="h-5 w-5 text-primary" />
+                  ) : (
+                    <Unlock className="h-5 w-5 text-muted-foreground" />
+                  )}
+                  <span className="sr-only">
+                    {isFixed ? "Desbloquear sidebar" : "Bloquear sidebar"}
+                  </span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{isFixed ? "Modo fixo: sidebar sempre visível" : "Modo móvel: hover para expandir"}</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
         </div>
         
