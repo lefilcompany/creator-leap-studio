@@ -15,7 +15,9 @@ import {
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Sparkles, Zap, X, Info, ImagePlus, Coins } from "lucide-react";
+import { Loader2, Sparkles, Zap, X, Info, ImagePlus, Coins, Image } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { CREDIT_COSTS } from "@/lib/creditCosts";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
@@ -799,7 +801,7 @@ ${formData.description}
   }
 
   return (
-    <div className="min-h-full bg-gradient-to-br from-background via-background to-muted/20 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-full bg-gradient-to-br from-pink-50/50 via-purple-50/30 to-pink-50/50 dark:from-background dark:via-background dark:to-muted/20 py-8 px-4 sm:px-6 lg:px-8">
       <TourSelector 
         tours={[
           {
@@ -817,48 +819,44 @@ ${formData.description}
         ]}
         startDelay={500}
       />
-      <div className="max-w-7xl mx-auto space-y-6">
+      <div className="max-w-5xl mx-auto space-y-6">
         {/* Header */}
-        <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 backdrop-blur-sm">
-          <CardHeader className="p-6">
-            <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
-              <div className="flex items-center gap-4 flex-1 min-w-0">
-                <div className="flex-shrink-0 bg-primary/20 text-primary rounded-2xl p-3">
-                  <Sparkles className="h-8 w-8" />
+        <Card className="border-purple-200/50 dark:border-purple-500/20 bg-gradient-to-r from-pink-50/80 via-purple-50/60 to-pink-50/80 dark:from-purple-500/10 dark:via-purple-500/5 dark:to-purple-500/10 shadow-sm">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="bg-gradient-to-br from-purple-500 to-pink-500 text-white rounded-2xl p-3 shadow-md">
+                  <Image className="h-7 w-7" />
                 </div>
-                <div className="min-w-0">
-                  <h1 className="text-3xl font-bold bg-gradient-to-r from-primary via-primary to-accent bg-clip-text text-transparent">
+                <div>
+                  <h1 className="text-3xl font-bold text-foreground">
                     Criar Imagem
                   </h1>
-                  <p className="text-muted-foreground text-sm">
-                    Gere imagens profissionais com IA
-                  </p>
+                  <p className="text-muted-foreground text-sm mt-0.5">Gere imagens profissionais com IA</p>
                 </div>
               </div>
               {team && (
-                <Card className="bg-gradient-to-br from-primary/10 to-accent/10 border-primary/20 flex-shrink-0">
-                  <CardContent className="p-3">
+                <Card className="bg-gradient-to-br from-purple-100/80 to-pink-100/80 dark:from-purple-500/10 dark:to-pink-500/10 border-purple-300/50 dark:border-purple-500/20 shadow-sm">
+                  <CardContent className="p-4">
                     <div className="flex items-center gap-3">
-                      <div className="relative flex-shrink-0">
-                        <div className="absolute inset-0 bg-gradient-to-r from-primary to-accent rounded-full blur-sm opacity-40"></div>
-                        <div className="relative bg-gradient-to-r from-primary to-accent text-white rounded-full p-2">
-                          <Zap className="h-4 w-4" />
-                        </div>
+                      <div className="bg-gradient-to-br from-purple-500 to-pink-500 text-white rounded-full p-2 shadow-sm">
+                        <Zap className="h-4 w-4" />
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                          {team?.credits || 0}
-                        </span>
-                        <p className="text-sm text-muted-foreground font-medium">
-                          Créditos
-                        </p>
+                      <div>
+                        <div className="flex items-baseline gap-1.5">
+                          <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                            {team?.credits || 0}
+                          </span>
+                          <span className="text-xs text-muted-foreground font-medium">Créditos</span>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground">Disponíveis</p>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
               )}
             </div>
-          </CardHeader>
+          </CardContent>
         </Card>
 
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
