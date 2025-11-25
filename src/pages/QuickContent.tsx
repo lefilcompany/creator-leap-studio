@@ -19,7 +19,6 @@ import { getPlatformImageSpec, platformSpecs } from "@/lib/platformSpecs";
 import { useFormPersistence } from '@/hooks/useFormPersistence';
 import { TourSelector } from "@/components/onboarding/TourSelector";
 import { quickContentSteps, navbarSteps } from "@/components/onboarding/tourSteps";
-
 export default function QuickContent() {
   const navigate = useNavigate();
   const {
@@ -54,7 +53,11 @@ export default function QuickContent() {
   const pasteAreaRef = useRef<HTMLDivElement>(null);
 
   // Persistência de formulário
-  const { loadPersistedData, clearPersistedData, hasRelevantData } = useFormPersistence({
+  const {
+    loadPersistedData,
+    clearPersistedData,
+    hasRelevantData
+  } = useFormPersistence({
     key: 'quick-content-form',
     formData,
     excludeFields: ['referenceFiles'] // Não persistir arquivos
@@ -64,8 +67,11 @@ export default function QuickContent() {
   useEffect(() => {
     const persisted = loadPersistedData();
     if (persisted) {
-      setFormData(prev => ({ ...prev, ...persisted }));
-      
+      setFormData(prev => ({
+        ...prev,
+        ...persisted
+      }));
+
       // Só mostrar toast se houver dados realmente relevantes
       if (hasRelevantData(persisted)) {
         toast.info('Rascunho recuperado', {
@@ -74,7 +80,6 @@ export default function QuickContent() {
       }
     }
   }, []);
-
   const handlePaste = (e: React.ClipboardEvent) => {
     const items = e.clipboardData.items;
     const files: File[] = [];
@@ -118,12 +123,10 @@ export default function QuickContent() {
       setLoadingData(true);
 
       // Carregar marcas
-      const { data: brandsData, error: brandsError } = await supabase
-        .from("brands")
-        .select("*")
-        .eq("team_id", team?.id)
-        .order("name");
-        
+      const {
+        data: brandsData,
+        error: brandsError
+      } = await supabase.from("brands").select("*").eq("team_id", team?.id).order("name");
       if (brandsError) throw brandsError;
       setBrands((brandsData || []) as any);
     } catch (error) {
@@ -208,7 +211,6 @@ export default function QuickContent() {
         console.error("Error generating content:", error);
         throw error;
       }
-
       toast.success("Conteúdo gerado com sucesso!", {
         id: toastId
       });
@@ -233,7 +235,7 @@ export default function QuickContent() {
       });
     } catch (error: any) {
       console.error("Error:", error);
-      
+
       // Tratar erro de violação de compliance de forma amigável
       if (error.message?.includes('compliance_violation')) {
         try {
@@ -242,15 +244,15 @@ export default function QuickContent() {
             const errorData = JSON.parse(errorMatch[0]);
             toast.error("Solicitação não permitida", {
               description: errorData.message || "A solicitação viola regulamentações publicitárias brasileiras",
-              duration: 8000,
+              duration: 8000
             });
-            
+
             // Mostrar recomendação separadamente se houver
             if (errorData.recommendation) {
               setTimeout(() => {
                 toast.info("Sugestão", {
                   description: errorData.recommendation,
-                  duration: 10000,
+                  duration: 10000
                 });
               }, 500);
             }
@@ -260,7 +262,6 @@ export default function QuickContent() {
           console.error("Erro ao parsear erro de compliance:", parseError);
         }
       }
-      
       toast.error(error.message || "Erro ao gerar conteúdo");
     } finally {
       setLoading(false);
@@ -271,26 +272,19 @@ export default function QuickContent() {
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>;
   }
-  return (
-    <div className="min-h-full bg-gradient-to-br from-background via-background to-muted/20">
-      <TourSelector 
-        tours={[
-          {
-            tourType: 'navbar',
-            steps: navbarSteps,
-            label: 'Tour da Navegação',
-            targetElement: '#sidebar-logo'
-          },
-          {
-            tourType: 'quick_content',
-            steps: quickContentSteps,
-            label: 'Tour da Criação Rápida',
-            targetElement: '#quick-content-form'
-          }
-        ]}
-        startDelay={500}
-      />
-      <div className="max-w-5xl mx-auto space-y-4 md:space-y-6">
+  return <div className="min-h-full bg-gradient-to-br from-background via-background to-muted/20">
+      <TourSelector tours={[{
+      tourType: 'navbar',
+      steps: navbarSteps,
+      label: 'Tour da Navegação',
+      targetElement: '#sidebar-logo'
+    }, {
+      tourType: 'quick_content',
+      steps: quickContentSteps,
+      label: 'Tour da Criação Rápida',
+      targetElement: '#quick-content-form'
+    }]} startDelay={500} />
+      <div className="max-w-5xl mx-auto space-y-4 md:space-y-6 px-[32px]">
         {/* Header */}
         <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5">
           <CardHeader className="p-3 md:p-4 lg:p-6">
@@ -352,44 +346,25 @@ export default function QuickContent() {
               <Label htmlFor="brand" className="text-sm font-semibold text-foreground">
                 Marca <span className="text-muted-foreground font-normal">(opcional)</span>
               </Label>
-              <Select 
-                value={formData.brandId} 
-                onValueChange={value => setFormData({
-                  ...formData,
-                  brandId: value
-                })}
-                disabled={brands.length === 0}
-              >
+              <Select value={formData.brandId} onValueChange={value => setFormData({
+              ...formData,
+              brandId: value
+            })} disabled={brands.length === 0}>
                 <SelectTrigger id="quick-brand-select" className="h-11 rounded-xl border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors">
-                  <SelectValue 
-                    placeholder={
-                      brands.length === 0 
-                        ? "Nenhuma marca cadastrada" 
-                        : "Nenhuma marca selecionada"
-                    } 
-                  />
+                  <SelectValue placeholder={brands.length === 0 ? "Nenhuma marca cadastrada" : "Nenhuma marca selecionada"} />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl border-border/20">
-                  {brands.length === 0 ? (
-                    <div className="p-3 text-sm text-muted-foreground text-center">
+                  {brands.length === 0 ? <div className="p-3 text-sm text-muted-foreground text-center">
                       Nenhuma marca cadastrada ainda
-                    </div>
-                  ) : (
-                    brands.map(brand => (
-                      <SelectItem key={brand.id} value={brand.id} className="rounded-lg">
+                    </div> : brands.map(brand => <SelectItem key={brand.id} value={brand.id} className="rounded-lg">
                         {brand.name}
-                      </SelectItem>
-                    ))
-                  )}
+                      </SelectItem>)}
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground flex items-start gap-1.5">
                 <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
                 <span>
-                  {brands.length === 0 
-                    ? "Cadastre uma marca para conteúdo personalizado com sua identidade visual" 
-                    : "Selecionar uma marca ajuda a IA a criar conteúdo alinhado com sua identidade visual"
-                  }
+                  {brands.length === 0 ? "Cadastre uma marca para conteúdo personalizado com sua identidade visual" : "Selecionar uma marca ajuda a IA a criar conteúdo alinhado com sua identidade visual"}
                 </span>
               </p>
             </div>
@@ -530,22 +505,19 @@ export default function QuickContent() {
                       Prompt Negativo
                       <Info className="h-3 w-3 text-muted-foreground" />
                     </Label>
-                    <Textarea
-                      id="advanced-negative-prompt"
-                      placeholder="O que NÃO incluir (ex: texto, pessoas, fundo branco...)"
-                      value={formData.negativePrompt}
-                      onChange={(e) => setFormData({...formData, negativePrompt: e.target.value})}
-                      className="min-h-[60px] rounded-lg border-2 border-border/50 bg-background/50 resize-none text-xs"
-                    />
+                    <Textarea id="advanced-negative-prompt" placeholder="O que NÃO incluir (ex: texto, pessoas, fundo branco...)" value={formData.negativePrompt} onChange={e => setFormData({
+                    ...formData,
+                    negativePrompt: e.target.value
+                  })} className="min-h-[60px] rounded-lg border-2 border-border/50 bg-background/50 resize-none text-xs" />
                   </div>
 
                   {/* Color Palette */}
                   <div className="space-y-2">
                     <Label className="text-xs font-medium">Paleta de Cores</Label>
-                    <Select
-                      value={formData.colorPalette}
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, colorPalette: value }))}
-                    >
+                    <Select value={formData.colorPalette} onValueChange={value => setFormData(prev => ({
+                    ...prev,
+                    colorPalette: value
+                  }))}>
                       <SelectTrigger id="advanced-color-palette" className="h-9 rounded-lg border-2 border-border/50 bg-background/50 text-xs">
                         <SelectValue />
                       </SelectTrigger>
@@ -564,10 +536,10 @@ export default function QuickContent() {
                   {/* Lighting */}
                   <div className="space-y-2">
                     <Label className="text-xs font-medium">Iluminação</Label>
-                    <Select
-                      value={formData.lighting}
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, lighting: value }))}
-                    >
+                    <Select value={formData.lighting} onValueChange={value => setFormData(prev => ({
+                    ...prev,
+                    lighting: value
+                  }))}>
                       <SelectTrigger id="advanced-lighting" className="h-9 rounded-lg border-2 border-border/50 bg-background/50 text-xs">
                         <SelectValue />
                       </SelectTrigger>
@@ -589,50 +561,40 @@ export default function QuickContent() {
                       Dimensões da Imagem
                       <Info className="h-3 w-3 text-muted-foreground" />
                     </Label>
-                    <Select
-                      value={formData.width && formData.height ? `${formData.width}x${formData.height}` : ''}
-                      onValueChange={(value) => {
-                        const [width, height] = value.split('x');
-                        setFormData(prev => ({ ...prev, width, height }));
-                      }}
-                    >
+                    <Select value={formData.width && formData.height ? `${formData.width}x${formData.height}` : ''} onValueChange={value => {
+                    const [width, height] = value.split('x');
+                    setFormData(prev => ({
+                      ...prev,
+                      width,
+                      height
+                    }));
+                  }}>
                       <SelectTrigger className="h-9 rounded-lg border-2 border-border/50 bg-background/50 text-xs">
                         <SelectValue placeholder="Selecione as dimensões" />
                       </SelectTrigger>
                       <SelectContent>
-                        {formData.platform && platformSpecs[formData.platform] && (
-                          <>
-                            {platformSpecs[formData.platform].organic?.image.dimensions.map((dim) => (
-                              <SelectItem 
-                                key={`${dim.width}x${dim.height}`} 
-                                value={`${dim.width}x${dim.height}`}
-                              >
+                        {formData.platform && platformSpecs[formData.platform] && <>
+                            {platformSpecs[formData.platform].organic?.image.dimensions.map(dim => <SelectItem key={`${dim.width}x${dim.height}`} value={`${dim.width}x${dim.height}`}>
                                 {dim.width}x{dim.height} ({dim.aspectRatio}) - {dim.description}
-                              </SelectItem>
-                            ))}
-                          </>
-                        )}
-                        {!formData.platform && (
-                          <SelectItem value="1080x1080" disabled>
+                              </SelectItem>)}
+                          </>}
+                        {!formData.platform && <SelectItem value="1080x1080" disabled>
                             Selecione uma plataforma primeiro
-                          </SelectItem>
-                        )}
+                          </SelectItem>}
                       </SelectContent>
                     </Select>
-                    {formData.width && formData.height && (
-                      <p className="text-xs text-muted-foreground mt-1">
+                    {formData.width && formData.height && <p className="text-xs text-muted-foreground mt-1">
                         Selecionado: {formData.width}x{formData.height}px
-                      </p>
-                    )}
+                      </p>}
                   </div>
 
                   {/* Composition */}
                   <div className="space-y-2">
                     <Label className="text-xs font-medium">Composição</Label>
-                    <Select
-                      value={formData.composition}
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, composition: value }))}
-                    >
+                    <Select value={formData.composition} onValueChange={value => setFormData(prev => ({
+                    ...prev,
+                    composition: value
+                  }))}>
                       <SelectTrigger className="h-9 rounded-lg border-2 border-border/50 bg-background/50 text-xs">
                         <SelectValue />
                       </SelectTrigger>
@@ -651,10 +613,10 @@ export default function QuickContent() {
                   {/* Camera Angle */}
                   <div className="space-y-2">
                     <Label className="text-xs font-medium">Ângulo da Câmera</Label>
-                    <Select
-                      value={formData.cameraAngle}
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, cameraAngle: value }))}
-                    >
+                    <Select value={formData.cameraAngle} onValueChange={value => setFormData(prev => ({
+                    ...prev,
+                    cameraAngle: value
+                  }))}>
                       <SelectTrigger className="h-9 rounded-lg border-2 border-border/50 bg-background/50 text-xs">
                         <SelectValue />
                       </SelectTrigger>
@@ -673,10 +635,10 @@ export default function QuickContent() {
                   {/* Mood */}
                   <div className="space-y-2">
                     <Label className="text-xs font-medium">Atmosfera</Label>
-                    <Select
-                      value={formData.mood}
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, mood: value }))}
-                    >
+                    <Select value={formData.mood} onValueChange={value => setFormData(prev => ({
+                    ...prev,
+                    mood: value
+                  }))}>
                       <SelectTrigger className="h-9 rounded-lg border-2 border-border/50 bg-background/50 text-xs">
                         <SelectValue />
                       </SelectTrigger>
@@ -700,15 +662,10 @@ export default function QuickContent() {
                       <Label className="text-xs font-medium">Nível de Detalhes</Label>
                       <span className="text-xs text-muted-foreground font-medium">{formData.detailLevel}/10</span>
                     </div>
-                    <Slider
-                      id="advanced-detail-level"
-                      value={[formData.detailLevel || 7]}
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, detailLevel: value[0] }))}
-                      min={1}
-                      max={10}
-                      step={1}
-                      className="w-full"
-                    />
+                    <Slider id="advanced-detail-level" value={[formData.detailLevel || 7]} onValueChange={value => setFormData(prev => ({
+                    ...prev,
+                    detailLevel: value[0]
+                  }))} min={1} max={10} step={1} className="w-full" />
                     <div className="flex justify-between text-xs text-muted-foreground">
                       <span>Minimalista</span>
                       <span>Equilibrado</span>
@@ -738,6 +695,5 @@ export default function QuickContent() {
           </Button>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 }
