@@ -272,7 +272,8 @@ export default function QuickContent() {
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>;
   }
-  return <div className="min-h-full w-full bg-gradient-to-br from-background via-background to-muted/20 p-4 sm:p-6 lg:p-8">
+  return (
+    <div className="min-h-full w-full bg-gradient-to-br from-background via-background to-muted/20 p-4 sm:p-6 lg:p-8">
       <TourSelector tours={[{
       tourType: 'navbar',
       steps: navbarSteps,
@@ -284,7 +285,7 @@ export default function QuickContent() {
       label: 'Tour da Criação Rápida',
       targetElement: '#quick-content-form'
     }]} startDelay={500} />
-      <div className="max-w-4xl mx-auto space-y-4 sm:space-y-5 lg:space-y-6">
+      <div className="w-full max-w-4xl mx-auto space-y-4 sm:space-y-5 lg:space-y-6">
         {/* Header */}
         <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5">
           <CardHeader className="p-3 md:p-4 lg:p-6">
@@ -695,5 +696,6 @@ export default function QuickContent() {
           </Button>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 }
