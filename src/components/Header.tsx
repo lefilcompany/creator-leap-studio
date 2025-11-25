@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Search, Settings, User, Menu, Loader2, Info, FileText, Shield, LogOut, Moon, Sun, Gift, History, RefreshCw, Lock, Unlock } from "lucide-react";
+import { Search, Settings, User, Menu, Loader2, Info, FileText, Shield, LogOut, Moon, Sun, Gift, History, RefreshCw, PanelLeftOpen, PanelLeftClose } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -132,12 +132,12 @@ export const Header = () => {
                   className="h-10 w-10 rounded-lg hover:bg-primary/20 hover:text-primary transition-all duration-200"
                 >
                   {isFixed ? (
-                    <Lock className="h-5 w-5 text-primary" />
+                    <PanelLeftOpen className="h-5 w-5 text-primary" />
                   ) : (
-                    <Unlock className="h-5 w-5 text-muted-foreground" />
+                    <PanelLeftClose className="h-5 w-5 text-muted-foreground" />
                   )}
                   <span className="sr-only">
-                    {isFixed ? "Desbloquear sidebar" : "Bloquear sidebar"}
+                    {isFixed ? "Sidebar fixa" : "Sidebar retrátil"}
                   </span>
                 </Button>
               </TooltipTrigger>
