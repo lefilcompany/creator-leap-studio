@@ -72,8 +72,8 @@ export default function ContentCreationSelector() {
                   <ImageIcon className="h-6 w-6" />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold text-foreground">Criar Conteúdo</h1>
-                  <p className="text-muted-foreground text-sm">Escolha o tipo de criação que deseja fazer</p>
+                  <h1 className="text-3xl font-bold text-foreground">Criar Conteúdo</h1>
+                  <p className="text-muted-foreground text-base">Escolha o tipo de criação que deseja fazer</p>
                 </div>
               </div>
               {isLoading ? (
