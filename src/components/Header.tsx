@@ -151,7 +151,7 @@ export const Header = () => {
                     "h-10 w-10 rounded-xl transition-all duration-300 group relative",
                     isFixed
                       ? "bg-primary/15 hover:bg-primary/25 text-primary border-2 border-primary/30"
-                      : "hover:bg-muted text-muted-foreground border-2 border-transparent hover:border-primary/20",
+                      : "hover:bg-muted text-muted-foreground hover:text-primary border-2 border-transparent hover:border-primary/20",
                   )}
                 >
                   <div className="relative">
