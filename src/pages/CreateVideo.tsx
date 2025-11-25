@@ -8,7 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Sparkles, Zap, Video, Coins } from "lucide-react";
+import { Loader2, Sparkles, Zap, Video, Coins, Info } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 import { CREDIT_COSTS } from "@/lib/creditCosts";
 import { toast } from "sonner";
 import type { BrandSummary } from "@/types/brand";
@@ -197,134 +198,188 @@ export default function CreateVideo() {
   }
 
   return (
-    <div className="min-h-full bg-gradient-to-br from-background via-background to-muted/20 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto space-y-6">
-        <Card className="shadow-lg border-0 bg-gradient-to-r from-purple-500/10 via-purple-500/5 to-purple-500/10">
-          <CardHeader className="p-6">
+    <div className="min-h-full bg-gradient-to-br from-pink-50/50 via-purple-50/30 to-pink-50/50 dark:from-background dark:via-background dark:to-muted/20 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-5xl mx-auto space-y-6">
+        {/* Header */}
+        <Card className="border-purple-200/50 dark:border-purple-500/20 bg-gradient-to-r from-pink-50/80 via-purple-50/60 to-pink-50/80 dark:from-purple-500/10 dark:via-purple-500/5 dark:to-purple-500/10 shadow-sm">
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="bg-purple-500/20 text-purple-500 rounded-2xl p-3">
-                  <Video className="h-8 w-8" />
+                <div className="bg-gradient-to-br from-purple-500 to-pink-500 text-white rounded-2xl p-3 shadow-md">
+                  <Video className="h-7 w-7" />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
+                  <h1 className="text-3xl font-bold text-foreground">
                     Criar Vídeo
                   </h1>
-                  <p className="text-muted-foreground text-sm">Gere vídeos profissionais com IA</p>
+                  <p className="text-muted-foreground text-sm mt-0.5">Gere vídeos profissionais com IA</p>
                 </div>
               </div>
               {team && (
-                <Card className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-purple-500/20">
-                  <CardContent className="p-3">
+                <Card className="bg-gradient-to-br from-purple-100/80 to-pink-100/80 dark:from-purple-500/10 dark:to-pink-500/10 border-purple-300/50 dark:border-purple-500/20 shadow-sm">
+                  <CardContent className="p-4">
                     <div className="flex items-center gap-3">
-                      <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full p-2">
+                      <div className="bg-gradient-to-br from-purple-500 to-pink-500 text-white rounded-full p-2 shadow-sm">
                         <Zap className="h-4 w-4" />
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
-                          {team?.credits || 0}
-                        </span>
-                        <p className="text-sm text-muted-foreground">Créditos</p>
+                      <div>
+                        <div className="flex items-baseline gap-1.5">
+                          <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                            {team?.credits || 0}
+                          </span>
+                          <span className="text-xs text-muted-foreground font-medium">Créditos</span>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground">Disponíveis</p>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
               )}
             </div>
-          </CardHeader>
+          </CardContent>
         </Card>
 
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-          <Card className="backdrop-blur-sm bg-card/90 border-2 border-border/50 shadow-xl rounded-2xl">
-            <CardHeader className="pb-4 bg-gradient-to-r from-purple-500/5 to-pink-500/5 rounded-t-2xl border-b-2 border-border/30">
-              <h2 className="text-xl font-bold">Configuração Básica</h2>
-            </CardHeader>
-            <CardContent className="space-y-5 p-6">
-              <div className="space-y-3">
-                <Label>Marca <span className="text-destructive">*</span></Label>
-                {isLoadingData ? <Skeleton className="h-11 w-full" /> : (
+        {/* Main Form */}
+        <Card className="border-purple-200/50 dark:border-border/50 bg-white/80 dark:bg-card/90 backdrop-blur-sm shadow-sm">
+          <CardHeader className="pb-6 border-b border-border/50">
+            <div className="flex items-center gap-3">
+              <div className="bg-gradient-to-br from-purple-500 to-pink-500 text-white rounded-xl p-2">
+                <Sparkles className="h-5 w-5" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-foreground">Configure sua criação</h2>
+                <p className="text-sm text-muted-foreground mt-0.5">Descreva o que deseja criar e personalize as opções</p>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6 p-6">
+            {/* Marca */}
+            <div className="space-y-2.5">
+              <Label className="text-sm font-semibold text-foreground">Marca <span className="text-muted-foreground font-normal">(opcional)</span></Label>
+              {isLoadingData ? <Skeleton className="h-11 w-full rounded-xl" /> : (
+                <>
                   <Select onValueChange={(value) => setFormData(prev => ({ ...prev, brand: value, theme: "", persona: "" }))} value={formData.brand}>
-                    <SelectTrigger className="h-11 rounded-xl border-2"><SelectValue placeholder="Selecione a marca" /></SelectTrigger>
+                    <SelectTrigger className="h-11 rounded-xl border-purple-200 dark:border-border hover:border-purple-300 dark:hover:border-purple-500/50 transition-colors"><SelectValue placeholder="Nenhuma marca selecionada" /></SelectTrigger>
                     <SelectContent>{brands.map((b) => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}</SelectContent>
                   </Select>
-                )}
-              </div>
+                  {formData.brand && (
+                    <div className="flex items-start gap-2 text-xs text-muted-foreground bg-muted/50 dark:bg-muted/30 rounded-lg p-3">
+                      <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                      <p>Selecionar uma marca ajuda a IA a criar conteúdo alinhado com sua identidade visual</p>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
 
-              <div className="space-y-3">
-                <Label>Tema Estratégico</Label>
-                <Select onValueChange={(value) => setFormData(prev => ({ ...prev, theme: value }))} value={formData.theme} disabled={!formData.brand || filteredThemes.length === 0}>
-                  <SelectTrigger className="h-11 rounded-xl border-2"><SelectValue placeholder="Selecione um tema (opcional)" /></SelectTrigger>
+            {/* Tema Estratégico */}
+            {formData.brand && filteredThemes.length > 0 && (
+              <div className="space-y-2.5">
+                <Label className="text-sm font-semibold text-foreground">Tema Estratégico <span className="text-muted-foreground font-normal">(opcional)</span></Label>
+                <Select onValueChange={(value) => setFormData(prev => ({ ...prev, theme: value }))} value={formData.theme}>
+                  <SelectTrigger className="h-11 rounded-xl border-purple-200 dark:border-border hover:border-purple-300 dark:hover:border-purple-500/50 transition-colors"><SelectValue placeholder="Nenhum tema selecionado" /></SelectTrigger>
                   <SelectContent>{filteredThemes.map((t) => <SelectItem key={t.id} value={t.id}>{t.title}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
+            )}
 
-              <div className="space-y-3">
-                <Label>Persona</Label>
-                <Select onValueChange={(value) => setFormData(prev => ({ ...prev, persona: value }))} value={formData.persona} disabled={!formData.brand || filteredPersonas.length === 0}>
-                  <SelectTrigger className="h-11 rounded-xl border-2"><SelectValue placeholder="Adicionar persona" /></SelectTrigger>
+            {/* Persona */}
+            {formData.brand && filteredPersonas.length > 0 && (
+              <div className="space-y-2.5">
+                <Label className="text-sm font-semibold text-foreground">Persona <span className="text-muted-foreground font-normal">(opcional)</span></Label>
+                <Select onValueChange={(value) => setFormData(prev => ({ ...prev, persona: value }))} value={formData.persona}>
+                  <SelectTrigger className="h-11 rounded-xl border-purple-200 dark:border-border hover:border-purple-300 dark:hover:border-purple-500/50 transition-colors"><SelectValue placeholder="Nenhuma persona selecionada" /></SelectTrigger>
                   <SelectContent>{filteredPersonas.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
+            )}
 
-              <div className="space-y-3">
-                <Label>Plataforma <span className="text-destructive">*</span></Label>
-                <Select onValueChange={(value) => setFormData(prev => ({ ...prev, platform: value }))} value={formData.platform}>
-                  <SelectTrigger className="h-11 rounded-xl border-2"><SelectValue placeholder="Onde será postado?" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Instagram">Instagram</SelectItem>
-                    <SelectItem value="Facebook">Facebook</SelectItem>
-                    <SelectItem value="TikTok">TikTok</SelectItem>
-                    <SelectItem value="Twitter/X">Twitter (X)</SelectItem>
-                    <SelectItem value="LinkedIn">LinkedIn</SelectItem>
-                  </SelectContent>
-                </Select>
+            {/* Plataforma */}
+            <div className="space-y-2.5">
+              <Label className="text-sm font-semibold text-foreground">Plataforma <span className="text-muted-foreground font-normal">(opcional)</span></Label>
+              <Select onValueChange={(value) => setFormData(prev => ({ ...prev, platform: value }))} value={formData.platform}>
+                <SelectTrigger className="h-11 rounded-xl border-purple-200 dark:border-border hover:border-purple-300 dark:hover:border-purple-500/50 transition-colors"><SelectValue placeholder="Nenhuma plataforma selecionada" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Instagram">Instagram</SelectItem>
+                  <SelectItem value="Facebook">Facebook</SelectItem>
+                  <SelectItem value="TikTok">TikTok</SelectItem>
+                  <SelectItem value="Twitter/X">Twitter (X)</SelectItem>
+                  <SelectItem value="LinkedIn">LinkedIn</SelectItem>
+                </SelectContent>
+              </Select>
+              <div className="flex items-start gap-2 text-xs text-muted-foreground bg-muted/50 dark:bg-muted/30 rounded-lg p-3">
+                <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                <p>Selecionar plataforma ajusta automaticamente a proporção ideal</p>
               </div>
-            </CardContent>
-          </Card>
+            </div>
 
-          <Card className="backdrop-blur-sm bg-card/90 border-2 border-border/50 shadow-xl rounded-2xl">
-            <CardHeader className="pb-4 bg-gradient-to-r from-pink-500/5 to-purple-500/5 rounded-t-2xl border-b-2 border-border/30">
-              <h2 className="text-xl font-bold">Detalhes do Vídeo</h2>
-            </CardHeader>
-            <CardContent className="space-y-5 p-6">
-              <div className="space-y-3">
-                <Label>Objetivo <span className="text-destructive">*</span></Label>
-                <Textarea id="objective" placeholder="Qual a principal meta?" value={formData.objective} onChange={(e) => setFormData(prev => ({ ...prev, objective: e.target.value }))} className="min-h-[100px] rounded-xl border-2" />
-              </div>
+            <Separator className="my-6" />
 
-              <div className="space-y-3">
-                <Label>Descrição Visual <span className="text-destructive">*</span></Label>
-                <Textarea id="description" placeholder="Descreva o que deve aparecer no vídeo..." value={formData.description} onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))} className="min-h-[120px] rounded-xl border-2" />
-              </div>
+            {/* Descrição */}
+            <div className="space-y-2.5">
+              <Label className="text-sm font-semibold text-foreground">Descreva o que você quer criar <span className="text-destructive">*</span></Label>
+              <Textarea
+                placeholder="Ex: Um vídeo mostrando um produto sendo usado em diferentes cenários, com transições suaves e música de fundo inspiradora..."
+                value={formData.description}
+                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                className="min-h-[120px] rounded-xl border-purple-200 dark:border-border hover:border-purple-300 dark:hover:border-purple-500/50 transition-colors resize-none"
+              />
+            </div>
 
-              <div className="space-y-3">
-                <Label>Tom de Voz <span className="text-destructive">*</span></Label>
-                <Select onValueChange={(tone) => { if (!formData.tone.includes(tone) && formData.tone.length < 4) setFormData(prev => ({ ...prev, tone: [...prev.tone, tone] })); }} value="">
-                  <SelectTrigger className="h-11 rounded-xl border-2"><SelectValue placeholder="Selecione um tom" /></SelectTrigger>
-                  <SelectContent>{toneOptions.map((t) => <SelectItem key={t} value={t} className="capitalize">{t}</SelectItem>)}</SelectContent>
-                </Select>
-                {formData.tone.length > 0 && (
-                  <div className="flex flex-wrap gap-2 p-3 bg-purple-500/5 rounded-xl border-2 border-purple-500/20">
-                    {formData.tone.map((t) => (
-                      <Badge key={t} variant="secondary" className="bg-purple-500/10 text-purple-500">
-                        {t}
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+            {/* Objetivo */}
+            <div className="space-y-2.5">
+              <Label className="text-sm font-semibold text-foreground">Objetivo <span className="text-destructive">*</span></Label>
+              <Textarea
+                placeholder="Qual a principal meta deste vídeo?"
+                value={formData.objective}
+                onChange={(e) => setFormData(prev => ({ ...prev, objective: e.target.value }))}
+                className="min-h-[80px] rounded-xl border-purple-200 dark:border-border hover:border-purple-300 dark:hover:border-purple-500/50 transition-colors resize-none"
+              />
+            </div>
 
-        <div className="pt-6 pb-8">
-          <Card className="bg-gradient-to-r from-purple-500/5 via-pink-500/5 to-purple-500/5 border-2 border-purple-500/20 rounded-2xl shadow-2xl">
-            <CardContent className="p-6">
-              <Button onClick={handleGenerateVideo} disabled={loading} className="w-full max-w-md h-14 rounded-2xl text-lg font-bold bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 hover:opacity-90 mx-auto flex gap-2">
-                {loading ? <><Loader2 className="animate-spin h-5 w-5" /><span>Gerando vídeo...</span></> : <><Sparkles className="h-5 w-5" /><span>Gerar Vídeo</span><Badge variant="secondary" className="ml-2"><Coins className="h-3 w-3 mr-1" />{CREDIT_COSTS.VIDEO_GENERATION}</Badge></>}
-              </Button>
-            </CardContent>
-          </Card>
+            {/* Tom de Voz */}
+            <div className="space-y-2.5">
+              <Label className="text-sm font-semibold text-foreground">Tom de Voz <span className="text-destructive">*</span></Label>
+              <Select onValueChange={(tone) => { if (!formData.tone.includes(tone) && formData.tone.length < 4) setFormData(prev => ({ ...prev, tone: [...prev.tone, tone] })); }} value="">
+                <SelectTrigger className="h-11 rounded-xl border-purple-200 dark:border-border hover:border-purple-300 dark:hover:border-purple-500/50 transition-colors"><SelectValue placeholder="Selecione um tom" /></SelectTrigger>
+                <SelectContent>{toneOptions.map((t) => <SelectItem key={t} value={t} className="capitalize">{t}</SelectItem>)}</SelectContent>
+              </Select>
+              {formData.tone.length > 0 && (
+                <div className="flex flex-wrap gap-2 p-3 bg-purple-100/50 dark:bg-purple-500/10 rounded-xl border border-purple-200 dark:border-purple-500/20">
+                  {formData.tone.map((t) => (
+                    <Badge key={t} variant="secondary" className="bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0 capitalize">
+                      {t}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Generate Button */}
+        <div className="pt-2 pb-8">
+          <Button
+            onClick={handleGenerateVideo}
+            disabled={loading}
+            className="w-full h-14 rounded-2xl text-base font-semibold bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 hover:opacity-90 shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="animate-spin h-5 w-5 mr-2" />
+                <span>Gerando vídeo...</span>
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-5 w-5 mr-2" />
+                <span>Gerar Vídeo</span>
+                <Badge variant="secondary" className="ml-3 bg-white/20 text-white border-0 hover:bg-white/30">
+                  <Coins className="h-3 w-3 mr-1" />
+                  {CREDIT_COSTS.VIDEO_GENERATION}
+                </Badge>
+              </>
+            )}
+          </Button>
         </div>
       </div>
     </div>
