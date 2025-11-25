@@ -10,12 +10,12 @@ export const DashboardLayout = () => {
   
   return (
     <SidebarProvider defaultOpen={true}>
-      <div className="min-h-screen flex w-full max-w-screen overflow-hidden bg-gradient-to-br from-background via-background to-muted/10">
+      <div className="h-screen w-full flex overflow-hidden bg-gradient-to-br from-background via-background to-muted/10">
         <AppSidebar />
-        <div className="flex flex-1 flex-col min-w-0 max-w-full overflow-hidden">
+        <div className="flex flex-1 flex-col min-w-0">
           <Header />
           <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gradient-to-b from-background/50 to-background">
-            <div className="max-w-full mx-auto h-full p-4 sm:p-6 lg:p-8">
+            <div className="w-full h-full p-4 sm:p-6 lg:p-8">
               <Outlet />
             </div>
           </main>
