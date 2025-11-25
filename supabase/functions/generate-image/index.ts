@@ -115,9 +115,9 @@ serve(async (req) => {
       );
     }
 
-    if (!teamData || teamData.credits < CREDIT_COSTS.IMAGE_GENERATION) {
+    if (!teamData || teamData.credits < CREDIT_COSTS.COMPLETE_IMAGE) {
       return new Response(
-        JSON.stringify({ error: `Créditos insuficientes. Necessário: ${CREDIT_COSTS.IMAGE_GENERATION} créditos` }),
+        JSON.stringify({ error: `Créditos insuficientes. Necessário: ${CREDIT_COSTS.COMPLETE_IMAGE} créditos` }),
         { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -347,7 +347,7 @@ serve(async (req) => {
 
     // Decrement team credits
     const creditsBefore = teamData.credits;
-    const creditsAfter = creditsBefore - CREDIT_COSTS.IMAGE_GENERATION;
+    const creditsAfter = creditsBefore - CREDIT_COSTS.COMPLETE_IMAGE;
     
     const { error: updateError } = await supabase
       .from('teams')
@@ -362,11 +362,11 @@ serve(async (req) => {
     await recordCreditUsage(supabase, {
       teamId: authenticatedTeamId,
       userId: authenticatedUserId,
-      actionType: 'IMAGE_GENERATION',
-      creditsUsed: CREDIT_COSTS.IMAGE_GENERATION,
+      actionType: 'COMPLETE_IMAGE',
+      creditsUsed: CREDIT_COSTS.COMPLETE_IMAGE,
       creditsBefore,
       creditsAfter,
-      description: 'Geração standalone de imagem',
+      description: 'Geração de imagem completa',
       metadata: { platform: formData.platform }
     });
 
