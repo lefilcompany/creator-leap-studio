@@ -111,22 +111,22 @@ export default function ContentCreationSelector() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-full">
                 <label htmlFor="quick" className="cursor-pointer h-full">
                   <Card className="hover:border-primary transition-all duration-300 hover:shadow-lg h-full">
-                    <CardContent className="p-5 flex flex-col items-center text-center gap-4 h-full justify-between min-h-[220px]">
+                    <CardContent className="p-6 flex flex-col items-center text-center gap-3 h-full justify-between">
                       <RadioGroupItem value="quick" id="quick" className="sr-only" />
-                      <div className="flex flex-col items-center gap-4 flex-1 justify-center">
-                        <div className="w-14 h-14 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0">
-                          <Zap className="h-7 w-7 text-accent" />
+                      <div className="flex flex-col items-center gap-3 flex-1 justify-center">
+                        <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0">
+                          <Zap className="h-8 w-8 text-accent" />
                         </div>
-                        <div className="space-y-2">
-                          <h3 className="font-semibold text-base">Criação Rápida</h3>
-                          <p className="text-xs text-muted-foreground">
+                        <div className="space-y-1.5">
+                          <h3 className="font-semibold text-lg">Criação Rápida</h3>
+                          <p className="text-sm text-muted-foreground leading-relaxed">
                             Gere imagens rapidamente com prompts simples e diretos
                           </p>
                         </div>
                       </div>
-                      <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-accent/15 border border-accent/30">
-                        <Zap className="h-3.5 w-3.5 text-accent" />
-                        <span className="text-xs font-bold text-accent">{CREDIT_COSTS.QUICK_IMAGE} créditos</span>
+                      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/15 border border-accent/30">
+                        <Zap className="h-4 w-4 text-accent" />
+                        <span className="text-sm font-bold text-accent">{CREDIT_COSTS.QUICK_IMAGE} créditos</span>
                       </div>
                     </CardContent>
                   </Card>
@@ -134,22 +134,22 @@ export default function ContentCreationSelector() {
 
                 <label htmlFor="image" className="cursor-pointer h-full">
                   <Card className="hover:border-primary transition-all duration-300 hover:shadow-lg h-full">
-                    <CardContent className="p-5 flex flex-col items-center text-center gap-4 h-full justify-between min-h-[220px]">
+                    <CardContent className="p-6 flex flex-col items-center text-center gap-3 h-full justify-between">
                       <RadioGroupItem value="image" id="image" className="sr-only" />
-                      <div className="flex flex-col items-center gap-4 flex-1 justify-center">
-                        <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          <ImageIcon className="h-7 w-7 text-primary" />
+                      <div className="flex flex-col items-center gap-3 flex-1 justify-center">
+                        <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                          <ImageIcon className="h-8 w-8 text-primary" />
                         </div>
-                        <div className="space-y-2">
-                          <h3 className="font-semibold text-base">Criação Personalizada</h3>
-                          <p className="text-xs text-muted-foreground">
+                        <div className="space-y-1.5">
+                          <h3 className="font-semibold text-lg">Criação Personalizada</h3>
+                          <p className="text-sm text-muted-foreground leading-relaxed">
                             Crie imagens profissionais com controle completo e editor de canvas
                           </p>
                         </div>
                       </div>
-                      <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/15 border border-primary/30">
-                        <ImageIcon className="h-3.5 w-3.5 text-primary" />
-                        <span className="text-xs font-bold text-primary">{CREDIT_COSTS.COMPLETE_IMAGE} créditos</span>
+                      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/15 border border-primary/30">
+                        <ImageIcon className="h-4 w-4 text-primary" />
+                        <span className="text-sm font-bold text-primary">{CREDIT_COSTS.COMPLETE_IMAGE} créditos</span>
                       </div>
                     </CardContent>
                   </Card>
@@ -157,22 +157,22 @@ export default function ContentCreationSelector() {
 
                 <label htmlFor="video" className="cursor-pointer h-full">
                   <Card className="hover:border-primary transition-all duration-300 hover:shadow-lg h-full">
-                    <CardContent className="p-5 flex flex-col items-center text-center gap-4 h-full justify-between min-h-[220px]">
+                    <CardContent className="p-6 flex flex-col items-center text-center gap-3 h-full justify-between">
                       <RadioGroupItem value="video" id="video" className="sr-only" />
-                      <div className="flex flex-col items-center gap-4 flex-1 justify-center">
-                        <div className="w-14 h-14 rounded-full bg-secondary/10 flex items-center justify-center flex-shrink-0">
-                          <Video className="h-7 w-7 text-secondary" />
+                      <div className="flex flex-col items-center gap-3 flex-1 justify-center">
+                        <div className="w-16 h-16 rounded-full bg-secondary/10 flex items-center justify-center flex-shrink-0">
+                          <Video className="h-8 w-8 text-secondary" />
                         </div>
-                        <div className="space-y-2">
-                          <h3 className="font-semibold text-base">Criação de Vídeo</h3>
-                          <p className="text-xs text-muted-foreground">
+                        <div className="space-y-1.5">
+                          <h3 className="font-semibold text-lg">Criação de Vídeo</h3>
+                          <p className="text-sm text-muted-foreground leading-relaxed">
                             Gere vídeos impactantes com IA usando o modelo Veo
                           </p>
                         </div>
                       </div>
-                      <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary/15 border border-secondary/30">
-                        <Video className="h-3.5 w-3.5 text-secondary" />
-                        <span className="text-xs font-bold text-secondary">{CREDIT_COSTS.VIDEO_GENERATION} créditos</span>
+                      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/15 border border-secondary/30">
+                        <Video className="h-4 w-4 text-secondary" />
+                        <span className="text-sm font-bold text-secondary">{CREDIT_COSTS.VIDEO_GENERATION} créditos</span>
                       </div>
                     </CardContent>
                   </Card>
