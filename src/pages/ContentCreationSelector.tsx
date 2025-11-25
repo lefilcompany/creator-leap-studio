@@ -1,20 +1,18 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Skeleton } from '@/components/ui/skeleton';
-import { Loader2, Zap, ImageIcon, Video } from 'lucide-react';
-import { CREDIT_COSTS } from '@/lib/creditCosts';
-import { useAuth } from '@/hooks/useAuth';
-import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
-import { contentCreationSelectorSteps } from '@/components/onboarding/tourSteps';
-type CreationType = 'quick' | 'image' | 'video';
+import { Skeleton } from "@/components/ui/skeleton";
+import { Loader2, Zap, ImageIcon, Video } from "lucide-react";
+import { CREDIT_COSTS } from "@/lib/creditCosts";
+import { useAuth } from "@/hooks/useAuth";
+import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
+import { contentCreationSelectorSteps } from "@/components/onboarding/tourSteps";
+type CreationType = "quick" | "image" | "video";
 export default function ContentCreationSelector() {
   const navigate = useNavigate();
   const location = useLocation();
-  const {
-    team
-  } = useAuth();
+  const { team } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [creationType, setCreationType] = useState<CreationType | null>(null);
 
@@ -35,7 +33,7 @@ export default function ContentCreationSelector() {
       // Limpar o state para não resetar em próximos renders
       navigate(location.pathname, {
         replace: true,
-        state: {}
+        state: {},
       });
     }
   }, [location.state]);
@@ -44,23 +42,29 @@ export default function ContentCreationSelector() {
   useEffect(() => {
     if (creationType) {
       const routes: Record<CreationType, string> = {
-        quick: '/quick-content',
-        image: '/create/image',
-        video: '/create/video'
+        quick: "/quick-content",
+        image: "/create/image",
+        video: "/create/video",
       };
       navigate(routes[creationType]);
     }
   }, [creationType, navigate]);
   if (isLoading) {
-    return <div className="flex items-center justify-center min-h-screen">
+    return (
+      <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin text-accent" />
-      </div>;
+      </div>
+    );
   }
-  return <div className="h-full w-full flex flex-col">
+  return (
+    <div className="h-full w-full flex flex-col">
       <OnboardingTour tourType="create_content" steps={contentCreationSelectorSteps} />
 
       <div className="max-w-7xl mx-auto flex flex-col gap-4 h-full w-full">
-        <Card id="content-creation-header" className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5">
+        <Card
+          id="content-creation-header"
+          className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5"
+        >
           <CardHeader className="pb-4">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
               <div className="flex items-center gap-3">
@@ -69,37 +73,42 @@ export default function ContentCreationSelector() {
                 </div>
                 <div>
                   <h1 className="text-2xl font-bold text-foreground">Criar Conteúdo</h1>
-                  <p className="text-muted-foreground text-sm">
-                    Escolha o tipo de criação que deseja fazer
-                  </p>
+                  <p className="text-muted-foreground text-sm">Escolha o tipo de criação que deseja fazer</p>
                 </div>
               </div>
-              {isLoading ? <Skeleton className="h-14 w-40 rounded-xl" /> : team && <Card className="bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/30 flex-shrink-0">
-                  <CardContent className="p-3">
-                    <div className="flex items-center justify-center gap-4">
-                      <div className="relative">
-                        <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary rounded-full blur-sm opacity-40"></div>
-                        <div className="relative bg-gradient-to-r from-primary to-secondary text-white rounded-full p-2">
-                          <Zap className="h-4 w-4" />
+              {isLoading ? (
+                <Skeleton className="h-14 w-40 rounded-xl" />
+              ) : (
+                team && (
+                  <Card className="bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/30 flex-shrink-0">
+                    <CardContent className="p-3">
+                      <div className="flex items-center justify-center gap-4">
+                        <div className="relative">
+                          <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary rounded-full blur-sm opacity-40"></div>
+                          <div className="relative bg-gradient-to-r from-primary to-secondary text-white rounded-full p-2">
+                            <Zap className="h-4 w-4" />
+                          </div>
+                        </div>
+                        <div className="text-left gap-4 flex justify-center items-center">
+                          <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                            {team.credits || 0}
+                          </span>
+                          <p className="text-xs text-muted-foreground font-medium leading-tight">Créditos</p>
                         </div>
                       </div>
-                      <div className="text-left gap-4 flex justify-center items-center">
-                        <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                          {team.credits || 0}
-                        </span>
-                        <p className="text-xs text-muted-foreground font-medium leading-tight">
-                          Créditos
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>}
+                    </CardContent>
+                  </Card>
+                )
+              )}
             </div>
           </CardHeader>
         </Card>
 
-        <Card id="creation-type-selection" className="backdrop-blur-sm bg-card/60 border border-border/20 shadow-lg rounded-2xl">
-          <CardHeader className="pb-3 pt-4 bg-gradient-to-r from-primary/5 to-secondary/5">
+        <Card
+          id="creation-type-selection"
+          className="backdrop-blur-sm bg-card/60 border border-border/20 shadow-lg rounded-2xl"
+        >
+          <CardHeader className="pb-3 pt-4 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-2xl">
             <h2 className="text-xl font-semibold flex items-center gap-3">
               <div className="w-2 h-2 bg-primary rounded-full"></div>
               Tipo de Criação
@@ -107,7 +116,7 @@ export default function ContentCreationSelector() {
             <p className="text-muted-foreground text-sm">Selecione o tipo de conteúdo que deseja criar</p>
           </CardHeader>
           <CardContent className="p-6">
-            <RadioGroup value={creationType || ''} onValueChange={value => setCreationType(value as CreationType)}>
+            <RadioGroup value={creationType || ""} onValueChange={(value) => setCreationType(value as CreationType)}>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <label htmlFor="quick" className="cursor-pointer">
                   <Card className="hover:border-primary transition-all duration-300 hover:shadow-lg">
@@ -155,11 +164,11 @@ export default function ContentCreationSelector() {
                   </Card>
                 </label>
 
-                  <label htmlFor="video" className="cursor-pointer">
-                    <Card className="hover:border-primary transition-all duration-300 hover:shadow-lg">
-                      <CardContent className="p-6 flex flex-col items-center text-center gap-4 min-h-[240px]">
-                        <RadioGroupItem value="video" id="video" className="sr-only" />
-                        <div className="flex flex-col items-center gap-4 flex-1 justify-center">
+                <label htmlFor="video" className="cursor-pointer">
+                  <Card className="hover:border-primary transition-all duration-300 hover:shadow-lg">
+                    <CardContent className="p-6 flex flex-col items-center text-center gap-4 min-h-[240px]">
+                      <RadioGroupItem value="video" id="video" className="sr-only" />
+                      <div className="flex flex-col items-center gap-4 flex-1 justify-center">
                         <div className="w-16 h-16 rounded-full bg-secondary/10 flex items-center justify-center flex-shrink-0">
                           <Video className="h-8 w-8 text-secondary" />
                         </div>
@@ -172,7 +181,9 @@ export default function ContentCreationSelector() {
                       </div>
                       <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/15 border border-secondary/30">
                         <Video className="h-4 w-4 text-secondary" />
-                        <span className="text-sm font-bold text-secondary">{CREDIT_COSTS.VIDEO_GENERATION} créditos</span>
+                        <span className="text-sm font-bold text-secondary">
+                          {CREDIT_COSTS.VIDEO_GENERATION} créditos
+                        </span>
                       </div>
                     </CardContent>
                   </Card>
@@ -182,5 +193,6 @@ export default function ContentCreationSelector() {
           </CardContent>
         </Card>
       </div>
-    </div>;
+    </div>
+  );
 }
