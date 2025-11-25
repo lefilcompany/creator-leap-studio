@@ -391,7 +391,14 @@ export function AppSidebar() {
   }
 
   // Desktop: renderiza Sidebar com animação suave e hover-to-expand
-  return <Sidebar collapsible={isFixed ? "none" : "icon"} side="left" variant="sidebar" className="border-r border-primary/10 shadow-md shadow-primary/20" onMouseEnter={() => !isFixed && setIsHovered(true)} onMouseLeave={() => !isFixed && setIsHovered(false)}>
+  return <Sidebar 
+      collapsible={isFixed ? "none" : "icon"} 
+      side="left" 
+      variant="sidebar" 
+      className="border-r border-primary/10 shadow-md shadow-primary/20 flex-shrink-0" 
+      onMouseEnter={() => !isFixed && setIsHovered(true)} 
+      onMouseLeave={() => !isFixed && setIsHovered(false)}
+    >
       <SidebarContent className="bg-card flex flex-col h-full overflow-y-auto">
         {sidebarContent()}
       </SidebarContent>
