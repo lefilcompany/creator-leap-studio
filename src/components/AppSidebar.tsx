@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Home,
   Tag,
@@ -12,7 +13,9 @@ import {
   Rocket,
   Palette,
   Zap,
-  Coins
+  Coins,
+  Pin,
+  PinOff
 } from "lucide-react";
 import {
   Sidebar,
@@ -29,8 +32,8 @@ import {
 import {
   Sheet,
   SheetContent,
-  SheetTrigger,
 } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/hooks/useAuth";
@@ -55,12 +58,22 @@ function NavItem({ id, href, icon: Icon, label, collapsed, onNavigate, disabled 
     return (
       <div
         className={cn(
-          "flex items-center gap-4 p-3 rounded-lg transition-colors duration-200 cursor-not-allowed opacity-50",
+          "flex items-center gap-4 p-3 rounded-lg transition-all duration-400 ease-out cursor-not-allowed opacity-50",
           "text-muted-foreground bg-background"
         )}
       >
         <Icon className="h-5 w-5 flex-shrink-0" />
-        {!collapsed && <span className="font-medium text-sm">{label}</span>}
+        {!collapsed && (
+          <motion.span
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -10 }}
+            transition={{ duration: 0.3 }}
+            className="font-medium text-sm"
+          >
+            {label}
+          </motion.span>
+        )}
       </div>
     );
   }
@@ -71,7 +84,7 @@ function NavItem({ id, href, icon: Icon, label, collapsed, onNavigate, disabled 
       to={href}
       onClick={onNavigate}
       className={cn(
-        "flex items-center gap-4 p-2.5 rounded-lg transition-colors duration-200 group",
+        "flex items-center gap-4 p-2.5 rounded-lg transition-all duration-400 ease-out group",
         collapsed ? "justify-center" : "",
         isActive
           ? "bg-primary/10 text-primary"
@@ -79,7 +92,17 @@ function NavItem({ id, href, icon: Icon, label, collapsed, onNavigate, disabled 
       )}
     >
       <Icon className="h-5 w-5 flex-shrink-0" />
-      {!collapsed && <span className="font-medium text-sm">{label}</span>}
+      {!collapsed && (
+        <motion.span
+          initial={{ opacity: 0, x: -10 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -10 }}
+          transition={{ duration: 0.3 }}
+          className="font-medium text-sm"
+        >
+          {label}
+        </motion.span>
+      )}
     </NavLink>
   );
 
@@ -137,13 +160,22 @@ function ActionButton({ id, href, icon: Icon, label, collapsed, variant, onNavig
                 )}
             >
                 <Icon className="h-5 w-5 flex-shrink-0" />
-                {!collapsed && <span className="font-medium text-sm">{label}</span>}
+                {!collapsed && (
+                  <motion.span
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -10 }}
+                    transition={{ duration: 0.3 }}
+                    className="font-medium text-sm"
+                  >
+                    {label}
+                  </motion.span>
+                )}
             </div>
         );
     }
 
     const handleClick = (e: React.MouseEvent) => {
-        // Se já estiver na página, resetar com state
         if (isActive) {
             e.preventDefault();
             navigate(href, { state: { reset: true }, replace: true });
@@ -157,13 +189,23 @@ function ActionButton({ id, href, icon: Icon, label, collapsed, variant, onNavig
             to={href}
             onClick={handleClick}
             className={cn(
-                "flex items-center gap-3 p-2.5 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-105",
+                "flex items-center gap-3 p-2.5 rounded-lg transition-all duration-400 ease-out transform hover:scale-105",
                 collapsed ? "justify-center" : "",
                 isActive ? variantClasses[variant].active : variantClasses[variant].inactive
             )}
         >
             <Icon className="h-5 w-5 flex-shrink-0" />
-            {!collapsed && <span className="font-medium text-sm">{label}</span>}
+            {!collapsed && (
+              <motion.span
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10 }}
+                transition={{ duration: 0.3 }}
+                className="font-medium text-sm"
+              >
+                {label}
+              </motion.span>
+            )}
         </NavLink>
     );
 
@@ -197,13 +239,19 @@ function TeamPlanSection({ teamName, planName, collapsed, onNavigate, t }: {
       id="nav-team"
       to="/team"
       onClick={onNavigate}
-      className="flex items-center gap-4 p-3 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-105 bg-gradient-to-tr from-primary to-fuchsia-600 text-primary-foreground shadow-lg"
+      className="flex items-center gap-4 p-3 rounded-lg transition-all duration-400 ease-out transform hover:scale-105 bg-gradient-to-tr from-primary to-fuchsia-600 text-primary-foreground shadow-lg"
     >
       <Rocket className="h-6 w-6 flex-shrink-0" />
-      <div className="flex flex-col items-start leading-tight">
+      <motion.div
+        initial={{ opacity: 0, x: -10 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: -10 }}
+        transition={{ duration: 0.3 }}
+        className="flex flex-col items-start leading-tight"
+      >
         <span className="font-bold text-sm">{t.sidebar.team}: {teamName}</span>
         <span className="text-xs text-primary-foreground/80">{t.sidebar.plan}: {planName}</span>
-      </div>
+      </motion.div>
     </NavLink>
   );
 }
@@ -214,12 +262,10 @@ export function AppSidebar() {
   const { team, isTrialExpired } = useAuth();
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const [isRetractable, setIsRetractable] = useState(true);
+  
   const logo = theme === 'dark' ? logoCreatorBranca : logoCreatorPreta;
-  
-  // Verifica se a sidebar está colapsada no desktop
   const collapsed = state === "collapsed";
-  
-  // Se o trial expirou, desabilita navegação exceto histórico
   const isNavigationDisabled = isTrialExpired;
 
   const navLinks = [
@@ -242,33 +288,76 @@ export function AppSidebar() {
     }
   };
 
+  const toggleRetractableMode = () => {
+    setIsRetractable(!isRetractable);
+    // Se estava colapsada e vamos desativar o modo retrátil, expande
+    if (collapsed && !isRetractable) {
+      setOpen(true);
+    }
+  };
+
   const sidebarContent = () => (
     <TooltipProvider>
-      <NavLink 
-        to="/dashboard" 
-        onClick={handleMobileNavigate}
-        id="sidebar-logo"
-        className="pt-6 pb-2 mb-2 flex justify-center cursor-pointer hover:opacity-80 transition-opacity"
-      >
-        {collapsed ? (
-          <img
-            src={creatorSymbol}
-            alt="Creator Symbol"
-            className="h-10 w-10 object-contain"
-          />
-        ) : (
-          <img
-            src={logo}
-            alt="Creator Logo"
-            className="h-8 w-auto"
-          />
+      {/* Header com Logo e Toggle de Modo */}
+      <div className="pt-4 pb-2 mb-2 px-2 flex items-center justify-between gap-2">
+        <NavLink 
+          to="/dashboard" 
+          onClick={handleMobileNavigate}
+          id="sidebar-logo"
+          className="flex-1 flex justify-center cursor-pointer hover:opacity-80 transition-opacity"
+        >
+          <AnimatePresence mode="wait">
+            <motion.img
+              key={collapsed ? 'symbol' : 'logo'}
+              src={collapsed ? creatorSymbol : logo}
+              alt={collapsed ? "Creator Symbol" : "Creator Logo"}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.4, ease: "easeInOut" }}
+              className={collapsed ? "h-10 w-10 object-contain" : "h-8 w-auto"}
+            />
+          </AnimatePresence>
+        </NavLink>
+        
+        {/* Botão de Toggle do Modo Retrátil (somente desktop) */}
+        {!isMobile && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleRetractableMode}
+                className={cn(
+                  "h-8 w-8 flex-shrink-0 transition-all duration-400 ease-out",
+                  collapsed && "opacity-0 w-0 p-0"
+                )}
+              >
+                {isRetractable ? (
+                  <PinOff className="h-4 w-4 text-muted-foreground" />
+                ) : (
+                  <Pin className="h-4 w-4 text-primary" />
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              <p>{isRetractable ? "Fixar sidebar aberta" : "Ativar modo retrátil"}</p>
+            </TooltipContent>
+          </Tooltip>
         )}
-      </NavLink>
+      </div>
       
-      <nav className={cn(
-        "flex-1 flex flex-col overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent",
-        collapsed ? "gap-3 px-2" : "gap-5 px-4"
-      )}>
+      <motion.nav 
+        className={cn(
+          "flex-1 flex flex-col overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent",
+          collapsed ? "gap-3 px-2" : "gap-5 px-4"
+        )}
+        animate={{ 
+          paddingLeft: collapsed ? "0.5rem" : "1rem",
+          paddingRight: collapsed ? "0.5rem" : "1rem"
+        }}
+        transition={{ duration: 0.4, ease: "easeInOut" }}
+      >
         <div className="flex flex-col gap-1.5">
           {navLinks.map((link) => (
             <NavItem 
@@ -302,7 +391,7 @@ export function AppSidebar() {
                     id="nav-credits"
                     to="/plans"
                     onClick={handleMobileNavigate}
-                    className="flex items-center justify-center gap-3 p-3 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-105 bg-gradient-to-r from-primary to-secondary text-primary-foreground shadow-lg"
+                    className="flex items-center justify-center gap-3 p-3 rounded-lg transition-all duration-400 ease-out transform hover:scale-105 bg-gradient-to-r from-primary to-secondary text-primary-foreground shadow-lg"
                   >
                     <Coins className="h-5 w-5 flex-shrink-0" />
                   </NavLink>
@@ -316,10 +405,18 @@ export function AppSidebar() {
                 id="nav-credits"
                 to="/plans"
                 onClick={handleMobileNavigate}
-                className="flex items-center gap-3 p-3 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-105 bg-gradient-to-r from-primary to-secondary text-primary-foreground shadow-lg"
+                className="flex items-center gap-3 p-3 rounded-lg transition-all duration-400 ease-out transform hover:scale-105 bg-gradient-to-r from-primary to-secondary text-primary-foreground shadow-lg"
               >
                 <Coins className="h-5 w-5 flex-shrink-0" />
-                <span className="font-medium text-sm">Comprar Créditos</span>
+                <motion.span
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
+                  transition={{ duration: 0.3 }}
+                  className="font-medium text-sm"
+                >
+                  Comprar Créditos
+                </motion.span>
               </NavLink>
             )}
             
@@ -330,7 +427,7 @@ export function AppSidebar() {
                     id="nav-team"
                     to="/team"
                     onClick={handleMobileNavigate}
-                    className="flex items-center justify-center gap-4 p-3 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-105 bg-gradient-to-tr from-primary to-fuchsia-600 text-primary-foreground shadow-lg"
+                    className="flex items-center justify-center gap-4 p-3 rounded-lg transition-all duration-400 ease-out transform hover:scale-105 bg-gradient-to-tr from-primary to-fuchsia-600 text-primary-foreground shadow-lg"
                   >
                     <Rocket className="h-6 w-6 flex-shrink-0" />
                   </NavLink>
@@ -353,11 +450,11 @@ export function AppSidebar() {
             )}
           </div>
         )}
-      </nav>
+      </motion.nav>
     </TooltipProvider>
   );
 
-  // No mobile/tablet, renderiza um Sheet em vez da Sidebar normal
+  // Mobile: renderiza Sheet
   if (isMobile) {
     return (
       <Sheet open={open} onOpenChange={setOpen}>
@@ -370,10 +467,10 @@ export function AppSidebar() {
     );
   }
 
-  // Desktop: renderiza a Sidebar normal retrátil
+  // Desktop: renderiza Sidebar com animação suave
   return (
     <Sidebar 
-      collapsible="icon"
+      collapsible={isRetractable ? "icon" : "none"}
       side="left"
       variant="sidebar"
       className="border-r border-primary/10 shadow-md shadow-primary/20"
