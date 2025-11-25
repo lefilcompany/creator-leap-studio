@@ -60,7 +60,7 @@ export default function ContentCreationSelector() {
   return <div className="min-h-full w-full bg-background">
       <OnboardingTour tourType="create_content" steps={contentCreationSelectorSteps} />
 
-      <div className="max-w-7xl mx-auto space-y-8 px-4 sm:px-6 lg:px-0 py-0">
+      <div className="max-w-7xl mx-auto space-y-8 px-4 sm:px-6 py-0 lg:px-[32px]">
         <Card id="content-creation-header" className="border-0 bg-gradient-to-br from-card via-card to-primary/5 shadow-lg animate-fade-in">
           <CardHeader className="pb-6 pt-8">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
