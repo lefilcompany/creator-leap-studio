@@ -60,7 +60,7 @@ export default function ContentCreationSelector() {
     <div className="h-full w-full flex flex-col">
       <OnboardingTour tourType="create_content" steps={contentCreationSelectorSteps} />
 
-      <div className="max-w-7xl mx-auto flex flex-col gap-4 h-full w-full">
+      <div className="max-w-7xl mx-auto flex flex-col gap-4 h-full w-full space-y-8">
         <Card
           id="content-creation-header"
           className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5"
