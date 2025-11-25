@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { motion, AnimatePresence } from "framer-motion";
-import { Home, Tag, Users, Calendar, History, Sparkles, CheckCircle, Rocket, Palette, Zap, Coins, Pin, PinOff } from "lucide-react";
+import { Home, Tag, Users, Calendar, History, Sparkles, CheckCircle, Rocket, Palette, Zap, Coins } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarRail, useSidebar } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
@@ -227,7 +227,7 @@ export function AppSidebar() {
   const {
     t
   } = useTranslation();
-  const [isRetractable, setIsRetractable] = useState(true);
+  const [isHovered, setIsHovered] = useState(false);
   const logo = theme === 'dark' ? logoCreatorBranca : logoCreatorPreta;
   const collapsed = state === "collapsed";
   const isNavigationDisabled = isTrialExpired;
@@ -281,17 +281,26 @@ export function AppSidebar() {
       setOpen(false);
     }
   };
-  const toggleRetractableMode = () => {
-    setIsRetractable(!isRetractable);
-    // Se estava colapsada e vamos desativar o modo retrátil, expande
-    if (collapsed && !isRetractable) {
+
+  // Hover-to-expand functionality for desktop
+  useEffect(() => {
+    if (isMobile) return;
+
+    if (isHovered && state === "collapsed") {
       setOpen(true);
+    } else if (!isHovered && state === "expanded") {
+      const timer = setTimeout(() => {
+        if (!isHovered) {
+          setOpen(false);
+        }
+      }, 300);
+      return () => clearTimeout(timer);
     }
-  };
+  }, [isHovered, isMobile, state, setOpen]);
   const sidebarContent = () => <TooltipProvider>
-      {/* Header com Logo e Toggle de Modo */}
-      <div className="pt-4 pb-2 mb-2 px-2 flex items-center justify-between gap-2">
-        <NavLink to="/dashboard" onClick={handleMobileNavigate} id="sidebar-logo" className="flex-1 flex justify-center cursor-pointer hover:opacity-80 transition-opacity">
+      {/* Header com Logo */}
+      <div className="pt-4 pb-2 mb-2 px-2 flex items-center justify-center">
+        <NavLink to="/dashboard" onClick={handleMobileNavigate} id="sidebar-logo" className="flex justify-center cursor-pointer hover:opacity-80 transition-opacity duration-500">
           <AnimatePresence mode="wait">
             <motion.img key={collapsed ? 'symbol' : 'logo'} src={collapsed ? creatorSymbol : logo} alt={collapsed ? "Creator Symbol" : "Creator Logo"} initial={{
             opacity: 0,
@@ -303,28 +312,18 @@ export function AppSidebar() {
             opacity: 0,
             scale: 0.9
           }} transition={{
-            duration: 0.4,
+            duration: 0.5,
             ease: "easeInOut"
           }} className={collapsed ? "h-10 w-10 object-contain" : "h-8 w-auto"} />
           </AnimatePresence>
         </NavLink>
-        
-        {/* Botão de Toggle do Modo Retrátil (somente desktop) */}
-        {!isMobile && <Tooltip>
-            <TooltipTrigger asChild>
-              
-            </TooltipTrigger>
-            <TooltipContent side="right">
-              <p>{isRetractable ? "Fixar sidebar aberta" : "Ativar modo retrátil"}</p>
-            </TooltipContent>
-          </Tooltip>}
       </div>
       
       <motion.nav className={cn("flex-1 flex flex-col overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent", collapsed ? "gap-3 px-2" : "gap-5 px-4")} animate={{
       paddingLeft: collapsed ? "0.5rem" : "1rem",
       paddingRight: collapsed ? "0.5rem" : "1rem"
     }} transition={{
-      duration: 0.4,
+      duration: 0.5,
       ease: "easeInOut"
     }}>
         <div className="flex flex-col gap-1.5">
@@ -391,8 +390,8 @@ export function AppSidebar() {
       </Sheet>;
   }
 
-  // Desktop: renderiza Sidebar com animação suave
-  return <Sidebar collapsible={isRetractable ? "icon" : "none"} side="left" variant="sidebar" className="border-r border-primary/10 shadow-md shadow-primary/20">
+  // Desktop: renderiza Sidebar com animação suave e hover-to-expand
+  return <Sidebar collapsible="icon" side="left" variant="sidebar" className="border-r border-primary/10 shadow-md shadow-primary/20" onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
       <SidebarContent className="bg-card flex flex-col h-full overflow-y-auto">
         {sidebarContent()}
       </SidebarContent>
