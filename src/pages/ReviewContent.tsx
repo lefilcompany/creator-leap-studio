@@ -1,33 +1,33 @@
-import { useState, ChangeEvent, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState, ChangeEvent, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Skeleton } from '@/components/ui/skeleton';
-import { Loader2, Image as ImageIcon, FileText, Type, Sparkles, CheckCircle, Zap } from 'lucide-react';
-import type { Brand } from '@/types/brand';
-import type { StrategicTheme, Team } from '@/types/theme';
-import { useAuth } from '@/hooks/useAuth';
-import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
-import { useFormPersistence } from '@/hooks/useFormPersistence';
-import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
-import { useOnboarding } from '@/hooks/useOnboarding';
-import { 
+import { Skeleton } from "@/components/ui/skeleton";
+import { Loader2, Image as ImageIcon, FileText, Type, Sparkles, CheckCircle, Zap } from "lucide-react";
+import type { Brand } from "@/types/brand";
+import type { StrategicTheme, Team } from "@/types/theme";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useFormPersistence } from "@/hooks/useFormPersistence";
+import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
+import { useOnboarding } from "@/hooks/useOnboarding";
+import {
   reviewContentInitialSteps,
   reviewContentImageSteps,
   reviewContentCaptionSteps,
-  reviewContentTextSteps 
-} from '@/components/onboarding/tourSteps';
+  reviewContentTextSteps,
+} from "@/components/onboarding/tourSteps";
 
 // Tipos para os dados leves do formulário
-type LightBrand = Pick<Brand, 'id' | 'name'>;
-type LightTheme = Pick<StrategicTheme, 'id' | 'title' | 'brandId'>;
+type LightBrand = Pick<Brand, "id" | "name">;
+type LightTheme = Pick<StrategicTheme, "id" | "title" | "brandId">;
 
-type ReviewType = 'image' | 'caption' | 'text-for-image';
+type ReviewType = "image" | "caption" | "text-for-image";
 
 const ReviewContent = () => {
   const navigate = useNavigate();
@@ -35,13 +35,13 @@ const ReviewContent = () => {
   const { user, team: authTeam, refreshTeamCredits } = useAuth();
   const { shouldShowTour } = useOnboarding();
   const [reviewType, setReviewType] = useState<ReviewType | null>(null);
-  const [brand, setBrand] = useState('');
-  const [theme, setTheme] = useState('');
-  const [adjustmentsPrompt, setAdjustmentsPrompt] = useState('');
+  const [brand, setBrand] = useState("");
+  const [theme, setTheme] = useState("");
+  const [adjustmentsPrompt, setAdjustmentsPrompt] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [captionText, setCaptionText] = useState('');
-  const [textForImage, setTextForImage] = useState('');
+  const [captionText, setCaptionText] = useState("");
+  const [textForImage, setTextForImage] = useState("");
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -52,16 +52,16 @@ const ReviewContent = () => {
 
   // Persistência de formulário
   const { loadPersistedData, clearPersistedData } = useFormPersistence({
-    key: 'review-content-form',
-    formData: { 
-      reviewType, 
-      brand, 
-      theme, 
-      adjustmentsPrompt, 
-      captionText, 
-      textForImage 
+    key: "review-content-form",
+    formData: {
+      reviewType,
+      brand,
+      theme,
+      adjustmentsPrompt,
+      captionText,
+      textForImage,
     },
-    excludeFields: ['imageFile', 'previewUrl'] // Não persistir arquivo de imagem
+    excludeFields: ["imageFile", "previewUrl"], // Não persistir arquivo de imagem
   });
 
   // Carregar dados persistidos na montagem
@@ -74,7 +74,7 @@ const ReviewContent = () => {
       if (persisted.adjustmentsPrompt) setAdjustmentsPrompt(persisted.adjustmentsPrompt);
       if (persisted.captionText) setCaptionText(persisted.captionText);
       if (persisted.textForImage) setTextForImage(persisted.textForImage);
-      toast.info('Rascunho recuperado');
+      toast.info("Rascunho recuperado");
     }
   }, []);
 
@@ -91,26 +91,26 @@ const ReviewContent = () => {
   useEffect(() => {
     const loadData = async () => {
       if (!user || !authTeam) return;
-      
+
       try {
         const { data: brandsData, error: brandsError } = await supabase
-          .from('brands')
-          .select('id, name')
-          .eq('team_id', authTeam.id);
+          .from("brands")
+          .select("id, name")
+          .eq("team_id", authTeam.id);
 
         if (brandsError) throw brandsError;
         setBrands(brandsData || []);
 
         const { data: themesData, error: themesError } = await supabase
-          .from('strategic_themes')
-          .select('id, title, brand_id')
-          .eq('team_id', authTeam.id);
+          .from("strategic_themes")
+          .select("id, title, brand_id")
+          .eq("team_id", authTeam.id);
 
         if (themesError) throw themesError;
-        setThemes(themesData?.map(t => ({ id: t.id, title: t.title, brandId: t.brand_id })) || []);
+        setThemes(themesData?.map((t) => ({ id: t.id, title: t.title, brandId: t.brand_id })) || []);
       } catch (err: any) {
-        console.error('Error loading data:', err);
-        toast.error('Erro ao carregar dados');
+        console.error("Error loading data:", err);
+        toast.error("Erro ao carregar dados");
       } finally {
         setIsLoadingData(false);
       }
@@ -121,17 +121,16 @@ const ReviewContent = () => {
 
   useEffect(() => {
     if (brand) {
-      const selectedBrand = brands.find(b => b.id === brand);
-      setFilteredThemes(selectedBrand ? themes.filter(t => t.brandId === selectedBrand.id) : []);
+      const selectedBrand = brands.find((b) => b.id === brand);
+      setFilteredThemes(selectedBrand ? themes.filter((t) => t.brandId === selectedBrand.id) : []);
     } else {
       setFilteredThemes([]);
     }
   }, [brand, brands, themes]);
 
-
   const handleBrandChange = (value: string) => {
     setBrand(value);
-    setTheme('');
+    setTheme("");
   };
 
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -158,10 +157,10 @@ const ReviewContent = () => {
 
   const handleSubmit = async () => {
     if (!user || !authTeam) return;
-    if (!brand) return setError('Por favor, selecione uma marca');
-    
+    if (!brand) return setError("Por favor, selecione uma marca");
+
     if ((authTeam.credits || 0) <= 0) {
-      return toast.error('Seus créditos para revisões de conteúdo acabaram.');
+      return toast.error("Seus créditos para revisões de conteúdo acabaram.");
     }
 
     setLoading(true);
@@ -169,66 +168,64 @@ const ReviewContent = () => {
 
     try {
       let result;
-      const selectedBrand = brands.find(b => b.id === brand);
-      const selectedTheme = theme ? themes.find(t => t.id === theme) : null;
+      const selectedBrand = brands.find((b) => b.id === brand);
+      const selectedTheme = theme ? themes.find((t) => t.id === theme) : null;
 
-      if (reviewType === 'image') {
+      if (reviewType === "image") {
         if (!imageFile || !adjustmentsPrompt) {
-          setError('Por favor, envie uma imagem e descreva os ajustes');
+          setError("Por favor, envie uma imagem e descreva os ajustes");
           setLoading(false);
           return;
         }
 
         const base64Image = await convertImageToBase64(imageFile);
-        
-        const { data, error: functionError } = await supabase.functions.invoke('review-image', {
+
+        const { data, error: functionError } = await supabase.functions.invoke("review-image", {
           body: {
             image: base64Image,
             prompt: adjustmentsPrompt,
             brandId: selectedBrand?.id,
             brandName: selectedBrand?.name,
             themeName: selectedTheme?.title,
-          }
+          },
         });
 
         if (functionError) throw functionError;
         result = data;
-
-      } else if (reviewType === 'caption') {
+      } else if (reviewType === "caption") {
         if (!captionText || !adjustmentsPrompt) {
-          setError('Por favor, insira a legenda e descreva o que deseja melhorar');
+          setError("Por favor, insira a legenda e descreva o que deseja melhorar");
           setLoading(false);
           return;
         }
 
-        const { data, error: functionError } = await supabase.functions.invoke('review-caption', {
+        const { data, error: functionError } = await supabase.functions.invoke("review-caption", {
           body: {
             caption: captionText,
             prompt: adjustmentsPrompt,
             brandId: selectedBrand?.id,
             brandName: selectedBrand?.name,
             themeName: selectedTheme?.title,
-          }
+          },
         });
 
         if (functionError) throw functionError;
         result = data;
-
-      } else if (reviewType === 'text-for-image') {
+      } else if (reviewType === "text-for-image") {
         if (!textForImage || !adjustmentsPrompt) {
-          setError('Por favor, insira o texto e descreva o contexto desejado');
+          setError("Por favor, insira o texto e descreva o contexto desejado");
           setLoading(false);
           return;
         }
 
-        const { data, error: functionError } = await supabase.functions.invoke('review-text-for-image', {
+        const { data, error: functionError } = await supabase.functions.invoke("review-text-for-image", {
           body: {
             text: textForImage,
             prompt: adjustmentsPrompt,
             brandId: selectedBrand?.id,
             brandName: selectedBrand?.name,
             themeName: selectedTheme?.title,
-          }
+          },
         });
 
         if (functionError) throw functionError;
@@ -237,31 +234,31 @@ const ReviewContent = () => {
 
       if (result?.review) {
         clearPersistedData(); // Limpar rascunho após sucesso
-        
+
         // Atualizar créditos antes de navegar
         try {
           await refreshTeamCredits();
-          console.log('✅ Créditos atualizados no contexto');
+          console.log("✅ Créditos atualizados no contexto");
         } catch (error) {
-          console.error('Erro ao atualizar créditos:', error);
+          console.error("Erro ao atualizar créditos:", error);
         }
-        
-        navigate('/review-result', {
+
+        navigate("/review-result", {
           state: {
             reviewType,
             review: result.review,
-            originalContent: reviewType === 'image' ? previewUrl : reviewType === 'caption' ? captionText : textForImage,
+            originalContent:
+              reviewType === "image" ? previewUrl : reviewType === "caption" ? captionText : textForImage,
             brandName: selectedBrand?.name,
             themeName: selectedTheme?.title,
-            actionId: result.actionId
-          }
+            actionId: result.actionId,
+          },
         });
       }
-
     } catch (err: any) {
-      console.error('Error during review:', err);
-      toast.error('Erro ao processar revisão');
-      setError('Erro ao processar revisão. Tente novamente.');
+      console.error("Error during review:", err);
+      toast.error("Erro ao processar revisão");
+      setError("Erro ao processar revisão. Tente novamente.");
     } finally {
       setLoading(false);
     }
@@ -269,13 +266,13 @@ const ReviewContent = () => {
 
   const handleReset = () => {
     setReviewType(null);
-    setBrand('');
-    setTheme('');
-    setAdjustmentsPrompt('');
+    setBrand("");
+    setTheme("");
+    setAdjustmentsPrompt("");
     setImageFile(null);
     setPreviewUrl(null);
-    setCaptionText('');
-    setTextForImage('');
+    setCaptionText("");
+    setTextForImage("");
     setError(null);
   };
 
@@ -290,41 +287,27 @@ const ReviewContent = () => {
   return (
     <div className="min-h-full w-full p-6">
       {/* Tour inicial - só aparece quando reviewType é null */}
-      {!reviewType && (
-        <OnboardingTour 
-          tourType="review_content" 
-          steps={reviewContentInitialSteps}
-        />
-      )}
+      {!reviewType && <OnboardingTour tourType="review_content" steps={reviewContentInitialSteps} />}
 
       {/* Tour específico de Revisar Imagem */}
-      {reviewType === 'image' && (
-        <OnboardingTour 
-          tourType="review_content_image" 
-          steps={reviewContentImageSteps}
-          startDelay={500}
-        />
+      {reviewType === "image" && (
+        <OnboardingTour tourType="review_content_image" steps={reviewContentImageSteps} startDelay={500} />
       )}
 
       {/* Tour específico de Revisar Legenda */}
-      {reviewType === 'caption' && (
-        <OnboardingTour 
-          tourType="review_content_caption" 
-          steps={reviewContentCaptionSteps}
-          startDelay={500}
-        />
+      {reviewType === "caption" && (
+        <OnboardingTour tourType="review_content_caption" steps={reviewContentCaptionSteps} startDelay={500} />
       )}
 
       {/* Tour específico de Revisar Texto para Imagem */}
-      {reviewType === 'text-for-image' && (
-        <OnboardingTour 
-          tourType="review_content_text" 
-          steps={reviewContentTextSteps}
-          startDelay={500}
-        />
+      {reviewType === "text-for-image" && (
+        <OnboardingTour tourType="review_content_text" steps={reviewContentTextSteps} startDelay={500} />
       )}
       <div className="max-w-7xl mx-auto space-y-8">
-        <Card id="review-content-header" className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5">
+        <Card
+          id="review-content-header"
+          className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5"
+        >
           <CardHeader className="pb-4">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
               <div className="flex items-center gap-3">
@@ -334,44 +317,50 @@ const ReviewContent = () => {
                 <div>
                   <h1 className="text-3xl font-bold">Revisar Conteúdo</h1>
                   <p className="text-muted-foreground text-base">
-                    {!reviewType ? 'Escolha o tipo de revisão que deseja fazer' : 
-                     reviewType === 'image' ? 'Receba sugestões da IA para aprimorar sua imagem' :
-                     reviewType === 'caption' ? 'Melhore sua legenda com sugestões da IA' :
-                     'Otimize seu texto para gerar imagens impactantes'}
+                    {!reviewType
+                      ? "Escolha o tipo de revisão que deseja fazer"
+                      : reviewType === "image"
+                        ? "Receba sugestões da IA para aprimorar sua imagem"
+                        : reviewType === "caption"
+                          ? "Melhore sua legenda com sugestões da IA"
+                          : "Otimize seu texto para gerar imagens impactantes"}
                   </p>
                 </div>
               </div>
               {isLoadingData ? (
                 <Skeleton className="h-14 w-full sm:w-40 rounded-xl" />
-              ) : authTeam && (
-                <Card className="bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/30 flex-shrink-0">
-                  <CardContent className="p-3">
-                    <div className="flex items-center justify-center gap-4">
-                      <div className="relative">
-                        <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary rounded-full blur-sm opacity-40"></div>
-                        <div className="relative bg-gradient-to-r from-primary to-secondary text-white rounded-full p-2">
-                          <Zap className="h-4 w-4" />
+              ) : (
+                authTeam && (
+                  <Card className="bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/30 flex-shrink-0">
+                    <CardContent className="p-3">
+                      <div className="flex items-center justify-center gap-4">
+                        <div className="relative">
+                          <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary rounded-full blur-sm opacity-40"></div>
+                          <div className="relative bg-gradient-to-r from-primary to-secondary text-white rounded-full p-2">
+                            <Zap className="h-4 w-4" />
+                          </div>
+                        </div>
+                        <div className="text-left gap-4 flex justify-center items-center">
+                          <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                            {authTeam.credits || 0}
+                          </span>
+                          <p className="text-md text-muted-foreground font-medium leading-tight">Créditos Restantes</p>
                         </div>
                       </div>
-                      <div className="text-left gap-4 flex justify-center items-center">
-                        <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                          {authTeam.credits || 0}
-                        </span>
-                        <p className="text-md text-muted-foreground font-medium leading-tight">
-                          Créditos Restantes
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                )
               )}
             </div>
           </CardHeader>
         </Card>
 
         {!reviewType && (
-          <Card id="review-type-selection" className="backdrop-blur-sm bg-card/60 border border-border/20 shadow-lg shadow-black/5 rounded-2xl">
-            <CardHeader className="pb-4 bg-gradient-to-r from-primary/5 to-secondary/5">
+          <Card
+            id="review-type-selection"
+            className="backdrop-blur-sm bg-card/60 border border-border/20 shadow-lg shadow-black/5 rounded-2xl"
+          >
+            <CardHeader className="pb-4 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-2xl">
               <h2 className="text-xl font-semibold flex items-center gap-3">
                 <div className="w-2 h-2 bg-primary rounded-full"></div>
                 Tipo de Revisão
@@ -379,7 +368,7 @@ const ReviewContent = () => {
               <p className="text-muted-foreground text-sm">Selecione o que você deseja revisar com IA</p>
             </CardHeader>
             <CardContent className="p-6">
-              <RadioGroup value={reviewType || ''} onValueChange={(value) => setReviewType(value as ReviewType)}>
+              <RadioGroup value={reviewType || ""} onValueChange={(value) => setReviewType(value as ReviewType)}>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <label htmlFor="image" className="cursor-pointer h-full">
                     <Card className="hover:border-primary transition-all duration-300 hover:shadow-lg h-full">
@@ -391,7 +380,9 @@ const ReviewContent = () => {
                           </div>
                           <div>
                             <h3 className="font-semibold text-lg mb-2">Revisar Imagem</h3>
-                            <p className="text-sm text-muted-foreground">Envie uma imagem e receba sugestões de melhorias visuais</p>
+                            <p className="text-sm text-muted-foreground">
+                              Envie uma imagem e receba sugestões de melhorias visuais
+                            </p>
                           </div>
                         </div>
                       </CardContent>
@@ -408,7 +399,9 @@ const ReviewContent = () => {
                           </div>
                           <div>
                             <h3 className="font-semibold text-lg mb-2">Revisar Legenda</h3>
-                            <p className="text-sm text-muted-foreground">Melhore legendas existentes com sugestões da IA</p>
+                            <p className="text-sm text-muted-foreground">
+                              Melhore legendas existentes com sugestões da IA
+                            </p>
                           </div>
                         </div>
                       </CardContent>
@@ -425,7 +418,9 @@ const ReviewContent = () => {
                           </div>
                           <div>
                             <h3 className="font-semibold text-lg mb-2">Revisar Texto para Imagem</h3>
-                            <p className="text-sm text-muted-foreground">Otimize textos que serão inseridos em imagens de posts</p>
+                            <p className="text-sm text-muted-foreground">
+                              Otimize textos que serão inseridos em imagens de posts
+                            </p>
                           </div>
                         </div>
                       </CardContent>
@@ -439,7 +434,6 @@ const ReviewContent = () => {
 
         {reviewType && (
           <>
-
             <Card className="backdrop-blur-sm bg-card/60 border border-border/20 shadow-lg shadow-black/5 rounded-2xl">
               <CardHeader className="pb-4 bg-gradient-to-r from-primary/5 to-secondary/5">
                 <h2 className="text-xl font-semibold flex items-center gap-3">
@@ -451,27 +445,43 @@ const ReviewContent = () => {
               <CardContent className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div id="review-brand-field" className="space-y-3">
-                    <Label htmlFor="brand" className="text-sm font-semibold text-foreground">Marca <span className="text-red-600">*</span></Label>
-                    {isLoadingData ? <Skeleton className="h-11 w-full rounded-xl" /> : (
+                    <Label htmlFor="brand" className="text-sm font-semibold text-foreground">
+                      Marca <span className="text-red-600">*</span>
+                    </Label>
+                    {isLoadingData ? (
+                      <Skeleton className="h-11 w-full rounded-xl" />
+                    ) : (
                       <Select onValueChange={handleBrandChange} value={brand}>
                         <SelectTrigger className="h-11 rounded-xl border-2 border-border/50 bg-background/50">
                           <SelectValue placeholder="Selecione a marca" />
                         </SelectTrigger>
                         <SelectContent className="rounded-xl border-border/20">
-                          {brands.map((b) => <SelectItem key={b.id} value={b.id} className="rounded-lg">{b.name}</SelectItem>)}
+                          {brands.map((b) => (
+                            <SelectItem key={b.id} value={b.id} className="rounded-lg">
+                              {b.name}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     )}
                   </div>
                   <div id="review-theme-field" className="space-y-3">
-                    <Label htmlFor="theme" className="text-sm font-semibold text-foreground">Tema Estratégico (Opcional)</Label>
-                    {isLoadingData ? <Skeleton className="h-11 w-full rounded-xl" /> : (
+                    <Label htmlFor="theme" className="text-sm font-semibold text-foreground">
+                      Tema Estratégico (Opcional)
+                    </Label>
+                    {isLoadingData ? (
+                      <Skeleton className="h-11 w-full rounded-xl" />
+                    ) : (
                       <Select onValueChange={setTheme} value={theme} disabled={!brand || filteredThemes.length === 0}>
                         <SelectTrigger className="h-11 rounded-xl border-2 border-border/50 bg-background/50 disabled:opacity-50">
                           <SelectValue placeholder={!brand ? "Primeiro, escolha a marca" : "Selecione o tema"} />
                         </SelectTrigger>
                         <SelectContent className="rounded-xl border-border/20">
-                          {filteredThemes.map((t) => <SelectItem key={t.id} value={t.id} className="rounded-lg">{t.title}</SelectItem>)}
+                          {filteredThemes.map((t) => (
+                            <SelectItem key={t.id} value={t.id} className="rounded-lg">
+                              {t.title}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     )}
@@ -484,65 +494,81 @@ const ReviewContent = () => {
               <CardHeader className="pb-4 bg-gradient-to-r from-secondary/5 to-accent/5">
                 <h2 className="text-xl font-semibold flex items-center gap-3">
                   <div className="w-2 h-2 bg-secondary rounded-full"></div>
-                  {reviewType === 'image' && 'Análise da Imagem'}
-                  {reviewType === 'caption' && 'Revisão da Legenda'}
-                  {reviewType === 'text-for-image' && 'Revisão de Texto para Imagem'}
+                  {reviewType === "image" && "Análise da Imagem"}
+                  {reviewType === "caption" && "Revisão da Legenda"}
+                  {reviewType === "text-for-image" && "Revisão de Texto para Imagem"}
                 </h2>
                 <p className="text-muted-foreground text-sm">
-                  {reviewType === 'image' && 'Envie a imagem e descreva o que precisa melhorar'}
-                  {reviewType === 'caption' && 'Cole a legenda e descreva como quer melhorá-la'}
-                  {reviewType === 'text-for-image' && 'Revise o texto que será inserido na imagem do post'}
+                  {reviewType === "image" && "Envie a imagem e descreva o que precisa melhorar"}
+                  {reviewType === "caption" && "Cole a legenda e descreva como quer melhorá-la"}
+                  {reviewType === "text-for-image" && "Revise o texto que será inserido na imagem do post"}
                 </p>
               </CardHeader>
               <CardContent className="p-6">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {reviewType === 'image' && (
+                  {reviewType === "image" && (
                     <>
                       <div id="review-content-input" className="space-y-3">
-                        <Label htmlFor="file-upload" className="text-sm font-semibold text-foreground">Sua Imagem *</Label>
+                        <Label htmlFor="file-upload" className="text-sm font-semibold text-foreground">
+                          Sua Imagem *
+                        </Label>
                         <div className="relative mt-2 flex justify-center rounded-xl border-2 border-dashed border-border/50 p-8 h-64 items-center">
                           <div className="text-center w-full">
                             {previewUrl ? (
-                              <img src={previewUrl} alt="Pré-visualização" className="mx-auto h-48 w-auto rounded-lg object-contain" />
+                              <img
+                                src={previewUrl}
+                                alt="Pré-visualização"
+                                className="mx-auto h-48 w-auto rounded-lg object-contain"
+                              />
                             ) : (
                               <>
                                 <ImageIcon className="mx-auto h-16 w-16 text-muted-foreground/50" />
-                                <p className="mt-4 text-base text-muted-foreground">Arraste e solte ou clique para enviar</p>
+                                <p className="mt-4 text-base text-muted-foreground">
+                                  Arraste e solte ou clique para enviar
+                                </p>
                               </>
                             )}
-                            <input id="file-upload" type="file" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept="image/png, image/jpeg" onChange={handleImageChange} />
+                            <input
+                              id="file-upload"
+                              type="file"
+                              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                              accept="image/png, image/jpeg"
+                              onChange={handleImageChange}
+                            />
                           </div>
                         </div>
                       </div>
                       <div id="review-adjustments-prompt" className="space-y-3">
-                        <Label htmlFor="adjustmentsPrompt" className="text-sm font-semibold text-foreground">O que você gostaria de ajustar? *</Label>
-                        <Textarea 
+                        <Label htmlFor="adjustmentsPrompt" className="text-sm font-semibold text-foreground">
+                          O que você gostaria de ajustar? *
+                        </Label>
+                        <Textarea
                           id="adjustmentsPrompt"
-                          placeholder="Descreva o objetivo e o que você espera da imagem. Ex: 'Quero que a imagem transmita mais energia e seja mais vibrante'" 
-                          value={adjustmentsPrompt} 
-                          onChange={(e) => setAdjustmentsPrompt(e.target.value)} 
-                          className="h-64 rounded-xl border-2 border-border/50 bg-background/50 resize-none" 
+                          placeholder="Descreva o objetivo e o que você espera da imagem. Ex: 'Quero que a imagem transmita mais energia e seja mais vibrante'"
+                          value={adjustmentsPrompt}
+                          onChange={(e) => setAdjustmentsPrompt(e.target.value)}
+                          className="h-64 rounded-xl border-2 border-border/50 bg-background/50 resize-none"
                         />
                       </div>
                     </>
                   )}
 
-                  {reviewType === 'caption' && (
+                  {reviewType === "caption" && (
                     <>
                       <div id="review-content-input" className="space-y-3">
                         <Label htmlFor="captionText" className="text-sm font-semibold text-foreground">
-                          Sua Legenda * 
+                          Sua Legenda *
                           <span className="text-xs font-normal text-muted-foreground ml-2">
                             ({captionText.length}/8000)
                           </span>
                         </Label>
-                        <Textarea 
-                          id="captionText" 
-                          placeholder="Cole aqui a legenda que você quer melhorar..." 
-                          value={captionText} 
-                          onChange={(e) => setCaptionText(e.target.value)} 
+                        <Textarea
+                          id="captionText"
+                          placeholder="Cole aqui a legenda que você quer melhorar..."
+                          value={captionText}
+                          onChange={(e) => setCaptionText(e.target.value)}
                           maxLength={8000}
-                          className="h-64 rounded-xl border-2 border-border/50 bg-background/50 resize-none" 
+                          className="h-64 rounded-xl border-2 border-border/50 bg-background/50 resize-none"
                         />
                       </div>
                       <div id="review-adjustments-prompt" className="space-y-3">
@@ -552,19 +578,19 @@ const ReviewContent = () => {
                             ({adjustmentsPrompt.length}/5000)
                           </span>
                         </Label>
-                        <Textarea 
-                          id="adjustmentsPrompt" 
-                          placeholder="Descreva como quer melhorar a legenda. Ex: 'Tornar mais engajadora e adicionar call-to-action'" 
-                          value={adjustmentsPrompt} 
-                          onChange={(e) => setAdjustmentsPrompt(e.target.value)} 
+                        <Textarea
+                          id="adjustmentsPrompt"
+                          placeholder="Descreva como quer melhorar a legenda. Ex: 'Tornar mais engajadora e adicionar call-to-action'"
+                          value={adjustmentsPrompt}
+                          onChange={(e) => setAdjustmentsPrompt(e.target.value)}
                           maxLength={5000}
-                          className="h-64 rounded-xl border-2 border-border/50 bg-background/50 resize-none" 
+                          className="h-64 rounded-xl border-2 border-border/50 bg-background/50 resize-none"
                         />
                       </div>
                     </>
                   )}
 
-                  {reviewType === 'text-for-image' && (
+                  {reviewType === "text-for-image" && (
                     <>
                       <div id="review-content-input" className="space-y-3">
                         <Label htmlFor="textForImage" className="text-sm font-semibold text-foreground">
@@ -573,13 +599,13 @@ const ReviewContent = () => {
                             ({textForImage.length}/8000)
                           </span>
                         </Label>
-                        <Textarea 
-                          id="textForImage" 
-                          placeholder="Cole aqui o texto que será inserido na imagem do post (frase, citação, mensagem principal, etc.)..." 
-                          value={textForImage} 
-                          onChange={(e) => setTextForImage(e.target.value)} 
+                        <Textarea
+                          id="textForImage"
+                          placeholder="Cole aqui o texto que será inserido na imagem do post (frase, citação, mensagem principal, etc.)..."
+                          value={textForImage}
+                          onChange={(e) => setTextForImage(e.target.value)}
                           maxLength={8000}
-                          className="h-64 rounded-xl border-2 border-border/50 bg-background/50 resize-none" 
+                          className="h-64 rounded-xl border-2 border-border/50 bg-background/50 resize-none"
                         />
                       </div>
                       <div id="review-adjustments-prompt" className="space-y-3">
@@ -589,13 +615,13 @@ const ReviewContent = () => {
                             ({adjustmentsPrompt.length}/5000)
                           </span>
                         </Label>
-                        <Textarea 
-                          id="adjustmentsPrompt" 
-                          placeholder="Descreva como quer melhorar o texto e o contexto da imagem onde ele será usado. Ex: 'Tornar o texto mais curto e impactante para Instagram, será usado em post motivacional com fundo azul'" 
-                          value={adjustmentsPrompt} 
-                          onChange={(e) => setAdjustmentsPrompt(e.target.value)} 
+                        <Textarea
+                          id="adjustmentsPrompt"
+                          placeholder="Descreva como quer melhorar o texto e o contexto da imagem onde ele será usado. Ex: 'Tornar o texto mais curto e impactante para Instagram, será usado em post motivacional com fundo azul'"
+                          value={adjustmentsPrompt}
+                          onChange={(e) => setAdjustmentsPrompt(e.target.value)}
                           maxLength={5000}
-                          className="h-64 rounded-xl border-2 border-border/50 bg-background/50 resize-none" 
+                          className="h-64 rounded-xl border-2 border-border/50 bg-background/50 resize-none"
                         />
                       </div>
                     </>
@@ -609,21 +635,24 @@ const ReviewContent = () => {
                 <CardContent className="p-6">
                   <div className="flex flex-col items-center gap-4">
                     <div className="flex gap-4 w-full max-w-lg">
-                      <Button 
-                        onClick={handleReset} 
+                      <Button
+                        onClick={handleReset}
                         variant="outline"
                         className="flex-1 h-14 rounded-2xl text-lg font-bold border-2 hover:bg-accent/20 hover:text-accent hover:border-accent"
                       >
                         Voltar
                       </Button>
-                      <Button 
+                      <Button
                         id="review-submit-button"
-                        onClick={handleSubmit} 
-                        disabled={loading || !brand || !adjustmentsPrompt || 
-                          (reviewType === 'image' && !imageFile) ||
-                          (reviewType === 'caption' && !captionText) ||
-                          (reviewType === 'text-for-image' && !textForImage)
-                        } 
+                        onClick={handleSubmit}
+                        disabled={
+                          loading ||
+                          !brand ||
+                          !adjustmentsPrompt ||
+                          (reviewType === "image" && !imageFile) ||
+                          (reviewType === "caption" && !captionText) ||
+                          (reviewType === "text-for-image" && !textForImage)
+                        }
                         className="flex-1 h-14 rounded-2xl text-lg font-bold bg-gradient-to-r from-primary via-purple-600 to-secondary hover:from-primary/90 shadow-xl transition-all duration-500 disabled:opacity-50"
                       >
                         {loading ? (
