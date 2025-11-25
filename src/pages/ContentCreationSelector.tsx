@@ -57,10 +57,10 @@ export default function ContentCreationSelector() {
         <Loader2 className="h-8 w-8 animate-spin text-accent" />
       </div>;
   }
-  return <div className="min-h-full w-full bg-background">
+  return <div className="min-h-full w-full bg-background p-8">
       <OnboardingTour tourType="create_content" steps={contentCreationSelectorSteps} />
 
-      <div className="max-w-7xl space-y-8 px-4 sm:px-6 py-0 my-[32px] lg:px-0 mx-[32px]">
+      <div className="max-w-7xl mx-auto space-y-8">
         <Card id="content-creation-header" className="border-0 bg-gradient-to-br from-card via-card to-primary/5 shadow-lg animate-fade-in">
           <CardHeader className="pb-6 pt-8">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">

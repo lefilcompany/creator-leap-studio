@@ -198,7 +198,7 @@ export default function CreateVideo() {
   }
 
   return (
-    <div className="min-h-full bg-gradient-to-br from-pink-50/50 via-purple-50/30 to-pink-50/50 dark:from-background dark:via-background dark:to-muted/20 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-full w-full bg-gradient-to-br from-pink-50/50 via-purple-50/30 to-pink-50/50 dark:from-background dark:via-background dark:to-muted/20 p-8">
       <div className="max-w-5xl mx-auto space-y-6">
         {/* Header */}
         <Card className="border-purple-200/50 dark:border-purple-500/20 bg-gradient-to-r from-pink-50/80 via-purple-50/60 to-pink-50/80 dark:from-purple-500/10 dark:via-purple-500/5 dark:to-purple-500/10 shadow-sm">
