@@ -282,7 +282,6 @@ export function AppSidebar() {
       setOpen(false);
     }
   };
-
   const toggleFixedMode = () => {
     setIsFixed(!isFixed);
     // Se estava retrátil e vamos fixar, expande
@@ -294,7 +293,6 @@ export function AppSidebar() {
   // Hover-to-expand functionality for desktop (only when not fixed)
   useEffect(() => {
     if (isMobile || isFixed) return;
-
     if (isHovered && state === "collapsed") {
       setOpen(true);
     } else if (!isHovered && state === "expanded") {
@@ -330,9 +328,7 @@ export function AppSidebar() {
         {/* Botão de Toggle Fixo/Retrátil (somente desktop) */}
         {!isMobile && <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" onClick={toggleFixedMode} className="h-8 w-8 flex-shrink-0 hover:bg-primary/10 transition-colors duration-300">
-                {isFixed ? <Lock className="h-4 w-4 text-primary" /> : <Unlock className="h-4 w-4 text-muted-foreground" />}
-              </Button>
+              
             </TooltipTrigger>
             <TooltipContent side="right">
               <p>{isFixed ? "Desbloquear sidebar (hover para expandir)" : "Bloquear sidebar aberta"}</p>
