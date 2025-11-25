@@ -15,7 +15,7 @@ import {
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Sparkles, Zap, X, Info, ImagePlus, Coins, Image } from "lucide-react";
+import { Loader2, Sparkles, Zap, X, Info, ImagePlus, Coins, Image as ImageIcon } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { CREDIT_COSTS } from "@/lib/creditCosts";
@@ -826,7 +826,7 @@ ${formData.description}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="bg-gradient-to-br from-purple-500 to-pink-500 text-white rounded-2xl p-3 shadow-md">
-                  <Image className="h-7 w-7" />
+                  <ImageIcon className="h-7 w-7" />
                 </div>
                 <div>
                   <h1 className="text-3xl font-bold text-foreground">
