@@ -34,6 +34,7 @@ import { CreatorLogo } from "./CreatorLogo";
 import Notifications from "./Notifications";
 import RedeemCouponDialog from "./team/RedeemCouponDialog";
 import { toast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 export const Header = () => {
   const { setOpen, isFixed, setIsFixed } = useSidebar();
@@ -129,20 +130,36 @@ export const Header = () => {
                   variant="ghost"
                   size="sm"
                   onClick={toggleSidebarMode}
-                  className="h-10 w-10 rounded-lg hover:bg-primary/20 hover:text-primary transition-all duration-200"
-                >
-                  {isFixed ? (
-                    <PanelLeftOpen className="h-5 w-5 text-primary" />
-                  ) : (
-                    <PanelLeftClose className="h-5 w-5 text-muted-foreground" />
+                  className={cn(
+                    "h-10 w-10 rounded-xl transition-all duration-300 group relative",
+                    isFixed 
+                      ? "bg-primary/15 hover:bg-primary/25 text-primary border-2 border-primary/30" 
+                      : "hover:bg-muted text-muted-foreground border-2 border-transparent hover:border-primary/20"
                   )}
+                >
+                  <div className="relative">
+                    {isFixed ? (
+                      <PanelLeftOpen className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
+                    ) : (
+                      <PanelLeftClose className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
+                    )}
+                  </div>
                   <span className="sr-only">
-                    {isFixed ? "Sidebar fixa" : "Sidebar retrátil"}
+                    {isFixed ? "Desativar modo fixo" : "Ativar modo fixo"}
                   </span>
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>
-                <p>{isFixed ? "Modo fixo: sidebar sempre visível" : "Modo móvel: hover para expandir"}</p>
+              <TooltipContent side="bottom" className="max-w-xs">
+                <div className="flex flex-col gap-1.5">
+                  <p className="font-semibold text-sm">
+                    {isFixed ? "🔒 Modo Fixo Ativado" : "🔓 Modo Retrátil Ativado"}
+                  </p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    {isFixed 
+                      ? "A sidebar permanece sempre visível. Clique para alternar para o modo retrátil." 
+                      : "A sidebar se expande ao passar o mouse. Clique para fixá-la permanentemente."}
+                  </p>
+                </div>
               </TooltipContent>
             </Tooltip>
           </div>
