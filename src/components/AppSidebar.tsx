@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { motion, AnimatePresence } from "framer-motion";
-import { Home, Tag, Users, Calendar, History, Sparkles, CheckCircle, Rocket, Palette, Zap, Coins } from "lucide-react";
-import { Sidebar, SidebarContent, SidebarRail, SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
+import { Home, Tag, Users, Calendar, History, Sparkles, CheckCircle, Rocket, Palette, Zap, Coins, Lock, Unlock } from "lucide-react";
+import { Sidebar, SidebarContent, SidebarRail, useSidebar } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -326,7 +326,14 @@ export function AppSidebar() {
         </NavLink>
         
         {/* Botão de Toggle Fixo/Retrátil (somente desktop) */}
-        {!isMobile && <SidebarTrigger />}
+        {!isMobile && <Tooltip>
+            <TooltipTrigger asChild>
+              
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              <p>{isFixed ? "Desbloquear sidebar (hover para expandir)" : "Bloquear sidebar aberta"}</p>
+            </TooltipContent>
+          </Tooltip>}
       </div>
       
       <motion.nav className={cn("flex-1 flex flex-col overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent", collapsed ? "gap-3 px-2" : "gap-5 px-4")} animate={{
@@ -401,12 +408,10 @@ export function AppSidebar() {
   }
 
   // Desktop: renderiza Sidebar com animação suave e hover-to-expand
-  return <SidebarProvider isFixed={isFixed} toggleFixed={toggleFixedMode}>
-      <Sidebar collapsible={isFixed ? "none" : "icon"} side="left" variant="sidebar" className="border-r border-primary/10 shadow-md shadow-primary/20" onMouseEnter={() => !isFixed && setIsHovered(true)} onMouseLeave={() => !isFixed && setIsHovered(false)}>
-        <SidebarContent className="bg-card flex flex-col h-full overflow-y-auto">
-          {sidebarContent()}
-        </SidebarContent>
-        {!isFixed && <SidebarRail />}
-      </Sidebar>
-    </SidebarProvider>;
+  return <Sidebar collapsible={isFixed ? "none" : "icon"} side="left" variant="sidebar" className="border-r border-primary/10 shadow-md shadow-primary/20" onMouseEnter={() => !isFixed && setIsHovered(true)} onMouseLeave={() => !isFixed && setIsHovered(false)}>
+      <SidebarContent className="bg-card flex flex-col h-full overflow-y-auto">
+        {sidebarContent()}
+      </SidebarContent>
+      {!isFixed && <SidebarRail />}
+    </Sidebar>;
 }
