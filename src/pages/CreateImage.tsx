@@ -801,7 +801,7 @@ ${formData.description}
   }
 
   return (
-    <div className="min-h-full w-full bg-gradient-to-br from-pink-50/50 via-purple-50/30 to-pink-50/50 dark:from-background dark:via-background dark:to-muted/20 p-8">
+    <div className="min-h-full w-full bg-gradient-to-br from-pink-50/50 via-purple-50/30 to-pink-50/50 dark:from-background dark:via-background dark:to-muted/20">
       <TourSelector 
         tours={[
           {

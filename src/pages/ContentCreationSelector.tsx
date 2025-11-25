@@ -57,7 +57,7 @@ export default function ContentCreationSelector() {
         <Loader2 className="h-8 w-8 animate-spin text-accent" />
       </div>;
   }
-  return <div className="min-h-full w-full bg-background p-8">
+  return <div className="min-h-full w-full bg-background">
       <OnboardingTour tourType="create_content" steps={contentCreationSelectorSteps} />
 
       <div className="max-w-7xl mx-auto space-y-8">

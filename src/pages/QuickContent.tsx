@@ -273,7 +273,7 @@ export default function QuickContent() {
       </div>;
   }
   return (
-    <div className="min-h-full w-full bg-gradient-to-br from-background via-background to-muted/20 p-4 sm:p-6 lg:p-8">
+    <div className="min-h-full w-full bg-gradient-to-br from-background via-background to-muted/20">
       <TourSelector tours={[{
       tourType: 'navbar',
       steps: navbarSteps,
