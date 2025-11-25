@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { VariantProps, cva } from "class-variance-authority";
-import { PanelLeft } from "lucide-react";
+import { Lock, Unlock } from "lucide-react";
 
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
@@ -27,6 +27,8 @@ type SidebarContext = {
   setOpenMobile: (open: boolean) => void;
   isMobile: boolean;
   toggleSidebar: () => void;
+  isFixed?: boolean;
+  toggleFixed?: () => void;
 };
 
 const SidebarContext = React.createContext<SidebarContext | null>(null);
@@ -46,8 +48,10 @@ const SidebarProvider = React.forwardRef<
     defaultOpen?: boolean;
     open?: boolean;
     onOpenChange?: (open: boolean) => void;
+    isFixed?: boolean;
+    toggleFixed?: () => void;
   }
->(({ defaultOpen = true, open: openProp, onOpenChange: setOpenProp, className, style, children, ...props }, ref) => {
+>(({ defaultOpen = true, open: openProp, onOpenChange: setOpenProp, isFixed, toggleFixed, className, style, children, ...props }, ref) => {
   const isMobile = useIsMobile();
   const [openMobile, setOpenMobile] = React.useState(false);
 
@@ -101,8 +105,10 @@ const SidebarProvider = React.forwardRef<
       openMobile,
       setOpenMobile,
       toggleSidebar,
+      isFixed,
+      toggleFixed,
     }),
-    [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar],
+    [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar, isFixed, toggleFixed],
   );
 
   return (
@@ -222,7 +228,10 @@ Sidebar.displayName = "Sidebar";
 
 const SidebarTrigger = React.forwardRef<React.ElementRef<typeof Button>, React.ComponentProps<typeof Button>>(
   ({ className, onClick, ...props }, ref) => {
-    const { toggleSidebar } = useSidebar();
+    const { toggleFixed, isFixed, isMobile } = useSidebar();
+
+    // No mobile, não mostra o botão
+    if (isMobile) return null;
 
     return (
       <Button
@@ -230,15 +239,15 @@ const SidebarTrigger = React.forwardRef<React.ElementRef<typeof Button>, React.C
         data-sidebar="trigger"
         variant="ghost"
         size="icon"
-        className={cn("h-7 w-7", className)}
+        className={cn("h-10 w-10 rounded-lg hover:bg-primary/20 hover:text-primary transition-all duration-200", className)}
         onClick={(event) => {
           onClick?.(event);
-          toggleSidebar();
+          toggleFixed?.();
         }}
         {...props}
       >
-        <PanelLeft />
-        <span className="sr-only">Toggle Sidebar</span>
+        {isFixed ? <Lock className="h-5 w-5" /> : <Unlock className="h-5 w-5" />}
+        <span className="sr-only">{isFixed ? "Desbloquear sidebar" : "Bloquear sidebar"}</span>
       </Button>
     );
   },
