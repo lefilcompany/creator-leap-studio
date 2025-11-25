@@ -1,5 +1,22 @@
 import { useState, useRef, useEffect } from "react";
-import { Search, Settings, User, Menu, Loader2, Info, FileText, Shield, LogOut, Moon, Sun, Gift, History, RefreshCw, PanelLeftOpen, PanelLeftClose } from "lucide-react";
+import {
+  Search,
+  Settings,
+  User,
+  Menu,
+  Loader2,
+  Info,
+  FileText,
+  Shield,
+  LogOut,
+  Moon,
+  Sun,
+  Gift,
+  History,
+  RefreshCw,
+  PanelLeftOpen,
+  PanelLeftClose,
+} from "lucide-react";
 import { useTheme } from "next-themes";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -13,12 +30,12 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useOnboarding } from "@/hooks/useOnboarding";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
   Dialog,
@@ -44,12 +61,12 @@ export const Header = () => {
   const { theme, setTheme } = useTheme();
   const { t } = useTranslation();
   const { resetAllTours } = useOnboarding();
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [showMobileSearch, setShowMobileSearch] = useState(false);
   const [showCouponDialog, setShowCouponDialog] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
-  
+
   // Se o trial expirou, desabilita funcionalidades
   const isFunctionalityDisabled = isTrialExpired;
 
@@ -70,18 +87,18 @@ export const Header = () => {
   // Keyboard shortcut for search
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if ((event.metaKey || event.ctrlKey) && event.key === 'k') {
+      if ((event.metaKey || event.ctrlKey) && event.key === "k") {
         event.preventDefault();
         setShowMobileSearch(true);
       }
-      if (event.key === 'Escape' && showMobileSearch) {
+      if (event.key === "Escape" && showMobileSearch) {
         setShowMobileSearch(false);
-        setSearchQuery('');
+        setSearchQuery("");
       }
     };
 
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, [showMobileSearch]);
 
   const handleSearchChange = (value: string) => {
@@ -121,7 +138,7 @@ export const Header = () => {
               <Menu className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
             </Button>
           </div>
-          
+
           {/* Desktop sidebar mode toggle */}
           <div className="hidden lg:block">
             <Tooltip>
@@ -132,9 +149,9 @@ export const Header = () => {
                   onClick={toggleSidebarMode}
                   className={cn(
                     "h-10 w-10 rounded-xl transition-all duration-300 group relative",
-                    isFixed 
-                      ? "bg-primary/15 hover:bg-primary/25 text-primary border-2 border-primary/30" 
-                      : "hover:bg-muted text-muted-foreground border-2 border-transparent hover:border-primary/20"
+                    isFixed
+                      ? "bg-primary/15 hover:bg-primary/25 text-primary border-2 border-primary/30"
+                      : "hover:bg-muted text-muted-foreground border-2 border-transparent hover:border-primary/20",
                   )}
                 >
                   <div className="relative">
@@ -144,19 +161,15 @@ export const Header = () => {
                       <PanelLeftClose className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
                     )}
                   </div>
-                  <span className="sr-only">
-                    {isFixed ? "Desativar modo fixo" : "Ativar modo fixo"}
-                  </span>
+                  <span className="sr-only">{isFixed ? "Desativar modo fixo" : "Ativar modo fixo"}</span>
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="bottom" className="max-w-xs">
                 <div className="flex flex-col gap-1.5">
-                  <p className="font-semibold text-sm">
-                    {isFixed ? "🔒 Modo Fixo Ativado" : "🔓 Modo Retrátil Ativado"}
-                  </p>
+                  <p className="font-semibold text-sm">{isFixed ? "Modo Fixo Ativado" : "Modo Retrátil Ativado"}</p>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    {isFixed 
-                      ? "A sidebar permanece sempre visível. Clique para alternar para o modo retrátil." 
+                    {isFixed
+                      ? "A sidebar permanece sempre visível. Clique para alternar para o modo retrátil."
                       : "A sidebar se expande ao passar o mouse. Clique para fixá-la permanentemente."}
                   </p>
                 </div>
@@ -164,8 +177,8 @@ export const Header = () => {
             </Tooltip>
           </div>
         </div>
-        
-          {/* Search bar - Desktop only */}
+
+        {/* Search bar - Desktop only */}
         <div id="topbar-search" className="hidden lg:flex flex-1 max-w-2xl mx-4 lg:mx-6">
           <div className="relative w-full group">
             <Search className="absolute left-3 lg:left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4 lg:h-5 lg:w-5 z-10 transition-colors duration-200" />
@@ -179,9 +192,9 @@ export const Header = () => {
               onChange={(e) => handleSearchChange(e.target.value)}
               disabled={isFunctionalityDisabled}
               className={`w-full rounded-xl lg:rounded-2xl pl-10 lg:pl-12 pr-3 lg:pr-4 py-2 lg:py-3 h-10 text-sm lg:text-base border-2 bg-background/50 transition-all duration-200 hover:bg-background focus:bg-background disabled:opacity-50 disabled:cursor-not-allowed ${
-                isSearching 
-                  ? 'border-primary/50 shadow-md' 
-                  : 'border-border/50 hover:border-primary/30 focus:border-primary/50'
+                isSearching
+                  ? "border-primary/50 shadow-md"
+                  : "border-border/50 hover:border-primary/30 focus:border-primary/50"
               }`}
             />
           </div>
@@ -209,7 +222,9 @@ export const Header = () => {
             onClick={() => setShowCouponDialog(true)}
             className="h-8 md:h-10 px-2 lg:px-3 rounded-lg hover:bg-primary/10 transition-all duration-200 border-2 border-primary/30 hover:border-primary/50 group"
           >
-            <span className="hidden lg:inline text-sm font-medium bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 bg-clip-text text-transparent mr-2">Cupom de presente</span>
+            <span className="hidden lg:inline text-sm font-medium bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 bg-clip-text text-transparent mr-2">
+              Cupom de presente
+            </span>
             <Gift className="h-4 w-4 md:h-5 md:w-5 text-primary" />
           </Button>
 
@@ -268,13 +283,14 @@ export const Header = () => {
                     <span>Histórico</span>
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem 
-                  className="p-3 cursor-pointer" 
+                <DropdownMenuItem
+                  className="p-3 cursor-pointer"
                   onClick={() => {
                     resetAllTours();
                     toast({
                       title: "Tours reiniciados",
-                      description: "Todos os tours de apresentação foram reiniciados. Visite cada página para vê-los novamente.",
+                      description:
+                        "Todos os tours de apresentação foram reiniciados. Visite cada página para vê-los novamente.",
                       duration: 5000,
                     });
                   }}
@@ -299,22 +315,19 @@ export const Header = () => {
                   <CreatorLogo />
                 </div>
                 <DialogTitle className="text-2xl font-bold">{t.settings.logoutConfirm}</DialogTitle>
-                <DialogDescription className="text-base mt-2">
-                  {t.settings.logoutMessage}
-                </DialogDescription>
+                <DialogDescription className="text-base mt-2">{t.settings.logoutMessage}</DialogDescription>
               </DialogHeader>
               <DialogFooter className="flex-col-reverse sm:flex-row gap-3 mt-6">
                 <DialogClose asChild>
-                  <Button type="button" variant="outline" className="w-full rounded-xl hover:border-accent hover:bg-accent/20 hover:text-accent h-12">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full rounded-xl hover:border-accent hover:bg-accent/20 hover:text-accent h-12"
+                  >
                     {t.settings.cancel}
                   </Button>
                 </DialogClose>
-                <Button 
-                  type="button" 
-                  variant="destructive" 
-                  className="w-full rounded-xl h-12"
-                  onClick={handleLogout}
-                >
+                <Button type="button" variant="destructive" className="w-full rounded-xl h-12" onClick={handleLogout}>
                   {t.settings.logout}
                 </Button>
               </DialogFooter>
@@ -323,10 +336,22 @@ export const Header = () => {
 
           {/* Profile button */}
           <Link to="/profile" className="transition-all duration-300 hover:scale-105">
-            <Avatar id="topbar-profile" className="h-8 w-8 md:h-10 md:w-10 border-2 border-primary/20 hover:border-primary/40 transition-all duration-300 hover:shadow-lg hover:shadow-primary/25">
-              <AvatarImage src={user?.avatarUrl || undefined} alt={user?.name || 'User'} />
+            <Avatar
+              id="topbar-profile"
+              className="h-8 w-8 md:h-10 md:w-10 border-2 border-primary/20 hover:border-primary/40 transition-all duration-300 hover:shadow-lg hover:shadow-primary/25"
+            >
+              <AvatarImage src={user?.avatarUrl || undefined} alt={user?.name || "User"} />
               <AvatarFallback className="bg-gradient-to-br from-primary via-primary/80 to-secondary text-primary-foreground text-xs md:text-sm font-semibold">
-                {user?.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) : <User className="h-4 w-4 md:h-5 md:w-5" />}
+                {user?.name ? (
+                  user.name
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")
+                    .toUpperCase()
+                    .substring(0, 2)
+                ) : (
+                  <User className="h-4 w-4 md:h-5 md:w-5" />
+                )}
               </AvatarFallback>
             </Avatar>
             <span className="sr-only">{t.profile}</span>
@@ -373,9 +398,7 @@ export const Header = () => {
                   <div>
                     <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                     <p className="text-lg font-medium text-muted-foreground mb-2">{t.search.noResults}</p>
-                    <p className="text-sm text-muted-foreground/70">
-                      {t.search.tryDifferent}
-                    </p>
+                    <p className="text-sm text-muted-foreground/70">{t.search.tryDifferent}</p>
                   </div>
                 )}
               </div>
@@ -385,9 +408,7 @@ export const Header = () => {
               <div className="mt-4 p-8 text-center">
                 <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <p className="text-lg font-medium text-muted-foreground mb-2">{t.search.startSearching}</p>
-                <p className="text-sm text-muted-foreground/70">
-                  {t.search.minCharacters}
-                </p>
+                <p className="text-sm text-muted-foreground/70">{t.search.minCharacters}</p>
               </div>
             )}
           </div>
@@ -401,7 +422,7 @@ export const Header = () => {
         onSuccess={() => {
           setShowCouponDialog(false);
         }}
-        currentPlanId={user?.teamId || ''}
+        currentPlanId={user?.teamId || ""}
       />
     </header>
   );
