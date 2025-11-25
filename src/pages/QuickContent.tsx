@@ -284,7 +284,7 @@ export default function QuickContent() {
       label: 'Tour da Criação Rápida',
       targetElement: '#quick-content-form'
     }]} startDelay={500} />
-      <div className="max-w-5xl space-y-4 md:space-y-6 my-[32px] px-0 mx-[32px]">
+      <div className="max-w-5xl space-y-4 md:space-y-6 mx-0 my-0 px-[32px]">
         {/* Header */}
         <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5">
           <CardHeader className="p-3 md:p-4 lg:p-6">
