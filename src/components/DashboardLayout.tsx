@@ -15,7 +15,7 @@ export const DashboardLayout = () => {
         <div className="flex flex-1 flex-col min-w-0">
           <Header />
           <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gradient-to-b from-background/50 to-background">
-            <div className="max-w-full mx-auto h-full">
+            <div className="max-w-full mx-auto h-full p-4 sm:p-6 lg:p-8">
               <Outlet />
             </div>
           </main>
