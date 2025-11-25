@@ -98,7 +98,7 @@ export default function ContentCreationSelector() {
           </CardHeader>
         </Card>
 
-        <Card id="creation-type-selection" className="backdrop-blur-sm bg-card/60 border border-border/20 shadow-lg rounded-2xl flex-1 flex flex-col">
+        <Card id="creation-type-selection" className="backdrop-blur-sm bg-card/60 border border-border/20 shadow-lg rounded-2xl">
           <CardHeader className="pb-3 pt-4 bg-gradient-to-r from-primary/5 to-secondary/5">
             <h2 className="text-xl font-semibold flex items-center gap-3">
               <div className="w-2 h-2 bg-primary rounded-full"></div>
@@ -106,14 +106,14 @@ export default function ContentCreationSelector() {
             </h2>
             <p className="text-muted-foreground text-sm">Selecione o tipo de conteúdo que deseja criar</p>
           </CardHeader>
-          <CardContent className="p-6 flex-1 flex flex-col">
-            <RadioGroup value={creationType || ''} onValueChange={value => setCreationType(value as CreationType)} className="h-full">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-full">
-                <label htmlFor="quick" className="cursor-pointer h-full">
-                  <Card className="hover:border-primary transition-all duration-300 hover:shadow-lg h-full">
-                    <CardContent className="p-6 flex flex-col items-center text-center gap-3 h-full justify-between">
+          <CardContent className="p-6">
+            <RadioGroup value={creationType || ''} onValueChange={value => setCreationType(value as CreationType)}>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <label htmlFor="quick" className="cursor-pointer">
+                  <Card className="hover:border-primary transition-all duration-300 hover:shadow-lg">
+                    <CardContent className="p-6 flex flex-col items-center text-center gap-4 min-h-[240px]">
                       <RadioGroupItem value="quick" id="quick" className="sr-only" />
-                      <div className="flex flex-col items-center gap-3 flex-1 justify-center">
+                      <div className="flex flex-col items-center gap-4 flex-1 justify-center">
                         <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0">
                           <Zap className="h-8 w-8 text-accent" />
                         </div>
@@ -132,11 +132,11 @@ export default function ContentCreationSelector() {
                   </Card>
                 </label>
 
-                <label htmlFor="image" className="cursor-pointer h-full">
-                  <Card className="hover:border-primary transition-all duration-300 hover:shadow-lg h-full">
-                    <CardContent className="p-6 flex flex-col items-center text-center gap-3 h-full justify-between">
+                <label htmlFor="image" className="cursor-pointer">
+                  <Card className="hover:border-primary transition-all duration-300 hover:shadow-lg">
+                    <CardContent className="p-6 flex flex-col items-center text-center gap-4 min-h-[240px]">
                       <RadioGroupItem value="image" id="image" className="sr-only" />
-                      <div className="flex flex-col items-center gap-3 flex-1 justify-center">
+                      <div className="flex flex-col items-center gap-4 flex-1 justify-center">
                         <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                           <ImageIcon className="h-8 w-8 text-primary" />
                         </div>
@@ -155,11 +155,11 @@ export default function ContentCreationSelector() {
                   </Card>
                 </label>
 
-                <label htmlFor="video" className="cursor-pointer h-full">
-                  <Card className="hover:border-primary transition-all duration-300 hover:shadow-lg h-full">
-                    <CardContent className="p-6 flex flex-col items-center text-center gap-3 h-full justify-between">
-                      <RadioGroupItem value="video" id="video" className="sr-only" />
-                      <div className="flex flex-col items-center gap-3 flex-1 justify-center">
+                  <label htmlFor="video" className="cursor-pointer">
+                    <Card className="hover:border-primary transition-all duration-300 hover:shadow-lg">
+                      <CardContent className="p-6 flex flex-col items-center text-center gap-4 min-h-[240px]">
+                        <RadioGroupItem value="video" id="video" className="sr-only" />
+                        <div className="flex flex-col items-center gap-4 flex-1 justify-center">
                         <div className="w-16 h-16 rounded-full bg-secondary/10 flex items-center justify-center flex-shrink-0">
                           <Video className="h-8 w-8 text-secondary" />
                         </div>
