@@ -60,7 +60,7 @@ export default function ContentCreationSelector() {
     <div className="h-full w-full flex flex-col">
       <OnboardingTour tourType="create_content" steps={contentCreationSelectorSteps} />
 
-      <div className="max-w-7xl mx-auto flex flex-col gap-4 h-full w-full space-y-6">
+      <div className="max-w-7xl mx-auto flex flex-col gap-4 w-full px-4 sm:px-6 lg:px-0">
         <Card
           id="content-creation-header"
           className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5"
@@ -115,12 +115,12 @@ export default function ContentCreationSelector() {
             </h2>
             <p className="text-muted-foreground text-sm">Selecione o tipo de conteúdo que deseja criar</p>
           </CardHeader>
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <RadioGroup value={creationType || ""} onValueChange={(value) => setCreationType(value as CreationType)}>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <label htmlFor="quick" className="cursor-pointer">
-                  <Card className="hover:border-primary transition-all duration-300 hover:shadow-lg">
-                    <CardContent className="p-6 flex flex-col items-center text-center gap-4 min-h-[240px]">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <label htmlFor="quick" className="cursor-pointer h-full">
+                  <Card className="hover:border-primary transition-all duration-300 hover:shadow-lg h-full">
+                    <CardContent className="p-4 sm:p-6 flex flex-col items-center text-center gap-3 sm:gap-4 min-h-[240px] h-full justify-between">
                       <RadioGroupItem value="quick" id="quick" className="sr-only" />
                       <div className="flex flex-col items-center gap-4 flex-1 justify-center">
                         <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0">
@@ -141,9 +141,9 @@ export default function ContentCreationSelector() {
                   </Card>
                 </label>
 
-                <label htmlFor="image" className="cursor-pointer">
-                  <Card className="hover:border-primary transition-all duration-300 hover:shadow-lg">
-                    <CardContent className="p-6 flex flex-col items-center text-center gap-4 min-h-[240px]">
+                <label htmlFor="image" className="cursor-pointer h-full">
+                  <Card className="hover:border-primary transition-all duration-300 hover:shadow-lg h-full">
+                    <CardContent className="p-4 sm:p-6 flex flex-col items-center text-center gap-3 sm:gap-4 min-h-[240px] h-full justify-between">
                       <RadioGroupItem value="image" id="image" className="sr-only" />
                       <div className="flex flex-col items-center gap-4 flex-1 justify-center">
                         <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -164,9 +164,9 @@ export default function ContentCreationSelector() {
                   </Card>
                 </label>
 
-                <label htmlFor="video" className="cursor-pointer">
-                  <Card className="hover:border-primary transition-all duration-300 hover:shadow-lg">
-                    <CardContent className="p-6 flex flex-col items-center text-center gap-4 min-h-[240px]">
+                <label htmlFor="video" className="cursor-pointer h-full">
+                  <Card className="hover:border-primary transition-all duration-300 hover:shadow-lg h-full">
+                    <CardContent className="p-4 sm:p-6 flex flex-col items-center text-center gap-3 sm:gap-4 min-h-[240px] h-full justify-between">
                       <RadioGroupItem value="video" id="video" className="sr-only" />
                       <div className="flex flex-col items-center gap-4 flex-1 justify-center">
                         <div className="w-16 h-16 rounded-full bg-secondary/10 flex items-center justify-center flex-shrink-0">
