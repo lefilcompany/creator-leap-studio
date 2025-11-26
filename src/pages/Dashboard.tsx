@@ -61,11 +61,12 @@ const Dashboard = () => {
       if (!user || !team || isDataLoaded) return;
 
       try {
-        // Buscar total de ações do usuário na equipe
+        // Buscar total de ações do usuário logado
         const { count: actionsCount } = await supabase
           .from('actions')
           .select('*', { count: 'exact', head: true })
-          .eq('team_id', team?.id);
+          .eq('team_id', team?.id)
+          .eq('user_id', user.id);
 
         // Buscar total de marcas da equipe
         const { count: brandsCount } = await supabase
