@@ -37,19 +37,9 @@ export default function TeamInfoCard({ team, userRole }: TeamInfoCardProps) {
     );
   }
 
-  // Calcular todos os tipos de créditos
-  const totalCredits = 
-    (team.plan?.quickContentCreations || 0) +
-    (team.plan?.customContentSuggestions || 0) +
-    (team.plan?.contentReviews || 0) +
-    (team.plan?.contentPlans || 0);
-    
-  const remainingCredits = 
-    (team.credits?.quickContentCreations || 0) +
-    (team.credits?.contentSuggestions || 0) +
-    (team.credits?.contentReviews || 0) +
-    (team.credits?.contentPlans || 0);
-    
+  // Calcular créditos unificados
+  const remainingCredits = team.credits || 0;
+  const totalCredits = team.plan?.credits || 0;
   const usedCredits = totalCredits - remainingCredits;
   
   // Progress bar decrescente - mostra créditos restantes
@@ -147,55 +137,79 @@ export default function TeamInfoCard({ team, userRole }: TeamInfoCardProps) {
             </p>
           </div>
 
-          {/* Remaining Actions Section */}
-          <div className="group/section space-y-4 border-t border-secondary/10 pt-6">
-            <div className="flex items-center gap-3">
-              <div className="relative p-2.5 bg-gradient-to-br from-accent/15 to-primary/15 rounded-xl shadow-sm group-hover/section:shadow-md group-hover/section:scale-105 transition-all duration-300">
-                <div className="absolute inset-0 bg-gradient-to-br from-accent to-primary opacity-0 group-hover/section:opacity-10 rounded-xl transition-opacity duration-300" />
-                <Activity className="h-5 w-5 text-accent relative z-10" />
-              </div>
-              <div>
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Ações Restantes</span>
+          {/* Credits Section */}
+          <div className="group/section space-y-5 border-t border-secondary/10 pt-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="relative p-2.5 bg-gradient-to-br from-accent/15 to-primary/15 rounded-xl shadow-sm group-hover/section:shadow-md group-hover/section:scale-105 transition-all duration-300">
+                  <div className="absolute inset-0 bg-gradient-to-br from-accent to-primary opacity-0 group-hover/section:opacity-10 rounded-xl transition-opacity duration-300" />
+                  <Activity className="h-5 w-5 text-accent relative z-10" />
+                </div>
+                <div>
+                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Créditos</span>
+                </div>
               </div>
             </div>
             
-            <div className="space-y-4">
-              <div className="flex items-end justify-between gap-4">
-                <div>
-                  <span className="text-4xl font-bold bg-gradient-to-r from-accent to-primary bg-clip-text text-transparent">
-                    {remainingCredits.toLocaleString()}
-                  </span>
-                  <p className="text-xs text-muted-foreground mt-1">créditos disponíveis</p>
+            <div className="space-y-5">
+              {/* Credit Stats Grid */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="relative overflow-hidden rounded-xl border border-accent/20 bg-gradient-to-br from-accent/5 to-accent/10 p-4 backdrop-blur-sm">
+                  <div className="absolute top-0 right-0 w-20 h-20 bg-accent/10 rounded-full blur-2xl" />
+                  <div className="relative">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Disponíveis</p>
+                    <p className="text-3xl font-bold bg-gradient-to-r from-accent to-primary bg-clip-text text-transparent">
+                      {remainingCredits.toLocaleString()}
+                    </p>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {usedCredits.toLocaleString()} utilizados
-                  </p>
+                
+                <div className="relative overflow-hidden rounded-xl border border-muted bg-gradient-to-br from-muted/20 to-muted/5 p-4 backdrop-blur-sm">
+                  <div className="absolute top-0 right-0 w-20 h-20 bg-muted/20 rounded-full blur-2xl" />
+                  <div className="relative">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Utilizados</p>
+                    <p className="text-3xl font-bold text-foreground">
+                      {usedCredits.toLocaleString()}
+                    </p>
+                  </div>
                 </div>
               </div>
               
-              <div className="relative">
-                <Progress 
-                  value={progressPercentage} 
-                  className="h-4 rounded-full shadow-inner bg-muted/50" 
-                />
-                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-accent/10 to-primary/10 pointer-events-none" />
-              </div>
-              
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-primary font-medium">
-                  {progressPercentage.toFixed(1)}% disponível
-                </span>
-                <span className="text-muted-foreground">
-                  {(100 - progressPercentage).toFixed(1)}% utilizado
-                </span>
+              {/* Progress Bar */}
+              <div className="space-y-3">
+                <div className="relative">
+                  <Progress 
+                    value={progressPercentage} 
+                    className="h-3 rounded-full shadow-inner bg-muted/50 overflow-hidden" 
+                  />
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-r from-accent/5 to-primary/5 pointer-events-none" />
+                </div>
+                
+                <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-gradient-to-r from-accent to-primary" />
+                    <span className="font-medium text-foreground">
+                      {progressPercentage.toFixed(1)}% disponível
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-muted" />
+                    <span className="text-muted-foreground">
+                      {(100 - progressPercentage).toFixed(1)}% usado
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="text-xs text-center text-muted-foreground pt-1">
+                  Total do plano: <span className="font-semibold text-foreground">{totalCredits.toLocaleString()}</span> créditos
+                </div>
               </div>
               
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => navigate("/credit-history")}
-                className="w-full gap-2 mt-2 hover:bg-accent/10 hover:border-accent"
+                className="w-full gap-2 mt-1 hover:bg-accent/10 hover:border-accent transition-all duration-300"
               >
                 <History className="h-4 w-4" />
                 Ver Histórico Completo
