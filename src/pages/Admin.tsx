@@ -6,6 +6,10 @@ import { AdminFilters } from "@/components/admin/AdminFilters";
 import { TeamsTable } from "@/components/admin/TeamsTable";
 import { UsersTable } from "@/components/admin/UsersTable";
 import { PaginationControls } from "@/components/admin/PaginationControls";
+import { TeamDistributionChart } from "@/components/admin/TeamDistributionChart";
+import { SubscriptionStatusChart } from "@/components/admin/SubscriptionStatusChart";
+import { CreditsDistributionChart } from "@/components/admin/CreditsDistributionChart";
+import { TopTeamsChart } from "@/components/admin/TopTeamsChart";
 import { Users, Building2, Coins, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
 
@@ -282,6 +286,25 @@ const Admin = () => {
             <div className="text-3xl font-bold text-green-500">{stats.avgCreditsPerTeam}</div>
           </CardContent>
         </Card>
+      </div>
+
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-2xl font-bold mb-2">Análises e Métricas</h2>
+          <p className="text-muted-foreground">
+            Visualizações gráficas dos dados do sistema
+          </p>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-2">
+          <TeamDistributionChart teams={teams} />
+          <SubscriptionStatusChart teams={teams} />
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-2">
+          <CreditsDistributionChart teams={teams} />
+          <TopTeamsChart teams={teams} />
+        </div>
       </div>
 
       <Card className="border-0 shadow-xl bg-gradient-to-br from-background to-muted/10">
