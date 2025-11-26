@@ -119,6 +119,8 @@ export const Header = () => {
     setIsFixed(newIsFixed);
     if (newIsFixed) {
       setOpen(true); // Expande ao fixar
+    } else {
+      setOpen(false); // Colapsa ao desafixar
     }
   };
 
