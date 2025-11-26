@@ -230,7 +230,6 @@ export function AppSidebar() {
   const {
     t
   } = useTranslation();
-  const [isHovered, setIsHovered] = useState(false);
   const logo = theme === 'dark' ? logoCreatorBranca : logoCreatorPreta;
   const collapsed = state === "collapsed";
   const isNavigationDisabled = isTrialExpired;
@@ -289,21 +288,6 @@ export function AppSidebar() {
       setOpen(false);
     }
   };
-
-  // Hover-to-expand functionality for desktop (only when not fixed)
-  useEffect(() => {
-    if (isMobile || isFixed) return;
-    if (isHovered && state === "collapsed") {
-      setOpen(true);
-    } else if (!isHovered && state === "expanded") {
-      const timer = setTimeout(() => {
-        if (!isHovered) {
-          setOpen(false);
-        }
-      }, 300);
-      return () => clearTimeout(timer);
-    }
-  }, [isHovered, isMobile, isFixed, state, setOpen]);
   const sidebarContent = () => <TooltipProvider>
       {/* Header com Logo e Toggle de Modo */}
       <div className="pt-4 pb-2 mb-2 px-2 flex items-center justify-between gap-2">
@@ -397,18 +381,16 @@ export function AppSidebar() {
       </Sheet>;
   }
 
-  // Desktop: renderiza Sidebar com animação suave e hover-to-expand
+  // Desktop: renderiza Sidebar com toggle fixo (sem hover-to-expand)
   return <Sidebar 
-      collapsible={isFixed ? "none" : "icon"} 
+      collapsible="icon"
       side="left" 
       variant="sidebar" 
-      className="border-r border-primary/10 shadow-md shadow-primary/20 flex-shrink-0" 
-      onMouseEnter={() => !isFixed && setIsHovered(true)} 
-      onMouseLeave={() => !isFixed && setIsHovered(false)}
+      className="border-r border-primary/10 shadow-md shadow-primary/20 flex-shrink-0"
     >
       <SidebarContent className="bg-card flex flex-col h-full overflow-y-auto">
         {sidebarContent()}
       </SidebarContent>
-      {!isFixed && <SidebarRail />}
+      <SidebarRail />
     </Sidebar>;
 }
