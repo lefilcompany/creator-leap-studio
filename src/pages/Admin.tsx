@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminFilters } from "@/components/admin/AdminFilters";
 import { TeamsTable } from "@/components/admin/TeamsTable";
 import { UsersTable } from "@/components/admin/UsersTable";
+import { PaginationControls } from "@/components/admin/PaginationControls";
 import { Users, Building2, Coins, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
 
@@ -49,6 +50,12 @@ const Admin = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [planFilter, setPlanFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  
+  // Pagination states
+  const [teamsPageSize, setTeamsPageSize] = useState(20);
+  const [teamsCurrentPage, setTeamsCurrentPage] = useState(1);
+  const [usersPageSize, setUsersPageSize] = useState(20);
+  const [usersCurrentPage, setUsersCurrentPage] = useState(1);
 
   useEffect(() => {
     fetchData();
@@ -68,26 +75,16 @@ const Admin = () => {
       if (plansError) throw plansError;
       setPlans(plansData || []);
 
-      // Fetch teams with complete data
-      const { data: teamsData, error: teamsError } = await supabase
-        .from("teams")
-        .select(`
-          id,
-          name,
-          credits,
-          plan_id,
-          subscription_status,
-          created_at,
-          subscription_period_end,
-          admin_id
-        `)
-        .order("created_at", { ascending: false });
+      // Fetch ALL teams using admin function
+      const { data: teamsData, error: teamsError } = await supabase.rpc(
+        "get_all_teams_admin"
+      );
 
       if (teamsError) throw teamsError;
 
       // Enrich teams data with plan info and admin info
       const enrichedTeams = await Promise.all(
-        (teamsData || []).map(async (team) => {
+        (teamsData || []).map(async (team: any) => {
           const { data: planData } = await supabase
             .from("plans")
             .select("name, credits")
@@ -118,23 +115,16 @@ const Admin = () => {
 
       setTeams(enrichedTeams);
 
-      // Fetch users
-      const { data: usersData, error: usersError } = await supabase
-        .from("profiles")
-        .select(`
-          id,
-          name,
-          email,
-          team_id,
-          created_at
-        `)
-        .order("created_at", { ascending: false });
+      // Fetch ALL users using admin function
+      const { data: usersData, error: usersError } = await supabase.rpc(
+        "get_all_users_admin"
+      );
 
       if (usersError) throw usersError;
 
       // Enrich users data
       const enrichedUsers = await Promise.all(
-        (usersData || []).map(async (user) => {
+        (usersData || []).map(async (user: any) => {
           let teamData = null;
           if (user.team_id) {
             const { data } = await supabase
@@ -201,6 +191,20 @@ const Admin = () => {
     });
   }, [users, searchQuery, planFilter]);
 
+  // Paginated data
+  const paginatedTeams = useMemo(() => {
+    const startIndex = (teamsCurrentPage - 1) * teamsPageSize;
+    return filteredTeams.slice(startIndex, startIndex + teamsPageSize);
+  }, [filteredTeams, teamsCurrentPage, teamsPageSize]);
+
+  const paginatedUsers = useMemo(() => {
+    const startIndex = (usersCurrentPage - 1) * usersPageSize;
+    return filteredUsers.slice(startIndex, startIndex + usersPageSize);
+  }, [filteredUsers, usersCurrentPage, usersPageSize]);
+
+  const teamsTotalPages = Math.ceil(filteredTeams.length / teamsPageSize);
+  const usersTotalPages = Math.ceil(filteredUsers.length / usersPageSize);
+
   const stats = useMemo(() => {
     const totalTeams = teams.length;
     const totalUsers = users.length;
@@ -230,49 +234,57 @@ const Admin = () => {
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 bg-gradient-to-br from-background to-muted/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total de Equipes</CardTitle>
-            <Building2 className="h-4 w-4 text-muted-foreground" />
+            <div className="p-2 rounded-lg bg-primary/10">
+              <Building2 className="h-5 w-5 text-primary" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalTeams}</div>
+            <div className="text-3xl font-bold text-primary">{stats.totalTeams}</div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 bg-gradient-to-br from-background to-muted/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total de Usuários</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <div className="p-2 rounded-lg bg-blue-500/10">
+              <Users className="h-5 w-5 text-blue-500" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalUsers}</div>
+            <div className="text-3xl font-bold text-blue-500">{stats.totalUsers}</div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 bg-gradient-to-br from-background to-muted/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total de Créditos</CardTitle>
-            <Coins className="h-4 w-4 text-muted-foreground" />
+            <div className="p-2 rounded-lg bg-amber-500/10">
+              <Coins className="h-5 w-5 text-amber-500" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalCredits}</div>
+            <div className="text-3xl font-bold text-amber-500">{stats.totalCredits}</div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 bg-gradient-to-br from-background to-muted/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Média por Equipe</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            <div className="p-2 rounded-lg bg-green-500/10">
+              <TrendingUp className="h-5 w-5 text-green-500" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.avgCreditsPerTeam}</div>
+            <div className="text-3xl font-bold text-green-500">{stats.avgCreditsPerTeam}</div>
           </CardContent>
         </Card>
       </div>
 
-      <Card>
+      <Card className="border-0 shadow-xl bg-gradient-to-br from-background to-muted/10">
         <CardHeader>
           <CardTitle>Gerenciamento de Dados</CardTitle>
           <CardDescription>
@@ -290,7 +302,7 @@ const Admin = () => {
             plans={plans}
           />
 
-          <Tabs defaultValue="teams">
+          <Tabs defaultValue="teams" className="mt-6">
             <TabsList className="grid w-full grid-cols-2 mb-4">
               <TabsTrigger value="teams">
                 Equipes ({filteredTeams.length})
@@ -300,12 +312,34 @@ const Admin = () => {
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="teams">
-              <TeamsTable teams={filteredTeams} />
+            <TabsContent value="teams" className="space-y-4">
+              <TeamsTable teams={paginatedTeams} />
+              <PaginationControls
+                currentPage={teamsCurrentPage}
+                totalPages={teamsTotalPages}
+                pageSize={teamsPageSize}
+                totalItems={filteredTeams.length}
+                onPageChange={setTeamsCurrentPage}
+                onPageSizeChange={(size) => {
+                  setTeamsPageSize(size);
+                  setTeamsCurrentPage(1);
+                }}
+              />
             </TabsContent>
 
-            <TabsContent value="users">
-              <UsersTable users={filteredUsers} />
+            <TabsContent value="users" className="space-y-4">
+              <UsersTable users={paginatedUsers} />
+              <PaginationControls
+                currentPage={usersCurrentPage}
+                totalPages={usersTotalPages}
+                pageSize={usersPageSize}
+                totalItems={filteredUsers.length}
+                onPageChange={setUsersCurrentPage}
+                onPageSizeChange={(size) => {
+                  setUsersPageSize(size);
+                  setUsersCurrentPage(1);
+                }}
+              />
             </TabsContent>
           </Tabs>
         </CardContent>

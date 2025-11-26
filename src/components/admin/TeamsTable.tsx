@@ -60,56 +60,63 @@ const getStatusLabel = (status: string | null) => {
 
 export const TeamsTable = ({ teams }: TeamsTableProps) => {
   return (
-    <div className="border rounded-lg overflow-hidden">
+    <div className="rounded-lg overflow-hidden shadow-md">
       <Table>
         <TableHeader>
-          <TableRow>
-            <TableHead>Equipe</TableHead>
-            <TableHead>Admin</TableHead>
-            <TableHead>Plano</TableHead>
-            <TableHead className="text-right">Créditos</TableHead>
-            <TableHead className="text-center">Membros</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Criado em</TableHead>
+          <TableRow className="bg-muted/50 hover:bg-muted/50">
+            <TableHead className="font-semibold">Equipe</TableHead>
+            <TableHead className="font-semibold">Admin</TableHead>
+            <TableHead className="font-semibold">Plano</TableHead>
+            <TableHead className="text-right font-semibold">Créditos</TableHead>
+            <TableHead className="text-center font-semibold">Membros</TableHead>
+            <TableHead className="font-semibold">Status</TableHead>
+            <TableHead className="font-semibold">Criado em</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {teams.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+              <TableCell colSpan={7} className="text-center text-muted-foreground py-12">
                 Nenhuma equipe encontrada
               </TableCell>
             </TableRow>
           ) : (
-            teams.map((team) => (
-              <TableRow key={team.id}>
+            teams.map((team, index) => (
+              <TableRow 
+                key={team.id}
+                className={`hover:bg-muted/30 transition-colors ${
+                  index % 2 === 0 ? "bg-background" : "bg-muted/10"
+                }`}
+              >
                 <TableCell className="font-medium">{team.name}</TableCell>
                 <TableCell>
                   <div className="flex flex-col">
-                    <span className="text-sm">{team.admin_name}</span>
+                    <span className="text-sm font-medium">{team.admin_name}</span>
                     <span className="text-xs text-muted-foreground">
                       {team.admin_email}
                     </span>
                   </div>
                 </TableCell>
                 <TableCell>
-                  <Badge variant="outline">{team.plan_name}</Badge>
+                  <Badge variant="outline" className="font-medium">{team.plan_name}</Badge>
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex flex-col items-end">
-                    <span className="font-semibold">{team.credits}</span>
+                    <span className="font-bold text-primary">{team.credits}</span>
                     <span className="text-xs text-muted-foreground">
                       / {team.plan_credits}
                     </span>
                   </div>
                 </TableCell>
-                <TableCell className="text-center">{team.member_count}</TableCell>
+                <TableCell className="text-center">
+                  <span className="font-semibold">{team.member_count}</span>
+                </TableCell>
                 <TableCell>
                   <Badge className={getStatusColor(team.subscription_status)}>
                     {getStatusLabel(team.subscription_status)}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-sm text-muted-foreground">
+                <TableCell className="text-sm text-muted-foreground font-medium">
                   {format(new Date(team.created_at), "dd/MM/yyyy")}
                 </TableCell>
               </TableRow>
