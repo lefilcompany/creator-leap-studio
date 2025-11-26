@@ -10,6 +10,10 @@ import { TeamDistributionChart } from "@/components/admin/TeamDistributionChart"
 import { SubscriptionStatusChart } from "@/components/admin/SubscriptionStatusChart";
 import { CreditsDistributionChart } from "@/components/admin/CreditsDistributionChart";
 import { TopTeamsChart } from "@/components/admin/TopTeamsChart";
+import { DateRangeFilter } from "@/components/admin/DateRangeFilter";
+import { CreditUsageOverTimeChart } from "@/components/admin/CreditUsageOverTimeChart";
+import { TeamGrowthChart } from "@/components/admin/TeamGrowthChart";
+import { ActionTypeDistributionChart } from "@/components/admin/ActionTypeDistributionChart";
 import { Users, Building2, Coins, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
 
@@ -45,10 +49,24 @@ interface Plan {
   name: string;
 }
 
+interface CreditHistoryItem {
+  id: string;
+  team_id: string;
+  user_id: string;
+  action_type: string;
+  credits_used: number;
+  credits_before: number;
+  credits_after: number;
+  description: string | null;
+  created_at: string;
+  metadata: any;
+}
+
 const Admin = () => {
   const [teams, setTeams] = useState<Team[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [plans, setPlans] = useState<Plan[]>([]);
+  const [creditHistory, setCreditHistory] = useState<CreditHistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   
   const [searchQuery, setSearchQuery] = useState("");
@@ -61,9 +79,17 @@ const Admin = () => {
   const [usersPageSize, setUsersPageSize] = useState(20);
   const [usersCurrentPage, setUsersCurrentPage] = useState(1);
 
+  // Date range filter - default últimos 3 meses
+  const [startDate, setStartDate] = useState(() => {
+    const date = new Date();
+    date.setMonth(date.getMonth() - 3);
+    return date;
+  });
+  const [endDate, setEndDate] = useState(new Date());
+
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [startDate, endDate]);
 
   const fetchData = async () => {
     try {
@@ -156,6 +182,17 @@ const Admin = () => {
       );
 
       setUsers(enrichedUsers);
+
+      // Fetch credit history for charts
+      const { data: historyData, error: historyError } = await supabase
+        .from("credit_history")
+        .select("*")
+        .gte("created_at", startDate.toISOString())
+        .lte("created_at", endDate.toISOString())
+        .order("created_at", { ascending: true });
+
+      if (historyError) throw historyError;
+      setCreditHistory(historyData || []);
     } catch (error) {
       console.error("Erro ao buscar dados:", error);
       toast.error("Erro ao carregar dados");
@@ -296,15 +333,46 @@ const Admin = () => {
           </p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2">
-          <TeamDistributionChart teams={teams} />
-          <SubscriptionStatusChart teams={teams} />
+        <DateRangeFilter 
+          startDate={startDate}
+          endDate={endDate}
+          onRangeChange={(start, end) => {
+            setStartDate(start);
+            setEndDate(end);
+          }}
+        />
+
+        <div>
+          <h3 className="text-xl font-semibold mb-4">Evolução Temporal</h3>
+          <div className="grid gap-6">
+            <CreditUsageOverTimeChart 
+              creditHistory={creditHistory}
+              startDate={startDate}
+              endDate={endDate}
+            />
+            <TeamGrowthChart 
+              teams={teams}
+              users={users}
+              startDate={startDate}
+              endDate={endDate}
+            />
+          </div>
+        </div>
+
+        <div>
+          <h3 className="text-xl font-semibold mb-4">Distribuições Gerais</h3>
+          <div className="grid gap-6 md:grid-cols-2">
+            <TeamDistributionChart teams={teams} />
+            <SubscriptionStatusChart teams={teams} />
+          </div>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
+          <ActionTypeDistributionChart creditHistory={creditHistory} />
           <CreditsDistributionChart teams={teams} />
-          <TopTeamsChart teams={teams} />
         </div>
+
+        <TopTeamsChart teams={teams} />
       </div>
 
       <Card className="border-0 shadow-xl bg-gradient-to-br from-background to-muted/10">
