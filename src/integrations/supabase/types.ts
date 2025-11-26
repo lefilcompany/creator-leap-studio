@@ -844,6 +844,30 @@ export type Database = {
           team_name: string
         }[]
       }
+      get_all_teams_admin: {
+        Args: never
+        Returns: {
+          admin_id: string
+          code: string
+          created_at: string
+          credits: number
+          id: string
+          name: string
+          plan_id: string
+          subscription_period_end: string
+          subscription_status: string
+        }[]
+      }
+      get_all_users_admin: {
+        Args: never
+        Returns: {
+          created_at: string
+          email: string
+          id: string
+          name: string
+          team_id: string
+        }[]
+      }
       get_team_id_by_code: { Args: { p_team_code: string }; Returns: string }
       has_role: {
         Args: {
