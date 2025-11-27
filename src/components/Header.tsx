@@ -28,6 +28,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useOnboarding } from "@/hooks/useOnboarding";
+import { useAdminRole } from "@/hooks/useAdminRole";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -61,6 +62,7 @@ export const Header = () => {
   const { theme, setTheme } = useTheme();
   const { t } = useTranslation();
   const { resetAllTours } = useOnboarding();
+  const { isAdmin } = useAdminRole();
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [showMobileSearch, setShowMobileSearch] = useState(false);
@@ -285,6 +287,14 @@ export const Header = () => {
                     <span>Histórico</span>
                   </Link>
                 </DropdownMenuItem>
+                {isAdmin && (
+                  <DropdownMenuItem className="p-3 cursor-pointer" asChild>
+                    <Link to="/admin" className="flex items-center">
+                      <Shield className="mr-3 h-4 w-4" />
+                      <span>Administração</span>
+                    </Link>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem
                   className="p-3 cursor-pointer"
                   onClick={() => {
