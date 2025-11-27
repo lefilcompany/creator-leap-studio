@@ -411,7 +411,7 @@ const Register = () => {
               <SelectTrigger className="h-10 lg:h-11 disabled:opacity-50 disabled:cursor-wait">
                 <SelectValue placeholder={loadingStates ? "Carregando estados..." : "Selecione o estado"} />
               </SelectTrigger>
-              <SelectContent className="bg-background border border-border shadow-lg max-h-[200px]">
+              <SelectContent className="z-[9999] bg-popover border border-border shadow-lg max-h-[300px]" position="popper">
                 {states.map((state) => (
                   <SelectItem
                     key={state.id}
@@ -445,7 +445,7 @@ const Register = () => {
                   }
                 />
               </SelectTrigger>
-              <SelectContent className="bg-background border border-border shadow-lg max-h-[200px]">
+              <SelectContent className="z-[9999] bg-popover border border-border shadow-lg max-h-[300px]" position="popper">
                 {cities.map((city) => (
                   <SelectItem
                     key={city.id}

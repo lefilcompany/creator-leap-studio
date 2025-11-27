@@ -407,7 +407,7 @@ const Onboarding = () => {
             <Label htmlFor="state">Estado</Label>
             <Select value={formData.state} onValueChange={(value) => handleSelectChange("state", value)} disabled={loadingStates}>
               <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-              <SelectContent>
+              <SelectContent className="z-[9999] bg-popover border border-border shadow-lg max-h-[300px]" position="popper">
                 {states.map((state) => (
                   <SelectItem key={state.id} value={state.sigla}>{state.nome}</SelectItem>
                 ))}
@@ -418,7 +418,7 @@ const Onboarding = () => {
             <Label htmlFor="city">Cidade</Label>
             <Select value={formData.city} onValueChange={(value) => handleSelectChange("city", value)} disabled={!formData.state || loadingCities}>
               <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-              <SelectContent>
+              <SelectContent className="z-[9999] bg-popover border border-border shadow-lg max-h-[300px]" position="popper">
                 {cities.map((city) => (
                   <SelectItem key={city.id} value={city.nome}>{city.nome}</SelectItem>
                 ))}
