@@ -187,7 +187,7 @@ const Onboarding = () => {
   };
 
   const handleRegister = async () => {
-    if (!formData.name || !formData.email || !formData.password) {
+    if (!formData.name || !formData.email || !formData.password || !formData.phone) {
       toast.error("Por favor, preencha todos os campos obrigatórios");
       return;
     }
@@ -397,10 +397,10 @@ const Onboarding = () => {
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="phone">Telefone</Label>
+            <Label htmlFor="phone">Telefone <span className="text-destructive">*</span></Label>
             <div className="relative">
               <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input id="phone" placeholder="(00) 00000-0000" className="pl-9" value={formData.phone} onChange={handleInputChange} />
+              <Input id="phone" placeholder="(00) 00000-0000" className="pl-9" value={formData.phone} onChange={handleInputChange} required />
             </div>
           </div>
           <div className="space-y-2">
