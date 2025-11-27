@@ -566,7 +566,7 @@ const Auth = () => {
             <SelectTrigger className="w-full h-9 sm:h-10 text-sm">
               <SelectValue placeholder="Estado" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="z-[9999] bg-popover border border-border shadow-lg max-h-[300px]" position="popper">
               {states.map((state) => (
                 <SelectItem key={state.id} value={state.sigla}>
                   {state.nome}
@@ -584,7 +584,7 @@ const Auth = () => {
               <SelectTrigger className="w-full h-9 sm:h-10 text-sm">
                 <SelectValue placeholder="Cidade" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="z-[9999] bg-popover border border-border shadow-lg max-h-[300px]" position="popper">
                 {cities.map((city) => (
                   <SelectItem key={city.id} value={city.nome}>
                     {city.nome}
