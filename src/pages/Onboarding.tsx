@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { CreatorLogo } from "@/components/CreatorLogo";
 import { Eye, EyeOff, User, Mail, Phone, Lock, Loader2, CheckCircle, Building2, Code, LogIn, Package, ArrowLeft } from "lucide-react";
@@ -446,8 +446,34 @@ const Onboarding = () => {
           </div>
         </div>
         <div className="flex items-start space-x-2">
-          <Checkbox id="privacy" checked={privacyChecked} onCheckedChange={(checked) => setPrivacyChecked(checked === true)} />
-          <label htmlFor="privacy" className="text-sm leading-none">Li e concordo com a <button type="button" onClick={(e) => { e.preventDefault(); setPrivacyModalOpen(true); }} className="text-primary hover:underline">Política de Privacidade</button></label>
+          <Checkbox 
+            id="privacy" 
+            checked={privacyChecked} 
+            onCheckedChange={(checked) => {
+              setPrivacyModalOpen(true);
+            }} 
+          />
+          <label 
+            htmlFor="privacy" 
+            className="text-sm leading-none cursor-pointer"
+            onClick={(e) => {
+              e.preventDefault();
+              setPrivacyModalOpen(true);
+            }}
+          >
+            Li e concordo com a{" "}
+            <button 
+              type="button" 
+              onClick={(e) => { 
+                e.preventDefault(); 
+                e.stopPropagation();
+                setPrivacyModalOpen(true); 
+              }} 
+              className="text-primary hover:underline"
+            >
+              Política de Privacidade
+            </button>
+          </label>
         </div>
         <Button onClick={handleRegister} disabled={isLoading || !isPasswordValid || !passwordsMatch || !privacyChecked} className="w-full" size="lg">
           {isLoading ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" />Criando conta...</>) : ("Continuar")}
@@ -617,7 +643,9 @@ const Onboarding = () => {
         {currentStep === 'plan' && renderPlanStep()}
         <Dialog open={privacyModalOpen} onOpenChange={setPrivacyModalOpen}>
           <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-            <DialogHeader><DialogTitle>Política de Privacidade</DialogTitle></DialogHeader>
+            <DialogHeader>
+              <DialogTitle>Política de Privacidade</DialogTitle>
+            </DialogHeader>
             <div className="prose prose-sm dark:prose-invert">
               <p>Ao utilizar nossa plataforma, você concorda com os seguintes termos:</p>
               <ul>
@@ -627,6 +655,25 @@ const Onboarding = () => {
                 <li>Você pode solicitar a exclusão de seus dados a qualquer momento</li>
               </ul>
             </div>
+            <DialogFooter className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setPrivacyModalOpen(false);
+                  setPrivacyChecked(false);
+                }}
+              >
+                Recusar
+              </Button>
+              <Button
+                onClick={() => {
+                  setPrivacyChecked(true);
+                  setPrivacyModalOpen(false);
+                }}
+              >
+                Aceitar
+              </Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
