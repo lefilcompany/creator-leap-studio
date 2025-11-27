@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { motion, AnimatePresence } from "framer-motion";
@@ -21,6 +21,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useAuth } from "@/hooks/useAuth";
+import { useExtensionProtection, useFormProtection } from "@/hooks/useExtensionProtection";
 import decorativeElement from "@/assets/decorative-element.png";
 
 // Interfaces para os dados do IBGE
@@ -37,6 +38,14 @@ interface City {
 
 const Auth = () => {
   const { t } = useTranslation();
+  
+  // Proteção contra extensões do navegador
+  useExtensionProtection();
+  const loginFormRef = useRef<HTMLFormElement>(null);
+  const registerFormRef = useRef<HTMLFormElement>(null);
+  useFormProtection(loginFormRef);
+  useFormProtection(registerFormRef);
+  
   const [isLoginMode, setIsLoginMode] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -320,7 +329,7 @@ const Auth = () => {
 
   const loginForm = useMemo(
     () => (
-      <form onSubmit={handleLogin} className="space-y-4 sm:space-y-6">
+      <form ref={loginFormRef} onSubmit={handleLogin} className="space-y-4 sm:space-y-6">
         <div className="space-y-2">
           <div className="relative">
             <Mail className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
@@ -434,7 +443,7 @@ const Auth = () => {
 
   const registerForm = useMemo(
     () => (
-      <form onSubmit={handleRegister} className="space-y-4">
+      <form ref={registerFormRef} onSubmit={handleRegister} className="space-y-4">
         {/* Grupo 1: Informações Pessoais */}
         <div className="space-y-3 p-4 rounded-lg bg-muted/20 border border-border/40">
           <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
