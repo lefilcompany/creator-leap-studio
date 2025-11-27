@@ -464,21 +464,26 @@ const Register = () => {
             id="privacy"
             checked={privacyChecked}
             onCheckedChange={(checked) => {
-              if (checked) {
-                setPrivacyModalOpen(true);
-              } else {
-                setPrivacyChecked(false);
-                setPrivacyAccepted(false);
-              }
+              setPrivacyModalOpen(true);
             }}
             className="mt-1"
           />
-          <Label htmlFor="privacy" className="text-xs text-muted-foreground select-none cursor-pointer leading-relaxed">
+          <Label 
+            htmlFor="privacy" 
+            className="text-xs text-muted-foreground select-none cursor-pointer leading-relaxed"
+            onClick={(e) => {
+              e.preventDefault();
+              setPrivacyModalOpen(true);
+            }}
+          >
             Li e concordo com a{" "}
             <button
               type="button"
               className="underline text-primary hover:text-secondary transition-colors"
-              onClick={() => setPrivacyModalOpen(true)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setPrivacyModalOpen(true);
+              }}
             >
               Política de Privacidade
             </button>
