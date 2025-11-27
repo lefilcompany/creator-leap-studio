@@ -25,6 +25,21 @@ class ErrorBoundary extends Component<Props, State> {
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error("ErrorBoundary caught an error:", error, errorInfo);
+    
+    // Verificar se o erro foi causado por extensão do navegador
+    const isExtensionError = error.stack?.includes('extension://') || 
+                             error.stack?.includes('chrome-extension://') ||
+                             error.message?.includes('Extension');
+    
+    if (isExtensionError) {
+      console.warn('⚠️ Erro causado por extensão do navegador - tentando recuperar automaticamente');
+      // Tentar recuperar automaticamente sem mostrar tela de erro
+      setTimeout(() => {
+        this.setState({ hasError: false, error: null, errorInfo: null });
+      }, 100);
+      return;
+    }
+    
     this.setState({
       error,
       errorInfo,

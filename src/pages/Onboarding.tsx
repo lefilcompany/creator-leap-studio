@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { PlanSelector } from "@/components/subscription/PlanSelector";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { useExtensionProtection, useFormProtection } from "@/hooks/useExtensionProtection";
 
 interface State {
   id: number;
@@ -32,6 +33,12 @@ type Step = 'login' | 'register' | 'team' | 'plan';
 const Onboarding = () => {
   const navigate = useNavigate();
   const { reloadUserData } = useAuth();
+  
+  // Proteção contra extensões do navegador
+  useExtensionProtection();
+  const formRef = useRef<HTMLFormElement>(null);
+  useFormProtection(formRef);
+  
   const [mode, setMode] = useState<OnboardingMode | null>(null);
   const [currentStep, setCurrentStep] = useState<Step>('register');
   const [showPassword, setShowPassword] = useState(false);
@@ -580,7 +587,7 @@ const Onboarding = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleExistingUserLogin} className="space-y-4">
+              <form ref={formRef} onSubmit={handleExistingUserLogin} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
                   <Input 

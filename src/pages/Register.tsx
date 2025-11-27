@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { TeamSelectionDialog } from "@/components/auth/TeamSelectionDialog";
 import { useOAuthCallback } from "@/hooks/useOAuthCallback";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useExtensionProtection, useFormProtection } from "@/hooks/useExtensionProtection";
 
 // Interfaces para os dados do IBGE
 interface State {
@@ -26,6 +27,11 @@ interface City {
   nome: string;
 }
 const Register = () => {
+  // Proteção contra extensões do navegador
+  useExtensionProtection();
+  const formRef = useRef<HTMLFormElement>(null);
+  useFormProtection(formRef);
+  
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -289,7 +295,7 @@ const Register = () => {
   };
   const registerForm = useMemo(
     () => (
-      <form onSubmit={handleRegister} className="space-y-3 lg:space-y-4">
+      <form ref={formRef} onSubmit={handleRegister} className="space-y-3 lg:space-y-4">
         <div className="relative">
           <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
