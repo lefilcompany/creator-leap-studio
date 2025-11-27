@@ -105,8 +105,8 @@ export default function ContentCreationSelector() {
           <CardContent className="p-4 sm:p-6">
             <RadioGroup value={creationType || ""} onValueChange={value => setCreationType(value as CreationType)}>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <label htmlFor="quick" className="cursor-pointer h-full">
-                  <Card className="hover:border-primary transition-all duration-300 hover:shadow-lg h-full">
+                <label htmlFor="quick" className="cursor-pointer h-full" onClick={() => setCreationType("quick")}>
+                  <Card className="hover:border-primary transition-all duration-300 hover:shadow-lg h-full active:scale-[0.98] touch-manipulation">
                     <CardContent className="p-4 sm:p-6 flex flex-col items-center text-center gap-3 sm:gap-4 min-h-[240px] h-full justify-between">
                       <RadioGroupItem value="quick" id="quick" className="sr-only" />
                       <div className="flex flex-col items-center gap-4 flex-1 justify-center">
@@ -128,8 +128,8 @@ export default function ContentCreationSelector() {
                   </Card>
                 </label>
 
-                <label htmlFor="image" className="cursor-pointer h-full">
-                  <Card className="hover:border-primary transition-all duration-300 hover:shadow-lg h-full">
+                <label htmlFor="image" className="cursor-pointer h-full" onClick={() => setCreationType("image")}>
+                  <Card className="hover:border-primary transition-all duration-300 hover:shadow-lg h-full active:scale-[0.98] touch-manipulation">
                     <CardContent className="p-4 sm:p-6 flex flex-col items-center text-center gap-3 sm:gap-4 min-h-[240px] h-full justify-between">
                       <RadioGroupItem value="image" id="image" className="sr-only" />
                       <div className="flex flex-col items-center gap-4 flex-1 justify-center">
@@ -151,8 +151,8 @@ export default function ContentCreationSelector() {
                   </Card>
                 </label>
 
-                <label htmlFor="video" className="cursor-pointer h-full">
-                  <Card className="hover:border-primary transition-all duration-300 hover:shadow-lg h-full">
+                <label htmlFor="video" className="cursor-pointer h-full" onClick={() => setCreationType("video")}>
+                  <Card className="hover:border-primary transition-all duration-300 hover:shadow-lg h-full active:scale-[0.98] touch-manipulation">
                     <CardContent className="p-4 sm:p-6 flex flex-col items-center text-center gap-3 sm:gap-4 min-h-[240px] h-full justify-between">
                       <RadioGroupItem value="video" id="video" className="sr-only" />
                       <div className="flex flex-col items-center gap-4 flex-1 justify-center">
