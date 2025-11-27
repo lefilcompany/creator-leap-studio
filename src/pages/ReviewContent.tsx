@@ -238,9 +238,8 @@ const ReviewContent = () => {
         // Atualizar créditos antes de navegar
         try {
           await refreshTeamCredits();
-          console.log("✅ Créditos atualizados no contexto");
         } catch (error) {
-          console.error("Erro ao atualizar créditos:", error);
+          // Silent error
         }
 
         navigate("/review-result", {
@@ -285,7 +284,7 @@ const ReviewContent = () => {
   }
 
   return (
-    <div className="min-h-full w-full p-6">
+    <div className="h-full w-full flex flex-col">
       {/* Tour inicial - só aparece quando reviewType é null */}
       {!reviewType && <OnboardingTour tourType="review_content" steps={reviewContentInitialSteps} />}
 

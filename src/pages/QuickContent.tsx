@@ -219,9 +219,8 @@ export default function QuickContent() {
       // Atualizar créditos antes de navegar
       try {
         await refreshTeamCredits();
-        console.log('✅ Créditos atualizados no contexto');
       } catch (error) {
-        console.error('Erro ao atualizar créditos:', error);
+        // Silent error
       }
 
       // Navigate to result page

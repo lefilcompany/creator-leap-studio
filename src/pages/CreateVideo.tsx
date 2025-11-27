@@ -17,6 +17,8 @@ import type { StrategicThemeSummary } from "@/types/theme";
 import type { PersonaSummary } from "@/types/persona";
 import type { Team } from "@/types/theme";
 import { useAuth } from "@/hooks/useAuth";
+import { TourSelector } from "@/components/onboarding/TourSelector";
+import { navbarSteps } from "@/components/onboarding/tourSteps";
 
 interface FormData {
   brand: string;
@@ -198,7 +200,7 @@ export default function CreateVideo() {
   }
 
   return (
-    <div className="min-h-full w-full bg-gradient-to-br from-pink-50/50 via-purple-50/30 to-pink-50/50 dark:from-background dark:via-background dark:to-muted/20">
+    <div className="h-full w-full flex flex-col bg-gradient-to-br from-pink-50/50 via-purple-50/30 to-pink-50/50 dark:from-background dark:via-background dark:to-muted/20">
       <div className="max-w-5xl mx-auto space-y-6">
         {/* Header */}
         <Card className="border-purple-200/50 dark:border-purple-500/20 bg-gradient-to-r from-pink-50/80 via-purple-50/60 to-pink-50/80 dark:from-purple-500/10 dark:via-purple-500/5 dark:to-purple-500/10 shadow-sm">
@@ -381,6 +383,18 @@ export default function CreateVideo() {
             )}
           </Button>
         </div>
+
+        <TourSelector 
+          tours={[
+            {
+              tourType: 'navbar',
+              steps: navbarSteps,
+              label: 'Tour da Navegação',
+              targetElement: '#sidebar-logo'
+            }
+          ]}
+          startDelay={500}
+        />
       </div>
     </div>
   );

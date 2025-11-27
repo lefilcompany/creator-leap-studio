@@ -278,8 +278,8 @@ const Admin = () => {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 bg-gradient-to-br from-background to-muted/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Equipes</CardTitle>
-            <div className="p-2 rounded-lg bg-primary/10">
+            <CardTitle className="text-sm font-medium truncate">Total de Equipes</CardTitle>
+            <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
               <Building2 className="h-5 w-5 text-primary" />
             </div>
           </CardHeader>
@@ -290,8 +290,8 @@ const Admin = () => {
 
         <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 bg-gradient-to-br from-background to-muted/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Usuários</CardTitle>
-            <div className="p-2 rounded-lg bg-blue-500/10">
+            <CardTitle className="text-sm font-medium truncate">Total de Usuários</CardTitle>
+            <div className="p-2 rounded-lg bg-blue-500/10 flex-shrink-0">
               <Users className="h-5 w-5 text-blue-500" />
             </div>
           </CardHeader>
@@ -302,8 +302,8 @@ const Admin = () => {
 
         <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 bg-gradient-to-br from-background to-muted/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Créditos</CardTitle>
-            <div className="p-2 rounded-lg bg-amber-500/10">
+            <CardTitle className="text-sm font-medium truncate">Total de Créditos</CardTitle>
+            <div className="p-2 rounded-lg bg-amber-500/10 flex-shrink-0">
               <Coins className="h-5 w-5 text-amber-500" />
             </div>
           </CardHeader>
@@ -314,8 +314,8 @@ const Admin = () => {
 
         <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 bg-gradient-to-br from-background to-muted/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Média por Equipe</CardTitle>
-            <div className="p-2 rounded-lg bg-green-500/10">
+            <CardTitle className="text-sm font-medium truncate">Média por Equipe</CardTitle>
+            <div className="p-2 rounded-lg bg-green-500/10 flex-shrink-0">
               <TrendingUp className="h-5 w-5 text-green-500" />
             </div>
           </CardHeader>
@@ -344,7 +344,7 @@ const Admin = () => {
 
         <div>
           <h3 className="text-xl font-semibold mb-4">Evolução Temporal</h3>
-          <div className="grid gap-6">
+          <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-1">
             <CreditUsageOverTimeChart 
               creditHistory={creditHistory}
               startDate={startDate}
@@ -361,13 +361,13 @@ const Admin = () => {
 
         <div>
           <h3 className="text-xl font-semibold mb-4">Distribuições Gerais</h3>
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-2">
             <TeamDistributionChart teams={teams} />
             <SubscriptionStatusChart teams={teams} />
           </div>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-2">
           <ActionTypeDistributionChart creditHistory={creditHistory} />
           <CreditsDistributionChart teams={teams} />
         </div>

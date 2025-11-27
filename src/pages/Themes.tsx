@@ -382,7 +382,7 @@ export default function Themes() {
   const isButtonDisabled = !team || team.credits < 1;
 
   return (
-    <div className="min-h-full flex flex-col gap-6">
+    <div className="h-full flex flex-col gap-6">
       <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5 flex-shrink-0">
         <CardHeader className="pb-4">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">

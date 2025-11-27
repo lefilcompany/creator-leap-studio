@@ -488,12 +488,7 @@ export default function CreateImage() {
         
         const base64 = await compressImage(file);
         referenceImagesBase64.push(base64);
-        
-        console.log(`✅ Imagem ${i + 1} processada: ${(base64.length / 1024).toFixed(0)}KB`);
       }
-      
-      console.log(`📊 Total de imagens do usuário: ${referenceImagesBase64.length}`);
-      console.log(`📦 Tamanho total: ${(referenceImagesBase64.join('').length / 1024 / 1024).toFixed(2)}MB`);
 
       setGenerationProgress(10);
       toast.loading("🎨 Preparando geração...", {

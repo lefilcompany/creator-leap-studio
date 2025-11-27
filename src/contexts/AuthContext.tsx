@@ -109,14 +109,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const shouldSkipDebounce = isInitialLoad.current || forceLoad;
     
     if (!shouldSkipDebounce && now - lastReloadTime.current < RELOAD_DEBOUNCE_MS) {
-      console.log('[AuthContext] Skipping reload - debounced');
       setIsLoading(false);
       return;
     }
 
     // Usar cache apenas se não for load inicial e não for force
     if (!shouldSkipDebounce && dataCache.current && now - dataCache.current.timestamp < CACHE_VALIDITY_MS) {
-      console.log('[AuthContext] Using cached user data');
       setUser(dataCache.current.user);
       setTeam(dataCache.current.team);
       setIsLoading(false);
@@ -132,7 +130,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       lastReloadTime.current = now;
       isInitialLoad.current = false; // Marcar que já não é inicial
-      console.log('[AuthContext] Loading user data for:', supabaseUser.id);
 
       const [profileResult, isAdmin] = await Promise.all([
         supabase.from('profiles').select('*').eq('id', supabaseUser.id).maybeSingle(),
@@ -144,13 +141,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { data: profile, error: profileError } = profileResult;
 
       if (profileError) {
-        console.error('[AuthContext] Error fetching profile:', profileError);
         setIsLoading(false);
         return;
       }
 
       if (!profile) {
-        console.log('[AuthContext] No profile found');
         setUser(null);
         setTeam(null);
         setIsLoading(false);
@@ -183,7 +178,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!isMounted.current) return;
 
         if (teamError) {
-          console.error('[AuthContext] Error fetching team:', teamError);
+          // Silent error
         } else if (teamInfo && teamInfo.plans) {
           const planData = teamInfo.plans as any;
           
@@ -239,7 +234,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsTrialExpired(trialExpired);
       setTrialDaysRemaining(daysRemaining);
     } catch (error) {
-      console.error('[AuthContext] Error loading user data:', error);
+      // Silent error
     } finally {
       if (isMounted.current) {
         setIsLoading(false);
@@ -267,7 +262,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .maybeSingle();
 
       if (error) {
-        console.error('[AuthContext] Error refreshing profile:', error);
         return;
       }
 
@@ -282,7 +276,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         dataCache.current = null;
       }
     } catch (error) {
-      console.error('[AuthContext] Error in refreshProfile:', error);
+      // Silent error
     }
   }, [user?.id]);
 
@@ -297,7 +291,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       dataCache.current = null;
       lastReloadTime.current = 0;
     } catch (error) {
-      console.error('[AuthContext] Error during logout:', error);
+      // Silent error
     }
   }, []);
 
@@ -305,48 +299,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     isMounted.current = true;
     let mounted = true;
 
-    console.log('[AuthContext] Initializing auth listener');
-
     const initializeAuth = async () => {
       try {
         setIsLoading(true);
-        console.log('[AuthContext] 🔍 [INIT] Checking localStorage for session...');
-        
-        const storageKeys = Object.keys(localStorage).filter(key => 
-          key.includes('supabase') || key.includes('auth')
-        );
-        console.log('[AuthContext] 📦 [INIT] Storage keys found:', storageKeys);
         
         const { data: { session: currentSession }, error } = await supabase.auth.getSession();
         
-        if (error) {
-          console.error('[AuthContext] ❌ [INIT] Error getting session:', error);
-        }
-        
         if (!mounted) return;
-
-        if (currentSession) {
-          console.log('[AuthContext] ✅ [INIT] Session found in localStorage');
-          console.log('[AuthContext] 🔑 [INIT] Access token:', currentSession.access_token?.substring(0, 20) + '...');
-          console.log('[AuthContext] 👤 [INIT] User ID:', currentSession.user?.id);
-          console.log('[AuthContext] ⏰ [INIT] Expires at:', new Date(currentSession.expires_at! * 1000).toLocaleString());
-        } else {
-          console.log('[AuthContext] ❌ [INIT] No session found in localStorage');
-        }
         
         setSession(currentSession);
 
         if (currentSession?.user) {
-          console.log('[AuthContext] 🚀 [INIT] Loading user data from cached session');
           isInitialized.current = true;
-          // isInitialLoad é true, então vai carregar sem debounce
           await loadUserData(currentSession.user, true);
         } else {
-          console.log('[AuthContext] ⚠️ [INIT] No user in session, setting loading to false');
           setIsLoading(false);
         }
       } catch (error) {
-        console.error('[AuthContext] ❌ [INIT] Error initializing auth:', error);
         if (mounted) {
           setIsLoading(false);
         }
@@ -359,26 +328,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Then set up the listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, newSession) => {
-        console.log('[AuthContext] 🔔 [EVENT] Auth event:', event);
-        
-        if (!mounted) {
-          console.log('[AuthContext] ⚠️ [EVENT] Component unmounted, skipping event');
-          return;
-        }
+        if (!mounted) return;
 
-        // Handle TOKEN_REFRESHED - apenas atualiza sessão, mantém dados do usuário
+        // Handle TOKEN_REFRESHED - apenas atualiza sessão
         if (event === 'TOKEN_REFRESHED') {
-          console.log('[AuthContext] 🔄 [TOKEN_REFRESHED] Token refreshed - updating session only');
-          if (newSession) {
-            console.log('[AuthContext] 🔑 [TOKEN_REFRESHED] New token:', newSession.access_token?.substring(0, 20) + '...');
-          }
           setSession(newSession);
           return;
         }
 
         // Handle SIGNED_OUT
         if (event === 'SIGNED_OUT') {
-          console.log('[AuthContext] 👋 [SIGNED_OUT] User signed out - clearing all state');
           setSession(null);
           setUser(null);
           setTeam(null);
@@ -387,17 +346,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setIsLoading(false);
           dataCache.current = null;
           isInitialized.current = false;
-          isInitialLoad.current = true; // Reset para próximo login
+          isInitialLoad.current = true;
           return;
         }
 
-        // Handle SIGNED_IN - apenas se não foi inicializado ainda
+        // Handle SIGNED_IN
         if (event === 'SIGNED_IN') {
-          console.log('[AuthContext] 👤 [SIGNED_IN] User signed in');
-          
-          // Evitar processar SIGNED_IN se já inicializamos
           if (isInitialized.current) {
-            console.log('[AuthContext] ⏭️ [SIGNED_IN] Already initialized, skipping duplicate load');
             setSession(newSession);
             return;
           }
@@ -405,16 +360,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setSession(newSession);
           
           if (newSession?.user) {
-            console.log('[AuthContext] ✅ [SIGNED_IN] User data available, loading...');
             isInitialized.current = true;
-            // Usar setTimeout para evitar deadlock
             setTimeout(() => {
               if (mounted) {
                 loadUserData(newSession.user, true);
               }
             }, 0);
           } else {
-            console.log('[AuthContext] ❌ [SIGNED_IN] No user data in session');
             setUser(null);
             setTeam(null);
             setIsLoading(false);
@@ -422,20 +374,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return;
         }
 
-        // Handle INITIAL_SESSION - já foi tratado em initializeAuth
+        // Handle INITIAL_SESSION
         if (event === 'INITIAL_SESSION') {
-          console.log('[AuthContext] ⏭️ [INITIAL_SESSION] Skipping (already handled in init)');
           return;
         }
 
         // Outros eventos
-        console.log('[AuthContext] 📝 [OTHER] Other event, updating session only');
         setSession(newSession);
       }
     );
 
     return () => {
-      console.log('[AuthContext] 🧹 [CLEANUP] Cleanup - unsubscribing');
       mounted = false;
       isMounted.current = false;
       if (abortControllerRef.current) {
@@ -448,12 +397,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useMemo(() => !!session && !!user, [session, user]);
 
   const refreshTeamCredits = useCallback(async () => {
-    if (!user?.email || !team?.id) {
-      console.log('[AuthContext] Cannot refresh credits - no user or team');
-      return;
-    }
-    
-    console.log('[AuthContext] Refreshing team credits...');
+    if (!user?.email || !team?.id) return;
     
     const { data, error } = await supabase
       .from('teams')
@@ -461,26 +405,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       .eq('id', team.id)
       .single();
       
-    if (error) {
-      console.error('[AuthContext] Error refreshing credits:', error);
-      return;
-    }
+    if (error) return;
       
     if (data) {
       setTeam(prev => prev ? { ...prev, credits: data.credits } : null);
-      console.log('[AuthContext] ✅ Credits refreshed:', data.credits);
     }
   }, [user?.email, team?.id]);
 
   const refreshTeamData = useCallback(async () => {
-    if (!user?.teamId) {
-      console.log('[AuthContext] Cannot refresh team data - no team ID');
-      return;
-    }
+    if (!user?.teamId) return;
 
     try {
-      console.log('[AuthContext] 🔄 Refreshing team data...');
-      
       const { data: teamData, error } = await supabase
         .from('teams')
         .select(`
@@ -490,10 +425,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .eq('id', user.teamId)
         .single();
 
-      if (error) {
-        console.error('[AuthContext] Error refreshing team data:', error);
-        return;
-      }
+      if (error) return;
 
       if (teamData) {
         setTeam({
