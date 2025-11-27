@@ -626,8 +626,8 @@ const Register = () => {
                       Criar conta
                     </Button>
                   </SheetTrigger>
-                  <SheetContent side="bottom" className="h-[90vh] rounded-t-3xl p-0 border-t-2">
-                    <div className="h-full overflow-y-auto p-6 pt-8">
+                  <SheetContent side="bottom" className="h-auto max-h-[90vh] rounded-t-3xl p-0 border-t-2">
+                    <div className="p-6 pt-8">
                       <div className="w-12 h-1.5 bg-muted-foreground/20 rounded-full mx-auto mb-8"></div>
 
                       <div className="text-center mb-8">
