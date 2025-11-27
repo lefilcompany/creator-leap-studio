@@ -434,9 +434,9 @@ const Auth = () => {
 
   const registerForm = useMemo(
     () => (
-      <form onSubmit={handleRegister} className="space-y-3 sm:space-y-4">
+      <form onSubmit={handleRegister} className="space-y-4">
         {/* Grupo 1: Informações Pessoais */}
-        <div className="space-y-2 p-3 rounded-lg bg-muted/20 border border-border/40">
+        <div className="space-y-3 p-4 rounded-lg bg-muted/20 border border-border/40">
           <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
             Informações Pessoais
           </Label>
@@ -467,7 +467,7 @@ const Auth = () => {
         </div>
 
         {/* Grupo 2: Segurança */}
-        <div className="space-y-2 p-3 rounded-lg bg-muted/20 border border-border/40">
+        <div className="space-y-3 p-4 rounded-lg bg-muted/20 border border-border/40">
           <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Segurança</Label>
           <div className="flex flex-col sm:grid sm:grid-cols-2 gap-2">
             <div className="relative">
@@ -541,7 +541,7 @@ const Auth = () => {
         )}
 
         {/* Grupo 3: Informações de Contato */}
-        <div className="space-y-2 p-3 rounded-lg bg-muted/20 border border-border/40">
+        <div className="space-y-3 p-4 rounded-lg bg-muted/20 border border-border/40">
           <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
             Informações de Contato
           </Label>
@@ -670,7 +670,7 @@ const Auth = () => {
 
   return (
     <>
-      <div className="h-screen flex flex-col items-center justify-center relative overflow-hidden bg-gradient-to-br from-background via-purple-50/5 to-pink-50/10 dark:via-purple-950/5 dark:to-pink-950/10 p-4 sm:p-6">
+      <div className="min-h-screen flex flex-col items-center justify-start py-8 relative overflow-y-auto bg-gradient-to-br from-background via-purple-50/5 to-pink-50/10 dark:via-purple-950/5 dark:to-pink-950/10 p-4 sm:p-6">
         {/* Elementos decorativos animados com motion blur */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           {/* Bolinhas de fundo sutis */}
@@ -796,7 +796,7 @@ const Auth = () => {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="w-full relative flex-shrink-0"
           >
-            <div className="bg-card/80 backdrop-blur-xl rounded-t-3xl sm:rounded-2xl shadow-2xl border border-primary/10 p-4 sm:p-6 md:p-8 flex flex-col max-h-[70vh] sm:max-h-[78vh]">
+            <div className="bg-card/80 backdrop-blur-xl rounded-t-3xl sm:rounded-2xl shadow-2xl border border-primary/10 p-4 sm:p-6 md:p-8 flex flex-col">
               {/* Novo Sistema de Tabs Modernas */}
               <div className="flex mb-4 sm:mb-6 flex-shrink-0">
                 <button
@@ -857,7 +857,7 @@ const Auth = () => {
                 </p>
               </div>
 
-              <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0 -mx-1 px-1 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
+              <div className="flex-1 min-h-0 -mx-1 px-1">
                 <AnimatePresence mode="wait" initial={false}>
                   <motion.div
                     key={isLoginMode ? "login" : "register"}
