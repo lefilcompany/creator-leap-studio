@@ -390,6 +390,7 @@ const Register = () => {
             id="phone"
             type="tel"
             placeholder="(XX) XXXXX-XXXX"
+            required
             value={formData.phone}
             onChange={handleInputChange}
             className="pl-10 h-10 lg:h-11"

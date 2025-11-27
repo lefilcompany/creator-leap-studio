@@ -549,10 +549,12 @@ const Auth = () => {
             <Phone className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
             <Input
               id="phone"
-              placeholder="Telefone (opcional)"
+              placeholder="Telefone"
+              required
               value={formData.phone}
               onChange={handleInputChange}
               className="pl-9 sm:pl-10 h-9 sm:h-10 text-sm"
+              maxLength={15}
             />
           </div>
 
