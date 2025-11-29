@@ -3,12 +3,12 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Loader2, Zap, ImageIcon, Video } from "lucide-react";
+import { Loader2, Zap, ImageIcon, Video, Sparkles } from "lucide-react";
 import { CREDIT_COSTS } from "@/lib/creditCosts";
 import { useAuth } from "@/hooks/useAuth";
 import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
 import { contentCreationSelectorSteps } from "@/components/onboarding/tourSteps";
-type CreationType = "quick" | "image" | "video";
+type CreationType = "quick" | "image" | "video" | "animate";
 export default function ContentCreationSelector() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -46,7 +46,8 @@ export default function ContentCreationSelector() {
       const routes: Record<CreationType, string> = {
         quick: "/quick-content",
         image: "/create/image",
-        video: "/create/video"
+        video: "/create/video",
+        animate: "/create/animate"
       };
       navigate(routes[creationType]);
     }
@@ -104,7 +105,7 @@ export default function ContentCreationSelector() {
           </CardHeader>
           <CardContent className="p-4 sm:p-6">
             <RadioGroup value={creationType || ""} onValueChange={value => setCreationType(value as CreationType)}>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <label htmlFor="quick" className="cursor-pointer h-full" onClick={() => setCreationType("quick")}>
                   <Card className="hover:border-primary transition-all duration-300 hover:shadow-lg h-full active:scale-[0.98] touch-manipulation">
                     <CardContent className="p-4 sm:p-6 flex flex-col items-center text-center gap-3 sm:gap-4 min-h-[240px] h-full justify-between">
@@ -171,6 +172,29 @@ export default function ContentCreationSelector() {
                         <span className="text-sm font-bold text-secondary">
                           {CREDIT_COSTS.VIDEO_GENERATION} créditos
                         </span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </label>
+
+                <label htmlFor="animate" className="cursor-pointer h-full" onClick={() => setCreationType("animate")}>
+                  <Card className="hover:border-primary transition-all duration-300 hover:shadow-lg h-full active:scale-[0.98] touch-manipulation">
+                    <CardContent className="p-4 sm:p-6 flex flex-col items-center text-center gap-3 sm:gap-4 min-h-[240px] h-full justify-between">
+                      <RadioGroupItem value="animate" id="animate" className="sr-only" />
+                      <div className="flex flex-col items-center gap-4 flex-1 justify-center">
+                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500/10 to-pink-500/10 flex items-center justify-center flex-shrink-0">
+                          <Sparkles className="h-8 w-8 text-purple-500" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <h3 className="font-semibold text-lg">Animar Imagem</h3>
+                          <p className="text-sm text-muted-foreground leading-relaxed">
+                            Transforme suas imagens em animações com IA (em desenvolvimento)
+                          </p>
+                        </div>
+                      </div>
+                      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/15 border border-purple-500/30">
+                        <Sparkles className="h-4 w-4 text-purple-500" />
+                        <span className="text-sm font-bold text-purple-500">Em breve</span>
                       </div>
                     </CardContent>
                   </Card>
