@@ -126,14 +126,15 @@ serve(async (req) => {
     */
 
     // Por enquanto, retornar mensagem de desenvolvimento
+    // Usando status 200 para evitar erro no client, mas com flag de desenvolvimento
     return new Response(
       JSON.stringify({ 
-        message: 'Funcionalidade em desenvolvimento',
         status: 'training',
+        message: 'Funcionalidade em desenvolvimento',
         info: 'O agente de IA para animação de imagens ainda está sendo treinado. Em breve você poderá animar suas imagens com IA.'
       }),
       { 
-        status: 503, 
+        status: 200, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
     );
