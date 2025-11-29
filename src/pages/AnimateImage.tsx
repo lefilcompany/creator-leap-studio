@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Upload, Sparkles, Video, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
@@ -10,6 +11,9 @@ export default function AnimateImage() {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
   const [exampleVideo, setExampleVideo] = useState<File | null>(null);
+  const [animationPrompt, setAnimationPrompt] = useState<string>(
+    "Use a imagem fornecida como base para animar componentes específicos. A animação deve ser discreta, com movimentos leves, como um suave balanço ou deslocamento. Foque em animar as seguintes partes:\n\nPessoas: Um movimento sutil nos braços ou cabeça, como se estivessem conversando ou se movendo lentamente.\n\nProduto: Um movimento suave, como um brilho ou efeito de rotação leve.\n\nObjeto: Se houver algum objeto na cena, adicione uma leve translação ou efeito de luz que destaca o objeto de forma delicada.\n\nOs movimentos devem ser naturais e quase imperceptíveis, sem tirar o foco da cena principal. A animação deve ser realista e sutil, criando uma sensação de vida sem exageros."
+  );
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -98,6 +102,33 @@ export default function AnimateImage() {
                   </p>
                 </div>
               )}
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-lg">
+            <CardHeader>
+              <h2 className="text-xl font-semibold flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-primary" />
+                Prompt de Animação
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Descreva como deseja que a imagem seja animada
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="animation-prompt">Instruções para Animação</Label>
+                <Textarea
+                  id="animation-prompt"
+                  value={animationPrompt}
+                  onChange={(e) => setAnimationPrompt(e.target.value)}
+                  placeholder="Descreva os movimentos e efeitos desejados..."
+                  className="min-h-[200px] resize-none"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Seja específico sobre quais elementos devem ser animados e como
+                </p>
+              </div>
             </CardContent>
           </Card>
 
