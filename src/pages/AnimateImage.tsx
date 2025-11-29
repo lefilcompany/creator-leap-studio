@@ -127,19 +127,22 @@ export default function AnimateImage() {
 
         </div>
 
-        <Card className="shadow-lg">
+        <Card className="shadow-lg border-0 bg-gradient-to-r from-purple-500/5 via-pink-500/5 to-purple-500/5">
           <CardContent className="p-6">
             <Button
               disabled={!selectedImage}
-              className="w-full"
+              className="w-full group relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-[1.02]"
               size="lg"
             >
-              <Sparkles className="h-5 w-5 mr-2" />
-              Animar Imagem
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <Sparkles className="h-5 w-5 mr-2 relative z-10 group-hover:animate-pulse" />
+              <span className="relative z-10">Animar Imagem</span>
             </Button>
-            <p className="text-xs text-muted-foreground text-center mt-3">
-              Funcionalidade em desenvolvimento - Agente de IA em treinamento
-            </p>
+            <div className="mt-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30">
+              <p className="text-xs text-amber-700 dark:text-amber-400 text-center font-medium">
+                🎬 Funcionalidade em desenvolvimento - Agente de IA em treinamento
+              </p>
+            </div>
           </CardContent>
         </Card>
       </div>
