@@ -4,13 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Upload, Sparkles, Video, AlertCircle } from "lucide-react";
+import { Upload, Sparkles, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function AnimateImage() {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
-  const [exampleVideo, setExampleVideo] = useState<File | null>(null);
   const [animationPrompt, setAnimationPrompt] = useState<string>(
     "Use a imagem fornecida como base para animar componentes específicos. A animação deve ser discreta, com movimentos leves, como um suave balanço ou deslocamento. Foque em animar as seguintes partes:\n\nPessoas: Um movimento sutil nos braços ou cabeça, como se estivessem conversando ou se movendo lentamente.\n\nProduto: Um movimento suave, como um brilho ou efeito de rotação leve.\n\nObjeto: Se houver algum objeto na cena, adicione uma leve translação ou efeito de luz que destaca o objeto de forma delicada.\n\nOs movimentos devem ser naturais e quase imperceptíveis, sem tirar o foco da cena principal. A animação deve ser realista e sutil, criando uma sensação de vida sem exageros."
   );
@@ -27,12 +26,6 @@ export default function AnimateImage() {
     }
   };
 
-  const handleVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setExampleVideo(file);
-    }
-  };
 
   return (
     <div className="h-full w-full flex flex-col">
@@ -132,52 +125,6 @@ export default function AnimateImage() {
             </CardContent>
           </Card>
 
-          <Card className="shadow-lg">
-            <CardHeader>
-              <h2 className="text-xl font-semibold flex items-center gap-2">
-                <Video className="h-5 w-5 text-secondary" />
-                Vídeo de Exemplo (Opcional)
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                Forneça um vídeo de referência para o estilo de animação
-              </p>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="video-upload">Selecionar Vídeo</Label>
-                <Input
-                  id="video-upload"
-                  type="file"
-                  accept="video/*"
-                  onChange={handleVideoUpload}
-                  className="cursor-pointer"
-                />
-              </div>
-
-              {exampleVideo && (
-                <div className="rounded-lg bg-muted p-4">
-                  <div className="flex items-center gap-3">
-                    <Video className="h-8 w-8 text-secondary flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{exampleVideo.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {(exampleVideo.size / 1024 / 1024).toFixed(2)} MB
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {!exampleVideo && (
-                <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
-                  <Video className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-                  <p className="text-sm text-muted-foreground">
-                    Nenhum vídeo selecionado
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
         </div>
 
         <Card className="shadow-lg">
