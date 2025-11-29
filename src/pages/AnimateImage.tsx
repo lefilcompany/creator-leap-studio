@@ -1,0 +1,170 @@
+import { useState } from "react";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Upload, Sparkles, Video, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+
+export default function AnimateImage() {
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>("");
+  const [exampleVideo, setExampleVideo] = useState<File | null>(null);
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setExampleVideo(file);
+    }
+  };
+
+  return (
+    <div className="h-full w-full flex flex-col">
+      <div className="max-w-5xl mx-auto flex flex-col w-full px-4 sm:px-6 lg:px-0 gap-8">
+        <Card className="shadow-lg border-0 bg-gradient-to-r from-purple-500/5 via-pink-500/5 to-purple-500/5">
+          <CardHeader className="pb-4">
+            <div className="flex items-center gap-3">
+              <div className="flex-shrink-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10 text-purple-500 rounded-lg p-3">
+                <Sparkles className="h-6 w-6" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-foreground">Animar Imagem</h1>
+                <p className="text-muted-foreground text-base">
+                  Transforme suas imagens em animações com IA
+                </p>
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
+
+        <Alert className="bg-amber-500/10 border-amber-500/30">
+          <AlertCircle className="h-4 w-4 text-amber-500" />
+          <AlertDescription className="text-amber-700 dark:text-amber-400">
+            Esta funcionalidade está em desenvolvimento. O agente de IA ainda está sendo treinado
+            para animar imagens.
+          </AlertDescription>
+        </Alert>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card className="shadow-lg">
+            <CardHeader>
+              <h2 className="text-xl font-semibold flex items-center gap-2">
+                <Upload className="h-5 w-5 text-primary" />
+                Imagem para Animar
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Faça upload da imagem que deseja animar
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="image-upload">Selecionar Imagem</Label>
+                <Input
+                  id="image-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="cursor-pointer"
+                />
+              </div>
+
+              {imagePreview && (
+                <div className="rounded-lg overflow-hidden border border-border">
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    className="w-full h-auto object-contain"
+                  />
+                </div>
+              )}
+
+              {!imagePreview && (
+                <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
+                  <Upload className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                  <p className="text-sm text-muted-foreground">
+                    Nenhuma imagem selecionada
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-lg">
+            <CardHeader>
+              <h2 className="text-xl font-semibold flex items-center gap-2">
+                <Video className="h-5 w-5 text-secondary" />
+                Vídeo de Exemplo (Opcional)
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Forneça um vídeo de referência para o estilo de animação
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="video-upload">Selecionar Vídeo</Label>
+                <Input
+                  id="video-upload"
+                  type="file"
+                  accept="video/*"
+                  onChange={handleVideoUpload}
+                  className="cursor-pointer"
+                />
+              </div>
+
+              {exampleVideo && (
+                <div className="rounded-lg bg-muted p-4">
+                  <div className="flex items-center gap-3">
+                    <Video className="h-8 w-8 text-secondary flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{exampleVideo.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {(exampleVideo.size / 1024 / 1024).toFixed(2)} MB
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {!exampleVideo && (
+                <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
+                  <Video className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                  <p className="text-sm text-muted-foreground">
+                    Nenhum vídeo selecionado
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        <Card className="shadow-lg">
+          <CardContent className="p-6">
+            <Button
+              disabled={!selectedImage}
+              className="w-full"
+              size="lg"
+            >
+              <Sparkles className="h-5 w-5 mr-2" />
+              Animar Imagem
+            </Button>
+            <p className="text-xs text-muted-foreground text-center mt-3">
+              Funcionalidade em desenvolvimento - Agente de IA em treinamento
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}

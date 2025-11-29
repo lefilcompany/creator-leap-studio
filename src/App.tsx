@@ -19,6 +19,7 @@ import Personas from "./pages/Personas";
 import History from "./pages/History";
 import CreateImage from "./pages/CreateImage";
 import CreateVideo from "./pages/CreateVideo";
+import AnimateImage from "./pages/AnimateImage";
 import ContentCreationSelector from "./pages/ContentCreationSelector";
 import ContentResult from "./pages/ContentResult";
 import VideoResult from "./pages/VideoResult";
@@ -84,6 +85,7 @@ const App = () => (
               <Route path="create/quick" element={<QuickContent />} />
               <Route path="create/image" element={<CreateImage />} />
               <Route path="create/video" element={<CreateVideo />} />
+              <Route path="create/animate" element={<AnimateImage />} />
               <Route path="result" element={<ContentResult />} />
               <Route path="video-result" element={<VideoResult />} />
               <Route path="review" element={<ReviewContent />} />
