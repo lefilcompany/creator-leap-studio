@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Sparkles, Zap, Video, Coins, Info } from "lucide-react";
+import { Loader2, Sparkles, Zap, Video, Coins, Info, ImagePlus, X } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { CREDIT_COSTS } from "@/lib/creditCosts";
 import { toast } from "sonner";
@@ -29,7 +29,7 @@ interface FormData {
   description: string;
   tone: string[];
   additionalInfo: string;
-  videoGenerationType: 'text_to_video';
+  videoGenerationType: 'text_to_video' | 'image_to_video';
   videoAudioStyle: 'dialogue' | 'sound_effects' | 'music' | 'none';
   videoVisualStyle: 'cinematic' | 'animation' | 'realistic' | 'creative';
   videoAspectRatio: '16:9' | '9:16';
@@ -42,6 +42,7 @@ const toneOptions = ["inspirador", "motivacional", "profissional", "casual", "el
 export default function CreateVideo() {
   const { user, session } = useAuth();
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState<FormData>({
     brand: "",
     theme: "",
@@ -67,6 +68,8 @@ export default function CreateVideo() {
   const [filteredThemes, setFilteredThemes] = useState<StrategicThemeSummary[]>([]);
   const [filteredPersonas, setFilteredPersonas] = useState<PersonaSummary[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [referenceImage, setReferenceImage] = useState<string | null>(null);
+  const [referenceImageFile, setReferenceImageFile] = useState<File | null>(null);
 
   useEffect(() => {
     const loadData = async () => {
@@ -136,11 +139,43 @@ export default function CreateVideo() {
     setFilteredPersonas(selectedBrand ? personas.filter((p) => p.brandId === selectedBrand.id) : []);
   }, [brands, themes, personas, formData.brand]);
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error("Por favor, selecione um arquivo de imagem válido.");
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("A imagem deve ter no máximo 10MB.");
+      return;
+    }
+
+    setReferenceImageFile(file);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setReferenceImage(event.target?.result as string);
+      setFormData(prev => ({ ...prev, videoGenerationType: 'image_to_video' }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const removeReferenceImage = () => {
+    setReferenceImage(null);
+    setReferenceImageFile(null);
+    setFormData(prev => ({ ...prev, videoGenerationType: 'text_to_video' }));
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const handleGenerateVideo = async () => {
     if (!team) return toast.error("Equipe não encontrada.");
     if ((team?.credits || 0) <= 0) return toast.error("Créditos insuficientes.");
     
-    if (!formData.brand || !formData.objective || !formData.platform || !formData.description || formData.tone.length === 0) {
+    if (!formData.objective || !formData.description || formData.tone.length === 0) {
       return toast.error("Preencha todos os campos obrigatórios.");
     }
 
@@ -149,11 +184,11 @@ export default function CreateVideo() {
 
     try {
       const selectedBrand = brands.find(b => b.id === formData.brand);
-      const videoPrompt = `${formData.objective}. ${formData.description}. Tom: ${formData.tone.join(", ")}. Marca: ${selectedBrand?.name}.`;
+      const videoPrompt = `${formData.objective}. ${formData.description}. Tom: ${formData.tone.join(", ")}${selectedBrand ? `. Marca: ${selectedBrand.name}` : ''}.`;
       
       const { data: actionData } = await supabase.from('actions').insert({
         type: 'GERAR_VIDEO',
-        brand_id: formData.brand,
+        brand_id: formData.brand || null,
         team_id: user?.teamId,
         user_id: user?.id,
         status: 'pending',
@@ -167,21 +202,26 @@ export default function CreateVideo() {
           aspectRatio: formData.videoAspectRatio,
           resolution: formData.videoResolution,
           duration: formData.videoDuration,
+          hasReferenceImage: !!referenceImage,
         }
       }).select().single();
+
+      // Preparar imagens de referência se houver
+      const preserveImages = referenceImage ? [referenceImage] : [];
 
       await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-video`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token}` },
         body: JSON.stringify({
           prompt: videoPrompt,
-          generationType: 'text_to_video',
+          generationType: referenceImage ? 'image_to_video' : 'text_to_video',
           actionId: actionData.id,
           audioStyle: formData.videoAudioStyle,
           visualStyle: formData.videoVisualStyle,
           aspectRatio: formData.videoAspectRatio,
           resolution: formData.videoResolution,
           duration: formData.videoDuration,
+          preserveImages,
         }),
       });
 
@@ -316,6 +356,59 @@ export default function CreateVideo() {
             </div>
 
             <Separator className="my-6" />
+
+            {/* Imagem de Referência */}
+            <div className="space-y-2.5">
+              <Label className="text-sm font-semibold text-foreground">Imagem de Referência <span className="text-muted-foreground font-normal">(opcional)</span></Label>
+              <div className="flex items-start gap-2 text-xs text-muted-foreground bg-muted/50 dark:bg-muted/30 rounded-lg p-3 mb-3">
+                <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                <p>Adicione uma imagem para criar um vídeo baseado nela. A IA usará a imagem como referência visual.</p>
+              </div>
+              
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="hidden"
+              />
+              
+              {referenceImage ? (
+                <div className="relative rounded-xl overflow-hidden border-2 border-purple-200 dark:border-purple-500/30 bg-muted/30">
+                  <img 
+                    src={referenceImage} 
+                    alt="Imagem de referência" 
+                    className="w-full max-h-[200px] object-contain"
+                  />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    className="absolute top-2 right-2 h-8 w-8 rounded-full shadow-lg"
+                    onClick={removeReferenceImage}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                  <div className="absolute bottom-2 left-2">
+                    <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0">
+                      Imagem para vídeo
+                    </Badge>
+                  </div>
+                </div>
+              ) : (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full h-24 rounded-xl border-2 border-dashed border-purple-200 dark:border-purple-500/30 hover:border-purple-400 dark:hover:border-purple-500/50 hover:bg-purple-50/50 dark:hover:bg-purple-500/5 transition-all"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                    <ImagePlus className="h-8 w-8" />
+                    <span className="text-sm">Clique para adicionar imagem de referência</span>
+                  </div>
+                </Button>
+              )}
+            </div>
 
             {/* Descrição */}
             <div className="space-y-2.5">
