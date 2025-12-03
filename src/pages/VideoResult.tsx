@@ -133,12 +133,24 @@ export default function VideoResult() {
   }, [location.state, navigate, hasShownSuccessToast]);
 
   const handleDownload = async () => {
-    if (!videoData || !videoData.mediaUrl) return;
+    if (!videoData || !videoData.mediaUrl) {
+      toast.error("Nenhum vídeo disponível para download");
+      return;
+    }
 
     try {
+      const toastId = toast.loading("Preparando download...");
+      
       // Se for URL do Supabase Storage, fazer download direto
       if (videoData.mediaUrl.startsWith('http')) {
-        const response = await fetch(videoData.mediaUrl);
+        const response = await fetch(videoData.mediaUrl, {
+          mode: 'cors',
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Erro ao baixar: ${response.status}`);
+        }
+        
         const blob = await response.blob();
         
         const url = window.URL.createObjectURL(blob);
@@ -146,20 +158,22 @@ export default function VideoResult() {
         link.href = url;
         
         const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, -5);
-        link.download = `${videoData.brand.replace(/\s+/g, "_")}_${videoData.platform}_${timestamp}.mp4`;
+        const brandName = videoData.brand ? videoData.brand.replace(/\s+/g, "_") : "video";
+        const platformName = videoData.platform || "creator";
+        link.download = `${brandName}_${platformName}_${timestamp}.mp4`;
         
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
         
-        toast.success("Download do vídeo iniciado!");
+        toast.success("Download do vídeo iniciado!", { id: toastId });
       } else {
-        toast.error("URL do vídeo inválida");
+        toast.error("URL do vídeo inválida", { id: toastId });
       }
     } catch (error) {
       console.error("Erro ao fazer download:", error);
-      toast.error("Erro ao fazer download do vídeo");
+      toast.error("Erro ao fazer download do vídeo. Tente novamente.");
     }
   };
 
