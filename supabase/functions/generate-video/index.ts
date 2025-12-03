@@ -606,16 +606,29 @@ STYLE: Maintain the general aesthetic of the reference image while adding dynami
     // Prepare request body com estrutura específica por modelo
     let requestBody: any;
     
+    // Função auxiliar para extrair base64 puro (remove prefixo data URL se existir)
+    function extractBase64(dataUrl: string): { base64: string; mimeType: string } {
+      const match = dataUrl.match(/^data:([^;]+);base64,(.+)$/);
+      if (match) {
+        return { base64: match[2], mimeType: match[1] };
+      }
+      // Se não tiver prefixo, assume que já é base64 puro
+      return { base64: dataUrl, mimeType: 'image/png' };
+    }
+
     if (generationType === 'image_to_video') {
       // ✅ VEO 3.0: Estrutura específica para image-to-video
       // Documentação: https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/veo
+      
+      const { base64: imageBase64, mimeType: imageMimeType } = extractBase64(preserveImages[0]);
+      console.log(`🖼️ [Veo 3.0] Imagem extraída - mimeType: ${imageMimeType}, base64 length: ${imageBase64.length}`);
       
       requestBody = {
         instances: [{
           prompt: optimizedPrompt,
           image: {
-            bytesBase64Encoded: preserveImages[0],
-            mimeType: 'image/png'
+            bytesBase64Encoded: imageBase64,
+            mimeType: imageMimeType
           }
         }],
         parameters: {
@@ -701,8 +714,27 @@ STYLE: Maintain the general aesthetic of the reference image while adding dynami
     if (!generateResponse.ok) {
       const errorText = await generateResponse.text();
       console.error('Video generation API error:', generateResponse.status, errorText);
+      
+      // Atualizar action para failed quando API retorna erro
+      await supabase
+        .from('actions')
+        .update({
+          status: 'failed',
+          result: { 
+            error: `Erro na API de geração de vídeo: ${errorText}`,
+            apiStatus: generateResponse.status,
+            failedAt: new Date().toISOString()
+          },
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', actionId);
+      
       return new Response(
-        JSON.stringify({ error: `API error: ${errorText}` }),
+        JSON.stringify({ 
+          error: `Erro na geração de vídeo`, 
+          details: errorText,
+          status: 'failed' 
+        }),
         { status: generateResponse.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }

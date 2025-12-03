@@ -209,7 +209,7 @@ export default function CreateVideo() {
       // Preparar imagens de referência se houver
       const preserveImages = referenceImage ? [referenceImage] : [];
 
-      await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-video`, {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-video`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token}` },
         body: JSON.stringify({
@@ -224,6 +224,16 @@ export default function CreateVideo() {
           preserveImages,
         }),
       });
+
+      const responseData = await response.json();
+      
+      if (!response.ok || responseData.status === 'failed') {
+        // Atualizar créditos localmente já que a API falhou
+        if (team) {
+          setTeam(prev => prev ? { ...prev, credits: prev.credits + CREDIT_COSTS.VIDEO_GENERATION } : null);
+        }
+        throw new Error(responseData.error || responseData.details || "Erro ao iniciar geração de vídeo");
+      }
 
       toast.success("Vídeo sendo gerado!", { id: toastId, duration: 3000 });
       navigate("/video-result", { state: { contentData: { actionId: actionData.id, isProcessing: true } } });
