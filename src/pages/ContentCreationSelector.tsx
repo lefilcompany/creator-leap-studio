@@ -177,10 +177,9 @@ export default function ContentCreationSelector() {
                   </Card>
                 </label>
 
-                <label htmlFor="animate" className="cursor-pointer h-full" onClick={() => setCreationType("animate")}>
-                  <Card className="hover:border-primary transition-all duration-300 hover:shadow-lg h-full active:scale-[0.98] touch-manipulation">
+                <div className="h-full cursor-not-allowed opacity-60">
+                  <Card className="h-full pointer-events-none">
                     <CardContent className="p-4 sm:p-6 flex flex-col items-center text-center gap-3 sm:gap-4 min-h-[240px] h-full justify-between">
-                      <RadioGroupItem value="animate" id="animate" className="sr-only" />
                       <div className="flex flex-col items-center gap-4 flex-1 justify-center">
                         <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500/10 to-pink-500/10 flex items-center justify-center flex-shrink-0">
                           <Sparkles className="h-8 w-8 text-purple-500" />
@@ -198,7 +197,7 @@ export default function ContentCreationSelector() {
                       </div>
                     </CardContent>
                   </Card>
-                </label>
+                </div>
               </div>
             </RadioGroup>
           </CardContent>
