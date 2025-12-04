@@ -210,9 +210,11 @@ export default function ContentResult() {
         const link = document.createElement("a");
         link.href = contentData.mediaUrl;
         
-        // Generate filename
+        // Generate filename with fallbacks
         const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, -5);
-        link.download = `${contentData.brand.replace(/\s+/g, "_")}_${contentData.platform}_${timestamp}.png`;
+        const brandName = contentData.brand ? contentData.brand.replace(/\s+/g, "_") : "conteudo";
+        const platformName = contentData.platform || "creator";
+        link.download = `${brandName}_${platformName}_${timestamp}.png`;
         
         document.body.appendChild(link);
         link.click();
@@ -229,9 +231,11 @@ export default function ContentResult() {
         const link = document.createElement("a");
         link.href = url;
 
-        // Generate filename
+        // Generate filename with fallbacks
         const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, -5);
-        link.download = `${contentData.brand.replace(/\s+/g, "_")}_${contentData.platform}_${timestamp}.png`;
+        const brandName = contentData.brand ? contentData.brand.replace(/\s+/g, "_") : "conteudo";
+        const platformName = contentData.platform || "creator";
+        link.download = `${brandName}_${platformName}_${timestamp}.png`;
 
         // Trigger download
         document.body.appendChild(link);
