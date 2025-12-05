@@ -15,11 +15,11 @@ serve(async (req) => {
   }
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      console.error('LOVABLE_API_KEY não configurada');
+    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+    if (!openAIApiKey) {
+      console.error('OPENAI_API_KEY não configurada');
       return new Response(
-        JSON.stringify({ error: 'Chave da API Lovable AI não configurada.' }),
+        JSON.stringify({ error: 'Chave da API OpenAI não configurada.' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -99,78 +99,34 @@ Responda ESTRITAMENTE em formato JSON com as chaves "title", "body" (legenda com
       try {
         console.log(`Tentativa ${retryCount + 1} de ${maxRetries} para revisar legenda`);
         
-        // Use tool calling for structured JSON output
-        const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+            'Authorization': `Bearer ${openAIApiKey}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'google/gemini-2.5-flash',
+            model: 'gpt-4o-mini',
             messages: [{ role: 'user', content: textPrompt }],
-            tools: [
-              {
-                type: "function",
-                function: {
-                  name: "revise_caption",
-                  description: "Return the revised post content in structured format",
-                  parameters: {
-                    type: "object",
-                    properties: {
-                      title: { type: "string", description: "The revised title for the post" },
-                      body: { type: "string", description: "The revised body/caption for the post with line breaks as \\n" },
-                      hashtags: { 
-                        type: "array", 
-                        items: { type: "string" },
-                        description: "Array of hashtags without the # symbol"
-                      }
-                    },
-                    required: ["title", "body", "hashtags"],
-                    additionalProperties: false
-                  }
-                }
-              }
-            ],
-            tool_choice: { type: "function", function: { name: "revise_caption" } },
+            response_format: { type: "json_object" },
+            temperature: 0.7,
           }),
         });
 
         if (!response.ok) {
           const errorText = await response.text();
-          console.error('Erro da API Lovable AI:', response.status, errorText);
-          
-          if (response.status === 429) {
-            return new Response(
-              JSON.stringify({ error: 'Limite de requisições excedido. Tente novamente em alguns instantes.' }),
-              { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-            );
-          }
-          if (response.status === 402) {
-            return new Response(
-              JSON.stringify({ error: 'Créditos de IA insuficientes. Por favor, adicione créditos ao workspace.' }),
-              { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-            );
-          }
-          
-          throw new Error(`Lovable AI API error: ${response.status}`);
+          console.error('Erro da API OpenAI:', response.status, errorText);
+          throw new Error(`OpenAI API error: ${response.status}`);
         }
 
         const data = await response.json();
+        const rawContent = data.choices?.[0]?.message?.content;
         
-        // Extract from tool call response
-        const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
-        if (toolCall?.function?.arguments) {
-          revisedContent = JSON.parse(toolCall.function.arguments);
-        } else {
-          // Fallback: try to parse from content
-          const rawContent = data.choices?.[0]?.message?.content;
-          if (rawContent) {
-            revisedContent = JSON.parse(rawContent);
-          } else {
-            throw new Error('Resposta vazia da API Lovable AI');
-          }
+        if (!rawContent) {
+          throw new Error('Resposta vazia da API OpenAI');
         }
+
+        revisedContent = JSON.parse(rawContent);
 
         if (!revisedContent.title || !revisedContent.body || !Array.isArray(revisedContent.hashtags)) {
           throw new Error("Formato de JSON inválido recebido da IA.");
@@ -183,7 +139,8 @@ Responda ESTRITAMENTE em formato JSON com as chaves "title", "body" (legenda com
         retryCount++;
         console.error(`Erro na tentativa ${retryCount}:`, error.message);
         
-        if (error.message?.includes('overloaded') ||
+        if (error.status === 503 ||
+            error.message?.includes('overloaded') ||
             error.message?.includes('rate limit') ||
             error.message?.includes('too many requests')) {
 
@@ -192,10 +149,6 @@ Responda ESTRITAMENTE em formato JSON com as chaves "title", "body" (legenda com
             console.log(`Aguardando ${delay}ms antes da próxima tentativa...`);
             await new Promise(resolve => setTimeout(resolve, delay));
           }
-        } else if (retryCount < maxRetries) {
-          const delay = 2000;
-          console.log(`Aguardando ${delay}ms antes da próxima tentativa...`);
-          await new Promise(resolve => setTimeout(resolve, delay));
         } else {
           throw error;
         }
@@ -252,7 +205,7 @@ Responda ESTRITAMENTE em formato JSON com as chaves "title", "body" (legenda com
       creditsUsed: CREDIT_COSTS.CAPTION_REVIEW,
       creditsBefore,
       creditsAfter,
-      description: 'Revisão de legenda (Lovable AI)',
+      description: 'Revisão de legenda (OpenAI)',
       metadata: { brand, theme }
     });
 
@@ -268,7 +221,7 @@ Responda ESTRITAMENTE em formato JSON com as chaves "title", "body" (legenda com
 
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Erro desconhecido';
-    console.error('Erro na função revise-caption:', message);
+    console.error('Erro na função revise-caption-openai:', message);
     return new Response(
       JSON.stringify({ error: message }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

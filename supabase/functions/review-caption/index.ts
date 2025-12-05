@@ -95,10 +95,10 @@ serve(async (req) => {
       );
     }
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
+    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+    if (!openAIApiKey) {
       return new Response(
-        JSON.stringify({ error: 'Lovable AI API key not configured' }),
+        JSON.stringify({ error: 'OpenAI API key not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -179,37 +179,38 @@ Analise a legenda e retorne uma revisão completa em markdown seguindo EXATAMENT
 ### 🎯 Recomendações Finais
 [Dicas práticas sobre tamanho, timing de postagem, elementos visuais complementares]`;
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Authorization': `Bearer ${openAIApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: contextPrompt }
         ],
-        max_completion_tokens: 2000,
+        temperature: 0.7,
+        max_tokens: 2000,
       }),
     });
 
     if (!response.ok) {
       if (response.status === 429) {
         return new Response(
-          JSON.stringify({ error: 'Limite de requisições excedido. Tente novamente em alguns instantes.' }),
+          JSON.stringify({ error: 'OpenAI rate limit exceeded. Try again in a moment.' }),
           { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
-      if (response.status === 402) {
+      if (response.status === 401) {
         return new Response(
-          JSON.stringify({ error: 'Créditos de IA insuficientes. Por favor, adicione créditos ao workspace.' }),
+          JSON.stringify({ error: 'Invalid OpenAI API key' }),
           { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
       return new Response(
-        JSON.stringify({ error: 'Lovable AI API error' }),
+        JSON.stringify({ error: 'OpenAI API error' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -263,7 +264,7 @@ Analise a legenda e retorne uma revisão completa em markdown seguindo EXATAMENT
       creditsUsed: CREDIT_COSTS.CAPTION_REVIEW,
       creditsBefore,
       creditsAfter,
-      description: 'Revisão de legenda (Lovable AI)',
+      description: 'Revisão de legenda',
       metadata: { brandName, themeName }
     });
 

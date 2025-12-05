@@ -41,6 +41,7 @@ function buildRevisionPrompt(
     ""
   ];
 
+  // Adicionar contexto de plataforma se disponível
   if (platform || aspectRatio) {
     promptParts.push("📱 CONTEXTO DA PLATAFORMA:");
     if (platform) promptParts.push(`- Plataforma: ${platform}`);
@@ -118,6 +119,7 @@ function buildRevisionPrompt(
 
   const finalPrompt = promptParts.join('\n');
   
+  // Se exceder o limite, priorizar as informações mais importantes
   if (finalPrompt.length > MAX_PROMPT_LENGTH) {
     console.warn(`⚠️ Prompt muito longo (${finalPrompt.length} chars), truncando...`);
     return finalPrompt.substring(0, MAX_PROMPT_LENGTH);
@@ -267,68 +269,95 @@ serve(async (req) => {
     console.log('   - Aspect Ratio:', aspectRatio || 'não especificado');
     console.log('   - Ajuste solicitado:', reviewPrompt.substring(0, 100) + '...');
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
     
-    if (!LOVABLE_API_KEY) {
-      console.error('❌ LOVABLE_API_KEY não configurada');
+    if (!GEMINI_API_KEY) {
+      console.error('❌ GEMINI_API_KEY não configurada');
       return new Response(
         JSON.stringify({ error: 'API key não configurada' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('🤖 Chamando Lovable AI para edição de imagem...');
+    console.log('🤖 Chamando Gemini API para edição de imagem...');
 
-    // Prepare image URL for Lovable AI
-    let finalImageUrl = imageUrl;
+    // Verificar se é base64 ou URL e converter adequadamente
+    let imageBase64: string;
+    let imageMime = 'image/png';
     
     if (imageUrl.startsWith('data:')) {
-      // Already base64 data URL - use as is
+      // Já é base64
+      imageBase64 = imageUrl.split(',')[1];
+      imageMime = imageUrl.match(/data:(.*?);/)?.[1] || 'image/png';
       console.log('📷 Imagem recebida como base64');
     } else {
-      // It's a regular URL - use directly
-      console.log('📷 Usando URL da imagem:', imageUrl);
+      // É uma URL, precisa baixar e converter
+      console.log('📷 Baixando imagem da URL:', imageUrl);
+      const imageResponse = await fetch(imageUrl);
+      
+      if (!imageResponse.ok) {
+        throw new Error(`Erro ao baixar imagem: ${imageResponse.status}`);
+      }
+      
+      const imageBuffer = await imageResponse.arrayBuffer();
+      
+      // Converter ArrayBuffer para base64 usando chunks para evitar stack overflow
+      const bytes = new Uint8Array(imageBuffer);
+      let binary = '';
+      const chunkSize = 8192; // Process in chunks to avoid stack overflow
+      
+      for (let i = 0; i < bytes.length; i += chunkSize) {
+        const chunk = bytes.subarray(i, Math.min(i + chunkSize, bytes.length));
+        binary += String.fromCharCode(...chunk);
+      }
+      
+      imageBase64 = btoa(binary);
+      
+      // Detectar mime type da resposta
+      const contentType = imageResponse.headers.get('content-type');
+      if (contentType) {
+        imageMime = contentType;
+      }
+      console.log('✅ Imagem convertida para base64, tipo:', imageMime);
     }
 
-    // Call Lovable AI Gateway for image editing
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
+        'x-goog-api-key': GEMINI_API_KEY,
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-image',
-        messages: [
-          {
-            role: 'user',
-            content: [
-              { type: 'text', text: detailedPrompt },
-              { type: 'image_url', image_url: { url: finalImageUrl } }
-            ]
-          }
-        ],
-        modalities: ['image', 'text']
+        contents: [{
+          parts: [
+            { text: detailedPrompt },
+            { 
+              inlineData: { 
+                mimeType: imageMime, 
+                data: imageBase64 
+              } 
+            }
+          ]
+        }],
+        generationConfig: {
+          temperature: 0.7,
+          topP: 0.95,
+          topK: 40,
+          maxOutputTokens: 8192,
+        }
       })
     });
 
-    console.log('📡 Status da resposta Lovable AI:', response.status);
+    console.log('📡 Status da resposta Gemini API:', response.status);
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('❌ Erro na Lovable AI:', errorText);
+      console.error('❌ Erro na API Gemini:', errorText);
       
       if (response.status === 429) {
         return new Response(
           JSON.stringify({ error: 'Limite de requisições excedido. Tente novamente em alguns minutos.' }),
           { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: 'Créditos de IA insuficientes. Adicione créditos ao seu workspace Lovable.' }),
-          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
       
@@ -338,19 +367,56 @@ serve(async (req) => {
     const aiData = await response.json();
     console.log('✅ Resposta da AI recebida');
 
-    // Extract image from Lovable AI response
-    const editedImageUrl = aiData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    // Verificar se a resposta tem conteúdo válido
+    if (!aiData.candidates || aiData.candidates.length === 0) {
+      console.error('❌ Resposta da API sem candidates');
+      console.error('📊 Resposta completa:', JSON.stringify(aiData, null, 2));
+      throw new Error('Resposta inválida da API - sem candidates');
+    }
+
+    // Log do primeiro candidate para debugging
+    const firstCandidate = aiData.candidates[0];
+    console.log('📋 Candidate status:', {
+      hasContent: !!firstCandidate?.content,
+      hasParts: !!firstCandidate?.content?.parts,
+      partsCount: firstCandidate?.content?.parts?.length || 0,
+      finishReason: firstCandidate?.finishReason
+    });
+
+    // Extrair imagem da resposta do Gemini
+    const geminiImageData = aiData.candidates?.[0]?.content?.parts?.find(
+      (part: any) => part.inlineData
+    )?.inlineData;
     
-    if (!editedImageUrl) {
+    if (!geminiImageData) {
       console.error('❌ Imagem editada não foi retornada pela API');
       console.error('📊 Dados recebidos:', JSON.stringify(aiData, null, 2));
       throw new Error('A IA não conseguiu processar sua solicitação. Tente reformular o pedido de edição de forma mais específica.');
     }
 
+    const editedImageBase64 = `data:${geminiImageData.mimeType};base64,${geminiImageData.data}`;
+    
+    // Validar se a imagem mudou (comparar tamanhos como proxy simples)
+    const originalSize = imageBase64.length;
+    const editedSize = geminiImageData.data.length;
+    const sizeDifference = Math.abs(originalSize - editedSize) / originalSize;
+    
+    console.log('📏 Comparação de tamanhos:', {
+      originalSize,
+      editedSize,
+      differencePercent: (sizeDifference * 100).toFixed(2) + '%'
+    });
+    
+    // Se a diferença for muito pequena (< 0.5%), pode ser que não houve mudança real
+    if (sizeDifference < 0.005) {
+      console.warn('⚠️ AVISO: A imagem editada parece muito similar à original. Diferença: ' + (sizeDifference * 100).toFixed(3) + '%');
+      console.warn('📝 Prompt usado:', detailedPrompt.substring(0, 500));
+    }
+
     console.log('📤 Fazendo upload da imagem editada para Storage...');
 
     // Extract base64 data from data URL
-    const base64Data = editedImageUrl.split(',')[1] || editedImageUrl;
+    const base64Data = editedImageBase64.split(',')[1] || editedImageBase64;
     
     // Convert base64 to Uint8Array
     const binaryString = atob(base64Data);
@@ -418,18 +484,16 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ 
-        imageUrl: publicUrl,
-        message: 'Imagem editada com sucesso'
-      }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ editedImageUrl: publicUrl }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
-    console.error('❌ Error in edit-image:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Erro interno do servidor';
+    console.error('❌ Erro em edit-image:', error);
     return new Response(
-      JSON.stringify({ error: errorMessage }),
+      JSON.stringify({ 
+        error: error instanceof Error ? error.message : 'Erro ao editar imagem' 
+      }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

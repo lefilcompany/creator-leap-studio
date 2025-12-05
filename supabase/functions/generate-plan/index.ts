@@ -116,9 +116,9 @@ serve(async (req) => {
       .select('*')
       .in('id', themes);
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      console.error('Lovable AI API key not configured');
+    const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
+    if (!openaiApiKey) {
+      console.error('OpenAI API key not configured');
       return new Response(
         JSON.stringify({ error: 'Service configuration error' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -204,26 +204,27 @@ Tema ${index + 1}:
 
     const userPrompt = `${brandContext}\n${themesContext}\n\nPlataforma: ${platform}\nQuantidade de Posts: ${quantity}\nObjetivo: ${objective}\n${additionalInfo ? `Informações Adicionais: ${additionalInfo}` : ''}\n\nPor favor, gere um plano estratégico completo com EXATAMENTE ${quantity} post(s) seguindo a estrutura fornecida.`;
 
-    console.log('Calling Lovable AI API with google/gemini-2.5-pro model...');
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    console.log('Calling OpenAI API with gpt-4o model...');
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Authorization': `Bearer ${openaiApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-pro',
+        model: 'gpt-4o',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
         ],
-        max_completion_tokens: 4000,
+        temperature: 0.7,
+        max_tokens: 4000,
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Lovable AI API error:', response.status, errorText);
+      console.error('OpenAI API error:', response.status, errorText);
       
       if (response.status === 429) {
         return new Response(
@@ -232,9 +233,17 @@ Tema ${index + 1}:
         );
       }
       
-      if (response.status === 402) {
+      if (response.status === 401) {
+        console.error('OpenAI API authentication failed');
         return new Response(
-          JSON.stringify({ error: 'Créditos de IA insuficientes. Por favor, adicione créditos ao workspace.' }),
+          JSON.stringify({ error: 'Erro de autenticação com o serviço de IA. Entre em contato com o suporte.' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      if (response.status === 402 || response.status === 403) {
+        return new Response(
+          JSON.stringify({ error: 'Créditos de IA esgotados. Entre em contato com o suporte.' }),
           { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
@@ -245,12 +254,12 @@ Tema ${index + 1}:
       );
     }
     
-    console.log('Lovable AI API response received successfully');
+    console.log('OpenAI API response received successfully');
 
     const data = await response.json();
     
     if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-      console.error('Invalid Lovable AI response format:', JSON.stringify(data));
+      console.error('Invalid OpenAI response format:', JSON.stringify(data));
       return new Response(
         JSON.stringify({ error: 'Resposta inválida do serviço de IA' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -283,7 +292,7 @@ Tema ${index + 1}:
       creditsUsed: CREDIT_COSTS.CONTENT_PLAN,
       creditsBefore,
       creditsAfter,
-      description: 'Planejamento de conteúdo (Lovable AI)',
+      description: 'Planejamento de conteúdo',
       metadata: { platform, quantity, themes }
     });
 
@@ -320,7 +329,6 @@ Tema ${index + 1}:
     );
 
   } catch (error) {
-    console.error('Error in generate-plan:', error);
     return new Response(
       JSON.stringify({ error: 'An unexpected error occurred' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
