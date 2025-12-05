@@ -13,10 +13,10 @@ serve(async (req) => {
 
   try {
     const { messages } = await req.json();
-    const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
-    if (!OPENAI_API_KEY) {
-      throw new Error("OPENAI_API_KEY não configurada");
+    if (!LOVABLE_API_KEY) {
+      throw new Error("LOVABLE_API_KEY não configurada");
     }
 
     const systemPrompt = `Você é um assistente especialista na plataforma Creator, uma plataforma de inteligência artificial para planejamento e criação estratégica de conteúdo.
@@ -219,14 +219,14 @@ SISTEMA DE PLANOS E PREÇOS:
 
 Responda em português brasileiro de forma clara, objetiva e amigável. Seja prestativo e ajude o usuário a aproveitar ao máximo a plataforma. Quando perguntado sobre planos, forneça informações detalhadas e ajude o usuário a escolher o plano ideal para suas necessidades.`;
 
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
           ...messages,
@@ -244,13 +244,13 @@ Responda em português brasileiro de forma clara, objetiva e amigável. Seja pre
       }
       if (response.status === 402) {
         return new Response(
-          JSON.stringify({ error: "Créditos insuficientes." }), 
+          JSON.stringify({ error: "Créditos de IA insuficientes. Por favor, adicione créditos ao workspace." }), 
           { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
       
       const errorText = await response.text();
-      console.error("Erro na API:", response.status, errorText);
+      console.error("Erro na API Lovable AI:", response.status, errorText);
       return new Response(
         JSON.stringify({ error: "Erro ao processar requisição" }), 
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }

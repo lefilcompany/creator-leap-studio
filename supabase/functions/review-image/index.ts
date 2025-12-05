@@ -99,10 +99,10 @@ serve(async (req) => {
       );
     }
 
-    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
-    if (!openAIApiKey) {
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) {
       return new Response(
-        JSON.stringify({ error: 'OpenAI API key not configured' }),
+        JSON.stringify({ error: 'Lovable AI API key not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -219,14 +219,14 @@ Analise a imagem e retorne uma revisão completa em markdown seguindo EXATAMENTE
       try {
         console.log(`Review attempt ${attempt}/${MAX_RETRIES}...`);
 
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${openAIApiKey}`,
+            'Authorization': `Bearer ${LOVABLE_API_KEY}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'gpt-4o-mini',
+            model: 'google/gemini-2.5-flash',
             messages: [
               { role: 'system', content: systemPrompt },
               { 
@@ -237,25 +237,24 @@ Analise a imagem e retorne uma revisão completa em markdown seguindo EXATAMENTE
                 ]
               }
             ],
-            temperature: 0.7,
-            max_tokens: 2000,
+            max_completion_tokens: 2000,
           }),
         });
 
         if (!response.ok) {
           const errorText = await response.text();
-          console.error(`OpenAI error (attempt ${attempt}):`, response.status, errorText);
+          console.error(`Lovable AI error (attempt ${attempt}):`, response.status, errorText);
           
-          // Don't retry on rate limit or auth errors
+          // Don't retry on rate limit or payment errors
           if (response.status === 429) {
             return new Response(
-              JSON.stringify({ error: 'OpenAI rate limit exceeded. Try again in a moment.' }),
+              JSON.stringify({ error: 'Limite de requisições excedido. Tente novamente em alguns instantes.' }),
               { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             );
           }
-          if (response.status === 401) {
+          if (response.status === 402) {
             return new Response(
-              JSON.stringify({ error: 'Invalid OpenAI API key' }),
+              JSON.stringify({ error: 'Créditos de IA insuficientes. Por favor, adicione créditos ao workspace.' }),
               { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             );
           }
@@ -269,7 +268,7 @@ Analise a imagem e retorne uma revisão completa em markdown seguindo EXATAMENTE
           }
           
           return new Response(
-            JSON.stringify({ error: 'OpenAI API error' }),
+            JSON.stringify({ error: 'Lovable AI API error' }),
             { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
@@ -348,7 +347,7 @@ Analise a imagem e retorne uma revisão completa em markdown seguindo EXATAMENTE
       creditsUsed: CREDIT_COSTS.IMAGE_REVIEW,
       creditsBefore,
       creditsAfter,
-      description: 'Revisão de imagem',
+      description: 'Revisão de imagem (Lovable AI)',
       metadata: { brandName, themeName }
     });
 
