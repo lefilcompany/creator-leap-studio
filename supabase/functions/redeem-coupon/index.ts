@@ -52,6 +52,8 @@ const PROMO_COUPONS: Record<string, string> = {
   'thiagofacanha200': 'Thiago Façanha',
   'thiagotaumaturgo200': 'Thiago Taumaturgo',
   'vinifernandes200': 'Vini Fernandes',
+  'sinaravasconcelos200': 'Sinara Vasconcelos',
+  'samuelmuniz200': 'Samuel Muniz',
 };
 
 const PROMO_CREDITS = 200;
