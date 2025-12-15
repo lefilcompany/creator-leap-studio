@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { CreatorLogo } from "@/components/CreatorLogo";
-import { Eye, EyeOff, Mail, Lock, Sun, Moon, Loader2, User, Phone, ChevronDown } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, Sun, Moon, Loader2, User, Phone, ChevronDown, Ticket } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { TeamSelectionDialog } from "@/components/auth/TeamSelectionDialog";
@@ -77,6 +77,50 @@ const Auth = () => {
   const [privacyChecked, setPrivacyChecked] = useState(false);
   const [privacyModalOpen, setPrivacyModalOpen] = useState(false);
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
+  
+  // Coupon states
+  const [couponCode, setCouponCode] = useState("");
+  const [isValidCouponFormat, setIsValidCouponFormat] = useState(false);
+
+  // Detectar se é cupom promocional (formato: nome200)
+  const isPromoCoupon = (code: string): boolean => {
+    return /^[a-z]+200$/i.test(code.replace(/\s/g, ''));
+  };
+
+  // Detectar se é cupom checksum (formato: XX-YYYYYY-CC)
+  const isChecksumFormat = (code: string): boolean => {
+    return /^(B4|P7|C2|C1|C4)-[A-Z0-9]{6}-[A-Z0-9]{2}$/.test(code);
+  };
+
+  const handleCouponInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value;
+    
+    // Se parece com cupom promocional (contém letras minúsculas ou termina com 200)
+    if (/[a-z]/.test(value) || value.toLowerCase().endsWith('200')) {
+      // Manter como está, apenas remover espaços
+      value = value.replace(/\s/g, '').toLowerCase();
+      setCouponCode(value);
+      setIsValidCouponFormat(isPromoCoupon(value));
+    } else {
+      // Formato checksum - aplicar formatação automática
+      value = value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+      
+      // Limitar a exatamente 10 caracteres (sem hífens)
+      value = value.slice(0, 10);
+      
+      // Adicionar hífens automaticamente
+      let formatted = value;
+      if (value.length > 2) {
+        formatted = value.slice(0, 2) + '-' + value.slice(2);
+      }
+      if (value.length > 8) {
+        formatted = value.slice(0, 2) + '-' + value.slice(2, 8) + '-' + value.slice(8);
+      }
+      
+      setCouponCode(formatted);
+      setIsValidCouponFormat(isChecksumFormat(formatted));
+    }
+  };
 
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -604,6 +648,33 @@ const Auth = () => {
           )}
         </div>
 
+        {/* Grupo 4: Cupom (Opcional) */}
+        <div className="space-y-3 p-4 rounded-lg bg-muted/20 border border-border/40">
+          <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+            Cupom (Opcional)
+          </Label>
+          <div className="relative">
+            <Ticket className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
+            <Input
+              id="couponCode"
+              placeholder="Digite seu cupom"
+              value={couponCode}
+              onChange={handleCouponInput}
+              className="pl-9 sm:pl-10 h-9 sm:h-10 text-sm font-mono tracking-wider"
+              maxLength={30}
+            />
+          </div>
+          {couponCode && (
+            <p className="text-xs">
+              {isValidCouponFormat ? (
+                <span className="text-green-600 font-medium">✓ Formato válido</span>
+              ) : (
+                <span className="text-amber-600">Ex: nome200 ou XX-YYYYYY-CC</span>
+              )}
+            </p>
+          )}
+        </div>
+
         <div className="space-y-4 pt-4 sm:pt-6">
           <div className="flex items-start gap-2">
             <Checkbox
@@ -667,9 +738,12 @@ const Auth = () => {
       privacyChecked,
       privacyAccepted,
       loading,
+      couponCode,
+      isValidCouponFormat,
       handleInputChange,
       handleSelectChange,
       handleRegister,
+      handleCouponInput,
       setPrivacyModalOpen,
       setPrivacyChecked,
       setPrivacyAccepted,
