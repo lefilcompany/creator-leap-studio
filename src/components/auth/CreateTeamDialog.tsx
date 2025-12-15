@@ -34,27 +34,44 @@ export function CreateTeamDialog({ open, onClose, onSuccess, context = 'login' }
     return code;
   };
 
+  // Detectar se é cupom promocional (formato: nome200)
+  const isPromoCoupon = (code: string): boolean => {
+    return /^[a-z]+200$/i.test(code.replace(/\s/g, ''));
+  };
+
+  // Detectar se é cupom checksum (formato: XX-YYYYYY-CC)
+  const isChecksumFormat = (code: string): boolean => {
+    return /^(B4|P7|C2|C1|C4)-[A-Z0-9]{6}-[A-Z0-9]{2}$/.test(code);
+  };
+
   const handleCouponInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    let value = e.target.value;
     
-    // Limitar a exatamente 10 caracteres (sem hífens)
-    value = value.slice(0, 10);
-    
-    // Adicionar hífens automaticamente
-    let formatted = value;
-    if (value.length > 2) {
-      formatted = value.slice(0, 2) + '-' + value.slice(2);
+    // Se parece com cupom promocional (contém letras minúsculas ou termina com 200)
+    if (/[a-z]/.test(value) || value.toLowerCase().endsWith('200')) {
+      // Manter como está, apenas remover espaços
+      value = value.replace(/\s/g, '').toLowerCase();
+      setCouponCode(value);
+      setIsValidCouponFormat(isPromoCoupon(value));
+    } else {
+      // Formato checksum - aplicar formatação automática
+      value = value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+      
+      // Limitar a exatamente 10 caracteres (sem hífens)
+      value = value.slice(0, 10);
+      
+      // Adicionar hífens automaticamente
+      let formatted = value;
+      if (value.length > 2) {
+        formatted = value.slice(0, 2) + '-' + value.slice(2);
+      }
+      if (value.length > 8) {
+        formatted = value.slice(0, 2) + '-' + value.slice(2, 8) + '-' + value.slice(8);
+      }
+      
+      setCouponCode(formatted);
+      setIsValidCouponFormat(isChecksumFormat(formatted));
     }
-    if (value.length > 8) {
-      formatted = value.slice(0, 2) + '-' + value.slice(2, 8) + '-' + value.slice(8);
-    }
-    
-    setCouponCode(formatted);
-    
-    // Validar formato
-    const regex = /^(B4|P7|C2|C1|C4)-[A-Z0-9]{6}-[A-Z0-9]{2}$/;
-    const isValid = regex.test(formatted);
-    setIsValidCouponFormat(isValid);
     
     // Limpar erro ao alterar input
     if (couponValidationError) {
@@ -75,7 +92,7 @@ export function CreateTeamDialog({ open, onClose, onSuccess, context = 'login' }
 
     // Validar formato do cupom se preenchido
     if (couponCode.trim() && !isValidCouponFormat) {
-      setCouponValidationError("Formato de cupom inválido (XX-YYYYYY-CC)");
+      setCouponValidationError("Formato de cupom inválido");
       return;
     }
 
@@ -259,11 +276,11 @@ export function CreateTeamDialog({ open, onClose, onSuccess, context = 'login' }
             </Label>
             <Input
               id="couponCode"
-              placeholder="XX-YYYYYY-CC"
+              placeholder="Digite seu cupom"
               value={couponCode}
               onChange={handleCouponInput}
               disabled={isLoading}
-              maxLength={12}
+              maxLength={30}
               className="font-mono tracking-wider"
             />
             {couponCode && (
@@ -271,7 +288,7 @@ export function CreateTeamDialog({ open, onClose, onSuccess, context = 'login' }
                 {isValidCouponFormat ? (
                   <span className="text-green-600 font-medium">✓ Formato válido</span>
                 ) : (
-                  <span className="text-amber-600">Formato: XX-YYYYYY-CC</span>
+                  <span className="text-amber-600">Ex: nome200 ou XX-YYYYYY-CC</span>
                 )}
               </p>
             )}
