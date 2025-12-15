@@ -6,7 +6,62 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Configurações de validação do cupom
+// ============= CUPONS PROMOCIONAIS ÚNICOS (200 créditos) =============
+const PROMO_COUPONS: Record<string, string> = {
+  'alinearaujo200': 'Aline Araújo',
+  'anacelina200': 'Ana Celina',
+  'anahildameneses200': 'Ana Hilda Randal Meneses',
+  'anaquezado200': 'Ana Quezado',
+  'camilaandrade200': 'Camila Andrade',
+  'carlamatos200': 'Carla Matos',
+  'carolvasconcelos200': 'Carol Vasconcelos',
+  'cassiamonteiro200': 'Cassia Monteiro',
+  'chateaubriandarrais200': 'Chateaubriand Arrais',
+  'claudioaugusto200': 'Cláudio Augusto',
+  'daviraulino200': 'Davi Raulino',
+  'drfabricio200': 'Dr. Fabricio',
+  'eliasbruno200': 'Elias Bruno',
+  'elizianecolares200': 'Eliziane Colares',
+  'emmanuelbrandao200': 'Emmanuel Brandão',
+  'giacomobrayner200': 'Giacomo Brayner',
+  'helainetahim200': 'Helaine Tahim',
+  'hugolopes200': 'Hugo Lopes',
+  'ilinamemede200': 'Ilina Mamede',
+  'ionaramonteiro200': 'Ionara Monteiro',
+  'joselmaoliveira200': 'Joselma Oliveira',
+  'karlarodrigues200': 'Karla Rodrigues',
+  'kellyannepinheiro200': 'Kellyanne Pinheiro',
+  'larissaaguiar200': 'Larissa Aguiar',
+  'leonardoleitao200': 'Leonardo Leitão',
+  'liaquindere200': 'Lia Quinderé',
+  'lucianacastro200': 'Luciana Castro',
+  'ludgardooliveira200': 'Ludgardo Oliveira',
+  'luisalemos200': 'Luisa Lemos',
+  'marcosandre200': 'Marcos André',
+  'mariatereza200': 'Maria Tereza',
+  'maurocosta200': 'Mauro Costa',
+  'nayaraagrela200': 'Nayara Agrela',
+  'paulojrpieiro200': 'Paulo Jr. Pieiro',
+  'raysaridia200': 'Raysa Ridia',
+  'rebeccabrasil200': 'Rebecca Brasil',
+  'renatasantos200': 'Renata Santos',
+  'rodrigobourbon200': 'Rodrigo Bourbon',
+  'ronaldotelles200': 'Ronaldo Telles',
+  'tatianabrigido200': 'Tatiana Brigido',
+  'thiagocaldas200': 'Thiago Caldas',
+  'thiagofacanha200': 'Thiago Façanha',
+  'thiagotaumaturgo200': 'Thiago Taumaturgo',
+  'vinifernandes200': 'Vini Fernandes',
+};
+
+const PROMO_CREDITS = 200;
+
+// Função para verificar se é um cupom promocional
+function isPromoCoupon(code: string): boolean {
+  return code.toLowerCase() in PROMO_COUPONS;
+}
+
+// ============= SISTEMA DE CUPONS COM CHECKSUM =============
 const PREFIX_VALUES: Record<string, number> = {
   'B4': 14,    // 14 dias Basic
   'P7': 7,     // 7 dias Pro
@@ -153,37 +208,15 @@ serve(async (req) => {
       );
     }
 
-    const normalizedCode = couponCode.toUpperCase().trim();
+    const normalizedCode = couponCode.trim();
+    const lowerCode = normalizedCode.toLowerCase();
     console.log(`[redeem-coupon] Validating coupon: ${normalizedCode}`);
 
-    // 1. Validar formato
-    const formatValidation = validateCouponFormat(normalizedCode);
-    if (!formatValidation.valid) {
-      console.log(`[redeem-coupon] Invalid format: ${formatValidation.error}`);
-      return new Response(
-        JSON.stringify({ valid: false, error: formatValidation.error }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-      );
-    }
-
-    const { prefix, randomPart, checksum } = formatValidation.parts!;
-
-    // 2. Validar checksum
-    if (!validateChecksum(prefix, randomPart, checksum)) {
-      console.log(`[redeem-coupon] Invalid checksum for: ${normalizedCode}`);
-      return new Response(
-        JSON.stringify({ valid: false, error: 'Cupom inválido. Verifique o código e tente novamente.' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-      );
-    }
-
-    console.log(`[redeem-coupon] Checksum valid for: ${normalizedCode}`);
-
-    // 3. Verificar se cupom já foi usado
+    // Verificar se cupom já foi usado (tanto promo quanto checksum)
     const { data: existingCoupon, error: checkError } = await supabaseAdmin
       .from('coupons_used')
       .select('*')
-      .eq('coupon_code', normalizedCode)
+      .eq('coupon_code', lowerCode)
       .maybeSingle();
 
     if (checkError) {
@@ -199,7 +232,7 @@ serve(async (req) => {
       );
     }
 
-    // 4. Buscar dados da equipe do usuário
+    // Buscar dados da equipe do usuário
     const { data: profile, error: profileError } = await supabaseClient
       .from('profiles')
       .select('team_id')
@@ -226,6 +259,92 @@ serve(async (req) => {
     }
 
     console.log(`[redeem-coupon] Team found: ${team.id} (plan: ${team.plan_id})`);
+
+    // ============= CUPOM PROMOCIONAL =============
+    if (isPromoCoupon(lowerCode)) {
+      const promoOwner = PROMO_COUPONS[lowerCode];
+      console.log(`[redeem-coupon] Promo coupon detected: ${lowerCode} (${promoOwner})`);
+
+      // Registrar cupom promocional
+      const { error: insertError } = await supabaseAdmin
+        .from('coupons_used')
+        .insert({
+          team_id: team.id,
+          coupon_code: lowerCode,
+          coupon_prefix: 'PROMO',
+          prize_type: 'credits',
+          prize_value: PROMO_CREDITS,
+          redeemed_by: user.id
+        });
+
+      if (insertError) {
+        console.error('[redeem-coupon] Error registering promo coupon:', insertError);
+        if (insertError.code === '23505') {
+          return new Response(
+            JSON.stringify({ valid: false, error: 'Este cupom já foi utilizado.' }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+          );
+        }
+        throw new Error('Erro ao registrar cupom. Tente novamente.');
+      }
+
+      // Adicionar 200 créditos à equipe
+      const { error: updateError } = await supabaseAdmin
+        .from('teams')
+        .update({ credits: (team.credits || 0) + PROMO_CREDITS })
+        .eq('id', team.id);
+
+      if (updateError) {
+        console.error('[redeem-coupon] Error updating team credits:', updateError);
+        return new Response(
+          JSON.stringify({ 
+            valid: false, 
+            error: 'Cupom registrado, mas erro ao aplicar créditos. Contate o suporte.' 
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+        );
+      }
+
+      console.log(`[redeem-coupon] ✅ Promo coupon redeemed: ${lowerCode} (+${PROMO_CREDITS} credits)`);
+
+      return new Response(
+        JSON.stringify({
+          valid: true,
+          prize: {
+            type: 'credits',
+            value: PROMO_CREDITS,
+            description: `${PROMO_CREDITS} créditos (Cupom ${promoOwner})`
+          }
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // ============= CUPOM COM CHECKSUM =============
+    const upperCode = normalizedCode.toUpperCase();
+    
+    // 1. Validar formato
+    const formatValidation = validateCouponFormat(upperCode);
+    if (!formatValidation.valid) {
+      console.log(`[redeem-coupon] Invalid format: ${formatValidation.error}`);
+      return new Response(
+        JSON.stringify({ valid: false, error: 'Cupom inválido. Verifique o código e tente novamente.' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      );
+    }
+
+    const { prefix, randomPart, checksum } = formatValidation.parts!;
+
+    // 2. Validar checksum
+    if (!validateChecksum(prefix, randomPart, checksum)) {
+      console.log(`[redeem-coupon] Invalid checksum for: ${upperCode}`);
+      return new Response(
+        JSON.stringify({ valid: false, error: 'Cupom inválido. Verifique o código e tente novamente.' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      );
+    }
+
+    console.log(`[redeem-coupon] Checksum valid for: ${upperCode}`);
 
     // 5. Obter informações do prêmio
     const prizeInfo = getPrizeInfo(prefix);
@@ -329,7 +448,7 @@ serve(async (req) => {
       .from('coupons_used')
       .insert({
         team_id: team.id,
-        coupon_code: normalizedCode,
+        coupon_code: upperCode,
         coupon_prefix: prefix,
         prize_type: prizeInfo.type,
         prize_value: prizeInfo.value,
@@ -365,13 +484,13 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ 
           valid: false, 
-          error: 'Cupom registrado, mas erro ao aplicar benefícios. Contate o suporte com o código: ' + normalizedCode 
+          error: 'Cupom registrado, mas erro ao aplicar benefícios. Contate o suporte com o código: ' + upperCode 
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
       );
     }
 
-    console.log(`[redeem-coupon] ✅ Coupon redeemed successfully: ${normalizedCode}`);
+    console.log(`[redeem-coupon] ✅ Coupon redeemed successfully: ${upperCode}`);
 
     return new Response(
       JSON.stringify({
