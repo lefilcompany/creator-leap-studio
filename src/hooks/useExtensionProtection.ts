@@ -57,6 +57,7 @@ export const useExtensionProtection = () => {
 
 /**
  * Hook para proteger formulários contra auto-fill malicioso de extensões
+ * Versão simplificada sem MutationObserver para evitar conflitos com React
  */
 export const useFormProtection = (formRef: React.RefObject<HTMLFormElement>) => {
   useEffect(() => {
@@ -64,38 +65,24 @@ export const useFormProtection = (formRef: React.RefObject<HTMLFormElement>) => 
 
     const form = formRef.current;
     
-    // Prevenir modificações não autorizadas nos inputs
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (mutation.type === 'attributes' && mutation.attributeName === 'value') {
-          const target = mutation.target as HTMLInputElement;
-          // Apenas validar, não bloquear - deixar o usuário ter controle
-          if (target && target.dataset.protected === 'true') {
-            console.debug('Mudança detectada em campo protegido:', target.name);
-          }
+    // Aguardar um tick para evitar conflitos com hydration do React
+    const timeoutId = setTimeout(() => {
+      if (!form) return;
+      
+      // Adicionar atributos de proteção aos inputs existentes
+      const inputs = form.querySelectorAll('input');
+      inputs.forEach((input) => {
+        if (!input.getAttribute('autocomplete')) {
+          input.setAttribute('autocomplete', 'off');
         }
+        input.setAttribute('data-form-type', 'other');
+        input.setAttribute('data-lpignore', 'true'); // LastPass
+        input.setAttribute('data-1p-ignore', 'true'); // 1Password
       });
-    });
-
-    observer.observe(form, {
-      attributes: true,
-      subtree: true,
-      attributeFilter: ['value'],
-    });
-
-    // Adicionar atributo autocomplete de forma mais agressiva
-    const inputs = form.querySelectorAll('input');
-    inputs.forEach((input) => {
-      if (!input.getAttribute('autocomplete')) {
-        input.setAttribute('autocomplete', 'off');
-      }
-      input.setAttribute('data-form-type', 'other');
-      input.setAttribute('data-lpignore', 'true'); // LastPass
-      input.setAttribute('data-1p-ignore', 'true'); // 1Password
-    });
+    }, 0);
 
     return () => {
-      observer.disconnect();
+      clearTimeout(timeoutId);
     };
   }, [formRef]);
 };

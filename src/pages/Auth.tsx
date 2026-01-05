@@ -371,383 +371,356 @@ const Auth = () => {
     }
   };
 
-  const loginForm = useMemo(
-    () => (
-      <form ref={loginFormRef} onSubmit={handleLogin} className="space-y-4 sm:space-y-6">
-        <div className="space-y-2">
-          <div className="relative">
-            <Mail className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
-            <Input
-              id="login-email"
-              type="email"
-              placeholder={t.login.email}
-              required
-              value={loginEmail}
-              onChange={(e) => setLoginEmail(e.target.value)}
-              className="pl-9 sm:pl-10 h-9 sm:h-10 text-sm"
-            />
+  // Renderização direta do formulário de login (sem useMemo para evitar conflitos DOM)
+  const loginFormContent = (
+    <form ref={loginFormRef} onSubmit={handleLogin} className="space-y-4 sm:space-y-6">
+      <div className="space-y-2">
+        <div className="relative">
+          <Mail className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
+          <Input
+            id="login-email"
+            type="email"
+            placeholder={t.login.email}
+            required
+            value={loginEmail}
+            onChange={(e) => setLoginEmail(e.target.value)}
+            className="pl-9 sm:pl-10 h-9 sm:h-10 text-sm"
+          />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <div className="relative">
+          <Lock className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
+          <Input
+            id="login-password"
+            type={showPassword ? "text" : "password"}
+            placeholder={t.login.password}
+            required
+            value={loginPassword}
+            onChange={(e) => setLoginPassword(e.target.value)}
+            className="pl-9 sm:pl-10 pr-9 sm:pr-10 h-9 sm:h-10 text-sm"
+          />
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="absolute top-1/2 -translate-y-1/2 right-0.5 h-8 w-8 sm:h-9 sm:w-9 text-muted-foreground hover:bg-accent/60"
+            onClick={() => setShowPassword(!showPassword)}
+          >
+            {showPassword ? (
+              <EyeOff size={16} className="sm:w-5 sm:h-5" />
+            ) : (
+              <Eye size={16} className="sm:w-5 sm:h-5" />
+            )}
+          </Button>
+        </div>
+      </div>
+
+      {/* Sugestão de reset - sempre renderizado, visibilidade controlada por CSS */}
+      <div 
+        className={`mb-4 p-4 bg-destructive/10 border-2 border-destructive/30 rounded-lg transition-all duration-300 ${
+          showPasswordResetSuggestion ? 'opacity-100 max-h-40' : 'opacity-0 max-h-0 overflow-hidden p-0 mb-0 border-0'
+        }`}
+        aria-hidden={!showPasswordResetSuggestion}
+      >
+        <div className="flex items-start gap-3">
+          <Mail className="h-5 w-5 text-destructive mt-0.5 flex-shrink-0" />
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-destructive mb-1">{t.login.incorrectCredentials}</p>
+            <p className="text-xs text-muted-foreground mb-2">{t.login.resetPasswordSuggestion}</p>
+            <a
+              href="/forgot-password"
+              className="text-sm text-destructive hover:text-destructive/80 font-semibold underline underline-offset-2"
+            >
+              {t.login.resetMyPassword}
+            </a>
           </div>
         </div>
+      </div>
 
-        <div className="space-y-2">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="remember"
+            checked={rememberMe}
+            onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+          />
+          <Label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer">
+            {t.login.rememberMe}
+          </Label>
+        </div>
+        <a
+          href="/forgot-password"
+          className={`text-sm transition-all duration-300 ${showPasswordResetSuggestion ? "text-destructive hover:text-destructive/80 font-semibold animate-pulse" : "text-primary hover:text-primary/80"}`}
+        >
+          {t.login.forgotPassword}
+        </a>
+      </div>
+
+      <div className="pt-4 sm:pt-6">
+        <Button
+          type="submit"
+          disabled={loading}
+          className="w-full h-9 sm:h-10 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-medium rounded-lg sm:rounded-xl transition-all duration-300 hover:opacity-90 disabled:opacity-50 text-sm"
+        >
+          {loading ? (
+            <div className="flex items-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>{t.login.signingIn}</span>
+            </div>
+          ) : (
+            t.login.signIn
+          )}
+        </Button>
+      </div>
+    </form>
+  );
+
+
+  // Renderização direta do formulário de registro (sem useMemo para evitar conflitos DOM)
+  const registerFormContent = (
+    <form ref={registerFormRef} onSubmit={handleRegister} className="space-y-4">
+      {/* Grupo 1: Informações Pessoais */}
+      <div className="space-y-3 p-4 rounded-lg bg-muted/20 border border-border/40">
+        <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+          Informações Pessoais
+        </Label>
+        <div className="relative">
+          <User className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
+          <Input
+            id="name"
+            placeholder="Nome Completo"
+            required
+            value={formData.name}
+            onChange={handleInputChange}
+            className="pl-9 sm:pl-10 h-9 sm:h-10 text-sm"
+          />
+        </div>
+
+        <div className="relative">
+          <Mail className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
+          <Input
+            id="email"
+            type="email"
+            placeholder="E-mail"
+            required
+            value={formData.email}
+            onChange={handleInputChange}
+            className="pl-9 sm:pl-10 h-9 sm:h-10 text-sm"
+          />
+        </div>
+      </div>
+
+      {/* Grupo 2: Segurança */}
+      <div className="space-y-3 p-4 rounded-lg bg-muted/20 border border-border/40">
+        <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Segurança</Label>
+        <div className="flex flex-col sm:grid sm:grid-cols-2 gap-2">
           <div className="relative">
             <Lock className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
             <Input
-              id="login-password"
+              id="password"
               type={showPassword ? "text" : "password"}
-              placeholder={t.login.password}
+              placeholder="Senha"
               required
-              value={loginPassword}
-              onChange={(e) => setLoginPassword(e.target.value)}
+              minLength={6}
+              value={formData.password}
+              onChange={handleInputChange}
               className="pl-9 sm:pl-10 pr-9 sm:pr-10 h-9 sm:h-10 text-sm"
             />
             <Button
               type="button"
               variant="ghost"
               size="icon"
-              className="absolute top-1/2 -translate-y-1/2 right-0.5 h-8 w-8 sm:h-9 sm:w-9 text-muted-foreground hover:bg-accent/60"
+              className="absolute right-0.5 top-1/2 transform -translate-y-1/2 h-8 w-8"
               onClick={() => setShowPassword(!showPassword)}
             >
-              {showPassword ? (
-                <EyeOff size={16} className="sm:w-5 sm:h-5" />
-              ) : (
-                <Eye size={16} className="sm:w-5 sm:h-5" />
-              )}
+              {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
             </Button>
           </div>
-        </div>
-
-        {showPasswordResetSuggestion && (
-          <div className="mb-4 p-4 bg-destructive/10 border-2 border-destructive/30 rounded-lg animate-fade-in">
-            <div className="flex items-start gap-3">
-              <Mail className="h-5 w-5 text-destructive mt-0.5 flex-shrink-0" />
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-destructive mb-1">{t.login.incorrectCredentials}</p>
-                <p className="text-xs text-muted-foreground mb-2">{t.login.resetPasswordSuggestion}</p>
-                <a
-                  href="/forgot-password"
-                  className="text-sm text-destructive hover:text-destructive/80 font-semibold underline underline-offset-2"
-                >
-                  {t.login.resetMyPassword}
-                </a>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="remember"
-              checked={rememberMe}
-              onCheckedChange={(checked) => setRememberMe(checked as boolean)}
-            />
-            <Label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer">
-              {t.login.rememberMe}
-            </Label>
-          </div>
-          <a
-            href="/forgot-password"
-            className={`text-sm transition-all duration-300 ${showPasswordResetSuggestion ? "text-destructive hover:text-destructive/80 font-semibold animate-pulse" : "text-primary hover:text-primary/80"}`}
-          >
-            {t.login.forgotPassword}
-          </a>
-        </div>
-
-        <div className="pt-4 sm:pt-6">
-          <Button
-            type="submit"
-            disabled={loading}
-            className="w-full h-9 sm:h-10 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-medium rounded-lg sm:rounded-xl transition-all duration-300 hover:opacity-90 disabled:opacity-50 text-sm"
-          >
-            {loading ? (
-              <div className="flex items-center gap-2">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span>{t.login.signingIn}</span>
-              </div>
-            ) : (
-              t.login.signIn
-            )}
-          </Button>
-        </div>
-      </form>
-    ),
-    [
-      loginEmail,
-      loginPassword,
-      showPassword,
-      rememberMe,
-      showPasswordResetSuggestion,
-      loading,
-      t,
-      handleLogin,
-    ],
-  );
-
-
-  const registerForm = useMemo(
-    () => (
-      <form ref={registerFormRef} onSubmit={handleRegister} className="space-y-4">
-        {/* Grupo 1: Informações Pessoais */}
-        <div className="space-y-3 p-4 rounded-lg bg-muted/20 border border-border/40">
-          <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-            Informações Pessoais
-          </Label>
-          <div className="relative">
-            <User className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
-            <Input
-              id="name"
-              placeholder="Nome Completo"
-              required
-              value={formData.name}
-              onChange={handleInputChange}
-              className="pl-9 sm:pl-10 h-9 sm:h-10 text-sm"
-            />
-          </div>
 
           <div className="relative">
-            <Mail className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
+            <Lock className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
             <Input
-              id="email"
-              type="email"
-              placeholder="E-mail"
+              id="confirmPassword"
+              type={showPassword ? "text" : "password"}
+              placeholder="Confirmar Senha"
               required
-              value={formData.email}
-              onChange={handleInputChange}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
               className="pl-9 sm:pl-10 h-9 sm:h-10 text-sm"
             />
           </div>
         </div>
+      </div>
 
-        {/* Grupo 2: Segurança */}
-        <div className="space-y-3 p-4 rounded-lg bg-muted/20 border border-border/40">
-          <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Segurança</Label>
-          <div className="flex flex-col sm:grid sm:grid-cols-2 gap-2">
-            <div className="relative">
-              <Lock className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
-              <Input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                placeholder="Senha"
-                required
-                minLength={6}
-                value={formData.password}
-                onChange={handleInputChange}
-                className="pl-9 sm:pl-10 pr-9 sm:pr-10 h-9 sm:h-10 text-sm"
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="absolute right-0.5 top-1/2 transform -translate-y-1/2 h-8 w-8"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-              </Button>
+      {/* Validação de senha - sempre renderizado, visibilidade controlada por CSS */}
+      <div 
+        className={`bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 p-2 sm:p-3 rounded-lg border border-green-200/50 dark:border-green-800/50 transition-all duration-300 ${
+          formData.password ? 'opacity-100 max-h-20' : 'opacity-0 max-h-0 overflow-hidden p-0 border-0'
+        }`}
+        aria-hidden={!formData.password}
+      >
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1.5 sm:gap-2">
+          <div className="flex items-center gap-2 text-xs sm:text-sm">
+            <div
+              className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full flex items-center justify-center transition-all ${isPasswordValid ? "bg-green-500" : "bg-red-500"}`}
+            >
+              {isPasswordValid && <span className="text-white text-[8px] sm:text-[10px]">✓</span>}
             </div>
+            <span
+              className={`font-medium transition-colors ${isPasswordValid ? "text-green-700 dark:text-green-300" : "text-red-700 dark:text-red-300"}`}
+            >
+              Mínimo 6 caracteres
+            </span>
+          </div>
 
-            <div className="relative">
-              <Lock className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
-              <Input
-                id="confirmPassword"
-                type={showPassword ? "text" : "password"}
-                placeholder="Confirmar Senha"
-                required
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="pl-9 sm:pl-10 h-9 sm:h-10 text-sm"
-              />
+          <div className="flex items-center gap-2 text-xs sm:text-sm">
+            <div
+              className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full flex items-center justify-center transition-all ${passwordsMatch ? "bg-green-500" : "bg-red-500"}`}
+            >
+              {passwordsMatch && <span className="text-white text-[8px] sm:text-[10px]">✓</span>}
             </div>
+            <span
+              className={`font-medium transition-colors ${passwordsMatch ? "text-green-700 dark:text-green-300" : "text-red-700 dark:text-red-300"}`}
+            >
+              Senhas coincidem
+            </span>
           </div>
         </div>
+      </div>
 
-        {formData.password && (
-          <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 p-2 sm:p-3 rounded-lg border border-green-200/50 dark:border-green-800/50">
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1.5 sm:gap-2">
-              <div className="flex items-center gap-2 text-xs sm:text-sm">
-                <div
-                  className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full flex items-center justify-center transition-all ${isPasswordValid ? "bg-green-500" : "bg-red-500"}`}
-                >
-                  {isPasswordValid && <span className="text-white text-[8px] sm:text-[10px]">✓</span>}
-                </div>
-                <span
-                  className={`font-medium transition-colors ${isPasswordValid ? "text-green-700 dark:text-green-300" : "text-red-700 dark:text-red-300"}`}
-                >
-                  Mínimo 6 caracteres
-                </span>
-              </div>
+      {/* Grupo 3: Informações de Contato */}
+      <div className="space-y-3 p-4 rounded-lg bg-muted/20 border border-border/40">
+        <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+          Informações de Contato
+        </Label>
+        <div className="relative">
+          <Phone className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
+          <Input
+            id="phone"
+            placeholder="Telefone"
+            required
+            value={formData.phone}
+            onChange={handleInputChange}
+            className="pl-9 sm:pl-10 h-9 sm:h-10 text-sm"
+            maxLength={15}
+          />
+        </div>
 
-              <div className="flex items-center gap-2 text-xs sm:text-sm">
-                <div
-                  className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full flex items-center justify-center transition-all ${passwordsMatch ? "bg-green-500" : "bg-red-500"}`}
-                >
-                  {passwordsMatch && <span className="text-white text-[8px] sm:text-[10px]">✓</span>}
-                </div>
-                <span
-                  className={`font-medium transition-colors ${passwordsMatch ? "text-green-700 dark:text-green-300" : "text-red-700 dark:text-red-300"}`}
-                >
-                  Senhas coincidem
-                </span>
-              </div>
-            </div>
-          </div>
-        )}
+        <Select
+          value={formData.state}
+          onValueChange={(value) => handleSelectChange("state", value)}
+          disabled={loadingStates}
+        >
+          <SelectTrigger className="w-full h-9 sm:h-10 text-sm">
+            <SelectValue placeholder="Estado" />
+          </SelectTrigger>
+          <SelectContent className="z-[9999] bg-popover border border-border shadow-lg max-h-[300px]" position="popper">
+            {states.map((state) => (
+              <SelectItem key={state.id} value={state.sigla}>
+                {state.nome}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-        {/* Grupo 3: Informações de Contato */}
-        <div className="space-y-3 p-4 rounded-lg bg-muted/20 border border-border/40">
-          <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-            Informações de Contato
-          </Label>
-          <div className="relative">
-            <Phone className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
-            <Input
-              id="phone"
-              placeholder="Telefone"
-              required
-              value={formData.phone}
-              onChange={handleInputChange}
-              className="pl-9 sm:pl-10 h-9 sm:h-10 text-sm"
-              maxLength={15}
-            />
-          </div>
-
+        {/* Select de cidade - sempre renderizado, visibilidade controlada por CSS */}
+        <div className={`transition-all duration-300 ${formData.state ? 'opacity-100 max-h-20' : 'opacity-0 max-h-0 overflow-hidden'}`}>
           <Select
-            value={formData.state}
-            onValueChange={(value) => handleSelectChange("state", value)}
-            disabled={loadingStates}
+            value={formData.city}
+            onValueChange={(value) => handleSelectChange("city", value)}
+            disabled={loadingCities || !formData.state}
           >
             <SelectTrigger className="w-full h-9 sm:h-10 text-sm">
-              <SelectValue placeholder="Estado" />
+              <SelectValue placeholder="Cidade" />
             </SelectTrigger>
             <SelectContent className="z-[9999] bg-popover border border-border shadow-lg max-h-[300px]" position="popper">
-              {states.map((state) => (
-                <SelectItem key={state.id} value={state.sigla}>
-                  {state.nome}
+              {cities.map((city) => (
+                <SelectItem key={city.id} value={city.nome}>
+                  {city.nome}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-
-          {formData.state && (
-            <Select
-              value={formData.city}
-              onValueChange={(value) => handleSelectChange("city", value)}
-              disabled={loadingCities}
-            >
-              <SelectTrigger className="w-full h-9 sm:h-10 text-sm">
-                <SelectValue placeholder="Cidade" />
-              </SelectTrigger>
-              <SelectContent className="z-[9999] bg-popover border border-border shadow-lg max-h-[300px]" position="popper">
-                {cities.map((city) => (
-                  <SelectItem key={city.id} value={city.nome}>
-                    {city.nome}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
         </div>
+      </div>
 
-        {/* Grupo 4: Cupom (Opcional) */}
-        <div className="space-y-3 p-4 rounded-lg bg-muted/20 border border-border/40">
-          <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-            Cupom (Opcional)
-          </Label>
-          <div className="relative">
-            <Ticket className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
-            <Input
-              id="couponCode"
-              placeholder="Digite seu cupom"
-              value={couponCode}
-              onChange={handleCouponInput}
-              className="pl-9 sm:pl-10 h-9 sm:h-10 text-sm font-mono tracking-wider"
-              maxLength={30}
-            />
-          </div>
-          {couponCode && (
-            <p className="text-xs">
-              {isValidCouponFormat ? (
-                <span className="text-green-600 font-medium">✓ Formato válido</span>
-              ) : (
-                <span className="text-amber-600">Ex: nome200 ou XX-YYYYYY-CC</span>
-              )}
-            </p>
-          )}
+      {/* Grupo 4: Cupom (Opcional) */}
+      <div className="space-y-3 p-4 rounded-lg bg-muted/20 border border-border/40">
+        <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+          Cupom (Opcional)
+        </Label>
+        <div className="relative">
+          <Ticket className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
+          <Input
+            id="couponCode"
+            placeholder="Digite seu cupom"
+            value={couponCode}
+            onChange={handleCouponInput}
+            className="pl-9 sm:pl-10 h-9 sm:h-10 text-sm font-mono tracking-wider"
+            maxLength={30}
+          />
         </div>
+        {/* Validação de cupom - sempre renderizado, visibilidade controlada por CSS */}
+        <p className={`text-xs transition-all duration-200 ${couponCode ? 'opacity-100 h-auto' : 'opacity-0 h-0 overflow-hidden'}`}>
+          {isValidCouponFormat ? (
+            <span className="text-green-600 font-medium">✓ Formato válido</span>
+          ) : (
+            <span className="text-amber-600">Ex: nome200 ou XX-YYYYYY-CC</span>
+          )}
+        </p>
+      </div>
 
-        <div className="space-y-4 pt-4 sm:pt-6">
-          <div className="flex items-start gap-2">
-            <Checkbox
-              id="privacy"
-              checked={privacyChecked}
-              onCheckedChange={(checked) => {
-                setPrivacyModalOpen(true);
-              }}
-              className="mt-1"
-            />
-            <Label 
-              htmlFor="privacy" 
-              className="text-xs text-muted-foreground select-none cursor-pointer leading-relaxed"
-              onClick={(e) => {
-                e.preventDefault();
-                setPrivacyModalOpen(true);
-              }}
-            >
-              Li e concordo com a{" "}
-              <button
-                type="button"
-                className="underline text-primary hover:text-secondary transition-colors"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setPrivacyModalOpen(true);
-                }}
-              >
-                Política de Privacidade
-              </button>
-            </Label>
-          </div>
-
-          <Button
-            type="submit"
-            className="w-full h-10 lg:h-11 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-medium rounded-xl transition-all duration-300 hover:opacity-90"
-            disabled={
-              loading ||
-              !formData.name ||
-              !formData.email ||
-              !formData.password ||
-              !confirmPassword ||
-              !privacyChecked ||
-              !privacyAccepted
-            }
+      <div className="space-y-4 pt-4 sm:pt-6">
+        <div className="flex items-start gap-2">
+          <Checkbox
+            id="privacy"
+            checked={privacyChecked}
+            onCheckedChange={() => {
+              setPrivacyModalOpen(true);
+            }}
+            className="mt-1"
+          />
+          <Label 
+            htmlFor="privacy" 
+            className="text-xs text-muted-foreground select-none cursor-pointer leading-relaxed"
+            onClick={(e) => {
+              e.preventDefault();
+              setPrivacyModalOpen(true);
+            }}
           >
-            {loading ? <Loader2 className="animate-spin h-4 w-4" /> : "CRIAR CONTA"}
-          </Button>
+            Li e concordo com a{" "}
+            <button
+              type="button"
+              className="underline text-primary hover:text-secondary transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                setPrivacyModalOpen(true);
+              }}
+            >
+              Política de Privacidade
+            </button>
+          </Label>
         </div>
-      </form>
-    ),
-    [
-      formData,
-      confirmPassword,
-      showPassword,
-      states,
-      cities,
-      loadingStates,
-      loadingCities,
-      passwordsMatch,
-      isPasswordValid,
-      privacyChecked,
-      privacyAccepted,
-      loading,
-      couponCode,
-      isValidCouponFormat,
-      handleInputChange,
-      handleSelectChange,
-      handleRegister,
-      handleCouponInput,
-      setPrivacyModalOpen,
-      setPrivacyChecked,
-      setPrivacyAccepted,
-    ],
+
+        <Button
+          type="submit"
+          className="w-full h-10 lg:h-11 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-medium rounded-xl transition-all duration-300 hover:opacity-90"
+          disabled={
+            loading ||
+            !formData.name ||
+            !formData.email ||
+            !formData.password ||
+            !confirmPassword ||
+            !privacyChecked ||
+            !privacyAccepted
+          }
+        >
+          {loading ? <Loader2 className="animate-spin h-4 w-4" /> : "CRIAR CONTA"}
+        </Button>
+      </div>
+    </form>
   );
 
 
@@ -969,7 +942,7 @@ const Auth = () => {
                       filter: { duration: 0.3 },
                     }}
                   >
-                    {isLoginMode ? loginForm : registerForm}
+                    {isLoginMode ? loginFormContent : registerFormContent}
                   </motion.div>
                 </AnimatePresence>
               </div>
