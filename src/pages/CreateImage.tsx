@@ -913,36 +913,20 @@ ${formData.description}
                   {isLoadingData ? (
                     <Skeleton className="h-11 w-full rounded-xl" />
                   ) : (
-                    <Select
-                      onValueChange={(value) =>
-                        handleSelectChange("theme", value)
-                      }
+                    <NativeSelect
                       value={formData.theme}
+                      onValueChange={(value) => handleSelectChange("theme", value)}
+                      options={filteredThemes.map((t) => ({ value: t.id, label: t.title }))}
+                      placeholder={
+                        !formData.brand
+                          ? "Primeiro, escolha a marca"
+                          : filteredThemes.length === 0
+                          ? "Nenhum tema disponível"
+                          : "Selecione um tema (opcional)"
+                      }
                       disabled={!formData.brand || filteredThemes.length === 0}
-                    >
-                      <SelectTrigger id="select-theme" className="h-11 rounded-xl border-2 border-border/50 bg-background/50 text-sm hover:border-primary/50 transition-all">
-                        <SelectValue
-                          placeholder={
-                            !formData.brand
-                              ? "Primeiro, escolha a marca"
-                              : filteredThemes.length === 0
-                              ? "Nenhum tema disponível"
-                              : "Selecione um tema (opcional)"
-                          }
-                        />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl border-border/20">
-                        {filteredThemes.map((t) => (
-                          <SelectItem
-                            key={t.id}
-                            value={t.id}
-                            className="rounded-lg"
-                          >
-                            {t.title}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50 text-sm hover:border-primary/50 transition-all"
+                    />
                   )}
                 </div>
 
@@ -956,34 +940,18 @@ ${formData.description}
                   {isLoadingData ? (
                     <Skeleton className="h-11 w-full rounded-xl" />
                   ) : (
-                    <Select
-                      onValueChange={(value) =>
-                        handleSelectChange("persona", value)
-                      }
+                    <NativeSelect
                       value={formData.persona}
+                      onValueChange={(value) => handleSelectChange("persona", value)}
+                      options={filteredPersonas.map((p) => ({ value: p.id, label: p.name }))}
+                      placeholder={
+                        !formData.brand
+                          ? "Primeiro, escolha a marca"
+                          : "Adicionar persona"
+                      }
                       disabled={!formData.brand || filteredPersonas.length === 0}
-                    >
-                      <SelectTrigger id="select-persona" className="h-11 rounded-xl border-2 border-border/50 bg-background/50 text-sm hover:border-primary/50 transition-all">
-                        <SelectValue
-                          placeholder={
-                            !formData.brand
-                              ? "Primeiro, escolha a marca"
-                              : "Adicionar persona"
-                          }
-                        />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl border-border/20">
-                        {filteredPersonas.map((p) => (
-                          <SelectItem
-                            key={p.id}
-                            value={p.id}
-                            className="rounded-lg"
-                          >
-                            {p.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50 text-sm hover:border-primary/50 transition-all"
+                    />
                   )}
                 </div>
 
@@ -994,38 +962,22 @@ ${formData.description}
                   >
                     Plataforma <span className="text-destructive">*</span>
                   </Label>
-                  <Select
-                    onValueChange={(value) =>
-                      handleSelectChange("platform", value)
-                    }
+                  <NativeSelect
                     value={formData.platform}
-                  >
-                    <SelectTrigger id="platform-selector" className={`h-11 rounded-xl border-2 bg-background/50 text-sm hover:border-primary/50 transition-all ${
+                    onValueChange={(value) => handleSelectChange("platform", value)}
+                    options={[
+                      { value: "Instagram", label: "Instagram" },
+                      { value: "Facebook", label: "Facebook" },
+                      { value: "TikTok", label: "TikTok" },
+                      { value: "Twitter/X", label: "Twitter (X)" },
+                      { value: "LinkedIn", label: "LinkedIn" },
+                      { value: "Comunidades", label: "Comunidades" },
+                    ]}
+                    placeholder="Onde será postado?"
+                    triggerClassName={`h-11 rounded-xl border-2 bg-background/50 text-sm hover:border-primary/50 transition-all ${
                       missingFields.includes('platform') ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/50'
-                    }`}>
-                      <SelectValue placeholder="Onde será postado?" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl border-border/20">
-                      <SelectItem value="Instagram" className="rounded-lg">
-                        Instagram
-                      </SelectItem>
-                      <SelectItem value="Facebook" className="rounded-lg">
-                        Facebook
-                      </SelectItem>
-                      <SelectItem value="TikTok" className="rounded-lg">
-                        TikTok
-                      </SelectItem>
-                      <SelectItem value="Twitter/X" className="rounded-lg">
-                        Twitter (X)
-                      </SelectItem>
-                      <SelectItem value="LinkedIn" className="rounded-lg">
-                        LinkedIn
-                      </SelectItem>
-                      <SelectItem value="Comunidades" className="rounded-lg">
-                        Comunidades
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+                    }`}
+                  />
                 </div>
 
                 <div className="space-y-3">
