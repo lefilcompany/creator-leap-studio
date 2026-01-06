@@ -8,10 +8,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Save, Info } from 'lucide-react';
+import { Save, Info, ChevronDown } from 'lucide-react';
 import type { Persona } from '@/types/persona';
 import type { BrandSummary } from '@/types/brand';
 import { useDraftForm } from '@/hooks/useDraftForm';
@@ -154,36 +154,29 @@ export default function PersonaDialog({ isOpen, onOpenChange, onSave, personaToE
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Marca *</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange} 
-                      value={field.value}
-                      disabled={brands.length === 0}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue 
-                            placeholder={
-                              brands.length === 0 
-                                ? "Nenhuma marca cadastrada" 
-                                : "Selecione uma marca"
-                            } 
-                          />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {brands.length === 0 ? (
-                          <div className="p-3 text-sm text-muted-foreground text-center">
-                            Você precisa cadastrar uma marca primeiro
-                          </div>
-                        ) : (
-                          brands.map((brand) => (
-                            <SelectItem key={brand.id} value={brand.id}>
+                    <FormControl>
+                      <div className="relative">
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                        <select
+                          value={field.value}
+                          onChange={(e) => field.onChange(e.target.value)}
+                          disabled={brands.length === 0}
+                          className="w-full h-10 text-sm px-3 pr-10 rounded-md border border-input bg-background text-foreground appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                          data-lpignore="true"
+                          data-1p-ignore="true"
+                          autoComplete="off"
+                        >
+                          <option value="" disabled>
+                            {brands.length === 0 ? "Nenhuma marca cadastrada" : "Selecione uma marca"}
+                          </option>
+                          {brands.map((brand) => (
+                            <option key={brand.id} value={brand.id}>
                               {brand.name}
-                            </SelectItem>
-                          ))
-                        )}
-                      </SelectContent>
-                    </Select>
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </FormControl>
                     <FormMessage />
                     {brands.length === 0 && (
                       <p className="text-xs text-amber-600 dark:text-amber-500 flex items-start gap-1.5 mt-1">
@@ -215,19 +208,25 @@ export default function PersonaDialog({ isOpen, onOpenChange, onSave, personaToE
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Gênero *</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o gênero" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="Feminino">Feminino</SelectItem>
-                        <SelectItem value="Masculino">Masculino</SelectItem>
-                        <SelectItem value="Não-binário">Não-binário</SelectItem>
-                        <SelectItem value="Prefere não informar">Prefere não informar</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <div className="relative">
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                        <select
+                          value={field.value}
+                          onChange={(e) => field.onChange(e.target.value)}
+                          className="w-full h-10 text-sm px-3 pr-10 rounded-md border border-input bg-background text-foreground appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                          data-lpignore="true"
+                          data-1p-ignore="true"
+                          autoComplete="off"
+                        >
+                          <option value="" disabled>Selecione o gênero</option>
+                          <option value="Feminino">Feminino</option>
+                          <option value="Masculino">Masculino</option>
+                          <option value="Não-binário">Não-binário</option>
+                          <option value="Prefere não informar">Prefere não informar</option>
+                        </select>
+                      </div>
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -358,21 +357,27 @@ export default function PersonaDialog({ isOpen, onOpenChange, onSave, personaToE
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Tom de Voz Preferido *</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o tom preferido" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="Profissional">Profissional</SelectItem>
-                        <SelectItem value="Casual">Casual</SelectItem>
-                        <SelectItem value="Amigável">Amigável</SelectItem>
-                        <SelectItem value="Inspirador">Inspirador</SelectItem>
-                        <SelectItem value="Direto">Direto</SelectItem>
-                        <SelectItem value="Educativo">Educativo</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <div className="relative">
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                        <select
+                          value={field.value}
+                          onChange={(e) => field.onChange(e.target.value)}
+                          className="w-full h-10 text-sm px-3 pr-10 rounded-md border border-input bg-background text-foreground appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                          data-lpignore="true"
+                          data-1p-ignore="true"
+                          autoComplete="off"
+                        >
+                          <option value="" disabled>Selecione o tom preferido</option>
+                          <option value="Profissional">Profissional</option>
+                          <option value="Casual">Casual</option>
+                          <option value="Amigável">Amigável</option>
+                          <option value="Inspirador">Inspirador</option>
+                          <option value="Direto">Direto</option>
+                          <option value="Educativo">Educativo</option>
+                        </select>
+                      </div>
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -384,20 +389,26 @@ export default function PersonaDialog({ isOpen, onOpenChange, onSave, personaToE
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Estágio da Jornada de Compra *</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o estágio" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="Consciência">Consciência</SelectItem>
-                        <SelectItem value="Consideração">Consideração</SelectItem>
-                        <SelectItem value="Decisão">Decisão</SelectItem>
-                        <SelectItem value="Pós-compra">Pós-compra</SelectItem>
-                        <SelectItem value="Advocacia">Advocacia</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <div className="relative">
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                        <select
+                          value={field.value}
+                          onChange={(e) => field.onChange(e.target.value)}
+                          className="w-full h-10 text-sm px-3 pr-10 rounded-md border border-input bg-background text-foreground appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                          data-lpignore="true"
+                          data-1p-ignore="true"
+                          autoComplete="off"
+                        >
+                          <option value="" disabled>Selecione o estágio</option>
+                          <option value="Consciência">Consciência</option>
+                          <option value="Consideração">Consideração</option>
+                          <option value="Decisão">Decisão</option>
+                          <option value="Pós-compra">Pós-compra</option>
+                          <option value="Advocacia">Advocacia</option>
+                        </select>
+                      </div>
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
