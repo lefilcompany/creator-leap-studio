@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ChevronDown } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -434,16 +434,24 @@ export default function BrandDialog({ isOpen, onOpenChange, onSave, brandToEdit 
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="responsible">{t.brands.responsible} <span className="text-red-500">*</span></Label>
-                <Select onValueChange={(value) => setFormData(prev => ({ ...prev, responsible: value }))} value={formData.responsible}>
-                  <SelectTrigger className="h-9">
-                    <SelectValue placeholder={t.brands.selectMember} />
-                  </SelectTrigger>
-                  <SelectContent>
+                {/* Select nativo para evitar conflitos com extensões de navegador */}
+                <div className="relative">
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                  <select
+                    id="responsible"
+                    value={formData.responsible}
+                    onChange={(e) => setFormData(prev => ({ ...prev, responsible: e.target.value }))}
+                    className="w-full h-9 text-sm px-3 pr-10 rounded-md border border-input bg-background text-foreground appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                    data-lpignore="true"
+                    data-1p-ignore="true"
+                    autoComplete="off"
+                  >
+                    <option value="" disabled>{t.brands.selectMember}</option>
                     {members.map(m => (
-                      <SelectItem key={m.email} value={m.email}>{m.name}</SelectItem>
+                      <option key={m.email} value={m.email}>{m.name}</option>
                     ))}
-                  </SelectContent>
-                </Select>
+                  </select>
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="segment">{t.brands.segment} <span className="text-red-500">*</span></Label>
