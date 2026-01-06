@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useEffect, type ChangeEvent } from 'react';
-import { X, Save, Info } from 'lucide-react';
+import { X, Save, Info, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 import {
   Dialog,
   DialogContent,
@@ -263,32 +263,25 @@ export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit,
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="brandId">Marca <span className="text-red-500">*</span></Label>
-                <Select 
-                  onValueChange={handleSelectChange} 
-                  value={formData.brandId}
-                  disabled={brands.length === 0}
-                >
-                  <SelectTrigger>
-                    <SelectValue 
-                      placeholder={
-                        brands.length === 0 
-                          ? "Nenhuma marca cadastrada" 
-                          : "Selecione a marca para criar o tema"
-                      } 
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {brands.length === 0 ? (
-                      <div className="p-3 text-sm text-muted-foreground text-center">
-                        Você precisa cadastrar uma marca primeiro
-                      </div>
-                    ) : (
-                      brands.map(brand => (
-                        <SelectItem key={brand.id} value={brand.id}>{brand.name}</SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
+                <div className="relative">
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                  <select
+                    value={formData.brandId}
+                    onChange={(e) => handleSelectChange(e.target.value)}
+                    disabled={brands.length === 0}
+                    className="w-full h-10 text-sm px-3 pr-10 rounded-md border border-input bg-background text-foreground appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    data-lpignore="true"
+                    data-1p-ignore="true"
+                    autoComplete="off"
+                  >
+                    <option value="" disabled>
+                      {brands.length === 0 ? "Nenhuma marca cadastrada" : "Selecione a marca para criar o tema"}
+                    </option>
+                    {brands.map(brand => (
+                      <option key={brand.id} value={brand.id}>{brand.name}</option>
+                    ))}
+                  </select>
+                </div>
                 {brands.length === 0 && (
                   <p className="text-xs text-amber-600 dark:text-amber-500 flex items-start gap-1.5 mt-1">
                     <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
@@ -298,14 +291,24 @@ export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit,
               </div>
               <div className="space-y-2">
                 <Label htmlFor="toneOfVoice">Tom de Voz <span className="text-red-500">*</span> (escolha um ou mais)</Label>
-                <Select onValueChange={handleToneSelect} value="">
-                  <SelectTrigger><SelectValue placeholder="Escolha como sua marca deve se comunicar"/></SelectTrigger>
-                  <SelectContent>
+                <div className="relative">
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                  <select
+                    value=""
+                    onChange={(e) => handleToneSelect(e.target.value)}
+                    className="w-full h-10 text-sm px-3 pr-10 rounded-md border border-input bg-background text-foreground appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                    data-lpignore="true"
+                    data-1p-ignore="true"
+                    autoComplete="off"
+                  >
+                    <option value="" disabled>Escolha como sua marca deve se comunicar</option>
                     {toneOptions.map(option => (
-                      <SelectItem key={option} value={option} disabled={toneList.includes(option)}>{option.charAt(0).toUpperCase() + option.slice(1)}</SelectItem>
+                      <option key={option} value={option} disabled={toneList.includes(option)}>
+                        {option.charAt(0).toUpperCase() + option.slice(1)}
+                      </option>
                     ))}
-                  </SelectContent>
-                </Select>
+                  </select>
+                </div>
 
                 <div className="flex flex-wrap gap-2 min-h-[50px] p-3 rounded-xl border-2 border-dashed border-border/50 bg-muted/20 mt-3">
                   {toneList.length === 0 ? (
