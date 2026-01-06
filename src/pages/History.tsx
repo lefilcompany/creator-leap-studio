@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { Drawer, DrawerContent, DrawerTitle } from '@/components/ui/drawer';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { NativeSelect } from '@/components/ui/native-select';
 import { History as HistoryIcon } from 'lucide-react';
 import ActionList from '@/components/historico/ActionList';
 import ActionDetails from '@/components/historico/ActionDetails';
@@ -214,6 +214,18 @@ export default function History() {
     setCurrentPage(1);
   }, [brandFilter, typeFilter]);
 
+  // Prepare brand options for native select
+  const brandOptions = [
+    { value: 'all', label: 'Todas as Marcas' },
+    ...brands.map(brand => ({ value: brand.id, label: brand.name }))
+  ];
+
+  // Prepare action type options for native select
+  const typeOptions = [
+    { value: 'all', label: 'Todas as Ações' },
+    ...Object.values(ACTION_TYPE_DISPLAY).map(displayType => ({ value: displayType, label: displayType }))
+  ];
+
   return (
     <div className="h-full flex flex-col gap-6 overflow-hidden">
       <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5 flex-shrink-0">
@@ -234,35 +246,21 @@ export default function History() {
             </div>
             <div id="history-filters" className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
               {/* Filtro de Marca */}
-              <Select onValueChange={setBrandFilter} value={brandFilter}>
-                <SelectTrigger className="w-full sm:w-[180px] rounded-lg">
-                  <SelectValue placeholder="Filtrar por marca" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas as Marcas</SelectItem>
-                  {brands.length === 0 ? (
-                    <div className="p-2 text-xs text-muted-foreground text-center italic">
-                      Nenhuma marca cadastrada
-                    </div>
-                  ) : (
-                    brands.map(brand => (
-                      <SelectItem key={brand.id} value={brand.id}>{brand.name}</SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
+              <NativeSelect
+                value={brandFilter}
+                onValueChange={setBrandFilter}
+                options={brandOptions}
+                placeholder="Filtrar por marca"
+                triggerClassName="w-full sm:w-[180px] h-10 rounded-lg"
+              />
               {/* Filtro de Ação */}
-              <Select onValueChange={setTypeFilter} value={typeFilter}>
-                <SelectTrigger className="w-full sm:w-[180px] rounded-lg">
-                  <SelectValue placeholder="Filtrar por ação" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas as Ações</SelectItem>
-                  {Object.values(ACTION_TYPE_DISPLAY).map(displayType => (
-                    <SelectItem key={displayType} value={displayType}>{displayType}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <NativeSelect
+                value={typeFilter}
+                onValueChange={setTypeFilter}
+                options={typeOptions}
+                placeholder="Filtrar por ação"
+                triggerClassName="w-full sm:w-[180px] h-10 rounded-lg"
+              />
             </div>
           </div>
         </CardHeader>

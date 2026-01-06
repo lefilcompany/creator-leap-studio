@@ -1,12 +1,6 @@
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { NativeSelect } from "@/components/ui/native-select";
 
 interface AdminFiltersProps {
   searchQuery: string;
@@ -27,6 +21,19 @@ export const AdminFilters = ({
   onStatusFilterChange,
   plans,
 }: AdminFiltersProps) => {
+  const planOptions = [
+    { value: "all", label: "Todos os planos" },
+    ...plans.map((plan) => ({ value: plan.id, label: plan.name })),
+  ];
+
+  const statusOptions = [
+    { value: "all", label: "Todos os status" },
+    { value: "active", label: "Ativo" },
+    { value: "trialing", label: "Trial" },
+    { value: "expired", label: "Expirado" },
+    { value: "canceled", label: "Cancelado" },
+  ];
+
   return (
     <div className="flex flex-col sm:flex-row gap-4 mb-6">
       <div className="relative flex-1">
@@ -38,31 +45,20 @@ export const AdminFilters = ({
           className="pl-10"
         />
       </div>
-      <Select value={planFilter} onValueChange={onPlanFilterChange}>
-        <SelectTrigger className="w-full sm:w-[200px]">
-          <SelectValue placeholder="Filtrar por plano" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">Todos os planos</SelectItem>
-          {plans.map((plan) => (
-            <SelectItem key={plan.id} value={plan.id}>
-              {plan.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <Select value={statusFilter} onValueChange={onStatusFilterChange}>
-        <SelectTrigger className="w-full sm:w-[200px]">
-          <SelectValue placeholder="Filtrar por status" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">Todos os status</SelectItem>
-          <SelectItem value="active">Ativo</SelectItem>
-          <SelectItem value="trialing">Trial</SelectItem>
-          <SelectItem value="expired">Expirado</SelectItem>
-          <SelectItem value="canceled">Cancelado</SelectItem>
-        </SelectContent>
-      </Select>
+      <NativeSelect
+        value={planFilter}
+        onValueChange={onPlanFilterChange}
+        options={planOptions}
+        placeholder="Filtrar por plano"
+        triggerClassName="w-full sm:w-[200px] h-10"
+      />
+      <NativeSelect
+        value={statusFilter}
+        onValueChange={onStatusFilterChange}
+        options={statusOptions}
+        placeholder="Filtrar por status"
+        triggerClassName="w-full sm:w-[200px] h-10"
+      />
     </div>
   );
 };

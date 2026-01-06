@@ -16,7 +16,7 @@ import { useOAuthCallback } from "@/hooks/useOAuthCallback";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslation } from "@/hooks/useTranslation";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+// NativeSelect used for dropdowns to avoid extension conflicts
 import { useAuth } from "@/hooks/useAuth";
 import { motion } from "framer-motion";
 import decorativeElement from "@/assets/decorative-element.png";

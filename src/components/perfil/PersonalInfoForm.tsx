@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { NativeSelect } from '@/components/ui/native-select';
 import { User, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -131,6 +131,17 @@ export default function PersonalInfoForm({ initialData }: PersonalInfoFormProps)
     }
   };
 
+  // Prepare state options
+  const stateOptions = states.map(state => ({
+    value: state.sigla,
+    label: state.nome
+  }));
+
+  // Prepare city options
+  const cityOptions = cities.map(city => ({
+    value: city.nome,
+    label: city.nome
+  }));
 
   return (
     <>
@@ -220,30 +231,17 @@ export default function PersonalInfoForm({ initialData }: PersonalInfoFormProps)
                 Estado
               </Label>
               <div className="relative group/select">
-                <Select 
-                  value={formData.state || ''} 
+                <NativeSelect
+                  value={formData.state || ''}
                   onValueChange={(value) => {
                     handleChange('state', value);
                     handleChange('city', ''); // Reset city when state changes
-                  }} 
+                  }}
                   disabled={loadingStates}
-                >
-                  <SelectTrigger className="h-10 sm:h-11 md:h-12 border-2 border-secondary/20 focus:border-secondary/50 hover:border-secondary/40 hover:shadow-lg hover:shadow-secondary/20 rounded-xl bg-background/80 backdrop-blur-sm text-sm sm:text-base shadow-sm focus:shadow-md transition-all duration-300 group-hover/select:scale-[1.02] group-hover/select:bg-gradient-to-r group-hover/select:from-background group-hover/select:to-secondary/5">
-                    {loadingStates ? 'Carregando...' : <SelectValue placeholder="Selecione um estado" />}
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl border-2 border-secondary/20 shadow-xl bg-background z-50 max-h-[300px] animate-in fade-in-0 zoom-in-95">
-                    {states.map(state => (
-                      <SelectItem 
-                        key={state.id} 
-                        value={state.sigla} 
-                        className="text-xs sm:text-sm md:text-base rounded-lg hover:bg-secondary/10 focus:bg-secondary/20 transition-all duration-200 cursor-pointer py-3 hover:scale-[1.02] hover:shadow-sm"
-                      >
-                        {state.nome}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-secondary/10 to-accent/10 opacity-0 group-hover/select:opacity-100 transition-opacity duration-300 pointer-events-none -z-10 blur-md" />
+                  options={stateOptions}
+                  placeholder={loadingStates ? 'Carregando...' : 'Selecione um estado'}
+                  triggerClassName="h-10 sm:h-11 md:h-12 border-2 border-secondary/20 focus:border-secondary/50 hover:border-secondary/40 hover:shadow-lg hover:shadow-secondary/20 rounded-xl bg-background/80 backdrop-blur-sm text-sm sm:text-base shadow-sm focus:shadow-md transition-all duration-300"
+                />
               </div>
             </div>
 
@@ -253,27 +251,14 @@ export default function PersonalInfoForm({ initialData }: PersonalInfoFormProps)
                 Cidade
               </Label>
               <div className="relative group/select">
-                <Select 
-                  value={formData.city || ''} 
-                  onValueChange={(value) => handleChange('city', value)} 
+                <NativeSelect
+                  value={formData.city || ''}
+                  onValueChange={(value) => handleChange('city', value)}
                   disabled={!formData.state || loadingCities}
-                >
-                  <SelectTrigger className="h-10 sm:h-11 md:h-12 border-2 border-secondary/20 focus:border-secondary/50 hover:border-secondary/40 hover:shadow-lg hover:shadow-secondary/20 rounded-xl bg-background/80 backdrop-blur-sm text-sm sm:text-base shadow-sm focus:shadow-md transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group-hover/select:scale-[1.02] group-hover/select:bg-gradient-to-r group-hover/select:from-background group-hover/select:to-secondary/5 disabled:hover:scale-100 disabled:hover:shadow-sm">
-                    {loadingCities ? 'Carregando...' : <SelectValue placeholder="Selecione uma cidade" />}
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl border-2 border-secondary/20 shadow-xl bg-background z-50 max-h-[300px] animate-in fade-in-0 zoom-in-95">
-                    {cities.map(city => (
-                      <SelectItem 
-                        key={city.id} 
-                        value={city.nome} 
-                        className="text-xs sm:text-sm md:text-base rounded-lg hover:bg-secondary/10 focus:bg-secondary/20 transition-all duration-200 cursor-pointer py-3 hover:scale-[1.02] hover:shadow-sm"
-                      >
-                        {city.nome}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-secondary/10 to-primary/10 opacity-0 group-hover/select:opacity-100 transition-opacity duration-300 pointer-events-none -z-10 blur-md" />
+                  options={cityOptions}
+                  placeholder={loadingCities ? 'Carregando...' : 'Selecione uma cidade'}
+                  triggerClassName="h-10 sm:h-11 md:h-12 border-2 border-secondary/20 focus:border-secondary/50 hover:border-secondary/40 hover:shadow-lg hover:shadow-secondary/20 rounded-xl bg-background/80 backdrop-blur-sm text-sm sm:text-base shadow-sm focus:shadow-md transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                />
               </div>
             </div>
           </div>
