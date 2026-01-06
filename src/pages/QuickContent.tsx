@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { NativeSelect } from "@/components/ui/native-select";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
@@ -346,21 +347,17 @@ export default function QuickContent() {
               <Label htmlFor="brand" className="text-sm font-semibold text-foreground">
                 Marca <span className="text-muted-foreground font-normal">(opcional)</span>
               </Label>
-              <Select value={formData.brandId} onValueChange={value => setFormData({
-              ...formData,
-              brandId: value
-            })} disabled={brands.length === 0}>
-                <SelectTrigger id="quick-brand-select" className="h-11 rounded-xl border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors">
-                  <SelectValue placeholder={brands.length === 0 ? "Nenhuma marca cadastrada" : "Nenhuma marca selecionada"} />
-                </SelectTrigger>
-                <SelectContent className="rounded-xl border-border/20">
-                  {brands.length === 0 ? <div className="p-3 text-sm text-muted-foreground text-center">
-                      Nenhuma marca cadastrada ainda
-                    </div> : brands.map(brand => <SelectItem key={brand.id} value={brand.id} className="rounded-lg">
-                        {brand.name}
-                      </SelectItem>)}
-                </SelectContent>
-              </Select>
+              <NativeSelect
+                value={formData.brandId}
+                onValueChange={value => setFormData({
+                  ...formData,
+                  brandId: value
+                })}
+                options={brands.map(brand => ({ value: brand.id, label: brand.name }))}
+                placeholder={brands.length === 0 ? "Nenhuma marca cadastrada" : "Nenhuma marca selecionada"}
+                disabled={brands.length === 0}
+                triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
+              />
               <p className="text-xs text-muted-foreground flex items-start gap-1.5">
                 <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
                 <span>
@@ -374,37 +371,38 @@ export default function QuickContent() {
               <Label htmlFor="platform" className="text-sm font-semibold text-foreground">
                 Plataforma <span className="text-muted-foreground font-normal">(opcional)</span>
               </Label>
-              <Select value={formData.platform} onValueChange={value => {
-              setFormData({
-                ...formData,
-                platform: value
-              });
+              <NativeSelect
+                value={formData.platform}
+                onValueChange={value => {
+                  setFormData({
+                    ...formData,
+                    platform: value
+                  });
 
-              // Auto-sugerir aspect ratio baseado na plataforma
-              const imageSpec = getPlatformImageSpec(value, "feed", "organic");
-              if (imageSpec) {
-                setFormData(prev => ({
-                  ...prev,
-                  aspectRatio: imageSpec.aspectRatio
-                }));
-                toast.info(`Proporção ajustada para ${value}`, {
-                  description: `${imageSpec.aspectRatio} (${imageSpec.width}x${imageSpec.height}px)`,
-                  duration: 3000
-                });
-              }
-            }}>
-                <SelectTrigger id="quick-platform-select" className="h-11 rounded-xl border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors">
-                  <SelectValue placeholder="Nenhuma plataforma selecionada" />
-                </SelectTrigger>
-                <SelectContent className="rounded-xl border-border/20">
-                  <SelectItem value="Instagram" className="rounded-lg">Instagram</SelectItem>
-                  <SelectItem value="Facebook" className="rounded-lg">Facebook</SelectItem>
-                  <SelectItem value="TikTok" className="rounded-lg">TikTok</SelectItem>
-                  <SelectItem value="Twitter/X" className="rounded-lg">Twitter/X</SelectItem>
-                  <SelectItem value="LinkedIn" className="rounded-lg">LinkedIn</SelectItem>
-                  <SelectItem value="Comunidades" className="rounded-lg">Comunidades</SelectItem>
-                </SelectContent>
-              </Select>
+                  // Auto-sugerir aspect ratio baseado na plataforma
+                  const imageSpec = getPlatformImageSpec(value, "feed", "organic");
+                  if (imageSpec) {
+                    setFormData(prev => ({
+                      ...prev,
+                      aspectRatio: imageSpec.aspectRatio
+                    }));
+                    toast.info(`Proporção ajustada para ${value}`, {
+                      description: `${imageSpec.aspectRatio} (${imageSpec.width}x${imageSpec.height}px)`,
+                      duration: 3000
+                    });
+                  }
+                }}
+                options={[
+                  { value: "Instagram", label: "Instagram" },
+                  { value: "Facebook", label: "Facebook" },
+                  { value: "TikTok", label: "TikTok" },
+                  { value: "Twitter/X", label: "Twitter/X" },
+                  { value: "LinkedIn", label: "LinkedIn" },
+                  { value: "Comunidades", label: "Comunidades" },
+                ]}
+                placeholder="Nenhuma plataforma selecionada"
+                triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
+              />
               <p className="text-xs text-muted-foreground flex items-start gap-1.5">
                 <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
                 <span>Selecionar plataforma ajusta automaticamente a proporção ideal</span>

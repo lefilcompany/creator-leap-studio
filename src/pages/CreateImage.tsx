@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { NativeSelect } from "@/components/ui/native-select";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -878,36 +879,16 @@ ${formData.description}
                   {isLoadingData ? (
                     <Skeleton className="h-11 w-full rounded-xl" />
                   ) : (
-                    <Select
-                      onValueChange={(value) =>
-                        handleSelectChange("brand", value)
-                      }
+                    <NativeSelect
                       value={formData.brand}
+                      onValueChange={(value) => handleSelectChange("brand", value)}
+                      options={brands.map((b) => ({ value: b.id, label: b.name }))}
+                      placeholder={brands.length === 0 ? "Nenhuma marca cadastrada" : "Selecione a marca"}
                       disabled={brands.length === 0}
-                    >
-                      <SelectTrigger id="select-brand" className={`h-11 rounded-xl border-2 bg-background/50 text-sm hover:border-primary/50 transition-all ${
+                      triggerClassName={`h-11 rounded-xl border-2 bg-background/50 text-sm hover:border-primary/50 transition-all ${
                         missingFields.includes('brand') ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/50'
-                      }`}>
-                        <SelectValue 
-                          placeholder={
-                            brands.length === 0
-                              ? "Nenhuma marca cadastrada"
-                              : "Selecione a marca"
-                          } 
-                        />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl border-border/20">
-                        {brands.map((b) => (
-                          <SelectItem
-                            key={b.id}
-                            value={b.id}
-                            className="rounded-lg"
-                          >
-                            {b.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      }`}
+                    />
                   )}
                   {!isLoadingData && brands.length === 0 && (
                     <p className="text-xs text-muted-foreground">

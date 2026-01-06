@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { NativeSelect } from "@/components/ui/native-select";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -310,10 +311,13 @@ export default function CreateVideo() {
               <Label className="text-sm font-semibold text-foreground">Marca <span className="text-muted-foreground font-normal">(opcional)</span></Label>
               {isLoadingData ? <Skeleton className="h-11 w-full rounded-xl" /> : (
                 <>
-                  <Select onValueChange={(value) => setFormData(prev => ({ ...prev, brand: value, theme: "", persona: "" }))} value={formData.brand}>
-                    <SelectTrigger className="h-11 rounded-xl border-purple-200 dark:border-border hover:border-purple-300 dark:hover:border-purple-500/50 transition-colors"><SelectValue placeholder="Nenhuma marca selecionada" /></SelectTrigger>
-                    <SelectContent>{brands.map((b) => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}</SelectContent>
-                  </Select>
+                  <NativeSelect
+                    value={formData.brand}
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, brand: value, theme: "", persona: "" }))}
+                    options={brands.map((b) => ({ value: b.id, label: b.name }))}
+                    placeholder="Nenhuma marca selecionada"
+                    triggerClassName="h-11 rounded-xl border-purple-200 dark:border-border hover:border-purple-300 dark:hover:border-purple-500/50 transition-colors"
+                  />
                   {formData.brand && (
                     <div className="flex items-start gap-2 text-xs text-muted-foreground bg-muted/50 dark:bg-muted/30 rounded-lg p-3">
                       <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
@@ -328,10 +332,13 @@ export default function CreateVideo() {
             {formData.brand && filteredThemes.length > 0 && (
               <div className="space-y-2.5">
                 <Label className="text-sm font-semibold text-foreground">Tema Estratégico <span className="text-muted-foreground font-normal">(opcional)</span></Label>
-                <Select onValueChange={(value) => setFormData(prev => ({ ...prev, theme: value }))} value={formData.theme}>
-                  <SelectTrigger className="h-11 rounded-xl border-purple-200 dark:border-border hover:border-purple-300 dark:hover:border-purple-500/50 transition-colors"><SelectValue placeholder="Nenhum tema selecionado" /></SelectTrigger>
-                  <SelectContent>{filteredThemes.map((t) => <SelectItem key={t.id} value={t.id}>{t.title}</SelectItem>)}</SelectContent>
-                </Select>
+                <NativeSelect
+                  value={formData.theme}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, theme: value }))}
+                  options={filteredThemes.map((t) => ({ value: t.id, label: t.title }))}
+                  placeholder="Nenhum tema selecionado"
+                  triggerClassName="h-11 rounded-xl border-purple-200 dark:border-border hover:border-purple-300 dark:hover:border-purple-500/50 transition-colors"
+                />
               </div>
             )}
 
@@ -339,26 +346,32 @@ export default function CreateVideo() {
             {formData.brand && filteredPersonas.length > 0 && (
               <div className="space-y-2.5">
                 <Label className="text-sm font-semibold text-foreground">Persona <span className="text-muted-foreground font-normal">(opcional)</span></Label>
-                <Select onValueChange={(value) => setFormData(prev => ({ ...prev, persona: value }))} value={formData.persona}>
-                  <SelectTrigger className="h-11 rounded-xl border-purple-200 dark:border-border hover:border-purple-300 dark:hover:border-purple-500/50 transition-colors"><SelectValue placeholder="Nenhuma persona selecionada" /></SelectTrigger>
-                  <SelectContent>{filteredPersonas.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}</SelectContent>
-                </Select>
+                <NativeSelect
+                  value={formData.persona}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, persona: value }))}
+                  options={filteredPersonas.map((p) => ({ value: p.id, label: p.name }))}
+                  placeholder="Nenhuma persona selecionada"
+                  triggerClassName="h-11 rounded-xl border-purple-200 dark:border-border hover:border-purple-300 dark:hover:border-purple-500/50 transition-colors"
+                />
               </div>
             )}
 
             {/* Plataforma */}
             <div className="space-y-2.5">
               <Label className="text-sm font-semibold text-foreground">Plataforma <span className="text-muted-foreground font-normal">(opcional)</span></Label>
-              <Select onValueChange={(value) => setFormData(prev => ({ ...prev, platform: value }))} value={formData.platform}>
-                <SelectTrigger className="h-11 rounded-xl border-purple-200 dark:border-border hover:border-purple-300 dark:hover:border-purple-500/50 transition-colors"><SelectValue placeholder="Nenhuma plataforma selecionada" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Instagram">Instagram</SelectItem>
-                  <SelectItem value="Facebook">Facebook</SelectItem>
-                  <SelectItem value="TikTok">TikTok</SelectItem>
-                  <SelectItem value="Twitter/X">Twitter (X)</SelectItem>
-                  <SelectItem value="LinkedIn">LinkedIn</SelectItem>
-                </SelectContent>
-              </Select>
+              <NativeSelect
+                value={formData.platform}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, platform: value }))}
+                options={[
+                  { value: "Instagram", label: "Instagram" },
+                  { value: "Facebook", label: "Facebook" },
+                  { value: "TikTok", label: "TikTok" },
+                  { value: "Twitter/X", label: "Twitter (X)" },
+                  { value: "LinkedIn", label: "LinkedIn" },
+                ]}
+                placeholder="Nenhuma plataforma selecionada"
+                triggerClassName="h-11 rounded-xl border-purple-200 dark:border-border hover:border-purple-300 dark:hover:border-purple-500/50 transition-colors"
+              />
               <div className="flex items-start gap-2 text-xs text-muted-foreground bg-muted/50 dark:bg-muted/30 rounded-lg p-3">
                 <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
                 <p>Selecionar plataforma ajusta automaticamente a proporção ideal</p>
@@ -445,10 +458,13 @@ export default function CreateVideo() {
             {/* Tom de Voz */}
             <div className="space-y-2.5">
               <Label className="text-sm font-semibold text-foreground">Tom de Voz <span className="text-destructive">*</span></Label>
-              <Select onValueChange={(tone) => { if (!formData.tone.includes(tone) && formData.tone.length < 4) setFormData(prev => ({ ...prev, tone: [...prev.tone, tone] })); }} value="">
-                <SelectTrigger className="h-11 rounded-xl border-purple-200 dark:border-border hover:border-purple-300 dark:hover:border-purple-500/50 transition-colors"><SelectValue placeholder="Selecione um tom" /></SelectTrigger>
-                <SelectContent>{toneOptions.map((t) => <SelectItem key={t} value={t} className="capitalize">{t}</SelectItem>)}</SelectContent>
-              </Select>
+              <NativeSelect
+                value=""
+                onValueChange={(tone) => { if (!formData.tone.includes(tone) && formData.tone.length < 4) setFormData(prev => ({ ...prev, tone: [...prev.tone, tone] })); }}
+                options={toneOptions.map((t) => ({ value: t, label: t.charAt(0).toUpperCase() + t.slice(1) }))}
+                placeholder="Selecione um tom"
+                triggerClassName="h-11 rounded-xl border-purple-200 dark:border-border hover:border-purple-300 dark:hover:border-purple-500/50 transition-colors"
+              />
               {formData.tone.length > 0 && (
                 <div className="flex flex-wrap gap-2 p-3 bg-purple-100/50 dark:bg-purple-500/10 rounded-xl border border-purple-200 dark:border-purple-500/20">
                   {formData.tone.map((t) => (
