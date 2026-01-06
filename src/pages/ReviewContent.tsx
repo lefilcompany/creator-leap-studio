@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { NativeSelect } from "@/components/ui/native-select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Loader2, Image as ImageIcon, FileText, Type, Sparkles, CheckCircle, Zap } from "lucide-react";
@@ -450,18 +451,13 @@ const ReviewContent = () => {
                     {isLoadingData ? (
                       <Skeleton className="h-11 w-full rounded-xl" />
                     ) : (
-                      <Select onValueChange={handleBrandChange} value={brand}>
-                        <SelectTrigger className="h-11 rounded-xl border-2 border-border/50 bg-background/50">
-                          <SelectValue placeholder="Selecione a marca" />
-                        </SelectTrigger>
-                        <SelectContent className="rounded-xl border-border/20">
-                          {brands.map((b) => (
-                            <SelectItem key={b.id} value={b.id} className="rounded-lg">
-                              {b.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <NativeSelect
+                        value={brand}
+                        onValueChange={handleBrandChange}
+                        options={brands.map((b) => ({ value: b.id, label: b.name }))}
+                        placeholder="Selecione a marca"
+                        triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50"
+                      />
                     )}
                   </div>
                   <div id="review-theme-field" className="space-y-3">
@@ -471,18 +467,14 @@ const ReviewContent = () => {
                     {isLoadingData ? (
                       <Skeleton className="h-11 w-full rounded-xl" />
                     ) : (
-                      <Select onValueChange={setTheme} value={theme} disabled={!brand || filteredThemes.length === 0}>
-                        <SelectTrigger className="h-11 rounded-xl border-2 border-border/50 bg-background/50 disabled:opacity-50">
-                          <SelectValue placeholder={!brand ? "Primeiro, escolha a marca" : "Selecione o tema"} />
-                        </SelectTrigger>
-                        <SelectContent className="rounded-xl border-border/20">
-                          {filteredThemes.map((t) => (
-                            <SelectItem key={t.id} value={t.id} className="rounded-lg">
-                              {t.title}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <NativeSelect
+                        value={theme}
+                        onValueChange={setTheme}
+                        options={filteredThemes.map((t) => ({ value: t.id, label: t.title }))}
+                        placeholder={!brand ? "Primeiro, escolha a marca" : "Selecione o tema"}
+                        disabled={!brand || filteredThemes.length === 0}
+                        triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50 disabled:opacity-50"
+                      />
                     )}
                   </div>
                 </div>

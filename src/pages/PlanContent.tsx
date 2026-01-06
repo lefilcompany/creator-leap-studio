@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { NativeSelect } from "@/components/ui/native-select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, ArrowLeft, MessageSquareQuote, Zap, Clipboard, Check, X, Loader2, Coins, Info } from "lucide-react";
@@ -345,34 +346,14 @@ const PlanContent = () => {
                     <Skeleton className="h-12 w-full rounded-2xl" />
                   ) : (
                     <>
-                      <Select 
-                        onValueChange={handleBrandChange} 
+                      <NativeSelect
                         value={formData.brand}
+                        onValueChange={handleBrandChange}
+                        options={brands.map((brand) => ({ value: brand.id, label: brand.name }))}
+                        placeholder={brands.length === 0 ? "Nenhuma marca cadastrada" : "Selecione a marca"}
                         disabled={brands.length === 0}
-                      >
-                        <SelectTrigger className="h-12 rounded-2xl border-2 border-border/50 bg-background/50 hover:border-primary/30 transition-colors">
-                          <SelectValue 
-                            placeholder={
-                              brands.length === 0 
-                                ? "Nenhuma marca cadastrada" 
-                                : "Selecione a marca"
-                            } 
-                          />
-                        </SelectTrigger>
-                        <SelectContent className="rounded-2xl border-border/20 bg-background/95 backdrop-blur-sm">
-                          {brands.length === 0 ? (
-                            <div className="p-3 text-sm text-muted-foreground text-center">
-                              Você precisa cadastrar uma marca primeiro
-                            </div>
-                          ) : (
-                            brands.map((brand) => (
-                              <SelectItem key={brand.id} value={brand.id} className="rounded-xl">
-                                {brand.name}
-                              </SelectItem>
-                            ))
-                          )}
-                        </SelectContent>
-                      </Select>
+                        triggerClassName="h-12 rounded-2xl border-2 border-border/50 bg-background/50 hover:border-primary/30 transition-colors"
+                      />
                       {brands.length === 0 && (
                         <p className="text-xs text-amber-600 dark:text-amber-500 flex items-start gap-1.5">
                           <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
@@ -390,25 +371,18 @@ const PlanContent = () => {
                   {isLoadingData ? (
                     <Skeleton className="h-12 w-full rounded-2xl" />
                   ) : (
-                    <Select onValueChange={handlePlatformChange} value={formData.platform}>
-                      <SelectTrigger className="h-12 rounded-2xl border-2 border-border/50 bg-background/50 hover:border-secondary/30 transition-colors">
-                        <SelectValue placeholder="Selecione a plataforma" />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-2xl border-border/20 bg-background/95 backdrop-blur-sm">
-                        <SelectItem value="instagram" className="rounded-xl">
-                          Instagram
-                        </SelectItem>
-                        <SelectItem value="facebook" className="rounded-xl">
-                          Facebook
-                        </SelectItem>
-                        <SelectItem value="linkedin" className="rounded-xl">
-                          LinkedIn
-                        </SelectItem>
-                        <SelectItem value="twitter" className="rounded-xl">
-                          Twitter (X)
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <NativeSelect
+                      value={formData.platform}
+                      onValueChange={handlePlatformChange}
+                      options={[
+                        { value: "instagram", label: "Instagram" },
+                        { value: "facebook", label: "Facebook" },
+                        { value: "linkedin", label: "LinkedIn" },
+                        { value: "twitter", label: "Twitter (X)" },
+                      ]}
+                      placeholder="Selecione a plataforma"
+                      triggerClassName="h-12 rounded-2xl border-2 border-border/50 bg-background/50 hover:border-secondary/30 transition-colors"
+                    />
                   )}
                 </div>
 
@@ -448,29 +422,16 @@ const PlanContent = () => {
                 {isLoadingData ? (
                   <Skeleton className="h-12 w-full rounded-2xl" />
                 ) : (
-                  <Select
-                    onValueChange={handleThemeSelect}
+                  <NativeSelect
                     value=""
+                    onValueChange={handleThemeSelect}
+                    options={filteredThemes
+                      .filter((t) => !formData.theme.includes(t.id))
+                      .map((t) => ({ value: t.id, label: t.title }))}
+                    placeholder={!formData.brand ? "Primeiro, escolha a marca" : "Adicionar tema estratégico"}
                     disabled={!formData.brand || filteredThemes.length === 0}
-                  >
-                    <SelectTrigger className="h-12 rounded-2xl border-2 border-border/50 bg-background/50 hover:border-primary/30 transition-colors disabled:opacity-50">
-                      <SelectValue
-                        placeholder={!formData.brand ? "Primeiro, escolha a marca" : "Adicionar tema estratégico"}
-                      />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-2xl border-border/20 bg-background/95 backdrop-blur-sm">
-                      {filteredThemes.map((t) => (
-                        <SelectItem
-                          key={t.id}
-                          value={t.id}
-                          disabled={formData.theme.includes(t.id)}
-                          className="rounded-xl"
-                        >
-                          {t.title}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    triggerClassName="h-12 rounded-2xl border-2 border-border/50 bg-background/50 hover:border-primary/30 transition-colors disabled:opacity-50"
+                  />
                 )}
 
                 {/* Selected Themes Display */}
