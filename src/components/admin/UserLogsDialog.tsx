@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { AlertCircle, Info, AlertTriangle, Bug, History, CreditCard, Zap } from "lucide-react";
+import { AlertCircle, Info, AlertTriangle, Bug, History, CreditCard, Zap, MousePointer, XCircle } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -51,6 +51,15 @@ interface ActionItem {
   details: any;
 }
 
+interface UserEvent {
+  id: string;
+  event_type: string;
+  event_name: string;
+  event_data: any;
+  page_url: string | null;
+  created_at: string;
+}
+
 interface UserLogsDialogProps {
   user: User | null;
   open: boolean;
@@ -61,6 +70,8 @@ export const UserLogsDialog = ({ user, open, onOpenChange }: UserLogsDialogProps
   const [logs, setLogs] = useState<SystemLog[]>([]);
   const [creditHistory, setCreditHistory] = useState<CreditHistoryItem[]>([]);
   const [actions, setActions] = useState<ActionItem[]>([]);
+  const [clicks, setClicks] = useState<UserEvent[]>([]);
+  const [errors, setErrors] = useState<UserEvent[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -75,35 +86,52 @@ export const UserLogsDialog = ({ user, open, onOpenChange }: UserLogsDialogProps
     try {
       setLoading(true);
 
-      // Fetch system logs for user
-      const { data: logsData } = await supabase
-        .from("system_logs")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(100);
+      // Fetch all data in parallel
+      const [logsResult, creditResult, actionsResult, clicksResult, errorsResult] = await Promise.all([
+        // System logs
+        supabase
+          .from("system_logs")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(100),
+        // Credit history
+        supabase
+          .from("credit_history")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(100),
+        // Actions
+        supabase
+          .from("actions")
+          .select("id, type, status, created_at, details")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(100),
+        // Clicks
+        supabase
+          .from("user_events")
+          .select("*")
+          .eq("user_id", user.id)
+          .eq("event_type", "click")
+          .order("created_at", { ascending: false })
+          .limit(200),
+        // Errors
+        supabase
+          .from("user_events")
+          .select("*")
+          .eq("user_id", user.id)
+          .eq("event_type", "error")
+          .order("created_at", { ascending: false })
+          .limit(100),
+      ]);
 
-      setLogs(logsData || []);
-
-      // Fetch credit history for user
-      const { data: creditData } = await supabase
-        .from("credit_history")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(100);
-
-      setCreditHistory(creditData || []);
-
-      // Fetch actions for user
-      const { data: actionsData } = await supabase
-        .from("actions")
-        .select("id, type, status, created_at, details")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(100);
-
-      setActions(actionsData || []);
+      setLogs(logsResult.data || []);
+      setCreditHistory(creditResult.data || []);
+      setActions(actionsResult.data || []);
+      setClicks(clicksResult.data || []);
+      setErrors(errorsResult.data || []);
     } catch (error) {
       console.error("Erro ao buscar dados do usuário:", error);
     } finally {
@@ -195,8 +223,16 @@ export const UserLogsDialog = ({ user, open, onOpenChange }: UserLogsDialogProps
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
         ) : (
-          <Tabs defaultValue="logs" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+          <Tabs defaultValue="clicks" className="w-full">
+            <TabsList className="grid w-full grid-cols-5">
+              <TabsTrigger value="clicks" className="flex items-center gap-2">
+                <MousePointer className="h-4 w-4" />
+                Cliques ({clicks.length})
+              </TabsTrigger>
+              <TabsTrigger value="errors" className="flex items-center gap-2">
+                <XCircle className="h-4 w-4" />
+                Erros ({errors.length})
+              </TabsTrigger>
               <TabsTrigger value="logs" className="flex items-center gap-2">
                 <History className="h-4 w-4" />
                 Logs ({logs.length})
@@ -210,6 +246,98 @@ export const UserLogsDialog = ({ user, open, onOpenChange }: UserLogsDialogProps
                 Ações ({actions.length})
               </TabsTrigger>
             </TabsList>
+
+            <TabsContent value="clicks" className="mt-4">
+              <ScrollArea className="h-[400px]">
+                {clicks.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <MousePointer className="h-12 w-12 text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground">Nenhum clique registrado para este usuário.</p>
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[140px]">Data/Hora</TableHead>
+                        <TableHead>Elemento</TableHead>
+                        <TableHead>Página</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {clicks.map((click) => (
+                        <TableRow key={click.id}>
+                          <TableCell className="font-mono text-xs text-muted-foreground">
+                            {format(new Date(click.created_at), "dd/MM/yy HH:mm:ss", { locale: ptBR })}
+                          </TableCell>
+                          <TableCell className="max-w-sm">
+                            <p className="text-sm font-medium truncate">{click.event_name}</p>
+                            {click.event_data && (
+                              <details className="mt-1">
+                                <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground">
+                                  Ver detalhes
+                                </summary>
+                                <pre className="mt-2 p-2 bg-muted rounded text-xs overflow-auto max-h-24">
+                                  {JSON.stringify(click.event_data, null, 2)}
+                                </pre>
+                              </details>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-muted-foreground text-sm">
+                            {click.page_url || "-"}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </ScrollArea>
+            </TabsContent>
+
+            <TabsContent value="errors" className="mt-4">
+              <ScrollArea className="h-[400px]">
+                {errors.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <XCircle className="h-12 w-12 text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground">Nenhum erro registrado para este usuário.</p>
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[140px]">Data/Hora</TableHead>
+                        <TableHead>Erro</TableHead>
+                        <TableHead>Página</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {errors.map((error) => (
+                        <TableRow key={error.id} className="bg-destructive/5">
+                          <TableCell className="font-mono text-xs text-muted-foreground">
+                            {format(new Date(error.created_at), "dd/MM/yy HH:mm:ss", { locale: ptBR })}
+                          </TableCell>
+                          <TableCell className="max-w-sm">
+                            <p className="text-sm font-medium text-destructive truncate">{error.event_name}</p>
+                            {error.event_data && (
+                              <details className="mt-1">
+                                <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground">
+                                  Ver stack trace
+                                </summary>
+                                <pre className="mt-2 p-2 bg-muted rounded text-xs overflow-auto max-h-32 whitespace-pre-wrap">
+                                  {error.event_data.stack || JSON.stringify(error.event_data, null, 2)}
+                                </pre>
+                              </details>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-muted-foreground text-sm">
+                            {error.page_url || "-"}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </ScrollArea>
+            </TabsContent>
 
             <TabsContent value="logs" className="mt-4">
               <ScrollArea className="h-[400px]">

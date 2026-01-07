@@ -6,6 +6,7 @@ import { ThemeProvider } from "next-themes";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import { OnboardingProvider } from "./components/onboarding/OnboardingProvider";
+import { EventTrackingProvider } from "./components/EventTrackingProvider";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -62,8 +63,9 @@ const App = () => (
       <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
         <LanguageProvider>
           <AuthProvider>
-            <OnboardingProvider>
-              <TooltipProvider>
+            <EventTrackingProvider>
+              <OnboardingProvider>
+                <TooltipProvider>
               <Toaster />
               <Sonner />
               <BrowserRouter>
@@ -123,6 +125,7 @@ const App = () => (
               </BrowserRouter>
               </TooltipProvider>
             </OnboardingProvider>
+          </EventTrackingProvider>
           </AuthProvider>
         </LanguageProvider>
       </ThemeProvider>
