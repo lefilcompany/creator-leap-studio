@@ -14,7 +14,8 @@ import { DateRangeFilter } from "@/components/admin/DateRangeFilter";
 import { CreditUsageOverTimeChart } from "@/components/admin/CreditUsageOverTimeChart";
 import { TeamGrowthChart } from "@/components/admin/TeamGrowthChart";
 import { ActionTypeDistributionChart } from "@/components/admin/ActionTypeDistributionChart";
-import { Users, Building2, Coins, TrendingUp } from "lucide-react";
+import { SystemLogsTable } from "@/components/admin/SystemLogsTable";
+import { Users, Building2, Coins, TrendingUp, ScrollText } from "lucide-react";
 import { toast } from "sonner";
 
 interface Team {
@@ -379,6 +380,16 @@ const Admin = () => {
         </div>
 
         <TopTeamsChart teams={teams} />
+      </div>
+
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-2xl font-bold mb-2">Logs do Sistema</h2>
+          <p className="text-muted-foreground">
+            Monitore atividades e erros da plataforma
+          </p>
+        </div>
+        <SystemLogsTable />
       </div>
 
       <Card className="border-0 shadow-xl bg-gradient-to-br from-background to-muted/10">
