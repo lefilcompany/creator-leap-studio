@@ -7,7 +7,8 @@ import {
   Building2, 
   ScrollText, 
   Shield,
-  LogOut
+  LogOut,
+  CreditCard
 } from "lucide-react";
 import { 
   Sidebar, 
@@ -91,6 +92,7 @@ export function AdminSidebar() {
 
   const navLinks = [
     { href: "/admin", icon: LayoutDashboard, label: "Dashboard" },
+    { href: "/admin/plans", icon: CreditCard, label: "Planos" },
     { href: "/admin/teams", icon: Building2, label: "Equipes" },
     { href: "/admin/users", icon: Users, label: "Usuários" },
     { href: "/admin/logs", icon: ScrollText, label: "Logs do Sistema" },

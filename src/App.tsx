@@ -46,6 +46,7 @@ import Admin from "./pages/Admin";
 import AdminTeams from "./pages/admin/AdminTeams";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminLogs from "./pages/admin/AdminLogs";
+import AdminPlans from "./pages/admin/AdminPlans";
 import { AdminRoute } from "./components/admin/AdminRoute";
 import { AdminLayout } from "./components/admin/AdminLayout";
 
@@ -114,6 +115,7 @@ const App = () => (
                       {/* Admin routes with separate layout */}
                       <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
                         <Route index element={<Admin />} />
+                        <Route path="plans" element={<AdminPlans />} />
                         <Route path="teams" element={<AdminTeams />} />
                         <Route path="users" element={<AdminUsers />} />
                         <Route path="logs" element={<AdminLogs />} />
