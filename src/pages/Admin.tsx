@@ -42,12 +42,18 @@ interface User {
   team_name: string | null;
   credits: number | null;
   plan_id: string | null;
+  plan_name: string | null;
   role: string | null;
   phone: string | null;
   state: string | null;
   city: string | null;
   avatar_url: string | null;
   tutorial_completed: boolean | null;
+  updated_at: string | null;
+  actions_count: number;
+  total_credits_used: number;
+  last_action_at: string | null;
+  subscription_status: string | null;
 }
 
 interface Plan {
@@ -159,34 +165,65 @@ const Admin = () => {
 
       if (usersError) throw usersError;
 
-      // Enrich users data
-      const enrichedUsers = await Promise.all(
-        (usersData || []).map(async (user: any) => {
-          let teamData = null;
-          if (user.team_id) {
-            const { data } = await supabase
-              .from("teams")
-              .select("name, credits, plan_id")
-              .eq("id", user.team_id)
-              .single();
-            teamData = data;
+      // Fetch all user roles
+      const { data: rolesData } = await supabase
+        .from("user_roles")
+        .select("user_id, role");
+
+      // Fetch actions count per user
+      const { data: actionsData } = await supabase
+        .from("actions")
+        .select("user_id, created_at");
+
+      // Fetch credit history per user
+      const { data: creditHistoryUserData } = await supabase
+        .from("credit_history")
+        .select("user_id, credits_used");
+
+      // Create lookup maps for efficient access
+      const teamsMapForUsers = new Map(teamsData?.map(t => [t.id, t]) || []);
+      const rolesMap = new Map(rolesData?.map(r => [r.user_id, r.role]) || []);
+      const plansMapForUsers = new Map(plansData?.map(p => [p.id, p.name]) || []);
+
+      // Calculate actions per user
+      const actionsCountMap = new Map<string, { count: number; lastAction: string | null }>();
+      actionsData?.forEach(action => {
+        const existing = actionsCountMap.get(action.user_id);
+        if (existing) {
+          existing.count++;
+          if (!existing.lastAction || action.created_at > existing.lastAction) {
+            existing.lastAction = action.created_at;
           }
+        } else {
+          actionsCountMap.set(action.user_id, { count: 1, lastAction: action.created_at });
+        }
+      });
 
-          const { data: roleData } = await supabase
-            .from("user_roles")
-            .select("role")
-            .eq("user_id", user.id)
-            .single();
+      // Calculate total credits used per user
+      const creditsUsedMap = new Map<string, number>();
+      creditHistoryUserData?.forEach(ch => {
+        const existing = creditsUsedMap.get(ch.user_id) || 0;
+        creditsUsedMap.set(ch.user_id, existing + (ch.credits_used || 0));
+      });
 
-          return {
-            ...user,
-            team_name: teamData?.name || null,
-            credits: teamData?.credits || null,
-            plan_id: teamData?.plan_id || null,
-            role: roleData?.role || null,
-          };
-        })
-      );
+      // Enrich users data
+      const enrichedUsers = (usersData || []).map((user: any) => {
+        const teamData = user.team_id ? teamsMapForUsers.get(user.team_id) : null;
+        const actionsInfo = actionsCountMap.get(user.id);
+
+        return {
+          ...user,
+          team_name: teamData?.name || null,
+          credits: teamData?.credits || null,
+          plan_id: teamData?.plan_id || null,
+          plan_name: teamData?.plan_id ? plansMapForUsers.get(teamData.plan_id) || null : null,
+          subscription_status: teamData?.subscription_status || null,
+          role: rolesMap.get(user.id) || null,
+          actions_count: actionsInfo?.count || 0,
+          total_credits_used: creditsUsedMap.get(user.id) || 0,
+          last_action_at: actionsInfo?.lastAction || null,
+        };
+      });
 
       setUsers(enrichedUsers);
 
