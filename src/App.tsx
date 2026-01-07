@@ -43,6 +43,7 @@ import { DashboardLayout } from "./components/DashboardLayout";
 import NotFound from "./pages/NotFound";
 import Admin from "./pages/Admin";
 import { AdminRoute } from "./components/admin/AdminRoute";
+import { AdminLayout } from "./components/admin/AdminLayout";
 
 const queryClient = new QueryClient();
 
@@ -103,7 +104,11 @@ const App = () => (
               <Route path="about" element={<About />} />
               <Route path="contact" element={<Contact />} />
               <Route path="action/:actionId" element={<ActionView />} />
-              <Route path="admin" element={<AdminRoute><Admin /></AdminRoute>} />
+            </Route>
+            
+            {/* Admin routes with separate layout */}
+            <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
+              <Route index element={<Admin />} />
             </Route>
             
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
