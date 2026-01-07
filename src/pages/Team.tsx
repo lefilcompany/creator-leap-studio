@@ -50,14 +50,16 @@ export default function Team() {
     setCurrentPage(1);
   }, [members.length]);
 
+  const isTeamAdmin = team?.admin_id === user?.id;
+
   useEffect(() => {
     if (user && team) {
-      // Apenas admins carregam dados de gerenciamento
-      if (user.isAdmin) {
+      // Apenas admin da equipe carrega dados de gerenciamento
+      if (isTeamAdmin) {
         loadTeamData();
       }
     }
-  }, [user, team]);
+  }, [user, team, isTeamAdmin]);
 
   const loadTeamData = async () => {
     if (!team) return;
@@ -209,8 +211,8 @@ export default function Team() {
     );
   }
 
-  // Se não é admin, mostra visualização de membro
-  if (!user?.isAdmin) {
+  // Se não é admin da equipe, mostra visualização de membro
+  if (!isTeamAdmin) {
     return (
       <div className="min-h-full space-y-6 animate-fade-in">
         {/* Header */}

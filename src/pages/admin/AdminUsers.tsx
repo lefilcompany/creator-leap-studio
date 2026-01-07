@@ -13,6 +13,7 @@ interface User {
   team_id: string | null;
   created_at: string;
   team_name: string | null;
+  team_admin_id: string | null;
   credits: number | null;
   plan_id: string | null;
   plan_name: string | null;
@@ -76,7 +77,7 @@ const AdminUsers = () => {
       // Fetch all teams
       const { data: teamsData } = await supabase
         .from("teams")
-        .select("id, name, credits, plan_id, subscription_status");
+        .select("id, name, credits, plan_id, subscription_status, admin_id");
 
       // Fetch all user roles
       const { data: rolesData } = await supabase
@@ -145,6 +146,7 @@ const AdminUsers = () => {
         return {
           ...user,
           team_name: teamData?.name || null,
+          team_admin_id: teamData?.admin_id || null,
           credits: teamData?.credits || null,
           plan_id: teamData?.plan_id || null,
           plan_name: teamData?.plan_id ? plansMap.get(teamData.plan_id) || null : null,
