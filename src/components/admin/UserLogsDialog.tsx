@@ -49,6 +49,7 @@ interface ActionItem {
   status: string;
   created_at: string;
   details: any;
+  result: any;
 }
 
 interface UserEvent {
@@ -105,7 +106,7 @@ export const UserLogsDialog = ({ user, open, onOpenChange }: UserLogsDialogProps
         // Actions
         supabase
           .from("actions")
-          .select("id, type, status, created_at, details")
+          .select("id, type, status, created_at, details, result")
           .eq("user_id", user.id)
           .order("created_at", { ascending: false })
           .limit(100),
@@ -452,7 +453,34 @@ export const UserLogsDialog = ({ user, open, onOpenChange }: UserLogsDialogProps
                           <TableCell className="font-mono text-xs text-muted-foreground">
                             {format(new Date(action.created_at), "dd/MM/yy HH:mm:ss", { locale: ptBR })}
                           </TableCell>
-                          <TableCell>{getActionTypeBadge(action.type)}</TableCell>
+                          <TableCell>
+                            {getActionTypeBadge(action.type)}
+                            {(action.details || action.result) && (
+                              <details className="mt-2">
+                                <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground">
+                                  Ver detalhes da ação
+                                </summary>
+                                <div className="mt-2 space-y-2">
+                                  {action.details && (
+                                    <div>
+                                      <p className="text-xs font-medium text-muted-foreground mb-1">Entrada:</p>
+                                      <pre className="p-2 bg-muted rounded text-xs overflow-auto max-h-32">
+                                        {JSON.stringify(action.details, null, 2)}
+                                      </pre>
+                                    </div>
+                                  )}
+                                  {action.result && (
+                                    <div>
+                                      <p className="text-xs font-medium text-muted-foreground mb-1">Resultado:</p>
+                                      <pre className="p-2 bg-muted rounded text-xs overflow-auto max-h-32">
+                                        {JSON.stringify(action.result, null, 2)}
+                                      </pre>
+                                    </div>
+                                  )}
+                                </div>
+                              </details>
+                            )}
+                          </TableCell>
                           <TableCell>
                             <Badge variant="outline">{action.status}</Badge>
                           </TableCell>
