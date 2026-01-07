@@ -137,9 +137,17 @@ const Auth = () => {
 
   // Redireciona automaticamente quando autenticado
   useEffect(() => {
-    if (waitingForAuth && !authLoading && user && team && !showChangePassword && !showTeamSelection) {
-      console.log("[Auth] Auth complete, redirecting to dashboard");
-      navigate("/dashboard", { replace: true });
+    if (waitingForAuth && !authLoading && user && !showChangePassword && !showTeamSelection) {
+      if (user.isAdmin) {
+        console.log("[Auth] Admin authenticated, redirecting to /admin");
+        navigate("/admin", { replace: true });
+        return;
+      }
+
+      if (team) {
+        console.log("[Auth] Auth complete, redirecting to dashboard");
+        navigate("/dashboard", { replace: true });
+      }
     }
   }, [waitingForAuth, authLoading, user, team, showChangePassword, showTeamSelection, navigate]);
 
@@ -199,20 +207,38 @@ const Auth = () => {
       setShowPasswordResetSuggestion(false);
 
       if (data.user) {
-        const { data: profileData, error: profileError } = await supabase
-          .from("profiles")
-          .select("team_id, force_password_change")
-          .eq("id", data.user.id)
-          .single();
+        // Verificar se o usuário precisa trocar a senha e se é admin
+        const [profileResult, adminResult] = await Promise.all([
+          supabase
+            .from("profiles")
+            .select("team_id, force_password_change")
+            .eq("id", data.user.id)
+            .single(),
+          supabase
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", data.user.id)
+            .eq("role", "admin")
+            .maybeSingle(),
+        ]);
 
-        if (profileError) {
-          console.error("Erro ao carregar perfil:", profileError);
+        if (profileResult.error) {
+          console.error("Erro ao carregar perfil:", profileResult.error);
           toast.error(t.errors.somethingWrong);
           return;
         }
 
+        const profileData = profileResult.data;
+        const isAdmin = !!adminResult.data;
+
         if (profileData.force_password_change) {
           setShowChangePassword(true);
+          return;
+        }
+
+        // Admin não precisa de equipe nem seleção
+        if (isAdmin) {
+          navigate("/admin", { replace: true });
           return;
         }
 
