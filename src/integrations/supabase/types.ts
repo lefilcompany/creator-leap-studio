@@ -861,11 +861,16 @@ export type Database = {
       get_all_users_admin: {
         Args: never
         Returns: {
+          avatar_url: string
+          city: string
           created_at: string
           email: string
           id: string
           name: string
+          phone: string
+          state: string
           team_id: string
+          tutorial_completed: boolean
         }[]
       }
       get_team_id_by_code: { Args: { p_team_code: string }; Returns: string }
