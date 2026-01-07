@@ -21,12 +21,18 @@ interface User {
   team_name: string | null;
   credits: number | null;
   plan_id: string | null;
+  plan_name: string | null;
   role: string | null;
   phone: string | null;
   state: string | null;
   city: string | null;
   avatar_url: string | null;
   tutorial_completed: boolean | null;
+  updated_at: string | null;
+  actions_count: number;
+  total_credits_used: number;
+  last_action_at: string | null;
+  subscription_status: string | null;
 }
 
 interface UsersTableProps {
@@ -49,18 +55,20 @@ export const UsersTable = ({ users }: UsersTableProps) => {
           <TableRow className="bg-muted/50 hover:bg-muted/50">
             <TableHead className="font-semibold">Usuário</TableHead>
             <TableHead className="font-semibold">Contato</TableHead>
-            <TableHead className="font-semibold">Localização</TableHead>
             <TableHead className="font-semibold">Equipe</TableHead>
+            <TableHead className="font-semibold">Plano</TableHead>
             <TableHead className="font-semibold">Role</TableHead>
             <TableHead className="text-right font-semibold">Créditos</TableHead>
-            <TableHead className="font-semibold">Status</TableHead>
+            <TableHead className="text-right font-semibold">Ações</TableHead>
+            <TableHead className="text-right font-semibold">Créditos Usados</TableHead>
+            <TableHead className="font-semibold">Última Atividade</TableHead>
             <TableHead className="font-semibold">Criado em</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {users.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={8} className="text-center text-muted-foreground py-12">
+              <TableCell colSpan={10} className="text-center text-muted-foreground py-12">
                 Nenhum usuário encontrado
               </TableCell>
             </TableRow>
@@ -87,17 +95,15 @@ export const UsersTable = ({ users }: UsersTableProps) => {
                     </div>
                   </div>
                 </TableCell>
-                <TableCell className="text-sm text-muted-foreground">
-                  {user.phone || "-"}
-                </TableCell>
                 <TableCell className="text-sm">
-                  {user.city && user.state ? (
-                    <span>{user.city}, {user.state}</span>
-                  ) : user.state ? (
-                    <span>{user.state}</span>
-                  ) : (
-                    <span className="text-muted-foreground">-</span>
-                  )}
+                  <div>
+                    <p className="text-muted-foreground">{user.phone || "-"}</p>
+                    {(user.city || user.state) && (
+                      <p className="text-xs text-muted-foreground">
+                        {user.city && user.state ? `${user.city}, ${user.state}` : user.state || user.city}
+                      </p>
+                    )}
+                  </div>
                 </TableCell>
                 <TableCell>
                   {user.team_name ? (
@@ -106,6 +112,27 @@ export const UsersTable = ({ users }: UsersTableProps) => {
                     <Badge variant="outline" className="bg-muted">
                       Sem equipe
                     </Badge>
+                  )}
+                </TableCell>
+                <TableCell>
+                  {user.plan_name ? (
+                    <div className="flex flex-col gap-1">
+                      <Badge variant="outline" className="w-fit">{user.plan_name}</Badge>
+                      {user.subscription_status && (
+                        <span className={`text-xs ${
+                          user.subscription_status === 'active' ? 'text-green-600' : 
+                          user.subscription_status === 'trialing' ? 'text-blue-600' : 
+                          'text-muted-foreground'
+                        }`}>
+                          {user.subscription_status === 'active' ? 'Ativo' :
+                           user.subscription_status === 'trialing' ? 'Trial' :
+                           user.subscription_status === 'canceled' ? 'Cancelado' :
+                           user.subscription_status}
+                        </span>
+                      )}
+                    </div>
+                  ) : (
+                    <span className="text-muted-foreground text-sm">-</span>
                   )}
                 </TableCell>
                 <TableCell>
@@ -123,20 +150,22 @@ export const UsersTable = ({ users }: UsersTableProps) => {
                 </TableCell>
                 <TableCell className="text-right">
                   {user.credits !== null ? (
-                    <span className="font-bold text-primary">{user.credits}</span>
+                    <span className="font-bold text-primary">{user.credits.toLocaleString('pt-BR')}</span>
                   ) : (
                     <span className="text-muted-foreground">-</span>
                   )}
                 </TableCell>
-                <TableCell>
-                  {user.tutorial_completed ? (
-                    <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/20">
-                      Ativo
-                    </Badge>
+                <TableCell className="text-right">
+                  <span className="font-medium">{user.actions_count.toLocaleString('pt-BR')}</span>
+                </TableCell>
+                <TableCell className="text-right">
+                  <span className="font-medium text-amber-600">{user.total_credits_used.toLocaleString('pt-BR')}</span>
+                </TableCell>
+                <TableCell className="text-sm text-muted-foreground">
+                  {user.last_action_at ? (
+                    format(new Date(user.last_action_at), "dd/MM/yyyy HH:mm")
                   ) : (
-                    <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/20">
-                      Pendente
-                    </Badge>
+                    <span className="text-muted-foreground">-</span>
                   )}
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground font-medium">
