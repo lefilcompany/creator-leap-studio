@@ -38,14 +38,14 @@ export default function ProtectedRoute({ children, requireTeam = true }: Protect
       return;
     }
 
-    // Se requer equipe e o usuário não tem equipe, mostra mensagem
-    if (requireTeam && !team) {
+    // Se requer equipe e o usuário não tem equipe, mostra mensagem (admin ignora)
+    if (requireTeam && !team && !user?.isAdmin) {
       toast.error('Você precisa estar em uma equipe para ver esta página');
       return;
     }
 
-    // Se o período de teste expirou, permite apenas histórico, planos e perfil
-    if (requireTeam && team && isTrialExpired) {
+    // Se o período de teste expirou, permite apenas histórico, planos e perfil (admin ignora)
+    if (requireTeam && team && isTrialExpired && !user?.isAdmin) {
       const currentPath = window.location.pathname;
       const allowedPaths = ['/plans', '/history', '/profile'];
       const isAllowedPath = allowedPaths.some(path => currentPath.startsWith(path));
@@ -75,8 +75,8 @@ export default function ProtectedRoute({ children, requireTeam = true }: Protect
     return null;
   }
 
-  // Se requer equipe e não tem, mostra mensagem
-  if (requireTeam && !team) {
+  // Se requer equipe e não tem, mostra mensagem (admin ignora)
+  if (requireTeam && !team && !user?.isAdmin) {
     return (
       <div className="flex h-screen w-full items-center justify-center p-6">
         <div className="max-w-md text-center space-y-4">
