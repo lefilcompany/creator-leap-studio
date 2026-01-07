@@ -7,7 +7,6 @@ import {
   Building2, 
   ScrollText, 
   Shield,
-  Settings,
   LogOut
 } from "lucide-react";
 import { 
