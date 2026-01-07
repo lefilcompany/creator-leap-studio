@@ -884,6 +884,36 @@ export type Database = {
           },
         ]
       }
+      user_presence_history: {
+        Row: {
+          created_at: string
+          duration_seconds: number | null
+          ended_at: string | null
+          id: string
+          started_at: string
+          team_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          duration_seconds?: number | null
+          ended_at?: string | null
+          id?: string
+          started_at?: string
+          team_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          duration_seconds?: number | null
+          ended_at?: string | null
+          id?: string
+          started_at?: string
+          team_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null

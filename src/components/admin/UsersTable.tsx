@@ -12,6 +12,19 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { UserLogsDialog } from "./UserLogsDialog";
 import { format } from "date-fns";
 
+// Format seconds to human readable duration
+const formatDuration = (seconds: number): string => {
+  if (seconds < 60) return `${seconds}s`;
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}min`;
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  if (hours < 24) return `${hours}h ${remainingMinutes}min`;
+  const days = Math.floor(hours / 24);
+  const remainingHours = hours % 24;
+  return `${days}d ${remainingHours}h`;
+};
+
 interface User {
   id: string;
   name: string;
@@ -33,6 +46,8 @@ interface User {
   total_credits_used: number;
   last_action_at: string | null;
   subscription_status: string | null;
+  last_online_at: string | null;
+  total_session_seconds: number;
 }
 
 interface UsersTableProps {
@@ -61,14 +76,15 @@ export const UsersTable = ({ users }: UsersTableProps) => {
             <TableHead className="text-right font-semibold">Créditos</TableHead>
             <TableHead className="text-right font-semibold">Ações</TableHead>
             <TableHead className="text-right font-semibold">Créditos Usados</TableHead>
-            <TableHead className="font-semibold">Última Atividade</TableHead>
+            <TableHead className="font-semibold">Último Online</TableHead>
+            <TableHead className="text-right font-semibold">Tempo Total</TableHead>
             <TableHead className="font-semibold">Criado em</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {users.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={10} className="text-center text-muted-foreground py-12">
+              <TableCell colSpan={11} className="text-center text-muted-foreground py-12">
                 Nenhum usuário encontrado
               </TableCell>
             </TableRow>
@@ -162,8 +178,17 @@ export const UsersTable = ({ users }: UsersTableProps) => {
                   <span className="font-medium text-amber-600">{user.total_credits_used.toLocaleString('pt-BR')}</span>
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground">
-                  {user.last_action_at ? (
-                    format(new Date(user.last_action_at), "dd/MM/yyyy HH:mm")
+                  {user.last_online_at ? (
+                    format(new Date(user.last_online_at), "dd/MM/yyyy HH:mm")
+                  ) : (
+                    <span className="text-muted-foreground">-</span>
+                  )}
+                </TableCell>
+                <TableCell className="text-right text-sm">
+                  {user.total_session_seconds > 0 ? (
+                    <span className="font-medium text-blue-600">
+                      {formatDuration(user.total_session_seconds)}
+                    </span>
                   ) : (
                     <span className="text-muted-foreground">-</span>
                   )}

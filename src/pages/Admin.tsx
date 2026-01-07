@@ -54,6 +54,8 @@ interface User {
   total_credits_used: number;
   last_action_at: string | null;
   subscription_status: string | null;
+  last_online_at: string | null;
+  total_session_seconds: number;
 }
 
 interface Plan {
@@ -180,6 +182,11 @@ const Admin = () => {
         .from("credit_history")
         .select("user_id, credits_used");
 
+      // Fetch presence history per user
+      const { data: presenceData } = await supabase
+        .from("user_presence_history")
+        .select("user_id, started_at, ended_at, duration_seconds");
+
       // Create lookup maps for efficient access
       const teamsMapForUsers = new Map(teamsData?.map(t => [t.id, t]) || []);
       const rolesMap = new Map(rolesData?.map(r => [r.user_id, r.role]) || []);
@@ -206,10 +213,23 @@ const Admin = () => {
         creditsUsedMap.set(ch.user_id, existing + (ch.credits_used || 0));
       });
 
+      // Calculate presence data per user
+      const presenceMap = new Map<string, { lastOnline: string | null; totalSeconds: number }>();
+      presenceData?.forEach(p => {
+        const existing = presenceMap.get(p.user_id) || { lastOnline: null, totalSeconds: 0 };
+        const sessionEnd = p.ended_at || p.started_at;
+        if (!existing.lastOnline || sessionEnd > existing.lastOnline) {
+          existing.lastOnline = sessionEnd;
+        }
+        existing.totalSeconds += p.duration_seconds || 0;
+        presenceMap.set(p.user_id, existing);
+      });
+
       // Enrich users data
       const enrichedUsers = (usersData || []).map((user: any) => {
         const teamData = user.team_id ? teamsMapForUsers.get(user.team_id) : null;
         const actionsInfo = actionsCountMap.get(user.id);
+        const presenceInfo = presenceMap.get(user.id);
 
         return {
           ...user,
@@ -222,6 +242,8 @@ const Admin = () => {
           actions_count: actionsInfo?.count || 0,
           total_credits_used: creditsUsedMap.get(user.id) || 0,
           last_action_at: actionsInfo?.lastAction || null,
+          last_online_at: presenceInfo?.lastOnline || null,
+          total_session_seconds: presenceInfo?.totalSeconds || 0,
         };
       });
 
