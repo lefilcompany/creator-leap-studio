@@ -32,6 +32,7 @@ interface User {
   team_id: string | null;
   created_at: string;
   team_name: string | null;
+  team_admin_id?: string | null;
   credits: number | null;
   plan_id: string | null;
   plan_name: string | null;
@@ -152,17 +153,32 @@ export const UsersTable = ({ users }: UsersTableProps) => {
                   )}
                 </TableCell>
                 <TableCell>
-                  {user.role === "admin" ? (
-                    <Badge className="bg-primary/10 text-primary border-primary/20 font-medium">
-                      Admin
-                    </Badge>
-                  ) : user.role === "member" ? (
-                    <Badge variant="outline" className="font-medium">Membro</Badge>
-                  ) : (
-                    <Badge variant="outline" className="bg-muted">
-                      N/A
-                    </Badge>
-                  )}
+                  <div className="flex flex-col gap-1">
+                    {/* System Admin Badge */}
+                    {user.role === "admin" && (
+                      <Badge className="bg-red-500/10 text-red-600 border-red-500/20 font-medium w-fit">
+                        🛡️ System Admin
+                      </Badge>
+                    )}
+                    {/* Team Admin Badge */}
+                    {user.team_admin_id === user.id && (
+                      <Badge className="bg-amber-500/10 text-amber-600 border-amber-500/20 font-medium w-fit">
+                        👑 Admin Equipe
+                      </Badge>
+                    )}
+                    {/* Member Badge - only if not team admin */}
+                    {user.team_id && user.team_admin_id !== user.id && user.role !== "admin" && (
+                      <Badge variant="outline" className="font-medium w-fit">
+                        Membro
+                      </Badge>
+                    )}
+                    {/* No team */}
+                    {!user.team_id && user.role !== "admin" && (
+                      <Badge variant="outline" className="bg-muted w-fit">
+                        Sem equipe
+                      </Badge>
+                    )}
+                  </div>
                 </TableCell>
                 <TableCell className="text-right">
                   {user.credits !== null ? (
