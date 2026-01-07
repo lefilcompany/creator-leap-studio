@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { AlertCircle, Info, AlertTriangle, Bug, History, CreditCard, Zap, MousePointer, XCircle, ExternalLink } from "lucide-react";
+import { AlertCircle, Info, AlertTriangle, Bug, History, CreditCard, Zap, MousePointer, XCircle, ExternalLink, Copy, Check } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -74,6 +74,15 @@ export const UserLogsDialog = ({ user, open, onOpenChange }: UserLogsDialogProps
   const [clicks, setClicks] = useState<UserEvent[]>([]);
   const [errors, setErrors] = useState<UserEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [copiedId, setCopiedId] = useState(false);
+
+  const copyUserId = () => {
+    if (user?.id) {
+      navigator.clipboard.writeText(user.id);
+      setCopiedId(true);
+      setTimeout(() => setCopiedId(false), 2000);
+    }
+  };
 
   useEffect(() => {
     if (user && open) {
@@ -215,7 +224,16 @@ export const UserLogsDialog = ({ user, open, onOpenChange }: UserLogsDialogProps
             <div>
               <DialogTitle>{user.name}</DialogTitle>
               <DialogDescription>{user.email}</DialogDescription>
-              <p className="text-xs text-muted-foreground mt-1 font-mono">{user.id}</p>
+              <p className="text-xs text-muted-foreground mt-1 font-mono flex items-center gap-1">
+                {user.id}
+                <button 
+                  onClick={copyUserId}
+                  className="p-1 hover:bg-muted rounded transition-colors"
+                  title="Copiar ID"
+                >
+                  {copiedId ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
+                </button>
+              </p>
             </div>
           </div>
         </DialogHeader>
