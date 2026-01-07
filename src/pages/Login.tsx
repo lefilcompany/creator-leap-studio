@@ -43,10 +43,16 @@ const Login = () => {
 
   // Redireciona automaticamente quando autenticado
   useEffect(() => {
-    if (waitingForAuth && !authLoading && user && team && !showChangePassword && !showTeamSelection) {
-      const returnUrl = searchParams.get('returnUrl') || '/dashboard';
-      console.log('[Login] Auth complete, redirecting to:', returnUrl);
-      navigate(returnUrl, { replace: true });
+    if (waitingForAuth && !authLoading && user && !showChangePassword && !showTeamSelection) {
+      // Admin users go to /admin, regular users need team and go to dashboard
+      if (user.isAdmin) {
+        console.log('[Login] Admin user detected, redirecting to /admin');
+        navigate('/admin', { replace: true });
+      } else if (team) {
+        const returnUrl = searchParams.get('returnUrl') || '/dashboard';
+        console.log('[Login] Auth complete, redirecting to:', returnUrl);
+        navigate(returnUrl, { replace: true });
+      }
     }
   }, [waitingForAuth, authLoading, user, team, showChangePassword, showTeamSelection, navigate, searchParams]);
   const handleLogin = async (e: React.FormEvent) => {
@@ -74,22 +80,40 @@ const Login = () => {
       setShowPasswordResetSuggestion(false);
       
       if (data.user) {
-        // Verificar se o usuário precisa trocar a senha
-        const { data: profileData, error: profileError } = await supabase
-          .from("profiles")
-          .select("team_id, force_password_change")
-          .eq("id", data.user.id)
-          .single();
+        // Verificar se o usuário precisa trocar a senha e se é admin
+        const [profileResult, adminResult] = await Promise.all([
+          supabase
+            .from("profiles")
+            .select("team_id, force_password_change")
+            .eq("id", data.user.id)
+            .single(),
+          supabase
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", data.user.id)
+            .eq("role", "admin")
+            .maybeSingle()
+        ]);
           
-        if (profileError) {
-          console.error("Erro ao carregar perfil:", profileError);
+        if (profileResult.error) {
+          console.error("Erro ao carregar perfil:", profileResult.error);
           toast.error(t.errors.somethingWrong);
           return;
         }
 
+        const profileData = profileResult.data;
+        const isAdmin = !!adminResult.data;
+
         // Se precisa trocar senha, mostrar modal
         if (profileData.force_password_change) {
           setShowChangePassword(true);
+          return;
+        }
+
+        // Admin users don't need a team - redirect directly
+        if (isAdmin) {
+          console.log('[Login] Admin user logged in, will redirect to /admin');
+          setWaitingForAuth(true);
           return;
         }
 
