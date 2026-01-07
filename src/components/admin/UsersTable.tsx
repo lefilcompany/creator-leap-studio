@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Table,
   TableBody,
@@ -8,6 +9,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserLogsDialog } from "./UserLogsDialog";
 import { format } from "date-fns";
 
 interface User {
@@ -32,7 +34,15 @@ interface UsersTableProps {
 }
 
 export const UsersTable = ({ users }: UsersTableProps) => {
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  const handleUserClick = (user: User) => {
+    setSelectedUser(user);
+    setDialogOpen(true);
+  };
   return (
+    <>
     <div className="rounded-lg overflow-hidden shadow-md">
       <Table>
         <TableHeader>
@@ -58,7 +68,8 @@ export const UsersTable = ({ users }: UsersTableProps) => {
             users.map((user, index) => (
               <TableRow 
                 key={user.id}
-                className={`hover:bg-muted/30 transition-colors ${
+                onClick={() => handleUserClick(user)}
+                className={`hover:bg-muted/30 transition-colors cursor-pointer ${
                   index % 2 === 0 ? "bg-background" : "bg-muted/10"
                 }`}
               >
@@ -137,5 +148,12 @@ export const UsersTable = ({ users }: UsersTableProps) => {
         </TableBody>
       </Table>
     </div>
+    
+    <UserLogsDialog
+      user={selectedUser}
+      open={dialogOpen}
+      onOpenChange={setDialogOpen}
+    />
+    </>
   );
 };
