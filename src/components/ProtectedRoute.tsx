@@ -38,14 +38,22 @@ export default function ProtectedRoute({ children, requireTeam = true }: Protect
       return;
     }
 
-    // Se requer equipe e o usuário não tem equipe, mostra mensagem (admin ignora)
-    if (requireTeam && !team && !user?.isAdmin) {
+    // Se o usuário é admin, redirecionar para a área admin
+    if (user?.isAdmin) {
+      console.log("[ProtectedRoute] Admin user detected, redirecting to admin area");
+      hasRedirected.current = true;
+      navigate("/admin", { replace: true });
+      return;
+    }
+
+    // Se requer equipe e o usuário não tem equipe, mostra mensagem
+    if (requireTeam && !team) {
       toast.error('Você precisa estar em uma equipe para ver esta página');
       return;
     }
 
-    // Se o período de teste expirou, permite apenas histórico, planos e perfil (admin ignora)
-    if (requireTeam && team && isTrialExpired && !user?.isAdmin) {
+    // Se o período de teste expirou, permite apenas histórico, planos e perfil
+    if (requireTeam && team && isTrialExpired) {
       const currentPath = window.location.pathname;
       const allowedPaths = ['/plans', '/history', '/profile'];
       const isAllowedPath = allowedPaths.some(path => currentPath.startsWith(path));
@@ -75,8 +83,13 @@ export default function ProtectedRoute({ children, requireTeam = true }: Protect
     return null;
   }
 
-  // Se requer equipe e não tem, mostra mensagem (admin ignora)
-  if (requireTeam && !team && !user?.isAdmin) {
+  // Se é admin, não renderiza nada (vai redirecionar para admin)
+  if (user?.isAdmin) {
+    return null;
+  }
+
+  // Se requer equipe e não tem, mostra mensagem
+  if (requireTeam && !team) {
     return (
       <div className="flex h-screen w-full items-center justify-center p-6">
         <div className="max-w-md text-center space-y-4">
