@@ -10,6 +10,7 @@ interface AdminFiltersProps {
   statusFilter: string;
   onStatusFilterChange: (value: string) => void;
   plans: Array<{ id: string; name: string }>;
+  showStatusFilter?: boolean;
 }
 
 export const AdminFilters = ({
@@ -20,6 +21,7 @@ export const AdminFilters = ({
   statusFilter,
   onStatusFilterChange,
   plans,
+  showStatusFilter = true,
 }: AdminFiltersProps) => {
   const planOptions = [
     { value: "all", label: "Todos os planos" },
@@ -52,13 +54,15 @@ export const AdminFilters = ({
         placeholder="Filtrar por plano"
         triggerClassName="w-full sm:w-[200px] h-10"
       />
-      <NativeSelect
-        value={statusFilter}
-        onValueChange={onStatusFilterChange}
-        options={statusOptions}
-        placeholder="Filtrar por status"
-        triggerClassName="w-full sm:w-[200px] h-10"
-      />
+      {showStatusFilter && (
+        <NativeSelect
+          value={statusFilter}
+          onValueChange={onStatusFilterChange}
+          options={statusOptions}
+          placeholder="Filtrar por status"
+          triggerClassName="w-full sm:w-[200px] h-10"
+        />
+      )}
     </div>
   );
 };

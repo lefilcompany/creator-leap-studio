@@ -42,6 +42,9 @@ import ActionView from "./pages/ActionView";
 import { DashboardLayout } from "./components/DashboardLayout";
 import NotFound from "./pages/NotFound";
 import Admin from "./pages/Admin";
+import AdminTeams from "./pages/admin/AdminTeams";
+import AdminUsers from "./pages/admin/AdminUsers";
+import AdminLogs from "./pages/admin/AdminLogs";
 import { AdminRoute } from "./components/admin/AdminRoute";
 import { AdminLayout } from "./components/admin/AdminLayout";
 
@@ -109,6 +112,9 @@ const App = () => (
             {/* Admin routes with separate layout */}
             <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
               <Route index element={<Admin />} />
+              <Route path="teams" element={<AdminTeams />} />
+              <Route path="users" element={<AdminUsers />} />
+              <Route path="logs" element={<AdminLogs />} />
             </Route>
             
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
