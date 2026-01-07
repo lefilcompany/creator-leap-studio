@@ -215,6 +215,7 @@ export const UserLogsDialog = ({ user, open, onOpenChange }: UserLogsDialogProps
             <div>
               <DialogTitle>{user.name}</DialogTitle>
               <DialogDescription>{user.email}</DialogDescription>
+              <p className="text-xs text-muted-foreground mt-1 font-mono">{user.id}</p>
             </div>
           </div>
         </DialogHeader>
