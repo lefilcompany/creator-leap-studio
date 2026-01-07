@@ -30,7 +30,7 @@ import { cn } from "@/lib/utils";
 import { PanelLeftOpen, PanelLeftClose } from "lucide-react";
 
 export const AdminHeader = () => {
-  const { setOpen, isFixed, setIsFixed } = useSidebar();
+  const { setOpen, toggleSidebar, state } = useSidebar();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const { logout, user } = useAuth();
@@ -42,13 +42,7 @@ export const AdminHeader = () => {
   };
 
   const toggleSidebarMode = () => {
-    const newIsFixed = !isFixed;
-    setIsFixed(newIsFixed);
-    if (newIsFixed) {
-      setOpen(true);
-    } else {
-      setOpen(false);
-    }
+    toggleSidebar();
   };
 
   return (
@@ -81,15 +75,15 @@ export const AdminHeader = () => {
                     "hover:bg-primary/20 text-muted-foreground hover:text-primary"
                   )}
                 >
-                  {isFixed ? (
-                    <PanelLeftOpen className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
-                  ) : (
+                  {state === "collapsed" ? (
                     <PanelLeftClose className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
+                  ) : (
+                    <PanelLeftOpen className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
                   )}
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="bottom">
-                <p>{isFixed ? "Recolher sidebar" : "Fixar sidebar"}</p>
+                <p>{state === "collapsed" ? "Expandir sidebar" : "Recolher sidebar"}</p>
               </TooltipContent>
             </Tooltip>
           </div>

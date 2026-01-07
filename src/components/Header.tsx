@@ -55,7 +55,7 @@ import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
 export const Header = () => {
-  const { setOpen, isFixed, setIsFixed } = useSidebar();
+  const { setOpen, toggleSidebar, state } = useSidebar();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const { logout, isTrialExpired, user } = useAuth();
@@ -117,13 +117,7 @@ export const Header = () => {
   };
 
   const toggleSidebarMode = () => {
-    const newIsFixed = !isFixed;
-    setIsFixed(newIsFixed);
-    if (newIsFixed) {
-      setOpen(true); // Expande ao fixar
-    } else {
-      setOpen(false); // Colapsa ao desafixar
-    }
+    toggleSidebar();
   };
 
   return (
@@ -153,28 +147,24 @@ export const Header = () => {
                   onClick={toggleSidebarMode}
                   className={cn(
                     "h-10 w-10 rounded-xl transition-all duration-300 group relative",
-                    isFixed
-                      ? "hover:bg-primary/20 text-muted-foreground hover:text-primary"
-                      : "hover:bg-primary/20 text-muted-foreground hover:text-primary",
+                    "hover:bg-primary/20 text-muted-foreground hover:text-primary"
                   )}
                 >
                   <div className="relative">
-                    {isFixed ? (
-                      <PanelLeftOpen className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
-                    ) : (
+                    {state === "collapsed" ? (
                       <PanelLeftClose className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
+                    ) : (
+                      <PanelLeftOpen className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
                     )}
                   </div>
-                  <span className="sr-only">{isFixed ? "Desativar modo fixo" : "Ativar modo fixo"}</span>
+                  <span className="sr-only">{state === "collapsed" ? "Expandir sidebar" : "Recolher sidebar"}</span>
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="bottom" className="max-w-xs">
                 <div className="flex flex-col gap-1.5">
-                  <p className="font-semibold text-sm">{isFixed ? "Modo Fixo Ativado" : "Modo Retrátil Ativado"}</p>
+                  <p className="font-semibold text-sm">{state === "collapsed" ? "Sidebar Recolhida" : "Sidebar Expandida"}</p>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    {isFixed
-                      ? "A sidebar permanece sempre visível. Clique para alternar para o modo retrátil."
-                      : "A sidebar se expande ao passar o mouse. Clique para fixá-la permanentemente."}
+                    Clique para {state === "collapsed" ? "expandir" : "recolher"} a sidebar.
                   </p>
                 </div>
               </TooltipContent>
