@@ -7,6 +7,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format } from "date-fns";
 
 interface User {
@@ -19,6 +20,11 @@ interface User {
   credits: number | null;
   plan_id: string | null;
   role: string | null;
+  phone: string | null;
+  state: string | null;
+  city: string | null;
+  avatar_url: string | null;
+  tutorial_completed: boolean | null;
 }
 
 interface UsersTableProps {
@@ -31,18 +37,20 @@ export const UsersTable = ({ users }: UsersTableProps) => {
       <Table>
         <TableHeader>
           <TableRow className="bg-muted/50 hover:bg-muted/50">
-            <TableHead className="font-semibold">Nome</TableHead>
-            <TableHead className="font-semibold">Email</TableHead>
+            <TableHead className="font-semibold">Usuário</TableHead>
+            <TableHead className="font-semibold">Contato</TableHead>
+            <TableHead className="font-semibold">Localização</TableHead>
             <TableHead className="font-semibold">Equipe</TableHead>
             <TableHead className="font-semibold">Role</TableHead>
-            <TableHead className="text-right font-semibold">Créditos da Equipe</TableHead>
+            <TableHead className="text-right font-semibold">Créditos</TableHead>
+            <TableHead className="font-semibold">Status</TableHead>
             <TableHead className="font-semibold">Criado em</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {users.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={6} className="text-center text-muted-foreground py-12">
+              <TableCell colSpan={8} className="text-center text-muted-foreground py-12">
                 Nenhum usuário encontrado
               </TableCell>
             </TableRow>
@@ -54,9 +62,31 @@ export const UsersTable = ({ users }: UsersTableProps) => {
                   index % 2 === 0 ? "bg-background" : "bg-muted/10"
                 }`}
               >
-                <TableCell className="font-medium">{user.name}</TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={user.avatar_url || undefined} alt={user.name} />
+                      <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                        {user.name?.slice(0, 2).toUpperCase() || "??"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-medium">{user.name}</p>
+                      <p className="text-xs text-muted-foreground">{user.email}</p>
+                    </div>
+                  </div>
+                </TableCell>
                 <TableCell className="text-sm text-muted-foreground">
-                  {user.email}
+                  {user.phone || "-"}
+                </TableCell>
+                <TableCell className="text-sm">
+                  {user.city && user.state ? (
+                    <span>{user.city}, {user.state}</span>
+                  ) : user.state ? (
+                    <span>{user.state}</span>
+                  ) : (
+                    <span className="text-muted-foreground">-</span>
+                  )}
                 </TableCell>
                 <TableCell>
                   {user.team_name ? (
@@ -85,6 +115,17 @@ export const UsersTable = ({ users }: UsersTableProps) => {
                     <span className="font-bold text-primary">{user.credits}</span>
                   ) : (
                     <span className="text-muted-foreground">-</span>
+                  )}
+                </TableCell>
+                <TableCell>
+                  {user.tutorial_completed ? (
+                    <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/20">
+                      Ativo
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/20">
+                      Pendente
+                    </Badge>
                   )}
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground font-medium">

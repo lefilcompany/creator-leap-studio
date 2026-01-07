@@ -42,6 +42,11 @@ interface User {
   credits: number | null;
   plan_id: string | null;
   role: string | null;
+  phone: string | null;
+  state: string | null;
+  city: string | null;
+  avatar_url: string | null;
+  tutorial_completed: boolean | null;
 }
 
 interface Plan {
@@ -145,10 +150,11 @@ const Admin = () => {
 
       setTeams(enrichedTeams);
 
-      // Fetch ALL users using admin function
-      const { data: usersData, error: usersError } = await supabase.rpc(
-        "get_all_users_admin"
-      );
+      // Fetch ALL users with full profile data
+      const { data: usersData, error: usersError } = await supabase
+        .from("profiles")
+        .select("*")
+        .order("created_at", { ascending: false });
 
       if (usersError) throw usersError;
 
