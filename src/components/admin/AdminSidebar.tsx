@@ -6,8 +6,9 @@ import {
   Users, 
   Building2, 
   ScrollText, 
-  ArrowLeft,
-  Shield
+  Shield,
+  Settings,
+  LogOut
 } from "lucide-react";
 import { 
   Sidebar, 
@@ -91,10 +92,16 @@ export function AdminSidebar() {
 
   const navLinks = [
     { href: "/admin", icon: LayoutDashboard, label: "Dashboard" },
-    { href: "/admin#teams", icon: Building2, label: "Equipes" },
-    { href: "/admin#users", icon: Users, label: "Usuários" },
-    { href: "/admin#logs", icon: ScrollText, label: "Logs do Sistema" },
+    { href: "/admin/teams", icon: Building2, label: "Equipes" },
+    { href: "/admin/users", icon: Users, label: "Usuários" },
+    { href: "/admin/logs", icon: ScrollText, label: "Logs do Sistema" },
   ];
+
+  const handleLogout = async () => {
+    const { supabase } = await import("@/integrations/supabase/client");
+    await supabase.auth.signOut();
+    window.location.href = "/";
+  };
 
   const handleMobileNavigate = () => {
     if (isMobile) {
@@ -154,30 +161,30 @@ export function AdminSidebar() {
           ))}
         </div>
 
-        {/* Voltar para o App */}
+        {/* Logout */}
         <div className="mt-auto mb-4">
           {collapsed ? (
             <Tooltip>
               <TooltipTrigger asChild>
-                <NavLink
-                  to="/dashboard"
-                  className="flex items-center justify-center gap-3 p-2.5 rounded-lg transition-all duration-300 text-muted-foreground hover:bg-muted hover:text-foreground"
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center justify-center gap-3 p-2.5 rounded-lg transition-all duration-300 text-muted-foreground hover:bg-destructive/10 hover:text-destructive w-full"
                 >
-                  <ArrowLeft className="h-5 w-5" />
-                </NavLink>
+                  <LogOut className="h-5 w-5" />
+                </button>
               </TooltipTrigger>
               <TooltipContent side="right">
-                <p>Voltar ao App</p>
+                <p>Sair</p>
               </TooltipContent>
             </Tooltip>
           ) : (
-            <NavLink
-              to="/dashboard"
-              className="flex items-center gap-3 p-2.5 rounded-lg transition-all duration-300 text-muted-foreground hover:bg-muted hover:text-foreground"
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-3 p-2.5 rounded-lg transition-all duration-300 text-muted-foreground hover:bg-destructive/10 hover:text-destructive w-full"
             >
-              <ArrowLeft className="h-5 w-5" />
-              <span className="font-medium text-sm">Voltar ao App</span>
-            </NavLink>
+              <LogOut className="h-5 w-5" />
+              <span className="font-medium text-sm">Sair</span>
+            </button>
           )}
         </div>
       </motion.nav>
