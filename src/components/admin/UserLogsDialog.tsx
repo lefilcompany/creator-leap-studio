@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { AlertCircle, Info, AlertTriangle, Bug, History, CreditCard, Zap, MousePointer, XCircle } from "lucide-react";
+import { AlertCircle, Info, AlertTriangle, Bug, History, CreditCard, Zap, MousePointer, XCircle, ExternalLink } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -472,6 +472,17 @@ export const UserLogsDialog = ({ user, open, onOpenChange }: UserLogsDialogProps
                                   {action.result && (
                                     <div>
                                       <p className="text-xs font-medium text-muted-foreground mb-1">Resultado:</p>
+                                      {action.result.imageUrl && (
+                                        <a 
+                                          href={action.result.imageUrl} 
+                                          target="_blank" 
+                                          rel="noopener noreferrer"
+                                          className="inline-flex items-center gap-1 text-xs text-primary hover:underline mb-2"
+                                        >
+                                          <ExternalLink className="h-3 w-3" />
+                                          Ver imagem gerada
+                                        </a>
+                                      )}
                                       <pre className="p-2 bg-muted rounded text-xs overflow-auto max-h-32">
                                         {JSON.stringify(action.result, null, 2)}
                                       </pre>
