@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Users, Activity } from "lucide-react";
+import { Users, Activity, TrendingUp } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { OnlineUsersDialog } from "./OnlineUsersDialog";
 
 interface OnlineUser {
   oderId: string;
@@ -125,32 +125,47 @@ export const AdminRealtimeStats = () => {
 
   return (
     <div className="flex items-center gap-2">
-      {/* Online Users - clickable to open dialog */}
-      <OnlineUsersDialog
-        trigger={
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 transition-colors cursor-pointer">
-                <div className="relative">
-                  <Users className="h-4 w-4 text-emerald-500" />
-                  <span
-                    className={cn(
-                      "absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full",
-                      isConnected ? "bg-emerald-500 animate-pulse" : "bg-muted"
-                    )}
-                  />
-                </div>
-                <span className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">
-                  {onlineUsers.length}
-                </span>
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              <p className="text-sm">Clique para ver usuários online</p>
-            </TooltipContent>
-          </Tooltip>
-        }
-      />
+      {/* Online Users */}
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+            <div className="relative">
+              <Users className="h-4 w-4 text-emerald-500" />
+              <span
+                className={cn(
+                  "absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full",
+                  isConnected ? "bg-emerald-500 animate-pulse" : "bg-muted"
+                )}
+              />
+            </div>
+            <span className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+              {onlineUsers.length}
+            </span>
+          </div>
+        </TooltipTrigger>
+        <TooltipContent side="bottom" className="max-w-xs">
+          <div className="space-y-2">
+            <p className="font-semibold text-sm">Usuários Online</p>
+            {onlineUsers.length === 0 ? (
+              <p className="text-xs text-muted-foreground">Nenhum usuário online</p>
+            ) : (
+              <div className="space-y-1 max-h-32 overflow-y-auto">
+                {onlineUsers.slice(0, 5).map((u) => (
+                  <div key={u.oderId} className="flex items-center gap-2 text-xs">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                    <span className="truncate">{u.name}</span>
+                  </div>
+                ))}
+                {onlineUsers.length > 5 && (
+                  <p className="text-xs text-muted-foreground">
+                    +{onlineUsers.length - 5} mais
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        </TooltipContent>
+      </Tooltip>
 
       {/* Recent Activity */}
       <Tooltip>
