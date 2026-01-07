@@ -28,8 +28,8 @@ export const AdminRealtimeStats = () => {
   useEffect(() => {
     if (!user) return;
 
-    // Set up presence channel
-    const channel = supabase.channel("admin-presence", {
+    // Use a global channel name so ALL users across the app are tracked
+    const channel = supabase.channel("global-presence", {
       config: {
         presence: {
           key: user.id,
@@ -54,7 +54,16 @@ export const AdminRealtimeStats = () => {
           });
         });
         
-        setOnlineUsers(users);
+        // Remove duplicates by oderId (same user might have multiple presences)
+        const uniqueUsers = users.reduce((acc, current) => {
+          const existing = acc.find(item => item.oderId === current.oderId);
+          if (!existing) {
+            acc.push(current);
+          }
+          return acc;
+        }, [] as OnlineUser[]);
+        
+        setOnlineUsers(uniqueUsers);
         setIsConnected(true);
       })
       .on("presence", { event: "join" }, ({ key, newPresences }) => {
@@ -66,8 +75,8 @@ export const AdminRealtimeStats = () => {
       .subscribe(async (status) => {
         if (status === "SUBSCRIBED") {
           await channel.track({
-            name: user.name,
-            email: user.email,
+            name: user.name || "Usuário",
+            email: user.email || "",
             onlineAt: new Date().toISOString(),
           });
         }
