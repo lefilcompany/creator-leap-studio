@@ -110,10 +110,10 @@ const Login = () => {
           return;
         }
 
-        // Admin users don't need a team - redirect directly
+        // Admin users don't need a team - redirect directly to /admin
         if (isAdmin) {
-          console.log('[Login] Admin user logged in, will redirect to /admin');
-          setWaitingForAuth(true);
+          console.log('[Login] Admin user logged in, redirecting to /admin');
+          navigate('/admin', { replace: true });
           return;
         }
 
