@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Menu, Moon, Sun, LogOut, User, Shield } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
@@ -26,6 +25,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { CreatorLogo } from "../CreatorLogo";
+import { AdminRealtimeStats } from "./AdminRealtimeStats";
 import { cn } from "@/lib/utils";
 import { PanelLeftOpen, PanelLeftClose } from "lucide-react";
 
@@ -95,12 +95,15 @@ export const AdminHeader = () => {
           </div>
 
           {/* Admin badge */}
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/20">
+          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/20">
             <Shield className="h-4 w-4 text-primary" />
-            <span className="text-sm font-semibold text-primary hidden sm:inline">
+            <span className="text-sm font-semibold text-primary">
               Administração
             </span>
           </div>
+
+          {/* Realtime Stats */}
+          <AdminRealtimeStats />
         </div>
 
         {/* Right section */}
