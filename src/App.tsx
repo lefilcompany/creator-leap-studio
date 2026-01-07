@@ -63,73 +63,73 @@ const App = () => (
       <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
         <LanguageProvider>
           <AuthProvider>
-            <EventTrackingProvider>
-              <OnboardingProvider>
-                <TooltipProvider>
-              <Toaster />
-              <Sonner />
-              <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Auth />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/privacy" element={<Privacy />} />
-            <Route path="/subscribe" element={<Subscribe />} />
-            <Route path="/onboarding" element={<Onboarding />} />
-            <Route path="/onboarding/success" element={<OnboardingSuccess />} />
-            <Route path="/onboarding/canceled" element={<OnboardingCanceled />} />
-            <Route path="/payment-success" element={<PaymentSuccess />} />
-            
-            {/* Dashboard routes with sidebar layout */}
-            <Route path="/" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-              <Route path="dashboard" element={<Dashboard />} />
-              <Route path="brands" element={<Brands />} />
-              <Route path="themes" element={<Themes />} />
-              <Route path="personas" element={<Personas />} />
-              <Route path="history" element={<History />} />
-              <Route path="create" element={<ContentCreationSelector />} />
-              <Route path="create/quick" element={<QuickContent />} />
-              <Route path="create/image" element={<CreateImage />} />
-              <Route path="create/video" element={<CreateVideo />} />
-              <Route path="create/animate" element={<AnimateImage />} />
-              <Route path="result" element={<ContentResult />} />
-              <Route path="video-result" element={<VideoResult />} />
-              <Route path="review" element={<ReviewContent />} />
-              <Route path="review-result" element={<ReviewResult />} />
-              <Route path="plan" element={<PlanContent />} />
-              <Route path="plan-result" element={<PlanResult />} />
-              <Route path="quick-content" element={<QuickContent />} />
-              <Route path="quick-content-result" element={<QuickContentResult />} />
-              <Route path="plans" element={<Plans />} />
-              <Route path="credits" element={<Credits />} />
-              <Route path="team" element={<Team />} />
-              <Route path="team-dashboard" element={<TeamDashboard />} />
-              <Route path="profile" element={<Profile />} />
-              <Route path="credit-history" element={<CreditHistory />} />
-              <Route path="about" element={<About />} />
-              <Route path="contact" element={<Contact />} />
-              <Route path="action/:actionId" element={<ActionView />} />
-            </Route>
-            
-            {/* Admin routes with separate layout */}
-            <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
-              <Route index element={<Admin />} />
-              <Route path="teams" element={<AdminTeams />} />
-              <Route path="users" element={<AdminUsers />} />
-              <Route path="logs" element={<AdminLogs />} />
-            </Route>
-            
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-            </Routes>
-              </BrowserRouter>
+            <OnboardingProvider>
+              <TooltipProvider>
+                <Toaster />
+                <Sonner />
+                <BrowserRouter>
+                  <EventTrackingProvider>
+                    <Routes>
+                      <Route path="/" element={<Auth />} />
+                      <Route path="/forgot-password" element={<ForgotPassword />} />
+                      <Route path="/reset-password" element={<ResetPassword />} />
+                      <Route path="/privacy" element={<Privacy />} />
+                      <Route path="/subscribe" element={<Subscribe />} />
+                      <Route path="/onboarding" element={<Onboarding />} />
+                      <Route path="/onboarding/success" element={<OnboardingSuccess />} />
+                      <Route path="/onboarding/canceled" element={<OnboardingCanceled />} />
+                      <Route path="/payment-success" element={<PaymentSuccess />} />
+                      
+                      {/* Dashboard routes with sidebar layout */}
+                      <Route path="/" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
+                        <Route path="dashboard" element={<Dashboard />} />
+                        <Route path="brands" element={<Brands />} />
+                        <Route path="themes" element={<Themes />} />
+                        <Route path="personas" element={<Personas />} />
+                        <Route path="history" element={<History />} />
+                        <Route path="create" element={<ContentCreationSelector />} />
+                        <Route path="create/quick" element={<QuickContent />} />
+                        <Route path="create/image" element={<CreateImage />} />
+                        <Route path="create/video" element={<CreateVideo />} />
+                        <Route path="create/animate" element={<AnimateImage />} />
+                        <Route path="result" element={<ContentResult />} />
+                        <Route path="video-result" element={<VideoResult />} />
+                        <Route path="review" element={<ReviewContent />} />
+                        <Route path="review-result" element={<ReviewResult />} />
+                        <Route path="plan" element={<PlanContent />} />
+                        <Route path="plan-result" element={<PlanResult />} />
+                        <Route path="quick-content" element={<QuickContent />} />
+                        <Route path="quick-content-result" element={<QuickContentResult />} />
+                        <Route path="plans" element={<Plans />} />
+                        <Route path="credits" element={<Credits />} />
+                        <Route path="team" element={<Team />} />
+                        <Route path="team-dashboard" element={<TeamDashboard />} />
+                        <Route path="profile" element={<Profile />} />
+                        <Route path="credit-history" element={<CreditHistory />} />
+                        <Route path="about" element={<About />} />
+                        <Route path="contact" element={<Contact />} />
+                        <Route path="action/:actionId" element={<ActionView />} />
+                      </Route>
+                      
+                      {/* Admin routes with separate layout */}
+                      <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
+                        <Route index element={<Admin />} />
+                        <Route path="teams" element={<AdminTeams />} />
+                        <Route path="users" element={<AdminUsers />} />
+                        <Route path="logs" element={<AdminLogs />} />
+                      </Route>
+                      
+                      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </EventTrackingProvider>
+                </BrowserRouter>
               </TooltipProvider>
             </OnboardingProvider>
-          </EventTrackingProvider>
           </AuthProvider>
         </LanguageProvider>
       </ThemeProvider>
-  </QueryClientProvider>
+    </QueryClientProvider>
   </ErrorBoundary>
 );
 

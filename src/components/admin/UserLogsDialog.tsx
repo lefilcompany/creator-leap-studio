@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { AlertCircle, Info, AlertTriangle, Bug, History, CreditCard, Zap, MousePointer, XCircle, ExternalLink, Copy, Check } from "lucide-react";
+import { AlertCircle, Info, AlertTriangle, Bug, History, CreditCard, Zap, MousePointer, XCircle, ExternalLink, Copy, Check, Navigation } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -73,6 +73,7 @@ export const UserLogsDialog = ({ user, open, onOpenChange }: UserLogsDialogProps
   const [actions, setActions] = useState<ActionItem[]>([]);
   const [clicks, setClicks] = useState<UserEvent[]>([]);
   const [errors, setErrors] = useState<UserEvent[]>([]);
+  const [navigations, setNavigations] = useState<UserEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [copiedId, setCopiedId] = useState(false);
 
@@ -97,7 +98,7 @@ export const UserLogsDialog = ({ user, open, onOpenChange }: UserLogsDialogProps
       setLoading(true);
 
       // Fetch all data in parallel
-      const [logsResult, creditResult, actionsResult, clicksResult, errorsResult] = await Promise.all([
+      const [logsResult, creditResult, actionsResult, clicksResult, errorsResult, navigationsResult] = await Promise.all([
         // System logs
         supabase
           .from("system_logs")
@@ -135,6 +136,14 @@ export const UserLogsDialog = ({ user, open, onOpenChange }: UserLogsDialogProps
           .eq("event_type", "error")
           .order("created_at", { ascending: false })
           .limit(100),
+        // Navigations
+        supabase
+          .from("user_events")
+          .select("*")
+          .eq("user_id", user.id)
+          .eq("event_type", "navigation")
+          .order("created_at", { ascending: false })
+          .limit(100),
       ]);
 
       setLogs(logsResult.data || []);
@@ -142,6 +151,7 @@ export const UserLogsDialog = ({ user, open, onOpenChange }: UserLogsDialogProps
       setActions(actionsResult.data || []);
       setClicks(clicksResult.data || []);
       setErrors(errorsResult.data || []);
+      setNavigations(navigationsResult.data || []);
     } catch (error) {
       console.error("Erro ao buscar dados do usuário:", error);
     } finally {
@@ -244,25 +254,29 @@ export const UserLogsDialog = ({ user, open, onOpenChange }: UserLogsDialogProps
           </div>
         ) : (
           <Tabs defaultValue="clicks" className="w-full">
-            <TabsList className="grid w-full grid-cols-5">
-              <TabsTrigger value="clicks" className="flex items-center gap-2">
-                <MousePointer className="h-4 w-4" />
+            <TabsList className="grid w-full grid-cols-6">
+              <TabsTrigger value="clicks" className="flex items-center gap-1 text-xs">
+                <MousePointer className="h-3 w-3" />
                 Cliques ({clicks.length})
               </TabsTrigger>
-              <TabsTrigger value="errors" className="flex items-center gap-2">
-                <XCircle className="h-4 w-4" />
+              <TabsTrigger value="navigations" className="flex items-center gap-1 text-xs">
+                <Navigation className="h-3 w-3" />
+                Navegação ({navigations.length})
+              </TabsTrigger>
+              <TabsTrigger value="errors" className="flex items-center gap-1 text-xs">
+                <XCircle className="h-3 w-3" />
                 Erros ({errors.length})
               </TabsTrigger>
-              <TabsTrigger value="logs" className="flex items-center gap-2">
-                <History className="h-4 w-4" />
+              <TabsTrigger value="logs" className="flex items-center gap-1 text-xs">
+                <History className="h-3 w-3" />
                 Logs ({logs.length})
               </TabsTrigger>
-              <TabsTrigger value="credits" className="flex items-center gap-2">
-                <CreditCard className="h-4 w-4" />
+              <TabsTrigger value="credits" className="flex items-center gap-1 text-xs">
+                <CreditCard className="h-3 w-3" />
                 Créditos ({creditHistory.length})
               </TabsTrigger>
-              <TabsTrigger value="actions" className="flex items-center gap-2">
-                <Zap className="h-4 w-4" />
+              <TabsTrigger value="actions" className="flex items-center gap-1 text-xs">
+                <Zap className="h-3 w-3" />
                 Ações ({actions.length})
               </TabsTrigger>
             </TabsList>
@@ -513,6 +527,46 @@ export const UserLogsDialog = ({ user, open, onOpenChange }: UserLogsDialogProps
                           </TableCell>
                           <TableCell>
                             <Badge variant="outline">{action.status}</Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </ScrollArea>
+            </TabsContent>
+
+            <TabsContent value="navigations" className="mt-4">
+              <ScrollArea className="h-[400px]">
+                {navigations.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <Navigation className="h-12 w-12 text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground">Nenhuma navegação registrada para este usuário.</p>
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[140px]">Data/Hora</TableHead>
+                        <TableHead>De</TableHead>
+                        <TableHead>Para</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {navigations.map((nav) => (
+                        <TableRow key={nav.id}>
+                          <TableCell className="font-mono text-xs text-muted-foreground">
+                            {format(new Date(nav.created_at), "dd/MM/yy HH:mm:ss", { locale: ptBR })}
+                          </TableCell>
+                          <TableCell className="text-sm">
+                            <code className="bg-muted px-1 rounded text-xs">
+                              {nav.event_data?.from || "-"}
+                            </code>
+                          </TableCell>
+                          <TableCell className="text-sm">
+                            <code className="bg-muted px-1 rounded text-xs">
+                              {nav.event_data?.to || nav.page_url || "-"}
+                            </code>
                           </TableCell>
                         </TableRow>
                       ))}
