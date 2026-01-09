@@ -82,7 +82,7 @@ function NavItem({ href, icon: Icon, label, collapsed, onNavigate }: NavItemProp
   return linkContent;
 }
 
-export function AdminSidebar() {
+export function SystemSidebar() {
   const { state, open, setOpen } = useSidebar();
   const isMobile = useIsMobile();
   const { theme } = useTheme();
@@ -91,11 +91,11 @@ export function AdminSidebar() {
   const collapsed = state === "collapsed";
 
   const navLinks = [
-    { href: "/admin", icon: LayoutDashboard, label: "Dashboard" },
-    { href: "/admin/plans", icon: CreditCard, label: "Planos" },
-    { href: "/admin/teams", icon: Building2, label: "Equipes" },
-    { href: "/admin/users", icon: Users, label: "Usuários" },
-    { href: "/admin/logs", icon: ScrollText, label: "Logs do Sistema" },
+    { href: "/system", icon: LayoutDashboard, label: "Dashboard" },
+    { href: "/system/plans", icon: CreditCard, label: "Planos" },
+    { href: "/system/teams", icon: Building2, label: "Equipes" },
+    { href: "/system/users", icon: Users, label: "Usuários" },
+    { href: "/system/logs", icon: ScrollText, label: "Logs do Sistema" },
   ];
 
   const handleLogout = async () => {
@@ -115,7 +115,7 @@ export function AdminSidebar() {
       {/* Header com Logo */}
       <div className="pt-4 pb-2 mb-2 px-2 flex items-center justify-center">
         <NavLink
-          to="/admin"
+          to="/system"
           onClick={handleMobileNavigate}
           className="flex justify-center cursor-pointer hover:opacity-80 transition-opacity duration-500"
         >
@@ -134,12 +134,12 @@ export function AdminSidebar() {
         </NavLink>
       </div>
 
-      {/* Admin Badge */}
+      {/* System Admin Badge */}
       {!collapsed && (
         <div className="px-4 mb-4">
           <div className="flex items-center gap-2 p-2 rounded-lg bg-primary/10 border border-primary/20">
             <Shield className="h-4 w-4 text-primary" />
-            <span className="text-xs font-semibold text-primary">Painel Admin</span>
+            <span className="text-xs font-semibold text-primary">Sistema</span>
           </div>
         </div>
       )}

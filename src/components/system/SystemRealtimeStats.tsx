@@ -19,7 +19,7 @@ interface RecentActivity {
   lastAt: string;
 }
 
-export const AdminRealtimeStats = () => {
+export const SystemRealtimeStats = () => {
   const { user } = useAuth();
   const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
   const [recentActions, setRecentActions] = useState(0);

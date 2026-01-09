@@ -81,13 +81,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isInitialLoad = useRef(true);
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  const checkIfAdmin = useCallback(async (userId: string): Promise<boolean> => {
+  // Verifica se é System Admin (apenas admin@admin.com)
+  const checkIfSystemAdmin = useCallback(async (userId: string): Promise<boolean> => {
     try {
       const { data, error } = await supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', userId)
-        .eq('role', 'admin')
+        .eq('role', 'system')
         .maybeSingle();
 
       if (error) {
@@ -97,7 +98,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       return !!data;
     } catch (error) {
-      console.error('Error in checkIfAdmin:', error);
+      console.error('Error in checkIfSystemAdmin:', error);
       return false;
     }
   }, []);
@@ -131,9 +132,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       lastReloadTime.current = now;
       isInitialLoad.current = false; // Marcar que já não é inicial
 
-      const [profileResult, isAdmin] = await Promise.all([
+      const [profileResult, isSystemAdmin] = await Promise.all([
         supabase.from('profiles').select('*').eq('id', supabaseUser.id).maybeSingle(),
-        checkIfAdmin(supabaseUser.id)
+        checkIfSystemAdmin(supabaseUser.id)
       ]);
 
       if (!isMounted.current) return;
@@ -157,7 +158,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email: supabaseUser.email || '',
         name: profile.name || profile.email || '',
         teamId: profile.team_id,
-        isAdmin,
+        isAdmin: isSystemAdmin,
         avatarUrl: profile.avatar_url
       };
 
@@ -240,7 +241,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsLoading(false);
       }
     }
-  }, [checkIfAdmin]);
+  }, [checkIfSystemAdmin]);
 
   const reloadUserData = useCallback(async () => {
     const { data: { session: currentSession } } = await supabase.auth.getSession();
