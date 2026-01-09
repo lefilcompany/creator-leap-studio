@@ -3,13 +3,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Package, Users, CreditCard, Building2, RefreshCw } from "lucide-react";
+import { Loader2, Package, Users, CreditCard, Building2, RefreshCw, TrendingUp } from "lucide-react";
 import { AdminFilters } from "@/components/admin/AdminFilters";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 
 interface Plan {
   id: string;
@@ -42,6 +44,11 @@ interface TeamSubscription {
   admin_email: string;
 }
 
+interface RevenueHistoryItem {
+  month: string;
+  revenue: number;
+}
+
 interface StripeRevenue {
   mrr: number;
   activeSubscriptions: number;
@@ -49,6 +56,7 @@ interface StripeRevenue {
   totalCustomers: number;
   pendingBalance: number;
   currency: string;
+  revenueHistory?: RevenueHistoryItem[];
 }
 
 export default function AdminPlans() {
@@ -293,6 +301,80 @@ export default function AdminPlans() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Revenue Chart */}
+      {stripeData?.revenueHistory && stripeData.revenueHistory.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5" />
+              Evolução da Receita
+            </CardTitle>
+            <CardDescription>Receita mensal dos últimos 12 meses (dados do Stripe)</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer
+              config={{
+                revenue: {
+                  label: "Receita",
+                  color: "hsl(var(--primary))",
+                },
+              }}
+              className="h-[300px]"
+            >
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={stripeData.revenueHistory}>
+                  <defs>
+                    <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis 
+                    dataKey="month" 
+                    tickFormatter={(value) => {
+                      const [year, month] = value.split('-');
+                      return format(new Date(parseInt(year), parseInt(month) - 1), 'MMM/yy', { locale: ptBR });
+                    }}
+                    className="text-xs"
+                  />
+                  <YAxis 
+                    tickFormatter={(value) => `R$ ${value.toLocaleString('pt-BR')}`}
+                    className="text-xs"
+                  />
+                  <ChartTooltip
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const data = payload[0].payload;
+                        const [year, month] = data.month.split('-');
+                        const formattedMonth = format(new Date(parseInt(year), parseInt(month) - 1), 'MMMM yyyy', { locale: ptBR });
+                        return (
+                          <div className="rounded-lg border bg-background p-2 shadow-sm">
+                            <div className="text-xs text-muted-foreground capitalize">{formattedMonth}</div>
+                            <div className="font-bold text-primary">
+                              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(data.revenue)}
+                            </div>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="revenue"
+                    stroke="hsl(var(--primary))"
+                    strokeWidth={2}
+                    fillOpacity={1}
+                    fill="url(#colorRevenue)"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
