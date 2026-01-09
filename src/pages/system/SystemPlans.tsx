@@ -4,6 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, Package, Users, CreditCard, Building2 } from "lucide-react";
+import { AdminFilters } from "@/components/admin/AdminFilters";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -44,6 +45,11 @@ export default function AdminPlans() {
   const [subscriptions, setSubscriptions] = useState<TeamSubscription[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("plans");
+  
+  // Filters for subscriptions
+  const [searchQuery, setSearchQuery] = useState("");
+  const [planFilter, setPlanFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   useEffect(() => {
     fetchData();
@@ -151,6 +157,20 @@ export default function AdminPlans() {
       currency: "BRL"
     }).format(value);
   };
+
+  // Filter subscriptions
+  const filteredSubscriptions = subscriptions.filter(sub => {
+    const matchesSearch = searchQuery === "" || 
+      sub.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      sub.admin_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      sub.admin_email.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesPlan = planFilter === "all" || sub.plan_id === planFilter;
+    
+    const matchesStatus = statusFilter === "all" || sub.subscription_status === statusFilter;
+    
+    return matchesSearch && matchesPlan && matchesStatus;
+  });
 
   // Stats
   const totalPlans = plans.length;
@@ -302,6 +322,16 @@ export default function AdminPlans() {
               <CardDescription>Visualize todas as assinaturas ativas e históricas</CardDescription>
             </CardHeader>
             <CardContent>
+              <AdminFilters
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+                planFilter={planFilter}
+                onPlanFilterChange={setPlanFilter}
+                statusFilter={statusFilter}
+                onStatusFilterChange={setStatusFilter}
+                plans={plans.map(p => ({ id: p.id, name: p.name }))}
+                showStatusFilter={true}
+              />
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -314,7 +344,7 @@ export default function AdminPlans() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {subscriptions.map((sub) => (
+                  {filteredSubscriptions.map((sub) => (
                     <TableRow key={sub.id}>
                       <TableCell className="font-medium">{sub.name}</TableCell>
                       <TableCell>
