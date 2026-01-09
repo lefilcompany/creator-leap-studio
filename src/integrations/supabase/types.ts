@@ -1008,7 +1008,7 @@ export type Database = {
         | "REVISAR_CONTEUDO"
         | "PLANEJAR_CONTEUDO"
         | "GERAR_VIDEO"
-      app_role: "admin" | "member"
+      app_role: "admin" | "member" | "system"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1143,7 +1143,7 @@ export const Constants = {
         "PLANEJAR_CONTEUDO",
         "GERAR_VIDEO",
       ],
-      app_role: ["admin", "member"],
+      app_role: ["admin", "member", "system"],
     },
   },
 } as const
