@@ -3,11 +3,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Package, Users, CreditCard, Building2 } from "lucide-react";
+import { Loader2, Package, Users, CreditCard, Building2, RefreshCw } from "lucide-react";
 import { AdminFilters } from "@/components/admin/AdminFilters";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 interface Plan {
   id: string;
@@ -40,10 +42,21 @@ interface TeamSubscription {
   admin_email: string;
 }
 
+interface StripeRevenue {
+  mrr: number;
+  activeSubscriptions: number;
+  trialingSubscriptions: number;
+  totalCustomers: number;
+  pendingBalance: number;
+  currency: string;
+}
+
 export default function AdminPlans() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [subscriptions, setSubscriptions] = useState<TeamSubscription[]>([]);
+  const [stripeData, setStripeData] = useState<StripeRevenue | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingStripe, setIsLoadingStripe] = useState(false);
   const [activeTab, setActiveTab] = useState("plans");
   
   // Filters for subscriptions
@@ -53,7 +66,22 @@ export default function AdminPlans() {
 
   useEffect(() => {
     fetchData();
+    fetchStripeData();
   }, []);
+
+  const fetchStripeData = async () => {
+    setIsLoadingStripe(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("get-stripe-revenue");
+      if (error) throw error;
+      setStripeData(data);
+    } catch (error) {
+      console.error("Error fetching Stripe data:", error);
+      toast.error("Erro ao carregar dados do Stripe");
+    } finally {
+      setIsLoadingStripe(false);
+    }
+  };
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -172,11 +200,18 @@ export default function AdminPlans() {
     return matchesSearch && matchesPlan && matchesStatus;
   });
 
-  // Stats
+  // Stats from local data
   const totalPlans = plans.length;
   const activePlans = plans.filter(p => p.is_active).length;
-  const totalSubscriptions = subscriptions.filter(s => s.subscription_status === "active" || s.subscription_status === "trialing").length;
-  const totalRevenue = subscriptions
+  
+  // Use Stripe data if available, fallback to local calculation
+  const activeSubscriptionsCount = stripeData?.activeSubscriptions ?? 
+    subscriptions.filter(s => s.subscription_status === "active").length;
+  const trialingCount = stripeData?.trialingSubscriptions ?? 
+    subscriptions.filter(s => s.subscription_status === "trialing").length;
+  const totalActiveAndTrialing = activeSubscriptionsCount + trialingCount;
+  
+  const totalRevenue = stripeData?.mrr ?? subscriptions
     .filter(s => s.subscription_status === "active")
     .reduce((acc, sub) => {
       const plan = plans.find(p => p.id === sub.plan_id);
@@ -194,6 +229,22 @@ export default function AdminPlans() {
   return (
     <div className="space-y-6">
       {/* Stats Cards */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold">Visão Geral</h2>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={fetchStripeData}
+          disabled={isLoadingStripe}
+        >
+          {isLoadingStripe ? (
+            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+          ) : (
+            <RefreshCw className="h-4 w-4 mr-2" />
+          )}
+          Atualizar Stripe
+        </Button>
+      </div>
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -211,18 +262,24 @@ export default function AdminPlans() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalSubscriptions}</div>
-            <p className="text-xs text-muted-foreground">equipes assinantes</p>
+            <div className="text-2xl font-bold">{totalActiveAndTrialing}</div>
+            <p className="text-xs text-muted-foreground">
+              {activeSubscriptionsCount} ativas, {trialingCount} trial
+              {stripeData && <span className="text-green-600 ml-1">• Stripe</span>}
+            </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Receita Mensal</CardTitle>
+            <CardTitle className="text-sm font-medium">Receita Mensal (MRR)</CardTitle>
             <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatCurrency(totalRevenue)}</div>
-            <p className="text-xs text-muted-foreground">recorrente</p>
+            <p className="text-xs text-muted-foreground">
+              recorrente
+              {stripeData && <span className="text-green-600 ml-1">• Stripe</span>}
+            </p>
           </CardContent>
         </Card>
         <Card>
