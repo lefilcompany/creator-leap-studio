@@ -50,6 +50,8 @@ serve(async (req) => {
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
 
+    console.log("[get-stripe-revenue] Fetching Stripe data...");
+
     // Get all active subscriptions
     const subscriptions = await stripe.subscriptions.list({
       status: "active",
@@ -95,14 +97,61 @@ serve(async (req) => {
       pendingBalance += b.amount;
     }
 
+    // Get revenue history for the last 12 months
+    const now = new Date();
+    const twelveMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 11, 1);
+    
+    console.log("[get-stripe-revenue] Fetching invoices from", twelveMonthsAgo.toISOString());
+
+    // Fetch paid invoices from the last 12 months
+    const invoices = await stripe.invoices.list({
+      status: "paid",
+      created: {
+        gte: Math.floor(twelveMonthsAgo.getTime() / 1000),
+      },
+      limit: 100,
+    });
+
+    // Group invoices by month
+    const revenueByMonth: Record<string, number> = {};
+    
+    // Initialize all months with 0
+    for (let i = 0; i < 12; i++) {
+      const date = new Date(now.getFullYear(), now.getMonth() - 11 + i, 1);
+      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      revenueByMonth[key] = 0;
+    }
+
+    // Sum up invoice amounts by month
+    for (const invoice of invoices.data) {
+      if (invoice.status_transitions?.paid_at) {
+        const paidDate = new Date(invoice.status_transitions.paid_at * 1000);
+        const key = `${paidDate.getFullYear()}-${String(paidDate.getMonth() + 1).padStart(2, '0')}`;
+        if (revenueByMonth[key] !== undefined) {
+          revenueByMonth[key] += (invoice.amount_paid || 0) / 100;
+        }
+      }
+    }
+
+    // Convert to array sorted by date
+    const revenueHistory = Object.entries(revenueByMonth)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([month, revenue]) => ({
+        month,
+        revenue: Math.round(revenue * 100) / 100,
+      }));
+
+    console.log("[get-stripe-revenue] Revenue history:", revenueHistory);
+
     return new Response(
       JSON.stringify({
-        mrr: mrr / 100, // Convert from cents to currency
+        mrr: mrr / 100,
         activeSubscriptions: subscriptions.data.length,
         trialingSubscriptions: trialingSubscriptions.data.length,
         totalCustomers: customers.data.length,
         pendingBalance: pendingBalance / 100,
         currency: "BRL",
+        revenueHistory,
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -111,7 +160,7 @@ serve(async (req) => {
     );
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    console.error("Error:", errorMessage);
+    console.error("[get-stripe-revenue] Error:", errorMessage);
     return new Response(
       JSON.stringify({ error: errorMessage }),
       {
