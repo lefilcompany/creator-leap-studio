@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { NativeSelect } from "@/components/ui/native-select";
 
 interface Plan {
   id: string;
@@ -71,16 +72,32 @@ export default function AdminPlans() {
   const [searchQuery, setSearchQuery] = useState("");
   const [planFilter, setPlanFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  
+  // Revenue chart period filter
+  const [revenuePeriod, setRevenuePeriod] = useState("12");
+
+  const periodOptions = [
+    { value: "6", label: "Últimos 6 meses" },
+    { value: "12", label: "Último ano" },
+    { value: "24", label: "Últimos 2 anos" },
+    { value: "36", label: "Últimos 3 anos" },
+    { value: "60", label: "Últimos 5 anos" },
+  ];
 
   useEffect(() => {
     fetchData();
-    fetchStripeData();
   }, []);
 
-  const fetchStripeData = async () => {
+  useEffect(() => {
+    fetchStripeData(parseInt(revenuePeriod));
+  }, [revenuePeriod]);
+
+  const fetchStripeData = async (months: number = 12) => {
     setIsLoadingStripe(true);
     try {
-      const { data, error } = await supabase.functions.invoke("get-stripe-revenue");
+      const { data, error } = await supabase.functions.invoke("get-stripe-revenue", {
+        body: { months }
+      });
       if (error) throw error;
       setStripeData(data);
     } catch (error) {
@@ -242,7 +259,7 @@ export default function AdminPlans() {
         <Button 
           variant="outline" 
           size="sm" 
-          onClick={fetchStripeData}
+          onClick={() => fetchStripeData(parseInt(revenuePeriod))}
           disabled={isLoadingStripe}
         >
           {isLoadingStripe ? (
@@ -305,12 +322,23 @@ export default function AdminPlans() {
       {/* Revenue Chart */}
       {stripeData?.revenueHistory && stripeData.revenueHistory.length > 0 && (
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5" />
-              Evolução da Receita
-            </CardTitle>
-            <CardDescription>Receita mensal dos últimos 12 meses (dados do Stripe)</CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5" />
+                Evolução da Receita
+              </CardTitle>
+              <CardDescription>
+                Receita mensal {periodOptions.find(p => p.value === revenuePeriod)?.label.toLowerCase()} (dados do Stripe)
+              </CardDescription>
+            </div>
+            <NativeSelect
+              value={revenuePeriod}
+              onValueChange={setRevenuePeriod}
+              options={periodOptions}
+              placeholder="Período"
+              triggerClassName="w-[180px]"
+            />
           </CardHeader>
           <CardContent>
             <ChartContainer

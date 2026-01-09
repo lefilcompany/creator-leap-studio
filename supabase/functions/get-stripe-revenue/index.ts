@@ -48,9 +48,20 @@ serve(async (req) => {
       throw new Error("STRIPE_SECRET_KEY is not set");
     }
 
+    // Get months parameter from request body
+    let months = 12;
+    try {
+      const body = await req.json();
+      if (body.months && typeof body.months === "number" && body.months > 0 && body.months <= 60) {
+        months = body.months;
+      }
+    } catch {
+      // No body or invalid JSON, use default
+    }
+
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
 
-    console.log("[get-stripe-revenue] Fetching Stripe data...");
+    console.log(`[get-stripe-revenue] Fetching Stripe data for ${months} months...`);
 
     // Get all active subscriptions
     const subscriptions = await stripe.subscriptions.list({
@@ -97,33 +108,51 @@ serve(async (req) => {
       pendingBalance += b.amount;
     }
 
-    // Get revenue history for the last 12 months
+    // Get revenue history for the requested period
     const now = new Date();
-    const twelveMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 11, 1);
+    const startDate = new Date(now.getFullYear(), now.getMonth() - months + 1, 1);
     
-    console.log("[get-stripe-revenue] Fetching invoices from", twelveMonthsAgo.toISOString());
+    console.log(`[get-stripe-revenue] Fetching invoices from ${startDate.toISOString()}`);
 
-    // Fetch paid invoices from the last 12 months
-    const invoices = await stripe.invoices.list({
-      status: "paid",
-      created: {
-        gte: Math.floor(twelveMonthsAgo.getTime() / 1000),
-      },
-      limit: 100,
-    });
+    // Fetch paid invoices - need to paginate for longer periods
+    const allInvoices: any[] = [];
+    let hasMore = true;
+    let startingAfter: string | undefined = undefined;
+
+    while (hasMore) {
+      const params: any = {
+        status: "paid",
+        created: {
+          gte: Math.floor(startDate.getTime() / 1000),
+        },
+        limit: 100,
+      };
+      if (startingAfter) {
+        params.starting_after = startingAfter;
+      }
+
+      const invoices = await stripe.invoices.list(params);
+      allInvoices.push(...invoices.data);
+      hasMore = invoices.has_more;
+      if (invoices.data.length > 0) {
+        startingAfter = invoices.data[invoices.data.length - 1].id;
+      }
+    }
+
+    console.log(`[get-stripe-revenue] Fetched ${allInvoices.length} invoices`);
 
     // Group invoices by month
     const revenueByMonth: Record<string, number> = {};
     
     // Initialize all months with 0
-    for (let i = 0; i < 12; i++) {
-      const date = new Date(now.getFullYear(), now.getMonth() - 11 + i, 1);
+    for (let i = 0; i < months; i++) {
+      const date = new Date(now.getFullYear(), now.getMonth() - months + 1 + i, 1);
       const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
       revenueByMonth[key] = 0;
     }
 
     // Sum up invoice amounts by month
-    for (const invoice of invoices.data) {
+    for (const invoice of allInvoices) {
       if (invoice.status_transitions?.paid_at) {
         const paidDate = new Date(invoice.status_transitions.paid_at * 1000);
         const key = `${paidDate.getFullYear()}-${String(paidDate.getMonth() + 1).padStart(2, '0')}`;
@@ -141,7 +170,7 @@ serve(async (req) => {
         revenue: Math.round(revenue * 100) / 100,
       }));
 
-    console.log("[get-stripe-revenue] Revenue history:", revenueHistory);
+    console.log(`[get-stripe-revenue] Revenue history: ${revenueHistory.length} months`);
 
     return new Response(
       JSON.stringify({
