@@ -42,13 +42,13 @@ import Privacy from "./pages/Privacy";
 import ActionView from "./pages/ActionView";
 import { DashboardLayout } from "./components/DashboardLayout";
 import NotFound from "./pages/NotFound";
-import Admin from "./pages/Admin";
-import AdminTeams from "./pages/admin/AdminTeams";
-import AdminUsers from "./pages/admin/AdminUsers";
-import AdminLogs from "./pages/admin/AdminLogs";
-import AdminPlans from "./pages/admin/AdminPlans";
-import { AdminRoute } from "./components/admin/AdminRoute";
-import { AdminLayout } from "./components/admin/AdminLayout";
+import System from "./pages/System";
+import SystemTeams from "./pages/system/SystemTeams";
+import SystemUsers from "./pages/system/SystemUsers";
+import SystemLogs from "./pages/system/SystemLogs";
+import SystemPlans from "./pages/system/SystemPlans";
+import { SystemRoute } from "./components/system/SystemRoute";
+import { SystemLayout } from "./components/system/SystemLayout";
 
 const queryClient = new QueryClient();
 
@@ -112,13 +112,13 @@ const App = () => (
                         <Route path="action/:actionId" element={<ActionView />} />
                       </Route>
                       
-                      {/* Admin routes with separate layout */}
-                      <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
-                        <Route index element={<Admin />} />
-                        <Route path="plans" element={<AdminPlans />} />
-                        <Route path="teams" element={<AdminTeams />} />
-                        <Route path="users" element={<AdminUsers />} />
-                        <Route path="logs" element={<AdminLogs />} />
+                      {/* System admin routes with separate layout */}
+                      <Route path="/system" element={<SystemRoute><SystemLayout /></SystemRoute>}>
+                        <Route index element={<System />} />
+                        <Route path="plans" element={<SystemPlans />} />
+                        <Route path="teams" element={<SystemTeams />} />
+                        <Route path="users" element={<SystemUsers />} />
+                        <Route path="logs" element={<SystemLogs />} />
                       </Route>
                       
                       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

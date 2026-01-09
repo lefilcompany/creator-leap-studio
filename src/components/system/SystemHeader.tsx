@@ -25,11 +25,11 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { CreatorLogo } from "../CreatorLogo";
-import { AdminRealtimeStats } from "./AdminRealtimeStats";
+import { SystemRealtimeStats } from "./SystemRealtimeStats";
 import { cn } from "@/lib/utils";
 import { PanelLeftOpen, PanelLeftClose } from "lucide-react";
 
-export const AdminHeader = () => {
+export const SystemHeader = () => {
   const { setOpen, toggleSidebar, state } = useSidebar();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
@@ -88,16 +88,16 @@ export const AdminHeader = () => {
             </Tooltip>
           </div>
 
-          {/* Admin badge */}
+          {/* System badge */}
           <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/20">
             <Shield className="h-4 w-4 text-primary" />
             <span className="text-sm font-semibold text-primary">
-              Administração
+              Sistema
             </span>
           </div>
 
           {/* Realtime Stats */}
-          <AdminRealtimeStats />
+          <SystemRealtimeStats />
         </div>
 
         {/* Right section */}
@@ -124,7 +124,7 @@ export const AdminHeader = () => {
                   className="h-8 w-8 md:h-10 md:w-10 rounded-lg hover:bg-primary/10 p-0"
                 >
                   <Avatar className="h-8 w-8 md:h-10 md:w-10 border-2 border-primary/20 hover:border-primary/40 transition-all">
-                    <AvatarImage src={user?.avatarUrl || undefined} alt={user?.name || "Admin"} />
+                    <AvatarImage src={user?.avatarUrl || undefined} alt={user?.name || "System Admin"} />
                     <AvatarFallback className="bg-gradient-to-br from-primary via-primary/80 to-secondary text-primary-foreground text-xs md:text-sm font-semibold">
                       {user?.name ? (
                         user.name
@@ -142,7 +142,7 @@ export const AdminHeader = () => {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 shadow-xl">
                 <div className="px-3 py-2 border-b">
-                  <p className="text-sm font-medium">{user?.name || "Administrador"}</p>
+                  <p className="text-sm font-medium">{user?.name || "System Admin"}</p>
                   <p className="text-xs text-muted-foreground">{user?.email}</p>
                 </div>
                 <DropdownMenuItem className="p-3 cursor-pointer" asChild>

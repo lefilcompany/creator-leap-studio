@@ -38,11 +38,11 @@ export default function ProtectedRoute({ children, requireTeam = true }: Protect
       return;
     }
 
-    // Se o usuário é admin, redirecionar para a área admin
+    // Se o usuário é system admin, redirecionar para a área do sistema
     if (user?.isAdmin) {
-      console.log("[ProtectedRoute] Admin user detected, redirecting to admin area");
+      console.log("[ProtectedRoute] System admin user detected, redirecting to system area");
       hasRedirected.current = true;
-      navigate("/admin", { replace: true });
+      navigate("/system", { replace: true });
       return;
     }
 
@@ -83,7 +83,7 @@ export default function ProtectedRoute({ children, requireTeam = true }: Protect
     return null;
   }
 
-  // Se é admin, não renderiza nada (vai redirecionar para admin)
+  // Se é system admin, não renderiza nada (vai redirecionar para system)
   if (user?.isAdmin) {
     return null;
   }

@@ -5,19 +5,19 @@ import { useAuth } from "@/hooks/useAuth";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-interface AdminRouteProps {
+interface SystemRouteProps {
   children: React.ReactNode;
 }
 
-export const AdminRoute = ({ children }: AdminRouteProps) => {
+export const SystemRoute = ({ children }: SystemRouteProps) => {
   const { user, isLoading: authLoading } = useAuth();
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const [isSystemAdmin, setIsSystemAdmin] = useState<boolean | null>(null);
   const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
-    const checkAdminRole = async () => {
+    const checkSystemRole = async () => {
       if (!user?.id) {
-        setIsAdmin(false);
+        setIsSystemAdmin(false);
         setIsChecking(false);
         return;
       }
@@ -25,29 +25,29 @@ export const AdminRoute = ({ children }: AdminRouteProps) => {
       try {
         const { data, error } = await supabase.rpc("has_role", {
           _user_id: user.id,
-          _role: "admin",
+          _role: "system",
         });
 
         if (error) {
-          console.error("Erro ao verificar role de admin:", error);
-          setIsAdmin(false);
+          console.error("Erro ao verificar role de system:", error);
+          setIsSystemAdmin(false);
           toast.error("Erro ao verificar permissões");
         } else {
-          setIsAdmin(data || false);
+          setIsSystemAdmin(data || false);
           if (!data) {
-            toast.error("Acesso negado. Você não tem permissões de administrador.");
+            toast.error("Acesso negado. Você não tem permissões de administrador do sistema.");
           }
         }
       } catch (error) {
-        console.error("Erro ao verificar admin:", error);
-        setIsAdmin(false);
+        console.error("Erro ao verificar system admin:", error);
+        setIsSystemAdmin(false);
         toast.error("Erro ao verificar permissões");
       } finally {
         setIsChecking(false);
       }
     };
 
-    checkAdminRole();
+    checkSystemRole();
   }, [user?.id]);
 
   if (authLoading || isChecking) {
@@ -58,7 +58,7 @@ export const AdminRoute = ({ children }: AdminRouteProps) => {
     );
   }
 
-  if (!user || isAdmin === false) {
+  if (!user || isSystemAdmin === false) {
     return <Navigate to="/dashboard" replace />;
   }
 
