@@ -13,6 +13,7 @@ export const DashboardLayout = () => {
     <SidebarProvider defaultOpen={true}>
       <PresenceTracker />
       <div className="h-screen w-full flex overflow-hidden bg-gradient-to-br from-background via-background to-muted/10">
+        <AppSidebar />
         <div className="flex flex-1 flex-col min-w-0">
           <Header />
           <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gradient-to-b from-background/50 to-background">
