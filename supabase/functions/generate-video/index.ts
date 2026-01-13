@@ -809,10 +809,23 @@ STYLE: Maintain the general aesthetic of the reference image while adding dynami
 
     console.log('Operation started:', operationName);
 
-    // Iniciar processamento em background (sem awaitar)
-    processVideoGeneration(operationName, actionId, actionData.team_id).catch(err => {
+    // Usar EdgeRuntime.waitUntil para manter o processamento em background
+    // Isso garante que a função continue executando até o vídeo ser processado
+    const backgroundPromise = processVideoGeneration(operationName, actionId, actionData.team_id).catch(err => {
       console.error('Background video processing error:', err);
     });
+    
+    // EdgeRuntime.waitUntil mantém a função viva até a promise resolver
+    // @ts-ignore - EdgeRuntime é disponível no ambiente Deno/Supabase
+    if (typeof EdgeRuntime !== 'undefined' && EdgeRuntime.waitUntil) {
+      console.log('✅ Using EdgeRuntime.waitUntil for background processing');
+      // @ts-ignore
+      EdgeRuntime.waitUntil(backgroundPromise);
+    } else {
+      console.log('⚠️ EdgeRuntime.waitUntil not available, using fallback');
+      // Fallback: aguardar um pouco para iniciar o processo
+      backgroundPromise;
+    }
 
     // Retornar imediatamente com status de processamento
     return new Response(
