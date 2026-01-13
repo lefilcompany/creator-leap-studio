@@ -768,16 +768,75 @@ STYLE: Maintain the general aesthetic of the reference image while adding dynami
         promptLength: optimizedPrompt.length
       });
       
-      // Atualizar action para failed quando API retorna erro
+      // Verificar se é um erro que justifica reembolso de créditos
+      // 429 (quota/rate limit), 500+ (server errors), 503 (service unavailable)
+      const shouldRefundCredits = generateResponse.status === 429 || 
+                                   generateResponse.status >= 500;
+      
+      let userMessage = 'Erro na geração de vídeo';
+      let refundedCredits = false;
+      
+      // Reembolsar créditos para erros de quota/servidor (não foi consumido recurso da API)
+      if (shouldRefundCredits) {
+        console.log('💰 Reembolsando créditos devido a erro da API...');
+        
+        // Buscar créditos atuais
+        const { data: currentTeam } = await supabase
+          .from('teams')
+          .select('credits')
+          .eq('id', actionData.team_id)
+          .single();
+        
+        if (currentTeam) {
+          const refundedCreditsAfter = currentTeam.credits + CREDIT_COSTS.VIDEO_GENERATION;
+          
+          // Devolver créditos
+          await supabase
+            .from('teams')
+            .update({ credits: refundedCreditsAfter })
+            .eq('id', actionData.team_id);
+          
+          // Registrar reembolso no histórico
+          await supabase
+            .from('credit_history')
+            .insert({
+              team_id: actionData.team_id,
+              user_id: actionData.user_id,
+              action_type: 'VIDEO_GENERATION_REFUND',
+              credits_used: -CREDIT_COSTS.VIDEO_GENERATION,
+              credits_before: currentTeam.credits,
+              credits_after: refundedCreditsAfter,
+              description: `Reembolso: Erro ${generateResponse.status} na API de vídeo`,
+              metadata: { 
+                action_id: actionId, 
+                error_status: generateResponse.status,
+                reason: generateResponse.status === 429 ? 'quota_exceeded' : 'server_error'
+              }
+            });
+          
+          refundedCredits = true;
+          console.log(`✅ Créditos reembolsados: ${currentTeam.credits} → ${refundedCreditsAfter}`);
+        }
+        
+        // Mensagens amigáveis para o usuário
+        if (generateResponse.status === 429) {
+          userMessage = 'A API de vídeo atingiu o limite de uso. Seus créditos foram reembolsados. Tente novamente em alguns minutos.';
+        } else {
+          userMessage = 'Erro temporário no servidor de vídeo. Seus créditos foram reembolsados. Tente novamente.';
+        }
+      }
+      
+      // Atualizar action para failed
       await supabase
         .from('actions')
         .update({
           status: 'failed',
           result: { 
-            error: `Erro na API de geração de vídeo: ${errorText}`,
+            error: userMessage,
             apiStatus: generateResponse.status,
             modelUsed: modelName,
             generationType: generationType,
+            creditsRefunded: refundedCredits,
             failedAt: new Date().toISOString()
           },
           updated_at: new Date().toISOString()
@@ -786,10 +845,11 @@ STYLE: Maintain the general aesthetic of the reference image while adding dynami
       
       return new Response(
         JSON.stringify({ 
-          error: `Erro na geração de vídeo`, 
+          error: userMessage, 
           details: errorText,
           modelUsed: modelName,
           generationType: generationType,
+          creditsRefunded: refundedCredits,
           status: 'failed' 
         }),
         { status: generateResponse.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
