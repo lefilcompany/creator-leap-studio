@@ -15,6 +15,7 @@ import { CreditUsageOverTimeChart } from "@/components/admin/CreditUsageOverTime
 import { TeamGrowthChart } from "@/components/admin/TeamGrowthChart";
 import { ActionTypeDistributionChart } from "@/components/admin/ActionTypeDistributionChart";
 import { SystemLogsTable } from "@/components/admin/SystemLogsTable";
+import { GeminiQuotaCard } from "@/components/admin/GeminiQuotaCard";
 import { Users, Building2, Coins, TrendingUp, ScrollText } from "lucide-react";
 import { toast } from "sonner";
 
@@ -438,7 +439,10 @@ const Admin = () => {
           <CreditsDistributionChart teams={teams} />
         </div>
 
-        <TopTeamsChart teams={teams} />
+        <div className="grid gap-6 lg:grid-cols-2">
+          <TopTeamsChart teams={teams} />
+          <GeminiQuotaCard />
+        </div>
       </div>
 
       <div className="space-y-6">
