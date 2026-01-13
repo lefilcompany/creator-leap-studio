@@ -207,13 +207,15 @@ export default function CreateVideo() {
         }
       }).select().single();
 
+      if (!actionData?.id) {
+        throw new Error("Não foi possível iniciar a geração (ação não registrada).");
+      }
+
       // Preparar imagens de referência se houver
       const preserveImages = referenceImage ? [referenceImage] : [];
 
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-video`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token}` },
-        body: JSON.stringify({
+      const { data: responseData, error: invokeError } = await supabase.functions.invoke('generate-video', {
+        body: {
           prompt: videoPrompt,
           generationType: referenceImage ? 'image_to_video' : 'text_to_video',
           actionId: actionData.id,
@@ -223,24 +225,41 @@ export default function CreateVideo() {
           resolution: formData.videoResolution,
           duration: formData.videoDuration,
           preserveImages,
-        }),
+        },
       });
 
-      const responseData = await response.json();
-      
-      if (!response.ok || responseData.status === 'failed') {
-        // Atualizar créditos localmente já que a API falhou
-        if (team) {
-          setTeam(prev => prev ? { ...prev, credits: prev.credits + CREDIT_COSTS.VIDEO_GENERATION } : null);
+      // Atualizar créditos locais com o valor real do backend (dedução ou reembolso)
+      try {
+        if (user?.teamId) {
+          const { data: creditsData } = await supabase
+            .from('teams')
+            .select('credits')
+            .eq('id', user.teamId)
+            .single();
+          if (creditsData?.credits != null) {
+            setTeam((prev) => (prev ? { ...prev, credits: creditsData.credits } : prev));
+          }
         }
-        throw new Error(responseData.error || responseData.details || "Erro ao iniciar geração de vídeo");
+      } catch {
+        // noop
+      }
+
+      if (invokeError) {
+        console.error('Erro ao chamar generate-video:', invokeError);
+        toast.error(invokeError.message || "Erro ao iniciar geração de vídeo", { id: toastId });
+        return;
+      }
+
+      if (!responseData || responseData.status === 'failed') {
+        toast.error(responseData?.error || "Erro ao iniciar geração de vídeo", { id: toastId });
+        return;
       }
 
       toast.success("Vídeo sendo gerado!", { id: toastId, duration: 3000 });
       navigate("/video-result", { state: { contentData: { actionId: actionData.id, isProcessing: true } } });
     } catch (err: any) {
       console.error("Erro:", err);
-      toast.error("Erro ao gerar vídeo", { id: toastId });
+      toast.error(err?.message || "Erro ao gerar vídeo", { id: toastId });
     } finally {
       setLoading(false);
     }
