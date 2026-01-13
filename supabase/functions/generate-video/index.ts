@@ -843,16 +843,21 @@ STYLE: Maintain the general aesthetic of the reference image while adding dynami
         })
         .eq('id', actionId);
       
+      // Para erros esperados de quota/rate limit, retornamos 200 para o frontend tratar sem “Edge function returned 429”.
+      const httpStatus = generateResponse.status;
+      const responseStatus = shouldRefundCredits ? 200 : httpStatus;
+
       return new Response(
-        JSON.stringify({ 
-          error: userMessage, 
+        JSON.stringify({
+          error: userMessage,
           details: errorText,
           modelUsed: modelName,
           generationType: generationType,
           creditsRefunded: refundedCredits,
-          status: 'failed' 
+          httpStatus,
+          status: 'failed',
         }),
-        { status: generateResponse.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: responseStatus, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
