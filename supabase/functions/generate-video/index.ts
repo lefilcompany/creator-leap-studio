@@ -608,19 +608,63 @@ STYLE: Maintain the general aesthetic of the reference image while adding dynami
     
     // Função auxiliar para extrair base64 puro (remove prefixo data URL se existir)
     function extractBase64(dataUrl: string): { base64: string; mimeType: string } {
+      console.log('🔍 [extractBase64] Input type:', typeof dataUrl);
+      console.log('🔍 [extractBase64] Input starts with:', dataUrl?.substring(0, 50) || 'undefined');
+      console.log('🔍 [extractBase64] Input length:', dataUrl?.length || 0);
+      
+      // Verificar se é uma data URL válida
       const match = dataUrl.match(/^data:([^;]+);base64,(.+)$/);
       if (match) {
+        console.log('✅ [extractBase64] Data URL format detected');
+        console.log('✅ [extractBase64] Extracted mimeType:', match[1]);
+        console.log('✅ [extractBase64] Extracted base64 length:', match[2].length);
         return { base64: match[2], mimeType: match[1] };
       }
-      // Se não tiver prefixo, assume que já é base64 puro
-      return { base64: dataUrl, mimeType: 'image/png' };
+      
+      // Detectar mimeType pelo magic number do base64 se não tiver prefixo
+      let mimeType = 'image/png'; // default
+      if (dataUrl.startsWith('/9j/')) {
+        mimeType = 'image/jpeg';
+      } else if (dataUrl.startsWith('iVBORw0KGgo')) {
+        mimeType = 'image/png';
+      } else if (dataUrl.startsWith('R0lGODlh')) {
+        mimeType = 'image/gif';
+      } else if (dataUrl.startsWith('UklGR')) {
+        mimeType = 'image/webp';
+      }
+      
+      console.log('⚠️ [extractBase64] No data URL prefix found, assuming raw base64');
+      console.log('⚠️ [extractBase64] Detected mimeType from magic number:', mimeType);
+      return { base64: dataUrl, mimeType };
+    }
+
+    // Validar duração para Veo 3.0 (máximo 8 segundos)
+    let validatedDuration = duration;
+    const MAX_DURATION_VEO30 = 8;
+    if (generationType === 'image_to_video' && duration > MAX_DURATION_VEO30) {
+      console.warn(`⚠️ Duration ${duration}s exceeds Veo 3.0 limit, capping at ${MAX_DURATION_VEO30}s`);
+      validatedDuration = MAX_DURATION_VEO30;
     }
 
     if (generationType === 'image_to_video') {
       // ✅ VEO 3.0: Estrutura específica para image-to-video
       // Documentação: https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/veo
       
+      console.log('🖼️ [DEBUG] preserveImages array length:', preserveImages?.length);
+      console.log('🖼️ [DEBUG] preserveImages[0] type:', typeof preserveImages?.[0]);
+      console.log('🖼️ [DEBUG] preserveImages[0] starts with:', preserveImages?.[0]?.substring(0, 80));
+      
       const { base64: imageBase64, mimeType: imageMimeType } = extractBase64(preserveImages[0]);
+      
+      // Validar que temos um base64 válido
+      if (!imageBase64 || imageBase64.length < 100) {
+        console.error('❌ [Veo 3.0] Invalid base64 image data');
+        return new Response(
+          JSON.stringify({ error: 'Imagem inválida ou corrompida. Por favor, tente novamente com outra imagem.' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
       console.log(`🖼️ [Veo 3.0] Imagem extraída - mimeType: ${imageMimeType}, base64 length: ${imageBase64.length}`);
       
       requestBody = {
@@ -633,12 +677,12 @@ STYLE: Maintain the general aesthetic of the reference image while adding dynami
         }],
         parameters: {
           aspectRatio: aspectRatio,
-          resolution: resolution,
-          durationSeconds: duration
+          durationSeconds: validatedDuration
         }
       };
       
       console.log(`🖼️ [Veo 3.0] Usando 1 imagem para image-to-video`);
+      console.log(`🖼️ [Veo 3.0] Duração validada: ${validatedDuration}s`);
     } else {
       // ✅ VEO 3.1: Estrutura para text-to-video
       requestBody = {
@@ -713,7 +757,16 @@ STYLE: Maintain the general aesthetic of the reference image while adding dynami
 
     if (!generateResponse.ok) {
       const errorText = await generateResponse.text();
-      console.error('Video generation API error:', generateResponse.status, errorText);
+      console.error('❌ Video generation API error:', {
+        status: generateResponse.status,
+        statusText: generateResponse.statusText,
+        body: errorText,
+        modelUsed: modelName,
+        generationType: generationType,
+        imageProvided: !!preserveImages?.[0],
+        imageMimeType: preserveImages?.[0] ? extractBase64(preserveImages[0]).mimeType : 'N/A',
+        promptLength: optimizedPrompt.length
+      });
       
       // Atualizar action para failed quando API retorna erro
       await supabase
@@ -723,6 +776,8 @@ STYLE: Maintain the general aesthetic of the reference image while adding dynami
           result: { 
             error: `Erro na API de geração de vídeo: ${errorText}`,
             apiStatus: generateResponse.status,
+            modelUsed: modelName,
+            generationType: generationType,
             failedAt: new Date().toISOString()
           },
           updated_at: new Date().toISOString()
@@ -733,6 +788,8 @@ STYLE: Maintain the general aesthetic of the reference image while adding dynami
         JSON.stringify({ 
           error: `Erro na geração de vídeo`, 
           details: errorText,
+          modelUsed: modelName,
+          generationType: generationType,
           status: 'failed' 
         }),
         { status: generateResponse.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
