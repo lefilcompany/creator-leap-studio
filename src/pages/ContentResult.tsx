@@ -32,8 +32,8 @@ export default function ContentResult() {
   const navigate = useNavigate();
   const location = useLocation();
   const {
-    team,
-    user
+    user,
+    refreshUserCredits
   } = useAuth();
   const [copied, setCopied] = useState(false);
   const [contentData, setContentData] = useState<ContentResultData | null>(null);
@@ -259,7 +259,7 @@ export default function ContentResult() {
     if (!reviewPrompt.trim() || !contentData || !reviewType) return;
 
     // Sempre verificar créditos (custo: 2 créditos para revisões)
-    if (!team?.credits || team.credits < CREDIT_COSTS.IMAGE_REVIEW) {
+    if (!user?.credits || user.credits < CREDIT_COSTS.IMAGE_REVIEW) {
       toast.error(`Você não tem créditos disponíveis. Cada revisão custa ${CREDIT_COSTS.IMAGE_REVIEW} créditos.`);
       return;
     }
@@ -295,7 +295,7 @@ export default function ContentResult() {
             brand: originalFormData.brand || contentData.brand,
             theme: originalFormData.theme || "",
             brandId: originalFormData.brandId,
-            teamId: team?.id,
+            teamId: user?.teamId,
             userId: user?.id
           }
         });
@@ -501,18 +501,11 @@ export default function ContentResult() {
       localStorage.setItem(revisionsKey, newRevisionCount.toString());
       setTotalRevisions(newRevisionCount);
 
-      // Deduzir 1 crédito da equipe
-      if (team?.id) {
-        const { error: creditError } = await supabase
-          .from("teams")
-          .update({
-            credits: ((team as any).credits || 0) - 1,
-          } as any)
-          .eq("id", team.id);
-
-        if (creditError) {
-          console.error("Error updating team credits:", creditError);
-        }
+      // Atualizar créditos do usuário (dedução já feita no backend)
+      try {
+        await refreshUserCredits();
+      } catch (error) {
+        console.error("Error refreshing user credits:", error);
       }
 
       // Atualizar registro no histórico (tabela actions) se já estiver salvo
@@ -545,7 +538,7 @@ export default function ContentResult() {
     }
   };
   const handleSaveToHistory = async () => {
-    if (!contentData || !team || !user) return;
+    if (!contentData || !user) return;
     if (isSavedToHistory) {
       toast.info("Este conteúdo já foi salvo no histórico");
       return;
@@ -658,7 +651,7 @@ export default function ContentResult() {
                 <div className="flex items-center gap-1.5 flex-shrink-0">
                   <Badge variant="outline" className="bg-muted/50 text-muted-foreground border-border/30 gap-1 px-2 py-1 text-xs h-7">
                     <RefreshCw className="h-3 w-3" />
-                    <span>{team?.credits || 0} créditos</span>
+                    <span>{user?.credits || 0} créditos</span>
                   </Badge>
                   <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 p-1.5 h-7 w-7 flex items-center justify-center">
                     {contentData.type === "video" ? <Video className="h-3.5 w-3.5" /> : <ImageIcon className="h-3.5 w-3.5" />}
@@ -691,7 +684,7 @@ export default function ContentResult() {
               <div className="flex items-center gap-2 flex-shrink-0">
                 <Badge variant="outline" className="bg-muted/50 text-muted-foreground border-border/30 gap-2 px-3 py-1.5 text-xs">
                   <RefreshCw className="h-3 w-3" />
-                  <span>{team?.credits || 0} créditos</span>
+                  <span>{user?.credits || 0} créditos</span>
                 </Badge>
                 <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 gap-2 px-3 py-1.5 text-xs">
                   {contentData.type === "video" ? <Video className="h-4 w-4" /> : <ImageIcon className="h-4 w-4" />}
@@ -738,7 +731,7 @@ export default function ContentResult() {
                   <span className="hidden xs:inline">Download</span>
                 </Button>
                 <div className="relative group">
-                  <Button onClick={handleOpenReview} variant="secondary" className="w-full flex-1 sm:flex-initial rounded-xl gap-2 hover-scale transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 group" size="lg" disabled={!team?.credits || team.credits < CREDIT_COSTS.IMAGE_REVIEW}>
+                  <Button onClick={handleOpenReview} variant="secondary" className="w-full flex-1 sm:flex-initial rounded-xl gap-2 hover-scale transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 group" size="lg" disabled={!user?.credits || user.credits < CREDIT_COSTS.IMAGE_REVIEW}>
                     <RefreshCw className="h-4 w-4 group-hover:rotate-180 transition-transform duration-500" />
                     <span className="sm:hidden">Revisar</span>
                     <span className="hidden sm:inline">Revisar</span>
@@ -747,7 +740,7 @@ export default function ContentResult() {
                       {CREDIT_COSTS.IMAGE_REVIEW}
                     </Badge>
                   </Button>
-                  {(!team?.credits || team.credits < CREDIT_COSTS.IMAGE_REVIEW) && <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-destructive text-destructive-foreground px-3 py-1.5 rounded-lg text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 shadow-lg">
+                  {(!user?.credits || user.credits < CREDIT_COSTS.IMAGE_REVIEW) && <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-destructive text-destructive-foreground px-3 py-1.5 rounded-lg text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 shadow-lg">
                       Créditos insuficientes ({CREDIT_COSTS.IMAGE_REVIEW} necessários)
                     </div>}
                 </div>
@@ -869,7 +862,7 @@ export default function ContentResult() {
                   Descreva as alterações que deseja fazer.
                   <span className="text-orange-600 font-medium flex items-center gap-1 mt-1">
                     <Coins className="h-3.5 w-3.5" />
-                    Esta revisão consumirá {CREDIT_COSTS.IMAGE_REVIEW} créditos. Você tem {team?.credits || 0} crédito(s).
+                    Esta revisão consumirá {CREDIT_COSTS.IMAGE_REVIEW} créditos. Você tem {user?.credits || 0} crédito(s).
                   </span>
                 </> : "Selecione o que você deseja revisar neste conteúdo."}
             </DialogDescription>
@@ -905,11 +898,11 @@ export default function ContentResult() {
                   <RefreshCw className="h-4 w-4 text-orange-600" />
                   <AlertDescription className="text-sm">
                     <span className="font-semibold text-orange-600">Atenção:</span> Esta revisão consumirá 1 crédito do seu plano.
-                    {team?.credits !== undefined && (
+                    {user?.credits !== undefined && (
                       <span className="block mt-1 text-muted-foreground">
-                        {team.credits > 0 ? (
+                        {user.credits > 0 ? (
                           <>
-                            Você tem {team.credits} crédito{team.credits !== 1 ? "s" : ""} disponível{team.credits !== 1 ? "eis" : ""}.
+                            Você tem {user.credits} crédito{user.credits !== 1 ? "s" : ""} disponível{user.credits !== 1 ? "eis" : ""}.
                           </>
                         ) : (
                           <span className="text-destructive font-medium">
@@ -933,7 +926,7 @@ export default function ContentResult() {
               }} className="flex-1" disabled={isReviewing}>
                     Voltar
                   </Button>
-                  <Button onClick={handleSubmitReview} className="flex-1 gap-2" disabled={!reviewPrompt.trim() || isReviewing || !team?.credits || team.credits <= 0}>
+                  <Button onClick={handleSubmitReview} className="flex-1 gap-2" disabled={!reviewPrompt.trim() || isReviewing || !user?.credits || user.credits <= 0}>
                     {isReviewing ? <>
                         <RefreshCw className="h-4 w-4 animate-spin" />
                         Revisando...

@@ -33,7 +33,7 @@ type ReviewType = "image" | "caption" | "text-for-image";
 const ReviewContent = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, team: authTeam, refreshTeamCredits } = useAuth();
+  const { user, refreshUserCredits } = useAuth();
   const { shouldShowTour } = useOnboarding();
   const [reviewType, setReviewType] = useState<ReviewType | null>(null);
   const [brand, setBrand] = useState("");
@@ -91,21 +91,29 @@ const ReviewContent = () => {
 
   useEffect(() => {
     const loadData = async () => {
-      if (!user || !authTeam) return;
+      if (!user) return;
 
       try {
-        const { data: brandsData, error: brandsError } = await supabase
-          .from("brands")
-          .select("id, name")
-          .eq("team_id", authTeam.id);
+        // Carregar marcas do usuário ou time
+        const brandsQuery = supabase.from("brands").select("id, name");
+        if (user.teamId) {
+          brandsQuery.eq("team_id", user.teamId);
+        } else {
+          brandsQuery.eq("user_id", user.id);
+        }
+        const { data: brandsData, error: brandsError } = await brandsQuery;
 
         if (brandsError) throw brandsError;
         setBrands(brandsData || []);
 
-        const { data: themesData, error: themesError } = await supabase
-          .from("strategic_themes")
-          .select("id, title, brand_id")
-          .eq("team_id", authTeam.id);
+        // Carregar temas do usuário ou time
+        const themesQuery = supabase.from("strategic_themes").select("id, title, brand_id");
+        if (user.teamId) {
+          themesQuery.eq("team_id", user.teamId);
+        } else {
+          themesQuery.eq("user_id", user.id);
+        }
+        const { data: themesData, error: themesError } = await themesQuery;
 
         if (themesError) throw themesError;
         setThemes(themesData?.map((t) => ({ id: t.id, title: t.title, brandId: t.brand_id })) || []);
@@ -118,7 +126,7 @@ const ReviewContent = () => {
     };
 
     loadData();
-  }, [user, authTeam]);
+  }, [user]);
 
   useEffect(() => {
     if (brand) {
@@ -157,10 +165,10 @@ const ReviewContent = () => {
   };
 
   const handleSubmit = async () => {
-    if (!user || !authTeam) return;
+    if (!user) return;
     if (!brand) return setError("Por favor, selecione uma marca");
 
-    if ((authTeam.credits || 0) <= 0) {
+    if ((user.credits || 0) <= 0) {
       return toast.error("Seus créditos para revisões de conteúdo acabaram.");
     }
 
@@ -236,9 +244,9 @@ const ReviewContent = () => {
       if (result?.review) {
         clearPersistedData(); // Limpar rascunho após sucesso
 
-        // Atualizar créditos antes de navegar
+        // Atualizar créditos do usuário antes de navegar
         try {
-          await refreshTeamCredits();
+          await refreshUserCredits();
         } catch (error) {
           // Silent error
         }
@@ -330,7 +338,7 @@ const ReviewContent = () => {
               {isLoadingData ? (
                 <Skeleton className="h-14 w-full sm:w-40 rounded-xl" />
               ) : (
-                authTeam && (
+                user && (
                   <Card className="bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/30 flex-shrink-0">
                     <CardContent className="p-3">
                       <div className="flex items-center justify-center gap-4">
@@ -342,7 +350,7 @@ const ReviewContent = () => {
                         </div>
                         <div className="text-left gap-4 flex justify-center items-center">
                           <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                            {authTeam.credits || 0}
+                            {user.credits || 0}
                           </span>
                           <p className="text-md text-muted-foreground font-medium leading-tight">Créditos Restantes</p>
                         </div>

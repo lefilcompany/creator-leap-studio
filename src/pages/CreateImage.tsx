@@ -77,7 +77,7 @@ const toneOptions = [
 ];
 
 export default function CreateImage() {
-  const { user, session, reloadUserData } = useAuth();
+  const { user, session, refreshUserCredits } = useAuth();
   const navigate = useNavigate();
   const [formData, setFormData] = useState<FormData>({
     brand: "",
@@ -418,9 +418,9 @@ export default function CreateImage() {
   };
 
   const handleGenerateContent = async () => {
-    if (!team) return toast.error("Equipe não encontrada.");
+    if (!user) return toast.error("Usuário não encontrado.");
     
-    const availableCredits = team?.credits || 0;
+    const availableCredits = user?.credits || 0;
     if (availableCredits <= 0)
       return toast.error("Seus créditos para criação de conteúdo acabaram.");
       
@@ -712,8 +712,8 @@ ${formData.description}
         isLocalFallback,
       };
       
-      if (reloadUserData) {
-        await reloadUserData();
+      if (refreshUserCredits) {
+        await refreshUserCredits();
       }
       
       setGenerationStep(GenerationStep.COMPLETE);
@@ -831,7 +831,7 @@ ${formData.description}
                   <p className="text-muted-foreground text-sm mt-0.5">Gere imagens profissionais com IA</p>
                 </div>
               </div>
-              {team && (
+              {user && (
                 <Card className="bg-gradient-to-br from-purple-100/80 to-pink-100/80 dark:from-purple-500/10 dark:to-pink-500/10 border-purple-300/50 dark:border-purple-500/20 shadow-sm">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-3">
@@ -841,7 +841,7 @@ ${formData.description}
                       <div>
                         <div className="flex items-baseline gap-1.5">
                           <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                            {team?.credits || 0}
+                            {user?.credits || 0}
                           </span>
                           <span className="text-xs text-muted-foreground font-medium">Créditos</span>
                         </div>
