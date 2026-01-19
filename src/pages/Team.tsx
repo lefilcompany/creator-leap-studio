@@ -200,13 +200,52 @@ export default function Team() {
     }
   };
 
-  if (isLoading || !team) {
+  if (isLoading) {
     return (
       <div className="flex h-full w-full items-center justify-center">
         <div className="text-center space-y-4">
           <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
           <p className="text-muted-foreground">Carregando equipe...</p>
         </div>
+      </div>
+    );
+  }
+
+  // Sem equipe - mostrar mensagem
+  if (!team) {
+    return (
+      <div className="min-h-full space-y-6 animate-fade-in">
+        <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5 hover:shadow-xl transition-shadow duration-300">
+          <CardHeader className="pb-4">
+            <div className="flex items-center gap-3">
+              <div className="flex-shrink-0 bg-primary/10 text-primary rounded-lg p-3">
+                <Users className="h-8 w-8" />
+              </div>
+              <div>
+                <CardTitle className="text-3xl font-bold">
+                  Equipe
+                </CardTitle>
+                <p className="text-muted-foreground">Você não está em uma equipe. Crie ou junte-se a uma para colaborar.</p>
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
+
+        <Card className="shadow-lg border-0 p-8 text-center">
+          <Users className="h-16 w-16 mx-auto text-muted-foreground/50 mb-4" />
+          <h3 className="text-xl font-semibold mb-2">Sem equipe</h3>
+          <p className="text-muted-foreground mb-6">
+            Equipes permitem compartilhar marcas, personas e temas com outros membros.
+          </p>
+          <div className="flex gap-4 justify-center">
+            <Button onClick={() => navigate('/auth')} variant="outline">
+              Criar Equipe
+            </Button>
+            <Button onClick={() => navigate('/auth')} variant="default">
+              Juntar-se a uma Equipe
+            </Button>
+          </div>
+        </Card>
       </div>
     );
   }
@@ -226,14 +265,18 @@ export default function Team() {
                 <CardTitle className="text-3xl font-bold">
                   Minha Equipe
                 </CardTitle>
-                <p className="text-muted-foreground">Informações sobre a sua equipe e créditos disponíveis.</p>
+                <p className="text-muted-foreground">Informações sobre a sua equipe.</p>
               </div>
             </div>
           </CardHeader>
         </Card>
 
-        {/* Team Info Card */}
-        <TeamInfoCard team={team} userRole="member" />
+        {/* Team Info Card - passando créditos do usuário */}
+        <TeamInfoCard 
+          team={team} 
+          userRole="member" 
+          userCredits={user?.credits}
+        />
       </div>
     );
   }
@@ -297,7 +340,7 @@ export default function Team() {
       <RedeemCouponDialog
         open={showCouponDialog}
         onOpenChange={setShowCouponDialog}
-        currentPlanId={team?.plan_id || 'free'}
+        currentPlanId={user?.planId || 'free'}
         onSuccess={() => {
           loadTeamData();
           toast.success('Benefícios aplicados com sucesso!');
@@ -308,8 +351,12 @@ export default function Team() {
       <div className="flex flex-col xl:flex-row gap-6">
         {/* Left Column - Team Info and Requests */}
         <div className="w-full xl:w-1/2 space-y-6 flex flex-col">
-          {/* Team Information Card */}
-          <TeamInfoCard team={team} userRole="admin" />
+          {/* Team Information Card - passando créditos do usuário */}
+          <TeamInfoCard 
+            team={team} 
+            userRole="admin" 
+            userCredits={user?.credits}
+          />
           
           {/* Access Code Card - Visível apenas em telas menores que xl */}
           <Card className="xl:hidden shadow-lg border-2 border-primary/20 bg-gradient-to-br from-card via-primary/5 to-secondary/10 hover:border-primary/30 hover:shadow-xl transition-all duration-300">
