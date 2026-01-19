@@ -424,7 +424,7 @@ export const Header = () => {
         onSuccess={() => {
           setShowCouponDialog(false);
         }}
-        currentPlanId={user?.teamId || ""}
+        currentPlanId={user?.planId || "free"}
       />
     </header>
   );

@@ -219,6 +219,7 @@ export function AppSidebar() {
   } = useSidebar();
   const isMobile = useIsMobile();
   const {
+    user,
     team,
     isTrialExpired
   } = useAuth();
@@ -318,7 +319,8 @@ export function AppSidebar() {
           {actionButtons.map(button => <ActionButton key={button.id} {...button} collapsed={collapsed} onNavigate={handleMobileNavigate} disabled={isNavigationDisabled} />)}
         </div>
 
-        {team && <div className="mt-auto mb-3 flex flex-col gap-2.5">
+        {/* Seção de créditos do usuário */}
+        {user && <div className="mt-auto mb-3 flex flex-col gap-2.5">
             {collapsed ? <Tooltip>
                 <TooltipTrigger asChild>
                   <NavLink id="nav-credits" to="/plans" onClick={handleMobileNavigate} className="flex items-center justify-center gap-3 p-3 rounded-lg transition-all duration-400 ease-out transform hover:scale-105 bg-gradient-to-r from-primary to-secondary text-primary-foreground shadow-lg">
@@ -326,11 +328,14 @@ export function AppSidebar() {
                   </NavLink>
                 </TooltipTrigger>
                 <TooltipContent side="right">
-                  <p>Comprar Créditos</p>
+                  <div className="flex flex-col items-start">
+                    <span className="font-bold text-sm">{user.credits || 0} créditos</span>
+                    <span className="text-xs opacity-80">Clique para comprar</span>
+                  </div>
                 </TooltipContent>
               </Tooltip> : <NavLink id="nav-credits" to="/plans" onClick={handleMobileNavigate} className="flex items-center gap-3 p-3 rounded-lg transition-all duration-400 ease-out transform hover:scale-105 bg-gradient-to-r from-primary to-secondary text-primary-foreground shadow-lg">
                 <Coins className="h-5 w-5 flex-shrink-0" />
-                <motion.span initial={{
+                <motion.div initial={{
             opacity: 0,
             x: -10
           }} animate={{
@@ -341,12 +346,14 @@ export function AppSidebar() {
             x: -10
           }} transition={{
             duration: 0.3
-          }} className="font-medium text-sm">
-                  Comprar Créditos
-                </motion.span>
+          }} className="flex flex-col">
+                  <span className="font-bold text-sm">{user.credits || 0} créditos</span>
+                  <span className="text-xs opacity-80">Comprar mais</span>
+                </motion.div>
               </NavLink>}
             
-            {collapsed ? <Tooltip>
+            {/* Seção de equipe (opcional) */}
+            {team && (collapsed ? <Tooltip>
                 <TooltipTrigger asChild>
                   <NavLink id="nav-team" to="/team" onClick={handleMobileNavigate} className="flex items-center justify-center gap-4 p-3 rounded-lg transition-all duration-400 ease-out transform hover:scale-105 bg-gradient-to-tr from-primary to-fuchsia-600 text-primary-foreground shadow-lg">
                     <Rocket className="h-6 w-6 flex-shrink-0" />
@@ -358,7 +365,7 @@ export function AppSidebar() {
                     <span className="text-xs opacity-80">{t.sidebar.plan}: {team.plan?.name || 'Free'}</span>
                   </div>
                 </TooltipContent>
-              </Tooltip> : <TeamPlanSection teamName={team.name} planName={team.plan?.name || 'Free'} collapsed={collapsed} onNavigate={handleMobileNavigate} t={t} />}
+              </Tooltip> : <TeamPlanSection teamName={team.name} planName={team.plan?.name || 'Free'} collapsed={collapsed} onNavigate={handleMobileNavigate} t={t} />)}
           </div>}
       </motion.nav>
     </TooltipProvider>;

@@ -23,7 +23,7 @@ interface Plan {
 }
 
 const Credits = () => {
-  const { team, refreshTeamData } = useAuth();
+  const { user, refreshUserCredits } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [plans, setPlans] = useState<Plan[]>([]);
@@ -73,7 +73,7 @@ const Credits = () => {
               : `✅ ${data.credits_added} créditos adicionados! Novo saldo: ${data.new_balance} créditos`,
             { duration: 5000 }
           );
-          await refreshTeamData();
+          await refreshUserCredits();
           // Limpar query params
           navigate('/credits', { replace: true });
         } else {
@@ -92,7 +92,7 @@ const Credits = () => {
   };
 
   const handleBuyPlan = async (planId: string, priceId: string) => {
-    if (!team) return;
+    if (!user) return;
     
     setLoading(true);
     try {
@@ -121,7 +121,7 @@ const Credits = () => {
   };
 
   const handleBuyCustom = async () => {
-    if (!team || customCredits < 20) {
+    if (!user || customCredits < 20) {
       toast.error("Quantidade mínima: 20 créditos");
       return;
     }
@@ -171,7 +171,7 @@ const Credits = () => {
         <div className="flex items-center gap-2 text-muted-foreground">
           <Coins className="h-5 w-5" />
           <p className="text-lg">
-            Saldo atual: <span className="font-bold text-foreground">{team?.credits || 0}</span> créditos
+            Saldo atual: <span className="font-bold text-foreground">{user?.credits || 0}</span> créditos
           </p>
         </div>
       </div>
