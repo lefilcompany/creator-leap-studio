@@ -44,6 +44,7 @@ const Plans = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showPlansSelection, setShowPlansSelection] = useState(false);
   const [loadingPlanId, setLoadingPlanId] = useState<string | null>(null);
+  const [userPlan, setUserPlan] = useState<Plan | null>(null);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const isExpired = searchParams.get("expired") === "true";
@@ -83,30 +84,39 @@ const Plans = () => {
         });
         
         setPlans(sortedPlans);
+
+        // Buscar plano do usuário
+        if (user?.planId) {
+          const foundPlan = sortedPlans.find(p => p.id === user.planId);
+          if (foundPlan) {
+            setUserPlan(foundPlan);
+          }
+        }
       }
     } catch (error) {
       console.error("Error loading plans:", error);
       toast.error("Erro ao carregar planos");
     }
-  }, []);
+  }, [user?.planId]);
 
   const subscriptionStatus = useMemo<SubscriptionStatus | null>(() => {
-    if (!team) return null;
+    if (!user) return null;
 
     const now = new Date();
-    const periodEnd = team.subscription_period_end ? new Date(team.subscription_period_end) : null;
+    const periodEnd = user.subscriptionPeriodEnd ? new Date(user.subscriptionPeriodEnd) : null;
     const daysRemaining = periodEnd ? Math.ceil((periodEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)) : 0;
-    const isExpired = team.plan.id === "free" && periodEnd && periodEnd < now;
-    const isTrial = team.plan.id === "free";
+    const currentPlanId = user.planId || "free";
+    const isExpiredStatus = currentPlanId === "free" && periodEnd && periodEnd < now;
+    const isTrial = currentPlanId === "free";
 
     return {
-      canAccess: !isExpired,
-      isExpired: isExpired || false,
+      canAccess: !isExpiredStatus,
+      isExpired: isExpiredStatus || false,
       isTrial,
       daysRemaining: Math.max(0, daysRemaining),
-      plan: team.plan,
+      plan: userPlan || undefined,
     };
-  }, [team]);
+  }, [user, userPlan]);
 
   const loadData = useCallback(async () => {
     if (!user?.id || authLoading) {
@@ -215,7 +225,7 @@ const Plans = () => {
     loadData();
   }, [loadData, checkSubscriptionStatus]);
   const handleSubscribe = async (plan: Plan) => {
-    if (!user || !team) {
+    if (!user) {
       navigate("/");
       return;
     }
@@ -468,14 +478,14 @@ const Plans = () => {
     );
   }
 
-  // Verificação de segurança - garantir que temos dados da equipe
-  if (!team) {
+  // Verificação de segurança - garantir que temos dados do usuário
+  if (!user) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center space-y-4 p-6">
           <AlertTriangle className="h-12 w-12 text-orange-500 mx-auto" />
           <p className="text-lg font-semibold">Erro ao carregar informações</p>
-          <p className="text-sm text-muted-foreground">Equipe não encontrada</p>
+          <p className="text-sm text-muted-foreground">Usuário não autenticado</p>
           <Link to="/dashboard">
             <Button variant="outline">
               <ArrowLeft className="h-4 w-4 mr-2" />
@@ -487,8 +497,8 @@ const Plans = () => {
     );
   }
 
-  const plan = team.plan;
-  const credits = team.credits || 0;
+  const plan = userPlan;
+  const credits = user.credits || 0;
   const isEnterprisePlan = plan?.name === "Enterprise";
 
   const creditData = {
@@ -703,12 +713,12 @@ const Plans = () => {
                   <Badge className="bg-primary text-primary-foreground text-xs">Seu Plano</Badge>
                 </div>
                 <div className="flex items-baseline gap-1">
-                  {plan?.id === 'free' && team?.subscription_status === 'trialing' ? (
+                  {user.planId === 'free' && user.subscriptionStatus === 'trialing' ? (
                     <>
                       <span className="text-3xl font-bold text-primary">Teste Grátis</span>
                       <span className="text-sm text-muted-foreground">
-                        {team?.subscription_period_end && 
-                          `- ${Math.ceil((new Date(team.subscription_period_end).getTime() - Date.now()) / (1000 * 60 * 60 * 24))} dias restantes`
+                        {user.subscriptionPeriodEnd && 
+                          `- ${Math.ceil((new Date(user.subscriptionPeriodEnd).getTime() - Date.now()) / (1000 * 60 * 60 * 24))} dias restantes`
                         }
                       </span>
                     </>

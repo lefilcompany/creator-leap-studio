@@ -27,31 +27,26 @@ export default function PaymentSuccess() {
         // Aguardar alguns segundos para o webhook do Stripe processar
         await new Promise(resolve => setTimeout(resolve, 3000));
 
-        // Verificar se os créditos foram adicionados
+        // Verificar se os créditos foram adicionados ao perfil do usuário
         const { data: profile } = await supabase
           .from('profiles')
-          .select('team_id')
+          .select('credits, plan_id')
           .eq('id', user.id)
           .single();
 
-        if (profile?.team_id) {
-          const { data: team } = await supabase
-            .from('teams')
-            .select('credits, plan_id, name')
-            .eq('id', profile.team_id)
-            .single();
-
-          if (team) {
-            setCredits(team.credits);
-            if (team.credits > 0) {
-              setVerificationStatus('success');
-              setMessage(`Pagamento confirmado! Sua equipe tem ${team.credits} créditos disponíveis.`);
-              toast.success('Créditos adicionados com sucesso!');
-            } else {
-              setVerificationStatus('pending');
-              setMessage('Seu pagamento está sendo processado. Você receberá uma notificação quando os créditos forem adicionados.');
-            }
+        if (profile) {
+          setCredits(profile.credits || 0);
+          if ((profile.credits || 0) > 0) {
+            setVerificationStatus('success');
+            setMessage(`Pagamento confirmado! Você tem ${profile.credits} créditos disponíveis.`);
+            toast.success('Créditos adicionados com sucesso!');
+          } else {
+            setVerificationStatus('pending');
+            setMessage('Seu pagamento está sendo processado. Você receberá uma notificação quando os créditos forem adicionados.');
           }
+        } else {
+          setVerificationStatus('error');
+          setMessage('Erro ao verificar perfil. Entre em contato com o suporte.');
         }
       } catch (error) {
         console.error('Erro ao verificar pagamento:', error);

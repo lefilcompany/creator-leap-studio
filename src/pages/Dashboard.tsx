@@ -36,15 +36,16 @@ const Dashboard = () => {
     recentActivities: [] as any[]
   });
   const [isDataLoaded, setIsDataLoaded] = useState(false);
+  const [planCredits, setPlanCredits] = useState(0);
 
   useEffect(() => {
     // Verificar se veio do pagamento bem-sucedido
     const searchParams = new URLSearchParams(window.location.search);
-    if (searchParams.get('success') === 'true' && team) {
+    if (searchParams.get('success') === 'true' && user) {
       toast.success(
-        `🎉 Pagamento confirmado! Bem-vindo ao ${team.plan?.name || 'seu novo plano'}!`,
+        `🎉 Pagamento confirmado! Bem-vindo ao seu novo plano!`,
         {
-          description: `Você tem ${team.credits || 0} créditos disponíveis. Comece a criar!`,
+          description: `Você tem ${user.credits || 0} créditos disponíveis. Comece a criar!`,
           duration: 5000,
         }
       );
@@ -52,29 +53,27 @@ const Dashboard = () => {
       // Limpar query parameter
       window.history.replaceState({}, '', window.location.pathname);
     }
-  }, [team]);
+  }, [user]);
 
   useEffect(() => {
     let isMounted = true;
 
     const loadData = async () => {
-      if (!user || !team || isDataLoaded) return;
+      if (!user || isDataLoaded) return;
 
       try {
-        // Buscar total de ações do usuário logado
+        // Buscar total de ações do usuário logado (usando RLS can_access_resource)
         const { count: actionsCount } = await supabase
           .from('actions')
           .select('*', { count: 'exact', head: true })
-          .eq('team_id', team?.id)
           .eq('user_id', user.id);
 
-        // Buscar total de marcas da equipe
+        // Buscar total de marcas acessíveis (usando RLS can_access_resource)
         const { count: brandsCount } = await supabase
           .from('brands')
-          .select('*', { count: 'exact', head: true })
-          .eq('team_id', team?.id);
+          .select('*', { count: 'exact', head: true });
 
-        // Buscar atividades recentes (últimas 3 ações)
+        // Buscar atividades recentes (últimas 3 ações do usuário)
         const { data: recentActions } = await supabase
           .from('actions')
           .select(`
@@ -85,9 +84,22 @@ const Dashboard = () => {
             brand_id,
             brands(name)
           `)
-          .eq('team_id', team?.id)
+          .eq('user_id', user.id)
           .order('created_at', { ascending: false })
           .limit(3);
+
+        // Buscar créditos do plano do usuário
+        if (user.planId) {
+          const { data: planData } = await supabase
+            .from('plans')
+            .select('credits')
+            .eq('id', user.planId)
+            .single();
+          
+          if (planData && isMounted) {
+            setPlanCredits(planData.credits || 0);
+          }
+        }
 
         if (isMounted) {
           setDashboardData({
@@ -108,9 +120,9 @@ const Dashboard = () => {
     return () => {
       isMounted = false;
     };
-  }, [user, team, isDataLoaded]);
+  }, [user, isDataLoaded]);
 
-  if (isLoading || !isDataLoaded) {
+  if (isLoading || !user || !isDataLoaded) {
     return (
       <div className="flex h-full w-full items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -118,9 +130,9 @@ const Dashboard = () => {
     );
   }
 
-  // Calcular créditos - agora é um valor único
-  const totalCredits = team.plan?.credits || 0;
-  const remainingCredits = team.credits || 0;
+  // Calcular créditos - usando créditos individuais do usuário
+  const totalCredits = planCredits || user.credits || 0;
+  const remainingCredits = user.credits || 0;
   const progressPercentage = totalCredits > 0 ? ((remainingCredits / totalCredits) * 100) : 0;
 
   const stats = [
