@@ -12,18 +12,16 @@ type CreationType = "quick" | "image" | "video" | "animate";
 export default function ContentCreationSelector() {
   const navigate = useNavigate();
   const location = useLocation();
-  const {
-    team
-  } = useAuth();
+const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [creationType, setCreationType] = useState<CreationType | null>(null);
 
   // Verificar loading
   useEffect(() => {
-    if (team !== null && team !== undefined) {
+    if (user !== null && user !== undefined) {
       setIsLoading(false);
     }
-  }, [team]);
+  }, [user]);
 
   // Detectar reset do sidebar e resetar estado
   useEffect(() => {
@@ -73,7 +71,7 @@ export default function ContentCreationSelector() {
                   <p className="text-muted-foreground text-base">Escolha o tipo de criação que deseja fazer</p>
                 </div>
               </div>
-              {isLoading ? <Skeleton className="h-14 w-40 rounded-xl" /> : team && <Card className="bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/30 flex-shrink-0">
+{isLoading ? <Skeleton className="h-14 w-40 rounded-xl" /> : user && <Card className="bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/30 flex-shrink-0">
                     <CardContent className="p-3">
                       <div className="flex items-center justify-center gap-4">
                         <div className="relative">
@@ -84,7 +82,7 @@ export default function ContentCreationSelector() {
                         </div>
                         <div className="text-left gap-4 flex justify-center items-center">
                           <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                            {team.credits || 0}
+                            {user.credits || 0}
                           </span>
                           <p className="text-xs text-muted-foreground font-medium leading-tight">Créditos</p>
                         </div>

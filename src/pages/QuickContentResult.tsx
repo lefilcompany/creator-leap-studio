@@ -17,7 +17,7 @@ import { CREDIT_COSTS } from "@/lib/creditCosts";
 export default function QuickContentResult() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { team } = useAuth();
+  const { user, refreshUserCredits } = useAuth();
   const [isCopied, setIsCopied] = useState(false);
   const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
   const [showReviewDialog, setShowReviewDialog] = useState(false);
@@ -261,7 +261,7 @@ export default function QuickContentResult() {
     }
 
     // Sempre verificar créditos (custo: 2 créditos)
-    if (!team?.credits || team.credits < CREDIT_COSTS.IMAGE_REVIEW) {
+    if (!user?.credits || user.credits < CREDIT_COSTS.IMAGE_REVIEW) {
       toast.error(`Você não tem créditos disponíveis. Cada revisão de imagem custa ${CREDIT_COSTS.IMAGE_REVIEW} créditos.`);
       return;
     }
@@ -358,18 +358,11 @@ export default function QuickContentResult() {
 
       setTotalRevisions(newRevisionCount);
 
-      // Deduzir 1 crédito da equipe
-      if (team?.id) {
-        const { error: creditError } = await supabase
-          .from("teams")
-          .update({
-            credits: ((team as any).credits || 0) - 1,
-          } as any)
-          .eq("id", team.id);
-
-        if (creditError) {
-          console.error("Error updating team credits:", creditError);
-        }
+      // Atualizar créditos do usuário (dedução já feita no backend pela edge function)
+      try {
+        await refreshUserCredits();
+      } catch (error) {
+        console.error("Error refreshing user credits:", error);
       }
 
       // Update action in database if it exists
@@ -441,7 +434,7 @@ export default function QuickContentResult() {
             <div className="flex items-center gap-1.5 flex-shrink-0">
               <Badge variant="outline" className="bg-muted/50 text-muted-foreground border-border/30 gap-1 px-2 py-1 text-xs h-7">
                 <RefreshCw className="h-3 w-3" />
-                <span>{team?.credits || 0} créditos</span>
+                <span>{user?.credits || 0} créditos</span>
               </Badge>
             </div>
           </div>
@@ -475,7 +468,7 @@ export default function QuickContentResult() {
             <div className="flex items-center gap-2 flex-shrink-0">
               <Badge variant="outline" className="bg-muted/50 text-muted-foreground border-border/30 gap-2 px-3 py-1.5 text-xs">
                 <RefreshCw className="h-3 w-3" />
-                <span>{team?.credits || 0} créditos</span>
+                <span>{user?.credits || 0} créditos</span>
               </Badge>
             </div>
           </div>
@@ -753,12 +746,12 @@ export default function QuickContentResult() {
                 <AlertDescription className="text-xs sm:text-sm">
                   <span>
                     Esta revisão consumirá <strong>1 crédito</strong>.
-                    {team?.credits && team.credits > 0 && (
+                    {user?.credits && user.credits > 0 && (
                       <>
                         {" "}
-                        Você tem <strong>{team.credits}</strong>{" "}
-                        {team.credits !== 1 ? "créditos" : "crédito"}{" "}
-                        {team.credits !== 1 ? "disponíveis" : "disponível"}.
+                        Você tem <strong>{user.credits}</strong>{" "}
+                        {user.credits !== 1 ? "créditos" : "crédito"}{" "}
+                        {user.credits !== 1 ? "disponíveis" : "disponível"}.
                       </>
                     )}
                   </span>
@@ -788,7 +781,7 @@ export default function QuickContentResult() {
                 </Button>
                 <Button
                   onClick={handleSubmitReview}
-                  disabled={!reviewPrompt.trim() || isReviewing || (team?.credits || 0) < CREDIT_COSTS.IMAGE_REVIEW}
+                  disabled={!reviewPrompt.trim() || isReviewing || (user?.credits || 0) < CREDIT_COSTS.IMAGE_REVIEW}
                   className="w-full sm:w-auto bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-xs sm:text-sm gap-1"
                   size="default"
                 >

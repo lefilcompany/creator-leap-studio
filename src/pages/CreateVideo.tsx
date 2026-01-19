@@ -41,7 +41,7 @@ interface FormData {
 const toneOptions = ["inspirador", "motivacional", "profissional", "casual", "elegante", "moderno", "tradicional", "divertido", "sério"];
 
 export default function CreateVideo() {
-  const { user, session } = useAuth();
+  const { user, session, refreshUserCredits } = useAuth();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState<FormData>({
@@ -173,8 +173,8 @@ export default function CreateVideo() {
   };
 
   const handleGenerateVideo = async () => {
-    if (!team) return toast.error("Equipe não encontrada.");
-    if ((team?.credits || 0) <= 0) return toast.error("Créditos insuficientes.");
+    if (!user) return toast.error("Usuário não encontrado.");
+    if ((user?.credits || 0) <= 0) return toast.error("Créditos insuficientes.");
     
     if (!formData.objective || !formData.description || formData.tone.length === 0) {
       return toast.error("Preencha todos os campos obrigatórios.");
@@ -228,18 +228,9 @@ export default function CreateVideo() {
         },
       });
 
-      // Atualizar créditos locais com o valor real do backend (dedução ou reembolso)
+      // Atualizar créditos do usuário após geração
       try {
-        if (user?.teamId) {
-          const { data: creditsData } = await supabase
-            .from('teams')
-            .select('credits')
-            .eq('id', user.teamId)
-            .single();
-          if (creditsData?.credits != null) {
-            setTeam((prev) => (prev ? { ...prev, credits: creditsData.credits } : prev));
-          }
-        }
+        await refreshUserCredits();
       } catch {
         // noop
       }
@@ -287,7 +278,7 @@ export default function CreateVideo() {
                   <p className="text-muted-foreground text-sm mt-0.5">Gere vídeos profissionais com IA</p>
                 </div>
               </div>
-              {team && (
+              {user && (
                 <Card className="bg-gradient-to-br from-purple-100/80 to-pink-100/80 dark:from-purple-500/10 dark:to-pink-500/10 border-purple-300/50 dark:border-purple-500/20 shadow-sm">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-3">
@@ -297,7 +288,7 @@ export default function CreateVideo() {
                       <div>
                         <div className="flex items-baseline gap-1.5">
                           <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                            {team?.credits || 0}
+                            {user?.credits || 0}
                           </span>
                           <span className="text-xs text-muted-foreground font-medium">Créditos</span>
                         </div>

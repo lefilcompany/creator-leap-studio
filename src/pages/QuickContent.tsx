@@ -24,8 +24,7 @@ export default function QuickContent() {
   const navigate = useNavigate();
   const {
     user,
-    team,
-    refreshTeamCredits
+    refreshUserCredits
   } = useAuth();
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
@@ -115,19 +114,23 @@ export default function QuickContent() {
     });
   };
   useEffect(() => {
-    if (team) {
+    if (user) {
       loadData();
     }
-  }, [team]);
+  }, [user]);
   const loadData = async () => {
     try {
       setLoadingData(true);
 
       // Carregar marcas
-      const {
-        data: brandsData,
-        error: brandsError
-      } = await supabase.from("brands").select("*").eq("team_id", team?.id).order("name");
+      // Carregar marcas do usuário ou time
+      const query = supabase.from("brands").select("*").order("name");
+      if (user?.teamId) {
+        query.eq("team_id", user.teamId);
+      } else {
+        query.eq("user_id", user?.id);
+      }
+      const { data: brandsData, error: brandsError } = await query;
       if (brandsError) throw brandsError;
       setBrands((brandsData || []) as any);
     } catch (error) {
@@ -142,7 +145,7 @@ export default function QuickContent() {
       toast.error("Por favor, descreva o que deseja criar");
       return;
     }
-    if ((team?.credits || 0) <= 0) {
+    if ((user?.credits || 0) <= 0) {
       toast.error("Você não possui créditos suficientes para criação rápida");
       return;
     }
@@ -217,9 +220,9 @@ export default function QuickContent() {
       });
       clearPersistedData(); // Limpar rascunho após sucesso
 
-      // Atualizar créditos antes de navegar
+      // Atualizar créditos do usuário antes de navegar
       try {
-        await refreshTeamCredits();
+        await refreshUserCredits();
       } catch (error) {
         // Silent error
       }
@@ -315,7 +318,7 @@ export default function QuickContent() {
                       <div className="flex flex-col">
                         <div className="flex items-center gap-2">
                           <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent whitespace-nowrap">
-                            {team?.credits || 0}
+                            {user?.credits || 0}
                           </span>
                           <p className="text-sm text-muted-foreground font-medium leading-tight whitespace-nowrap">
                             Créditos
@@ -678,7 +681,7 @@ export default function QuickContent() {
 
         {/* Generate Button */}
         <div className="flex justify-end pb-6">
-          <Button id="quick-generate-button" onClick={generateQuickContent} disabled={loading || !formData.prompt.trim() || (team?.credits || 0) < CREDIT_COSTS.QUICK_IMAGE} size="lg" className="bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_100%] animate-gradient text-primary-foreground hover:opacity-90 transition-opacity shadow-lg gap-2">
+          <Button id="quick-generate-button" onClick={generateQuickContent} disabled={loading || !formData.prompt.trim() || (user?.credits || 0) < CREDIT_COSTS.QUICK_IMAGE} size="lg" className="bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_100%] animate-gradient text-primary-foreground hover:opacity-90 transition-opacity shadow-lg gap-2">
             {loading ? <>
                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                 Gerando...
