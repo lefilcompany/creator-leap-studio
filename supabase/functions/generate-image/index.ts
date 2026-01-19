@@ -2,7 +2,7 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
-import { recordCreditUsage } from '../_shared/creditHistory.ts';
+import { checkUserCredits, deductUserCredits, recordUserCreditUsage } from '../_shared/userCredits.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -54,22 +54,23 @@ serve(async (req) => {
 
     const authenticatedUserId = user.id;
 
-    // Fetch user's team from profile
+    // Fetch user profile (team_id agora é opcional)
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('team_id')
+      .select('team_id, credits')
       .eq('id', authenticatedUserId)
       .single();
 
-    if (profileError || !profile?.team_id) {
+    if (profileError) {
       console.error('Profile error:', profileError);
       return new Response(
-        JSON.stringify({ error: 'User not associated with a team' }),
-        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'Erro ao carregar perfil do usuário' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const authenticatedTeamId = profile.team_id;
+    // team_id agora é opcional
+    const authenticatedTeamId = profile?.team_id || null;
 
     const formData = await req.json();
     
@@ -100,27 +101,17 @@ serve(async (req) => {
       ) || []
     });
 
-    // Check team credits
-    const { data: teamData, error: teamError } = await supabase
-      .from('teams')
-      .select('credits')
-      .eq('id', authenticatedTeamId)
-      .single();
+    // Check user credits (individual)
+    const creditsCheck = await checkUserCredits(supabase, authenticatedUserId, CREDIT_COSTS.COMPLETE_IMAGE);
 
-    if (teamError) {
-      console.error('Error fetching team:', teamError);
-      return new Response(
-        JSON.stringify({ error: 'Erro ao processar solicitação' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    if (!teamData || teamData.credits < CREDIT_COSTS.COMPLETE_IMAGE) {
+    if (!creditsCheck.hasCredits) {
       return new Response(
         JSON.stringify({ error: `Créditos insuficientes. Necessário: ${CREDIT_COSTS.COMPLETE_IMAGE} créditos` }),
         { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    const creditsBefore = creditsCheck.currentCredits;
 
     // Build comprehensive prompt
     let enhancedPrompt = buildDetailedPrompt(formData);
@@ -345,23 +336,18 @@ serve(async (req) => {
 
     console.log('Image uploaded successfully:', publicUrl);
 
-    // Decrement team credits
-    const creditsBefore = teamData.credits;
-    const creditsAfter = creditsBefore - CREDIT_COSTS.COMPLETE_IMAGE;
-    
-    const { error: updateError } = await supabase
-      .from('teams')
-      .update({ credits: creditsAfter })
-      .eq('id', authenticatedTeamId);
+    // Deduct user credits (individual)
+    const deductResult = await deductUserCredits(supabase, authenticatedUserId, CREDIT_COSTS.COMPLETE_IMAGE);
+    const creditsAfter = deductResult.newCredits;
 
-    if (updateError) {
-      console.error('Error updating credits:', updateError);
+    if (!deductResult.success) {
+      console.error('Error deducting credits:', deductResult.error);
     }
 
     // Record credit usage
-    await recordCreditUsage(supabase, {
-      teamId: authenticatedTeamId,
+    await recordUserCreditUsage(supabase, {
       userId: authenticatedUserId,
+      teamId: authenticatedTeamId,
       actionType: 'COMPLETE_IMAGE',
       creditsUsed: CREDIT_COSTS.COMPLETE_IMAGE,
       creditsBefore,

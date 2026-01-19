@@ -10,6 +10,11 @@ interface User {
   teamId?: string;
   isAdmin: boolean;
   avatarUrl?: string;
+  // Créditos individuais do usuário
+  credits: number;
+  planId: string;
+  subscriptionStatus?: string;
+  subscriptionPeriodEnd?: string;
 }
 
 interface Team {
@@ -26,7 +31,7 @@ interface Team {
     name: string;
     description: string;
     price: number;
-    credits: number; // Créditos unificados
+    credits: number;
     maxMembers: number;
     maxBrands: number;
     maxStrategicThemes: number;
@@ -34,10 +39,10 @@ interface Team {
     trialDays: number;
     isActive: boolean;
   };
-  credits: number; // Créditos unificados da equipe
-  free_brands_used: number; // Contador de marcas gratuitas usadas
-  free_personas_used: number; // Contador de personas gratuitas usadas
-  free_themes_used: number; // Contador de temas gratuitos usados
+  credits: number;
+  free_brands_used: number;
+  free_personas_used: number;
+  free_themes_used: number;
 }
 
 interface DataCache {
@@ -59,11 +64,13 @@ interface AuthContextType {
   refreshProfile: () => Promise<void>;
   refreshTeamData: () => Promise<void>;
   refreshTeamCredits: () => Promise<void>;
+  refreshUserCredits: () => Promise<void>;
+  setUser: React.Dispatch<React.SetStateAction<User | null>>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const RELOAD_DEBOUNCE_MS = 1000; // Reduzido para 1s
+const RELOAD_DEBOUNCE_MS = 1000;
 const CACHE_VALIDITY_MS = 60000;
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -81,7 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isInitialLoad = useRef(true);
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  // Verifica se é System Admin (apenas admin@admin.com)
+  // Verifica se é System Admin
   const checkIfSystemAdmin = useCallback(async (userId: string): Promise<boolean> => {
     try {
       const { data, error } = await supabase
@@ -106,7 +113,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const loadUserData = useCallback(async (supabaseUser: SupabaseUser, forceLoad = false) => {
     const now = Date.now();
     
-    // Permitir load inicial sempre, ignorar debounce
     const shouldSkipDebounce = isInitialLoad.current || forceLoad;
     
     if (!shouldSkipDebounce && now - lastReloadTime.current < RELOAD_DEBOUNCE_MS) {
@@ -114,7 +120,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // Usar cache apenas se não for load inicial e não for force
     if (!shouldSkipDebounce && dataCache.current && now - dataCache.current.timestamp < CACHE_VALIDITY_MS) {
       setUser(dataCache.current.user);
       setTeam(dataCache.current.team);
@@ -122,7 +127,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // Cancelar requisição anterior se existir
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
@@ -130,7 +134,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     try {
       lastReloadTime.current = now;
-      isInitialLoad.current = false; // Marcar que já não é inicial
+      isInitialLoad.current = false;
 
       const [profileResult, isSystemAdmin] = await Promise.all([
         supabase.from('profiles').select('*').eq('id', supabaseUser.id).maybeSingle(),
@@ -153,19 +157,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
+      // Calcular trial expiration baseado nos dados do usuário individual
+      const nowDate = new Date();
+      const periodEnd = profile.subscription_period_end ? new Date(profile.subscription_period_end) : null;
+      const calculatedDaysRemaining = periodEnd ? Math.ceil((periodEnd.getTime() - nowDate.getTime()) / (1000 * 60 * 60 * 24)) : null;
+      const isExpired = profile.plan_id === 'free' && periodEnd && periodEnd < nowDate;
+
       const userData: User = {
         id: supabaseUser.id,
         email: supabaseUser.email || '',
         name: profile.name || profile.email || '',
         teamId: profile.team_id,
         isAdmin: isSystemAdmin,
-        avatarUrl: profile.avatar_url
+        avatarUrl: profile.avatar_url,
+        // Créditos individuais
+        credits: profile.credits || 0,
+        planId: profile.plan_id || 'free',
+        subscriptionStatus: profile.subscription_status,
+        subscriptionPeriodEnd: profile.subscription_period_end,
       };
 
       let teamData: Team | null = null;
-      let trialExpired = false;
-      let daysRemaining: number | null = null;
 
+      // Carregar dados da equipe apenas se o usuário tiver uma (opcional)
       if (profile.team_id) {
         const { data: teamInfo, error: teamError } = await supabase
           .from('teams')
@@ -178,20 +192,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (!isMounted.current) return;
 
-        if (teamError) {
-          // Silent error
-        } else if (teamInfo && teamInfo.plans) {
+        if (!teamError && teamInfo && teamInfo.plans) {
           const planData = teamInfo.plans as any;
           
-          // Calculate trial expiration
-          const nowDate = new Date();
-          const periodEnd = teamInfo.subscription_period_end ? new Date(teamInfo.subscription_period_end) : null;
-          const calculatedDaysRemaining = periodEnd ? Math.ceil((periodEnd.getTime() - nowDate.getTime()) / (1000 * 60 * 60 * 24)) : null;
-          const isExpired = teamInfo.plan_id === 'free' && periodEnd && periodEnd < nowDate;
-          
-          trialExpired = isExpired || false;
-          daysRemaining = calculatedDaysRemaining;
-
           teamData = {
             id: teamInfo.id,
             name: teamInfo.name,
@@ -232,8 +235,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setUser(userData);
       setTeam(teamData);
-      setIsTrialExpired(trialExpired);
-      setTrialDaysRemaining(daysRemaining);
+      setIsTrialExpired(isExpired || false);
+      setTrialDaysRemaining(calculatedDaysRemaining);
     } catch (error) {
       // Silent error
     } finally {
@@ -248,7 +251,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (currentSession?.user) {
       dataCache.current = null;
       lastReloadTime.current = 0;
-      await loadUserData(currentSession.user, true); // Force load
+      await loadUserData(currentSession.user, true);
     }
   }, [loadUserData]);
 
@@ -271,7 +274,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           ...prev,
           name: profile.name || profile.email || prev.name,
           teamId: profile.team_id,
-          avatarUrl: profile.avatar_url
+          avatarUrl: profile.avatar_url,
+          credits: profile.credits || 0,
+          planId: profile.plan_id || 'free',
+          subscriptionStatus: profile.subscription_status,
+          subscriptionPeriodEnd: profile.subscription_period_end,
         } : null);
 
         dataCache.current = null;
@@ -323,21 +330,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     };
 
-    // Initialize auth state from localStorage first
     initializeAuth();
 
-    // Then set up the listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, newSession) => {
         if (!mounted) return;
 
-        // Handle TOKEN_REFRESHED - apenas atualiza sessão
         if (event === 'TOKEN_REFRESHED') {
           setSession(newSession);
           return;
         }
 
-        // Handle SIGNED_OUT
         if (event === 'SIGNED_OUT') {
           setSession(null);
           setUser(null);
@@ -351,7 +354,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return;
         }
 
-        // Handle SIGNED_IN
         if (event === 'SIGNED_IN') {
           if (isInitialized.current) {
             setSession(newSession);
@@ -375,12 +377,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return;
         }
 
-        // Handle INITIAL_SESSION
         if (event === 'INITIAL_SESSION') {
           return;
         }
 
-        // Outros eventos
         setSession(newSession);
       }
     );
@@ -397,21 +397,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const isAuthenticated = useMemo(() => !!session && !!user, [session, user]);
 
-  const refreshTeamCredits = useCallback(async () => {
-    if (!user?.email || !team?.id) return;
+  // Refresh créditos do usuário individual
+  const refreshUserCredits = useCallback(async () => {
+    if (!user?.id) return;
     
     const { data, error } = await supabase
-      .from('teams')
+      .from('profiles')
       .select('credits')
-      .eq('id', team.id)
+      .eq('id', user.id)
       .single();
       
     if (error) return;
       
     if (data) {
-      setTeam(prev => prev ? { ...prev, credits: data.credits } : null);
+      setUser(prev => prev ? { ...prev, credits: data.credits || 0 } : null);
     }
-  }, [user?.email, team?.id]);
+  }, [user?.id]);
+
+  // Mantido para compatibilidade, mas agora usa profiles
+  const refreshTeamCredits = useCallback(async () => {
+    await refreshUserCredits();
+  }, [refreshUserCredits]);
 
   const refreshTeamData = useCallback(async () => {
     if (!user?.teamId) return;
@@ -456,7 +462,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           free_personas_used: (teamData as any).free_personas_used || 0,
           free_themes_used: (teamData as any).free_themes_used || 0,
         });
-        console.log('[AuthContext] ✅ Team data refreshed successfully');
       }
     } catch (error) {
       console.error('[AuthContext] Error in refreshTeamData:', error);
@@ -476,9 +481,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       reloadUserData,
       refreshProfile,
       refreshTeamData,
-      refreshTeamCredits
+      refreshTeamCredits,
+      refreshUserCredits,
+      setUser
     }),
-    [user, session, team, isAuthenticated, isLoading, isTrialExpired, trialDaysRemaining, logout, reloadUserData, refreshProfile, refreshTeamData]
+    [user, session, team, isAuthenticated, isLoading, isTrialExpired, trialDaysRemaining, logout, reloadUserData, refreshProfile, refreshTeamData, refreshUserCredits]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

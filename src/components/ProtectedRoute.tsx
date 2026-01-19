@@ -6,10 +6,10 @@ import { toast } from 'sonner';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requireTeam?: boolean;
+  requireTeam?: boolean; // Agora opcional e padrão false
 }
 
-export default function ProtectedRoute({ children, requireTeam = true }: ProtectedRouteProps) {
+export default function ProtectedRoute({ children, requireTeam = false }: ProtectedRouteProps) {
   const { user, session, team, isLoading, isTrialExpired, trialDaysRemaining } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -22,17 +22,13 @@ export default function ProtectedRoute({ children, requireTeam = true }: Protect
 
     // Verificar se realmente não há sessão ativa antes de redirecionar
     if (!session || !user) {
-      console.log("[ProtectedRoute] No session or user found after loading completed");
-      
       // Double check: verificar localStorage antes de redirecionar
       const hasStoredSession = localStorage.getItem('sb-afxwqkrneraatgovhpkb-auth-token');
       
       if (hasStoredSession) {
-        console.log("[ProtectedRoute] Found stored session, waiting for auth to complete...");
         return; // Aguardar auth context processar
       }
       
-      console.log("[ProtectedRoute] No stored session, redirecting to login");
       hasRedirected.current = true;
       navigate("/", { replace: true });
       return;
@@ -40,29 +36,28 @@ export default function ProtectedRoute({ children, requireTeam = true }: Protect
 
     // Se o usuário é system admin, redirecionar para a área do sistema
     if (user?.isAdmin) {
-      console.log("[ProtectedRoute] System admin user detected, redirecting to system area");
       hasRedirected.current = true;
       navigate("/system", { replace: true });
       return;
     }
 
-    // Se requer equipe e o usuário não tem equipe, mostra mensagem
-    if (requireTeam && !team) {
-      toast.error('Você precisa estar em uma equipe para ver esta página');
-      return;
-    }
-
-    // Se o período de teste expirou, permite apenas histórico, planos e perfil
-    if (requireTeam && team && isTrialExpired) {
+    // Verificar créditos expirados apenas se exigir verificação
+    if (isTrialExpired && user?.credits <= 0) {
       const currentPath = window.location.pathname;
-      const allowedPaths = ['/plans', '/history', '/profile'];
+      const allowedPaths = ['/plans', '/history', '/profile', '/credits'];
       const isAllowedPath = allowedPaths.some(path => currentPath.startsWith(path));
       
       if (!isAllowedPath) {
-        toast.error('Seu período de teste expirou. Escolha um plano para continuar.');
+        toast.error('Seus créditos acabaram. Adquira mais créditos para continuar.');
         navigate('/plans?expired=true');
         return;
       }
+    }
+
+    // Se requer equipe especificamente e não tem, mostra mensagem
+    if (requireTeam && !team) {
+      toast.info('Esta funcionalidade requer participação em uma equipe.');
+      return;
     }
   }, [user, team, session, isLoading, isTrialExpired, navigate, requireTeam]);
 
@@ -88,15 +83,15 @@ export default function ProtectedRoute({ children, requireTeam = true }: Protect
     return null;
   }
 
-  // Se requer equipe e não tem, mostra mensagem
+  // Se requer equipe e não tem, mostra mensagem específica
   if (requireTeam && !team) {
     return (
       <div className="flex h-screen w-full items-center justify-center p-6">
         <div className="max-w-md text-center space-y-4">
-          <div className="bg-destructive/10 rounded-full p-4 w-16 h-16 mx-auto flex items-center justify-center">
+          <div className="bg-primary/10 rounded-full p-4 w-16 h-16 mx-auto flex items-center justify-center">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-8 w-8 text-destructive"
+              className="h-8 w-8 text-primary"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -105,16 +100,16 @@ export default function ProtectedRoute({ children, requireTeam = true }: Protect
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
               />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-foreground">Equipe necessária</h2>
+          <h2 className="text-2xl font-bold text-foreground">Funcionalidade de Equipe</h2>
           <p className="text-muted-foreground">
-            Você precisa estar em uma equipe para ver esta página.
+            Esta funcionalidade requer participação em uma equipe para compartilhamento de conteúdo.
           </p>
           <p className="text-sm text-muted-foreground">
-            Crie uma equipe ou solicite para entrar em uma equipe existente.
+            Você pode criar ou entrar em uma equipe nas configurações.
           </p>
         </div>
       </div>

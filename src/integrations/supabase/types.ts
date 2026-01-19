@@ -520,6 +520,7 @@ export type Database = {
           avatar_url: string | null
           city: string | null
           created_at: string | null
+          credits: number | null
           email: string
           force_password_change: boolean | null
           id: string
@@ -541,7 +542,12 @@ export type Database = {
           onboarding_themes_completed: boolean | null
           password_reset_sent_at: string | null
           phone: string | null
+          plan_id: string | null
           state: string | null
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          subscription_period_end: string | null
+          subscription_status: string | null
           team_id: string | null
           tutorial_completed: boolean | null
           updated_at: string | null
@@ -550,6 +556,7 @@ export type Database = {
           avatar_url?: string | null
           city?: string | null
           created_at?: string | null
+          credits?: number | null
           email: string
           force_password_change?: boolean | null
           id: string
@@ -571,7 +578,12 @@ export type Database = {
           onboarding_themes_completed?: boolean | null
           password_reset_sent_at?: string | null
           phone?: string | null
+          plan_id?: string | null
           state?: string | null
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_period_end?: string | null
+          subscription_status?: string | null
           team_id?: string | null
           tutorial_completed?: boolean | null
           updated_at?: string | null
@@ -580,6 +592,7 @@ export type Database = {
           avatar_url?: string | null
           city?: string | null
           created_at?: string | null
+          credits?: number | null
           email?: string
           force_password_change?: boolean | null
           id?: string
@@ -601,7 +614,12 @@ export type Database = {
           onboarding_themes_completed?: boolean | null
           password_reset_sent_at?: string | null
           phone?: string | null
+          plan_id?: string | null
           state?: string | null
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_period_end?: string | null
+          subscription_status?: string | null
           team_id?: string | null
           tutorial_completed?: boolean | null
           updated_at?: string | null
@@ -767,6 +785,41 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "team_join_requests_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_members: {
+        Row: {
+          created_at: string | null
+          id: string
+          joined_at: string | null
+          role: string | null
+          team_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          joined_at?: string | null
+          role?: string | null
+          team_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          joined_at?: string | null
+          role?: string | null
+          team_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_members_team_id_fkey"
             columns: ["team_id"]
             isOneToOne: false
             referencedRelation: "teams"

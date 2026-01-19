@@ -137,19 +137,18 @@ const Auth = () => {
 
   // Redireciona automaticamente quando autenticado
   useEffect(() => {
-    if (waitingForAuth && !authLoading && user && !showChangePassword && !showTeamSelection) {
+    if (waitingForAuth && !authLoading && user && !showChangePassword) {
       if (user.isAdmin) {
         console.log("[Auth] Admin authenticated, redirecting to /admin");
         navigate("/admin", { replace: true });
         return;
       }
 
-      if (team) {
-        console.log("[Auth] Auth complete, redirecting to dashboard");
-        navigate("/dashboard", { replace: true });
-      }
+      // Usuário autenticado - redirecionar direto ao dashboard (sem exigir equipe)
+      console.log("[Auth] Auth complete, redirecting to dashboard");
+      navigate("/dashboard", { replace: true });
     }
-  }, [waitingForAuth, authLoading, user, team, showChangePassword, showTeamSelection, navigate]);
+  }, [waitingForAuth, authLoading, user, showChangePassword, navigate]);
 
   // Busca os estados do Brasil na API do IBGE
   useEffect(() => {
@@ -242,24 +241,8 @@ const Auth = () => {
           return;
         }
 
-        if (!profileData.team_id) {
-          const { data: pendingRequest } = await supabase
-            .from("team_join_requests")
-            .select("id, status")
-            .eq("user_id", data.user.id)
-            .eq("status", "pending")
-            .maybeSingle();
-
-          if (pendingRequest) {
-            toast.info("Sua solicitação está pendente. Aguarde a aprovação do administrador da equipe.");
-            await supabase.auth.signOut();
-            return;
-          }
-
-          setShowTeamSelection(true);
-        } else {
-          setWaitingForAuth(true);
-        }
+        // Usuário autenticado - redirecionar direto (sem exigir equipe)
+        setWaitingForAuth(true);
       }
     } catch (error) {
       console.error("Erro no login:", error);
@@ -388,7 +371,20 @@ const Auth = () => {
           console.error("Erro ao enviar para RD Station:", rdError);
         }
 
-        setShowTeamSelection(true);
+        // Resgatar cupom se fornecido
+        if (couponCode && isValidCouponFormat) {
+          try {
+            await supabase.functions.invoke("redeem-coupon", {
+              body: { couponCode, userId: data.user.id },
+            });
+            toast.success("Cupom resgatado com sucesso!");
+          } catch (couponError) {
+            console.error("Erro ao resgatar cupom:", couponError);
+          }
+        }
+
+        // Redirecionar direto ao dashboard (sem exigir equipe)
+        setWaitingForAuth(true);
       }
     } catch (err) {
       toast.error("Ocorreu um erro ao tentar se cadastrar.");
