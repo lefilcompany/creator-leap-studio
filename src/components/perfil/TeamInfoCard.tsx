@@ -9,9 +9,12 @@ import { useNavigate } from 'react-router-dom';
 interface TeamInfoCardProps {
   team: any;
   userRole: 'admin' | 'member';
+  // Créditos individuais do usuário (opcional para exibição)
+  userCredits?: number;
+  userPlanCredits?: number;
 }
 
-export default function TeamInfoCard({ team, userRole }: TeamInfoCardProps) {
+export default function TeamInfoCard({ team, userRole, userCredits, userPlanCredits }: TeamInfoCardProps) {
   const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -37,10 +40,10 @@ export default function TeamInfoCard({ team, userRole }: TeamInfoCardProps) {
     );
   }
 
-  // Calcular créditos unificados
-  const remainingCredits = team.credits || 0;
-  const totalCredits = team.plan?.credits || 0;
-  const usedCredits = totalCredits - remainingCredits;
+  // Usar créditos do usuário individual (passados via props) ou fallback para team
+  const remainingCredits = userCredits ?? team.credits ?? 0;
+  const totalCredits = userPlanCredits ?? team.plan?.credits ?? 0;
+  const usedCredits = Math.max(0, totalCredits - remainingCredits);
   
   // Progress bar decrescente - mostra créditos restantes
   const progressPercentage = totalCredits > 0 ? (remainingCredits / totalCredits) * 100 : 0;
