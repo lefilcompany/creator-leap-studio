@@ -89,17 +89,12 @@ serve(async (req) => {
       // Find user by email
       const { data: profile, error: profileError } = await supabaseClient
         .from('profiles')
-        .select('id, team_id')
+        .select('id, team_id, credits')
         .eq('email', customerEmail)
         .single();
 
       if (profileError || !profile) {
         logStep("User not found", { email: customerEmail, error: profileError });
-        return new Response(JSON.stringify({ received: true }), { status: 200 });
-      }
-
-      if (!profile.team_id) {
-        logStep("User has no team", { userId: profile.id });
         return new Response(JSON.stringify({ received: true }), { status: 200 });
       }
 
@@ -127,38 +122,42 @@ serve(async (req) => {
 
       logStep("Plan identified", { planId: planInfo.planId, credits: planInfo.credits });
 
-      // Get current team data
-      const { data: currentTeam } = await supabaseClient
-        .from('teams')
-        .select('credits')
-        .eq('id', profile.team_id)
-        .single();
-
-      const creditsBefore = currentTeam?.credits || 0;
+      // Usar créditos do PROFILE do usuário (não mais teams)
+      const creditsBefore = profile.credits || 0;
       const creditsAfter = creditsBefore + planInfo.credits;
 
-      // Update team with new credits and plan
+      // Atualizar PROFILE com novos créditos e dados da assinatura
+      const subscriptionPeriodEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+      
       const { error: updateError } = await supabaseClient
-        .from('teams')
+        .from('profiles')
         .update({
           credits: creditsAfter,
           plan_id: planInfo.planId,
           subscription_status: 'active',
-          subscription_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days
+          subscription_period_end: subscriptionPeriodEnd,
+          stripe_customer_id: session.customer as string,
           updated_at: new Date().toISOString(),
         })
-        .eq('id', profile.team_id);
+        .eq('id', profile.id);
 
       if (updateError) {
-        logStep("Error updating team", { error: updateError });
+        logStep("Error updating profile", { error: updateError });
         throw updateError;
       }
+
+      logStep("Profile updated with credits and subscription", { 
+        userId: profile.id, 
+        creditsBefore, 
+        creditsAfter,
+        planId: planInfo.planId 
+      });
 
       // Record credit purchase
       const { error: purchaseError } = await supabaseClient
         .from('credit_purchases')
         .insert({
-          team_id: profile.team_id,
+          team_id: profile.team_id || profile.id, // Usar team_id se existir, senão user_id
           user_id: profile.id,
           credits_purchased: planInfo.credits,
           amount_paid: session.amount_total ? session.amount_total / 100 : 0,
@@ -174,12 +173,12 @@ serve(async (req) => {
         logStep("Error recording purchase", { error: purchaseError });
       }
 
-      // Record credit history
+      // Record credit history com user_id como referência principal
       const { error: historyError } = await supabaseClient
         .from('credit_history')
         .insert({
-          team_id: profile.team_id,
           user_id: profile.id,
+          team_id: profile.team_id || profile.id, // Mantém compatibilidade
           action_type: 'COMPRA_CREDITOS',
           credits_used: -planInfo.credits, // Negative because it's an addition
           credits_before: creditsBefore,
@@ -215,7 +214,7 @@ serve(async (req) => {
       }
 
       logStep("Payment processed successfully", {
-        teamId: profile.team_id,
+        userId: profile.id,
         creditsAdded: planInfo.credits,
         newTotal: creditsAfter
       });

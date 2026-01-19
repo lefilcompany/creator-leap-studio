@@ -1,38 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@13.11.0?target=deno";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
-
-// Import credit history utility
-async function recordCreditUsage(
-  supabase: any,
-  params: {
-    teamId: string;
-    userId: string;
-    actionType: string;
-    creditsUsed: number;
-    creditsBefore: number;
-    creditsAfter: number;
-    description?: string;
-    metadata?: any;
-  }
-) {
-  const { error } = await supabase
-    .from('credit_history')
-    .insert({
-      team_id: params.teamId,
-      user_id: params.userId,
-      action_type: params.actionType,
-      credits_used: params.creditsUsed,
-      credits_before: params.creditsBefore,
-      credits_after: params.creditsAfter,
-      description: params.description,
-      metadata: params.metadata || {},
-    });
-
-  if (error) {
-    console.error('Failed to record credit usage:', error);
-  }
-}
+import { recordUserCreditUsage } from '../_shared/userCredits.ts';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -142,37 +111,25 @@ serve(async (req) => {
       endDate: subscriptionEnd 
     });
 
-    // Get user's profile to find team_id
+    // Buscar dados do profile do usuário (não mais team)
     const { data: profile, error: profileError } = await supabaseClient
       .from('profiles')
-      .select('team_id')
+      .select('credits, subscription_period_end, team_id')
       .eq('id', user.id)
       .single();
 
-    if (profileError || !profile?.team_id) {
-      logStep("Error fetching profile or no team_id", { error: profileError });
+    if (profileError) {
+      logStep("Error fetching profile", { error: profileError });
       return new Response(JSON.stringify({ 
         subscribed: true,
-        message: "Subscription active but no team found"
+        message: "Subscription active but profile not found"
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
       });
     }
 
-    const teamId = profile.team_id;
-    logStep("Found team", { teamId });
-
-    // Get current team data to check for period changes
-    const { data: currentTeam, error: teamError } = await supabaseClient
-      .from('teams')
-      .select('subscription_period_end, credits')
-      .eq('id', teamId)
-      .single();
-
-    if (teamError) {
-      logStep("Error fetching current team data", { error: teamError });
-    }
+    logStep("Found profile", { userId: user.id, currentCredits: profile.credits });
 
     if (!planId) {
       logStep("Unknown product ID", { productId });
@@ -205,13 +162,13 @@ serve(async (req) => {
 
     // Check if this is a new billing period (monthly renewal) using timestamps
     const stripePeriodTimestamp = new Date(subscriptionEnd).getTime();
-    const dbPeriodTimestamp = currentTeam?.subscription_period_end 
-      ? new Date(currentTeam.subscription_period_end).getTime() 
+    const dbPeriodTimestamp = profile.subscription_period_end 
+      ? new Date(profile.subscription_period_end).getTime() 
       : 0;
     const isNewPeriod = stripePeriodTimestamp > dbPeriodTimestamp;
 
     // Credit accumulation policy: accumulate up to 2x, reset if at limit
-    const currentCredits = currentTeam?.credits || 0;
+    const currentCredits = profile.credits || 0;
     const creditsToSet = isNewPeriod 
       ? (currentCredits >= (plan.credits * 2)
           ? plan.credits  // Reset to base if at max limit
@@ -220,19 +177,19 @@ serve(async (req) => {
     
     logStep("Credit reset decision", { 
       isNewPeriod, 
-      currentPeriodEnd: currentTeam?.subscription_period_end,
+      currentPeriodEnd: profile.subscription_period_end,
       newPeriodEnd: subscriptionEnd,
       stripePeriodTimestamp,
       dbPeriodTimestamp,
-      currentCredits: currentTeam?.credits,
+      currentCredits: profile.credits,
       planCredits: plan.credits,
       creditsToSet,
       accumulationPolicy: 'up_to_2x'
     });
 
-    // Update team with subscription info and credits
+    // Atualizar PROFILE do usuário (não mais team)
     const { error: updateError } = await supabaseClient
-      .from('teams')
+      .from('profiles')
       .update({
         plan_id: planId,
         stripe_customer_id: customerId,
@@ -242,23 +199,23 @@ serve(async (req) => {
         credits: creditsToSet,
         updated_at: new Date().toISOString()
       })
-      .eq('id', teamId);
+      .eq('id', user.id);
 
     if (updateError) {
-      logStep("Error updating team", { error: updateError });
-      throw new Error(`Failed to update team: ${updateError.message}`);
+      logStep("Error updating profile", { error: updateError });
+      throw new Error(`Failed to update profile: ${updateError.message}`);
     }
 
-    logStep("Team updated successfully", { teamId, planId, creditsSet: creditsToSet });
+    logStep("Profile updated successfully", { userId: user.id, planId, creditsSet: creditsToSet });
 
     // Record credit reset in history if it was a new period
-    if (isNewPeriod && currentTeam) {
-      const creditsBefore = currentTeam.credits || 0;
+    if (isNewPeriod) {
+      const creditsBefore = profile.credits || 0;
       const creditsAdded = creditsToSet - creditsBefore;
       
-      await recordCreditUsage(supabaseClient, {
-        teamId,
+      await recordUserCreditUsage(supabaseClient, {
         userId: user.id,
+        teamId: profile.team_id || undefined,
         actionType: 'MONTHLY_RESET',
         creditsUsed: -creditsAdded, // Negative because it's adding credits
         creditsBefore,
@@ -266,7 +223,7 @@ serve(async (req) => {
         description: 'Renovação mensal - créditos resetados',
         metadata: {
           plan_id: planId,
-          previous_period_end: currentTeam.subscription_period_end,
+          previous_period_end: profile.subscription_period_end,
           new_period_end: subscriptionEnd,
           subscription_id: subscription.id,
           reset_method: 'manual_check',
@@ -291,7 +248,7 @@ serve(async (req) => {
       credits_reset: isNewPeriod,
       message: isNewPeriod 
         ? "Subscription verified, credits reset for new period"
-        : "Subscription verified and team updated"
+        : "Subscription verified and profile updated"
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,

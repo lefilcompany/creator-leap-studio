@@ -69,12 +69,12 @@ serve(async (req) => {
       });
     }
 
-    // Extrair metadados
-    const { team_id, user_id, purchase_type, plan_id, credits: customCredits } = session.metadata || {};
-    if (!team_id || !user_id || !purchase_type) {
+    // Extrair metadados - user_id agora é a referência principal
+    const { user_id, purchase_type, plan_id, credits: customCredits, team_id } = session.metadata || {};
+    if (!user_id || !purchase_type) {
       throw new Error("Invalid session metadata");
     }
-    logStep("Metadata extracted", { team_id, user_id, purchase_type, plan_id, customCredits });
+    logStep("Metadata extracted", { user_id, purchase_type, plan_id, customCredits, team_id });
     
     // Determinar quantidade de créditos
     let creditsToAdd = 0;
@@ -96,45 +96,48 @@ serve(async (req) => {
       throw new Error("Could not determine credits to add");
     }
 
-    // Buscar team atual
-    const { data: team } = await supabase
-      .from('teams')
-      .select('credits')
-      .eq('id', team_id)
+    // Buscar profile do usuário (não mais team)
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('credits, team_id')
+      .eq('id', user_id)
       .single();
     
-    if (!team) throw new Error("Team not found");
+    if (!profile) throw new Error("User profile not found");
     
-    const creditsBefore = team.credits || 0;
+    const creditsBefore = profile.credits || 0;
     const creditsAfter = creditsBefore + creditsToAdd;
     logStep("Credit calculation", { creditsBefore, creditsToAdd, creditsAfter });
 
-    // Preparar atualização da equipe
-    const teamUpdate: any = { credits: creditsAfter };
+    // Preparar atualização do profile
+    const profileUpdate: any = { 
+      credits: creditsAfter,
+      updated_at: new Date().toISOString()
+    };
     
     // Se for compra de plano, atualizar também plan_id, subscription_status e period_end
     if (purchase_type === 'plan' && plan_id) {
-      teamUpdate.plan_id = plan_id;
-      teamUpdate.subscription_status = 'active';
-      // 30 dias a partir de agora
-      teamUpdate.subscription_period_end = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-      logStep("Adding plan subscription data", { plan_id, subscription_period_end: teamUpdate.subscription_period_end });
+      profileUpdate.plan_id = plan_id;
+      profileUpdate.subscription_status = 'active';
+      profileUpdate.subscription_period_end = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+      profileUpdate.stripe_customer_id = session.customer as string;
+      logStep("Adding plan subscription data to profile", { plan_id, subscription_period_end: profileUpdate.subscription_period_end });
     }
 
-    // Adicionar créditos e atualizar plano (se aplicável)
+    // Atualizar profile do usuário (não mais team)
     const { error: updateError } = await supabase
-      .from('teams')
-      .update(teamUpdate)
-      .eq('id', team_id);
+      .from('profiles')
+      .update(profileUpdate)
+      .eq('id', user_id);
 
     if (updateError) throw updateError;
-    logStep("Team updated with credits and plan data");
+    logStep("Profile updated with credits and plan data");
 
-    // Registrar compra
+    // Registrar compra - mantém team_id para compatibilidade se existir
     const { error: purchaseError } = await supabase
       .from('credit_purchases')
       .insert({
-        team_id,
+        team_id: profile.team_id || user_id, // Usar team_id se existir, senão user_id
         user_id,
         purchase_type,
         plan_id: plan_id || null,
@@ -149,12 +152,12 @@ serve(async (req) => {
     if (purchaseError) throw purchaseError;
     logStep("Purchase recorded");
 
-    // Registrar em credit_history
+    // Registrar em credit_history com user_id como referência principal
     const { error: historyError } = await supabase
       .from('credit_history')
       .insert({
-        team_id,
         user_id,
+        team_id: profile.team_id || user_id, // Mantém compatibilidade
         action_type: 'purchase',
         credits_used: -creditsToAdd, // Negativo pois é adição
         credits_before: creditsBefore,

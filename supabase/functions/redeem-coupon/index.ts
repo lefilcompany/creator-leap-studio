@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { addUserCredits, recordUserCreditUsage, getUserCredits } from '../_shared/userCredits.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -146,21 +147,6 @@ function getPrizeInfo(prefix: string): { type: string; value: number; descriptio
   }
 }
 
-// Função para buscar créditos de um plano
-async function getPlanCredits(planId: string, supabaseAdmin: any) {
-  const { data: plan, error } = await supabaseAdmin
-    .from('plans')
-    .select('credits_quick_content, credits_suggestions, credits_reviews, credits_plans')
-    .eq('id', planId)
-    .single();
-  
-  if (error || !plan) {
-    throw new Error(`Plano ${planId} não encontrado`);
-  }
-  
-  return plan;
-}
-
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
@@ -214,11 +200,12 @@ serve(async (req) => {
     const lowerCode = normalizedCode.toLowerCase();
     console.log(`[redeem-coupon] Validating coupon: ${normalizedCode}`);
 
-    // Verificar se cupom já foi usado (tanto promo quanto checksum)
+    // Verificar se cupom já foi usado por ESTE USUÁRIO
     const { data: existingCoupon, error: checkError } = await supabaseAdmin
       .from('coupons_used')
       .select('*')
       .eq('coupon_code', lowerCode)
+      .eq('redeemed_by', user.id)
       .maybeSingle();
 
     if (checkError) {
@@ -227,51 +214,37 @@ serve(async (req) => {
     }
 
     if (existingCoupon) {
-      console.log(`[redeem-coupon] Coupon already used: ${normalizedCode}`);
+      console.log(`[redeem-coupon] Coupon already used by this user: ${normalizedCode}`);
       return new Response(
-        JSON.stringify({ valid: false, error: 'Este cupom já foi utilizado.' }),
+        JSON.stringify({ valid: false, error: 'Você já utilizou este cupom.' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
       );
     }
 
-    // Buscar dados da equipe do usuário
+    // Buscar dados do profile do usuário (team_id agora é opcional)
     const { data: profile, error: profileError } = await supabaseClient
       .from('profiles')
-      .select('team_id')
+      .select('team_id, credits')
       .eq('id', user.id)
       .single();
 
-    if (profileError || !profile?.team_id) {
-      console.error('[redeem-coupon] User has no team:', profileError);
-      return new Response(
-        JSON.stringify({ valid: false, error: 'Você precisa estar em uma equipe para resgatar cupons.' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-      );
+    if (profileError) {
+      console.error('[redeem-coupon] Error fetching profile:', profileError);
+      throw new Error('Erro ao buscar perfil do usuário');
     }
 
-    const { data: team, error: teamError } = await supabaseAdmin
-      .from('teams')
-      .select('*')
-      .eq('id', profile.team_id)
-      .single();
-
-    if (teamError || !team) {
-      console.error('[redeem-coupon] Team not found:', teamError);
-      throw new Error('Equipe não encontrada');
-    }
-
-    console.log(`[redeem-coupon] Team found: ${team.id} (plan: ${team.plan_id})`);
+    console.log(`[redeem-coupon] User profile found: ${user.id} (team: ${profile.team_id || 'none'})`);
 
     // ============= CUPOM PROMOCIONAL =============
     if (isPromoCoupon(lowerCode)) {
       const promoOwner = PROMO_COUPONS[lowerCode];
       console.log(`[redeem-coupon] Promo coupon detected: ${lowerCode} (${promoOwner})`);
 
-      // Registrar cupom promocional
+      // Registrar cupom promocional (usa user.id como team_id se não tiver equipe)
       const { error: insertError } = await supabaseAdmin
         .from('coupons_used')
         .insert({
-          team_id: team.id,
+          team_id: profile.team_id || user.id,
           coupon_code: lowerCode,
           coupon_prefix: 'PROMO',
           prize_type: 'credits',
@@ -290,14 +263,12 @@ serve(async (req) => {
         throw new Error('Erro ao registrar cupom. Tente novamente.');
       }
 
-      // Adicionar 200 créditos à equipe
-      const { error: updateError } = await supabaseAdmin
-        .from('teams')
-        .update({ credits: (team.credits || 0) + PROMO_CREDITS })
-        .eq('id', team.id);
+      // Adicionar créditos ao USUÁRIO (não mais team)
+      const creditsBefore = profile.credits || 0;
+      const addResult = await addUserCredits(supabaseAdmin, user.id, PROMO_CREDITS);
 
-      if (updateError) {
-        console.error('[redeem-coupon] Error updating team credits:', updateError);
+      if (!addResult.success) {
+        console.error('[redeem-coupon] Error updating user credits:', addResult.error);
         return new Response(
           JSON.stringify({ 
             valid: false, 
@@ -306,6 +277,18 @@ serve(async (req) => {
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
         );
       }
+
+      // Registrar no histórico
+      await recordUserCreditUsage(supabaseAdmin, {
+        userId: user.id,
+        teamId: profile.team_id || undefined,
+        actionType: 'COUPON_REDEMPTION',
+        creditsUsed: -PROMO_CREDITS, // Negativo porque é adição
+        creditsBefore: creditsBefore,
+        creditsAfter: addResult.newCredits,
+        description: `Cupom promocional ${promoOwner}`,
+        metadata: { coupon_code: lowerCode, coupon_type: 'promo' }
+      });
 
       console.log(`[redeem-coupon] ✅ Promo coupon redeemed: ${lowerCode} (+${PROMO_CREDITS} credits)`);
 
@@ -348,108 +331,79 @@ serve(async (req) => {
 
     console.log(`[redeem-coupon] Checksum valid for: ${upperCode}`);
 
-    // 5. Obter informações do prêmio
+    // 3. Obter informações do prêmio
     const prizeInfo = getPrizeInfo(prefix);
     console.log(`[redeem-coupon] Prize info:`, prizeInfo);
 
-    // 6. Aplicar benefícios
-    let updateData: any = {};
+    // 4. Aplicar benefícios
+    const creditsBefore = profile.credits || 0;
+    let creditsToAdd = 0;
+    let profileUpdate: any = {};
 
     if (prizeInfo.type === 'days_basic') {
-      // B4: Upgrade para Basic (apenas se for Free)
-      if (team.plan_id !== 'free') {
-        console.log(`[redeem-coupon] Plan incompatible: ${team.plan_id} must be 'free' for B4`);
-        return new Response(
-          JSON.stringify({ 
-            valid: false, 
-            error: 'Este cupom só pode ser usado por equipes no plano Free.' 
-          }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-        );
-      }
-      
-      // Buscar créditos do plano Basic
-      const basicPlanCredits = await getPlanCredits('basic', supabaseAdmin);
-      
-      // Fazer upgrade para Basic + 14 dias + créditos do plano
+      // B4: Upgrade para Basic por 14 dias
       const newEnd = new Date();
       newEnd.setDate(newEnd.getDate() + 14);
       
-      updateData = {
+      // Buscar créditos do plano basic
+      const { data: basicPlan } = await supabaseAdmin
+        .from('plans')
+        .select('credits')
+        .eq('id', 'basic')
+        .single();
+      
+      creditsToAdd = basicPlan?.credits || 80;
+      
+      profileUpdate = {
         plan_id: 'basic',
         subscription_period_end: newEnd.toISOString(),
         subscription_status: 'active',
-        credits_quick_content: basicPlanCredits.credits_quick_content,
-        credits_suggestions: basicPlanCredits.credits_suggestions,
-        credits_reviews: basicPlanCredits.credits_reviews,
-        credits_plans: basicPlanCredits.credits_plans
+        credits: creditsBefore + creditsToAdd
       };
       
-      console.log(`[redeem-coupon] Upgrading to Basic until ${newEnd.toISOString()} with credits:`, basicPlanCredits);
+      console.log(`[redeem-coupon] Upgrading to Basic until ${newEnd.toISOString()}`);
       
     } else if (prizeInfo.type === 'days_pro') {
-      // P7: Upgrade para Pro (apenas se for Free ou Basic)
-      if (team.plan_id !== 'free' && team.plan_id !== 'basic') {
-        console.log(`[redeem-coupon] Plan incompatible: ${team.plan_id} must be 'free' or 'basic' for P7`);
-        return new Response(
-          JSON.stringify({ 
-            valid: false, 
-            error: 'Este cupom só pode ser usado por equipes nos planos Free ou Basic.' 
-          }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-        );
-      }
-      
-      // Buscar créditos do plano Pro
-      const proPlanCredits = await getPlanCredits('pro', supabaseAdmin);
-      
-      // Fazer upgrade para Pro + 7 dias + créditos do plano
+      // P7: Upgrade para Pro por 7 dias
       const newEnd = new Date();
       newEnd.setDate(newEnd.getDate() + 7);
       
-      updateData = {
+      // Buscar créditos do plano pro
+      const { data: proPlan } = await supabaseAdmin
+        .from('plans')
+        .select('credits')
+        .eq('id', 'pro')
+        .single();
+      
+      creditsToAdd = proPlan?.credits || 160;
+      
+      profileUpdate = {
         plan_id: 'pro',
         subscription_period_end: newEnd.toISOString(),
         subscription_status: 'active',
-        credits_quick_content: proPlanCredits.credits_quick_content,
-        credits_suggestions: proPlanCredits.credits_suggestions,
-        credits_reviews: proPlanCredits.credits_reviews,
-        credits_plans: proPlanCredits.credits_plans
+        credits: creditsBefore + creditsToAdd
       };
       
-      console.log(`[redeem-coupon] Upgrading to Pro until ${newEnd.toISOString()} with credits:`, proPlanCredits);
+      console.log(`[redeem-coupon] Upgrading to Pro until ${newEnd.toISOString()}`);
+      
     } else if (prizeInfo.type === 'credits') {
-      // Cupons de créditos: distribuir igualitariamente
-      const totalCredits = prizeInfo.value;
-      
-      // Distribuição IGUALITÁRIA (25% para cada tipo)
-      const creditsPerType = Math.floor(totalCredits / 4);
-      
-      const creditsToAdd = {
-        quick: creditsPerType,
-        suggestions: creditsPerType,
-        reviews: creditsPerType,
-        plans: creditsPerType
+      // Cupons de créditos: adicionar diretamente ao usuário
+      creditsToAdd = prizeInfo.value;
+      profileUpdate = {
+        credits: creditsBefore + creditsToAdd
       };
 
-      updateData = {
-        credits_quick_content: team.credits_quick_content + creditsToAdd.quick,
-        credits_suggestions: team.credits_suggestions + creditsToAdd.suggestions,
-        credits_reviews: team.credits_reviews + creditsToAdd.reviews,
-        credits_plans: team.credits_plans + creditsToAdd.plans
-      };
-
-      console.log(`[redeem-coupon] Adding credits:`, creditsToAdd);
+      console.log(`[redeem-coupon] Adding ${creditsToAdd} credits to user`);
     }
 
-    console.log(`[redeem-coupon] Applying prize: ${JSON.stringify(updateData)}`);
+    console.log(`[redeem-coupon] Applying prize: ${JSON.stringify(profileUpdate)}`);
 
-    // 7. Registrar cupom PRIMEIRO (previne uso duplo)
+    // 5. Registrar cupom PRIMEIRO (previne uso duplo)
     console.log(`[redeem-coupon] Registering coupon in database...`);
     const { error: insertError } = await supabaseAdmin
       .from('coupons_used')
       .insert({
-        team_id: team.id,
+        team_id: profile.team_id || user.id,
         coupon_code: upperCode,
         coupon_prefix: prefix,
         prize_type: prizeInfo.type,
@@ -473,16 +427,14 @@ serve(async (req) => {
 
     console.log(`[redeem-coupon] Coupon registered. Applying benefits...`);
 
-    // 8. Aplicar benefícios DEPOIS (se falhar, cupom já está protegido)
+    // 6. Aplicar benefícios ao PROFILE do usuário (não mais team)
     const { error: updateError } = await supabaseAdmin
-      .from('teams')
-      .update(updateData)
-      .eq('id', team.id);
+      .from('profiles')
+      .update(profileUpdate)
+      .eq('id', user.id);
 
     if (updateError) {
-      console.error('[redeem-coupon] Error updating team:', updateError);
-      // Cupom já está marcado como usado, mas benefícios não foram aplicados
-      // Isso requer atenção do suporte, mas previne fraude
+      console.error('[redeem-coupon] Error updating profile:', updateError);
       return new Response(
         JSON.stringify({ 
           valid: false, 
@@ -492,26 +444,38 @@ serve(async (req) => {
       );
     }
 
+    // 7. Registrar no histórico de créditos
+    await recordUserCreditUsage(supabaseAdmin, {
+      userId: user.id,
+      teamId: profile.team_id || undefined,
+      actionType: 'COUPON_REDEMPTION',
+      creditsUsed: -creditsToAdd, // Negativo porque é adição
+      creditsBefore: creditsBefore,
+      creditsAfter: creditsBefore + creditsToAdd,
+      description: `Cupom ${prizeInfo.description}`,
+      metadata: { 
+        coupon_code: upperCode, 
+        coupon_prefix: prefix,
+        prize_type: prizeInfo.type 
+      }
+    });
+
     console.log(`[redeem-coupon] ✅ Coupon redeemed successfully: ${upperCode}`);
 
     return new Response(
       JSON.stringify({
         valid: true,
-        prize: {
-          type: prizeInfo.type,
-          value: prizeInfo.value,
-          description: prizeInfo.description
-        }
+        prize: prizeInfo
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('[redeem-coupon] Error:', error);
     return new Response(
       JSON.stringify({ 
         valid: false, 
-        error: error.message || 'Erro ao processar cupom' 
+        error: error instanceof Error ? error.message : 'Erro interno' 
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     );
