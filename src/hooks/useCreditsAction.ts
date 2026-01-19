@@ -8,17 +8,18 @@ interface ExecuteActionOptions {
 }
 
 export function useCreditsAction() {
-  const { team, refreshTeamCredits } = useAuth();
+  const { user, refreshUserCredits } = useAuth();
 
   const executeAction = async <T>(
     actionFn: () => Promise<T>,
     actionType: keyof typeof CREDIT_COSTS,
     options?: ExecuteActionOptions
   ): Promise<T | null> => {
-    // Verificar créditos antes
-    if (!team || team.credits < CREDIT_COSTS[actionType]) {
+    // Verificar créditos antes (usa créditos individuais do usuário)
+    const userCredits = user?.credits || 0;
+    if (!user || userCredits < CREDIT_COSTS[actionType]) {
       toast.error('Créditos insuficientes', {
-        description: `Esta ação requer ${CREDIT_COSTS[actionType]} créditos.`
+        description: `Esta ação requer ${CREDIT_COSTS[actionType]} créditos. Você tem ${userCredits}.`
       });
       return null;
     }
@@ -27,12 +28,12 @@ export function useCreditsAction() {
       // Executar ação
       const result = await actionFn();
       
-      // Atualizar créditos
-      await refreshTeamCredits();
+      // Atualizar créditos do usuário
+      await refreshUserCredits();
       
       // Feedback opcional
-      if (options?.showCreditUpdate && team) {
-        const newCredits = team.credits - CREDIT_COSTS[actionType];
+      if (options?.showCreditUpdate && user) {
+        const newCredits = userCredits - CREDIT_COSTS[actionType];
         toast.info(`Créditos atualizados`, {
           description: `${newCredits} créditos restantes`,
           duration: 2000
@@ -49,6 +50,6 @@ export function useCreditsAction() {
 
   return { 
     executeAction, 
-    currentCredits: team?.credits || 0 
+    currentCredits: user?.credits || 0 
   };
 }

@@ -19,12 +19,12 @@ import { toast } from 'sonner';
 interface RedeemCouponDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess: () => void;
-  currentPlanId: string;
+  onSuccess?: () => void;
+  currentPlanId?: string;
 }
 
-export default function RedeemCouponDialog({ open, onOpenChange, onSuccess, currentPlanId }: RedeemCouponDialogProps) {
-  const { reloadUserData } = useAuth();
+export default function RedeemCouponDialog({ open, onOpenChange, onSuccess, currentPlanId = 'free' }: RedeemCouponDialogProps) {
+  const { reloadUserData, refreshUserCredits } = useAuth();
   const [couponCode, setCouponCode] = useState('');
   const [isRedeeming, setIsRedeeming] = useState(false);
   const [validationError, setValidationError] = useState('');
@@ -127,8 +127,9 @@ export default function RedeemCouponDialog({ open, onOpenChange, onSuccess, curr
         
         // Aguardar 2 segundos para mostrar mensagem de sucesso
         setTimeout(async () => {
+          await refreshUserCredits();
           await reloadUserData();
-          onSuccess();
+          onSuccess?.();
           handleClose();
         }, 2000);
       } else {
@@ -166,7 +167,7 @@ export default function RedeemCouponDialog({ open, onOpenChange, onSuccess, curr
             Resgatar Cupom de Premiação
           </DialogTitle>
           <DialogDescription>
-            Insira seu código de cupom para receber benefícios instantâneos na sua equipe
+            Insira seu código de cupom para receber créditos ou benefícios instantâneos
           </DialogDescription>
         </DialogHeader>
 
