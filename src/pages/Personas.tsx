@@ -24,7 +24,7 @@ import { personasSteps, navbarSteps } from '@/components/onboarding/tourSteps';
 type PersonaFormData = Omit<Persona, 'id' | 'createdAt' | 'updatedAt' | 'teamId' | 'userId'>;
 
 export default function PersonasPage() {
-  const { user, team, refreshTeamData } = useAuth();
+  const { user, team, refreshTeamData, refreshUserCredits } = useAuth();
   const isMobile = useIsMobile();
   const [personas, setPersonas] = useState<PersonaSummary[]>([]);
   const [brands, setBrands] = useState<BrandSummary[]>([]);
@@ -43,17 +43,17 @@ export default function PersonasPage() {
   const [totalPages, setTotalPages] = useState(0);
   const ITEMS_PER_PAGE = 10;
 
-  // Load brands from database
+  // Load brands from database - user can see own brands OR team brands
   useEffect(() => {
     const loadBrands = async () => {
-      if (!user?.teamId) return;
+      if (!user?.id) return;
       
       setIsLoadingBrands(true);
       try {
+        // Query brands user has access to (via RLS can_access_resource)
         const { data, error } = await supabase
           .from('brands')
           .select('id, name, responsible, created_at, updated_at')
-          .eq('team_id', user.teamId)
           .order('name', { ascending: true });
 
         if (error) throw error;
@@ -76,21 +76,21 @@ export default function PersonasPage() {
     };
     
     loadBrands();
-  }, [user?.teamId]);
+  }, [user?.id]);
 
-  // Load personas from database
+  // Load personas from database - user can see own personas OR team personas
   useEffect(() => {
     const loadPersonas = async () => {
-      if (!user?.teamId) return;
+      if (!user?.id) return;
       
       setIsLoadingPersonas(true);
       try {
         const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
         
+        // Query personas user has access to (via RLS can_access_resource)
         const { data, error, count } = await supabase
           .from('personas')
           .select('id, brand_id, name, created_at', { count: 'exact' })
-          .eq('team_id', user.teamId)
           .order('created_at', { ascending: false })
           .range(startIndex, startIndex + ITEMS_PER_PAGE - 1);
 
@@ -114,7 +114,7 @@ export default function PersonasPage() {
     };
     
     loadPersonas();
-  }, [user?.teamId, currentPage]);
+  }, [user?.id, currentPage]);
 
   const handleOpenDialog = useCallback((persona: Persona | null = null) => {
     // Para edição, abrir direto
@@ -124,17 +124,17 @@ export default function PersonasPage() {
       return;
     }
 
-    // Para nova persona, verificar se team está carregado
-    if (!team) {
-      toast.error('Carregando dados da equipe...');
+    // Para nova persona, verificar se user está carregado
+    if (!user) {
+      toast.error('Carregando dados do usuário...');
       return;
     }
 
-    const freePersonasUsed = team.free_personas_used || 0;
+    const freePersonasUsed = team?.free_personas_used || 0;
     const isFree = freePersonasUsed < 3;
 
-    // Se não for gratuita, verificar créditos
-    if (!isFree && team.credits < 1) {
+    // Se não for gratuita, verificar créditos individuais
+    if (!isFree && (user.credits || 0) < 1) {
       toast.error('Créditos insuficientes. Criar uma persona custa 1 crédito (as 3 primeiras são gratuitas).');
       return;
     }
@@ -142,7 +142,7 @@ export default function PersonasPage() {
     // Abrir diálogo de confirmação
     setPersonaToEdit(null);
     setIsConfirmDialogOpen(true);
-  }, [team, personas.length]);
+  }, [user, team, personas.length]);
 
   const handleConfirmCreate = useCallback(() => {
     setIsConfirmDialogOpen(false);
@@ -194,8 +194,8 @@ export default function PersonasPage() {
   }, []);
 
   const handleSavePersona = useCallback(async (formData: PersonaFormData) => {
-    if (!user?.teamId || !user.id) {
-      toast.error('Usuário não autenticado ou sem equipe');
+    if (!user?.id) {
+      toast.error('Usuário não autenticado');
       return;
     }
 
@@ -249,7 +249,7 @@ export default function PersonasPage() {
         const { data, error } = await supabase
           .from('personas')
           .insert({
-            team_id: user.teamId,
+            team_id: user.teamId || null, // Optional team association
             user_id: user.id,
             brand_id: formData.brandId,
             name: formData.name,
@@ -275,7 +275,7 @@ export default function PersonasPage() {
           id: data.id,
           createdAt: data.created_at,
           updatedAt: data.updated_at,
-          teamId: user.teamId,
+          teamId: user.teamId || '',
           userId: user.id
         };
         
@@ -290,40 +290,42 @@ export default function PersonasPage() {
         setSelectedPersona(newPersona);
         setSelectedPersonaSummary(newPersonaSummary);
         
-        // Atualizar contador ou deduzir crédito
-        const freePersonasUsed = team.free_personas_used || 0;
+        // Atualizar contador ou deduzir crédito individual
+        const freePersonasUsed = team?.free_personas_used || 0;
         const isFree = freePersonasUsed < 3;
 
-        if (isFree) {
-          // Incrementar contador de personas gratuitas
+        if (isFree && user.teamId) {
+          // Incrementar contador de personas gratuitas (apenas se tiver equipe)
           await supabase
             .from('teams')
             .update({ free_personas_used: freePersonasUsed + 1 } as any)
             .eq('id', user.teamId);
-        } else {
-          // Deduzir 1 crédito
+          await refreshTeamData();
+        } else if (!isFree) {
+          // Deduzir 1 crédito do usuário individual
+          const currentCredits = user.credits || 0;
           await supabase
-            .from('teams')
-            .update({ credits: team.credits - 1 } as any)
-            .eq('id', user.teamId);
+            .from('profiles')
+            .update({ credits: currentCredits - 1 })
+            .eq('id', user.id);
 
           // Registrar no histórico de créditos
           await supabase
             .from('credit_history')
             .insert({
-              team_id: user.teamId,
+              team_id: user.teamId || null,
               user_id: user.id,
               action_type: 'CREATE_PERSONA',
               credits_used: 1,
-              credits_before: team.credits,
-              credits_after: team.credits - 1,
+              credits_before: currentCredits,
+              credits_after: currentCredits - 1,
               description: `Criação da persona: ${formData.name}`,
               metadata: { persona_id: data.id, persona_name: formData.name }
             });
+          
+          // Atualizar créditos do usuário
+          await refreshUserCredits();
         }
-        
-        // Atualizar créditos sem reload
-        await refreshTeamData();
         
         toast.success(isFree 
           ? `Persona criada com sucesso! (${3 - freePersonasUsed - 1} personas gratuitas restantes)` 
@@ -370,8 +372,8 @@ export default function PersonasPage() {
     }
   }, [selectedPersona, user]);
 
-  // Desabilitar apenas se não tiver créditos ou se team não carregou
-  const isButtonDisabled = !team || team.credits < 1;
+  // Desabilitar apenas se não tiver créditos ou se user não carregou
+  const isButtonDisabled = !user || (user.credits || 0) < 1;
 
   return (
     <div className="h-full flex flex-col gap-4 lg:gap-6 overflow-hidden">
@@ -396,7 +398,7 @@ export default function PersonasPage() {
               onClick={() => handleOpenDialog()} 
               disabled={isButtonDisabled}
               className="rounded-lg bg-gradient-to-r from-primary to-secondary px-4 lg:px-6 py-3 lg:py-5 text-sm lg:text-base disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
-              title={!team ? 'Carregando...' : (team.credits < 1 ? 'Créditos insuficientes' : undefined)}
+              title={!user ? 'Carregando...' : ((user.credits || 0) < 1 ? 'Créditos insuficientes' : undefined)}
             >
               <Plus className="mr-2 h-4 w-4 lg:h-5 lg:w-5" />
               Nova persona
@@ -468,7 +470,7 @@ export default function PersonasPage() {
         isOpen={isConfirmDialogOpen}
         onOpenChange={setIsConfirmDialogOpen}
         onConfirm={handleConfirmCreate}
-        currentBalance={team?.credits || 0}
+        currentBalance={user?.credits || 0}
         cost={1}
         resourceType="persona"
         isFreeResource={(team?.free_personas_used || 0) < 3}

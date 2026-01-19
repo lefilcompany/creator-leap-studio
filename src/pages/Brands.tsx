@@ -24,7 +24,7 @@ import { brandsSteps, navbarSteps } from '@/components/onboarding/tourSteps';
 type BrandFormData = Omit<Brand, 'id' | 'createdAt' | 'updatedAt' | 'teamId' | 'userId'>;
 
 export default function MarcasPage() {
-  const { user, team, refreshTeamData } = useAuth();
+  const { user, team, refreshTeamData, refreshUserCredits } = useAuth();
   const isMobile = useIsMobile();
   const { t } = useTranslation();
   const [brands, setBrands] = useState<BrandSummary[]>([]);
@@ -42,21 +42,23 @@ export default function MarcasPage() {
   const [totalPages, setTotalPages] = useState(0);
   const ITEMS_PER_PAGE = 10;
 
-  // Load brands from database
+  // Load brands from database - user can see own brands OR team brands
   useEffect(() => {
     const loadBrands = async () => {
-      if (!user?.teamId) return;
+      if (!user?.id) return;
       
       setIsLoadingBrands(true);
       try {
         const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
         
-        const { data, error, count } = await supabase
+        // Query brands user has access to (via RLS can_access_resource)
+        let query = supabase
           .from('brands')
           .select('id, name, responsible, created_at, updated_at', { count: 'exact' })
-          .eq('team_id', user.teamId)
           .order('name', { ascending: true })
           .range(startIndex, startIndex + ITEMS_PER_PAGE - 1);
+
+        const { data, error, count } = await query;
 
         if (error) throw error;
 
@@ -79,7 +81,7 @@ export default function MarcasPage() {
     };
     
     loadBrands();
-  }, [user?.teamId, currentPage]);
+  }, [user?.id, currentPage]);
 
   const handleOpenDialog = useCallback((brand: Brand | null = null) => {
     // Para edição, abrir direto
@@ -89,17 +91,17 @@ export default function MarcasPage() {
       return;
     }
 
-    // Para nova marca, verificar se team está carregado
-    if (!team) {
-      toast.error('Carregando dados da equipe...');
+    // Para nova marca, verificar se user está carregado
+    if (!user) {
+      toast.error('Carregando dados do usuário...');
       return;
     }
 
-    const freeBrandsUsed = team.free_brands_used || 0;
+    const freeBrandsUsed = team?.free_brands_used || 0;
     const isFree = freeBrandsUsed < 3;
 
-    // Se não for gratuita, verificar créditos
-    if (!isFree && team.credits < 1) {
+    // Se não for gratuita, verificar créditos individuais
+    if (!isFree && (user.credits || 0) < 1) {
       toast.error('Créditos insuficientes. Criar uma marca custa 1 crédito (as 3 primeiras são gratuitas).');
       return;
     }
@@ -107,7 +109,7 @@ export default function MarcasPage() {
     // Abrir diálogo de confirmação
     setBrandToEdit(null);
     setIsConfirmDialogOpen(true);
-  }, [team, brands.length, t]);
+  }, [user, team, brands.length, t]);
 
   const handleConfirmCreate = useCallback(() => {
     setIsConfirmDialogOpen(false);
@@ -165,7 +167,7 @@ export default function MarcasPage() {
   }, []);
 
   const handleSaveBrand = useCallback(async (formData: BrandFormData) => {
-    if (!user?.teamId || !user.id) {
+    if (!user?.id) {
       toast.error(t.brands.notAuthenticated);
       return;
     }
@@ -222,13 +224,13 @@ export default function MarcasPage() {
         toast.success(t.brands.updateSuccess, { id: toastId });
       } else {
         // Create new brand
-        const freeBrandsUsed = team.free_brands_used || 0;
+        const freeBrandsUsed = team?.free_brands_used || 0;
         const isFree = freeBrandsUsed < 3;
 
         const { data, error } = await supabase
           .from('brands')
           .insert({
-            team_id: user.teamId,
+            team_id: user.teamId || null, // Optional team association
             user_id: user.id,
             name: formData.name,
             responsible: formData.responsible,
@@ -260,7 +262,7 @@ export default function MarcasPage() {
           id: data.id,
           createdAt: data.created_at,
           updatedAt: data.updated_at,
-          teamId: user.teamId,
+          teamId: user.teamId || '',
           userId: user.id
         };
         
@@ -276,37 +278,39 @@ export default function MarcasPage() {
         setSelectedBrand(newBrand);
         setSelectedBrandSummary(newBrandSummary);
         
-        // Atualizar contador ou deduzir crédito
-        if (isFree) {
-          // Incrementar contador de marcas gratuitas
+        // Atualizar contador ou deduzir crédito individual
+        if (isFree && user.teamId) {
+          // Incrementar contador de marcas gratuitas (apenas se tiver equipe)
           await supabase
             .from('teams')
             .update({ free_brands_used: freeBrandsUsed + 1 } as any)
             .eq('id', user.teamId);
-        } else {
-          // Deduzir 1 crédito
+          await refreshTeamData();
+        } else if (!isFree) {
+          // Deduzir 1 crédito do usuário individual
+          const currentCredits = user.credits || 0;
           await supabase
-            .from('teams')
-            .update({ credits: team.credits - 1 } as any)
-            .eq('id', user.teamId);
+            .from('profiles')
+            .update({ credits: currentCredits - 1 })
+            .eq('id', user.id);
 
           // Registrar no histórico de créditos
           await supabase
             .from('credit_history')
             .insert({
-              team_id: user.teamId,
+              team_id: user.teamId || null,
               user_id: user.id,
               action_type: 'CREATE_BRAND',
               credits_used: 1,
-              credits_before: team.credits,
-              credits_after: team.credits - 1,
+              credits_before: currentCredits,
+              credits_after: currentCredits - 1,
               description: `Criação da marca: ${formData.name}`,
               metadata: { brand_id: data.id, brand_name: formData.name }
             });
+          
+          // Atualizar créditos do usuário
+          await refreshUserCredits();
         }
-        
-        // Atualizar créditos sem reload
-        await refreshTeamData();
         
         toast.success(isFree 
           ? `${t.brands.createSuccess} (${3 - freeBrandsUsed - 1} marcas gratuitas restantes)` 
@@ -359,8 +363,8 @@ export default function MarcasPage() {
     }
   }, [selectedBrand, user, brands, handleSelectBrand, t]);
 
-  // Desabilitar apenas se não tiver créditos ou se team não carregou
-  const isButtonDisabled = !team || team.credits < 1;
+  // Desabilitar apenas se não tiver créditos ou se user não carregou
+  const isButtonDisabled = !user || (user.credits || 0) < 1;
 
   return (
     <div className="h-full flex flex-col gap-4 lg:gap-6 overflow-hidden">
@@ -403,7 +407,7 @@ export default function MarcasPage() {
               onClick={() => handleOpenDialog()} 
               disabled={isButtonDisabled}
               className="rounded-lg bg-gradient-to-r from-primary to-secondary px-4 lg:px-6 py-3 lg:py-5 text-sm lg:text-base disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
-              title={!team ? 'Carregando...' : (team.credits < 1 ? 'Créditos insuficientes' : undefined)}
+              title={!user ? 'Carregando...' : ((user.credits || 0) < 1 ? 'Créditos insuficientes' : undefined)}
             >
               <Plus className="mr-2 h-4 w-4 lg:h-5 lg:w-5" />
               {t.brands.newBrand}
@@ -469,7 +473,7 @@ export default function MarcasPage() {
         isOpen={isConfirmDialogOpen}
         onOpenChange={setIsConfirmDialogOpen}
         onConfirm={handleConfirmCreate}
-        currentBalance={team?.credits || 0}
+        currentBalance={user?.credits || 0}
         cost={1}
         resourceType="marca"
         isFreeResource={(team?.free_brands_used || 0) < 3}

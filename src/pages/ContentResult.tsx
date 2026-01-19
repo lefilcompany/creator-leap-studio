@@ -279,11 +279,6 @@ export default function ContentResult() {
         // Revise caption using OpenAI gpt-4o-mini
         toast.info("Revisando legenda com base no seu feedback...");
         const {
-          data: {
-            user
-          }
-        } = await supabase.auth.getUser();
-        const {
           data,
           error
         } = await supabase.functions.invoke("revise-caption-openai", {
