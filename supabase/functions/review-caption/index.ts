@@ -2,7 +2,7 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
-import { recordCreditUsage } from '../_shared/creditHistory.ts';
+import { checkUserCredits, deductUserCredits, recordUserCreditUsage } from '../_shared/userCredits.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -41,21 +41,21 @@ serve(async (req) => {
 
     const authenticatedUserId = user.id;
 
-    // Fetch user's team from profile
+    // Fetch user's profile (team_id is optional now)
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('team_id')
+      .select('team_id, credits')
       .eq('id', authenticatedUserId)
       .single();
 
-    if (profileError || !profile?.team_id) {
+    if (profileError) {
       return new Response(
-        JSON.stringify({ error: 'User not associated with a team' }),
+        JSON.stringify({ error: 'User profile not found' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const authenticatedTeamId = profile.team_id;
+    const authenticatedTeamId = profile?.team_id || null;
 
     const { caption, prompt, brandId, brandName, themeName } = await req.json();
 
@@ -74,23 +74,12 @@ serve(async (req) => {
       );
     }
 
-    // Check credits
-    const { data: team, error: teamError } = await supabase
-      .from('teams')
-      .select('credits')
-      .eq('id', authenticatedTeamId)
-      .single();
+    // Check user credits (individual)
+    const creditCheck = await checkUserCredits(supabase, authenticatedUserId, CREDIT_COSTS.CAPTION_REVIEW);
 
-    if (teamError || !team) {
+    if (!creditCheck.hasCredits) {
       return new Response(
-        JSON.stringify({ error: 'Unable to verify credits' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    if (team.credits <= 0) {
-      return new Response(
-        JSON.stringify({ error: 'Insufficient credits' }),
+        JSON.stringify({ error: 'Créditos insuficientes' }),
         { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -224,7 +213,7 @@ Analise a legenda e retorne uma revisão completa em markdown seguindo EXATAMENT
       .insert({
         type: 'REVISAR_CONTEUDO',
         user_id: authenticatedUserId,
-        team_id: authenticatedTeamId,
+        team_id: authenticatedTeamId || '00000000-0000-0000-0000-000000000000',
         brand_id: brandId || null,
         details: { 
           reviewType: 'caption',
@@ -243,27 +232,21 @@ Analise a legenda e retorne uma revisão completa em markdown seguindo EXATAMENT
       console.error('Error saving action:', actionError);
     }
 
-    // Deduct credit
-    const creditsBefore = team.credits;
-    const creditsAfter = creditsBefore - CREDIT_COSTS.CAPTION_REVIEW;
+    // Deduct credit (individual)
+    const deductResult = await deductUserCredits(supabase, authenticatedUserId, CREDIT_COSTS.CAPTION_REVIEW);
     
-    const { error: updateError } = await supabase
-      .from('teams')
-      .update({ credits: creditsAfter })
-      .eq('id', authenticatedTeamId);
-
-    if (updateError) {
-      console.error('Error updating credits:', updateError);
+    if (!deductResult.success) {
+      console.error('Error updating credits:', deductResult.error);
     }
 
     // Record credit usage
-    await recordCreditUsage(supabase, {
-      teamId: authenticatedTeamId,
+    await recordUserCreditUsage(supabase, {
       userId: authenticatedUserId,
+      teamId: authenticatedTeamId,
       actionType: 'CAPTION_REVIEW',
       creditsUsed: CREDIT_COSTS.CAPTION_REVIEW,
-      creditsBefore,
-      creditsAfter,
+      creditsBefore: creditCheck.currentCredits,
+      creditsAfter: deductResult.newCredits,
       description: 'Revisão de legenda',
       metadata: { brandName, themeName }
     });

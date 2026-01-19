@@ -1,10 +1,13 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
+import { checkUserCredits, deductUserCredits, recordUserCreditUsage } from '../_shared/userCredits.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+const ANIMATION_CREDIT_COST = 15; // Credit cost for animation
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -21,7 +24,7 @@ serve(async (req) => {
       hasImage: !!imageData
     });
 
-    // Validação dos inputs
+    // Input validation
     if (!imageData) {
       return new Response(
         JSON.stringify({ error: 'Imagem é obrigatória' }),
@@ -36,56 +39,42 @@ serve(async (req) => {
       );
     }
 
-    if (!userId || !teamId) {
+    if (!userId) {
       return new Response(
         JSON.stringify({ error: 'Autenticação necessária' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Inicializar Supabase client
+    // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Verificar créditos do time
-    const { data: team, error: teamError } = await supabase
-      .from('teams')
-      .select('credits')
-      .eq('id', teamId)
-      .single();
+    // Check user credits (individual)
+    const creditCheck = await checkUserCredits(supabase, userId, ANIMATION_CREDIT_COST);
 
-    if (teamError || !team) {
-      console.error('Erro ao buscar time:', teamError);
-      return new Response(
-        JSON.stringify({ error: 'Time não encontrado' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const ANIMATION_CREDIT_COST = 15; // Custo de créditos para animação
-
-    if (team.credits < ANIMATION_CREDIT_COST) {
+    if (!creditCheck.hasCredits) {
       return new Response(
         JSON.stringify({ 
           error: 'Créditos insuficientes',
           required: ANIMATION_CREDIT_COST,
-          available: team.credits
+          available: creditCheck.currentCredits
         }),
         { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // TODO: Quando o agente estiver treinado, implementar a lógica de animação aqui
-    // Estrutura preparada para integração futura com modelo de IA
+    // TODO: When the agent is trained, implement animation logic here
+    // Structure prepared for future AI model integration
     
     console.log('Preparing animation with prompt:', animationPrompt.substring(0, 100));
 
-    // Placeholder: retornar mensagem indicando que está em desenvolvimento
-    // Quando o modelo estiver pronto, substituir esta seção pela chamada ao modelo de IA
+    // Placeholder: return message indicating it's in development
+    // When the model is ready, replace this section with AI model call
     
     /*
-    IMPLEMENTAÇÃO FUTURA:
+    FUTURE IMPLEMENTATION:
     
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     
@@ -98,7 +87,7 @@ serve(async (req) => {
       body: JSON.stringify({
         image: imageData,
         prompt: animationPrompt,
-        duration: 3, // segundos
+        duration: 3, // seconds
         fps: 30,
       }),
     });
@@ -123,54 +112,32 @@ serve(async (req) => {
 
     const animationData = await response.json();
     const videoUrl = animationData.videoUrl;
-    */
 
-    // Por enquanto, retornar mensagem de desenvolvimento
-    // Usando status 200 para evitar erro no client, mas com flag de desenvolvimento
-    return new Response(
-      JSON.stringify({ 
-        status: 'training',
-        message: 'Funcionalidade em desenvolvimento',
-        info: 'O agente de IA para animação de imagens ainda está sendo treinado. Em breve você poderá animar suas imagens com IA.'
-      }),
-      { 
-        status: 200, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
-    );
+    // Deduct credits
+    const deductResult = await deductUserCredits(supabase, userId, ANIMATION_CREDIT_COST);
 
-    // Quando implementado, descomentar o código abaixo para deduzir créditos e salvar histórico:
-    /*
-    // Deduzir créditos
-    const { error: updateError } = await supabase
-      .from('teams')
-      .update({ 
-        credits: team.credits - ANIMATION_CREDIT_COST 
-      })
-      .eq('id', teamId);
-
-    if (updateError) {
-      console.error('Erro ao atualizar créditos:', updateError);
+    if (!deductResult.success) {
+      console.error('Error deducting credits:', deductResult.error);
     }
 
-    // Registrar no histórico de créditos
-    await supabase.from('credit_history').insert({
-      team_id: teamId,
-      user_id: userId,
-      action_type: 'ANIMAR_IMAGEM',
-      credits_used: ANIMATION_CREDIT_COST,
-      credits_before: team.credits,
-      credits_after: team.credits - ANIMATION_CREDIT_COST,
+    // Record credit usage
+    await recordUserCreditUsage(supabase, {
+      userId: userId,
+      teamId: teamId || null,
+      actionType: 'ANIMAR_IMAGEM',
+      creditsUsed: ANIMATION_CREDIT_COST,
+      creditsBefore: creditCheck.currentCredits,
+      creditsAfter: deductResult.newCredits,
       description: 'Animação de imagem com IA',
       metadata: {
         prompt: animationPrompt.substring(0, 200)
       }
     });
 
-    // Salvar ação no histórico
+    // Save action to history
     await supabase.from('actions').insert({
       user_id: userId,
-      team_id: teamId,
+      team_id: teamId || '00000000-0000-0000-0000-000000000000',
       type: 'ANIMAR_IMAGEM',
       status: 'completed',
       details: {
@@ -185,11 +152,25 @@ serve(async (req) => {
       JSON.stringify({ 
         videoUrl,
         creditsUsed: ANIMATION_CREDIT_COST,
-        creditsRemaining: team.credits - ANIMATION_CREDIT_COST
+        creditsRemaining: deductResult.newCredits
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
     */
+
+    // For now, return development message
+    // Using status 200 to avoid error in client, but with development flag
+    return new Response(
+      JSON.stringify({ 
+        status: 'training',
+        message: 'Funcionalidade em desenvolvimento',
+        info: 'O agente de IA para animação de imagens ainda está sendo treinado. Em breve você poderá animar suas imagens com IA.'
+      }),
+      { 
+        status: 200, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
+    );
 
   } catch (error) {
     console.error('Erro na função animate-image:', error);

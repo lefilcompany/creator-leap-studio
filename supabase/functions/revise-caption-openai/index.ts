@@ -2,7 +2,7 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
-import { recordCreditUsage } from '../_shared/creditHistory.ts';
+import { checkUserCredits, deductUserCredits, recordUserCreditUsage } from '../_shared/userCredits.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -33,40 +33,37 @@ serve(async (req) => {
     }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-    const supabaseClient = createClient(supabaseUrl, supabaseKey, {
-      global: { headers: { Authorization: authHeader } }
-    });
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Authenticate user
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'Não autorizado' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     const body = await req.json();
     const { prompt, originalTitle, originalBody, originalHashtags, brand, theme, brandId, teamId, userId } = body;
 
     // Validate required fields
-    if (!prompt || !originalTitle || !originalBody || !originalHashtags || !brandId || !teamId || !userId) {
+    if (!prompt || !originalTitle || !originalBody || !originalHashtags || !brandId) {
       return new Response(
         JSON.stringify({ error: 'Dados insuficientes para a revisão.' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('📝 Verificando créditos do time:', teamId);
+    console.log('📝 Verificando créditos do usuário:', user.id);
 
-    // Check team credits
-    const { data: teamData, error: teamError } = await supabaseClient
-      .from('teams')
-      .select('credits')
-      .eq('id', teamId)
-      .single();
+    // Check user credits (individual)
+    const creditCheck = await checkUserCredits(supabase, user.id, CREDIT_COSTS.CAPTION_REVIEW);
 
-    if (teamError) {
-      console.error('Erro ao buscar créditos:', teamError);
-      return new Response(
-        JSON.stringify({ error: 'Erro ao verificar créditos' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    if (!teamData || teamData.credits <= 0) {
+    if (!creditCheck.hasCredits) {
       return new Response(
         JSON.stringify({ error: 'Créditos de revisão insuficientes' }),
         { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -160,13 +157,13 @@ Responda ESTRITAMENTE em formato JSON com as chaves "title", "body" (legenda com
     }
 
     // Save action to history
-    const { data: actionData, error: actionError } = await supabaseClient
+    const { data: actionData, error: actionError } = await supabase
       .from('actions')
       .insert({
         type: 'revisar_legenda',
-        team_id: teamId,
+        team_id: teamId || '00000000-0000-0000-0000-000000000000',
         brand_id: brandId,
-        user_id: userId,
+        user_id: user.id,
         details: {
           prompt,
           originalTitle,
@@ -184,27 +181,21 @@ Responda ESTRITAMENTE em formato JSON com as chaves "title", "body" (legenda com
       console.error('Erro ao salvar ação no histórico:', actionError);
     }
 
-    // Deduct credit
-    const creditsBefore = teamData.credits;
-    const creditsAfter = creditsBefore - CREDIT_COSTS.CAPTION_REVIEW;
+    // Deduct credit (individual)
+    const deductResult = await deductUserCredits(supabase, user.id, CREDIT_COSTS.CAPTION_REVIEW);
     
-    const { error: updateError } = await supabaseClient
-      .from('teams')
-      .update({ credits: creditsAfter })
-      .eq('id', teamId);
-
-    if (updateError) {
-      console.error('Erro ao deduzir crédito:', updateError);
+    if (!deductResult.success) {
+      console.error('Erro ao deduzir crédito:', deductResult.error);
     }
 
     // Record credit usage
-    await recordCreditUsage(supabaseClient, {
-      teamId,
-      userId,
+    await recordUserCreditUsage(supabase, {
+      userId: user.id,
+      teamId: teamId || null,
       actionType: 'CAPTION_REVIEW',
       creditsUsed: CREDIT_COSTS.CAPTION_REVIEW,
-      creditsBefore,
-      creditsAfter,
+      creditsBefore: creditCheck.currentCredits,
+      creditsAfter: deductResult.newCredits,
       description: 'Revisão de legenda (OpenAI)',
       metadata: { brand, theme }
     });
