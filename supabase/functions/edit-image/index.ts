@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
+import { checkUserCredits, deductUserCredits, recordUserCreditUsage } from '../_shared/userCredits.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -186,14 +187,14 @@ serve(async (req) => {
       );
     }
 
-    // Get user profile to get team_id
+    // Get user profile (team_id is optional now)
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('team_id')
+      .select('team_id, credits')
       .eq('id', user.id)
       .single();
 
-    if (profileError || !profile?.team_id) {
+    if (profileError) {
       console.error('❌ Erro ao obter perfil do usuário:', profileError);
       return new Response(
         JSON.stringify({ error: 'Perfil não encontrado' }),
@@ -201,24 +202,12 @@ serve(async (req) => {
       );
     }
 
-    const teamId = profile.team_id;
+    const teamId = profile?.team_id || null;
 
-    // Check team credits
-    const { data: team, error: teamError } = await supabase
-      .from('teams')
-      .select('credits')
-      .eq('id', teamId)
-      .single();
+    // Check user credits (individual)
+    const creditCheck = await checkUserCredits(supabase, user.id, CREDIT_COSTS.IMAGE_EDIT);
 
-    if (teamError || !team) {
-      console.error('❌ Erro ao obter equipe:', teamError);
-      return new Response(
-        JSON.stringify({ error: 'Equipe não encontrada' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    if (team.credits < CREDIT_COSTS.IMAGE_EDIT) {
+    if (!creditCheck.hasCredits) {
       return new Response(
         JSON.stringify({ error: 'Créditos insuficientes' }),
         { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -420,9 +409,9 @@ serve(async (req) => {
     
     // Convert base64 to Uint8Array
     const binaryString = atob(base64Data);
-    const bytes = new Uint8Array(binaryString.length);
+    const uploadBytes = new Uint8Array(binaryString.length);
     for (let i = 0; i < binaryString.length; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
+      uploadBytes[i] = binaryString.charCodeAt(i);
     }
 
     // Generate unique filename
@@ -433,7 +422,7 @@ serve(async (req) => {
     // Upload to Supabase Storage
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('content-images')
-      .upload(fileName, bytes, {
+      .upload(fileName, uploadBytes, {
         contentType: 'image/png',
         cacheControl: '3600',
         upsert: false
@@ -451,48 +440,46 @@ serve(async (req) => {
 
     console.log('✅ Imagem editada com sucesso e armazenada:', publicUrl);
 
-    // Deduzir crédito após edição bem-sucedida
-    const { error: deductError } = await supabase
-      .from('teams')
-      .update({ credits: team.credits - CREDIT_COSTS.IMAGE_EDIT })
-      .eq('id', teamId);
-
-    if (deductError) {
-      console.error('❌ Erro ao deduzir créditos:', deductError);
+    // Deduct credit after successful edit (individual)
+    const deductResult = await deductUserCredits(supabase, user.id, CREDIT_COSTS.IMAGE_EDIT);
+    
+    if (!deductResult.success) {
+      console.error('❌ Erro ao deduzir créditos:', deductResult.error);
     } else {
-      console.log(`✅ ${CREDIT_COSTS.IMAGE_EDIT} crédito deduzido da equipe ${teamId}`);
+      console.log(`✅ ${CREDIT_COSTS.IMAGE_EDIT} crédito deduzido do usuário ${user.id}`);
       
-      // Registrar no histórico de créditos
-      await supabase
-        .from('credit_history')
-        .insert({
-          team_id: teamId,
-          user_id: user.id,
-          action_type: 'IMAGE_EDIT',
-          credits_used: CREDIT_COSTS.IMAGE_EDIT,
-          credits_before: team.credits,
-          credits_after: team.credits - CREDIT_COSTS.IMAGE_EDIT,
-          description: 'Edição de imagem',
-          metadata: {
-            image_url: publicUrl,
-            brand_id: brandId,
-            theme_id: themeId,
-            platform: platform,
-            aspect_ratio: aspectRatio
-          }
-        });
+      // Record credit usage
+      await recordUserCreditUsage(supabase, {
+        userId: user.id,
+        teamId: teamId,
+        actionType: 'IMAGE_EDIT',
+        creditsUsed: CREDIT_COSTS.IMAGE_EDIT,
+        creditsBefore: creditCheck.currentCredits,
+        creditsAfter: deductResult.newCredits,
+        description: 'Edição de imagem',
+        metadata: {
+          image_url: publicUrl,
+          brand_id: brandId,
+          theme_id: themeId,
+          platform: platform,
+          aspect_ratio: aspectRatio
+        }
+      });
     }
 
     return new Response(
-      JSON.stringify({ editedImageUrl: publicUrl }),
+      JSON.stringify({ 
+        editedImageUrl: publicUrl,
+        creditsRemaining: deductResult.newCredits
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
-    console.error('❌ Erro em edit-image:', error);
+    console.error('❌ Erro na função edit-image:', error);
     return new Response(
       JSON.stringify({ 
-        error: error instanceof Error ? error.message : 'Erro ao editar imagem' 
+        error: error instanceof Error ? error.message : 'Erro desconhecido ao editar imagem'
       }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

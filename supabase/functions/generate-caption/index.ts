@@ -2,7 +2,7 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
-import { recordCreditUsage } from '../_shared/creditHistory.ts';
+import { checkUserCredits, deductUserCredits, recordUserCreditUsage } from '../_shared/userCredits.ts';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -334,39 +334,27 @@ serve(async (req) => {
       );
     }
 
-    // Get user's team
+    // Get user's profile (team_id is optional now)
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('team_id')
+      .select('team_id, credits')
       .eq('id', user.id)
       .single();
 
-    if (profileError || !profile?.team_id) {
+    if (profileError) {
       console.error('❌ [CAPTION] Profile error:', profileError);
       return new Response(
-        JSON.stringify({ error: 'Team not found' }),
+        JSON.stringify({ error: 'Profile not found' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const authenticatedTeamId = profile.team_id;
+    const authenticatedTeamId = profile?.team_id || null;
 
-    // Check team credits
-    const { data: teamData, error: teamError } = await supabase
-      .from('teams')
-      .select('credits')
-      .eq('id', authenticatedTeamId)
-      .single();
+    // Check user credits (individual)
+    const creditCheck = await checkUserCredits(supabase, user.id, CREDIT_COSTS.COMPLETE_IMAGE);
 
-    if (teamError) {
-      console.error('❌ [CAPTION] Team error:', teamError);
-      return new Response(
-        JSON.stringify({ error: 'Error checking credits' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    if (!teamData || teamData.credits < CREDIT_COSTS.COMPLETE_IMAGE) {
+    if (!creditCheck.hasCredits) {
       return new Response(
         JSON.stringify({ error: `Créditos insuficientes. Necessário: ${CREDIT_COSTS.COMPLETE_IMAGE} créditos` }),
         { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -484,212 +472,81 @@ serve(async (req) => {
       throw new Error("Empty content returned");
     }
 
-    // Parse JSON
-    let postContent;
+    // Parse JSON response
+    let parsedContent;
     try {
-      console.log("🔍 Parsing JSON response...");
-      postContent = JSON.parse(content.trim());
-      console.log("✅ JSON parsed successfully:", {
-        hasTitle: !!postContent.title,
-        hasBody: !!postContent.body,
-        hasHashtags: !!postContent.hashtags,
-        hashtagsType: typeof postContent.hashtags
-      });
+      parsedContent = JSON.parse(content);
     } catch (parseError) {
-      console.error("❌ JSON parse error:", parseError);
-      console.log("📝 Raw response:", content?.substring(0, 500));
-      
-      // Fallback - conteúdo rico estruturado
-      console.warn("⚠️ [CAPTION] Usando fallback completo");
-      const brandName = cleanInput(formData.brand) || "nossa marca";
-      const themeName = cleanInput(formData.theme) || "novidades";
-      const objective = cleanInput(formData.objective) || "trazer inovação e valor";
-      const audience = cleanInput(formData.audience) || "nosso público";
-      const platform = cleanInput(formData.platform) || "redes sociais";
-
-      const fallbackBody = `🌟 Cada imagem conta uma história, e esta não é diferente!
-
-Quando olhamos para este conteúdo visual, vemos muito mais do que cores e formas. Vemos a essência da ${brandName} se manifestando através de cada detalhe cuidadosamente pensado.
-
-💡 ${themeName.charAt(0).toUpperCase() + themeName.slice(1)} não é apenas um tema - é um convite para explorar novas possibilidades e descobrir como podemos ${objective} de forma única e autêntica.
-
-Nossa conexão com ${audience} vai além das palavras. É uma conversa visual que acontece através de cada elemento desta composição, criando uma experiência que ressoa com quem realmente importa.
-
-🔥 A pergunta é: você está pronto para fazer parte desta jornada?
-
-💬 Deixe seu comentário e compartilhe suas impressões!
-✨ Marque alguém que também precisa ver isso!
-
-#${platform}ready #conteudoautoral`;
-
-      postContent = {
-        title: `${brandName}: Descobrindo ${themeName} 🚀`,
-        body: fallbackBody,
-        hashtags: [
-          brandName.toLowerCase().replace(/\s+/g, "").substring(0, 15),
-          themeName.toLowerCase().replace(/\s+/g, "").substring(0, 15),
-          "conteudovisual",
-          "marketingdigital",
-          "storytelling",
-          "engajamento",
-          "estrategia",
-          "inspiracao",
-          "crescimento",
-          "inovacao",
-          "conexao",
-          "transformacao"
-        ].filter((tag: string) => tag && tag.length > 2).slice(0, 12)
-      };
+      console.error("❌ [CAPTION] Erro ao fazer parse do JSON:", parseError);
+      throw new Error("Invalid JSON response from AI");
     }
+
+    // Validate response structure
+    if (!parsedContent.title || !parsedContent.body || !Array.isArray(parsedContent.hashtags)) {
+      console.error("❌ [CAPTION] Estrutura de resposta inválida:", parsedContent);
+      throw new Error("Invalid response structure from AI");
+    }
+
+    // Deduct credits after successful generation (individual)
+    const deductResult = await deductUserCredits(supabase, user.id, CREDIT_COSTS.COMPLETE_IMAGE);
     
-    // Validação e correção do conteúdo - CRÍTICO
-    if (!postContent || typeof postContent !== "object") {
-      throw new Error("Conteúdo não é um objeto válido");
-    }
-
-    // Se a IA retornar uma string em vez de um array, tentamos corrigir.
-    if (typeof postContent.hashtags === "string") {
-      console.log("⚠️ Hashtags em formato string, convertendo para array...");
-      postContent.hashtags = postContent.hashtags
-        .replace(/#/g, "")
-        .split(/[\s,]+/)
-        .filter(Boolean);
-    }
-
-    if (!Array.isArray(postContent.hashtags) || postContent.hashtags.length === 0) {
-      console.warn("⚠️ Hashtags ausentes, usando fallback");
-      postContent.hashtags = [
-        "conteudovisual",
-        "marketingdigital",
-        "storytelling",
-        "engajamento"
-      ];
-    }
-
-    // Limpar hashtags
-    postContent.hashtags = postContent.hashtags
-      .map((tag: any) =>
-        String(tag)
-          .replace(/[^a-zA-Z0-9áéíóúàèìòùâêîôûãõçÁÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕÇ]/g, "")
-          .toLowerCase()
-      )
-      .filter((tag: string) => tag.length > 0);
-    
-    console.log("✅ [CAPTION] Conteúdo validado:", {
-      titleLength: postContent.title?.length || 0,
-      bodyLength: postContent.body?.length || 0,
-      hashtagsCount: postContent.hashtags?.length || 0
-    });
-
-    // Save to history (actions table)
-    try {
-      const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-      const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-      const supabase = createClient(supabaseUrl, supabaseKey);
-
-      const authHeader = req.headers.get('authorization');
-      const token = authHeader?.replace('Bearer ', '');
-      
-      if (token) {
-        const { data: { user } } = await supabase.auth.getUser(token);
-        
-        if (user) {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('team_id')
-            .eq('id', user.id)
-            .single();
-
-          if (profile?.team_id) {
-            await supabase
-              .from('actions')
-              .insert({
-                type: 'CRIAR_CONTEUDO',
-                user_id: user.id,
-                team_id: profile.team_id,
-                brand_id: formData.brandId || null,
-                status: 'Aprovado',
-                approved: true,
-                details: {
-                  brand: formData.brand,
-                  theme: formData.theme,
-                  platform: formData.platform,
-                  objective: formData.objective,
-                  imageDescription: formData.imageDescription,
-                  tone: formData.tone,
-                  persona: formData.persona,
-                  audience: formData.audience
-                },
-                result: {
-                  title: postContent.title,
-                  body: postContent.body,
-                  hashtags: postContent.hashtags
-                }
-              });
-          }
-        }
-      }
-    } catch (historyError) {
-      console.error("⚠️ [CAPTION] Erro ao salvar no histórico:", historyError);
-      // Continue anyway - don't fail the request
-    }
-
-    // Decrement team credits
-    const creditsBefore = teamData.credits;
-    const creditsAfter = creditsBefore - CREDIT_COSTS.COMPLETE_IMAGE;
-    
-    const { error: updateError } = await supabase
-      .from('teams')
-      .update({ credits: creditsAfter })
-      .eq('id', authenticatedTeamId);
-
-    if (updateError) {
-      console.error('❌ [CAPTION] Error updating credits:', updateError);
-      // Continue anyway - caption was generated
+    if (!deductResult.success) {
+      console.error('Error deducting credits:', deductResult.error);
     }
 
     // Record credit usage
-    await recordCreditUsage(supabase, {
-      teamId: authenticatedTeamId,
+    await recordUserCreditUsage(supabase, {
       userId: user.id,
-      actionType: 'COMPLETE_IMAGE',
+      teamId: authenticatedTeamId,
+      actionType: 'CAPTION_GENERATION',
       creditsUsed: CREDIT_COSTS.COMPLETE_IMAGE,
-      creditsBefore,
-      creditsAfter,
-      description: 'Criação completa de imagem com legenda',
+      creditsBefore: creditCheck.currentCredits,
+      creditsAfter: deductResult.newCredits,
+      description: 'Geração de legenda',
       metadata: { platform: formData.platform, brand: formData.brand }
     });
 
+    // Save action to database
+    const { data: actionData, error: actionError } = await supabase
+      .from('actions')
+      .insert({
+        user_id: user.id,
+        team_id: authenticatedTeamId || '00000000-0000-0000-0000-000000000000',
+        type: 'CRIAR_CONTEUDO',
+        status: 'completed',
+        details: {
+          formData,
+          type: 'caption'
+        },
+        result: parsedContent
+      })
+      .select()
+      .single();
+
+    if (actionError) {
+      console.error('Error saving action:', actionError);
+    }
+
+    console.log("✅ [CAPTION] Legenda gerada com sucesso");
+
     return new Response(
       JSON.stringify({
-        title: postContent.title,
-        body: postContent.body,
-        hashtags: postContent.hashtags,
+        ...parsedContent,
+        actionId: actionData?.id,
+        creditsUsed: CREDIT_COSTS.COMPLETE_IMAGE,
+        creditsRemaining: deductResult.newCredits
       }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
+
   } catch (error) {
-    console.error("❌ [CAPTION] Erro geral:", error);
-    
-    // Fallback final em caso de erro
-    const brandName = "nossa marca";
-    const themeName = "novidades";
-    const errorMessage = error instanceof Error ? error.message : "Unable to generate caption";
-    
+    console.error("❌ [CAPTION] Erro:", error);
     return new Response(
-      JSON.stringify({
-        error: errorMessage,
-        fallback: true,
-        title: `${brandName}: Descobrindo ${themeName} 🚀`,
-        body: `🌟 Cada imagem conta uma história única!\n\nEste conteúdo visual representa muito mais do que apenas cores e formas.\n\n💡 É um convite para explorar novas possibilidades.\n\n🔥 Você está pronto para fazer parte desta jornada?\n\n💬 Deixe seu comentário!`,
-        hashtags: ["conteudovisual", "marketingdigital", "storytelling", "engajamento"]
+      JSON.stringify({ 
+        error: error instanceof Error ? error.message : 'Unknown error',
+        fallback: true 
       }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });

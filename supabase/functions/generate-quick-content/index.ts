@@ -2,7 +2,7 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
-import { recordCreditUsage } from '../_shared/creditHistory.ts';
+import { checkUserCredits, deductUserCredits, recordUserCreditUsage } from '../_shared/userCredits.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -43,22 +43,22 @@ serve(async (req) => {
 
     const authenticatedUserId = user.id;
 
-    // Fetch user's team from profile
+    // Fetch user's team from profile (optional now)
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('team_id')
+      .select('team_id, credits')
       .eq('id', authenticatedUserId)
       .single();
 
-    if (profileError || !profile?.team_id) {
+    if (profileError) {
       console.error('Profile error:', profileError);
       return new Response(
-        JSON.stringify({ error: 'User not associated with a team' }),
+        JSON.stringify({ error: 'User profile not found' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const authenticatedTeamId = profile.team_id;
+    const authenticatedTeamId = profile?.team_id || null;
 
     const body = await req.json();
     
@@ -142,22 +142,10 @@ serve(async (req) => {
       teamId: authenticatedTeamId 
     });
 
-    // Check team credits
-    const { data: teamData, error: teamError } = await supabase
-      .from('teams')
-      .select('credits')
-      .eq('id', authenticatedTeamId)
-      .single();
+    // Check user credits (individual)
+    const creditCheck = await checkUserCredits(supabase, authenticatedUserId, CREDIT_COSTS.QUICK_IMAGE);
 
-    if (teamError) {
-      console.error('Error fetching team:', teamError);
-      return new Response(
-        JSON.stringify({ error: 'Erro ao processar solicitação' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    if (!teamData || teamData.credits < CREDIT_COSTS.QUICK_IMAGE) {
+    if (!creditCheck.hasCredits) {
       return new Response(
         JSON.stringify({ error: `Créditos insuficientes. Necessário: ${CREDIT_COSTS.QUICK_IMAGE} créditos` }),
         { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -391,430 +379,288 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
       };
       const angleDesc = angleDescriptions[cameraAngle];
       if (angleDesc) {
-        enhancedPrompt += `\n\n📷 ÂNGULO DE CÂMERA PROFISSIONAL:`;
+        enhancedPrompt += `\n\n📷 ÂNGULO DE CÂMERA:`;
         enhancedPrompt += `\n${angleDesc}`;
       }
     }
 
     // Detail Level
-    const detailDescriptions: Record<number, string> = {
-      1: 'Minimalista - Pouquíssimos detalhes, formas simples e limpas.',
-      2: 'Muito simples - Detalhes básicos, composição clean.',
-      3: 'Simples - Alguns detalhes essenciais, ainda bastante clean.',
-      4: 'Moderadamente simples - Detalhes moderados com foco no essencial.',
-      5: 'Equilibrado - Nível médio de detalhamento, nem muito simples nem complexo.',
-      6: 'Moderadamente detalhado - Bom nível de detalhes sem excessos.',
-      7: 'Detalhado - Riqueza de detalhes visível e equilibrada.',
-      8: 'Muito detalhado - Alto nível de detalhamento em todos elementos.',
-      9: 'Extremamente detalhado - Detalhes intrincados e complexos.',
-      10: 'Hiper-detalhado - Máximo nível de detalhamento possível, textura rica.'
-    };
-    const detailDesc = detailDescriptions[detailLevel] || detailDescriptions[7];
-    enhancedPrompt += `\n\n🔍 NÍVEL DE DETALHAMENTO (${detailLevel}/10):`;
-    enhancedPrompt += `\n${detailDesc}`;
+    if (detailLevel !== 7) {
+      const detailDescriptions: Record<number, string> = {
+        1: 'Minimalista extremo - elementos essenciais apenas, muito espaço negativo',
+        2: 'Minimalista - poucos elementos, composição limpa e simples',
+        3: 'Clean - elementos bem espaçados, simplicidade moderna',
+        4: 'Balanceado-simples - alguns detalhes sem sobrecarga',
+        5: 'Balanceado - equilíbrio entre simplicidade e detalhes',
+        6: 'Moderado - bom nível de detalhamento',
+        7: 'Detalhado - composição rica com múltiplos elementos',
+        8: 'Muito detalhado - alta complexidade visual',
+        9: 'Ultra detalhado - máximo detalhamento em cada elemento',
+        10: 'Hiper detalhado - resolução máxima, cada textura e detalhe visível'
+      };
+      const detailDesc = detailDescriptions[detailLevel];
+      if (detailDesc) {
+        enhancedPrompt += `\n\n🔍 NÍVEL DE DETALHAMENTO: ${detailLevel}/10`;
+        enhancedPrompt += `\n${detailDesc}`;
+      }
+    }
 
-    // Mood (Rich cinematic ToneMap)
+    // Mood
     if (mood !== 'auto') {
       const moodDescriptions: Record<string, string> = {
-        'professional': 'Estética corporativa limpa com iluminação neutra de estúdio, foco nítido, fundo minimalista e paleta de cores sóbria (cinzas, azuis, brancos). Atmosfera séria, confiável e de alta credibilidade. Transmite competência e profissionalismo.',
-        
-        'energetic': 'Cores vibrantes e saturadas com iluminação dinâmica criando alto contraste. Motion blur leve sugerindo movimento e ação. Elementos diagonais e composição dinâmica. Atmosfera de ação, vitalidade e energia pulsante.',
-        
-        'calm': 'Luz natural suave e difusa, com tons pastel (azul claro, verde menta, lavanda) e transições suaves entre luz e sombra. Elementos fluidos e orgânicos. Sombras delicadas. Atmosfera serena, contemplativa e relaxante.',
-        
-        'mysterious': 'Iluminação low-key com predominância de sombras profundas, raios de luz estratégicos cortando a escuridão. Paleta escura com toques de luz pontual (azul escuro, roxo profundo, preto). Névoa sutil. Atmosfera enigmática, intrigante e cheia de mistério.',
-        
-        'playful': 'Paleta vibrante e saturada com cores primárias e complementares (vermelho, amarelo, azul, verde). Iluminação alegre e uniforme. Elementos gráficos lúdicos e composição dinâmica. Atmosfera divertida, descontraída e alegre.',
-        
-        'elegant': 'Paleta refinada com tons neutros nobres (cinza chumbo, dourado discreto, branco pérola, preto profundo). Iluminação suave e direcionada. Texturas sofisticadas como mármore, veludo ou seda. Composição equilibrada. Atmosfera luxuosa, sofisticada e de alta classe.',
-        
-        'dramatic': 'Iluminação cinematográfica com alto contraste entre luz e sombra (chiaroscuro). Sombras profundas e áreas de luz intensa. Paleta de cores saturadas ou monocromática dramática. Composição teatral. Atmosfera intensa, épica e emocionalmente carregada.',
-        
-        'warm': 'Iluminação golden hour com tons dourados, laranjas e vermelhos quentes. Raios de sol atravessando o cenário. Long shadows. Paleta calorosa e aconchegante. Atmosfera acolhedora, calorosa, confortável e nostálgica.',
-        
-        'futuristic': 'Iluminação neon com cores ciano, magenta e roxo. Formas geométricas angulares e linhas limpas. Reflexos metálicos e superfícies espelhadas. Elementos tecnológicos. Atmosfera tecnológica, sci-fi e vanguardista.'
+        'energetic': 'Atmosfera energética e vibrante. Dinamismo visual, cores vivas e composição ativa transmitindo movimento e vitalidade.',
+        'calm': 'Atmosfera calma e serena. Tons suaves, composição equilibrada e elementos que transmitem paz e tranquilidade.',
+        'professional': 'Atmosfera profissional e corporativa. Clean, moderno e confiável. Cores sóbrias com toques de sofisticação.',
+        'playful': 'Atmosfera divertida e lúdica. Cores alegres, formas orgânicas e elementos que transmitem alegria e leveza.',
+        'elegant': 'Atmosfera elegante e luxuosa. Refinamento visual, detalhes sofisticados e composição que transmite exclusividade.',
+        'cozy': 'Atmosfera aconchegante e confortável. Tons quentes, texturas ricas e sensação de conforto e intimidade.',
+        'mysterious': 'Atmosfera misteriosa e intrigante. Sombras dramáticas, elementos enigmáticos e composição que desperta curiosidade.',
+        'inspiring': 'Atmosfera inspiradora e motivacional. Composição elevada, perspectiva ampla e elementos que transmitem aspiração.'
       };
       const moodDesc = moodDescriptions[mood];
       if (moodDesc) {
-        enhancedPrompt += `\n\n✨ MOOD/ATMOSFERA CINEMATOGRÁFICA:`;
+        enhancedPrompt += `\n\n🌟 ATMOSFERA/MOOD:`;
         enhancedPrompt += `\n${moodDesc}`;
-        enhancedPrompt += `\n\nTodos os elementos visuais (iluminação, cores, composição, textura) devem trabalhar juntos para transmitir essa atmosfera de forma coesa e impactante.`;
       }
     }
 
-    // Custom Dimensions
-    if (width && height) {
-      enhancedPrompt += `\n\n📏 DIMENSÕES CUSTOMIZADAS:`;
-      enhancedPrompt += `\nLargura: ${width}px`;
-      enhancedPrompt += `\nAltura: ${height}px`;
-      enhancedPrompt += `\nGere a imagem considerando estas dimensões específicas.`;
-    }
-
-    // Text Instructions - CRITICAL (more emphatic when no text is wanted)
-    if (!body.includeText) {
-      enhancedPrompt += `\n\n${'='.repeat(80)}`;
-      enhancedPrompt += `\n🚫 REGRA ABSOLUTA - NENHUM TEXTO NA IMAGEM`;
-      enhancedPrompt += `\n${'='.repeat(80)}`;
-      enhancedPrompt += `\n\n⛔ PROIBIÇÕES CRÍTICAS:`;
-      enhancedPrompt += `\n• NÃO incluir NENHUM texto, palavra, letra, número ou caractere escrito`;
-      enhancedPrompt += `\n• NÃO incluir placas, letreiros, logos com texto visível`;
-      enhancedPrompt += `\n• NÃO incluir watermarks, assinaturas ou marcas d'água`;
-      enhancedPrompt += `\n• NÃO incluir textos em objetos, embalagens ou elementos da cena`;
-      enhancedPrompt += `\n• A imagem deve ser PURAMENTE VISUAL sem qualquer elemento textual`;
-      enhancedPrompt += `\n\n✅ CORRETO: Imagem totalmente visual, sem nenhum tipo de texto ou escrita`;
-      enhancedPrompt += `\n${'='.repeat(80)}`;
-    } else if (body.textContent) {
-      enhancedPrompt += `\n\n${'='.repeat(80)}`;
-      enhancedPrompt += `\n📝 INCLUSÃO DE TEXTO NA IMAGEM`;
-      enhancedPrompt += `\n${'='.repeat(80)}`;
-      enhancedPrompt += `\n\nTexto a incluir: "${body.textContent}"`;
-      enhancedPrompt += `\n\n📋 DIRETRIZES DE TIPOGRAFIA:`;
-      enhancedPrompt += `\n• Use tipografia clara, legível e profissional`;
-      enhancedPrompt += `\n• Garanta alto contraste entre texto e fundo para máxima legibilidade`;
-      enhancedPrompt += `\n• Posicione o texto de forma harmoniosa na composição`;
-      enhancedPrompt += `\n• O texto deve ser parte integrada do design, não uma "colagem"`;
-      if (body.textPosition) {
-        enhancedPrompt += `\n• Posição do texto: ${body.textPosition}`;
-      }
-      enhancedPrompt += `\n${'='.repeat(80)}`;
-    }
-
-    enhancedPrompt += `\n\n${'='.repeat(60)}`;
-
-    // Add aspect ratio information - CRITICAL: Must be enforced
-    const aspectRatioDescriptions: Record<string, string> = {
-      '1:1': 'formato quadrado (1:1)',
-      '4:5': 'formato retrato (4:5)',
-      '9:16': 'formato vertical (9:16)',
-      '16:9': 'formato horizontal (16:9)',
-      '3:4': 'formato retrato (3:4)'
-    };
-    
-    enhancedPrompt += `\n\n${'='.repeat(60)}`;
-    enhancedPrompt += `\n🎯 FORMATO DA IMAGEM - REGRA ABSOLUTA E NÃO NEGOCIÁVEL`;
-    enhancedPrompt += `\n${'='.repeat(60)}`;
-    enhancedPrompt += `\n\n📐 PROPORÇÃO OBRIGATÓRIA: ${normalizedAspectRatio}`;
-    enhancedPrompt += `\n📏 Descrição: ${aspectRatioDescriptions[normalizedAspectRatio] || normalizedAspectRatio}`;
-    enhancedPrompt += `\n\n🔴 REGRAS CRÍTICAS - LEIA COM ATENÇÃO:`;
-    enhancedPrompt += `\n1. A imagem resultado DEVE ter EXATAMENTE a proporção ${normalizedAspectRatio}`;
-    enhancedPrompt += `\n2. IGNORE completamente a proporção de QUALQUER imagem de referência fornecida`;
-    enhancedPrompt += `\n3. Se houver imagens de referência com proporções diferentes, você deve:`;
-    enhancedPrompt += `\n   - Usar APENAS o conteúdo/estilo/elementos dessas imagens`;
-    enhancedPrompt += `\n   - RECOMPOR a imagem final na proporção ${normalizedAspectRatio}`;
-    enhancedPrompt += `\n   - NUNCA manter a proporção original das referências`;
-    enhancedPrompt += `\n4. A proporção ${normalizedAspectRatio} é DEFINITIVA e tem prioridade sobre tudo`;
-    enhancedPrompt += `\n\n⛔ PROIBIDO: Usar qualquer proporção diferente de ${normalizedAspectRatio}`;
-    enhancedPrompt += `\n✅ CORRETO: Gerar imagem na proporção exata de ${normalizedAspectRatio}`;
-    
-    if (referenceImages && referenceImages.length > 0) {
-      enhancedPrompt += `\n\n⚠️ ATENÇÃO ESPECIAL - IMAGENS DE REFERÊNCIA DETECTADAS:`;
-      enhancedPrompt += `\nAs imagens fornecidas podem ter proporções diferentes de ${normalizedAspectRatio}.`;
-      enhancedPrompt += `\nVocê DEVE extrair apenas os elementos visuais e RECOMPOR na proporção ${normalizedAspectRatio}.`;
-      enhancedPrompt += `\nNUNCA mantenha a proporção das imagens de referência.`;
-    }
-
-    // Add quality information
-    if (quality === 'hd') {
-      enhancedPrompt += '\n\nGerar com alta definição, máximo de detalhes e qualidade superior.';
-    }
-
-    // Add brand context if available
+    // Add brand context at the end
     if (brandContext) {
-      enhancedPrompt += `\n\n${brandContext}\nGere uma imagem que reflita os valores e identidade da marca.`;
+      enhancedPrompt += `\n\n${brandContext}`;
     }
 
-    // Add preserve images instruction if provided
-    if (preserveImages && preserveImages.length > 0) {
-      enhancedPrompt += `\n\n${'='.repeat(80)}`;
-      enhancedPrompt += `\n🎨 IMAGENS DA MARCA/IDENTIDADE VISUAL (${preserveImages.length} fornecidas)`;
-      enhancedPrompt += `\n${'='.repeat(80)}`;
-      enhancedPrompt += `\n\n📌 INSTRUÇÕES PARA USO DESSAS IMAGENS:`;
-      enhancedPrompt += `\n   - Estas são imagens OFICIAIS da identidade visual/marca`;
-      enhancedPrompt += `\n   - Use EXATAMENTE o estilo visual, paleta de cores e estética dessas imagens`;
-      enhancedPrompt += `\n   - Mantenha a MESMA qualidade visual e nível de acabamento`;
-      enhancedPrompt += `\n   - Replique elementos de design (bordas, texturas, filtros, efeitos)`;
-      enhancedPrompt += `\n   - Preserve a atmosfera e mood transmitidos`;
-      enhancedPrompt += `\n   - A nova imagem DEVE parecer parte do mesmo conjunto visual`;
-      enhancedPrompt += `\n\n⚠️ IMPORTANTE - FORMATO:`;
-      enhancedPrompt += `\n   - A imagem final DEVE ter proporção ${normalizedAspectRatio}`;
-      enhancedPrompt += `\n   - NÃO use o formato das imagens de referência`;
-      enhancedPrompt += `\n   - Recomponha os elementos visuais na proporção correta`;
-      enhancedPrompt += `\n${'='.repeat(80)}`;
+    // Add quality suffix
+    if (quality === 'premium') {
+      enhancedPrompt += `\n\n✨ QUALIDADE PREMIUM: Produção fotográfica de altíssimo padrão com atenção obsessiva a cada detalhe. Acabamento profissional de agência de publicidade top-tier.`;
     }
+
+    console.log('Final enhanced prompt length:', enhancedPrompt.length);
+
+    // Prepare reference images for the API
+    const imageInputs: any[] = [];
     
-    // Add style reference images instruction if provided
-    if (styleReferenceImages && styleReferenceImages.length > 0) {
-      enhancedPrompt += `\n\n${'='.repeat(80)}`;
-      enhancedPrompt += `\n✨ IMAGENS DE REFERÊNCIA DE ESTILO (${styleReferenceImages.length} fornecidas)`;
-      enhancedPrompt += `\n${'='.repeat(80)}`;
-      enhancedPrompt += `\n\n📋 INSTRUÇÕES PARA USO:`;
-      enhancedPrompt += `\n   - Inspiração adicional para composição, estilo ou elementos específicos`;
-      enhancedPrompt += `\n   - Analise elementos visuais (cores, layout, objetos, atmosfera)`;
-      enhancedPrompt += `\n   - Adapte esses elementos de forma coerente`;
-      enhancedPrompt += `\n   - Use como complemento às imagens principais da marca`;
-      enhancedPrompt += `\n\n⚠️ IMPORTANTE - FORMATO:`;
-      enhancedPrompt += `\n   - A imagem final DEVE ter proporção ${normalizedAspectRatio}`;
-      enhancedPrompt += `\n   - Extraia apenas o estilo e recomponha no formato correto`;
-      enhancedPrompt += `\n${'='.repeat(80)}`;
+    // Add preserve images (main reference images) with high weight
+    if (preserveImages && preserveImages.length > 0) {
+      for (const img of preserveImages) {
+        if (img) {
+          // Check if it's a base64 string or URL
+          const isBase64 = typeof img === 'string' && (img.startsWith('data:') || !img.startsWith('http'));
+          if (isBase64) {
+            const base64Data = img.startsWith('data:') ? img.split(',')[1] : img;
+            imageInputs.push({
+              inlineData: {
+                mimeType: 'image/png',
+                data: base64Data
+              }
+            });
+          }
+        }
+      }
     }
 
-    // Final quality reminder
-    enhancedPrompt += `\n\n${'='.repeat(80)}`;
-    enhancedPrompt += `\n⚠️ LEMBRETE FINAL - QUALIDADE MÁXIMA OBRIGATÓRIA`;
-    enhancedPrompt += `\n${'='.repeat(80)}`;
-    enhancedPrompt += `\n\n✅ A imagem DEVE ter:`;
-    enhancedPrompt += `\n• Nitidez profissional de nível comercial`;
-    enhancedPrompt += `\n• Textura rica e detalhamento máximo`;
-    enhancedPrompt += `\n• Resolução HD/4K ou superior (${targetResolution})`;
-    enhancedPrompt += `\n• Qualidade adequada para impressão e ampliação`;
-    enhancedPrompt += `\n• Ausência total de artefatos de compressão`;
-    enhancedPrompt += `\n${'='.repeat(80)}`;
+    // Add reference images as secondary references
+    if (referenceImages && referenceImages.length > 0) {
+      for (const img of referenceImages) {
+        if (img) {
+          const isBase64 = typeof img === 'string' && (img.startsWith('data:') || !img.startsWith('http'));
+          if (isBase64) {
+            const base64Data = img.startsWith('data:') ? img.split(',')[1] : img;
+            imageInputs.push({
+              inlineData: {
+                mimeType: 'image/png',
+                data: base64Data
+              }
+            });
+          }
+        }
+      }
+    }
 
-    // Final reinforcement of aspect ratio
-    enhancedPrompt += `\n\n${'='.repeat(60)}`;
-    enhancedPrompt += `\n🎯 CONFIRMAÇÃO FINAL - PROPORÇÃO DA IMAGEM`;
-    enhancedPrompt += `\n${'='.repeat(60)}`;
-    enhancedPrompt += `\nA imagem que você vai gerar DEVE ter EXATAMENTE a proporção: ${normalizedAspectRatio}`;
-    enhancedPrompt += `\nEsta é a proporção FINAL, DEFINITIVA e OBRIGATÓRIA.`;
-    enhancedPrompt += `\n${'='.repeat(60)}`;
+    // Add style reference images
+    if (styleReferenceImages && styleReferenceImages.length > 0) {
+      for (const img of styleReferenceImages) {
+        if (img) {
+          const isBase64 = typeof img === 'string' && (img.startsWith('data:') || !img.startsWith('http'));
+          if (isBase64) {
+            const base64Data = img.startsWith('data:') ? img.split(',')[1] : img;
+            imageInputs.push({
+              inlineData: {
+                mimeType: 'image/png',
+                data: base64Data
+              }
+            });
+          }
+        }
+      }
+    }
 
+    console.log('Reference images prepared:', imageInputs.length);
+
+    // Call Gemini API directly with Google's API
     const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
     if (!GEMINI_API_KEY) {
-      throw new Error('GEMINI_API_KEY not configured');
+      console.error('GEMINI_API_KEY not configured');
+      return new Response(
+        JSON.stringify({ error: 'GEMINI_API_KEY não configurada. Configure a chave da API do Gemini.' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    console.log('Calling Gemini API for image generation with enhanced prompt...');
-
-    // Build messages array with optional reference images
-    const messageContent: any[] = [
-      { type: 'text', text: enhancedPrompt }
-    ];
+    // Build the request body with images if available
+    const requestParts: any[] = [{ text: enhancedPrompt }];
     
-    // Add preserve images first (highest priority)
-    if (preserveImages && preserveImages.length > 0) {
-      preserveImages.forEach((img: string) => {
-        messageContent.push({
-          type: 'image_url',
-          image_url: { url: img }
-        });
-      });
-    }
-    
-    // Add style reference images after
-    if (styleReferenceImages && styleReferenceImages.length > 0) {
-      styleReferenceImages.forEach((img: string) => {
-        messageContent.push({
-          type: 'image_url',
-          image_url: { url: img }
-        });
-      });
+    // Add all image inputs
+    for (const imageInput of imageInputs) {
+      requestParts.push(imageInput);
     }
 
-    // Retry logic for image generation
-    const MAX_RETRIES = 3;
-    let lastError: any = null;
-    let imageUrl: string | null = null;
-    let description = 'Imagem gerada com sucesso';
+    console.log('Calling Gemini API with', requestParts.length, 'parts (including', imageInputs.length, 'images)');
 
-    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-      try {
-        console.log(`Image generation attempt ${attempt}/${MAX_RETRIES}...`);
-
-        // Converter messageContent para o formato do Gemini
-        const geminiParts = messageContent.map((item: any) => {
-          if (item.type === "text") {
-            return { text: item.text };
-          } else if (item.type === "image_url") {
-            const base64Data = item.image_url.url.split(',')[1];
-            const mimeType = item.image_url.url.match(/data:(.*?);/)?.[1] || 'image/png';
-            return { 
-              inlineData: { 
-                mimeType, 
-                data: base64Data 
-              } 
-            };
-          }
-        });
-
-        const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-goog-api-key': GEMINI_API_KEY,
-          },
-          body: JSON.stringify({
-            contents: [{ parts: geminiParts }],
-            generationConfig: {
-              temperature: 0.7,
-              topP: 0.95,
-              topK: 40,
-              maxOutputTokens: 8192,
-            }
-          }),
-        });
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error(`Gemini API error (attempt ${attempt}):`, response.status, errorText);
-          
-          // Don't retry on rate limit errors
-          if (response.status === 429) {
-            return new Response(
-              JSON.stringify({ error: 'Limite de requisições excedido. Tente novamente mais tarde.' }),
-              { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-            );
-          }
-          
-          lastError = new Error(`Gemini API error: ${response.status}`);
-          
-          if (attempt < MAX_RETRIES) {
-            console.log(`Retrying in 2 seconds... (attempt ${attempt + 1}/${MAX_RETRIES})`);
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            continue;
-          }
-          
-          throw lastError;
+    const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent?key=${GEMINI_API_KEY}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        contents: [{
+          parts: requestParts
+        }],
+        generationConfig: {
+          responseModalities: ["TEXT", "IMAGE"],
+          temperature: 1.0,
+          topP: 0.95,
+          topK: 40
         }
+      }),
+    });
 
-        const data = await response.json();
-        console.log('Image generation response received');
+    if (!geminiResponse.ok) {
+      const errorText = await geminiResponse.text();
+      console.error('Gemini API error:', geminiResponse.status, errorText);
+      
+      // Check for specific error types
+      if (geminiResponse.status === 429) {
+        return new Response(
+          JSON.stringify({ error: 'Limite de requisições excedido. Tente novamente em alguns instantes.' }),
+          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      if (geminiResponse.status === 400) {
+        return new Response(
+          JSON.stringify({ error: 'Erro na requisição. Verifique se o prompt não contém conteúdo proibido.' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      throw new Error(`Gemini API error: ${geminiResponse.status} - ${errorText}`);
+    }
 
-        // Extrair imagem da resposta do Gemini
-        const geminiImageData = data.candidates?.[0]?.content?.parts?.find(
-          (part: any) => part.inlineData
-        )?.inlineData;
+    const geminiData = await geminiResponse.json();
+    console.log('Gemini response received');
 
-        const textContent = data.candidates?.[0]?.content?.parts?.find(
-          (part: any) => part.text
-        )?.text;
+    // Extract image from response
+    let imageUrl = null;
+    let textResponse = null;
 
-        if (textContent) {
-          description = textContent;
+    if (geminiData.candidates && geminiData.candidates[0] && geminiData.candidates[0].content) {
+      const parts = geminiData.candidates[0].content.parts;
+      for (const part of parts) {
+        if (part.inlineData && part.inlineData.data) {
+          // Convert base64 to data URL
+          const mimeType = part.inlineData.mimeType || 'image/png';
+          imageUrl = `data:${mimeType};base64,${part.inlineData.data}`;
         }
-
-        if (!geminiImageData) {
-          console.error('No image in response. Full response:', JSON.stringify(data, null, 2));
-          lastError = new Error('A API não retornou uma imagem válida');
-          
-          if (attempt < MAX_RETRIES) {
-            console.log(`No image returned, retrying in 2 seconds... (attempt ${attempt + 1}/${MAX_RETRIES})`);
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            continue;
-          }
-          
-          return new Response(
-            JSON.stringify({ 
-              error: 'Falha ao gerar imagem. Por favor, tente novamente com um prompt mais específico ou sem imagens de referência.',
-              details: 'A API não retornou uma imagem válida'
-            }),
-            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-
-        imageUrl = `data:${geminiImageData.mimeType};base64,${geminiImageData.data}`;
-
-        // Success! Break out of retry loop
-        break;
-
-      } catch (error) {
-        lastError = error;
-        console.error(`Error on attempt ${attempt}:`, error);
-        
-        if (attempt < MAX_RETRIES) {
-          console.log(`Retrying in 2 seconds... (attempt ${attempt + 1}/${MAX_RETRIES})`);
-          await new Promise(resolve => setTimeout(resolve, 2000));
-        } else {
-          throw error;
+        if (part.text) {
+          textResponse = part.text;
         }
       }
     }
 
     if (!imageUrl) {
-      throw lastError || new Error('Failed to generate image after retries');
+      console.error('No image in Gemini response:', JSON.stringify(geminiData));
+      return new Response(
+        JSON.stringify({ error: 'Não foi possível gerar a imagem. Tente novamente com um prompt diferente.' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    // Decrement team credits
-    const creditsBefore = teamData.credits;
-    const creditsAfter = creditsBefore - CREDIT_COSTS.QUICK_IMAGE;
-    
-    const { error: updateError } = await supabase
-      .from('teams')
-      .update({ credits: creditsAfter })
-      .eq('id', authenticatedTeamId);
+    console.log('Image generated successfully');
 
-    if (updateError) {
-      console.error('Error updating credits:', updateError);
+    // Deduct credits after successful generation (individual)
+    const deductResult = await deductUserCredits(supabase, authenticatedUserId, CREDIT_COSTS.QUICK_IMAGE);
+    
+    if (!deductResult.success) {
+      console.error('Error deducting credits:', deductResult.error);
     }
 
     // Record credit usage
-    await recordCreditUsage(supabase, {
-      teamId: authenticatedTeamId,
+    await recordUserCreditUsage(supabase, {
       userId: authenticatedUserId,
+      teamId: authenticatedTeamId,
       actionType: 'QUICK_IMAGE',
       creditsUsed: CREDIT_COSTS.QUICK_IMAGE,
-      creditsBefore,
-      creditsAfter,
+      creditsBefore: creditCheck.currentCredits,
+      creditsAfter: deductResult.newCredits,
       description: 'Criação rápida de imagem',
-      metadata: { platform, aspectRatio, style, quality }
+      metadata: { platform, aspectRatio: normalizedAspectRatio, style, brandId }
     });
 
-    // Create action record with all configurations
+    // Save action to database
     const { data: actionData, error: actionError } = await supabase
       .from('actions')
       .insert({
-        type: 'CRIAR_CONTEUDO_RAPIDO',
-        brand_id: brandId || null,
-        team_id: authenticatedTeamId,
         user_id: authenticatedUserId,
-        status: 'Aprovado',
-        approved: true,
+        team_id: authenticatedTeamId || '00000000-0000-0000-0000-000000000000',
+        type: 'CRIAR_CONTEUDO_RAPIDO',
+        status: 'completed',
+        brand_id: brandId || null,
         details: {
           prompt,
-          brandId,
           platform,
           aspectRatio: normalizedAspectRatio,
-          originalAspectRatio: aspectRatio,
           style,
           quality,
-          negativePrompt,
           colorPalette,
           lighting,
           composition,
           cameraAngle,
           detailLevel,
           mood,
-          customDimensions: width && height ? `${width}x${height}` : null,
-          referenceImagesCount: referenceImages?.length || 0,
-          preserveImagesCount: preserveImages?.length || 0,
-          styleReferenceImagesCount: styleReferenceImages?.length || 0,
-          enhancedPrompt
+          negativePrompt: negativePrompt ? true : false,
+          hasReferenceImages: referenceImages?.length > 0,
+          hasPreserveImages: preserveImages?.length > 0,
+          hasStyleReferenceImages: styleReferenceImages?.length > 0
         },
         result: {
           imageUrl,
-          description
+          textResponse,
+          generatedAt: new Date().toISOString()
         }
       })
       .select()
       .single();
 
     if (actionError) {
-      console.error('Error creating action:', actionError);
+      console.error('Error saving action:', actionError);
     }
 
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
+        success: true,
         imageUrl,
-        description,
+        textResponse,
         actionId: actionData?.id,
-        creditsRemaining: creditsAfter
+        creditsUsed: CREDIT_COSTS.QUICK_IMAGE,
+        creditsRemaining: deductResult.newCredits
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
-    console.error('Error in generate-quick-content function:', error);
+    console.error('Error in generate-quick-content:', error);
     return new Response(
-      JSON.stringify({ error: 'Erro ao gerar conteúdo' }),
+      JSON.stringify({ error: error instanceof Error ? error.message : 'Erro desconhecido' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

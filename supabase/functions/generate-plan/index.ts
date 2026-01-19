@@ -2,7 +2,7 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
-import { recordCreditUsage } from '../_shared/creditHistory.ts';
+import { checkUserCredits, deductUserCredits, recordUserCreditUsage } from '../_shared/userCredits.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -77,28 +77,24 @@ serve(async (req) => {
       );
     }
 
+    if (!userId) {
+      return new Response(
+        JSON.stringify({ error: 'User ID is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Check team credits
-    const { data: teamData, error: teamError } = await supabase
-      .from('teams')
-      .select('credits')
-      .eq('id', teamId)
-      .single();
+    // Check user credits (individual)
+    const creditCheck = await checkUserCredits(supabase, userId, CREDIT_COSTS.CONTENT_PLAN);
 
-    if (teamError || !teamData) {
+    if (!creditCheck.hasCredits) {
       return new Response(
-        JSON.stringify({ error: 'Unable to verify credits' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    if (teamData.credits <= 0) {
-      return new Response(
-        JSON.stringify({ error: 'Insufficient credits' }),
+        JSON.stringify({ error: 'Créditos insuficientes' }),
         { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -268,30 +264,24 @@ Tema ${index + 1}:
     
     const generatedPlan = data.choices[0].message.content;
 
-    // Decrement credits
-    const creditsBefore = teamData.credits;
-    const creditsAfter = creditsBefore - CREDIT_COSTS.CONTENT_PLAN;
-    
-    const { error: updateError } = await supabase
-      .from('teams')
-      .update({ credits: creditsAfter })
-      .eq('id', teamId);
+    // Deduct credits (individual)
+    const deductResult = await deductUserCredits(supabase, userId, CREDIT_COSTS.CONTENT_PLAN);
 
-    if (updateError) {
+    if (!deductResult.success) {
       return new Response(
-        JSON.stringify({ error: 'Unable to update credits' }),
+        JSON.stringify({ error: 'Erro ao atualizar créditos' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     // Record credit usage
-    await recordCreditUsage(supabase, {
-      teamId,
+    await recordUserCreditUsage(supabase, {
       userId,
+      teamId: teamId || null,
       actionType: 'CONTENT_PLAN',
       creditsUsed: CREDIT_COSTS.CONTENT_PLAN,
-      creditsBefore,
-      creditsAfter,
+      creditsBefore: creditCheck.currentCredits,
+      creditsAfter: deductResult.newCredits,
       description: 'Planejamento de conteúdo',
       metadata: { platform, quantity, themes }
     });
@@ -302,7 +292,7 @@ Tema ${index + 1}:
       .insert({
         type: 'PLANEJAR_CONTEUDO',
         user_id: userId,
-        team_id: teamId,
+        team_id: teamId || '00000000-0000-0000-0000-000000000000',
         brand_id: brand,
         status: 'Aguardando revisão',
         result: { plan: generatedPlan },
@@ -323,7 +313,7 @@ Tema ${index + 1}:
       JSON.stringify({ 
         plan: generatedPlan,
         actionId: actionData.id,
-        creditsRemaining: creditsAfter 
+        creditsRemaining: deductResult.newCredits 
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
