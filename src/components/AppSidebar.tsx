@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { motion, AnimatePresence } from "framer-motion";
-import { Home, Tag, Users, Calendar, History, Sparkles, CheckCircle, Rocket, Palette, Zap, Coins } from "lucide-react";
+import { Home, Tag, Users, Calendar, History, Sparkles, CheckCircle, Rocket, Palette, Zap, Coins, UsersRound } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarRail, useSidebar } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
@@ -177,39 +177,6 @@ function ActionButton({
   }
   return linkContent;
 }
-function TeamPlanSection({
-  teamName,
-  planName,
-  collapsed,
-  onNavigate,
-  t
-}: {
-  teamName: string;
-  planName: string;
-  collapsed: boolean;
-  onNavigate?: () => void;
-  t: any;
-}) {
-  if (collapsed) return null;
-  return <NavLink id="nav-team" to="/team" onClick={onNavigate} className="flex items-center gap-4 p-3 rounded-lg transition-all duration-400 ease-out transform hover:scale-105 bg-gradient-to-tr from-primary to-fuchsia-600 text-primary-foreground shadow-lg">
-      <Rocket className="h-6 w-6 flex-shrink-0" />
-      <motion.div initial={{
-      opacity: 0,
-      x: -10
-    }} animate={{
-      opacity: 1,
-      x: 0
-    }} exit={{
-      opacity: 0,
-      x: -10
-    }} transition={{
-      duration: 0.3
-    }} className="flex flex-col items-start leading-tight">
-        <span className="font-bold text-sm">{t.sidebar.team}: {teamName}</span>
-        <span className="text-xs text-primary-foreground/80">{t.sidebar.plan}: {planName}</span>
-      </motion.div>
-    </NavLink>;
-}
 export function AppSidebar() {
   const {
     state,
@@ -257,6 +224,11 @@ export function AppSidebar() {
     href: "/history",
     icon: History,
     label: t.sidebar.history
+  }, {
+    id: "nav-team",
+    href: "/team",
+    icon: UsersRound,
+    label: t.sidebar.team
   }];
   const actionButtons = [{
     id: "nav-create-content",
@@ -352,20 +324,6 @@ export function AppSidebar() {
                 </motion.div>
               </NavLink>}
             
-            {/* Seção de equipe (opcional) */}
-            {team && (collapsed ? <Tooltip>
-                <TooltipTrigger asChild>
-                  <NavLink id="nav-team" to="/team" onClick={handleMobileNavigate} className="flex items-center justify-center gap-4 p-3 rounded-lg transition-all duration-400 ease-out transform hover:scale-105 bg-gradient-to-tr from-primary to-fuchsia-600 text-primary-foreground shadow-lg">
-                    <Rocket className="h-6 w-6 flex-shrink-0" />
-                  </NavLink>
-                </TooltipTrigger>
-                <TooltipContent side="right">
-                  <div className="flex flex-col items-start">
-                    <span className="font-bold text-sm">{t.sidebar.team}: {team.name}</span>
-                    <span className="text-xs opacity-80">{t.sidebar.plan}: {team.plan?.name || 'Free'}</span>
-                  </div>
-                </TooltipContent>
-              </Tooltip> : <TeamPlanSection teamName={team.name} planName={team.plan?.name || 'Free'} collapsed={collapsed} onNavigate={handleMobileNavigate} t={t} />)}
           </div>}
       </motion.nav>
     </TooltipProvider>;
