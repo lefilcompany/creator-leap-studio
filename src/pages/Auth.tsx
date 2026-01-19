@@ -139,8 +139,8 @@ const Auth = () => {
   useEffect(() => {
     if (waitingForAuth && !authLoading && user && !showChangePassword) {
       if (user.isAdmin) {
-        console.log("[Auth] Admin authenticated, redirecting to /admin");
-        navigate("/admin", { replace: true });
+        console.log("[Auth] System Admin authenticated, redirecting to /system");
+        navigate("/system", { replace: true });
         return;
       }
 
@@ -206,8 +206,8 @@ const Auth = () => {
       setShowPasswordResetSuggestion(false);
 
       if (data.user) {
-        // Verificar se o usuário precisa trocar a senha e se é admin
-        const [profileResult, adminResult] = await Promise.all([
+        // Verificar se o usuário precisa trocar a senha e se é System Admin
+        const [profileResult, systemAdminResult] = await Promise.all([
           supabase
             .from("profiles")
             .select("team_id, force_password_change")
@@ -217,7 +217,7 @@ const Auth = () => {
             .from("user_roles")
             .select("role")
             .eq("user_id", data.user.id)
-            .eq("role", "admin")
+            .eq("role", "system")
             .maybeSingle(),
         ]);
 
@@ -228,16 +228,16 @@ const Auth = () => {
         }
 
         const profileData = profileResult.data;
-        const isAdmin = !!adminResult.data;
+        const isSystemAdmin = !!systemAdminResult.data;
 
         if (profileData.force_password_change) {
           setShowChangePassword(true);
           return;
         }
 
-        // Admin não precisa de equipe nem seleção
-        if (isAdmin) {
-          navigate("/admin", { replace: true });
+        // System Admin redireciona para área de sistema
+        if (isSystemAdmin) {
+          navigate("/system", { replace: true });
           return;
         }
 
