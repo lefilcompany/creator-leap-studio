@@ -24,7 +24,7 @@ export type Database = {
           result: Json | null
           revisions: number | null
           status: string
-          team_id: string
+          team_id: string | null
           type: string
           updated_at: string | null
           user_id: string
@@ -38,7 +38,7 @@ export type Database = {
           result?: Json | null
           revisions?: number | null
           status?: string
-          team_id: string
+          team_id?: string | null
           type: string
           updated_at?: string | null
           user_id: string
@@ -52,7 +52,7 @@ export type Database = {
           result?: Json | null
           revisions?: number | null
           status?: string
-          team_id?: string
+          team_id?: string | null
           type?: string
           updated_at?: string | null
           user_id?: string
@@ -103,7 +103,7 @@ export type Database = {
           segment: string
           special_dates: string | null
           success_metrics: string | null
-          team_id: string
+          team_id: string | null
           updated_at: string | null
           user_id: string
           values: string | null
@@ -129,7 +129,7 @@ export type Database = {
           segment: string
           special_dates?: string | null
           success_metrics?: string | null
-          team_id: string
+          team_id?: string | null
           updated_at?: string | null
           user_id: string
           values?: string | null
@@ -155,7 +155,7 @@ export type Database = {
           segment?: string
           special_dates?: string | null
           success_metrics?: string | null
-          team_id?: string
+          team_id?: string | null
           updated_at?: string | null
           user_id?: string
           values?: string | null
@@ -180,7 +180,7 @@ export type Database = {
           prize_value: number
           redeemed_at: string
           redeemed_by: string
-          team_id: string
+          team_id: string | null
         }
         Insert: {
           coupon_code: string
@@ -191,7 +191,7 @@ export type Database = {
           prize_value: number
           redeemed_at?: string
           redeemed_by: string
-          team_id: string
+          team_id?: string | null
         }
         Update: {
           coupon_code?: string
@@ -202,7 +202,7 @@ export type Database = {
           prize_value?: number
           redeemed_at?: string
           redeemed_by?: string
-          team_id?: string
+          team_id?: string | null
         }
         Relationships: [
           {
@@ -224,7 +224,7 @@ export type Database = {
           description: string | null
           id: string
           metadata: Json | null
-          team_id: string
+          team_id: string | null
           user_id: string
         }
         Insert: {
@@ -236,7 +236,7 @@ export type Database = {
           description?: string | null
           id?: string
           metadata?: Json | null
-          team_id: string
+          team_id?: string | null
           user_id: string
         }
         Update: {
@@ -248,7 +248,7 @@ export type Database = {
           description?: string | null
           id?: string
           metadata?: Json | null
-          team_id?: string
+          team_id?: string | null
           user_id?: string
         }
         Relationships: [
@@ -281,7 +281,7 @@ export type Database = {
           status: string
           stripe_checkout_session_id: string
           stripe_payment_intent_id: string | null
-          team_id: string
+          team_id: string | null
           user_id: string
         }
         Insert: {
@@ -296,7 +296,7 @@ export type Database = {
           status?: string
           stripe_checkout_session_id: string
           stripe_payment_intent_id?: string | null
-          team_id: string
+          team_id?: string | null
           user_id: string
         }
         Update: {
@@ -311,7 +311,7 @@ export type Database = {
           status?: string
           stripe_checkout_session_id?: string
           stripe_payment_intent_id?: string | null
-          team_id?: string
+          team_id?: string | null
           user_id?: string
         }
         Relationships: [
@@ -388,7 +388,7 @@ export type Database = {
           preferred_tone_of_voice: string
           professional_context: string
           purchase_journey_stage: string
-          team_id: string
+          team_id: string | null
           updated_at: string | null
           user_id: string
         }
@@ -408,7 +408,7 @@ export type Database = {
           preferred_tone_of_voice: string
           professional_context: string
           purchase_journey_stage: string
-          team_id: string
+          team_id?: string | null
           updated_at?: string | null
           user_id: string
         }
@@ -428,7 +428,7 @@ export type Database = {
           preferred_tone_of_voice?: string
           professional_context?: string
           purchase_journey_stage?: string
-          team_id?: string
+          team_id?: string | null
           updated_at?: string | null
           user_id?: string
         }
@@ -642,7 +642,7 @@ export type Database = {
           objectives: string
           platforms: string
           target_audience: string
-          team_id: string
+          team_id: string | null
           title: string
           tone_of_voice: string
           updated_at: string | null
@@ -663,7 +663,7 @@ export type Database = {
           objectives: string
           platforms: string
           target_audience: string
-          team_id: string
+          team_id?: string | null
           title: string
           tone_of_voice: string
           updated_at?: string | null
@@ -684,7 +684,7 @@ export type Database = {
           objectives?: string
           platforms?: string
           target_audience?: string
-          team_id?: string
+          team_id?: string | null
           title?: string
           tone_of_voice?: string
           updated_at?: string | null
@@ -1001,6 +1001,10 @@ export type Database = {
           team_id: string
           team_name: string
         }[]
+      }
+      can_access_resource: {
+        Args: { resource_team_id: string; resource_user_id: string }
+        Returns: boolean
       }
       check_team_access: { Args: { p_team_id: string }; Returns: boolean }
       create_team_for_user: {
