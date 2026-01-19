@@ -1,38 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@13.11.0?target=deno";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
-
-// Utility function to record credit usage in history
-async function recordCreditUsage(
-  supabase: any,
-  params: {
-    teamId: string;
-    userId: string;
-    actionType: string;
-    creditsUsed: number;
-    creditsBefore: number;
-    creditsAfter: number;
-    description?: string;
-    metadata?: any;
-  }
-) {
-  const { error } = await supabase
-    .from('credit_history')
-    .insert({
-      team_id: params.teamId,
-      user_id: params.userId,
-      action_type: params.actionType,
-      credits_used: params.creditsUsed,
-      credits_before: params.creditsBefore,
-      credits_after: params.creditsAfter,
-      description: params.description,
-      metadata: params.metadata || {},
-    });
-
-  if (error) {
-    console.error('Failed to record credit usage:', error);
-  }
-}
+import { recordUserCreditUsage } from '../_shared/userCredits.ts';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -65,46 +34,46 @@ serve(async (req) => {
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2024-11-20.acacia" });
 
-    // Fetch all teams with active Stripe subscriptions
-    const { data: teams, error: teamsError } = await supabaseClient
-      .from('teams')
-      .select('id, name, admin_id, plan_id, stripe_customer_id, stripe_subscription_id, subscription_period_end, credits')
+    // Buscar todos os USUÁRIOS com assinaturas Stripe ativas (não mais teams)
+    const { data: profiles, error: profilesError } = await supabaseClient
+      .from('profiles')
+      .select('id, name, email, plan_id, stripe_customer_id, stripe_subscription_id, subscription_period_end, credits, team_id')
       .not('stripe_subscription_id', 'is', null);
 
-    if (teamsError) {
-      throw new Error(`Failed to fetch teams: ${teamsError.message}`);
+    if (profilesError) {
+      throw new Error(`Failed to fetch profiles: ${profilesError.message}`);
     }
 
-    if (!teams || teams.length === 0) {
-      logStep("No teams with active subscriptions found");
+    if (!profiles || profiles.length === 0) {
+      logStep("No users with active subscriptions found");
       return new Response(JSON.stringify({ 
-        message: "No teams to check",
-        teams_checked: 0 
+        message: "No users to check",
+        users_checked: 0 
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
       });
     }
 
-    logStep(`Found ${teams.length} teams to check`);
+    logStep(`Found ${profiles.length} users to check`);
 
     const results = {
-      teams_checked: teams.length,
+      users_checked: profiles.length,
       credits_reset: 0,
       errors: [] as any[],
       details: [] as any[]
     };
 
-    // Check each team
-    for (const team of teams) {
+    // Check each user
+    for (const profile of profiles) {
       try {
-        logStep(`Checking team: ${team.name}`, { teamId: team.id });
+        logStep(`Checking user: ${profile.name}`, { userId: profile.id });
 
         // Fetch subscription from Stripe
-        const subscription = await stripe.subscriptions.retrieve(team.stripe_subscription_id);
+        const subscription = await stripe.subscriptions.retrieve(profile.stripe_subscription_id);
         
         if (subscription.status !== 'active') {
-          logStep(`Team subscription not active`, { teamId: team.id, status: subscription.status });
+          logStep(`User subscription not active`, { userId: profile.id, status: subscription.status });
           continue;
         }
 
@@ -112,16 +81,16 @@ serve(async (req) => {
         
         // Compare dates using timestamps to avoid timezone issues
         const stripePeriodTimestamp = new Date(stripeCurrentPeriodEnd).getTime();
-        const dbPeriodTimestamp = team.subscription_period_end 
-          ? new Date(team.subscription_period_end).getTime() 
+        const dbPeriodTimestamp = profile.subscription_period_end 
+          ? new Date(profile.subscription_period_end).getTime() 
           : 0;
 
         const isNewPeriod = stripePeriodTimestamp > dbPeriodTimestamp;
 
         if (isNewPeriod) {
-          logStep(`New billing period detected for team: ${team.name}`, {
-            teamId: team.id,
-            oldPeriodEnd: team.subscription_period_end,
+          logStep(`New billing period detected for user: ${profile.name}`, {
+            userId: profile.id,
+            oldPeriodEnd: profile.subscription_period_end,
             newPeriodEnd: stripeCurrentPeriodEnd
           });
 
@@ -129,7 +98,7 @@ serve(async (req) => {
           const { data: plan, error: planError } = await supabaseClient
             .from('plans')
             .select('credits')
-            .eq('id', team.plan_id)
+            .eq('id', profile.plan_id)
             .single();
 
           if (planError || !plan) {
@@ -137,39 +106,39 @@ serve(async (req) => {
           }
 
           // Credit accumulation policy: accumulate up to 2x, reset if at limit
-          const creditsBefore = team.credits || 0;
+          const creditsBefore = profile.credits || 0;
           const creditsAfter = creditsBefore >= (plan.credits * 2)
             ? plan.credits  // Reset to base if at max limit
             : Math.min(creditsBefore + plan.credits, plan.credits * 2);
 
-          // Update team with new period and reset credits
+          // Atualizar PROFILE do usuário (não mais team)
           const { error: updateError } = await supabaseClient
-            .from('teams')
+            .from('profiles')
             .update({
               subscription_period_end: stripeCurrentPeriodEnd,
               credits: creditsAfter,
               updated_at: new Date().toISOString()
             })
-            .eq('id', team.id);
+            .eq('id', profile.id);
 
           if (updateError) {
-            throw new Error(`Failed to update team: ${updateError.message}`);
+            throw new Error(`Failed to update profile: ${updateError.message}`);
           }
 
           // Record in credit history
-          await recordCreditUsage(supabaseClient, {
-            teamId: team.id,
-            userId: team.admin_id,
+          await recordUserCreditUsage(supabaseClient, {
+            userId: profile.id,
+            teamId: profile.team_id || undefined,
             actionType: 'MONTHLY_RESET',
             creditsUsed: -(creditsAfter - creditsBefore),
             creditsBefore,
             creditsAfter,
             description: 'Renovação mensal automática - créditos resetados',
             metadata: {
-              plan_id: team.plan_id,
-              previous_period_end: team.subscription_period_end,
+              plan_id: profile.plan_id,
+              previous_period_end: profile.subscription_period_end,
               new_period_end: stripeCurrentPeriodEnd,
-              subscription_id: team.stripe_subscription_id,
+              subscription_id: profile.stripe_subscription_id,
               reset_method: 'daily_cron',
               stripe_subscription_status: subscription.status,
               stripe_current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
@@ -179,12 +148,12 @@ serve(async (req) => {
             }
           });
 
-          // Create notification for admin
+          // Create notification for user
           await supabaseClient
             .from('notifications')
             .insert({
-              user_id: team.admin_id,
-              team_id: team.id,
+              user_id: profile.id,
+              team_id: profile.team_id,
               type: 'credits_reset',
               title: 'Créditos renovados!',
               message: `Seus créditos foram renovados automaticamente. Novo saldo: ${creditsAfter} créditos.`,
@@ -197,27 +166,27 @@ serve(async (req) => {
 
           results.credits_reset++;
           results.details.push({
-            team_id: team.id,
-            team_name: team.name,
+            user_id: profile.id,
+            user_name: profile.name,
             credits_before: creditsBefore,
             credits_after: creditsAfter,
             new_period_end: stripeCurrentPeriodEnd
           });
 
-          logStep(`Credits reset successfully for team: ${team.name}`, {
-            teamId: team.id,
+          logStep(`Credits reset successfully for user: ${profile.name}`, {
+            userId: profile.id,
             creditsBefore,
             creditsAfter
           });
         } else {
-          logStep(`No period change for team: ${team.name}`, { teamId: team.id });
+          logStep(`No period change for user: ${profile.name}`, { userId: profile.id });
         }
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
-        logStep(`Error processing team ${team.name}`, { error: errorMessage });
+        logStep(`Error processing user ${profile.name}`, { error: errorMessage });
         results.errors.push({
-          team_id: team.id,
-          team_name: team.name,
+          user_id: profile.id,
+          user_name: profile.name,
           error: errorMessage
         });
       }

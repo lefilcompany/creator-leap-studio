@@ -52,7 +52,7 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    // Buscar team_id do usuário
+    // Buscar dados do profile do usuário (team_id agora é opcional)
     const { data: profile } = await supabaseClient
       .from('profiles')
       .select('team_id')
@@ -60,25 +60,10 @@ serve(async (req) => {
       .single();
     
     const teamId = profile?.team_id;
-    if (!teamId) throw new Error("User has no team");
-    logStep("Team ID found", { teamId });
+    logStep("Profile found", { teamId: teamId || 'no team' });
 
-    // Verificar se usuário é admin da equipe
-    const { data: teamData, error: teamError } = await supabaseClient
-      .from('teams')
-      .select('admin_id')
-      .eq('id', teamId)
-      .single();
-
-    if (teamError || !teamData) {
-      throw new Error("Team not found");
-    }
-
-    if (teamData.admin_id !== user.id) {
-      logStep("ERROR: User is not team admin", { userId: user.id, adminId: teamData.admin_id });
-      throw new Error("Only team administrators can purchase plans");
-    }
-    logStep("User confirmed as team admin");
+    // REMOVIDO: Verificação de equipe e admin de equipe
+    // Agora qualquer usuário autenticado pode comprar para si mesmo
 
     const { type, price_id, plan_id, credits, return_url } = await req.json();
     if (!type || !['plan', 'custom'].includes(type)) {
@@ -123,8 +108,8 @@ serve(async (req) => {
         success_url: successUrl,
         cancel_url: `${origin}/subscribe?canceled=true`,
         metadata: {
-          team_id: teamId,
           user_id: user.id,
+          team_id: teamId || '', // Opcional agora
           purchase_type: 'plan',
           plan_id: plan_id,
           return_url: return_url || '/credits',
@@ -157,8 +142,8 @@ serve(async (req) => {
         success_url: `${origin}/credits?success=true&session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${origin}/credits?canceled=true`,
         metadata: {
-          team_id: teamId,
           user_id: user.id,
+          team_id: teamId || '', // Opcional agora
           purchase_type: 'custom',
           credits: credits.toString(),
         }

@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
+import { checkUserCredits, deductUserCredits, recordUserCreditUsage } from '../_shared/userCredits.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -8,7 +9,7 @@ const corsHeaders = {
 };
 
 // Função para processar vídeo em background
-async function processVideoGeneration(operationName: string, actionId: string, teamId: string) {
+async function processVideoGeneration(operationName: string, actionId: string, userId: string, teamId: string | null) {
   const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
   const BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -137,7 +138,7 @@ async function processVideoGeneration(operationName: string, actionId: string, t
           processing_time: `${attempts * 5} seconds`
         }
       })
-      .eq('team_id', teamId)
+      .eq('user_id', userId)
       .eq('action_type', 'VIDEO_GENERATION')
       .eq('metadata->>action_id', actionId)
       .order('created_at', { ascending: false })
@@ -198,7 +199,7 @@ async function processVideoGeneration(operationName: string, actionId: string, t
           error: error instanceof Error ? error.message : 'Unknown error'
         }
       })
-      .eq('team_id', teamId)
+      .eq('user_id', userId)
       .eq('action_type', 'VIDEO_GENERATION')
       .eq('metadata->>action_id', actionId)
       .order('created_at', { ascending: false })
@@ -333,24 +334,11 @@ serve(async (req) => {
       persona: personaData?.name || 'N/A'
     });
 
-    // Verificar créditos disponíveis
-    const { data: teamData, error: teamError } = await supabase
-      .from('teams')
-      .select('credits')
-      .eq('id', actionData.team_id)
-      .single();
+    // Verificar créditos do usuário individual (não mais team)
+    const creditCheck = await checkUserCredits(supabase, actionData.user_id, CREDIT_COSTS.VIDEO_GENERATION);
 
-    if (teamError || !teamData) {
-      console.error('Error fetching team:', teamError);
-      return new Response(
-        JSON.stringify({ error: 'Team not found' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Verificar se há créditos suficientes
-    if (teamData.credits < CREDIT_COSTS.VIDEO_GENERATION) {
-      console.log(`Insufficient credits for video generation. Required: ${CREDIT_COSTS.VIDEO_GENERATION}, Available: ${teamData.credits}`);
+    if (!creditCheck.hasCredits) {
+      console.log(`Insufficient credits for video generation. Required: ${CREDIT_COSTS.VIDEO_GENERATION}, Available: ${creditCheck.currentCredits}`);
       
       // Atualizar action como failed
       await supabase
@@ -360,7 +348,7 @@ serve(async (req) => {
           result: { 
             error: 'Créditos insuficientes para gerar vídeo',
             required: CREDIT_COSTS.VIDEO_GENERATION,
-            available: teamData.credits
+            available: creditCheck.currentCredits
           },
           updated_at: new Date().toISOString()
         })
@@ -370,28 +358,23 @@ serve(async (req) => {
         JSON.stringify({ 
           error: 'Créditos insuficientes', 
           required: CREDIT_COSTS.VIDEO_GENERATION,
-          available: teamData.credits,
-          message: `São necessários ${CREDIT_COSTS.VIDEO_GENERATION} créditos. Você tem ${teamData.credits}.`
+          available: creditCheck.currentCredits,
+          message: `São necessários ${CREDIT_COSTS.VIDEO_GENERATION} créditos. Você tem ${creditCheck.currentCredits}.`
         }),
         { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('Credits available:', teamData.credits);
+    console.log('Credits available:', creditCheck.currentCredits);
     
     // Decrementar créditos IMEDIATAMENTE antes de iniciar processamento
     console.log('Decrementing credits before starting video generation...');
 
-    const creditsBefore = teamData.credits;
-    const creditsAfter = creditsBefore - CREDIT_COSTS.VIDEO_GENERATION;
+    const creditsBefore = creditCheck.currentCredits;
+    const deductResult = await deductUserCredits(supabase, actionData.user_id, CREDIT_COSTS.VIDEO_GENERATION);
 
-    const { error: creditUpdateError } = await supabase
-      .from('teams')
-      .update({ credits: creditsAfter })
-      .eq('id', actionData.team_id);
-
-    if (creditUpdateError) {
-      console.error('Error decrementing credits:', creditUpdateError);
+    if (!deductResult.success) {
+      console.error('Error decrementing credits:', deductResult.error);
       return new Response(
         JSON.stringify({ error: 'Erro ao decrementar créditos' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -399,24 +382,22 @@ serve(async (req) => {
     }
 
     // Registrar no histórico IMEDIATAMENTE
-    await supabase
-      .from('credit_history')
-      .insert({
-        team_id: actionData.team_id,
-        user_id: actionData.user_id,
-        action_type: 'VIDEO_GENERATION',
-        credits_used: CREDIT_COSTS.VIDEO_GENERATION,
-        credits_before: creditsBefore,
-        credits_after: creditsAfter,
-        description: 'Geração de vídeo iniciada',
-        metadata: { 
-          action_id: actionId, 
-          generation_type: generationType,
-          status: 'processing_started'
-        }
-      });
+    await recordUserCreditUsage(supabase, {
+      userId: actionData.user_id,
+      teamId: actionData.team_id || undefined,
+      actionType: 'VIDEO_GENERATION',
+      creditsUsed: CREDIT_COSTS.VIDEO_GENERATION,
+      creditsBefore: creditsBefore,
+      creditsAfter: deductResult.newCredits,
+      description: 'Geração de vídeo iniciada',
+      metadata: { 
+        action_id: actionId, 
+        generation_type: generationType,
+        status: 'processing_started'
+      }
+    });
 
-    console.log(`Credits decremented: ${creditsBefore} → ${creditsAfter}`);
+    console.log(`Credits decremented: ${creditsBefore} → ${deductResult.newCredits}`);
 
     const BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
     
@@ -780,42 +761,40 @@ STYLE: Maintain the general aesthetic of the reference image while adding dynami
       if (shouldRefundCredits) {
         console.log('💰 Reembolsando créditos devido a erro da API...');
         
-        // Buscar créditos atuais
-        const { data: currentTeam } = await supabase
-          .from('teams')
+        // Buscar créditos atuais do usuário
+        const { data: currentProfile } = await supabase
+          .from('profiles')
           .select('credits')
-          .eq('id', actionData.team_id)
+          .eq('id', actionData.user_id)
           .single();
         
-        if (currentTeam) {
-          const refundedCreditsAfter = currentTeam.credits + CREDIT_COSTS.VIDEO_GENERATION;
+        if (currentProfile) {
+          const refundedCreditsAfter = currentProfile.credits + CREDIT_COSTS.VIDEO_GENERATION;
           
-          // Devolver créditos
+          // Devolver créditos ao usuário
           await supabase
-            .from('teams')
+            .from('profiles')
             .update({ credits: refundedCreditsAfter })
-            .eq('id', actionData.team_id);
+            .eq('id', actionData.user_id);
           
           // Registrar reembolso no histórico
-          await supabase
-            .from('credit_history')
-            .insert({
-              team_id: actionData.team_id,
-              user_id: actionData.user_id,
-              action_type: 'VIDEO_GENERATION_REFUND',
-              credits_used: -CREDIT_COSTS.VIDEO_GENERATION,
-              credits_before: currentTeam.credits,
-              credits_after: refundedCreditsAfter,
-              description: `Reembolso: Erro ${generateResponse.status} na API de vídeo`,
-              metadata: { 
-                action_id: actionId, 
-                error_status: generateResponse.status,
-                reason: generateResponse.status === 429 ? 'quota_exceeded' : 'server_error'
-              }
-            });
+          await recordUserCreditUsage(supabase, {
+            userId: actionData.user_id,
+            teamId: actionData.team_id || undefined,
+            actionType: 'VIDEO_GENERATION_REFUND',
+            creditsUsed: -CREDIT_COSTS.VIDEO_GENERATION,
+            creditsBefore: currentProfile.credits,
+            creditsAfter: refundedCreditsAfter,
+            description: `Reembolso: Erro ${generateResponse.status} na API de vídeo`,
+            metadata: { 
+              action_id: actionId, 
+              error_status: generateResponse.status,
+              reason: generateResponse.status === 429 ? 'quota_exceeded' : 'server_error'
+            }
+          });
           
           refundedCredits = true;
-          console.log(`✅ Créditos reembolsados: ${currentTeam.credits} → ${refundedCreditsAfter}`);
+          console.log(`✅ Créditos reembolsados: ${currentProfile.credits} → ${refundedCreditsAfter}`);
         }
         
         // Mensagens amigáveis para o usuário
@@ -843,7 +822,7 @@ STYLE: Maintain the general aesthetic of the reference image while adding dynami
         })
         .eq('id', actionId);
       
-      // Para erros esperados de quota/rate limit, retornamos 200 para o frontend tratar sem “Edge function returned 429”.
+      // Para erros esperados de quota/rate limit, retornamos 200 para o frontend tratar sem "Edge function returned 429".
       const httpStatus = generateResponse.status;
       const responseStatus = shouldRefundCredits ? 200 : httpStatus;
 
@@ -876,7 +855,7 @@ STYLE: Maintain the general aesthetic of the reference image while adding dynami
 
     // Usar EdgeRuntime.waitUntil para manter o processamento em background
     // Isso garante que a função continue executando até o vídeo ser processado
-    const backgroundPromise = processVideoGeneration(operationName, actionId, actionData.team_id).catch(err => {
+    const backgroundPromise = processVideoGeneration(operationName, actionId, actionData.user_id, actionData.team_id).catch(err => {
       console.error('Background video processing error:', err);
     });
     
