@@ -21,7 +21,7 @@ import { themesSteps, navbarSteps } from '@/components/onboarding/tourSteps';
 type ThemeFormData = Omit<StrategicTheme, 'id' | 'createdAt' | 'updatedAt' | 'teamId' | 'userId'>;
 
 export default function Themes() {
-  const { user, team, refreshTeamData } = useAuth();
+  const { user, team, refreshTeamData, refreshUserCredits } = useAuth();
   const isMobile = useIsMobile();
   const [themes, setThemes] = useState<StrategicThemeSummary[]>([]);
   const [brands, setBrands] = useState<BrandSummary[]>([]);
@@ -40,17 +40,17 @@ export default function Themes() {
   const [totalPages, setTotalPages] = useState(0);
   const ITEMS_PER_PAGE = 10;
 
-  // Load brands from database
+  // Load brands from database - user can see own brands OR team brands
   useEffect(() => {
     const loadBrands = async () => {
-      if (!user?.teamId) return;
+      if (!user?.id) return;
       
       setIsLoadingBrands(true);
       try {
+        // Query brands user has access to (via RLS can_access_resource)
         const { data, error } = await supabase
           .from('brands')
           .select('id, name, responsible, created_at, updated_at')
-          .eq('team_id', user.teamId)
           .order('name', { ascending: true });
 
         if (error) throw error;
@@ -73,21 +73,21 @@ export default function Themes() {
     };
     
     loadBrands();
-  }, [user?.teamId]);
+  }, [user?.id]);
 
-  // Load themes from database
+  // Load themes from database - user can see own themes OR team themes
   useEffect(() => {
     const loadThemes = async () => {
-      if (!user?.teamId) return;
+      if (!user?.id) return;
       
       setIsLoadingThemes(true);
       try {
         const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
         
+        // Query themes user has access to (via RLS can_access_resource)
         const { data, error, count } = await supabase
           .from('strategic_themes')
           .select('id, brand_id, title, created_at', { count: 'exact' })
-          .eq('team_id', user.teamId)
           .order('created_at', { ascending: false })
           .range(startIndex, startIndex + ITEMS_PER_PAGE - 1);
 
@@ -111,7 +111,7 @@ export default function Themes() {
     };
     
     loadThemes();
-  }, [user?.teamId, currentPage]);
+  }, [user?.id, currentPage]);
 
   const handleOpenDialog = useCallback((theme: StrategicTheme | null = null) => {
     // Para edição, abrir direto
@@ -121,17 +121,17 @@ export default function Themes() {
       return;
     }
 
-    // Para novo tema, verificar se team está carregado
-    if (!team) {
-      toast.error('Carregando dados da equipe...');
+    // Para novo tema, verificar se user está carregado
+    if (!user) {
+      toast.error('Carregando dados do usuário...');
       return;
     }
 
-    const freeThemesUsed = team.free_themes_used || 0;
+    const freeThemesUsed = team?.free_themes_used || 0;
     const isFree = freeThemesUsed < 3;
 
-    // Se não for gratuito, verificar créditos
-    if (!isFree && team.credits < 1) {
+    // Se não for gratuito, verificar créditos individuais
+    if (!isFree && (user.credits || 0) < 1) {
       toast.error('Créditos insuficientes. Criar um tema custa 1 crédito (os 3 primeiros são gratuitos).');
       return;
     }
@@ -139,7 +139,7 @@ export default function Themes() {
     // Abrir diálogo de confirmação
     setThemeToEdit(null);
     setIsConfirmDialogOpen(true);
-  }, [team, themes.length]);
+  }, [user, team, themes.length]);
 
   const handleConfirmCreate = useCallback(() => {
     setIsConfirmDialogOpen(false);
@@ -148,7 +148,7 @@ export default function Themes() {
 
   const handleSaveTheme = useCallback(
     async (formData: ThemeFormData): Promise<StrategicTheme> => {
-      if (!user?.teamId || !user.id) {
+      if (!user?.id) {
         toast.error("Informações do usuário não disponíveis");
         throw new Error('User not authenticated');
       }
@@ -209,7 +209,7 @@ export default function Themes() {
           const { data, error } = await supabase
             .from('strategic_themes')
             .insert({
-              team_id: user.teamId,
+              team_id: user.teamId || null, // Optional team association
               user_id: user.id,
               brand_id: formData.brandId,
               title: formData.title,
@@ -236,7 +236,7 @@ export default function Themes() {
             id: data.id,
             createdAt: data.created_at,
             updatedAt: data.updated_at,
-            teamId: user.teamId,
+            teamId: user.teamId || '',
             userId: user.id
           };
 
@@ -251,40 +251,42 @@ export default function Themes() {
           setSelectedTheme(saved);
           setSelectedThemeSummary(summary);
 
-          // Atualizar contador ou deduzir crédito
-          const freeThemesUsed = team.free_themes_used || 0;
+          // Atualizar contador ou deduzir crédito individual
+          const freeThemesUsed = team?.free_themes_used || 0;
           const isFree = freeThemesUsed < 3;
 
-          if (isFree) {
-            // Incrementar contador de temas gratuitos
+          if (isFree && user.teamId) {
+            // Incrementar contador de temas gratuitos (apenas se tiver equipe)
             await supabase
               .from('teams')
               .update({ free_themes_used: freeThemesUsed + 1 } as any)
               .eq('id', user.teamId);
-          } else {
-            // Deduzir 1 crédito
+            await refreshTeamData();
+          } else if (!isFree) {
+            // Deduzir 1 crédito do usuário individual
+            const currentCredits = user.credits || 0;
             await supabase
-              .from('teams')
-              .update({ credits: team.credits - 1 } as any)
-              .eq('id', user.teamId);
+              .from('profiles')
+              .update({ credits: currentCredits - 1 })
+              .eq('id', user.id);
 
             // Registrar no histórico de créditos
             await supabase
               .from('credit_history')
               .insert({
-                team_id: user.teamId,
+                team_id: user.teamId || null,
                 user_id: user.id,
                 action_type: 'CREATE_THEME',
                 credits_used: 1,
-                credits_before: team.credits,
-                credits_after: team.credits - 1,
+                credits_before: currentCredits,
+                credits_after: currentCredits - 1,
                 description: `Criação do tema: ${formData.title}`,
                 metadata: { theme_id: saved.id, theme_title: formData.title }
               });
+            
+            // Atualizar créditos do usuário
+            await refreshUserCredits();
           }
-
-          // Atualizar créditos sem reload
-          await refreshTeamData();
 
           toast.success(isFree 
             ? `Tema criado com sucesso! (${3 - freeThemesUsed - 1} temas gratuitos restantes)` 
@@ -378,8 +380,8 @@ export default function Themes() {
     }
   }, []);
 
-  // Desabilitar apenas se não tiver créditos ou se team não carregou
-  const isButtonDisabled = !team || team.credits < 1;
+  // Desabilitar apenas se não tiver créditos ou se user não carregou
+  const isButtonDisabled = !user || (user.credits || 0) < 1;
 
   return (
     <div className="h-full flex flex-col gap-6">
@@ -404,7 +406,7 @@ export default function Themes() {
               onClick={() => handleOpenDialog()}
               disabled={isButtonDisabled}
               className="rounded-lg bg-gradient-to-r from-primary to-secondary px-6 py-5 text-base disabled:opacity-50 disabled:cursor-not-allowed"
-              title={!team ? 'Carregando...' : (team.credits < 1 ? 'Créditos insuficientes' : undefined)}
+              title={!user ? 'Carregando...' : ((user.credits || 0) < 1 ? 'Créditos insuficientes' : undefined)}
             >
               <Plus className="mr-2 h-5 w-5" />
               Novo tema
@@ -476,7 +478,7 @@ export default function Themes() {
         isOpen={isConfirmDialogOpen}
         onOpenChange={setIsConfirmDialogOpen}
         onConfirm={handleConfirmCreate}
-        currentBalance={team?.credits || 0}
+        currentBalance={user?.credits || 0}
         cost={1}
         resourceType="tema estratégico"
         isFreeResource={(team?.free_themes_used || 0) < 3}
