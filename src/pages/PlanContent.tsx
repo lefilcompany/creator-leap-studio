@@ -287,6 +287,8 @@ const PlanContent = () => {
         startDelay={500}
       />
       <div className="max-w-7xl mx-auto space-y-4 sm:space-y-8">
+        <PageBreadcrumb items={[{ label: "Planejar Conteúdo" }]} />
+        
         {/* Header Card */}
         <Card id="plan-header" className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5">
           <CardHeader className="p-4 sm:p-6">
