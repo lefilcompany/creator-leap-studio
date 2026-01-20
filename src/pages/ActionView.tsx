@@ -666,7 +666,7 @@ export default function ActionView() {
                     Baixar Imagem
                   </Button>
                 </div>
-                <div className="rounded-lg overflow-hidden border bg-muted/30 max-w-2xl mx-auto">
+                <div className="rounded-lg overflow-hidden border bg-muted/30 max-w-md mx-auto">
                   <img src={action.result.imageUrl} alt="Imagem gerada" className="w-full h-auto" />
                 </div>
               </div>}
