@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Plan } from "@/types/plan";
+import { PageBreadcrumb } from "@/components/PageBreadcrumb";
 
 interface SubscriptionStatus {
   canAccess: boolean;
@@ -292,6 +293,9 @@ const Plans = () => {
   if (subscriptionStatus?.isExpired || showPlansSelection || !subscriptionStatus?.canAccess) {
     return (
       <div className="space-y-6 animate-fade-in">
+        {/* Breadcrumb Navigation */}
+        <PageBreadcrumb items={[{ label: "Planos" }]} />
+
         <div className="text-center space-y-4">
           <h1 className="text-2xl md:text-3xl font-bold text-foreground">Escolha seu Plano</h1>
           <p className="text-sm md:text-base text-muted-foreground max-w-2xl mx-auto">

@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
+import { PageBreadcrumb } from "@/components/PageBreadcrumb";
 
 export default function Profile() {
   const { user, team, isLoading } = useAuth();
@@ -57,6 +58,9 @@ export default function Profile() {
   return (
     <div className="min-h-full w-full">
       <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
+        {/* Breadcrumb Navigation */}
+        <PageBreadcrumb items={[{ label: "Meu Perfil" }]} />
+
         {/* Header Card */}
         <div className="bg-gradient-to-r from-primary/15 via-secondary/15 to-accent/15 p-4 sm:p-6 rounded-xl border border-primary/30 shadow-lg backdrop-blur-md">
           <div className="flex items-center gap-3 sm:gap-4 md:gap-6">

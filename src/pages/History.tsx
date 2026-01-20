@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { TourSelector } from '@/components/onboarding/TourSelector';
 import { historySteps, navbarSteps } from '@/components/onboarding/tourSteps';
+import { PageBreadcrumb } from "@/components/PageBreadcrumb";
 
 export default function History() {
   const { user } = useAuth();
@@ -228,6 +229,9 @@ export default function History() {
 
   return (
     <div className="h-full flex flex-col gap-6 overflow-hidden">
+      {/* Breadcrumb Navigation */}
+      <PageBreadcrumb items={[{ label: "Histórico" }]} />
+
       <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5 flex-shrink-0">
         <CardHeader className="pb-4">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">

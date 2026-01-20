@@ -20,6 +20,7 @@ import type { Team } from "@/types/theme";
 import { useAuth } from "@/hooks/useAuth";
 import { TourSelector } from "@/components/onboarding/TourSelector";
 import { navbarSteps } from "@/components/onboarding/tourSteps";
+import { PageBreadcrumb } from "@/components/PageBreadcrumb";
 
 interface FormData {
   brand: string;
@@ -263,6 +264,9 @@ export default function CreateVideo() {
   return (
     <div className="h-full w-full flex flex-col overflow-y-auto bg-gradient-to-br from-pink-50/50 via-purple-50/30 to-pink-50/50 dark:from-background dark:via-background dark:to-muted/20">
       <div className="w-full max-w-4xl mx-auto space-y-6 py-2">
+        {/* Breadcrumb Navigation */}
+        <PageBreadcrumb items={[{ label: "Criar Vídeo" }]} />
+
         {/* Header */}
         <Card className="border-purple-200/50 dark:border-purple-500/20 bg-gradient-to-r from-pink-50/80 via-purple-50/60 to-pink-50/80 dark:from-purple-500/10 dark:via-purple-500/5 dark:to-purple-500/10 shadow-sm">
           <CardContent className="p-6">

@@ -8,6 +8,8 @@ import { CREDIT_COSTS } from "@/lib/creditCosts";
 import { useAuth } from "@/hooks/useAuth";
 import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
 import { contentCreationSelectorSteps } from "@/components/onboarding/tourSteps";
+import { PageBreadcrumb } from "@/components/PageBreadcrumb";
+
 type CreationType = "quick" | "image" | "video" | "animate";
 export default function ContentCreationSelector() {
   const navigate = useNavigate();
@@ -59,6 +61,9 @@ const { user } = useAuth();
       <OnboardingTour tourType="create_content" steps={contentCreationSelectorSteps} />
 
       <div className="max-w-7xl mx-auto flex flex-col w-full px-4 sm:px-6 lg:px-0 gap-[32px]">
+        {/* Breadcrumb Navigation */}
+        <PageBreadcrumb items={[{ label: "Criar Conteúdo" }]} />
+
         <Card id="content-creation-header" className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5">
           <CardHeader className="pb-4">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
