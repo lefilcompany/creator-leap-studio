@@ -16,6 +16,7 @@ import {
   RefreshCw,
   PanelLeftOpen,
   PanelLeftClose,
+  ArrowLeft,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Input } from "@/components/ui/input";
@@ -23,7 +24,7 @@ import { Button } from "@/components/ui/button";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -58,6 +59,7 @@ export const Header = () => {
   const { setOpen, toggleSidebar, state } = useSidebar();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
+  const location = useLocation();
   const { logout, isTrialExpired, user } = useAuth();
   const { theme, setTheme } = useTheme();
   const { t } = useTranslation();
@@ -68,6 +70,13 @@ export const Header = () => {
   const [showMobileSearch, setShowMobileSearch] = useState(false);
   const [showCouponDialog, setShowCouponDialog] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
+
+  // Check if we're on the dashboard (home) page
+  const isHomePage = location.pathname === "/dashboard" || location.pathname === "/";
+  
+  const handleGoBack = () => {
+    navigate(-1);
+  };
 
   // Se o trial expirou, desabilita funcionalidades
   const isFunctionalityDisabled = isTrialExpired;
@@ -123,8 +132,28 @@ export const Header = () => {
   return (
     <header className="sticky top-0 z-50 w-full shadow-md shadow-primary/20 bg-card/95 backdrop-blur-md border-b border-primary/10 transition-all duration-300 animate-fade-in flex-shrink-0">
       <div className="flex h-14 md:h-16 lg:h-20 items-center justify-between px-3 md:px-4 lg:px-6 xl:px-8 w-full">
-        {/* Sidebar triggers */}
+        {/* Left section with back button and sidebar triggers */}
         <div className="flex items-center gap-2">
+          {/* Dynamic back button - only shows when not on home page */}
+          {!isHomePage && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleGoBack}
+                  className="h-8 w-8 md:h-10 md:w-10 rounded-lg hover:bg-primary/10 transition-all duration-200 group"
+                >
+                  <ArrowLeft className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                  <span className="sr-only">Voltar</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                <p className="text-sm">Voltar para página anterior</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
+
           {/* Mobile sidebar trigger */}
           <div className="lg:hidden">
             <Button
