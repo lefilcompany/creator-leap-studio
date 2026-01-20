@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -10,7 +10,7 @@ import { NativeSelect } from "@/components/ui/native-select";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Sparkles, Zap, X, ImageIcon, Settings2, Info, Coins } from "lucide-react";
+import { Loader2, Sparkles, Zap, X, ImageIcon, Settings2, Info, Coins, Home } from "lucide-react";
 import { CREDIT_COSTS } from "@/lib/creditCosts";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,6 +20,15 @@ import { getPlatformImageSpec, platformSpecs } from "@/lib/platformSpecs";
 import { useFormPersistence } from '@/hooks/useFormPersistence';
 import { TourSelector } from "@/components/onboarding/TourSelector";
 import { quickContentSteps, navbarSteps } from "@/components/onboarding/tourSteps";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+
 export default function QuickContent() {
   const navigate = useNavigate();
   const {
@@ -289,6 +298,28 @@ export default function QuickContent() {
       targetElement: '#quick-content-form'
     }]} startDelay={500} />
       <div className="w-full max-w-4xl mx-auto space-y-4 sm:space-y-5 lg:space-y-6">
+        {/* Breadcrumb Navigation */}
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link 
+                  to="/dashboard" 
+                  className="flex items-center text-muted-foreground hover:text-primary transition-colors"
+                >
+                  <Home className="h-4 w-4" />
+                </Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage className="text-foreground font-medium">
+                Criação Rápida
+              </BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+
         {/* Header */}
         <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5">
           <CardHeader className="p-3 md:p-4 lg:p-6">
