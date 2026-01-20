@@ -686,7 +686,7 @@ export default function Team() {
                         <Card 
                           key={action.id} 
                           className="cursor-pointer hover:shadow-md transition-all hover:border-primary/30"
-                          onClick={() => navigate(`/history/${action.id}`)}
+                          onClick={() => navigate(`/action/${action.id}`)}
                         >
                           <CardContent className="p-4 flex items-center justify-between">
                             <div>
