@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import {
   Search,
   Settings,
@@ -16,7 +16,7 @@ import {
   RefreshCw,
   PanelLeftOpen,
   PanelLeftClose,
-  ArrowLeft,
+  Home,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Input } from "@/components/ui/input";
@@ -25,6 +25,14 @@ import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -74,9 +82,68 @@ export const Header = () => {
   // Check if we're on the dashboard (home) page
   const isHomePage = location.pathname === "/dashboard" || location.pathname === "/";
   
-  const handleGoBack = () => {
-    navigate(-1);
+  // Route name mapping for breadcrumb
+  const routeNames: Record<string, string> = {
+    "dashboard": "Início",
+    "brands": "Marcas",
+    "personas": "Personas",
+    "themes": "Temas",
+    "history": "Histórico",
+    "credits": "Créditos",
+    "credit-history": "Histórico de Créditos",
+    "profile": "Perfil",
+    "team": "Equipe",
+    "team-dashboard": "Dashboard da Equipe",
+    "plans": "Planos",
+    "subscribe": "Assinar",
+    "create-content": "Criar Conteúdo",
+    "quick-content": "Conteúdo Rápido",
+    "quick-content-result": "Resultado",
+    "content-result": "Resultado",
+    "plan-content": "Planejar Conteúdo",
+    "plan-result": "Resultado do Planejamento",
+    "review-content": "Revisar Conteúdo",
+    "review-result": "Resultado da Revisão",
+    "create-image": "Criar Imagem",
+    "create-video": "Criar Vídeo",
+    "video-result": "Resultado do Vídeo",
+    "animate-image": "Animar Imagem",
+    "action": "Ação",
+    "system": "Sistema",
   };
+
+  // Generate breadcrumb items from current path
+  const breadcrumbItems = useMemo(() => {
+    const pathParts = location.pathname.split('/').filter(Boolean);
+    
+    if (pathParts.length === 0 || (pathParts.length === 1 && pathParts[0] === 'dashboard')) {
+      return [];
+    }
+
+    const items: { label: string; path: string; isLast: boolean }[] = [];
+    let currentPath = '';
+
+    pathParts.forEach((part, index) => {
+      currentPath += `/${part}`;
+      const isLast = index === pathParts.length - 1;
+      
+      // Check if it's a UUID (action detail page)
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(part);
+      
+      let label = routeNames[part] || part;
+      if (isUUID) {
+        label = "Detalhes";
+      }
+
+      items.push({
+        label,
+        path: currentPath,
+        isLast,
+      });
+    });
+
+    return items;
+  }, [location.pathname]);
 
   // Se o trial expirou, desabilita funcionalidades
   const isFunctionalityDisabled = isTrialExpired;
@@ -132,27 +199,61 @@ export const Header = () => {
   return (
     <header className="sticky top-0 z-50 w-full shadow-md shadow-primary/20 bg-card/95 backdrop-blur-md border-b border-primary/10 transition-all duration-300 animate-fade-in flex-shrink-0">
       <div className="flex h-14 md:h-16 lg:h-20 items-center justify-between px-3 md:px-4 lg:px-6 xl:px-8 w-full">
-        {/* Left section with back button and sidebar triggers */}
-        <div className="flex items-center gap-2">
-          {/* Dynamic back button - only shows when not on home page */}
-          {!isHomePage && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleGoBack}
-                  className="h-8 w-8 md:h-10 md:w-10 rounded-lg hover:bg-primary/10 transition-all duration-200 group"
-                >
-                  <ArrowLeft className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground group-hover:text-primary transition-colors" />
-                  <span className="sr-only">Voltar</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">
-                <p className="text-sm">Voltar para página anterior</p>
-              </TooltipContent>
-            </Tooltip>
-          )}
+        {/* Left section with breadcrumb and sidebar triggers */}
+        <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1 max-w-[50%] md:max-w-[40%] lg:max-w-[35%]">
+          {/* Breadcrumb navigation */}
+          <Breadcrumb className="hidden sm:flex">
+            <BreadcrumbList className="flex-nowrap">
+              {/* Home icon link */}
+              <BreadcrumbItem>
+                <BreadcrumbLink asChild>
+                  <Link 
+                    to="/dashboard" 
+                    className="flex items-center text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    <Home className="h-4 w-4" />
+                  </Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              
+              {breadcrumbItems.map((item, index) => (
+                <div key={item.path} className="flex items-center">
+                  <BreadcrumbSeparator className="mx-1.5 md:mx-2" />
+                  <BreadcrumbItem>
+                    {item.isLast ? (
+                      <BreadcrumbPage className="truncate max-w-[120px] md:max-w-[180px] text-foreground font-medium">
+                        {item.label}
+                      </BreadcrumbPage>
+                    ) : (
+                      <BreadcrumbLink asChild>
+                        <Link 
+                          to={item.path}
+                          className="truncate max-w-[80px] md:max-w-[120px] text-muted-foreground hover:text-primary transition-colors"
+                        >
+                          {item.label}
+                        </Link>
+                      </BreadcrumbLink>
+                    )}
+                  </BreadcrumbItem>
+                </div>
+              ))}
+            </BreadcrumbList>
+          </Breadcrumb>
+
+          {/* Mobile: Only show current page name */}
+          <div className="sm:hidden flex items-center gap-2 min-w-0">
+            <Link to="/dashboard" className="text-muted-foreground hover:text-primary transition-colors">
+              <Home className="h-4 w-4 flex-shrink-0" />
+            </Link>
+            {breadcrumbItems.length > 0 && (
+              <>
+                <span className="text-muted-foreground">/</span>
+                <span className="text-sm font-medium text-foreground truncate">
+                  {breadcrumbItems[breadcrumbItems.length - 1]?.label}
+                </span>
+              </>
+            )}
+          </div>
 
           {/* Mobile sidebar trigger */}
           <div className="lg:hidden">
