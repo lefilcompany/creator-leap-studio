@@ -23,6 +23,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { PageBreadcrumb } from "@/components/PageBreadcrumb";
 
 interface TeamMember {
   id: string;
@@ -388,6 +389,9 @@ export default function Team() {
   if (!team && accessibleTeams.length === 0) {
     return (
       <div className="min-h-full space-y-6 animate-fade-in">
+        {/* Breadcrumb Navigation */}
+        <PageBreadcrumb items={[{ label: "Equipes" }]} />
+
         <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5 hover:shadow-xl transition-shadow duration-300">
           <CardHeader className="pb-4">
             <div className="flex items-center gap-3">
@@ -447,6 +451,9 @@ export default function Team() {
 
   return (
     <div className="min-h-full space-y-6 animate-fade-in">
+      {/* Breadcrumb Navigation */}
+      <PageBreadcrumb items={[{ label: "Equipes" }]} />
+
       {/* Header */}
       <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5 hover:shadow-xl transition-shadow duration-300">
         <CardHeader className="pb-4">

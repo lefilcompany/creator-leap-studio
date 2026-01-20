@@ -23,6 +23,7 @@ import {
   reviewContentCaptionSteps,
   reviewContentTextSteps,
 } from "@/components/onboarding/tourSteps";
+import { PageBreadcrumb } from "@/components/PageBreadcrumb";
 
 // Tipos para os dados leves do formulário
 type LightBrand = Pick<Brand, "id" | "name">;
@@ -312,6 +313,9 @@ const ReviewContent = () => {
         <OnboardingTour tourType="review_content_text" steps={reviewContentTextSteps} startDelay={500} />
       )}
       <div className="max-w-7xl mx-auto space-y-8">
+        {/* Breadcrumb Navigation */}
+        <PageBreadcrumb items={[{ label: "Revisar Conteúdo" }]} />
+
         <Card
           id="review-content-header"
           className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5"

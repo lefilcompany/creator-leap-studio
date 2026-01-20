@@ -19,6 +19,7 @@ import { CreditConfirmationDialog } from '@/components/CreditConfirmationDialog'
 import { Coins } from 'lucide-react';
 import { TourSelector } from '@/components/onboarding/TourSelector';
 import { personasSteps, navbarSteps } from '@/components/onboarding/tourSteps';
+import { PageBreadcrumb } from "@/components/PageBreadcrumb";
 
 // Definindo o tipo para os dados do formulário, que é uma Persona parcial
 type PersonaFormData = Omit<Persona, 'id' | 'createdAt' | 'updatedAt' | 'teamId' | 'userId'>;
@@ -377,6 +378,9 @@ export default function PersonasPage() {
 
   return (
     <div className="h-full flex flex-col gap-4 lg:gap-6 overflow-hidden">
+      {/* Breadcrumb Navigation */}
+      <PageBreadcrumb items={[{ label: "Personas" }]} />
+
       <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5 flex-shrink-0">
         <CardHeader className="pb-3 lg:pb-4">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 lg:gap-4">

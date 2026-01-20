@@ -17,6 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useFormPersistence } from '@/hooks/useFormPersistence';
 import { TourSelector } from "@/components/onboarding/TourSelector";
 import { planContentSteps, navbarSteps } from "@/components/onboarding/tourSteps";
+import { PageBreadcrumb } from "@/components/PageBreadcrumb";
 
 interface FormData {
   brand: string;

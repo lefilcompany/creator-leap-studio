@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { Loader2, Check, Coins, Sparkles } from "lucide-react";
 import { TourSelector } from "@/components/onboarding/TourSelector";
 import { creditsSteps, navbarSteps } from "@/components/onboarding/tourSteps";
+import { PageBreadcrumb } from "@/components/PageBreadcrumb";
 
 interface Plan {
   id: string;
@@ -155,6 +156,9 @@ const Credits = () => {
 
   return (
     <div className="container mx-auto p-6 max-w-7xl">
+      {/* Breadcrumb Navigation */}
+      <PageBreadcrumb items={[{ label: "Comprar Créditos" }]} className="mb-6" />
+
       {verifyingPayment && (
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
           <Card className="w-auto">

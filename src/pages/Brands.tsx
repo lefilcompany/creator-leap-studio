@@ -19,6 +19,7 @@ import { CreditConfirmationDialog } from '@/components/CreditConfirmationDialog'
 import { Coins } from 'lucide-react';
 import { TourSelector } from '@/components/onboarding/TourSelector';
 import { brandsSteps, navbarSteps } from '@/components/onboarding/tourSteps';
+import { PageBreadcrumb } from "@/components/PageBreadcrumb";
 
 // Definindo o tipo para os dados do formulário, que é um Brand parcial
 type BrandFormData = Omit<Brand, 'id' | 'createdAt' | 'updatedAt' | 'teamId' | 'userId'>;
@@ -368,6 +369,9 @@ export default function MarcasPage() {
 
   return (
     <div className="h-full flex flex-col gap-4 lg:gap-6 overflow-hidden">
+      {/* Breadcrumb Navigation */}
+      <PageBreadcrumb items={[{ label: "Marcas" }]} />
+
       <TourSelector 
         tours={[
           {

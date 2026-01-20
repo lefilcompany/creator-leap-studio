@@ -10,6 +10,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { PageBreadcrumb } from "@/components/PageBreadcrumb";
 
 export default function AnimateImage() {
   const { toast } = useToast();
