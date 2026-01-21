@@ -165,13 +165,36 @@ serve(async (req) => {
     // BUILD OPTIMIZED PROMPT - USER FIRST
     // ========================================
     
+    // Detect if user is requesting text in the image
+    const textRequestPatterns = [
+      /texto/i, /escreva/i, /escrito/i, /palavra/i, /frase/i, /título/i, /legenda/i,
+      /slogan/i, /chamada/i, /headline/i, /quote/i, /citação/i, /mensagem/i,
+      /dizendo/i, /dizer/i, /com a frase/i, /com o texto/i, /contendo/i,
+      /write/i, /text/i, /saying/i, /with the words/i
+    ];
+    const userWantsText = textRequestPatterns.some(pattern => pattern.test(prompt));
+    
     let enhancedPrompt = `🎯 OBJETIVO PRINCIPAL: ${prompt}
 
-⚠️ REGRAS CRÍTICAS OBRIGATÓRIAS:
+⚠️ REGRAS CRÍTICAS OBRIGATÓRIAS:`;
+
+    if (userWantsText) {
+      // User explicitly wants text - ensure correct Portuguese
+      enhancedPrompt += `
+1. O usuário SOLICITOU texto na imagem - ADICIONE o texto conforme pedido
+2. TODO texto DEVE estar em Português do Brasil (pt-BR) correto
+3. VERIFIQUE a ortografia: sem erros de digitação ou palavras incorretas
+4. Texto deve ser LEGÍVEL, com fonte clara e bom contraste
+5. Seguir EXATAMENTE o pedido do usuário acima
+6. Manter alta qualidade fotográfica profissional`;
+    } else {
+      // Default: no text unless requested
+      enhancedPrompt += `
 1. NÃO adicionar NENHUM texto, palavra, letra, número ou logo na imagem
 2. A imagem deve ser 100% visual, sem NENHUM elemento textual
 3. Seguir EXATAMENTE o pedido do usuário acima
 4. Manter alta qualidade fotográfica profissional`;
+    }
 
     // Add reference image instructions
     if (hasPreserveImages) {
