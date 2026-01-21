@@ -209,16 +209,44 @@ serve(async (req) => {
     // Optimized for maximum realism and photographic quality
     // Based on model_id: nano-banana-pro-photography (2024-latest)
     
-    // Prompt injection settings for photorealistic output
-    const promptSuffix = "shot on 35mm lens, f/1.8, depth of field, hyper-realistic, 8k, highly detailed, raw photo, masterwork, sharp focus, natural skin texture";
+    // Detect if this is a portrait/face request
+    const isPortraitRequest = (promptText: string): boolean => {
+      const portraitKeywords = [
+        'retrato', 'portrait', 'rosto', 'face', 'pessoa', 'person', 
+        'homem', 'man', 'mulher', 'woman', 'criança', 'child',
+        'close-up', 'headshot', 'selfie', 'avatar', 'modelo', 'model',
+        'executivo', 'executive', 'profissional', 'professional',
+        'jovem', 'young', 'idoso', 'elderly', 'adulto', 'adult'
+      ];
+      const lowerPrompt = promptText.toLowerCase();
+      return portraitKeywords.some(keyword => lowerPrompt.includes(keyword));
+    };
+
+    const isPortrait = isPortraitRequest(prompt);
+    console.log('Portrait detection:', { isPortrait, prompt: prompt.substring(0, 100) });
     
-    const negativePromptBase = "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry, plastic, cgi, render, illustration, cartoon";
+    // Prompt injection settings - different for portraits vs general images
+    let promptSuffix: string;
+    let negativePromptBase: string;
+    
+    if (isPortrait) {
+      // NANO BANANA PORTRAIT SETTINGS - optimized for human faces
+      promptSuffix = "high-end portrait photography, hyper-realistic eyes with catchlight, detailed skin pores, fine facial hair, masterpiece, 8k, shot on 85mm lens, f/1.8, cinematic lighting, sharp focus on eyes, natural skin tone, professional studio lighting";
+      negativePromptBase = "deformed eyes, asymmetrical face, plastic skin, doll-like, cartoon, anime, 3d render, lowres, fused eyes, extra eyelashes, bad anatomy, elongated face, makeup overkill, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, jpeg artifacts, signature, watermark, blurry, crossed eyes, lazy eye, unnatural skin color";
+    } else {
+      // General photorealistic settings
+      promptSuffix = "shot on 35mm lens, f/1.8, depth of field, hyper-realistic, 8k, highly detailed, raw photo, masterwork, sharp focus, natural skin texture";
+      negativePromptBase = "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry, plastic, cgi, render, illustration, cartoon";
+    }
     
     // Resolution mapping based on aspect ratio
-    // Quadrado: 1024x1024 - Redes Sociais / Avatares
-    // Retrato: 832x1216 - Fotografia de Moda / Lookbook
-    // Widescreen: 1216x832 - Paisagens / Cinematic Shots
-    const getResolutionFromAspectRatio = (ratio: string) => {
+    // Portrait mode uses dimensions optimized for faces (832x1216)
+    // Close-up uses square 1024x1024 for maximum detail
+    const getResolutionFromAspectRatio = (ratio: string, isPortraitMode: boolean) => {
+      if (isPortraitMode && ratio === '1:1') {
+        // For portrait close-ups, use 1024x1024 for maximum face detail
+        return { width: 1024, height: 1024, type: 'close_up' };
+      }
       switch(ratio) {
         case '9:16':
         case '4:5':
@@ -232,8 +260,8 @@ serve(async (req) => {
       }
     };
     
-    const resolution = getResolutionFromAspectRatio(normalizedAspectRatio);
-    console.log('Target resolution:', resolution);
+    const resolution = getResolutionFromAspectRatio(normalizedAspectRatio, isPortrait);
+    console.log('Target resolution:', resolution, 'isPortrait:', isPortrait);
     
     // Build optimized prompt with Nano Banana specifications
     let userPrompt = `${prompt}, ${promptSuffix}`;
