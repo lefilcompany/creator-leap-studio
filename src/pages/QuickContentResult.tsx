@@ -524,14 +524,13 @@ export default function QuickContentResult() {
           {/* Action Buttons - Desktop/Tablet */}
           <div className="hidden sm:flex items-center gap-2 pt-2 border-t border-border/30">
             <Button
-              variant="outline"
               size="sm"
               onClick={handleOpenReview}
-              className="hover:text-primary hover:bg-primary/10 hover:border-primary transition-all hover-scale gap-1"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground transition-all hover-scale gap-1 shadow-md"
             >
               <RefreshCw className="h-4 w-4 mr-2" />
-              Revisar
-              <Badge variant="outline" className="ml-1 gap-1">
+              Corrigir imagem
+              <Badge variant="secondary" className="ml-1 gap-1 bg-primary-foreground/20 text-primary-foreground">
                 <Coins className="h-3 w-3" />
                 {CREDIT_COSTS.IMAGE_REVIEW}
               </Badge>
@@ -551,13 +550,12 @@ export default function QuickContentResult() {
             )}
 
             <Button
-              variant="outline"
               size="sm"
               onClick={handleDownload}
-              className="hover:text-primary hover:bg-primary/10 hover:border-primary transition-all hover-scale"
+              className="bg-secondary hover:bg-secondary/90 text-secondary-foreground transition-all hover-scale shadow-md"
             >
               <Download className="h-4 w-4 mr-2" />
-              Baixar
+              Baixar imagem
             </Button>
 
             <Button
