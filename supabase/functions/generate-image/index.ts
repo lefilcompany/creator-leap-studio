@@ -213,7 +213,7 @@ serve(async (req) => {
           return null;
         })).then(parts => parts.filter(p => p !== null));
 
-        const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent', {
+        const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -222,10 +222,7 @@ serve(async (req) => {
           body: JSON.stringify({
             contents: [{ parts: geminiParts }],
             generationConfig: {
-              temperature: 0.7,
-              topP: 0.95,
-              topK: 40,
-              maxOutputTokens: 8192,
+              responseModalities: ["IMAGE", "TEXT"]
             }
           }),
         });
