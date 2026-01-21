@@ -204,30 +204,43 @@ serve(async (req) => {
     }
 
     // ========================================
-    // PROMPT = USER INPUT + OPTIMIZED GENERATION CONTEXT
+    // NANO BANANA PRO PHOTOGRAPHY SETTINGS
     // ========================================
-    // Optimized for Gemini Image Model (Nano Banana) best practices:
-    // - Technical photography terms for realism
-    // - Specific lens and camera specifications
-    // - Quality reinforcement and anti-AI aesthetic
-    // - Negative prompts to avoid common issues
+    // Optimized for maximum realism and photographic quality
+    // Based on model_id: nano-banana-pro-photography (2024-latest)
     
-    // Build optimized prompt with technical photography terms
-    const qualityPrefix = "Ultra-realistic photograph, 8K resolution, raw photography style, masterpiece quality. " +
-      "Shot on professional camera with appropriate lens. " +
-      "Hyper-detailed textures, micro-details visible. ";
+    // Prompt injection settings for photorealistic output
+    const promptSuffix = "shot on 35mm lens, f/1.8, depth of field, hyper-realistic, 8k, highly detailed, raw photo, masterwork, sharp focus, natural skin texture";
     
-    const qualitySuffix = " " +
-      "Technical: Sharp focus, natural lighting, cinematic color grading, film grain. " +
-      "AVOID: cartoon, CGI, 3d render, plastic skin, blurry, low resolution, bad anatomy, over-saturated, artificial AI look.";
+    const negativePromptBase = "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry, plastic, cgi, render, illustration, cartoon";
     
-    // Start with user's exact request enhanced with quality terms
-    let userPrompt = qualityPrefix + prompt + qualitySuffix;
+    // Resolution mapping based on aspect ratio
+    // Quadrado: 1024x1024 - Redes Sociais / Avatares
+    // Retrato: 832x1216 - Fotografia de Moda / Lookbook
+    // Widescreen: 1216x832 - Paisagens / Cinematic Shots
+    const getResolutionFromAspectRatio = (ratio: string) => {
+      switch(ratio) {
+        case '9:16':
+        case '4:5':
+        case '3:4':
+          return { width: 832, height: 1216, type: 'portrait' };
+        case '16:9':
+          return { width: 1216, height: 832, type: 'widescreen' };
+        case '1:1':
+        default:
+          return { width: 1024, height: 1024, type: 'square' };
+      }
+    };
+    
+    const resolution = getResolutionFromAspectRatio(normalizedAspectRatio);
+    console.log('Target resolution:', resolution);
+    
+    // Build optimized prompt with Nano Banana specifications
+    let userPrompt = `${prompt}, ${promptSuffix}`;
     
     // Add generation context when reference images are provided
-    // This prevents the model from describing images instead of generating
     if (hasPreserveImages || hasReferenceImages || hasStyleReferenceImages) {
-      userPrompt = `GENERATE NEW IMAGE: ${qualityPrefix}${prompt}`;
+      userPrompt = `GENERATE NEW IMAGE: ${prompt}`;
       if (hasPreserveImages) {
         userPrompt += `. Use the attached images as reference and preserve their main elements in the newly generated image. Match their visual style exactly.`;
       } else if (hasStyleReferenceImages) {
@@ -235,10 +248,13 @@ serve(async (req) => {
       } else if (hasReferenceImages) {
         userPrompt += `. Draw inspiration from the attached images to create the new image.`;
       }
-      userPrompt += qualitySuffix;
+      userPrompt += `, ${promptSuffix}`;
     }
     
-    console.log('User prompt (optimized):', userPrompt.substring(0, 200) + '...');
+    // Add negative prompt instruction
+    userPrompt += `. AVOID: ${negativePromptBase}`;
+    
+    console.log('User prompt (Nano Banana optimized):', userPrompt.substring(0, 200) + '...');
     console.log('Prompt length:', userPrompt.length, 'chars');
 
     // Prepare reference images for the API
