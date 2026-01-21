@@ -473,7 +473,7 @@ serve(async (req) => {
 
     console.log('Calling Gemini API with', requestParts.length, 'parts (including', imageInputs.length, 'images)');
 
-    // Use improved model with better settings
+    // Use improved model with high quality settings
     const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
       headers: {
@@ -485,9 +485,17 @@ serve(async (req) => {
         }],
         generationConfig: {
           responseModalities: ["TEXT", "IMAGE"],
-          temperature: 0.7,  // Reduced from 1.0 for more consistent results
-          topP: 0.9,         // Slightly reduced for better focus
-          topK: 32           // Reduced for more predictable outputs
+          temperature: 0.7,
+          topP: 0.9,
+          topK: 32
+        },
+        // High quality image generation settings
+        imageGenerationConfig: {
+          numberOfImages: 1,
+          aspectRatio: normalizedAspectRatio,
+          outputOptions: {
+            mimeType: "image/png"
+          }
         }
       }),
     });
