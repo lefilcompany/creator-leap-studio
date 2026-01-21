@@ -302,26 +302,173 @@ serve(async (req) => {
     const resolution = getResolutionFromAspectRatio(normalizedAspectRatio, isPortrait);
     console.log('Target resolution:', resolution, 'isPortrait:', isPortrait);
     
-    // Build optimized prompt with Nano Banana specifications
-    let userPrompt = `${prompt}, ${promptSuffix}`;
+    // ========================================
+    // BUILD COMPREHENSIVE PROMPT
+    // ========================================
+    // Construct a detailed prompt incorporating all user inputs
     
-    // Add generation context when reference images are provided
-    if (hasPreserveImages || hasReferenceImages || hasStyleReferenceImages) {
-      userPrompt = `GENERATE NEW IMAGE: ${prompt}`;
-      if (hasPreserveImages) {
-        userPrompt += `. Use the attached images as reference and preserve their main elements in the newly generated image. Match their visual style exactly.`;
-      } else if (hasStyleReferenceImages) {
-        userPrompt += `. Use the visual style, color palette, and atmosphere from the attached images as reference for the new image.`;
-      } else if (hasReferenceImages) {
-        userPrompt += `. Draw inspiration from the attached images to create the new image.`;
-      }
-      userPrompt += `, ${promptSuffix}`;
+    // Start with the main instruction
+    let userPrompt = `GENERATE NEW IMAGE: ${prompt}`;
+    
+    // Add context sections
+    const contextSections: string[] = [];
+    
+    // Brand context
+    if (brandContext) {
+      contextSections.push(`[BRAND CONTEXT] ${brandContext}`);
     }
     
-    // Add negative prompt instruction
-    userPrompt += `. AVOID: ${negativePromptBase}`;
+    // Theme context
+    if (themeContext) {
+      contextSections.push(`[THEME CONTEXT] ${themeContext}`);
+    }
     
-    console.log('User prompt (Nano Banana optimized):', userPrompt.substring(0, 200) + '...');
+    // Persona context
+    if (personaContext) {
+      contextSections.push(`[TARGET AUDIENCE] ${personaContext}`);
+    }
+    
+    // Platform context
+    if (platform) {
+      const platformLabels: Record<string, string> = {
+        'instagram_feed': 'Instagram Feed (square format, bold visuals)',
+        'instagram_stories': 'Instagram Stories (vertical format, engaging)',
+        'instagram_reels': 'Instagram Reels (vertical video format)',
+        'facebook_feed': 'Facebook Feed (versatile format)',
+        'linkedin_post': 'LinkedIn (professional, business-oriented)',
+        'tiktok': 'TikTok (vertical, trendy, dynamic)',
+        'youtube_thumbnail': 'YouTube Thumbnail (eye-catching, bold text)',
+        'twitter': 'Twitter/X (horizontal, concise)',
+        'pinterest': 'Pinterest (vertical, aesthetic, inspirational)',
+        'whatsapp_status': 'WhatsApp Status (vertical, personal)'
+      };
+      const platformLabel = platformLabels[platform] || platform;
+      contextSections.push(`[PLATFORM] Optimized for ${platformLabel}`);
+    }
+    
+    // Visual style
+    contextSections.push(`[VISUAL STYLE] ${visualStyle.toUpperCase()} - ${promptSuffix}`);
+    
+    // Advanced options section
+    const advancedOptions: string[] = [];
+    
+    // Color palette
+    if (colorPalette && colorPalette !== 'auto') {
+      const paletteLabels: Record<string, string> = {
+        'vibrant': 'vibrant and saturated colors',
+        'pastel': 'soft pastel tones',
+        'monochrome': 'monochromatic color scheme',
+        'warm': 'warm color palette (reds, oranges, yellows)',
+        'cool': 'cool color palette (blues, greens, purples)',
+        'earthy': 'earthy natural tones',
+        'neon': 'neon and electric colors',
+        'muted': 'muted and desaturated tones'
+      };
+      advancedOptions.push(`Color: ${paletteLabels[colorPalette] || colorPalette}`);
+    }
+    
+    // Lighting
+    if (lighting && lighting !== 'natural') {
+      const lightingLabels: Record<string, string> = {
+        'natural': 'natural daylight',
+        'studio': 'professional studio lighting',
+        'dramatic': 'dramatic high-contrast lighting',
+        'soft': 'soft diffused lighting',
+        'golden_hour': 'golden hour warm lighting',
+        'blue_hour': 'blue hour cool lighting',
+        'backlit': 'backlit silhouette effect',
+        'neon': 'neon/artificial colored lighting',
+        'low_key': 'low-key dark moody lighting',
+        'high_key': 'high-key bright even lighting'
+      };
+      advancedOptions.push(`Lighting: ${lightingLabels[lighting] || lighting}`);
+    }
+    
+    // Composition
+    if (composition && composition !== 'auto') {
+      const compositionLabels: Record<string, string> = {
+        'rule_of_thirds': 'rule of thirds composition',
+        'centered': 'centered symmetrical composition',
+        'diagonal': 'dynamic diagonal composition',
+        'minimalist': 'minimalist clean composition',
+        'layered': 'layered depth composition',
+        'symmetrical': 'symmetrical balanced composition',
+        'asymmetrical': 'asymmetrical dynamic composition',
+        'framing': 'natural framing composition'
+      };
+      advancedOptions.push(`Composition: ${compositionLabels[composition] || composition}`);
+    }
+    
+    // Camera angle
+    if (cameraAngle && cameraAngle !== 'eye_level') {
+      const angleLabels: Record<string, string> = {
+        'eye_level': 'eye level straight angle',
+        'low_angle': 'low angle looking up (powerful)',
+        'high_angle': 'high angle looking down (overview)',
+        'dutch_angle': 'dutch/tilted angle (dynamic)',
+        'birds_eye': 'birds eye top-down view',
+        'worms_eye': 'worms eye extreme low angle',
+        'close_up': 'close-up detail shot',
+        'wide_shot': 'wide establishing shot'
+      };
+      advancedOptions.push(`Camera: ${angleLabels[cameraAngle] || cameraAngle}`);
+    }
+    
+    // Mood
+    if (mood && mood !== 'auto') {
+      const moodLabels: Record<string, string> = {
+        'professional': 'professional and polished',
+        'playful': 'playful and fun',
+        'elegant': 'elegant and sophisticated',
+        'bold': 'bold and impactful',
+        'serene': 'serene and peaceful',
+        'energetic': 'energetic and dynamic',
+        'mysterious': 'mysterious and intriguing',
+        'romantic': 'romantic and dreamy',
+        'nostalgic': 'nostalgic and vintage feel',
+        'futuristic': 'futuristic and modern'
+      };
+      advancedOptions.push(`Mood: ${moodLabels[mood] || mood}`);
+    }
+    
+    // Detail level
+    if (detailLevel && detailLevel !== 7) {
+      const detailDesc = detailLevel <= 3 ? 'simplified minimal details' 
+        : detailLevel <= 5 ? 'moderate level of detail'
+        : detailLevel <= 7 ? 'high level of detail'
+        : 'ultra-high intricate details';
+      advancedOptions.push(`Detail: ${detailDesc}`);
+    }
+    
+    // Add advanced options to prompt
+    if (advancedOptions.length > 0) {
+      contextSections.push(`[STYLE SETTINGS] ${advancedOptions.join(', ')}`);
+    }
+    
+    // Reference images instructions
+    if (hasPreserveImages) {
+      contextSections.push(`[REFERENCE IMAGES] Preserve the main elements, faces, and subjects from the attached images. Maintain their appearance while applying the requested style.`);
+    } else if (hasStyleReferenceImages) {
+      contextSections.push(`[STYLE REFERENCE] Use the visual style, color palette, and atmosphere from the attached images as reference.`);
+    } else if (hasReferenceImages) {
+      contextSections.push(`[INSPIRATION] Draw inspiration from the attached images to create the new image.`);
+    }
+    
+    // Combine everything
+    if (contextSections.length > 0) {
+      userPrompt += '\n\n' + contextSections.join('\n');
+    }
+    
+    // Add negative prompt
+    let negativePromptFinal = negativePromptBase;
+    if (negativePrompt && negativePrompt.trim()) {
+      negativePromptFinal = `${negativePrompt.trim()}, ${negativePromptBase}`;
+    }
+    userPrompt += `\n\n[AVOID] ${negativePromptFinal}`;
+    
+    console.log('=== FULL PROMPT ===');
+    console.log(userPrompt);
+    console.log('===================');
     console.log('Prompt length:', userPrompt.length, 'chars');
 
     // Prepare reference images for the API
