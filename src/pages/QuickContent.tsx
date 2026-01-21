@@ -16,6 +16,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Brand } from "@/types/brand";
+import type { Persona } from "@/types/persona";
+import type { StrategicTheme } from "@/types/theme";
 import { getPlatformImageSpec, platformSpecs } from "@/lib/platformSpecs";
 import { useFormPersistence } from '@/hooks/useFormPersistence';
 import { TourSelector } from "@/components/onboarding/TourSelector";
@@ -31,9 +33,15 @@ export default function QuickContent() {
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
   const [brands, setBrands] = useState<Brand[]>([]);
+  const [themes, setThemes] = useState<StrategicTheme[]>([]);
+  const [personas, setPersonas] = useState<Persona[]>([]);
+  const [filteredThemes, setFilteredThemes] = useState<StrategicTheme[]>([]);
+  const [filteredPersonas, setFilteredPersonas] = useState<Persona[]>([]);
   const [formData, setFormData] = useState({
     prompt: "",
     brandId: "",
+    themeId: "",
+    personaId: "",
     platform: "",
     aspectRatio: "1:1",
     style: "auto",
@@ -120,21 +128,61 @@ export default function QuickContent() {
       loadData();
     }
   }, [user]);
+  // Filtrar temas e personas quando a marca mudar
+  useEffect(() => {
+    if (formData.brandId) {
+      // Supabase retorna snake_case, então precisamos acessar brand_id
+      setFilteredThemes(themes.filter((t: any) => t.brand_id === formData.brandId || t.brandId === formData.brandId));
+      setFilteredPersonas(personas.filter((p: any) => p.brand_id === formData.brandId || p.brandId === formData.brandId));
+    } else {
+      setFilteredThemes([]);
+      setFilteredPersonas([]);
+      // Limpar seleções quando marca for removida
+      setFormData(prev => ({ ...prev, themeId: "", personaId: "" }));
+    }
+  }, [formData.brandId, themes, personas]);
+
   const loadData = async () => {
     try {
       setLoadingData(true);
 
-      // Carregar marcas
       // Carregar marcas do usuário ou time
-      const query = supabase.from("brands").select("*").order("name");
+      const brandsQuery = supabase.from("brands").select("*").order("name");
       if (user?.teamId) {
-        query.eq("team_id", user.teamId);
+        brandsQuery.eq("team_id", user.teamId);
       } else {
-        query.eq("user_id", user?.id);
+        brandsQuery.eq("user_id", user?.id);
       }
-      const { data: brandsData, error: brandsError } = await query;
-      if (brandsError) throw brandsError;
-      setBrands((brandsData || []) as any);
+      
+      // Carregar temas do usuário ou time
+      const themesQuery = supabase.from("strategic_themes").select("*").order("title");
+      if (user?.teamId) {
+        themesQuery.eq("team_id", user.teamId);
+      } else {
+        themesQuery.eq("user_id", user?.id);
+      }
+      
+      // Carregar personas do usuário ou time
+      const personasQuery = supabase.from("personas").select("*").order("name");
+      if (user?.teamId) {
+        personasQuery.eq("team_id", user.teamId);
+      } else {
+        personasQuery.eq("user_id", user?.id);
+      }
+
+      const [brandsResult, themesResult, personasResult] = await Promise.all([
+        brandsQuery,
+        themesQuery,
+        personasQuery
+      ]);
+      
+      if (brandsResult.error) throw brandsResult.error;
+      if (themesResult.error) throw themesResult.error;
+      if (personasResult.error) throw personasResult.error;
+      
+      setBrands((brandsResult.data || []) as any);
+      setThemes((themesResult.data || []) as any);
+      setPersonas((personasResult.data || []) as any);
     } catch (error) {
       console.error("Error loading data:", error);
       toast.error("Erro ao carregar dados");
@@ -195,6 +243,8 @@ export default function QuickContent() {
         body: {
           prompt: formData.prompt,
           brandId: formData.brandId || null,
+          themeId: formData.themeId || null,
+          personaId: formData.personaId || null,
           platform: formData.platform || null,
           referenceImages: referenceImagesBase64,
           preserveImages,
@@ -235,7 +285,11 @@ export default function QuickContent() {
           imageUrl: data.imageUrl,
           description: data.description,
           actionId: data.actionId,
-          prompt: formData.prompt
+          prompt: formData.prompt,
+          brandName: data.brandName,
+          themeName: data.themeName,
+          personaName: data.personaName,
+          platform: formData.platform
         }
       });
     } catch (error: any) {
@@ -371,6 +425,50 @@ export default function QuickContent() {
                 <span>
                   {brands.length === 0 ? "Cadastre uma marca para conteúdo personalizado com sua identidade visual" : "Selecionar uma marca ajuda a IA a criar conteúdo alinhado com sua identidade visual"}
                 </span>
+              </p>
+            </div>
+
+            {/* Theme Selection (Optional) - filtered by brand */}
+            <div className="space-y-2">
+              <Label htmlFor="theme" className="text-sm font-semibold text-foreground">
+                Tema Estratégico <span className="text-muted-foreground font-normal">(opcional)</span>
+              </Label>
+              <NativeSelect
+                value={formData.themeId}
+                onValueChange={value => setFormData({
+                  ...formData,
+                  themeId: value
+                })}
+                options={filteredThemes.map(theme => ({ value: theme.id, label: theme.title }))}
+                placeholder={!formData.brandId ? "Selecione uma marca primeiro" : filteredThemes.length === 0 ? "Nenhum tema cadastrado para esta marca" : "Nenhum tema selecionado"}
+                disabled={!formData.brandId || filteredThemes.length === 0}
+                triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
+              />
+              <p className="text-xs text-muted-foreground flex items-start gap-1.5">
+                <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
+                <span>O tema estratégico define tom de voz, público-alvo e objetivos da criação</span>
+              </p>
+            </div>
+
+            {/* Persona Selection (Optional) - filtered by brand */}
+            <div className="space-y-2">
+              <Label htmlFor="persona" className="text-sm font-semibold text-foreground">
+                Persona <span className="text-muted-foreground font-normal">(opcional)</span>
+              </Label>
+              <NativeSelect
+                value={formData.personaId}
+                onValueChange={value => setFormData({
+                  ...formData,
+                  personaId: value
+                })}
+                options={filteredPersonas.map(persona => ({ value: persona.id, label: persona.name }))}
+                placeholder={!formData.brandId ? "Selecione uma marca primeiro" : filteredPersonas.length === 0 ? "Nenhuma persona cadastrada para esta marca" : "Nenhuma persona selecionada"}
+                disabled={!formData.brandId || filteredPersonas.length === 0}
+                triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
+              />
+              <p className="text-xs text-muted-foreground flex items-start gap-1.5">
+                <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
+                <span>A persona ajuda a IA a criar conteúdo direcionado ao seu público-alvo</span>
               </p>
             </div>
 
