@@ -104,20 +104,22 @@ serve(async (req) => {
     
     // Map common platform aspect ratios to supported ones
     const aspectRatioMap: Record<string, string> = {
-      '1.91:1': '16:9', // Facebook/LinkedIn landscape
-      '3:4': '4:5',     // Map 3:4 to 4:5 (closest portrait format)
+      '1.91:1': '16:9',
+      '3:4': '4:5',
     };
     
-    // Apply mapping if exists
     if (aspectRatioMap[aspectRatio]) {
       normalizedAspectRatio = aspectRatioMap[aspectRatio];
     }
     
-    // If aspect ratio is still not valid, default to 1:1
     if (!validAspectRatios.includes(normalizedAspectRatio)) {
       console.log(`Invalid aspect ratio ${aspectRatio}, defaulting to 1:1`);
       normalizedAspectRatio = '1:1';
     }
+
+    const hasPreserveImages = preserveImages && preserveImages.length > 0;
+    const hasReferenceImages = referenceImages && referenceImages.length > 0;
+    const hasStyleReferenceImages = styleReferenceImages && styleReferenceImages.length > 0;
 
     console.log('Generate Quick Content Request:', { 
       promptLength: prompt.length, 
@@ -126,23 +128,14 @@ serve(async (req) => {
       aspectRatio,
       normalizedAspectRatio,
       style,
-      quality,
-      referenceImagesCount: referenceImages?.length || 0,
-      preserveImagesCount: preserveImages?.length || 0,
-      styleReferenceImagesCount: styleReferenceImages?.length || 0,
-      negativePrompt: negativePrompt ? 'Yes' : 'No',
-      colorPalette,
-      lighting,
-      composition,
-      cameraAngle,
-      detailLevel,
-      mood,
-      customDimensions: width && height ? `${width}x${height}` : 'None',
+      hasPreserveImages,
+      hasReferenceImages,
+      hasStyleReferenceImages,
       userId: authenticatedUserId, 
       teamId: authenticatedTeamId 
     });
 
-    // Check user credits (individual)
+    // Check user credits
     const creditCheck = await checkUserCredits(supabase, authenticatedUserId, CREDIT_COSTS.QUICK_IMAGE);
 
     if (!creditCheck.hasCredits) {
@@ -152,298 +145,191 @@ serve(async (req) => {
       );
     }
 
-    // Platform specifications - using normalized aspect ratio
-    const platformSpecs: Record<string, any> = {
-      'Instagram': {
-        dimensions: { '1:1': '1080x1080px', '4:5': '1080x1350px', '9:16': '1080x1920px', '16:9': '1080x607px' },
-        tips: [
-          'Use cores vibrantes e alto contraste para destacar no feed',
-          'Mantenha elementos importantes centralizados (safe zone)',
-          'Textos legíveis mesmo em miniaturas pequenas',
-          'Composição visualmente atraente para parar o scroll'
-        ]
-      },
-      'Facebook': {
-        dimensions: { '1:1': '1080x1080px', '4:5': '1080x1350px', '16:9': '1200x630px' },
-        tips: [
-          'Imagens claras e diretas funcionam melhor',
-          'Use espaço generoso para textos se necessário',
-          'Cores que se destacam no feed azul do Facebook'
-        ]
-      },
-      'LinkedIn': {
-        dimensions: { '1:1': '1080x1080px', '16:9': '1200x627px' },
-        tips: [
-          'Mantenha profissionalismo e clareza',
-          'Cores corporativas e design clean',
-          'Evite elementos muito criativos ou informais',
-          'Textos concisos e objetivos'
-        ]
-      },
-      'TikTok': {
-        dimensions: { '9:16': '1080x1920px', '1:1': '1080x1080px' },
-        tips: [
-          'Elementos centralizados (UI do app ocupa bordas)',
-          'Cores vibrantes e dinâmicas',
-          'Composição que chama atenção nos primeiros 3 segundos',
-          'Evite textos pequenos nas extremidades'
-        ]
-      },
-      'Twitter/X': {
-        dimensions: { '16:9': '1600x900px', '1:1': '800x800px' },
-        tips: [
-          'Simplicidade e clareza são essenciais',
-          'Imagens que transmitem mensagem rapidamente',
-          'Alto contraste para legibilidade',
-          'Evite detalhes excessivos'
-        ]
-      },
-      'Comunidades': {
-        dimensions: { '1:1': '1080x1080px', '16:9': '1600x900px', '3:4': '1080x1440px' },
-        tips: [
-          'Foco em agregar valor à discussão',
-          'Pode ser infográfico, ilustração de conceito ou imagem inspiradora',
-          'Clareza e informação útil são mais importantes que produção elaborada',
-          'Evite excesso de publicidade visual'
-        ]
-      }
-    };
-
     // Fetch brand details if provided
     let brandContext = '';
     if (brandId) {
       const { data: brandData } = await supabase
         .from('brands')
-        .select('*')
+        .select('name, segment, values, keywords, promise, color_palette')
         .eq('id', brandId)
         .single();
 
       if (brandData) {
-        brandContext = `
-Contexto da Marca:
-- Nome: ${brandData.name}
-- Segmento: ${brandData.segment}
-- Valores: ${brandData.values}
-- Palavras-chave: ${brandData.keywords}
-${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
-`;
+        brandContext = `MARCA: ${brandData.name} (${brandData.segment})`;
+        if (brandData.values) brandContext += ` | Valores: ${brandData.values}`;
+        if (brandData.keywords) brandContext += ` | Keywords: ${brandData.keywords}`;
       }
     }
 
-    // Build enhanced prompt with all configurations
-    let enhancedPrompt = prompt;
-
-    // Add photorealism and professional camera details
-    enhancedPrompt += `\n\n${'='.repeat(80)}`;
-    enhancedPrompt += `\n📸 FOTOGRAFIA COMERCIAL PROFISSIONAL`;
-    enhancedPrompt += `\n${'='.repeat(80)}`;
-    enhancedPrompt += `\n\nFotografia comercial de alta precisão e fotorrealismo profissional.`;
-    enhancedPrompt += `\nImagem capturada com câmera DSLR de alta qualidade, lente 85mm f/1.4.`;
-    enhancedPrompt += `\nProfundidade de campo rasa criando efeito bokeh suave no fundo.`;
-    enhancedPrompt += `\nAtenção detalhada aos aspectos de iluminação, composição e qualidade visual.`;
-    enhancedPrompt += `\nQualidade fotográfica profissional com foco nítido e textura rica.`;
-    enhancedPrompt += `\n${'='.repeat(80)}`;
-
-    // HD/4K Quality Specifications
-    enhancedPrompt += `\n\n${'='.repeat(80)}`;
-    enhancedPrompt += `\n🎨 ESPECIFICAÇÕES TÉCNICAS DE QUALIDADE HD/4K`;
-    enhancedPrompt += `\n${'='.repeat(80)}`;
-    enhancedPrompt += `\n\n📐 RESOLUÇÃO E QUALIDADE:`;
-    enhancedPrompt += `\n• Resolução mínima: Full HD (1920x1080 pixels)`;
-    enhancedPrompt += `\n• Resolução ideal: 4K (3840x2160 pixels) ou superior`;
-    enhancedPrompt += `\n• DPI: 300 DPI para impressão profissional`;
-    enhancedPrompt += `\n• Nitidez máxima em todos os elementos da imagem`;
-    enhancedPrompt += `\n• Textura rica e detalhamento profissional`;
-    enhancedPrompt += `\n• Sem artefatos de compressão ou ruído digital`;
-    enhancedPrompt += `\n• Adequada para uso comercial, impressão e ampliação`;
-    enhancedPrompt += `\n${'='.repeat(80)}`;
-
-    // Add platform-specific guidelines with target resolution
-    const resolutionMap: Record<string, string> = {
-      '1:1': '4096x4096px (4K quadrado - Instagram Feed, LinkedIn)',
-      '4:5': '3240x4050px (Alta resolução portrait - Instagram Feed)',
-      '9:16': '2160x3840px (4K vertical - Stories, Reels, TikTok)',
-      '16:9': '3840x2160px (4K landscape - YouTube, TV, apresentações)',
-      '3:4': '3240x4320px (Alta resolução portrait - Pinterest)'
-    };
+    // ========================================
+    // BUILD OPTIMIZED PROMPT - USER FIRST
+    // ========================================
     
-    const targetResolution = resolutionMap[normalizedAspectRatio] || 'Resolução 4K ou superior';
-    
-    enhancedPrompt += `\n\n📏 RESOLUÇÃO ALVO: ${targetResolution}`;
-    
-    // Add platform-specific guidelines using normalized aspect ratio
-    if (platform && platformSpecs[platform]) {
-      const spec = platformSpecs[platform];
-      const dimensionInfo = spec.dimensions[normalizedAspectRatio] || spec.dimensions['1:1'];
-      
-      enhancedPrompt += `\n\n=== ESPECIFICAÇÕES DA PLATAFORMA: ${platform} ===`;
-      enhancedPrompt += `\nDimensões: ${dimensionInfo}`;
-      enhancedPrompt += `\nFormato: ${normalizedAspectRatio}`;
-      enhancedPrompt += `\n\nDiretrizes de Design para ${platform}:`;
-      spec.tips.forEach((tip: string, idx: number) => {
-        enhancedPrompt += `\n${idx + 1}. ${tip}`;
-      });
+    let enhancedPrompt = `🎯 OBJETIVO PRINCIPAL: ${prompt}
+
+⚠️ REGRAS CRÍTICAS OBRIGATÓRIAS:
+1. NÃO adicionar NENHUM texto, palavra, letra, número ou logo na imagem
+2. A imagem deve ser 100% visual, sem NENHUM elemento textual
+3. Seguir EXATAMENTE o pedido do usuário acima
+4. Manter alta qualidade fotográfica profissional`;
+
+    // Add reference image instructions
+    if (hasPreserveImages) {
+      enhancedPrompt += `
+
+📌 IMAGENS A PRESERVAR:
+- MANTENHA os elementos principais das imagens anexadas (rostos, poses, objetos)
+- NÃO distorça ou altere significativamente esses elementos
+- Integre-os harmoniosamente na nova composição`;
     }
 
-    // Add style information
+    if (hasStyleReferenceImages) {
+      enhancedPrompt += `
+
+🎨 REFERÊNCIA DE ESTILO:
+- Use as imagens de referência APENAS para inspiração de estilo visual
+- Copie a atmosfera, iluminação e composição, NÃO os elementos específicos`;
+    }
+
+    if (hasReferenceImages && !hasPreserveImages && !hasStyleReferenceImages) {
+      enhancedPrompt += `
+
+📷 IMAGENS DE REFERÊNCIA:
+- Use como inspiração visual geral
+- NÃO copie diretamente, apenas inspire-se no estilo`;
+    }
+
+    // Add platform context (compact)
+    if (platform) {
+      const platformFormats: Record<string, string> = {
+        'Instagram': 'Feed Instagram - cores vibrantes, composição para scroll',
+        'Facebook': 'Facebook - clareza e impacto visual',
+        'LinkedIn': 'LinkedIn - profissional e corporativo',
+        'TikTok': 'TikTok - dinâmico, elementos centralizados',
+        'Twitter/X': 'Twitter/X - simplicidade e clareza',
+        'Comunidades': 'Comunidades - informativo e engajador'
+      };
+      if (platformFormats[platform]) {
+        enhancedPrompt += `\n\n📱 Plataforma: ${platformFormats[platform]} | Formato: ${normalizedAspectRatio}`;
+      }
+    }
+
+    // Add style (compact)
     if (style !== 'auto') {
-      const styleDescriptions: Record<string, string> = {
-        'photorealistic': 'Estilo fotorrealista, com alta fidelidade e detalhes realistas.',
-        'illustration': 'Estilo de ilustração artística e criativa.',
-        'minimalist': 'Estilo minimalista, clean e moderno.',
-        'artistic': 'Estilo artístico, expressivo e abstrato.',
-        'vintage': 'Estilo vintage/retrô com toque nostálgico.'
+      const styleMap: Record<string, string> = {
+        'photorealistic': 'fotorrealista com alta fidelidade',
+        'illustration': 'ilustração artística',
+        'minimalist': 'minimalista e clean',
+        'artistic': 'artístico e expressivo',
+        'vintage': 'vintage/retrô'
       };
-      const styleDesc = styleDescriptions[style];
-      if (styleDesc) {
-        enhancedPrompt += `\n\nEstilo Visual: ${styleDesc}`;
+      if (styleMap[style]) {
+        enhancedPrompt += `\n🖼️ Estilo: ${styleMap[style]}`;
       }
     }
 
-    // ============ OPÇÕES AVANÇADAS ============
-
-    // Negative Prompt
-    if (negativePrompt && negativePrompt.trim() !== '') {
-      enhancedPrompt += `\n\n🚫 ELEMENTOS A EVITAR (Negative Prompt):`;
-      enhancedPrompt += `\nNÃO incluir os seguintes elementos na imagem:`;
-      enhancedPrompt += `\n- ${negativePrompt}`;
-      enhancedPrompt += `\nRemova completamente estes elementos da composição.`;
+    // Add negative prompt (compact)
+    if (negativePrompt && negativePrompt.trim()) {
+      enhancedPrompt += `\n🚫 EVITAR: ${negativePrompt}`;
     }
 
-    // Color Palette
+    // Add color palette (compact)
     if (colorPalette !== 'auto') {
-      const paletteDescriptions: Record<string, string> = {
-        'vibrant': 'Paleta de cores vibrantes e saturadas, com alto contraste e energia visual.',
-        'pastel': 'Paleta de cores pastel suaves e delicadas, transmitindo leveza e serenidade.',
-        'monochrome': 'Paleta monocromática com variações de uma única cor, criando coesão visual.',
-        'warm': 'Paleta de cores quentes (vermelhos, laranjas, amarelos) transmitindo energia e calor.',
-        'cool': 'Paleta de cores frias (azuis, verdes, roxos) transmitindo calma e profissionalismo.',
-        'earth': 'Paleta de tons terrosos (marrons, bege, verde oliva) com atmosfera natural e orgânica.',
-        'neon': 'Paleta neon vibrante e fluorescente, moderna e impactante.',
-        'brand': 'Use EXCLUSIVAMENTE as cores da identidade visual da marca fornecida.'
+      const paletteMap: Record<string, string> = {
+        'vibrant': 'cores vibrantes e saturadas',
+        'pastel': 'tons pastel suaves',
+        'monochrome': 'monocromático',
+        'warm': 'cores quentes',
+        'cool': 'cores frias',
+        'earth': 'tons terrosos',
+        'neon': 'neon fluorescente',
+        'brand': 'cores da marca'
       };
-      const paletteDesc = paletteDescriptions[colorPalette];
-      if (paletteDesc) {
-        enhancedPrompt += `\n\n🎨 PALETA DE CORES:`;
-        enhancedPrompt += `\n${paletteDesc}`;
-        enhancedPrompt += `\nMantenha consistência cromática em toda a composição.`;
+      if (paletteMap[colorPalette]) {
+        enhancedPrompt += `\n🎨 Cores: ${paletteMap[colorPalette]}`;
       }
     }
 
-    // Lighting (Enhanced with cinematic descriptions)
+    // Add lighting (compact)
     if (lighting !== 'natural') {
-      const lightingDescriptions: Record<string, string> = {
-        'natural': 'Iluminação natural equilibrada e orgânica, simulando luz do dia.',
-        'studio': 'Iluminação de estúdio profissional com setup de três pontos (key light, fill light, back light). Iluminação uniforme sem sombras duras. Qualidade comercial.',
-        'dramatic': 'Iluminação cinematográfica dramática com alto contraste entre luz e sombra (técnica chiaroscuro). Sombras profundas e definidas criando profundidade tridimensional e atmosfera intensa.',
-        'soft': 'Iluminação suave e difusa usando softbox ou luz natural filtrada. Transições suaves entre luz e sombra. Sombras quase imperceptíveis. Atmosfera delicada e etérea.',
-        'golden_hour': 'Iluminação mágica de golden hour (luz dourada do nascer/pôr do sol). Tons quentes (laranja, dourado, âmbar). Raios de luz atravessando o cenário. Long shadows e atmosfera nostálgica.',
-        'backlit': 'Iluminação traseira (backlight/contre-jour) criando contornos luminosos e halos de luz ao redor dos elementos. Silhuetas definidas. Atmosfera etérea e dramática.',
-        'low_key': 'Iluminação low-key com predominância de tons escuros e sombras profundas. Iluminação pontual e seletiva destacando apenas elementos-chave. Atmosfera misteriosa e dramática.',
-        'high_key': 'Iluminação high-key com predominância de tons claros e brilhantes. Sombras mínimas. Atmosfera limpa, alegre e otimista.'
+      const lightingMap: Record<string, string> = {
+        'studio': 'iluminação de estúdio profissional',
+        'dramatic': 'iluminação dramática com alto contraste',
+        'soft': 'iluminação suave e difusa',
+        'golden_hour': 'luz dourada de golden hour',
+        'backlit': 'contra-luz com silhuetas',
+        'low_key': 'low-key com sombras profundas',
+        'high_key': 'high-key claro e brilhante'
       };
-      const lightingDesc = lightingDescriptions[lighting];
-      if (lightingDesc) {
-        enhancedPrompt += `\n\n💡 ILUMINAÇÃO PROFISSIONAL:`;
-        enhancedPrompt += `\n${lightingDesc}`;
+      if (lightingMap[lighting]) {
+        enhancedPrompt += `\n💡 Luz: ${lightingMap[lighting]}`;
       }
     }
 
-    // Composition (Enhanced with technical details)
+    // Add composition (compact)
     if (composition !== 'auto') {
-      const compositionDescriptions: Record<string, string> = {
-        'centered': 'Composição centralizada com elemento principal no centro geométrico da imagem. Equilíbrio simétrico transmitindo estabilidade e foco.',
-        'rule_of_thirds': 'Composição profissional seguindo a regra dos terços. Elementos principais posicionados nos pontos de intersecção das linhas imaginárias (hotspots). Equilíbrio visual dinâmico.',
-        'symmetrical': 'Composição perfeitamente simétrica e espelhada. Equilíbrio bilateral transmitindo ordem, harmonia e formalidade.',
-        'asymmetrical': 'Composição assimétrica com equilíbrio visual dinâmico. Pesos visuais distribuídos de forma não-uniforme criando tensão e interesse visual.',
-        'diagonal': 'Composição diagonal com elementos principais seguindo linhas diagonais. Cria movimento, dinamismo e energia visual. Quebra a estaticidade.',
-        'frame_within_frame': 'Composição frame-within-frame usando elementos naturais (portas, janelas, arcos) para emoldurar o elemento principal. Adiciona profundidade e foco.',
-        'leading_lines': 'Composição com linhas guia (leading lines) convergindo para o elemento principal. Estradas, trilhos, cercas ou linhas arquitetônicas direcionando o olhar do espectador.'
+      const compositionMap: Record<string, string> = {
+        'centered': 'composição centralizada',
+        'rule_of_thirds': 'regra dos terços',
+        'symmetrical': 'simétrica',
+        'asymmetrical': 'assimétrica dinâmica',
+        'diagonal': 'linhas diagonais',
+        'frame_within_frame': 'frame-within-frame',
+        'leading_lines': 'linhas guia'
       };
-      const compositionDesc = compositionDescriptions[composition];
-      if (compositionDesc) {
-        enhancedPrompt += `\n\n📐 COMPOSIÇÃO FOTOGRÁFICA:`;
-        enhancedPrompt += `\n${compositionDesc}`;
+      if (compositionMap[composition]) {
+        enhancedPrompt += `\n📐 Composição: ${compositionMap[composition]}`;
       }
     }
 
-    // Camera Angle (Enhanced with technical details)
+    // Add camera angle (compact)
     if (cameraAngle !== 'eye_level') {
-      const angleDescriptions: Record<string, string> = {
-        'eye_level': 'Ângulo de câmera na altura dos olhos (eye level). Perspectiva natural e neutra criando conexão direta com o espectador.',
-        'high_angle': 'Ângulo alto (high angle) com câmera posicionada acima olhando para baixo. Cria sensação de vulnerabilidade ou visão panorâmica.',
-        'low_angle': 'Ângulo baixo (low angle) com câmera posicionada abaixo olhando para cima. Transmite imponência, poder e grandiosidade do elemento.',
-        'birds_eye': 'Ângulo aéreo (bird\'s eye view) diretamente de cima. Visão de topo (top-down) criando padrões gráficos e perspectiva única.',
-        'worms_eye': 'Ângulo do chão (worm\'s eye view) diretamente de baixo. Perspectiva extrema olhando para cima transmitindo escala monumental.',
-        'dutch_angle': 'Ângulo holandês (dutch angle/canted angle) com câmera inclinada. Horizonte diagonal criando tensão visual, desconforto ou dinamismo.'
+      const angleMap: Record<string, string> = {
+        'high_angle': 'ângulo alto (de cima)',
+        'low_angle': 'ângulo baixo (de baixo)',
+        'birds_eye': 'visão aérea (top-down)',
+        'worms_eye': 'visão do chão',
+        'dutch_angle': 'ângulo holandês inclinado'
       };
-      const angleDesc = angleDescriptions[cameraAngle];
-      if (angleDesc) {
-        enhancedPrompt += `\n\n📷 ÂNGULO DE CÂMERA:`;
-        enhancedPrompt += `\n${angleDesc}`;
+      if (angleMap[cameraAngle]) {
+        enhancedPrompt += `\n📷 Ângulo: ${angleMap[cameraAngle]}`;
       }
     }
 
-    // Detail Level
-    if (detailLevel !== 7) {
-      const detailDescriptions: Record<number, string> = {
-        1: 'Minimalista extremo - elementos essenciais apenas, muito espaço negativo',
-        2: 'Minimalista - poucos elementos, composição limpa e simples',
-        3: 'Clean - elementos bem espaçados, simplicidade moderna',
-        4: 'Balanceado-simples - alguns detalhes sem sobrecarga',
-        5: 'Balanceado - equilíbrio entre simplicidade e detalhes',
-        6: 'Moderado - bom nível de detalhamento',
-        7: 'Detalhado - composição rica com múltiplos elementos',
-        8: 'Muito detalhado - alta complexidade visual',
-        9: 'Ultra detalhado - máximo detalhamento em cada elemento',
-        10: 'Hiper detalhado - resolução máxima, cada textura e detalhe visível'
-      };
-      const detailDesc = detailDescriptions[detailLevel];
-      if (detailDesc) {
-        enhancedPrompt += `\n\n🔍 NÍVEL DE DETALHAMENTO: ${detailLevel}/10`;
-        enhancedPrompt += `\n${detailDesc}`;
-      }
-    }
-
-    // Mood
+    // Add mood (compact)
     if (mood !== 'auto') {
-      const moodDescriptions: Record<string, string> = {
-        'energetic': 'Atmosfera energética e vibrante. Dinamismo visual, cores vivas e composição ativa transmitindo movimento e vitalidade.',
-        'calm': 'Atmosfera calma e serena. Tons suaves, composição equilibrada e elementos que transmitem paz e tranquilidade.',
-        'professional': 'Atmosfera profissional e corporativa. Clean, moderno e confiável. Cores sóbrias com toques de sofisticação.',
-        'playful': 'Atmosfera divertida e lúdica. Cores alegres, formas orgânicas e elementos que transmitem alegria e leveza.',
-        'elegant': 'Atmosfera elegante e luxuosa. Refinamento visual, detalhes sofisticados e composição que transmite exclusividade.',
-        'cozy': 'Atmosfera aconchegante e confortável. Tons quentes, texturas ricas e sensação de conforto e intimidade.',
-        'mysterious': 'Atmosfera misteriosa e intrigante. Sombras dramáticas, elementos enigmáticos e composição que desperta curiosidade.',
-        'inspiring': 'Atmosfera inspiradora e motivacional. Composição elevada, perspectiva ampla e elementos que transmitem aspiração.'
+      const moodMap: Record<string, string> = {
+        'energetic': 'energético e vibrante',
+        'calm': 'calmo e sereno',
+        'professional': 'profissional',
+        'playful': 'divertido e lúdico',
+        'elegant': 'elegante e luxuoso',
+        'cozy': 'aconchegante',
+        'mysterious': 'misterioso',
+        'inspiring': 'inspirador'
       };
-      const moodDesc = moodDescriptions[mood];
-      if (moodDesc) {
-        enhancedPrompt += `\n\n🌟 ATMOSFERA/MOOD:`;
-        enhancedPrompt += `\n${moodDesc}`;
+      if (moodMap[mood]) {
+        enhancedPrompt += `\n🌟 Atmosfera: ${moodMap[mood]}`;
       }
     }
 
-    // Add brand context at the end
+    // Add brand context (compact)
     if (brandContext) {
-      enhancedPrompt += `\n\n${brandContext}`;
+      enhancedPrompt += `\n🏷️ ${brandContext}`;
     }
 
-    // Add quality suffix
-    if (quality === 'premium') {
-      enhancedPrompt += `\n\n✨ QUALIDADE PREMIUM: Produção fotográfica de altíssimo padrão com atenção obsessiva a cada detalhe. Acabamento profissional de agência de publicidade top-tier.`;
-    }
+    // Final quality reminder
+    enhancedPrompt += `\n\n✅ Qualidade: Fotografia comercial profissional, alta resolução, foco nítido.`;
 
-    console.log('Final enhanced prompt length:', enhancedPrompt.length);
+    console.log('Optimized prompt length:', enhancedPrompt.length, 'chars');
 
     // Prepare reference images for the API
     const imageInputs: any[] = [];
     
-    // Add preserve images (main reference images) with high weight
-    if (preserveImages && preserveImages.length > 0) {
+    // Add preserve images first (highest priority)
+    if (hasPreserveImages) {
       for (const img of preserveImages) {
         if (img) {
-          // Check if it's a base64 string or URL
           const isBase64 = typeof img === 'string' && (img.startsWith('data:') || !img.startsWith('http'));
           if (isBase64) {
             const base64Data = img.startsWith('data:') ? img.split(',')[1] : img;
@@ -458,8 +344,8 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
       }
     }
 
-    // Add reference images as secondary references
-    if (referenceImages && referenceImages.length > 0) {
+    // Add reference images
+    if (hasReferenceImages) {
       for (const img of referenceImages) {
         if (img) {
           const isBase64 = typeof img === 'string' && (img.startsWith('data:') || !img.startsWith('http'));
@@ -477,7 +363,7 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
     }
 
     // Add style reference images
-    if (styleReferenceImages && styleReferenceImages.length > 0) {
+    if (hasStyleReferenceImages) {
       for (const img of styleReferenceImages) {
         if (img) {
           const isBase64 = typeof img === 'string' && (img.startsWith('data:') || !img.startsWith('http'));
@@ -496,12 +382,12 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
 
     console.log('Reference images prepared:', imageInputs.length);
 
-    // Call Gemini API directly with Google's API
+    // Call Gemini API with improved settings
     const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
     if (!GEMINI_API_KEY) {
       console.error('GEMINI_API_KEY not configured');
       return new Response(
-        JSON.stringify({ error: 'GEMINI_API_KEY não configurada. Configure a chave da API do Gemini.' }),
+        JSON.stringify({ error: 'GEMINI_API_KEY não configurada.' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -516,6 +402,7 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
 
     console.log('Calling Gemini API with', requestParts.length, 'parts (including', imageInputs.length, 'images)');
 
+    // Use improved model with better settings
     const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
       headers: {
@@ -527,9 +414,9 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
         }],
         generationConfig: {
           responseModalities: ["TEXT", "IMAGE"],
-          temperature: 1.0,
-          topP: 0.95,
-          topK: 40
+          temperature: 0.7,  // Reduced from 1.0 for more consistent results
+          topP: 0.9,         // Slightly reduced for better focus
+          topK: 32           // Reduced for more predictable outputs
         }
       }),
     });
@@ -538,7 +425,6 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
       const errorText = await geminiResponse.text();
       console.error('Gemini API error:', geminiResponse.status, errorText);
       
-      // Check for specific error types
       if (geminiResponse.status === 429) {
         return new Response(
           JSON.stringify({ error: 'Limite de requisições excedido. Tente novamente em alguns instantes.' }),
@@ -547,13 +433,23 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
       }
       
       if (geminiResponse.status === 400) {
+        // Check if it's a content policy violation
+        if (errorText.includes('SAFETY') || errorText.includes('policy')) {
+          return new Response(
+            JSON.stringify({ 
+              error: 'O conteúdo solicitado viola as políticas de uso. Tente um prompt diferente.',
+              isComplianceError: true
+            }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
         return new Response(
-          JSON.stringify({ error: 'Erro na requisição. Verifique se o prompt não contém conteúdo proibido.' }),
+          JSON.stringify({ error: 'Erro na requisição. Verifique o prompt e tente novamente.' }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
       
-      throw new Error(`Gemini API error: ${geminiResponse.status} - ${errorText}`);
+      throw new Error(`Gemini API error: ${geminiResponse.status}`);
     }
 
     const geminiData = await geminiResponse.json();
@@ -567,7 +463,6 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
       const parts = geminiData.candidates[0].content.parts;
       for (const part of parts) {
         if (part.inlineData && part.inlineData.data) {
-          // Convert base64 to data URL
           const mimeType = part.inlineData.mimeType || 'image/png';
           imageUrl = `data:${mimeType};base64,${part.inlineData.data}`;
         }
@@ -578,7 +473,7 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
     }
 
     if (!imageUrl) {
-      console.error('No image in Gemini response:', JSON.stringify(geminiData));
+      console.error('No image in Gemini response:', JSON.stringify(geminiData).substring(0, 500));
       return new Response(
         JSON.stringify({ error: 'Não foi possível gerar a imagem. Tente novamente com um prompt diferente.' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -587,7 +482,7 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
 
     console.log('Image generated successfully');
 
-    // Deduct credits after successful generation (individual)
+    // Deduct credits after successful generation
     const deductResult = await deductUserCredits(supabase, authenticatedUserId, CREDIT_COSTS.QUICK_IMAGE);
     
     if (!deductResult.success) {
@@ -628,9 +523,9 @@ ${brandData.promise ? `- Promessa: ${brandData.promise}` : ''}
           detailLevel,
           mood,
           negativePrompt: negativePrompt ? true : false,
-          hasReferenceImages: referenceImages?.length > 0,
-          hasPreserveImages: preserveImages?.length > 0,
-          hasStyleReferenceImages: styleReferenceImages?.length > 0
+          hasReferenceImages,
+          hasPreserveImages,
+          hasStyleReferenceImages
         },
         result: {
           imageUrl,
