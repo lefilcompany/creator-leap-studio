@@ -572,7 +572,7 @@ export default function QuickContentResult() {
         {/* Content - Vertical Layout */}
         <div className="flex flex-col gap-4 sm:gap-5 md:gap-6">
           {/* Image Display - Full Width */}
-          <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-xl sm:rounded-2xl overflow-hidden animate-fade-in hover:shadow-xl transition-shadow duration-300 w-full max-w-4xl mx-auto">
+          <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-xl sm:rounded-2xl overflow-hidden animate-fade-in hover:shadow-xl transition-shadow duration-300 w-full">
             <div className="p-4 sm:p-5 lg:p-6 space-y-3 sm:space-y-4">
               <div className="flex items-center justify-between">
                 <h2 className="text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">
@@ -611,7 +611,7 @@ export default function QuickContentResult() {
 
           {/* Context Used Card */}
           {(brandName || themeName || personaName || platform) && (
-            <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-xl overflow-hidden animate-fade-in hover:shadow-xl transition-shadow duration-300 w-full max-w-4xl mx-auto" style={{ animationDelay: "50ms" }}>
+            <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-xl overflow-hidden animate-fade-in hover:shadow-xl transition-shadow duration-300 w-full" style={{ animationDelay: "50ms" }}>
               <div className="p-4 sm:p-5 lg:p-6 space-y-2 sm:space-y-3">
                 <h2 className="text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">
                   <div className="w-1 h-5 bg-gradient-to-b from-primary to-primary/60 rounded-full" />
@@ -648,7 +648,7 @@ export default function QuickContentResult() {
           )}
 
           {/* Details Grid - Horizontal on larger screens */}
-          <div className={`grid grid-cols-1 md:grid-cols-2 ${actionId ? 'lg:grid-cols-3' : ''} gap-4 sm:gap-5 w-full max-w-4xl mx-auto`}>
+          <div className={`grid grid-cols-1 md:grid-cols-2 ${actionId ? 'lg:grid-cols-3' : ''} gap-4 sm:gap-5 w-full`}>
             {/* Description */}
             <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-xl overflow-hidden animate-fade-in hover:shadow-xl transition-shadow duration-300 h-full" style={{ animationDelay: "100ms" }}>
               <div className="p-4 sm:p-5 lg:p-6 space-y-2 sm:space-y-3 h-full flex flex-col">
