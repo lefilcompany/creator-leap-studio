@@ -363,6 +363,20 @@ serve(async (req) => {
 
     if (!imageUrl) {
       console.error('No image in Gemini response:', JSON.stringify(geminiData).substring(0, 500));
+      
+      // Check if the model returned a text explanation (policy violation)
+      if (textResponse) {
+        console.log('Model text response:', textResponse);
+        return new Response(
+          JSON.stringify({ 
+            error: 'O modelo não conseguiu gerar a imagem. O conteúdo solicitado pode violar as políticas de uso. Tente um prompt diferente.',
+            isComplianceError: true,
+            modelResponse: textResponse
+          }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
       return new Response(
         JSON.stringify({ error: 'Não foi possível gerar a imagem. Tente novamente com um prompt diferente.' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
