@@ -492,53 +492,24 @@ ${'='.repeat(80)}
     }
   }
 
-  // Main description with photorealism - OPTIMIZED FOR GEMINI IMAGE MODEL
+  // ========================================
+  // NANO BANANA PRO PHOTOGRAPHY SETTINGS
+  // ========================================
+  // Optimized for maximum realism and photographic quality
+  // model_id: nano-banana-pro-photography (2024-latest)
+  
+  // Prompt injection settings
+  const promptSuffix = "shot on 35mm lens, f/1.8, depth of field, hyper-realistic, 8k, highly detailed, raw photo, masterwork, sharp focus, natural skin texture";
+  
+  const negativePromptBase = "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry, plastic, cgi, render, illustration, cartoon";
+  
+  // Main description with Nano Banana optimization
   if (description) {
     promptParts.push(
-      `Ultra-realistic professional photograph with extreme attention to detail. ` +
-      `Shot on Sony A7R IV with 85mm lens at f/1.4, creating beautiful bokeh. ` +
-      `8K resolution, raw photography style, masterpiece quality. ` +
-      `Hyper-detailed textures, micro-details visible, natural skin pores if applicable. ` +
-      `Following the description: ${description}`
+      `${description}, ${promptSuffix}. ` +
+      `AVOID: ${negativePromptBase}`
     );
   }
-
-  // Quality and anti-AI aesthetic reinforcement
-  promptParts.push(
-    "QUALITY REQUIREMENTS: Masterpiece, raw photo, Fujifilm XT4 quality, highly detailed, photorealistic. " +
-    "AVOID: cartoon, CGI, 3d render, plastic skin, blurry, low resolution, bad anatomy, over-saturated, artificial look, AI-generated appearance."
-  );
-
-  // Tone and atmosphere with enhanced lighting descriptions
-  const toneMap: { [key: string]: string } = {
-    inspirador: "Global illumination with soft golden hour light, rays of sunlight streaming through. Uplifting and hopeful atmosphere. Rembrandt lighting.",
-    motivacional: "Vibrant saturated colors with dynamic lighting, subtle motion blur for energy. High contrast, cinematic grain.",
-    profissional: "Clean corporate aesthetic, studio lighting with soft shadows, sharp focus, minimalist background. Deep focus at f/8.",
-    casual: "Soft natural daylight, everyday elements, warm inviting color palette. Shot on 35mm lens for natural perspective.",
-    elegante: "Refined palette with soft diffused lighting, noble textures like marble or velvet. Shallow depth of field with creamy bokeh.",
-    moderno: "Bold geometric design with high contrast. Ray tracing lighting effects, contemporary aesthetic.",
-    divertido: "Vibrant colors with playful graphic elements, cheerful lighting. Energetic composition.",
-    minimalista: "Monochromatic or neutral palette, uniform flat lighting, clean composition. Deep focus across entire frame."
-  };
-
-  if (tones.length > 0) {
-    const mappedTones = tones
-      .map((tone: string) => {
-        const cleanTone = cleanInput(tone);
-        return toneMap[cleanTone.toLowerCase()] || `with unique ${cleanTone} aesthetic and creative styling`;
-      })
-      .join(", ");
-    promptParts.push(`Image atmosphere: ${mappedTones}`);
-  }
-
-  // Technical camera details with specific lens specifications
-  promptParts.push(
-    "Technical specifications: Captured with professional DSLR camera, " +
-    "85mm prime lens at f/1.4 for portraits or 24-70mm f/2.8 for environmental shots. " +
-    "Shallow depth of field creating soft bokeh background. " +
-    "Hyper-detailed skin texture if people present, textile grain visible on fabrics. " +
-    "Cinematic color grading, natural film grain."
-  );
 
   // Platform optimization
   if (platform) {
