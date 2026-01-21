@@ -204,7 +204,7 @@ serve(async (req) => {
     }
 
     // ========================================
-    // BUILD OPTIMIZED PROMPT - USER FIRST
+    // BUILD SIMPLIFIED PROMPT - USER INTENT FIRST
     // ========================================
     
     // Detect if user is requesting text in the image
@@ -216,183 +216,100 @@ serve(async (req) => {
     ];
     const userWantsText = textRequestPatterns.some(pattern => pattern.test(prompt));
     
-    let enhancedPrompt = `🎯 OBJETIVO PRINCIPAL: ${prompt}
-
-⚠️ REGRAS CRÍTICAS OBRIGATÓRIAS:`;
-
-    if (userWantsText) {
-      // User explicitly wants text - ensure correct Portuguese
-      enhancedPrompt += `
-1. O usuário SOLICITOU texto na imagem - ADICIONE o texto conforme pedido
-2. TODO texto DEVE estar em Português do Brasil (pt-BR) correto
-3. VERIFIQUE a ortografia: sem erros de digitação ou palavras incorretas
-4. Texto deve ser LEGÍVEL, com fonte clara e bom contraste
-5. Seguir EXATAMENTE o pedido do usuário acima
-6. Manter alta qualidade fotográfica profissional`;
-    } else {
-      // Default: no text unless requested
-      enhancedPrompt += `
-1. NÃO adicionar NENHUM texto, palavra, letra, número ou logo na imagem
-2. A imagem deve ser 100% visual, sem NENHUM elemento textual
-3. Seguir EXATAMENTE o pedido do usuário acima
-4. Manter alta qualidade fotográfica profissional`;
-    }
-
-    // Add reference image instructions
-    if (hasPreserveImages) {
-      enhancedPrompt += `
-
-📌 IMAGENS A PRESERVAR:
-- MANTENHA os elementos principais das imagens anexadas (rostos, poses, objetos)
-- NÃO distorça ou altere significativamente esses elementos
-- Integre-os harmoniosamente na nova composição`;
-    }
-
-    if (hasStyleReferenceImages) {
-      enhancedPrompt += `
-
-🎨 REFERÊNCIA DE ESTILO:
-- Use as imagens de referência APENAS para inspiração de estilo visual
-- Copie a atmosfera, iluminação e composição, NÃO os elementos específicos`;
-    }
-
-    if (hasReferenceImages && !hasPreserveImages && !hasStyleReferenceImages) {
-      enhancedPrompt += `
-
-📷 IMAGENS DE REFERÊNCIA:
-- Use como inspiração visual geral
-- NÃO copie diretamente, apenas inspire-se no estilo`;
-    }
-
-    // Add platform context (compact)
-    if (platform) {
-      const platformFormats: Record<string, string> = {
-        'Instagram': 'Feed Instagram - cores vibrantes, composição para scroll',
-        'Facebook': 'Facebook - clareza e impacto visual',
-        'LinkedIn': 'LinkedIn - profissional e corporativo',
-        'TikTok': 'TikTok - dinâmico, elementos centralizados',
-        'Twitter/X': 'Twitter/X - simplicidade e clareza',
-        'Comunidades': 'Comunidades - informativo e engajador'
-      };
-      if (platformFormats[platform]) {
-        enhancedPrompt += `\n\n📱 Plataforma: ${platformFormats[platform]} | Formato: ${normalizedAspectRatio}`;
-      }
-    }
-
-    // Add style (compact)
+    // Start with user's exact request - THIS IS THE PRIORITY
+    let enhancedPrompt = prompt;
+    
+    // Add minimal style context only if specified
+    const styleHints: string[] = [];
+    
     if (style !== 'auto') {
       const styleMap: Record<string, string> = {
-        'photorealistic': 'fotorrealista com alta fidelidade',
-        'illustration': 'ilustração artística',
-        'minimalist': 'minimalista e clean',
-        'artistic': 'artístico e expressivo',
-        'vintage': 'vintage/retrô'
+        'photorealistic': 'fotorrealista',
+        'illustration': 'ilustração',
+        'minimalist': 'minimalista',
+        'artistic': 'artístico',
+        'vintage': 'vintage'
       };
-      if (styleMap[style]) {
-        enhancedPrompt += `\n🖼️ Estilo: ${styleMap[style]}`;
-      }
+      if (styleMap[style]) styleHints.push(styleMap[style]);
     }
-
-    // Add negative prompt (compact)
-    if (negativePrompt && negativePrompt.trim()) {
-      enhancedPrompt += `\n🚫 EVITAR: ${negativePrompt}`;
-    }
-
-    // Add color palette (compact)
-    if (colorPalette !== 'auto') {
-      const paletteMap: Record<string, string> = {
-        'vibrant': 'cores vibrantes e saturadas',
-        'pastel': 'tons pastel suaves',
-        'monochrome': 'monocromático',
-        'warm': 'cores quentes',
-        'cool': 'cores frias',
-        'earth': 'tons terrosos',
-        'neon': 'neon fluorescente',
-        'brand': 'cores da marca'
-      };
-      if (paletteMap[colorPalette]) {
-        enhancedPrompt += `\n🎨 Cores: ${paletteMap[colorPalette]}`;
-      }
-    }
-
-    // Add lighting (compact)
+    
     if (lighting !== 'natural') {
       const lightingMap: Record<string, string> = {
-        'studio': 'iluminação de estúdio profissional',
-        'dramatic': 'iluminação dramática com alto contraste',
-        'soft': 'iluminação suave e difusa',
-        'golden_hour': 'luz dourada de golden hour',
-        'backlit': 'contra-luz com silhuetas',
-        'low_key': 'low-key com sombras profundas',
-        'high_key': 'high-key claro e brilhante'
+        'studio': 'iluminação de estúdio',
+        'dramatic': 'iluminação dramática',
+        'soft': 'luz suave',
+        'golden_hour': 'golden hour',
+        'backlit': 'contra-luz',
+        'low_key': 'low-key',
+        'high_key': 'high-key'
       };
-      if (lightingMap[lighting]) {
-        enhancedPrompt += `\n💡 Luz: ${lightingMap[lighting]}`;
-      }
+      if (lightingMap[lighting]) styleHints.push(lightingMap[lighting]);
     }
-
-    // Add composition (compact)
-    if (composition !== 'auto') {
-      const compositionMap: Record<string, string> = {
-        'centered': 'composição centralizada',
-        'rule_of_thirds': 'regra dos terços',
-        'symmetrical': 'simétrica',
-        'asymmetrical': 'assimétrica dinâmica',
-        'diagonal': 'linhas diagonais',
-        'frame_within_frame': 'frame-within-frame',
-        'leading_lines': 'linhas guia'
-      };
-      if (compositionMap[composition]) {
-        enhancedPrompt += `\n📐 Composição: ${compositionMap[composition]}`;
-      }
-    }
-
-    // Add camera angle (compact)
-    if (cameraAngle !== 'eye_level') {
-      const angleMap: Record<string, string> = {
-        'high_angle': 'ângulo alto (de cima)',
-        'low_angle': 'ângulo baixo (de baixo)',
-        'birds_eye': 'visão aérea (top-down)',
-        'worms_eye': 'visão do chão',
-        'dutch_angle': 'ângulo holandês inclinado'
-      };
-      if (angleMap[cameraAngle]) {
-        enhancedPrompt += `\n📷 Ângulo: ${angleMap[cameraAngle]}`;
-      }
-    }
-
-    // Add mood (compact)
+    
     if (mood !== 'auto') {
       const moodMap: Record<string, string> = {
-        'energetic': 'energético e vibrante',
-        'calm': 'calmo e sereno',
+        'energetic': 'energético',
+        'calm': 'sereno',
         'professional': 'profissional',
-        'playful': 'divertido e lúdico',
-        'elegant': 'elegante e luxuoso',
+        'playful': 'lúdico',
+        'elegant': 'elegante',
         'cozy': 'aconchegante',
         'mysterious': 'misterioso',
         'inspiring': 'inspirador'
       };
-      if (moodMap[mood]) {
-        enhancedPrompt += `\n🌟 Atmosfera: ${moodMap[mood]}`;
-      }
+      if (moodMap[mood]) styleHints.push(moodMap[mood]);
+    }
+    
+    if (colorPalette !== 'auto') {
+      const paletteMap: Record<string, string> = {
+        'vibrant': 'cores vibrantes',
+        'pastel': 'tons pastel',
+        'monochrome': 'monocromático',
+        'warm': 'cores quentes',
+        'cool': 'cores frias',
+        'earth': 'tons terrosos',
+        'neon': 'neon',
+        'brand': 'cores da marca'
+      };
+      if (paletteMap[colorPalette]) styleHints.push(paletteMap[colorPalette]);
+    }
+    
+    // Add style hints if any
+    if (styleHints.length > 0) {
+      enhancedPrompt += `. Estilo: ${styleHints.join(', ')}`;
+    }
+    
+    // Add brand context briefly
+    if (brandName) {
+      enhancedPrompt += `. Para a marca ${brandName}`;
+    }
+    
+    // Add text rules only if needed
+    if (userWantsText) {
+      enhancedPrompt += `. Texto em português correto e legível`;
+    } else {
+      enhancedPrompt += `. Sem texto ou letras na imagem`;
+    }
+    
+    // Add negative prompt if specified
+    if (negativePrompt && negativePrompt.trim()) {
+      enhancedPrompt += `. Evitar: ${negativePrompt}`;
+    }
+    
+    // Add quality suffix
+    enhancedPrompt += `. Alta qualidade, resolução profissional.`;
+    
+    // Add reference image context for the model
+    if (hasPreserveImages) {
+      enhancedPrompt += ` Mantenha os elementos das imagens anexadas.`;
+    } else if (hasStyleReferenceImages) {
+      enhancedPrompt += ` Use o estilo visual das imagens de referência.`;
+    } else if (hasReferenceImages) {
+      enhancedPrompt += ` Inspire-se nas imagens anexadas.`;
     }
 
-    // Add brand, theme and persona context (compact)
-    if (brandContext) {
-      enhancedPrompt += `\n🏷️ ${brandContext}`;
-    }
-    if (themeContext) {
-      enhancedPrompt += `\n🎯 ${themeContext}`;
-    }
-    if (personaContext) {
-      enhancedPrompt += `\n👤 ${personaContext}`;
-    }
-
-    // Final quality reminder
-    enhancedPrompt += `\n\n✅ Qualidade: Fotografia comercial profissional, alta resolução, foco nítido.`;
-
-    console.log('Optimized prompt length:', enhancedPrompt.length, 'chars');
+    console.log('Simplified prompt:', enhancedPrompt);
+    console.log('Prompt length:', enhancedPrompt.length, 'chars');
 
     // Prepare reference images for the API
     const imageInputs: any[] = [];
