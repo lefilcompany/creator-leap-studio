@@ -204,112 +204,14 @@ serve(async (req) => {
     }
 
     // ========================================
-    // BUILD SIMPLIFIED PROMPT - USER INTENT FIRST
+    // PROMPT = USER INPUT ONLY
     // ========================================
     
-    // Detect if user is requesting text in the image
-    const textRequestPatterns = [
-      /texto/i, /escreva/i, /escrito/i, /palavra/i, /frase/i, /título/i, /legenda/i,
-      /slogan/i, /chamada/i, /headline/i, /quote/i, /citação/i, /mensagem/i,
-      /dizendo/i, /dizer/i, /com a frase/i, /com o texto/i, /contendo/i,
-      /write/i, /text/i, /saying/i, /with the words/i
-    ];
-    const userWantsText = textRequestPatterns.some(pattern => pattern.test(prompt));
+    // The user's prompt goes directly to the model without modifications
+    const userPrompt = prompt;
     
-    // Start with user's exact request - THIS IS THE PRIORITY
-    let enhancedPrompt = prompt;
-    
-    // Add minimal style context only if specified
-    const styleHints: string[] = [];
-    
-    if (style !== 'auto') {
-      const styleMap: Record<string, string> = {
-        'photorealistic': 'fotorrealista',
-        'illustration': 'ilustração',
-        'minimalist': 'minimalista',
-        'artistic': 'artístico',
-        'vintage': 'vintage'
-      };
-      if (styleMap[style]) styleHints.push(styleMap[style]);
-    }
-    
-    if (lighting !== 'natural') {
-      const lightingMap: Record<string, string> = {
-        'studio': 'iluminação de estúdio',
-        'dramatic': 'iluminação dramática',
-        'soft': 'luz suave',
-        'golden_hour': 'golden hour',
-        'backlit': 'contra-luz',
-        'low_key': 'low-key',
-        'high_key': 'high-key'
-      };
-      if (lightingMap[lighting]) styleHints.push(lightingMap[lighting]);
-    }
-    
-    if (mood !== 'auto') {
-      const moodMap: Record<string, string> = {
-        'energetic': 'energético',
-        'calm': 'sereno',
-        'professional': 'profissional',
-        'playful': 'lúdico',
-        'elegant': 'elegante',
-        'cozy': 'aconchegante',
-        'mysterious': 'misterioso',
-        'inspiring': 'inspirador'
-      };
-      if (moodMap[mood]) styleHints.push(moodMap[mood]);
-    }
-    
-    if (colorPalette !== 'auto') {
-      const paletteMap: Record<string, string> = {
-        'vibrant': 'cores vibrantes',
-        'pastel': 'tons pastel',
-        'monochrome': 'monocromático',
-        'warm': 'cores quentes',
-        'cool': 'cores frias',
-        'earth': 'tons terrosos',
-        'neon': 'neon',
-        'brand': 'cores da marca'
-      };
-      if (paletteMap[colorPalette]) styleHints.push(paletteMap[colorPalette]);
-    }
-    
-    // Add style hints if any
-    if (styleHints.length > 0) {
-      enhancedPrompt += `. Estilo: ${styleHints.join(', ')}`;
-    }
-    
-    // Add brand context briefly
-    if (brandName) {
-      enhancedPrompt += `. Para a marca ${brandName}`;
-    }
-    
-    // Add text rules only if needed
-    if (userWantsText) {
-      enhancedPrompt += `. Texto em português correto e legível`;
-    } else {
-      enhancedPrompt += `. Sem texto ou letras na imagem`;
-    }
-    
-    // Add negative prompt if specified
-    if (negativePrompt && negativePrompt.trim()) {
-      enhancedPrompt += `. Evitar: ${negativePrompt}`;
-    }
-    
-    // Add quality suffix
-    enhancedPrompt += `. Alta qualidade, resolução profissional.`;
-    
-    // Add reference image context for the model
-    if (hasPreserveImages) {
-      enhancedPrompt += ` Mantenha os elementos das imagens anexadas.`;
-    } else if (hasStyleReferenceImages) {
-      enhancedPrompt += ` Use o estilo visual das imagens de referência.`;
-    } else if (hasReferenceImages) {
-      enhancedPrompt += ` Inspire-se nas imagens anexadas.`;
-    }
-
-    console.log('Simplified prompt:', enhancedPrompt);
-    console.log('Prompt length:', enhancedPrompt.length, 'chars');
+    console.log('User prompt:', userPrompt);
+    console.log('Prompt length:', userPrompt.length, 'chars');
 
     // Prepare reference images for the API
     const imageInputs: any[] = [];
@@ -381,7 +283,7 @@ serve(async (req) => {
     }
 
     // Build the request body with images if available
-    const requestParts: any[] = [{ text: enhancedPrompt }];
+    const requestParts: any[] = [{ text: userPrompt }];
     
     // Add all image inputs
     for (const imageInput of imageInputs) {
