@@ -204,26 +204,41 @@ serve(async (req) => {
     }
 
     // ========================================
-    // PROMPT = USER INPUT + GENERATION CONTEXT
+    // PROMPT = USER INPUT + OPTIMIZED GENERATION CONTEXT
     // ========================================
+    // Optimized for Gemini Image Model (Nano Banana) best practices:
+    // - Technical photography terms for realism
+    // - Specific lens and camera specifications
+    // - Quality reinforcement and anti-AI aesthetic
+    // - Negative prompts to avoid common issues
     
-    // Start with user's exact request
-    let userPrompt = prompt;
+    // Build optimized prompt with technical photography terms
+    const qualityPrefix = "Ultra-realistic photograph, 8K resolution, raw photography style, masterpiece quality. " +
+      "Shot on professional camera with appropriate lens. " +
+      "Hyper-detailed textures, micro-details visible. ";
+    
+    const qualitySuffix = " " +
+      "Technical: Sharp focus, natural lighting, cinematic color grading, film grain. " +
+      "AVOID: cartoon, CGI, 3d render, plastic skin, blurry, low resolution, bad anatomy, over-saturated, artificial AI look.";
+    
+    // Start with user's exact request enhanced with quality terms
+    let userPrompt = qualityPrefix + prompt + qualitySuffix;
     
     // Add generation context when reference images are provided
     // This prevents the model from describing images instead of generating
     if (hasPreserveImages || hasReferenceImages || hasStyleReferenceImages) {
-      userPrompt = `GERAR NOVA IMAGEM: ${prompt}`;
+      userPrompt = `GENERATE NEW IMAGE: ${qualityPrefix}${prompt}`;
       if (hasPreserveImages) {
-        userPrompt += `. Use as imagens anexadas como referência e mantenha seus elementos principais na nova imagem gerada.`;
+        userPrompt += `. Use the attached images as reference and preserve their main elements in the newly generated image. Match their visual style exactly.`;
       } else if (hasStyleReferenceImages) {
-        userPrompt += `. Use o estilo visual das imagens anexadas como referência para a nova imagem.`;
+        userPrompt += `. Use the visual style, color palette, and atmosphere from the attached images as reference for the new image.`;
       } else if (hasReferenceImages) {
-        userPrompt += `. Inspire-se nas imagens anexadas para criar a nova imagem.`;
+        userPrompt += `. Draw inspiration from the attached images to create the new image.`;
       }
+      userPrompt += qualitySuffix;
     }
     
-    console.log('User prompt:', userPrompt);
+    console.log('User prompt (optimized):', userPrompt.substring(0, 200) + '...');
     console.log('Prompt length:', userPrompt.length, 'chars');
 
     // Prepare reference images for the API

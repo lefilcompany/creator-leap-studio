@@ -492,40 +492,52 @@ ${'='.repeat(80)}
     }
   }
 
-  // Main description with photorealism
+  // Main description with photorealism - OPTIMIZED FOR GEMINI IMAGE MODEL
   if (description) {
     promptParts.push(
-      `Uma fotografia comercial de alta precisão e fotorrealismo, com atenção detalhada aos aspectos de iluminação e composição. ` +
-      `Seguindo a descrição: ${description}`
+      `Ultra-realistic professional photograph with extreme attention to detail. ` +
+      `Shot on Sony A7R IV with 85mm lens at f/1.4, creating beautiful bokeh. ` +
+      `8K resolution, raw photography style, masterpiece quality. ` +
+      `Hyper-detailed textures, micro-details visible, natural skin pores if applicable. ` +
+      `Following the description: ${description}`
     );
   }
 
-  // Tone and atmosphere
+  // Quality and anti-AI aesthetic reinforcement
+  promptParts.push(
+    "QUALITY REQUIREMENTS: Masterpiece, raw photo, Fujifilm XT4 quality, highly detailed, photorealistic. " +
+    "AVOID: cartoon, CGI, 3d render, plastic skin, blurry, low resolution, bad anatomy, over-saturated, artificial look, AI-generated appearance."
+  );
+
+  // Tone and atmosphere with enhanced lighting descriptions
   const toneMap: { [key: string]: string } = {
-    inspirador: "Cena iluminada pela luz dourada, com raios suaves atravessando o cenário. Atmosfera edificante e esperançosa.",
-    motivacional: "Cores vibrantes e saturadas, com iluminação dinâmica e uso de motion blur leve para dar sensação de movimento.",
-    profissional: "Estética corporativa limpa, iluminação neutra, com foco nítido e fundo minimalista.",
-    casual: "Luz natural suave, com elementos cotidianos e paleta de cores acolhedora.",
-    elegante: "Paleta refinada, com iluminação suave e texturas nobres como mármore ou veludo.",
-    moderno: "Design arrojado com formas geométricas e alta contrastância.",
-    divertido: "Cores vibrantes, com elementos gráficos lúdicos e iluminação alegre.",
-    minimalista: "Paleta monocromática ou neutra, com iluminação uniforme e composição limpa."
+    inspirador: "Global illumination with soft golden hour light, rays of sunlight streaming through. Uplifting and hopeful atmosphere. Rembrandt lighting.",
+    motivacional: "Vibrant saturated colors with dynamic lighting, subtle motion blur for energy. High contrast, cinematic grain.",
+    profissional: "Clean corporate aesthetic, studio lighting with soft shadows, sharp focus, minimalist background. Deep focus at f/8.",
+    casual: "Soft natural daylight, everyday elements, warm inviting color palette. Shot on 35mm lens for natural perspective.",
+    elegante: "Refined palette with soft diffused lighting, noble textures like marble or velvet. Shallow depth of field with creamy bokeh.",
+    moderno: "Bold geometric design with high contrast. Ray tracing lighting effects, contemporary aesthetic.",
+    divertido: "Vibrant colors with playful graphic elements, cheerful lighting. Energetic composition.",
+    minimalista: "Monochromatic or neutral palette, uniform flat lighting, clean composition. Deep focus across entire frame."
   };
 
   if (tones.length > 0) {
     const mappedTones = tones
       .map((tone: string) => {
         const cleanTone = cleanInput(tone);
-        return toneMap[cleanTone.toLowerCase()] || `com uma estética ${cleanTone} única e criativa`;
+        return toneMap[cleanTone.toLowerCase()] || `with unique ${cleanTone} aesthetic and creative styling`;
       })
       .join(", ");
-    promptParts.push(`O clima da imagem é: ${mappedTones}`);
+    promptParts.push(`Image atmosphere: ${mappedTones}`);
   }
 
-  // Technical camera details
+  // Technical camera details with specific lens specifications
   promptParts.push(
-    "Detalhes técnicos: foto capturada com câmera DSLR de alta qualidade, lente de 85mm f/1.4. " +
-    "Profundidade de campo rasa criando efeito bokeh suave no fundo."
+    "Technical specifications: Captured with professional DSLR camera, " +
+    "85mm prime lens at f/1.4 for portraits or 24-70mm f/2.8 for environmental shots. " +
+    "Shallow depth of field creating soft bokeh background. " +
+    "Hyper-detailed skin texture if people present, textile grain visible on fabrics. " +
+    "Cinematic color grading, natural film grain."
   );
 
   // Platform optimization
@@ -583,16 +595,18 @@ ${'='.repeat(80)}
 
   if (lighting !== 'natural') {
     const lightingDescriptions: { [key: string]: string } = {
-      studio: "Iluminação de estúdio controlada e profissional",
-      dramatic: "Iluminação dramática com alto contraste e sombras marcadas",
-      soft: "Iluminação suave e difusa",
-      backlit: "Iluminação traseira criando silhuetas e halos de luz",
-      golden_hour: "Iluminação dourada do pôr do sol ou nascer do sol"
+      studio: "Professional studio lighting with softboxes and key light, controlled shadows, even illumination",
+      dramatic: "Dramatic Rembrandt lighting with high contrast, deep shadows, chiaroscuro effect",
+      soft: "Soft diffused lighting with minimal shadows, flattering for portraits",
+      backlit: "Backlighting creating rim light and subtle lens flare, silhouette elements with halo effect",
+      golden_hour: "Golden hour lighting with warm orange tones, soft shadows, magical atmosphere, sun low on horizon"
     };
     const lightDesc = lightingDescriptions[lighting];
     if (lightDesc) {
       promptParts.push(lightDesc);
     }
+  } else {
+    promptParts.push("Natural daylight illumination, soft shadows, balanced exposure");
   }
 
   if (composition !== 'auto') {
