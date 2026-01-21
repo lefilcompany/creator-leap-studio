@@ -571,10 +571,10 @@ export default function QuickContentResult() {
         </div>
       </Card>
 
-        {/* Content Grid */}
-        <div className="flex flex-col xl:flex-row gap-4 sm:gap-5 md:gap-6 xl:gap-8">
-          {/* Image Display */}
-          <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-xl sm:rounded-2xl overflow-hidden animate-fade-in hover:shadow-xl transition-shadow duration-300 xl:flex-1">
+        {/* Content - Vertical Layout */}
+        <div className="flex flex-col gap-4 sm:gap-5 md:gap-6">
+          {/* Image Display - Full Width */}
+          <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-xl sm:rounded-2xl overflow-hidden animate-fade-in hover:shadow-xl transition-shadow duration-300 w-full max-w-4xl mx-auto">
             <div className="p-4 sm:p-5 lg:p-6 space-y-3 sm:space-y-4">
               <div className="flex items-center justify-between">
                 <h2 className="text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">
@@ -587,7 +587,7 @@ export default function QuickContentResult() {
                 </Button>
               </div>
               <div
-                className="relative aspect-square max-h-[500px] sm:max-h-[600px] rounded-xl overflow-hidden bg-muted/30 cursor-pointer group"
+                className="relative aspect-[4/3] sm:aspect-[16/10] max-h-[70vh] rounded-xl overflow-hidden bg-muted/30 cursor-pointer group"
                 onClick={() => setIsImageDialogOpen(true)}
               >
                 <img
@@ -611,22 +611,22 @@ export default function QuickContentResult() {
             </div>
           </Card>
 
-          {/* Details Grid */}
-          <div className="flex flex-col gap-4 sm:gap-5 xl:flex-1">
+          {/* Details Grid - Horizontal on larger screens */}
+          <div className={`grid grid-cols-1 md:grid-cols-2 ${actionId ? 'lg:grid-cols-3' : ''} gap-4 sm:gap-5 w-full max-w-4xl mx-auto`}>
             {/* Description */}
-            <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-xl overflow-hidden animate-fade-in hover:shadow-xl transition-shadow duration-300 flex-1" style={{ animationDelay: "100ms" }}>
-              <div className="p-4 sm:p-5 lg:p-6 space-y-2 sm:space-y-3">
+            <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-xl overflow-hidden animate-fade-in hover:shadow-xl transition-shadow duration-300 h-full" style={{ animationDelay: "100ms" }}>
+              <div className="p-4 sm:p-5 lg:p-6 space-y-2 sm:space-y-3 h-full flex flex-col">
                 <h2 className="text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">
                   <div className="w-1 h-5 bg-gradient-to-b from-primary to-primary/60 rounded-full" />
                   Descrição
                 </h2>
-                <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
+                <p className="text-sm text-muted-foreground leading-relaxed flex-1">{description}</p>
               </div>
             </Card>
 
             {/* Prompt */}
-            <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-xl overflow-hidden animate-fade-in hover:shadow-xl transition-shadow duration-300 flex-1" style={{ animationDelay: "200ms" }}>
-              <div className="p-4 sm:p-5 lg:p-6 space-y-2 sm:space-y-3">
+            <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-xl overflow-hidden animate-fade-in hover:shadow-xl transition-shadow duration-300 h-full" style={{ animationDelay: "200ms" }}>
+              <div className="p-4 sm:p-5 lg:p-6 space-y-2 sm:space-y-3 h-full flex flex-col">
                 <div className="flex items-center justify-between gap-2">
                   <h2 className="text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">
                     <div className="w-1 h-5 bg-gradient-to-b from-primary to-primary/60 rounded-full" />
@@ -636,7 +636,7 @@ export default function QuickContentResult() {
                     variant="ghost"
                     size="sm"
                     onClick={handleCopyPrompt}
-                    className="hover:scale-105 transition-transform"
+                    className="hover:scale-105 transition-transform flex-shrink-0"
                   >
                     {isCopied ? (
                       <>
@@ -651,15 +651,15 @@ export default function QuickContentResult() {
                     )}
                   </Button>
                 </div>
-                <p className="text-sm text-muted-foreground leading-relaxed">{prompt}</p>
+                <p className="text-sm text-muted-foreground leading-relaxed flex-1">{prompt}</p>
               </div>
             </Card>
 
             {/* Action Link */}
             {actionId && (
-              <Card className="backdrop-blur-sm bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/30 shadow-lg rounded-xl overflow-hidden animate-fade-in hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 flex-1" style={{ animationDelay: "300ms" }}>
-                <div className="p-4 sm:p-5 lg:p-6">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+              <Card className="backdrop-blur-sm bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/30 shadow-lg rounded-xl overflow-hidden animate-fade-in hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 h-full md:col-span-2 lg:col-span-1" style={{ animationDelay: "300ms" }}>
+                <div className="p-4 sm:p-5 lg:p-6 h-full flex items-center">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 w-full">
                     <div className="space-y-1 flex-1 min-w-0">
                       <h3 className="font-semibold text-sm flex items-center gap-2">
                         <div className="w-1 h-4 bg-gradient-to-b from-primary to-primary/60 rounded-full flex-shrink-0" />
@@ -673,7 +673,7 @@ export default function QuickContentResult() {
                       variant="outline"
                       size="sm"
                       onClick={() => navigate(`/action/${actionId}`)}
-                      className="hover:scale-105 transition-transform w-full sm:w-auto"
+                      className="hover:scale-105 transition-transform w-full sm:w-auto flex-shrink-0"
                     >
                       <Check className="mr-2 h-4 w-4 text-green-500" />
                       Ver detalhes
