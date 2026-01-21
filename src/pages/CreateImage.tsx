@@ -51,6 +51,7 @@ interface FormData {
   tone: string[];
   additionalInfo: string;
   contentType: 'organic' | 'ads';
+  visualStyle: string;
   negativePrompt?: string;
   colorPalette?: string;
   lighting?: string;
@@ -90,6 +91,7 @@ export default function CreateImage() {
     tone: [],
     additionalInfo: "",
     contentType: "organic",
+    visualStyle: "realistic",
     negativePrompt: "",
     colorPalette: "auto",
     lighting: "natural",
@@ -532,6 +534,7 @@ export default function CreateImage() {
         tone: formData.tone,
         platform: formData.platform,
         contentType: contentType,
+        visualStyle: formData.visualStyle || 'realistic',
         additionalInfo: formData.additionalInfo,
         preserveImages: finalBrandImages,
         styleReferenceImages: finalUserImages,
@@ -981,6 +984,33 @@ ${formData.description}
                     triggerClassName={`h-11 rounded-xl border-2 bg-background/50 text-sm hover:border-primary/50 transition-all ${
                       missingFields.includes('platform') ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/50'
                     }`}
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  <Label
+                    htmlFor="visualStyle"
+                    className="text-sm font-semibold text-foreground"
+                  >
+                    Estilo Visual
+                  </Label>
+                  <NativeSelect
+                    value={formData.visualStyle || 'realistic'}
+                    onValueChange={(value) => handleSelectChange("visualStyle" as keyof Omit<FormData, "tone">, value)}
+                    options={[
+                      { value: 'realistic', label: 'Fotorealístico' },
+                      { value: 'animated', label: 'Animado 3D (Pixar/Disney)' },
+                      { value: 'cartoon', label: 'Cartoon' },
+                      { value: 'anime', label: 'Anime/Mangá' },
+                      { value: 'watercolor', label: 'Aquarela' },
+                      { value: 'oil_painting', label: 'Pintura a Óleo' },
+                      { value: 'digital_art', label: 'Arte Digital' },
+                      { value: 'sketch', label: 'Desenho/Sketch' },
+                      { value: 'minimalist', label: 'Minimalista' },
+                      { value: 'vintage', label: 'Vintage/Retrô' }
+                    ]}
+                    placeholder="Selecione um estilo"
+                    triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50 text-sm hover:border-primary/50 transition-all"
                   />
                 </div>
 
