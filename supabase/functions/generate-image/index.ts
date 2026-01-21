@@ -498,10 +498,34 @@ ${'='.repeat(80)}
   // Optimized for maximum realism and photographic quality
   // model_id: nano-banana-pro-photography (2024-latest)
   
-  // Prompt injection settings
-  const promptSuffix = "shot on 35mm lens, f/1.8, depth of field, hyper-realistic, 8k, highly detailed, raw photo, masterwork, sharp focus, natural skin texture";
+  // Detect if this is a portrait/face request
+  const isPortraitRequest = (promptText: string): boolean => {
+    const portraitKeywords = [
+      'retrato', 'portrait', 'rosto', 'face', 'pessoa', 'person', 
+      'homem', 'man', 'mulher', 'woman', 'criança', 'child',
+      'close-up', 'headshot', 'selfie', 'avatar', 'modelo', 'model',
+      'executivo', 'executive', 'profissional', 'professional',
+      'jovem', 'young', 'idoso', 'elderly', 'adulto', 'adult'
+    ];
+    const lowerPrompt = promptText.toLowerCase();
+    return portraitKeywords.some(keyword => lowerPrompt.includes(keyword));
+  };
+
+  const isPortrait = isPortraitRequest(description || '');
   
-  const negativePromptBase = "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry, plastic, cgi, render, illustration, cartoon";
+  // Prompt injection settings - different for portraits vs general images
+  let promptSuffix: string;
+  let negativePromptBase: string;
+  
+  if (isPortrait) {
+    // NANO BANANA PORTRAIT SETTINGS - optimized for human faces
+    promptSuffix = "high-end portrait photography, hyper-realistic eyes with catchlight, detailed skin pores, fine facial hair, masterpiece, 8k, shot on 85mm lens, f/1.8, cinematic lighting, sharp focus on eyes, natural skin tone, professional studio lighting";
+    negativePromptBase = "deformed eyes, asymmetrical face, plastic skin, doll-like, cartoon, anime, 3d render, lowres, fused eyes, extra eyelashes, bad anatomy, elongated face, makeup overkill, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, jpeg artifacts, signature, watermark, blurry, crossed eyes, lazy eye, unnatural skin color";
+  } else {
+    // General photorealistic settings
+    promptSuffix = "shot on 35mm lens, f/1.8, depth of field, hyper-realistic, 8k, highly detailed, raw photo, masterwork, sharp focus, natural skin texture";
+    negativePromptBase = "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry, plastic, cgi, render, illustration, cartoon";
+  }
   
   // Main description with Nano Banana optimization
   if (description) {
