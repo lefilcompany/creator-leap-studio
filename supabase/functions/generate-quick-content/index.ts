@@ -204,11 +204,24 @@ serve(async (req) => {
     }
 
     // ========================================
-    // PROMPT = USER INPUT ONLY
+    // PROMPT = USER INPUT + GENERATION CONTEXT
     // ========================================
     
-    // The user's prompt goes directly to the model without modifications
-    const userPrompt = prompt;
+    // Start with user's exact request
+    let userPrompt = prompt;
+    
+    // Add generation context when reference images are provided
+    // This prevents the model from describing images instead of generating
+    if (hasPreserveImages || hasReferenceImages || hasStyleReferenceImages) {
+      userPrompt = `GERAR NOVA IMAGEM: ${prompt}`;
+      if (hasPreserveImages) {
+        userPrompt += `. Use as imagens anexadas como referência e mantenha seus elementos principais na nova imagem gerada.`;
+      } else if (hasStyleReferenceImages) {
+        userPrompt += `. Use o estilo visual das imagens anexadas como referência para a nova imagem.`;
+      } else if (hasReferenceImages) {
+        userPrompt += `. Inspire-se nas imagens anexadas para criar a nova imagem.`;
+      }
+    }
     
     console.log('User prompt:', userPrompt);
     console.log('Prompt length:', userPrompt.length, 'chars');
