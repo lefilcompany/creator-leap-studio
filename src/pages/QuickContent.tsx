@@ -44,6 +44,7 @@ export default function QuickContent() {
     personaId: "",
     platform: "",
     aspectRatio: "1:1",
+    visualStyle: "realistic", // New visual style field
     style: "auto",
     quality: "standard",
     // Advanced configurations
@@ -250,6 +251,7 @@ export default function QuickContent() {
           preserveImages,
           styleReferenceImages,
           aspectRatio: formData.aspectRatio,
+          visualStyle: formData.visualStyle,
           style: formData.style,
           quality: formData.quality,
           negativePrompt: formData.negativePrompt,
@@ -515,7 +517,39 @@ export default function QuickContent() {
               </p>
             </div>
 
-            {/* Prompt */}
+            {/* Visual Style Selection */}
+            <div className="space-y-2">
+              <Label htmlFor="visualStyle" className="text-sm font-semibold text-foreground">
+                Estilo Visual
+              </Label>
+              <NativeSelect
+                value={formData.visualStyle}
+                onValueChange={value => setFormData({
+                  ...formData,
+                  visualStyle: value
+                })}
+                options={[
+                  { value: "realistic", label: "📷 Fotorealístico" },
+                  { value: "animated", label: "✨ Animado / 3D" },
+                  { value: "cartoon", label: "🎨 Cartoon / Desenho" },
+                  { value: "anime", label: "🌸 Anime / Mangá" },
+                  { value: "watercolor", label: "🖌️ Aquarela" },
+                  { value: "oil_painting", label: "🎭 Pintura a Óleo" },
+                  { value: "digital_art", label: "💻 Arte Digital" },
+                  { value: "sketch", label: "✏️ Esboço / Rascunho" },
+                  { value: "minimalist", label: "◻️ Minimalista" },
+                  { value: "vintage", label: "📼 Vintage / Retrô" },
+                ]}
+                placeholder="Selecione um estilo"
+                triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
+              />
+              <p className="text-xs text-muted-foreground flex items-start gap-1.5">
+                <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
+                <span>O estilo visual define a aparência da imagem gerada (ex: foto, cartoon, pintura)</span>
+              </p>
+            </div>
+
+
             <div className="space-y-2">
               <Label htmlFor="prompt" className="text-sm font-semibold text-foreground">
                 Descreva o que você quer criar <span className="text-destructive">*</span>

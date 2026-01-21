@@ -87,6 +87,7 @@ serve(async (req) => {
       preserveImages = [],
       styleReferenceImages = [],
       aspectRatio = '1:1',
+      visualStyle = 'realistic', // NEW: Visual style selection
       style = 'auto',
       quality = 'standard',
       negativePrompt = '',
@@ -129,6 +130,7 @@ serve(async (req) => {
       platform,
       aspectRatio,
       normalizedAspectRatio,
+      visualStyle,
       style,
       hasPreserveImages,
       hasReferenceImages,
@@ -204,12 +206,61 @@ serve(async (req) => {
     }
 
     // ========================================
-    // NANO BANANA PRO PHOTOGRAPHY SETTINGS
+    // VISUAL STYLE SETTINGS
     // ========================================
-    // Optimized for maximum realism and photographic quality
-    // Based on model_id: nano-banana-pro-photography (2024-latest)
+    // Style-specific prompt configurations for different visual aesthetics
     
-    // Detect if this is a portrait/face request
+    const getStyleSettings = (styleType: string) => {
+      const styles: Record<string, { suffix: string; negativePrompt: string }> = {
+        realistic: {
+          suffix: "high-end portrait photography, hyper-realistic eyes with catchlight, detailed skin pores, fine facial hair, masterpiece, 8k, shot on 85mm lens, f/1.8, cinematic lighting, sharp focus on eyes, natural skin tone, professional studio lighting, raw photo",
+          negativePrompt: "cartoon, anime, 3d render, illustration, painting, drawing, deformed eyes, asymmetrical face, plastic skin, doll-like, lowres, fused eyes, extra eyelashes, bad anatomy, elongated face, makeup overkill, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, jpeg artifacts, signature, watermark, blurry, crossed eyes, lazy eye, unnatural skin color"
+        },
+        animated: {
+          suffix: "3D animated movie style, Pixar Disney animation style, vibrant colors, soft lighting, smooth surfaces, expressive features, highly detailed, cinematic composition, professional 3D render, octane render, unreal engine 5",
+          negativePrompt: "realistic, photorealistic, photograph, raw photo, low quality, blurry, pixelated, ugly, deformed, bad anatomy, text, watermark, signature"
+        },
+        cartoon: {
+          suffix: "cartoon style illustration, bold outlines, flat colors, vibrant palette, playful design, clean vector art, comic book style, exaggerated features, expressive, fun aesthetic, professional illustration",
+          negativePrompt: "realistic, photorealistic, photograph, 3d render, anime, low quality, blurry, dark, gritty, text, watermark, signature"
+        },
+        anime: {
+          suffix: "anime style, manga illustration, Japanese animation aesthetic, cel shading, vibrant colors, detailed eyes, soft lighting, studio ghibli inspired, beautiful lineart, high quality anime art, detailed background",
+          negativePrompt: "realistic, photorealistic, photograph, western cartoon, 3d render, low quality, blurry, bad anatomy, extra limbs, text, watermark, signature"
+        },
+        watercolor: {
+          suffix: "watercolor painting, soft washes, delicate brushstrokes, paper texture, artistic, flowing colors, ethereal atmosphere, hand-painted aesthetic, traditional art, fine art painting, gallery quality",
+          negativePrompt: "photograph, digital art, 3d render, sharp edges, hard lines, low quality, blurry, text, watermark, signature"
+        },
+        oil_painting: {
+          suffix: "oil painting masterpiece, rich impasto texture, classical painting technique, museum quality, fine art, dramatic lighting, old masters style, canvas texture, brushstroke details, gallery piece, renaissance inspired",
+          negativePrompt: "photograph, digital art, 3d render, cartoon, anime, flat colors, low quality, blurry, text, watermark, signature"
+        },
+        digital_art: {
+          suffix: "digital art illustration, concept art, artstation trending, highly detailed, vibrant colors, dynamic composition, professional digital painting, matte painting, fantasy art style, epic scene",
+          negativePrompt: "photograph, low quality, blurry, amateur, bad anatomy, deformed, text, watermark, signature"
+        },
+        sketch: {
+          suffix: "pencil sketch, hand-drawn illustration, artistic sketch, cross-hatching, graphite drawing, professional artist sketch, detailed linework, sketchbook style, raw artistic expression, traditional drawing",
+          negativePrompt: "color, photograph, 3d render, digital art, low quality, blurry, text, watermark, signature"
+        },
+        minimalist: {
+          suffix: "minimalist design, clean lines, simple composition, negative space, modern aesthetic, elegant simplicity, geometric shapes, limited color palette, sophisticated design, scandinavian style",
+          negativePrompt: "cluttered, busy, complex, detailed, realistic, photograph, low quality, blurry, text, watermark, signature"
+        },
+        vintage: {
+          suffix: "vintage aesthetic, retro style, nostalgic atmosphere, film grain, faded colors, 70s 80s inspired, analog photography feel, warm tones, old-school charm, classic look, polaroid style",
+          negativePrompt: "modern, futuristic, digital, clean, sharp, cartoon, anime, low quality, blurry, text, watermark, signature"
+        }
+      };
+      
+      return styles[styleType] || styles.realistic;
+    };
+    
+    const styleSettings = getStyleSettings(visualStyle);
+    console.log('Visual style applied:', visualStyle);
+    
+    // Detect if this is a portrait/face request (only for realistic style)
     const isPortraitRequest = (promptText: string): boolean => {
       const portraitKeywords = [
         'retrato', 'portrait', 'rosto', 'face', 'pessoa', 'person', 
@@ -222,29 +273,17 @@ serve(async (req) => {
       return portraitKeywords.some(keyword => lowerPrompt.includes(keyword));
     };
 
-    const isPortrait = isPortraitRequest(prompt);
-    console.log('Portrait detection:', { isPortrait, prompt: prompt.substring(0, 100) });
+    // Only apply portrait-specific settings for realistic style
+    const isPortrait = visualStyle === 'realistic' && isPortraitRequest(prompt);
+    console.log('Portrait detection:', { isPortrait, visualStyle, prompt: prompt.substring(0, 100) });
     
-    // Prompt injection settings - different for portraits vs general images
-    let promptSuffix: string;
-    let negativePromptBase: string;
-    
-    if (isPortrait) {
-      // NANO BANANA PORTRAIT SETTINGS - optimized for human faces
-      promptSuffix = "high-end portrait photography, hyper-realistic eyes with catchlight, detailed skin pores, fine facial hair, masterpiece, 8k, shot on 85mm lens, f/1.8, cinematic lighting, sharp focus on eyes, natural skin tone, professional studio lighting";
-      negativePromptBase = "deformed eyes, asymmetrical face, plastic skin, doll-like, cartoon, anime, 3d render, lowres, fused eyes, extra eyelashes, bad anatomy, elongated face, makeup overkill, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, jpeg artifacts, signature, watermark, blurry, crossed eyes, lazy eye, unnatural skin color";
-    } else {
-      // General photorealistic settings
-      promptSuffix = "shot on 35mm lens, f/1.8, depth of field, hyper-realistic, 8k, highly detailed, raw photo, masterwork, sharp focus, natural skin texture";
-      negativePromptBase = "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry, plastic, cgi, render, illustration, cartoon";
-    }
+    // Use style-specific settings
+    let promptSuffix = styleSettings.suffix;
+    let negativePromptBase = styleSettings.negativePrompt;
     
     // Resolution mapping based on aspect ratio
-    // Portrait mode uses dimensions optimized for faces (832x1216)
-    // Close-up uses square 1024x1024 for maximum detail
     const getResolutionFromAspectRatio = (ratio: string, isPortraitMode: boolean) => {
       if (isPortraitMode && ratio === '1:1') {
-        // For portrait close-ups, use 1024x1024 for maximum face detail
         return { width: 1024, height: 1024, type: 'close_up' };
       }
       switch(ratio) {
