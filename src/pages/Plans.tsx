@@ -244,7 +244,12 @@ const Plans = () => {
       console.log('[CREATE-CHECKOUT] Iniciando checkout:', { planId: plan.id, stripePriceId: plan.stripePriceId });
 
       const { data, error } = await supabase.functions.invoke("create-checkout", {
-        body: { price_id: plan.stripePriceId },
+        body: { 
+          type: 'plan',
+          price_id: plan.stripePriceId,
+          plan_id: plan.id,
+          return_url: '/plans'
+        },
       });
 
       if (error) {
