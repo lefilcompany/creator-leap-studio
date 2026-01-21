@@ -80,6 +80,8 @@ serve(async (req) => {
     const { 
       prompt, 
       brandId,
+      themeId,
+      personaId,
       platform,
       referenceImages = [],
       preserveImages = [],
@@ -147,6 +149,7 @@ serve(async (req) => {
 
     // Fetch brand details if provided
     let brandContext = '';
+    let brandName = null;
     if (brandId) {
       const { data: brandData } = await supabase
         .from('brands')
@@ -155,9 +158,48 @@ serve(async (req) => {
         .single();
 
       if (brandData) {
+        brandName = brandData.name;
         brandContext = `MARCA: ${brandData.name} (${brandData.segment})`;
         if (brandData.values) brandContext += ` | Valores: ${brandData.values}`;
         if (brandData.keywords) brandContext += ` | Keywords: ${brandData.keywords}`;
+      }
+    }
+
+    // Fetch theme details if provided
+    let themeContext = '';
+    let themeName = null;
+    if (themeId) {
+      const { data: themeData } = await supabase
+        .from('strategic_themes')
+        .select('title, description, tone_of_voice, target_audience, color_palette, objectives')
+        .eq('id', themeId)
+        .single();
+
+      if (themeData) {
+        themeName = themeData.title;
+        themeContext = `TEMA: ${themeData.title}`;
+        if (themeData.tone_of_voice) themeContext += ` | Tom: ${themeData.tone_of_voice}`;
+        if (themeData.target_audience) themeContext += ` | Público: ${themeData.target_audience}`;
+        if (themeData.objectives) themeContext += ` | Objetivos: ${themeData.objectives}`;
+      }
+    }
+
+    // Fetch persona details if provided
+    let personaContext = '';
+    let personaName = null;
+    if (personaId) {
+      const { data: personaData } = await supabase
+        .from('personas')
+        .select('name, age, gender, professional_context, beliefs_and_interests, preferred_tone_of_voice, main_goal')
+        .eq('id', personaId)
+        .single();
+
+      if (personaData) {
+        personaName = personaData.name;
+        personaContext = `PERSONA: ${personaData.name} (${personaData.age}, ${personaData.gender})`;
+        if (personaData.professional_context) personaContext += ` | Contexto: ${personaData.professional_context}`;
+        if (personaData.preferred_tone_of_voice) personaContext += ` | Tom preferido: ${personaData.preferred_tone_of_voice}`;
+        if (personaData.main_goal) personaContext += ` | Objetivo: ${personaData.main_goal}`;
       }
     }
 
@@ -336,9 +378,15 @@ serve(async (req) => {
       }
     }
 
-    // Add brand context (compact)
+    // Add brand, theme and persona context (compact)
     if (brandContext) {
       enhancedPrompt += `\n🏷️ ${brandContext}`;
+    }
+    if (themeContext) {
+      enhancedPrompt += `\n🎯 ${themeContext}`;
+    }
+    if (personaContext) {
+      enhancedPrompt += `\n👤 ${personaContext}`;
     }
 
     // Final quality reminder
@@ -548,7 +596,9 @@ serve(async (req) => {
           negativePrompt: negativePrompt ? true : false,
           hasReferenceImages,
           hasPreserveImages,
-          hasStyleReferenceImages
+          hasStyleReferenceImages,
+          themeId,
+          personaId
         },
         result: {
           imageUrl,
@@ -570,7 +620,11 @@ serve(async (req) => {
         textResponse,
         actionId: actionData?.id,
         creditsUsed: CREDIT_COSTS.QUICK_IMAGE,
-        creditsRemaining: deductResult.newCredits
+        creditsRemaining: deductResult.newCredits,
+        brandName,
+        themeName,
+        personaName,
+        platform
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
