@@ -213,7 +213,7 @@ serve(async (req) => {
           return null;
         })).then(parts => parts.filter(p => p !== null));
 
-        const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent', {
+        const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-native-audio-dialog:generateContent', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
