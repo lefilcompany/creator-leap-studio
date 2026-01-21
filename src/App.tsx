@@ -10,53 +10,79 @@ import { EventTrackingProvider } from "./components/EventTrackingProvider";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ErrorBoundary from "./components/ErrorBoundary";
-import Auth from "./pages/Auth";
-import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword";
-import Dashboard from "./pages/Dashboard";
-import Brands from "./pages/Brands";
-import Themes from "./pages/Themes";
-import Personas from "./pages/Personas";
-import History from "./pages/History";
-import CreateImage from "./pages/CreateImage";
-import CreateVideo from "./pages/CreateVideo";
-import AnimateImage from "./pages/AnimateImage";
-import ContentCreationSelector from "./pages/ContentCreationSelector";
-import ContentResult from "./pages/ContentResult";
-import VideoResult from "./pages/VideoResult";
-import ReviewContent from "./pages/ReviewContent";
-import ReviewResult from "./pages/ReviewResult";
-import PlanContent from "./pages/PlanContent";
-import PlanResult from "./pages/PlanResult";
-import QuickContent from "./pages/QuickContent";
-import QuickContentResult from "./pages/QuickContentResult";
-import Plans from "./pages/Plans";
-import Credits from "./pages/Credits";
-import Team from "./pages/Team";
-import TeamDashboard from "./pages/TeamDashboard";
-import Profile from "./pages/Profile";
-import CreditHistory from "./pages/CreditHistory";
-import About from "./pages/About";
-import Contact from "./pages/Contact";
-import Privacy from "./pages/Privacy";
-import ActionView from "./pages/ActionView";
+import { lazy, Suspense } from "react";
+import { PageLoader } from "./components/PageLoader";
 import { DashboardLayout } from "./components/DashboardLayout";
-import NotFound from "./pages/NotFound";
-import System from "./pages/System";
-import SystemTeams from "./pages/system/SystemTeams";
-import SystemUsers from "./pages/system/SystemUsers";
-import SystemLogs from "./pages/system/SystemLogs";
-import SystemPlans from "./pages/system/SystemPlans";
 import { SystemRoute } from "./components/system/SystemRoute";
 import { SystemLayout } from "./components/system/SystemLayout";
 
-const queryClient = new QueryClient();
+// Lazy loaded pages - Public
+const Auth = lazy(() => import("./pages/Auth"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const Privacy = lazy(() => import("./pages/Privacy"));
+const Subscribe = lazy(() => import("./pages/Subscribe"));
+const Onboarding = lazy(() => import("./pages/Onboarding"));
+const OnboardingSuccess = lazy(() => import("./pages/OnboardingSuccess"));
+const OnboardingCanceled = lazy(() => import("./pages/OnboardingCanceled"));
+const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
-import Subscribe from "./pages/Subscribe";
-import Onboarding from "./pages/Onboarding";
-import OnboardingSuccess from "./pages/OnboardingSuccess";
-import OnboardingCanceled from "./pages/OnboardingCanceled";
-import PaymentSuccess from "./pages/PaymentSuccess";
+// Lazy loaded pages - Dashboard
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Brands = lazy(() => import("./pages/Brands"));
+const Themes = lazy(() => import("./pages/Themes"));
+const Personas = lazy(() => import("./pages/Personas"));
+const History = lazy(() => import("./pages/History"));
+const CreateImage = lazy(() => import("./pages/CreateImage"));
+const CreateVideo = lazy(() => import("./pages/CreateVideo"));
+const AnimateImage = lazy(() => import("./pages/AnimateImage"));
+const ContentCreationSelector = lazy(() => import("./pages/ContentCreationSelector"));
+const ContentResult = lazy(() => import("./pages/ContentResult"));
+const VideoResult = lazy(() => import("./pages/VideoResult"));
+const ReviewContent = lazy(() => import("./pages/ReviewContent"));
+const ReviewResult = lazy(() => import("./pages/ReviewResult"));
+const PlanContent = lazy(() => import("./pages/PlanContent"));
+const PlanResult = lazy(() => import("./pages/PlanResult"));
+const QuickContent = lazy(() => import("./pages/QuickContent"));
+const QuickContentResult = lazy(() => import("./pages/QuickContentResult"));
+const Plans = lazy(() => import("./pages/Plans"));
+const Credits = lazy(() => import("./pages/Credits"));
+const Team = lazy(() => import("./pages/Team"));
+const TeamDashboard = lazy(() => import("./pages/TeamDashboard"));
+const Profile = lazy(() => import("./pages/Profile"));
+const CreditHistory = lazy(() => import("./pages/CreditHistory"));
+const About = lazy(() => import("./pages/About"));
+const Contact = lazy(() => import("./pages/Contact"));
+const ActionView = lazy(() => import("./pages/ActionView"));
+
+// Lazy loaded pages - System
+const System = lazy(() => import("./pages/System"));
+const SystemTeams = lazy(() => import("./pages/system/SystemTeams"));
+const SystemUsers = lazy(() => import("./pages/system/SystemUsers"));
+const SystemLogs = lazy(() => import("./pages/system/SystemLogs"));
+const SystemPlans = lazy(() => import("./pages/system/SystemPlans"));
+
+// Optimized QueryClient configuration
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes - data considered fresh
+      gcTime: 1000 * 60 * 30, // 30 minutes - keep in cache
+      retry: 2,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: true,
+    },
+    mutations: {
+      retry: 1,
+    },
+  },
+});
+
+// Suspense wrapper component for cleaner routes
+const SuspenseRoute = ({ children }: { children: React.ReactNode }) => (
+  <Suspense fallback={<PageLoader />}>{children}</Suspense>
+);
 
 const App = () => (
   <ErrorBoundary>
@@ -71,58 +97,59 @@ const App = () => (
                 <BrowserRouter>
                   <EventTrackingProvider>
                     <Routes>
-                      <Route path="/" element={<Auth />} />
-                      <Route path="/forgot-password" element={<ForgotPassword />} />
-                      <Route path="/reset-password" element={<ResetPassword />} />
-                      <Route path="/privacy" element={<Privacy />} />
-                      <Route path="/subscribe" element={<Subscribe />} />
-                      <Route path="/onboarding" element={<Onboarding />} />
-                      <Route path="/onboarding/success" element={<OnboardingSuccess />} />
-                      <Route path="/onboarding/canceled" element={<OnboardingCanceled />} />
-                      <Route path="/payment-success" element={<PaymentSuccess />} />
+                      {/* Public routes */}
+                      <Route path="/" element={<SuspenseRoute><Auth /></SuspenseRoute>} />
+                      <Route path="/forgot-password" element={<SuspenseRoute><ForgotPassword /></SuspenseRoute>} />
+                      <Route path="/reset-password" element={<SuspenseRoute><ResetPassword /></SuspenseRoute>} />
+                      <Route path="/privacy" element={<SuspenseRoute><Privacy /></SuspenseRoute>} />
+                      <Route path="/subscribe" element={<SuspenseRoute><Subscribe /></SuspenseRoute>} />
+                      <Route path="/onboarding" element={<SuspenseRoute><Onboarding /></SuspenseRoute>} />
+                      <Route path="/onboarding/success" element={<SuspenseRoute><OnboardingSuccess /></SuspenseRoute>} />
+                      <Route path="/onboarding/canceled" element={<SuspenseRoute><OnboardingCanceled /></SuspenseRoute>} />
+                      <Route path="/payment-success" element={<SuspenseRoute><PaymentSuccess /></SuspenseRoute>} />
                       
                       {/* Dashboard routes with sidebar layout */}
                       <Route path="/" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-                        <Route path="dashboard" element={<Dashboard />} />
-                        <Route path="brands" element={<Brands />} />
-                        <Route path="themes" element={<Themes />} />
-                        <Route path="personas" element={<Personas />} />
-                        <Route path="history" element={<History />} />
-                        <Route path="create" element={<ContentCreationSelector />} />
-                        <Route path="create/quick" element={<QuickContent />} />
-                        <Route path="create/image" element={<CreateImage />} />
-                        <Route path="create/video" element={<CreateVideo />} />
-                        <Route path="create/animate" element={<AnimateImage />} />
-                        <Route path="result" element={<ContentResult />} />
-                        <Route path="video-result" element={<VideoResult />} />
-                        <Route path="review" element={<ReviewContent />} />
-                        <Route path="review-result" element={<ReviewResult />} />
-                        <Route path="plan" element={<PlanContent />} />
-                        <Route path="plan-result" element={<PlanResult />} />
-                        <Route path="quick-content" element={<QuickContent />} />
-                        <Route path="quick-content-result" element={<QuickContentResult />} />
-                        <Route path="plans" element={<Plans />} />
-                        <Route path="credits" element={<Credits />} />
-                        <Route path="team" element={<Team />} />
-                        <Route path="team-dashboard" element={<TeamDashboard />} />
-                        <Route path="profile" element={<Profile />} />
-                        <Route path="credit-history" element={<CreditHistory />} />
-                        <Route path="about" element={<About />} />
-                        <Route path="contact" element={<Contact />} />
-                        <Route path="action/:actionId" element={<ActionView />} />
+                        <Route path="dashboard" element={<SuspenseRoute><Dashboard /></SuspenseRoute>} />
+                        <Route path="brands" element={<SuspenseRoute><Brands /></SuspenseRoute>} />
+                        <Route path="themes" element={<SuspenseRoute><Themes /></SuspenseRoute>} />
+                        <Route path="personas" element={<SuspenseRoute><Personas /></SuspenseRoute>} />
+                        <Route path="history" element={<SuspenseRoute><History /></SuspenseRoute>} />
+                        <Route path="create" element={<SuspenseRoute><ContentCreationSelector /></SuspenseRoute>} />
+                        <Route path="create/quick" element={<SuspenseRoute><QuickContent /></SuspenseRoute>} />
+                        <Route path="create/image" element={<SuspenseRoute><CreateImage /></SuspenseRoute>} />
+                        <Route path="create/video" element={<SuspenseRoute><CreateVideo /></SuspenseRoute>} />
+                        <Route path="create/animate" element={<SuspenseRoute><AnimateImage /></SuspenseRoute>} />
+                        <Route path="result" element={<SuspenseRoute><ContentResult /></SuspenseRoute>} />
+                        <Route path="video-result" element={<SuspenseRoute><VideoResult /></SuspenseRoute>} />
+                        <Route path="review" element={<SuspenseRoute><ReviewContent /></SuspenseRoute>} />
+                        <Route path="review-result" element={<SuspenseRoute><ReviewResult /></SuspenseRoute>} />
+                        <Route path="plan" element={<SuspenseRoute><PlanContent /></SuspenseRoute>} />
+                        <Route path="plan-result" element={<SuspenseRoute><PlanResult /></SuspenseRoute>} />
+                        <Route path="quick-content" element={<SuspenseRoute><QuickContent /></SuspenseRoute>} />
+                        <Route path="quick-content-result" element={<SuspenseRoute><QuickContentResult /></SuspenseRoute>} />
+                        <Route path="plans" element={<SuspenseRoute><Plans /></SuspenseRoute>} />
+                        <Route path="credits" element={<SuspenseRoute><Credits /></SuspenseRoute>} />
+                        <Route path="team" element={<SuspenseRoute><Team /></SuspenseRoute>} />
+                        <Route path="team-dashboard" element={<SuspenseRoute><TeamDashboard /></SuspenseRoute>} />
+                        <Route path="profile" element={<SuspenseRoute><Profile /></SuspenseRoute>} />
+                        <Route path="credit-history" element={<SuspenseRoute><CreditHistory /></SuspenseRoute>} />
+                        <Route path="about" element={<SuspenseRoute><About /></SuspenseRoute>} />
+                        <Route path="contact" element={<SuspenseRoute><Contact /></SuspenseRoute>} />
+                        <Route path="action/:actionId" element={<SuspenseRoute><ActionView /></SuspenseRoute>} />
                       </Route>
                       
                       {/* System admin routes with separate layout */}
                       <Route path="/system" element={<SystemRoute><SystemLayout /></SystemRoute>}>
-                        <Route index element={<System />} />
-                        <Route path="plans" element={<SystemPlans />} />
-                        <Route path="teams" element={<SystemTeams />} />
-                        <Route path="users" element={<SystemUsers />} />
-                        <Route path="logs" element={<SystemLogs />} />
+                        <Route index element={<SuspenseRoute><System /></SuspenseRoute>} />
+                        <Route path="plans" element={<SuspenseRoute><SystemPlans /></SuspenseRoute>} />
+                        <Route path="teams" element={<SuspenseRoute><SystemTeams /></SuspenseRoute>} />
+                        <Route path="users" element={<SuspenseRoute><SystemUsers /></SuspenseRoute>} />
+                        <Route path="logs" element={<SuspenseRoute><SystemLogs /></SuspenseRoute>} />
                       </Route>
                       
                       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                      <Route path="*" element={<NotFound />} />
+                      <Route path="*" element={<SuspenseRoute><NotFound /></SuspenseRoute>} />
                     </Routes>
                   </EventTrackingProvider>
                 </BrowserRouter>
