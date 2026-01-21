@@ -305,10 +305,7 @@ serve(async (req) => {
           parts: requestParts
         }],
         generationConfig: {
-          responseModalities: ["TEXT", "IMAGE"],
-          temperature: 0.7,
-          topP: 0.9,
-          topK: 32
+          responseModalities: ["TEXT", "IMAGE"]
         }
       }),
     });
