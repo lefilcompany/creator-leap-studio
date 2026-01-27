@@ -22,30 +22,41 @@ Deno.serve(async (req) => {
       }
     )
 
-    const { email, newPassword } = await req.json()
+    const { email, newPassword, userId } = await req.json()
 
-    if (!email || !newPassword) {
-      throw new Error('Email and newPassword are required')
+    if (!newPassword) {
+      throw new Error('newPassword is required')
     }
 
-    console.log(`Resetting password for user: ${email}`)
-
-    // Get user by email
-    const { data: users, error: getUserError } = await supabaseAdmin.auth.admin.listUsers()
-    
-    if (getUserError) {
-      throw getUserError
+    if (!email && !userId) {
+      throw new Error('email or userId is required')
     }
 
-    const user = users.users.find(u => u.email === email)
-    
-    if (!user) {
-      throw new Error('User not found')
+    let targetUserId = userId
+
+    // Se não tiver userId, buscar pelo email
+    if (!targetUserId && email) {
+      console.log(`Looking up user by email: ${email}`)
+      const { data: users, error: getUserError } = await supabaseAdmin.auth.admin.listUsers()
+      
+      if (getUserError) {
+        throw getUserError
+      }
+
+      const user = users.users.find(u => u.email === email)
+      
+      if (!user) {
+        throw new Error('User not found')
+      }
+      
+      targetUserId = user.id
     }
 
-    // Update user password
+    console.log(`Resetting password for userId: ${targetUserId}`)
+
+    // Update user password directly by ID
     const { data, error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
-      user.id,
+      targetUserId,
       { password: newPassword }
     )
 
@@ -53,13 +64,13 @@ Deno.serve(async (req) => {
       throw updateError
     }
 
-    console.log(`Password reset successfully for user: ${email}`)
+    console.log(`Password reset successfully for userId: ${targetUserId}`)
 
     return new Response(
       JSON.stringify({ 
         success: true,
         message: 'Password reset successfully',
-        userId: user.id 
+        userId: targetUserId 
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
