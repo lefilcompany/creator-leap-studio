@@ -15,19 +15,81 @@ const ResetPassword = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [passwordReset, setPasswordReset] = useState(false);
+  const [isValidRecovery, setIsValidRecovery] = useState(false);
+  const [isChecking, setIsChecking] = useState(true);
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
 
   useEffect(() => {
-    // Verificar se há um token de recuperação na URL
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    const accessToken = hashParams.get('access_token');
-    const type = hashParams.get('type');
+    // Verificar se há uma sessão de recuperação válida
+    const checkRecoverySession = async () => {
+      setIsChecking(true);
+      
+      try {
+        // Primeiro, verificar se há tokens na URL (hash)
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const accessToken = hashParams.get('access_token');
+        const type = hashParams.get('type');
+        
+        // Se há tokens de recovery na URL, é um fluxo válido
+        if (accessToken && type === 'recovery') {
+          console.log("[ResetPassword] Recovery tokens found in URL");
+          setIsValidRecovery(true);
+          setIsChecking(false);
+          return;
+        }
 
-    if (!accessToken || type !== 'recovery') {
-      toast.error("Link de recuperação inválido ou expirado");
-      navigate("/");
-    }
+        // Também verificar search params (alguns fluxos usam query params)
+        const searchParams = new URLSearchParams(window.location.search);
+        const tokenFromSearch = searchParams.get('token');
+        const typeFromSearch = searchParams.get('type');
+        
+        if (tokenFromSearch && typeFromSearch === 'recovery') {
+          console.log("[ResetPassword] Recovery tokens found in search params");
+          setIsValidRecovery(true);
+          setIsChecking(false);
+          return;
+        }
+
+        // Verificar se já há uma sessão ativa com evento de recovery
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session) {
+          // Se há uma sessão, verificar se o usuário veio de um fluxo de recovery
+          // Isso acontece quando o Supabase já processou o token
+          console.log("[ResetPassword] Active session found, allowing password reset");
+          setIsValidRecovery(true);
+          setIsChecking(false);
+          return;
+        }
+
+        // Nenhum token ou sessão válida encontrada
+        console.log("[ResetPassword] No valid recovery session found");
+        toast.error("Link de recuperação inválido ou expirado");
+        navigate("/");
+      } catch (error) {
+        console.error("[ResetPassword] Error checking recovery session:", error);
+        toast.error("Erro ao verificar link de recuperação");
+        navigate("/");
+      }
+    };
+
+    // Listener para eventos de auth
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("[ResetPassword] Auth event:", event);
+      
+      if (event === 'PASSWORD_RECOVERY') {
+        console.log("[ResetPassword] PASSWORD_RECOVERY event received");
+        setIsValidRecovery(true);
+        setIsChecking(false);
+      }
+    });
+
+    checkRecoverySession();
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [navigate]);
 
   const validatePassword = () => {
@@ -57,6 +119,7 @@ const ResetPassword = () => {
       });
 
       if (error) {
+        console.error("[ResetPassword] Error updating password:", error);
         toast.error(error.message);
         return;
       }
@@ -64,11 +127,15 @@ const ResetPassword = () => {
       setPasswordReset(true);
       toast.success("Senha redefinida com sucesso!");
       
+      // Fazer logout para forçar novo login com a nova senha
+      await supabase.auth.signOut();
+      
       // Redirecionar após 2 segundos
       setTimeout(() => {
         navigate("/");
       }, 2000);
     } catch (error) {
+      console.error("[ResetPassword] Unexpected error:", error);
       toast.error("Erro ao redefinir senha. Tente novamente.");
     } finally {
       setLoading(false);
@@ -83,6 +150,23 @@ const ResetPassword = () => {
   };
 
   const strength = getPasswordStrength();
+
+  // Mostrar loading enquanto verifica
+  if (isChecking) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Verificando link de recuperação...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Se não é um recovery válido, não mostrar nada (será redirecionado)
+  if (!isValidRecovery) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 flex relative">
