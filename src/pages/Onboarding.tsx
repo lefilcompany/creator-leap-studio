@@ -11,8 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { CreatorLogo } from "@/components/CreatorLogo";
 import { 
   Eye, EyeOff, User, Mail, Phone, Lock, Loader2, CheckCircle, 
-  ArrowLeft, ArrowRight, Zap, Users, Package, Palette, UserCircle,
-  Crown, Rocket, Sparkles, Star, Gift, Shield, Clock
+  ArrowLeft, ArrowRight, Zap, Crown, Rocket, Sparkles, Star, Gift, Shield, Clock, MessageCircle
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,7 +19,6 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useExtensionProtection, useFormProtection } from "@/hooks/useExtensionProtection";
 import { motion, AnimatePresence } from "framer-motion";
-import type { Plan } from "@/types/plan";
 
 interface State {
   id: number;
@@ -33,23 +31,33 @@ interface City {
   nome: string;
 }
 
-type Step = 'plans' | 'auth' | 'checkout';
+interface CreditPackage {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  credits: number;
+  stripePriceId: string | null;
+  isEnterprise?: boolean;
+}
+
+type Step = 'packages' | 'auth' | 'checkout';
 type AuthMode = 'login' | 'register';
 
-const planIcons: Record<string, any> = {
+const packageIcons: Record<string, any> = {
   pack_trial: Rocket,
-  pack_basic: Package,
+  pack_basic: Zap,
   pack_pro: Crown,
   pack_premium: Sparkles,
   pack_enterprise: Star,
 };
 
-const planHighlights: Record<string, string[]> = {
-  pack_trial: ["20 créditos iniciais", "1 marca", "Ideal para testar"],
-  pack_basic: ["100 créditos/mês", "3 marcas", "Suporte por email"],
-  pack_pro: ["500 créditos/mês", "10 marcas", "Suporte prioritário"],
-  pack_premium: ["1500 créditos/mês", "20 marcas", "Suporte VIP"],
-  pack_enterprise: ["Créditos ilimitados", "Marcas ilimitadas", "Suporte dedicado"],
+const packageColors: Record<string, string> = {
+  pack_trial: "from-slate-500 to-slate-600",
+  pack_basic: "from-blue-500 to-blue-600",
+  pack_pro: "from-purple-500 to-purple-600",
+  pack_premium: "from-pink-500 to-pink-600",
+  pack_enterprise: "from-amber-500 to-orange-600",
 };
 
 const ENTERPRISE_WHATSAPP = "5581996600072";
@@ -62,13 +70,13 @@ const Onboarding = () => {
   const formRef = useRef<HTMLFormElement>(null);
   useFormProtection(formRef);
   
-  const [currentStep, setCurrentStep] = useState<Step>('plans');
+  const [currentStep, setCurrentStep] = useState<Step>('packages');
   const [authMode, setAuthMode] = useState<AuthMode>('register');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
-  const [plans, setPlans] = useState<Plan[]>([]);
-  const [loadingPlans, setLoadingPlans] = useState(true);
+  const [selectedPackage, setSelectedPackage] = useState<CreditPackage | null>(null);
+  const [packages, setPackages] = useState<CreditPackage[]>([]);
+  const [loadingPackages, setLoadingPackages] = useState(true);
   
   const [formData, setFormData] = useState({
     name: "",
@@ -91,54 +99,46 @@ const Onboarding = () => {
   const passwordsMatch = formData.password === confirmPassword;
   const isPasswordValid = formData.password && formData.password.length >= 6;
 
-  // Load plans
-  const loadPlans = useCallback(async () => {
+  // Load credit packages
+  const loadPackages = useCallback(async () => {
     try {
-      const { data: plansData, error } = await supabase
+      const { data: packagesData, error } = await supabase
         .from("plans")
         .select("*")
         .eq("is_active", true)
-        .eq("can_subscribe_online", true);
+        .order("price_monthly", { ascending: true });
 
       if (error) throw error;
 
-      if (plansData) {
-        const formattedPlans: Plan[] = plansData
-          .filter((p) => p.id !== 'pack_trial' && p.id !== 'starter')
+      if (packagesData) {
+        const formattedPackages: CreditPackage[] = packagesData
+          .filter((p) => p.id !== 'pack_trial' && p.id !== 'starter' && p.id !== 'free' && p.id !== 'pack_business')
           .map((p) => ({
             id: p.id,
             name: p.name,
             description: p.description || '',
             price: p.price_monthly || 0,
-            credits: (p as any).credits || 0,
-            maxMembers: p.max_members,
-            maxBrands: p.max_brands,
-            maxStrategicThemes: p.max_strategic_themes,
-            maxPersonas: p.max_personas,
-            trialDays: p.trial_days || 0,
-            isActive: p.is_active,
+            credits: p.credits || 0,
             stripePriceId: p.stripe_price_id_monthly,
-            stripeProductId: p.stripe_product_id,
+            isEnterprise: p.id === 'pack_enterprise',
           }));
         
-        const planOrder = { free: 1, basic: 2, pro: 3, enterprise: 4 };
-        const sortedPlans = formattedPlans.sort((a, b) => {
-          return (planOrder[a.id as keyof typeof planOrder] || 999) - (planOrder[b.id as keyof typeof planOrder] || 999);
-        });
+        // Sort by price
+        const sortedPackages = formattedPackages.sort((a, b) => a.price - b.price);
         
-        setPlans(sortedPlans);
+        setPackages(sortedPackages);
       }
     } catch (error) {
-      console.error("Error loading plans:", error);
-      toast.error("Erro ao carregar planos");
+      console.error("Error loading packages:", error);
+      toast.error("Erro ao carregar pacotes");
     } finally {
-      setLoadingPlans(false);
+      setLoadingPackages(false);
     }
   }, []);
 
   useEffect(() => {
-    loadPlans();
-  }, [loadPlans]);
+    loadPackages();
+  }, [loadPackages]);
 
   useEffect(() => {
     fetch("https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome")
@@ -193,15 +193,15 @@ const Onboarding = () => {
     }
   };
 
-  const handlePlanSelect = (plan: Plan) => {
-    // Enterprise plan - open WhatsApp
-    if (plan.id === 'pack_enterprise') {
-      const message = encodeURIComponent("Olá! Tenho interesse no plano Enterprise do Creator. Gostaria de mais informações.");
+  const handlePackageSelect = (pkg: CreditPackage) => {
+    // Enterprise package - open WhatsApp
+    if (pkg.isEnterprise) {
+      const message = encodeURIComponent("Olá! Tenho interesse no pacote Enterprise do Creator. Gostaria de mais informações.");
       window.open(`https://wa.me/${ENTERPRISE_WHATSAPP}?text=${message}`, '_blank');
       return;
     }
     
-    setSelectedPlan(plan);
+    setSelectedPackage(pkg);
     setCurrentStep('auth');
   };
 
@@ -220,8 +220,8 @@ const Onboarding = () => {
 
       await reloadUserData();
 
-      // If trial/free plan, just go to dashboard
-      if (selectedPlan?.id === 'pack_trial' || selectedPlan?.price === 0) {
+      // If no package selected or free, just go to dashboard
+      if (!selectedPackage || selectedPackage.price === 0) {
         toast.success("Bem-vindo de volta!");
         navigate('/dashboard');
         return;
@@ -286,8 +286,8 @@ const Onboarding = () => {
       if (data.user) {
         await reloadUserData();
 
-        // If trial/free plan, just go to dashboard
-        if (selectedPlan?.id === 'pack_trial' || selectedPlan?.price === 0) {
+        // If no package selected or free, just go to dashboard
+        if (!selectedPackage || selectedPackage.price === 0) {
           toast.success("Conta criada com sucesso! Bem-vindo ao Creator!");
           navigate('/dashboard');
           return;
@@ -305,8 +305,8 @@ const Onboarding = () => {
   };
 
   const initiateCheckout = async (userId: string) => {
-    if (!selectedPlan || !selectedPlan.stripePriceId) {
-      toast.error("Plano inválido para checkout");
+    if (!selectedPackage || !selectedPackage.stripePriceId) {
+      toast.error("Pacote inválido para checkout");
       return;
     }
 
@@ -315,9 +315,9 @@ const Onboarding = () => {
     try {
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: {
-          type: 'plan',
-          price_id: selectedPlan.stripePriceId,
-          plan_id: selectedPlan.id,
+          type: 'credits',
+          price_id: selectedPackage.stripePriceId,
+          package_id: selectedPackage.id,
           return_url: '/payment-success'
         }
       });
@@ -336,15 +336,15 @@ const Onboarding = () => {
     }
   };
 
-  const renderPlanCard = (plan: Plan, isPopular: boolean = false) => {
-    const Icon = planIcons[plan.id] || Zap;
-    const highlights = planHighlights[plan.id] || [];
-    const isSelected = selectedPlan?.id === plan.id;
-    const isEnterprise = plan.id === 'pack_enterprise';
+  const renderPackageCard = (pkg: CreditPackage, isPopular: boolean = false) => {
+    const Icon = packageIcons[pkg.id] || Zap;
+    const isSelected = selectedPackage?.id === pkg.id;
+    const isEnterprise = pkg.isEnterprise;
+    const colorClass = packageColors[pkg.id] || "from-blue-500 to-blue-600";
 
     return (
       <motion.div
-        key={plan.id}
+        key={pkg.id}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
@@ -357,9 +357,9 @@ const Onboarding = () => {
             "border-2 hover:shadow-2xl",
             isSelected ? "border-primary ring-2 ring-primary/20 shadow-xl" : "border-border hover:border-primary/50",
             isPopular && "ring-2 ring-primary/30",
-            isEnterprise && "border-amber-500/50 bg-gradient-to-br from-amber-500/5 to-orange-500/5"
+            isEnterprise && "border-amber-500/50"
           )}
-          onClick={() => handlePlanSelect(plan)}
+          onClick={() => handlePackageSelect(pkg)}
         >
           {/* Gradient overlay */}
           <div className={cn(
@@ -393,66 +393,34 @@ const Onboarding = () => {
             <div className={cn(
               "w-14 h-14 rounded-2xl flex items-center justify-center mb-4 transition-all duration-300",
               "bg-gradient-to-br shadow-lg",
-              plan.id === 'pack_trial' && "from-slate-500 to-slate-600",
-              plan.id === 'pack_basic' && "from-blue-500 to-blue-600",
-              plan.id === 'pack_pro' && "from-purple-500 to-purple-600",
-              plan.id === 'pack_premium' && "from-pink-500 to-pink-600",
-              plan.id === 'pack_enterprise' && "from-amber-500 to-orange-600"
+              colorClass
             )}>
               <Icon className="h-7 w-7 text-white" />
             </div>
             
-            <CardTitle className="text-2xl font-bold">{plan.name}</CardTitle>
-            <CardDescription className="text-sm min-h-[2.5rem]">{plan.description}</CardDescription>
+            <CardTitle className="text-2xl font-bold">{pkg.name}</CardTitle>
+            <CardDescription className="text-sm min-h-[2.5rem]">{pkg.description}</CardDescription>
             
             <div className="mt-4 flex items-baseline gap-1">
               {isEnterprise ? (
                 <span className="text-2xl font-bold text-amber-600">Entre em contato</span>
-              ) : plan.price === 0 ? (
-                <span className="text-4xl font-bold text-primary">Grátis</span>
               ) : (
                 <>
-                  <span className="text-4xl font-bold">R$ {plan.price.toLocaleString('pt-BR')}</span>
-                  <span className="text-muted-foreground text-sm">/mês</span>
+                  <span className="text-4xl font-bold">R$ {pkg.price.toLocaleString('pt-BR')}</span>
                 </>
               )}
             </div>
           </CardHeader>
 
           <CardContent className="relative space-y-4">
-            {/* Highlights */}
-            <div className="space-y-2">
-              {highlights.map((highlight, idx) => (
-                <div key={idx} className="flex items-center gap-2 text-sm">
-                  <Star className="h-4 w-4 text-primary flex-shrink-0" />
-                  <span className="font-medium">{highlight}</span>
-                </div>
-              ))}
-            </div>
-
-            <div className="h-px bg-border my-4" />
-
-            {/* Features */}
-            <div className="space-y-2.5 text-sm text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <Zap className="h-4 w-4 text-primary flex-shrink-0" />
-                <span>{isEnterprise ? 'Créditos ilimitados' : `${plan.credits.toLocaleString('pt-BR')} créditos/mês`}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-primary flex-shrink-0" />
-                <span>{isEnterprise ? 'Membros ilimitados' : `${plan.maxMembers} ${plan.maxMembers === 1 ? 'membro' : 'membros'}`}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Package className="h-4 w-4 text-primary flex-shrink-0" />
-                <span>{isEnterprise ? 'Marcas ilimitadas' : `${plan.maxBrands} ${plan.maxBrands === 1 ? 'marca' : 'marcas'}`}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Palette className="h-4 w-4 text-primary flex-shrink-0" />
-                <span>{isEnterprise ? 'Temas ilimitados' : `${plan.maxStrategicThemes} ${plan.maxStrategicThemes === 1 ? 'tema' : 'temas'}`}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <UserCircle className="h-4 w-4 text-primary flex-shrink-0" />
-                <span>{isEnterprise ? 'Personas ilimitadas' : `${plan.maxPersonas} personas`}</span>
+            {/* Credits highlight */}
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/5 border border-primary/10">
+              <Zap className="h-6 w-6 text-primary flex-shrink-0" />
+              <div>
+                <span className="text-2xl font-bold text-primary">
+                  {isEnterprise ? '∞' : pkg.credits.toLocaleString('pt-BR')}
+                </span>
+                <span className="text-sm text-muted-foreground ml-1">créditos</span>
               </div>
             </div>
 
@@ -469,7 +437,7 @@ const Onboarding = () => {
             >
               {isEnterprise ? (
                 <>
-                  <Phone className="mr-2 h-4 w-4" />
+                  <MessageCircle className="mr-2 h-4 w-4" />
                   Falar no WhatsApp
                 </>
               ) : isSelected ? (
@@ -479,7 +447,7 @@ const Onboarding = () => {
                 </>
               ) : (
                 <>
-                  Selecionar
+                  Comprar créditos
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </>
               )}
@@ -490,12 +458,12 @@ const Onboarding = () => {
     );
   };
 
-  const renderPlansStep = () => (
+  const renderPackagesStep = () => (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="w-full max-w-6xl mx-auto space-y-8"
+      className="w-full max-w-5xl mx-auto space-y-8"
     >
       {/* Header */}
       <div className="text-center space-y-4">
@@ -506,7 +474,7 @@ const Onboarding = () => {
         >
           <Badge variant="secondary" className="px-4 py-1.5 text-sm font-medium">
             <Gift className="mr-2 h-4 w-4" />
-            Comece grátis, upgrade quando quiser
+            Compre créditos quando precisar
           </Badge>
         </motion.div>
         
@@ -516,7 +484,7 @@ const Onboarding = () => {
           transition={{ delay: 0.2 }}
           className="text-4xl md:text-5xl font-bold tracking-tight"
         >
-          Escolha seu plano
+          Pacotes de Créditos
         </motion.h1>
         
         <motion.p
@@ -525,7 +493,7 @@ const Onboarding = () => {
           transition={{ delay: 0.3 }}
           className="text-lg text-muted-foreground max-w-2xl mx-auto"
         >
-          Crie conteúdo profissional com IA. Todos os planos incluem acesso às ferramentas de criação, revisão e planejamento de conteúdo.
+          Compre créditos para usar nas ferramentas de criação, revisão e planejamento de conteúdo com IA.
         </motion.p>
       </div>
 
@@ -542,7 +510,7 @@ const Onboarding = () => {
         </div>
         <div className="flex items-center gap-2">
           <Clock className="h-4 w-4 text-primary" />
-          <span>Cancele quando quiser</span>
+          <span>Créditos não expiram</span>
         </div>
         <div className="flex items-center gap-2">
           <Zap className="h-4 w-4 text-primary" />
@@ -550,16 +518,14 @@ const Onboarding = () => {
         </div>
       </motion.div>
 
-      {/* Plans grid */}
-      {loadingPlans ? (
+      {/* Packages grid */}
+      {loadingPackages ? (
         <div className="flex items-center justify-center py-20">
           <Loader2 className="h-10 w-10 animate-spin text-primary" />
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {plans
-            .filter(plan => plan.id !== 'pack_business') // Remove Business plan
-            .map((plan) => renderPlanCard(plan, plan.id === 'pack_pro'))}
+          {packages.map((pkg) => renderPackageCard(pkg, pkg.id === 'pack_pro'))}
         </div>
       )}
     </motion.div>
@@ -573,46 +539,40 @@ const Onboarding = () => {
       className="w-full max-w-lg mx-auto"
     >
       <Card className="border-2 shadow-2xl overflow-hidden">
-        {/* Plan summary header */}
-        {selectedPlan && (
+        {/* Package summary header */}
+        {selectedPackage && (
           <div className={cn(
             "px-6 py-4 flex items-center justify-between",
-            "bg-gradient-to-r",
-            selectedPlan.id === 'pack_trial' && "from-slate-500/10 to-slate-600/10",
-            selectedPlan.id === 'pack_basic' && "from-blue-500/10 to-blue-600/10",
-            selectedPlan.id === 'pack_pro' && "from-purple-500/10 to-purple-600/10",
-            selectedPlan.id === 'pack_premium' && "from-pink-500/10 to-pink-600/10"
+            "bg-gradient-to-r from-primary/10 to-primary/5"
           )}>
             <div className="flex items-center gap-3">
               {(() => {
-                const Icon = planIcons[selectedPlan.id] || Zap;
+                const Icon = packageIcons[selectedPackage.id] || Zap;
+                const colorClass = packageColors[selectedPackage.id] || "from-blue-500 to-blue-600";
                 return (
                   <div className={cn(
                     "w-10 h-10 rounded-xl flex items-center justify-center",
                     "bg-gradient-to-br",
-                    selectedPlan.id === 'pack_trial' && "from-slate-500 to-slate-600",
-                    selectedPlan.id === 'pack_basic' && "from-blue-500 to-blue-600",
-                    selectedPlan.id === 'pack_pro' && "from-purple-500 to-purple-600",
-                    selectedPlan.id === 'pack_premium' && "from-pink-500 to-pink-600"
+                    colorClass
                   )}>
                     <Icon className="h-5 w-5 text-white" />
                   </div>
                 );
               })()}
               <div>
-                <p className="font-semibold">{selectedPlan.name}</p>
+                <p className="font-semibold">{selectedPackage.name}</p>
                 <p className="text-sm text-muted-foreground">
-                  {selectedPlan.price === 0 ? 'Grátis' : `R$ ${selectedPlan.price}/mês`}
+                  {selectedPackage.credits.toLocaleString('pt-BR')} créditos • R$ {selectedPackage.price.toLocaleString('pt-BR')}
                 </p>
               </div>
             </div>
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setCurrentStep('plans')}
+              onClick={() => setCurrentStep('packages')}
               className="text-sm"
             >
-              Trocar plano
+              Trocar pacote
             </Button>
           </div>
         )}
@@ -857,7 +817,7 @@ const Onboarding = () => {
                 </>
               ) : (
                 <>
-                  {selectedPlan?.id === 'pack_trial' || selectedPlan?.price === 0 ? 'Começar grátis' : 'Continuar para pagamento'}
+                  Continuar para pagamento
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </>
               )}
@@ -911,7 +871,7 @@ const Onboarding = () => {
           <Button 
             variant="ghost" 
             size="sm" 
-            onClick={() => currentStep === 'auth' ? setCurrentStep('plans') : navigate('/')}
+            onClick={() => currentStep === 'auth' ? setCurrentStep('packages') : navigate('/')}
             className="gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -930,15 +890,15 @@ const Onboarding = () => {
             <div 
               className="absolute top-1/2 left-0 h-0.5 bg-primary -translate-y-1/2 transition-all duration-500"
               style={{ 
-                width: currentStep === 'plans' ? '0%' : currentStep === 'auth' ? '50%' : '100%' 
+                width: currentStep === 'packages' ? '0%' : currentStep === 'auth' ? '50%' : '100%' 
               }}
             />
             
-            {['plans', 'auth', 'checkout'].map((step, idx) => (
+            {['packages', 'auth', 'checkout'].map((step, idx) => (
               <div key={step} className="relative z-10 flex flex-col items-center">
                 <div className={cn(
                   "w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300",
-                  currentStep === step || ['plans', 'auth', 'checkout'].indexOf(currentStep) >= idx
+                  currentStep === step || ['packages', 'auth', 'checkout'].indexOf(currentStep) >= idx
                     ? "bg-primary text-primary-foreground" 
                     : "bg-muted text-muted-foreground"
                 )}>
@@ -948,7 +908,7 @@ const Onboarding = () => {
                   "text-xs mt-1.5 font-medium",
                   currentStep === step ? "text-primary" : "text-muted-foreground"
                 )}>
-                  {step === 'plans' ? 'Plano' : step === 'auth' ? 'Conta' : 'Pagamento'}
+                  {step === 'packages' ? 'Pacote' : step === 'auth' ? 'Conta' : 'Pagamento'}
                 </span>
               </div>
             ))}
@@ -958,7 +918,7 @@ const Onboarding = () => {
         {/* Content */}
         <main className="flex-1 flex items-center justify-center">
           <AnimatePresence mode="wait">
-            {currentStep === 'plans' && renderPlansStep()}
+            {currentStep === 'packages' && renderPackagesStep()}
             {currentStep === 'auth' && renderAuthStep()}
             {currentStep === 'checkout' && renderCheckoutStep()}
           </AnimatePresence>
