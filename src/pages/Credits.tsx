@@ -64,7 +64,7 @@ const Credits = () => {
     handlePaymentCallback();
   }, [searchParams]);
 
-  const legacyPlanIds = ['free', 'starter'];
+  const legacyPlanIds = ['free', 'starter', 'pack_business'];
 
   const loadPackages = async () => {
     const { data } = await supabase
