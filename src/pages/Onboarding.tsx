@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,14 +7,20 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { CreatorLogo } from "@/components/CreatorLogo";
-import { Eye, EyeOff, User, Mail, Phone, Lock, Loader2, CheckCircle, Building2, Code, LogIn, Package, ArrowLeft } from "lucide-react";
+import { 
+  Eye, EyeOff, User, Mail, Phone, Lock, Loader2, CheckCircle, 
+  ArrowLeft, ArrowRight, Zap, Users, Package, Palette, UserCircle,
+  Crown, Rocket, Sparkles, Star, Gift, Shield, Clock
+} from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { PlanSelector } from "@/components/subscription/PlanSelector";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useExtensionProtection, useFormProtection } from "@/hooks/useExtensionProtection";
+import { motion, AnimatePresence } from "framer-motion";
+import type { Plan } from "@/types/plan";
 
 interface State {
   id: number;
@@ -27,22 +33,38 @@ interface City {
   nome: string;
 }
 
-type OnboardingMode = 'new' | 'existing';
-type Step = 'login' | 'register' | 'team' | 'plan';
+type Step = 'plans' | 'auth' | 'checkout';
+type AuthMode = 'login' | 'register';
+
+const planIcons: Record<string, any> = {
+  free: Rocket,
+  basic: Package,
+  pro: Crown,
+  enterprise: Sparkles,
+};
+
+const planHighlights: Record<string, string[]> = {
+  free: ["20 créditos iniciais", "1 marca", "Ideal para testar"],
+  basic: ["100 créditos/mês", "3 marcas", "Suporte por email"],
+  pro: ["500 créditos/mês", "10 marcas", "Suporte prioritário"],
+  enterprise: ["2000 créditos/mês", "Marcas ilimitadas", "Suporte dedicado"],
+};
 
 const Onboarding = () => {
   const navigate = useNavigate();
   const { reloadUserData } = useAuth();
   
-  // Proteção contra extensões do navegador
   useExtensionProtection();
   const formRef = useRef<HTMLFormElement>(null);
   useFormProtection(formRef);
   
-  const [mode, setMode] = useState<OnboardingMode | null>(null);
-  const [currentStep, setCurrentStep] = useState<Step>('register');
+  const [currentStep, setCurrentStep] = useState<Step>('plans');
+  const [authMode, setAuthMode] = useState<AuthMode>('register');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [loadingPlans, setLoadingPlans] = useState(true);
   
   const [formData, setFormData] = useState({
     name: "",
@@ -53,12 +75,6 @@ const Onboarding = () => {
     city: "",
   });
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [userData, setUserData] = useState<any>(null);
-  
-  const [teamName, setTeamName] = useState("");
-  const [teamCode, setTeamCode] = useState("");
-  const [showCode, setShowCode] = useState(false);
-  const [teamData, setTeamData] = useState<any>(null);
   
   const [states, setStates] = useState<State[]>([]);
   const [cities, setCities] = useState<City[]>([]);
@@ -71,6 +87,55 @@ const Onboarding = () => {
   const passwordsMatch = formData.password === confirmPassword;
   const isPasswordValid = formData.password && formData.password.length >= 6;
 
+  // Load plans
+  const loadPlans = useCallback(async () => {
+    try {
+      const { data: plansData, error } = await supabase
+        .from("plans")
+        .select("*")
+        .eq("is_active", true)
+        .eq("can_subscribe_online", true);
+
+      if (error) throw error;
+
+      if (plansData) {
+        const formattedPlans: Plan[] = plansData
+          .filter((p) => p.id !== 'pack_trial' && p.id !== 'starter')
+          .map((p) => ({
+            id: p.id,
+            name: p.name,
+            description: p.description || '',
+            price: p.price_monthly || 0,
+            credits: (p as any).credits || 0,
+            maxMembers: p.max_members,
+            maxBrands: p.max_brands,
+            maxStrategicThemes: p.max_strategic_themes,
+            maxPersonas: p.max_personas,
+            trialDays: p.trial_days || 0,
+            isActive: p.is_active,
+            stripePriceId: p.stripe_price_id_monthly,
+            stripeProductId: p.stripe_product_id,
+          }));
+        
+        const planOrder = { free: 1, basic: 2, pro: 3, enterprise: 4 };
+        const sortedPlans = formattedPlans.sort((a, b) => {
+          return (planOrder[a.id as keyof typeof planOrder] || 999) - (planOrder[b.id as keyof typeof planOrder] || 999);
+        });
+        
+        setPlans(sortedPlans);
+      }
+    } catch (error) {
+      console.error("Error loading plans:", error);
+      toast.error("Erro ao carregar planos");
+    } finally {
+      setLoadingPlans(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadPlans();
+  }, [loadPlans]);
+
   useEffect(() => {
     fetch("https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome")
       .then((res) => res.json())
@@ -80,7 +145,6 @@ const Onboarding = () => {
       })
       .catch(() => {
         setLoadingStates(false);
-        toast.error("Erro ao carregar estados");
       });
   }, []);
 
@@ -96,7 +160,6 @@ const Onboarding = () => {
         })
         .catch(() => {
           setLoadingCities(false);
-          toast.error("Erro ao carregar cidades");
         });
     }
   }, [formData.state]);
@@ -126,7 +189,12 @@ const Onboarding = () => {
     }
   };
 
-  const handleExistingUserLogin = async (e: React.FormEvent) => {
+  const handlePlanSelect = (plan: Plan) => {
+    setSelectedPlan(plan);
+    setCurrentStep('auth');
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
@@ -139,50 +207,17 @@ const Onboarding = () => {
       if (authError) throw authError;
       if (!authData.user) throw new Error("Usuário não encontrado");
 
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('id, team_id')
-        .eq('id', authData.user.id)
-        .single();
-
-      if (profileError) throw profileError;
-
-      if (!profile.team_id) {
-        toast.error('Você não está em nenhuma equipe', {
-          description: 'Crie uma equipe primeiro ou solicite entrada em uma equipe existente.'
-        });
-        await supabase.auth.signOut();
-        setIsLoading(false);
-        return;
-      }
-
-      const { data: teamInfo, error: teamError } = await supabase
-        .from('teams')
-        .select('id, name, admin_id, plan_id')
-        .eq('id', profile.team_id)
-        .single();
-
-      if (teamError) throw teamError;
-
-      if (teamInfo.admin_id !== authData.user.id) {
-        toast.error('Acesso negado', {
-          description: 'Apenas administradores da equipe podem assinar planos. Contate o administrador da sua equipe.'
-        });
-        
-        await supabase.auth.signOut();
-        setIsLoading(false);
-        return;
-      }
-
-      toast.success(`Bem-vindo${mode === 'new' ? '' : ', administrador da equipe ' + teamInfo.name}!`);
-      
-      // Recarregar dados do contexto para garantir que user e team estejam disponíveis
       await reloadUserData();
-      
-      setUserData(authData.user);
-      setTeamData(teamInfo);
-      setCurrentStep('plan');
 
+      // If free plan, just go to dashboard
+      if (selectedPlan?.id === 'free') {
+        toast.success("Bem-vindo de volta!");
+        navigate('/dashboard');
+        return;
+      }
+
+      // Otherwise, proceed to checkout
+      await initiateCheckout(authData.user.id);
     } catch (error: any) {
       console.error('Erro no login:', error);
       toast.error('Erro ao fazer login', {
@@ -193,7 +228,9 @@ const Onboarding = () => {
     }
   };
 
-  const handleRegister = async () => {
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+
     if (!formData.name || !formData.email || !formData.password || !formData.phone) {
       toast.error("Por favor, preencha todos os campos obrigatórios");
       return;
@@ -217,7 +254,7 @@ const Onboarding = () => {
     setIsLoading(true);
 
     try {
-      const redirectUrl = `${window.location.origin}/`;
+      const redirectUrl = `${window.location.origin}/dashboard`;
       
       const { data, error } = await supabase.auth.signUp({
         email: formData.email,
@@ -236,9 +273,17 @@ const Onboarding = () => {
       if (error) throw error;
 
       if (data.user) {
-        setUserData(data.user);
-        toast.success("Cadastro realizado com sucesso!");
-        setCurrentStep('team');
+        await reloadUserData();
+
+        // If free plan, just go to dashboard
+        if (selectedPlan?.id === 'free') {
+          toast.success("Conta criada com sucesso! Bem-vindo ao Creator!");
+          navigate('/dashboard');
+          return;
+        }
+
+        // Otherwise, proceed to checkout
+        await initiateCheckout(data.user.id);
       }
     } catch (error: any) {
       console.error("Erro no cadastro:", error);
@@ -248,442 +293,686 @@ const Onboarding = () => {
     }
   };
 
-  const generateRandomCode = () => {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let code = '';
-    for (let i = 0; i < 8; i++) {
-      code += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return code;
-  };
-
-  const handleCreateTeam = async () => {
-    if (!teamName.trim()) {
-      toast.error("Por favor, insira o nome da equipe");
+  const initiateCheckout = async (userId: string) => {
+    if (!selectedPlan || !selectedPlan.stripePriceId) {
+      toast.error("Plano inválido para checkout");
       return;
     }
 
-    if (!teamCode.trim()) {
-      toast.error("Por favor, crie um código de acesso");
-      return;
-    }
-
-    if (!userData) {
-      toast.error("Sessão não encontrada. Por favor, faça login novamente.");
-      return;
-    }
-
-    setIsLoading(true);
+    setCurrentStep('checkout');
 
     try {
-      const { data, error } = await supabase.rpc('create_team_for_user', {
-        p_user_id: userData.id,
-        p_team_name: teamName,
-        p_team_code: teamCode,
-        p_plan_id: 'pack_trial'
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: {
+          type: 'plan',
+          price_id: selectedPlan.stripePriceId,
+          plan_id: selectedPlan.id,
+          return_url: '/payment-success'
+        }
       });
 
       if (error) throw error;
 
-      console.log("Equipe criada:", data);
-      setTeamData(data);
-      toast.success("Equipe criada com sucesso! Agora faça login para continuar.");
-      setCurrentStep('login');
+      if (!data?.url) {
+        throw new Error("URL de checkout não retornada");
+      }
+
+      window.location.href = data.url;
     } catch (error: any) {
-      console.error("Erro ao criar equipe:", error);
-      toast.error(error.message || "Erro ao criar equipe");
-    } finally {
-      setIsLoading(false);
+      console.error("Erro ao processar pagamento:", error);
+      toast.error(error.message || "Erro ao processar pagamento");
+      setCurrentStep('auth');
     }
   };
 
-  const handlePlanSelected = async (planId: string) => {
-    console.log('Plano selecionado:', planId);
-    
-    if (mode) {
-      sessionStorage.setItem('onboarding_mode', mode);
-    }
-    
-    if (planId === 'free') {
-      toast.success('Plano gratuito ativado!');
-      navigate(mode === 'existing' ? '/dashboard' : '/');
-    }
-  };
-
-  const getSteps = () => {
-    if (mode === 'existing') {
-      return [
-        { id: 'login' as const, label: 'Login', icon: LogIn },
-        { id: 'plan' as const, label: 'Plano', icon: Package },
-      ];
-    }
-    
-    return [
-      { id: 'register' as const, label: 'Cadastro', icon: User },
-      { id: 'team' as const, label: 'Equipe', icon: Building2 },
-      { id: 'login' as const, label: 'Login', icon: LogIn },
-      { id: 'plan' as const, label: 'Plano', icon: Package },
-    ];
-  };
-
-  const renderStepIndicator = () => {
-    const steps = getSteps();
-    const currentStepIndex = steps.findIndex(s => s.id === currentStep);
+  const renderPlanCard = (plan: Plan, isPopular: boolean = false) => {
+    const Icon = planIcons[plan.id] || Zap;
+    const highlights = planHighlights[plan.id] || [];
+    const isSelected = selectedPlan?.id === plan.id;
 
     return (
-      <div className="w-full max-w-2xl mx-auto mb-8">
-        <div className="flex items-center justify-between">
-          {steps.map((step, index) => {
-            const Icon = step.icon;
-            const isActive = currentStep === step.id;
-            const isCompleted = index < currentStepIndex;
+      <motion.div
+        key={plan.id}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        whileHover={{ scale: 1.02, y: -4 }}
+        className="h-full"
+      >
+        <Card
+          className={cn(
+            "relative h-full cursor-pointer transition-all duration-300 overflow-hidden group",
+            "border-2 hover:shadow-2xl",
+            isSelected ? "border-primary ring-2 ring-primary/20 shadow-xl" : "border-border hover:border-primary/50",
+            isPopular && "ring-2 ring-primary/30"
+          )}
+          onClick={() => handlePlanSelect(plan)}
+        >
+          {/* Gradient overlay */}
+          <div className={cn(
+            "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500",
+            "bg-gradient-to-br from-primary/5 via-transparent to-primary/10"
+          )} />
 
-            return (
-              <div key={step.id} className="flex items-center flex-1">
-                <div className="flex flex-col items-center">
-                  <div
-                    className={cn(
-                      "w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all",
-                      isActive && "border-primary bg-primary text-primary-foreground",
-                      isCompleted && "border-primary bg-primary text-primary-foreground",
-                      !isActive && !isCompleted && "border-muted bg-muted text-muted-foreground"
-                    )}
-                  >
-                    {isCompleted ? (
-                      <CheckCircle className="h-6 w-6" />
-                    ) : (
-                      <Icon className="h-6 w-6" />
-                    )}
-                  </div>
-                  <span
-                    className={cn(
-                      "text-sm mt-2 font-medium",
-                      isActive && "text-primary",
-                      !isActive && "text-muted-foreground"
-                    )}
-                  >
-                    {step.label}
-                  </span>
+          {isPopular && (
+            <div className="absolute -right-8 top-6 rotate-45 bg-primary px-10 py-1 text-xs font-semibold text-primary-foreground shadow-lg">
+              Popular
+            </div>
+          )}
+
+          {isSelected && (
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              className="absolute top-4 right-4 bg-primary rounded-full p-1"
+            >
+              <CheckCircle className="h-5 w-5 text-primary-foreground" />
+            </motion.div>
+          )}
+
+          <CardHeader className="relative pb-2">
+            <div className={cn(
+              "w-14 h-14 rounded-2xl flex items-center justify-center mb-4 transition-all duration-300",
+              "bg-gradient-to-br shadow-lg",
+              plan.id === 'free' && "from-blue-500 to-blue-600",
+              plan.id === 'basic' && "from-green-500 to-green-600",
+              plan.id === 'pro' && "from-purple-500 to-purple-600",
+              plan.id === 'enterprise' && "from-orange-500 to-orange-600"
+            )}>
+              <Icon className="h-7 w-7 text-white" />
+            </div>
+            
+            <CardTitle className="text-2xl font-bold">{plan.name}</CardTitle>
+            <CardDescription className="text-sm min-h-[2.5rem]">{plan.description}</CardDescription>
+            
+            <div className="mt-4 flex items-baseline gap-1">
+              {plan.price === 0 ? (
+                <span className="text-4xl font-bold text-primary">Grátis</span>
+              ) : (
+                <>
+                  <span className="text-4xl font-bold">R$ {plan.price.toLocaleString('pt-BR')}</span>
+                  <span className="text-muted-foreground text-sm">/mês</span>
+                </>
+              )}
+            </div>
+          </CardHeader>
+
+          <CardContent className="relative space-y-4">
+            {/* Highlights */}
+            <div className="space-y-2">
+              {highlights.map((highlight, idx) => (
+                <div key={idx} className="flex items-center gap-2 text-sm">
+                  <Star className="h-4 w-4 text-primary flex-shrink-0" />
+                  <span className="font-medium">{highlight}</span>
                 </div>
-                {index < steps.length - 1 && (
-                  <div
-                    className={cn(
-                      "flex-1 h-0.5 mx-4 transition-colors",
-                      index < currentStepIndex ? "bg-primary" : "bg-muted"
-                    )}
-                  />
-                )}
+              ))}
+            </div>
+
+            <div className="h-px bg-border my-4" />
+
+            {/* Features */}
+            <div className="space-y-2.5 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <Zap className="h-4 w-4 text-primary flex-shrink-0" />
+                <span>{plan.credits.toLocaleString('pt-BR')} créditos/mês</span>
               </div>
-            );
-          })}
-        </div>
-      </div>
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-primary flex-shrink-0" />
+                <span>{plan.maxMembers} {plan.maxMembers === 1 ? 'membro' : 'membros'}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Package className="h-4 w-4 text-primary flex-shrink-0" />
+                <span>{plan.maxBrands} {plan.maxBrands === 1 ? 'marca' : 'marcas'}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Palette className="h-4 w-4 text-primary flex-shrink-0" />
+                <span>{plan.maxStrategicThemes} {plan.maxStrategicThemes === 1 ? 'tema' : 'temas'}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <UserCircle className="h-4 w-4 text-primary flex-shrink-0" />
+                <span>{plan.maxPersonas} personas</span>
+              </div>
+            </div>
+
+            <Button
+              className={cn(
+                "w-full mt-4 transition-all duration-300",
+                isSelected ? "bg-primary" : "bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground"
+              )}
+              size="lg"
+            >
+              {isSelected ? (
+                <>
+                  <CheckCircle className="mr-2 h-4 w-4" />
+                  Selecionado
+                </>
+              ) : (
+                <>
+                  Selecionar
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </>
+              )}
+            </Button>
+          </CardContent>
+        </Card>
+      </motion.div>
     );
   };
 
-  const renderRegisterStep = () => (
-    <Card className="w-full max-w-2xl mx-auto">
-      <CardHeader>
-        <CardTitle>Criar Conta</CardTitle>
-        <CardDescription>Preencha seus dados para começar</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Nome Completo <span className="text-destructive">*</span></Label>
-            <div className="relative">
-              <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input id="name" placeholder="Seu nome" className="pl-9" value={formData.name} onChange={handleInputChange} required />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="email">Email <span className="text-destructive">*</span></Label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input id="email" type="email" placeholder="seu@email.com" className="pl-9" value={formData.email} onChange={handleInputChange} required />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="phone">Telefone <span className="text-destructive">*</span></Label>
-            <div className="relative">
-              <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input id="phone" placeholder="(00) 00000-0000" className="pl-9" value={formData.phone} onChange={handleInputChange} required />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="state">Estado</Label>
-            <Select value={formData.state} onValueChange={(value) => handleSelectChange("state", value)} disabled={loadingStates}>
-              <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-              <SelectContent className="z-[9999] bg-popover border border-border shadow-lg max-h-[300px]" position="popper">
-                {states.map((state) => (
-                  <SelectItem key={state.id} value={state.sigla}>{state.nome}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="city">Cidade</Label>
-            <Select value={formData.city} onValueChange={(value) => handleSelectChange("city", value)} disabled={!formData.state || loadingCities}>
-              <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-              <SelectContent className="z-[9999] bg-popover border border-border shadow-lg max-h-[300px]" position="popper">
-                {cities.map((city) => (
-                  <SelectItem key={city.id} value={city.nome}>{city.nome}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Senha <span className="text-destructive">*</span></Label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input id="password" type={showPassword ? "text" : "password"} placeholder="••••••••" className="pl-9" value={formData.password} onChange={handleInputChange} required />
-              <Button type="button" variant="ghost" size="sm" className="absolute right-0 top-0 h-full px-3 hover:bg-transparent" onClick={() => setShowPassword(!showPassword)}>
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </Button>
-            </div>
-            {formData.password && !isPasswordValid && (<p className="text-sm text-destructive">A senha deve ter pelo menos 6 caracteres</p>)}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirmar Senha <span className="text-destructive">*</span></Label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input id="confirmPassword" type={showPassword ? "text" : "password"} placeholder="••••••••" className="pl-9" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
-            </div>
-            {confirmPassword && !passwordsMatch && (<p className="text-sm text-destructive">As senhas não coincidem</p>)}
-          </div>
-        </div>
-        <div className="flex items-start space-x-2">
-          <Checkbox 
-            id="privacy" 
-            checked={privacyChecked} 
-            onCheckedChange={(checked) => {
-              setPrivacyModalOpen(true);
-            }} 
-          />
-          <label 
-            htmlFor="privacy" 
-            className="text-sm leading-none cursor-pointer"
-            onClick={(e) => {
-              e.preventDefault();
-              setPrivacyModalOpen(true);
-            }}
-          >
-            Li e concordo com a{" "}
-            <button 
-              type="button" 
-              onClick={(e) => { 
-                e.preventDefault(); 
-                e.stopPropagation();
-                setPrivacyModalOpen(true); 
-              }} 
-              className="text-primary hover:underline"
-            >
-              Política de Privacidade
-            </button>
-          </label>
-        </div>
-        <Button onClick={handleRegister} disabled={isLoading || !isPasswordValid || !passwordsMatch || !privacyChecked} className="w-full" size="lg">
-          {isLoading ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" />Criando conta...</>) : ("Continuar")}
-        </Button>
-      </CardContent>
-    </Card>
-  );
-
-  const renderTeamStep = () => (
-    <Card className="w-full max-w-2xl mx-auto">
-      <CardHeader>
-        <CardTitle>Criar Equipe</CardTitle>
-        <CardDescription>Configure sua equipe e defina um código de acesso único</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="teamName">Nome da Equipe</Label>
-          <div className="relative">
-            <Building2 className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input id="teamName" placeholder="Ex: Marketing Digital XYZ" className="pl-9" value={teamName} onChange={(e) => setTeamName(e.target.value)} required />
-          </div>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="teamCode">Código de Acesso</Label>
-          <div className="flex gap-2">
-            <div className="relative flex-1">
-              <Code className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input id="teamCode" placeholder="Código único" className="pl-9" type={showCode ? "text" : "password"} value={teamCode} onChange={(e) => setTeamCode(e.target.value.toUpperCase())} maxLength={8} required />
-              <Button type="button" variant="ghost" size="sm" className="absolute right-0 top-0 h-full px-3 hover:bg-transparent" onClick={() => setShowCode(!showCode)}>
-                {showCode ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </Button>
-            </div>
-            <Button type="button" variant="outline" onClick={() => setTeamCode(generateRandomCode())}>Gerar</Button>
-          </div>
-          <p className="text-sm text-muted-foreground">Este código será usado por outros membros para entrar na equipe</p>
-        </div>
-        <div className="bg-muted/50 p-4 rounded-lg space-y-2">
-          <h4 className="font-medium text-sm">O que você receberá:</h4>
-          <ul className="text-sm space-y-1 text-muted-foreground">
-            <li>✅ Plano FREE ativado automaticamente</li>
-            <li>✅ 20 créditos de boas-vindas</li>
-            <li>✅ Possibilidade de upgrade para planos pagos</li>
-          </ul>
-        </div>
-        <Button onClick={handleCreateTeam} disabled={isLoading || !teamName.trim() || !teamCode.trim()} className="w-full" size="lg">
-          {isLoading ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" />Criando equipe...</>) : ("Criar Equipe e Continuar")}
-        </Button>
-      </CardContent>
-    </Card>
-  );
-
-  const renderPlanStep = () => (
-    <div className="w-full">
-      <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold mb-2">Escolha seu Plano</h2>
-        <p className="text-muted-foreground">{mode === 'existing' ? 'Faça upgrade do seu plano atual' : 'Comece com o plano FREE ou escolha um plano pago'}</p>
+  const renderPlansStep = () => (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="w-full max-w-6xl mx-auto space-y-8"
+    >
+      {/* Header */}
+      <div className="text-center space-y-4">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          <Badge variant="secondary" className="px-4 py-1.5 text-sm font-medium">
+            <Gift className="mr-2 h-4 w-4" />
+            Comece grátis, upgrade quando quiser
+          </Badge>
+        </motion.div>
+        
+        <motion.h1
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="text-4xl md:text-5xl font-bold tracking-tight"
+        >
+          Escolha seu plano
+        </motion.h1>
+        
+        <motion.p
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="text-lg text-muted-foreground max-w-2xl mx-auto"
+        >
+          Crie conteúdo profissional com IA. Todos os planos incluem acesso às ferramentas de criação, revisão e planejamento de conteúdo.
+        </motion.p>
       </div>
-      <PlanSelector onPlanSelected={handlePlanSelected} showCurrentPlan={mode === 'existing'} />
-    </div>
+
+      {/* Benefits bar */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+        className="flex flex-wrap justify-center gap-6 text-sm text-muted-foreground"
+      >
+        <div className="flex items-center gap-2">
+          <Shield className="h-4 w-4 text-primary" />
+          <span>Pagamento seguro</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Clock className="h-4 w-4 text-primary" />
+          <span>Cancele quando quiser</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Zap className="h-4 w-4 text-primary" />
+          <span>Acesso imediato</span>
+        </div>
+      </motion.div>
+
+      {/* Plans grid */}
+      {loadingPlans ? (
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {plans.map((plan, idx) => renderPlanCard(plan, plan.id === 'pro'))}
+        </div>
+      )}
+    </motion.div>
+  );
+
+  const renderAuthStep = () => (
+    <motion.div
+      initial={{ opacity: 0, x: 50 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -50 }}
+      className="w-full max-w-lg mx-auto"
+    >
+      <Card className="border-2 shadow-2xl overflow-hidden">
+        {/* Plan summary header */}
+        {selectedPlan && (
+          <div className={cn(
+            "px-6 py-4 flex items-center justify-between",
+            "bg-gradient-to-r",
+            selectedPlan.id === 'free' && "from-blue-500/10 to-blue-600/10",
+            selectedPlan.id === 'basic' && "from-green-500/10 to-green-600/10",
+            selectedPlan.id === 'pro' && "from-purple-500/10 to-purple-600/10",
+            selectedPlan.id === 'enterprise' && "from-orange-500/10 to-orange-600/10"
+          )}>
+            <div className="flex items-center gap-3">
+              {(() => {
+                const Icon = planIcons[selectedPlan.id] || Zap;
+                return (
+                  <div className={cn(
+                    "w-10 h-10 rounded-xl flex items-center justify-center",
+                    "bg-gradient-to-br",
+                    selectedPlan.id === 'free' && "from-blue-500 to-blue-600",
+                    selectedPlan.id === 'basic' && "from-green-500 to-green-600",
+                    selectedPlan.id === 'pro' && "from-purple-500 to-purple-600",
+                    selectedPlan.id === 'enterprise' && "from-orange-500 to-orange-600"
+                  )}>
+                    <Icon className="h-5 w-5 text-white" />
+                  </div>
+                );
+              })()}
+              <div>
+                <p className="font-semibold">{selectedPlan.name}</p>
+                <p className="text-sm text-muted-foreground">
+                  {selectedPlan.price === 0 ? 'Grátis' : `R$ ${selectedPlan.price}/mês`}
+                </p>
+              </div>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setCurrentStep('plans')}
+              className="text-sm"
+            >
+              Trocar plano
+            </Button>
+          </div>
+        )}
+
+        <CardHeader className="text-center pb-2">
+          <CardTitle className="text-2xl">
+            {authMode === 'register' ? 'Criar sua conta' : 'Entrar na sua conta'}
+          </CardTitle>
+          <CardDescription>
+            {authMode === 'register' 
+              ? 'Preencha seus dados para começar' 
+              : 'Use suas credenciais para continuar'}
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent>
+          {/* Auth mode toggle */}
+          <div className="flex mb-6 p-1 bg-muted rounded-lg">
+            <Button
+              type="button"
+              variant={authMode === 'register' ? 'default' : 'ghost'}
+              className="flex-1"
+              onClick={() => setAuthMode('register')}
+            >
+              Criar conta
+            </Button>
+            <Button
+              type="button"
+              variant={authMode === 'login' ? 'default' : 'ghost'}
+              className="flex-1"
+              onClick={() => setAuthMode('login')}
+            >
+              Já tenho conta
+            </Button>
+          </div>
+
+          <form ref={formRef} onSubmit={authMode === 'login' ? handleLogin : handleRegister} className="space-y-4">
+            <AnimatePresence mode="wait">
+              {authMode === 'register' && (
+                <motion.div
+                  key="register-fields"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="space-y-4"
+                >
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Nome completo <span className="text-destructive">*</span></Label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input 
+                        id="name" 
+                        placeholder="Seu nome" 
+                        className="pl-9" 
+                        value={formData.name} 
+                        onChange={handleInputChange} 
+                        required 
+                      />
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <div className="space-y-2">
+              <Label htmlFor="email">Email <span className="text-destructive">*</span></Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input 
+                  id="email" 
+                  type="email" 
+                  placeholder="seu@email.com" 
+                  className="pl-9" 
+                  value={formData.email} 
+                  onChange={handleInputChange} 
+                  required 
+                />
+              </div>
+            </div>
+
+            <AnimatePresence mode="wait">
+              {authMode === 'register' && (
+                <motion.div
+                  key="phone-field"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="space-y-2"
+                >
+                  <Label htmlFor="phone">Telefone <span className="text-destructive">*</span></Label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                      id="phone" 
+                      placeholder="(00) 00000-0000" 
+                      className="pl-9" 
+                      value={formData.phone} 
+                      onChange={handleInputChange} 
+                      required 
+                      maxLength={15}
+                    />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <div className="space-y-2">
+              <Label htmlFor="password">Senha <span className="text-destructive">*</span></Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input 
+                  id="password" 
+                  type={showPassword ? "text" : "password"} 
+                  placeholder="••••••••" 
+                  className="pl-9" 
+                  value={formData.password} 
+                  onChange={handleInputChange} 
+                  required 
+                />
+                <Button 
+                  type="button" 
+                  variant="ghost" 
+                  size="sm" 
+                  className="absolute right-0 top-0 h-full px-3 hover:bg-transparent" 
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+              </div>
+              {authMode === 'register' && formData.password && !isPasswordValid && (
+                <p className="text-sm text-destructive">A senha deve ter pelo menos 6 caracteres</p>
+              )}
+            </div>
+
+            <AnimatePresence mode="wait">
+              {authMode === 'register' && (
+                <motion.div
+                  key="register-extra"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="space-y-4"
+                >
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmPassword">Confirmar senha <span className="text-destructive">*</span></Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input 
+                        id="confirmPassword" 
+                        type={showPassword ? "text" : "password"} 
+                        placeholder="••••••••" 
+                        className="pl-9" 
+                        value={confirmPassword} 
+                        onChange={(e) => setConfirmPassword(e.target.value)} 
+                        required 
+                      />
+                    </div>
+                    {confirmPassword && !passwordsMatch && (
+                      <p className="text-sm text-destructive">As senhas não coincidem</p>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Estado</Label>
+                      <Select 
+                        value={formData.state} 
+                        onValueChange={(value) => handleSelectChange("state", value)} 
+                        disabled={loadingStates}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione..." />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-[200px]">
+                          {states.map((state) => (
+                            <SelectItem key={state.id} value={state.sigla}>{state.nome}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Cidade</Label>
+                      <Select 
+                        value={formData.city} 
+                        onValueChange={(value) => handleSelectChange("city", value)} 
+                        disabled={!formData.state || loadingCities}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione..." />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-[200px]">
+                          {cities.map((city) => (
+                            <SelectItem key={city.id} value={city.nome}>{city.nome}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start space-x-2 pt-2">
+                    <Checkbox 
+                      id="privacy" 
+                      checked={privacyChecked} 
+                      onCheckedChange={() => setPrivacyModalOpen(true)} 
+                    />
+                    <label 
+                      htmlFor="privacy" 
+                      className="text-sm leading-tight cursor-pointer"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setPrivacyModalOpen(true);
+                      }}
+                    >
+                      Li e concordo com a{" "}
+                      <button 
+                        type="button" 
+                        onClick={(e) => { 
+                          e.preventDefault(); 
+                          e.stopPropagation();
+                          setPrivacyModalOpen(true); 
+                        }} 
+                        className="text-primary hover:underline"
+                      >
+                        Política de Privacidade
+                      </button>
+                    </label>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <Button 
+              type="submit"
+              disabled={isLoading || (authMode === 'register' && (!isPasswordValid || !passwordsMatch || !privacyChecked))} 
+              className="w-full" 
+              size="lg"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {authMode === 'register' ? 'Criando conta...' : 'Entrando...'}
+                </>
+              ) : (
+                <>
+                  {selectedPlan?.id === 'free' ? 'Começar grátis' : 'Continuar para pagamento'}
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </>
+              )}
+            </Button>
+
+            {authMode === 'login' && (
+              <div className="text-center">
+                <Button
+                  type="button"
+                  variant="link"
+                  onClick={() => navigate('/forgot-password')}
+                  className="text-sm"
+                >
+                  Esqueci minha senha
+                </Button>
+              </div>
+            )}
+          </form>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+
+  const renderCheckoutStep = () => (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="text-center space-y-6"
+    >
+      <div className="w-20 h-20 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+      </div>
+      <div>
+        <h2 className="text-2xl font-bold mb-2">Redirecionando para pagamento</h2>
+        <p className="text-muted-foreground">Aguarde enquanto preparamos seu checkout seguro...</p>
+      </div>
+    </motion.div>
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center p-4">
-      <div className="w-full max-w-4xl space-y-6">
-        <div className="flex justify-start mb-4">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/30 overflow-y-auto">
+      {/* Background decoration */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
+      </div>
+
+      <div className="relative min-h-screen flex flex-col p-4 md:p-8">
+        {/* Header */}
+        <header className="flex items-center justify-between mb-8">
           <Button 
             variant="ghost" 
             size="sm" 
-            onClick={() => navigate('/')}
+            onClick={() => currentStep === 'auth' ? setCurrentStep('plans') : navigate('/')}
             className="gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
             Voltar
           </Button>
+          
+          <CreatorLogo />
+
+          <div className="w-20" /> {/* Spacer for centering */}
+        </header>
+
+        {/* Progress indicator */}
+        <div className="max-w-md mx-auto w-full mb-8">
+          <div className="flex items-center justify-between relative">
+            <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-muted -translate-y-1/2" />
+            <div 
+              className="absolute top-1/2 left-0 h-0.5 bg-primary -translate-y-1/2 transition-all duration-500"
+              style={{ 
+                width: currentStep === 'plans' ? '0%' : currentStep === 'auth' ? '50%' : '100%' 
+              }}
+            />
+            
+            {['plans', 'auth', 'checkout'].map((step, idx) => (
+              <div key={step} className="relative z-10 flex flex-col items-center">
+                <div className={cn(
+                  "w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300",
+                  currentStep === step || ['plans', 'auth', 'checkout'].indexOf(currentStep) >= idx
+                    ? "bg-primary text-primary-foreground" 
+                    : "bg-muted text-muted-foreground"
+                )}>
+                  {idx + 1}
+                </div>
+                <span className={cn(
+                  "text-xs mt-1.5 font-medium",
+                  currentStep === step ? "text-primary" : "text-muted-foreground"
+                )}>
+                  {step === 'plans' ? 'Plano' : step === 'auth' ? 'Conta' : 'Pagamento'}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="flex justify-center mb-8"><CreatorLogo /></div>
-        {!mode && (
-          <Card className="w-full max-w-2xl mx-auto">
-            <CardHeader className="text-center space-y-4">
-              <CardTitle className="text-3xl">Bem-vindo ao Creator</CardTitle>
-              <CardDescription className="text-lg">Escolha como você quer começar</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Button onClick={() => { setMode('new'); setCurrentStep('register'); }} className="w-full h-20 text-lg" size="lg">
-                <User className="mr-3 h-6 w-6" />Criar nova conta
-              </Button>
-              <Button onClick={() => { setMode('existing'); setCurrentStep('login'); }} variant="outline" className="w-full h-20 text-lg" size="lg">
-                <LogIn className="mr-3 h-6 w-6" />Já tenho uma conta e quero assinar um plano
-              </Button>
-            </CardContent>
-          </Card>
-        )}
-        {mode && renderStepIndicator()}
-        {currentStep === 'login' && (
-          <Card className="w-full max-w-2xl mx-auto">
-            <CardHeader>
-              <CardTitle>
-                {mode === 'existing' ? 'Faça login para assinar um plano' : 'Confirme seu login'}
-              </CardTitle>
-              <CardDescription>
-                {mode === 'existing' 
-                  ? 'Entre com seu email e senha para verificar se você é administrador da equipe'
-                  : 'Digite seu email e senha para autenticar e continuar'}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form ref={formRef} onSubmit={handleExistingUserLogin} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input 
-                    id="email" 
-                    type="email" 
-                    value={formData.email} 
-                    onChange={(e) => setFormData({...formData, email: e.target.value})} 
-                    required 
-                    placeholder="seu@email.com" 
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password">Senha</Label>
-                  <div className="relative">
-                    <Input 
-                      id="password" 
-                      type={showPassword ? "text" : "password"} 
-                      value={formData.password} 
-                      onChange={(e) => setFormData({...formData, password: e.target.value})} 
-                      required 
-                      placeholder="••••••••" 
-                    />
-                    <Button 
-                      type="button" 
-                      variant="ghost" 
-                      size="sm" 
-                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent" 
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </Button>
-                  </div>
-                </div>
-                <Button type="submit" disabled={isLoading} className="w-full" size="lg">
-                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Continuar
-                </Button>
-                <div className="text-center">
-                  <Button 
-                    type="button" 
-                    variant="link" 
-                    onClick={() => {
-                      if (mode === 'existing') {
-                        setMode(null);
-                        setCurrentStep('register');
-                        setFormData({ name: '', email: '', password: '', phone: '', state: '', city: '' });
-                      } else {
-                        setCurrentStep('team');
-                      }
-                    }}
-                  >
-                    Voltar
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-        )}
-        {mode === 'new' && currentStep === 'register' && renderRegisterStep()}
-        {mode === 'new' && currentStep === 'team' && renderTeamStep()}
-        {currentStep === 'plan' && renderPlanStep()}
-        <Dialog open={privacyModalOpen} onOpenChange={setPrivacyModalOpen}>
-          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Política de Privacidade</DialogTitle>
-            </DialogHeader>
-            <div className="prose prose-sm dark:prose-invert">
-              <p>Ao utilizar nossa plataforma, você concorda com os seguintes termos:</p>
-              <ul>
-                <li>Coletamos apenas informações necessárias para o funcionamento do serviço</li>
-                <li>Seus dados pessoais são protegidos e não serão compartilhados com terceiros</li>
-                <li>Utilizamos cookies apenas para melhorar sua experiência</li>
-                <li>Você pode solicitar a exclusão de seus dados a qualquer momento</li>
-              </ul>
-            </div>
-            <DialogFooter className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setPrivacyModalOpen(false);
-                  setPrivacyChecked(false);
-                }}
-              >
-                Recusar
-              </Button>
-              <Button
-                onClick={() => {
-                  setPrivacyChecked(true);
-                  setPrivacyModalOpen(false);
-                }}
-              >
-                Aceitar
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+
+        {/* Content */}
+        <main className="flex-1 flex items-center justify-center">
+          <AnimatePresence mode="wait">
+            {currentStep === 'plans' && renderPlansStep()}
+            {currentStep === 'auth' && renderAuthStep()}
+            {currentStep === 'checkout' && renderCheckoutStep()}
+          </AnimatePresence>
+        </main>
+
+        {/* Footer */}
+        <footer className="text-center text-sm text-muted-foreground mt-8">
+          <p>© 2024 Creator. Todos os direitos reservados.</p>
+        </footer>
       </div>
+
+      {/* Privacy Modal */}
+      <Dialog open={privacyModalOpen} onOpenChange={setPrivacyModalOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Política de Privacidade</DialogTitle>
+          </DialogHeader>
+          <div className="prose prose-sm dark:prose-invert">
+            <p>Ao utilizar nossa plataforma, você concorda com os seguintes termos:</p>
+            <ul>
+              <li>Coletamos apenas informações necessárias para o funcionamento do serviço</li>
+              <li>Seus dados pessoais são protegidos e não serão compartilhados com terceiros</li>
+              <li>Utilizamos cookies apenas para melhorar sua experiência</li>
+              <li>Você pode solicitar a exclusão de seus dados a qualquer momento</li>
+            </ul>
+          </div>
+          <DialogFooter className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setPrivacyModalOpen(false);
+                setPrivacyChecked(false);
+              }}
+            >
+              Recusar
+            </Button>
+            <Button
+              onClick={() => {
+                setPrivacyChecked(true);
+                setPrivacyModalOpen(false);
+              }}
+            >
+              Aceitar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
