@@ -4,14 +4,13 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Loader2, Check, Coins, Sparkles } from "lucide-react";
+import { Loader2, Check, Coins, Sparkles, Zap, Crown, Rocket, Building2, Star, Gift, MessageCircle } from "lucide-react";
 import { TourSelector } from "@/components/onboarding/TourSelector";
 import { creditsSteps, navbarSteps } from "@/components/onboarding/tourSteps";
 import { PageBreadcrumb } from "@/components/PageBreadcrumb";
+import { motion } from "framer-motion";
 
 interface CreditPackage {
   id: string;
@@ -20,15 +19,43 @@ interface CreditPackage {
   price: number;
   credits: number;
   stripePriceId: string;
+  icon: React.ReactNode;
+  gradient: string;
+  popular?: boolean;
 }
+
+const packageConfig: Record<string, { icon: React.ReactNode; gradient: string }> = {
+  pack_trial: { 
+    icon: <Gift className="h-8 w-8" />, 
+    gradient: "from-emerald-500 to-teal-600" 
+  },
+  pack_basic: { 
+    icon: <Zap className="h-8 w-8" />, 
+    gradient: "from-blue-500 to-cyan-600" 
+  },
+  pack_pro: { 
+    icon: <Rocket className="h-8 w-8" />, 
+    gradient: "from-violet-500 to-purple-600" 
+  },
+  pack_premium: { 
+    icon: <Crown className="h-8 w-8" />, 
+    gradient: "from-amber-500 to-orange-600" 
+  },
+  pack_business: { 
+    icon: <Star className="h-8 w-8" />, 
+    gradient: "from-rose-500 to-pink-600" 
+  },
+  pack_enterprise: { 
+    icon: <Building2 className="h-8 w-8" />, 
+    gradient: "from-slate-600 to-slate-800" 
+  },
+};
 
 const Credits = () => {
   const { user, refreshUserCredits } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [packages, setPackages] = useState<CreditPackage[]>([]);
-  const [customCredits, setCustomCredits] = useState(20);
-  const [loading, setLoading] = useState(false);
   const [loadingPackageId, setLoadingPackageId] = useState<string | null>(null);
   const [verifyingPayment, setVerifyingPayment] = useState(false);
 
@@ -37,7 +64,7 @@ const Credits = () => {
     handlePaymentCallback();
   }, [searchParams]);
 
-  const legacyPlanIds = ['free', 'starter', 'pack_business'];
+  const legacyPlanIds = ['free', 'starter'];
 
   const loadPackages = async () => {
     const { data } = await supabase
@@ -55,7 +82,10 @@ const Credits = () => {
           description: p.description || '',
           price: p.price_monthly,
           credits: p.credits,
-          stripePriceId: p.stripe_price_id_monthly || ''
+          stripePriceId: p.stripe_price_id_monthly || '',
+          icon: packageConfig[p.id]?.icon || <Coins className="h-8 w-8" />,
+          gradient: packageConfig[p.id]?.gradient || "from-gray-500 to-gray-600",
+          popular: p.id === 'pack_pro'
         }));
       setPackages(filteredPackages);
     }
@@ -86,7 +116,6 @@ const Credits = () => {
             { duration: 5000 }
           );
           await refreshUserCredits();
-          // Limpar query params
           navigate('/credits', { replace: true });
         } else {
           toast.error("Pagamento não foi concluído");
@@ -146,42 +175,29 @@ const Credits = () => {
     }
   };
 
-  const handleBuyCustom = async () => {
-    if (!user || customCredits < 20) {
-      toast.error("Quantidade mínima: 20 créditos");
-      return;
-    }
-    
-    setLoading(true);
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: { 
-          type: 'custom',
-          credits: customCredits
-        },
-        headers: {
-          Authorization: `Bearer ${session?.access_token}`,
-        }
-      });
-
-      if (error) throw error;
-      if (data.url) {
-        window.open(data.url, '_blank');
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
       }
-    } catch (error: any) {
-      console.error("Error creating checkout:", error);
-      toast.error("Erro ao criar checkout: " + error.message);
-    } finally {
-      setLoading(false);
     }
   };
 
-  const customTotal = customCredits * 2;
+  const cardVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: {
+        duration: 0.4
+      }
+    }
+  };
 
   return (
     <div className="container mx-auto p-6 max-w-7xl">
-      {/* Breadcrumb Navigation */}
       <PageBreadcrumb items={[{ label: "Comprar Créditos" }]} className="mb-6" />
 
       {verifyingPayment && (
@@ -195,140 +211,186 @@ const Credits = () => {
         </div>
       )}
 
-      <div id="credits-balance" className="mb-8">
-        <h1 className="text-4xl font-bold mb-2">Meus Créditos</h1>
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <Coins className="h-5 w-5" />
-          <p className="text-lg">
-            Saldo atual: <span className="font-bold text-foreground">{user?.credits || 0}</span> créditos
-          </p>
+      {/* Header com saldo */}
+      <motion.div 
+        id="credits-balance" 
+        className="mb-10"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <h1 className="text-4xl font-bold mb-4">Comprar Créditos</h1>
+        <div className="inline-flex items-center gap-3 bg-primary/10 px-6 py-3 rounded-full border border-primary/20">
+          <div className="p-2 bg-primary/20 rounded-full">
+            <Coins className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <p className="text-sm text-muted-foreground">Seu saldo atual</p>
+            <p className="text-2xl font-bold text-primary">{user?.credits || 0} créditos</p>
+          </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Pacotes de Créditos */}
       <section className="mb-12">
-        <div className="flex items-center gap-2 mb-6">
+        <div className="flex items-center gap-2 mb-8">
           <Sparkles className="h-6 w-6 text-primary" />
-          <h2 className="text-2xl font-bold">Pacotes de Créditos</h2>
+          <h2 className="text-2xl font-bold">Escolha seu Pacote</h2>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        
+        <motion.div 
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
           {packages.map((pkg) => (
-            <Card key={pkg.id} className={pkg.id === 'pack_pro' ? 'border-primary shadow-lg' : ''}>
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle className="text-2xl">{pkg.name}</CardTitle>
-                    <CardDescription className="mt-2">
-                      {pkg.credits} créditos para usar como quiser
-                    </CardDescription>
-                  </div>
-                  {pkg.id === 'pack_pro' && (
-                    <Badge variant="default" className="ml-2">
+            <motion.div key={pkg.id} variants={cardVariants}>
+              <Card 
+                className={`relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${
+                  pkg.popular ? 'ring-2 ring-primary shadow-lg' : ''
+                }`}
+              >
+                {/* Gradient header */}
+                <div className={`h-2 bg-gradient-to-r ${pkg.gradient}`} />
+                
+                {pkg.popular && (
+                  <div className="absolute top-4 right-4">
+                    <Badge className="bg-primary text-primary-foreground animate-pulse">
                       Mais Popular
                     </Badge>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="mb-4">
-                  <div className="text-4xl font-bold mb-2">
-                    {pkg.price === 0 ? 'Grátis' : `R$ ${pkg.price.toFixed(2)}`}
                   </div>
-                  <div className="flex items-center gap-2 text-lg text-muted-foreground">
-                    <Coins className="h-5 w-5" />
-                    <span className="font-semibold">{pkg.credits} créditos</span>
+                )}
+
+                <CardHeader className="pb-4">
+                  <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${pkg.gradient} flex items-center justify-center text-white mb-4 shadow-lg`}>
+                    {pkg.icon}
                   </div>
-                  {pkg.price > 0 && (
-                    <div className="text-sm text-muted-foreground mt-1">
-                      R$ {(pkg.price / pkg.credits).toFixed(2)} por crédito
-                    </div>
-                  )}
-                </div>
-                <Button 
-                  id="buy-credits-button"
-                  onClick={() => handleBuyPackage(pkg)}
-                  disabled={loadingPackageId === pkg.id}
-                  className="w-full"
-                  size="lg"
-                  variant={pkg.id === 'pack_pro' ? 'default' : 'outline'}
-                >
-                  {loadingPackageId === pkg.id ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : pkg.id === 'pack_enterprise' ? (
-                    <>Falar com Consultor</>
-                  ) : pkg.price === 0 ? (
-                    <>Já Incluído</>
-                  ) : (
-                    <>
-                      <Check className="h-4 w-4 mr-2" />
-                      Comprar Agora
-                    </>
-                  )}
-                </Button>
-              </CardContent>
-            </Card>
+                  <CardTitle className="text-2xl">{pkg.name}</CardTitle>
+                  <CardDescription className="text-base">
+                    {pkg.credits} créditos para criar conteúdo
+                  </CardDescription>
+                </CardHeader>
+
+                <CardContent className="space-y-6">
+                  {/* Preço */}
+                  <div>
+                    {pkg.id === 'pack_enterprise' ? (
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-3xl font-bold text-foreground">Sob consulta</span>
+                      </div>
+                    ) : pkg.price === 0 ? (
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-4xl font-bold text-primary">Grátis</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-4xl font-bold">R$ {pkg.price.toFixed(0)}</span>
+                        <span className="text-muted-foreground">/pacote</span>
+                      </div>
+                    )}
+                    
+                    {pkg.price > 0 && pkg.id !== 'pack_enterprise' && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        R$ {(pkg.price / pkg.credits).toFixed(2)} por crédito
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Features */}
+                  <ul className="space-y-2">
+                    <li className="flex items-center gap-2 text-sm">
+                      <Check className="h-4 w-4 text-primary" />
+                      <span>{pkg.credits} créditos inclusos</span>
+                    </li>
+                    <li className="flex items-center gap-2 text-sm">
+                      <Check className="h-4 w-4 text-primary" />
+                      <span>Sem validade</span>
+                    </li>
+                    <li className="flex items-center gap-2 text-sm">
+                      <Check className="h-4 w-4 text-primary" />
+                      <span>Acesso a todos os recursos</span>
+                    </li>
+                  </ul>
+
+                  {/* Botão */}
+                  <Button 
+                    onClick={() => handleBuyPackage(pkg)}
+                    disabled={loadingPackageId === pkg.id}
+                    className={`w-full h-12 text-base font-semibold transition-all duration-300 ${
+                      pkg.popular 
+                        ? 'bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl' 
+                        : pkg.id === 'pack_enterprise'
+                        ? 'bg-secondary hover:bg-secondary/80 text-secondary-foreground'
+                        : ''
+                    }`}
+                    variant={pkg.popular || pkg.id === 'pack_enterprise' ? 'default' : 'outline'}
+                    size="lg"
+                  >
+                    {loadingPackageId === pkg.id ? (
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : pkg.id === 'pack_enterprise' ? (
+                      <>
+                        <MessageCircle className="h-5 w-5 mr-2" />
+                        Falar com Consultor
+                      </>
+                    ) : pkg.price === 0 ? (
+                      <>
+                        <Check className="h-5 w-5 mr-2" />
+                        Já Incluído
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="h-5 w-5 mr-2" />
+                        Comprar Agora
+                      </>
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </section>
 
-      {/* Compra Avulsa */}
-      <section>
-        <h2 className="text-2xl font-bold mb-6">Compra Personalizada</h2>
-        <Card className="max-w-2xl">
-          <CardHeader>
-            <CardTitle>Escolha a quantidade de créditos</CardTitle>
-            <CardDescription>
-              Compre a quantidade exata que você precisa (mínimo 20 créditos)
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
+      {/* Info section */}
+      <motion.section 
+        className="bg-muted/50 rounded-2xl p-8 border"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5, duration: 0.5 }}
+      >
+        <h3 className="text-xl font-semibold mb-4">Como funcionam os créditos?</h3>
+        <div className="grid md:grid-cols-3 gap-6">
+          <div className="flex items-start gap-3">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <Zap className="h-5 w-5 text-primary" />
+            </div>
             <div>
-              <Label htmlFor="custom-credits">Quantidade de Créditos</Label>
-              <Input 
-                id="custom-credits"
-                type="number" 
-                min={20}
-                step={10}
-                value={customCredits}
-                onChange={(e) => setCustomCredits(Math.max(20, parseInt(e.target.value) || 20))}
-                className="text-lg mt-2"
-              />
-              <p className="text-sm text-muted-foreground mt-2">
-                Cada crédito custa R$ 2,00
-              </p>
+              <p className="font-medium">Criação Rápida</p>
+              <p className="text-sm text-muted-foreground">5 créditos por conteúdo</p>
             </div>
-            
-            <div className="bg-muted p-4 rounded-lg">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-muted-foreground">Quantidade:</span>
-                <span className="font-semibold">{customCredits} créditos</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-lg font-semibold">Total:</span>
-                <span className="text-3xl font-bold text-primary">
-                  R$ {customTotal.toFixed(2)}
-                </span>
-              </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <Sparkles className="h-5 w-5 text-primary" />
             </div>
-
-            <Button 
-              onClick={handleBuyCustom}
-              disabled={loading || customCredits < 20}
-              className="w-full"
-              size="lg"
-            >
-              {loading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <>
-                  <Coins className="h-4 w-4 mr-2" />
-                  Comprar {customCredits} Créditos
-                </>
-              )}
-            </Button>
-          </CardContent>
-        </Card>
-      </section>
+            <div>
+              <p className="font-medium">Imagem Personalizada</p>
+              <p className="text-sm text-muted-foreground">6 créditos por imagem</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <Rocket className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <p className="font-medium">Vídeo</p>
+              <p className="text-sm text-muted-foreground">20 créditos por vídeo</p>
+            </div>
+          </div>
+        </div>
+      </motion.section>
 
       <TourSelector 
         tours={[
