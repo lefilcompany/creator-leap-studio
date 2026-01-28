@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
@@ -62,11 +62,64 @@ const MAX_CREDITS = 500;
 const Plans = () => {
   const { user, refreshUserCredits } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [packages, setPackages] = useState<CreditPackage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadingPackageId, setLoadingPackageId] = useState<string | null>(null);
   const [customCredits, setCustomCredits] = useState(20);
   const [loadingCustom, setLoadingCustom] = useState(false);
+  const [verifyingPayment, setVerifyingPayment] = useState(false);
+
+  // Handle payment callback
+  const handlePaymentCallback = useCallback(async () => {
+    const success = searchParams.get('success');
+    const sessionId = searchParams.get('session_id');
+
+    if (success === 'true' && sessionId) {
+      setVerifyingPayment(true);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const { data, error } = await supabase.functions.invoke('verify-payment', {
+          body: { session_id: sessionId },
+          headers: {
+            Authorization: `Bearer ${session?.access_token}`,
+          }
+        });
+
+        if (error) throw error;
+
+        if (data.success) {
+          await refreshUserCredits();
+          
+          toast.success(
+            data.already_processed 
+              ? "Pagamento já processado! Redirecionando..." 
+              : `✅ ${data.credits_added} créditos adicionados! Novo saldo: ${data.new_balance} créditos`,
+            { duration: 4000 }
+          );
+          
+          setTimeout(() => {
+            navigate('/dashboard', { replace: true });
+          }, 1500);
+        } else {
+          toast.error("Pagamento não foi concluído");
+          navigate('/plans', { replace: true });
+        }
+      } catch (error: any) {
+        console.error("Error verifying payment:", error);
+        toast.error("Erro ao verificar pagamento: " + error.message);
+      } finally {
+        setVerifyingPayment(false);
+      }
+    } else if (searchParams.get('canceled') === 'true') {
+      toast.info("Compra cancelada");
+      navigate('/plans', { replace: true });
+    }
+  }, [searchParams, navigate, refreshUserCredits]);
+
+  useEffect(() => {
+    handlePaymentCallback();
+  }, [handlePaymentCallback]);
 
   const loadPackages = useCallback(async () => {
     try {
@@ -131,7 +184,7 @@ const Plans = () => {
           type: 'credits',
           price_id: pkg.stripePriceId,
           package_id: pkg.id,
-          return_url: '/credits'
+          return_url: '/plans'
         },
       });
 
@@ -168,7 +221,7 @@ const Plans = () => {
         body: { 
           type: 'custom',
           credits: customCredits,
-          return_url: '/credits'
+          return_url: '/plans'
         },
       });
 
@@ -307,6 +360,19 @@ const Plans = () => {
       </motion.div>
     );
   };
+
+  if (verifyingPayment) {
+    return (
+      <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
+        <Card className="w-auto">
+          <CardContent className="pt-6 flex flex-col items-center gap-4">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="text-lg font-medium">Verificando pagamento...</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
