@@ -118,8 +118,9 @@ serve(async (req) => {
       });
       logStep("Credits checkout session created", { sessionId: session.id, packageId });
     } else {
-      // Compra avulsa
-      if (!credits || credits < 20) throw new Error("credits is required and must be at least 20");
+      // Compra avulsa dinâmica
+      if (!credits || credits < 5) throw new Error("credits is required and must be at least 5");
+      if (credits % 5 !== 0) throw new Error("credits must be a multiple of 5");
       
       const amountInCents = credits * 200; // R$ 2,00 por crédito = 200 centavos
       
@@ -132,7 +133,7 @@ serve(async (req) => {
               currency: 'brl',
               product_data: {
                 name: `${credits} Créditos Creator`,
-                description: `Compra avulsa de ${credits} créditos`,
+                description: `Compra avulsa de ${credits} créditos (R$ 2,00 por crédito)`,
               },
               unit_amount: amountInCents,
             },
@@ -144,7 +145,7 @@ serve(async (req) => {
         cancel_url: `${origin}/credits?canceled=true`,
         metadata: {
           user_id: user.id,
-          team_id: teamId || '', // Opcional agora
+          team_id: teamId || '',
           purchase_type: 'custom',
           credits: credits.toString(),
         }
