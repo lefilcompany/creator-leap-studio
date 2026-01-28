@@ -20,6 +20,10 @@ import {
   Shield,
   Clock,
   Rocket,
+  Plus,
+  Minus,
+  ShoppingCart,
+  Check,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PageBreadcrumb } from "@/components/PageBreadcrumb";
@@ -50,6 +54,10 @@ const packageColors: Record<string, string> = {
 };
 
 const ENTERPRISE_WHATSAPP = "5581996600072";
+const CREDIT_PRICE = 2; // R$ 2,00 por crédito
+const CREDIT_STEP = 5; // Incremento de 5 em 5
+const MIN_CREDITS = 5;
+const MAX_CREDITS = 500;
 
 const Plans = () => {
   const { user, refreshUserCredits } = useAuth();
@@ -57,6 +65,8 @@ const Plans = () => {
   const [packages, setPackages] = useState<CreditPackage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadingPackageId, setLoadingPackageId] = useState<string | null>(null);
+  const [customCredits, setCustomCredits] = useState(20);
+  const [loadingCustom, setLoadingCustom] = useState(false);
 
   const loadPackages = useCallback(async () => {
     try {
@@ -144,6 +154,45 @@ const Plans = () => {
     } finally {
       setLoadingPackageId(null);
     }
+  };
+
+  const handleCustomPurchase = async () => {
+    if (!user) {
+      navigate("/onboarding");
+      return;
+    }
+    
+    setLoadingCustom(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: { 
+          type: 'custom',
+          credits: customCredits,
+          return_url: '/credits'
+        },
+      });
+
+      if (error) throw error;
+      if (data?.url) {
+        toast.success("Abrindo página de pagamento...");
+        setTimeout(() => {
+          window.open(data.url, '_blank');
+        }, 500);
+      }
+    } catch (error: any) {
+      console.error("Error creating custom checkout:", error);
+      toast.error("Erro ao criar checkout: " + error.message);
+    } finally {
+      setLoadingCustom(false);
+    }
+  };
+
+  const incrementCredits = () => {
+    setCustomCredits(prev => Math.min(prev + CREDIT_STEP, MAX_CREDITS));
+  };
+
+  const decrementCredits = () => {
+    setCustomCredits(prev => Math.max(prev - CREDIT_STEP, MIN_CREDITS));
   };
 
   const renderPackageCard = (pkg: CreditPackage, isPopular: boolean = false) => {
@@ -326,6 +375,103 @@ const Plans = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {packages.map((pkg) => renderPackageCard(pkg, pkg.id === 'pack_pro'))}
       </div>
+
+      {/* Compra Avulsa */}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3, duration: 0.5 }}
+      >
+        <Card className="relative overflow-hidden border-2 border-dashed border-primary/30 hover:border-primary/50 transition-all duration-300">
+          <div className="h-2 bg-gradient-to-r from-primary/50 via-primary to-primary/50" />
+          
+          <CardContent className="pt-8 pb-8">
+            <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
+              {/* Info */}
+              <div className="flex-1 text-center lg:text-left">
+                <div className="flex items-center justify-center lg:justify-start gap-2 mb-2">
+                  <ShoppingCart className="h-6 w-6 text-primary" />
+                  <h3 className="text-2xl font-bold">Compra Avulsa</h3>
+                </div>
+                <p className="text-muted-foreground mb-4">
+                  Compre créditos avulsos de 5 em 5. Cada crédito custa <span className="font-semibold text-primary">R$ {CREDIT_PRICE.toFixed(2)}</span>
+                </p>
+                <div className="flex items-center justify-center lg:justify-start gap-2 text-sm text-muted-foreground">
+                  <Check className="h-4 w-4 text-primary" />
+                  <span>Pagamento único via Stripe</span>
+                </div>
+              </div>
+
+              {/* Seletor de quantidade */}
+              <div className="flex flex-col items-center gap-4">
+                <div className="flex items-center gap-4">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-12 w-12 rounded-full border-2 hover:bg-primary hover:text-primary-foreground transition-all"
+                    onClick={decrementCredits}
+                    disabled={customCredits <= MIN_CREDITS}
+                  >
+                    <Minus className="h-5 w-5" />
+                  </Button>
+                  
+                  <div className="text-center min-w-[140px]">
+                    <motion.div 
+                      key={customCredits}
+                      initial={{ scale: 1.2, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      className="text-5xl font-bold text-primary"
+                    >
+                      {customCredits}
+                    </motion.div>
+                    <p className="text-sm text-muted-foreground">créditos</p>
+                  </div>
+                  
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-12 w-12 rounded-full border-2 hover:bg-primary hover:text-primary-foreground transition-all"
+                    onClick={incrementCredits}
+                    disabled={customCredits >= MAX_CREDITS}
+                  >
+                    <Plus className="h-5 w-5" />
+                  </Button>
+                </div>
+
+                {/* Preço total */}
+                <motion.div 
+                  key={customCredits * CREDIT_PRICE}
+                  initial={{ scale: 1.1 }}
+                  animate={{ scale: 1 }}
+                  className="bg-primary/10 px-6 py-3 rounded-xl border border-primary/20"
+                >
+                  <p className="text-sm text-muted-foreground text-center">Total</p>
+                  <p className="text-3xl font-bold text-primary">
+                    R$ {(customCredits * CREDIT_PRICE).toFixed(2)}
+                  </p>
+                </motion.div>
+
+                {/* Botão de compra */}
+                <Button
+                  onClick={handleCustomPurchase}
+                  disabled={loadingCustom}
+                  size="lg"
+                  className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl transition-all duration-300"
+                >
+                  {loadingCustom ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <>
+                      <ShoppingCart className="h-5 w-5 mr-2" />
+                      Comprar {customCredits} Créditos
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
 
       {/* Info section */}
       <Card className="bg-muted/50">
