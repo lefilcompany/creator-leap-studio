@@ -288,7 +288,7 @@ const Dashboard = () => {
             <Progress value={stats[0].progress} className="h-3 bg-primary/20 mb-3" />
             <Link to="/plans">
               <Button variant="link" className="h-auto p-0 text-sm text-primary hover:text-primary/80 font-medium">
-                Ver planos e uso <ArrowRight className="w-4 h-4 ml-1" />
+                Comprar mais créditos <ArrowRight className="w-4 h-4 ml-1" />
               </Button>
             </Link>
           </CardContent>

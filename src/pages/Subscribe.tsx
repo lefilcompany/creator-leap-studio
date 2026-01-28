@@ -619,7 +619,6 @@ export default function Subscribe() {
             onCheckoutComplete={() => {
               navigate('/dashboard?payment_success=true');
             }}
-            showCurrentPlan={false}
           />
         </motion.div>
       </div>
