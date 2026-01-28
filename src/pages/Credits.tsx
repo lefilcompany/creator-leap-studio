@@ -116,16 +116,22 @@ const Credits = () => {
         if (error) throw error;
 
         if (data.success) {
+          await refreshUserCredits();
+          
           toast.success(
             data.already_processed 
-              ? "Pagamento já processado anteriormente!" 
+              ? "Pagamento já processado! Redirecionando..." 
               : `✅ ${data.credits_added} créditos adicionados! Novo saldo: ${data.new_balance} créditos`,
-            { duration: 5000 }
+            { duration: 4000 }
           );
-          await refreshUserCredits();
-          navigate('/credits', { replace: true });
+          
+          // Redireciona para o dashboard após sucesso
+          setTimeout(() => {
+            navigate('/dashboard', { replace: true });
+          }, 1500);
         } else {
           toast.error("Pagamento não foi concluído");
+          navigate('/credits', { replace: true });
         }
       } catch (error: any) {
         console.error("Error verifying payment:", error);
