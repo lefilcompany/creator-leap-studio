@@ -171,7 +171,7 @@ const Credits = () => {
       )}
 
       <div id="credits-balance" className="mb-8">
-        <h1 className="text-4xl font-bold mb-2">Comprar Créditos</h1>
+        <h1 className="text-4xl font-bold mb-2">Meus Créditos</h1>
         <div className="flex items-center gap-2 text-muted-foreground">
           <Coins className="h-5 w-5" />
           <p className="text-lg">

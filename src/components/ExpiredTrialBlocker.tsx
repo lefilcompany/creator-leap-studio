@@ -58,18 +58,18 @@ export const ExpiredTrialBlocker = () => {
               <AlertCircle className="h-6 w-6 text-destructive" />
             </div>
             <AlertDialogTitle className="text-xl">
-              Período de Teste Expirado
+              Créditos Insuficientes
             </AlertDialogTitle>
           </div>
           <AlertDialogDescription className="text-base leading-relaxed">
-            Seu período de teste gratuito expirou. Para continuar usando o Creator,
-            você precisa escolher um plano e realizar a assinatura.
+            Seus créditos acabaram. Para continuar usando o Creator,
+            você precisa comprar mais créditos.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter className="flex-col sm:flex-row gap-2">
           <Button
             onClick={() => {
-              window.open("https://wa.me/558199660072", "_blank");
+              window.open("https://wa.me/5581996600072", "_blank");
             }}
             variant="outline"
             className="w-full sm:w-auto"
@@ -80,7 +80,7 @@ export const ExpiredTrialBlocker = () => {
             onClick={() => navigate("/plans")}
             className="w-full sm:w-auto"
           >
-            Ver Planos Disponíveis
+            Comprar Créditos
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

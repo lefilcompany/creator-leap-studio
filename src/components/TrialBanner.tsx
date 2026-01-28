@@ -1,85 +1,43 @@
-import { useEffect, useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { AlertCircle, Clock } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { AlertCircle, Zap } from "lucide-react";
 
 export const TrialBanner = () => {
   const navigate = useNavigate();
-  const [trialInfo, setTrialInfo] = useState<{
-    isTrialing: boolean;
-    daysLeft: number;
-    endDate: string | null;
-  } | null>(null);
+  const { user } = useAuth();
 
-  useEffect(() => {
-    const checkTrialStatus = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+  // Show banner only when credits are low (less than 10)
+  if (!user || (user.credits || 0) >= 10) return null;
 
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("team_id")
-        .eq("id", user.id)
-        .single();
-
-      if (!profile?.team_id) return;
-
-      const { data: team } = await supabase
-        .from("teams")
-        .select("subscription_status, subscription_period_end, plan_id")
-        .eq("id", profile.team_id)
-        .single();
-
-      if (!team) return;
-
-      if (team.subscription_status === "trialing" && team.subscription_period_end) {
-        const endDate = new Date(team.subscription_period_end);
-        const now = new Date();
-        const diffTime = endDate.getTime() - now.getTime();
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-        setTrialInfo({
-          isTrialing: true,
-          daysLeft: diffDays,
-          endDate: team.subscription_period_end,
-        });
-      }
-    };
-
-    checkTrialStatus();
-  }, []);
-
-  if (!trialInfo?.isTrialing) return null;
+  const credits = user.credits || 0;
+  const isZero = credits === 0;
 
   return (
-    <Card className="bg-gradient-to-r from-primary/10 to-accent/10 border-primary/20 p-4 mb-6">
+    <Card className={`${isZero ? 'bg-gradient-to-r from-destructive/10 to-destructive/5 border-destructive/20' : 'bg-gradient-to-r from-primary/10 to-accent/10 border-primary/20'} p-4 mb-6`}>
       <div className="flex items-start gap-3">
-        <Clock className="h-5 w-5 text-primary mt-0.5" />
+        {isZero ? (
+          <AlertCircle className="h-5 w-5 text-destructive mt-0.5" />
+        ) : (
+          <Zap className="h-5 w-5 text-primary mt-0.5" />
+        )}
         <div className="flex-1">
           <h3 className="font-semibold text-foreground mb-1">
-            Período de Teste Ativo
+            {isZero ? 'Créditos Esgotados' : 'Créditos Baixos'}
           </h3>
           <p className="text-sm text-muted-foreground mb-3">
-            Você tem <strong>{trialInfo.daysLeft} dias</strong> restantes no seu período de teste gratuito.
-            {trialInfo.endDate && (
-              <span className="block mt-1">
-                Expira {formatDistanceToNow(new Date(trialInfo.endDate), {
-                  addSuffix: true,
-                  locale: ptBR,
-                })}
-              </span>
-            )}
+            {isZero 
+              ? 'Você não tem mais créditos disponíveis. Compre mais para continuar criando conteúdo.'
+              : `Você tem apenas ${credits} créditos restantes. Compre mais para não ficar sem.`
+            }
           </p>
           <Button
             onClick={() => navigate("/plans")}
             size="sm"
-            variant="default"
+            variant={isZero ? "destructive" : "default"}
           >
-            Ver Planos
+            Comprar Créditos
           </Button>
         </div>
       </div>

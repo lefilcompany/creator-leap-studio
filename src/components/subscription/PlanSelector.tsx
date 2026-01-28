@@ -1,155 +1,147 @@
 import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
-  Rocket,
-  Users,
-  Package,
-  Palette,
-  UserCircle,
-  Sparkles,
   Crown,
   Zap,
+  Sparkles,
+  Star,
   CheckCircle,
   Loader2,
+  ArrowRight,
+  MessageCircle,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import type { Plan } from "@/types/plan";
+import { motion } from "framer-motion";
 
-interface PlanSelectorProps {
-  onPlanSelected?: (planId: string) => void;
-  onCheckoutComplete?: () => void;
-  showCurrentPlan?: boolean;
+interface CreditPackage {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  credits: number;
+  stripePriceId: string | null;
+  isEnterprise?: boolean;
 }
 
-const planIcons: Record<string, any> = {
-  free: Rocket,
-  basic: Package,
-  pro: Crown,
-  enterprise: Sparkles,
+interface PackageSelectorProps {
+  onPackageSelected?: (packageId: string) => void;
+  onCheckoutComplete?: () => void;
+}
+
+const packageIcons: Record<string, any> = {
+  pack_basic: Zap,
+  pack_pro: Crown,
+  pack_premium: Sparkles,
+  pack_enterprise: Star,
 };
 
-const planColors: Record<string, string> = {
-  free: "from-blue-500/20 to-blue-600/20",
-  basic: "from-green-500/20 to-green-600/20",
-  pro: "from-purple-500/20 to-purple-600/20",
-  enterprise: "from-orange-500/20 to-orange-600/20",
+const packageColors: Record<string, string> = {
+  pack_basic: "from-blue-500 to-blue-600",
+  pack_pro: "from-purple-500 to-purple-600",
+  pack_premium: "from-pink-500 to-pink-600",
+  pack_enterprise: "from-amber-500 to-orange-600",
 };
 
-export function PlanSelector({ onPlanSelected, onCheckoutComplete, showCurrentPlan = true }: PlanSelectorProps) {
-  const { user, team } = useAuth();
-  const [plans, setPlans] = useState<Plan[]>([]);
+const ENTERPRISE_WHATSAPP = "5581996600072";
+
+export function PlanSelector({ onPackageSelected, onCheckoutComplete }: PackageSelectorProps) {
+  const { user } = useAuth();
+  const [packages, setPackages] = useState<CreditPackage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [loadingPlanId, setLoadingPlanId] = useState<string | null>(null);
+  const [loadingPackageId, setLoadingPackageId] = useState<string | null>(null);
 
-  const loadPlans = useCallback(async () => {
+  const loadPackages = useCallback(async () => {
     try {
-      const { data: plansData, error } = await supabase
+      const { data: packagesData, error } = await supabase
         .from("plans")
         .select("*")
         .eq("is_active", true)
-        .eq("can_subscribe_online", true);
+        .order("price_monthly", { ascending: true });
 
       if (error) throw error;
 
-      if (plansData) {
-        const formattedPlans: Plan[] = plansData
-          .filter((p) => p.id !== 'pack_trial' && p.id !== 'starter')
+      if (packagesData) {
+        const formattedPackages: CreditPackage[] = packagesData
+          .filter((p) => p.id !== 'pack_trial' && p.id !== 'starter' && p.id !== 'free' && p.id !== 'pack_business')
           .map((p) => ({
             id: p.id,
             name: p.name,
             description: p.description || '',
             price: p.price_monthly || 0,
-            credits: (p as any).credits || 0,
-            maxMembers: p.max_members,
-            maxBrands: p.max_brands,
-            maxStrategicThemes: p.max_strategic_themes,
-            maxPersonas: p.max_personas,
-            trialDays: p.trial_days || 0,
-            isActive: p.is_active,
+            credits: p.credits || 0,
             stripePriceId: p.stripe_price_id_monthly,
-            stripeProductId: p.stripe_product_id,
+            isEnterprise: p.id === 'pack_enterprise',
           }));
         
-        // Ordenar: free, basic, pro, enterprise
-        const planOrder = { free: 1, basic: 2, pro: 3, enterprise: 4 };
-        const sortedPlans = formattedPlans.sort((a, b) => {
-          return (planOrder[a.id as keyof typeof planOrder] || 999) - (planOrder[b.id as keyof typeof planOrder] || 999);
-        });
-        
-        setPlans(sortedPlans);
+        setPackages(formattedPackages);
       }
     } catch (error) {
-      console.error("Error loading plans:", error);
-      toast.error("Erro ao carregar planos");
+      console.error("Error loading packages:", error);
+      toast.error("Erro ao carregar pacotes");
     } finally {
       setIsLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    loadPlans();
-  }, [loadPlans]);
+    loadPackages();
+  }, [loadPackages]);
 
-  const handleSelectPlan = async (plan: Plan) => {
-    if (!user || !team) {
-      toast.error("Você precisa estar autenticado e ter uma equipe");
+  const handleSelectPackage = async (pkg: CreditPackage) => {
+    if (!user) {
+      toast.error("Você precisa estar autenticado");
       return;
     }
 
-    // Plano free não precisa checkout
-    if (plan.id === 'free') {
-      toast.info("Você já está no plano gratuito");
+    // Enterprise - WhatsApp
+    if (pkg.isEnterprise) {
+      const message = encodeURIComponent("Olá! Tenho interesse no pacote Enterprise do Creator. Gostaria de mais informações.");
+      window.open(`https://wa.me/${ENTERPRISE_WHATSAPP}?text=${message}`, '_blank');
       return;
     }
 
-    if (!plan.stripePriceId) {
-      toast.error("Plano sem configuração de preço no Stripe");
+    if (!pkg.stripePriceId) {
+      toast.error("Pacote sem configuração de preço");
       return;
     }
 
-    setLoadingPlanId(plan.id);
+    setLoadingPackageId(pkg.id);
 
     try {
-      // Chamar edge function para criar sessão de checkout
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: {
-          type: 'plan',
-          price_id: plan.stripePriceId,
-          plan_id: plan.id,
-          return_url: '/payment-success'
+          type: 'credits',
+          price_id: pkg.stripePriceId,
+          package_id: pkg.id,
+          return_url: '/credits'
         }
       });
 
-      if (error) {
-        console.error("Checkout error:", error);
-        throw error;
-      }
+      if (error) throw error;
 
       if (!data?.url) {
         throw new Error("URL de checkout não retornada");
       }
 
-      // Abrir checkout do Stripe em nova aba
       window.open(data.url, '_blank');
       
-      toast.info("Redirecionando para o checkout do Stripe...", {
-        description: "Complete o pagamento na janela que acabou de abrir. Seus créditos serão adicionados automaticamente.",
+      toast.info("Abrindo checkout...", {
+        description: "Complete o pagamento na janela que acabou de abrir.",
         duration: 10000,
       });
 
-      if (onPlanSelected) {
-        onPlanSelected(plan.id);
+      if (onPackageSelected) {
+        onPackageSelected(pkg.id);
       }
     } catch (error: any) {
       console.error("Erro ao processar pagamento:", error);
       toast.error(error.message || "Erro ao processar pagamento");
     } finally {
-      setLoadingPlanId(null);
+      setLoadingPackageId(null);
     }
   };
 
@@ -162,99 +154,103 @@ export function PlanSelector({ onPlanSelected, onCheckoutComplete, showCurrentPl
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {plans.map((plan) => {
-        const Icon = planIcons[plan.id] || Zap;
-        const isCurrentPlan = showCurrentPlan && team?.plan.id === plan.id;
-        const gradientClass = planColors[plan.id] || "from-gray-500/20 to-gray-600/20";
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {packages.map((pkg) => {
+        const Icon = packageIcons[pkg.id] || Zap;
+        const colorClass = packageColors[pkg.id] || "from-blue-500 to-blue-600";
+        const isEnterprise = pkg.isEnterprise;
+        const isPopular = pkg.id === 'pack_pro';
 
         return (
-          <Card
-            key={plan.id}
-            className={cn(
-              "relative overflow-hidden transition-all duration-300 hover:shadow-xl",
-              isCurrentPlan && "ring-2 ring-primary shadow-xl"
-            )}
+          <motion.div
+            key={pkg.id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            whileHover={{ scale: 1.02, y: -4 }}
+            className="h-full"
           >
-            <div className={cn("absolute inset-0 bg-gradient-to-br opacity-50", gradientClass)} />
-            
-            <CardHeader className="relative">
-              <div className="flex items-start justify-between mb-4">
+            <Card
+              className={cn(
+                "relative h-full transition-all duration-300 overflow-hidden group cursor-pointer",
+                "border-2 hover:shadow-2xl",
+                isPopular && "ring-2 ring-primary/30 shadow-xl",
+                isEnterprise && "border-amber-500/50"
+              )}
+              onClick={() => handleSelectPackage(pkg)}
+            >
+              {isPopular && (
+                <div className="absolute -right-8 top-6 rotate-45 bg-primary px-10 py-1 text-xs font-semibold text-primary-foreground shadow-lg">
+                  Popular
+                </div>
+              )}
+
+              {isEnterprise && (
+                <div className="absolute -right-8 top-6 rotate-45 bg-amber-500 px-10 py-1 text-xs font-semibold text-white shadow-lg">
+                  Sob consulta
+                </div>
+              )}
+
+              <CardHeader className="relative pb-2">
                 <div className={cn(
-                  "p-3 rounded-lg",
-                  plan.id === 'free' && "bg-blue-500/10",
-                  plan.id === 'basic' && "bg-green-500/10",
-                  plan.id === 'pro' && "bg-purple-500/10",
-                  plan.id === 'enterprise' && "bg-orange-500/10"
+                  "w-12 h-12 rounded-xl flex items-center justify-center mb-3",
+                  "bg-gradient-to-br shadow-lg",
+                  colorClass
                 )}>
-                  <Icon className="h-6 w-6" />
+                  <Icon className="h-6 w-6 text-white" />
                 </div>
-                {isCurrentPlan && (
-                  <Badge variant="default" className="text-xs">
-                    <CheckCircle className="h-3 w-3 mr-1" />
-                    Seu Plano
-                  </Badge>
-                )}
-              </div>
-              
-              <CardTitle className="text-2xl">{plan.name}</CardTitle>
-              <CardDescription className="min-h-[3rem]">{plan.description}</CardDescription>
-              
-              <div className="mt-4">
-                <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-bold">
-                    R$ {plan.price.toLocaleString('pt-BR')}
-                  </span>
-                  <span className="text-muted-foreground">/mês</span>
+                
+                <CardTitle className="text-xl font-bold">{pkg.name}</CardTitle>
+                <CardDescription className="text-sm">{pkg.description}</CardDescription>
+                
+                <div className="mt-3 flex items-baseline gap-1">
+                  {isEnterprise ? (
+                    <span className="text-lg font-bold text-amber-600">Entre em contato</span>
+                  ) : (
+                    <span className="text-3xl font-bold">R$ {pkg.price.toLocaleString('pt-BR')}</span>
+                  )}
                 </div>
-              </div>
-            </CardHeader>
+              </CardHeader>
 
-            <CardContent className="relative space-y-6">
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 text-sm">
-                  <Zap className="h-4 w-4 text-primary flex-shrink-0" />
-                  <span>{plan.credits.toLocaleString('pt-BR')} créditos/mês</span>
+              <CardContent className="relative space-y-4">
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/5 border border-primary/10">
+                  <Zap className="h-5 w-5 text-primary flex-shrink-0" />
+                  <div>
+                    <span className="text-xl font-bold text-primary">
+                      {isEnterprise ? '∞' : pkg.credits.toLocaleString('pt-BR')}
+                    </span>
+                    <span className="text-sm text-muted-foreground ml-1">créditos</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Users className="h-4 w-4 text-primary flex-shrink-0" />
-                  <span>{plan.maxMembers} {plan.maxMembers === 1 ? 'membro' : 'membros'}</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Package className="h-4 w-4 text-primary flex-shrink-0" />
-                  <span>{plan.maxBrands} {plan.maxBrands === 1 ? 'marca' : 'marcas'}</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Palette className="h-4 w-4 text-primary flex-shrink-0" />
-                  <span>{plan.maxStrategicThemes} {plan.maxStrategicThemes === 1 ? 'tema' : 'temas'} estratégicos</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <UserCircle className="h-4 w-4 text-primary flex-shrink-0" />
-                  <span>{plan.maxPersonas} personas</span>
-                </div>
-              </div>
 
-              <Button
-                className="w-full"
-                onClick={() => handleSelectPlan(plan)}
-                disabled={isCurrentPlan || loadingPlanId === plan.id || plan.id === 'free'}
-                variant={isCurrentPlan ? "secondary" : "default"}
-              >
-                {loadingPlanId === plan.id ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Processando...
-                  </>
-                ) : isCurrentPlan ? (
-                  "Plano Atual"
-                ) : plan.id === 'free' ? (
-                  "Plano Gratuito"
-                ) : (
-                  "Assinar Plano"
-                )}
-              </Button>
-            </CardContent>
-          </Card>
+                <Button
+                  className={cn(
+                    "w-full transition-all duration-300",
+                    isEnterprise 
+                      ? "bg-amber-500 hover:bg-amber-600 text-white" 
+                      : "bg-primary hover:bg-primary/90"
+                  )}
+                  disabled={loadingPackageId === pkg.id}
+                >
+                  {loadingPackageId === pkg.id ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Processando...
+                    </>
+                  ) : isEnterprise ? (
+                    <>
+                      <MessageCircle className="mr-2 h-4 w-4" />
+                      WhatsApp
+                    </>
+                  ) : (
+                    <>
+                      Comprar
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </>
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+          </motion.div>
         );
       })}
     </div>
