@@ -70,24 +70,27 @@ serve(async (req) => {
     }
 
     // Extrair metadados - user_id agora é a referência principal
-    const { user_id, purchase_type, plan_id, credits: customCredits, team_id } = session.metadata || {};
+    const { user_id, purchase_type, plan_id, package_id, credits: customCredits, team_id } = session.metadata || {};
     if (!user_id || !purchase_type) {
       throw new Error("Invalid session metadata");
     }
-    logStep("Metadata extracted", { user_id, purchase_type, plan_id, customCredits, team_id });
+    logStep("Metadata extracted", { user_id, purchase_type, plan_id, package_id, customCredits, team_id });
     
     // Determinar quantidade de créditos
     let creditsToAdd = 0;
+    let effectivePlanId = plan_id || package_id; // Suporta ambos
     
-    if (purchase_type === 'plan' && plan_id) {
+    if ((purchase_type === 'plan' || purchase_type === 'credits') && effectivePlanId) {
+      // Compra de pacote de créditos
       const { data: planData } = await supabase
         .from('plans')
         .select('credits')
-        .eq('id', plan_id)
+        .eq('id', effectivePlanId)
         .single();
       creditsToAdd = planData?.credits || 0;
-      logStep("Credits from plan", { plan_id, credits: creditsToAdd });
+      logStep("Credits from package", { package_id: effectivePlanId, credits: creditsToAdd });
     } else if (purchase_type === 'custom' && customCredits) {
+      // Compra avulsa com quantidade customizada
       creditsToAdd = parseInt(customCredits);
       logStep("Credits from custom purchase", { credits: creditsToAdd });
     }

@@ -318,7 +318,7 @@ const Onboarding = () => {
           type: 'credits',
           price_id: selectedPackage.stripePriceId,
           package_id: selectedPackage.id,
-          return_url: '/payment-success'
+          return_url: '/credits'
         }
       });
 
@@ -328,6 +328,7 @@ const Onboarding = () => {
         throw new Error("URL de checkout não retornada");
       }
 
+      // Redireciona na mesma aba para o Stripe
       window.location.href = data.url;
     } catch (error: any) {
       console.error("Erro ao processar pagamento:", error);

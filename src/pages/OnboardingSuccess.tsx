@@ -3,16 +3,20 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CreatorLogo } from "@/components/CreatorLogo";
-import { CheckCircle, Loader2, ArrowRight } from "lucide-react";
+import { CheckCircle, Loader2, ArrowRight, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { motion } from "framer-motion";
 
 const OnboardingSuccess = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { refreshUserCredits } = useAuth();
   const [isVerifying, setIsVerifying] = useState(true);
   const [verificationSuccess, setVerificationSuccess] = useState(false);
-  const [countdown, setCountdown] = useState(5);
+  const [creditsAdded, setCreditsAdded] = useState(0);
+  const [newBalance, setNewBalance] = useState(0);
 
   useEffect(() => {
     const verifyPayment = async () => {
@@ -25,146 +29,137 @@ const OnboardingSuccess = () => {
       }
 
       try {
-        console.log("Verificando pagamento com session_id:", sessionId);
+        const { data: { session } } = await supabase.auth.getSession();
         
         const { data, error } = await supabase.functions.invoke('verify-payment', {
-          body: { session_id: sessionId }
+          body: { session_id: sessionId },
+          headers: session?.access_token ? {
+            Authorization: `Bearer ${session.access_token}`,
+          } : undefined
         });
 
-        if (error) {
-          console.error("Erro ao verificar pagamento:", error);
-          throw error;
-        }
-
-        console.log("Resposta verify-payment:", data);
+        if (error) throw error;
 
         if (data?.success) {
           setVerificationSuccess(true);
+          setCreditsAdded(data.credits_added || 0);
+          setNewBalance(data.new_balance || 0);
+          
+          await refreshUserCredits();
           
           if (data.already_processed) {
-            toast.info("Pagamento já foi processado anteriormente");
+            toast.info("Pagamento já foi processado!");
           } else {
-            toast.success("Pagamento confirmado! Seu plano foi ativado.");
+            toast.success(`✅ ${data.credits_added} créditos adicionados!`);
           }
 
-          // Iniciar countdown de 5 segundos
-          let timeLeft = 5;
-          const countdownInterval = setInterval(() => {
-            timeLeft -= 1;
-            setCountdown(timeLeft);
-            
-            if (timeLeft <= 0) {
-              clearInterval(countdownInterval);
-              
-              // Redirecionar baseado no modo de onboarding
-              const onboardingMode = sessionStorage.getItem('onboarding_mode');
-              const redirectTo = onboardingMode === 'existing' ? '/dashboard' : '/';
-              sessionStorage.removeItem('onboarding_mode');
-              
-              navigate(redirectTo);
-            }
-          }, 1000);
-
-          return () => clearInterval(countdownInterval);
+          // Redirecionar para dashboard após 3 segundos
+          setTimeout(() => {
+            navigate('/dashboard', { replace: true });
+          }, 3000);
         } else {
-          toast.error("Pagamento não foi confirmado. Status: " + (data?.payment_status || 'desconhecido'));
+          toast.error("Pagamento não confirmado: " + (data?.payment_status || 'desconhecido'));
         }
       } catch (error: any) {
         console.error("Erro na verificação:", error);
-        toast.error("Erro ao verificar pagamento: " + (error.message || "Erro desconhecido"));
+        toast.error("Erro ao verificar pagamento");
       } finally {
         setIsVerifying(false);
       }
     };
 
     verifyPayment();
-  }, [searchParams, navigate]);
-
-  const handleGoToLogin = () => {
-    const onboardingMode = sessionStorage.getItem('onboarding_mode');
-    const redirectTo = onboardingMode === 'existing' ? '/dashboard' : '/';
-    sessionStorage.removeItem('onboarding_mode');
-    navigate(redirectTo);
-  };
+  }, [searchParams, navigate, refreshUserCredits]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center p-4">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="w-full max-w-md space-y-6"
+      >
         <div className="flex justify-center">
           <CreatorLogo />
         </div>
 
-        <Card>
+        <Card className="border-2 shadow-xl">
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
               {isVerifying ? (
-                <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Loader2 className="h-8 w-8 text-primary animate-spin" />
+                <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center relative">
+                  <Loader2 className="h-10 w-10 text-primary animate-spin" />
+                  <Sparkles className="h-5 w-5 text-primary absolute -top-1 -right-1 animate-pulse" />
                 </div>
               ) : verificationSuccess ? (
-                <div className="h-16 w-16 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
-                  <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
-                </div>
+                <motion.div 
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="h-20 w-20 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center"
+                >
+                  <CheckCircle className="h-10 w-10 text-green-600" />
+                </motion.div>
               ) : (
-                <div className="h-16 w-16 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
-                  <CheckCircle className="h-8 w-8 text-red-600 dark:text-red-400" />
+                <div className="h-20 w-20 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                  <Loader2 className="h-8 w-8 text-amber-600 animate-spin" />
                 </div>
               )}
             </div>
             
-            <CardTitle>
+            <CardTitle className="text-2xl">
               {isVerifying && "Verificando Pagamento..."}
               {!isVerifying && verificationSuccess && "Pagamento Confirmado!"}
-              {!isVerifying && !verificationSuccess && "Erro na Verificação"}
+              {!isVerifying && !verificationSuccess && "Processando..."}
             </CardTitle>
             
-            <CardDescription>
+            <CardDescription className="text-base">
               {isVerifying && "Aguarde enquanto confirmamos seu pagamento"}
-              {!isVerifying && verificationSuccess && "Seu plano foi ativado com sucesso"}
-              {!isVerifying && !verificationSuccess && "Não foi possível confirmar o pagamento"}
+              {!isVerifying && verificationSuccess && "Bem-vindo ao Creator!"}
+              {!isVerifying && !verificationSuccess && "Seu pagamento está sendo processado"}
             </CardDescription>
           </CardHeader>
 
           <CardContent className="space-y-4">
             {verificationSuccess && (
-              <div className="bg-muted/50 p-4 rounded-lg space-y-2">
-                <p className="text-sm font-medium">✅ O que aconteceu:</p>
-                <ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
-                  <li>Pagamento confirmado pelo Stripe</li>
-                  <li>Créditos adicionados à sua equipe</li>
-                  <li>Plano atualizado com sucesso</li>
-                  <li>Assinatura ativada</li>
-                </ul>
-              </div>
-            )}
-
-            {verificationSuccess && (
-              <div className="text-center">
-                <p className="text-sm text-muted-foreground mb-4">
-                  Redirecionando para login em {countdown} segundo{countdown !== 1 ? 's' : ''}...
-                </p>
-                <Button onClick={handleGoToLogin} className="w-full">
-                  Ir para Login Agora
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </div>
-            )}
-
-            {!isVerifying && !verificationSuccess && (
-              <div className="space-y-4">
-                <div className="bg-destructive/10 p-4 rounded-lg">
-                  <p className="text-sm text-destructive">
-                    Não conseguimos confirmar seu pagamento automaticamente. Entre em contato com o suporte se o pagamento foi realizado.
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-6 text-center"
+              >
+                {creditsAdded > 0 && (
+                  <p className="text-sm text-green-600/80 mb-1">
+                    +{creditsAdded} créditos adicionados
                   </p>
-                </div>
-                <Button onClick={handleGoToLogin} variant="outline" className="w-full">
-                  Voltar para Login
+                )}
+                <p className="text-3xl font-bold text-green-600 dark:text-green-400">
+                  {newBalance} créditos
+                </p>
+                <p className="text-sm text-green-600/80 mt-1">
+                  disponíveis para usar
+                </p>
+              </motion.div>
+            )}
+
+            {!isVerifying && (
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground text-center">
+                  {verificationSuccess 
+                    ? 'Redirecionando para o dashboard...'
+                    : 'Clique abaixo para continuar'}
+                </p>
+                
+                <Button 
+                  onClick={() => navigate('/dashboard', { replace: true })} 
+                  className="w-full h-12"
+                  size="lg"
+                >
+                  Ir para o Dashboard
+                  <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </div>
             )}
           </CardContent>
         </Card>
-      </div>
+      </motion.div>
     </div>
   );
 };
