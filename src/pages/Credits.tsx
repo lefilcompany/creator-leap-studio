@@ -13,40 +13,51 @@ import { TourSelector } from "@/components/onboarding/TourSelector";
 import { creditsSteps, navbarSteps } from "@/components/onboarding/tourSteps";
 import { PageBreadcrumb } from "@/components/PageBreadcrumb";
 
-interface Plan {
+interface CreditPackage {
   id: string;
   name: string;
   description: string;
-  price_monthly: number;
+  price: number;
   credits: number;
-  stripe_price_id_monthly: string;
-  stripe_product_id: string;
+  stripePriceId: string;
 }
 
 const Credits = () => {
   const { user, refreshUserCredits } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [plans, setPlans] = useState<Plan[]>([]);
+  const [packages, setPackages] = useState<CreditPackage[]>([]);
   const [customCredits, setCustomCredits] = useState(20);
   const [loading, setLoading] = useState(false);
+  const [loadingPackageId, setLoadingPackageId] = useState<string | null>(null);
   const [verifyingPayment, setVerifyingPayment] = useState(false);
 
   useEffect(() => {
-    loadPlans();
+    loadPackages();
     handlePaymentCallback();
   }, [searchParams]);
 
-  const loadPlans = async () => {
+  const legacyPlanIds = ['free', 'starter', 'pack_business'];
+
+  const loadPackages = async () => {
     const { data } = await supabase
       .from('plans')
       .select('*')
-      .like('id', 'pack_%')
       .eq('is_active', true)
       .order('price_monthly', { ascending: true });
     
     if (data) {
-      setPlans(data);
+      const filteredPackages = data
+        .filter(p => !legacyPlanIds.includes(p.id))
+        .map(p => ({
+          id: p.id,
+          name: p.name,
+          description: p.description || '',
+          price: p.price_monthly,
+          credits: p.credits,
+          stripePriceId: p.stripe_price_id_monthly || ''
+        }));
+      setPackages(filteredPackages);
     }
   };
 
@@ -92,17 +103,31 @@ const Credits = () => {
     }
   };
 
-  const handleBuyPlan = async (planId: string, priceId: string) => {
+  const handleBuyPackage = async (pkg: CreditPackage) => {
     if (!user) return;
     
-    setLoading(true);
+    // Enterprise redireciona para WhatsApp
+    if (pkg.id === 'pack_enterprise') {
+      window.open('https://wa.me/5581996600072?text=Olá! Tenho interesse no pacote Enterprise do Creator.', '_blank');
+      return;
+    }
+
+    // Pacote gratuito/trial - apenas redireciona
+    if (pkg.price === 0) {
+      toast.success(`Você já tem ${user.credits || 0} créditos disponíveis!`);
+      navigate('/dashboard');
+      return;
+    }
+    
+    setLoadingPackageId(pkg.id);
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: { 
-          type: 'plan',
-          price_id: priceId,
-          plan_id: planId
+          type: 'credits',
+          price_id: pkg.stripePriceId,
+          package_id: pkg.id,
+          return_url: '/credits'
         },
         headers: {
           Authorization: `Bearer ${session?.access_token}`,
@@ -117,7 +142,7 @@ const Credits = () => {
       console.error("Error creating checkout:", error);
       toast.error("Erro ao criar checkout: " + error.message);
     } finally {
-      setLoading(false);
+      setLoadingPackageId(null);
     }
   };
 
@@ -180,22 +205,24 @@ const Credits = () => {
         </div>
       </div>
 
-      {/* Planos Fixos */}
+      {/* Pacotes de Créditos */}
       <section className="mb-12">
         <div className="flex items-center gap-2 mb-6">
           <Sparkles className="h-6 w-6 text-primary" />
           <h2 className="text-2xl font-bold">Pacotes de Créditos</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {plans.map((plan, index) => (
-            <Card key={plan.id} className={plan.id === 'pack_pro' ? 'border-primary shadow-lg' : ''}>
+          {packages.map((pkg) => (
+            <Card key={pkg.id} className={pkg.id === 'pack_pro' ? 'border-primary shadow-lg' : ''}>
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <div>
-                    <CardTitle className="text-2xl">{plan.name}</CardTitle>
-                    <CardDescription className="mt-2">{plan.description}</CardDescription>
+                    <CardTitle className="text-2xl">{pkg.name}</CardTitle>
+                    <CardDescription className="mt-2">
+                      {pkg.credits} créditos para usar como quiser
+                    </CardDescription>
                   </div>
-                  {plan.id === 'pack_pro' && (
+                  {pkg.id === 'pack_pro' && (
                     <Badge variant="default" className="ml-2">
                       Mais Popular
                     </Badge>
@@ -205,26 +232,32 @@ const Credits = () => {
               <CardContent>
                 <div className="mb-4">
                   <div className="text-4xl font-bold mb-2">
-                    R$ {plan.price_monthly.toFixed(2)}
+                    {pkg.price === 0 ? 'Grátis' : `R$ ${pkg.price.toFixed(2)}`}
                   </div>
                   <div className="flex items-center gap-2 text-lg text-muted-foreground">
                     <Coins className="h-5 w-5" />
-                    <span className="font-semibold">{plan.credits} créditos</span>
+                    <span className="font-semibold">{pkg.credits} créditos</span>
                   </div>
-                  <div className="text-sm text-muted-foreground mt-1">
-                    R$ {(plan.price_monthly / plan.credits).toFixed(2)} por crédito
-                  </div>
+                  {pkg.price > 0 && (
+                    <div className="text-sm text-muted-foreground mt-1">
+                      R$ {(pkg.price / pkg.credits).toFixed(2)} por crédito
+                    </div>
+                  )}
                 </div>
                 <Button 
                   id="buy-credits-button"
-                  onClick={() => handleBuyPlan(plan.id, plan.stripe_price_id_monthly)}
-                  disabled={loading}
+                  onClick={() => handleBuyPackage(pkg)}
+                  disabled={loadingPackageId === pkg.id}
                   className="w-full"
                   size="lg"
-                  variant={plan.id === 'pack_pro' ? 'default' : 'outline'}
+                  variant={pkg.id === 'pack_pro' ? 'default' : 'outline'}
                 >
-                  {loading ? (
+                  {loadingPackageId === pkg.id ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : pkg.id === 'pack_enterprise' ? (
+                    <>Falar com Consultor</>
+                  ) : pkg.price === 0 ? (
+                    <>Já Incluído</>
                   ) : (
                     <>
                       <Check className="h-4 w-4 mr-2" />

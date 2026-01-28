@@ -65,11 +65,11 @@ serve(async (req) => {
     // REMOVIDO: Verificação de equipe e admin de equipe
     // Agora qualquer usuário autenticado pode comprar para si mesmo
 
-    const { type, price_id, plan_id, credits, return_url } = await req.json();
-    if (!type || !['plan', 'custom'].includes(type)) {
-      throw new Error("type is required and must be 'plan' or 'custom'");
+    const { type, price_id, plan_id, package_id, credits, return_url } = await req.json();
+    if (!type || !['plan', 'custom', 'credits'].includes(type)) {
+      throw new Error("type is required and must be 'plan', 'custom', or 'credits'");
     }
-    logStep("Request data received", { type, price_id, plan_id, credits });
+    logStep("Request data received", { type, price_id, plan_id, package_id, credits });
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2024-12-18.acacia" });
     
@@ -91,9 +91,10 @@ serve(async (req) => {
     
     let session;
 
-    if (type === 'plan') {
-      // Compra de plano fixo
-      if (!price_id || !plan_id) throw new Error("price_id and plan_id are required for plan purchase");
+    if (type === 'plan' || type === 'credits') {
+      // Compra de pacote de créditos (pagamento único)
+      const packageId = package_id || plan_id;
+      if (!price_id || !packageId) throw new Error("price_id and package_id are required for credits purchase");
       
       session = await stripe.checkout.sessions.create({
         customer: customerId,
@@ -104,18 +105,18 @@ serve(async (req) => {
             quantity: 1,
           },
         ],
-        mode: "subscription",
+        mode: "payment", // Pagamento único, não assinatura
         success_url: successUrl,
-        cancel_url: `${origin}/subscribe?canceled=true`,
+        cancel_url: `${origin}/credits?canceled=true`,
         metadata: {
           user_id: user.id,
-          team_id: teamId || '', // Opcional agora
-          purchase_type: 'plan',
-          plan_id: plan_id,
+          team_id: teamId || '',
+          purchase_type: 'credits',
+          package_id: packageId,
           return_url: return_url || '/credits',
         }
       });
-      logStep("Plan checkout session created", { sessionId: session.id });
+      logStep("Credits checkout session created", { sessionId: session.id, packageId });
     } else {
       // Compra avulsa
       if (!credits || credits < 20) throw new Error("credits is required and must be at least 20");
