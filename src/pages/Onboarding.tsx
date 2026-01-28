@@ -37,18 +37,22 @@ type Step = 'plans' | 'auth' | 'checkout';
 type AuthMode = 'login' | 'register';
 
 const planIcons: Record<string, any> = {
-  free: Rocket,
-  basic: Package,
-  pro: Crown,
-  enterprise: Sparkles,
+  pack_trial: Rocket,
+  pack_basic: Package,
+  pack_pro: Crown,
+  pack_premium: Sparkles,
+  pack_enterprise: Star,
 };
 
 const planHighlights: Record<string, string[]> = {
-  free: ["20 créditos iniciais", "1 marca", "Ideal para testar"],
-  basic: ["100 créditos/mês", "3 marcas", "Suporte por email"],
-  pro: ["500 créditos/mês", "10 marcas", "Suporte prioritário"],
-  enterprise: ["2000 créditos/mês", "Marcas ilimitadas", "Suporte dedicado"],
+  pack_trial: ["20 créditos iniciais", "1 marca", "Ideal para testar"],
+  pack_basic: ["100 créditos/mês", "3 marcas", "Suporte por email"],
+  pack_pro: ["500 créditos/mês", "10 marcas", "Suporte prioritário"],
+  pack_premium: ["1500 créditos/mês", "20 marcas", "Suporte VIP"],
+  pack_enterprise: ["Créditos ilimitados", "Marcas ilimitadas", "Suporte dedicado"],
 };
+
+const ENTERPRISE_WHATSAPP = "5581996600072";
 
 const Onboarding = () => {
   const navigate = useNavigate();
@@ -190,6 +194,13 @@ const Onboarding = () => {
   };
 
   const handlePlanSelect = (plan: Plan) => {
+    // Enterprise plan - open WhatsApp
+    if (plan.id === 'pack_enterprise') {
+      const message = encodeURIComponent("Olá! Tenho interesse no plano Enterprise do Creator. Gostaria de mais informações.");
+      window.open(`https://wa.me/${ENTERPRISE_WHATSAPP}?text=${message}`, '_blank');
+      return;
+    }
+    
     setSelectedPlan(plan);
     setCurrentStep('auth');
   };
@@ -209,8 +220,8 @@ const Onboarding = () => {
 
       await reloadUserData();
 
-      // If free plan, just go to dashboard
-      if (selectedPlan?.id === 'free') {
+      // If trial/free plan, just go to dashboard
+      if (selectedPlan?.id === 'pack_trial' || selectedPlan?.price === 0) {
         toast.success("Bem-vindo de volta!");
         navigate('/dashboard');
         return;
@@ -275,8 +286,8 @@ const Onboarding = () => {
       if (data.user) {
         await reloadUserData();
 
-        // If free plan, just go to dashboard
-        if (selectedPlan?.id === 'free') {
+        // If trial/free plan, just go to dashboard
+        if (selectedPlan?.id === 'pack_trial' || selectedPlan?.price === 0) {
           toast.success("Conta criada com sucesso! Bem-vindo ao Creator!");
           navigate('/dashboard');
           return;
@@ -329,6 +340,7 @@ const Onboarding = () => {
     const Icon = planIcons[plan.id] || Zap;
     const highlights = planHighlights[plan.id] || [];
     const isSelected = selectedPlan?.id === plan.id;
+    const isEnterprise = plan.id === 'pack_enterprise';
 
     return (
       <motion.div
@@ -344,7 +356,8 @@ const Onboarding = () => {
             "relative h-full cursor-pointer transition-all duration-300 overflow-hidden group",
             "border-2 hover:shadow-2xl",
             isSelected ? "border-primary ring-2 ring-primary/20 shadow-xl" : "border-border hover:border-primary/50",
-            isPopular && "ring-2 ring-primary/30"
+            isPopular && "ring-2 ring-primary/30",
+            isEnterprise && "border-amber-500/50 bg-gradient-to-br from-amber-500/5 to-orange-500/5"
           )}
           onClick={() => handlePlanSelect(plan)}
         >
@@ -360,7 +373,13 @@ const Onboarding = () => {
             </div>
           )}
 
-          {isSelected && (
+          {isEnterprise && (
+            <div className="absolute -right-8 top-6 rotate-45 bg-amber-500 px-10 py-1 text-xs font-semibold text-white shadow-lg">
+              Sob consulta
+            </div>
+          )}
+
+          {isSelected && !isEnterprise && (
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
@@ -374,10 +393,11 @@ const Onboarding = () => {
             <div className={cn(
               "w-14 h-14 rounded-2xl flex items-center justify-center mb-4 transition-all duration-300",
               "bg-gradient-to-br shadow-lg",
-              plan.id === 'free' && "from-blue-500 to-blue-600",
-              plan.id === 'basic' && "from-green-500 to-green-600",
-              plan.id === 'pro' && "from-purple-500 to-purple-600",
-              plan.id === 'enterprise' && "from-orange-500 to-orange-600"
+              plan.id === 'pack_trial' && "from-slate-500 to-slate-600",
+              plan.id === 'pack_basic' && "from-blue-500 to-blue-600",
+              plan.id === 'pack_pro' && "from-purple-500 to-purple-600",
+              plan.id === 'pack_premium' && "from-pink-500 to-pink-600",
+              plan.id === 'pack_enterprise' && "from-amber-500 to-orange-600"
             )}>
               <Icon className="h-7 w-7 text-white" />
             </div>
@@ -386,7 +406,9 @@ const Onboarding = () => {
             <CardDescription className="text-sm min-h-[2.5rem]">{plan.description}</CardDescription>
             
             <div className="mt-4 flex items-baseline gap-1">
-              {plan.price === 0 ? (
+              {isEnterprise ? (
+                <span className="text-2xl font-bold text-amber-600">Entre em contato</span>
+              ) : plan.price === 0 ? (
                 <span className="text-4xl font-bold text-primary">Grátis</span>
               ) : (
                 <>
@@ -414,34 +436,43 @@ const Onboarding = () => {
             <div className="space-y-2.5 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
                 <Zap className="h-4 w-4 text-primary flex-shrink-0" />
-                <span>{plan.credits.toLocaleString('pt-BR')} créditos/mês</span>
+                <span>{isEnterprise ? 'Créditos ilimitados' : `${plan.credits.toLocaleString('pt-BR')} créditos/mês`}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4 text-primary flex-shrink-0" />
-                <span>{plan.maxMembers} {plan.maxMembers === 1 ? 'membro' : 'membros'}</span>
+                <span>{isEnterprise ? 'Membros ilimitados' : `${plan.maxMembers} ${plan.maxMembers === 1 ? 'membro' : 'membros'}`}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Package className="h-4 w-4 text-primary flex-shrink-0" />
-                <span>{plan.maxBrands} {plan.maxBrands === 1 ? 'marca' : 'marcas'}</span>
+                <span>{isEnterprise ? 'Marcas ilimitadas' : `${plan.maxBrands} ${plan.maxBrands === 1 ? 'marca' : 'marcas'}`}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Palette className="h-4 w-4 text-primary flex-shrink-0" />
-                <span>{plan.maxStrategicThemes} {plan.maxStrategicThemes === 1 ? 'tema' : 'temas'}</span>
+                <span>{isEnterprise ? 'Temas ilimitados' : `${plan.maxStrategicThemes} ${plan.maxStrategicThemes === 1 ? 'tema' : 'temas'}`}</span>
               </div>
               <div className="flex items-center gap-2">
                 <UserCircle className="h-4 w-4 text-primary flex-shrink-0" />
-                <span>{plan.maxPersonas} personas</span>
+                <span>{isEnterprise ? 'Personas ilimitadas' : `${plan.maxPersonas} personas`}</span>
               </div>
             </div>
 
             <Button
               className={cn(
                 "w-full mt-4 transition-all duration-300",
-                isSelected ? "bg-primary" : "bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground"
+                isEnterprise 
+                  ? "bg-amber-500 hover:bg-amber-600 text-white" 
+                  : isSelected 
+                    ? "bg-primary" 
+                    : "bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground"
               )}
               size="lg"
             >
-              {isSelected ? (
+              {isEnterprise ? (
+                <>
+                  <Phone className="mr-2 h-4 w-4" />
+                  Falar no WhatsApp
+                </>
+              ) : isSelected ? (
                 <>
                   <CheckCircle className="mr-2 h-4 w-4" />
                   Selecionado
@@ -525,8 +556,10 @@ const Onboarding = () => {
           <Loader2 className="h-10 w-10 animate-spin text-primary" />
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {plans.map((plan, idx) => renderPlanCard(plan, plan.id === 'pro'))}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5">
+          {plans
+            .filter(plan => plan.id !== 'pack_business') // Remove Business plan
+            .map((plan) => renderPlanCard(plan, plan.id === 'pack_pro'))}
         </div>
       )}
     </motion.div>
@@ -545,10 +578,10 @@ const Onboarding = () => {
           <div className={cn(
             "px-6 py-4 flex items-center justify-between",
             "bg-gradient-to-r",
-            selectedPlan.id === 'free' && "from-blue-500/10 to-blue-600/10",
-            selectedPlan.id === 'basic' && "from-green-500/10 to-green-600/10",
-            selectedPlan.id === 'pro' && "from-purple-500/10 to-purple-600/10",
-            selectedPlan.id === 'enterprise' && "from-orange-500/10 to-orange-600/10"
+            selectedPlan.id === 'pack_trial' && "from-slate-500/10 to-slate-600/10",
+            selectedPlan.id === 'pack_basic' && "from-blue-500/10 to-blue-600/10",
+            selectedPlan.id === 'pack_pro' && "from-purple-500/10 to-purple-600/10",
+            selectedPlan.id === 'pack_premium' && "from-pink-500/10 to-pink-600/10"
           )}>
             <div className="flex items-center gap-3">
               {(() => {
@@ -557,10 +590,10 @@ const Onboarding = () => {
                   <div className={cn(
                     "w-10 h-10 rounded-xl flex items-center justify-center",
                     "bg-gradient-to-br",
-                    selectedPlan.id === 'free' && "from-blue-500 to-blue-600",
-                    selectedPlan.id === 'basic' && "from-green-500 to-green-600",
-                    selectedPlan.id === 'pro' && "from-purple-500 to-purple-600",
-                    selectedPlan.id === 'enterprise' && "from-orange-500 to-orange-600"
+                    selectedPlan.id === 'pack_trial' && "from-slate-500 to-slate-600",
+                    selectedPlan.id === 'pack_basic' && "from-blue-500 to-blue-600",
+                    selectedPlan.id === 'pack_pro' && "from-purple-500 to-purple-600",
+                    selectedPlan.id === 'pack_premium' && "from-pink-500 to-pink-600"
                   )}>
                     <Icon className="h-5 w-5 text-white" />
                   </div>
@@ -824,7 +857,7 @@ const Onboarding = () => {
                 </>
               ) : (
                 <>
-                  {selectedPlan?.id === 'free' ? 'Começar grátis' : 'Continuar para pagamento'}
+                  {selectedPlan?.id === 'pack_trial' || selectedPlan?.price === 0 ? 'Começar grátis' : 'Continuar para pagamento'}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </>
               )}
