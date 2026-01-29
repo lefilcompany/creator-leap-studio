@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { CreatorLogo } from "@/components/CreatorLogo";
 import { 
   Eye, EyeOff, User, Mail, Phone, Lock, Loader2, CheckCircle, 
-  ArrowLeft, ArrowRight, Zap, Crown, Rocket, Sparkles, Star, Gift, Shield, Clock, MessageCircle
+  ArrowLeft, ArrowRight, Zap, Crown, Rocket, Sparkles, Star, Gift, Shield, Clock, MessageCircle, Plus, Minus, ShoppingCart
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -62,6 +62,11 @@ const packageColors: Record<string, string> = {
 
 const ENTERPRISE_WHATSAPP = "5581996600072";
 
+const CREDIT_PRICE = 2; // R$ 2,00 por crédito
+const CREDIT_STEP = 5; // Incremento de 5 em 5
+const MIN_CREDITS = 5;
+const MAX_CREDITS = 500;
+
 const Onboarding = () => {
   const navigate = useNavigate();
   const { reloadUserData } = useAuth();
@@ -76,6 +81,8 @@ const Onboarding = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState<CreditPackage | null>(null);
   const [packages, setPackages] = useState<CreditPackage[]>([]);
+  const [customCredits, setCustomCredits] = useState(20);
+  const [isCustomSelected, setIsCustomSelected] = useState(false);
   const [loadingPackages, setLoadingPackages] = useState(true);
   
   const [formData, setFormData] = useState({
@@ -201,8 +208,23 @@ const Onboarding = () => {
       return;
     }
     
+    setIsCustomSelected(false);
     setSelectedPackage(pkg);
     setCurrentStep('auth');
+  };
+
+  const handleCustomSelect = () => {
+    setIsCustomSelected(true);
+    setSelectedPackage(null);
+    setCurrentStep('auth');
+  };
+
+  const incrementCredits = () => {
+    setCustomCredits(prev => Math.min(prev + CREDIT_STEP, MAX_CREDITS));
+  };
+
+  const decrementCredits = () => {
+    setCustomCredits(prev => Math.max(prev - CREDIT_STEP, MIN_CREDITS));
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -219,6 +241,12 @@ const Onboarding = () => {
       if (!authData.user) throw new Error("Usuário não encontrado");
 
       await reloadUserData();
+
+      // If custom selected, proceed to checkout
+      if (isCustomSelected) {
+        await initiateCheckout(authData.user.id);
+        return;
+      }
 
       // If no package selected or free, just go to dashboard
       if (!selectedPackage || selectedPackage.price === 0) {
@@ -286,6 +314,12 @@ const Onboarding = () => {
       if (data.user) {
         await reloadUserData();
 
+        // If custom selected, proceed to checkout
+        if (isCustomSelected) {
+          await initiateCheckout(data.user.id);
+          return;
+        }
+
         // If no package selected or free, just go to dashboard
         if (!selectedPackage || selectedPackage.price === 0) {
           toast.success("Conta criada com sucesso! Bem-vindo ao Creator!");
@@ -305,21 +339,34 @@ const Onboarding = () => {
   };
 
   const initiateCheckout = async (userId: string) => {
-    if (!selectedPackage || !selectedPackage.stripePriceId) {
-      toast.error("Pacote inválido para checkout");
-      return;
-    }
-
     setCurrentStep('checkout');
 
     try {
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: {
+      let checkoutBody: any;
+      
+      if (isCustomSelected) {
+        // Compra avulsa
+        checkoutBody = {
+          type: 'custom',
+          credits: customCredits,
+          return_url: '/credits'
+        };
+      } else if (selectedPackage && selectedPackage.stripePriceId) {
+        // Compra de pacote
+        checkoutBody = {
           type: 'credits',
           price_id: selectedPackage.stripePriceId,
           package_id: selectedPackage.id,
           return_url: '/credits'
-        }
+        };
+      } else {
+        toast.error("Selecione um pacote ou quantidade de créditos");
+        setCurrentStep('auth');
+        return;
+      }
+
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: checkoutBody
       });
 
       if (error) throw error;
@@ -525,9 +572,102 @@ const Onboarding = () => {
           <Loader2 className="h-10 w-10 animate-spin text-primary" />
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {packages.map((pkg) => renderPackageCard(pkg, pkg.id === 'pack_pro'))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {packages.map((pkg) => renderPackageCard(pkg, pkg.id === 'pack_pro'))}
+          </div>
+
+          {/* Compra Avulsa */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="mt-10"
+          >
+            <Card className="relative overflow-hidden border-2 border-dashed border-primary/30 hover:border-primary/50 transition-all duration-300">
+              <div className="h-2 bg-gradient-to-r from-primary/50 via-primary to-primary/50" />
+              
+              <CardContent className="pt-8 pb-8">
+                <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
+                  {/* Info */}
+                  <div className="flex-1 text-center lg:text-left">
+                    <div className="flex items-center gap-2 justify-center lg:justify-start mb-3">
+                      <ShoppingCart className="h-6 w-6 text-primary" />
+                      <h3 className="text-2xl font-bold">Compra Avulsa</h3>
+                    </div>
+                    <p className="text-muted-foreground mb-4">
+                      Compre créditos avulsos de 5 em 5. Cada crédito custa <span className="font-semibold text-primary">R$ {CREDIT_PRICE.toFixed(2)}</span>
+                    </p>
+                    <div className="flex items-center justify-center lg:justify-start gap-2 text-sm text-muted-foreground">
+                      <Zap className="h-4 w-4 text-primary" />
+                      <span>Pagamento único via Stripe</span>
+                    </div>
+                  </div>
+
+                  {/* Seletor de quantidade */}
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="flex items-center gap-4">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-12 w-12 rounded-full border-2 hover:bg-primary hover:text-primary-foreground transition-all"
+                        onClick={decrementCredits}
+                        disabled={customCredits <= MIN_CREDITS}
+                      >
+                        <Minus className="h-5 w-5" />
+                      </Button>
+                      
+                      <div className="text-center min-w-[140px]">
+                        <motion.div 
+                          key={customCredits}
+                          initial={{ scale: 1.2, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          className="text-5xl font-bold text-primary"
+                        >
+                          {customCredits}
+                        </motion.div>
+                        <p className="text-sm text-muted-foreground">créditos</p>
+                      </div>
+                      
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-12 w-12 rounded-full border-2 hover:bg-primary hover:text-primary-foreground transition-all"
+                        onClick={incrementCredits}
+                        disabled={customCredits >= MAX_CREDITS}
+                      >
+                        <Plus className="h-5 w-5" />
+                      </Button>
+                    </div>
+
+                    {/* Preço total */}
+                    <motion.div 
+                      key={customCredits * CREDIT_PRICE}
+                      initial={{ scale: 1.1 }}
+                      animate={{ scale: 1 }}
+                      className="bg-primary/10 px-6 py-3 rounded-xl border border-primary/20"
+                    >
+                      <p className="text-sm text-muted-foreground text-center">Total</p>
+                      <p className="text-3xl font-bold text-primary">
+                        R$ {(customCredits * CREDIT_PRICE).toFixed(2)}
+                      </p>
+                    </motion.div>
+
+                    {/* Botão de compra */}
+                    <Button
+                      onClick={handleCustomSelect}
+                      size="lg"
+                      className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl transition-all duration-300"
+                    >
+                      <ShoppingCart className="h-5 w-5 mr-2" />
+                      Comprar {customCredits} Créditos
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </>
       )}
     </motion.div>
   );
@@ -540,32 +680,48 @@ const Onboarding = () => {
       className="w-full max-w-lg mx-auto"
     >
       <Card className="border-2 shadow-2xl overflow-hidden">
-        {/* Package summary header */}
-        {selectedPackage && (
+        {/* Package/Custom summary header */}
+        {(selectedPackage || isCustomSelected) && (
           <div className={cn(
             "px-6 py-4 flex items-center justify-between",
             "bg-gradient-to-r from-primary/10 to-primary/5"
           )}>
             <div className="flex items-center gap-3">
-              {(() => {
-                const Icon = packageIcons[selectedPackage.id] || Zap;
-                const colorClass = packageColors[selectedPackage.id] || "from-blue-500 to-blue-600";
-                return (
-                  <div className={cn(
-                    "w-10 h-10 rounded-xl flex items-center justify-center",
-                    "bg-gradient-to-br",
-                    colorClass
-                  )}>
-                    <Icon className="h-5 w-5 text-white" />
+              {isCustomSelected ? (
+                <>
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-primary/50 via-primary to-primary/50">
+                    <ShoppingCart className="h-5 w-5 text-white" />
                   </div>
-                );
-              })()}
-              <div>
-                <p className="font-semibold">{selectedPackage.name}</p>
-                <p className="text-sm text-muted-foreground">
-                  {selectedPackage.credits.toLocaleString('pt-BR')} créditos • R$ {selectedPackage.price.toLocaleString('pt-BR')}
-                </p>
-              </div>
+                  <div>
+                    <p className="font-semibold">Compra Avulsa</p>
+                    <p className="text-sm text-muted-foreground">
+                      {customCredits} créditos • R$ {(customCredits * CREDIT_PRICE).toLocaleString('pt-BR')}
+                    </p>
+                  </div>
+                </>
+              ) : selectedPackage && (
+                <>
+                  {(() => {
+                    const Icon = packageIcons[selectedPackage.id] || Zap;
+                    const colorClass = packageColors[selectedPackage.id] || "from-blue-500 to-blue-600";
+                    return (
+                      <div className={cn(
+                        "w-10 h-10 rounded-xl flex items-center justify-center",
+                        "bg-gradient-to-br",
+                        colorClass
+                      )}>
+                        <Icon className="h-5 w-5 text-white" />
+                      </div>
+                    );
+                  })()}
+                  <div>
+                    <p className="font-semibold">{selectedPackage.name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {selectedPackage.credits.toLocaleString('pt-BR')} créditos • R$ {selectedPackage.price.toLocaleString('pt-BR')}
+                    </p>
+                  </div>
+                </>
+              )}
             </div>
             <Button
               variant="ghost"
@@ -573,7 +729,7 @@ const Onboarding = () => {
               onClick={() => setCurrentStep('packages')}
               className="text-sm"
             >
-              Trocar pacote
+              Trocar
             </Button>
           </div>
         )}
