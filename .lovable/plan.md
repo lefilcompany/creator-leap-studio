@@ -1,57 +1,59 @@
 
-# Plano: Atualizar a Edge Function para Resetar Senha por ID
+# Plano: Alterar Créditos Grátis de 20 para 5
 
-## Problema Identificado
-A edge function `reset-user-password` usa `listUsers()` que retorna apenas os primeiros 50 usuários por padrão. Com muitos usuários no sistema, o usuário pode não ser encontrado na primeira página de resultados.
+## Resumo
+Alterar a quantidade de créditos grátis dados a novos usuários de 20 para 5 créditos.
 
-## Solução
-Atualizar a edge function para aceitar também o `userId` diretamente, permitindo usar `updateUserById` sem precisar buscar todos os usuários.
+## Alterações Necessárias
 
-## Mudanças Técnicas
+### 1. Migração do Banco de Dados
+Criar uma nova migração SQL para:
 
-### 1. Atualizar a Edge Function (`supabase/functions/reset-user-password/index.ts`)
-- Aceitar `userId` como parâmetro opcional além do `email`
-- Se `userId` for fornecido, usar diretamente `updateUserById`
-- Se apenas `email` for fornecido, buscar o usuário primeiro
+- **Alterar o valor padrão da coluna `credits`** na tabela `profiles` de 20 para 5
+- **Atualizar a função `handle_new_user()`** que é executada automaticamente quando um novo usuário se registra, alterando o valor inserido de 20 para 5
 
-```typescript
-const { email, newPassword, userId } = await req.json()
-
-if (!newPassword) {
-  throw new Error('newPassword is required')
-}
-
-if (!email && !userId) {
-  throw new Error('email or userId is required')
-}
-
-let targetUserId = userId
-
-// Se não tiver userId, buscar pelo email
-if (!targetUserId && email) {
-  const { data: { users }, error: getUserError } = await supabaseAdmin.auth.admin.listUsers({
-    filter: {
-      email: email
-    }
-  })
-  // ... buscar usuário
-}
-
-// Atualizar senha diretamente pelo ID
-const { data, error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
-  targetUserId,
-  { password: newPassword }
-)
+```text
+┌─────────────────────────────────────────────────────────┐
+│                    ANTES                                │
+│  INSERT INTO profiles (..., credits, ...)               │
+│  VALUES (..., 20, ...)                                  │
+├─────────────────────────────────────────────────────────┤
+│                    DEPOIS                               │
+│  INSERT INTO profiles (..., credits, ...)               │
+│  VALUES (..., 5, ...)                                   │
+└─────────────────────────────────────────────────────────┘
 ```
 
-## Após a Implementação
-Será possível chamar a função assim:
-```json
-{
-  "userId": "ea7a6020-f9cf-4514-9272-a5194eb4b417",
-  "newPassword": "123456"
-}
+### 2. Atualizar Texto na UI
+**Arquivo:** `src/pages/OnboardingCanceled.tsx` (linha 45)
+
+- Alterar a mensagem "Você ainda tem os 20 créditos de boas-vindas" para "Você ainda tem os 5 créditos de boas-vindas"
+
+## Detalhes Técnicos
+
+### Migração SQL
+```sql
+-- Atualizar o valor padrão de credits para 5
+ALTER TABLE public.profiles ALTER COLUMN credits SET DEFAULT 5;
+
+-- Atualizar a função handle_new_user para dar 5 créditos
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.profiles (id, email, name, credits, plan_id)
+  VALUES (
+    NEW.id,
+    NEW.email,
+    COALESCE(NEW.raw_user_meta_data->>'name', NEW.email),
+    5,  -- Alterado de 20 para 5
+    'free'
+  );
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 ```
 
-## Resultado Esperado
-A senha do usuário **Maria Rafaela Lopes Mota** (`rafaela.lopes@lefil.com.br`) será alterada para `123456`.
+## Impacto
+- **Usuários existentes:** Não serão afetados (mantêm seus créditos atuais)
+- **Novos usuários:** Receberão 5 créditos ao criar conta
+- A alteração é retrocompatível e não afeta nenhuma outra funcionalidade
