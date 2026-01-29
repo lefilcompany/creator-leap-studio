@@ -42,7 +42,7 @@ const OnboardingCanceled = () => {
               <ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
                 <li>O pagamento não foi processado</li>
                 <li>Sua equipe permanece com o plano FREE</li>
-                <li>Você ainda tem os 20 créditos de boas-vindas</li>
+                <li>Você ainda tem os 5 créditos de boas-vindas</li>
                 <li>Você pode tentar novamente a qualquer momento</li>
               </ul>
             </div>
