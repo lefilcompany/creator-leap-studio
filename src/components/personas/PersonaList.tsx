@@ -65,19 +65,19 @@ const PersonaCard = ({ persona, isSelected, onSelect }: PersonaCardProps) => (
   <button
     onClick={() => onSelect(persona)}
     className={cn(
-      "persona-card w-full text-left p-3 md:p-4 rounded-lg border-2 transition-all duration-200 flex items-center justify-between hover-scale",
+      "persona-card w-full text-left px-3 py-2 rounded-md border transition-all duration-200 flex items-center justify-between",
       isSelected
-        ? "bg-primary/10 border-primary shadow-md"
-        : "bg-muted/50 border-transparent hover:border-primary/50 hover:bg-primary/5"
+        ? "bg-primary/10 border-primary shadow-sm"
+        : "bg-background/50 border-transparent hover:border-primary/30 hover:bg-primary/5"
     )}
   >
-    <div className="flex items-center">
-      <div className="bg-gradient-to-br from-primary to-secondary text-white rounded-lg w-9 h-9 md:w-10 md:h-10 flex items-center justify-center font-bold text-lg md:text-xl mr-3 md:mr-4 flex-shrink-0">
+    <div className="flex items-center gap-2.5">
+      <div className="bg-gradient-to-br from-primary to-secondary text-white rounded-md w-7 h-7 flex items-center justify-center font-semibold text-sm flex-shrink-0">
         {persona.name.charAt(0).toUpperCase()}
       </div>
-      <p className="font-semibold text-base md:text-lg text-foreground">{persona.name}</p>
+      <p className="font-medium text-sm text-foreground">{persona.name}</p>
     </div>
-    <span className="text-sm text-muted-foreground hidden md:block flex-shrink-0">
+    <span className="text-xs text-muted-foreground hidden md:block flex-shrink-0">
       {formatDate(persona.createdAt)}
     </span>
   </button>
@@ -92,28 +92,26 @@ interface BrandGroupSectionProps {
 }
 
 const BrandGroupSection = ({ group, selectedPersona, onSelectPersona, isExpanded, onToggle }: BrandGroupSectionProps) => (
-  <div className="border border-border/40 rounded-xl overflow-hidden">
+  <div className="border border-border/30 rounded-lg overflow-hidden">
     <button
       onClick={onToggle}
-      className="w-full flex items-center justify-between p-3 md:p-4 bg-muted/30 hover:bg-muted/50 transition-colors"
+      className="w-full flex items-center justify-between px-3 py-2 bg-muted/20 hover:bg-muted/40 transition-colors"
     >
-      <div className="flex items-center gap-2.5">
-        <div className="bg-primary/10 text-primary rounded-lg w-8 h-8 flex items-center justify-center flex-shrink-0">
-          <Tag className="h-4 w-4" />
-        </div>
-        <span className="font-semibold text-foreground text-base">{group.brandName}</span>
-        <Badge variant="outline" className="text-xs">
-          {group.personas.length} {group.personas.length === 1 ? 'persona' : 'personas'}
+      <div className="flex items-center gap-2">
+        <Tag className="h-3.5 w-3.5 text-primary" />
+        <span className="font-medium text-foreground text-sm">{group.brandName}</span>
+        <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 leading-none">
+          {group.personas.length}
         </Badge>
       </div>
       {isExpanded ? (
-        <ChevronDown className="h-4 w-4 text-muted-foreground" />
+        <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
       ) : (
-        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+        <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
       )}
     </button>
     {isExpanded && (
-      <ul className="p-2 md:p-3 space-y-2 animate-fade-in">
+      <ul className="p-1.5 space-y-1 animate-fade-in">
         {group.personas.map((persona) => (
           <li key={persona.id}>
             <PersonaCard
@@ -224,7 +222,7 @@ export default function PersonaList({ personas, brands, selectedPersona, onSelec
   const DateSortIcon = dateSortDirection === 'asc' ? ArrowUp : dateSortDirection === 'desc' ? ArrowDown : ArrowUpDown;
 
   return (
-    <div className="lg:col-span-2 bg-card p-4 md:p-6 rounded-2xl border-2 border-primary/10 flex flex-col h-full overflow-hidden">
+    <div className="lg:col-span-2 bg-card p-4 md:p-6 rounded-2xl border-2 border-primary/10 flex flex-col min-h-[600px] lg:min-h-[700px] overflow-hidden">
       <div className="flex items-center justify-between mb-4 flex-shrink-0">
         <h2 className="text-2xl font-semibold text-foreground">Todas as personas</h2>
         {!isLoading && (
@@ -260,7 +258,7 @@ export default function PersonaList({ personas, brands, selectedPersona, onSelec
         {isLoading ? (
           <LoadingState />
         ) : groupedByBrand.length > 0 ? (
-          <div className="space-y-3 animate-fade-in">
+          <div className="space-y-2 animate-fade-in">
             {groupedByBrand.map((group) => (
               <BrandGroupSection
                 key={group.brandId}
