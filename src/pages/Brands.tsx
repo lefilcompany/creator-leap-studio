@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { Drawer, DrawerContent, DrawerTitle } from '@/components/ui/drawer';
-import { Plus, Tag, Coins } from 'lucide-react';
+import { Plus, Tag, Coins, HelpCircle } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import BrandList from '@/components/marcas/BrandList';
 import BrandDetails from '@/components/marcas/BrandDetails';
 import BrandDialog from '@/components/marcas/BrandDialog';
@@ -390,8 +391,32 @@ export default function MarcasPage() {
               <Tag className="h-8 w-8 lg:h-10 lg:w-10 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl lg:text-3xl font-bold text-foreground">
+              <h1 className="text-2xl lg:text-3xl font-bold text-foreground flex items-center gap-2">
                 {t.brands.pageTitle}
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button className="text-muted-foreground hover:text-foreground transition-colors">
+                      <HelpCircle className="h-5 w-5" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-80 text-sm" side="bottom" align="start">
+                    <div className="space-y-2">
+                      <h4 className="font-semibold text-foreground">O que são Marcas?</h4>
+                      <p className="text-muted-foreground">
+                        Marcas são os perfis das empresas ou projetos para os quais você cria conteúdo. Cada marca contém informações como valores, metas, público-alvo e identidade visual.
+                      </p>
+                      <h4 className="font-semibold text-foreground mt-3">Como usar?</h4>
+                      <ul className="text-muted-foreground space-y-1 list-disc list-inside">
+                        <li>Crie uma marca com os dados do seu cliente ou projeto</li>
+                        <li>Adicione personas e temas estratégicos à marca</li>
+                        <li>Use a marca ao criar conteúdos para manter consistência</li>
+                      </ul>
+                      <p className="text-xs text-muted-foreground/70 mt-2">
+                        As 3 primeiras marcas são gratuitas. Depois, cada nova marca custa 1 crédito.
+                      </p>
+                    </div>
+                  </PopoverContent>
+                </Popover>
               </h1>
               <p className="text-sm lg:text-base text-muted-foreground">
                 {t.brands.pageDescription}

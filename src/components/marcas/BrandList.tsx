@@ -1,9 +1,10 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { cn } from '@/lib/utils';
-import { Package, Search } from 'lucide-react';
+import { Package, Search, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import {
   Table,
   TableBody,
@@ -57,11 +58,47 @@ const LoadingRows = () => (
   </>
 );
 
+type SortDirection = 'asc' | 'desc' | null;
+
 export default function BrandList({ brands, selectedBrand, onSelectBrand, isLoading = false, currentPage, totalPages, onPageChange }: BrandListProps) {
-  const sortedBrands = useMemo(() => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [dateSortDirection, setDateSortDirection] = useState<SortDirection>(null);
+
+  const filteredAndSortedBrands = useMemo(() => {
     if (!brands || !Array.isArray(brands)) return [];
-    return [...brands].sort((a, b) => a.name.localeCompare(b.name));
-  }, [brands]);
+    
+    let result = [...brands];
+    
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      result = result.filter(b => 
+        b.name.toLowerCase().includes(query) ||
+        b.responsible.toLowerCase().includes(query)
+      );
+    }
+    
+    // Sort
+    if (dateSortDirection) {
+      result.sort((a, b) => {
+        const dateA = new Date(a.createdAt).getTime();
+        const dateB = new Date(b.createdAt).getTime();
+        return dateSortDirection === 'asc' ? dateA - dateB : dateB - dateA;
+      });
+    } else {
+      result.sort((a, b) => a.name.localeCompare(b.name));
+    }
+    
+    return result;
+  }, [brands, searchQuery, dateSortDirection]);
+
+  const toggleDateSort = () => {
+    setDateSortDirection(prev => {
+      if (prev === null) return 'desc';
+      if (prev === 'desc') return 'asc';
+      return null;
+    });
+  };
 
   const generatePagination = (currentPage: number, totalPages: number) => {
     if (totalPages <= 7) {
@@ -85,22 +122,45 @@ export default function BrandList({ brands, selectedBrand, onSelectBrand, isLoad
 
   const paginationRange = generatePagination(currentPage, totalPages);
 
+  const DateSortIcon = dateSortDirection === 'asc' ? ArrowUp : dateSortDirection === 'desc' ? ArrowDown : ArrowUpDown;
+
   return (
     <div className="bg-card rounded-2xl border border-border/20 flex flex-col h-full overflow-hidden shadow-sm">
+      {/* Search bar */}
+      <div className="p-3 border-b border-border/30 flex-shrink-0">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por nome ou responsável..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9 h-9 bg-muted/30 border-border/30 focus:bg-background"
+          />
+        </div>
+      </div>
+
       <div className="overflow-y-auto flex-1 min-h-0">
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent border-b border-border/50">
               <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Marca</TableHead>
               <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-semibold hidden md:table-cell">Responsável</TableHead>
-              <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-semibold text-right">Data de Criação</TableHead>
+              <TableHead 
+                className="text-xs uppercase tracking-wider text-muted-foreground font-semibold text-right cursor-pointer select-none hover:text-foreground transition-colors"
+                onClick={toggleDateSort}
+              >
+                <span className="inline-flex items-center gap-1 justify-end">
+                  Data de Criação
+                  <DateSortIcon className="h-3.5 w-3.5" />
+                </span>
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <LoadingRows />
-            ) : sortedBrands.length > 0 ? (
-              sortedBrands.map((brand) => (
+            ) : filteredAndSortedBrands.length > 0 ? (
+              filteredAndSortedBrands.map((brand) => (
                 <TableRow
                   key={brand.id}
                   onClick={() => onSelectBrand(brand)}
@@ -131,9 +191,19 @@ export default function BrandList({ brands, selectedBrand, onSelectBrand, isLoad
               <TableRow>
                 <TableCell colSpan={3} className="h-48">
                   <div className="text-center text-muted-foreground animate-fade-in">
-                    <Package className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                    <p className="text-base">Nenhuma marca encontrada</p>
-                    <p className="text-sm mt-1 opacity-75">Clique em "Nova marca" para começar.</p>
+                    {searchQuery.trim() ? (
+                      <>
+                        <Search className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                        <p className="text-base">Nenhuma marca encontrada para "{searchQuery}"</p>
+                        <p className="text-sm mt-1 opacity-75">Tente buscar com outro termo.</p>
+                      </>
+                    ) : (
+                      <>
+                        <Package className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                        <p className="text-base">Nenhuma marca encontrada</p>
+                        <p className="text-sm mt-1 opacity-75">Clique em "Nova marca" para começar.</p>
+                      </>
+                    )}
                   </div>
                 </TableCell>
               </TableRow>
