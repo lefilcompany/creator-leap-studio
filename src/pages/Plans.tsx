@@ -414,12 +414,12 @@ const Plans = () => {
           </div>
           
           {user && (
-            <div className="text-center md:text-right bg-card p-4 rounded-xl border">
-              <p className="text-sm text-muted-foreground">Seu saldo atual</p>
-              <div className="flex items-center justify-center md:justify-end gap-2 mt-1">
-                <Zap className="h-5 w-5 text-primary" />
-                <span className="text-2xl font-bold text-primary">{user.credits || 0}</span>
-                <span className="text-sm text-muted-foreground">créditos</span>
+            <div className="text-center md:text-right bg-card p-5 rounded-xl border shadow-sm">
+              <p className="text-sm text-muted-foreground mb-1">Seu saldo atual</p>
+              <div className="flex items-center justify-center md:justify-end gap-2">
+                <Zap className="h-7 w-7 text-primary" />
+                <span className="text-4xl font-extrabold text-primary">{user.credits || 0}</span>
+                <span className="text-base text-muted-foreground">créditos</span>
               </div>
             </div>
           )}
