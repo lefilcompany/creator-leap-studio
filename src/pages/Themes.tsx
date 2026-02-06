@@ -18,6 +18,7 @@ import { Coins } from 'lucide-react';
 import { TourSelector } from '@/components/onboarding/TourSelector';
 import { themesSteps, navbarSteps } from '@/components/onboarding/tourSteps';
 import { PageBreadcrumb } from "@/components/PageBreadcrumb";
+import themesBanner from '@/assets/themes-banner.jpg';
 
 type ThemeFormData = Omit<StrategicTheme, 'id' | 'createdAt' | 'updatedAt' | 'teamId' | 'userId'>;
 
@@ -385,47 +386,74 @@ export default function Themes() {
   const isButtonDisabled = !user || (user.credits || 0) < 1;
 
   return (
-    <div className="h-full flex flex-col gap-6">
-      {/* Breadcrumb Navigation */}
-      <PageBreadcrumb items={[{ label: "Temas Estratégicos" }]} />
+    <div className="h-full flex flex-col overflow-hidden -m-4 sm:-m-6 lg:-m-8">
+      {/* Banner */}
+      <div className="relative w-full h-48 md:h-56 flex-shrink-0 overflow-hidden">
+        <img 
+          src={themesBanner} 
+          alt="" 
+          className="w-full h-full object-cover"
+          style={{ objectPosition: 'center 85%' }}
+          loading="lazy"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
+      </div>
 
-      <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5 flex-shrink-0">
-        <CardHeader className="pb-4">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div className="flex items-center gap-3">
-              <div className="flex-shrink-0 bg-secondary/10 text-secondary rounded-lg p-3">
-                <Palette className="h-8 w-8" />
-              </div>
-              <div>
-                <CardTitle className="text-2xl font-bold">
-                  Seus Temas Estratégicos
-                </CardTitle>
-                <p className="text-muted-foreground">
-                  Gerencie, edite ou crie novos temas para seus projetos.
-                </p>
-              </div>
+      {/* Header section overlapping the banner */}
+      <div className="relative px-4 sm:px-6 lg:px-8 -mt-12 flex-shrink-0">
+        <div className="bg-card rounded-2xl border border-border/50 shadow-sm p-4 lg:p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="bg-secondary/10 border border-secondary/20 shadow-sm rounded-2xl p-3 lg:p-4">
+              <Palette className="h-8 w-8 lg:h-10 lg:w-10 text-secondary" />
             </div>
-            <Button
-              id="themes-create-button"
-              onClick={() => handleOpenDialog()}
-              disabled={isButtonDisabled}
-              className="rounded-lg bg-gradient-to-r from-primary to-secondary px-6 py-5 text-base disabled:opacity-50 disabled:cursor-not-allowed"
-              title={!user ? 'Carregando...' : ((user.credits || 0) < 1 ? 'Créditos insuficientes' : undefined)}
-            >
-              <Plus className="mr-2 h-5 w-5" />
-              Novo tema
-              <span className="ml-2 flex items-center gap-1 text-xs opacity-90">
-                <Coins className="h-3 w-3" />
-                1
-              </span>
-            </Button>
+            <div>
+              <h1 className="text-2xl lg:text-3xl font-bold text-foreground">
+                Seus Temas Estratégicos
+              </h1>
+              <p className="text-sm lg:text-base text-muted-foreground">
+                Gerencie, edite ou crie novos temas para seus projetos.
+              </p>
+            </div>
           </div>
-        </CardHeader>
-      </Card>
 
-      <main className="grid gap-4 lg:gap-6 flex-1 min-h-0 overflow-hidden grid-cols-1">
-        <div id="themes-list">
-          <ThemeList
+          <Button
+            id="themes-create-button"
+            onClick={() => handleOpenDialog()}
+            disabled={isButtonDisabled}
+            className="rounded-lg bg-gradient-to-r from-primary to-secondary px-5 py-3 text-sm lg:text-base disabled:opacity-50 disabled:cursor-not-allowed shrink-0 shadow-md"
+            title={!user ? 'Carregando...' : ((user.credits || 0) < 1 ? 'Créditos insuficientes' : undefined)}
+          >
+            <Plus className="mr-2 h-4 w-4 lg:h-5 lg:w-5" />
+            Novo tema
+            <span className="ml-2 flex items-center gap-1 text-xs opacity-90">
+              <Coins className="h-3 w-3" />
+              1
+            </span>
+          </Button>
+        </div>
+
+        <TourSelector 
+          tours={[
+            {
+              tourType: 'navbar',
+              steps: navbarSteps,
+              label: 'Tour da Navegação',
+              targetElement: '#sidebar-logo'
+            },
+            {
+              tourType: 'themes',
+              steps: themesSteps,
+              label: 'Tour de Temas',
+              targetElement: '#themes-create-button'
+            }
+          ]}
+          startDelay={500}
+        />
+      </div>
+
+      {/* Table */}
+      <main id="themes-list" className="flex-1 min-h-0 overflow-hidden px-4 sm:px-6 lg:px-8 pt-4 pb-4 sm:pb-6 lg:pb-8">
+        <ThemeList
           themes={themes}
           brands={brands}
           selectedTheme={selectedThemeSummary}
@@ -435,7 +463,6 @@ export default function Themes() {
           totalPages={totalPages}
           onPageChange={setCurrentPage}
         />
-        </div>
       </main>
 
       {/* Sheet para desktop/tablet (da direita) */}
