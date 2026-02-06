@@ -382,13 +382,13 @@ export default function MarcasPage() {
 
       {/* Header section overlapping the banner */}
       <div className="relative px-4 sm:px-6 lg:px-8 -mt-12 flex-shrink-0">
-        <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-4">
+        <div className="bg-card rounded-2xl border border-border/50 shadow-sm p-4 lg:p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             {/* Brand Icon */}
-            <div className="bg-card border-4 border-background shadow-lg rounded-2xl p-3 lg:p-4">
+            <div className="bg-primary/10 border border-primary/20 shadow-sm rounded-2xl p-3 lg:p-4">
               <Tag className="h-8 w-8 lg:h-10 lg:w-10 text-primary" />
             </div>
-            <div className="pt-2">
+            <div>
               <h1 className="text-2xl lg:text-3xl font-bold text-foreground">
                 {t.brands.pageTitle}
               </h1>
