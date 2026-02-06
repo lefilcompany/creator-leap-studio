@@ -452,93 +452,103 @@ const Plans = () => {
           <div className="h-1 bg-gradient-to-r from-primary/40 via-primary to-primary/40" />
           
           <CardContent className="p-4 sm:p-6">
-            {/* Mobile: stack vertically / Desktop: single row */}
-            <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6">
+            <div className="flex flex-col lg:flex-row items-center gap-5 lg:gap-8">
               {/* Info */}
-              <div className="flex-shrink-0 text-center md:text-left">
-                <div className="flex items-center justify-center md:justify-start gap-2 mb-1">
+              <div className="flex-1 min-w-0 text-center lg:text-left">
+                <div className="flex items-center justify-center lg:justify-start gap-2 mb-1">
                   <ShoppingCart className="h-5 w-5 text-primary" />
                   <h3 className="text-lg font-bold">Compra Avulsa</h3>
                 </div>
                 <p className="text-sm text-muted-foreground">
                   Compre créditos avulsos de 5 em 5. Cada crédito custa <span className="font-semibold text-primary">R$ {CREDIT_PRICE.toFixed(2)}</span>
                 </p>
-                <div className="flex items-center justify-center md:justify-start gap-1.5 text-xs text-muted-foreground mt-1">
+                <div className="flex items-center justify-center lg:justify-start gap-1.5 text-xs text-muted-foreground mt-1">
                   <Check className="h-3.5 w-3.5 text-primary" />
                   <span>Pagamento único via Stripe</span>
                 </div>
               </div>
 
-              {/* Divider - visible on desktop */}
-              <div className="hidden md:block w-px h-16 bg-border/50" />
-
-              {/* Quantity selector row */}
-              <div className="flex items-center gap-3 sm:gap-4">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-10 w-10 rounded-full border-2 hover:bg-primary hover:text-primary-foreground transition-all flex-shrink-0"
-                  onClick={decrementCredits}
-                  disabled={customCredits <= MIN_CREDITS}
-                >
-                  <Minus className="h-4 w-4" />
-                </Button>
-                
-                <div className="text-center min-w-[80px]">
-                  <motion.div 
-                    key={customCredits}
-                    initial={{ scale: 1.2, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    className="text-4xl font-bold text-primary leading-tight"
+              {/* Quantity selector + Total + Button */}
+              <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-5 w-full lg:w-auto">
+                {/* Quantity selector */}
+                <div className="flex items-center gap-3">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-10 w-10 rounded-full border-2 hover:bg-primary hover:text-primary-foreground transition-all flex-shrink-0"
+                    onClick={decrementCredits}
+                    disabled={customCredits <= MIN_CREDITS}
                   >
-                    {customCredits}
-                  </motion.div>
-                  <p className="text-xs text-muted-foreground">créditos</p>
+                    <Minus className="h-4 w-4" />
+                  </Button>
+                  
+                  <div className="text-center">
+                    <input
+                      type="number"
+                      value={customCredits}
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value);
+                        if (!isNaN(val)) {
+                          const clamped = Math.max(MIN_CREDITS, Math.min(MAX_CREDITS, val));
+                          const rounded = Math.round(clamped / CREDIT_STEP) * CREDIT_STEP;
+                          setCustomCredits(rounded || MIN_CREDITS);
+                        }
+                      }}
+                      onBlur={() => {
+                        if (customCredits < MIN_CREDITS) setCustomCredits(MIN_CREDITS);
+                        if (customCredits > MAX_CREDITS) setCustomCredits(MAX_CREDITS);
+                        const rounded = Math.round(customCredits / CREDIT_STEP) * CREDIT_STEP;
+                        if (rounded !== customCredits) setCustomCredits(rounded || MIN_CREDITS);
+                      }}
+                      min={MIN_CREDITS}
+                      max={MAX_CREDITS}
+                      step={CREDIT_STEP}
+                      className="w-20 text-center text-3xl font-bold text-primary bg-transparent border-none outline-none focus:ring-0 appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [-moz-appearance:textfield]"
+                    />
+                    <p className="text-xs text-muted-foreground -mt-1">créditos</p>
+                  </div>
+                  
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-10 w-10 rounded-full border-2 hover:bg-primary hover:text-primary-foreground transition-all flex-shrink-0"
+                    onClick={incrementCredits}
+                    disabled={customCredits >= MAX_CREDITS}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
                 </div>
-                
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-10 w-10 rounded-full border-2 hover:bg-primary hover:text-primary-foreground transition-all flex-shrink-0"
-                  onClick={incrementCredits}
-                  disabled={customCredits >= MAX_CREDITS}
+
+                {/* Total price */}
+                <motion.div 
+                  key={customCredits * CREDIT_PRICE}
+                  initial={{ scale: 1.05 }}
+                  animate={{ scale: 1 }}
+                  className="bg-primary/10 px-5 py-2.5 rounded-xl border border-primary/20 text-center flex-shrink-0"
                 >
-                  <Plus className="h-4 w-4" />
+                  <p className="text-xs text-muted-foreground">Total</p>
+                  <p className="text-2xl font-bold text-primary">
+                    R$ {(customCredits * CREDIT_PRICE).toFixed(2)}
+                  </p>
+                </motion.div>
+
+                {/* Buy button */}
+                <Button
+                  onClick={handleCustomPurchase}
+                  disabled={loadingCustom}
+                  size="lg"
+                  className="w-full sm:w-auto h-12 px-6 text-base font-semibold bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl transition-all duration-300 flex-shrink-0"
+                >
+                  {loadingCustom ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <>
+                      <ShoppingCart className="h-4 w-4 mr-2" />
+                      Comprar {customCredits} Créditos
+                    </>
+                  )}
                 </Button>
               </div>
-
-              {/* Divider - visible on desktop */}
-              <div className="hidden md:block w-px h-16 bg-border/50" />
-
-              {/* Total price */}
-              <motion.div 
-                key={customCredits * CREDIT_PRICE}
-                initial={{ scale: 1.05 }}
-                animate={{ scale: 1 }}
-                className="bg-primary/10 px-5 py-2.5 rounded-xl border border-primary/20 text-center flex-shrink-0"
-              >
-                <p className="text-xs text-muted-foreground">Total</p>
-                <p className="text-2xl font-bold text-primary">
-                  R$ {(customCredits * CREDIT_PRICE).toFixed(2)}
-                </p>
-              </motion.div>
-
-              {/* Buy button */}
-              <Button
-                onClick={handleCustomPurchase}
-                disabled={loadingCustom}
-                size="lg"
-                className="w-full md:w-auto h-12 px-6 text-base font-semibold bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl transition-all duration-300 flex-shrink-0"
-              >
-                {loadingCustom ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                ) : (
-                  <>
-                    <ShoppingCart className="h-4 w-4 mr-2" />
-                    Comprar {customCredits} Créditos
-                  </>
-                )}
-              </Button>
             </div>
           </CardContent>
         </Card>
