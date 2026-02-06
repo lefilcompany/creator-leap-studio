@@ -39,6 +39,70 @@ const generateId = (): string => {
     return `color-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 };
 
+// Pre-defined color palettes
+const predefinedPalettes = [
+    {
+        name: 'Corporativo',
+        colors: [
+            { hex: '#1a365d', name: 'Azul Escuro' },
+            { hex: '#2b6cb0', name: 'Azul Médio' },
+            { hex: '#63b3ed', name: 'Azul Claro' },
+            { hex: '#2d3748', name: 'Cinza Escuro' },
+            { hex: '#e2e8f0', name: 'Cinza Claro' },
+        ],
+    },
+    {
+        name: 'Vibrante',
+        colors: [
+            { hex: '#e53e3e', name: 'Vermelho' },
+            { hex: '#dd6b20', name: 'Laranja' },
+            { hex: '#ecc94b', name: 'Amarelo' },
+            { hex: '#38a169', name: 'Verde' },
+            { hex: '#3182ce', name: 'Azul' },
+        ],
+    },
+    {
+        name: 'Pastel',
+        colors: [
+            { hex: '#fed7e2', name: 'Rosa Pastel' },
+            { hex: '#fefcbf', name: 'Amarelo Pastel' },
+            { hex: '#c6f6d5', name: 'Verde Pastel' },
+            { hex: '#bee3f8', name: 'Azul Pastel' },
+            { hex: '#e9d8fd', name: 'Lilás Pastel' },
+        ],
+    },
+    {
+        name: 'Minimalista',
+        colors: [
+            { hex: '#000000', name: 'Preto' },
+            { hex: '#4a5568', name: 'Cinza' },
+            { hex: '#a0aec0', name: 'Prata' },
+            { hex: '#edf2f7', name: 'Quase Branco' },
+            { hex: '#ffffff', name: 'Branco' },
+        ],
+    },
+    {
+        name: 'Natureza',
+        colors: [
+            { hex: '#22543d', name: 'Verde Floresta' },
+            { hex: '#48bb78', name: 'Verde Folha' },
+            { hex: '#9ae6b4', name: 'Verde Menta' },
+            { hex: '#744210', name: 'Marrom Terra' },
+            { hex: '#fefcbf', name: 'Areia' },
+        ],
+    },
+    {
+        name: 'Luxo',
+        colors: [
+            { hex: '#1a202c', name: 'Preto Profundo' },
+            { hex: '#b7791f', name: 'Ouro' },
+            { hex: '#ecc94b', name: 'Dourado Claro' },
+            { hex: '#553c9a', name: 'Púrpura' },
+            { hex: '#faf5ff', name: 'Branco Ametista' },
+        ],
+    },
+];
+
 export function ColorPicker({ colors, onColorsChange, maxColors = 10 }: ColorPickerProps) {
     const [currentColor, setCurrentColor] = useState('#ffffff');
     const [currentRgb, setCurrentRgb] = useState({ r: 255, g: 255, b: 255 });
@@ -109,11 +173,61 @@ export function ColorPicker({ colors, onColorsChange, maxColors = 10 }: ColorPic
         onColorsChange(colors.filter(color => color.id !== id));
     };
 
+    const applyPalette = (palette: typeof predefinedPalettes[0]) => {
+        if (colors.length + palette.colors.length > maxColors) {
+            toast.error(`A paleta tem ${palette.colors.length} cores, mas só cabem mais ${maxColors - colors.length}`);
+            return;
+        }
+        const newColors: ColorItem[] = palette.colors
+            .filter(pc => !colors.some(c => c.hex.toLowerCase() === pc.hex.toLowerCase()))
+            .map(pc => ({
+                id: generateId(),
+                hex: pc.hex,
+                rgb: hexToRgb(pc.hex),
+                name: pc.name,
+            }));
+        
+        if (newColors.length === 0) {
+            toast.info('Todas as cores desta paleta já estão adicionadas');
+            return;
+        }
+        
+        onColorsChange([...colors, ...newColors]);
+        toast.success(`Paleta "${palette.name}" aplicada (${newColors.length} cores)`);
+    };
+
     const isColorAlreadyAdded = colors.some(color => color.hex.toLowerCase() === currentColor.toLowerCase());
 
     return (
         <div className="space-y-4">
             <Label className="text-sm font-medium">Paleta de Cores</Label>
+            
+            {/* Pre-defined palettes */}
+            <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">Paletas pré-definidas</Label>
+                <div className="flex flex-wrap gap-2">
+                    {predefinedPalettes.map((palette) => (
+                        <button
+                            key={palette.name}
+                            type="button"
+                            onClick={() => applyPalette(palette)}
+                            className="group flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border/50 hover:border-primary/50 hover:bg-primary/5 transition-all text-xs font-medium text-muted-foreground hover:text-foreground"
+                        >
+                            <div className="flex -space-x-1">
+                                {palette.colors.slice(0, 5).map((c, i) => (
+                                    <div
+                                        key={i}
+                                        className="w-4 h-4 rounded-full border border-background shadow-sm"
+                                        style={{ backgroundColor: c.hex }}
+                                    />
+                                ))}
+                            </div>
+                            <span>{palette.name}</span>
+                        </button>
+                    ))}
+                </div>
+            </div>
+
             <Card>
                 <CardContent className="p-4">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
