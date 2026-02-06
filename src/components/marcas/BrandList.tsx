@@ -86,7 +86,7 @@ export default function BrandList({ brands, selectedBrand, onSelectBrand, isLoad
   const paginationRange = generatePagination(currentPage, totalPages);
 
   return (
-    <div className="bg-card rounded-2xl border border-border/50 flex flex-col h-full overflow-hidden shadow-sm">
+    <div className="bg-card rounded-2xl border border-border/20 flex flex-col h-full overflow-hidden shadow-sm">
       <div className="overflow-y-auto flex-1 min-h-0">
         <Table>
           <TableHeader>
