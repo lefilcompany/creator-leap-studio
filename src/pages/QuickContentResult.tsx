@@ -13,6 +13,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { CREDIT_COSTS } from "@/lib/creditCosts";
+import { CreationProgressBar } from "@/components/CreationProgressBar";
+import { PageBreadcrumb } from "@/components/PageBreadcrumb";
 
 export default function QuickContentResult() {
   const navigate = useNavigate();
@@ -409,6 +411,12 @@ export default function QuickContentResult() {
 
   return (
     <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-5 md:space-y-6">
+      {/* Breadcrumb + Progress Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+        <PageBreadcrumb items={[{ label: "Criação Rápida", href: "/quick-content" }, { label: "Resultado" }]} className="flex-shrink-0" />
+        <CreationProgressBar currentStep="result" className="flex-1 max-w-xs sm:max-w-sm" />
+      </div>
+
       {/* Header Card */}
       <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-md rounded-xl overflow-hidden animate-fade-in">
         <div className="p-3 sm:p-4 md:p-5 space-y-3 sm:space-y-4">
