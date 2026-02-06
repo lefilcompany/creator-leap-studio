@@ -3,7 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { Drawer, DrawerContent, DrawerTitle } from '@/components/ui/drawer';
-import { Palette, Plus } from 'lucide-react';
+import { Palette, Plus, HelpCircle } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import ThemeList from '@/components/temas/ThemeList';
 import ThemeDetails from '@/components/temas/ThemeDetails';
 import ThemeDialog from '@/components/temas/ThemeDialog';
@@ -407,8 +408,32 @@ export default function Themes() {
               <Palette className="h-8 w-8 lg:h-10 lg:w-10 text-secondary" />
             </div>
             <div>
-              <h1 className="text-2xl lg:text-3xl font-bold text-foreground">
+              <h1 className="text-2xl lg:text-3xl font-bold text-foreground flex items-center gap-2">
                 Seus Temas Estratégicos
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button className="text-muted-foreground hover:text-foreground transition-colors">
+                      <HelpCircle className="h-5 w-5" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-80 text-sm" side="bottom" align="start">
+                    <div className="space-y-2">
+                      <h4 className="font-semibold text-foreground">O que são Temas Estratégicos?</h4>
+                      <p className="text-muted-foreground">
+                        Temas estratégicos são diretrizes de conteúdo que definem o tom, estilo e objetivos das suas publicações. Eles garantem consistência na comunicação da marca.
+                      </p>
+                      <h4 className="font-semibold text-foreground mt-3">Como usar?</h4>
+                      <ul className="text-muted-foreground space-y-1 list-disc list-inside">
+                        <li>Crie um tema vinculado a uma marca existente</li>
+                        <li>Defina público-alvo, tom de voz e objetivos</li>
+                        <li>Use o tema ao criar conteúdos para manter a estratégia alinhada</li>
+                      </ul>
+                      <p className="text-xs text-muted-foreground/70 mt-2">
+                        Os 3 primeiros temas são gratuitos. Depois, cada novo tema custa 1 crédito.
+                      </p>
+                    </div>
+                  </PopoverContent>
+                </Popover>
               </h1>
               <p className="text-sm lg:text-base text-muted-foreground">
                 Gerencie, edite ou crie novos temas para seus projetos.
