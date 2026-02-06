@@ -478,7 +478,7 @@ const Plans = () => {
               </div>
 
               {/* Quantity selector + Total + Button */}
-              <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-5 w-full xl:w-auto">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-5 w-full xl:w-auto">
                 {/* Quantity selector */}
                 <div className="flex items-center gap-3">
                   <Button
