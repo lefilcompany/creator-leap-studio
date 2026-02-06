@@ -1,9 +1,10 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { cn } from '@/lib/utils';
-import { Loader2, Users } from 'lucide-react';
+import { Users, Search, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import type { PersonaSummary } from '@/types/persona';
 import type { BrandSummary } from '@/types/brand';
 import {
@@ -47,15 +48,48 @@ const LoadingState = () => (
   </div>
 );
 
-export default function PersonaList({ personas, brands, selectedPersona, onSelectPersona, isLoading = false, currentPage, totalPages, onPageChange }: PersonaListProps) {
-  const sortedPersonas = useMemo(() => {
-    if (!personas || !Array.isArray(personas)) return [];
-    return [...personas].sort((a, b) => a.name.localeCompare(b.name));
-  }, [personas]);
+type SortDirection = 'asc' | 'desc' | null;
 
-  const getBrandName = (brandId: string) => {
-    const brand = brands.find(b => b.id === brandId);
-    return brand?.name || 'Marca não encontrada';
+export default function PersonaList({ personas, brands, selectedPersona, onSelectPersona, isLoading = false, currentPage, totalPages, onPageChange }: PersonaListProps) {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [dateSortDirection, setDateSortDirection] = useState<SortDirection>(null);
+
+  const brandMap = useMemo(() => new Map(brands.map(b => [b.id, b.name])), [brands]);
+
+  const filteredAndSortedPersonas = useMemo(() => {
+    if (!personas || !Array.isArray(personas)) return [];
+
+    let result = [...personas];
+
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      result = result.filter(p =>
+        p.name.toLowerCase().includes(query) ||
+        (brandMap.get(p.brandId) || '').toLowerCase().includes(query)
+      );
+    }
+
+    // Sort
+    if (dateSortDirection) {
+      result.sort((a, b) => {
+        const dateA = new Date(a.createdAt).getTime();
+        const dateB = new Date(b.createdAt).getTime();
+        return dateSortDirection === 'asc' ? dateA - dateB : dateB - dateA;
+      });
+    } else {
+      result.sort((a, b) => a.name.localeCompare(b.name));
+    }
+
+    return result;
+  }, [personas, searchQuery, dateSortDirection, brandMap]);
+
+  const toggleDateSort = () => {
+    setDateSortDirection(prev => {
+      if (prev === null) return 'desc';
+      if (prev === 'desc') return 'asc';
+      return null;
+    });
   };
 
   const generatePagination = (currentPage: number, totalPages: number) => {
@@ -72,9 +106,7 @@ export default function PersonaList({ personas, brands, selectedPersona, onSelec
   };
 
   const handlePageClick = (page: number | string, event?: React.MouseEvent) => {
-    if (event) {
-      event.preventDefault();
-    }
+    if (event) event.preventDefault();
     if (typeof page === 'number' && page > 0 && page <= totalPages && page !== currentPage) {
       onPageChange(page);
     }
@@ -82,22 +114,50 @@ export default function PersonaList({ personas, brands, selectedPersona, onSelec
 
   const paginationRange = generatePagination(currentPage, totalPages);
 
+  const DateSortIcon = dateSortDirection === 'asc' ? ArrowUp : dateSortDirection === 'desc' ? ArrowDown : ArrowUpDown;
+
   return (
     <div className="lg:col-span-2 bg-card p-4 md:p-6 rounded-2xl border-2 border-primary/10 flex flex-col h-full overflow-hidden">
+      {/* Header with count */}
       <div className="flex items-center justify-between mb-4 flex-shrink-0">
         <h2 className="text-2xl font-semibold text-foreground">Todas as personas</h2>
         {!isLoading && (
           <Badge variant="secondary" className="bg-secondary/10 text-secondary hover:text-white">
-            {sortedPersonas.length} personas
+            {filteredAndSortedPersonas.length} personas
           </Badge>
         )}
       </div>
+
+      {/* Search bar */}
+      <div className="mb-4 flex-shrink-0">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por nome ou marca..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9 h-9 bg-muted/30 border-border/30 focus:bg-background"
+          />
+        </div>
+      </div>
+
+      {/* Sort by date */}
+      <div className="flex items-center justify-end mb-3 flex-shrink-0">
+        <button
+          onClick={toggleDateSort}
+          className="inline-flex items-center gap-1 text-xs uppercase tracking-wider text-muted-foreground font-semibold hover:text-foreground transition-colors select-none"
+        >
+          Data de Criação
+          <DateSortIcon className="h-3.5 w-3.5" />
+        </button>
+      </div>
+
       <div className="overflow-y-auto pr-2 flex-1 min-h-0">
         {isLoading ? (
           <LoadingState />
-        ) : sortedPersonas.length > 0 ? (
+        ) : filteredAndSortedPersonas.length > 0 ? (
           <ul className="space-y-3 animate-fade-in">
-            {sortedPersonas.map((persona) => (
+            {filteredAndSortedPersonas.map((persona) => (
               <li key={persona.id}>
                 <button
                   onClick={() => onSelectPersona(persona)}
@@ -114,7 +174,7 @@ export default function PersonaList({ personas, brands, selectedPersona, onSelec
                     </div>
                     <div>
                       <p className="font-semibold text-lg text-foreground">{persona.name}</p>
-                      <p className="text-sm text-muted-foreground">Marca: {getBrandName(persona.brandId)}</p>
+                      <p className="text-sm text-muted-foreground">Marca: {brandMap.get(persona.brandId) || 'Marca não encontrada'}</p>
                     </div>
                   </div>
                   <span className="text-sm text-muted-foreground hidden md:block">
@@ -126,9 +186,19 @@ export default function PersonaList({ personas, brands, selectedPersona, onSelec
           </ul>
         ) : (
           <div className="text-center text-muted-foreground py-8 animate-fade-in">
-            <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
-            <p className="text-base">Nenhuma persona encontrada</p>
-            <p className="text-sm mt-1 opacity-75">Clique em "Nova persona" para começar.</p>
+            {searchQuery.trim() ? (
+              <>
+                <Search className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                <p className="text-base">Nenhuma persona encontrada para "{searchQuery}"</p>
+                <p className="text-sm mt-1 opacity-75">Tente buscar com outro termo.</p>
+              </>
+            ) : (
+              <>
+                <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                <p className="text-base">Nenhuma persona encontrada</p>
+                <p className="text-sm mt-1 opacity-75">Clique em "Nova persona" para começar.</p>
+              </>
+            )}
           </div>
         )}
       </div>

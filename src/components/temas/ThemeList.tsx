@@ -1,7 +1,8 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { cn } from '@/lib/utils';
-import { Loader2, Palette } from 'lucide-react';
+import { Palette, Search, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import type { StrategicThemeSummary } from "@/types/theme";
 import type { BrandSummary } from "@/types/brand";
 import {
@@ -45,12 +46,47 @@ const LoadingState = () => (
   </div>
 );
 
+type SortDirection = 'asc' | 'desc' | null;
+
 export default function ThemeList({ themes, brands, selectedTheme, onSelectTheme, isLoading = false, currentPage, totalPages, onPageChange }: ThemeListProps) {
-  const sortedThemes = useMemo(() => {
-    return [...themes].sort((a, b) => a.title.localeCompare(b.title));
-  }, [themes]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [dateSortDirection, setDateSortDirection] = useState<SortDirection>(null);
 
   const brandMap = useMemo(() => new Map(brands.map(b => [b.id, b.name])), [brands]);
+
+  const filteredAndSortedThemes = useMemo(() => {
+    let result = [...themes];
+
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      result = result.filter(t =>
+        t.title.toLowerCase().includes(query) ||
+        (brandMap.get(t.brandId) || '').toLowerCase().includes(query)
+      );
+    }
+
+    // Sort
+    if (dateSortDirection) {
+      result.sort((a, b) => {
+        const dateA = new Date(a.createdAt).getTime();
+        const dateB = new Date(b.createdAt).getTime();
+        return dateSortDirection === 'asc' ? dateA - dateB : dateB - dateA;
+      });
+    } else {
+      result.sort((a, b) => a.title.localeCompare(b.title));
+    }
+
+    return result;
+  }, [themes, searchQuery, dateSortDirection, brandMap]);
+
+  const toggleDateSort = () => {
+    setDateSortDirection(prev => {
+      if (prev === null) return 'desc';
+      if (prev === 'desc') return 'asc';
+      return null;
+    });
+  };
 
   const generatePagination = (currentPage: number, totalPages: number) => {
     if (totalPages <= 7) {
@@ -66,9 +102,7 @@ export default function ThemeList({ themes, brands, selectedTheme, onSelectTheme
   };
 
   const handlePageClick = (page: number | string, event?: React.MouseEvent) => {
-    if (event) {
-      event.preventDefault();
-    }
+    if (event) event.preventDefault();
     if (typeof page === 'number' && page > 0 && page <= totalPages && page !== currentPage) {
       onPageChange(page);
     }
@@ -76,22 +110,50 @@ export default function ThemeList({ themes, brands, selectedTheme, onSelectTheme
 
   const paginationRange = generatePagination(currentPage, totalPages);
 
+  const DateSortIcon = dateSortDirection === 'asc' ? ArrowUp : dateSortDirection === 'desc' ? ArrowDown : ArrowUpDown;
+
   return (
     <div className="lg:col-span-2 bg-card p-4 md:p-6 rounded-2xl border-2 border-primary/10 flex flex-col h-full overflow-hidden">
+      {/* Header with count */}
       <div className="flex items-center justify-between mb-4 flex-shrink-0">
         <h2 className="text-2xl font-semibold text-foreground">Todos os temas</h2>
         {!isLoading && (
           <Badge variant="secondary" className="bg-secondary/10 text-secondary hover:text-white">
-            {sortedThemes.length} temas
+            {filteredAndSortedThemes.length} temas
           </Badge>
         )}
       </div>
+
+      {/* Search bar */}
+      <div className="mb-4 flex-shrink-0">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por título ou marca..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9 h-9 bg-muted/30 border-border/30 focus:bg-background"
+          />
+        </div>
+      </div>
+
+      {/* Sort by date */}
+      <div className="flex items-center justify-end mb-3 flex-shrink-0">
+        <button
+          onClick={toggleDateSort}
+          className="inline-flex items-center gap-1 text-xs uppercase tracking-wider text-muted-foreground font-semibold hover:text-foreground transition-colors select-none"
+        >
+          Data de Criação
+          <DateSortIcon className="h-3.5 w-3.5" />
+        </button>
+      </div>
+
       <div className="overflow-y-auto pr-2 flex-1 min-h-0">
         {isLoading ? (
           <LoadingState />
-        ) : sortedThemes.length > 0 ? (
+        ) : filteredAndSortedThemes.length > 0 ? (
           <ul className="space-y-3 animate-fade-in">
-            {sortedThemes.map((theme) => (
+            {filteredAndSortedThemes.map((theme) => (
               <li key={theme.id}>
                 <button
                   onClick={() => onSelectTheme(theme)}
@@ -120,9 +182,19 @@ export default function ThemeList({ themes, brands, selectedTheme, onSelectTheme
           </ul>
         ) : (
           <div className="text-center text-muted-foreground py-8 animate-fade-in">
-            <Palette className="h-12 w-12 mx-auto mb-3 opacity-50" />
-            <p className="text-base">Nenhum tema encontrado</p>
-            <p className="text-sm mt-1 opacity-75">Clique em "Novo tema" para começar.</p>
+            {searchQuery.trim() ? (
+              <>
+                <Search className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                <p className="text-base">Nenhum tema encontrado para "{searchQuery}"</p>
+                <p className="text-sm mt-1 opacity-75">Tente buscar com outro termo.</p>
+              </>
+            ) : (
+              <>
+                <Palette className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                <p className="text-base">Nenhum tema encontrado</p>
+                <p className="text-sm mt-1 opacity-75">Clique em "Novo tema" para começar.</p>
+              </>
+            )}
           </div>
         )}
       </div>

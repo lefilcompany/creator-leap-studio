@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { Drawer, DrawerContent, DrawerTitle } from '@/components/ui/drawer';
-import { Plus, Users } from 'lucide-react';
+import { Plus, Users, HelpCircle } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import PersonaList from '@/components/personas/PersonaList';
 import PersonaDetails from '@/components/personas/PersonaDetails';
 import PersonaDialog from '@/components/personas/PersonaDialog';
@@ -399,8 +400,32 @@ export default function PersonasPage() {
               <Users className="h-8 w-8 lg:h-10 lg:w-10 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl lg:text-3xl font-bold text-foreground">
+              <h1 className="text-2xl lg:text-3xl font-bold text-foreground flex items-center gap-2">
                 Suas Personas
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button className="text-muted-foreground hover:text-foreground transition-colors">
+                      <HelpCircle className="h-5 w-5" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-80 text-sm" side="bottom" align="start">
+                    <div className="space-y-2">
+                      <h4 className="font-semibold text-foreground">O que são Personas?</h4>
+                      <p className="text-muted-foreground">
+                        Personas são representações do seu público-alvo ideal. Elas ajudam a direcionar o conteúdo para as pessoas certas, com a linguagem e tom adequados.
+                      </p>
+                      <h4 className="font-semibold text-foreground mt-3">Como usar?</h4>
+                      <ul className="text-muted-foreground space-y-1 list-disc list-inside">
+                        <li>Crie uma persona vinculada a uma marca existente</li>
+                        <li>Defina idade, interesses, desafios e objetivos</li>
+                        <li>Use a persona ao criar conteúdos para personalizar a comunicação</li>
+                      </ul>
+                      <p className="text-xs text-muted-foreground/70 mt-2">
+                        As 3 primeiras personas são gratuitas. Depois, cada nova persona custa 1 crédito.
+                      </p>
+                    </div>
+                  </PopoverContent>
+                </Popover>
               </h1>
               <p className="text-sm lg:text-base text-muted-foreground">
                 Gerencie, edite ou crie novas personas para seus projetos.
