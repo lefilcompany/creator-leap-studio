@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { cn } from '@/lib/utils';
-import { Users, Search, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Users, Search, ArrowUpDown, ArrowUp, ArrowDown, ChevronDown, ChevronRight, Tag } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import type { PersonaSummary } from '@/types/persona';
@@ -34,7 +34,6 @@ const formatDate = (dateString: string) => {
   return date.toLocaleDateString('pt-BR');
 };
 
-// Componente de loading profissional
 const LoadingState = () => (
   <div className="flex flex-col items-center justify-center py-16 space-y-4">
     <div className="relative">
@@ -50,18 +49,97 @@ const LoadingState = () => (
 
 type SortDirection = 'asc' | 'desc' | null;
 
+interface BrandGroup {
+  brandId: string;
+  brandName: string;
+  personas: PersonaSummary[];
+}
+
+interface PersonaCardProps {
+  persona: PersonaSummary;
+  isSelected: boolean;
+  onSelect: (persona: PersonaSummary) => void;
+}
+
+const PersonaCard = ({ persona, isSelected, onSelect }: PersonaCardProps) => (
+  <button
+    onClick={() => onSelect(persona)}
+    className={cn(
+      "persona-card w-full text-left p-3 md:p-4 rounded-lg border-2 transition-all duration-200 flex items-center justify-between hover-scale",
+      isSelected
+        ? "bg-primary/10 border-primary shadow-md"
+        : "bg-muted/50 border-transparent hover:border-primary/50 hover:bg-primary/5"
+    )}
+  >
+    <div className="flex items-center">
+      <div className="bg-gradient-to-br from-primary to-secondary text-white rounded-lg w-9 h-9 md:w-10 md:h-10 flex items-center justify-center font-bold text-lg md:text-xl mr-3 md:mr-4 flex-shrink-0">
+        {persona.name.charAt(0).toUpperCase()}
+      </div>
+      <p className="font-semibold text-base md:text-lg text-foreground">{persona.name}</p>
+    </div>
+    <span className="text-sm text-muted-foreground hidden md:block flex-shrink-0">
+      {formatDate(persona.createdAt)}
+    </span>
+  </button>
+);
+
+interface BrandGroupSectionProps {
+  group: BrandGroup;
+  selectedPersona: PersonaSummary | null;
+  onSelectPersona: (persona: PersonaSummary) => void;
+  isExpanded: boolean;
+  onToggle: () => void;
+}
+
+const BrandGroupSection = ({ group, selectedPersona, onSelectPersona, isExpanded, onToggle }: BrandGroupSectionProps) => (
+  <div className="border border-border/40 rounded-xl overflow-hidden">
+    <button
+      onClick={onToggle}
+      className="w-full flex items-center justify-between p-3 md:p-4 bg-muted/30 hover:bg-muted/50 transition-colors"
+    >
+      <div className="flex items-center gap-2.5">
+        <div className="bg-primary/10 text-primary rounded-lg w-8 h-8 flex items-center justify-center flex-shrink-0">
+          <Tag className="h-4 w-4" />
+        </div>
+        <span className="font-semibold text-foreground text-base">{group.brandName}</span>
+        <Badge variant="outline" className="text-xs">
+          {group.personas.length} {group.personas.length === 1 ? 'persona' : 'personas'}
+        </Badge>
+      </div>
+      {isExpanded ? (
+        <ChevronDown className="h-4 w-4 text-muted-foreground" />
+      ) : (
+        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+      )}
+    </button>
+    {isExpanded && (
+      <ul className="p-2 md:p-3 space-y-2 animate-fade-in">
+        {group.personas.map((persona) => (
+          <li key={persona.id}>
+            <PersonaCard
+              persona={persona}
+              isSelected={selectedPersona?.id === persona.id}
+              onSelect={onSelectPersona}
+            />
+          </li>
+        ))}
+      </ul>
+    )}
+  </div>
+);
+
 export default function PersonaList({ personas, brands, selectedPersona, onSelectPersona, isLoading = false, currentPage, totalPages, onPageChange }: PersonaListProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [dateSortDirection, setDateSortDirection] = useState<SortDirection>(null);
+  const [collapsedBrands, setCollapsedBrands] = useState<Set<string>>(new Set());
 
   const brandMap = useMemo(() => new Map(brands.map(b => [b.id, b.name])), [brands]);
 
-  const filteredAndSortedPersonas = useMemo(() => {
+  const filteredPersonas = useMemo(() => {
     if (!personas || !Array.isArray(personas)) return [];
 
     let result = [...personas];
 
-    // Filter by search query
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
       result = result.filter(p =>
@@ -70,7 +148,6 @@ export default function PersonaList({ personas, brands, selectedPersona, onSelec
       );
     }
 
-    // Sort
     if (dateSortDirection) {
       result.sort((a, b) => {
         const dateA = new Date(a.createdAt).getTime();
@@ -83,6 +160,37 @@ export default function PersonaList({ personas, brands, selectedPersona, onSelec
 
     return result;
   }, [personas, searchQuery, dateSortDirection, brandMap]);
+
+  const groupedByBrand = useMemo(() => {
+    const groups = new Map<string, PersonaSummary[]>();
+
+    for (const persona of filteredPersonas) {
+      const list = groups.get(persona.brandId) || [];
+      list.push(persona);
+      groups.set(persona.brandId, list);
+    }
+
+    const result: BrandGroup[] = Array.from(groups.entries()).map(([brandId, personaList]) => ({
+      brandId,
+      brandName: brandMap.get(brandId) || 'Marca não encontrada',
+      personas: personaList,
+    }));
+
+    result.sort((a, b) => a.brandName.localeCompare(b.brandName));
+    return result;
+  }, [filteredPersonas, brandMap]);
+
+  const toggleBrandCollapse = (brandId: string) => {
+    setCollapsedBrands(prev => {
+      const next = new Set(prev);
+      if (next.has(brandId)) {
+        next.delete(brandId);
+      } else {
+        next.add(brandId);
+      }
+      return next;
+    });
+  };
 
   const toggleDateSort = () => {
     setDateSortDirection(prev => {
@@ -113,22 +221,19 @@ export default function PersonaList({ personas, brands, selectedPersona, onSelec
   };
 
   const paginationRange = generatePagination(currentPage, totalPages);
-
   const DateSortIcon = dateSortDirection === 'asc' ? ArrowUp : dateSortDirection === 'desc' ? ArrowDown : ArrowUpDown;
 
   return (
     <div className="lg:col-span-2 bg-card p-4 md:p-6 rounded-2xl border-2 border-primary/10 flex flex-col h-full overflow-hidden">
-      {/* Header with count */}
       <div className="flex items-center justify-between mb-4 flex-shrink-0">
         <h2 className="text-2xl font-semibold text-foreground">Todas as personas</h2>
         {!isLoading && (
           <Badge variant="secondary" className="bg-secondary/10 text-secondary hover:text-white">
-            {filteredAndSortedPersonas.length} personas
+            {filteredPersonas.length} personas
           </Badge>
         )}
       </div>
 
-      {/* Search bar */}
       <div className="mb-4 flex-shrink-0">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -141,7 +246,6 @@ export default function PersonaList({ personas, brands, selectedPersona, onSelec
         </div>
       </div>
 
-      {/* Sort by date */}
       <div className="flex items-center justify-end mb-3 flex-shrink-0">
         <button
           onClick={toggleDateSort}
@@ -155,35 +259,19 @@ export default function PersonaList({ personas, brands, selectedPersona, onSelec
       <div className="overflow-y-auto pr-2 flex-1 min-h-0">
         {isLoading ? (
           <LoadingState />
-        ) : filteredAndSortedPersonas.length > 0 ? (
-          <ul className="space-y-3 animate-fade-in">
-            {filteredAndSortedPersonas.map((persona) => (
-              <li key={persona.id}>
-                <button
-                  onClick={() => onSelectPersona(persona)}
-                  className={cn(
-                    "persona-card w-full text-left p-4 rounded-lg border-2 transition-all duration-200 flex items-center justify-between hover-scale",
-                    selectedPersona?.id === persona.id
-                      ? "bg-primary/10 border-primary shadow-md"
-                      : "bg-muted/50 border-transparent hover:border-primary/50 hover:bg-primary/5"
-                  )}
-                >
-                  <div className="flex items-center">
-                    <div className="bg-gradient-to-br from-primary to-secondary text-white rounded-lg w-10 h-10 flex items-center justify-center font-bold text-xl mr-4">
-                      {persona.name.charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                      <p className="font-semibold text-lg text-foreground">{persona.name}</p>
-                      <p className="text-sm text-muted-foreground">Marca: {brandMap.get(persona.brandId) || 'Marca não encontrada'}</p>
-                    </div>
-                  </div>
-                  <span className="text-sm text-muted-foreground hidden md:block">
-                    Criado em: {formatDate(persona.createdAt)}
-                  </span>
-                </button>
-              </li>
+        ) : groupedByBrand.length > 0 ? (
+          <div className="space-y-3 animate-fade-in">
+            {groupedByBrand.map((group) => (
+              <BrandGroupSection
+                key={group.brandId}
+                group={group}
+                selectedPersona={selectedPersona}
+                onSelectPersona={onSelectPersona}
+                isExpanded={!collapsedBrands.has(group.brandId)}
+                onToggle={() => toggleBrandCollapse(group.brandId)}
+              />
             ))}
-          </ul>
+          </div>
         ) : (
           <div className="text-center text-muted-foreground py-8 animate-fade-in">
             {searchQuery.trim() ? (
@@ -205,7 +293,7 @@ export default function PersonaList({ personas, brands, selectedPersona, onSelec
 
       {totalPages > 1 && !isLoading && (
         <div className="pt-4 mt-auto flex-shrink-0 border-t border-border/20">
-          <Pagination> 
+          <Pagination>
             <PaginationContent>
               <PaginationItem>
                 <PaginationPrevious
@@ -215,7 +303,6 @@ export default function PersonaList({ personas, brands, selectedPersona, onSelec
                   aria-disabled={currentPage === 1}
                 />
               </PaginationItem>
-              
               {paginationRange.map((page, index) => {
                 if (typeof page === 'string') {
                   return <PaginationEllipsis key={`ellipsis-${index}`} />;
@@ -232,7 +319,6 @@ export default function PersonaList({ personas, brands, selectedPersona, onSelec
                   </PaginationItem>
                 );
               })}
-
               <PaginationItem>
                 <PaginationNext
                   onClick={(e) => handlePageClick(currentPage + 1, e)}
