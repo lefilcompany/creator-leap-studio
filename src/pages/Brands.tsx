@@ -374,7 +374,8 @@ export default function MarcasPage() {
         <img 
           src={brandsBanner} 
           alt="" 
-          className="w-full h-full object-cover object-top"
+          className="w-full h-full object-cover"
+          style={{ objectPosition: 'center 15%' }}
           loading="lazy"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
