@@ -370,11 +370,11 @@ export default function MarcasPage() {
   return (
     <div className="h-full flex flex-col overflow-hidden -m-4 sm:-m-6 lg:-m-8">
       {/* Banner */}
-      <div className="relative w-full h-36 md:h-44 flex-shrink-0 overflow-hidden">
+      <div className="relative w-full h-48 md:h-56 flex-shrink-0 overflow-hidden">
         <img 
           src={brandsBanner} 
           alt="" 
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover object-top"
           loading="lazy"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
