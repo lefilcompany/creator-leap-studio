@@ -461,24 +461,24 @@ const Plans = () => {
           <div className="h-1 bg-gradient-to-r from-primary/40 via-primary to-primary/40" />
           
           <CardContent className="p-4 sm:p-6">
-            <div className="flex flex-col lg:flex-row items-center gap-5 lg:gap-8">
+            <div className="flex flex-col xl:flex-row items-center gap-5 xl:gap-8">
               {/* Info */}
-              <div className="flex-1 min-w-0 text-center lg:text-left">
-                <div className="flex items-center justify-center lg:justify-start gap-2 mb-1">
-                  <ShoppingCart className="h-5 w-5 text-primary" />
-                  <h3 className="text-lg font-bold">Compra Avulsa</h3>
+              <div className="flex-1 min-w-0 text-center xl:text-left">
+                <div className="flex items-center justify-center xl:justify-start gap-2 mb-1">
+                  <ShoppingCart className="h-5 w-5 text-primary flex-shrink-0" />
+                  <h3 className="text-lg font-bold whitespace-nowrap">Compra Avulsa</h3>
                 </div>
                 <p className="text-sm text-muted-foreground">
                   Compre créditos avulsos de 5 em 5. Cada crédito custa <span className="font-semibold text-primary">R$ {CREDIT_PRICE.toFixed(2)}</span>
                 </p>
-                <div className="flex items-center justify-center lg:justify-start gap-1.5 text-xs text-muted-foreground mt-1">
-                  <Check className="h-3.5 w-3.5 text-primary" />
+                <div className="flex items-center justify-center xl:justify-start gap-1.5 text-xs text-muted-foreground mt-1">
+                  <Check className="h-3.5 w-3.5 text-primary flex-shrink-0" />
                   <span>Pagamento único via Stripe</span>
                 </div>
               </div>
 
               {/* Quantity selector + Total + Button */}
-              <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-5 w-full lg:w-auto">
+              <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-5 w-full xl:w-auto">
                 {/* Quantity selector */}
                 <div className="flex items-center gap-3">
                   <Button
