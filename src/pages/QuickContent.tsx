@@ -348,11 +348,11 @@ export default function QuickContent() {
       targetElement: '#quick-content-form'
     }]} startDelay={500} />
       <div className="w-full max-w-4xl mx-auto space-y-4 sm:space-y-5 lg:space-y-6">
-        {/* Breadcrumb + Progress Bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-          <PageBreadcrumb items={[{ label: "Criação Rápida" }]} className="flex-shrink-0" />
-          <CreationProgressBar currentStep={loading ? "generating" : "config"} className="flex-1 max-w-xs sm:max-w-sm" />
-        </div>
+        {/* Breadcrumb */}
+        <PageBreadcrumb items={[{ label: "Criação Rápida" }]} />
+
+        {/* Progress Bar */}
+        <CreationProgressBar currentStep={loading ? "generating" : "config"} className="max-w-xs mx-auto" />
 
         {/* Header */}
         <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5">

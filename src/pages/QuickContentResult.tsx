@@ -411,11 +411,11 @@ export default function QuickContentResult() {
 
   return (
     <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-5 md:space-y-6">
-      {/* Breadcrumb + Progress Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-        <PageBreadcrumb items={[{ label: "Criação Rápida", href: "/quick-content" }, { label: "Resultado" }]} className="flex-shrink-0" />
-        <CreationProgressBar currentStep="result" className="flex-1 max-w-xs sm:max-w-sm" />
-      </div>
+      {/* Breadcrumb */}
+      <PageBreadcrumb items={[{ label: "Criação Rápida", href: "/quick-content" }, { label: "Resultado" }]} />
+
+      {/* Progress Bar */}
+      <CreationProgressBar currentStep="result" className="max-w-xs mx-auto" />
 
       {/* Header Card */}
       <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-md rounded-xl overflow-hidden animate-fade-in">

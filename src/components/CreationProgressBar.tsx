@@ -21,50 +21,61 @@ export function CreationProgressBar({ currentStep, className }: CreationProgress
 
   return (
     <div className={cn("w-full", className)}>
-      <div className="flex items-center justify-between relative">
-        {/* Connecting lines */}
-        <div className="absolute top-4 left-0 right-0 h-0.5 bg-border/40 mx-8 sm:mx-12" />
-        <div
-          className="absolute top-4 left-0 h-0.5 bg-primary mx-8 sm:mx-12 transition-all duration-500 ease-out"
-          style={{
-            width: currentIdx === 0 ? "0%" : currentIdx === 1 ? "calc(50% - 2rem)" : "calc(100% - 4rem)",
-          }}
-        />
-
+      <div className="flex items-start">
         {steps.map((step, idx) => {
           const isCompleted = idx < currentIdx;
           const isActive = idx === currentIdx;
           const isPending = idx > currentIdx;
+          const isLast = idx === steps.length - 1;
           const Icon = step.icon;
 
           return (
-            <div key={step.id} className="flex flex-col items-center gap-1.5 z-10 flex-1">
-              <div
-                className={cn(
-                  "w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 border-2",
-                  isCompleted && "bg-primary border-primary text-primary-foreground shadow-md shadow-primary/25",
-                  isActive && step.id === "generating"
-                    ? "bg-primary/10 border-primary text-primary animate-pulse shadow-md shadow-primary/20"
-                    : isActive && "bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/30",
-                  isPending && "bg-muted/50 border-border/50 text-muted-foreground"
-                )}
-              >
-                {isCompleted ? (
-                  <Check className="h-4 w-4" />
-                ) : isActive && step.id === "generating" ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Icon className="h-4 w-4" />
-                )}
+            <div key={step.id} className="flex items-start flex-1 last:flex-none">
+              {/* Step circle + label */}
+              <div className="flex flex-col items-center gap-1.5">
+                <div
+                  className={cn(
+                    "w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 border-2 relative z-10",
+                    isCompleted && "bg-primary border-primary text-primary-foreground shadow-md shadow-primary/25",
+                    isActive && step.id === "generating"
+                      ? "bg-primary/15 border-primary text-primary shadow-md shadow-primary/20"
+                      : isActive && "bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/30",
+                    isPending && "bg-background border-border text-muted-foreground"
+                  )}
+                >
+                  {isCompleted ? (
+                    <Check className="h-4 w-4" />
+                  ) : isActive && step.id === "generating" ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Icon className="h-4 w-4" />
+                  )}
+                </div>
+                <span
+                  className={cn(
+                    "text-[11px] font-medium transition-colors duration-300 text-center whitespace-nowrap",
+                    isCompleted && "text-primary",
+                    isActive && "text-primary font-semibold",
+                    isPending && "text-muted-foreground"
+                  )}
+                >
+                  {step.label}
+                </span>
               </div>
-              <span
-                className={cn(
-                  "text-xs font-medium transition-colors duration-300 text-center",
-                  (isCompleted || isActive) ? "text-primary" : "text-muted-foreground"
-                )}
-              >
-                {step.label}
-              </span>
+
+              {/* Connector line */}
+              {!isLast && (
+                <div className="flex-1 flex items-center pt-[18px] px-1.5 sm:px-2">
+                  <div className="h-[2px] w-full rounded-full relative overflow-hidden bg-border">
+                    <div
+                      className={cn(
+                        "absolute inset-y-0 left-0 rounded-full bg-primary transition-all duration-500 ease-out",
+                        idx < currentIdx ? "w-full" : "w-0"
+                      )}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           );
         })}
