@@ -67,6 +67,7 @@ const Plans = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [loadingPackageId, setLoadingPackageId] = useState<string | null>(null);
   const [customCredits, setCustomCredits] = useState(20);
+  const [creditInputValue, setCreditInputValue] = useState("20");
   const [loadingCustom, setLoadingCustom] = useState(false);
   const [verifyingPayment, setVerifyingPayment] = useState(false);
 
@@ -241,11 +242,19 @@ const Plans = () => {
   };
 
   const incrementCredits = () => {
-    setCustomCredits(prev => Math.min(prev + CREDIT_STEP, MAX_CREDITS));
+    setCustomCredits(prev => {
+      const next = Math.min(prev + CREDIT_STEP, MAX_CREDITS);
+      setCreditInputValue(String(next));
+      return next;
+    });
   };
 
   const decrementCredits = () => {
-    setCustomCredits(prev => Math.max(prev - CREDIT_STEP, MIN_CREDITS));
+    setCustomCredits(prev => {
+      const next = Math.max(prev - CREDIT_STEP, MIN_CREDITS);
+      setCreditInputValue(String(next));
+      return next;
+    });
   };
 
   const renderPackageCard = (pkg: CreditPackage, isPopular: boolean = false) => {
@@ -484,21 +493,29 @@ const Plans = () => {
                   
                   <div className="text-center">
                     <input
-                      type="number"
-                      value={customCredits}
+                      type="text"
+                      inputMode="numeric"
+                      value={creditInputValue}
                       onChange={(e) => {
-                        const val = parseInt(e.target.value);
-                        if (!isNaN(val)) {
-                          const clamped = Math.max(MIN_CREDITS, Math.min(MAX_CREDITS, val));
-                          const rounded = Math.round(clamped / CREDIT_STEP) * CREDIT_STEP;
-                          setCustomCredits(rounded || MIN_CREDITS);
-                        }
+                        const raw = e.target.value.replace(/[^0-9]/g, '');
+                        setCreditInputValue(raw);
                       }}
                       onBlur={() => {
-                        if (customCredits < MIN_CREDITS) setCustomCredits(MIN_CREDITS);
-                        if (customCredits > MAX_CREDITS) setCustomCredits(MAX_CREDITS);
-                        const rounded = Math.round(customCredits / CREDIT_STEP) * CREDIT_STEP;
-                        if (rounded !== customCredits) setCustomCredits(rounded || MIN_CREDITS);
+                        const val = parseInt(creditInputValue);
+                        if (isNaN(val) || val < MIN_CREDITS) {
+                          setCustomCredits(MIN_CREDITS);
+                          setCreditInputValue(String(MIN_CREDITS));
+                        } else {
+                          const clamped = Math.min(val, MAX_CREDITS);
+                          const rounded = Math.round(clamped / CREDIT_STEP) * CREDIT_STEP || MIN_CREDITS;
+                          setCustomCredits(rounded);
+                          setCreditInputValue(String(rounded));
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          (e.target as HTMLInputElement).blur();
+                        }
                       }}
                       min={MIN_CREDITS}
                       max={MAX_CREDITS}
