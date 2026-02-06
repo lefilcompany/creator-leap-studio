@@ -122,7 +122,7 @@ serve(async (req) => {
       if (!credits || credits < 5) throw new Error("credits is required and must be at least 5");
       if (credits % 5 !== 0) throw new Error("credits must be a multiple of 5");
       
-      const amountInCents = credits * 200; // R$ 2,00 por crédito = 200 centavos
+      const amountInCents = credits * 250; // R$ 2,50 por crédito = 250 centavos
       
       session = await stripe.checkout.sessions.create({
         customer: customerId,
@@ -133,7 +133,7 @@ serve(async (req) => {
               currency: 'brl',
               product_data: {
                 name: `${credits} Créditos Creator`,
-                description: `Compra avulsa de ${credits} créditos (R$ 2,00 por crédito)`,
+                description: `Compra avulsa de ${credits} créditos (R$ 2,50 por crédito)`,
               },
               unit_amount: amountInCents,
             },
