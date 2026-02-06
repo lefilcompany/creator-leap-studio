@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { Drawer, DrawerContent, DrawerTitle } from '@/components/ui/drawer';
-import { Plus, Tag } from 'lucide-react';
+import { Plus, Tag, Coins } from 'lucide-react';
 import BrandList from '@/components/marcas/BrandList';
 import BrandDetails from '@/components/marcas/BrandDetails';
 import BrandDialog from '@/components/marcas/BrandDialog';
@@ -16,10 +16,10 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useTranslation } from '@/hooks/useTranslation';
 import { CreditConfirmationDialog } from '@/components/CreditConfirmationDialog';
-import { Coins } from 'lucide-react';
 import { TourSelector } from '@/components/onboarding/TourSelector';
 import { brandsSteps, navbarSteps } from '@/components/onboarding/tourSteps';
 import { PageBreadcrumb } from "@/components/PageBreadcrumb";
+import brandsBanner from '@/assets/brands-banner.jpg';
 
 // Definindo o tipo para os dados do formulário, que é um Brand parcial
 type BrandFormData = Omit<Brand, 'id' | 'createdAt' | 'updatedAt' | 'teamId' | 'userId'>;
@@ -368,63 +368,73 @@ export default function MarcasPage() {
   const isButtonDisabled = !user || (user.credits || 0) < 1;
 
   return (
-    <div className="h-full flex flex-col gap-4 lg:gap-6 overflow-hidden">
-      {/* Breadcrumb Navigation */}
-      <PageBreadcrumb items={[{ label: "Marcas" }]} />
+    <div className="h-full flex flex-col overflow-hidden -m-4 sm:-m-6 lg:-m-8">
+      {/* Banner */}
+      <div className="relative w-full h-36 md:h-44 flex-shrink-0 overflow-hidden">
+        <img 
+          src={brandsBanner} 
+          alt="" 
+          className="w-full h-full object-cover"
+          loading="lazy"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
+      </div>
 
-      <TourSelector 
-        tours={[
-          {
-            tourType: 'navbar',
-            steps: navbarSteps,
-            label: 'Tour da Navegação',
-            targetElement: '#sidebar-logo'
-          },
-          {
-            tourType: 'brands',
-            steps: brandsSteps,
-            label: 'Tour de Marcas',
-            targetElement: '#brands-create-button'
-          }
-        ]}
-        startDelay={500}
-      />
-      
-      <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5 flex-shrink-0">
-        <CardHeader className="pb-3 lg:pb-4">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 lg:gap-4">
-            <div className="flex items-center gap-2 lg:gap-3">
-              <div className="flex-shrink-0 bg-primary/10 text-primary rounded-lg p-2 lg:p-3">
-                <Tag className="h-6 w-6 lg:h-8 lg:w-8" />
-              </div>
-              <div>
-                <CardTitle className="text-xl lg:text-2xl font-bold">
-                  {t.brands.pageTitle}
-                </CardTitle>
-                <p className="text-sm lg:text-base text-muted-foreground">
-                  {t.brands.pageDescription}
-                </p>
-              </div>
+      {/* Header section overlapping the banner */}
+      <div className="relative px-4 sm:px-6 lg:px-8 -mt-12 flex-shrink-0">
+        <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-4">
+          <div className="flex items-center gap-4">
+            {/* Brand Icon */}
+            <div className="bg-card border-4 border-background shadow-lg rounded-2xl p-3 lg:p-4">
+              <Tag className="h-8 w-8 lg:h-10 lg:w-10 text-primary" />
             </div>
-            <Button
-              id="brands-create-button"
-              onClick={() => handleOpenDialog()} 
-              disabled={isButtonDisabled}
-              className="rounded-lg bg-gradient-to-r from-primary to-secondary px-4 lg:px-6 py-3 lg:py-5 text-sm lg:text-base disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
-              title={!user ? 'Carregando...' : ((user.credits || 0) < 1 ? 'Créditos insuficientes' : undefined)}
-            >
-              <Plus className="mr-2 h-4 w-4 lg:h-5 lg:w-5" />
-              {t.brands.newBrand}
-              <span className="ml-2 flex items-center gap-1 text-xs opacity-90">
-                <Coins className="h-3 w-3" />
-                1
-              </span>
-            </Button>
+            <div className="pt-2">
+              <h1 className="text-2xl lg:text-3xl font-bold text-foreground">
+                {t.brands.pageTitle}
+              </h1>
+              <p className="text-sm lg:text-base text-muted-foreground">
+                {t.brands.pageDescription}
+              </p>
+            </div>
           </div>
-        </CardHeader>
-      </Card>
 
-      <main id="brands-list" className="grid gap-4 lg:gap-6 flex-1 min-h-0 overflow-hidden grid-cols-1">
+          <Button
+            id="brands-create-button"
+            onClick={() => handleOpenDialog()} 
+            disabled={isButtonDisabled}
+            className="rounded-lg bg-gradient-to-r from-primary to-secondary px-5 py-3 text-sm lg:text-base disabled:opacity-50 disabled:cursor-not-allowed shrink-0 shadow-md"
+            title={!user ? 'Carregando...' : ((user.credits || 0) < 1 ? 'Créditos insuficientes' : undefined)}
+          >
+            <Plus className="mr-2 h-4 w-4 lg:h-5 lg:w-5" />
+            {t.brands.newBrand}
+            <span className="ml-2 flex items-center gap-1 text-xs opacity-90">
+              <Coins className="h-3 w-3" />
+              1
+            </span>
+          </Button>
+        </div>
+
+        <TourSelector 
+          tours={[
+            {
+              tourType: 'navbar',
+              steps: navbarSteps,
+              label: 'Tour da Navegação',
+              targetElement: '#sidebar-logo'
+            },
+            {
+              tourType: 'brands',
+              steps: brandsSteps,
+              label: 'Tour de Marcas',
+              targetElement: '#brands-create-button'
+            }
+          ]}
+          startDelay={500}
+        />
+      </div>
+
+      {/* Table */}
+      <main id="brands-list" className="flex-1 min-h-0 overflow-hidden px-4 sm:px-6 lg:px-8 pt-4 pb-4 sm:pb-6 lg:pb-8">
         <BrandList
           brands={brands}
           selectedBrand={selectedBrandSummary}
