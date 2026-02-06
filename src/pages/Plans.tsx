@@ -520,7 +520,7 @@ const Plans = () => {
                       min={MIN_CREDITS}
                       max={MAX_CREDITS}
                       step={CREDIT_STEP}
-                      className="w-20 text-center text-3xl font-bold text-primary bg-transparent border-none outline-none focus:ring-0 appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [-moz-appearance:textfield]"
+                      className="w-24 text-center text-4xl xl:text-5xl font-bold text-primary bg-transparent border-none outline-none focus:ring-0 appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [-moz-appearance:textfield]"
                     />
                     <p className="text-xs text-muted-foreground -mt-1">créditos</p>
                   </div>
