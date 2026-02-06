@@ -10,7 +10,7 @@ import { NativeSelect } from "@/components/ui/native-select";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Sparkles, Zap, X, ImageIcon, Settings2, Info, Coins } from "lucide-react";
+import { Loader2, Zap, X, ImageIcon, Settings2, Info, Coins } from "lucide-react";
 import { CREDIT_COSTS } from "@/lib/creditCosts";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -395,139 +395,136 @@ export default function QuickContent() {
         </Card>
 
         {/* Main Form */}
-        <Card id="quick-content-form" className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-2xl">
-          <CardHeader className="pb-3 md:pb-4 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-t-2xl">
-            <h2 className="text-lg md:text-xl font-semibold flex items-center gap-3 text-foreground">
-              <Sparkles className="h-5 w-5 text-primary" />
-              Configure sua criação
-            </h2>
-            <p className="text-muted-foreground text-xs md:text-sm">
-              Descreva o que deseja criar e personalize as opções
-            </p>
-          </CardHeader>
-          <CardContent className="space-y-5 md:space-y-6 p-4 md:p-6">
-            {/* Brand Selection (Optional) */}
-            <div className="space-y-2">
-              <Label htmlFor="brand" className="text-sm font-semibold text-foreground">
-                Marca <span className="text-muted-foreground font-normal">(opcional)</span>
+        <div id="quick-content-form" className="space-y-4">
+          {/* 1. Prompt - Principal */}
+          <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-2xl overflow-hidden">
+            <CardContent className="p-4 md:p-5 space-y-2">
+              <Label htmlFor="quick-description" className="text-sm font-bold text-foreground">
+                Descreva o que você quer criar <span className="text-destructive">*</span>
               </Label>
-              <NativeSelect
-                value={formData.brandId}
-                onValueChange={value => setFormData({
-                  ...formData,
-                  brandId: value
-                })}
-                options={brands.map(brand => ({ value: brand.id, label: brand.name }))}
-                placeholder={brands.length === 0 ? "Nenhuma marca cadastrada" : "Nenhuma marca selecionada"}
-                disabled={brands.length === 0}
-                triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
+              <Textarea
+                id="quick-description"
+                placeholder="Ex: Uma imagem de um café sendo servido numa manhã ensolarada, com uma estética minimalista e moderna. Cores quentes, iluminação natural suave..."
+                value={formData.prompt}
+                onChange={e => setFormData({ ...formData, prompt: e.target.value })}
+                rows={5}
+                className="resize-none rounded-xl border-2 border-border/50 bg-background/50 hover:border-border/70 focus:border-primary/50 transition-colors"
               />
               <p className="text-xs text-muted-foreground flex items-start gap-1.5">
                 <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
-                <span>
-                  {brands.length === 0 ? "Cadastre uma marca para conteúdo personalizado com sua identidade visual" : "Selecionar uma marca ajuda a IA a criar conteúdo alinhado com sua identidade visual"}
-                </span>
+                <span>Seja específico sobre cena, iluminação, cores e estilo desejado</span>
               </p>
-            </div>
+            </CardContent>
+          </Card>
 
-            {/* Theme Selection (Optional) - filtered by brand */}
-            <div className="space-y-2">
-              <Label htmlFor="theme" className="text-sm font-semibold text-foreground">
-                Tema Estratégico <span className="text-muted-foreground font-normal">(opcional)</span>
-              </Label>
-              <NativeSelect
-                value={formData.themeId}
-                onValueChange={value => setFormData({
-                  ...formData,
-                  themeId: value
-                })}
-                options={filteredThemes.map(theme => ({ value: theme.id, label: theme.title }))}
-                placeholder={!formData.brandId ? "Selecione uma marca primeiro" : filteredThemes.length === 0 ? "Nenhum tema cadastrado para esta marca" : "Nenhum tema selecionado"}
-                disabled={!formData.brandId || filteredThemes.length === 0}
-                triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
-              />
-              <p className="text-xs text-muted-foreground flex items-start gap-1.5">
-                <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
-                <span>O tema estratégico define tom de voz, público-alvo e objetivos da criação</span>
-              </p>
-            </div>
+          {/* 2. Contexto Criativo - Grid 2x2 */}
+          <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-2xl overflow-hidden">
+            <CardContent className="p-4 md:p-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Marca */}
+                <div className="space-y-1.5">
+                  <Label htmlFor="brand" className="text-sm font-bold text-foreground">
+                    Marca <span className="text-muted-foreground font-normal text-xs">(opcional)</span>
+                  </Label>
+                  <NativeSelect
+                    value={formData.brandId}
+                    onValueChange={value => setFormData({ ...formData, brandId: value })}
+                    options={brands.map(brand => ({ value: brand.id, label: brand.name }))}
+                    placeholder={brands.length === 0 ? "Nenhuma marca cadastrada" : "Nenhuma marca selecionada"}
+                    disabled={brands.length === 0}
+                    triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
+                  />
+                  <p className="text-xs text-muted-foreground flex items-start gap-1.5">
+                    <Info className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                    <span>{brands.length === 0 ? "Cadastre uma marca para conteúdo personalizado com sua identidade visual" : "Selecionar uma marca ajuda a IA a criar conteúdo alinhado com sua identidade visual"}</span>
+                  </p>
+                </div>
 
-            {/* Persona Selection (Optional) - filtered by brand */}
-            <div className="space-y-2">
-              <Label htmlFor="persona" className="text-sm font-semibold text-foreground">
-                Persona <span className="text-muted-foreground font-normal">(opcional)</span>
-              </Label>
-              <NativeSelect
-                value={formData.personaId}
-                onValueChange={value => setFormData({
-                  ...formData,
-                  personaId: value
-                })}
-                options={filteredPersonas.map(persona => ({ value: persona.id, label: persona.name }))}
-                placeholder={!formData.brandId ? "Selecione uma marca primeiro" : filteredPersonas.length === 0 ? "Nenhuma persona cadastrada para esta marca" : "Nenhuma persona selecionada"}
-                disabled={!formData.brandId || filteredPersonas.length === 0}
-                triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
-              />
-              <p className="text-xs text-muted-foreground flex items-start gap-1.5">
-                <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
-                <span>A persona ajuda a IA a criar conteúdo direcionado ao seu público-alvo</span>
-              </p>
-            </div>
+                {/* Persona */}
+                <div className="space-y-1.5">
+                  <Label htmlFor="persona" className="text-sm font-bold text-foreground">
+                    Persona <span className="text-muted-foreground font-normal text-xs">(opcional)</span>
+                  </Label>
+                  <NativeSelect
+                    value={formData.personaId}
+                    onValueChange={value => setFormData({ ...formData, personaId: value })}
+                    options={filteredPersonas.map(persona => ({ value: persona.id, label: persona.name }))}
+                    placeholder={!formData.brandId ? "Selecione uma marca primeiro" : filteredPersonas.length === 0 ? "Nenhuma persona cadastrada para esta marca" : "Nenhuma persona selecionada"}
+                    disabled={!formData.brandId || filteredPersonas.length === 0}
+                    triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
+                  />
+                  <p className="text-xs text-muted-foreground flex items-start gap-1.5">
+                    <Info className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                    <span>A persona ajuda a IA a criar conteúdo direcionado ao seu público-alvo</span>
+                  </p>
+                </div>
 
-            {/* Platform Selection (Optional) */}
-            <div className="space-y-2">
-              <Label htmlFor="platform" className="text-sm font-semibold text-foreground">
-                Plataforma <span className="text-muted-foreground font-normal">(opcional)</span>
-              </Label>
-              <NativeSelect
-                value={formData.platform}
-                onValueChange={value => {
-                  setFormData({
-                    ...formData,
-                    platform: value
-                  });
+                {/* Tema Estratégico */}
+                <div className="space-y-1.5">
+                  <Label htmlFor="theme" className="text-sm font-bold text-foreground">
+                    Tema Estratégico <span className="text-muted-foreground font-normal text-xs">(opcional)</span>
+                  </Label>
+                  <NativeSelect
+                    value={formData.themeId}
+                    onValueChange={value => setFormData({ ...formData, themeId: value })}
+                    options={filteredThemes.map(theme => ({ value: theme.id, label: theme.title }))}
+                    placeholder={!formData.brandId ? "Selecione uma marca primeiro" : filteredThemes.length === 0 ? "Nenhum tema cadastrado para esta marca" : "Nenhum tema selecionado"}
+                    disabled={!formData.brandId || filteredThemes.length === 0}
+                    triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
+                  />
+                  <p className="text-xs text-muted-foreground flex items-start gap-1.5">
+                    <Info className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                    <span>O tema estratégico define tom de voz, público-alvo e objetivos da criação</span>
+                  </p>
+                </div>
 
-                  // Auto-sugerir aspect ratio baseado na plataforma
-                  const imageSpec = getPlatformImageSpec(value, "feed", "organic");
-                  if (imageSpec) {
-                    setFormData(prev => ({
-                      ...prev,
-                      aspectRatio: imageSpec.aspectRatio
-                    }));
-                    toast.info(`Proporção ajustada para ${value}`, {
-                      description: `${imageSpec.aspectRatio} (${imageSpec.width}x${imageSpec.height}px)`,
-                      duration: 3000
-                    });
-                  }
-                }}
-                options={[
-                  { value: "Instagram", label: "Instagram" },
-                  { value: "Facebook", label: "Facebook" },
-                  { value: "TikTok", label: "TikTok" },
-                  { value: "Twitter/X", label: "Twitter/X" },
-                  { value: "LinkedIn", label: "LinkedIn" },
-                  { value: "Comunidades", label: "Comunidades" },
-                ]}
-                placeholder="Nenhuma plataforma selecionada"
-                triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
-              />
-              <p className="text-xs text-muted-foreground flex items-start gap-1.5">
-                <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
-                <span>Selecionar plataforma ajusta automaticamente a proporção ideal</span>
-              </p>
-            </div>
+                {/* Plataforma */}
+                <div className="space-y-1.5">
+                  <Label htmlFor="platform" className="text-sm font-bold text-foreground">
+                    Plataforma <span className="text-muted-foreground font-normal text-xs">(opcional)</span>
+                  </Label>
+                  <NativeSelect
+                    value={formData.platform}
+                    onValueChange={value => {
+                      setFormData({ ...formData, platform: value });
+                      const imageSpec = getPlatformImageSpec(value, "feed", "organic");
+                      if (imageSpec) {
+                        setFormData(prev => ({ ...prev, aspectRatio: imageSpec.aspectRatio }));
+                        toast.info(`Proporção ajustada para ${value}`, {
+                          description: `${imageSpec.aspectRatio} (${imageSpec.width}x${imageSpec.height}px)`,
+                          duration: 3000
+                        });
+                      }
+                    }}
+                    options={[
+                      { value: "Instagram", label: "Instagram" },
+                      { value: "Facebook", label: "Facebook" },
+                      { value: "TikTok", label: "TikTok" },
+                      { value: "Twitter/X", label: "Twitter/X" },
+                      { value: "LinkedIn", label: "LinkedIn" },
+                      { value: "Comunidades", label: "Comunidades" },
+                    ]}
+                    placeholder="Nenhuma plataforma selecionada"
+                    triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
+                  />
+                  <p className="text-xs text-muted-foreground flex items-start gap-1.5">
+                    <Info className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                    <span>Selecionar plataforma ajusta automaticamente a proporção ideal</span>
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-            {/* Visual Style Selection */}
-            <div className="space-y-2">
-              <Label htmlFor="visualStyle" className="text-sm font-semibold text-foreground">
+          {/* 3. Estilo Visual */}
+          <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-2xl overflow-hidden">
+            <CardContent className="p-4 md:p-5 space-y-2">
+              <Label htmlFor="visualStyle" className="text-sm font-bold text-foreground">
                 Estilo Visual
               </Label>
               <NativeSelect
                 value={formData.visualStyle}
-                onValueChange={value => setFormData({
-                  ...formData,
-                  visualStyle: value
-                })}
+                onValueChange={value => setFormData({ ...formData, visualStyle: value })}
                 options={[
                   { value: "realistic", label: "📷 Fotorealístico" },
                   { value: "animated", label: "✨ Animado / 3D" },
@@ -541,43 +538,42 @@ export default function QuickContent() {
                   { value: "vintage", label: "📼 Vintage / Retrô" },
                 ]}
                 placeholder="Selecione um estilo"
-                triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
+                triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
               />
               <p className="text-xs text-muted-foreground flex items-start gap-1.5">
                 <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
                 <span>O estilo visual define a aparência da imagem gerada (ex: foto, cartoon, pintura)</span>
               </p>
-            </div>
+            </CardContent>
+          </Card>
 
-
-            <div className="space-y-2">
-              <Label htmlFor="prompt" className="text-sm font-semibold text-foreground">
-                Descreva o que você quer criar <span className="text-destructive">*</span>
-              </Label>
-              <Textarea id="quick-description" placeholder="Ex: Uma imagem de um café sendo servido numa manhã ensolarada, com uma estética minimalista e moderna. Cores quentes, iluminação natural suave..." value={formData.prompt} onChange={e => setFormData({
-              ...formData,
-              prompt: e.target.value
-            })} rows={6} className="resize-none rounded-xl border-2 border-border/50 bg-background/50 hover:border-border/70 focus:border-primary/50 transition-colors" />
-              <p className="text-xs text-muted-foreground flex items-start gap-1.5">
-                <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
-                <span>Seja específico sobre cena, iluminação, cores e estilo desejado</span>
-              </p>
-            </div>
-
-            {/* Reference Images (Optional) */}
-            <div className="space-y-2">
-              <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
+          {/* 4. Imagens de Referência */}
+          <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-2xl overflow-hidden">
+            <CardContent className="p-4 md:p-5 space-y-3">
+              <Label className="text-sm font-bold text-foreground flex items-center gap-2">
                 <ImageIcon className="h-4 w-4" />
-                Imagens de Referência <span className="text-muted-foreground font-normal">(opcional, máx. 5)</span>
+                Imagens de Referência <span className="text-muted-foreground font-normal text-xs">(opcional, máx. 5)</span>
               </Label>
-              
-              <div id="quick-reference-images" className="space-y-3">
-                <Input ref={fileInputRef} type="file" accept="image/*" multiple onChange={e => {
-                const files = Array.from(e.target.files || []);
-                setReferenceFiles(prev => [...prev, ...files].slice(0, 5));
-              }} className="h-12 rounded-xl border-2 border-border/50 bg-background/50 file:mr-4 file:h-full file:py-0 file:px-5 file:rounded-l-[10px] file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 hover:border-primary/30 transition-all cursor-pointer" />
 
-                <div ref={pasteAreaRef} tabIndex={0} onPaste={handlePaste} className="border-2 border-dashed border-border/50 rounded-xl p-4 text-center bg-muted/20 hover:bg-muted/30 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50">
+              <div id="quick-reference-images" className="space-y-3">
+                <Input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={e => {
+                    const files = Array.from(e.target.files || []);
+                    setReferenceFiles(prev => [...prev, ...files].slice(0, 5));
+                  }}
+                  className="h-11 rounded-xl border-2 border-border/50 bg-background/50 file:mr-4 file:h-full file:py-0 file:px-5 file:rounded-l-[10px] file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 hover:border-primary/30 transition-all cursor-pointer"
+                />
+
+                <div
+                  ref={pasteAreaRef}
+                  tabIndex={0}
+                  onPaste={handlePaste}
+                  className="border-2 border-dashed border-border/50 rounded-xl p-4 text-center bg-muted/20 hover:bg-muted/30 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50"
+                >
                   <ImageIcon className="h-8 w-8 mx-auto mb-2 text-muted-foreground/60" />
                   <p className="text-sm text-muted-foreground font-medium">
                     Cole suas imagens aqui (Ctrl+V)
@@ -587,12 +583,14 @@ export default function QuickContent() {
                   </p>
                 </div>
 
-                {referenceFiles.length > 0 && <div className="space-y-2 p-3 bg-primary/5 rounded-xl border border-primary/20">
+                {referenceFiles.length > 0 && (
+                  <div className="space-y-2 p-3 bg-primary/5 rounded-xl border border-primary/20">
                     <p className="text-xs font-semibold text-primary mb-2">
                       {referenceFiles.length} imagem(ns) selecionada(s):
                     </p>
                     <div className="space-y-2">
-                      {referenceFiles.map((file, idx) => <div key={idx} className="bg-background/50 rounded-lg p-3 group hover:bg-background transition-colors">
+                      {referenceFiles.map((file, idx) => (
+                        <div key={idx} className="bg-background/50 rounded-lg p-3 group hover:bg-background transition-colors">
                           <div className="flex items-center justify-between mb-2">
                             <span className="text-sm text-foreground font-medium flex items-center gap-2 min-w-0 flex-1">
                               <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0"></div>
@@ -603,13 +601,24 @@ export default function QuickContent() {
                             </Button>
                           </div>
                           <div className="flex items-center gap-2 pl-4">
-                            <input type="checkbox" id={idx === 0 ? "quick-preserve-traits" : `preserve-${idx}`} checked={preserveImageIndices.includes(idx)} onChange={() => handleTogglePreserve(idx)} className="h-4 w-4 rounded border-border/50 text-primary focus:ring-2 focus:ring-primary/50" />
-                            <Label htmlFor={`preserve-${idx}`} className="text-xs text-muted-foreground cursor-pointer">Preservar traços desta imagem na geração final</Label>
+                            <input
+                              type="checkbox"
+                              id={idx === 0 ? "quick-preserve-traits" : `preserve-${idx}`}
+                              checked={preserveImageIndices.includes(idx)}
+                              onChange={() => handleTogglePreserve(idx)}
+                              className="h-4 w-4 rounded border-border/50 text-primary focus:ring-2 focus:ring-primary/50"
+                            />
+                            <Label htmlFor={idx === 0 ? "quick-preserve-traits" : `preserve-${idx}`} className="text-xs text-muted-foreground cursor-pointer">
+                              Preservar traços desta imagem na geração final
+                            </Label>
                           </div>
-                        </div>)}
+                        </div>
+                      ))}
                     </div>
-                  </div>}
+                  </div>
+                )}
               </div>
+
               <div className="bg-accent/30 border border-accent/50 rounded-lg p-3 space-y-2">
                 <p className="text-xs font-semibold text-foreground flex items-center gap-1.5">
                   <Info className="h-3.5 w-3.5 flex-shrink-0" />
@@ -620,42 +629,44 @@ export default function QuickContent() {
                   <li><strong>Com marcação "Preservar traços":</strong> A IA mantém os elementos visuais originais da imagem no resultado final</li>
                 </ul>
               </div>
-            </div>
+            </CardContent>
+          </Card>
 
-            {/* Advanced Options (Accordion) */}
-            <Accordion type="single" collapsible className="border-2 border-border/30 rounded-xl overflow-hidden">
-              <AccordionItem value="advanced" className="border-0">
-                <AccordionTrigger id="advanced-options" className="px-4 py-3 hover:bg-muted/50 transition-colors hover:no-underline">
-                  <div className="flex items-center gap-2 text-sm font-semibold">
-                    <Settings2 className="h-4 w-4 text-primary" />
-                    <span>Opções Avançadas</span>
-                    <span className="text-xs text-muted-foreground font-normal">(opcional)</span>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="px-4 pb-4 space-y-4 bg-muted/20">
-                  <p className="text-xs text-muted-foreground mb-4">
-                    Controles profissionais para designers. Deixe em "Auto" para resultados inteligentes.
-                  </p>
+          {/* 5. Opções Avançadas */}
+          <Accordion type="single" collapsible className="border-2 border-border/30 rounded-2xl overflow-hidden bg-card/80 backdrop-blur-sm">
+            <AccordionItem value="advanced" className="border-0">
+              <AccordionTrigger id="advanced-options" className="px-4 md:px-5 py-3 hover:bg-muted/50 transition-colors hover:no-underline">
+                <div className="flex items-center gap-2 text-sm font-bold">
+                  <Settings2 className="h-4 w-4 text-primary" />
+                  <span>Opções Avançadas</span>
+                  <span className="text-xs text-muted-foreground font-normal">(opcional)</span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="px-4 md:px-5 pb-5 space-y-4 bg-muted/20">
+                <p className="text-xs text-muted-foreground mb-4">
+                  Controles profissionais para designers. Deixe em "Auto" para resultados inteligentes.
+                </p>
 
-                  {/* Negative Prompt */}
-                  <div className="space-y-2">
-                    <Label htmlFor="advanced-negative-prompt" className="text-xs font-medium flex items-center gap-2">
-                      Prompt Negativo
-                      <Info className="h-3 w-3 text-muted-foreground" />
-                    </Label>
-                    <Textarea id="advanced-negative-prompt" placeholder="O que NÃO incluir (ex: texto, pessoas, fundo branco...)" value={formData.negativePrompt} onChange={e => setFormData({
-                    ...formData,
-                    negativePrompt: e.target.value
-                  })} className="min-h-[60px] rounded-lg border-2 border-border/50 bg-background/50 resize-none text-xs" />
-                  </div>
+                {/* Negative Prompt */}
+                <div className="space-y-2">
+                  <Label htmlFor="advanced-negative-prompt" className="text-xs font-medium flex items-center gap-2">
+                    Prompt Negativo
+                    <Info className="h-3 w-3 text-muted-foreground" />
+                  </Label>
+                  <Textarea
+                    id="advanced-negative-prompt"
+                    placeholder="O que NÃO incluir (ex: texto, pessoas, fundo branco...)"
+                    value={formData.negativePrompt}
+                    onChange={e => setFormData({ ...formData, negativePrompt: e.target.value })}
+                    className="min-h-[60px] rounded-lg border-2 border-border/50 bg-background/50 resize-none text-xs"
+                  />
+                </div>
 
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Color Palette */}
                   <div className="space-y-2">
                     <Label className="text-xs font-medium">Paleta de Cores</Label>
-                    <Select value={formData.colorPalette} onValueChange={value => setFormData(prev => ({
-                    ...prev,
-                    colorPalette: value
-                  }))}>
+                    <Select value={formData.colorPalette} onValueChange={value => setFormData(prev => ({ ...prev, colorPalette: value }))}>
                       <SelectTrigger id="advanced-color-palette" className="h-9 rounded-lg border-2 border-border/50 bg-background/50 text-xs">
                         <SelectValue />
                       </SelectTrigger>
@@ -674,10 +685,7 @@ export default function QuickContent() {
                   {/* Lighting */}
                   <div className="space-y-2">
                     <Label className="text-xs font-medium">Iluminação</Label>
-                    <Select value={formData.lighting} onValueChange={value => setFormData(prev => ({
-                    ...prev,
-                    lighting: value
-                  }))}>
+                    <Select value={formData.lighting} onValueChange={value => setFormData(prev => ({ ...prev, lighting: value }))}>
                       <SelectTrigger id="advanced-lighting" className="h-9 rounded-lg border-2 border-border/50 bg-background/50 text-xs">
                         <SelectValue />
                       </SelectTrigger>
@@ -693,46 +701,10 @@ export default function QuickContent() {
                     </Select>
                   </div>
 
-                  {/* Image Dimensions */}
-                  <div className="space-y-2">
-                    <Label className="text-xs font-medium flex items-center gap-2">
-                      Dimensões da Imagem
-                      <Info className="h-3 w-3 text-muted-foreground" />
-                    </Label>
-                    <Select value={formData.width && formData.height ? `${formData.width}x${formData.height}` : ''} onValueChange={value => {
-                    const [width, height] = value.split('x');
-                    setFormData(prev => ({
-                      ...prev,
-                      width,
-                      height
-                    }));
-                  }}>
-                      <SelectTrigger className="h-9 rounded-lg border-2 border-border/50 bg-background/50 text-xs">
-                        <SelectValue placeholder="Selecione as dimensões" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {formData.platform && platformSpecs[formData.platform] && <>
-                            {platformSpecs[formData.platform].organic?.image.dimensions.map(dim => <SelectItem key={`${dim.width}x${dim.height}`} value={`${dim.width}x${dim.height}`}>
-                                {dim.width}x{dim.height} ({dim.aspectRatio}) - {dim.description}
-                              </SelectItem>)}
-                          </>}
-                        {!formData.platform && <SelectItem value="1080x1080" disabled>
-                            Selecione uma plataforma primeiro
-                          </SelectItem>}
-                      </SelectContent>
-                    </Select>
-                    {formData.width && formData.height && <p className="text-xs text-muted-foreground mt-1">
-                        Selecionado: {formData.width}x{formData.height}px
-                      </p>}
-                  </div>
-
                   {/* Composition */}
                   <div className="space-y-2">
                     <Label className="text-xs font-medium">Composição</Label>
-                    <Select value={formData.composition} onValueChange={value => setFormData(prev => ({
-                    ...prev,
-                    composition: value
-                  }))}>
+                    <Select value={formData.composition} onValueChange={value => setFormData(prev => ({ ...prev, composition: value }))}>
                       <SelectTrigger className="h-9 rounded-lg border-2 border-border/50 bg-background/50 text-xs">
                         <SelectValue />
                       </SelectTrigger>
@@ -751,10 +723,7 @@ export default function QuickContent() {
                   {/* Camera Angle */}
                   <div className="space-y-2">
                     <Label className="text-xs font-medium">Ângulo da Câmera</Label>
-                    <Select value={formData.cameraAngle} onValueChange={value => setFormData(prev => ({
-                    ...prev,
-                    cameraAngle: value
-                  }))}>
+                    <Select value={formData.cameraAngle} onValueChange={value => setFormData(prev => ({ ...prev, cameraAngle: value }))}>
                       <SelectTrigger className="h-9 rounded-lg border-2 border-border/50 bg-background/50 text-xs">
                         <SelectValue />
                       </SelectTrigger>
@@ -773,10 +742,7 @@ export default function QuickContent() {
                   {/* Mood */}
                   <div className="space-y-2">
                     <Label className="text-xs font-medium">Atmosfera</Label>
-                    <Select value={formData.mood} onValueChange={value => setFormData(prev => ({
-                    ...prev,
-                    mood: value
-                  }))}>
+                    <Select value={formData.mood} onValueChange={value => setFormData(prev => ({ ...prev, mood: value }))}>
                       <SelectTrigger className="h-9 rounded-lg border-2 border-border/50 bg-background/50 text-xs">
                         <SelectValue />
                       </SelectTrigger>
@@ -794,27 +760,72 @@ export default function QuickContent() {
                     </Select>
                   </div>
 
-                  {/* Detail Level Slider */}
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <Label className="text-xs font-medium">Nível de Detalhes</Label>
-                      <span className="text-xs text-muted-foreground font-medium">{formData.detailLevel}/10</span>
-                    </div>
-                    <Slider id="advanced-detail-level" value={[formData.detailLevel || 7]} onValueChange={value => setFormData(prev => ({
-                    ...prev,
-                    detailLevel: value[0]
-                  }))} min={1} max={10} step={1} className="w-full" />
-                    <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>Minimalista</span>
-                      <span>Equilibrado</span>
-                      <span>Muito Detalhado</span>
-                    </div>
+                  {/* Image Dimensions */}
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium flex items-center gap-2">
+                      Dimensões da Imagem
+                      <Info className="h-3 w-3 text-muted-foreground" />
+                    </Label>
+                    <Select
+                      value={formData.width && formData.height ? `${formData.width}x${formData.height}` : ''}
+                      onValueChange={value => {
+                        const [width, height] = value.split('x');
+                        setFormData(prev => ({ ...prev, width, height }));
+                      }}
+                    >
+                      <SelectTrigger className="h-9 rounded-lg border-2 border-border/50 bg-background/50 text-xs">
+                        <SelectValue placeholder="Selecione as dimensões" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {formData.platform && platformSpecs[formData.platform] && (
+                          <>
+                            {platformSpecs[formData.platform].organic?.image.dimensions.map(dim => (
+                              <SelectItem key={`${dim.width}x${dim.height}`} value={`${dim.width}x${dim.height}`}>
+                                {dim.width}x{dim.height} ({dim.aspectRatio}) - {dim.description}
+                              </SelectItem>
+                            ))}
+                          </>
+                        )}
+                        {!formData.platform && (
+                          <SelectItem value="1080x1080" disabled>
+                            Selecione uma plataforma primeiro
+                          </SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
+                    {formData.width && formData.height && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Selecionado: {formData.width}x{formData.height}px
+                      </p>
+                    )}
                   </div>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </CardContent>
-        </Card>
+                </div>
+
+                {/* Detail Level Slider */}
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <Label className="text-xs font-medium">Nível de Detalhes</Label>
+                    <span className="text-xs text-muted-foreground font-medium">{formData.detailLevel}/10</span>
+                  </div>
+                  <Slider
+                    id="advanced-detail-level"
+                    value={[formData.detailLevel || 7]}
+                    onValueChange={value => setFormData(prev => ({ ...prev, detailLevel: value[0] }))}
+                    min={1}
+                    max={10}
+                    step={1}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>Minimalista</span>
+                    <span>Equilibrado</span>
+                    <span>Muito Detalhado</span>
+                  </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </div>
 
         {/* Generate Button */}
         <div className="flex justify-end pb-6">
