@@ -1,10 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { Drawer, DrawerContent, DrawerTitle } from '@/components/ui/drawer';
 import { NativeSelect } from '@/components/ui/native-select';
-import { History as HistoryIcon } from 'lucide-react';
+import { History as HistoryIcon, HelpCircle } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import ActionList from '@/components/historico/ActionList';
 import ActionDetails from '@/components/historico/ActionDetails';
 import type { Action, ActionSummary } from '@/types/action';
@@ -17,6 +16,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { TourSelector } from '@/components/onboarding/TourSelector';
 import { historySteps, navbarSteps } from '@/components/onboarding/tourSteps';
 import { PageBreadcrumb } from "@/components/PageBreadcrumb";
+import historyBanner from '@/assets/history-banner.jpg';
 
 export default function History() {
   const { user } = useAuth();
@@ -50,14 +50,12 @@ export default function History() {
       try {
         // Load brands and actions in parallel
         const [brandsResult, actionsResult] = await Promise.all([
-          // Load brands
           supabase
             .from('brands')
             .select('id, name, responsible, created_at, updated_at')
             .eq('team_id', user.teamId)
             .order('name'),
           
-          // Load actions with count in single query
           (async () => {
             let query = supabase
               .from('actions')
@@ -73,12 +71,10 @@ export default function History() {
               .eq('team_id', user.teamId)
               .order('created_at', { ascending: false });
 
-            // Apply brand filter if needed
             if (brandFilter !== 'all') {
               query = query.eq('brand_id', brandFilter);
             }
 
-            // Apply type filter
             if (typeFilter !== 'all') {
               const selectedType = Object.entries(ACTION_TYPE_DISPLAY).find(
                 ([_, display]) => display === typeFilter
@@ -88,7 +84,6 @@ export default function History() {
               }
             }
 
-            // Apply pagination
             const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
             query = query.range(startIndex, startIndex + ITEMS_PER_PAGE - 1);
 
@@ -110,7 +105,6 @@ export default function History() {
         // Process actions
         if (actionsResult.error) throw actionsResult.error;
         const actionSummaries: ActionSummary[] = (actionsResult.data || []).map(action => {
-          // Se não tem brand_id, pegar o nome da marca do details
           let brandInfo = null;
           if (action.brands) {
             brandInfo = {
@@ -118,7 +112,6 @@ export default function History() {
               name: action.brands.name
             };
           } else if (action.details && typeof action.details === 'object' && 'brand' in action.details) {
-            // Se não tem brand_id mas tem nome da marca em details
             brandInfo = {
               id: '',
               name: String(action.details.brand)
@@ -228,28 +221,63 @@ export default function History() {
   ];
 
   return (
-    <div className="h-full flex flex-col gap-6 overflow-hidden">
-      {/* Breadcrumb Navigation */}
-      <PageBreadcrumb items={[{ label: "Histórico" }]} />
+    <div className="h-full flex flex-col overflow-hidden -m-4 sm:-m-6 lg:-m-8">
+      {/* Breadcrumb */}
+      <div className="px-4 sm:px-6 lg:px-8 pt-4 flex-shrink-0">
+        <PageBreadcrumb items={[{ label: "Histórico" }]} />
+      </div>
 
-      <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5 flex-shrink-0">
-        <CardHeader className="pb-4">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div className="flex items-center gap-3">
-              <div className="flex-shrink-0 bg-secondary/10 text-secondary rounded-lg p-3">
-                <HistoryIcon className="h-8 w-8" />
+      {/* Banner */}
+      <div className="relative w-full h-48 md:h-56 flex-shrink-0 overflow-hidden">
+        <img 
+          src={historyBanner} 
+          alt="" 
+          className="w-full h-full object-cover"
+          style={{ objectPosition: 'center 30%' }}
+          loading="lazy"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
+      </div>
+
+      {/* Header card overlapping banner */}
+      <div className="relative px-4 sm:px-6 lg:px-8 -mt-12 flex-shrink-0">
+        <div className="bg-card rounded-2xl border border-border/50 shadow-sm p-4 lg:p-5 flex flex-col gap-4">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="bg-secondary/10 border border-secondary/20 shadow-sm rounded-2xl p-3 lg:p-4">
+                <HistoryIcon className="h-8 w-8 lg:h-10 lg:w-10 text-secondary" />
               </div>
               <div>
-                <CardTitle className="text-2xl font-bold">
+                <h1 className="text-2xl lg:text-3xl font-bold text-foreground flex items-center gap-2">
                   Histórico de Ações
-                </CardTitle>
-                <p className="text-muted-foreground">
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button className="text-muted-foreground hover:text-foreground transition-colors">
+                        <HelpCircle className="h-5 w-5" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-80 text-sm" side="bottom" align="start">
+                      <div className="space-y-2">
+                        <h4 className="font-semibold text-foreground">O que é o Histórico?</h4>
+                        <p className="text-muted-foreground">
+                          O histórico reúne todas as ações realizadas pela sua equipe, como criação de conteúdo, revisões, planejamentos e geração de vídeos.
+                        </p>
+                        <h4 className="font-semibold text-foreground mt-3">Como usar?</h4>
+                        <ul className="text-muted-foreground space-y-1 list-disc list-inside">
+                          <li>Use os filtros para encontrar ações específicas</li>
+                          <li>Busque por nome da marca ou tipo de ação</li>
+                          <li>Clique em uma ação para ver os detalhes completos</li>
+                        </ul>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </h1>
+                <p className="text-sm lg:text-base text-muted-foreground">
                   Visualize e filtre todas as ações realizadas no sistema.
                 </p>
               </div>
             </div>
-            <div id="history-filters" className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
-              {/* Filtro de Marca */}
+            <div id="history-filters" className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
               <NativeSelect
                 value={brandFilter}
                 onValueChange={setBrandFilter}
@@ -257,7 +285,6 @@ export default function History() {
                 placeholder="Filtrar por marca"
                 triggerClassName="w-full sm:w-[180px] h-10 rounded-lg"
               />
-              {/* Filtro de Ação */}
               <NativeSelect
                 value={typeFilter}
                 onValueChange={setTypeFilter}
@@ -267,10 +294,11 @@ export default function History() {
               />
             </div>
           </div>
-        </CardHeader>
-      </Card>
+        </div>
+      </div>
 
-      <div id="history-list" className="flex-1 min-h-0 overflow-hidden">
+      {/* Action list */}
+      <main id="history-list" className="flex-1 min-h-0 overflow-hidden px-4 sm:px-6 lg:px-8 pt-4 pb-4 sm:pb-6 lg:pb-8">
         <ActionList
           actions={actions}
           selectedAction={selectedActionSummary}
@@ -280,9 +308,9 @@ export default function History() {
           totalPages={totalPages}
           onPageChange={setCurrentPage}
         />
-      </div>
+      </main>
 
-      {/* Sheet para desktop/tablet (da direita) */}
+      {/* Sheet para desktop/tablet */}
       {!isMobile && (
         <Sheet open={isActionDetailsOpen} onOpenChange={setIsActionDetailsOpen}>
           <SheetContent side="right" className="w-[60vw] max-w-none">
@@ -295,7 +323,7 @@ export default function History() {
         </Sheet>
       )}
 
-      {/* Drawer para mobile (de baixo) */}
+      {/* Drawer para mobile */}
       {isMobile && (
         <Drawer open={isActionDetailsOpen} onOpenChange={setIsActionDetailsOpen}>
           <DrawerContent className="h-[85vh]">
