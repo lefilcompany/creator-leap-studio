@@ -340,7 +340,7 @@ export default function BrandView() {
         <div className="relative px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <Button variant="outline" size="sm" onClick={() => navigate('/brands')} className="rounded-full border-accent bg-background/80 hover:bg-accent hover:text-accent-foreground shadow-sm">
+              <Button variant="outline" size="sm" onClick={() => navigate('/brands')} className="rounded-full border-transparent bg-background/80 hover:bg-accent hover:text-accent-foreground hover:border-accent shadow-sm">
                 <ArrowLeft className="h-4 w-4 mr-1" /> Voltar
               </Button>
               <div className="flex items-center gap-4">
