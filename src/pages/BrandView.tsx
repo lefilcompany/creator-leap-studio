@@ -227,14 +227,22 @@ export default function BrandView() {
     loadBrand();
   }, [loadBrand]);
 
+  // Use refs to avoid stale closures in checkHasChanges
+  const colorPaletteRef = useRef<ColorItem[]>([]);
+  const brandColorRef = useRef<string | null>(null);
+
+  // Keep refs in sync
+  useEffect(() => { colorPaletteRef.current = colorPalette; }, [colorPalette]);
+  useEffect(() => { brandColorRef.current = selectedBrandColor; }, [selectedBrandColor]);
+
   const checkHasChanges = useCallback((nextFormData: Record<string, string>, nextPalette?: ColorItem[], nextBrandColor?: string | null) => {
     const textChanged = Object.keys(nextFormData).some(k => nextFormData[k] !== originalRef.current[k]);
-    const paletteToCheck = nextPalette ?? colorPalette;
-    const brandColorToCheck = nextBrandColor !== undefined ? nextBrandColor : selectedBrandColor;
+    const paletteToCheck = nextPalette ?? colorPaletteRef.current;
+    const brandColorToCheck = nextBrandColor !== undefined ? nextBrandColor : brandColorRef.current;
     const paletteChanged = JSON.stringify(paletteToCheck) !== JSON.stringify(originalColorPaletteRef.current);
     const brandColorChanged = brandColorToCheck !== originalBrandColorRef.current;
     setHasChanges(textChanged || paletteChanged || brandColorChanged);
-  }, [colorPalette, selectedBrandColor]);
+  }, []);
 
   const updateField = (key: string, value: string) => {
     setFormData(prev => {
@@ -244,15 +252,15 @@ export default function BrandView() {
     });
   };
 
-  const handleColorPaletteChange = (colors: ColorItem[]) => {
+  const handleColorPaletteChange = useCallback((colors: ColorItem[]) => {
     setColorPalette(colors);
-    checkHasChanges(formData, colors);
-  };
+    setHasChanges(true);
+  }, []);
 
-  const handleBrandColorChange = (color: string | null) => {
+  const handleBrandColorChange = useCallback((color: string | null) => {
     setSelectedBrandColor(color);
-    checkHasChanges(formData, undefined, color);
-  };
+    setHasChanges(true);
+  }, []);
 
   const handleSave = useCallback(async () => {
     if (!user?.id || !brand) return;
@@ -486,6 +494,7 @@ export default function BrandView() {
                 colors={colorPalette}
                 onColorsChange={handleColorPaletteChange}
                 maxColors={8}
+                compact
               />
             </SectionCard>
 

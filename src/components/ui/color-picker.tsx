@@ -15,6 +15,7 @@ interface ColorPickerProps {
     colors: ColorItem[];
     onColorsChange: (colors: ColorItem[]) => void;
     maxColors?: number;
+    compact?: boolean;
 }
 
 // Função para converter hex para rgb
@@ -103,7 +104,7 @@ const predefinedPalettes = [
     },
 ];
 
-export function ColorPicker({ colors, onColorsChange, maxColors = 10 }: ColorPickerProps) {
+export function ColorPicker({ colors, onColorsChange, maxColors = 10, compact = false }: ColorPickerProps) {
     const [currentColor, setCurrentColor] = useState('#ffffff');
     const [currentRgb, setCurrentRgb] = useState({ r: 255, g: 255, b: 255 });
     const [colorName, setColorName] = useState('');
@@ -230,9 +231,9 @@ export function ColorPicker({ colors, onColorsChange, maxColors = 10 }: ColorPic
 
             <Card>
                 <CardContent className="p-4">
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                    <div className={compact ? "space-y-4" : "grid grid-cols-1 lg:grid-cols-12 gap-4"}>
                         {/* Seletor Visual - 4 colunas */}
-                        <div className="lg:col-span-4 space-y-3">
+                        <div className={compact ? "space-y-3" : "lg:col-span-4 space-y-3"}>
                             <Tabs value={activeTab} onValueChange={setActiveTab}>
                                 <TabsList className="grid w-full grid-cols-2">
                                     <TabsTrigger value="hex">HEX</TabsTrigger>
@@ -307,7 +308,7 @@ export function ColorPicker({ colors, onColorsChange, maxColors = 10 }: ColorPic
                         </div>
 
                         {/* Preview e Controles - 4 colunas */}
-                        <div className="lg:col-span-4 space-y-3">
+                        <div className={compact ? "space-y-3" : "lg:col-span-4 space-y-3"}>
                             <div className="space-y-2">
                                 <Label htmlFor="color-name" className="text-sm">Nome da Cor (opcional)</Label>
                                 <Input
@@ -347,7 +348,7 @@ export function ColorPicker({ colors, onColorsChange, maxColors = 10 }: ColorPic
                         </div>
 
                         {/* Lista de Cores - 4 colunas */}
-                        <div className="lg:col-span-4 space-y-3 mt-1">
+                        <div className={compact ? "space-y-3" : "lg:col-span-4 space-y-3 mt-1"}>
                             <div className="flex items-center justify-between">
                                 <Label className="text-sm font-medium">
                                     Cores Selecionadas
