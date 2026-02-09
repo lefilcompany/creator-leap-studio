@@ -18,11 +18,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { ArrowLeft, Trash2, Tag, ExternalLink, FileDown, Calendar, User, Save, Loader2, Sparkles, Target, LayoutGrid, Info } from 'lucide-react';
+import { ArrowLeft, Trash2, Tag, ExternalLink, FileDown, Calendar, User, Save, Loader2, Sparkles, Target, LayoutGrid, Info, Palette } from 'lucide-react';
 import type { Brand, MoodboardFile, ColorItem } from '@/types/brand';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useTranslation } from '@/hooks/useTranslation';
+import { ColorPicker } from '@/components/ui/color-picker';
 import { toast } from 'sonner';
 
 const formatDate = (dateString: string) => {
@@ -172,10 +173,14 @@ export default function BrandView() {
   const { t } = useTranslation();
   const [brand, setBrand] = useState<Brand | null>(null);
   const [formData, setFormData] = useState<Record<string, string>>({});
+  const [colorPalette, setColorPalette] = useState<ColorItem[]>([]);
+  const [selectedBrandColor, setSelectedBrandColor] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const originalRef = useRef<Record<string, string>>({});
+  const originalColorPaletteRef = useRef<ColorItem[]>([]);
+  const originalBrandColorRef = useRef<string | null>(null);
 
   const loadBrand = useCallback(async () => {
     if (!brandId) return;
@@ -185,6 +190,10 @@ export default function BrandView() {
       if (error) throw error;
       const mapped = mapRowToBrand(data);
       setBrand(mapped);
+      setColorPalette(mapped.colorPalette || []);
+      setSelectedBrandColor(mapped.brandColor || null);
+      originalColorPaletteRef.current = mapped.colorPalette ? [...mapped.colorPalette] : [];
+      originalBrandColorRef.current = mapped.brandColor || null;
       const initial: Record<string, string> = {
         name: mapped.name,
         responsible: mapped.responsible,
@@ -218,13 +227,31 @@ export default function BrandView() {
     loadBrand();
   }, [loadBrand]);
 
+  const checkHasChanges = useCallback((nextFormData: Record<string, string>, nextPalette?: ColorItem[], nextBrandColor?: string | null) => {
+    const textChanged = Object.keys(nextFormData).some(k => nextFormData[k] !== originalRef.current[k]);
+    const paletteToCheck = nextPalette ?? colorPalette;
+    const brandColorToCheck = nextBrandColor !== undefined ? nextBrandColor : selectedBrandColor;
+    const paletteChanged = JSON.stringify(paletteToCheck) !== JSON.stringify(originalColorPaletteRef.current);
+    const brandColorChanged = brandColorToCheck !== originalBrandColorRef.current;
+    setHasChanges(textChanged || paletteChanged || brandColorChanged);
+  }, [colorPalette, selectedBrandColor]);
+
   const updateField = (key: string, value: string) => {
     setFormData(prev => {
       const next = { ...prev, [key]: value };
-      const changed = Object.keys(next).some(k => next[k] !== originalRef.current[k]);
-      setHasChanges(changed);
+      checkHasChanges(next);
       return next;
     });
+  };
+
+  const handleColorPaletteChange = (colors: ColorItem[]) => {
+    setColorPalette(colors);
+    checkHasChanges(formData, colors);
+  };
+
+  const handleBrandColorChange = (color: string | null) => {
+    setSelectedBrandColor(color);
+    checkHasChanges(formData, undefined, color);
   };
 
   const handleSave = useCallback(async () => {
@@ -251,12 +278,16 @@ export default function BrandView() {
           milestones: formData.milestones,
           collaborations: formData.collaborations,
           restrictions: formData.restrictions,
+          color_palette: colorPalette.length > 0 ? colorPalette : null,
+          brand_color: selectedBrandColor,
         } as any)
         .eq('id', brand.id);
 
       if (error) throw error;
       toast.success('Marca atualizada com sucesso!', { id: toastId });
       originalRef.current = { ...formData };
+      originalColorPaletteRef.current = [...colorPalette];
+      originalBrandColorRef.current = selectedBrandColor;
       setHasChanges(false);
     } catch (error) {
       console.error('Erro ao salvar marca:', error);
@@ -315,7 +346,7 @@ export default function BrandView() {
     );
   }
 
-  const brandColor = brand.brandColor || 'hsl(var(--primary))';
+  const brandColor = selectedBrandColor || brand.brandColor || 'hsl(var(--primary))';
   const wasUpdated = brand.createdAt !== brand.updatedAt;
 
   return (
@@ -450,23 +481,60 @@ export default function BrandView() {
               </div>
             </SectionCard>
 
-            {brand.colorPalette && brand.colorPalette.length > 0 && (
-              <SectionCard title="Paleta de Cores" icon={<Sparkles className="h-4 w-4" />} accentColor={brandColor}>
-                <ColorPaletteDisplay colors={brand.colorPalette} />
-              </SectionCard>
-            )}
+            <SectionCard title="Paleta de Cores" icon={<Palette className="h-4 w-4" />} accentColor={brandColor}>
+              <ColorPicker
+                colors={colorPalette}
+                onColorsChange={handleColorPaletteChange}
+                maxColors={8}
+              />
+            </SectionCard>
 
-            {brand.brandColor && (
-              <SectionCard title="Cor Identificadora" accentColor={brandColor}>
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl border border-border/10 shadow-md ring-2 ring-white/10" style={{ backgroundColor: brand.brandColor }} />
-                  <div>
-                    <span className="text-sm font-medium text-foreground">Cor Principal</span>
-                    <p className="text-xs text-muted-foreground font-mono">{brand.brandColor}</p>
-                  </div>
+            <SectionCard title="Cor Identificadora" icon={<Palette className="h-4 w-4" />} accentColor={brandColor}>
+              <div className="space-y-3">
+                <p className="text-xs text-muted-foreground">Escolha uma cor para identificar esta marca nas listagens</p>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { color: 'hsl(336, 80%, 58%)', label: 'Rosa' },
+                    { color: 'hsl(270, 70%, 55%)', label: 'Roxo' },
+                    { color: 'hsl(220, 80%, 55%)', label: 'Azul' },
+                    { color: 'hsl(160, 60%, 45%)', label: 'Verde' },
+                    { color: 'hsl(30, 90%, 55%)', label: 'Laranja' },
+                    { color: 'hsl(45, 90%, 55%)', label: 'Amarelo' },
+                    { color: 'hsl(0, 75%, 55%)', label: 'Vermelho' },
+                    { color: 'hsl(180, 60%, 45%)', label: 'Teal' },
+                    { color: 'hsl(240, 60%, 60%)', label: 'Indigo' },
+                    { color: 'hsl(320, 50%, 70%)', label: 'Rosa claro' },
+                  ].map(({ color, label }) => (
+                    <button
+                      key={color}
+                      type="button"
+                      onClick={() => handleBrandColorChange(selectedBrandColor === color ? null : color)}
+                      className={`w-8 h-8 rounded-full border-2 transition-all duration-150 hover:scale-110 ${
+                        selectedBrandColor === color ? 'border-foreground ring-2 ring-foreground/20 scale-110' : 'border-transparent'
+                      }`}
+                      style={{ backgroundColor: color }}
+                      title={label}
+                    />
+                  ))}
                 </div>
-              </SectionCard>
-            )}
+                {selectedBrandColor && (
+                  <div className="flex items-center gap-3 pt-2">
+                    <div className="w-10 h-10 rounded-xl border border-border/10 shadow-md" style={{ backgroundColor: selectedBrandColor }} />
+                    <div>
+                      <span className="text-sm font-medium text-foreground">Cor selecionada</span>
+                      <p className="text-xs text-muted-foreground font-mono">{selectedBrandColor}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleBrandColorChange(null)}
+                      className="text-xs text-muted-foreground hover:text-foreground underline ml-auto"
+                    >
+                      Remover
+                    </button>
+                  </div>
+                )}
+              </div>
+            </SectionCard>
 
             <div className="bg-card/60 backdrop-blur-sm rounded-2xl p-4 text-xs text-muted-foreground space-y-1.5 border border-border/10">
               <div className="flex items-center gap-2">
