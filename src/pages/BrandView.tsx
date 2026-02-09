@@ -503,16 +503,16 @@ export default function BrandView() {
                 <p className="text-xs text-muted-foreground">Escolha uma cor para identificar esta marca nas listagens</p>
                 <div className="flex flex-wrap gap-2">
                   {[
-                    { color: 'hsl(336, 80%, 58%)', label: 'Rosa' },
-                    { color: 'hsl(270, 70%, 55%)', label: 'Roxo' },
-                    { color: 'hsl(220, 80%, 55%)', label: 'Azul' },
-                    { color: 'hsl(160, 60%, 45%)', label: 'Verde' },
-                    { color: 'hsl(30, 90%, 55%)', label: 'Laranja' },
-                    { color: 'hsl(45, 90%, 55%)', label: 'Amarelo' },
-                    { color: 'hsl(0, 75%, 55%)', label: 'Vermelho' },
-                    { color: 'hsl(180, 60%, 45%)', label: 'Teal' },
-                    { color: 'hsl(240, 60%, 60%)', label: 'Indigo' },
-                    { color: 'hsl(320, 50%, 70%)', label: 'Rosa claro' },
+                    { color: '#E8337A', label: 'Rosa' },
+                    { color: '#8B3FC9', label: 'Roxo' },
+                    { color: '#2B7DE9', label: 'Azul' },
+                    { color: '#2EB875', label: 'Verde' },
+                    { color: '#F28C1C', label: 'Laranja' },
+                    { color: '#F2C81C', label: 'Amarelo' },
+                    { color: '#DF3737', label: 'Vermelho' },
+                    { color: '#2EB8A3', label: 'Teal' },
+                    { color: '#5C5CE6', label: 'Indigo' },
+                    { color: '#CC85B8', label: 'Rosa claro' },
                   ].map(({ color, label }) => (
                     <button
                       key={color}
