@@ -239,7 +239,7 @@ export default function BrandList({ brands, selectedBrand, onSelectBrand, isLoad
             size="sm"
             onClick={() => toggleSort('name')}
             className={cn(
-              "h-10 px-3 gap-1.5 shadow-sm border-border/30",
+              "h-10 px-3 gap-1.5 shadow-sm border border-muted/50",
               sortField === 'name' && "bg-primary/10 border-primary/30 text-primary"
             )}
           >
@@ -250,7 +250,7 @@ export default function BrandList({ brands, selectedBrand, onSelectBrand, isLoad
             size="sm"
             onClick={() => toggleSort('date')}
             className={cn(
-              "h-10 px-3 gap-1.5 shadow-sm border-border/30",
+              "h-10 px-3 gap-1.5 shadow-sm border border-muted/50",
               sortField === 'date' && "bg-primary/10 border-primary/30 text-primary"
             )}
           >
@@ -262,7 +262,7 @@ export default function BrandList({ brands, selectedBrand, onSelectBrand, isLoad
               variant="ghost"
               size="sm"
               onClick={clearFilters}
-              className="h-10 px-3 text-muted-foreground hover:border-accent hover:bg-accent/20 hover:text-accent"
+              className="h-10 px-3 text-muted-foreground shadow-sm border border-muted/50 hover:border-accent hover:bg-accent/20 hover:text-accent"
             >
               <X className="h-4 w-4 mr-1" /> Limpar
             </Button>
@@ -274,7 +274,7 @@ export default function BrandList({ brands, selectedBrand, onSelectBrand, isLoad
           type="single"
           value={viewMode}
           onValueChange={(v) => { if (v) setViewMode(v as ViewMode); }}
-          className="bg-card shadow-sm rounded-lg p-1 gap-0 border border-border/30"
+          className="bg-card shadow-sm rounded-lg p-1 gap-0 border border-muted/50"
         >
           <ToggleGroupItem
             value="list"
