@@ -306,7 +306,7 @@ export default function BrandList({ brands, selectedBrand, onSelectBrand, isLoad
         <EmptyState />
       ) : viewMode === 'list' ? (
         /* List view */
-        <div className="bg-card rounded-xl shadow-sm overflow-hidden">
+        <div className="bg-card rounded-xl shadow-sm overflow-hidden border border-muted/50">
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent border-b border-border/20">
