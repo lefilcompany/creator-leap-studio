@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { cn } from '@/lib/utils';
-import { Package, Search, ArrowUpDown, ArrowUp, ArrowDown, List, LayoutGrid } from 'lucide-react';
+import { Package, Search, ArrowUpDown, ArrowUp, ArrowDown, List, LayoutGrid, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import {
   Table,
@@ -23,6 +23,7 @@ import {
   PaginationEllipsis,
 } from "@/components/ui/pagination";
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Button } from '@/components/ui/button';
 
 interface BrandListProps {
   brands: BrandSummary[] | undefined;
@@ -41,7 +42,8 @@ const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString('pt-BR');
 };
 
-type SortDirection = 'asc' | 'desc' | null;
+type SortField = 'name' | 'date';
+type SortDirection = 'asc' | 'desc';
 type ViewMode = 'list' | 'grid';
 
 // Loading skeleton for table rows
@@ -51,7 +53,7 @@ const LoadingRows = () => (
       <TableRow key={i} className="animate-pulse border-none">
         <TableCell>
           <div className="flex items-center gap-3">
-            <div className="w-3 h-3 rounded-full bg-muted" />
+            <div className="w-8 h-8 rounded-full bg-muted" />
             <div className="h-4 w-32 bg-muted rounded" />
           </div>
         </TableCell>
@@ -64,16 +66,18 @@ const LoadingRows = () => (
 
 // Loading skeleton for grid
 const LoadingGrid = () => (
-  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
     {Array.from({ length: 6 }).map((_, i) => (
-      <div key={i} className="animate-pulse bg-card rounded-xl border border-border/20 overflow-hidden">
-        <div className="h-1 bg-muted" />
+      <div key={i} className="animate-pulse bg-card rounded-xl overflow-hidden shadow-sm">
+        <div className="h-1.5 bg-muted" />
         <div className="p-5 space-y-3">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-muted" />
-            <div className="h-5 w-28 bg-muted rounded" />
+            <div className="space-y-1.5 flex-1">
+              <div className="h-4 w-28 bg-muted rounded" />
+              <div className="h-3 w-20 bg-muted rounded" />
+            </div>
           </div>
-          <div className="h-3 w-36 bg-muted rounded" />
           <div className="h-3 w-24 bg-muted rounded" />
         </div>
       </div>
@@ -89,25 +93,29 @@ function BrandCard({ brand, isSelected, onSelect }: { brand: BrandSummary; isSel
     <div
       onClick={onSelect}
       className={cn(
-        "cursor-pointer bg-card rounded-xl overflow-hidden transition-all duration-200 hover:shadow-md border",
+        "cursor-pointer bg-card rounded-xl overflow-hidden transition-all duration-200 group shadow-sm hover:shadow-md",
         isSelected
-          ? "border-primary/40 shadow-md ring-1 ring-primary/20"
-          : "border-border/20 hover:border-border/40"
+          ? "ring-2 ring-primary/30 shadow-md"
+          : "hover:ring-1 hover:ring-border/40"
       )}
     >
-      <div className="h-1" style={{ backgroundColor: color }} />
+      <div className="h-1.5 transition-all duration-200 group-hover:h-2" style={{ backgroundColor: color }} />
       <div className="p-5 space-y-3">
         <div className="flex items-center gap-3">
           <div
-            className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
+            className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0 shadow-sm"
             style={{ backgroundColor: color }}
           >
             {brand.name.charAt(0).toUpperCase()}
           </div>
-          <span className="font-semibold text-foreground truncate">{brand.name}</span>
+          <div className="min-w-0 flex-1">
+            <span className="font-semibold text-foreground truncate block">{brand.name}</span>
+            <span className="text-sm text-muted-foreground truncate block">{brand.responsible}</span>
+          </div>
         </div>
-        <div className="text-sm text-muted-foreground truncate">{brand.responsible}</div>
-        <div className="text-xs text-muted-foreground/70">{formatDate(brand.createdAt)}</div>
+        <div className="text-xs text-muted-foreground/70 flex items-center gap-1">
+          <span>Criado em {formatDate(brand.createdAt)}</span>
+        </div>
       </div>
     </div>
   );
@@ -115,7 +123,8 @@ function BrandCard({ brand, isSelected, onSelect }: { brand: BrandSummary; isSel
 
 export default function BrandList({ brands, selectedBrand, onSelectBrand, isLoading = false, currentPage, totalPages, onPageChange }: BrandListProps) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [dateSortDirection, setDateSortDirection] = useState<SortDirection>(null);
+  const [sortField, setSortField] = useState<SortField>('name');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [viewMode, setViewMode] = useState<ViewMode>('list');
 
   const filteredAndSortedBrands = useMemo(() => {
@@ -131,25 +140,26 @@ export default function BrandList({ brands, selectedBrand, onSelectBrand, isLoad
       );
     }
     
-    if (dateSortDirection) {
-      result.sort((a, b) => {
+    result.sort((a, b) => {
+      if (sortField === 'date') {
         const dateA = new Date(a.createdAt).getTime();
         const dateB = new Date(b.createdAt).getTime();
-        return dateSortDirection === 'asc' ? dateA - dateB : dateB - dateA;
-      });
-    } else {
-      result.sort((a, b) => a.name.localeCompare(b.name));
-    }
+        return sortDirection === 'asc' ? dateA - dateB : dateB - dateA;
+      }
+      const cmp = a.name.localeCompare(b.name);
+      return sortDirection === 'asc' ? cmp : -cmp;
+    });
     
     return result;
-  }, [brands, searchQuery, dateSortDirection]);
+  }, [brands, searchQuery, sortField, sortDirection]);
 
-  const toggleDateSort = () => {
-    setDateSortDirection(prev => {
-      if (prev === null) return 'desc';
-      if (prev === 'desc') return 'asc';
-      return null;
-    });
+  const toggleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection(field === 'date' ? 'desc' : 'asc');
+    }
   };
 
   const generatePagination = (currentPage: number, totalPages: number) => {
@@ -167,7 +177,11 @@ export default function BrandList({ brands, selectedBrand, onSelectBrand, isLoad
   };
 
   const paginationRange = generatePagination(currentPage, totalPages);
-  const DateSortIcon = dateSortDirection === 'asc' ? ArrowUp : dateSortDirection === 'desc' ? ArrowDown : ArrowUpDown;
+
+  const SortIcon = ({ field }: { field: SortField }) => {
+    if (sortField !== field) return <ArrowUpDown className="h-3.5 w-3.5 opacity-40" />;
+    return sortDirection === 'asc' ? <ArrowUp className="h-3.5 w-3.5" /> : <ArrowDown className="h-3.5 w-3.5" />;
+  };
 
   const EmptyState = () => (
     <div className="text-center text-muted-foreground py-16 animate-fade-in">
@@ -187,24 +201,80 @@ export default function BrandList({ brands, selectedBrand, onSelectBrand, isLoad
     </div>
   );
 
+  const hasActiveFilters = searchQuery.trim() || sortField !== 'name' || sortDirection !== 'asc';
+
+  const clearFilters = () => {
+    setSearchQuery('');
+    setSortField('name');
+    setSortDirection('asc');
+  };
+
   return (
     <div className="space-y-4">
-      {/* Toolbar: search + view toggle */}
-      <div className="flex items-center gap-3">
+      {/* Toolbar */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        {/* Search */}
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Buscar por nome ou responsável..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 h-9 bg-muted/30 border-border/30 focus:bg-background"
+            className="pl-9 pr-9 h-10 bg-card shadow-sm border-border/30 focus:border-primary/40 focus:bg-background"
           />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
         </div>
+
+        {/* Sort buttons */}
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => toggleSort('name')}
+            className={cn(
+              "h-10 px-3 gap-1.5 shadow-sm border-border/30",
+              sortField === 'name' && "bg-primary/10 border-primary/30 text-primary"
+            )}
+          >
+            Nome <SortIcon field="name" />
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => toggleSort('date')}
+            className={cn(
+              "h-10 px-3 gap-1.5 shadow-sm border-border/30",
+              sortField === 'date' && "bg-primary/10 border-primary/30 text-primary"
+            )}
+          >
+            Data <SortIcon field="date" />
+          </Button>
+
+          {hasActiveFilters && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearFilters}
+              className="h-10 px-3 text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-4 w-4 mr-1" /> Limpar
+            </Button>
+          )}
+        </div>
+
+        {/* View toggle */}
         <ToggleGroup
           type="single"
           value={viewMode}
           onValueChange={(v) => { if (v) setViewMode(v as ViewMode); }}
-          className="bg-muted rounded-lg p-1 gap-0"
+          className="bg-card shadow-sm rounded-lg p-1 gap-0 border border-border/30"
         >
           <ToggleGroupItem
             value="list"
@@ -226,9 +296,9 @@ export default function BrandList({ brands, selectedBrand, onSelectBrand, isLoad
       {/* Content */}
       {isLoading ? (
         viewMode === 'list' ? (
-          <Table>
-            <TableBody><LoadingRows /></TableBody>
-          </Table>
+          <div className="bg-card rounded-xl shadow-sm overflow-hidden">
+            <Table><TableBody><LoadingRows /></TableBody></Table>
+          </div>
         ) : (
           <LoadingGrid />
         )
@@ -236,56 +306,68 @@ export default function BrandList({ brands, selectedBrand, onSelectBrand, isLoad
         <EmptyState />
       ) : viewMode === 'list' ? (
         /* List view */
-        <Table>
-          <TableHeader>
-            <TableRow className="hover:bg-transparent border-b border-border/30">
-              <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Marca</TableHead>
-              <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-semibold hidden md:table-cell">Responsável</TableHead>
-              <TableHead
-                className="text-xs uppercase tracking-wider text-muted-foreground font-semibold text-right cursor-pointer select-none hover:text-foreground transition-colors"
-                onClick={toggleDateSort}
-              >
-                <span className="inline-flex items-center gap-1 justify-end">
-                  Data de Criação
-                  <DateSortIcon className="h-3.5 w-3.5" />
-                </span>
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredAndSortedBrands.map((brand) => (
-              <TableRow
-                key={brand.id}
-                onClick={() => onSelectBrand(brand)}
-                className={cn(
-                  "cursor-pointer transition-colors duration-150 border-b border-border/10",
-                  selectedBrand?.id === brand.id
-                    ? "bg-primary/8 hover:bg-primary/12"
-                    : "hover:bg-muted/50"
-                )}
-              >
-                <TableCell>
-                  <div className="flex items-center gap-3">
-                    <div
-                      className="w-3 h-3 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: brand.brandColor || DEFAULT_BRAND_COLOR }}
-                    />
-                    <span className="font-medium text-foreground">{brand.name}</span>
-                  </div>
-                </TableCell>
-                <TableCell className="text-muted-foreground hidden md:table-cell">
-                  {brand.responsible}
-                </TableCell>
-                <TableCell className="text-muted-foreground text-right">
-                  {formatDate(brand.createdAt)}
-                </TableCell>
+        <div className="bg-card rounded-xl shadow-sm overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent border-b border-border/20">
+                <TableHead
+                  className="text-xs uppercase tracking-wider text-muted-foreground font-semibold cursor-pointer select-none hover:text-foreground transition-colors"
+                  onClick={() => toggleSort('name')}
+                >
+                  <span className="inline-flex items-center gap-1.5">
+                    Marca <SortIcon field="name" />
+                  </span>
+                </TableHead>
+                <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-semibold hidden md:table-cell">
+                  Responsável
+                </TableHead>
+                <TableHead
+                  className="text-xs uppercase tracking-wider text-muted-foreground font-semibold text-right cursor-pointer select-none hover:text-foreground transition-colors"
+                  onClick={() => toggleSort('date')}
+                >
+                  <span className="inline-flex items-center gap-1.5 justify-end">
+                    Data de Criação <SortIcon field="date" />
+                  </span>
+                </TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {filteredAndSortedBrands.map((brand) => (
+                <TableRow
+                  key={brand.id}
+                  onClick={() => onSelectBrand(brand)}
+                  className={cn(
+                    "cursor-pointer transition-colors duration-150 border-b border-border/10",
+                    selectedBrand?.id === brand.id
+                      ? "bg-primary/8 hover:bg-primary/12"
+                      : "hover:bg-muted/50"
+                  )}
+                >
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs flex-shrink-0 shadow-sm"
+                        style={{ backgroundColor: brand.brandColor || DEFAULT_BRAND_COLOR }}
+                      >
+                        {brand.name.charAt(0).toUpperCase()}
+                      </div>
+                      <span className="font-medium text-foreground">{brand.name}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground hidden md:table-cell">
+                    {brand.responsible}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground text-right">
+                    {formatDate(brand.createdAt)}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       ) : (
         /* Grid view */
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredAndSortedBrands.map((brand) => (
             <BrandCard
               key={brand.id}
