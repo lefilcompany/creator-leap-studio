@@ -310,24 +310,14 @@ export default function BrandList({ brands, selectedBrand, onSelectBrand, isLoad
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent border-b border-border/20">
-                <TableHead
-                  className="text-xs uppercase tracking-wider text-muted-foreground font-semibold cursor-pointer select-none hover:text-foreground transition-colors"
-                  onClick={() => toggleSort('name')}
-                >
-                  <span className="inline-flex items-center gap-1.5">
-                    Marca <SortIcon field="name" />
-                  </span>
+                <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
+                  Marca
                 </TableHead>
                 <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-semibold hidden md:table-cell">
                   Responsável
                 </TableHead>
-                <TableHead
-                  className="text-xs uppercase tracking-wider text-muted-foreground font-semibold text-right cursor-pointer select-none hover:text-foreground transition-colors"
-                  onClick={() => toggleSort('date')}
-                >
-                  <span className="inline-flex items-center gap-1.5 justify-end">
-                    Data de Criação <SortIcon field="date" />
-                  </span>
+                <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-semibold text-right">
+                  Data de Criação
                 </TableHead>
               </TableRow>
             </TableHeader>
