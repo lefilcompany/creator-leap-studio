@@ -1,8 +1,11 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   AlertDialog,
@@ -15,38 +18,16 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { ArrowLeft, Edit, Trash2, Tag, ExternalLink, FileDown, Palette, Calendar, User } from 'lucide-react';
+import { ArrowLeft, Trash2, Tag, ExternalLink, FileDown, Palette, Calendar, User, Save, Loader2 } from 'lucide-react';
 import type { Brand, MoodboardFile, ColorItem } from '@/types/brand';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useTranslation } from '@/hooks/useTranslation';
-import BrandDialog from '@/components/marcas/BrandDialog';
 import { toast } from 'sonner';
-
-type BrandFormData = Omit<Brand, 'id' | 'createdAt' | 'updatedAt' | 'teamId' | 'userId'>;
 
 const formatDate = (dateString: string) => {
   if (!dateString) return '';
   return new Date(dateString).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-};
-
-const SectionCard = ({ title, children }: { title: string; children: React.ReactNode }) => (
-  <div className="bg-card rounded-xl border border-border/20 overflow-hidden">
-    <div className="px-5 py-3 border-b border-border/20 bg-muted/30">
-      <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider">{title}</h3>
-    </div>
-    <div className="p-5">{children}</div>
-  </div>
-);
-
-const DetailField = ({ label, value }: { label: string; value?: string }) => {
-  if (!value) return null;
-  return (
-    <div>
-      <p className="text-xs text-muted-foreground mb-1">{label}</p>
-      <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">{value}</p>
-    </div>
-  );
 };
 
 const FileDetailField = ({ label, file }: { label: string; file?: MoodboardFile | null }) => {
@@ -105,14 +86,85 @@ const ColorPaletteDisplay = ({ colors }: { colors?: ColorItem[] | null }) => {
   );
 };
 
+interface EditableFieldProps {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  type?: 'input' | 'textarea';
+  placeholder?: string;
+}
+
+const EditableField = ({ label, value, onChange, type = 'textarea', placeholder }: EditableFieldProps) => (
+  <div className="space-y-1.5">
+    <Label className="text-xs text-muted-foreground">{label}</Label>
+    {type === 'input' ? (
+      <Input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder || label}
+        className="bg-background/60 border-border/40 focus:border-primary/50"
+      />
+    ) : (
+      <Textarea
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder || label}
+        className="bg-background/60 border-border/40 focus:border-primary/50 min-h-[100px] max-h-[200px] resize-y"
+      />
+    )}
+  </div>
+);
+
+const SectionCard = ({ title, children }: { title: string; children: React.ReactNode }) => (
+  <div className="bg-card rounded-xl border border-border/20 overflow-hidden">
+    <div className="px-5 py-3 border-b border-border/20 bg-muted/30">
+      <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider">{title}</h3>
+    </div>
+    <div className="p-5">{children}</div>
+  </div>
+);
+
+function mapRowToBrand(data: any): Brand {
+  return {
+    id: data.id,
+    teamId: data.team_id,
+    userId: data.user_id,
+    name: data.name,
+    responsible: data.responsible,
+    segment: data.segment,
+    values: data.values || '',
+    keywords: data.keywords || '',
+    goals: data.goals || '',
+    inspirations: data.inspirations || '',
+    successMetrics: data.success_metrics || '',
+    references: data.brand_references || '',
+    specialDates: data.special_dates || '',
+    promise: data.promise || '',
+    crisisInfo: data.crisis_info || '',
+    milestones: data.milestones || '',
+    collaborations: data.collaborations || '',
+    restrictions: data.restrictions || '',
+    moodboard: data.moodboard as unknown as MoodboardFile | null,
+    logo: data.logo as unknown as MoodboardFile | null,
+    referenceImage: data.reference_image as unknown as MoodboardFile | null,
+    colorPalette: data.color_palette as unknown as ColorItem[] | null,
+    brandColor: data.brand_color || null,
+    createdAt: data.created_at,
+    updatedAt: data.updated_at,
+  };
+}
+
 export default function BrandView() {
   const { brandId } = useParams<{ brandId: string }>();
   const navigate = useNavigate();
-  const { user, team, refreshTeamData, refreshUserCredits } = useAuth();
+  const { user } = useAuth();
   const { t } = useTranslation();
   const [brand, setBrand] = useState<Brand | null>(null);
+  const [formData, setFormData] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(true);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
+  const originalRef = useRef<Record<string, string>>({});
 
   const loadBrand = useCallback(async () => {
     if (!brandId) return;
@@ -120,34 +172,28 @@ export default function BrandView() {
     try {
       const { data, error } = await supabase.from('brands').select('*').eq('id', brandId).single();
       if (error) throw error;
-
-      setBrand({
-        id: data.id,
-        teamId: data.team_id,
-        userId: data.user_id,
-        name: data.name,
-        responsible: data.responsible,
-        segment: data.segment,
-        values: data.values || '',
-        keywords: data.keywords || '',
-        goals: data.goals || '',
-        inspirations: data.inspirations || '',
-        successMetrics: data.success_metrics || '',
-        references: data.brand_references || '',
-        specialDates: data.special_dates || '',
-        promise: data.promise || '',
-        crisisInfo: data.crisis_info || '',
-        milestones: data.milestones || '',
-        collaborations: data.collaborations || '',
-        restrictions: data.restrictions || '',
-        moodboard: data.moodboard as unknown as MoodboardFile | null,
-        logo: data.logo as unknown as MoodboardFile | null,
-        referenceImage: data.reference_image as unknown as MoodboardFile | null,
-        colorPalette: data.color_palette as unknown as ColorItem[] | null,
-        brandColor: (data as any).brand_color || null,
-        createdAt: data.created_at,
-        updatedAt: data.updated_at,
-      });
+      const mapped = mapRowToBrand(data);
+      setBrand(mapped);
+      const initial: Record<string, string> = {
+        name: mapped.name,
+        responsible: mapped.responsible,
+        segment: mapped.segment,
+        values: mapped.values,
+        keywords: mapped.keywords,
+        goals: mapped.goals,
+        inspirations: mapped.inspirations,
+        successMetrics: mapped.successMetrics,
+        references: mapped.references,
+        specialDates: mapped.specialDates,
+        promise: mapped.promise,
+        crisisInfo: mapped.crisisInfo,
+        milestones: mapped.milestones,
+        collaborations: mapped.collaborations,
+        restrictions: mapped.restrictions,
+      };
+      setFormData(initial);
+      originalRef.current = { ...initial };
+      setHasChanges(false);
     } catch (error) {
       console.error('Erro ao carregar marca:', error);
       toast.error('Erro ao carregar detalhes da marca');
@@ -161,11 +207,21 @@ export default function BrandView() {
     loadBrand();
   }, [loadBrand]);
 
-  const handleSaveBrand = useCallback(async (formData: BrandFormData) => {
+  const updateField = (key: string, value: string) => {
+    setFormData(prev => {
+      const next = { ...prev, [key]: value };
+      const changed = Object.keys(next).some(k => next[k] !== originalRef.current[k]);
+      setHasChanges(changed);
+      return next;
+    });
+  };
+
+  const handleSave = useCallback(async () => {
     if (!user?.id || !brand) return;
+    setIsSaving(true);
     const toastId = 'brand-update';
     try {
-      toast.loading(t.brands.updating, { id: toastId });
+      toast.loading('Salvando alterações...', { id: toastId });
       const { error } = await supabase
         .from('brands')
         .update({
@@ -184,24 +240,20 @@ export default function BrandView() {
           milestones: formData.milestones,
           collaborations: formData.collaborations,
           restrictions: formData.restrictions,
-          moodboard: formData.moodboard as any,
-          logo: formData.logo as any,
-          reference_image: formData.referenceImage as any,
-          color_palette: formData.colorPalette as any,
-          brand_color: formData.brandColor,
         } as any)
         .eq('id', brand.id);
 
       if (error) throw error;
-      toast.success(t.brands.updateSuccess, { id: toastId });
-      setIsDialogOpen(false);
-      loadBrand();
+      toast.success('Marca atualizada com sucesso!', { id: toastId });
+      originalRef.current = { ...formData };
+      setHasChanges(false);
     } catch (error) {
       console.error('Erro ao salvar marca:', error);
-      toast.error(t.brands.saveError, { id: toastId });
-      throw error;
+      toast.error('Erro ao salvar marca', { id: toastId });
+    } finally {
+      setIsSaving(false);
     }
-  }, [brand, user, t, loadBrand]);
+  }, [brand, user, formData]);
 
   const handleDeleteBrand = useCallback(async () => {
     if (!brand) return;
@@ -257,8 +309,8 @@ export default function BrandView() {
 
   return (
     <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8">
-      {/* Header */}
-      <div className="bg-card border-b border-border/30 px-4 sm:px-6 lg:px-8 py-4">
+      {/* Sticky Header */}
+      <div className="bg-card border-b border-border/30 px-4 sm:px-6 lg:px-8 py-4 sticky top-0 z-10">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="sm" onClick={() => navigate('/brands')} className="rounded-full">
@@ -272,9 +324,9 @@ export default function BrandView() {
                 {brand.name.charAt(0).toUpperCase()}
               </div>
               <div>
-                <h1 className="text-xl font-bold text-foreground">{brand.name}</h1>
+                <h1 className="text-xl font-bold text-foreground">{formData.name || brand.name}</h1>
                 <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1"><User className="h-3 w-3" /> {brand.responsible}</span>
+                  <span className="flex items-center gap-1"><User className="h-3 w-3" /> {formData.responsible || brand.responsible}</span>
                   <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {formatDate(brand.createdAt)}</span>
                 </div>
               </div>
@@ -300,8 +352,18 @@ export default function BrandView() {
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
-            <Button size="sm" onClick={() => setIsDialogOpen(true)} className="rounded-lg">
-              <Edit className="mr-1.5 h-4 w-4" /> Editar
+            <Button
+              size="sm"
+              onClick={handleSave}
+              disabled={!hasChanges || isSaving}
+              className="rounded-lg"
+            >
+              {isSaving ? (
+                <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="mr-1.5 h-4 w-4" />
+              )}
+              Salvar
             </Button>
           </div>
         </div>
@@ -310,44 +372,49 @@ export default function BrandView() {
       {/* Content */}
       <div className="px-4 sm:px-6 lg:px-8 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main info - 2 columns */}
+          {/* Main editable fields */}
           <div className="lg:col-span-2 space-y-6">
             <SectionCard title="Informações Gerais">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <DetailField label="Segmento" value={brand.segment} />
-                <DetailField label="Valores" value={brand.values} />
-                <DetailField label="Palavras-Chave" value={brand.keywords} />
-                <DetailField label="Promessa Única" value={brand.promise} />
+                <EditableField label="Nome da Marca" value={formData.name || ''} onChange={(v) => updateField('name', v)} type="input" />
+                <EditableField label="Responsável" value={formData.responsible || ''} onChange={(v) => updateField('responsible', v)} type="input" />
+                <EditableField label="Segmento" value={formData.segment || ''} onChange={(v) => updateField('segment', v)} type="input" />
+                <EditableField label="Promessa Única" value={formData.promise || ''} onChange={(v) => updateField('promise', v)} />
+                <EditableField label="Valores" value={formData.values || ''} onChange={(v) => updateField('values', v)} />
+                <EditableField label="Palavras-Chave" value={formData.keywords || ''} onChange={(v) => updateField('keywords', v)} />
               </div>
             </SectionCard>
 
             <SectionCard title="Estratégia">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <DetailField label="Metas do Negócio" value={brand.goals} />
-                <DetailField label="Indicadores de Sucesso" value={brand.successMetrics} />
-                <DetailField label="Inspirações" value={brand.inspirations} />
-                <DetailField label="Referências de Conteúdo" value={brand.references} />
+                <EditableField label="Metas do Negócio" value={formData.goals || ''} onChange={(v) => updateField('goals', v)} />
+                <EditableField label="Indicadores de Sucesso" value={formData.successMetrics || ''} onChange={(v) => updateField('successMetrics', v)} />
+                <EditableField label="Inspirações" value={formData.inspirations || ''} onChange={(v) => updateField('inspirations', v)} />
+                <EditableField label="Referências de Conteúdo" value={formData.references || ''} onChange={(v) => updateField('references', v)} />
               </div>
             </SectionCard>
 
             <SectionCard title="Detalhes Adicionais">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <DetailField label="Datas Especiais" value={brand.specialDates} />
-                <DetailField label="Marcos e Cases" value={brand.milestones} />
-                <DetailField label="Restrições" value={brand.restrictions} />
-                <DetailField label="Crises (Existentes ou Potenciais)" value={brand.crisisInfo} />
-                <DetailField label="Colaborações e Ações com Influenciadores" value={brand.collaborations} />
+                <EditableField label="Datas Especiais" value={formData.specialDates || ''} onChange={(v) => updateField('specialDates', v)} />
+                <EditableField label="Marcos e Cases" value={formData.milestones || ''} onChange={(v) => updateField('milestones', v)} />
+                <EditableField label="Restrições" value={formData.restrictions || ''} onChange={(v) => updateField('restrictions', v)} />
+                <EditableField label="Crises (Existentes ou Potenciais)" value={formData.crisisInfo || ''} onChange={(v) => updateField('crisisInfo', v)} />
+                <EditableField label="Colaborações e Ações com Influenciadores" value={formData.collaborations || ''} onChange={(v) => updateField('collaborations', v)} />
               </div>
             </SectionCard>
           </div>
 
-          {/* Sidebar - visual assets */}
+          {/* Sidebar - visual assets (read-only) */}
           <div className="space-y-6">
             <SectionCard title="Identidade Visual">
               <div className="space-y-5">
                 <FileDetailField label="Logo da Marca" file={brand.logo} />
                 <FileDetailField label="Imagem de Referência" file={brand.referenceImage} />
                 <FileDetailField label="Moodboard" file={brand.moodboard} />
+                {!brand.logo && !brand.referenceImage && !brand.moodboard && (
+                  <p className="text-sm text-muted-foreground text-center py-4">Nenhum arquivo visual cadastrado.</p>
+                )}
               </div>
             </SectionCard>
 
@@ -373,13 +440,6 @@ export default function BrandView() {
           </div>
         </div>
       </div>
-
-      <BrandDialog
-        isOpen={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
-        onSave={handleSaveBrand}
-        brandToEdit={brand}
-      />
     </div>
   );
 }
