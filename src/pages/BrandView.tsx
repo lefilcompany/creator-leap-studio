@@ -18,7 +18,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { ArrowLeft, Trash2, Tag, ExternalLink, FileDown, Palette, Calendar, User, Save, Loader2 } from 'lucide-react';
+import { ArrowLeft, Trash2, Tag, ExternalLink, FileDown, Calendar, User, Save, Loader2, Sparkles, Target, LayoutGrid, Info } from 'lucide-react';
 import type { Brand, MoodboardFile, ColorItem } from '@/types/brand';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -36,21 +36,21 @@ const FileDetailField = ({ label, file }: { label: string; file?: MoodboardFile 
 
   return (
     <div>
-      <p className="text-xs text-muted-foreground mb-2">{label}</p>
+      <p className="text-xs text-muted-foreground mb-2 font-medium uppercase tracking-wider">{label}</p>
       {isImage ? (
-        <div className="relative group rounded-lg overflow-hidden border border-border/30">
+        <div className="relative group rounded-xl overflow-hidden border border-border/10 shadow-sm">
           <img src={file.content} alt={file.name} className="w-full max-h-64 object-cover" />
           <a
             href={file.content}
             target="_blank"
             rel="noopener noreferrer"
-            className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+            className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 backdrop-blur-sm"
           >
             <ExternalLink className="text-white h-6 w-6" />
           </a>
         </div>
       ) : (
-        <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+        <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-xl border border-border/10">
           <FileDown className="h-8 w-8 text-primary flex-shrink-0" />
           <div className="flex-grow truncate">
             <p className="text-sm font-medium text-foreground truncate">{file.name}</p>
@@ -72,7 +72,7 @@ const ColorPaletteDisplay = ({ colors }: { colors?: ColorItem[] | null }) => {
       {colors.map((color) => (
         <div key={color.id} className="flex flex-col items-center gap-2">
           <div
-            className="w-14 h-14 rounded-xl border-2 border-border/40 shadow-sm"
+            className="w-14 h-14 rounded-xl border border-border/10 shadow-md ring-2 ring-white/10"
             style={{ backgroundColor: color.hex }}
             title={`${color.name || 'Cor'} - ${color.hex}`}
           />
@@ -96,28 +96,39 @@ interface EditableFieldProps {
 
 const EditableField = ({ label, value, onChange, type = 'textarea', placeholder }: EditableFieldProps) => (
   <div className="space-y-1.5">
-    <Label className="text-xs text-muted-foreground">{label}</Label>
+    <Label className="text-xs text-muted-foreground font-medium uppercase tracking-wider">{label}</Label>
     {type === 'input' ? (
       <Input
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder || label}
-        className="bg-background/60 border-border/40 focus:border-primary/50"
+        className="bg-background/80 backdrop-blur-sm border-border/20 focus:border-primary/50 focus:ring-primary/20 transition-all duration-200"
       />
     ) : (
       <Textarea
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder || label}
-        className="bg-background/60 border-border/40 focus:border-primary/50 min-h-[100px] max-h-[200px] resize-y"
+        className="bg-background/80 backdrop-blur-sm border-border/20 focus:border-primary/50 focus:ring-primary/20 min-h-[100px] max-h-[200px] resize-y transition-all duration-200"
       />
     )}
   </div>
 );
 
-const SectionCard = ({ title, children }: { title: string; children: React.ReactNode }) => (
-  <div className="bg-card rounded-xl border border-border/20 overflow-hidden">
-    <div className="px-5 py-3 border-b border-border/20 bg-muted/30">
+interface SectionCardProps {
+  title: string;
+  icon?: React.ReactNode;
+  children: React.ReactNode;
+  accentColor?: string;
+}
+
+const SectionCard = ({ title, icon, children, accentColor }: SectionCardProps) => (
+  <div className="bg-card/80 backdrop-blur-sm rounded-2xl border border-border/10 overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
+    <div
+      className="px-5 py-3.5 border-b border-border/10 flex items-center gap-2.5"
+      style={accentColor ? { background: `linear-gradient(135deg, ${accentColor}08, ${accentColor}03)` } : {}}
+    >
+      {icon && <span className="text-primary">{icon}</span>}
       <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider">{title}</h3>
     </div>
     <div className="p-5">{children}</div>
@@ -280,11 +291,11 @@ export default function BrandView() {
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
-              <Skeleton className="h-48 w-full rounded-xl" />
-              <Skeleton className="h-48 w-full rounded-xl" />
+              <Skeleton className="h-48 w-full rounded-2xl" />
+              <Skeleton className="h-48 w-full rounded-2xl" />
             </div>
             <div className="space-y-6">
-              <Skeleton className="h-64 w-full rounded-xl" />
+              <Skeleton className="h-64 w-full rounded-2xl" />
             </div>
           </div>
         </div>
@@ -309,62 +320,80 @@ export default function BrandView() {
 
   return (
     <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8">
-      {/* Sticky Header */}
-      <div className="bg-card border-b border-border/30 px-4 sm:px-6 lg:px-8 py-4 sticky top-0 z-10">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" onClick={() => navigate('/brands')} className="rounded-full">
-              <ArrowLeft className="h-4 w-4 mr-1" /> Voltar
-            </Button>
-            <div className="flex items-center gap-3">
-              <div
-                className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-xl flex-shrink-0 shadow-sm"
-                style={{ backgroundColor: brandColor }}
-              >
-                {brand.name.charAt(0).toUpperCase()}
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-foreground">{formData.name || brand.name}</h1>
-                <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1"><User className="h-3 w-3" /> {formData.responsible || brand.responsible}</span>
-                  <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {formatDate(brand.createdAt)}</span>
+      {/* Hero Header with gradient */}
+      <div
+        className="relative overflow-hidden"
+        style={{
+          background: `linear-gradient(135deg, ${brandColor}18, ${brandColor}08, hsl(var(--background)))`,
+        }}
+      >
+        {/* Decorative elements */}
+        <div
+          className="absolute top-0 right-0 w-96 h-96 rounded-full opacity-[0.04] blur-3xl"
+          style={{ backgroundColor: brandColor }}
+        />
+        <div
+          className="absolute bottom-0 left-1/3 w-64 h-64 rounded-full opacity-[0.03] blur-3xl"
+          style={{ backgroundColor: brandColor }}
+        />
+
+        <div className="relative px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <Button variant="ghost" size="sm" onClick={() => navigate('/brands')} className="rounded-full hover:bg-background/60">
+                <ArrowLeft className="h-4 w-4 mr-1" /> Voltar
+              </Button>
+              <div className="flex items-center gap-4">
+                <div
+                  className="w-14 h-14 rounded-2xl flex items-center justify-center text-white font-bold text-2xl flex-shrink-0 shadow-lg ring-4 ring-white/20"
+                  style={{ backgroundColor: brandColor }}
+                >
+                  {brand.name.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold text-foreground tracking-tight">{formData.name || brand.name}</h1>
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
+                    <span className="flex items-center gap-1"><User className="h-3 w-3" /> {formData.responsible || brand.responsible}</span>
+                    <span className="text-border/50">•</span>
+                    <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {formatDate(brand.createdAt)}</span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-          <div className="flex gap-2">
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="outline" size="sm" className="rounded-lg">
-                  <Trash2 className="mr-1.5 h-4 w-4" /> Deletar
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Essa ação não pode ser desfeita. Isso irá deletar permanentemente a marca &quot;{brand.name}&quot;.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDeleteBrand} className="bg-destructive hover:bg-destructive/90">Deletar</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-            <Button
-              size="sm"
-              onClick={handleSave}
-              disabled={!hasChanges || isSaving}
-              className="rounded-lg"
-            >
-              {isSaving ? (
-                <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
-              ) : (
-                <Save className="mr-1.5 h-4 w-4" />
-              )}
-              Salvar
-            </Button>
+            <div className="flex gap-2">
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="rounded-xl border-border/20 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 transition-colors">
+                    <Trash2 className="mr-1.5 h-4 w-4" /> Deletar
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Essa ação não pode ser desfeita. Isso irá deletar permanentemente a marca &quot;{brand.name}&quot;.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDeleteBrand} className="bg-destructive hover:bg-destructive/90">Deletar</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+              <Button
+                size="sm"
+                onClick={handleSave}
+                disabled={!hasChanges || isSaving}
+                className="rounded-xl shadow-md shadow-primary/20 transition-all duration-200"
+              >
+                {isSaving ? (
+                  <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                ) : (
+                  <Save className="mr-1.5 h-4 w-4" />
+                )}
+                Salvar
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -374,7 +403,7 @@ export default function BrandView() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main editable fields */}
           <div className="lg:col-span-2 space-y-6">
-            <SectionCard title="Informações Gerais">
+            <SectionCard title="Informações Gerais" icon={<Tag className="h-4 w-4" />} accentColor={brandColor}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <EditableField label="Nome da Marca" value={formData.name || ''} onChange={(v) => updateField('name', v)} type="input" />
                 <EditableField label="Responsável" value={formData.responsible || ''} onChange={(v) => updateField('responsible', v)} type="input" />
@@ -385,7 +414,7 @@ export default function BrandView() {
               </div>
             </SectionCard>
 
-            <SectionCard title="Estratégia">
+            <SectionCard title="Estratégia" icon={<Target className="h-4 w-4" />} accentColor={brandColor}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <EditableField label="Metas do Negócio" value={formData.goals || ''} onChange={(v) => updateField('goals', v)} />
                 <EditableField label="Indicadores de Sucesso" value={formData.successMetrics || ''} onChange={(v) => updateField('successMetrics', v)} />
@@ -394,7 +423,7 @@ export default function BrandView() {
               </div>
             </SectionCard>
 
-            <SectionCard title="Detalhes Adicionais">
+            <SectionCard title="Detalhes Adicionais" icon={<Info className="h-4 w-4" />} accentColor={brandColor}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <EditableField label="Datas Especiais" value={formData.specialDates || ''} onChange={(v) => updateField('specialDates', v)} />
                 <EditableField label="Marcos e Cases" value={formData.milestones || ''} onChange={(v) => updateField('milestones', v)} />
@@ -407,35 +436,49 @@ export default function BrandView() {
 
           {/* Sidebar - visual assets (read-only) */}
           <div className="space-y-6">
-            <SectionCard title="Identidade Visual">
+            <SectionCard title="Identidade Visual" icon={<Sparkles className="h-4 w-4" />} accentColor={brandColor}>
               <div className="space-y-5">
                 <FileDetailField label="Logo da Marca" file={brand.logo} />
                 <FileDetailField label="Imagem de Referência" file={brand.referenceImage} />
                 <FileDetailField label="Moodboard" file={brand.moodboard} />
                 {!brand.logo && !brand.referenceImage && !brand.moodboard && (
-                  <p className="text-sm text-muted-foreground text-center py-4">Nenhum arquivo visual cadastrado.</p>
+                  <div className="text-center py-8">
+                    <LayoutGrid className="h-10 w-10 text-muted-foreground/30 mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">Nenhum arquivo visual cadastrado.</p>
+                  </div>
                 )}
               </div>
             </SectionCard>
 
             {brand.colorPalette && brand.colorPalette.length > 0 && (
-              <SectionCard title="Paleta de Cores">
+              <SectionCard title="Paleta de Cores" icon={<Sparkles className="h-4 w-4" />} accentColor={brandColor}>
                 <ColorPaletteDisplay colors={brand.colorPalette} />
               </SectionCard>
             )}
 
             {brand.brandColor && (
-              <SectionCard title="Cor Identificadora">
+              <SectionCard title="Cor Identificadora" accentColor={brandColor}>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg border border-border/40" style={{ backgroundColor: brand.brandColor }} />
-                  <span className="text-sm text-muted-foreground font-mono">{brand.brandColor}</span>
+                  <div className="w-12 h-12 rounded-xl border border-border/10 shadow-md ring-2 ring-white/10" style={{ backgroundColor: brand.brandColor }} />
+                  <div>
+                    <span className="text-sm font-medium text-foreground">Cor Principal</span>
+                    <p className="text-xs text-muted-foreground font-mono">{brand.brandColor}</p>
+                  </div>
                 </div>
               </SectionCard>
             )}
 
-            <div className="bg-muted/50 rounded-xl p-4 text-xs text-muted-foreground space-y-1">
-              <p>Criado em: {formatDate(brand.createdAt)}</p>
-              {wasUpdated && <p>Atualizado em: {formatDate(brand.updatedAt)}</p>}
+            <div className="bg-card/60 backdrop-blur-sm rounded-2xl p-4 text-xs text-muted-foreground space-y-1.5 border border-border/10">
+              <div className="flex items-center gap-2">
+                <Calendar className="h-3.5 w-3.5 text-primary/60" />
+                <p>Criado em: {formatDate(brand.createdAt)}</p>
+              </div>
+              {wasUpdated && (
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-3.5 w-3.5 text-primary/60" />
+                  <p>Atualizado em: {formatDate(brand.updatedAt)}</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
