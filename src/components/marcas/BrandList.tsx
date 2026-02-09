@@ -220,7 +220,7 @@ export default function BrandList({ brands, selectedBrand, onSelectBrand, isLoad
             placeholder="Buscar por nome ou responsável..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 pr-9 h-10 bg-card shadow-sm border-border/30 focus:border-primary/40 focus:bg-background"
+            className="pl-9 pr-9 h-10 bg-card shadow-sm border-transparent focus:border-primary/40 focus:bg-background"
           />
           {searchQuery && (
             <button
