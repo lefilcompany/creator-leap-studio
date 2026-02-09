@@ -149,53 +149,49 @@ const Login = () => {
   const [sheetOpen, setSheetOpen] = useState(false);
   const loginForm = useMemo(
     () => (
-      <form onSubmit={handleLogin} className="space-y-6">
-        <div className="space-y-2">
-          <div className="relative">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-            <Input
-              id="email"
-              type="email"
-              placeholder={t.login.email}
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="pl-10 h-12"
-            />
-          </div>
+      <form onSubmit={handleLogin} className="space-y-4">
+        <div className="relative">
+          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            id="email"
+            type="email"
+            placeholder={t.login.email}
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="pl-10 h-11"
+          />
         </div>
 
-        <div className="space-y-2">
-          <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-            <Input
-              id="password"
-              type={showPassword ? "text" : "password"}
-              placeholder={t.login.password}
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="pl-10 pr-10 h-12"
-            />
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="absolute top-1/2 -translate-y-1/2 right-1 h-10 w-10 text-muted-foreground hover:bg-accent/60"
-              onClick={() => setShowPassword(!showPassword)}
-            >
-              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-            </Button>
-          </div>
+        <div className="relative">
+          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            id="password"
+            type={showPassword ? "text" : "password"}
+            placeholder={t.login.password}
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="pl-10 pr-10 h-11"
+          />
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="absolute top-1/2 -translate-y-1/2 right-1 h-8 w-8 text-muted-foreground hover:bg-accent/60"
+            onClick={() => setShowPassword(!showPassword)}
+          >
+            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+          </Button>
         </div>
 
         {showPasswordResetSuggestion && (
-          <div className="mb-4 p-4 bg-destructive/10 border-2 border-destructive/30 rounded-lg animate-fade-in">
-            <div className="flex items-start gap-3">
-              <Mail className="h-5 w-5 text-destructive mt-0.5 flex-shrink-0" />
+          <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-lg animate-fade-in">
+            <div className="flex items-start gap-2">
+              <Mail className="h-4 w-4 text-destructive mt-0.5 flex-shrink-0" />
               <div className="flex-1">
-                <p className="text-sm font-semibold text-destructive mb-1">{t.login.incorrectCredentials}</p>
-                <p className="text-xs text-muted-foreground mb-2">
+                <p className="text-sm font-semibold text-destructive mb-0.5">{t.login.incorrectCredentials}</p>
+                <p className="text-xs text-muted-foreground mb-1.5">
                   {t.login.resetPasswordSuggestion}
                 </p>
                 <a
@@ -231,11 +227,11 @@ const Login = () => {
         <Button
           type="submit"
           disabled={loading}
-          className="w-full h-12 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-medium rounded-xl transition-all duration-300 hover:opacity-90 disabled:opacity-50"
+          className="w-full h-11 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-medium rounded-xl transition-all duration-300 hover:opacity-90 disabled:opacity-50"
         >
           {loading ? (
             <div className="flex items-center gap-2">
-              <Loader2 className="h-5 w-5 animate-spin" />
+              <Loader2 className="h-4 w-4 animate-spin" />
               <span>{t.login.signingIn}</span>
             </div>
           ) : (
@@ -243,7 +239,7 @@ const Login = () => {
           )}
         </Button>
 
-        <div className="text-center mt-6">
+        <div className="text-center">
           <span className="text-muted-foreground text-sm">{t.login.noAccount} </span>
           <a href="/?mode=register" className="text-primary hover:text-primary/80 font-medium text-sm transition-colors">
             {t.login.createAccount}
@@ -384,7 +380,7 @@ const Login = () => {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="mb-8 z-10"
+          className="mb-5 z-10"
         >
           <CreatorLogo className="mb-4" />
         </motion.div>
@@ -408,12 +404,12 @@ const Login = () => {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="w-full max-w-md px-6 relative z-10"
           >
-            <div className="bg-card/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-primary/10 p-8 overflow-x-hidden">
-              <div className="mb-6 text-center">
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent mb-2">
+            <div className="bg-card/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-primary/10 p-6 overflow-x-hidden">
+              <div className="mb-4 text-center">
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent mb-1">
                   {t.login.welcome}
                 </h1>
-                <p className="text-muted-foreground">
+                <p className="text-sm text-muted-foreground">
                   {t.login.welcomeMessage}
                 </p>
               </div>
