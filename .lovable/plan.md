@@ -1,59 +1,65 @@
 
-# Plano: Alterar Créditos Grátis de 20 para 5
+
+# Redesign da Pagina de Marcas
 
 ## Resumo
-Alterar a quantidade de créditos grátis dados a novos usuários de 20 para 5 créditos.
 
-## Alterações Necessárias
+Redesenhar a listagem de marcas com: remoção de bordas desnecessárias, visualização em lista (tabela) e em blocos (grid de cards), cor identificadora por marca, scroll da página inteira com paginação, e melhorias visuais gerais.
 
-### 1. Migração do Banco de Dados
-Criar uma nova migração SQL para:
+## Mudanças Planejadas
 
-- **Alterar o valor padrão da coluna `credits`** na tabela `profiles` de 20 para 5
-- **Atualizar a função `handle_new_user()`** que é executada automaticamente quando um novo usuário se registra, alterando o valor inserido de 20 para 5
+### 1. Nova coluna no banco de dados
+- Adicionar coluna `brand_color` (text, nullable) na tabela `brands` para armazenar a cor identificadora da marca (hex, ex: `#e53e3e`).
 
-```text
-┌─────────────────────────────────────────────────────────┐
-│                    ANTES                                │
-│  INSERT INTO profiles (..., credits, ...)               │
-│  VALUES (..., 20, ...)                                  │
-├─────────────────────────────────────────────────────────┤
-│                    DEPOIS                               │
-│  INSERT INTO profiles (..., credits, ...)               │
-│  VALUES (..., 5, ...)                                   │
-└─────────────────────────────────────────────────────────┘
-```
+### 2. Atualizar tipos TypeScript
+- Adicionar `brandColor: string | null` ao tipo `Brand`
+- Adicionar `brandColor` ao tipo `BrandSummary` (para exibir a cor na listagem)
 
-### 2. Atualizar Texto na UI
-**Arquivo:** `src/pages/OnboardingCanceled.tsx` (linha 45)
+### 3. Redesenhar `BrandList.tsx` completamente
+- **Remover bordas desnecessárias** - eliminar a borda externa do container e bordas internas excessivas
+- **Toggle lista/blocos** - adicionar botoes de alternancia (icone lista e icone grid) no topo junto com a busca
+- **Modo Lista (tabela)** - tabela limpa sem bordas pesadas, estilo similar a imagem de referencia com linhas limpas, hover suave, e a bolinha de cor da marca antes do nome
+- **Modo Blocos (grid)** - cards em grid 3 colunas (desktop), 2 (tablet), 1 (mobile), cada card mostrando: barra de cor no topo, inicial da marca, nome, responsavel, data de criacao
+- **Scroll da pagina** - remover `overflow-hidden` do container pai para que a pagina inteira role, em vez de restringir ao viewport
+- **Paginação** - manter paginação existente no rodapé
 
-- Alterar a mensagem "Você ainda tem os 20 créditos de boas-vindas" para "Você ainda tem os 5 créditos de boas-vindas"
+### 4. Atualizar `Brands.tsx` (página)
+- Mudar layout de `overflow-hidden` para `overflow-auto` para permitir scroll completo da pagina
+- Passar `brandColor` nos dados do BrandSummary carregados do banco
+- O conteudo da pagina (banner + header + lista) deve fluir naturalmente sem restricao de altura
 
-## Detalhes Técnicos
+### 5. Atualizar `BrandDialog.tsx`
+- Adicionar seletor de cor da marca (um campo simples com opcoes pre-definidas usando cores do sistema: primary, secondary, accent, e mais algumas harmonicas)
+- Salvar `brand_color` no banco ao criar/editar marca
+
+### 6. Cores pre-definidas para identificacao
+Oferecer 8-10 cores harmonicas com a paleta do sistema:
+- Rosa (primary), Roxo (secondary), Azul (accent), Verde, Laranja, Amarelo, Vermelho, Teal, Indigo, Rosa claro
+
+## Detalhes Tecnicos
 
 ### Migração SQL
 ```sql
--- Atualizar o valor padrão de credits para 5
-ALTER TABLE public.profiles ALTER COLUMN credits SET DEFAULT 5;
-
--- Atualizar a função handle_new_user para dar 5 créditos
-CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS TRIGGER AS $$
-BEGIN
-  INSERT INTO public.profiles (id, email, name, credits, plan_id)
-  VALUES (
-    NEW.id,
-    NEW.email,
-    COALESCE(NEW.raw_user_meta_data->>'name', NEW.email),
-    5,  -- Alterado de 20 para 5
-    'free'
-  );
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+ALTER TABLE public.brands ADD COLUMN brand_color text;
 ```
 
-## Impacto
-- **Usuários existentes:** Não serão afetados (mantêm seus créditos atuais)
-- **Novos usuários:** Receberão 5 créditos ao criar conta
-- A alteração é retrocompatível e não afeta nenhuma outra funcionalidade
+### Arquivos modificados
+1. **`src/types/brand.ts`** - adicionar `brandColor`
+2. **`src/components/marcas/BrandList.tsx`** - reescrever com toggle lista/blocos, remover bordas, melhorar visual
+3. **`src/pages/Brands.tsx`** - ajustar layout para scroll, carregar `brand_color`, passar para BrandList
+4. **`src/components/marcas/BrandDialog.tsx`** - adicionar seletor de cor da marca
+
+### Componente de visualização em blocos (dentro de BrandList)
+Cada card terá:
+- Barra superior com a cor da marca (4px)
+- Circulo com inicial e cor de fundo da marca
+- Nome da marca (bold)
+- Responsavel (muted)
+- Data de criacao
+- Hover com elevacao sutil
+
+### Layout da pagina (scroll natural)
+- Remover `h-full overflow-hidden` do wrapper principal
+- Usar `min-h-full` e permitir que o conteudo defina a altura
+- A pagina inteira (banner + header + lista + paginacao) rola naturalmente
+
