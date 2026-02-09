@@ -62,6 +62,7 @@ export default function Themes() {
           id: brand.id,
           name: brand.name,
           responsible: brand.responsible,
+          brandColor: null,
           createdAt: brand.created_at,
           updatedAt: brand.updated_at
         }));

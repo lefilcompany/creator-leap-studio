@@ -49,10 +49,11 @@ const initialFormData: BrandFormData = {
   milestones: '',
   collaborations: '',
   restrictions: '',
-  moodboard: null, // O valor inicial agora é nulo
-  logo: null, // Logo da marca
-  referenceImage: null, // Imagem de referência da marca
-  colorPalette: null, // Adicionado para paleta de cores
+  moodboard: null,
+  logo: null,
+  referenceImage: null,
+  colorPalette: null,
+  brandColor: null,
 };
 
 export default function BrandDialog({ isOpen, onOpenChange, onSave, brandToEdit }: BrandDialogProps) {
@@ -90,6 +91,7 @@ export default function BrandDialog({ isOpen, onOpenChange, onSave, brandToEdit 
         logo: brandToEdit.logo || null,
         referenceImage: brandToEdit.referenceImage || null,
         colorPalette: brandToEdit.colorPalette || null,
+        brandColor: brandToEdit.brandColor || null,
       });
     } else if (isOpen && !brandToEdit) {
       // Se está criando nova marca, tenta carregar rascunho
@@ -591,6 +593,46 @@ export default function BrandDialog({ isOpen, onOpenChange, onSave, brandToEdit 
               onColorsChange={handleColorsChange}
               maxColors={8}
             />
+          </div>
+
+          {/* Cor identificadora da marca */}
+          <div className="w-full space-y-2">
+            <Label>Cor identificadora da marca</Label>
+            <p className="text-xs text-muted-foreground">Escolha uma cor para identificar esta marca nas listagens</p>
+            <div className="flex flex-wrap gap-2 mt-2">
+              {[
+                { color: 'hsl(336, 80%, 58%)', label: 'Rosa' },
+                { color: 'hsl(270, 70%, 55%)', label: 'Roxo' },
+                { color: 'hsl(220, 80%, 55%)', label: 'Azul' },
+                { color: 'hsl(160, 60%, 45%)', label: 'Verde' },
+                { color: 'hsl(30, 90%, 55%)', label: 'Laranja' },
+                { color: 'hsl(45, 90%, 55%)', label: 'Amarelo' },
+                { color: 'hsl(0, 75%, 55%)', label: 'Vermelho' },
+                { color: 'hsl(180, 60%, 45%)', label: 'Teal' },
+                { color: 'hsl(240, 60%, 60%)', label: 'Indigo' },
+                { color: 'hsl(320, 50%, 70%)', label: 'Rosa claro' },
+              ].map(({ color, label }) => (
+                <button
+                  key={color}
+                  type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, brandColor: prev.brandColor === color ? null : color }))}
+                  className={`w-8 h-8 rounded-full border-2 transition-all duration-150 hover:scale-110 ${
+                    formData.brandColor === color ? 'border-foreground ring-2 ring-foreground/20 scale-110' : 'border-transparent'
+                  }`}
+                  style={{ backgroundColor: color }}
+                  title={label}
+                />
+              ))}
+              {formData.brandColor && (
+                <button
+                  type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, brandColor: null }))}
+                  className="text-xs text-muted-foreground hover:text-foreground underline ml-2 self-center"
+                >
+                  Remover cor
+                </button>
+              )}
+            </div>
           </div>
         </div>
 

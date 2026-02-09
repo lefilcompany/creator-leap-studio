@@ -38,9 +38,10 @@ export interface Brand {
   logo: MoodboardFile | null;
   referenceImage: MoodboardFile | null;
   colorPalette: ColorItem[] | null;
+  brandColor: string | null;
   createdAt: string;
   updatedAt: string;
 }
 
 // Dados mínimos utilizados nas listagens de marcas
-export type BrandSummary = Pick<Brand, 'id' | 'name' | 'responsible' | 'createdAt' | 'updatedAt'>;
+export type BrandSummary = Pick<Brand, 'id' | 'name' | 'responsible' | 'createdAt' | 'updatedAt' | 'brandColor'>;

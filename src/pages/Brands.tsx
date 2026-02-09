@@ -56,7 +56,7 @@ export default function MarcasPage() {
         // Query brands user has access to (via RLS can_access_resource)
         let query = supabase
           .from('brands')
-          .select('id, name, responsible, created_at, updated_at', { count: 'exact' })
+          .select('id, name, responsible, brand_color, created_at, updated_at', { count: 'exact' })
           .order('name', { ascending: true })
           .range(startIndex, startIndex + ITEMS_PER_PAGE - 1);
 
@@ -68,6 +68,7 @@ export default function MarcasPage() {
           id: brand.id,
           name: brand.name,
           responsible: brand.responsible,
+          brandColor: (brand as any).brand_color || null,
           createdAt: brand.created_at,
           updatedAt: brand.updated_at
         }));
@@ -155,6 +156,7 @@ export default function MarcasPage() {
         logo: data.logo as unknown as MoodboardFile | null,
         referenceImage: data.reference_image as unknown as MoodboardFile | null,
         colorPalette: data.color_palette as unknown as ColorItem[] | null,
+        brandColor: (data as any).brand_color || null,
         createdAt: data.created_at,
         updatedAt: data.updated_at
       };
@@ -202,7 +204,8 @@ export default function MarcasPage() {
             logo: formData.logo as any,
             reference_image: formData.referenceImage as any,
             color_palette: formData.colorPalette as any,
-          })
+            brand_color: formData.brandColor,
+          } as any)
           .eq('id', brandToEdit.id);
 
         if (error) throw error;
@@ -232,7 +235,7 @@ export default function MarcasPage() {
         const { data, error } = await supabase
           .from('brands')
           .insert({
-            team_id: user.teamId || null, // Optional team association
+            team_id: user.teamId || null,
             user_id: user.id,
             name: formData.name,
             responsible: formData.responsible,
@@ -253,7 +256,8 @@ export default function MarcasPage() {
             logo: formData.logo as any,
             reference_image: formData.referenceImage as any,
             color_palette: formData.colorPalette as any,
-          })
+            brand_color: formData.brandColor,
+          } as any)
           .select()
           .single();
 
@@ -265,13 +269,15 @@ export default function MarcasPage() {
           createdAt: data.created_at,
           updatedAt: data.updated_at,
           teamId: user.teamId || '',
-          userId: user.id
+          userId: user.id,
+          brandColor: formData.brandColor || null,
         };
         
         const newBrandSummary: BrandSummary = {
           id: newBrand.id,
           name: newBrand.name,
           responsible: newBrand.responsible,
+          brandColor: newBrand.brandColor,
           createdAt: newBrand.createdAt,
           updatedAt: newBrand.updatedAt
         };
@@ -369,7 +375,7 @@ export default function MarcasPage() {
   const isButtonDisabled = !user || (user.credits || 0) < 1;
 
   return (
-    <div className="h-full flex flex-col overflow-hidden -m-4 sm:-m-6 lg:-m-8">
+    <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8">
       {/* Banner */}
       <div className="relative w-full h-48 md:h-56 flex-shrink-0 overflow-hidden">
         <img 
@@ -460,7 +466,7 @@ export default function MarcasPage() {
       </div>
 
       {/* Table */}
-      <main id="brands-list" className="flex-1 min-h-0 overflow-hidden px-4 sm:px-6 lg:px-8 pt-4 pb-4 sm:pb-6 lg:pb-8">
+      <main id="brands-list" className="px-4 sm:px-6 lg:px-8 pt-4 pb-4 sm:pb-6 lg:pb-8">
         <BrandList
           brands={brands}
           selectedBrand={selectedBrandSummary}

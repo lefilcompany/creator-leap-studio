@@ -97,6 +97,7 @@ export default function History() {
           id: brand.id,
           name: brand.name,
           responsible: brand.responsible,
+          brandColor: null,
           createdAt: brand.created_at,
           updatedAt: brand.updated_at
         }));
