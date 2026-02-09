@@ -31,6 +31,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 // Lazy loaded pages - Dashboard
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Brands = lazy(() => import("./pages/Brands"));
+const BrandView = lazy(() => import("./pages/BrandView"));
 const Themes = lazy(() => import("./pages/Themes"));
 const Personas = lazy(() => import("./pages/Personas"));
 const History = lazy(() => import("./pages/History"));
@@ -112,6 +113,7 @@ const App = () => (
                       <Route path="/" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
                         <Route path="dashboard" element={<SuspenseRoute><Dashboard /></SuspenseRoute>} />
                         <Route path="brands" element={<SuspenseRoute><Brands /></SuspenseRoute>} />
+                        <Route path="brands/:brandId" element={<SuspenseRoute><BrandView /></SuspenseRoute>} />
                         <Route path="themes" element={<SuspenseRoute><Themes /></SuspenseRoute>} />
                         <Route path="personas" element={<SuspenseRoute><Personas /></SuspenseRoute>} />
                         <Route path="history" element={<SuspenseRoute><History /></SuspenseRoute>} />
