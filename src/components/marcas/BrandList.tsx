@@ -262,7 +262,7 @@ export default function BrandList({ brands, selectedBrand, onSelectBrand, isLoad
               variant="ghost"
               size="sm"
               onClick={clearFilters}
-              className="h-10 px-3 text-muted-foreground hover:text-foreground"
+              className="h-10 px-3 text-muted-foreground hover:border-accent hover:bg-accent/20 hover:text-accent"
             >
               <X className="h-4 w-4 mr-1" /> Limpar
             </Button>
