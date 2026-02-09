@@ -175,26 +175,15 @@ export function ColorPicker({ colors, onColorsChange, maxColors = 10, compact = 
     };
 
     const applyPalette = (palette: typeof predefinedPalettes[0]) => {
-        if (colors.length + palette.colors.length > maxColors) {
-            toast.error(`A paleta tem ${palette.colors.length} cores, mas só cabem mais ${maxColors - colors.length}`);
-            return;
-        }
-        const newColors: ColorItem[] = palette.colors
-            .filter(pc => !colors.some(c => c.hex.toLowerCase() === pc.hex.toLowerCase()))
-            .map(pc => ({
-                id: generateId(),
-                hex: pc.hex,
-                rgb: hexToRgb(pc.hex),
-                name: pc.name,
-            }));
+        const newColors: ColorItem[] = palette.colors.map(pc => ({
+            id: generateId(),
+            hex: pc.hex,
+            rgb: hexToRgb(pc.hex),
+            name: pc.name,
+        }));
         
-        if (newColors.length === 0) {
-            toast.info('Todas as cores desta paleta já estão adicionadas');
-            return;
-        }
-        
-        onColorsChange([...colors, ...newColors]);
-        toast.success(`Paleta "${palette.name}" aplicada (${newColors.length} cores)`);
+        onColorsChange(newColors);
+        toast.success(`Paleta "${palette.name}" aplicada`);
     };
 
     const isColorAlreadyAdded = colors.some(color => color.hex.toLowerCase() === currentColor.toLowerCase());
