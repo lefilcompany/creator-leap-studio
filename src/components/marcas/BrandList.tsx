@@ -204,13 +204,20 @@ export default function BrandList({ brands, selectedBrand, onSelectBrand, isLoad
           type="single"
           value={viewMode}
           onValueChange={(v) => { if (v) setViewMode(v as ViewMode); }}
-          size="sm"
-          variant="outline"
+          className="bg-muted rounded-lg p-1 gap-0"
         >
-          <ToggleGroupItem value="list" aria-label="Visualização em lista">
+          <ToggleGroupItem
+            value="list"
+            aria-label="Visualização em lista"
+            className="rounded-md px-3 py-1.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm"
+          >
             <List className="h-4 w-4" />
           </ToggleGroupItem>
-          <ToggleGroupItem value="grid" aria-label="Visualização em blocos">
+          <ToggleGroupItem
+            value="grid"
+            aria-label="Visualização em blocos"
+            className="rounded-md px-3 py-1.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm"
+          >
             <LayoutGrid className="h-4 w-4" />
           </ToggleGroupItem>
         </ToggleGroup>
