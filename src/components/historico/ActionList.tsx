@@ -41,9 +41,9 @@ type ViewMode = 'grid' | 'list';
 
 const formatDate = (dateString: string) => {
   if (!dateString) return '';
-  const date = new Date(dateString);
-  return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }) +
-    ', ' + date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  const d = new Date(dateString);
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 };
 
 const formatDateShort = (dateString: string) => {
@@ -180,22 +180,22 @@ function ActionCard({ action, isSelected, onSelect, onView }: {
           )}
         </div>
 
-        <div className="mt-auto pt-2 border-t border-border/20 flex items-center justify-between gap-2">
-          <span className="text-xs text-muted-foreground">
+        <div className="mt-auto pt-2 border-t border-border/20 flex flex-col gap-1">
+          <span className="text-[11px] text-muted-foreground tabular-nums">
             {formatDate(action.createdAt)}
           </span>
           {action.brand ? (
-            <div className="flex items-center gap-1.5 min-w-0">
+            <div className="flex items-center gap-1.5">
               <div 
-                className="w-3 h-3 rounded-full flex-shrink-0 border border-border/30" 
+                className="w-2.5 h-2.5 rounded-full flex-shrink-0 border border-border/30" 
                 style={{ backgroundColor: (action.brand as any).color || 'hsl(var(--muted))' }}
               />
-              <span className="text-xs text-muted-foreground truncate max-w-[100px]" title={action.brand.name}>
+              <span className="text-[11px] text-muted-foreground leading-tight">
                 {action.brand.name}
               </span>
             </div>
           ) : (
-            <span className="text-xs text-muted-foreground/60 italic">Sem marca</span>
+            <span className="text-[11px] text-muted-foreground/60 italic">Sem marca</span>
           )}
         </div>
       </div>
