@@ -226,7 +226,7 @@ export function AppSidebar() {
       {/* Navigation */}
       <nav className={cn(
         "flex-1 flex flex-col overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent",
-        collapsed ? "gap-3 px-1" : "gap-5 px-4"
+        collapsed ? "gap-3 px-2" : "gap-5 px-4"
       )}>
         <div className="flex flex-col gap-1.5">
           {navLinks.map(link => (
@@ -254,7 +254,7 @@ export function AppSidebar() {
 
         {/* Credits */}
         {user && (
-          <div className="mt-auto mb-4 flex flex-col gap-2.5">
+          <div className="mt-auto mb-5 flex flex-col gap-2.5">
             {collapsed ? (
               <Tooltip>
                 <TooltipTrigger asChild>
