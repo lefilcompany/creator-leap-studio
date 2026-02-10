@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { PageBreadcrumb } from '@/components/PageBreadcrumb';
 import { useQueryClient } from '@tanstack/react-query';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
@@ -20,7 +20,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { ArrowLeft, Trash2, Tag, ExternalLink, FileDown, Calendar, User, Save, Loader2, Sparkles, Target, LayoutGrid, Info, Palette } from 'lucide-react';
+import { ArrowLeft, Trash2, Tag, ExternalLink, FileDown, Calendar, User, Save, Loader2, Sparkles, Target, LayoutGrid, List, Info, Palette } from 'lucide-react';
 import type { Brand, MoodboardFile, ColorItem } from '@/types/brand';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -171,7 +171,9 @@ function mapRowToBrand(data: any): Brand {
 export default function BrandView() {
   const { brandId } = useParams<{ brandId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
+  const viewMode = (location.state as any)?.viewMode || 'grid';
   const { t } = useTranslation();
   const [brand, setBrand] = useState<Brand | null>(null);
   const [formData, setFormData] = useState<Record<string, string>>({});
@@ -388,7 +390,13 @@ export default function BrandView() {
           <div className="mb-4">
             <PageBreadcrumb
               items={[
-                { label: 'Marcas', href: '/brands' },
+                { 
+                  label: 'Marcas', 
+                  href: '/brands',
+                  icon: viewMode === 'list' 
+                    ? <List className="h-3.5 w-3.5" /> 
+                    : <LayoutGrid className="h-3.5 w-3.5" />
+                },
                 { label: formData.name || brand.name },
               ]}
             />

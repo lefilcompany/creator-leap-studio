@@ -28,7 +28,7 @@ import { Button } from '@/components/ui/button';
 interface BrandListProps {
   brands: BrandSummary[] | undefined;
   selectedBrand: BrandSummary | null;
-  onSelectBrand: (brand: BrandSummary) => void;
+  onSelectBrand: (brand: BrandSummary, viewMode?: string) => void;
   isLoading?: boolean;
   currentPage: number;
   totalPages: number;
@@ -337,7 +337,7 @@ export default function BrandList({ brands, selectedBrand, onSelectBrand, isLoad
               {filteredAndSortedBrands.map((brand) => (
                 <TableRow
                   key={brand.id}
-                  onClick={() => onSelectBrand(brand)}
+                  onClick={() => onSelectBrand(brand, 'list')}
                   className={cn(
                     "cursor-pointer transition-colors duration-150 border-b border-border/10",
                     selectedBrand?.id === brand.id
@@ -375,7 +375,7 @@ export default function BrandList({ brands, selectedBrand, onSelectBrand, isLoad
               key={brand.id}
               brand={brand}
               isSelected={selectedBrand?.id === brand.id}
-              onSelect={() => onSelectBrand(brand)}
+              onSelect={() => onSelectBrand(brand, 'grid')}
             />
           ))}
         </div>
