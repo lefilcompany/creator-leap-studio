@@ -93,4 +93,9 @@ export type ActionSummary = {
   createdAt: string;
   approved: boolean;
   brand: { id: string; name: string } | null;
+  imageUrl?: string;
+  title?: string;
+  platform?: string;
+  objective?: string;
+  extraDetails?: Record<string, any>;
 };
