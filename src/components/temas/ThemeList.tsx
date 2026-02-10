@@ -100,12 +100,12 @@ function ThemeCard({ theme, brandInfo, onSelect }: { theme: StrategicThemeSummar
   return (
     <div
       onClick={onSelect}
-      className="cursor-pointer bg-card rounded-2xl overflow-hidden transition-all duration-300 group border border-border/30 hover:shadow-lg hover:scale-[1.01] hover:border-border/60 shadow-sm"
+      className="cursor-pointer bg-card rounded-2xl overflow-hidden transition-all duration-300 group border border-border/30 hover:shadow-lg hover:scale-[1.01] hover:border-border/60 shadow-sm flex"
     >
-      {/* Color accent bar */}
-      <div className="h-2 transition-all duration-300 group-hover:h-2.5" style={{ backgroundColor: color }} />
+      {/* Color accent bar - left side */}
+      <div className="w-1.5 flex-shrink-0 rounded-l-2xl transition-all duration-300 group-hover:w-2" style={{ backgroundColor: color }} />
       
-      <div className="p-5 space-y-4">
+      <div className="p-5 space-y-4 flex-1 min-w-0">
         {/* Avatar + Name */}
         <div className="flex items-center gap-4">
           {brandInfo?.avatarUrl ? (
