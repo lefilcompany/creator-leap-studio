@@ -238,7 +238,7 @@ export function BrandAvatarEditor({
         </div>
         </div>
 
-        <div className="px-6 pb-6">
+        <div className="px-6 pt-4 pb-4">
           <DialogFooter>
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
