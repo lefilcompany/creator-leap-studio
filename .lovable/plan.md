@@ -1,65 +1,73 @@
 
+# Refatoracao Completa da Sidebar (Navbar Lateral)
 
-# Redesign da Pagina de Marcas
+## Problemas Identificados
 
-## Resumo
+1. **Animacoes desnecessarias com Framer Motion** - Cada label de nav item usa `motion.span` com animacoes de entrada/saida que causam flickering ao expandir/retrair
+2. **AnimatePresence no logo** - Troca animada entre logo completo e simbolo a cada toggle, causando delay visual
+3. **Complexidade excessiva** - O componente mistura logica de mobile (Sheet) com desktop (Sidebar) de forma confusa
+4. **Transicoes inconsistentes** - Duracoes variadas (300ms, 400ms, 500ms) espalhadas pelo codigo
 
-Redesenhar a listagem de marcas com: remoção de bordas desnecessárias, visualização em lista (tabela) e em blocos (grid de cards), cor identificadora por marca, scroll da página inteira com paginação, e melhorias visuais gerais.
+## Solucao Proposta
 
-## Mudanças Planejadas
+Reescrever o `AppSidebar.tsx` com uma abordagem limpa e funcional:
 
-### 1. Nova coluna no banco de dados
-- Adicionar coluna `brand_color` (text, nullable) na tabela `brands` para armazenar a cor identificadora da marca (hex, ex: `#e53e3e`).
+### 1. Remover Framer Motion completamente da sidebar
+- Substituir `motion.span` por `<span>` simples com classes CSS de transicao (`transition-opacity`, `overflow-hidden`)
+- Remover `AnimatePresence` do logo - usar CSS para controlar visibilidade (opacity + width transition)
+- O texto dos nav items sera ocultado via `overflow-hidden` e `w-0`/`w-auto` no container quando colapsado
 
-### 2. Atualizar tipos TypeScript
-- Adicionar `brandColor: string | null` ao tipo `Brand`
-- Adicionar `brandColor` ao tipo `BrandSummary` (para exibir a cor na listagem)
+### 2. Logo simplificado
+- Mostrar sempre o simbolo pequeno (`creatorSymbol`)
+- Quando expandido, mostrar o logo completo ao lado ou no lugar, usando apenas CSS transitions (`opacity` e `max-width`)
+- Sem troca animada de imagem - usar uma abordagem com ambas as imagens renderizadas e controladas por `opacity-0`/`opacity-100`
 
-### 3. Redesenhar `BrandList.tsx` completamente
-- **Remover bordas desnecessárias** - eliminar a borda externa do container e bordas internas excessivas
-- **Toggle lista/blocos** - adicionar botoes de alternancia (icone lista e icone grid) no topo junto com a busca
-- **Modo Lista (tabela)** - tabela limpa sem bordas pesadas, estilo similar a imagem de referencia com linhas limpas, hover suave, e a bolinha de cor da marca antes do nome
-- **Modo Blocos (grid)** - cards em grid 3 colunas (desktop), 2 (tablet), 1 (mobile), cada card mostrando: barra de cor no topo, inicial da marca, nome, responsavel, data de criacao
-- **Scroll da pagina** - remover `overflow-hidden` do container pai para que a pagina inteira role, em vez de restringir ao viewport
-- **Paginação** - manter paginação existente no rodapé
+### 3. NavItem limpo
+- Usar classes Tailwind para o estado ativo (`bg-primary/10 text-primary`)
+- Texto oculto no modo colapsado via `group-data-[state=collapsed]` do proprio Sidebar component do shadcn
+- Tooltip automatico quando colapsado (ja suportado nativamente pelo `SidebarMenuButton` com prop `tooltip`)
 
-### 4. Atualizar `Brands.tsx` (página)
-- Mudar layout de `overflow-hidden` para `overflow-auto` para permitir scroll completo da pagina
-- Passar `brandColor` nos dados do BrandSummary carregados do banco
-- O conteudo da pagina (banner + header + lista) deve fluir naturalmente sem restricao de altura
+### 4. ActionButton simplificado
+- Manter os 3 botoes de acao (Criar, Revisar, Planejar) com suas cores de variante
+- Remover `motion.span` - usar CSS transitions
+- Manter o comportamento de reset ao clicar na rota ativa
 
-### 5. Atualizar `BrandDialog.tsx`
-- Adicionar seletor de cor da marca (um campo simples com opcoes pre-definidas usando cores do sistema: primary, secondary, accent, e mais algumas harmonicas)
-- Salvar `brand_color` no banco ao criar/editar marca
+### 5. Secao de creditos
+- Simplificar o bloco de creditos removendo animacoes desnecessarias
+- Usar tooltip nativo quando colapsado
 
-### 6. Cores pre-definidas para identificacao
-Oferecer 8-10 cores harmonicas com a paleta do sistema:
-- Rosa (primary), Roxo (secondary), Azul (accent), Verde, Laranja, Amarelo, Vermelho, Teal, Indigo, Rosa claro
+### 6. Transicao unificada
+- Todas as transicoes usam `duration-300 ease-in-out` para consistencia
+- A sidebar do shadcn ja lida com a transicao de largura via CSS (`transition-[width] duration-500`)
 
 ## Detalhes Tecnicos
 
-### Migração SQL
-```sql
-ALTER TABLE public.brands ADD COLUMN brand_color text;
+### Arquivos modificados
+- `src/components/AppSidebar.tsx` - Reescrita completa removendo Framer Motion e simplificando
+
+### Dependencias removidas do componente
+- `motion`, `AnimatePresence` de `framer-motion` (apenas neste arquivo, nao do projeto)
+
+### Abordagem para ocultar texto no modo colapsado
+Em vez de animacoes JS, usar a classe utilitaria do proprio sidebar do shadcn:
+```
+group-data-[collapsible=icon]:hidden
+```
+Isso ja e nativamente suportado pelo componente `Sidebar` quando `collapsible="icon"`.
+
+### Estrutura final do NavItem
+```text
+NavLink
+  +-- Icon (sempre visivel, centralizado quando colapsado)
+  +-- span.label (hidden quando colapsado via CSS)
+Tooltip (wraps NavLink quando colapsado)
 ```
 
-### Arquivos modificados
-1. **`src/types/brand.ts`** - adicionar `brandColor`
-2. **`src/components/marcas/BrandList.tsx`** - reescrever com toggle lista/blocos, remover bordas, melhorar visual
-3. **`src/pages/Brands.tsx`** - ajustar layout para scroll, carregar `brand_color`, passar para BrandList
-4. **`src/components/marcas/BrandDialog.tsx`** - adicionar seletor de cor da marca
+### Estrutura do logo
+```text
+div.logo-container
+  +-- img (simbolo) - visivel sempre, centralizado quando colapsado
+  +-- img (logo completo) - visivel apenas quando expandido via CSS
+```
 
-### Componente de visualização em blocos (dentro de BrandList)
-Cada card terá:
-- Barra superior com a cor da marca (4px)
-- Circulo com inicial e cor de fundo da marca
-- Nome da marca (bold)
-- Responsavel (muted)
-- Data de criacao
-- Hover com elevacao sutil
-
-### Layout da pagina (scroll natural)
-- Remover `h-full overflow-hidden` do wrapper principal
-- Usar `min-h-full` e permitir que o conteudo defina a altura
-- A pagina inteira (banner + header + lista + paginacao) rola naturalmente
-
+O resultado sera uma sidebar que retrai e expande de forma fluida usando apenas CSS, sem flickering, sem delays de animacao JS, e mantendo todas as funcionalidades existentes (mobile sheet, tooltips, estados ativos, creditos, trial expired).
