@@ -286,19 +286,19 @@ export default function BrandList({ brands, selectedBrand, onSelectBrand, isLoad
           type="single"
           value={viewMode}
           onValueChange={(v) => { if (v) setViewMode(v as ViewMode); }}
-          className="bg-card shadow-sm rounded-lg p-1 gap-0 border border-muted/50"
+          className="bg-muted/50 shadow-sm rounded-lg p-0.5 gap-0 border border-muted/50"
         >
           <ToggleGroupItem
             value="list"
             aria-label="Visualização em lista"
-            className="rounded-md px-3 py-1.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm"
+            className="rounded-l-md rounded-r-none border-0 px-3 py-1.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm data-[state=off]:bg-transparent data-[state=off]:hover:bg-muted"
           >
             <List className="h-4 w-4" />
           </ToggleGroupItem>
           <ToggleGroupItem
             value="grid"
             aria-label="Visualização em blocos"
-            className="rounded-md px-3 py-1.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm"
+            className="rounded-r-md rounded-l-none border-0 px-3 py-1.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm data-[state=off]:bg-transparent data-[state=off]:hover:bg-muted"
           >
             <LayoutGrid className="h-4 w-4" />
           </ToggleGroupItem>
