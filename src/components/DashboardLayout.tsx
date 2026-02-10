@@ -12,11 +12,15 @@ export const DashboardLayout = () => {
   return (
     <SidebarProvider defaultOpen={true}>
       <PresenceTracker />
-      <div className="h-screen w-full flex overflow-hidden bg-gradient-to-br from-background via-background to-muted/10">
+      <div className="h-screen w-full flex overflow-hidden bg-[var(--layout-bg)]">
         <AppSidebar />
-        <div className="flex flex-1 flex-col min-w-0">
+        <div className={
+          isMobile
+            ? "flex flex-1 flex-col min-w-0 bg-card"
+            : "flex flex-1 flex-col min-w-0 bg-card rounded-l-2xl shadow-xl my-2 mr-2 overflow-hidden"
+        }>
           <Header />
-          <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gradient-to-b from-background/50 to-background">
+          <main className="flex-1 overflow-x-hidden overflow-y-auto">
             <div className="w-full h-full p-4 sm:p-6 lg:p-8">
               <Outlet />
             </div>

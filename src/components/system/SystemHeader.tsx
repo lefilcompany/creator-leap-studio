@@ -46,7 +46,7 @@ export const SystemHeader = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full shadow-md shadow-primary/20 bg-card/95 backdrop-blur-md border-b border-primary/10 transition-all duration-300 flex-shrink-0">
+    <header className="sticky top-0 z-50 w-full bg-transparent border-b border-border/10 transition-all duration-300 flex-shrink-0">
       <div className="flex h-14 md:h-16 items-center justify-between px-3 md:px-4 lg:px-6 w-full">
         {/* Sidebar triggers */}
         <div className="flex items-center gap-3">

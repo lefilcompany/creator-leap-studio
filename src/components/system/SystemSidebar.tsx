@@ -48,8 +48,8 @@ function NavItem({ href, icon: Icon, label, collapsed, onNavigate }: NavItemProp
         "flex items-center gap-4 p-2.5 rounded-lg transition-colors duration-300 ease-in-out",
         collapsed ? "justify-center" : "",
         isActive
-          ? "bg-primary/10 text-primary"
-          : "text-muted-foreground bg-background hover:bg-muted hover:text-foreground"
+          ? "bg-white/70 dark:bg-white/10 text-primary shadow-sm"
+          : "text-foreground/70 hover:bg-white/40 dark:hover:bg-white/10 hover:text-foreground"
       )}
     >
       <Icon className="h-5 w-5 flex-shrink-0" />
@@ -169,7 +169,7 @@ export function SystemSidebar() {
   if (isMobile) {
     return (
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="left" className="w-64 p-0 bg-card shadow-md shadow-primary/20">
+        <SheetContent side="left" className="w-64 p-0 bg-[var(--layout-bg)] shadow-md shadow-primary/20">
           <div className="h-full flex flex-col">{sidebarContent()}</div>
         </SheetContent>
       </Sheet>
@@ -181,9 +181,9 @@ export function SystemSidebar() {
       collapsible="icon"
       side="left"
       variant="sidebar"
-      className="border-r border-primary/10 shadow-md shadow-primary/20 flex-shrink-0"
+      className="border-none shadow-none flex-shrink-0"
     >
-      <SidebarContent className="bg-card flex flex-col h-full overflow-y-auto">
+      <SidebarContent className="bg-transparent flex flex-col h-full overflow-y-auto">
         {sidebarContent()}
       </SidebarContent>
       <SidebarRail />
