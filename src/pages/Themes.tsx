@@ -287,7 +287,7 @@ export default function Themes() {
   const isButtonDisabled = !user || (user.credits || 0) < 1;
 
   return (
-    <div className="h-full flex flex-col -m-4 sm:-m-6 lg:-m-8">
+    <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8">
       {/* Banner */}
       <div className="relative w-full h-48 md:h-56 flex-shrink-0 overflow-hidden">
         <img 
