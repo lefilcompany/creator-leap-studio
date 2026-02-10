@@ -14,8 +14,8 @@ import {
   Gift,
   History,
   RefreshCw,
-  PanelLeftOpen,
-  PanelLeftClose,
+  PanelLeft,
+  Columns2,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Input } from "@/components/ui/input";
@@ -153,9 +153,9 @@ export const Header = () => {
                 >
                   <div className="relative">
                     {state === "collapsed" ? (
-                      <PanelLeftClose className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
+                      <PanelLeft className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
                     ) : (
-                      <PanelLeftOpen className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
+                      <Columns2 className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
                     )}
                   </div>
                   <span className="sr-only">{state === "collapsed" ? "Expandir sidebar" : "Recolher sidebar"}</span>
