@@ -41,7 +41,7 @@ export default function MarcasPage() {
       const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
       const { data, error, count } = await supabase
         .from('brands')
-        .select('id, name, responsible, brand_color, created_at, updated_at', { count: 'exact' })
+        .select('id, name, responsible, brand_color, avatar_url, created_at, updated_at', { count: 'exact' })
         .order('name', { ascending: true })
         .range(startIndex, startIndex + ITEMS_PER_PAGE - 1);
 
