@@ -149,12 +149,6 @@ function ActionCard({ action, isSelected, onSelect, onView }: {
             <FallbackIcon className={cn("h-12 w-12 opacity-40", iconColor)} />
           </div>
         )}
-        {/* Type badge overlay */}
-        <div className="absolute top-2 left-2">
-          <Badge className={cn("text-xs font-medium shadow-sm", style.background, style.color, "border-0")}>
-            {displayType}
-          </Badge>
-        </div>
         {/* View button overlay */}
         <button
           onClick={onView}
@@ -165,32 +159,43 @@ function ActionCard({ action, isSelected, onSelect, onView }: {
       </div>
 
       {/* Content */}
-      <div className="p-4 flex-1 flex flex-col gap-2">
+      <div className="p-4 flex-1 flex flex-col gap-2.5">
         <p className="font-medium text-sm text-foreground line-clamp-2 leading-snug">
           {action.title || displayType}
         </p>
 
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <Badge className={cn("text-[10px] px-2 py-0.5 h-5 font-medium border-0", style.background, style.color)}>
+            {displayType}
+          </Badge>
           {action.platform && (
-            <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 font-normal">
+            <Badge variant="secondary" className="text-[10px] px-2 py-0.5 h-5 font-medium">
               {action.platform}
             </Badge>
           )}
           {action.objective && (
-            <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 font-normal truncate max-w-[120px]">
+            <Badge variant="outline" className="text-[10px] px-2 py-0.5 h-5 font-normal truncate max-w-[120px]">
               {action.objective}
             </Badge>
           )}
         </div>
 
-        <div className="mt-auto pt-2 border-t border-border/20 flex items-center justify-between">
+        <div className="mt-auto pt-2 border-t border-border/20 flex items-center justify-between gap-2">
           <span className="text-xs text-muted-foreground">
             {formatDate(action.createdAt)}
           </span>
-          {action.brand && (
-            <span className="text-xs text-muted-foreground truncate max-w-[100px]" title={action.brand.name}>
-              {action.brand.name}
-            </span>
+          {action.brand ? (
+            <div className="flex items-center gap-1.5 min-w-0">
+              <div 
+                className="w-3 h-3 rounded-full flex-shrink-0 border border-border/30" 
+                style={{ backgroundColor: (action.brand as any).color || 'hsl(var(--muted))' }}
+              />
+              <span className="text-xs text-muted-foreground truncate max-w-[100px]" title={action.brand.name}>
+                {action.brand.name}
+              </span>
+            </div>
+          ) : (
+            <span className="text-xs text-muted-foreground/60 italic">Sem marca</span>
           )}
         </div>
       </div>
