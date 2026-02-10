@@ -288,7 +288,7 @@ export default function ActionList({
 
   const handleViewAction = (actionId: string, event: React.MouseEvent) => {
     event.stopPropagation();
-    navigate(`/action/${actionId}`);
+    navigate(`/action/${actionId}`, { state: { viewMode } });
   };
 
   const handlePageClick = (page: number | string, event?: React.MouseEvent) => {
