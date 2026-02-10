@@ -1,6 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
 import { useTheme } from "next-themes";
-import { motion, AnimatePresence } from "framer-motion";
 import { 
   LayoutDashboard, 
   Users, 
@@ -46,7 +45,7 @@ function NavItem({ href, icon: Icon, label, collapsed, onNavigate }: NavItemProp
       to={href}
       onClick={onNavigate}
       className={cn(
-        "flex items-center gap-4 p-2.5 rounded-lg transition-all duration-300 ease-out group",
+        "flex items-center gap-4 p-2.5 rounded-lg transition-colors duration-300 ease-in-out",
         collapsed ? "justify-center" : "",
         isActive
           ? "bg-primary/10 text-primary"
@@ -54,17 +53,7 @@ function NavItem({ href, icon: Icon, label, collapsed, onNavigate }: NavItemProp
       )}
     >
       <Icon className="h-5 w-5 flex-shrink-0" />
-      {!collapsed && (
-        <motion.span
-          initial={{ opacity: 0, x: -10 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -10 }}
-          transition={{ duration: 0.3 }}
-          className="font-medium text-sm"
-        >
-          {label}
-        </motion.span>
-      )}
+      {!collapsed && <span className="font-medium text-sm">{label}</span>}
     </NavLink>
   );
 
@@ -72,9 +61,7 @@ function NavItem({ href, icon: Icon, label, collapsed, onNavigate }: NavItemProp
     return (
       <Tooltip>
         <TooltipTrigger asChild>{linkContent}</TooltipTrigger>
-        <TooltipContent side="right">
-          <p>{label}</p>
-        </TooltipContent>
+        <TooltipContent side="right"><p>{label}</p></TooltipContent>
       </Tooltip>
     );
   }
@@ -105,32 +92,23 @@ export function SystemSidebar() {
   };
 
   const handleMobileNavigate = () => {
-    if (isMobile) {
-      setOpen(false);
-    }
+    if (isMobile) setOpen(false);
   };
 
   const sidebarContent = () => (
     <TooltipProvider>
-      {/* Header com Logo */}
+      {/* Logo */}
       <div className="pt-4 pb-2 mb-2 px-2 flex items-center justify-center">
         <NavLink
           to="/system"
           onClick={handleMobileNavigate}
-          className="flex justify-center cursor-pointer hover:opacity-80 transition-opacity duration-500"
+          className="flex justify-center cursor-pointer hover:opacity-80 transition-opacity duration-300"
         >
-          <AnimatePresence mode="wait">
-            <motion.img
-              key={collapsed ? "symbol" : "logo"}
-              src={collapsed ? creatorSymbol : logo}
-              alt={collapsed ? "Creator Symbol" : "Creator Logo"}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.5, ease: "easeInOut" }}
-              className={collapsed ? "h-10 w-10 object-contain" : "h-8 w-auto"}
-            />
-          </AnimatePresence>
+          {collapsed ? (
+            <img src={creatorSymbol} alt="Creator Symbol" className="h-10 w-10 object-contain" />
+          ) : (
+            <img src={logo} alt="Creator Logo" className="h-8 w-auto" />
+          )}
         </NavLink>
       </div>
 
@@ -145,12 +123,10 @@ export function SystemSidebar() {
       )}
 
       {/* Navigation */}
-      <motion.nav
-        className={cn(
-          "flex-1 flex flex-col overflow-y-auto overflow-x-hidden",
-          collapsed ? "gap-3 px-2" : "gap-2 px-4"
-        )}
-      >
+      <nav className={cn(
+        "flex-1 flex flex-col overflow-y-auto overflow-x-hidden",
+        collapsed ? "gap-3 px-2" : "gap-2 px-4"
+      )}>
         <div className="flex flex-col gap-1.5">
           {navLinks.map((link) => (
             <NavItem
@@ -169,30 +145,27 @@ export function SystemSidebar() {
               <TooltipTrigger asChild>
                 <button
                   onClick={handleLogout}
-                  className="flex items-center justify-center gap-3 p-2.5 rounded-lg transition-all duration-300 text-muted-foreground hover:bg-destructive/10 hover:text-destructive w-full"
+                  className="flex items-center justify-center gap-3 p-2.5 rounded-lg transition-colors duration-300 ease-in-out text-muted-foreground hover:bg-destructive/10 hover:text-destructive w-full"
                 >
                   <LogOut className="h-5 w-5" />
                 </button>
               </TooltipTrigger>
-              <TooltipContent side="right">
-                <p>Sair</p>
-              </TooltipContent>
+              <TooltipContent side="right"><p>Sair</p></TooltipContent>
             </Tooltip>
           ) : (
             <button
               onClick={handleLogout}
-              className="flex items-center gap-3 p-2.5 rounded-lg transition-all duration-300 text-muted-foreground hover:bg-destructive/10 hover:text-destructive w-full"
+              className="flex items-center gap-3 p-2.5 rounded-lg transition-colors duration-300 ease-in-out text-muted-foreground hover:bg-destructive/10 hover:text-destructive w-full"
             >
               <LogOut className="h-5 w-5" />
               <span className="font-medium text-sm">Sair</span>
             </button>
           )}
         </div>
-      </motion.nav>
+      </nav>
     </TooltipProvider>
   );
 
-  // Mobile: Sheet
   if (isMobile) {
     return (
       <Sheet open={open} onOpenChange={setOpen}>
@@ -203,7 +176,6 @@ export function SystemSidebar() {
     );
   }
 
-  // Desktop: Sidebar
   return (
     <Sidebar
       collapsible="icon"
