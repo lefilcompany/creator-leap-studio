@@ -41,10 +41,7 @@ function NavItem({
         "text-muted-foreground bg-white/20 dark:bg-white/5"
       )}>
         <Icon className="h-5 w-5 flex-shrink-0" />
-        <span className={cn(
-          "font-medium text-sm whitespace-nowrap transition-all duration-300 ease-in-out",
-          collapsed ? "w-0 opacity-0 overflow-hidden" : "w-auto opacity-100"
-        )}>{label}</span>
+        {!collapsed && <span className="font-medium text-sm">{label}</span>}
       </div>
     );
   }
@@ -55,18 +52,15 @@ function NavItem({
       to={href}
       onClick={onNavigate}
       className={cn(
-        "flex items-center gap-4 p-2.5 rounded-lg transition-all duration-300 ease-in-out",
+        "flex items-center gap-4 p-2.5 rounded-lg transition-colors duration-300 ease-in-out",
         collapsed ? "justify-center" : "",
         isActive
           ? "bg-white/70 dark:bg-white/10 text-primary shadow-sm"
           : "text-foreground/70 hover:bg-white/40 dark:hover:bg-white/10 hover:text-foreground"
       )}
     >
-      <Icon className="h-5 w-5 flex-shrink-0 transition-all duration-300" />
-      <span className={cn(
-        "font-medium text-sm whitespace-nowrap transition-all duration-300 ease-in-out",
-        collapsed ? "w-0 opacity-0 overflow-hidden" : "w-auto opacity-100"
-      )}>{label}</span>
+      <Icon className="h-5 w-5 flex-shrink-0" />
+      {!collapsed && <span className="font-medium text-sm">{label}</span>}
     </NavLink>
   );
 
@@ -128,10 +122,7 @@ function ActionButton({
         "bg-muted text-muted-foreground"
       )}>
         <Icon className="h-5 w-5 flex-shrink-0" />
-        <span className={cn(
-          "font-medium text-sm whitespace-nowrap transition-all duration-300 ease-in-out",
-          collapsed ? "w-0 opacity-0 overflow-hidden" : "w-auto opacity-100"
-        )}>{label}</span>
+        {!collapsed && <span className="font-medium text-sm">{label}</span>}
       </div>
     );
   }
@@ -155,11 +146,8 @@ function ActionButton({
         isActive ? variantClasses[variant].active : variantClasses[variant].inactive
       )}
     >
-      <Icon className="h-5 w-5 flex-shrink-0 transition-all duration-300" />
-      <span className={cn(
-        "font-medium text-sm whitespace-nowrap transition-all duration-300 ease-in-out",
-        collapsed ? "w-0 opacity-0 overflow-hidden" : "w-auto opacity-100"
-      )}>{label}</span>
+      <Icon className="h-5 w-5 flex-shrink-0" />
+      {!collapsed && <span className="font-medium text-sm">{label}</span>}
     </NavLink>
   );
 
@@ -254,7 +242,7 @@ export function AppSidebar() {
 
         {/* Credits */}
         {user && (
-          <div className="mt-auto mb-5 flex flex-col gap-2.5">
+          <div className="mt-auto mb-3 flex flex-col gap-2.5">
             {collapsed ? (
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -262,7 +250,7 @@ export function AppSidebar() {
                     id="nav-credits"
                     to="/plans"
                     onClick={handleMobileNavigate}
-                    className="flex items-center justify-center p-2.5 rounded-lg transition-all duration-300 ease-in-out hover:scale-105 bg-gradient-to-r from-primary to-secondary text-primary-foreground shadow-lg"
+                    className="flex items-center justify-center gap-3 p-3 rounded-lg transition-all duration-300 ease-in-out hover:scale-105 bg-gradient-to-r from-primary to-secondary text-primary-foreground shadow-lg"
                   >
                     <Coins className="h-5 w-5 flex-shrink-0" />
                   </NavLink>

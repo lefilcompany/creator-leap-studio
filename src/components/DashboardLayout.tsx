@@ -17,7 +17,7 @@ export const DashboardLayout = () => {
         <div className={
           isMobile
             ? "flex flex-1 flex-col min-w-0 bg-card"
-            : "flex flex-1 flex-col min-w-0 bg-card rounded-2xl shadow-xl mt-4 mr-4 mb-4 ml-1 overflow-hidden transition-all duration-500 ease-in-out"
+            : "flex flex-1 flex-col min-w-0 bg-card rounded-2xl shadow-xl mt-4 mr-4 mb-4 ml-1 overflow-hidden"
         }>
           <Header />
           <main className="flex-1 overflow-x-hidden overflow-y-auto">

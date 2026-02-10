@@ -1,31 +1,65 @@
 
-# Fix Sidebar Collapsed State Alignment
 
-## Problem
-The collapsed sidebar icons are visually misaligned -- they appear pushed to the left instead of being centered. The credits button at the bottom also doesn't align properly with the white content board.
+## Adicionar Avatar/Foto e Editor de Cor Identificadora na Marca
 
-## Root Cause
-- The sidebar collapsed width (`SIDEBAR_WIDTH_ICON`) is set to `3rem` (48px), which is too narrow for the icon buttons with their padding (`p-2.5` = 10px each side + 20px icon = 40px min).
-- The nav container uses `px-1` (4px) padding, leaving almost no breathing room and causing visual misalignment.
+### O que vai mudar
 
-## Solution
+O avatar da marca (a letra inicial colorida no header) ganha um botao de edicao (lapis). Ao clicar, abre um modal com duas funcionalidades:
 
-### 1. Increase collapsed sidebar width (`sidebar.tsx`)
-- Change `SIDEBAR_WIDTH_ICON` from `"3rem"` to `"3.5rem"` (56px) to give icons proper centering space.
-
-### 2. Fix nav container padding (`AppSidebar.tsx`)
-- Change collapsed padding from `px-1` to `px-2` to properly center items within the wider sidebar.
-
-### 3. Align credits button bottom margin (`AppSidebar.tsx`)
-- Adjust the credits container bottom margin to `mb-5` to align precisely with the bottom edge of the white content board (which has `mb-4` + rounding).
+1. **Amostragens de cores**: Mostra a letra inicial da marca renderizada em varios circulos com as cores disponiveis, permitindo escolher a cor identificadora visualmente
+2. **Upload de foto**: Permite enviar uma imagem/logo para substituir a letra inicial, com preview e opcao de remover
 
 ---
 
-### Technical Details
+### Detalhes do plano
 
-**File: `src/components/ui/sidebar.tsx`**
-- Line 19: `SIDEBAR_WIDTH_ICON = "3rem"` changed to `"3.5rem"`
+#### 1. Banco de dados
+- Adicionar coluna `avatar_url` (text, nullable) na tabela `brands` para armazenar a URL da foto da marca
+- Criar bucket de storage `brand-avatars` (publico) para armazenar as imagens
+- Adicionar politicas RLS no bucket para que usuarios autenticados possam fazer upload/delete dos seus arquivos
 
-**File: `src/components/AppSidebar.tsx`**
-- Line 229: Collapsed nav padding `px-1` changed to `px-2`
-- Line 257: Credits container `mb-4` changed to `mb-5`
+#### 2. Novo componente: `BrandAvatarEditor`
+Um modal (Dialog) que mostra:
+
+- **Secao de cores**: Grid com a letra inicial da marca renderizada em circulos coloridos (10 cores pre-definidas), permitindo selecionar a cor identificadora de forma visual e intuitiva
+- **Secao de foto**: Area para upload de imagem com:
+  - Botao para selecionar arquivo (aceita imagens ate 5MB)
+  - Preview da imagem selecionada em formato circular
+  - Botao para remover foto existente
+- Botao "Salvar" que aplica as alteracoes
+
+#### 3. Alteracao no `BrandView.tsx`
+- Adicionar overlay com icone de lapis (Pencil) sobre o avatar da marca no header
+- Ao clicar, abre o modal `BrandAvatarEditor`
+- O avatar passa a mostrar a foto da marca quando disponivel, ou a letra inicial com a cor quando nao
+- Integrar o upload com o bucket `brand-avatars` do storage
+- Incluir `avatar_url` no fluxo de save existente
+
+#### 4. Alteracao no `BrandList.tsx`
+- Na listagem (grid e list), exibir a foto da marca quando disponivel em vez da letra inicial
+
+#### 5. Fluxo tecnico
+
+```text
+Usuario clica no lapis do avatar
+       |
+       v
+Abre modal BrandAvatarEditor
+       |
+       +-- Escolhe cor --> Atualiza preview da letra com a cor
+       |
+       +-- Upload foto --> Valida (imagem, <5MB)
+       |                   Upload para bucket brand-avatars
+       |                   Salva avatar_url na tabela brands
+       |
+       v
+Fecha modal, avatar atualizado no header
+```
+
+#### 6. Arquivos modificados/criados
+- **Novo**: `src/components/marcas/BrandAvatarEditor.tsx` - Modal de edicao
+- **Migracao SQL**: Coluna `avatar_url` + bucket `brand-avatars` + politicas RLS
+- **Editado**: `src/pages/BrandView.tsx` - Integrar lapis e modal no avatar do header
+- **Editado**: `src/components/marcas/BrandList.tsx` - Mostrar foto da marca na listagem
+- **Editado**: `src/types/brand.ts` - Adicionar campo `avatarUrl`
+- **Editado**: `src/hooks/useBrands.ts` - Incluir `avatar_url` no mapeamento
