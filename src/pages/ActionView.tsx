@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import { ArrowLeft, Download, Copy, CheckCircle, Sparkles, Calendar, Loader2, Clock, User, Tag, Check, FileText, File, FileCode } from 'lucide-react';
+import { Download, Copy, CheckCircle, Sparkles, Calendar, Loader2, Clock, User, Tag, Check, FileText, File, FileCode, LayoutGrid, List, ArrowLeft } from 'lucide-react';
 import type { Action } from '@/types/action';
 import { ACTION_TYPE_DISPLAY } from '@/types/action';
 import ReactMarkdown from 'react-markdown';
@@ -49,6 +49,8 @@ export default function ActionView() {
     actionId: string;
   }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const viewMode = (location.state as any)?.viewMode || 'grid';
   const [action, setAction] = useState<Action | null>(null);
   const [loading, setLoading] = useState(true);
   const [copying, setCopying] = useState(false);
@@ -328,31 +330,52 @@ export default function ActionView() {
   }
   const TypeIcon = getTypeIcon(action.type);
   const displayType = ACTION_TYPE_DISPLAY[action.type];
-  return <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="border-b bg-card">
-        <div className="container mx-auto px-4 py-4">
+  return <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8">
+      {/* Hero Header with gradient - like BrandView */}
+      <div
+        className="relative overflow-hidden"
+        style={{
+          background: `linear-gradient(135deg, hsl(var(--primary) / 0.09), hsl(var(--primary) / 0.03), hsl(var(--background)))`,
+        }}
+      >
+        {/* Decorative elements */}
+        <div className="absolute top-0 right-0 w-96 h-96 rounded-full opacity-[0.04] blur-3xl bg-primary" />
+        <div className="absolute bottom-0 left-1/3 w-64 h-64 rounded-full opacity-[0.03] blur-3xl bg-primary" />
+
+        <div className="relative px-4 sm:px-6 lg:px-8 py-6">
+          {/* Breadcrumb */}
+          <div className="mb-4">
+            <PageBreadcrumb
+              items={[
+                { 
+                  label: 'Histórico', 
+                  href: '/history',
+                  state: { viewMode },
+                  icon: viewMode === 'list' 
+                    ? <List className="h-3.5 w-3.5" /> 
+                    : <LayoutGrid className="h-3.5 w-3.5" />
+                },
+                { label: displayType },
+              ]}
+            />
+          </div>
+
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" onClick={() => navigate('/history')} className="hover:bg-accent/20 hover:text-accent hover:border-accent">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Voltar
-            </Button>
-            <Separator orientation="vertical" className="h-6" />
-            <div className="flex items-center gap-3">
-              <div className="rounded-lg bg-primary/10 p-2">
-                <TypeIcon className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <h1 className="text-xl font-semibold">{displayType}</h1>
-                <p className="text-sm text-muted-foreground">ID: {action.id.slice(0, 8)}...</p>
-              </div>
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg ring-4 ring-white/20 bg-primary/10">
+              <TypeIcon className="h-7 w-7 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl lg:text-3xl font-bold text-foreground">{displayType}</h1>
+              <p className="text-sm text-muted-foreground">
+                {formatDate(action.createdAt)} · {action.brand?.name || 'Sem marca'}
+              </p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Content */}
-      <div className="container mx-auto px-4 py-8 max-w-5xl">
+      <div className="px-4 sm:px-6 lg:px-8 py-6 max-w-5xl mx-auto w-full">
         {/* Info Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <Card className="p-4">
