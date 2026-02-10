@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -182,6 +183,8 @@ export default function BrandView() {
   const originalColorPaletteRef = useRef<ColorItem[]>([]);
   const originalBrandColorRef = useRef<string | null>(null);
 
+  const queryClient = useQueryClient();
+
   const loadBrand = useCallback(async () => {
     if (!brandId) return;
     setIsLoading(true);
@@ -297,13 +300,16 @@ export default function BrandView() {
       originalColorPaletteRef.current = [...colorPalette];
       originalBrandColorRef.current = selectedBrandColor;
       setHasChanges(false);
+      // Invalidate React Query cache so lists update
+      queryClient.invalidateQueries({ queryKey: ['brands'] });
+      queryClient.invalidateQueries({ queryKey: ['brand', brand.id] });
     } catch (error) {
       console.error('Erro ao salvar marca:', error);
       toast.error('Erro ao salvar marca', { id: toastId });
     } finally {
       setIsSaving(false);
     }
-  }, [brand, user, formData]);
+  }, [brand, user, formData, colorPalette, selectedBrandColor, queryClient]);
 
   const handleDeleteBrand = useCallback(async () => {
     if (!brand) return;
