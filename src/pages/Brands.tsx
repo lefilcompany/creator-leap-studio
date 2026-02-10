@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Plus, Tag, Coins, HelpCircle } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -22,6 +22,8 @@ type BrandFormData = Omit<Brand, 'id' | 'createdAt' | 'updatedAt' | 'teamId' | '
 
 export default function MarcasPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const initialViewMode = (location.state as any)?.viewMode as string | undefined;
   const { user, team, refreshTeamData, refreshUserCredits } = useAuth();
   const { t } = useTranslation();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -315,6 +317,7 @@ export default function MarcasPage() {
           currentPage={currentPage}
           totalPages={totalPages}
           onPageChange={setCurrentPage}
+          initialViewMode={initialViewMode}
         />
       </main>
 

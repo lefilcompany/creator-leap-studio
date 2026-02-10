@@ -393,6 +393,7 @@ export default function BrandView() {
                 { 
                   label: 'Marcas', 
                   href: '/brands',
+                  state: { viewMode },
                   icon: viewMode === 'list' 
                     ? <List className="h-3.5 w-3.5" /> 
                     : <LayoutGrid className="h-3.5 w-3.5" />

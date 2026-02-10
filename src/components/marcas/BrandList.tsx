@@ -33,6 +33,7 @@ interface BrandListProps {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
+  initialViewMode?: string;
 }
 
 const DEFAULT_BRAND_COLOR = 'hsl(var(--primary))';
@@ -133,11 +134,11 @@ function BrandCard({ brand, isSelected, onSelect }: { brand: BrandSummary; isSel
   );
 }
 
-export default function BrandList({ brands, selectedBrand, onSelectBrand, isLoading = false, currentPage, totalPages, onPageChange }: BrandListProps) {
+export default function BrandList({ brands, selectedBrand, onSelectBrand, isLoading = false, currentPage, totalPages, onPageChange, initialViewMode }: BrandListProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
-  const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [viewMode, setViewMode] = useState<ViewMode>((initialViewMode as ViewMode) || 'grid');
 
   const filteredAndSortedBrands = useMemo(() => {
     if (!brands || !Array.isArray(brands)) return [];
