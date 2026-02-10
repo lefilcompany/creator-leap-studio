@@ -302,7 +302,7 @@ export default function Themes() {
 
       {/* Header section overlapping the banner */}
       <div className="relative px-4 sm:px-6 lg:px-8 -mt-12 flex-shrink-0">
-        <div className="bg-card rounded-2xl border border-border/50 shadow-sm p-4 lg:p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div className="bg-card rounded-2xl shadow-lg p-4 lg:p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="bg-secondary/10 border border-secondary/20 shadow-sm rounded-2xl p-3 lg:p-4">
               <Palette className="h-8 w-8 lg:h-10 lg:w-10 text-secondary" />
