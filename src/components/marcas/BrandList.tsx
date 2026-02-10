@@ -137,7 +137,7 @@ export default function BrandList({ brands, selectedBrand, onSelectBrand, isLoad
   const [searchQuery, setSearchQuery] = useState('');
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
-  const [viewMode, setViewMode] = useState<ViewMode>('list');
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
 
   const filteredAndSortedBrands = useMemo(() => {
     if (!brands || !Array.isArray(brands)) return [];
