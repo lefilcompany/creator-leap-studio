@@ -35,9 +35,7 @@ export default function PersonasPage() {
   const [personaToEdit, setPersonaToEdit] = useState<Persona | null>(null);
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(0);
-  const ITEMS_PER_PAGE = 10;
+  const ITEMS_PER_PAGE = 500;
 
   // Load brands with color + avatar
   useEffect(() => {
@@ -87,12 +85,11 @@ export default function PersonasPage() {
       if (!user?.id) return;
       setIsLoadingPersonas(true);
       try {
-        const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-        const { data, error, count } = await supabase
+        const { data, error } = await supabase
           .from('personas')
-          .select('id, brand_id, name, created_at', { count: 'exact' })
+          .select('id, brand_id, name, created_at')
           .order('created_at', { ascending: false })
-          .range(startIndex, startIndex + ITEMS_PER_PAGE - 1);
+          .limit(ITEMS_PER_PAGE);
 
         if (error) throw error;
 
@@ -104,7 +101,6 @@ export default function PersonasPage() {
         }));
 
         setPersonas(personas);
-        setTotalPages(Math.ceil((count || 0) / ITEMS_PER_PAGE));
       } catch (error) {
         console.error('Erro ao carregar personas:', error);
         toast.error('Erro ao carregar personas');
@@ -113,7 +109,7 @@ export default function PersonasPage() {
       }
     };
     loadPersonas();
-  }, [user?.id, currentPage]);
+  }, [user?.id]);
 
   const handleOpenDialog = useCallback((persona: Persona | null = null) => {
     if (persona) {
@@ -357,9 +353,9 @@ export default function PersonasPage() {
           personas={personas}
           brands={brands}
           isLoading={isLoadingPersonas}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
+          currentPage={1}
+          totalPages={1}
+          onPageChange={() => {}}
           initialViewMode={initialViewMode}
         />
       </main>
