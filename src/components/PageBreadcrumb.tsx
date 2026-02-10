@@ -12,6 +12,7 @@ import {
 interface BreadcrumbItemType {
   label: string;
   href?: string;
+  icon?: React.ReactNode;
 }
 
 interface PageBreadcrumbProps {
@@ -40,15 +41,17 @@ export function PageBreadcrumb({ items, className }: PageBreadcrumbProps) {
               <BreadcrumbSeparator />
               <BreadcrumbItem>
                 {isLast || !item.href ? (
-                  <BreadcrumbPage className="text-foreground font-medium">
+                  <BreadcrumbPage className="text-foreground font-medium flex items-center gap-1.5">
+                    {item.icon}
                     {item.label}
                   </BreadcrumbPage>
                 ) : (
                   <BreadcrumbLink asChild>
                     <Link 
                       to={item.href}
-                      className="text-muted-foreground hover:text-primary transition-colors"
+                      className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-1.5"
                     >
+                      {item.icon}
                       {item.label}
                     </Link>
                   </BreadcrumbLink>

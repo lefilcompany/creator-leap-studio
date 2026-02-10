@@ -87,8 +87,8 @@ export default function MarcasPage() {
     setIsDialogOpen(true);
   }, []);
 
-  const handleSelectBrand = useCallback((brand: BrandSummary) => {
-    navigate(`/brands/${brand.id}`);
+  const handleSelectBrand = useCallback((brand: BrandSummary, viewMode?: string) => {
+    navigate(`/brands/${brand.id}`, { state: { viewMode: viewMode || 'grid' } });
   }, [navigate]);
 
   const handleSaveBrand = useCallback(async (formData: BrandFormData) => {
