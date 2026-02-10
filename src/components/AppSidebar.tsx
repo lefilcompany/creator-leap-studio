@@ -1,7 +1,7 @@
 import React from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
-import { Home, Tag, Users, Calendar, History, Sparkles, CheckCircle2, Palette, Coins, UsersRound } from "lucide-react";
+import { Home, Tag, Users, Calendar, History, Sparkles, CheckCircle, Palette, Coins, UsersRound } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarRail, useSidebar } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
@@ -36,11 +36,11 @@ function NavItem({
   if (disabled) {
     return (
       <div className={cn(
-        "flex items-center rounded-xl cursor-not-allowed opacity-50",
-        collapsed ? "justify-center p-3" : "gap-4 px-4 py-3",
+        "flex items-center gap-4 p-2.5 rounded-lg cursor-not-allowed opacity-50",
+        collapsed ? "justify-center" : "",
         "text-muted-foreground bg-white/20 dark:bg-white/5"
       )}>
-        <Icon className="h-[22px] w-[22px] flex-shrink-0 stroke-[1.8]" />
+        <Icon className="h-5 w-5 flex-shrink-0" />
         {!collapsed && <span className="font-medium text-sm">{label}</span>}
       </div>
     );
@@ -52,17 +52,14 @@ function NavItem({
       to={href}
       onClick={onNavigate}
       className={cn(
-        "flex items-center rounded-xl transition-all duration-300 ease-in-out",
-        collapsed ? "justify-center p-3" : "gap-4 px-4 py-3",
+        "flex items-center gap-4 p-2.5 rounded-lg transition-colors duration-300 ease-in-out",
+        collapsed ? "justify-center" : "",
         isActive
-          ? "bg-white/80 dark:bg-white/10 text-primary shadow-sm"
-          : "text-foreground/60 hover:bg-white/50 dark:hover:bg-white/10 hover:text-foreground"
+          ? "bg-white/70 dark:bg-white/10 text-primary shadow-sm"
+          : "text-foreground/70 hover:bg-white/40 dark:hover:bg-white/10 hover:text-foreground"
       )}
     >
-      <Icon className={cn(
-        "h-[22px] w-[22px] flex-shrink-0 stroke-[1.8] transition-colors duration-300",
-        isActive && "text-primary"
-      )} />
+      <Icon className="h-5 w-5 flex-shrink-0" />
       {!collapsed && <span className="font-medium text-sm">{label}</span>}
     </NavLink>
   );
@@ -120,11 +117,11 @@ function ActionButton({
   if (disabled) {
     return (
       <div className={cn(
-        "flex items-center rounded-xl cursor-not-allowed opacity-50",
-        collapsed ? "justify-center p-3" : "gap-3 px-4 py-3",
+        "flex items-center gap-3 p-2.5 rounded-lg cursor-not-allowed opacity-50",
+        collapsed ? "justify-center" : "",
         "bg-muted text-muted-foreground"
       )}>
-        <Icon className="h-[22px] w-[22px] flex-shrink-0 stroke-[1.8]" />
+        <Icon className="h-5 w-5 flex-shrink-0" />
         {!collapsed && <span className="font-medium text-sm">{label}</span>}
       </div>
     );
@@ -144,12 +141,12 @@ function ActionButton({
       to={href}
       onClick={handleClick}
       className={cn(
-        "flex items-center rounded-xl transition-all duration-300 ease-in-out hover:scale-105",
-        collapsed ? "justify-center p-3" : "gap-3 px-4 py-3",
+        "flex items-center gap-3 p-2.5 rounded-lg transition-all duration-300 ease-in-out hover:scale-105",
+        collapsed ? "justify-center" : "",
         isActive ? variantClasses[variant].active : variantClasses[variant].inactive
       )}
     >
-      <Icon className="h-[22px] w-[22px] flex-shrink-0 stroke-[1.8]" />
+      <Icon className="h-5 w-5 flex-shrink-0" />
       {!collapsed && <span className="font-medium text-sm">{label}</span>}
     </NavLink>
   );
@@ -188,7 +185,7 @@ export function AppSidebar() {
 
   const actionButtons = [
     { id: "nav-create-content", href: "/create", icon: Sparkles, label: t.sidebar.createContent, variant: "primary" as const },
-    { id: "nav-review-content", href: "/review", icon: CheckCircle2, label: t.sidebar.reviewContent, variant: "accent" as const },
+    { id: "nav-review-content", href: "/review", icon: CheckCircle, label: t.sidebar.reviewContent, variant: "accent" as const },
     { id: "nav-plan-content", href: "/plan", icon: Calendar, label: t.sidebar.planContent, variant: "secondary" as const },
   ];
 
@@ -199,10 +196,7 @@ export function AppSidebar() {
   const sidebarContent = () => (
     <TooltipProvider>
       {/* Logo */}
-      <div className={cn(
-        "flex items-center justify-center",
-        collapsed ? "pt-6 pb-4 px-2" : "pt-5 pb-3 px-4"
-      )}>
+      <div className="pt-4 pb-2 mb-2 px-2 flex items-center justify-center">
         <NavLink
           to="/dashboard"
           onClick={handleMobileNavigate}
@@ -220,12 +214,9 @@ export function AppSidebar() {
       {/* Navigation */}
       <nav className={cn(
         "flex-1 flex flex-col overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent",
-        collapsed ? "gap-4 px-3 items-center" : "gap-5 px-4"
+        collapsed ? "gap-3 px-2" : "gap-5 px-4"
       )}>
-        <div className={cn(
-          "flex flex-col gap-1.5",
-          collapsed && "w-full items-center"
-        )}>
+        <div className="flex flex-col gap-1.5">
           {navLinks.map(link => (
             <NavItem
               key={link.href}
@@ -237,10 +228,7 @@ export function AppSidebar() {
           ))}
         </div>
 
-        <div className={cn(
-          "flex flex-col gap-2.5",
-          collapsed && "w-full items-center"
-        )}>
+        <div className="flex flex-col gap-2.5">
           {actionButtons.map(button => (
             <ActionButton
               key={button.id}
@@ -254,10 +242,7 @@ export function AppSidebar() {
 
         {/* Credits */}
         {user && (
-          <div className={cn(
-            "mt-auto mb-4 flex flex-col gap-2.5",
-            collapsed && "items-center w-full"
-          )}>
+          <div className="mt-auto mb-3 flex flex-col gap-2.5">
             {collapsed ? (
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -265,9 +250,9 @@ export function AppSidebar() {
                     id="nav-credits"
                     to="/plans"
                     onClick={handleMobileNavigate}
-                    className="flex items-center justify-center p-3 rounded-xl transition-all duration-300 ease-in-out hover:scale-105 bg-gradient-to-r from-primary to-secondary text-primary-foreground shadow-lg"
+                    className="flex items-center justify-center gap-3 p-3 rounded-lg transition-all duration-300 ease-in-out hover:scale-105 bg-gradient-to-r from-primary to-secondary text-primary-foreground shadow-lg"
                   >
-                    <Coins className="h-[22px] w-[22px] flex-shrink-0 stroke-[1.8]" />
+                    <Coins className="h-5 w-5 flex-shrink-0" />
                   </NavLink>
                 </TooltipTrigger>
                 <TooltipContent side="right">
@@ -282,9 +267,9 @@ export function AppSidebar() {
                 id="nav-credits"
                 to="/plans"
                 onClick={handleMobileNavigate}
-                className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ease-in-out hover:scale-105 bg-gradient-to-r from-primary to-secondary text-primary-foreground shadow-lg"
+                className="flex items-center gap-3 p-3 rounded-lg transition-all duration-300 ease-in-out hover:scale-105 bg-gradient-to-r from-primary to-secondary text-primary-foreground shadow-lg"
               >
-                <Coins className="h-[22px] w-[22px] flex-shrink-0 stroke-[1.8]" />
+                <Coins className="h-5 w-5 flex-shrink-0" />
                 <div className="flex flex-col">
                   <span className="font-bold text-sm">{user.credits || 0} créditos</span>
                   <span className="text-xs opacity-80">Comprar mais</span>
