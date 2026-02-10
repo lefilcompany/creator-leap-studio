@@ -1,17 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
-import { Drawer, DrawerContent, DrawerTitle } from '@/components/ui/drawer';
 import { Palette, Plus, HelpCircle } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import ThemeList from '@/components/temas/ThemeList';
-import ThemeDetails from '@/components/temas/ThemeDetails';
+import type { BrandInfo } from '@/components/temas/ThemeList';
 import ThemeDialog from '@/components/temas/ThemeDialog';
 import type { StrategicTheme, StrategicThemeSummary } from '@/types/theme';
 import type { BrandSummary } from '@/types/brand';
 import { useAuth } from '@/hooks/useAuth';
-import { useIsMobile } from '@/hooks/use-mobile';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { CreditConfirmationDialog } from '@/components/CreditConfirmationDialog';
@@ -25,50 +22,58 @@ type ThemeFormData = Omit<StrategicTheme, 'id' | 'createdAt' | 'updatedAt' | 'te
 
 export default function Themes() {
   const { user, team, refreshTeamData, refreshUserCredits } = useAuth();
-  const isMobile = useIsMobile();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const initialViewMode = (location.state as any)?.viewMode || 'grid';
+
   const [themes, setThemes] = useState<StrategicThemeSummary[]>([]);
-  const [brands, setBrands] = useState<BrandSummary[]>([]);
+  const [brands, setBrands] = useState<BrandInfo[]>([]);
   const [isLoadingThemes, setIsLoadingThemes] = useState(true);
   const [isLoadingBrands, setIsLoadingBrands] = useState(true);
-  const [selectedThemeSummary, setSelectedThemeSummary] = useState<StrategicThemeSummary | null>(null);
-  const [selectedTheme, setSelectedTheme] = useState<StrategicTheme | null>(null);
-  const [isLoadingThemeDetails, setIsLoadingThemeDetails] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [themeToEdit, setThemeToEdit] = useState<StrategicTheme | null>(null);
-  const [isThemeDetailsOpen, setIsThemeDetailsOpen] = useState(false);
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
 
-  // Estados para paginação
+  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const ITEMS_PER_PAGE = 10;
 
-  // Load brands from database - user can see own brands OR team brands
+  // Brands for dialog (full BrandSummary needed)
+  const [brandSummaries, setBrandSummaries] = useState<BrandSummary[]>([]);
+
+  // Load brands with color + avatar
   useEffect(() => {
     const loadBrands = async () => {
       if (!user?.id) return;
-      
       setIsLoadingBrands(true);
       try {
-        // Query brands user has access to (via RLS can_access_resource)
         const { data, error } = await supabase
           .from('brands')
-          .select('id, name, responsible, created_at, updated_at')
+          .select('id, name, responsible, brand_color, avatar_url, created_at, updated_at')
           .order('name', { ascending: true });
 
         if (error) throw error;
 
-        const brands: BrandSummary[] = data.map(brand => ({
-          id: brand.id,
-          name: brand.name,
-          responsible: brand.responsible,
-          brandColor: null,
-          avatarUrl: null,
-          createdAt: brand.created_at,
-          updatedAt: brand.updated_at
+        const brandInfos: BrandInfo[] = (data || []).map(b => ({
+          id: b.id,
+          name: b.name,
+          brandColor: b.brand_color || null,
+          avatarUrl: b.avatar_url || null,
         }));
 
-        setBrands(brands);
+        const summaries: BrandSummary[] = (data || []).map(b => ({
+          id: b.id,
+          name: b.name,
+          responsible: b.responsible,
+          brandColor: b.brand_color || null,
+          avatarUrl: b.avatar_url || null,
+          createdAt: b.created_at,
+          updatedAt: b.updated_at,
+        }));
+
+        setBrands(brandInfos);
+        setBrandSummaries(summaries);
       } catch (error) {
         console.error('Erro ao carregar marcas:', error);
         toast.error("Não foi possível carregar as marcas");
@@ -76,20 +81,16 @@ export default function Themes() {
         setIsLoadingBrands(false);
       }
     };
-    
     loadBrands();
   }, [user?.id]);
 
-  // Load themes from database - user can see own themes OR team themes
+  // Load themes
   useEffect(() => {
     const loadThemes = async () => {
       if (!user?.id) return;
-      
       setIsLoadingThemes(true);
       try {
         const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-        
-        // Query themes user has access to (via RLS can_access_resource)
         const { data, error, count } = await supabase
           .from('strategic_themes')
           .select('id, brand_id, title, created_at', { count: 'exact' })
@@ -102,7 +103,7 @@ export default function Themes() {
           id: theme.id,
           brandId: theme.brand_id,
           title: theme.title,
-          createdAt: theme.created_at
+          createdAt: theme.created_at,
         }));
 
         setThemes(themes);
@@ -114,37 +115,28 @@ export default function Themes() {
         setIsLoadingThemes(false);
       }
     };
-    
     loadThemes();
   }, [user?.id, currentPage]);
 
   const handleOpenDialog = useCallback((theme: StrategicTheme | null = null) => {
-    // Para edição, abrir direto
     if (theme) {
       setThemeToEdit(theme);
       setIsDialogOpen(true);
       return;
     }
-
-    // Para novo tema, verificar se user está carregado
     if (!user) {
       toast.error('Carregando dados do usuário...');
       return;
     }
-
     const freeThemesUsed = team?.free_themes_used || 0;
     const isFree = freeThemesUsed < 3;
-
-    // Se não for gratuito, verificar créditos individuais
     if (!isFree && (user.credits || 0) < 1) {
       toast.error('Créditos insuficientes. Criar um tema custa 1 crédito (os 3 primeiros são gratuitos).');
       return;
     }
-
-    // Abrir diálogo de confirmação
     setThemeToEdit(null);
     setIsConfirmDialogOpen(true);
-  }, [user, team, themes.length]);
+  }, [user, team]);
 
   const handleConfirmCreate = useCallback(() => {
     setIsConfirmDialogOpen(false);
@@ -160,7 +152,6 @@ export default function Themes() {
 
       try {
         if (themeToEdit) {
-          // Update existing theme
           const { error } = await supabase
             .from('strategic_themes')
             .update({
@@ -196,25 +187,16 @@ export default function Themes() {
             createdAt: saved.createdAt,
           };
 
-          setThemes(prev => prev.map(theme => theme.id === summary.id ? summary : theme));
-          
-          if (selectedTheme?.id === saved.id) {
-            setSelectedTheme(saved);
-            setSelectedThemeSummary(summary);
-          }
-
-          toast.success(themeToEdit ? 'Tema atualizado com sucesso!' : 'Tema criado com sucesso!');
-
+          setThemes(prev => prev.map(t => t.id === summary.id ? summary : t));
+          toast.success('Tema atualizado com sucesso!');
           setIsDialogOpen(false);
           setThemeToEdit(null);
-          
           return saved;
         } else {
-          // Create new theme
           const { data, error } = await supabase
             .from('strategic_themes')
             .insert({
-              team_id: user.teamId || null, // Optional team association
+              team_id: user.teamId || null,
               user_id: user.id,
               brand_id: formData.brandId,
               title: formData.title,
@@ -253,29 +235,22 @@ export default function Themes() {
           };
 
           setThemes(prev => [...prev, summary]);
-          setSelectedTheme(saved);
-          setSelectedThemeSummary(summary);
 
-          // Atualizar contador ou deduzir crédito individual
           const freeThemesUsed = team?.free_themes_used || 0;
           const isFree = freeThemesUsed < 3;
 
           if (isFree && user.teamId) {
-            // Incrementar contador de temas gratuitos (apenas se tiver equipe)
             await supabase
               .from('teams')
               .update({ free_themes_used: freeThemesUsed + 1 } as any)
               .eq('id', user.teamId);
             await refreshTeamData();
           } else if (!isFree) {
-            // Deduzir 1 crédito do usuário individual
             const currentCredits = user.credits || 0;
             await supabase
               .from('profiles')
               .update({ credits: currentCredits - 1 })
               .eq('id', user.id);
-
-            // Registrar no histórico de créditos
             await supabase
               .from('credit_history')
               .insert({
@@ -288,8 +263,6 @@ export default function Themes() {
                 description: `Criação do tema: ${formData.title}`,
                 metadata: { theme_id: saved.id, theme_title: formData.title }
               });
-            
-            // Atualizar créditos do usuário
             await refreshUserCredits();
           }
 
@@ -300,7 +273,6 @@ export default function Themes() {
 
           setIsDialogOpen(false);
           setThemeToEdit(null);
-          
           return saved;
         }
       } catch (error) {
@@ -309,87 +281,13 @@ export default function Themes() {
         throw error;
       }
     },
-    [themeToEdit, selectedTheme?.id, user]
+    [themeToEdit, user, team, refreshTeamData, refreshUserCredits]
   );
 
-  const handleDeleteTheme = useCallback(async () => {
-    if (!selectedTheme || !user?.teamId || !user?.id) {
-      toast.error("Não foi possível deletar o tema. Verifique se você está logado.");
-      return;
-    }
-
-    try {
-      const { error } = await supabase
-        .from('strategic_themes')
-        .delete()
-        .eq('id', selectedTheme.id);
-
-      if (error) throw error;
-
-      setThemes(prev => prev.filter(theme => theme.id !== selectedTheme.id));
-      setSelectedTheme(null);
-      setSelectedThemeSummary(null);
-      setIsThemeDetailsOpen(false);
-      setIsDialogOpen(false);
-      setThemeToEdit(null);
-      
-      toast.success("Tema deletado com sucesso!");
-    } catch (error) {
-      console.error('Erro ao deletar tema:', error);
-      toast.error("Erro ao deletar tema. Tente novamente.");
-    }
-  }, [selectedTheme, user]);
-
-  const handleSelectTheme = useCallback(async (theme: StrategicThemeSummary) => {
-    setSelectedThemeSummary(theme);
-    setIsLoadingThemeDetails(true);
-    setIsThemeDetailsOpen(true);
-    
-    try {
-      const { data, error } = await supabase
-        .from('strategic_themes')
-        .select('*')
-        .eq('id', theme.id)
-        .single();
-
-      if (error) throw error;
-
-      const fullTheme: StrategicTheme = {
-        id: data.id,
-        brandId: data.brand_id,
-        title: data.title,
-        description: data.description,
-        targetAudience: data.target_audience,
-        toneOfVoice: data.tone_of_voice,
-        objectives: data.objectives,
-        colorPalette: data.color_palette,
-        hashtags: data.hashtags,
-        contentFormat: data.content_format,
-        macroThemes: data.macro_themes,
-        bestFormats: data.best_formats,
-        platforms: data.platforms,
-        expectedAction: data.expected_action,
-        additionalInfo: data.additional_info || '',
-        createdAt: data.created_at,
-        updatedAt: data.updated_at,
-        teamId: data.team_id,
-        userId: data.user_id
-      };
-      
-      setSelectedTheme(fullTheme);
-    } catch (error) {
-      console.error('Erro ao carregar detalhes do tema:', error);
-      toast.error("Erro ao carregar detalhes do tema");
-    } finally {
-      setIsLoadingThemeDetails(false);
-    }
-  }, []);
-
-  // Desabilitar apenas se não tiver créditos ou se user não carregou
   const isButtonDisabled = !user || (user.credits || 0) < 1;
 
   return (
-    <div className="h-full flex flex-col overflow-hidden -m-4 sm:-m-6 lg:-m-8">
+    <div className="h-full flex flex-col -m-4 sm:-m-6 lg:-m-8">
       {/* Banner */}
       <div className="relative w-full h-48 md:h-56 flex-shrink-0 overflow-hidden">
         <img 
@@ -422,7 +320,7 @@ export default function Themes() {
                     <div className="space-y-2">
                       <h4 className="font-semibold text-foreground">O que são Temas Estratégicos?</h4>
                       <p className="text-muted-foreground">
-                        Temas estratégicos são diretrizes de conteúdo que definem o tom, estilo e objetivos das suas publicações. Eles garantem consistência na comunicação da marca.
+                        Temas estratégicos são diretrizes de conteúdo que definem o tom, estilo e objetivos das suas publicações.
                       </p>
                       <h4 className="font-semibold text-foreground mt-3">Como usar?</h4>
                       <ul className="text-muted-foreground space-y-1 list-disc list-inside">
@@ -478,58 +376,25 @@ export default function Themes() {
         />
       </div>
 
-      {/* Table */}
-      <main id="themes-list" className="flex-1 min-h-0 overflow-hidden px-4 sm:px-6 lg:px-8 pt-4 pb-4 sm:pb-6 lg:pb-8">
+      {/* Content */}
+      <main id="themes-list" className="flex-1 overflow-auto px-4 sm:px-6 lg:px-8 pt-4 pb-4 sm:pb-6 lg:pb-8">
         <ThemeList
           themes={themes}
           brands={brands}
-          selectedTheme={selectedThemeSummary}
-          onSelectTheme={handleSelectTheme}
           isLoading={isLoadingThemes}
           currentPage={currentPage}
           totalPages={totalPages}
           onPageChange={setCurrentPage}
+          initialViewMode={initialViewMode}
         />
       </main>
-
-      {/* Sheet para desktop/tablet (da direita) */}
-      {!isMobile && (
-        <Sheet open={isThemeDetailsOpen} onOpenChange={setIsThemeDetailsOpen}>
-          <SheetContent side="right" className="w-[85vw] max-w-none">
-            <SheetTitle className="text-left mb-4">Detalhes do Tema</SheetTitle>
-            <ThemeDetails
-              theme={selectedTheme}
-              brands={brands}
-              onEdit={handleOpenDialog}
-              onDelete={handleDeleteTheme}
-              isLoading={isLoadingThemeDetails}
-            />
-          </SheetContent>
-        </Sheet>
-      )}
-
-      {/* Drawer para mobile (de baixo) */}
-      {isMobile && (
-        <Drawer open={isThemeDetailsOpen} onOpenChange={setIsThemeDetailsOpen}>
-          <DrawerContent className="h-[85vh]">
-            <DrawerTitle className="text-left p-6 pb-0">Detalhes do Tema</DrawerTitle>
-            <ThemeDetails
-              theme={selectedTheme}
-              brands={brands}
-              onEdit={handleOpenDialog}
-              onDelete={handleDeleteTheme}
-              isLoading={isLoadingThemeDetails}
-            />
-          </DrawerContent>
-        </Drawer>
-      )}
 
       <ThemeDialog
         isOpen={isDialogOpen}
         onOpenChange={setIsDialogOpen}
         onSave={handleSaveTheme}
         themeToEdit={themeToEdit}
-        brands={brands}
+        brands={brandSummaries}
       />
 
       <CreditConfirmationDialog
