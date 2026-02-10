@@ -209,10 +209,7 @@ function ActionCard({ action, isSelected, onSelect, onView }: {
             {displayType}
           </Badge>
           {action.platform && (
-            <div className="flex items-center gap-1 text-[10px] text-muted-foreground" title={action.platform}>
-              <PlatformIcon platform={action.platform} className="h-3.5 w-3.5" />
-              <span className="font-medium">{action.platform}</span>
-            </div>
+            <PlatformIcon platform={action.platform} className="h-4 w-4" />
           )}
           {action.objective && (
             <Badge variant="outline" className="text-[10px] px-2 py-0.5 h-5 font-normal truncate max-w-[120px]">
