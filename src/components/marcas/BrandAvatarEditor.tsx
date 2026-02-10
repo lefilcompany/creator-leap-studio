@@ -124,22 +124,29 @@ export function BrandAvatarEditor({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md overflow-hidden p-0">
         {/* Top accent bar */}
-        <div className="flex justify-center -mt-2 mb-2">
+        <div
+          className="h-2 w-full transition-colors duration-300"
+          style={{ backgroundColor: selectedColor || 'hsl(var(--primary))' }}
+        />
+        <div className="flex justify-center">
           <div
-            className="h-1.5 rounded-full transition-colors duration-300"
+            className="h-1.5 rounded-b-full transition-colors duration-300"
             style={{
               backgroundColor: selectedColor || 'hsl(var(--primary))',
-              width: '60%',
+              width: '50%',
             }}
           />
         </div>
 
-        <DialogHeader>
-          <DialogTitle>Editar avatar da marca</DialogTitle>
-        </DialogHeader>
+        <div className="px-6 pt-4 pb-0">
+          <DialogHeader>
+            <DialogTitle>Editar avatar da marca</DialogTitle>
+          </DialogHeader>
+        </div>
 
+        <div className="px-6">
         <div className="space-y-6 py-2">
           {/* Preview */}
           <div
@@ -243,16 +250,19 @@ export function BrandAvatarEditor({
             />
           </div>
         </div>
+        </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancelar
-          </Button>
-          <Button onClick={handleSave} disabled={isSaving}>
-            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Salvar
-          </Button>
-        </DialogFooter>
+        <div className="px-6 pb-6">
+          <DialogFooter>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSave} disabled={isSaving}>
+              {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Salvar
+            </Button>
+          </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );
