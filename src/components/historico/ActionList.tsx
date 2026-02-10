@@ -203,7 +203,7 @@ function ActionCard({ action, isSelected, onSelect, onView }: {
         </p>
 
         <div className="flex items-center gap-1.5 flex-wrap">
-          <Badge className={cn("text-[10px] px-2 py-0.5 h-5 font-medium border-0", style.background, style.color)}>
+          <Badge className={cn("text-[10px] px-2 py-0.5 h-5 font-medium border-0 hover:bg-inherit", style.background, style.color)}>
             {displayType}
           </Badge>
           {action.platform && (
