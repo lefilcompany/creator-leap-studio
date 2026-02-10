@@ -32,7 +32,7 @@ export default function History() {
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
-  const ITEMS_PER_PAGE = 1000;
+  const ITEMS_PER_PAGE = 50;
 
   useEffect(() => {
     const loadData = async () => {
@@ -50,38 +50,19 @@ export default function History() {
             .order('name'),
           
           (async () => {
-            let query = supabase
-              .from('actions')
-              .select(`
-                id,
-                type,
-                created_at,
-                approved,
-                brand_id,
-                details,
-                result,
-                brands(id, name)
-              `, { count: 'exact' })
-              .eq('team_id', user.teamId)
-              .order('created_at', { ascending: false });
-
-            if (brandFilter !== 'all') {
-              query = query.eq('brand_id', brandFilter);
-            }
-
-            if (typeFilter !== 'all') {
-              const selectedType = Object.entries(ACTION_TYPE_DISPLAY).find(
-                ([_, display]) => display === typeFilter
-              )?.[0];
-              if (selectedType) {
-                query = query.eq('type', selectedType);
-              }
-            }
+            const selectedType = typeFilter !== 'all'
+              ? Object.entries(ACTION_TYPE_DISPLAY).find(([_, display]) => display === typeFilter)?.[0] || null
+              : null;
 
             const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-            query = query.range(startIndex, startIndex + ITEMS_PER_PAGE - 1);
 
-            return query;
+            return supabase.rpc('get_action_summaries', {
+              p_team_id: user.teamId,
+              p_brand_filter: brandFilter !== 'all' ? brandFilter : null,
+              p_type_filter: selectedType,
+              p_limit: ITEMS_PER_PAGE,
+              p_offset: startIndex,
+            });
           })()
         ]);
 
@@ -98,38 +79,22 @@ export default function History() {
         setBrands(brandSummaries);
 
         if (actionsResult.error) throw actionsResult.error;
-        const actionSummaries: ActionSummary[] = (actionsResult.data || []).map(action => {
-          let brandInfo = null;
-          if (action.brands) {
-            brandInfo = {
-              id: action.brands.id,
-              name: action.brands.name
-            };
-          } else if (action.details && typeof action.details === 'object' && 'brand' in action.details) {
-            brandInfo = {
-              id: '',
-              name: String(action.details.brand)
-            };
-          }
+        const rows = actionsResult.data || [];
+        const totalCount = rows.length > 0 ? Number(rows[0].total_count) : 0;
 
-          const result = action.result as Record<string, any> | null;
-          const details = action.details as Record<string, any> | null;
-          
-          return {
-            id: action.id,
-            type: action.type as any,
-            createdAt: action.created_at,
-            approved: action.approved,
-            brand: brandInfo,
-            imageUrl: result?.imageUrl || result?.originalImage || undefined,
-            title: result?.title || result?.description || undefined,
-            platform: details?.platform || undefined,
-            objective: details?.objective || undefined,
-            extraDetails: details || undefined,
-          };
-        });
+        const actionSummaries: ActionSummary[] = rows.map((row: any) => ({
+          id: row.id,
+          type: row.type as any,
+          createdAt: row.created_at,
+          approved: row.approved,
+          brand: row.brand_id ? { id: row.brand_id, name: row.brand_name || '' } : null,
+          imageUrl: row.image_url || undefined,
+          title: row.title || undefined,
+          platform: row.platform || undefined,
+          objective: row.objective || undefined,
+        }));
         setActions(actionSummaries);
-        setTotalPages(Math.ceil((actionsResult.count || 0) / ITEMS_PER_PAGE));
+        setTotalPages(Math.ceil(totalCount / ITEMS_PER_PAGE));
 
       } catch (error) {
         console.error('Error loading data:', error);
