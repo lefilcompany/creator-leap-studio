@@ -471,6 +471,14 @@ export default function BrandView() {
                 <EditableField label="Colaborações e Ações com Influenciadores" value={formData.collaborations || ''} onChange={(v) => updateField('collaborations', v)} />
               </div>
             </SectionCard>
+
+            <SectionCard title="Paleta de Cores" icon={<Palette className="h-4 w-4" />} accentColor={brandColor}>
+              <ColorPicker
+                colors={colorPalette}
+                onColorsChange={handleColorPaletteChange}
+                maxColors={8}
+              />
+            </SectionCard>
           </div>
 
           {/* Sidebar - visual assets (read-only) */}
@@ -487,15 +495,6 @@ export default function BrandView() {
                   </div>
                 )}
               </div>
-            </SectionCard>
-
-            <SectionCard title="Paleta de Cores" icon={<Palette className="h-4 w-4" />} accentColor={brandColor}>
-              <ColorPicker
-                colors={colorPalette}
-                onColorsChange={handleColorPaletteChange}
-                maxColors={8}
-                compact
-              />
             </SectionCard>
 
             <SectionCard title="Cor Identificadora" icon={<Palette className="h-4 w-4" />} accentColor={brandColor}>
