@@ -164,16 +164,16 @@ export function BrandAvatarEditor({
           {/* Color Selection */}
           <div className="space-y-3">
             <p className="text-sm font-medium text-foreground">Cor identificadora</p>
-            <div className="grid grid-cols-10 gap-2">
+            <div className="grid grid-cols-10 gap-3">
               {AVATAR_COLORS.map((color) => (
                 <button
                   key={color}
                   type="button"
                   onClick={() => setSelectedColor(color)}
-                  className={`w-8 h-8 rounded-full transition-all duration-200 flex items-center justify-center text-white text-xs font-bold ${
+                  className={`aspect-square rounded-lg transition-all duration-200 flex items-center justify-center text-white text-xs font-bold ${
                     selectedColor === color
                       ? 'ring-2 ring-offset-2 ring-primary scale-110'
-                      : 'hover:scale-110 hover:ring-2 hover:ring-offset-1 hover:ring-border'
+                      : 'hover:scale-105 hover:ring-2 hover:ring-offset-1 hover:ring-border'
                   }`}
                   style={{ backgroundColor: color }}
                   title={color}
