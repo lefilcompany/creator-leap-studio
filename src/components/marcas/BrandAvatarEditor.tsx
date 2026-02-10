@@ -125,13 +125,31 @@ export function BrandAvatarEditor({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md">
+        {/* Top accent bar */}
+        <div className="flex justify-center -mt-2 mb-2">
+          <div
+            className="h-1.5 rounded-full transition-colors duration-300"
+            style={{
+              backgroundColor: selectedColor || 'hsl(var(--primary))',
+              width: '60%',
+            }}
+          />
+        </div>
+
         <DialogHeader>
           <DialogTitle>Editar avatar da marca</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6 py-2">
           {/* Preview */}
-          <div className="flex justify-center">
+          <div
+            className="flex justify-center py-6 rounded-xl transition-colors duration-300"
+            style={{
+              backgroundColor: selectedColor
+                ? `${selectedColor}18`
+                : 'hsl(var(--muted))',
+            }}
+          >
             <div className="relative">
               {avatarUrl ? (
                 <img
