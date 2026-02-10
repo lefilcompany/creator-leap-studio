@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { Users, Search, ArrowUpDown, ArrowUp, ArrowDown, List, LayoutGrid, X, ChevronDown, ChevronRight } from 'lucide-react';
+import { Users, Search, List, LayoutGrid, X, ChevronDown, ChevronRight, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import {
   Table,
@@ -16,7 +16,7 @@ import {
 import type { PersonaSummary } from '@/types/persona';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Button } from '@/components/ui/button';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export interface BrandInfo {
@@ -43,8 +43,6 @@ const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString('pt-BR');
 };
 
-type SortField = 'name' | 'date';
-type SortDirection = 'asc' | 'desc';
 type ViewMode = 'list' | 'grid';
 
 interface BrandGroup {
@@ -159,8 +157,7 @@ function BrandGroupHeader({ brand, personaCount, isOpen, onToggle }: { brand: Br
 export default function PersonaList({ personas, brands, isLoading = false, initialViewMode }: PersonaListProps) {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortField, setSortField] = useState<SortField>('name');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  const [selectedBrandId, setSelectedBrandId] = useState<string>('all');
   const [viewMode, setViewMode] = useState<ViewMode>((initialViewMode as ViewMode) || 'grid');
   const [openBrands, setOpenBrands] = useState<Set<string>>(new Set());
   const [allExpanded, setAllExpanded] = useState(true);
@@ -174,9 +171,13 @@ export default function PersonaList({ personas, brands, isLoading = false, initi
     }
   }, [brands]);
 
-  const filteredAndSortedPersonas = useMemo(() => {
+  const filteredPersonas = useMemo(() => {
     if (!personas || !Array.isArray(personas)) return [];
     let result = [...personas];
+
+    if (selectedBrandId !== 'all') {
+      result = result.filter(p => p.brandId === selectedBrandId);
+    }
 
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
@@ -186,30 +187,21 @@ export default function PersonaList({ personas, brands, isLoading = false, initi
       );
     }
 
-    result.sort((a, b) => {
-      if (sortField === 'date') {
-        const dateA = new Date(a.createdAt).getTime();
-        const dateB = new Date(b.createdAt).getTime();
-        return sortDirection === 'asc' ? dateA - dateB : dateB - dateA;
-      }
-      const cmp = a.name.localeCompare(b.name);
-      return sortDirection === 'asc' ? cmp : -cmp;
-    });
+    result.sort((a, b) => a.name.localeCompare(b.name));
 
     return result;
-  }, [personas, searchQuery, sortField, sortDirection, brandMap]);
+  }, [personas, searchQuery, selectedBrandId, brandMap]);
 
   // Group personas by brand
   const brandGroups = useMemo((): BrandGroup[] => {
     const groupMap = new Map<string, PersonaSummary[]>();
     
-    filteredAndSortedPersonas.forEach(p => {
+    filteredPersonas.forEach(p => {
       const list = groupMap.get(p.brandId) || [];
       list.push(p);
       groupMap.set(p.brandId, list);
     });
 
-    // Sort brands alphabetically, put brands with personas first
     const groups: BrandGroup[] = [];
     brands.forEach(brand => {
       const brandPersonas = groupMap.get(brand.id);
@@ -219,16 +211,8 @@ export default function PersonaList({ personas, brands, isLoading = false, initi
     });
 
     return groups;
-  }, [filteredAndSortedPersonas, brands]);
+  }, [filteredPersonas, brands]);
 
-  const toggleSort = (field: SortField) => {
-    if (sortField === field) {
-      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortDirection(field === 'date' ? 'desc' : 'asc');
-    }
-  };
 
   const handleSelectPersona = (persona: PersonaSummary) => {
     navigate(`/personas/${persona.id}`, { state: { viewMode } });
@@ -256,9 +240,11 @@ export default function PersonaList({ personas, brands, isLoading = false, initi
     }
   };
 
-  const SortIcon = ({ field }: { field: SortField }) => {
-    if (sortField !== field) return <ArrowUpDown className="h-3.5 w-3.5 opacity-40" />;
-    return sortDirection === 'asc' ? <ArrowUp className="h-3.5 w-3.5" /> : <ArrowDown className="h-3.5 w-3.5" />;
+  const hasActiveFilters = searchQuery.trim() || selectedBrandId !== 'all';
+
+  const clearFilters = () => {
+    setSearchQuery('');
+    setSelectedBrandId('all');
   };
 
   const EmptyState = () => (
@@ -279,14 +265,6 @@ export default function PersonaList({ personas, brands, isLoading = false, initi
     </div>
   );
 
-  const hasActiveFilters = searchQuery.trim() || sortField !== 'name' || sortDirection !== 'asc';
-
-  const clearFilters = () => {
-    setSearchQuery('');
-    setSortField('name');
-    setSortDirection('asc');
-  };
-
   return (
     <div className="space-y-4">
       {/* Toolbar */}
@@ -294,7 +272,7 @@ export default function PersonaList({ personas, brands, isLoading = false, initi
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar por nome ou marca..."
+            placeholder="Buscar por nome..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9 pr-9 h-10 bg-card shadow-sm border border-muted/50 focus:border-primary/40 focus:bg-background"
@@ -310,28 +288,29 @@ export default function PersonaList({ personas, brands, isLoading = false, initi
         </div>
 
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => toggleSort('name')}
-            className={cn(
-              "h-10 px-3 gap-1.5 shadow-sm border border-muted/50",
-              sortField === 'name' && "bg-primary/10 border-primary/30 text-primary"
-            )}
-          >
-            Nome <SortIcon field="name" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => toggleSort('date')}
-            className={cn(
-              "h-10 px-3 gap-1.5 shadow-sm border border-muted/50",
-              sortField === 'date' && "bg-primary/10 border-primary/30 text-primary"
-            )}
-          >
-            Data <SortIcon field="date" />
-          </Button>
+          <Select value={selectedBrandId} onValueChange={setSelectedBrandId}>
+            <SelectTrigger className={cn(
+              "h-10 w-[180px] shadow-sm border border-muted/50 bg-card",
+              selectedBrandId !== 'all' && "bg-primary/10 border-primary/30 text-primary"
+            )}>
+              <Filter className="h-3.5 w-3.5 mr-1.5 flex-shrink-0" />
+              <SelectValue placeholder="Filtrar por marca" />
+            </SelectTrigger>
+            <SelectContent className="bg-popover z-50">
+              <SelectItem value="all">Todas as marcas</SelectItem>
+              {brands.map(brand => (
+                <SelectItem key={brand.id} value={brand.id}>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-3 h-3 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: brand.brandColor || DEFAULT_COLOR }}
+                    />
+                    {brand.name}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
           <Button
             variant="outline"
