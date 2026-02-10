@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { Users, Search, ArrowUpDown, ArrowUp, ArrowDown, List, LayoutGrid, X } from 'lucide-react';
+import { Users, Search, ArrowUpDown, ArrowUp, ArrowDown, List, LayoutGrid, X, ChevronDown, ChevronRight } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import {
   Table,
@@ -14,17 +14,10 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import type { PersonaSummary } from '@/types/persona';
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-  PaginationEllipsis,
-} from "@/components/ui/pagination";
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Button } from '@/components/ui/button';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export interface BrandInfo {
   id: string;
@@ -54,38 +47,29 @@ type SortField = 'name' | 'date';
 type SortDirection = 'asc' | 'desc';
 type ViewMode = 'list' | 'grid';
 
-const LoadingRows = () => (
-  <>
-    {Array.from({ length: 5 }).map((_, i) => (
-      <TableRow key={i} className="animate-pulse border-none">
-        <TableCell className="w-1 p-0"><div className="w-1 h-12 bg-muted rounded-r-full" /></TableCell>
-        <TableCell>
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-muted" />
-            <div className="h-4 w-32 bg-muted rounded" />
-          </div>
-        </TableCell>
-        <TableCell><div className="h-4 w-24 bg-muted rounded" /></TableCell>
-        <TableCell><div className="h-4 w-24 bg-muted rounded" /></TableCell>
-      </TableRow>
-    ))}
-  </>
-);
+interface BrandGroup {
+  brand: BrandInfo;
+  personas: PersonaSummary[];
+}
 
 const LoadingGrid = () => (
-  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-    {Array.from({ length: 6 }).map((_, i) => (
-      <div key={i} className="animate-pulse bg-card rounded-xl overflow-hidden shadow-sm flex">
-        <div className="w-1.5 bg-muted rounded-l-xl" />
-        <div className="p-5 space-y-3 flex-1">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-muted" />
-            <div className="space-y-1.5 flex-1">
-              <div className="h-4 w-28 bg-muted rounded" />
-              <div className="h-3 w-20 bg-muted rounded" />
+  <div className="space-y-6">
+    {Array.from({ length: 2 }).map((_, i) => (
+      <div key={i} className="animate-pulse space-y-3">
+        <div className="flex items-center gap-3 px-2">
+          <div className="w-8 h-8 rounded-full bg-muted" />
+          <div className="h-5 w-32 bg-muted rounded" />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pl-2">
+          {Array.from({ length: 3 }).map((_, j) => (
+            <div key={j} className="bg-card rounded-xl overflow-hidden shadow-sm flex">
+              <div className="w-1.5 bg-muted rounded-l-xl" />
+              <div className="p-5 space-y-3 flex-1">
+                <div className="h-4 w-28 bg-muted rounded" />
+                <div className="h-3 w-20 bg-muted rounded" />
+              </div>
             </div>
-          </div>
-          <div className="h-3 w-24 bg-muted rounded" />
+          ))}
         </div>
       </div>
     ))}
@@ -102,53 +86,93 @@ function PersonaCard({ persona, brandInfo, onSelect }: { persona: PersonaSummary
     >
       <div className="w-1.5 flex-shrink-0 rounded-l-2xl transition-all duration-300 group-hover:w-2" style={{ backgroundColor: color }} />
       
-      <div className="p-5 space-y-4 flex-1 min-w-0">
-        <div className="flex items-center gap-4">
-          {brandInfo?.avatarUrl ? (
-            <img
-              src={brandInfo.avatarUrl}
-              alt={brandInfo.name}
-              className="w-12 h-12 rounded-xl object-cover flex-shrink-0 shadow-md transition-transform duration-300 group-hover:scale-105"
-            />
-          ) : (
-            <div
-              className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-base flex-shrink-0 shadow-md transition-transform duration-300 group-hover:scale-105"
-              style={{ backgroundColor: color }}
-            >
-              {persona.name.charAt(0).toUpperCase()}
-            </div>
-          )}
+      <div className="p-4 space-y-3 flex-1 min-w-0">
+        <div className="flex items-center gap-3">
+          <div
+            className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0 shadow-md transition-transform duration-300 group-hover:scale-105"
+            style={{ backgroundColor: color }}
+          >
+            {persona.name.charAt(0).toUpperCase()}
+          </div>
           <div className="min-w-0 flex-1">
-            <span className="font-semibold text-foreground truncate block text-base">{persona.name}</span>
-            <span className="text-sm text-muted-foreground truncate block mt-0.5">
-              Marca: {brandInfo?.name || 'Não definida'}
-            </span>
+            <span className="font-semibold text-foreground truncate block text-sm">{persona.name}</span>
           </div>
         </div>
 
         <div className="flex items-center justify-between pt-2 border-t border-border/20">
           <span className="text-xs text-muted-foreground/70">
-            Criado em {formatDate(persona.createdAt)}
+            {formatDate(persona.createdAt)}
           </span>
-          <div
-            className="w-4 h-4 rounded-full border-2 border-background shadow-sm flex-shrink-0"
-            style={{ backgroundColor: color }}
-            title="Cor da marca"
-          />
         </div>
       </div>
     </div>
   );
 }
 
-export default function PersonaList({ personas, brands, isLoading = false, currentPage, totalPages, onPageChange, initialViewMode }: PersonaListProps) {
+function BrandGroupHeader({ brand, personaCount, isOpen, onToggle }: { brand: BrandInfo; personaCount: number; isOpen: boolean; onToggle: () => void }) {
+  const color = brand.brandColor || DEFAULT_COLOR;
+
+  return (
+    <button
+      onClick={onToggle}
+      className={cn(
+        "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200",
+        "hover:bg-muted/50 group cursor-pointer",
+        isOpen && "bg-muted/30"
+      )}
+    >
+      <div
+        className="w-1 h-8 rounded-full flex-shrink-0 transition-all duration-300"
+        style={{ backgroundColor: color }}
+      />
+      
+      {brand.avatarUrl ? (
+        <img
+          src={brand.avatarUrl}
+          alt={brand.name}
+          className="w-8 h-8 rounded-lg object-cover flex-shrink-0 shadow-sm"
+        />
+      ) : (
+        <div
+          className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-xs flex-shrink-0 shadow-sm"
+          style={{ backgroundColor: color }}
+        >
+          {brand.name.charAt(0).toUpperCase()}
+        </div>
+      )}
+
+      <div className="flex-1 text-left min-w-0">
+        <span className="font-semibold text-foreground text-sm truncate block">{brand.name}</span>
+      </div>
+
+      <span className="text-xs text-muted-foreground bg-muted/50 px-2 py-0.5 rounded-full flex-shrink-0">
+        {personaCount} {personaCount === 1 ? 'persona' : 'personas'}
+      </span>
+
+      <div className="text-muted-foreground transition-transform duration-200">
+        {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+      </div>
+    </button>
+  );
+}
+
+export default function PersonaList({ personas, brands, isLoading = false, initialViewMode }: PersonaListProps) {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [viewMode, setViewMode] = useState<ViewMode>((initialViewMode as ViewMode) || 'grid');
+  const [openBrands, setOpenBrands] = useState<Set<string>>(new Set());
+  const [allExpanded, setAllExpanded] = useState(true);
 
   const brandMap = useMemo(() => new Map(brands.map(b => [b.id, b])), [brands]);
+
+  // Initialize all brands as open on first render
+  useMemo(() => {
+    if (brands.length > 0 && openBrands.size === 0 && allExpanded) {
+      setOpenBrands(new Set(brands.map(b => b.id)));
+    }
+  }, [brands]);
 
   const filteredAndSortedPersonas = useMemo(() => {
     if (!personas || !Array.isArray(personas)) return [];
@@ -175,6 +199,28 @@ export default function PersonaList({ personas, brands, isLoading = false, curre
     return result;
   }, [personas, searchQuery, sortField, sortDirection, brandMap]);
 
+  // Group personas by brand
+  const brandGroups = useMemo((): BrandGroup[] => {
+    const groupMap = new Map<string, PersonaSummary[]>();
+    
+    filteredAndSortedPersonas.forEach(p => {
+      const list = groupMap.get(p.brandId) || [];
+      list.push(p);
+      groupMap.set(p.brandId, list);
+    });
+
+    // Sort brands alphabetically, put brands with personas first
+    const groups: BrandGroup[] = [];
+    brands.forEach(brand => {
+      const brandPersonas = groupMap.get(brand.id);
+      if (brandPersonas && brandPersonas.length > 0) {
+        groups.push({ brand, personas: brandPersonas });
+      }
+    });
+
+    return groups;
+  }, [filteredAndSortedPersonas, brands]);
+
   const toggleSort = (field: SortField) => {
     if (sortField === field) {
       setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
@@ -188,21 +234,27 @@ export default function PersonaList({ personas, brands, isLoading = false, curre
     navigate(`/personas/${persona.id}`, { state: { viewMode } });
   };
 
-  const generatePagination = (currentPage: number, totalPages: number) => {
-    if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
-    if (currentPage <= 3) return [1, 2, 3, 4, '...', totalPages];
-    if (currentPage >= totalPages - 2) return [1, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
-    return [1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages];
+  const toggleBrand = (brandId: string) => {
+    setOpenBrands(prev => {
+      const next = new Set(prev);
+      if (next.has(brandId)) {
+        next.delete(brandId);
+      } else {
+        next.add(brandId);
+      }
+      return next;
+    });
   };
 
-  const handlePageClick = (page: number | string, event?: React.MouseEvent) => {
-    if (event) event.preventDefault();
-    if (typeof page === 'number' && page > 0 && page <= totalPages && page !== currentPage) {
-      onPageChange(page);
+  const toggleAll = () => {
+    if (allExpanded) {
+      setOpenBrands(new Set());
+      setAllExpanded(false);
+    } else {
+      setOpenBrands(new Set(brands.map(b => b.id)));
+      setAllExpanded(true);
     }
   };
-
-  const paginationRange = generatePagination(currentPage, totalPages);
 
   const SortIcon = ({ field }: { field: SortField }) => {
     if (sortField !== field) return <ArrowUpDown className="h-3.5 w-3.5 opacity-40" />;
@@ -281,6 +333,16 @@ export default function PersonaList({ personas, brands, isLoading = false, curre
             Data <SortIcon field="date" />
           </Button>
 
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={toggleAll}
+            className="h-10 px-3 gap-1.5 shadow-sm border border-muted/50 text-muted-foreground"
+            title={allExpanded ? 'Recolher todas' : 'Expandir todas'}
+          >
+            {allExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+          </Button>
+
           {hasActiveFilters && (
             <Button
               variant="ghost"
@@ -316,132 +378,101 @@ export default function PersonaList({ personas, brands, isLoading = false, curre
         </ToggleGroup>
       </div>
 
-      {/* Content */}
+      {/* Content grouped by brand */}
       {isLoading ? (
-        viewMode === 'list' ? (
-          <div className="bg-card rounded-xl shadow-sm overflow-hidden">
-            <Table><TableBody><LoadingRows /></TableBody></Table>
-          </div>
-        ) : (
-          <LoadingGrid />
-        )
-      ) : filteredAndSortedPersonas.length === 0 ? (
+        <LoadingGrid />
+      ) : brandGroups.length === 0 ? (
         <EmptyState />
-      ) : viewMode === 'list' ? (
-        <div className="bg-card rounded-xl shadow-sm overflow-hidden border border-muted/50">
-          <Table>
-            <TableHeader>
-              <TableRow className="hover:bg-transparent border-b border-border/20">
-                <TableHead className="w-1 p-0" />
-                <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
-                  Persona
-                </TableHead>
-                <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-semibold hidden md:table-cell">
-                  Marca
-                </TableHead>
-                <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-semibold text-right">
-                  Data de Criação
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredAndSortedPersonas.map((persona) => {
-                const brand = brandMap.get(persona.brandId);
-                const color = brand?.brandColor || DEFAULT_COLOR;
-                return (
-                  <TableRow
-                    key={persona.id}
-                    onClick={() => handleSelectPersona(persona)}
-                    className="cursor-pointer transition-colors duration-150 border-b border-border/10 hover:bg-muted/50"
-                  >
-                    <TableCell className="w-1 p-0">
-                      <div className="w-1 h-full min-h-[48px] rounded-r-full" style={{ backgroundColor: color }} />
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        {brand?.avatarUrl ? (
-                          <img
-                            src={brand.avatarUrl}
-                            alt={brand.name}
-                            className="w-8 h-8 rounded-full object-cover flex-shrink-0 shadow-sm"
-                          />
+      ) : (
+        <div className="space-y-3">
+          {brandGroups.map(({ brand, personas: groupPersonas }) => {
+            const isOpen = openBrands.has(brand.id);
+            const color = brand.brandColor || DEFAULT_COLOR;
+
+            return (
+              <div
+                key={brand.id}
+                className="bg-card/50 rounded-xl border border-border/20 overflow-hidden transition-all duration-200"
+              >
+                <BrandGroupHeader
+                  brand={brand}
+                  personaCount={groupPersonas.length}
+                  isOpen={isOpen}
+                  onToggle={() => toggleBrand(brand.id)}
+                />
+
+                <AnimatePresence initial={false}>
+                  {isOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.25, ease: 'easeInOut' }}
+                      className="overflow-hidden"
+                    >
+                      <div className="px-4 pb-4 pt-1">
+                        {viewMode === 'grid' ? (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                            {groupPersonas.map((persona) => (
+                              <PersonaCard
+                                key={persona.id}
+                                persona={persona}
+                                brandInfo={brand}
+                                onSelect={() => handleSelectPersona(persona)}
+                              />
+                            ))}
+                          </div>
                         ) : (
-                          <div
-                            className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs flex-shrink-0 shadow-sm"
-                            style={{ backgroundColor: color }}
-                          >
-                            {persona.name.charAt(0).toUpperCase()}
+                          <div className="bg-card rounded-xl shadow-sm overflow-hidden border border-muted/50">
+                            <Table>
+                              <TableHeader>
+                                <TableRow className="hover:bg-transparent border-b border-border/20">
+                                  <TableHead className="w-1 p-0" />
+                                  <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
+                                    Persona
+                                  </TableHead>
+                                  <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-semibold text-right">
+                                    Data de Criação
+                                  </TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {groupPersonas.map((persona) => (
+                                  <TableRow
+                                    key={persona.id}
+                                    onClick={() => handleSelectPersona(persona)}
+                                    className="cursor-pointer transition-colors duration-150 border-b border-border/10 hover:bg-muted/50"
+                                  >
+                                    <TableCell className="w-1 p-0">
+                                      <div className="w-1 h-full min-h-[48px] rounded-r-full" style={{ backgroundColor: color }} />
+                                    </TableCell>
+                                    <TableCell>
+                                      <div className="flex items-center gap-3">
+                                        <div
+                                          className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs flex-shrink-0 shadow-sm"
+                                          style={{ backgroundColor: color }}
+                                        >
+                                          {persona.name.charAt(0).toUpperCase()}
+                                        </div>
+                                        <span className="font-medium text-foreground">{persona.name}</span>
+                                      </div>
+                                    </TableCell>
+                                    <TableCell className="text-muted-foreground text-right">
+                                      {formatDate(persona.createdAt)}
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
                           </div>
                         )}
-                        <span className="font-medium text-foreground">{persona.name}</span>
                       </div>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground hidden md:table-cell">
-                      {brand?.name || 'Não definida'}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground text-right">
-                      {formatDate(persona.createdAt)}
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-          {filteredAndSortedPersonas.map((persona) => (
-            <PersonaCard
-              key={persona.id}
-              persona={persona}
-              brandInfo={brandMap.get(persona.brandId)}
-              onSelect={() => handleSelectPersona(persona)}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* Pagination - only in list view */}
-      {totalPages > 1 && !isLoading && viewMode === 'list' && (
-        <div className="pt-2">
-          <Pagination>
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious
-                  onClick={(e) => handlePageClick(currentPage - 1, e)}
-                  disabled={currentPage === 1}
-                  className={cn("cursor-pointer", currentPage === 1 && "pointer-events-none opacity-50")}
-                  aria-disabled={currentPage === 1}
-                />
-              </PaginationItem>
-              
-              {paginationRange.map((page, index) => {
-                if (typeof page === 'string') {
-                  return <PaginationEllipsis key={`ellipsis-${index}`} />;
-                }
-                return (
-                  <PaginationItem key={page}>
-                    <PaginationLink
-                      onClick={(e) => handlePageClick(page, e)}
-                      isActive={currentPage === page}
-                      className="cursor-pointer"
-                    >
-                      {page}
-                    </PaginationLink>
-                  </PaginationItem>
-                );
-              })}
-
-              <PaginationItem>
-                <PaginationNext
-                  onClick={(e) => handlePageClick(currentPage + 1, e)}
-                  disabled={currentPage === totalPages}
-                  className={cn("cursor-pointer", currentPage === totalPages && "pointer-events-none opacity-50")}
-                  aria-disabled={currentPage === totalPages}
-                />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
