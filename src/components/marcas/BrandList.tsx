@@ -331,6 +331,7 @@ export default function BrandList({ brands, selectedBrand, onSelectBrand, isLoad
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent border-b border-border/20">
+                <TableHead className="w-1 p-0" />
                 <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
                   Marca
                 </TableHead>
@@ -343,44 +344,50 @@ export default function BrandList({ brands, selectedBrand, onSelectBrand, isLoad
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredAndSortedBrands.map((brand) => (
-                <TableRow
-                  key={brand.id}
-                  onClick={() => onSelectBrand(brand, 'list')}
-                  className={cn(
-                    "cursor-pointer transition-colors duration-150 border-b border-border/10",
-                    selectedBrand?.id === brand.id
-                      ? "bg-primary/8 hover:bg-primary/12"
-                      : "hover:bg-muted/50"
-                  )}
-                >
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      {brand.avatarUrl ? (
-                        <img
-                          src={brand.avatarUrl}
-                          alt={brand.name}
-                          className="w-8 h-8 rounded-full object-cover flex-shrink-0 shadow-sm"
-                        />
-                      ) : (
-                        <div
-                          className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs flex-shrink-0 shadow-sm"
-                          style={{ backgroundColor: brand.brandColor || DEFAULT_BRAND_COLOR }}
-                        >
-                          {brand.name.charAt(0).toUpperCase()}
-                        </div>
-                      )}
-                      <span className="font-medium text-foreground">{brand.name}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground hidden md:table-cell">
-                    {brand.responsible}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground text-right">
-                    {formatDate(brand.createdAt)}
-                  </TableCell>
-                </TableRow>
-              ))}
+              {filteredAndSortedBrands.map((brand) => {
+                const color = brand.brandColor || DEFAULT_BRAND_COLOR;
+                return (
+                  <TableRow
+                    key={brand.id}
+                    onClick={() => onSelectBrand(brand, 'list')}
+                    className={cn(
+                      "cursor-pointer transition-colors duration-150 border-b border-border/10",
+                      selectedBrand?.id === brand.id
+                        ? "bg-primary/8 hover:bg-primary/12"
+                        : "hover:bg-muted/50"
+                    )}
+                  >
+                    <TableCell className="w-1 p-0">
+                      <div className="w-1 h-full min-h-[48px] rounded-r-full" style={{ backgroundColor: color }} />
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        {brand.avatarUrl ? (
+                          <img
+                            src={brand.avatarUrl}
+                            alt={brand.name}
+                            className="w-8 h-8 rounded-full object-cover flex-shrink-0 shadow-sm"
+                          />
+                        ) : (
+                          <div
+                            className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs flex-shrink-0 shadow-sm"
+                            style={{ backgroundColor: color }}
+                          >
+                            {brand.name.charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                        <span className="font-medium text-foreground">{brand.name}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground hidden md:table-cell">
+                      {brand.responsible}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-right">
+                      {formatDate(brand.createdAt)}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </div>
