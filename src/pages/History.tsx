@@ -224,13 +224,8 @@ export default function History() {
 
   return (
     <div className="h-full flex flex-col overflow-hidden -m-4 sm:-m-6 lg:-m-8">
-      {/* Breadcrumb */}
-      <div className="px-4 sm:px-6 lg:px-8 pt-4 flex-shrink-0">
-        <PageBreadcrumb items={[{ label: "Histórico" }]} />
-      </div>
-
       {/* Banner */}
-      <div className="relative w-full h-48 md:h-56 flex-shrink-0 overflow-hidden">
+      <div className="relative w-full h-56 md:h-72 flex-shrink-0 overflow-hidden">
         <img 
           src={historyBanner} 
           alt="" 
