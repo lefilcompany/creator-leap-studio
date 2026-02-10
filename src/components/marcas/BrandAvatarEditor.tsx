@@ -125,20 +125,6 @@ export function BrandAvatarEditor({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md overflow-hidden p-0">
-        {/* Top accent bar */}
-        <div
-          className="h-2 w-full transition-colors duration-300"
-          style={{ backgroundColor: selectedColor || 'hsl(var(--primary))' }}
-        />
-        <div className="flex justify-center">
-          <div
-            className="h-1.5 rounded-b-full transition-colors duration-300"
-            style={{
-              backgroundColor: selectedColor || 'hsl(var(--primary))',
-              width: '50%',
-            }}
-          />
-        </div>
 
         <div className="px-6 pt-4 pb-0">
           <DialogHeader>
