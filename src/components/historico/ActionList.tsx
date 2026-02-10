@@ -465,8 +465,8 @@ export default function ActionList({
         </div>
       )}
 
-      {/* Pagination - only in list view */}
-      {totalPages > 1 && !isLoading && viewMode === 'list' && (
+      {/* Pagination */}
+      {totalPages > 1 && !isLoading && (
         <div className="pt-2">
           <Pagination>
             <PaginationContent>
