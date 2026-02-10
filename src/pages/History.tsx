@@ -60,7 +60,7 @@ export default function History() {
                 brand_id,
                 details,
                 result,
-                brands(id, name)
+                brands(id, name, brand_color)
               `, { count: 'exact' })
               .eq('team_id', user.teamId)
               .order('created_at', { ascending: false });
@@ -103,7 +103,8 @@ export default function History() {
           if (action.brands) {
             brandInfo = {
               id: action.brands.id,
-              name: action.brands.name
+              name: action.brands.name,
+              color: (action.brands as any).brand_color || null,
             };
           } else if (action.details && typeof action.details === 'object' && 'brand' in action.details) {
             brandInfo = {
