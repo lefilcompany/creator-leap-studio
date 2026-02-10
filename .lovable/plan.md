@@ -1,65 +1,124 @@
 
+# Plano: Aplicar padrões de Marcas nos Temas Estrategicos
 
-## Adicionar Avatar/Foto e Editor de Cor Identificadora na Marca
+## Resumo
 
-### O que vai mudar
-
-O avatar da marca (a letra inicial colorida no header) ganha um botao de edicao (lapis). Ao clicar, abre um modal com duas funcionalidades:
-
-1. **Amostragens de cores**: Mostra a letra inicial da marca renderizada em varios circulos com as cores disponiveis, permitindo escolher a cor identificadora visualmente
-2. **Upload de foto**: Permite enviar uma imagem/logo para substituir a letra inicial, com preview e opcao de remover
+Replicar toda a experiencia visual e de navegacao da pagina de Marcas para a pagina de Temas Estrategicos, incluindo:
+- Visualizacao em Grid e Lista com toggle
+- Cor identificadora da marca vinculada visivel nos cards/linhas
+- Nome e avatar da marca visivel nos blocos e lista
+- Navegacao para pagina dedicada de detalhes do tema (`/themes/:themeId`)
+- Layout da pagina de detalhes seguindo o padrao do BrandView
 
 ---
 
-### Detalhes do plano
+## Mudancas Planejadas
 
-#### 1. Banco de dados
-- Adicionar coluna `avatar_url` (text, nullable) na tabela `brands` para armazenar a URL da foto da marca
-- Criar bucket de storage `brand-avatars` (publico) para armazenar as imagens
-- Adicionar politicas RLS no bucket para que usuarios autenticados possam fazer upload/delete dos seus arquivos
+### 1. Carregar dados da marca com cor e avatar na pagina de Temas
 
-#### 2. Novo componente: `BrandAvatarEditor`
-Um modal (Dialog) que mostra:
+**Arquivo:** `src/pages/Themes.tsx`
 
-- **Secao de cores**: Grid com a letra inicial da marca renderizada em circulos coloridos (10 cores pre-definidas), permitindo selecionar a cor identificadora de forma visual e intuitiva
-- **Secao de foto**: Area para upload de imagem com:
-  - Botao para selecionar arquivo (aceita imagens ate 5MB)
-  - Preview da imagem selecionada em formato circular
-  - Botao para remover foto existente
-- Botao "Salvar" que aplica as alteracoes
+A query de brands atualmente nao carrega `brand_color` nem `avatar_url`. Adicionar esses campos ao select para que os cards dos temas possam herdar a cor identificadora da marca.
 
-#### 3. Alteracao no `BrandView.tsx`
-- Adicionar overlay com icone de lapis (Pencil) sobre o avatar da marca no header
-- Ao clicar, abre o modal `BrandAvatarEditor`
-- O avatar passa a mostrar a foto da marca quando disponivel, ou a letra inicial com a cor quando nao
-- Integrar o upload com o bucket `brand-avatars` do storage
-- Incluir `avatar_url` no fluxo de save existente
+### 2. Refatorar ThemeList para ter Grid + Lista (igual BrandList)
 
-#### 4. Alteracao no `BrandList.tsx`
-- Na listagem (grid e list), exibir a foto da marca quando disponivel em vez da letra inicial
+**Arquivo:** `src/components/temas/ThemeList.tsx`
 
-#### 5. Fluxo tecnico
+Substituir completamente o componente para seguir o padrao do BrandList:
+- Toolbar com busca, botoes de ordenacao (Nome/Data), toggle Grid/Lista
+- **Grid view**: Cards com barra de cor da marca no topo, avatar/inicial da marca, titulo do tema, nome da marca, data
+- **List view**: Tabela com avatar da marca, titulo do tema, nome da marca, data
+- Paginacao apenas no modo lista (igual Marcas)
+- Ao clicar, navegar para `/themes/:themeId` ao inves de abrir Sheet
+
+### 3. Criar pagina ThemeView (detalhe do tema)
+
+**Novo arquivo:** `src/pages/ThemeView.tsx`
+
+Pagina dedicada para visualizar e editar um tema, seguindo o padrao do BrandView:
+- Header hero com gradiente usando a cor da marca vinculada
+- Breadcrumb com navegacao de volta para Temas (preservando viewMode)
+- Avatar da marca no header
+- Edicao inline dos campos do tema
+- Botao salvar com deteccao de mudancas
+- Botao deletar com confirmacao
+- Secao de paleta de cores do tema
+
+### 4. Adicionar rota para ThemeView
+
+**Arquivo:** `src/App.tsx`
+
+Adicionar rota: `<Route path="themes/:themeId" element={<ThemeView />} />`
+
+### 5. Atualizar pagina Themes.tsx
+
+**Arquivo:** `src/pages/Themes.tsx`
+
+- Remover Sheet/Drawer de detalhes (nao sera mais usado)
+- Remover estado de selectedTheme e logica de carregamento de detalhes
+- Alterar `onSelectTheme` para navegar para `/themes/:themeId`
+- Adicionar suporte a `initialViewMode` vindo do state da rota
+- Simplificar o layout para seguir o padrao de Brands (sem `overflow-hidden` no wrapper)
+
+### 6. Atualizar tipo StrategicThemeSummary
+
+**Arquivo:** `src/types/theme.ts`
+
+Nenhuma mudanca necessaria - o tipo ja tem `brandId` que e o suficiente para buscar cor/avatar do mapa de brands.
+
+---
+
+## Detalhes Tecnicos
+
+### Fluxo de dados para cor da marca nos temas
 
 ```text
-Usuario clica no lapis do avatar
-       |
-       v
-Abre modal BrandAvatarEditor
-       |
-       +-- Escolhe cor --> Atualiza preview da letra com a cor
-       |
-       +-- Upload foto --> Valida (imagem, <5MB)
-       |                   Upload para bucket brand-avatars
-       |                   Salva avatar_url na tabela brands
-       |
-       v
-Fecha modal, avatar atualizado no header
+Themes.tsx carrega brands com brand_color + avatar_url
+  -> passa para ThemeList como prop
+  -> ThemeList cria brandMap com {id, name, brandColor, avatarUrl}
+  -> Cards/linhas usam brandMap para exibir cor e avatar
 ```
 
-#### 6. Arquivos modificados/criados
-- **Novo**: `src/components/marcas/BrandAvatarEditor.tsx` - Modal de edicao
-- **Migracao SQL**: Coluna `avatar_url` + bucket `brand-avatars` + politicas RLS
-- **Editado**: `src/pages/BrandView.tsx` - Integrar lapis e modal no avatar do header
-- **Editado**: `src/components/marcas/BrandList.tsx` - Mostrar foto da marca na listagem
-- **Editado**: `src/types/brand.ts` - Adicionar campo `avatarUrl`
-- **Editado**: `src/hooks/useBrands.ts` - Incluir `avatar_url` no mapeamento
+### Estrutura do ThemeCard (Grid)
+
+```text
++----------------------------------+
+| [barra de cor da marca]          |
+|                                  |
+|  [avatar marca] Titulo do Tema   |
+|                 Marca: Nome      |
+|                                  |
+|  Criado em DD/MM/YYYY    [cor]   |
++----------------------------------+
+```
+
+### Estrutura do ThemeView
+
+```text
+[gradiente com cor da marca]
+  [breadcrumb: Temas > Nome do Tema]
+  [avatar marca] Nome do Tema
+                 Marca: Nome da Marca
+
+[Coluna principal]          [Coluna lateral]
+  Secao Informacoes           Paleta de Cores
+  - Titulo                    (ColorPicker)
+  - Descricao
+  - Tom de Voz
+  - Publico-Alvo
+  - Objetivos
+  - Macro Temas
+  - Acao Esperada
+  - Formatos
+  - Plataformas
+  - Hashtags
+  - Info Adicional
+```
+
+### Arquivos criados
+- `src/pages/ThemeView.tsx`
+
+### Arquivos modificados
+- `src/pages/Themes.tsx` (simplificar, remover Sheet/Drawer, navegar para rota)
+- `src/components/temas/ThemeList.tsx` (refatorar para Grid+Lista)
+- `src/App.tsx` (adicionar rota)
