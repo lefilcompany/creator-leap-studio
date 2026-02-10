@@ -467,14 +467,9 @@ export default function ActionList({
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex flex-col">
-                        <Badge className={cn("text-[10px] w-fit mb-0.5 border-0", style.background, style.color)}>
-                          {displayType}
-                        </Badge>
-                        <span className="font-medium text-sm text-foreground line-clamp-1">
-                          {action.title || displayType}
-                        </span>
-                      </div>
+                      <Badge className={cn("text-[10px] w-fit border-0 hover:bg-inherit", style.background, style.color)}>
+                        {displayType}
+                      </Badge>
                     </TableCell>
                     <TableCell className="text-muted-foreground text-sm hidden md:table-cell">
                       {action.brand?.name || '—'}
