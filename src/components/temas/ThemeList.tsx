@@ -340,6 +340,7 @@ export default function ThemeList({ themes, brands, isLoading = false, currentPa
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent border-b border-border/20">
+                <TableHead className="w-1 p-0" />
                 <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
                   Tema
                 </TableHead>
@@ -361,6 +362,9 @@ export default function ThemeList({ themes, brands, isLoading = false, currentPa
                     onClick={() => handleSelectTheme(theme)}
                     className="cursor-pointer transition-colors duration-150 border-b border-border/10 hover:bg-muted/50"
                   >
+                    <TableCell className="w-1 p-0">
+                      <div className="w-1 h-full min-h-[48px] rounded-r-full" style={{ backgroundColor: color }} />
+                    </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-3">
                         {brand?.avatarUrl ? (
