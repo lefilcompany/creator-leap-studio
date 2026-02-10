@@ -220,9 +220,9 @@ export function ColorPicker({ colors, onColorsChange, maxColors = 10, compact = 
 
             <Card>
                 <CardContent className="p-4">
-                    <div className={compact ? "space-y-4" : "grid grid-cols-1 lg:grid-cols-12 gap-4"}>
-                        {/* Seletor Visual - 4 colunas */}
-                        <div className={compact ? "space-y-3" : "lg:col-span-4 space-y-3"}>
+                    <div className={compact ? "space-y-4" : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4"}>
+                        {/* Seletor Visual */}
+                        <div className={compact ? "space-y-3" : "md:col-span-1 lg:col-span-4 space-y-3"}>
                             <Tabs value={activeTab} onValueChange={setActiveTab}>
                                 <TabsList className="grid w-full grid-cols-2">
                                     <TabsTrigger value="hex">HEX</TabsTrigger>
@@ -233,71 +233,75 @@ export function ColorPicker({ colors, onColorsChange, maxColors = 10, compact = 
                                     <div className="w-full">
                                         <HexColorPicker color={currentColor} onChange={handleHexChange} />
                                     </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="hex-input" className="text-sm">Valor HEX</Label>
-                                        <div className="flex items-center">
-                                            <span className="pl-2 pr-1 select-none text-muted-foreground font-mono text-lg">#</span>
-                                            <Input
-                                                id="hex-input"
-                                                value={hexInput}
-                                                onChange={handleManualHexChange}
-                                                placeholder="ffffff"
-                                                maxLength={6}
-                                                className="text-center font-mono"
-                                                style={{ paddingLeft: 0 }}
-                                            />
-                                        </div>
-                                    </div>
                                 </TabsContent>
 
                                 <TabsContent value="rgb" className="space-y-3 mt-2">
                                     <div className="w-full">
                                         <RgbColorPicker color={currentRgb} onChange={handleRgbChange} />
                                     </div>
-                                    <div className="grid grid-cols-3 gap-2">
-                                        <div>
-                                            <Label htmlFor="r-input" className="text-sm">R</Label>
-                                            <Input
-                                                id="r-input"
-                                                type="number"
-                                                min="0"
-                                                max="255"
-                                                value={currentRgb.r}
-                                                onChange={(e) => handleManualRgbChange('r', e.target.value)}
-                                                className="text-center"
-                                            />
-                                        </div>
-                                        <div>
-                                            <Label htmlFor="g-input" className="text-sm">G</Label>
-                                            <Input
-                                                id="g-input"
-                                                type="number"
-                                                min="0"
-                                                max="255"
-                                                value={currentRgb.g}
-                                                onChange={(e) => handleManualRgbChange('g', e.target.value)}
-                                                className="text-center"
-                                            />
-                                        </div>
-                                        <div>
-                                            <Label htmlFor="b-input" className="text-sm">B</Label>
-                                            <Input
-                                                id="b-input"
-                                                type="number"
-                                                min="0"
-                                                max="255"
-                                                value={currentRgb.b}
-                                                onChange={(e) => handleManualRgbChange('b', e.target.value)}
-                                                className="text-center"
-                                            />
-                                        </div>
-                                    </div>
                                 </TabsContent>
                             </Tabs>
                         </div>
 
-                        {/* Preview e Controles - 4 colunas */}
-                        <div className={compact ? "space-y-3" : "lg:col-span-4 space-y-3"}>
+                        {/* Preview e Controles */}
+                        <div className={compact ? "space-y-3" : "md:col-span-1 lg:col-span-4 space-y-3"}>
+                            {activeTab === 'hex' ? (
+                                <div className="space-y-2">
+                                    <Label htmlFor="hex-input" className="text-sm">Valor HEX</Label>
+                                    <div className="flex items-center">
+                                        <span className="pl-2 pr-1 select-none text-muted-foreground font-mono text-lg">#</span>
+                                        <Input
+                                            id="hex-input"
+                                            value={hexInput}
+                                            onChange={handleManualHexChange}
+                                            placeholder="ffffff"
+                                            maxLength={6}
+                                            className="text-center font-mono"
+                                            style={{ paddingLeft: 0 }}
+                                        />
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-3 gap-2">
+                                    <div>
+                                        <Label htmlFor="r-input" className="text-sm">R</Label>
+                                        <Input
+                                            id="r-input"
+                                            type="number"
+                                            min="0"
+                                            max="255"
+                                            value={currentRgb.r}
+                                            onChange={(e) => handleManualRgbChange('r', e.target.value)}
+                                            className="text-center"
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label htmlFor="g-input" className="text-sm">G</Label>
+                                        <Input
+                                            id="g-input"
+                                            type="number"
+                                            min="0"
+                                            max="255"
+                                            value={currentRgb.g}
+                                            onChange={(e) => handleManualRgbChange('g', e.target.value)}
+                                            className="text-center"
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label htmlFor="b-input" className="text-sm">B</Label>
+                                        <Input
+                                            id="b-input"
+                                            type="number"
+                                            min="0"
+                                            max="255"
+                                            value={currentRgb.b}
+                                            onChange={(e) => handleManualRgbChange('b', e.target.value)}
+                                            className="text-center"
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
                             <div className="space-y-2">
                                 <Label htmlFor="color-name" className="text-sm">Nome da Cor (opcional)</Label>
                                 <Input
@@ -337,7 +341,7 @@ export function ColorPicker({ colors, onColorsChange, maxColors = 10, compact = 
                         </div>
 
                         {/* Lista de Cores - 4 colunas */}
-                        <div className={compact ? "space-y-3" : "lg:col-span-4 space-y-3 mt-1"}>
+                        <div className={compact ? "space-y-3" : "md:col-span-2 lg:col-span-4 space-y-3 mt-1"}>
                             <div className="flex items-center justify-between">
                                 <Label className="text-sm font-medium">
                                     Cores Selecionadas
