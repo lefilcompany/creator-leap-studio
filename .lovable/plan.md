@@ -1,79 +1,65 @@
 
 
-# Refatoracao Visual: Layout Flutuante com Background Rosa
+## Adicionar Avatar/Foto e Editor de Cor Identificadora na Marca
 
-## Conceito
-Transformar o layout do sistema para que a sidebar fique em um plano de fundo com cor `#F5DDEE`, e a area de conteudo (Header + paginas) flutue como um "board" branco sobre esse background, similar a imagem de referencia.
+### O que vai mudar
 
-## Estrutura Visual
+O avatar da marca (a letra inicial colorida no header) ganha um botao de edicao (lapis). Ao clicar, abre um modal com duas funcionalidades:
+
+1. **Amostragens de cores**: Mostra a letra inicial da marca renderizada em varios circulos com as cores disponiveis, permitindo escolher a cor identificadora visualmente
+2. **Upload de foto**: Permite enviar uma imagem/logo para substituir a letra inicial, com preview e opcao de remover
+
+---
+
+### Detalhes do plano
+
+#### 1. Banco de dados
+- Adicionar coluna `avatar_url` (text, nullable) na tabela `brands` para armazenar a URL da foto da marca
+- Criar bucket de storage `brand-avatars` (publico) para armazenar as imagens
+- Adicionar politicas RLS no bucket para que usuarios autenticados possam fazer upload/delete dos seus arquivos
+
+#### 2. Novo componente: `BrandAvatarEditor`
+Um modal (Dialog) que mostra:
+
+- **Secao de cores**: Grid com a letra inicial da marca renderizada em circulos coloridos (10 cores pre-definidas), permitindo selecionar a cor identificadora de forma visual e intuitiva
+- **Secao de foto**: Area para upload de imagem com:
+  - Botao para selecionar arquivo (aceita imagens ate 5MB)
+  - Preview da imagem selecionada em formato circular
+  - Botao para remover foto existente
+- Botao "Salvar" que aplica as alteracoes
+
+#### 3. Alteracao no `BrandView.tsx`
+- Adicionar overlay com icone de lapis (Pencil) sobre o avatar da marca no header
+- Ao clicar, abre o modal `BrandAvatarEditor`
+- O avatar passa a mostrar a foto da marca quando disponivel, ou a letra inicial com a cor quando nao
+- Integrar o upload com o bucket `brand-avatars` do storage
+- Incluir `avatar_url` no fluxo de save existente
+
+#### 4. Alteracao no `BrandList.tsx`
+- Na listagem (grid e list), exibir a foto da marca quando disponivel em vez da letra inicial
+
+#### 5. Fluxo tecnico
 
 ```text
-+------------------------------------------------------------+
-|  Background #F5DDEE (tela inteira)                         |
-|                                                            |
-|  +----------+  +---------------------------------------+  |
-|  | Sidebar   |  | Board flutuante (branco)              |  |
-|  | (sem borda |  | +-----------------------------------+|  |
-|  |  propria,  |  | | Header                            ||  |
-|  |  sobre o   |  | +-----------------------------------+|  |
-|  |  background|  | | Main Content (scroll interno)     ||  |
-|  |  rosa)     |  | |                                   ||  |
-|  |            |  | |                                   ||  |
-|  +----------+  +---------------------------------------+  |
-+------------------------------------------------------------+
+Usuario clica no lapis do avatar
+       |
+       v
+Abre modal BrandAvatarEditor
+       |
+       +-- Escolhe cor --> Atualiza preview da letra com a cor
+       |
+       +-- Upload foto --> Valida (imagem, <5MB)
+       |                   Upload para bucket brand-avatars
+       |                   Salva avatar_url na tabela brands
+       |
+       v
+Fecha modal, avatar atualizado no header
 ```
 
-## Alteracoes por Arquivo
-
-### 1. `src/components/DashboardLayout.tsx`
-- Trocar o `bg-gradient-to-br from-background via-background to-muted/10` do container principal por `bg-[#F5DDEE]`
-- Envolver o conteudo (Header + main) em um wrapper com `bg-card rounded-2xl shadow-xl m-2 overflow-hidden` para criar o efeito de board flutuante
-- A sidebar fica diretamente sobre o background rosa, sem borda ou sombra propria
-
-### 2. `src/components/AppSidebar.tsx`
-- Remover `border-r border-primary/10 shadow-md shadow-primary/20` do Sidebar
-- Trocar `bg-card` do SidebarContent por `bg-transparent` para que a sidebar fique transparente sobre o fundo rosa
-- Ajustar cores dos itens de navegacao: remover `bg-background` dos estados inativos e usar cores que funcionem sobre o fundo rosa (texto escuro, hover com fundo semi-transparente branco)
-- O item ativo pode usar fundo branco semi-transparente (`bg-white/70`) para destaque
-- Os ActionButtons mantem suas cores mas com ajustes para contraste sobre fundo rosa
-- O bloco de creditos mantem o gradiente pois ja tem cores proprias
-- No mobile (Sheet), manter `bg-[#F5DDEE]` como fundo do Sheet
-
-### 3. `src/components/Header.tsx`
-- Remover `shadow-md shadow-primary/20` e `border-b border-primary/10`
-- Trocar `bg-card/95 backdrop-blur-md` por `bg-transparent` pois o header ja esta dentro do board branco flutuante
-- Manter uma borda inferior sutil (`border-b border-border/10`) para separar do conteudo
-
-### 4. `src/components/system/SystemLayout.tsx`
-- Mesma logica do DashboardLayout: background rosa + board flutuante
-
-### 5. `src/components/system/SystemSidebar.tsx`
-- Mesma logica do AppSidebar: sidebar transparente sobre fundo rosa
-
-### 6. `src/index.css`
-- Adicionar suporte para dark mode: no dark mode, usar uma versao mais escura do rosa (ex: `#2D1F28`) como background em vez de `#F5DDEE`
-- Ajustar a variavel `--sidebar` se necessario
-
-## Detalhes Tecnicos
-
-### Sidebar transparente
-Os nav items precisam de ajustes nas cores para funcionar sobre fundo rosa:
-- Estado inativo: `text-foreground/70 hover:bg-white/40`
-- Estado ativo: `bg-white/70 text-primary shadow-sm`
-- Disabled: manter `opacity-50` com `bg-white/20`
-
-### Board flutuante
-O wrapper do conteudo usa:
-```
-className="flex flex-1 flex-col min-w-0 bg-card rounded-l-2xl shadow-xl my-2 mr-2 overflow-hidden"
-```
-- `rounded-l-2xl` pois o lado esquerdo encosta na sidebar
-- `my-2 mr-2` para criar gap visual entre o board e as bordas da tela
-- `overflow-hidden` para conter o scroll interno
-
-### Dark mode
-No dark mode, o background rosa muda para uma tonalidade escura complementar, e o board flutuante usa `bg-card` que ja e escuro.
-
-### Mobile
-No mobile, o layout nao precisa do efeito flutuante (tela muito pequena). O background rosa aparece, a sidebar e um Sheet com fundo rosa, e o conteudo ocupa toda a area.
-
+#### 6. Arquivos modificados/criados
+- **Novo**: `src/components/marcas/BrandAvatarEditor.tsx` - Modal de edicao
+- **Migracao SQL**: Coluna `avatar_url` + bucket `brand-avatars` + politicas RLS
+- **Editado**: `src/pages/BrandView.tsx` - Integrar lapis e modal no avatar do header
+- **Editado**: `src/components/marcas/BrandList.tsx` - Mostrar foto da marca na listagem
+- **Editado**: `src/types/brand.ts` - Adicionar campo `avatarUrl`
+- **Editado**: `src/hooks/useBrands.ts` - Incluir `avatar_url` no mapeamento
