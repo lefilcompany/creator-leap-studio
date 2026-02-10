@@ -230,13 +230,13 @@ export function ColorPicker({ colors, onColorsChange, maxColors = 10, compact = 
                                 </TabsList>
 
                                 <TabsContent value="hex" className="space-y-3 mt-2">
-                                    <div className="w-full [&_.react-colorful]:!w-full [&_.react-colorful]:!h-[220px] md:[&_.react-colorful]:!h-[260px]">
+                                    <div className="w-full [&_.react-colorful]:!w-full [&_.react-colorful]:!h-[220px] md:[&_.react-colorful]:!h-[260px] [&_.react-colorful__pointer]:!w-5 [&_.react-colorful__pointer]:!h-5">
                                         <HexColorPicker color={currentColor} onChange={handleHexChange} />
                                     </div>
                                 </TabsContent>
 
                                 <TabsContent value="rgb" className="space-y-3 mt-2">
-                                    <div className="w-full [&_.react-colorful]:!w-full [&_.react-colorful]:!h-[220px] md:[&_.react-colorful]:!h-[260px]">
+                                    <div className="w-full [&_.react-colorful]:!w-full [&_.react-colorful]:!h-[220px] md:[&_.react-colorful]:!h-[260px] [&_.react-colorful__pointer]:!w-5 [&_.react-colorful__pointer]:!h-5">
                                         <RgbColorPicker color={currentRgb} onChange={handleRgbChange} />
                                     </div>
                                 </TabsContent>
