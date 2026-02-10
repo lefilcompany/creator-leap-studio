@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Plus, Tag, Coins, HelpCircle } from 'lucide-react';
@@ -23,50 +24,43 @@ export default function MarcasPage() {
   const navigate = useNavigate();
   const { user, team, refreshTeamData, refreshUserCredits } = useAuth();
   const { t } = useTranslation();
-  const [brands, setBrands] = useState<BrandSummary[]>([]);
-  const [isLoadingBrands, setIsLoadingBrands] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [brandToEdit, setBrandToEdit] = useState<Brand | null>(null);
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
+  const queryClient = useQueryClient();
 
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(0);
   const ITEMS_PER_PAGE = 10;
 
-  useEffect(() => {
-    const loadBrands = async () => {
-      if (!user?.id) return;
-      setIsLoadingBrands(true);
-      try {
-        const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-        const { data, error, count } = await supabase
-          .from('brands')
-          .select('id, name, responsible, brand_color, created_at, updated_at', { count: 'exact' })
-          .order('name', { ascending: true })
-          .range(startIndex, startIndex + ITEMS_PER_PAGE - 1);
+  const { data: brandsQueryData, isLoading: isQueryLoading } = useQuery({
+    queryKey: ['brands', user?.id, currentPage],
+    queryFn: async () => {
+      if (!user?.id) return { brands: [] as BrandSummary[], totalPages: 0 };
+      const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+      const { data, error, count } = await supabase
+        .from('brands')
+        .select('id, name, responsible, brand_color, created_at, updated_at', { count: 'exact' })
+        .order('name', { ascending: true })
+        .range(startIndex, startIndex + ITEMS_PER_PAGE - 1);
 
-        if (error) throw error;
+      if (error) throw error;
 
-        const brands: BrandSummary[] = (data || []).map(brand => ({
-          id: brand.id,
-          name: brand.name,
-          responsible: brand.responsible,
-          brandColor: (brand as any).brand_color || null,
-          createdAt: brand.created_at,
-          updatedAt: brand.updated_at
-        }));
+      const brands: BrandSummary[] = (data || []).map(brand => ({
+        id: brand.id,
+        name: brand.name,
+        responsible: brand.responsible,
+        brandColor: (brand as any).brand_color || null,
+        createdAt: brand.created_at,
+        updatedAt: brand.updated_at
+      }));
 
-        setBrands(brands);
-        setTotalPages(Math.ceil((count || 0) / ITEMS_PER_PAGE));
-      } catch (error) {
-        console.error('Erro ao carregar marcas:', error);
-        toast.error(t.brands.loadError);
-      } finally {
-        setIsLoadingBrands(false);
-      }
-    };
-    loadBrands();
-  }, [user?.id, currentPage]);
+      return { brands, totalPages: Math.ceil((count || 0) / ITEMS_PER_PAGE) };
+    },
+    enabled: !!user?.id,
+  });
+
+  const brands = brandsQueryData?.brands || [];
+  const totalPages = brandsQueryData?.totalPages || 0;
 
   const handleOpenDialog = useCallback((brand: Brand | null = null) => {
     if (brand) {
@@ -136,11 +130,7 @@ export default function MarcasPage() {
 
         if (error) throw error;
 
-        setBrands(prev => prev.map(b => 
-          b.id === brandToEdit.id 
-            ? { ...b, name: formData.name, responsible: formData.responsible, brandColor: formData.brandColor || null, updatedAt: new Date().toISOString() }
-            : b
-        ));
+        queryClient.invalidateQueries({ queryKey: ['brands'] });
         
         toast.success(t.brands.updateSuccess, { id: toastId });
       } else {
@@ -178,16 +168,7 @@ export default function MarcasPage() {
 
         if (error) throw error;
 
-        const newBrandSummary: BrandSummary = {
-          id: data.id,
-          name: formData.name,
-          responsible: formData.responsible,
-          brandColor: formData.brandColor || null,
-          createdAt: data.created_at,
-          updatedAt: data.updated_at
-        };
-        
-        setBrands(prev => [...prev, newBrandSummary]);
+        queryClient.invalidateQueries({ queryKey: ['brands'] });
         
         if (isFree && user.teamId) {
           await supabase
@@ -330,7 +311,7 @@ export default function MarcasPage() {
           brands={brands}
           selectedBrand={null}
           onSelectBrand={handleSelectBrand}
-          isLoading={isLoadingBrands}
+          isLoading={isQueryLoading}
           currentPage={currentPage}
           totalPages={totalPages}
           onPageChange={setCurrentPage}
