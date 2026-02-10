@@ -1,12 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
-import { motion, AnimatePresence } from "framer-motion";
-import { Home, Tag, Users, Calendar, History, Sparkles, CheckCircle, Rocket, Palette, Zap, Coins, UsersRound } from "lucide-react";
+import { Home, Tag, Users, Calendar, History, Sparkles, CheckCircle, Palette, Coins, UsersRound } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarRail, useSidebar } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/hooks/useAuth";
@@ -14,6 +12,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import logoCreatorPreta from "@/assets/logoCreatorPreta.png";
 import logoCreatorBranca from "@/assets/logoCreatorBranca.png";
 import creatorSymbol from "@/assets/creator-symbol.png";
+
 function NavItem({
   id,
   href,
@@ -33,54 +32,50 @@ function NavItem({
 }) {
   const location = useLocation();
   const isActive = location.pathname === href;
+
   if (disabled) {
-    return <div className={cn("flex items-center gap-4 p-3 rounded-lg transition-all duration-400 ease-out cursor-not-allowed opacity-50", "text-muted-foreground bg-background")}>
+    return (
+      <div className={cn(
+        "flex items-center gap-4 p-2.5 rounded-lg cursor-not-allowed opacity-50",
+        collapsed ? "justify-center" : "",
+        "text-muted-foreground bg-background"
+      )}>
         <Icon className="h-5 w-5 flex-shrink-0" />
-        {!collapsed && <motion.span initial={{
-        opacity: 0,
-        x: -10
-      }} animate={{
-        opacity: 1,
-        x: 0
-      }} exit={{
-        opacity: 0,
-        x: -10
-      }} transition={{
-        duration: 0.3
-      }} className="font-medium text-sm">
-            {label}
-          </motion.span>}
-      </div>;
+        {!collapsed && <span className="font-medium text-sm">{label}</span>}
+      </div>
+    );
   }
-  const linkContent = <NavLink id={id} to={href} onClick={onNavigate} className={cn("flex items-center gap-4 p-2.5 rounded-lg transition-all duration-400 ease-out group", collapsed ? "justify-center" : "", isActive ? "bg-primary/10 text-primary" : "text-muted-foreground bg-background hover:bg-muted hover:text-foreground")}>
+
+  const linkContent = (
+    <NavLink
+      id={id}
+      to={href}
+      onClick={onNavigate}
+      className={cn(
+        "flex items-center gap-4 p-2.5 rounded-lg transition-colors duration-300 ease-in-out",
+        collapsed ? "justify-center" : "",
+        isActive
+          ? "bg-primary/10 text-primary"
+          : "text-muted-foreground bg-background hover:bg-muted hover:text-foreground"
+      )}
+    >
       <Icon className="h-5 w-5 flex-shrink-0" />
-      {!collapsed && <motion.span initial={{
-      opacity: 0,
-      x: -10
-    }} animate={{
-      opacity: 1,
-      x: 0
-    }} exit={{
-      opacity: 0,
-      x: -10
-    }} transition={{
-      duration: 0.3
-    }} className="font-medium text-sm">
-          {label}
-        </motion.span>}
-    </NavLink>;
+      {!collapsed && <span className="font-medium text-sm">{label}</span>}
+    </NavLink>
+  );
+
   if (collapsed) {
-    return <Tooltip>
-        <TooltipTrigger asChild>
-          {linkContent}
-        </TooltipTrigger>
-        <TooltipContent side="right">
-          <p>{label}</p>
-        </TooltipContent>
-      </Tooltip>;
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>{linkContent}</TooltipTrigger>
+        <TooltipContent side="right"><p>{label}</p></TooltipContent>
+      </Tooltip>
+    );
   }
+
   return linkContent;
 }
+
 function ActionButton({
   id,
   href,
@@ -103,199 +98,160 @@ function ActionButton({
   const location = useLocation();
   const navigate = useNavigate();
   const isActive = location.pathname === href;
+
   const variantClasses = {
     primary: {
-      active: "bg-background border border-primary text-primary shadow-lg scale-105",
+      active: "bg-background border border-primary text-primary shadow-lg",
       inactive: "bg-primary text-primary-foreground hover:bg-background hover:text-primary hover:border hover:border-primary"
     },
     accent: {
-      active: "bg-background border border-accent text-accent shadow-lg scale-105",
+      active: "bg-background border border-accent text-accent shadow-lg",
       inactive: "bg-accent text-accent-foreground hover:bg-background hover:text-accent hover:border hover:border-accent"
     },
     secondary: {
-      active: "bg-background border border-secondary text-secondary shadow-lg scale-105",
+      active: "bg-background border border-secondary text-secondary shadow-lg",
       inactive: "bg-secondary text-secondary-foreground hover:bg-background hover:text-secondary hover:border hover:border-secondary"
     }
   };
+
   if (disabled) {
-    return <div className={cn("flex items-center gap-3 p-3 rounded-lg cursor-not-allowed opacity-50", "bg-muted text-muted-foreground")}>
-                <Icon className="h-5 w-5 flex-shrink-0" />
-                {!collapsed && <motion.span initial={{
-        opacity: 0,
-        x: -10
-      }} animate={{
-        opacity: 1,
-        x: 0
-      }} exit={{
-        opacity: 0,
-        x: -10
-      }} transition={{
-        duration: 0.3
-      }} className="font-medium text-sm">
-                    {label}
-                  </motion.span>}
-            </div>;
+    return (
+      <div className={cn(
+        "flex items-center gap-3 p-2.5 rounded-lg cursor-not-allowed opacity-50",
+        collapsed ? "justify-center" : "",
+        "bg-muted text-muted-foreground"
+      )}>
+        <Icon className="h-5 w-5 flex-shrink-0" />
+        {!collapsed && <span className="font-medium text-sm">{label}</span>}
+      </div>
+    );
   }
+
   const handleClick = (e: React.MouseEvent) => {
     if (isActive) {
       e.preventDefault();
-      navigate(href, {
-        state: {
-          reset: true
-        },
-        replace: true
-      });
+      navigate(href, { state: { reset: true }, replace: true });
     }
     onNavigate?.();
   };
-  const linkContent = <NavLink id={id} to={href} onClick={handleClick} className={cn("flex items-center gap-3 p-2.5 rounded-lg transition-all duration-400 ease-out transform hover:scale-105", collapsed ? "justify-center" : "", isActive ? variantClasses[variant].active : variantClasses[variant].inactive)}>
-            <Icon className="h-5 w-5 flex-shrink-0" />
-            {!collapsed && <motion.span initial={{
-      opacity: 0,
-      x: -10
-    }} animate={{
-      opacity: 1,
-      x: 0
-    }} exit={{
-      opacity: 0,
-      x: -10
-    }} transition={{
-      duration: 0.3
-    }} className="font-medium text-sm">
-                {label}
-              </motion.span>}
-        </NavLink>;
+
+  const linkContent = (
+    <NavLink
+      id={id}
+      to={href}
+      onClick={handleClick}
+      className={cn(
+        "flex items-center gap-3 p-2.5 rounded-lg transition-all duration-300 ease-in-out hover:scale-105",
+        collapsed ? "justify-center" : "",
+        isActive ? variantClasses[variant].active : variantClasses[variant].inactive
+      )}
+    >
+      <Icon className="h-5 w-5 flex-shrink-0" />
+      {!collapsed && <span className="font-medium text-sm">{label}</span>}
+    </NavLink>
+  );
+
   if (collapsed) {
-    return <Tooltip>
-                <TooltipTrigger asChild>
-                    {linkContent}
-                </TooltipTrigger>
-                <TooltipContent side="right">
-                    <p>{label}</p>
-                </TooltipContent>
-            </Tooltip>;
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>{linkContent}</TooltipTrigger>
+        <TooltipContent side="right"><p>{label}</p></TooltipContent>
+      </Tooltip>
+    );
   }
+
   return linkContent;
 }
+
 export function AppSidebar() {
-  const {
-    state,
-    open,
-    setOpen,
-    isFixed
-  } = useSidebar();
+  const { state, open, setOpen } = useSidebar();
   const isMobile = useIsMobile();
-  const {
-    user,
-    team,
-    isTrialExpired
-  } = useAuth();
-  const {
-    theme
-  } = useTheme();
-  const {
-    t
-  } = useTranslation();
+  const { user, isTrialExpired } = useAuth();
+  const { theme } = useTheme();
+  const { t } = useTranslation();
+
   const logo = theme === 'dark' ? logoCreatorBranca : logoCreatorPreta;
   const collapsed = state === "collapsed";
   const isNavigationDisabled = isTrialExpired;
-  const navLinks = [{
-    id: "nav-dashboard",
-    href: "/dashboard",
-    icon: Home,
-    label: t.sidebar.home
-  }, {
-    id: "nav-brands",
-    href: "/brands",
-    icon: Tag,
-    label: t.sidebar.brands
-  }, {
-    id: "nav-themes",
-    href: "/themes",
-    icon: Palette,
-    label: t.sidebar.themes
-  }, {
-    id: "nav-personas",
-    href: "/personas",
-    icon: Users,
-    label: t.sidebar.personas
-  }, {
-    id: "nav-history",
-    href: "/history",
-    icon: History,
-    label: t.sidebar.history
-  }, {
-    id: "nav-team",
-    href: "/team",
-    icon: UsersRound,
-    label: t.sidebar.team
-  }];
-  const actionButtons = [{
-    id: "nav-create-content",
-    href: "/create",
-    icon: Sparkles,
-    label: t.sidebar.createContent,
-    variant: "primary" as const
-  }, {
-    id: "nav-review-content",
-    href: "/review",
-    icon: CheckCircle,
-    label: t.sidebar.reviewContent,
-    variant: "accent" as const
-  }, {
-    id: "nav-plan-content",
-    href: "/plan",
-    icon: Calendar,
-    label: t.sidebar.planContent,
-    variant: "secondary" as const
-  }];
+
+  const navLinks = [
+    { id: "nav-dashboard", href: "/dashboard", icon: Home, label: t.sidebar.home },
+    { id: "nav-brands", href: "/brands", icon: Tag, label: t.sidebar.brands },
+    { id: "nav-themes", href: "/themes", icon: Palette, label: t.sidebar.themes },
+    { id: "nav-personas", href: "/personas", icon: Users, label: t.sidebar.personas },
+    { id: "nav-history", href: "/history", icon: History, label: t.sidebar.history },
+    { id: "nav-team", href: "/team", icon: UsersRound, label: t.sidebar.team },
+  ];
+
+  const actionButtons = [
+    { id: "nav-create-content", href: "/create", icon: Sparkles, label: t.sidebar.createContent, variant: "primary" as const },
+    { id: "nav-review-content", href: "/review", icon: CheckCircle, label: t.sidebar.reviewContent, variant: "accent" as const },
+    { id: "nav-plan-content", href: "/plan", icon: Calendar, label: t.sidebar.planContent, variant: "secondary" as const },
+  ];
+
   const handleMobileNavigate = () => {
-    if (isMobile) {
-      setOpen(false);
-    }
+    if (isMobile) setOpen(false);
   };
-  const sidebarContent = () => <TooltipProvider>
-      {/* Header com Logo e Toggle de Modo */}
-      <div className="pt-4 pb-2 mb-2 px-2 flex items-center justify-between gap-2">
-        <NavLink to="/dashboard" onClick={handleMobileNavigate} id="sidebar-logo" className="flex-1 flex justify-center cursor-pointer hover:opacity-80 transition-opacity duration-500">
-          <AnimatePresence mode="wait">
-            <motion.img key={collapsed ? 'symbol' : 'logo'} src={collapsed ? creatorSymbol : logo} alt={collapsed ? "Creator Symbol" : "Creator Logo"} initial={{
-            opacity: 0,
-            scale: 0.9
-          }} animate={{
-            opacity: 1,
-            scale: 1
-          }} exit={{
-            opacity: 0,
-            scale: 0.9
-          }} transition={{
-            duration: 0.5,
-            ease: "easeInOut"
-          }} className={collapsed ? "h-10 w-10 object-contain" : "h-8 w-auto"} />
-          </AnimatePresence>
+
+  const sidebarContent = () => (
+    <TooltipProvider>
+      {/* Logo */}
+      <div className="pt-4 pb-2 mb-2 px-2 flex items-center justify-center">
+        <NavLink
+          to="/dashboard"
+          onClick={handleMobileNavigate}
+          id="sidebar-logo"
+          className="flex justify-center cursor-pointer hover:opacity-80 transition-opacity duration-300"
+        >
+          {collapsed ? (
+            <img src={creatorSymbol} alt="Creator Symbol" className="h-10 w-10 object-contain" />
+          ) : (
+            <img src={logo} alt="Creator Logo" className="h-8 w-auto" />
+          )}
         </NavLink>
       </div>
-      
-      <motion.nav className={cn("flex-1 flex flex-col overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent", collapsed ? "gap-3 px-2" : "gap-5 px-4")} animate={{
-      paddingLeft: collapsed ? "0.5rem" : "1rem",
-      paddingRight: collapsed ? "0.5rem" : "1rem"
-    }} transition={{
-      duration: 0.5,
-      ease: "easeInOut"
-    }}>
+
+      {/* Navigation */}
+      <nav className={cn(
+        "flex-1 flex flex-col overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent",
+        collapsed ? "gap-3 px-2" : "gap-5 px-4"
+      )}>
         <div className="flex flex-col gap-1.5">
-          {navLinks.map(link => <NavItem key={link.href} {...link} collapsed={collapsed} onNavigate={handleMobileNavigate} disabled={isNavigationDisabled && link.id !== "nav-history"} />)}
+          {navLinks.map(link => (
+            <NavItem
+              key={link.href}
+              {...link}
+              collapsed={collapsed}
+              onNavigate={handleMobileNavigate}
+              disabled={isNavigationDisabled && link.id !== "nav-history"}
+            />
+          ))}
         </div>
 
         <div className="flex flex-col gap-2.5">
-          {actionButtons.map(button => <ActionButton key={button.id} {...button} collapsed={collapsed} onNavigate={handleMobileNavigate} disabled={isNavigationDisabled} />)}
+          {actionButtons.map(button => (
+            <ActionButton
+              key={button.id}
+              {...button}
+              collapsed={collapsed}
+              onNavigate={handleMobileNavigate}
+              disabled={isNavigationDisabled}
+            />
+          ))}
         </div>
 
-        {/* Seção de créditos do usuário */}
-        {user && <div className="mt-auto mb-3 flex flex-col gap-2.5">
-            {collapsed ? <Tooltip>
+        {/* Credits */}
+        {user && (
+          <div className="mt-auto mb-3 flex flex-col gap-2.5">
+            {collapsed ? (
+              <Tooltip>
                 <TooltipTrigger asChild>
-                  <NavLink id="nav-credits" to="/plans" onClick={handleMobileNavigate} className="flex items-center justify-center gap-3 p-3 rounded-lg transition-all duration-400 ease-out transform hover:scale-105 bg-gradient-to-r from-primary to-secondary text-primary-foreground shadow-lg">
+                  <NavLink
+                    id="nav-credits"
+                    to="/plans"
+                    onClick={handleMobileNavigate}
+                    className="flex items-center justify-center gap-3 p-3 rounded-lg transition-all duration-300 ease-in-out hover:scale-105 bg-gradient-to-r from-primary to-secondary text-primary-foreground shadow-lg"
+                  >
                     <Coins className="h-5 w-5 flex-shrink-0" />
                   </NavLink>
                 </TooltipTrigger>
@@ -305,50 +261,48 @@ export function AppSidebar() {
                     <span className="text-xs opacity-80">Clique para comprar</span>
                   </div>
                 </TooltipContent>
-              </Tooltip> : <NavLink id="nav-credits" to="/plans" onClick={handleMobileNavigate} className="flex items-center gap-3 p-3 rounded-lg transition-all duration-400 ease-out transform hover:scale-105 bg-gradient-to-r from-primary to-secondary text-primary-foreground shadow-lg">
+              </Tooltip>
+            ) : (
+              <NavLink
+                id="nav-credits"
+                to="/plans"
+                onClick={handleMobileNavigate}
+                className="flex items-center gap-3 p-3 rounded-lg transition-all duration-300 ease-in-out hover:scale-105 bg-gradient-to-r from-primary to-secondary text-primary-foreground shadow-lg"
+              >
                 <Coins className="h-5 w-5 flex-shrink-0" />
-                <motion.div initial={{
-            opacity: 0,
-            x: -10
-          }} animate={{
-            opacity: 1,
-            x: 0
-          }} exit={{
-            opacity: 0,
-            x: -10
-          }} transition={{
-            duration: 0.3
-          }} className="flex flex-col">
+                <div className="flex flex-col">
                   <span className="font-bold text-sm">{user.credits || 0} créditos</span>
                   <span className="text-xs opacity-80">Comprar mais</span>
-                </motion.div>
-              </NavLink>}
-            
-          </div>}
-      </motion.nav>
-    </TooltipProvider>;
-
-  // Mobile: renderiza Sheet
-  if (isMobile) {
-    return <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="left" className="w-64 p-0 bg-card shadow-md shadow-primary/20">
-          <div className="h-full flex flex-col">
-            {sidebarContent()}
+                </div>
+              </NavLink>
+            )}
           </div>
+        )}
+      </nav>
+    </TooltipProvider>
+  );
+
+  if (isMobile) {
+    return (
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetContent side="left" className="w-64 p-0 bg-card shadow-md shadow-primary/20">
+          <div className="h-full flex flex-col">{sidebarContent()}</div>
         </SheetContent>
-      </Sheet>;
+      </Sheet>
+    );
   }
 
-  // Desktop: renderiza Sidebar com toggle fixo (sem hover-to-expand)
-  return <Sidebar 
+  return (
+    <Sidebar
       collapsible="icon"
-      side="left" 
-      variant="sidebar" 
+      side="left"
+      variant="sidebar"
       className="border-r border-primary/10 shadow-md shadow-primary/20 flex-shrink-0"
     >
       <SidebarContent className="bg-card flex flex-col h-full overflow-y-auto">
         {sidebarContent()}
       </SidebarContent>
       <SidebarRail />
-    </Sidebar>;
+    </Sidebar>
+  );
 }
