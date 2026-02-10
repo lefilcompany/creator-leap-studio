@@ -203,7 +203,7 @@ function ActionCard({ action, isSelected, onSelect, onView }: {
         </p>
 
         <div className="flex items-center gap-1.5 flex-wrap">
-          <Badge className={cn("text-[10px] px-2 py-0.5 h-5 font-medium border-0 hover:bg-inherit", style.background, style.color)}>
+          <Badge className="text-[10px] px-2 py-0.5 h-5 font-medium border-0 bg-primary/20 text-primary hover:bg-primary/20">
             {displayType}
           </Badge>
           {action.platform && (
@@ -467,7 +467,7 @@ export default function ActionList({
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge className={cn("text-[10px] w-fit border-0 hover:bg-inherit", style.background, style.color)}>
+                      <Badge className="text-[10px] w-fit border-0 bg-primary/20 text-primary hover:bg-primary/20">
                         {displayType}
                       </Badge>
                     </TableCell>
