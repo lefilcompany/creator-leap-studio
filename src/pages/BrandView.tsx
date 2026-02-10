@@ -536,52 +536,6 @@ export default function BrandView() {
               </div>
             </SectionCard>
 
-            <SectionCard title="Cor Identificadora" icon={<Palette className="h-4 w-4" />} accentColor={brandColor}>
-              <div className="space-y-3">
-                <p className="text-xs text-muted-foreground">Escolha uma cor para identificar esta marca nas listagens</p>
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    { color: '#E8337A', label: 'Rosa' },
-                    { color: '#8B3FC9', label: 'Roxo' },
-                    { color: '#2B7DE9', label: 'Azul' },
-                    { color: '#2EB875', label: 'Verde' },
-                    { color: '#F28C1C', label: 'Laranja' },
-                    { color: '#F2C81C', label: 'Amarelo' },
-                    { color: '#DF3737', label: 'Vermelho' },
-                    { color: '#2EB8A3', label: 'Teal' },
-                    { color: '#5C5CE6', label: 'Indigo' },
-                    { color: '#CC85B8', label: 'Rosa claro' },
-                  ].map(({ color, label }) => (
-                    <button
-                      key={color}
-                      type="button"
-                      onClick={() => handleBrandColorChange(selectedBrandColor === color ? null : color)}
-                      className={`w-8 h-8 rounded-full border-2 transition-all duration-150 hover:scale-110 ${
-                        selectedBrandColor === color ? 'border-foreground ring-2 ring-foreground/20 scale-110' : 'border-transparent'
-                      }`}
-                      style={{ backgroundColor: color }}
-                      title={label}
-                    />
-                  ))}
-                </div>
-                {selectedBrandColor && (
-                  <div className="flex items-center gap-3 pt-2">
-                    <div className="w-10 h-10 rounded-xl border border-border/10 shadow-md" style={{ backgroundColor: selectedBrandColor }} />
-                    <div>
-                      <span className="text-sm font-medium text-foreground">Cor selecionada</span>
-                      <p className="text-xs text-muted-foreground font-mono">{selectedBrandColor}</p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleBrandColorChange(null)}
-                      className="text-xs text-muted-foreground hover:text-foreground underline ml-auto"
-                    >
-                      Remover
-                    </button>
-                  </div>
-                )}
-              </div>
-            </SectionCard>
 
             <div className="bg-card/60 backdrop-blur-sm rounded-2xl p-4 text-xs text-muted-foreground space-y-1.5 border border-border/10">
               <div className="flex items-center gap-2">
