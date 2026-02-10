@@ -242,7 +242,7 @@ export function AppSidebar() {
 
         {/* Credits */}
         {user && (
-          <div className="mt-auto mb-3 flex flex-col gap-2.5">
+          <div className="mt-auto mb-5 flex flex-col gap-2.5">
             {collapsed ? (
               <Tooltip>
                 <TooltipTrigger asChild>
