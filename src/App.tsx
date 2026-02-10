@@ -35,6 +35,7 @@ const BrandView = lazy(() => import("./pages/BrandView"));
 const Themes = lazy(() => import("./pages/Themes"));
 const ThemeView = lazy(() => import("./pages/ThemeView"));
 const Personas = lazy(() => import("./pages/Personas"));
+const PersonaView = lazy(() => import("./pages/PersonaView"));
 const History = lazy(() => import("./pages/History"));
 const CreateImage = lazy(() => import("./pages/CreateImage"));
 const CreateVideo = lazy(() => import("./pages/CreateVideo"));
@@ -118,6 +119,7 @@ const App = () => (
                         <Route path="themes" element={<SuspenseRoute><Themes /></SuspenseRoute>} />
                         <Route path="themes/:themeId" element={<SuspenseRoute><ThemeView /></SuspenseRoute>} />
                         <Route path="personas" element={<SuspenseRoute><Personas /></SuspenseRoute>} />
+                        <Route path="personas/:personaId" element={<SuspenseRoute><PersonaView /></SuspenseRoute>} />
                         <Route path="history" element={<SuspenseRoute><History /></SuspenseRoute>} />
                         <Route path="create" element={<SuspenseRoute><ContentCreationSelector /></SuspenseRoute>} />
                         <Route path="create/quick" element={<SuspenseRoute><QuickContent /></SuspenseRoute>} />
