@@ -32,7 +32,7 @@ export default function History() {
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
-  const ITEMS_PER_PAGE = 50;
+  const ITEMS_PER_PAGE = 12;
 
   useEffect(() => {
     const loadData = async () => {
