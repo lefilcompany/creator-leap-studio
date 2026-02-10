@@ -14,7 +14,7 @@ export const SystemLayout = () => {
         <div className={
           isMobile
             ? "flex flex-1 flex-col min-w-0 bg-card"
-            : "flex flex-1 flex-col min-w-0 bg-card rounded-l-2xl shadow-xl my-2 mr-2 overflow-hidden"
+            : "flex flex-1 flex-col min-w-0 bg-card rounded-2xl shadow-xl m-4 overflow-hidden"
         }>
           <SystemHeader />
           <main className="flex-1 overflow-x-hidden overflow-y-auto">
