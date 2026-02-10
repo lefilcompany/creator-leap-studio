@@ -93,28 +93,40 @@ function BrandCard({ brand, isSelected, onSelect }: { brand: BrandSummary; isSel
     <div
       onClick={onSelect}
       className={cn(
-        "cursor-pointer bg-card rounded-xl overflow-hidden transition-all duration-200 group shadow-sm hover:shadow-md",
+        "cursor-pointer bg-card rounded-2xl overflow-hidden transition-all duration-300 group border border-border/30",
         isSelected
-          ? "ring-2 ring-primary/30 shadow-md"
-          : "hover:ring-1 hover:ring-border/40"
+          ? "ring-2 ring-primary/40 shadow-lg scale-[1.02]"
+          : "hover:shadow-lg hover:scale-[1.01] hover:border-border/60 shadow-sm"
       )}
     >
-      <div className="h-1.5 transition-all duration-200 group-hover:h-2" style={{ backgroundColor: color }} />
-      <div className="p-5 space-y-3">
-        <div className="flex items-center gap-3">
+      {/* Color accent bar */}
+      <div className="h-2 transition-all duration-300 group-hover:h-2.5" style={{ backgroundColor: color }} />
+      
+      <div className="p-5 space-y-4">
+        {/* Avatar + Name */}
+        <div className="flex items-center gap-4">
           <div
-            className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0 shadow-sm"
+            className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-base flex-shrink-0 shadow-md transition-transform duration-300 group-hover:scale-105"
             style={{ backgroundColor: color }}
           >
             {brand.name.charAt(0).toUpperCase()}
           </div>
           <div className="min-w-0 flex-1">
-            <span className="font-semibold text-foreground truncate block">{brand.name}</span>
-            <span className="text-sm text-muted-foreground truncate block">{brand.responsible}</span>
+            <span className="font-semibold text-foreground truncate block text-base">{brand.name}</span>
+            <span className="text-sm text-muted-foreground truncate block mt-0.5">{brand.responsible}</span>
           </div>
         </div>
-        <div className="text-xs text-muted-foreground/70 flex items-center gap-1">
-          <span>Criado em {formatDate(brand.createdAt)}</span>
+
+        {/* Footer */}
+        <div className="flex items-center justify-between pt-2 border-t border-border/20">
+          <span className="text-xs text-muted-foreground/70">
+            Criado em {formatDate(brand.createdAt)}
+          </span>
+          <div
+            className="w-4 h-4 rounded-full border-2 border-background shadow-sm flex-shrink-0"
+            style={{ backgroundColor: color }}
+            title="Cor identificadora"
+          />
         </div>
       </div>
     </div>
@@ -357,7 +369,7 @@ export default function BrandList({ brands, selectedBrand, onSelectBrand, isLoad
         </div>
       ) : (
         /* Grid view */
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           {filteredAndSortedBrands.map((brand) => (
             <BrandCard
               key={brand.id}
@@ -369,8 +381,8 @@ export default function BrandList({ brands, selectedBrand, onSelectBrand, isLoad
         </div>
       )}
 
-      {/* Pagination */}
-      {totalPages > 1 && !isLoading && (
+      {/* Pagination - only in list view */}
+      {totalPages > 1 && !isLoading && viewMode === 'list' && (
         <div className="pt-2">
           <Pagination>
             <PaginationContent>
