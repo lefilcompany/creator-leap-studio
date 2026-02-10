@@ -1,12 +1,19 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { Users, Search, ArrowUpDown, ArrowUp, ArrowDown, ChevronDown, ChevronRight, Tag } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Users, Search, ArrowUpDown, ArrowUp, ArrowDown, List, LayoutGrid, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import type { PersonaSummary } from '@/types/persona';
-import type { BrandSummary } from '@/types/brand';
 import {
   Pagination,
   PaginationContent,
@@ -16,198 +23,175 @@ import {
   PaginationPrevious,
   PaginationEllipsis,
 } from "@/components/ui/pagination";
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Button } from '@/components/ui/button';
+
+export interface BrandInfo {
+  id: string;
+  name: string;
+  brandColor: string | null;
+  avatarUrl: string | null;
+}
 
 interface PersonaListProps {
   personas: PersonaSummary[] | undefined;
-  brands: BrandSummary[];
-  selectedPersona: PersonaSummary | null;
-  onSelectPersona: (persona: PersonaSummary) => void;
+  brands: BrandInfo[];
   isLoading?: boolean;
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
+  initialViewMode?: string;
 }
+
+const DEFAULT_COLOR = 'hsl(var(--primary))';
 
 const formatDate = (dateString: string) => {
   if (!dateString) return '';
-  const date = new Date(dateString);
-  return date.toLocaleDateString('pt-BR');
+  return new Date(dateString).toLocaleDateString('pt-BR');
 };
 
-const LoadingState = () => (
-  <div className="flex flex-col items-center justify-center py-16 space-y-4">
-    <div className="relative">
-      <div className="w-16 h-16 border-4 border-primary/20 rounded-full"></div>
-      <div className="absolute top-0 left-0 w-16 h-16 border-4 border-transparent border-t-primary rounded-full animate-spin"></div>
-    </div>
-    <div className="text-center space-y-2">
-      <h3 className="text-lg font-semibold text-foreground">Carregando personas</h3>
-      <p className="text-sm text-muted-foreground">Aguarde um momento...</p>
-    </div>
+type SortField = 'name' | 'date';
+type SortDirection = 'asc' | 'desc';
+type ViewMode = 'list' | 'grid';
+
+const LoadingRows = () => (
+  <>
+    {Array.from({ length: 5 }).map((_, i) => (
+      <TableRow key={i} className="animate-pulse border-none">
+        <TableCell className="w-1 p-0"><div className="w-1 h-12 bg-muted rounded-r-full" /></TableCell>
+        <TableCell>
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-muted" />
+            <div className="h-4 w-32 bg-muted rounded" />
+          </div>
+        </TableCell>
+        <TableCell><div className="h-4 w-24 bg-muted rounded" /></TableCell>
+        <TableCell><div className="h-4 w-24 bg-muted rounded" /></TableCell>
+      </TableRow>
+    ))}
+  </>
+);
+
+const LoadingGrid = () => (
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    {Array.from({ length: 6 }).map((_, i) => (
+      <div key={i} className="animate-pulse bg-card rounded-xl overflow-hidden shadow-sm flex">
+        <div className="w-1.5 bg-muted rounded-l-xl" />
+        <div className="p-5 space-y-3 flex-1">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-muted" />
+            <div className="space-y-1.5 flex-1">
+              <div className="h-4 w-28 bg-muted rounded" />
+              <div className="h-3 w-20 bg-muted rounded" />
+            </div>
+          </div>
+          <div className="h-3 w-24 bg-muted rounded" />
+        </div>
+      </div>
+    ))}
   </div>
 );
 
-type SortDirection = 'asc' | 'desc' | null;
+function PersonaCard({ persona, brandInfo, onSelect }: { persona: PersonaSummary; brandInfo: BrandInfo | undefined; onSelect: () => void }) {
+  const color = brandInfo?.brandColor || DEFAULT_COLOR;
 
-interface BrandGroup {
-  brandId: string;
-  brandName: string;
-  personas: PersonaSummary[];
-}
-
-interface PersonaCardProps {
-  persona: PersonaSummary;
-  isSelected: boolean;
-  onSelect: (persona: PersonaSummary) => void;
-}
-
-const PersonaCard = ({ persona, isSelected, onSelect }: PersonaCardProps) => (
-  <button
-    onClick={() => onSelect(persona)}
-    className={cn(
-      "persona-card w-full text-left px-3 py-2 rounded-md border transition-all duration-200 flex items-center justify-between",
-      isSelected
-        ? "bg-primary/10 border-primary shadow-sm"
-        : "bg-background/50 border-transparent hover:border-primary/30 hover:bg-primary/5"
-    )}
-  >
-    <div className="flex items-center gap-2.5">
-      <div className="bg-gradient-to-br from-primary to-secondary text-white rounded-md w-7 h-7 flex items-center justify-center font-semibold text-sm flex-shrink-0">
-        {persona.name.charAt(0).toUpperCase()}
-      </div>
-      <p className="font-medium text-sm text-foreground">{persona.name}</p>
-    </div>
-    <span className="text-xs text-muted-foreground hidden md:block flex-shrink-0">
-      {formatDate(persona.createdAt)}
-    </span>
-  </button>
-);
-
-interface BrandGroupSectionProps {
-  group: BrandGroup;
-  selectedPersona: PersonaSummary | null;
-  onSelectPersona: (persona: PersonaSummary) => void;
-  isExpanded: boolean;
-  onToggle: () => void;
-}
-
-const BrandGroupSection = ({ group, selectedPersona, onSelectPersona, isExpanded, onToggle }: BrandGroupSectionProps) => (
-  <div className="border border-border/30 rounded-lg overflow-hidden">
-    <button
-      onClick={onToggle}
-      className="w-full flex items-center justify-between px-3 py-2 bg-muted/20 hover:bg-muted/40 transition-colors"
+  return (
+    <div
+      onClick={onSelect}
+      className="cursor-pointer bg-card rounded-2xl overflow-hidden transition-all duration-300 group border border-border/30 hover:shadow-lg hover:scale-[1.01] hover:border-border/60 shadow-sm flex"
     >
-      <div className="flex items-center gap-2">
-        <Tag className="h-3.5 w-3.5 text-primary" />
-        <span className="font-medium text-foreground text-sm">{group.brandName}</span>
-        <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 leading-none">
-          {group.personas.length}
-        </Badge>
-      </div>
-      {isExpanded ? (
-        <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
-      ) : (
-        <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
-      )}
-    </button>
-    {isExpanded && (
-      <ul className="p-1.5 space-y-1 animate-fade-in">
-        {group.personas.map((persona) => (
-          <li key={persona.id}>
-            <PersonaCard
-              persona={persona}
-              isSelected={selectedPersona?.id === persona.id}
-              onSelect={onSelectPersona}
+      <div className="w-1.5 flex-shrink-0 rounded-l-2xl transition-all duration-300 group-hover:w-2" style={{ backgroundColor: color }} />
+      
+      <div className="p-5 space-y-4 flex-1 min-w-0">
+        <div className="flex items-center gap-4">
+          {brandInfo?.avatarUrl ? (
+            <img
+              src={brandInfo.avatarUrl}
+              alt={brandInfo.name}
+              className="w-12 h-12 rounded-xl object-cover flex-shrink-0 shadow-md transition-transform duration-300 group-hover:scale-105"
             />
-          </li>
-        ))}
-      </ul>
-    )}
-  </div>
-);
+          ) : (
+            <div
+              className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-base flex-shrink-0 shadow-md transition-transform duration-300 group-hover:scale-105"
+              style={{ backgroundColor: color }}
+            >
+              {persona.name.charAt(0).toUpperCase()}
+            </div>
+          )}
+          <div className="min-w-0 flex-1">
+            <span className="font-semibold text-foreground truncate block text-base">{persona.name}</span>
+            <span className="text-sm text-muted-foreground truncate block mt-0.5">
+              Marca: {brandInfo?.name || 'Não definida'}
+            </span>
+          </div>
+        </div>
 
-export default function PersonaList({ personas, brands, selectedPersona, onSelectPersona, isLoading = false, currentPage, totalPages, onPageChange }: PersonaListProps) {
+        <div className="flex items-center justify-between pt-2 border-t border-border/20">
+          <span className="text-xs text-muted-foreground/70">
+            Criado em {formatDate(persona.createdAt)}
+          </span>
+          <div
+            className="w-4 h-4 rounded-full border-2 border-background shadow-sm flex-shrink-0"
+            style={{ backgroundColor: color }}
+            title="Cor da marca"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function PersonaList({ personas, brands, isLoading = false, currentPage, totalPages, onPageChange, initialViewMode }: PersonaListProps) {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
-  const [dateSortDirection, setDateSortDirection] = useState<SortDirection>(null);
-  const [collapsedBrands, setCollapsedBrands] = useState<Set<string>>(new Set());
+  const [sortField, setSortField] = useState<SortField>('name');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  const [viewMode, setViewMode] = useState<ViewMode>((initialViewMode as ViewMode) || 'grid');
 
-  const brandMap = useMemo(() => new Map(brands.map(b => [b.id, b.name])), [brands]);
+  const brandMap = useMemo(() => new Map(brands.map(b => [b.id, b])), [brands]);
 
-  const filteredPersonas = useMemo(() => {
+  const filteredAndSortedPersonas = useMemo(() => {
     if (!personas || !Array.isArray(personas)) return [];
-
     let result = [...personas];
 
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
       result = result.filter(p =>
         p.name.toLowerCase().includes(query) ||
-        (brandMap.get(p.brandId) || '').toLowerCase().includes(query)
+        (brandMap.get(p.brandId)?.name || '').toLowerCase().includes(query)
       );
     }
 
-    if (dateSortDirection) {
-      result.sort((a, b) => {
+    result.sort((a, b) => {
+      if (sortField === 'date') {
         const dateA = new Date(a.createdAt).getTime();
         const dateB = new Date(b.createdAt).getTime();
-        return dateSortDirection === 'asc' ? dateA - dateB : dateB - dateA;
-      });
-    } else {
-      result.sort((a, b) => a.name.localeCompare(b.name));
-    }
-
-    return result;
-  }, [personas, searchQuery, dateSortDirection, brandMap]);
-
-  const groupedByBrand = useMemo(() => {
-    const groups = new Map<string, PersonaSummary[]>();
-
-    for (const persona of filteredPersonas) {
-      const list = groups.get(persona.brandId) || [];
-      list.push(persona);
-      groups.set(persona.brandId, list);
-    }
-
-    const result: BrandGroup[] = Array.from(groups.entries()).map(([brandId, personaList]) => ({
-      brandId,
-      brandName: brandMap.get(brandId) || 'Marca não encontrada',
-      personas: personaList,
-    }));
-
-    result.sort((a, b) => a.brandName.localeCompare(b.brandName));
-    return result;
-  }, [filteredPersonas, brandMap]);
-
-  const toggleBrandCollapse = (brandId: string) => {
-    setCollapsedBrands(prev => {
-      const next = new Set(prev);
-      if (next.has(brandId)) {
-        next.delete(brandId);
-      } else {
-        next.add(brandId);
+        return sortDirection === 'asc' ? dateA - dateB : dateB - dateA;
       }
-      return next;
+      const cmp = a.name.localeCompare(b.name);
+      return sortDirection === 'asc' ? cmp : -cmp;
     });
+
+    return result;
+  }, [personas, searchQuery, sortField, sortDirection, brandMap]);
+
+  const toggleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection(field === 'date' ? 'desc' : 'asc');
+    }
   };
 
-  const toggleDateSort = () => {
-    setDateSortDirection(prev => {
-      if (prev === null) return 'desc';
-      if (prev === 'desc') return 'asc';
-      return null;
-    });
+  const handleSelectPersona = (persona: PersonaSummary) => {
+    navigate(`/personas/${persona.id}`, { state: { viewMode } });
   };
 
   const generatePagination = (currentPage: number, totalPages: number) => {
-    if (totalPages <= 7) {
-      return Array.from({ length: totalPages }, (_, i) => i + 1);
-    }
-    if (currentPage <= 3) {
-      return [1, 2, 3, 4, '...', totalPages];
-    }
-    if (currentPage >= totalPages - 2) {
-      return [1, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
-    }
+    if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
+    if (currentPage <= 3) return [1, 2, 3, 4, '...', totalPages];
+    if (currentPage >= totalPages - 2) return [1, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
     return [1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages];
   };
 
@@ -219,78 +203,207 @@ export default function PersonaList({ personas, brands, selectedPersona, onSelec
   };
 
   const paginationRange = generatePagination(currentPage, totalPages);
-  const DateSortIcon = dateSortDirection === 'asc' ? ArrowUp : dateSortDirection === 'desc' ? ArrowDown : ArrowUpDown;
+
+  const SortIcon = ({ field }: { field: SortField }) => {
+    if (sortField !== field) return <ArrowUpDown className="h-3.5 w-3.5 opacity-40" />;
+    return sortDirection === 'asc' ? <ArrowUp className="h-3.5 w-3.5" /> : <ArrowDown className="h-3.5 w-3.5" />;
+  };
+
+  const EmptyState = () => (
+    <div className="text-center text-muted-foreground py-16 animate-fade-in">
+      {searchQuery.trim() ? (
+        <>
+          <Search className="h-12 w-12 mx-auto mb-3 opacity-50" />
+          <p className="text-base">Nenhuma persona encontrada para "{searchQuery}"</p>
+          <p className="text-sm mt-1 opacity-75">Tente buscar com outro termo.</p>
+        </>
+      ) : (
+        <>
+          <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
+          <p className="text-base">Nenhuma persona encontrada</p>
+          <p className="text-sm mt-1 opacity-75">Clique em "Nova persona" para começar.</p>
+        </>
+      )}
+    </div>
+  );
+
+  const hasActiveFilters = searchQuery.trim() || sortField !== 'name' || sortDirection !== 'asc';
+
+  const clearFilters = () => {
+    setSearchQuery('');
+    setSortField('name');
+    setSortDirection('asc');
+  };
 
   return (
-    <div className="lg:col-span-2 bg-card p-4 md:p-6 rounded-2xl border-2 border-primary/10 flex flex-col min-h-[600px] lg:min-h-[700px] overflow-hidden">
-      <div className="flex items-center justify-between mb-4 flex-shrink-0">
-        <h2 className="text-2xl font-semibold text-foreground">Todas as personas</h2>
-        {!isLoading && (
-          <Badge variant="secondary" className="bg-secondary/10 text-secondary hover:text-white">
-            {filteredPersonas.length} personas
-          </Badge>
-        )}
-      </div>
-
-      <div className="mb-4 flex-shrink-0">
-        <div className="relative">
+    <div className="space-y-4">
+      {/* Toolbar */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Buscar por nome ou marca..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 h-9 bg-muted/30 border-border/30 focus:bg-background"
+            className="pl-9 pr-9 h-10 bg-card shadow-sm border border-muted/50 focus:border-primary/40 focus:bg-background"
           />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
         </div>
-      </div>
 
-      <div className="flex items-center justify-end mb-3 flex-shrink-0">
-        <button
-          onClick={toggleDateSort}
-          className="inline-flex items-center gap-1 text-xs uppercase tracking-wider text-muted-foreground font-semibold hover:text-foreground transition-colors select-none"
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => toggleSort('name')}
+            className={cn(
+              "h-10 px-3 gap-1.5 shadow-sm border border-muted/50",
+              sortField === 'name' && "bg-primary/10 border-primary/30 text-primary"
+            )}
+          >
+            Nome <SortIcon field="name" />
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => toggleSort('date')}
+            className={cn(
+              "h-10 px-3 gap-1.5 shadow-sm border border-muted/50",
+              sortField === 'date' && "bg-primary/10 border-primary/30 text-primary"
+            )}
+          >
+            Data <SortIcon field="date" />
+          </Button>
+
+          {hasActiveFilters && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearFilters}
+              className="h-10 px-3 text-muted-foreground shadow-sm border border-muted/50 hover:border-accent hover:bg-accent/20 hover:text-accent"
+            >
+              <X className="h-4 w-4 mr-1" /> Limpar
+            </Button>
+          )}
+        </div>
+
+        <ToggleGroup
+          type="single"
+          value={viewMode}
+          onValueChange={(v) => { if (v) setViewMode(v as ViewMode); }}
+          className="bg-muted/50 shadow-sm rounded-lg p-0.5 gap-0 border border-muted/50"
         >
-          Data de Criação
-          <DateSortIcon className="h-3.5 w-3.5" />
-        </button>
+          <ToggleGroupItem
+            value="grid"
+            aria-label="Visualização em blocos"
+            className="rounded-l-md rounded-r-none border-0 px-3 py-1.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm data-[state=off]:bg-transparent data-[state=off]:hover:bg-muted"
+          >
+            <LayoutGrid className="h-4 w-4" />
+          </ToggleGroupItem>
+          <ToggleGroupItem
+            value="list"
+            aria-label="Visualização em lista"
+            className="rounded-r-md rounded-l-none border-0 px-3 py-1.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm data-[state=off]:bg-transparent data-[state=off]:hover:bg-muted"
+          >
+            <List className="h-4 w-4" />
+          </ToggleGroupItem>
+        </ToggleGroup>
       </div>
 
-      <div className="overflow-y-auto pr-2 flex-1 min-h-0">
-        {isLoading ? (
-          <LoadingState />
-        ) : groupedByBrand.length > 0 ? (
-          <div className="space-y-2 animate-fade-in">
-            {groupedByBrand.map((group) => (
-              <BrandGroupSection
-                key={group.brandId}
-                group={group}
-                selectedPersona={selectedPersona}
-                onSelectPersona={onSelectPersona}
-                isExpanded={!collapsedBrands.has(group.brandId)}
-                onToggle={() => toggleBrandCollapse(group.brandId)}
-              />
-            ))}
+      {/* Content */}
+      {isLoading ? (
+        viewMode === 'list' ? (
+          <div className="bg-card rounded-xl shadow-sm overflow-hidden">
+            <Table><TableBody><LoadingRows /></TableBody></Table>
           </div>
         ) : (
-          <div className="text-center text-muted-foreground py-8 animate-fade-in">
-            {searchQuery.trim() ? (
-              <>
-                <Search className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                <p className="text-base">Nenhuma persona encontrada para "{searchQuery}"</p>
-                <p className="text-sm mt-1 opacity-75">Tente buscar com outro termo.</p>
-              </>
-            ) : (
-              <>
-                <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                <p className="text-base">Nenhuma persona encontrada</p>
-                <p className="text-sm mt-1 opacity-75">Clique em "Nova persona" para começar.</p>
-              </>
-            )}
-          </div>
-        )}
-      </div>
+          <LoadingGrid />
+        )
+      ) : filteredAndSortedPersonas.length === 0 ? (
+        <EmptyState />
+      ) : viewMode === 'list' ? (
+        <div className="bg-card rounded-xl shadow-sm overflow-hidden border border-muted/50">
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent border-b border-border/20">
+                <TableHead className="w-1 p-0" />
+                <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
+                  Persona
+                </TableHead>
+                <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-semibold hidden md:table-cell">
+                  Marca
+                </TableHead>
+                <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-semibold text-right">
+                  Data de Criação
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredAndSortedPersonas.map((persona) => {
+                const brand = brandMap.get(persona.brandId);
+                const color = brand?.brandColor || DEFAULT_COLOR;
+                return (
+                  <TableRow
+                    key={persona.id}
+                    onClick={() => handleSelectPersona(persona)}
+                    className="cursor-pointer transition-colors duration-150 border-b border-border/10 hover:bg-muted/50"
+                  >
+                    <TableCell className="w-1 p-0">
+                      <div className="w-1 h-full min-h-[48px] rounded-r-full" style={{ backgroundColor: color }} />
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        {brand?.avatarUrl ? (
+                          <img
+                            src={brand.avatarUrl}
+                            alt={brand.name}
+                            className="w-8 h-8 rounded-full object-cover flex-shrink-0 shadow-sm"
+                          />
+                        ) : (
+                          <div
+                            className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs flex-shrink-0 shadow-sm"
+                            style={{ backgroundColor: color }}
+                          >
+                            {persona.name.charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                        <span className="font-medium text-foreground">{persona.name}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground hidden md:table-cell">
+                      {brand?.name || 'Não definida'}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-right">
+                      {formatDate(persona.createdAt)}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          {filteredAndSortedPersonas.map((persona) => (
+            <PersonaCard
+              key={persona.id}
+              persona={persona}
+              brandInfo={brandMap.get(persona.brandId)}
+              onSelect={() => handleSelectPersona(persona)}
+            />
+          ))}
+        </div>
+      )}
 
-      {totalPages > 1 && !isLoading && (
-        <div className="pt-4 mt-auto flex-shrink-0 border-t border-border/20">
+      {/* Pagination - only in list view */}
+      {totalPages > 1 && !isLoading && viewMode === 'list' && (
+        <div className="pt-2">
           <Pagination>
             <PaginationContent>
               <PaginationItem>
@@ -301,6 +414,7 @@ export default function PersonaList({ personas, brands, selectedPersona, onSelec
                   aria-disabled={currentPage === 1}
                 />
               </PaginationItem>
+              
               {paginationRange.map((page, index) => {
                 if (typeof page === 'string') {
                   return <PaginationEllipsis key={`ellipsis-${index}`} />;
@@ -317,6 +431,7 @@ export default function PersonaList({ personas, brands, selectedPersona, onSelec
                   </PaginationItem>
                 );
               })}
+
               <PaginationItem>
                 <PaginationNext
                   onClick={(e) => handlePageClick(currentPage + 1, e)}
