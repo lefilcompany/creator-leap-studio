@@ -105,7 +105,7 @@ serve(async (req) => {
             quantity: 1,
           },
         ],
-        mode: "payment", // Pagamento único, não assinatura
+        mode: "subscription",
         success_url: successUrl,
         cancel_url: `${origin}/credits?canceled=true`,
         metadata: {
