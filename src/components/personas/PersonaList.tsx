@@ -160,16 +160,9 @@ export default function PersonaList({ personas, brands, isLoading = false, initi
   const [selectedBrandId, setSelectedBrandId] = useState<string>('all');
   const [viewMode, setViewMode] = useState<ViewMode>((initialViewMode as ViewMode) || 'grid');
   const [openBrands, setOpenBrands] = useState<Set<string>>(new Set());
-  const [allExpanded, setAllExpanded] = useState(true);
+  const [allExpanded, setAllExpanded] = useState(false);
 
   const brandMap = useMemo(() => new Map(brands.map(b => [b.id, b])), [brands]);
-
-  // Initialize all brands as open on first render
-  useMemo(() => {
-    if (brands.length > 0 && openBrands.size === 0 && allExpanded) {
-      setOpenBrands(new Set(brands.map(b => b.id)));
-    }
-  }, [brands]);
 
   const filteredPersonas = useMemo(() => {
     if (!personas || !Array.isArray(personas)) return [];
