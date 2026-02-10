@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { PageBreadcrumb } from '@/components/PageBreadcrumb';
 import { useQueryClient } from '@tanstack/react-query';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -383,11 +384,18 @@ export default function BrandView() {
         />
 
         <div className="relative px-4 sm:px-6 lg:px-8 py-6">
+          {/* Breadcrumb */}
+          <div className="mb-4">
+            <PageBreadcrumb
+              items={[
+                { label: 'Marcas', href: '/brands' },
+                { label: formData.name || brand.name },
+              ]}
+            />
+          </div>
+
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <Button variant="outline" size="sm" onClick={() => navigate('/brands')} className="rounded-full border-transparent bg-background/80 hover:bg-accent hover:text-accent-foreground hover:border-accent shadow-sm">
-                <ArrowLeft className="h-4 w-4 mr-1" /> Voltar
-              </Button>
               <div className="flex items-center gap-4">
                 <div
                   className="w-14 h-14 rounded-2xl flex items-center justify-center text-white font-bold text-2xl flex-shrink-0 shadow-lg ring-4 ring-white/20"
