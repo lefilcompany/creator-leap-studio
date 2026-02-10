@@ -106,12 +106,20 @@ function BrandCard({ brand, isSelected, onSelect }: { brand: BrandSummary; isSel
       <div className="p-5 space-y-4">
         {/* Avatar + Name */}
         <div className="flex items-center gap-4">
-          <div
-            className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-base flex-shrink-0 shadow-md transition-transform duration-300 group-hover:scale-105"
-            style={{ backgroundColor: color }}
-          >
-            {brand.name.charAt(0).toUpperCase()}
-          </div>
+          {brand.avatarUrl ? (
+            <img
+              src={brand.avatarUrl}
+              alt={brand.name}
+              className="w-12 h-12 rounded-xl object-cover flex-shrink-0 shadow-md transition-transform duration-300 group-hover:scale-105"
+            />
+          ) : (
+            <div
+              className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-base flex-shrink-0 shadow-md transition-transform duration-300 group-hover:scale-105"
+              style={{ backgroundColor: color }}
+            >
+              {brand.name.charAt(0).toUpperCase()}
+            </div>
+          )}
           <div className="min-w-0 flex-1">
             <span className="font-semibold text-foreground truncate block text-base">{brand.name}</span>
             <span className="text-sm text-muted-foreground truncate block mt-0.5">{brand.responsible}</span>
@@ -348,12 +356,20 @@ export default function BrandList({ brands, selectedBrand, onSelectBrand, isLoad
                 >
                   <TableCell>
                     <div className="flex items-center gap-3">
-                      <div
-                        className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs flex-shrink-0 shadow-sm"
-                        style={{ backgroundColor: brand.brandColor || DEFAULT_BRAND_COLOR }}
-                      >
-                        {brand.name.charAt(0).toUpperCase()}
-                      </div>
+                      {brand.avatarUrl ? (
+                        <img
+                          src={brand.avatarUrl}
+                          alt={brand.name}
+                          className="w-8 h-8 rounded-full object-cover flex-shrink-0 shadow-sm"
+                        />
+                      ) : (
+                        <div
+                          className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs flex-shrink-0 shadow-sm"
+                          style={{ backgroundColor: brand.brandColor || DEFAULT_BRAND_COLOR }}
+                        >
+                          {brand.name.charAt(0).toUpperCase()}
+                        </div>
+                      )}
                       <span className="font-medium text-foreground">{brand.name}</span>
                     </div>
                   </TableCell>

@@ -52,6 +52,7 @@ export default function MarcasPage() {
         name: brand.name,
         responsible: brand.responsible,
         brandColor: (brand as any).brand_color || null,
+        avatarUrl: (brand as any).avatar_url || null,
         createdAt: brand.created_at,
         updatedAt: brand.updated_at
       }));

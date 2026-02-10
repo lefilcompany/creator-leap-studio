@@ -20,7 +20,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { ArrowLeft, Trash2, Tag, ExternalLink, FileDown, Calendar, User, Save, Loader2, Sparkles, Target, LayoutGrid, List, Info, Palette } from 'lucide-react';
+import { ArrowLeft, Trash2, Tag, ExternalLink, FileDown, Calendar, User, Save, Loader2, Sparkles, Target, LayoutGrid, List, Info, Palette, Pencil } from 'lucide-react';
+import { BrandAvatarEditor } from '@/components/marcas/BrandAvatarEditor';
 import type { Brand, MoodboardFile, ColorItem } from '@/types/brand';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -163,6 +164,7 @@ function mapRowToBrand(data: any): Brand {
     referenceImage: data.reference_image as unknown as MoodboardFile | null,
     colorPalette: data.color_palette as unknown as ColorItem[] | null,
     brandColor: data.brand_color || null,
+    avatarUrl: data.avatar_url || null,
     createdAt: data.created_at,
     updatedAt: data.updated_at,
   };
@@ -182,6 +184,7 @@ export default function BrandView() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
+  const [avatarEditorOpen, setAvatarEditorOpen] = useState(false);
   const originalRef = useRef<Record<string, string>>({});
   const originalColorPaletteRef = useRef<ColorItem[]>([]);
   const originalBrandColorRef = useRef<string | null>(null);
@@ -406,11 +409,24 @@ export default function BrandView() {
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-4">
-                <div
-                  className="w-14 h-14 rounded-2xl flex items-center justify-center text-white font-bold text-2xl flex-shrink-0 shadow-lg ring-4 ring-white/20"
-                  style={{ backgroundColor: brandColor }}
-                >
-                  {brand.name.charAt(0).toUpperCase()}
+                <div className="relative group cursor-pointer" onClick={() => setAvatarEditorOpen(true)}>
+                  {brand.avatarUrl ? (
+                    <img
+                      src={brand.avatarUrl}
+                      alt={brand.name}
+                      className="w-14 h-14 rounded-2xl object-cover shadow-lg ring-4 ring-white/20"
+                    />
+                  ) : (
+                    <div
+                      className="w-14 h-14 rounded-2xl flex items-center justify-center text-white font-bold text-2xl flex-shrink-0 shadow-lg ring-4 ring-white/20"
+                      style={{ backgroundColor: brandColor }}
+                    >
+                      {brand.name.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  <div className="absolute inset-0 rounded-2xl bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <Pencil className="h-5 w-5 text-white" />
+                  </div>
                 </div>
                 <div>
                   <h1 className="text-2xl font-bold text-foreground tracking-tight">{formData.name || brand.name}</h1>
@@ -582,6 +598,42 @@ export default function BrandView() {
           </div>
         </div>
       </div>
+
+      <BrandAvatarEditor
+        open={avatarEditorOpen}
+        onOpenChange={setAvatarEditorOpen}
+        brandId={brand.id}
+        brandName={brand.name}
+        currentColor={selectedBrandColor}
+        currentAvatarUrl={brand.avatarUrl}
+        onSave={async (color, avatarUrl) => {
+          try {
+            const updates: Record<string, any> = {};
+            if (color !== selectedBrandColor) {
+              updates.brand_color = color;
+              handleBrandColorChange(color);
+            }
+            if (avatarUrl !== brand.avatarUrl) {
+              updates.avatar_url = avatarUrl;
+            }
+            if (Object.keys(updates).length > 0) {
+              const { error } = await supabase
+                .from('brands')
+                .update(updates)
+                .eq('id', brand.id);
+              if (error) throw error;
+              // Update local brand state
+              setBrand(prev => prev ? { ...prev, brandColor: color, avatarUrl } : prev);
+              queryClient.invalidateQueries({ queryKey: ['brands'] });
+              queryClient.invalidateQueries({ queryKey: ['brand', brand.id] });
+              toast.success('Avatar atualizado com sucesso!');
+            }
+          } catch (err) {
+            console.error('Error updating avatar:', err);
+            toast.error('Erro ao atualizar avatar.');
+          }
+        }}
+      />
     </div>
   );
 }

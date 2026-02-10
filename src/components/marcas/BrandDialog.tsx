@@ -54,6 +54,7 @@ const initialFormData: BrandFormData = {
   referenceImage: null,
   colorPalette: null,
   brandColor: null,
+  avatarUrl: null,
 };
 
 export default function BrandDialog({ isOpen, onOpenChange, onSave, brandToEdit }: BrandDialogProps) {
@@ -92,6 +93,7 @@ export default function BrandDialog({ isOpen, onOpenChange, onSave, brandToEdit 
         referenceImage: brandToEdit.referenceImage || null,
         colorPalette: brandToEdit.colorPalette || null,
         brandColor: brandToEdit.brandColor || null,
+        avatarUrl: brandToEdit.avatarUrl || null,
       });
     } else if (isOpen && !brandToEdit) {
       // Se está criando nova marca, tenta carregar rascunho

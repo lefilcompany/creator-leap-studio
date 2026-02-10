@@ -251,6 +251,7 @@ export default function CreateImage() {
           name: brand.name,
           responsible: brand.responsible,
           brandColor: null,
+          avatarUrl: null,
           createdAt: brand.created_at,
           updatedAt: brand.updated_at,
         }));
