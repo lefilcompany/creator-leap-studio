@@ -122,7 +122,7 @@ export default function CreateVideo() {
         };
 
         setTeam(mappedTeam);
-        setBrands((brandsData || []).map((b: any) => ({ id: b.id, name: b.name, responsible: b.responsible, brandColor: null, createdAt: b.created_at, updatedAt: b.updated_at })));
+        setBrands((brandsData || []).map((b: any) => ({ id: b.id, name: b.name, responsible: b.responsible, brandColor: null, avatarUrl: null, createdAt: b.created_at, updatedAt: b.updated_at })));
         setThemes((themesData || []).map((t: any) => ({ id: t.id, brandId: t.brand_id, title: t.title, createdAt: t.created_at })));
         setPersonas((personasData || []).map((p: any) => ({ id: p.id, brandId: p.brand_id, name: p.name, createdAt: p.created_at })));
         setIsLoadingData(false);

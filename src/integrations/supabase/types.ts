@@ -83,6 +83,7 @@ export type Database = {
       }
       brands: {
         Row: {
+          avatar_url: string | null
           brand_color: string | null
           brand_references: string | null
           collaborations: string | null
@@ -110,6 +111,7 @@ export type Database = {
           values: string | null
         }
         Insert: {
+          avatar_url?: string | null
           brand_color?: string | null
           brand_references?: string | null
           collaborations?: string | null
@@ -137,6 +139,7 @@ export type Database = {
           values?: string | null
         }
         Update: {
+          avatar_url?: string | null
           brand_color?: string | null
           brand_references?: string | null
           collaborations?: string | null
