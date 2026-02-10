@@ -220,9 +220,9 @@ export function ColorPicker({ colors, onColorsChange, maxColors = 10, compact = 
 
             <Card>
                 <CardContent className="p-4">
-                    <div className={compact ? "space-y-4" : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4"}>
+                    <div className={compact ? "space-y-4" : "grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-12 gap-4"}>
                         {/* Seletor Visual */}
-                        <div className={compact ? "space-y-3" : "md:col-span-1 lg:col-span-4 space-y-3"}>
+                        <div className={compact ? "space-y-3" : "lg:col-span-1 xl:col-span-4 space-y-3"}>
                             <Tabs value={activeTab} onValueChange={setActiveTab}>
                                 <TabsList className="grid w-full grid-cols-2">
                                     <TabsTrigger value="hex">HEX</TabsTrigger>
@@ -244,7 +244,7 @@ export function ColorPicker({ colors, onColorsChange, maxColors = 10, compact = 
                         </div>
 
                         {/* Preview e Controles */}
-                        <div className={compact ? "space-y-3" : "md:col-span-1 lg:col-span-4 space-y-3"}>
+                        <div className={compact ? "space-y-3" : "lg:col-span-1 xl:col-span-4 space-y-3"}>
                             {activeTab === 'hex' ? (
                                 <div className="space-y-2">
                                     <Label htmlFor="hex-input" className="text-sm">Valor HEX</Label>
@@ -341,7 +341,7 @@ export function ColorPicker({ colors, onColorsChange, maxColors = 10, compact = 
                         </div>
 
                         {/* Lista de Cores - 4 colunas */}
-                        <div className={compact ? "space-y-3" : "md:col-span-2 lg:col-span-4 space-y-3 mt-1"}>
+                        <div className={compact ? "space-y-3" : "lg:col-span-2 xl:col-span-4 space-y-3 mt-1"}>
                             <div className="flex items-center justify-between">
                                 <Label className="text-sm font-medium">
                                     Cores Selecionadas
