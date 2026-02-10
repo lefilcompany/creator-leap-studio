@@ -169,10 +169,8 @@ function ActionCard({ action, isSelected, onSelect, onView }: {
     <div
       onClick={onSelect}
       className={cn(
-        "cursor-pointer bg-card rounded-2xl overflow-hidden transition-all duration-300 group border border-border/30 flex flex-col",
-        isSelected
-          ? "ring-2 ring-primary/40 shadow-lg scale-[1.02]"
-          : "hover:shadow-lg hover:scale-[1.01] hover:border-border/60 shadow-sm"
+        "cursor-pointer bg-card rounded-2xl overflow-hidden transition-shadow duration-200 group border border-border/30 flex flex-col shadow-sm",
+        isSelected && "ring-2 ring-primary/40 shadow-lg"
       )}
     >
       {/* Image area */}
