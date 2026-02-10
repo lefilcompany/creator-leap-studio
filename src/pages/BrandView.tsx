@@ -21,6 +21,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { ArrowLeft, Trash2, Tag, ExternalLink, FileDown, Calendar, User, Save, Loader2, Sparkles, Target, LayoutGrid, List, Info, Palette, Pencil } from 'lucide-react';
+import { BrandVisualIdentity } from '@/components/marcas/BrandVisualIdentity';
 import { BrandAvatarEditor } from '@/components/marcas/BrandAvatarEditor';
 import type { Brand, MoodboardFile, ColorItem } from '@/types/brand';
 import { supabase } from '@/integrations/supabase/client';
@@ -185,9 +186,11 @@ export default function BrandView() {
   const [isSaving, setIsSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [avatarEditorOpen, setAvatarEditorOpen] = useState(false);
+  const [visualFiles, setVisualFiles] = useState<{ logo: MoodboardFile | null; referenceImage: MoodboardFile | null; moodboard: MoodboardFile | null }>({ logo: null, referenceImage: null, moodboard: null });
   const originalRef = useRef<Record<string, string>>({});
   const originalColorPaletteRef = useRef<ColorItem[]>([]);
   const originalBrandColorRef = useRef<string | null>(null);
+  const originalVisualFilesRef = useRef<{ logo: MoodboardFile | null; referenceImage: MoodboardFile | null; moodboard: MoodboardFile | null }>({ logo: null, referenceImage: null, moodboard: null });
 
   const queryClient = useQueryClient();
 
@@ -222,6 +225,9 @@ export default function BrandView() {
       };
       setFormData(initial);
       originalRef.current = { ...initial };
+      const vf = { logo: mapped.logo, referenceImage: mapped.referenceImage, moodboard: mapped.moodboard };
+      setVisualFiles(vf);
+      originalVisualFilesRef.current = { ...vf };
       setHasChanges(false);
     } catch (error) {
       console.error('Erro ao carregar marca:', error);
@@ -297,6 +303,9 @@ export default function BrandView() {
           restrictions: formData.restrictions,
           color_palette: colorPalette.length > 0 ? colorPalette : null,
           brand_color: selectedBrandColor,
+          logo: visualFiles.logo,
+          reference_image: visualFiles.referenceImage,
+          moodboard: visualFiles.moodboard,
         } as any)
         .eq('id', brand.id);
 
@@ -305,6 +314,7 @@ export default function BrandView() {
       originalRef.current = { ...formData };
       originalColorPaletteRef.current = [...colorPalette];
       originalBrandColorRef.current = selectedBrandColor;
+      originalVisualFilesRef.current = { ...visualFiles };
       setHasChanges(false);
       // Invalidate React Query cache so lists update
       queryClient.invalidateQueries({ queryKey: ['brands'] });
@@ -315,7 +325,7 @@ export default function BrandView() {
     } finally {
       setIsSaving(false);
     }
-  }, [brand, user, formData, colorPalette, selectedBrandColor, queryClient]);
+  }, [brand, user, formData, colorPalette, selectedBrandColor, visualFiles, queryClient]);
 
   const handleDeleteBrand = useCallback(async () => {
     if (!brand) return;
@@ -520,20 +530,19 @@ export default function BrandView() {
             </SectionCard>
           </div>
 
-          {/* Sidebar - visual assets (read-only) */}
+          {/* Sidebar - visual assets */}
           <div className="space-y-6">
             <SectionCard title="Identidade Visual" icon={<Sparkles className="h-4 w-4" />} accentColor={brandColor}>
-              <div className="space-y-5">
-                <FileDetailField label="Logo da Marca" file={brand.logo} />
-                <FileDetailField label="Imagem de Referência" file={brand.referenceImage} />
-                <FileDetailField label="Moodboard" file={brand.moodboard} />
-                {!brand.logo && !brand.referenceImage && !brand.moodboard && (
-                  <div className="text-center py-8">
-                    <LayoutGrid className="h-10 w-10 text-muted-foreground/30 mx-auto mb-2" />
-                    <p className="text-sm text-muted-foreground">Nenhum arquivo visual cadastrado.</p>
-                  </div>
-                )}
-              </div>
+              <BrandVisualIdentity
+                brandId={brand.id}
+                logo={visualFiles.logo}
+                referenceImage={visualFiles.referenceImage}
+                moodboard={visualFiles.moodboard}
+                onUpdate={(field, file) => {
+                  setVisualFiles(prev => ({ ...prev, [field]: file }));
+                  setHasChanges(true);
+                }}
+              />
             </SectionCard>
 
 
