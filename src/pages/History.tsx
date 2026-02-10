@@ -203,7 +203,7 @@ export default function History() {
   ];
 
   return (
-    <div className="h-full flex flex-col overflow-hidden -m-4 sm:-m-6 lg:-m-8">
+    <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8">
       {/* Banner */}
       <div className="relative w-full h-56 md:h-72 flex-shrink-0 overflow-hidden">
         <img 
@@ -257,7 +257,7 @@ export default function History() {
       </div>
 
       {/* Action list with integrated toolbar */}
-      <main id="history-list" className="flex-1 min-h-0 overflow-auto px-4 sm:px-6 lg:px-8 pt-4 pb-4 sm:pb-6 lg:pb-8">
+      <main id="history-list" className="px-4 sm:px-6 lg:px-8 pt-4 pb-4 sm:pb-6 lg:pb-8">
         <ActionList
           actions={actions}
           selectedAction={selectedActionSummary}
