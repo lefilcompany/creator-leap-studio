@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import { Download, Copy, CheckCircle, Sparkles, Calendar, Loader2, Clock, User, Tag, Check, FileText, File, FileCode, LayoutGrid, List, ArrowLeft } from 'lucide-react';
+import { Download, Copy, CheckCircle, Sparkles, Calendar, Loader2, Clock, User, Tag, Check, FileText, File, FileCode, LayoutGrid, List, ArrowLeft, Info, Image, Video, ClipboardList, FileOutput } from 'lucide-react';
 import type { Action } from '@/types/action';
 import { ACTION_TYPE_DISPLAY } from '@/types/action';
 import ReactMarkdown from 'react-markdown';
@@ -19,6 +19,40 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { PageBreadcrumb } from "@/components/PageBreadcrumb";
+
+// ── SectionCard ──────────────────────────────────────────────
+interface SectionCardProps {
+  title: string;
+  icon?: React.ReactNode;
+  accentColor?: string;
+  children: React.ReactNode;
+  className?: string;
+  headerRight?: React.ReactNode;
+}
+
+const SectionCard = ({ title, icon, accentColor, children, className = '', headerRight }: SectionCardProps) => (
+  <div className={`bg-card/80 backdrop-blur-sm rounded-2xl border border-border/10 overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 ${className}`}>
+    <div
+      className="px-5 py-3.5 border-b border-border/10 flex items-center gap-2.5"
+      style={accentColor ? { background: `linear-gradient(135deg, ${accentColor}08, ${accentColor}03)` } : {}}
+    >
+      {icon && <span className="text-primary">{icon}</span>}
+      <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider">{title}</h3>
+      {headerRight && <div className="ml-auto">{headerRight}</div>}
+    </div>
+    <div className="p-5">{children}</div>
+  </div>
+);
+
+// ── DetailField ──────────────────────────────────────────────
+const DetailField = ({ label, children }: { label: string; children: React.ReactNode }) => (
+  <div>
+    <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">{label}</p>
+    <div className="mt-1.5">{children}</div>
+  </div>
+);
+
+// ── Helpers ──────────────────────────────────────────────────
 const formatDate = (dateString: string) => {
   if (!dateString) return '';
   const date = new Date(dateString);
@@ -30,24 +64,60 @@ const formatDate = (dateString: string) => {
     minute: '2-digit'
   });
 };
+
 const getTypeIcon = (type: string) => {
   if (type.includes('CRIAR')) return Sparkles;
   if (type.includes('REVISAR')) return CheckCircle;
   if (type.includes('PLANEJAR')) return Calendar;
+  if (type.includes('VIDEO')) return Video;
   return Sparkles;
 };
-const getStatusColor = (status: string) => {
-  if (status === 'Concluído' || status === 'Aprovado') return 'bg-green-500/10 text-green-600 border-green-500/20 hover:bg-green-500/20 hover:text-green-700 hover:border-green-500/40 transition-colors';
-  if (status === 'Em revisão') return 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20 hover:bg-yellow-500/20 hover:text-yellow-700 hover:border-yellow-500/40 transition-colors';
-  if (status === 'Rejeitado') return 'bg-red-500/10 text-red-600 border-red-500/20 hover:bg-red-500/20 hover:text-red-700 hover:border-red-500/40 transition-colors';
-  return 'bg-muted text-muted-foreground border-border hover:bg-muted/80 hover:border-border/80 transition-colors';
+
+const getAccentColor = (type: string) => {
+  if (type.includes('REVISAR')) return 'hsl(var(--accent))';
+  if (type.includes('PLANEJAR')) return 'hsl(var(--secondary))';
+  return 'hsl(var(--primary))';
 };
+
+const getHeroGradientVar = (type: string) => {
+  if (type.includes('REVISAR')) return '--accent';
+  if (type.includes('PLANEJAR')) return '--secondary';
+  return '--primary';
+};
+
+const getStatusColor = (status: string) => {
+  if (status === 'Concluído' || status === 'Aprovado') return 'bg-green-500/10 text-green-600 border-green-500/20';
+  if (status === 'Em revisão') return 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20';
+  if (status === 'Rejeitado') return 'bg-red-500/10 text-red-600 border-red-500/20';
+  return 'bg-muted text-muted-foreground border-border';
+};
+
+// ── Markdown components (reused) ─────────────────────────────
+const markdownComponents = {
+  h1: ({ children }: any) => <h1 className="text-2xl font-bold text-primary mb-4 pb-2 border-b border-primary/20">{children}</h1>,
+  h2: ({ children }: any) => (
+    <h2 className="text-xl font-semibold text-foreground mt-6 mb-3 flex items-center gap-2">
+      <span className="w-1 h-6 bg-gradient-to-b from-primary to-secondary rounded-full flex-shrink-0" />
+      {children}
+    </h2>
+  ),
+  h3: ({ children }: any) => <h3 className="text-lg font-semibold text-foreground mt-5 mb-2">{children}</h3>,
+  h4: ({ children }: any) => <h4 className="text-base font-semibold text-primary mt-3 mb-2">{children}</h4>,
+  p: ({ children }: any) => <p className="text-sm text-muted-foreground leading-relaxed mb-3">{children}</p>,
+  strong: ({ children }: any) => <strong className="font-semibold text-foreground">{children}</strong>,
+  ul: ({ children }: any) => <ul className="list-disc list-inside space-y-1 mb-3 ml-4">{children}</ul>,
+  ol: ({ children }: any) => <ol className="list-decimal list-inside space-y-1 mb-3 ml-4">{children}</ol>,
+  li: ({ children }: any) => <li className="text-sm text-muted-foreground">{children}</li>,
+  blockquote: ({ children }: any) => (
+    <blockquote className="border-l-4 border-primary/30 pl-4 italic text-muted-foreground bg-primary/5 py-2 my-3 rounded-r">
+      {children}
+    </blockquote>
+  ),
+};
+
+// ══════════════════════════════════════════════════════════════
 export default function ActionView() {
-  const {
-    actionId
-  } = useParams<{
-    actionId: string;
-  }>();
+  const { actionId } = useParams<{ actionId: string }>();
   const navigate = useNavigate();
   const location = useLocation();
   const viewMode = (location.state as any)?.viewMode || 'grid';
@@ -55,21 +125,18 @@ export default function ActionView() {
   const [loading, setLoading] = useState(true);
   const [copying, setCopying] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+
+  // ── Data fetching ────────────────────────────────────────
   useEffect(() => {
     if (!actionId) return;
     const fetchAction = async () => {
       try {
-        const {
-          data,
-          error
-        } = await supabase.from('actions').select(`
-            *,
-            brand:brands(id, name),
-            user:profiles!actions_user_id_fkey(id, name, email)
-          `).eq('id', actionId).single();
+        const { data, error } = await supabase
+          .from('actions')
+          .select(`*, brand:brands(id, name), user:profiles!actions_user_id_fkey(id, name, email)`)
+          .eq('id', actionId)
+          .single();
         if (error) throw error;
-
-        // Transform snake_case to camelCase
         const transformedData: Action = {
           id: data.id,
           type: data.type as Action['type'],
@@ -84,7 +151,7 @@ export default function ActionView() {
           details: data.details as Action['details'],
           result: data.result as Action['result'],
           brand: data.brand as Action['brand'],
-          user: data.user as Action['user']
+          user: data.user as Action['user'],
         };
         setAction(transformedData);
       } catch (error) {
@@ -96,6 +163,8 @@ export default function ActionView() {
     };
     fetchAction();
   }, [actionId]);
+
+  // ── Actions / handlers (unchanged logic) ─────────────────
   const handleCopyText = async (text: string) => {
     try {
       setCopying(true);
@@ -109,6 +178,7 @@ export default function ActionView() {
       setCopying(false);
     }
   };
+
   const handleDownloadTxt = (planContent: string) => {
     try {
       const blob = new Blob([planContent], { type: 'text/plain;charset=utf-8' });
@@ -136,32 +206,16 @@ export default function ActionView() {
     const boldRegex = /\*\*(.*?)\*\*/g;
     let lastIndex = 0;
     let match;
-
     while ((match = boldRegex.exec(text)) !== null) {
       if (match.index > lastIndex) {
-        runs.push(new TextRun({
-          text: text.substring(lastIndex, match.index),
-          font: 'Arial',
-          color: '000000',
-        }));
+        runs.push(new TextRun({ text: text.substring(lastIndex, match.index), font: 'Arial', color: '000000' }));
       }
-      runs.push(new TextRun({
-        text: match[1],
-        bold: true,
-        font: 'Arial',
-        color: '000000',
-      }));
+      runs.push(new TextRun({ text: match[1], bold: true, font: 'Arial', color: '000000' }));
       lastIndex = match.index + match[0].length;
     }
-
     if (lastIndex < text.length) {
-      runs.push(new TextRun({
-        text: text.substring(lastIndex),
-        font: 'Arial',
-        color: '000000',
-      }));
+      runs.push(new TextRun({ text: text.substring(lastIndex), font: 'Arial', color: '000000' }));
     }
-
     return runs.length > 0 ? runs : [new TextRun({ text, font: 'Arial', color: '000000' })];
   };
 
@@ -169,85 +223,29 @@ export default function ActionView() {
     try {
       const lines = planContent.split('\n');
       const paragraphs: Paragraph[] = [];
-
       lines.forEach((line) => {
         line = line.trim();
-
-        if (!line) {
-          paragraphs.push(new Paragraph({ text: '' }));
-          return;
-        }
-
+        if (!line) { paragraphs.push(new Paragraph({ text: '' })); return; }
         if (line.startsWith('# ') && !line.startsWith('## ')) {
-          const text = line.replace(/^#\s+/, '');
-          paragraphs.push(new Paragraph({
-            children: [new TextRun({ text, bold: true, size: 36, font: 'Arial', color: '000000' })],
-            alignment: AlignmentType.LEFT,
-            spacing: { before: 240, after: 120 },
-          }));
+          paragraphs.push(new Paragraph({ children: [new TextRun({ text: line.replace(/^#\s+/, ''), bold: true, size: 36, font: 'Arial', color: '000000' })], alignment: AlignmentType.LEFT, spacing: { before: 240, after: 120 } }));
         } else if (line.startsWith('## ')) {
-          const text = line.replace(/^##\s+/, '');
-          paragraphs.push(new Paragraph({
-            children: [new TextRun({ text, bold: true, size: 32, font: 'Arial', color: '000000' })],
-            alignment: AlignmentType.LEFT,
-            spacing: { before: 200, after: 100 },
-          }));
+          paragraphs.push(new Paragraph({ children: [new TextRun({ text: line.replace(/^##\s+/, ''), bold: true, size: 32, font: 'Arial', color: '000000' })], alignment: AlignmentType.LEFT, spacing: { before: 200, after: 100 } }));
         } else if (line.startsWith('### ')) {
-          const text = line.replace(/^###\s+/, '');
-          paragraphs.push(new Paragraph({
-            children: [new TextRun({ text, bold: true, size: 28, font: 'Arial', color: '000000' })],
-            alignment: AlignmentType.LEFT,
-            spacing: { before: 160, after: 80 },
-          }));
+          paragraphs.push(new Paragraph({ children: [new TextRun({ text: line.replace(/^###\s+/, ''), bold: true, size: 28, font: 'Arial', color: '000000' })], alignment: AlignmentType.LEFT, spacing: { before: 160, after: 80 } }));
         } else if (line.match(/^[\d]+\.\s/)) {
-          const text = line.replace(/^[\d]+\.\s/, '');
-          paragraphs.push(new Paragraph({
-            children: processInlineMarkdown(text),
-            alignment: AlignmentType.LEFT,
-            spacing: { before: 80, after: 80 },
-            numbering: { reference: 'numbered-list', level: 0 },
-          }));
+          paragraphs.push(new Paragraph({ children: processInlineMarkdown(line.replace(/^[\d]+\.\s/, '')), alignment: AlignmentType.LEFT, spacing: { before: 80, after: 80 }, numbering: { reference: 'numbered-list', level: 0 } }));
         } else if (line.startsWith('- ') || line.startsWith('* ')) {
-          const text = line.replace(/^[-*]\s/, '');
-          paragraphs.push(new Paragraph({
-            children: processInlineMarkdown(text),
-            alignment: AlignmentType.LEFT,
-            spacing: { before: 80, after: 80 },
-            bullet: { level: 0 },
-          }));
+          paragraphs.push(new Paragraph({ children: processInlineMarkdown(line.replace(/^[-*]\s/, '')), alignment: AlignmentType.LEFT, spacing: { before: 80, after: 80 }, bullet: { level: 0 } }));
         } else if (line.startsWith('#')) {
-          paragraphs.push(new Paragraph({
-            children: [new TextRun({ text: line, size: 24, font: 'Arial', color: '0066CC' })],
-            alignment: AlignmentType.LEFT,
-            spacing: { before: 80, after: 80 },
-          }));
+          paragraphs.push(new Paragraph({ children: [new TextRun({ text: line, size: 24, font: 'Arial', color: '0066CC' })], alignment: AlignmentType.LEFT, spacing: { before: 80, after: 80 } }));
         } else {
-          paragraphs.push(new Paragraph({
-            children: processInlineMarkdown(line),
-            alignment: AlignmentType.LEFT,
-            spacing: { before: 80, after: 80 },
-          }));
+          paragraphs.push(new Paragraph({ children: processInlineMarkdown(line), alignment: AlignmentType.LEFT, spacing: { before: 80, after: 80 } }));
         }
       });
-
       const doc = new Document({
-        numbering: {
-          config: [{
-            reference: 'numbered-list',
-            levels: [{
-              level: 0,
-              format: 'decimal',
-              text: '%1.',
-              alignment: AlignmentType.LEFT,
-            }],
-          }],
-        },
-        sections: [{
-          properties: {},
-          children: paragraphs,
-        }],
+        numbering: { config: [{ reference: 'numbered-list', levels: [{ level: 0, format: 'decimal', text: '%1.', alignment: AlignmentType.LEFT }] }] },
+        sections: [{ properties: {}, children: paragraphs }],
       });
-
       const blob = await Packer.toBlob(doc);
       saveAs(blob, `planejamento-${new Date().toISOString().split('T')[0]}.docx`);
       toast.success('Download do DOCX iniciado!');
@@ -256,11 +254,10 @@ export default function ActionView() {
       toast.error('Erro ao gerar DOCX.');
     }
   };
+
   const handleDownloadImage = async (imageUrl: string, filename: string = 'imagem') => {
     try {
       toast.info('Preparando download em alta qualidade...');
-      
-      // Se for base64 - download direto para preservar qualidade máxima
       if (imageUrl.startsWith('data:image')) {
         const link = document.createElement('a');
         link.href = imageUrl;
@@ -270,7 +267,6 @@ export default function ActionView() {
         document.body.removeChild(link);
         toast.success('Download concluído em qualidade máxima!');
       } else {
-        // Se for URL - fazer fetch para preservar qualidade original
         try {
           const response = await fetch(imageUrl, { mode: 'cors' });
           const blob = await response.blob();
@@ -284,7 +280,6 @@ export default function ActionView() {
           window.URL.revokeObjectURL(url);
           toast.success('Download concluído em qualidade máxima!');
         } catch (fetchError) {
-          // Fallback: abrir em nova aba
           window.open(imageUrl, '_blank');
           toast.success('Imagem aberta em nova aba');
         }
@@ -293,6 +288,7 @@ export default function ActionView() {
       toast.error('Erro ao fazer download da imagem');
     }
   };
+
   const handleDownloadVideo = (videoUrl: string, filename: string = 'video') => {
     try {
       const link = document.createElement('a');
@@ -308,16 +304,22 @@ export default function ActionView() {
       toast.error('Erro ao fazer download do vídeo');
     }
   };
+
+  // ── Loading / Not found ──────────────────────────────────
   if (loading) {
-    return <div className="min-h-screen bg-background flex items-center justify-center">
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
           <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
           <p className="text-muted-foreground">Carregando detalhes da ação...</p>
         </div>
-      </div>;
+      </div>
+    );
   }
+
   if (!action) {
-    return <div className="min-h-screen bg-background flex items-center justify-center">
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <Card className="p-8 text-center max-w-md">
           <h2 className="text-2xl font-semibold mb-2">Ação não encontrada</h2>
           <p className="text-muted-foreground mb-6">A ação que você está procurando não existe ou foi removida.</p>
@@ -326,509 +328,416 @@ export default function ActionView() {
             Voltar ao Histórico
           </Button>
         </Card>
-      </div>;
+      </div>
+    );
   }
+
+  // ── Derived data ─────────────────────────────────────────
   const TypeIcon = getTypeIcon(action.type);
   const displayType = ACTION_TYPE_DISPLAY[action.type];
-  return <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8">
-      {/* Hero Header with gradient - like BrandView */}
+  const accentColor = getAccentColor(action.type);
+  const heroVar = getHeroGradientVar(action.type);
+
+  const hasMedia = !!(action.result?.imageUrl || action.result?.videoUrl || action.result?.originalImage);
+
+  // ── Render ───────────────────────────────────────────────
+  return (
+    <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8">
+      {/* ═══ Hero Header ═══ */}
       <div
         className="relative overflow-hidden"
         style={{
-          background: `linear-gradient(135deg, hsl(var(--primary) / 0.09), hsl(var(--primary) / 0.03), hsl(var(--background)))`,
+          background: `linear-gradient(135deg, hsl(var(${heroVar}) / 0.09), hsl(var(${heroVar}) / 0.03), hsl(var(--background)))`,
         }}
       >
-        {/* Decorative elements */}
-        <div className="absolute top-0 right-0 w-96 h-96 rounded-full opacity-[0.04] blur-3xl bg-primary" />
-        <div className="absolute bottom-0 left-1/3 w-64 h-64 rounded-full opacity-[0.03] blur-3xl bg-primary" />
+        <div className="absolute top-0 right-0 w-96 h-96 rounded-full opacity-[0.04] blur-3xl" style={{ background: `hsl(var(${heroVar}))` }} />
+        <div className="absolute bottom-0 left-1/3 w-64 h-64 rounded-full opacity-[0.03] blur-3xl" style={{ background: `hsl(var(${heroVar}))` }} />
 
         <div className="relative px-4 sm:px-6 lg:px-8 py-6">
-          {/* Breadcrumb */}
           <div className="mb-4">
             <PageBreadcrumb
               items={[
-                { 
-                  label: 'Histórico', 
+                {
+                  label: 'Histórico',
                   href: '/history',
                   state: { viewMode },
-                  icon: viewMode === 'list' 
-                    ? <List className="h-3.5 w-3.5" /> 
-                    : <LayoutGrid className="h-3.5 w-3.5" />
+                  icon: viewMode === 'list'
+                    ? <List className="h-3.5 w-3.5" />
+                    : <LayoutGrid className="h-3.5 w-3.5" />,
                 },
                 { label: displayType },
               ]}
             />
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg ring-4 ring-white/20 bg-primary/10">
-              <TypeIcon className="h-7 w-7 text-primary" />
+          <div className="flex items-start gap-4">
+            <div
+              className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg ring-4 ring-white/20"
+              style={{ background: `hsl(var(${heroVar}) / 0.1)` }}
+            >
+              <TypeIcon className="h-7 w-7" style={{ color: `hsl(var(${heroVar}))` }} />
             </div>
-            <div>
+            <div className="flex-1 min-w-0">
               <h1 className="text-2xl lg:text-3xl font-bold text-foreground">{displayType}</h1>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground mt-0.5">
                 {formatDate(action.createdAt)} · {action.brand?.name || 'Sem marca'}
               </p>
+              {/* Status badges */}
+              <div className="flex flex-wrap items-center gap-2 mt-3">
+                <Badge className={getStatusColor(action.status)}>{action.status}</Badge>
+                <Badge variant={action.approved ? 'default' : 'secondary'}>
+                  {action.approved ? 'Aprovado' : 'Pendente'}
+                </Badge>
+                {(action.revisions ?? 0) > 0 && (
+                  <Badge variant="outline">{action.revisions} {action.revisions === 1 ? 'revisão' : 'revisões'}</Badge>
+                )}
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Content */}
-      <div className="px-4 sm:px-6 lg:px-8 py-6 max-w-5xl mx-auto w-full">
-        {/* Info Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <Card className="p-4">
-            <div className="flex items-center gap-2 text-muted-foreground mb-1">
-              <Clock className="h-4 w-4" />
-              <span className="text-sm font-medium">Data de Criação</span>
-            </div>
-            <p className="font-semibold">{formatDate(action.createdAt)}</p>
-          </Card>
+      {/* ═══ Content Grid ═══ */}
+      <div className="px-4 sm:px-6 lg:px-8 py-6 max-w-6xl mx-auto w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* ── Main Column ── */}
+          <div className={`space-y-6 ${hasMedia ? 'lg:col-span-2' : 'lg:col-span-3'}`}>
+            {/* Details Section */}
+            {action.details && (
+              <SectionCard title="Detalhes da Solicitação" icon={<ClipboardList className="h-4 w-4" />} accentColor={accentColor}>
+                <div className="space-y-5">
+                  {/* CRIAR_CONTEUDO / CRIAR_CONTEUDO_RAPIDO */}
+                  {(action.type === 'CRIAR_CONTEUDO' || action.type === 'CRIAR_CONTEUDO_RAPIDO') && (
+                    <>
+                      {action.details.objective && <DetailField label="Objetivo"><p className="text-sm font-medium text-foreground">{action.details.objective}</p></DetailField>}
+                      {action.details.platform && <DetailField label="Plataforma"><p className="text-sm font-medium text-foreground">{action.details.platform}</p></DetailField>}
+                      {action.details.description && <DetailField label="Descrição"><p className="text-sm text-foreground leading-relaxed">{action.details.description}</p></DetailField>}
+                      {action.details.tone && Array.isArray(action.details.tone) && action.details.tone.length > 0 && (
+                        <DetailField label="Tom de Voz">
+                          <div className="flex flex-wrap gap-2 mt-1">
+                            {action.details.tone.map((t: string, idx: number) => <Badge key={idx} variant="outline">{t}</Badge>)}
+                          </div>
+                        </DetailField>
+                      )}
+                      {action.details.additionalInfo && <DetailField label="Informações Adicionais"><p className="text-sm text-foreground leading-relaxed">{action.details.additionalInfo}</p></DetailField>}
+                      {action.details.isVideoMode && (
+                        <div className="grid grid-cols-2 gap-4">
+                          <DetailField label="Modo de Geração"><Badge variant="secondary">Vídeo</Badge></DetailField>
+                          {action.details.ratio && <DetailField label="Proporção"><p className="text-sm font-medium text-foreground">{action.details.ratio}</p></DetailField>}
+                          {action.details.duration && <DetailField label="Duração"><p className="text-sm font-medium text-foreground">{action.details.duration}s</p></DetailField>}
+                        </div>
+                      )}
+                    </>
+                  )}
 
-          <Card className="p-4">
-            <div className="flex items-center gap-2 text-muted-foreground mb-1">
-              <Tag className="h-4 w-4" />
-              <span className="text-sm font-medium">Marca</span>
-            </div>
-            <p className="font-semibold">{action.brand?.name || 'Não especificada'}</p>
-          </Card>
+                  {/* GERAR_VIDEO */}
+                  {action.type === 'GERAR_VIDEO' && (
+                    <>
+                      {action.details.prompt && (
+                        <DetailField label="Prompt de Geração">
+                          <div className="mt-1 p-3 bg-muted/30 rounded-lg">
+                            <p className="text-foreground whitespace-pre-wrap text-sm">{action.details.prompt}</p>
+                          </div>
+                        </DetailField>
+                      )}
+                      {action.details.objective && <DetailField label="Objetivo"><p className="text-sm font-medium text-foreground">{action.details.objective}</p></DetailField>}
+                      {action.details.platform && <DetailField label="Plataforma"><p className="text-sm font-medium text-foreground">{action.details.platform}</p></DetailField>}
+                      {action.details.brand && <DetailField label="Marca"><p className="text-sm font-medium text-foreground">{action.details.brand}</p></DetailField>}
+                      {action.details.persona && <DetailField label="Persona"><p className="text-sm font-medium text-foreground">{action.details.persona}</p></DetailField>}
+                      {action.details.theme && <DetailField label="Tema Estratégico"><p className="text-sm font-medium text-foreground">{action.details.theme}</p></DetailField>}
+                      {action.details.tone && Array.isArray(action.details.tone) && action.details.tone.length > 0 && (
+                        <DetailField label="Tom de Voz">
+                          <div className="flex flex-wrap gap-2 mt-1">
+                            {action.details.tone.map((t: string, idx: number) => <Badge key={idx} variant="outline">{t}</Badge>)}
+                          </div>
+                        </DetailField>
+                      )}
+                      {action.details.aspectRatio && <DetailField label="Proporção"><p className="text-sm font-medium text-foreground">{action.details.aspectRatio}</p></DetailField>}
+                      {action.details.additionalInfo && <DetailField label="Informações Adicionais"><p className="text-sm text-foreground leading-relaxed">{action.details.additionalInfo}</p></DetailField>}
+                    </>
+                  )}
 
-          <Card className="p-4">
-            <div className="flex items-center gap-2 text-muted-foreground mb-1">
-              <User className="h-4 w-4" />
-              <span className="text-sm font-medium">Criado por</span>
-            </div>
-            <p className="font-semibold truncate">{action.user?.name || 'Não especificado'}</p>
-          </Card>
+                  {/* REVISAR_CONTEUDO */}
+                  {action.type === 'REVISAR_CONTEUDO' && (
+                    <>
+                      {action.details.reviewType && (
+                        <DetailField label="Tipo de Revisão">
+                          <Badge variant="secondary" className="mt-1">
+                            {action.details.reviewType === 'image' ? 'Imagem' : action.details.reviewType === 'caption' ? 'Legenda' : action.details.reviewType === 'text-for-image' ? 'Texto para Imagem' : action.details.reviewType}
+                          </Badge>
+                        </DetailField>
+                      )}
+                      {action.details.prompt && <DetailField label="Contexto/Ajustes Solicitados"><p className="text-sm text-foreground leading-relaxed">{action.details.prompt}</p></DetailField>}
+                      {action.details.brandName && <DetailField label="Marca"><p className="text-sm font-medium text-foreground">{action.details.brandName}</p></DetailField>}
+                      {action.details.themeName && <DetailField label="Tema Estratégico"><p className="text-sm font-medium text-foreground">{action.details.themeName}</p></DetailField>}
+                      {action.details.caption && (
+                        <DetailField label="Legenda Enviada">
+                          <div className="mt-1 p-3 bg-muted/30 rounded-lg">
+                            <p className="text-foreground whitespace-pre-wrap text-sm">{action.details.caption}</p>
+                          </div>
+                        </DetailField>
+                      )}
+                      {action.details.text && (
+                        <DetailField label="Texto Enviado">
+                          <div className="mt-1 p-3 bg-muted/30 rounded-lg">
+                            <p className="text-foreground whitespace-pre-wrap text-sm">{action.details.text}</p>
+                          </div>
+                        </DetailField>
+                      )}
+                    </>
+                  )}
 
-          <Card className="p-4">
-            <div className="flex items-center gap-2 text-muted-foreground mb-1">
-              <CheckCircle className="h-4 w-4" />
-              <span className="text-sm font-medium">Status de Aprovação</span>
-            </div>
-            <p className="font-semibold">{action.approved ? 'Aprovado' : 'Pendente'}</p>
-          </Card>
-        </div>
-
-        {/* Status and Revisions */}
-        <Card className="p-6 mb-6">
-          <div className="flex flex-wrap items-center gap-4">
-            <div>
-              <span className="text-sm text-muted-foreground mr-2">Status:</span>
-              <Badge className={getStatusColor(action.status)}>{action.status}</Badge>
-            </div>
-            <Separator orientation="vertical" className="h-6" />
-            <div>
-              <span className="text-sm text-muted-foreground mr-2">Aprovado:</span>
-              <Badge variant={action.approved ? 'default' : 'secondary'} className={action.approved ? 'hover:bg-primary/20 hover:text-primary hover:border-primary transition-colors' : 'hover:bg-secondary/80 hover:border-secondary/80 transition-colors'}>
-                {action.approved ? 'Sim' : 'Não'}
-              </Badge>
-            </div>
-            <Separator orientation="vertical" className="h-6" />
-            <div>
-              <span className="text-sm text-muted-foreground mr-2">Revisões:</span>
-              <Badge variant="outline" className="hover:bg-accent/20 hover:text-accent hover:border-accent transition-colors">
-                {action.revisions || 0}
-              </Badge>
-            </div>
-          </div>
-        </Card>
-
-        {/* Details Section - Specific per Action Type */}
-        {action.details && <Card className="p-6 mb-6">
-            <h2 className="text-lg font-semibold mb-4">Detalhes da Solicitação</h2>
-            <div className="space-y-4">
-              {/* CRIAR_CONTEUDO and CRIAR_CONTEUDO_RAPIDO */}
-              {(action.type === 'CRIAR_CONTEUDO' || action.type === 'CRIAR_CONTEUDO_RAPIDO') && <>
-                  {action.details.objective && <div>
-                      <span className="text-sm font-medium text-muted-foreground">Objetivo:</span>
-                      <p className="mt-1 text-foreground">{action.details.objective}</p>
-                    </div>}
-                  {action.details.platform && <div>
-                      <span className="text-sm font-medium text-muted-foreground">Plataforma:</span>
-                      <p className="mt-1 text-foreground">{action.details.platform}</p>
-                    </div>}
-                  {action.details.description && <div>
-                      <span className="text-sm font-medium text-muted-foreground">Descrição:</span>
-                      <p className="mt-1 text-foreground">{action.details.description}</p>
-                    </div>}
-                  {action.details.tone && Array.isArray(action.details.tone) && action.details.tone.length > 0 && <div>
-                      <span className="text-sm font-medium text-muted-foreground">Tom de Voz:</span>
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        {action.details.tone.map((t: string, idx: number) => <Badge key={idx} variant="outline">{t}</Badge>)}
-                      </div>
-                    </div>}
-                  {action.details.additionalInfo && <div>
-                      <span className="text-sm font-medium text-muted-foreground">Informações Adicionais:</span>
-                      <p className="mt-1 text-foreground">{action.details.additionalInfo}</p>
-                    </div>}
-                  {action.details.isVideoMode && <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <span className="text-sm font-medium text-muted-foreground">Modo de Geração:</span>
-                        <Badge className="mt-1" variant="secondary">Vídeo</Badge>
-                      </div>
-                      {action.details.ratio && <div>
-                          <span className="text-sm font-medium text-muted-foreground">Proporção:</span>
-                          <p className="mt-1 text-foreground">{action.details.ratio}</p>
-                        </div>}
-                      {action.details.duration && <div>
-                          <span className="text-sm font-medium text-muted-foreground">Duração:</span>
-                          <p className="mt-1 text-foreground">{action.details.duration}s</p>
-                        </div>}
-                    </div>}
-                </>}
-
-
-              {/* GERAR_VIDEO - Detalhes específicos para geração de vídeo */}
-              {action.type === 'GERAR_VIDEO' && <>
-                  {action.details.prompt && <div>
-                      <span className="text-sm font-medium text-muted-foreground">Prompt de Geração:</span>
-                      <div className="mt-2 p-3 bg-muted/30 rounded-lg">
-                        <p className="text-foreground whitespace-pre-wrap">{action.details.prompt}</p>
-                      </div>
-                    </div>}
-                  {action.details.objective && <div>
-                      <span className="text-sm font-medium text-muted-foreground">Objetivo:</span>
-                      <p className="mt-1 text-foreground">{action.details.objective}</p>
-                    </div>}
-                  {action.details.platform && <div>
-                      <span className="text-sm font-medium text-muted-foreground">Plataforma:</span>
-                      <p className="mt-1 text-foreground">{action.details.platform}</p>
-                    </div>}
-                  {action.details.brand && <div>
-                      <span className="text-sm font-medium text-muted-foreground">Marca:</span>
-                      <p className="mt-1 text-foreground">{action.details.brand}</p>
-                    </div>}
-                  {action.details.persona && <div>
-                      <span className="text-sm font-medium text-muted-foreground">Persona:</span>
-                      <p className="mt-1 text-foreground">{action.details.persona}</p>
-                    </div>}
-                  {action.details.theme && <div>
-                      <span className="text-sm font-medium text-muted-foreground">Tema Estratégico:</span>
-                      <p className="mt-1 text-foreground">{action.details.theme}</p>
-                    </div>}
-                  {action.details.tone && Array.isArray(action.details.tone) && action.details.tone.length > 0 && <div>
-                      <span className="text-sm font-medium text-muted-foreground">Tom de Voz:</span>
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        {action.details.tone.map((t: string, idx: number) => <Badge key={idx} variant="outline">{t}</Badge>)}
-                      </div>
-                    </div>}
-                  {action.details.aspectRatio && <div>
-                      <span className="text-sm font-medium text-muted-foreground">Proporção:</span>
-                      <p className="mt-1 text-foreground">{action.details.aspectRatio}</p>
-                    </div>}
-                  {action.details.additionalInfo && <div>
-                      <span className="text-sm font-medium text-muted-foreground">Informações Adicionais:</span>
-                      <p className="mt-1 text-foreground">{action.details.additionalInfo}</p>
-                    </div>}
-                </>}
-
-              {/* REVISAR_CONTEUDO */}
-              {action.type === 'REVISAR_CONTEUDO' && <>
-                  {action.details.reviewType && <div>
-                      <span className="text-sm font-medium text-muted-foreground">Tipo de Revisão:</span>
-                      <Badge className="mt-1" variant="secondary">
-                        {action.details.reviewType === 'image' ? 'Imagem' : action.details.reviewType === 'caption' ? 'Legenda' : action.details.reviewType === 'text-for-image' ? 'Texto para Imagem' : action.details.reviewType}
-                      </Badge>
-                    </div>}
-                  {action.details.prompt && <div>
-                      <span className="text-sm font-medium text-muted-foreground">Contexto/Ajustes Solicitados:</span>
-                      <p className="mt-1 text-foreground">{action.details.prompt}</p>
-                    </div>}
-                  {action.details.brandName && <div>
-                      <span className="text-sm font-medium text-muted-foreground">Marca:</span>
-                      <p className="mt-1 text-foreground">{action.details.brandName}</p>
-                    </div>}
-                  {action.details.themeName && <div>
-                      <span className="text-sm font-medium text-muted-foreground">Tema Estratégico:</span>
-                      <p className="mt-1 text-foreground">{action.details.themeName}</p>
-                    </div>}
-                  {action.details.caption && <div>
-                      <span className="text-sm font-medium text-muted-foreground">Legenda Enviada:</span>
-                      <div className="mt-2 p-3 bg-muted/30 rounded-lg">
-                        <p className="text-foreground whitespace-pre-wrap">{action.details.caption}</p>
-                      </div>
-                    </div>}
-                  {action.details.text && <div>
-                      <span className="text-sm font-medium text-muted-foreground">Texto Enviado:</span>
-                      <div className="mt-2 p-3 bg-muted/30 rounded-lg">
-                        <p className="text-foreground whitespace-pre-wrap">{action.details.text}</p>
-                      </div>
-                    </div>}
-                </>}
-
-              {/* PLANEJAR_CONTEUDO */}
-              {action.type === 'PLANEJAR_CONTEUDO' && <>
-                  {action.details.platform && <div>
-                      <span className="text-sm font-medium text-muted-foreground">Plataforma:</span>
-                      <p className="mt-1 text-foreground">{action.details.platform}</p>
-                    </div>}
-                  {action.details.quantity && <div>
-                      <span className="text-sm font-medium text-muted-foreground">Quantidade de Posts:</span>
-                      <p className="mt-1 text-foreground">{action.details.quantity}</p>
-                    </div>}
-                  {action.details.theme && Array.isArray(action.details.theme) && action.details.theme.length > 0 && <div>
-                      <span className="text-sm font-medium text-muted-foreground">Temas Estratégicos:</span>
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        {action.details.theme.map((t: string, idx: number) => <Badge key={idx} variant="secondary">{t}</Badge>)}
-                      </div>
-                    </div>}
-                  {action.details.objective && <div>
-                      <span className="text-sm font-medium text-muted-foreground">Objetivo:</span>
-                      <p className="mt-1 text-foreground">{action.details.objective}</p>
-                    </div>}
-                  {action.details.additionalInfo && <div>
-                      <span className="text-sm font-medium text-muted-foreground">Informações Adicionais:</span>
-                      <p className="mt-1 text-foreground">{action.details.additionalInfo}</p>
-                    </div>}
-                </>}
-            </div>
-          </Card>}
-
-        {/* Result Section */}
-        {action.result && <Card className="p-6">
-            
-            
-            {/* Video Result */}
-            {action.result.videoUrl && <div className="mb-6">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-sm font-medium text-muted-foreground">Vídeo Gerado</span>
+                  {/* PLANEJAR_CONTEUDO */}
+                  {action.type === 'PLANEJAR_CONTEUDO' && (
+                    <>
+                      {action.details.platform && <DetailField label="Plataforma"><p className="text-sm font-medium text-foreground">{action.details.platform}</p></DetailField>}
+                      {action.details.quantity && <DetailField label="Quantidade de Posts"><p className="text-sm font-medium text-foreground">{action.details.quantity}</p></DetailField>}
+                      {action.details.theme && Array.isArray(action.details.theme) && action.details.theme.length > 0 && (
+                        <DetailField label="Temas Estratégicos">
+                          <div className="flex flex-wrap gap-2 mt-1">
+                            {action.details.theme.map((t: string, idx: number) => <Badge key={idx} variant="secondary">{t}</Badge>)}
+                          </div>
+                        </DetailField>
+                      )}
+                      {action.details.objective && <DetailField label="Objetivo"><p className="text-sm font-medium text-foreground">{action.details.objective}</p></DetailField>}
+                      {action.details.additionalInfo && <DetailField label="Informações Adicionais"><p className="text-sm text-foreground leading-relaxed">{action.details.additionalInfo}</p></DetailField>}
+                    </>
+                  )}
                 </div>
-                <div className="rounded-lg overflow-hidden border bg-muted/30 max-w-2xl mx-auto">
-                  <video src={action.result.videoUrl} controls className="w-full h-auto" playsInline>
-                    Seu navegador não suporta a tag de vídeo.
-                  </video>
-                </div>
-              </div>}
-            
-            {/* Review Result - Markdown format */}
-            {action.result.review && <div className="mb-6">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-sm font-medium text-muted-foreground">Análise e Revisão</span>
-                  <Button variant="ghost" size="sm" onClick={() => handleCopyText(action.result.review!)} disabled={copying}>
-                    {isCopied ? <>
-                        <Check className="mr-2 h-4 w-4" />
-                        Copiado!
-                      </> : <>
-                        <Copy className="mr-2 h-4 w-4" />
-                        Copiar
-                      </>}
-                  </Button>
-                </div>
-                <div className="p-6 bg-muted/50 rounded-lg">
-                  <div className="prose prose-sm prose-slate dark:prose-invert max-w-none">
-                    <ReactMarkdown components={{
-                h1: ({
-                  children
-                }) => <h1 className="text-2xl font-bold text-primary mb-4 pb-2 border-b border-primary/20">
-                            {children}
-                          </h1>,
-                h2: ({
-                  children
-                }) => <h2 className="text-xl font-semibold text-foreground mt-6 mb-3 flex items-center gap-2">
-                            <span className="w-1 h-6 bg-gradient-to-b from-primary to-secondary rounded-full flex-shrink-0"></span>
-                            {children}
-                          </h2>,
-                h3: ({
-                  children
-                }) => <h3 className="text-lg font-semibold text-foreground mt-5 mb-2">
-                            {children}
-                          </h3>,
-                h4: ({
-                  children
-                }) => <h4 className="text-base font-semibold text-primary mt-3 mb-2">
-                            {children}
-                          </h4>,
-                p: ({
-                  children
-                }) => <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-                            {children}
-                          </p>,
-                strong: ({
-                  children
-                }) => <strong className="font-semibold text-foreground">
-                            {children}
-                          </strong>,
-                ul: ({
-                  children
-                }) => <ul className="list-disc list-inside space-y-1 mb-3 ml-4">
-                            {children}
-                          </ul>,
-                ol: ({
-                  children
-                }) => <ol className="list-decimal list-inside space-y-1 mb-3 ml-4">
-                            {children}
-                          </ol>,
-                li: ({
-                  children
-                }) => <li className="text-sm text-muted-foreground">
-                            {children}
-                          </li>,
-                blockquote: ({
-                  children
-                }) => <blockquote className="border-l-4 border-primary/30 pl-4 italic text-muted-foreground bg-primary/5 py-2 my-3 rounded-r">
-                            {children}
-                          </blockquote>
-              }}>
-                      {action.result.review}
-                    </ReactMarkdown>
-                  </div>
-                </div>
-              </div>}
+              </SectionCard>
+            )}
 
-            {/* Image Result */}
-            {action.result.imageUrl && <div className="mb-6">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-sm font-medium text-muted-foreground">Imagem Gerada</span>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => handleDownloadImage(action.result.imageUrl!, `imagem-${action.id}`)}
-                  >
-                    <Download className="mr-2 h-4 w-4" />
-                    Baixar Imagem
-                  </Button>
-                </div>
-                <div className="rounded-lg overflow-hidden border bg-muted/30 max-w-md mx-auto">
-                  <img src={action.result.imageUrl} alt="Imagem gerada" className="w-full h-auto" />
-                </div>
-              </div>}
-
-            {/* Text Results */}
-            <div className="space-y-4">
-              {action.result.title && <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-muted-foreground">Título</span>
-                    <Button variant="ghost" size="sm" onClick={() => handleCopyText(action.result.title!)} disabled={copying}>
-                      {copying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Copy className="mr-2 h-4 w-4" />}
-                      Copiar
-                    </Button>
-                  </div>
-                  <div className="p-4 bg-muted/50 rounded-lg">
-                    <p className="font-medium">{action.result.title}</p>
-                  </div>
-                </div>}
-
-              {action.result.body && <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-muted-foreground">Corpo da Legenda</span>
-                    <Button variant="ghost" size="sm" onClick={() => handleCopyText(action.result.body!)} disabled={copying}>
-                      {copying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Copy className="mr-2 h-4 w-4" />}
-                      Copiar
-                    </Button>
-                  </div>
-                  <div className="p-4 bg-muted/50 rounded-lg border border-border/40">
-                    <p className="whitespace-pre-wrap text-foreground leading-relaxed">{action.result.body}</p>
-                  </div>
-                </div>}
-
-              {action.result.hashtags && action.result.hashtags.length > 0 && <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-muted-foreground">Hashtags</span>
-                    <Button variant="ghost" size="sm" onClick={() => handleCopyText(action.result.hashtags!.join(' '))} disabled={copying}>
-                      {copying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Copy className="mr-2 h-4 w-4" />}
-                      Copiar
-                    </Button>
-                  </div>
-                  <div className="p-4 bg-muted/50 rounded-lg">
-                    <div className="flex flex-wrap gap-2">
-                      {action.result.hashtags.map((tag, idx) => <Badge key={idx} variant="secondary">
-                          {tag}
-                        </Badge>)}
+            {/* Result Section */}
+            {action.result && (
+              <SectionCard title="Resultado" icon={<FileOutput className="h-4 w-4" />} accentColor={accentColor}>
+                <div className="space-y-6">
+                  {/* Review Result */}
+                  {action.result.review && (
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Análise e Revisão</p>
+                        <Button variant="ghost" size="sm" onClick={() => handleCopyText(action.result!.review!)} disabled={copying}>
+                          {isCopied ? <><Check className="mr-2 h-4 w-4" />Copiado!</> : <><Copy className="mr-2 h-4 w-4" />Copiar</>}
+                        </Button>
+                      </div>
+                      <div className="p-5 bg-muted/30 rounded-xl border border-border/10">
+                        <div className="prose prose-sm prose-slate dark:prose-invert max-w-none">
+                          <ReactMarkdown components={markdownComponents}>{action.result.review}</ReactMarkdown>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>}
+                  )}
 
-              {action.result.feedback && <div>
-                  <span className="text-sm font-medium text-muted-foreground">Feedback</span>
-                  <div className="p-4 bg-muted/50 rounded-lg mt-2">
-                    <p className="whitespace-pre-wrap">{action.result.feedback}</p>
-                  </div>
-                </div>}
+                  {/* Title */}
+                  {action.result.title && (
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Título</p>
+                        <Button variant="ghost" size="sm" onClick={() => handleCopyText(action.result!.title!)} disabled={copying}>
+                          {copying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Copy className="mr-2 h-4 w-4" />}
+                          Copiar
+                        </Button>
+                      </div>
+                      <div className="p-4 bg-muted/30 rounded-xl border border-border/10">
+                        <p className="font-medium text-foreground">{action.result.title}</p>
+                      </div>
+                    </div>
+                  )}
 
-              {action.result.plan && <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-muted-foreground">Plano de Conteúdo</span>
-                    <div className="flex gap-3">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="outline" size="icon" className="h-9 w-9 hover:text-accent hover:bg-accent/20 hover:border-accent">
-                            <Download className="h-4 w-4" />
+                  {/* Body */}
+                  {action.result.body && (
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Corpo da Legenda</p>
+                        <Button variant="ghost" size="sm" onClick={() => handleCopyText(action.result!.body!)} disabled={copying}>
+                          {copying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Copy className="mr-2 h-4 w-4" />}
+                          Copiar
+                        </Button>
+                      </div>
+                      <div className="p-4 bg-muted/30 rounded-xl border border-border/10">
+                        <p className="whitespace-pre-wrap text-foreground leading-relaxed text-sm">{action.result.body}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Hashtags */}
+                  {action.result.hashtags && action.result.hashtags.length > 0 && (
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Hashtags</p>
+                        <Button variant="ghost" size="sm" onClick={() => handleCopyText(action.result!.hashtags!.join(' '))} disabled={copying}>
+                          {copying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Copy className="mr-2 h-4 w-4" />}
+                          Copiar
+                        </Button>
+                      </div>
+                      <div className="p-4 bg-muted/30 rounded-xl border border-border/10">
+                        <div className="flex flex-wrap gap-2">
+                          {action.result.hashtags.map((tag, idx) => <Badge key={idx} variant="secondary">{tag}</Badge>)}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Feedback */}
+                  {action.result.feedback && (
+                    <DetailField label="Feedback">
+                      <div className="p-4 bg-muted/30 rounded-xl border border-border/10 mt-1">
+                        <p className="whitespace-pre-wrap text-sm text-foreground">{action.result.feedback}</p>
+                      </div>
+                    </DetailField>
+                  )}
+
+                  {/* Plan */}
+                  {action.result.plan && (
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Plano de Conteúdo</p>
+                        <div className="flex gap-2">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="outline" size="icon" className="h-8 w-8">
+                                <Download className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="bg-card z-50">
+                              <DropdownMenuItem onClick={() => handleDownloadDocx(action.result!.plan!)} className="cursor-pointer">
+                                <FileText className="mr-2 h-4 w-4" />Download DOCX
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleDownloadTxt(action.result!.plan!)} className="cursor-pointer">
+                                <File className="mr-2 h-4 w-4" />Download TXT
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleDownloadMd(action.result!.plan!)} className="cursor-pointer">
+                                <FileCode className="mr-2 h-4 w-4" />Download MD
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleCopyText(action.result!.plan!)} disabled={copying}>
+                            {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                           </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-card z-50">
-                          <DropdownMenuItem onClick={() => handleDownloadDocx(action.result.plan!)} className="cursor-pointer hover:text-accent">
-                            <FileText className="mr-2 h-4 w-4" />
-                            Download DOCX
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleDownloadTxt(action.result.plan!)} className="cursor-pointer hover:text-accent">
-                            <File className="mr-2 h-4 w-4" />
-                            Download TXT
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleDownloadMd(action.result.plan!)} className="cursor-pointer hover:text-accent">
-                            <FileCode className="mr-2 h-4 w-4" />
-                            Download MD
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                      <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => handleCopyText(action.result.plan!)} disabled={copying}>
-                        {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                        </div>
+                      </div>
+                      <div className="p-5 bg-muted/30 rounded-xl border border-border/10">
+                        <div className="prose prose-sm prose-slate dark:prose-invert max-w-none">
+                          <ReactMarkdown components={markdownComponents}>{action.result.plan}</ReactMarkdown>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </SectionCard>
+            )}
+          </div>
+
+          {/* ── Sidebar ── */}
+          {hasMedia && (
+            <div className="lg:col-span-1 space-y-6">
+              {/* Media */}
+              {(action.result?.imageUrl || action.result?.videoUrl) && (
+                <SectionCard title={action.result?.videoUrl ? 'Vídeo Gerado' : 'Imagem Gerada'} icon={action.result?.videoUrl ? <Video className="h-4 w-4" /> : <Image className="h-4 w-4" />} accentColor={accentColor}>
+                  {action.result?.videoUrl && (
+                    <div className="space-y-3">
+                      <div className="rounded-xl overflow-hidden border border-border/10 shadow-sm">
+                        <video src={action.result.videoUrl} controls className="w-full h-auto" playsInline>
+                          Seu navegador não suporta a tag de vídeo.
+                        </video>
+                      </div>
+                      <Button variant="outline" size="sm" className="w-full" onClick={() => handleDownloadVideo(action.result!.videoUrl!, `video-${action.id}`)}>
+                        <Download className="mr-2 h-4 w-4" />
+                        Baixar Vídeo
                       </Button>
                     </div>
-                  </div>
-                  <div className="p-6 bg-muted/50 rounded-lg">
-                    <div className="prose prose-sm prose-slate dark:prose-invert max-w-none">
-                      <ReactMarkdown components={{
-                  h1: ({
-                    children
-                  }) => <h1 className="text-2xl font-bold text-primary mb-4 pb-2 border-b border-primary/20">
-                              {children}
-                            </h1>,
-                  h2: ({
-                    children
-                  }) => <h2 className="text-xl font-semibold text-foreground mt-6 mb-3 flex items-center gap-2">
-                              <span className="w-1 h-6 bg-gradient-to-b from-primary to-secondary rounded-full flex-shrink-0"></span>
-                              {children}
-                            </h2>,
-                  h3: ({
-                    children
-                  }) => <h3 className="text-lg font-semibold text-foreground mt-5 mb-2">
-                              {children}
-                            </h3>,
-                  p: ({
-                    children
-                  }) => <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-                              {children}
-                            </p>,
-                  strong: ({
-                    children
-                  }) => <strong className="font-semibold text-foreground">
-                              {children}
-                            </strong>,
-                  ul: ({
-                    children
-                  }) => <ul className="list-disc list-inside space-y-1 mb-3 ml-4">
-                              {children}
-                            </ul>,
-                  ol: ({
-                    children
-                  }) => <ol className="list-decimal list-inside space-y-1 mb-3 ml-4">
-                              {children}
-                            </ol>,
-                  li: ({
-                    children
-                  }) => <li className="text-sm text-muted-foreground">
-                              {children}
-                            </li>
-                }}>
-                        {action.result.plan}
-                      </ReactMarkdown>
+                  )}
+                  {action.result?.imageUrl && !action.result?.videoUrl && (
+                    <div className="space-y-3">
+                      <div className="relative group rounded-xl overflow-hidden border border-border/10 shadow-sm">
+                        <img src={action.result.imageUrl} alt="Imagem gerada" className="w-full h-auto" />
+                        <button
+                          onClick={() => handleDownloadImage(action.result!.imageUrl!, `imagem-${action.id}`)}
+                          className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 backdrop-blur-sm"
+                        >
+                          <Download className="text-white h-6 w-6" />
+                        </button>
+                      </div>
                     </div>
+                  )}
+                </SectionCard>
+              )}
+
+              {/* Original Image (Review) */}
+              {action.result?.originalImage && (
+                <SectionCard title="Imagem Original" icon={<Image className="h-4 w-4" />} accentColor={accentColor}>
+                  <div className="relative group rounded-xl overflow-hidden border border-border/10 shadow-sm">
+                    <img src={action.result.originalImage} alt="Imagem original" className="w-full h-auto" />
+                    <button
+                      onClick={() => handleDownloadImage(action.result!.originalImage!, `original-${action.id}`)}
+                      className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 backdrop-blur-sm"
+                    >
+                      <Download className="text-white h-6 w-6" />
+                    </button>
                   </div>
-                </div>}
+                </SectionCard>
+              )}
+
+              {/* Metadata Card */}
+              <SectionCard title="Informações" icon={<Info className="h-4 w-4" />} accentColor={accentColor}>
+                <div className="space-y-4">
+                  <DetailField label="Data de Criação">
+                    <p className="text-sm font-medium text-foreground">{formatDate(action.createdAt)}</p>
+                  </DetailField>
+                  <Separator className="bg-border/10" />
+                  <DetailField label="Marca">
+                    <p className="text-sm font-medium text-foreground">{action.brand?.name || 'Não especificada'}</p>
+                  </DetailField>
+                  <Separator className="bg-border/10" />
+                  <DetailField label="Criado por">
+                    <p className="text-sm font-medium text-foreground truncate">{action.user?.name || 'Não especificado'}</p>
+                  </DetailField>
+                  <Separator className="bg-border/10" />
+                  <DetailField label="Status">
+                    <Badge className={`mt-1 ${getStatusColor(action.status)}`}>{action.status}</Badge>
+                  </DetailField>
+                  <Separator className="bg-border/10" />
+                  <DetailField label="Aprovação">
+                    <Badge variant={action.approved ? 'default' : 'secondary'} className="mt-1">
+                      {action.approved ? 'Aprovado' : 'Pendente'}
+                    </Badge>
+                  </DetailField>
+                  {(action.revisions ?? 0) > 0 && (
+                    <>
+                      <Separator className="bg-border/10" />
+                      <DetailField label="Revisões">
+                        <p className="text-sm font-medium text-foreground">{action.revisions}</p>
+                      </DetailField>
+                    </>
+                  )}
+                </div>
+              </SectionCard>
             </div>
-          </Card>}
+          )}
+
+          {/* Metadata card when no media (full width bottom) */}
+          {!hasMedia && (
+            <div className="lg:col-span-3">
+              <SectionCard title="Informações" icon={<Info className="h-4 w-4" />} accentColor={accentColor}>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                  <DetailField label="Data de Criação">
+                    <p className="text-sm font-medium text-foreground">{formatDate(action.createdAt)}</p>
+                  </DetailField>
+                  <DetailField label="Marca">
+                    <p className="text-sm font-medium text-foreground">{action.brand?.name || 'Não especificada'}</p>
+                  </DetailField>
+                  <DetailField label="Criado por">
+                    <p className="text-sm font-medium text-foreground truncate">{action.user?.name || 'Não especificado'}</p>
+                  </DetailField>
+                  <DetailField label="Status">
+                    <Badge className={`mt-1 ${getStatusColor(action.status)}`}>{action.status}</Badge>
+                  </DetailField>
+                </div>
+              </SectionCard>
+            </div>
+          )}
+        </div>
       </div>
-    </div>;
+    </div>
+  );
 }
