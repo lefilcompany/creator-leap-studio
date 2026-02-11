@@ -17,22 +17,22 @@ export const DashboardBanner = ({ userName }: DashboardBannerProps) => {
   const firstName = userName?.split(" ")[0] || "Usuário";
 
   return (
-    <div className="relative overflow-hidden rounded-2xl shadow-xl h-40 sm:h-44 md:h-52">
-      {/* Background image */}
+    <div className="relative overflow-hidden rounded-2xl shadow-xl h-44 sm:h-48 md:h-52">
+      {/* Background image - object-bottom to always show people */}
       <motion.img
         src={dashboardBannerImg}
         alt=""
-        className="absolute inset-0 w-full h-full object-cover"
+        className="absolute inset-0 w-full h-full object-cover object-bottom"
         animate={{ scale: [1, 1.03, 1] }}
         transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
       />
 
       {/* Overlay for text contrast */}
-      <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-black/20 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-r from-foreground/50 via-foreground/25 to-transparent" />
 
       {/* Content */}
       <div className="relative h-full flex items-center px-5 sm:px-6 md:px-10 z-10">
-        <div className="flex flex-col justify-center">
+        <div className="flex flex-col justify-center backdrop-blur-[2px] rounded-xl px-4 py-3 bg-foreground/10">
           <p className="text-white/90 text-[10px] sm:text-xs font-semibold tracking-[0.2em] uppercase">
             {getGreeting()}
           </p>
