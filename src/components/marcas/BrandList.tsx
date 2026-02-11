@@ -27,6 +27,7 @@ import { Button } from '@/components/ui/button';
 
 interface BrandListProps {
   brands: BrandSummary[] | undefined;
+  paginatedBrands?: BrandSummary[] | undefined;
   selectedBrand: BrandSummary | null;
   onSelectBrand: (brand: BrandSummary, viewMode?: string) => void;
   isLoading?: boolean;
@@ -142,12 +143,13 @@ function BrandCard({ brand, isSelected, onSelect }: { brand: BrandSummary; isSel
   );
 }
 
-export default function BrandList({ brands, selectedBrand, onSelectBrand, isLoading = false, currentPage, totalPages, onPageChange, initialViewMode }: BrandListProps) {
+export default function BrandList({ brands, paginatedBrands, selectedBrand, onSelectBrand, isLoading = false, currentPage, totalPages, onPageChange, initialViewMode }: BrandListProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [viewMode, setViewMode] = useState<ViewMode>((initialViewMode as ViewMode) || 'grid');
 
+  // All brands filtered and sorted (for grid - shows everything)
   const filteredAndSortedBrands = useMemo(() => {
     if (!brands || !Array.isArray(brands)) return [];
     
@@ -173,6 +175,34 @@ export default function BrandList({ brands, selectedBrand, onSelectBrand, isLoad
     
     return result;
   }, [brands, searchQuery, sortField, sortDirection]);
+
+  // For list view: use paginated data, apply same search/sort
+  const listViewBrands = useMemo(() => {
+    const source = paginatedBrands || brands;
+    if (!source || !Array.isArray(source)) return [];
+    
+    let result = [...source];
+    
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      result = result.filter(b => 
+        b.name.toLowerCase().includes(query) ||
+        b.responsible.toLowerCase().includes(query)
+      );
+    }
+    
+    result.sort((a, b) => {
+      if (sortField === 'date') {
+        const dateA = new Date(a.createdAt).getTime();
+        const dateB = new Date(b.createdAt).getTime();
+        return sortDirection === 'asc' ? dateA - dateB : dateB - dateA;
+      }
+      const cmp = a.name.localeCompare(b.name);
+      return sortDirection === 'asc' ? cmp : -cmp;
+    });
+    
+    return result;
+  }, [paginatedBrands, brands, searchQuery, sortField, sortDirection]);
 
   const toggleSort = (field: SortField) => {
     if (sortField === field) {
@@ -344,7 +374,7 @@ export default function BrandList({ brands, selectedBrand, onSelectBrand, isLoad
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredAndSortedBrands.map((brand) => {
+              {listViewBrands.map((brand) => {
                 const color = brand.brandColor || DEFAULT_BRAND_COLOR;
                 return (
                   <TableRow

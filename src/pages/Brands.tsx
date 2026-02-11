@@ -34,20 +34,19 @@ export default function MarcasPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 10;
 
-  const { data: brandsQueryData, isLoading: isQueryLoading } = useQuery({
-    queryKey: ['brands', user?.id, currentPage],
+  // Fetch ALL brands (used for grid view and as base for list pagination)
+  const { data: allBrands = [], isLoading: isQueryLoading } = useQuery({
+    queryKey: ['brands', user?.id],
     queryFn: async () => {
-      if (!user?.id) return { brands: [] as BrandSummary[], totalPages: 0 };
-      const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-      const { data, error, count } = await supabase
+      if (!user?.id) return [] as BrandSummary[];
+      const { data, error } = await supabase
         .from('brands')
-        .select('id, name, responsible, brand_color, avatar_url, created_at, updated_at', { count: 'exact' })
-        .order('name', { ascending: true })
-        .range(startIndex, startIndex + ITEMS_PER_PAGE - 1);
+        .select('id, name, responsible, brand_color, avatar_url, created_at, updated_at')
+        .order('name', { ascending: true });
 
       if (error) throw error;
 
-      const brands: BrandSummary[] = (data || []).map(brand => ({
+      return (data || []).map(brand => ({
         id: brand.id,
         name: brand.name,
         responsible: brand.responsible,
@@ -55,15 +54,14 @@ export default function MarcasPage() {
         avatarUrl: (brand as any).avatar_url || null,
         createdAt: brand.created_at,
         updatedAt: brand.updated_at
-      }));
-
-      return { brands, totalPages: Math.ceil((count || 0) / ITEMS_PER_PAGE) };
+      })) as BrandSummary[];
     },
     enabled: !!user?.id,
   });
 
-  const brands = brandsQueryData?.brands || [];
-  const totalPages = brandsQueryData?.totalPages || 0;
+  const totalPages = Math.ceil(allBrands.length / ITEMS_PER_PAGE);
+  // For list view, slice the page; for grid, BrandList will show all
+  const paginatedBrands = allBrands.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
   const handleOpenDialog = useCallback((brand: Brand | null = null) => {
     if (brand) {
@@ -83,7 +81,7 @@ export default function MarcasPage() {
     }
     setBrandToEdit(null);
     setIsConfirmDialogOpen(true);
-  }, [user, team, brands.length, t]);
+  }, [user, team, allBrands.length, t]);
 
   const handleConfirmCreate = useCallback(() => {
     setIsConfirmDialogOpen(false);
@@ -311,7 +309,8 @@ export default function MarcasPage() {
       {/* List */}
       <main id="brands-list" className="px-4 sm:px-6 lg:px-8 pt-4 pb-4 sm:pb-6 lg:pb-8">
         <BrandList
-          brands={brands}
+          brands={allBrands}
+          paginatedBrands={paginatedBrands}
           selectedBrand={null}
           onSelectBrand={handleSelectBrand}
           isLoading={isQueryLoading}
