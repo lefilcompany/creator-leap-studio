@@ -122,7 +122,7 @@ export const Header = () => {
 
   return (
     <header className="sticky top-0 z-50 w-full bg-transparent border-b border-border/10 transition-all duration-300 flex-shrink-0">
-      <div className="flex h-14 md:h-16 lg:h-20 items-center justify-between px-3 md:px-4 lg:px-6 xl:px-8 w-full">
+      <div className="flex h-11 md:h-12 items-center justify-between px-3 md:px-4 lg:px-6 xl:px-8 w-full">
         {/* Left section with sidebar triggers */}
         <div className="flex items-center gap-2">
 
