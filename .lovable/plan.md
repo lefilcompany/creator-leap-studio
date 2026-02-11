@@ -1,88 +1,28 @@
 
+## Corrigir scroll da pagina de Historico
 
-## Reformulacao Completa da Pagina de Historico
+### Problema
+A pagina de Historico tem `overflow-hidden` e restricoes de altura (`h-[calc(100%+2rem)]`) no container raiz, o que faz o banner ficar fixo e cria um scroll interno separado. Isso tambem causa o problema visivel na segunda screenshot onde o conteudo some e o background aparece "quadrado" fora do board.
 
-### Objetivo
-Transformar a pagina de Historico para exibir as acoes em formato de cards visuais (grid/list) com imagem em destaque, informacoes contextuais ricas, e toolbar padronizada seguindo o mesmo design system das paginas de Marcas, Temas e Personas.
+### Solucao
+Remover as restricoes de altura e `overflow-hidden` do container raiz da pagina de Historico, seguindo exatamente o mesmo padrao da pagina de Marcas que usa scroll natural do DashboardLayout.
 
-### Mudancas Visuais Principais
+### Mudanca no arquivo
 
-**1. Banner e Header (seguindo padrao de Marcas)**
-- Ajustar o header card para usar `shadow-lg` (como Marcas) em vez de `shadow-sm`
-- Remover `border-border/50` e usar o mesmo estilo clean de Marcas
-- Mover os filtros (Marca, Tipo de Acao) para dentro da toolbar do ActionList, ao lado da barra de pesquisa
+**`src/pages/History.tsx`** (1 edicao):
 
-**2. Novo Layout do ActionList - Cards Visuais**
-- Substituir a lista compacta atual por um grid de cards (4 colunas desktop, 2 tablet, 1 mobile)
-- Cada card tera:
-  - Imagem gerada em destaque (aspect-ratio 16:9) como area principal do card, com fallback para icone do tipo de acao
-  - Titulo/descricao extraido de `action.details` (ex: titulo do conteudo, objetivo do planejamento)
-  - Badges informativos: tipo de acao, plataforma, formato da imagem, estilo
-  - Data de criacao formatada
-  - Nome da marca associada
-- Manter tambem opcao de visualizacao em lista (toggle grid/list)
+- Linha 207: Trocar o className do container raiz de:
+  ```
+  flex flex-col -m-4 sm:-m-6 lg:-m-8 h-[calc(100%+2rem)] sm:h-[calc(100%+3rem)] lg:h-[calc(100%+4rem)] overflow-hidden
+  ```
+  Para (identico ao padrao de Marcas):
+  ```
+  flex flex-col -m-4 sm:-m-6 lg:-m-8
+  ```
 
-**3. Toolbar Padronizada**
-- Barra de pesquisa com icone e botao limpar (X)
-- Filtros de Marca e Tipo de Acao movidos para a toolbar (NativeSelect)
-- Botoes de ordenacao (Nome, Data)
-- Toggle de visualizacao (Blocos/Lista)
-- Botao "Limpar" filtros com estilo hover accent
+- Linha 261: No `<main id="history-list">`, remover `flex-1 min-h-0 overflow-y-auto` que forçavam o scroll interno, mantendo apenas o padding original:
+  ```
+  px-4 sm:px-6 lg:px-8 pt-4 pb-4 sm:pb-6 lg:pb-8
+  ```
 
-### Detalhes Tecnicos
-
-**Arquivos a modificar:**
-
-1. **`src/types/action.ts`** - Expandir `ActionSummary` para incluir campos adicionais:
-   - `imageUrl?: string` (de `result.imageUrl`)
-   - `platform?: string` (de `details.platform`)
-   - `title?: string` (de `result.title`)
-   - `details?: object` (metadados adicionais como objetivo, prompt resumido)
-
-2. **`src/pages/History.tsx`**:
-   - Alterar header card: remover `border-border/50`, usar `shadow-lg`
-   - Remover os NativeSelect do header e passar `brands`, `brandFilter`, `typeFilter` como props para ActionList
-   - Expandir a query do Supabase para trazer `result` (imageUrl, title) e `details` (platform, objective) no select
-   - Mapear esses campos extras no ActionSummary
-
-3. **`src/components/historico/ActionList.tsx`** - Reescrever completamente:
-   - Adicionar toolbar padronizada (search + filtros NativeSelect + sort buttons + view toggle)
-   - Criar componente `ActionCard` para visualizacao em grid:
-     - Area de imagem (16:9) com a imagem gerada ou placeholder com icone
-     - Titulo/descricao truncado (2 linhas)
-     - Badges: tipo de acao (com cor), plataforma, etc.
-     - Data formatada (dia mes ano, hora:minuto)
-     - Nome da marca
-   - Criar visualizacao em lista com tabela similar a Marcas
-   - Manter paginacao apenas no modo lista (grid sem paginacao para fluxo continuo, seguindo padrao)
-
-**Estrutura do Card (Grid):**
-
-```text
-+----------------------------------+
-|  [Imagem gerada 16:9]           |
-|  ou placeholder com icone        |
-+----------------------------------+
-|  Titulo / descricao truncada     |
-|                                  |
-|  [Badge Tipo] [Badge Platform]   |
-|                                  |
-|  06 de jan. de 2026, 12:20       |
-|  Marca: Nome da Marca            |
-+----------------------------------+
-```
-
-**Estrutura do Card (Lista):**
-
-```text
-| Cor | Imagem | Tipo + Titulo | Marca | Plataforma | Data |
-```
-
-**Informacoes contextuais por tipo de acao:**
-- **Criar conteudo / Criar conteudo rapido**: imagem gerada, titulo, plataforma, hashtags count
-- **Revisar conteudo**: imagem original/revisada, feedback resumido
-- **Planejar conteudo**: icone de calendario, objetivo do planejamento
-- **Gerar video**: thumbnail do video ou icone, duracao se disponivel
-
-**Fallback de imagem**: quando nao houver imagem gerada, exibir um placeholder com o icone do tipo de acao centralizado sobre um fundo gradiente usando as cores do tipo.
-
+Isso fara o banner, header e lista de acoes scrollarem juntos naturalmente dentro do board do DashboardLayout, exatamente como funciona na pagina de Marcas.
