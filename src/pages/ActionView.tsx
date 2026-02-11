@@ -768,7 +768,7 @@ export default function ActionView() {
                 <p className="text-sm font-medium text-foreground">{action.brand?.name || 'Não especificada'}</p>
               </DetailField>
               <DetailField label="Criado por">
-                <p className="text-sm font-medium text-foreground truncate">{action.user?.name || 'Não especificado'}</p>
+                <p className="text-sm font-medium text-foreground break-words">{action.user?.name || 'Não especificado'}</p>
               </DetailField>
               <DetailField label="Status">
                 <Badge className={`mt-1 ${getStatusColor(action.status)}`}>{action.status}</Badge>
