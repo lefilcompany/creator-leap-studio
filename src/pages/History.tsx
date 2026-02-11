@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { Drawer, DrawerContent, DrawerTitle } from '@/components/ui/drawer';
 import { History as HistoryIcon, HelpCircle } from 'lucide-react';
@@ -15,134 +15,99 @@ import { supabase } from '@/integrations/supabase/client';
 import { TourSelector } from '@/components/onboarding/TourSelector';
 import { historySteps, navbarSteps } from '@/components/onboarding/tourSteps';
 import historyBanner from '@/assets/history-banner.jpg';
+import { useQuery } from '@tanstack/react-query';
+
+const ITEMS_PER_PAGE = 12;
 
 export default function History() {
   const { user } = useAuth();
   const isMobile = useIsMobile();
-  const [actions, setActions] = useState<ActionSummary[]>([]);
-  const [brands, setBrands] = useState<BrandSummary[]>([]);
   const [selectedActionSummary, setSelectedActionSummary] = useState<ActionSummary | null>(null);
   const [selectedAction, setSelectedAction] = useState<Action | null>(null);
-  const [isLoadingActions, setIsLoadingActions] = useState(true);
-  const [isLoadingBrands, setIsLoadingBrands] = useState(true);
   const [isLoadingActionDetails, setIsLoadingActionDetails] = useState(false);
   const [isActionDetailsOpen, setIsActionDetailsOpen] = useState(false);
 
   const [brandFilter, setBrandFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(0);
-  const ITEMS_PER_PAGE = 12;
 
-  useEffect(() => {
-    const loadData = async () => {
-      if (!user?.teamId) return;
-      
-      setIsLoadingBrands(true);
-      setIsLoadingActions(true);
+  const { data: brands = [], isLoading: isLoadingBrands } = useQuery({
+    queryKey: ['history-brands', user?.teamId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('brands')
+        .select('id, name, responsible, created_at, updated_at')
+        .eq('team_id', user!.teamId!)
+        .order('name');
+      if (error) throw error;
+      return (data || []).map(brand => ({
+        id: brand.id,
+        name: brand.name,
+        responsible: brand.responsible,
+        brandColor: null,
+        avatarUrl: null,
+        createdAt: brand.created_at,
+        updatedAt: brand.updated_at
+      })) as BrandSummary[];
+    },
+    enabled: !!user?.teamId,
+  });
 
-      try {
-        const [brandsResult, actionsResult] = await Promise.all([
-          supabase
-            .from('brands')
-            .select('id, name, responsible, created_at, updated_at')
-            .eq('team_id', user.teamId)
-            .order('name'),
-          
-          (async () => {
-            let query = supabase
-              .from('actions')
-              .select(`
-                id,
-                type,
-                created_at,
-                approved,
-                brand_id,
-                details,
-                result,
-                brands(id, name, brand_color)
-              `, { count: 'exact' })
-              .eq('team_id', user.teamId)
-              .order('created_at', { ascending: false });
+  const { data: actionsData, isLoading: isLoadingActions } = useQuery({
+    queryKey: ['history-actions', user?.teamId, brandFilter, typeFilter, currentPage],
+    queryFn: async () => {
+      let query = supabase
+        .from('actions')
+        .select(`
+          id, type, created_at, approved, brand_id, details, result,
+          brands(id, name, brand_color)
+        `, { count: 'exact' })
+        .eq('team_id', user!.teamId!)
+        .order('created_at', { ascending: false });
 
-            if (brandFilter !== 'all') {
-              query = query.eq('brand_id', brandFilter);
-            }
-
-            if (typeFilter !== 'all') {
-              const selectedType = Object.entries(ACTION_TYPE_DISPLAY).find(
-                ([_, display]) => display === typeFilter
-              )?.[0];
-              if (selectedType) {
-                query = query.eq('type', selectedType);
-              }
-            }
-
-            const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-            query = query.range(startIndex, startIndex + ITEMS_PER_PAGE - 1);
-
-            return query;
-          })()
-        ]);
-
-        if (brandsResult.error) throw brandsResult.error;
-        const brandSummaries: BrandSummary[] = (brandsResult.data || []).map(brand => ({
-          id: brand.id,
-          name: brand.name,
-          responsible: brand.responsible,
-          brandColor: null,
-          avatarUrl: null,
-          createdAt: brand.created_at,
-          updatedAt: brand.updated_at
-        }));
-        setBrands(brandSummaries);
-
-        if (actionsResult.error) throw actionsResult.error;
-        const actionSummaries: ActionSummary[] = (actionsResult.data || []).map(action => {
-          let brandInfo = null;
-          if (action.brands) {
-            brandInfo = {
-              id: action.brands.id,
-              name: action.brands.name,
-              color: (action.brands as any).brand_color || null,
-            };
-          } else if (action.details && typeof action.details === 'object' && 'brand' in action.details) {
-            brandInfo = {
-              id: '',
-              name: String(action.details.brand)
-            };
-          }
-
-          const result = action.result as Record<string, any> | null;
-          const details = action.details as Record<string, any> | null;
-          
-          return {
-            id: action.id,
-            type: action.type as any,
-            createdAt: action.created_at,
-            approved: action.approved,
-            brand: brandInfo,
-            imageUrl: result?.imageUrl || result?.originalImage || undefined,
-            title: result?.title || result?.description || undefined,
-            platform: details?.platform || undefined,
-            objective: details?.objective || undefined,
-            extraDetails: details || undefined,
-          };
-        });
-        setActions(actionSummaries);
-        setTotalPages(Math.ceil((actionsResult.count || 0) / ITEMS_PER_PAGE));
-
-      } catch (error) {
-        console.error('Error loading data:', error);
-        toast.error("Não foi possível carregar o histórico. Tente novamente.");
-      } finally {
-        setIsLoadingBrands(false);
-        setIsLoadingActions(false);
+      if (brandFilter !== 'all') {
+        query = query.eq('brand_id', brandFilter);
       }
-    };
+      if (typeFilter !== 'all') {
+        const selectedType = Object.entries(ACTION_TYPE_DISPLAY).find(
+          ([_, display]) => display === typeFilter
+        )?.[0];
+        if (selectedType) query = query.eq('type', selectedType);
+      }
 
-    loadData();
-  }, [user?.teamId, brandFilter, typeFilter, currentPage]);
+      const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+      query = query.range(startIndex, startIndex + ITEMS_PER_PAGE - 1);
+
+      const { data, error, count } = await query;
+      if (error) throw error;
+
+      const actionSummaries: ActionSummary[] = (data || []).map(action => {
+        let brandInfo = null;
+        if (action.brands) {
+          brandInfo = { id: action.brands.id, name: action.brands.name, color: (action.brands as any).brand_color || null };
+        } else if (action.details && typeof action.details === 'object' && 'brand' in action.details) {
+          brandInfo = { id: '', name: String(action.details.brand) };
+        }
+        const result = action.result as Record<string, any> | null;
+        const details = action.details as Record<string, any> | null;
+        return {
+          id: action.id, type: action.type as any, createdAt: action.created_at,
+          approved: action.approved, brand: brandInfo,
+          imageUrl: result?.imageUrl || result?.originalImage || undefined,
+          title: result?.title || result?.description || undefined,
+          platform: details?.platform || undefined,
+          objective: details?.objective || undefined,
+          extraDetails: details || undefined,
+        };
+      });
+
+      return { actions: actionSummaries, totalPages: Math.ceil((count || 0) / ITEMS_PER_PAGE) };
+    },
+    enabled: !!user?.teamId,
+  });
+
+  const actions = actionsData?.actions || [];
+  const totalPages = actionsData?.totalPages || 0;
 
   const handleSelectAction = useCallback(async (action: ActionSummary) => {
     setSelectedActionSummary(action);
@@ -163,24 +128,14 @@ export default function History() {
 
       if (error) throw error;
 
-      const fullAction: Action = {
-        id: data.id,
-        type: data.type as any,
-        brandId: data.brand_id,
-        teamId: data.team_id,
-        userId: data.user_id,
-        createdAt: data.created_at,
-        updatedAt: data.updated_at,
-        status: data.status,
-        approved: data.approved,
-        revisions: data.revisions,
-        details: data.details as any,
-        result: data.result as any,
+      setSelectedAction({
+        id: data.id, type: data.type as any, brandId: data.brand_id,
+        teamId: data.team_id, userId: data.user_id, createdAt: data.created_at,
+        updatedAt: data.updated_at, status: data.status, approved: data.approved,
+        revisions: data.revisions, details: data.details as any, result: data.result as any,
         brand: data.brands ? { id: data.brands.id, name: data.brands.name } : undefined,
         user: data.profiles ? { id: data.profiles.id, name: data.profiles.name, email: data.profiles.email } : undefined
-      };
-      
-      setSelectedAction(fullAction);
+      });
     } catch (error) {
       console.error('Error loading action details:', error);
       toast.error("Não foi possível carregar os detalhes. Tente novamente.");
@@ -193,31 +148,25 @@ export default function History() {
     setCurrentPage(1);
   }, [brandFilter, typeFilter]);
 
-  const brandOptions = [
+  const brandOptions = useMemo(() => [
     { value: 'all', label: 'Todas as Marcas' },
     ...brands.map(brand => ({ value: brand.id, label: brand.name }))
-  ];
+  ], [brands]);
 
-  const typeOptions = [
+  const typeOptions = useMemo(() => [
     { value: 'all', label: 'Todas as Ações' },
     ...Object.values(ACTION_TYPE_DISPLAY).map(displayType => ({ value: displayType, label: displayType }))
-  ];
+  ], []);
 
   return (
     <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8">
       {/* Banner */}
       <div className="relative w-full h-56 md:h-72 flex-shrink-0 overflow-hidden">
-        <img 
-          src={historyBanner} 
-          alt="" 
-          className="w-full h-full object-cover"
-          style={{ objectPosition: 'center 30%' }}
-          loading="lazy"
-        />
+        <img src={historyBanner} alt="" className="w-full h-full object-cover" style={{ objectPosition: 'center 30%' }} loading="lazy" />
         <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
       </div>
 
-      {/* Header card overlapping banner */}
+      {/* Header card */}
       <div className="relative px-4 sm:px-6 lg:px-8 -mt-12 flex-shrink-0">
         <div className="bg-card rounded-2xl shadow-lg p-4 lg:p-5">
           <div className="flex items-center gap-4">
@@ -236,9 +185,7 @@ export default function History() {
                   <PopoverContent className="w-80 text-sm" side="bottom" align="start">
                     <div className="space-y-2">
                       <h4 className="font-semibold text-foreground">O que é o Histórico?</h4>
-                      <p className="text-muted-foreground">
-                        O histórico reúne todas as ações realizadas pela sua equipe, como criação de conteúdo, revisões, planejamentos e geração de vídeos.
-                      </p>
+                      <p className="text-muted-foreground">O histórico reúne todas as ações realizadas pela sua equipe.</p>
                       <h4 className="font-semibold text-foreground mt-3">Como usar?</h4>
                       <ul className="text-muted-foreground space-y-1 list-disc list-inside">
                         <li>Use os filtros para encontrar ações específicas</li>
@@ -249,15 +196,13 @@ export default function History() {
                   </PopoverContent>
                 </Popover>
               </h1>
-              <p className="text-sm lg:text-base text-muted-foreground">
-                Visualize e filtre todas as ações realizadas no sistema.
-              </p>
+              <p className="text-sm lg:text-base text-muted-foreground">Visualize e filtre todas as ações realizadas no sistema.</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Scrollable action list */}
+      {/* Action list */}
       <main id="history-list" className="px-4 sm:px-6 lg:px-8 pt-4 pb-4 sm:pb-6 lg:pb-8">
         <ActionList
           actions={actions}
