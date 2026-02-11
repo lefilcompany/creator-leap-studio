@@ -44,8 +44,8 @@ const DialogContent = React.forwardRef<
       <div className="overflow-y-auto p-6">
         {children}
       </div>
-      <DialogPrimitive.Close className="group absolute right-2.5 top-2.5 sm:right-3 sm:top-3 rounded-lg p-1 bg-muted/60 backdrop-blur-sm border border-border/30 opacity-80 ring-offset-background transition-all duration-200 hover:opacity-100 hover:bg-muted hover:border-border/60 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none z-50">
-        <X className="h-3.5 w-3.5 text-muted-foreground group-hover:text-foreground transition-colors" />
+      <DialogPrimitive.Close className="group absolute right-2.5 top-2.5 sm:right-3 sm:top-3 rounded-lg p-1 bg-transparent opacity-80 ring-offset-background transition-all duration-200 hover:opacity-100 hover:bg-primary/20 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none z-50">
+        <X className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors" />
         <span className="sr-only">Close</span>
       </DialogPrimitive.Close>
     </DialogPrimitive.Content>
