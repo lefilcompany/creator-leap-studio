@@ -58,10 +58,10 @@ interface SharedContent {
 }
 
 export default function Team() {
-  const { user, team, reloadUserData } = useAuth();
+  const { user, team, isLoading: isAuthLoading, reloadUserData } = useAuth();
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
-  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [isContentLoading, setIsContentLoading] = useState(false);
+  const [isTeamsLoaded, setIsTeamsLoaded] = useState(false);
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [pendingRequests, setPendingRequests] = useState<JoinRequest[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -85,12 +85,18 @@ export default function Team() {
 
   const isTeamAdmin = team?.admin_id === user?.id;
 
+  // Show skeleton until auth AND teams data are both ready
+  const showSkeleton = isAuthLoading || !isTeamsLoaded;
+
   // Carregar equipes acessíveis
   useEffect(() => {
     if (user) {
       loadAccessibleTeams();
+    } else if (!isAuthLoading) {
+      // Auth finished but no user — mark as loaded
+      setIsTeamsLoaded(true);
     }
-  }, [user]);
+  }, [user, isAuthLoading]);
 
   // Carregar dados da equipe selecionada
   useEffect(() => {
@@ -169,14 +175,14 @@ export default function Team() {
     } catch (error: any) {
       console.error('Erro ao carregar equipes:', error);
     } finally {
-      setIsInitialLoading(false);
+      setIsTeamsLoaded(true);
     }
   };
 
   const loadTeamManagementData = async () => {
     if (!team) return;
 
-    setIsLoading(true);
+    setIsContentLoading(true);
     try {
       // Carregar membros da equipe
       const { data: membersData, error: membersError } = await supabase
@@ -229,7 +235,7 @@ export default function Team() {
       console.error('Erro ao carregar dados da equipe:', error);
       toast.error('Erro ao carregar dados da equipe');
     } finally {
-      setIsLoading(false);
+      setIsContentLoading(false);
     }
   };
 
@@ -378,7 +384,7 @@ export default function Team() {
     return labels[type] || type;
   };
 
-  if (isInitialLoading || isLoading) {
+  if (showSkeleton || isContentLoading) {
     return (
       <div className="min-h-full space-y-6 animate-fade-in">
         <PageBreadcrumb items={[{ label: "Equipes" }]} />
