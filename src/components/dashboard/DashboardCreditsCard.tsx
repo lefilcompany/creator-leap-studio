@@ -33,24 +33,24 @@ export const DashboardCreditsCard = ({
         <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-primary/5 blur-2xl" />
         <div className="absolute -bottom-6 -left-6 w-24 h-24 rounded-full bg-secondary/5 blur-2xl" />
 
-        <CardContent className="relative p-6">
-          <div className="flex items-start justify-between mb-4">
+        <CardContent className="relative p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-0 mb-4">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-primary/15 text-primary">
-                <Zap className="h-5 w-5" />
+              <div className="p-2 sm:p-2.5 rounded-xl bg-primary/15 text-primary">
+                <Zap className="h-4 w-4 sm:h-5 sm:w-5" />
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Créditos Disponíveis</p>
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground">Créditos Disponíveis</p>
                 <div className="flex items-baseline gap-2">
                   <motion.span
                     key={remainingCredits}
                     initial={{ scale: 1.2, color: "hsl(var(--primary))" }}
                     animate={{ scale: 1, color: "hsl(var(--foreground))" }}
-                    className="text-3xl font-bold tracking-tight"
+                    className="text-2xl sm:text-3xl font-bold tracking-tight"
                   >
                     {remainingCredits.toLocaleString()}
                   </motion.span>
-                  <span className="text-sm text-muted-foreground">
+                  <span className="text-xs sm:text-sm text-muted-foreground">
                     / {totalCredits.toLocaleString()}
                   </span>
                 </div>
@@ -59,10 +59,11 @@ export const DashboardCreditsCard = ({
             <motion.div
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
+              className="self-end sm:self-auto"
             >
               <Link to="/plans">
-                <Button size="sm" variant="outline" className="rounded-full gap-1.5 border-primary/30 text-primary hover:bg-primary/10">
-                  <TrendingUp className="h-3.5 w-3.5" />
+                <Button size="sm" variant="outline" className="rounded-full gap-1.5 border-primary/30 text-primary hover:bg-primary/10 text-xs sm:text-sm">
+                  <TrendingUp className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                   Comprar mais
                 </Button>
               </Link>
