@@ -15,6 +15,7 @@ import { DashboardBanner } from "@/components/dashboard/DashboardBanner";
 import { DashboardCreditsCard } from "@/components/dashboard/DashboardCreditsCard";
 import { DashboardQuickActions } from "@/components/dashboard/DashboardQuickActions";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
+import { DashboardRecentActivity } from "@/components/dashboard/DashboardRecentActivity";
 
 const Dashboard = () => {
   const { user, isLoading } = useAuth();
@@ -55,8 +56,19 @@ const Dashboard = () => {
     },
     enabled: !!user?.id,
   });
-
-
+  const { data: recentActivities = [] } = useQuery({
+    queryKey: ['dashboard-recent-activities', user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('actions')
+        .select(`id, type, status, created_at, brand_id, brands(name)`)
+        .eq('user_id', user!.id)
+        .order('created_at', { ascending: false })
+        .limit(5);
+      return data || [];
+    },
+    enabled: !!user?.id,
+  });
 
 
   const { data: planCredits = 0 } = useQuery({
@@ -126,6 +138,11 @@ const Dashboard = () => {
       {/* Stats */}
       <div id="dashboard-stats">
         <DashboardStats actionsCount={actionsCount} brandsCount={brandsCount} />
+      </div>
+
+      {/* Recent Activity */}
+      <div id="dashboard-recent-actions">
+        <DashboardRecentActivity activities={recentActivities as any} />
       </div>
     </div>
   );
