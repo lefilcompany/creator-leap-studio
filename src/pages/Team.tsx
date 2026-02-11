@@ -24,6 +24,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { PageBreadcrumb } from "@/components/PageBreadcrumb";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface TeamMember {
   id: string;
@@ -60,6 +61,7 @@ export default function Team() {
   const { user, team, reloadUserData } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [pendingRequests, setPendingRequests] = useState<JoinRequest[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -166,6 +168,8 @@ export default function Team() {
       setAccessibleTeams(teams);
     } catch (error: any) {
       console.error('Erro ao carregar equipes:', error);
+    } finally {
+      setIsInitialLoading(false);
     }
   };
 
@@ -374,13 +378,38 @@ export default function Team() {
     return labels[type] || type;
   };
 
-  if (isLoading) {
+  if (isInitialLoading || isLoading) {
     return (
-      <div className="flex h-full w-full items-center justify-center">
-        <div className="text-center space-y-4">
-          <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
-          <p className="text-muted-foreground">Carregando equipe...</p>
-        </div>
+      <div className="min-h-full space-y-6 animate-fade-in">
+        <PageBreadcrumb items={[{ label: "Equipes" }]} />
+        <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5">
+          <CardHeader className="pb-4">
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-14 w-14 rounded-lg" />
+              <div className="space-y-2">
+                <Skeleton className="h-8 w-32" />
+                <Skeleton className="h-4 w-56" />
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
+        <Card className="shadow-lg border-0">
+          <CardHeader>
+            <Skeleton className="h-6 w-40" />
+            <Skeleton className="h-4 w-64" />
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="flex items-center gap-4">
+                <Skeleton className="h-10 w-10 rounded-full" />
+                <div className="space-y-2 flex-1">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-3 w-48" />
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
       </div>
     );
   }
