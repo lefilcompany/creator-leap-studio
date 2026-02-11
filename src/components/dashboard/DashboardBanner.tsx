@@ -1,8 +1,5 @@
 import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
-import { Plus, Sparkles } from "lucide-react";
-import logoCreatorBranca from "@/assets/logoCreatorBranca.png";
+import dashboardBannerImg from "@/assets/dashboard-banner.jpg";
 
 interface DashboardBannerProps {
   userName: string;
@@ -24,37 +21,43 @@ export const DashboardBanner = ({ userName }: DashboardBannerProps) => {
       initial={{ opacity: 0, y: -8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary/90 to-secondary shadow-xl"
+      className="relative overflow-hidden rounded-2xl shadow-xl h-44 md:h-52"
     >
-      {/* Decorative blurs */}
-      <div className="absolute top-0 right-0 w-72 h-72 rounded-full bg-secondary/30 blur-3xl -translate-y-1/2 translate-x-1/4" />
-      <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full bg-primary/40 blur-3xl translate-y-1/2 -translate-x-1/4" />
-      <div className="absolute top-1/2 right-1/4 w-24 h-24 rounded-full bg-accent/20 blur-2xl" />
+      {/* Background image */}
+      <img
+        src={dashboardBannerImg}
+        alt=""
+        className="absolute inset-0 w-full h-full object-cover"
+      />
+      {/* Overlay for readability */}
+      <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-black/20 to-transparent" />
 
-      <div className="relative flex items-center justify-between px-6 md:px-10 py-8 md:py-10">
-        <div className="flex-1 space-y-3 z-10">
-          <p className="text-primary-foreground/70 text-sm font-medium tracking-wide uppercase">
-            {getGreeting()}
-          </p>
-          <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-primary-foreground tracking-tight">
-            Olá, {firstName}!
-          </h1>
-          <p className="text-primary-foreground/80 text-sm md:text-base max-w-md">
-            Pronto para criar conteúdos incríveis? Sua próxima grande ideia começa aqui.
-          </p>
-        </div>
-
-        {/* Logo decoration */}
-        <div className="hidden md:block relative z-10">
-          <motion.img
-            src={logoCreatorBranca}
-            alt="Creator"
-            className="h-20 lg:h-24 opacity-30"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 0.3, x: 0 }}
-            transition={{ delay: 0.3, duration: 0.6 }}
-          />
-        </div>
+      {/* Content */}
+      <div className="relative h-full flex flex-col justify-center px-6 md:px-10 z-10">
+        <motion.p
+          initial={{ opacity: 0, x: -10 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.2 }}
+          className="text-white/70 text-sm font-medium tracking-wide uppercase"
+        >
+          {getGreeting()}
+        </motion.p>
+        <motion.h1
+          initial={{ opacity: 0, x: -10 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.3 }}
+          className="text-2xl md:text-3xl lg:text-4xl font-bold text-white tracking-tight mt-1"
+        >
+          Olá, {firstName}!
+        </motion.h1>
+        <motion.p
+          initial={{ opacity: 0, x: -10 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.4 }}
+          className="text-white/80 text-sm md:text-base mt-1.5 max-w-md"
+        >
+          Pronto para criar conteúdos incríveis?
+        </motion.p>
       </div>
     </motion.div>
   );
