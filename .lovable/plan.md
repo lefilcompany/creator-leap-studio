@@ -1,102 +1,122 @@
 
 
-## Otimizacao de Performance - Carregamento Rapido das Paginas
+# Otimizacao do Historico de Criacoes
 
-### Problemas Identificados
+## Contexto Atual
 
-1. **Dashboard usa `useState` + `useEffect` ao inves de React Query**: A pagina Dashboard faz 4 chamadas sequenciais ao banco usando `useState`/`useEffect` manualmente, ignorando completamente o cache do React Query que ja esta configurado no projeto. Isso significa que toda vez que o usuario navega para o Dashboard, TODOS os dados sao buscados novamente do zero, sem cache.
+A tabela `actions` (962 registros) ja possui `team_id`, indexes otimizados (`idx_actions_team_created`), e a funcao `get_action_summaries` que filtra base64. Porem, existem registros com ate **~4MB** de dados base64 armazenados no campo `result`, o que e o principal gargalo.
 
-2. **History faz o mesmo**: A pagina de Historico tambem usa `useState`/`useEffect` com chamadas manuais, sem React Query. Cada navegacao refaz todas as queries.
+## Plano de Implementacao
 
-3. **Dashboard bloqueia renderizacao**: O Dashboard mostra um spinner ate que TODOS os dados estejam carregados (`isLoading || !user || !isDataLoaded`). Isso cria a percepcao de lentidao porque o usuario ve um spinner por varios segundos ate que 4 queries completem.
+### 1. Adicionar colunas de storage na tabela `actions`
 
-4. **Event Tracking captura TODOS os cliques**: O `useEventTracking` registra literalmente cada clique no DOM e faz um INSERT no banco para cada um. Isso gera trafico de rede desnecessario e pode atrasar outras operacoes.
+Adicionar `thumb_path` e `asset_path` para referenciar arquivos no Storage em vez de base64 no banco.
 
-5. **PresenceTracker inicia junto com o layout**: Faz INSERT no banco + subscribe a um channel de presenca imediatamente, adicionando mais latencia ao carregamento inicial.
-
-6. **AuthContext faz queries sequenciais**: Profile e depois Team sao buscados em sequencia (team depende do profile.team_id), mas a checagem de admin e profile JA rodam em paralelo.
-
-7. **OnboardingProvider faz query separada no profiles**: Busca campos de onboarding em uma query adicional ao profiles, quando esses dados ja poderiam vir na query do AuthContext.
-
-### Plano de Solucao
-
-#### 1. Migrar Dashboard para React Query (impacto ALTO)
-
-Substituir o `useState`/`useEffect` manual por hooks React Query dedicados. Isso habilita cache automatico (5 min staleTime ja configurado), deduplicacao de queries, e renderizacao progressiva.
-
-**Arquivo: `src/pages/Dashboard.tsx`**
-
-- Criar queries individuais com `useQuery` para: contagem de acoes, contagem de marcas, acoes recentes, e creditos do plano
-- Remover os estados `dashboardData`, `isDataLoaded`, `planCredits`
-- Mostrar o layout imediatamente com skeletons/placeholders enquanto os dados carregam (renderizacao progressiva ao inves de spinner global)
-- Cada card carrega independentemente
-
-```text
-ANTES:                          DEPOIS:
-[Spinner 3s]                    [Layout imediato]
-   |                               |
-   v                            [Cards com skeleton]
-[Tudo de uma vez]                  |
-                                [Dados aparecem conforme chegam]
+```sql
+ALTER TABLE actions
+  ADD COLUMN IF NOT EXISTS thumb_path text,
+  ADD COLUMN IF NOT EXISTS asset_path text;
 ```
 
-#### 2. Migrar History para React Query (impacto ALTO)
+### 2. Criar bucket de storage `creations`
 
-**Arquivo: `src/pages/History.tsx`**
+Bucket publico com estrutura `{team_id}/{yyyy}/{mm}/{id}/thumb.webp` e `asset.webp`.
 
-- Substituir `useState`/`useEffect` por `useQuery` com queryKeys que incluem filtros e paginacao
-- Isso permite cache por pagina/filtro (navegar entre paginas volta instantaneamente)
-- Marcas ja carregadas ficam em cache compartilhado com a pagina de Marcas
+### 3. Edge Function para migrar base64 existente
 
-#### 3. Renderizacao Progressiva no Dashboard (impacto MEDIO)
+Criar `migrate-action-images` que:
+- Busca actions com base64 no `result->imageUrl`
+- Converte e faz upload para o bucket `creations`
+- Gera thumbnail (versao reduzida)
+- Atualiza `thumb_path`, `asset_path` e limpa o base64 do `result`
 
-**Arquivo: `src/pages/Dashboard.tsx`**
+### 4. Atualizar funcao `get_action_summaries` para cursor pagination
 
-- Remover a condicao `!isDataLoaded` que bloqueia toda a renderizacao
-- Mostrar o header e layout imediatamente (o nome do usuario ja vem do AuthContext)
-- Cada card de estatistica mostra um skeleton individual enquanto sua query carrega
-- Resultado: o usuario ve a pagina em menos de 200ms, com dados aparecendo progressivamente
+Substituir OFFSET por cursor-based pagination usando `(created_at, id)`:
 
-#### 4. Debounce no Event Tracking (impacto MEDIO)
+```sql
+-- Parametros: p_cursor_created_at, p_cursor_id (opcionais)
+-- Filtrar: WHERE created_at < cursor OR (created_at = cursor AND id < cursor_id)
+```
 
-**Arquivo: `src/hooks/useEventTracking.ts`**
+### 5. Atualizar o frontend
 
-- Acumular eventos de clique em um buffer e enviar em batch a cada 5 segundos (ao inves de INSERT individual por clique)
-- Usar `navigator.sendBeacon` no `beforeunload` para garantir envio dos eventos pendentes
-- Isso reduz drasticamente o numero de requests de rede concorrentes
+**`src/pages/History.tsx`:**
+- Substituir `currentPage` por estado de cursor (`lastCreatedAt`, `lastId`)
+- Usar `useInfiniteQuery` do TanStack Query para "carregar mais"
+- Buscar apenas `thumb_path` na listagem
 
-#### 5. Lazy-load do PresenceTracker (impacto BAIXO)
+**`src/components/historico/ActionList.tsx`:**
+- Usar `thumb_path` para exibir thumbnails nos cards
+- Carregar imagem completa (`asset_path`) apenas no ActionDetails
+- Adicionar filtro de intervalo de datas
+- Botao "Carregar mais" em vez de paginacao numerada
 
-**Arquivo: `src/components/PresenceTracker.tsx`**
+**`src/components/historico/ActionDetails.tsx`:**
+- Carregar `asset_path` (imagem/video completo) sob demanda ao abrir detalhes
 
-- Adicionar um delay de 3 segundos antes de iniciar o tracking de presenca
-- Isso evita que a query de INSERT e o channel subscribe compitam com o carregamento inicial dos dados da pagina
+### 6. Atualizar edge functions de criacao
 
-#### 6. Incluir dados de onboarding na query do AuthContext (impacto BAIXO)
+Alterar as edge functions (`generate-image`, `generate-caption`, `generate-video`, etc.) para:
+- Fazer upload do resultado para o bucket `creations`
+- Gerar thumbnail
+- Salvar `thumb_path` e `asset_path` na action em vez de base64
 
-**Arquivo: `src/contexts/AuthContext.tsx`** e **`src/components/onboarding/OnboardingProvider.tsx`**
+---
 
-- Na query de `profiles` do AuthContext, ja buscar os campos `onboarding_*_completed`
-- O OnboardingProvider consome esses dados do AuthContext ao inves de fazer uma query separada
-- Elimina 1 query redundante no carregamento inicial
+## Detalhes Tecnicos
 
-### Resumo do Impacto
+### Estrutura de Storage
+```text
+creations/
+  {team_id}/
+    {yyyy}/
+      {mm}/
+        {action_id}/
+          thumb.webp    (300x300, qualidade 60)
+          asset.webp    (original)
+```
 
-| Mudanca | Queries eliminadas | Percepcao de velocidade |
-|---|---|---|
-| Dashboard com React Query | Cache evita 4 queries por visita | Instantaneo em revisita |
-| History com React Query | Cache por pagina/filtro | Navegacao entre paginas instantanea |
-| Renderizacao progressiva | 0 | Layout visivel em menos de 200ms |
-| Batch de eventos | ~50-100 requests/min reduzidos | Menos competicao de rede |
-| Delay no PresenceTracker | 1 query adiada | Carregamento inicial mais rapido |
-| Onboarding no AuthContext | 1 query eliminada | Marginalmente mais rapido |
+### Cursor Pagination (funcao SQL atualizada)
 
-### Arquivos Modificados
+```sql
+CREATE OR REPLACE FUNCTION get_action_summaries(
+  p_team_id uuid,
+  p_brand_filter uuid DEFAULT NULL,
+  p_type_filter text DEFAULT NULL,
+  p_cursor_created_at timestamptz DEFAULT NULL,
+  p_cursor_id uuid DEFAULT NULL,
+  p_limit integer DEFAULT 24
+)
+RETURNS TABLE(...)
+-- WHERE (p_cursor_created_at IS NULL) OR
+--   (created_at < p_cursor_created_at) OR
+--   (created_at = p_cursor_created_at AND id < p_cursor_id)
+-- ORDER BY created_at DESC, id DESC
+-- LIMIT p_limit
+```
 
-1. `src/pages/Dashboard.tsx` - Migrar para React Query + renderizacao progressiva
-2. `src/pages/History.tsx` - Migrar para React Query
-3. `src/hooks/useEventTracking.ts` - Batch de eventos com buffer
-4. `src/components/PresenceTracker.tsx` - Delay no inicio
-5. `src/contexts/AuthContext.tsx` - Incluir campos onboarding na query
-6. `src/components/onboarding/OnboardingProvider.tsx` - Consumir dados do AuthContext
+### Frontend: useInfiniteQuery
+
+```typescript
+const { data, fetchNextPage, hasNextPage } = useInfiniteQuery({
+  queryKey: ['history-actions', teamId, filters],
+  queryFn: ({ pageParam }) => fetchActions(pageParam),
+  getNextPageParam: (lastPage) => {
+    const last = lastPage.actions.at(-1);
+    return last ? { createdAt: last.createdAt, id: last.id } : undefined;
+  },
+});
+```
+
+### RLS
+A tabela `actions` ja possui RLS adequado via `can_access_resource(user_id, team_id)`. Nenhuma alteracao necessaria.
+
+### Arquivos a Modificar
+- **Migracao SQL**: nova migracao para `thumb_path`, `asset_path`, bucket, e funcao atualizada
+- `src/pages/History.tsx` - cursor pagination + useInfiniteQuery
+- `src/components/historico/ActionList.tsx` - thumbnails, carregar mais, filtro de datas
+- `src/components/historico/ActionDetails.tsx` - carregar asset completo sob demanda
+- `supabase/functions/migrate-action-images/index.ts` - nova edge function de migracao
+- Edge functions de geracao (ajustar para salvar no storage)
 
