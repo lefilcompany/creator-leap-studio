@@ -13,6 +13,24 @@ const getGreeting = () => {
   return "Boa noite";
 };
 
+const CreatorFigure = ({ color, size = 48, delay = 0 }: { color: string; size?: number; delay?: number }) => (
+  <motion.svg
+    width={size}
+    height={size}
+    viewBox="0 0 48 48"
+    fill="none"
+    animate={{ y: [0, -5, 0] }}
+    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay }}
+  >
+    {/* Head */}
+    <circle cx="24" cy="12" r="7" fill={color} opacity="0.9" />
+    {/* Body */}
+    <path d="M14 44 C14 30 14 26 24 22 C34 26 34 30 34 44" fill={color} opacity="0.7" />
+    {/* Creative spark */}
+    <circle cx="33" cy="7" r="2.5" fill={color} opacity="0.45" />
+  </motion.svg>
+);
+
 export const DashboardBanner = ({ userName }: DashboardBannerProps) => {
   const firstName = userName?.split(" ")[0] || "Usuário";
 
@@ -24,12 +42,12 @@ export const DashboardBanner = ({ userName }: DashboardBannerProps) => {
         alt=""
         className="absolute inset-0 w-full h-full object-cover"
       />
-      {/* Overlay for readability */}
+      {/* Overlay */}
       <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/30 to-transparent" />
 
       {/* Content */}
       <div className="relative h-full flex items-center justify-between px-6 md:px-10 z-10">
-        {/* Left side - static, no animation */}
+        {/* Left - static text */}
         <div className="flex flex-col justify-center">
           <p className="text-white/70 text-sm font-medium tracking-wide uppercase">
             {getGreeting()}
@@ -42,23 +60,11 @@ export const DashboardBanner = ({ userName }: DashboardBannerProps) => {
           </p>
         </div>
 
-        {/* Right side - animated decorative elements */}
-        <div className="hidden md:flex items-center gap-3">
-          <motion.div
-            animate={{ y: [0, -8, 0] }}
-            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-            className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-sm"
-          />
-          <motion.div
-            animate={{ y: [0, 8, 0] }}
-            transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-            className="w-6 h-6 rounded-full bg-white/15 backdrop-blur-sm"
-          />
-          <motion.div
-            animate={{ y: [0, -6, 0], opacity: [0.3, 0.7, 0.3] }}
-            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-            className="w-14 h-14 rounded-full bg-white/5 backdrop-blur-sm border border-white/10"
-          />
+        {/* Right - animated creator figures */}
+        <div className="hidden md:flex items-end gap-4 pb-6">
+          <CreatorFigure color="hsl(330, 100%, 65%)" size={56} delay={0} />
+          <CreatorFigure color="hsl(269, 66%, 60%)" size={44} delay={0.7} />
+          <CreatorFigure color="hsl(201, 73%, 55%)" size={38} delay={1.4} />
         </div>
       </div>
     </div>
