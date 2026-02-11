@@ -1,11 +1,13 @@
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
-import { Sparkles, Tags, Users } from "lucide-react";
+import { Sparkles, Tags, UserCircle, Palette } from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface DashboardStatsProps {
   actionsCount: number;
   brandsCount: number;
+  personasCount?: number;
+  themesCount?: number;
 }
 
 const statItem = {
@@ -13,7 +15,7 @@ const statItem = {
   show: { opacity: 1, y: 0, transition: { duration: 0.35 } },
 };
 
-export const DashboardStats = ({ actionsCount, brandsCount }: DashboardStatsProps) => {
+export const DashboardStats = ({ actionsCount, brandsCount, personasCount = 0, themesCount = 0 }: DashboardStatsProps) => {
   const stats = [
     {
       label: "Conteúdos Criados",
@@ -31,6 +33,22 @@ export const DashboardStats = ({ actionsCount, brandsCount }: DashboardStatsProp
       bg: "bg-accent/10",
       link: "/brands",
     },
+    {
+      label: "Personas",
+      value: personasCount,
+      icon: UserCircle,
+      color: "text-secondary",
+      bg: "bg-secondary/10",
+      link: "/personas",
+    },
+    {
+      label: "Temas Estratégicos",
+      value: themesCount,
+      icon: Palette,
+      color: "text-success",
+      bg: "bg-success/10",
+      link: "/themes",
+    },
   ];
 
   return (
@@ -38,7 +56,7 @@ export const DashboardStats = ({ actionsCount, brandsCount }: DashboardStatsProp
       initial="hidden"
       animate="show"
       transition={{ staggerChildren: 0.1 }}
-      className="grid grid-cols-2 gap-3"
+      className="grid grid-cols-2 lg:grid-cols-4 gap-3"
     >
       {stats.map((stat) => (
         <motion.div key={stat.label} variants={statItem}>
