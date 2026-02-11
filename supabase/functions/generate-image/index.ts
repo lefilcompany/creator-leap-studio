@@ -412,7 +412,7 @@ serve(async (req) => {
       metadata: { platform: formData.platform, visualStyle: formData.visualStyle }
     });
 
-    // Save to history (actions table)
+    // Save to history (actions table) with storage paths
     const { data: actionData, error: actionError } = await supabase
       .from('actions')
       .insert({
@@ -422,6 +422,8 @@ serve(async (req) => {
         brand_id: formData.brandId || null,
         status: 'Aprovado',
         approved: true,
+        asset_path: fileName,
+        thumb_path: fileName,
         details: {
           description: formData.description,
           brandId: formData.brandId,
