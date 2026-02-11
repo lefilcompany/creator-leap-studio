@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { Drawer, DrawerContent, DrawerTitle } from '@/components/ui/drawer';
 import { History as HistoryIcon, HelpCircle } from 'lucide-react';
@@ -6,7 +6,6 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import ActionList from '@/components/historico/ActionList';
 import ActionDetails from '@/components/historico/ActionDetails';
 import type { Action, ActionSummary } from '@/types/action';
-import type { BrandSummary } from '@/types/brand';
 import { ACTION_TYPE_DISPLAY } from '@/types/action';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -15,9 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { TourSelector } from '@/components/onboarding/TourSelector';
 import { historySteps, navbarSteps } from '@/components/onboarding/tourSteps';
 import historyBanner from '@/assets/history-banner.jpg';
-import { useQuery } from '@tanstack/react-query';
-
-const ITEMS_PER_PAGE = 12;
+import { useHistoryBrands, useHistoryActions } from '@/hooks/useHistoryActions';
 
 export default function History() {
   const { user } = useAuth();
@@ -29,85 +26,23 @@ export default function History() {
 
   const [brandFilter, setBrandFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
-  const [currentPage, setCurrentPage] = useState(1);
 
-  const { data: brands = [], isLoading: isLoadingBrands } = useQuery({
-    queryKey: ['history-brands', user?.teamId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('brands')
-        .select('id, name, responsible, created_at, updated_at')
-        .eq('team_id', user!.teamId!)
-        .order('name');
-      if (error) throw error;
-      return (data || []).map(brand => ({
-        id: brand.id,
-        name: brand.name,
-        responsible: brand.responsible,
-        brandColor: null,
-        avatarUrl: null,
-        createdAt: brand.created_at,
-        updatedAt: brand.updated_at
-      })) as BrandSummary[];
-    },
-    enabled: !!user?.teamId,
-  });
+  const { data: brands = [], isLoading: isLoadingBrands } = useHistoryBrands();
 
-  const { data: actionsData, isLoading: isLoadingActions } = useQuery({
-    queryKey: ['history-actions', user?.teamId, brandFilter, typeFilter, currentPage],
-    queryFn: async () => {
-      let query = supabase
-        .from('actions')
-        .select(`
-          id, type, created_at, approved, brand_id, details, result,
-          brands(id, name, brand_color)
-        `, { count: 'exact' })
-        .eq('team_id', user!.teamId!)
-        .order('created_at', { ascending: false });
+  const filters = useMemo(() => ({ brandFilter, typeFilter }), [brandFilter, typeFilter]);
 
-      if (brandFilter !== 'all') {
-        query = query.eq('brand_id', brandFilter);
-      }
-      if (typeFilter !== 'all') {
-        const selectedType = Object.entries(ACTION_TYPE_DISPLAY).find(
-          ([_, display]) => display === typeFilter
-        )?.[0];
-        if (selectedType) query = query.eq('type', selectedType);
-      }
+  const {
+    data: actionsData,
+    isLoading: isLoadingActions,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useHistoryActions(filters);
 
-      const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-      query = query.range(startIndex, startIndex + ITEMS_PER_PAGE - 1);
-
-      const { data, error, count } = await query;
-      if (error) throw error;
-
-      const actionSummaries: ActionSummary[] = (data || []).map(action => {
-        let brandInfo = null;
-        if (action.brands) {
-          brandInfo = { id: action.brands.id, name: action.brands.name, color: (action.brands as any).brand_color || null };
-        } else if (action.details && typeof action.details === 'object' && 'brand' in action.details) {
-          brandInfo = { id: '', name: String(action.details.brand) };
-        }
-        const result = action.result as Record<string, any> | null;
-        const details = action.details as Record<string, any> | null;
-        return {
-          id: action.id, type: action.type as any, createdAt: action.created_at,
-          approved: action.approved, brand: brandInfo,
-          imageUrl: result?.imageUrl || result?.originalImage || undefined,
-          title: result?.title || result?.description || undefined,
-          platform: details?.platform || undefined,
-          objective: details?.objective || undefined,
-          extraDetails: details || undefined,
-        };
-      });
-
-      return { actions: actionSummaries, totalPages: Math.ceil((count || 0) / ITEMS_PER_PAGE) };
-    },
-    enabled: !!user?.teamId,
-  });
-
-  const actions = actionsData?.actions || [];
-  const totalPages = actionsData?.totalPages || 0;
+  const actions = useMemo(
+    () => actionsData?.pages.flatMap(page => page.actions) || [],
+    [actionsData]
+  );
 
   const handleSelectAction = useCallback(async (action: ActionSummary) => {
     setSelectedActionSummary(action);
@@ -119,7 +54,7 @@ export default function History() {
         .from('actions')
         .select(`
           id, type, brand_id, team_id, user_id, created_at, updated_at,
-          status, approved, revisions, details, result,
+          status, approved, revisions, details, result, asset_path,
           brands(id, name),
           profiles!actions_user_id_fkey(id, name, email)
         `)
@@ -143,10 +78,6 @@ export default function History() {
       setIsLoadingActionDetails(false);
     }
   }, []);
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [brandFilter, typeFilter]);
 
   const brandOptions = useMemo(() => [
     { value: 'all', label: 'Todas as Marcas' },
@@ -209,9 +140,6 @@ export default function History() {
           selectedAction={selectedActionSummary}
           onSelectAction={handleSelectAction}
           isLoading={isLoadingActions}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
           brands={brands}
           brandFilter={brandFilter}
           onBrandFilterChange={setBrandFilter}
@@ -219,6 +147,9 @@ export default function History() {
           onTypeFilterChange={setTypeFilter}
           brandOptions={brandOptions}
           typeOptions={typeOptions}
+          hasNextPage={!!hasNextPage}
+          isFetchingNextPage={isFetchingNextPage}
+          onLoadMore={() => fetchNextPage()}
         />
       </main>
 

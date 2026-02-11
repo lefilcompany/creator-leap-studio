@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { Eye, Search, ArrowUpDown, ArrowUp, ArrowDown, List, LayoutGrid, X, Clock, Sparkles, CheckCircle, Calendar, Video, Image, Globe, Users } from 'lucide-react';
+import { Eye, Search, ArrowUpDown, ArrowUp, ArrowDown, List, LayoutGrid, X, Clock, Sparkles, CheckCircle, Calendar, Video, Image, Globe, Users, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -10,10 +10,6 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
-import {
-  Pagination, PaginationContent, PaginationItem, PaginationLink,
-  PaginationNext, PaginationPrevious, PaginationEllipsis,
-} from "@/components/ui/pagination";
 import type { ActionSummary } from '@/types/action';
 import { ACTION_TYPE_DISPLAY, ACTION_STYLE_MAP } from '@/types/action';
 import type { BrandSummary } from '@/types/brand';
@@ -23,9 +19,6 @@ interface ActionListProps {
   selectedAction: ActionSummary | null;
   onSelectAction: (action: ActionSummary) => void;
   isLoading: boolean;
-  currentPage: number;
-  totalPages: number;
-  onPageChange: (page: number) => void;
   brands: BrandSummary[];
   brandFilter: string;
   onBrandFilterChange: (value: string) => void;
@@ -33,6 +26,9 @@ interface ActionListProps {
   onTypeFilterChange: (value: string) => void;
   brandOptions: { value: string; label: string }[];
   typeOptions: { value: string; label: string }[];
+  hasNextPage: boolean;
+  isFetchingNextPage: boolean;
+  onLoadMore: () => void;
 }
 
 type SortField = 'type' | 'date';
@@ -49,13 +45,6 @@ const formatDate = (dateString: string) => {
 const formatDateShort = (dateString: string) => {
   if (!dateString) return '';
   return new Date(dateString).toLocaleDateString('pt-BR');
-};
-
-const generatePagination = (currentPage: number, totalPages: number) => {
-  if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
-  if (currentPage <= 3) return [1, 2, 3, 4, '...', totalPages];
-  if (currentPage >= totalPages - 2) return [1, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
-  return [1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages];
 };
 
 const ACTION_ICON_MAP: Record<string, React.ElementType> = {
@@ -241,9 +230,9 @@ function ActionCard({ action, isSelected, onSelect, onView }: {
 
 export default function ActionList({
   actions, selectedAction, onSelectAction, isLoading = false,
-  currentPage, totalPages, onPageChange,
   brands, brandFilter, onBrandFilterChange, typeFilter, onTypeFilterChange,
   brandOptions, typeOptions,
+  hasNextPage, isFetchingNextPage, onLoadMore,
 }: ActionListProps) {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
@@ -291,13 +280,6 @@ export default function ActionList({
     navigate(`/action/${actionId}`, { state: { viewMode } });
   };
 
-  const handlePageClick = (page: number | string, event?: React.MouseEvent) => {
-    if (event) event.preventDefault();
-    if (typeof page === 'number' && page > 0 && page <= totalPages && page !== currentPage) {
-      onPageChange(page);
-    }
-  };
-
   const hasActiveFilters = searchQuery.trim() || brandFilter !== 'all' || typeFilter !== 'all' || sortField !== 'date' || sortDirection !== 'desc';
 
   const clearFilters = () => {
@@ -312,8 +294,6 @@ export default function ActionList({
     if (sortField !== field) return <ArrowUpDown className="h-3.5 w-3.5 opacity-40" />;
     return sortDirection === 'asc' ? <ArrowUp className="h-3.5 w-3.5" /> : <ArrowDown className="h-3.5 w-3.5" />;
   };
-
-  const paginationRange = generatePagination(currentPage, totalPages);
 
   return (
     <div className="space-y-4">
@@ -441,7 +421,6 @@ export default function ActionList({
             <TableBody>
               {filteredAndSortedActions.map((action) => {
                 const displayType = ACTION_TYPE_DISPLAY[action.type];
-                const style = ACTION_STYLE_MAP[displayType];
                 const Icon = ACTION_ICON_MAP[action.type] || Sparkles;
                 const gradient = ACTION_GRADIENT_MAP[action.type];
                 const iconColor = ACTION_COLOR_MAP[action.type];
@@ -506,39 +485,24 @@ export default function ActionList({
         </div>
       )}
 
-      {/* Pagination */}
-      {totalPages > 1 && !isLoading && (
-        <div className="pt-2">
-          <Pagination>
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious
-                  onClick={(e) => handlePageClick(currentPage - 1, e)}
-                  disabled={currentPage === 1}
-                  className={cn("cursor-pointer", currentPage === 1 && "pointer-events-none opacity-50")}
-                  aria-disabled={currentPage === 1}
-                />
-              </PaginationItem>
-              {paginationRange.map((page, index) => {
-                if (typeof page === 'string') return <PaginationEllipsis key={`ellipsis-${index}`} />;
-                return (
-                  <PaginationItem key={page}>
-                    <PaginationLink onClick={(e) => handlePageClick(page, e)} isActive={currentPage === page} className="cursor-pointer">
-                      {page}
-                    </PaginationLink>
-                  </PaginationItem>
-                );
-              })}
-              <PaginationItem>
-                <PaginationNext
-                  onClick={(e) => handlePageClick(currentPage + 1, e)}
-                  disabled={currentPage === totalPages}
-                  className={cn("cursor-pointer", currentPage === totalPages && "pointer-events-none opacity-50")}
-                  aria-disabled={currentPage === totalPages}
-                />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
+      {/* Load More */}
+      {hasNextPage && !isLoading && (
+        <div className="flex justify-center pt-4">
+          <Button
+            variant="outline"
+            onClick={onLoadMore}
+            disabled={isFetchingNextPage}
+            className="gap-2 px-8"
+          >
+            {isFetchingNextPage ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Carregando...
+              </>
+            ) : (
+              'Carregar mais'
+            )}
+          </Button>
         </div>
       )}
     </div>
