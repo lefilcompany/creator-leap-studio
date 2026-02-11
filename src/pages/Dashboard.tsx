@@ -37,12 +37,15 @@ const Dashboard = () => {
   const { data: actionsCount = 0 } = useQuery({
     queryKey: ['dashboard-actions-count', user?.teamId],
     queryFn: async () => {
-      const { count } = await supabase
-        .from('actions')
-        .select('*', { count: 'exact', head: true });
-      return count || 0;
+      if (!user?.teamId) return 0;
+      const { data } = await supabase
+        .rpc('get_action_summaries', {
+          p_team_id: user.teamId,
+          p_limit: 1,
+        });
+      return data?.[0]?.total_count || 0;
     },
-    enabled: !!user?.id,
+    enabled: !!user?.teamId,
   });
 
   const { data: brandsCount = 0 } = useQuery({
@@ -78,17 +81,17 @@ const Dashboard = () => {
   });
 
   const { data: recentActivities = [] } = useQuery({
-    queryKey: ['dashboard-recent-activities', user?.id],
+    queryKey: ['dashboard-recent-activities', user?.teamId],
     queryFn: async () => {
+      if (!user?.teamId) return [];
       const { data } = await supabase
-        .from('actions')
-        .select(`id, type, status, created_at, brand_id, brands(name)`)
-        .eq('user_id', user!.id)
-        .order('created_at', { ascending: false })
-        .limit(5);
+        .rpc('get_action_summaries', {
+          p_team_id: user.teamId,
+          p_limit: 5,
+        });
       return data || [];
     },
-    enabled: !!user?.id,
+    enabled: !!user?.teamId,
   });
 
 
