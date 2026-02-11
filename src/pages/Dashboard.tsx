@@ -6,16 +6,15 @@ import { toast } from "sonner";
 import { TrialBanner } from "@/components/TrialBanner";
 import { ExpiredTrialBlocker } from "@/components/ExpiredTrialBlocker";
 import { useQuery } from "@tanstack/react-query";
-import { motion } from "framer-motion";
+
 
 import { dashboardSteps, navbarSteps } from '@/components/onboarding/tourSteps';
 import { TourSelector } from '@/components/onboarding/TourSelector';
 
-import { DashboardGreeting } from "@/components/dashboard/DashboardGreeting";
+import { DashboardBanner } from "@/components/dashboard/DashboardBanner";
 import { DashboardCreditsCard } from "@/components/dashboard/DashboardCreditsCard";
 import { DashboardQuickActions } from "@/components/dashboard/DashboardQuickActions";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
-import { DashboardRecentActivity } from "@/components/dashboard/DashboardRecentActivity";
 
 const Dashboard = () => {
   const { user, isLoading } = useAuth();
@@ -57,19 +56,8 @@ const Dashboard = () => {
     enabled: !!user?.id,
   });
 
-  const { data: recentActivities = [] } = useQuery({
-    queryKey: ['dashboard-recent-activities', user?.id],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('actions')
-        .select(`id, type, status, created_at, brand_id, brands(name)`)
-        .eq('user_id', user!.id)
-        .order('created_at', { ascending: false })
-        .limit(5);
-      return data || [];
-    },
-    enabled: !!user?.id,
-  });
+
+
 
   const { data: planCredits = 0 } = useQuery({
     queryKey: ['dashboard-plan-credits', user?.planId],
@@ -120,8 +108,8 @@ const Dashboard = () => {
       <ExpiredTrialBlocker />
       <TrialBanner />
 
-      {/* Greeting */}
-      <DashboardGreeting userName={user.name} />
+      {/* Banner */}
+      <DashboardBanner userName={user.name} />
 
       {/* Quick Actions */}
       <div id="dashboard-quick-actions">
@@ -138,11 +126,6 @@ const Dashboard = () => {
       {/* Stats */}
       <div id="dashboard-stats">
         <DashboardStats actionsCount={actionsCount} brandsCount={brandsCount} />
-      </div>
-
-      {/* Recent Activity */}
-      <div id="dashboard-recent-actions">
-        <DashboardRecentActivity activities={recentActivities as any} />
       </div>
     </div>
   );
