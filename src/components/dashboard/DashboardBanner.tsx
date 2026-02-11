@@ -42,19 +42,6 @@ export const DashboardBanner = ({ userName }: DashboardBannerProps) => {
           <p className="text-primary-foreground/80 text-sm md:text-base max-w-md">
             Pronto para criar conteúdos incríveis? Sua próxima grande ideia começa aqui.
           </p>
-          <div className="pt-2">
-            <Link to="/create">
-              <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-                <Button
-                  size="lg"
-                  className="rounded-full bg-card text-primary hover:bg-card/90 shadow-lg font-semibold gap-2 px-6"
-                >
-                  <Plus className="h-4 w-4" />
-                  Criar Conteúdo
-                </Button>
-              </motion.div>
-            </Link>
-          </div>
         </div>
 
         {/* Logo decoration */}
