@@ -1,122 +1,68 @@
 
 
-# Otimizacao do Historico de Criacoes
+# Redesign da Pagina de Acao (ActionView)
 
-## Contexto Atual
+## Problema Atual
+A pagina de detalhes da acao usa componentes `Card` basicos com estilo generico, contrastando com o design refinado das paginas de Marcas, Temas e Personas que utilizam `SectionCard` com gradientes, blur, e layout em grid com sidebar.
 
-A tabela `actions` (962 registros) ja possui `team_id`, indexes otimizados (`idx_actions_team_created`), e a funcao `get_action_summaries` que filtra base64. Porem, existem registros com ate **~4MB** de dados base64 armazenados no campo `result`, o que e o principal gargalo.
+## Mudancas Propostas
 
-## Plano de Implementacao
+### 1. Introduzir o componente SectionCard na ActionView
+Reutilizar o mesmo padrao visual da BrandView: cards com backdrop-blur, bordas arredondadas (rounded-2xl), cabecalho com icone e gradiente sutil baseado na cor do tipo de acao.
 
-### 1. Adicionar colunas de storage na tabela `actions`
+### 2. Reorganizar o layout em grid 2/3 + 1/3
+- **Coluna principal (2/3)**: Detalhes da solicitacao, resultado textual (legenda, titulo, hashtags, plano, review)
+- **Sidebar (1/3)**: Imagem/video gerado, metadados (data, marca, criador, status), botoes de download
 
-Adicionar `thumb_path` e `asset_path` para referenciar arquivos no Storage em vez de base64 no banco.
+### 3. Substituir os 4 cards de info por metadados na sidebar
+Em vez de 4 cards separados (Data, Marca, Criado por, Status), usar um card compacto estilo metadata na sidebar, similar ao rodape de datas da BrandView.
 
-```sql
-ALTER TABLE actions
-  ADD COLUMN IF NOT EXISTS thumb_path text,
-  ADD COLUMN IF NOT EXISTS asset_path text;
-```
+### 4. Mover status e revisoes para badges no hero
+Os badges de Status, Aprovado e Revisoes serao integrados ao hero header ao lado do titulo, em vez de ocupar um card separado.
 
-### 2. Criar bucket de storage `creations`
+### 5. Melhorar a exibicao de midia
+- Imagens e videos ficam na sidebar com apresentacao mais elegante (rounded-xl, sombra, overlay de download no hover)
+- Imagem original (review) tambem fica na sidebar
 
-Bucket publico com estrutura `{team_id}/{yyyy}/{mm}/{id}/thumb.webp` e `asset.webp`.
-
-### 3. Edge Function para migrar base64 existente
-
-Criar `migrate-action-images` que:
-- Busca actions com base64 no `result->imageUrl`
-- Converte e faz upload para o bucket `creations`
-- Gera thumbnail (versao reduzida)
-- Atualiza `thumb_path`, `asset_path` e limpa o base64 do `result`
-
-### 4. Atualizar funcao `get_action_summaries` para cursor pagination
-
-Substituir OFFSET por cursor-based pagination usando `(created_at, id)`:
-
-```sql
--- Parametros: p_cursor_created_at, p_cursor_id (opcionais)
--- Filtrar: WHERE created_at < cursor OR (created_at = cursor AND id < cursor_id)
-```
-
-### 5. Atualizar o frontend
-
-**`src/pages/History.tsx`:**
-- Substituir `currentPage` por estado de cursor (`lastCreatedAt`, `lastId`)
-- Usar `useInfiniteQuery` do TanStack Query para "carregar mais"
-- Buscar apenas `thumb_path` na listagem
-
-**`src/components/historico/ActionList.tsx`:**
-- Usar `thumb_path` para exibir thumbnails nos cards
-- Carregar imagem completa (`asset_path`) apenas no ActionDetails
-- Adicionar filtro de intervalo de datas
-- Botao "Carregar mais" em vez de paginacao numerada
-
-**`src/components/historico/ActionDetails.tsx`:**
-- Carregar `asset_path` (imagem/video completo) sob demanda ao abrir detalhes
-
-### 6. Atualizar edge functions de criacao
-
-Alterar as edge functions (`generate-image`, `generate-caption`, `generate-video`, etc.) para:
-- Fazer upload do resultado para o bucket `creations`
-- Gerar thumbnail
-- Salvar `thumb_path` e `asset_path` na action em vez de base64
+### 6. Campos de detalhes por tipo de acao em SectionCards
+Cada grupo de detalhes (Objetivo, Plataforma, Tom, etc.) sera renderizado dentro de um SectionCard com o padrao visual correto, usando labels uppercase e tracking-wider.
 
 ---
 
 ## Detalhes Tecnicos
 
-### Estrutura de Storage
+### Estrutura do layout atualizado
+
 ```text
-creations/
-  {team_id}/
-    {yyyy}/
-      {mm}/
-        {action_id}/
-          thumb.webp    (300x300, qualidade 60)
-          asset.webp    (original)
++-----------------------------------------------+
+|  Hero Header (gradiente + icone + titulo)     |
+|  Breadcrumb | Tipo | Marca | Badges status   |
++-----------------------------------------------+
+|                    |                          |
+|  SectionCard:      |  SectionCard:            |
+|  Detalhes da       |  Midia Gerada            |
+|  Solicitacao       |  (imagem/video)           |
+|                    |                          |
+|  SectionCard:      |  Metadados               |
+|  Resultado         |  (data, marca, user,     |
+|  (legenda, titulo, |   status, revisoes)      |
+|   hashtags, plano) |                          |
+|                    |                          |
++-----------------------------------------------+
 ```
 
-### Cursor Pagination (funcao SQL atualizada)
+### Cor de destaque por tipo de acao
+Cada tipo de acao tera uma cor associada para o gradiente do SectionCard:
+- CRIAR_CONTEUDO / CRIAR_CONTEUDO_RAPIDO: `hsl(var(--primary))`
+- REVISAR_CONTEUDO: `hsl(var(--accent))`
+- PLANEJAR_CONTEUDO: `hsl(var(--secondary))`
+- GERAR_VIDEO: `hsl(var(--primary))`
 
-```sql
-CREATE OR REPLACE FUNCTION get_action_summaries(
-  p_team_id uuid,
-  p_brand_filter uuid DEFAULT NULL,
-  p_type_filter text DEFAULT NULL,
-  p_cursor_created_at timestamptz DEFAULT NULL,
-  p_cursor_id uuid DEFAULT NULL,
-  p_limit integer DEFAULT 24
-)
-RETURNS TABLE(...)
--- WHERE (p_cursor_created_at IS NULL) OR
---   (created_at < p_cursor_created_at) OR
---   (created_at = p_cursor_created_at AND id < p_cursor_id)
--- ORDER BY created_at DESC, id DESC
--- LIMIT p_limit
-```
+### Componentes reutilizados da BrandView
+- `SectionCard` (sera extraido ou recriado localmente)
+- Padrao de labels: `text-xs text-muted-foreground font-medium uppercase tracking-wider`
+- Card de metadata no rodape da sidebar
 
-### Frontend: useInfiniteQuery
-
-```typescript
-const { data, fetchNextPage, hasNextPage } = useInfiniteQuery({
-  queryKey: ['history-actions', teamId, filters],
-  queryFn: ({ pageParam }) => fetchActions(pageParam),
-  getNextPageParam: (lastPage) => {
-    const last = lastPage.actions.at(-1);
-    return last ? { createdAt: last.createdAt, id: last.id } : undefined;
-  },
-});
-```
-
-### RLS
-A tabela `actions` ja possui RLS adequado via `can_access_resource(user_id, team_id)`. Nenhuma alteracao necessaria.
-
-### Arquivos a Modificar
-- **Migracao SQL**: nova migracao para `thumb_path`, `asset_path`, bucket, e funcao atualizada
-- `src/pages/History.tsx` - cursor pagination + useInfiniteQuery
-- `src/components/historico/ActionList.tsx` - thumbnails, carregar mais, filtro de datas
-- `src/components/historico/ActionDetails.tsx` - carregar asset completo sob demanda
-- `supabase/functions/migrate-action-images/index.ts` - nova edge function de migracao
-- Edge functions de geracao (ajustar para salvar no storage)
+### Arquivo modificado
+- `src/pages/ActionView.tsx` - Redesign completo do layout mantendo toda a logica existente (download, copy, formatacao markdown, etc.)
 
