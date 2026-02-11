@@ -145,8 +145,8 @@ const LoadingRows = () => (
 );
 
 // Grid card
-function ActionCard({ action, isSelected, onSelect, onView }: {
-  action: ActionSummary; isSelected: boolean; onSelect: () => void; onView: (e: React.MouseEvent) => void;
+function ActionCard({ action, isSelected, onNavigate }: {
+  action: ActionSummary; isSelected: boolean; onNavigate: () => void;
 }) {
   const displayType = ACTION_TYPE_DISPLAY[action.type];
   const style = ACTION_STYLE_MAP[displayType];
@@ -156,7 +156,7 @@ function ActionCard({ action, isSelected, onSelect, onView }: {
 
   return (
     <div
-      onClick={onSelect}
+      onClick={onNavigate}
       className={cn(
         "cursor-pointer bg-card rounded-2xl overflow-hidden transition-shadow duration-200 group border border-border/30 flex flex-col shadow-sm",
         isSelected && "ring-2 ring-primary/40 shadow-lg"
@@ -177,12 +177,11 @@ function ActionCard({ action, isSelected, onSelect, onView }: {
           </div>
         )}
         {/* View button overlay */}
-        <button
-          onClick={onView}
-          className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm rounded-lg p-1.5 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-background shadow-sm"
+        <div
+          className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm rounded-lg p-1.5 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
         >
           <Eye className="h-4 w-4 text-foreground" />
-        </button>
+        </div>
       </div>
 
       {/* Content */}
@@ -428,7 +427,7 @@ export default function ActionList({
                 return (
                   <TableRow
                     key={action.id}
-                    onClick={() => onSelectAction(action)}
+                    onClick={() => navigate(`/action/${action.id}`, { state: { viewMode } })}
                     className={cn(
                       "cursor-pointer transition-colors duration-150 border-b border-border/10",
                       selectedAction?.id === action.id ? "bg-primary/8 hover:bg-primary/12" : "hover:bg-muted/50"
@@ -478,8 +477,7 @@ export default function ActionList({
               key={action.id}
               action={action}
               isSelected={selectedAction?.id === action.id}
-              onSelect={() => onSelectAction(action)}
-              onView={(e) => handleViewAction(action.id, e)}
+              onNavigate={() => navigate(`/action/${action.id}`, { state: { viewMode } })}
             />
           ))}
         </div>
