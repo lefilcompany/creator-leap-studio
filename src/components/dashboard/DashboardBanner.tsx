@@ -31,7 +31,7 @@ export const DashboardBanner = ({ userName }: DashboardBannerProps) => {
 
       {/* Content */}
       <div className="relative h-full flex items-center px-6 md:px-10 z-10">
-        <div className="flex flex-col justify-center backdrop-blur-sm rounded-xl px-5 py-4 bg-[#99004d]/[0.26]">
+        <div className="flex flex-col justify-center backdrop-blur-sm rounded-xl px-5 py-4 bg-[#d8baf2]/25">
           <p className="text-white/80 text-sm font-medium tracking-wide uppercase">
             {getGreeting()}
           </p>
