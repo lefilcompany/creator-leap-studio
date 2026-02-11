@@ -132,9 +132,9 @@ export const Header = () => {
               variant="ghost"
               size="sm"
               onClick={() => setOpen(true)}
-              className="h-8 w-8 md:h-10 md:w-10 rounded-lg hover:bg-primary/10 transition-all duration-200"
+              className="h-7 w-7 md:h-8 md:w-8 rounded-lg hover:bg-primary/10 transition-all duration-200"
             >
-              <Menu className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
+              <Menu className="h-3.5 w-3.5 md:h-4 md:w-4 text-muted-foreground" />
             </Button>
           </div>
 
@@ -147,15 +147,15 @@ export const Header = () => {
                   size="sm"
                   onClick={toggleSidebarMode}
                   className={cn(
-                    "h-10 w-10 rounded-xl transition-all duration-300 group relative",
+                    "h-8 w-8 rounded-xl transition-all duration-300 group relative",
                     "hover:bg-primary/20 text-muted-foreground hover:text-primary"
                   )}
                 >
                   <div className="relative">
                     {state === "collapsed" ? (
-                      <PanelLeft className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
+                      <PanelLeft className="h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
                     ) : (
-                      <Columns2 className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
+                      <Columns2 className="h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
                     )}
                   </div>
                   <span className="sr-only">{state === "collapsed" ? "Expandir sidebar" : "Recolher sidebar"}</span>
@@ -176,9 +176,9 @@ export const Header = () => {
         {/* Search bar - Desktop only */}
         <div id="topbar-search" className="hidden lg:flex flex-1 max-w-2xl mx-4 lg:mx-6">
           <div className="relative w-full group">
-            <Search className="absolute left-3 lg:left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4 lg:h-5 lg:w-5 z-10 transition-colors duration-200" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-3.5 w-3.5 z-10 transition-colors duration-200" />
             {isSearching && (
-              <Loader2 className="absolute right-3 lg:right-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-primary animate-spin z-10" />
+              <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-primary animate-spin z-10" />
             )}
             <Input
               type="search"
@@ -186,7 +186,7 @@ export const Header = () => {
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
               disabled={isFunctionalityDisabled}
-              className={`w-full rounded-xl lg:rounded-2xl pl-10 lg:pl-12 pr-3 lg:pr-4 py-2 lg:py-3 h-10 text-sm lg:text-base border-2 bg-background/50 transition-all duration-200 hover:bg-background focus:bg-background disabled:opacity-50 disabled:cursor-not-allowed ${
+              className={`w-full rounded-xl pl-9 pr-3 h-8 text-sm border-2 bg-background/50 transition-all duration-200 hover:bg-background focus:bg-background disabled:opacity-50 disabled:cursor-not-allowed ${
                 isSearching
                   ? "border-primary/50 shadow-md"
                   : "border-border/50 hover:border-primary/30 focus:border-primary/50"
@@ -196,16 +196,16 @@ export const Header = () => {
         </div>
 
         {/* Right section */}
-        <div className="flex items-center gap-1 md:gap-2 lg:gap-3">
+        <div className="flex items-center gap-1 md:gap-1.5 lg:gap-2">
           {/* Mobile search button */}
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setShowMobileSearch(true)}
             disabled={isFunctionalityDisabled}
-            className="lg:hidden h-8 w-8 md:h-10 md:w-10 rounded-lg hover:bg-primary/10 transition-all duration-200 border border-transparent hover:border-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="lg:hidden h-7 w-7 md:h-8 md:w-8 rounded-lg hover:bg-primary/10 transition-all duration-200 border border-transparent hover:border-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Search className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
+            <Search className="h-3.5 w-3.5 md:h-4 md:w-4 text-muted-foreground" />
             <span className="sr-only">{t.search.searchContent}</span>
           </Button>
 
@@ -215,12 +215,12 @@ export const Header = () => {
             variant="outline"
             size="sm"
             onClick={() => setShowCouponDialog(true)}
-            className="h-8 md:h-10 px-2 lg:px-3 rounded-lg hover:bg-primary/10 transition-all duration-200 border-2 border-primary/30 hover:border-primary/50 group"
+            className="h-7 md:h-8 px-2 lg:px-2.5 rounded-lg hover:bg-primary/10 transition-all duration-200 border-2 border-primary/30 hover:border-primary/50 group"
           >
-            <span className="hidden lg:inline text-sm font-medium bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 bg-clip-text text-transparent mr-2">
+            <span className="hidden lg:inline text-xs font-medium bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 bg-clip-text text-transparent mr-1.5">
               Cupom de presente
             </span>
-            <Gift className="h-4 w-4 md:h-5 md:w-5 text-primary" />
+            <Gift className="h-3.5 w-3.5 md:h-4 md:w-4 text-primary" />
           </Button>
 
           {/* Theme toggle button */}
@@ -229,10 +229,10 @@ export const Header = () => {
             variant="ghost"
             size="sm"
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="h-8 w-8 md:h-10 md:w-10 rounded-lg hover:bg-primary/10 transition-all duration-200 border border-transparent hover:border-primary/20 group"
+            className="h-7 w-7 md:h-8 md:w-8 rounded-lg hover:bg-primary/10 transition-all duration-200 border border-transparent hover:border-primary/20 group"
           >
-            <Sun className="h-4 w-4 md:h-5 md:w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-muted-foreground group-hover:animate-[sun-rays_0.6s_ease-in-out] dark:group-hover:animate-none" />
-            <Moon className="absolute h-4 w-4 md:h-5 md:w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 text-muted-foreground dark:group-hover:animate-[moon-glow_0.6s_ease-in-out]" />
+            <Sun className="h-3.5 w-3.5 md:h-4 md:w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-muted-foreground group-hover:animate-[sun-rays_0.6s_ease-in-out] dark:group-hover:animate-none" />
+            <Moon className="absolute h-3.5 w-3.5 md:h-4 md:w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 text-muted-foreground dark:group-hover:animate-[moon-glow_0.6s_ease-in-out]" />
             <span className="sr-only">{t.theme.toggle}</span>
           </Button>
 
@@ -247,9 +247,9 @@ export const Header = () => {
                   id="topbar-settings"
                   variant="ghost"
                   size="sm"
-                  className="h-8 w-8 md:h-10 md:w-10 rounded-lg xl:rounded-xl hover:bg-primary/10 transition-all duration-200 border border-transparent hover:border-primary/20 group"
+                  className="h-7 w-7 md:h-8 md:w-8 rounded-lg xl:rounded-xl hover:bg-primary/10 transition-all duration-200 border border-transparent hover:border-primary/20 group"
                 >
-                  <Settings className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground group-hover:animate-[gear-spin_0.3s_ease-in-out]" />
+                  <Settings className="h-3.5 w-3.5 md:h-4 md:w-4 text-muted-foreground group-hover:animate-[gear-spin_0.3s_ease-in-out]" />
                   <span className="sr-only">{t.settings.title}</span>
                 </Button>
               </DropdownMenuTrigger>
@@ -341,10 +341,10 @@ export const Header = () => {
           <Link to="/profile" className="transition-all duration-300 hover:scale-105">
             <Avatar
               id="topbar-profile"
-              className="h-8 w-8 md:h-10 md:w-10 border-2 border-primary/20 hover:border-primary/40 transition-all duration-300 hover:shadow-lg hover:shadow-primary/25"
+              className="h-7 w-7 md:h-8 md:w-8 border-2 border-primary/20 hover:border-primary/40 transition-all duration-300 hover:shadow-lg hover:shadow-primary/25"
             >
               <AvatarImage src={user?.avatarUrl || undefined} alt={user?.name || "User"} />
-              <AvatarFallback className="bg-gradient-to-br from-primary via-primary/80 to-secondary text-primary-foreground text-xs md:text-sm font-semibold">
+              <AvatarFallback className="bg-gradient-to-br from-primary via-primary/80 to-secondary text-primary-foreground text-[10px] md:text-xs font-semibold">
                 {user?.name ? (
                   user.name
                     .split(" ")
@@ -353,7 +353,7 @@ export const Header = () => {
                     .toUpperCase()
                     .substring(0, 2)
                 ) : (
-                  <User className="h-4 w-4 md:h-5 md:w-5" />
+                  <User className="h-3.5 w-3.5 md:h-4 md:w-4" />
                 )}
               </AvatarFallback>
             </Avatar>
