@@ -38,19 +38,11 @@ const Dashboard = () => {
     queryKey: ['dashboard-actions-count', user?.teamId],
     queryFn: async () => {
       if (!user?.teamId) return 0;
-      try {
-        const { data, error } = await supabase
-          .rpc('get_action_summaries', {
-            p_team_id: user.teamId,
-            p_limit: 1,
-          });
-        if (!error && data?.[0]?.total_count) return data[0].total_count;
-      } catch {}
-      // Fallback: direct count query
       const { count } = await supabase
         .from('actions')
         .select('*', { count: 'exact', head: true })
-        .eq('team_id', user.teamId);
+        .eq('team_id', user.teamId)
+        .in('type', ['CRIAR_CONTEUDO', 'CRIAR_CONTEUDO_RAPIDO']);
       return count || 0;
     },
     enabled: !!user?.teamId,
