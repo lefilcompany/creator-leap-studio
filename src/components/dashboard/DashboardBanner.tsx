@@ -36,11 +36,19 @@ export const DashboardBanner = ({ userName }: DashboardBannerProps) => {
 
   return (
     <div className="relative overflow-hidden rounded-2xl shadow-xl h-44 md:h-52">
-      {/* Background image */}
-      <img
+      {/* Background image with slow zoom animation */}
+      <motion.img
         src={dashboardBannerImg}
         alt=""
         className="absolute inset-0 w-full h-full object-cover"
+        animate={{ scale: [1, 1.08, 1] }}
+        transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+      />
+      {/* Animated shimmer overlay */}
+      <motion.div
+        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/8 to-transparent"
+        animate={{ x: ["-100%", "100%"] }}
+        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", repeatDelay: 4 }}
       />
       {/* Overlay */}
       <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/30 to-transparent" />
