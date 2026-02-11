@@ -460,321 +460,323 @@ export default function ActionView() {
         </div>
       </div>
 
-      {/* ═══ Content – flex-col layout ═══ */}
+      {/* ═══ Content ═══ */}
       <div className="px-4 sm:px-6 lg:px-8 py-6 max-w-6xl mx-auto w-full">
         <div className="flex flex-col gap-6">
 
-          {/* ── Media Section (full width, prominent) ── */}
-          {hasMedia && (
-            <div className="flex flex-col gap-6">
-              {/* Main generated image/video */}
-              {(action.result?.imageUrl || action.result?.videoUrl) && (
-                <SectionCard
-                  title={action.result?.videoUrl ? 'Vídeo Gerado' : 'Imagem Gerada'}
-                  icon={action.result?.videoUrl ? <Video className="h-4 w-4" /> : <Image className="h-4 w-4" />}
-                  accentColor={accentColor}
-                  headerRight={
-                    action.result?.imageUrl && !action.result?.videoUrl ? (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDownloadImage(action.result!.imageUrl!, `imagem-${action.id}`)}
-                      >
-                        <Download className="mr-2 h-4 w-4" />
-                        Baixar
-                      </Button>
-                    ) : action.result?.videoUrl ? (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDownloadVideo(action.result!.videoUrl!, `video-${action.id}`)}
-                      >
-                        <Download className="mr-2 h-4 w-4" />
-                        Baixar
-                      </Button>
-                    ) : null
-                  }
-                >
-                  {action.result?.videoUrl && (
-                    <div className="rounded-xl overflow-hidden border border-border/10 shadow-sm">
-                      <video src={action.result.videoUrl} controls className="w-full h-auto" playsInline>
-                        Seu navegador não suporta a tag de vídeo.
-                      </video>
-                    </div>
-                  )}
-                  {action.result?.imageUrl && !action.result?.videoUrl && (
-                    <div
-                      className="relative group rounded-xl overflow-hidden border border-border/10 shadow-sm cursor-pointer max-w-2xl mx-auto"
-                      onClick={() => setLightboxImage(action.result!.imageUrl!)}
+          {/* ══ CRIAR_CONTEUDO ══ */}
+          {action.type === 'CRIAR_CONTEUDO' && (
+            <>
+              {/* Row: Image + Details & Info side by side */}
+              <div className="flex flex-col lg:flex-row gap-6">
+                {/* Image */}
+                {action.result?.imageUrl && (
+                  <div className="lg:w-1/2">
+                    <SectionCard title="Imagem Gerada" icon={<Image className="h-4 w-4" />} accentColor={accentColor}
+                      headerRight={<Button variant="ghost" size="sm" onClick={() => handleDownloadImage(action.result!.imageUrl!, `imagem-${action.id}`)}><Download className="mr-2 h-4 w-4" />Baixar</Button>}
                     >
+                      <div className="relative group rounded-xl overflow-hidden border border-border/10 shadow-sm cursor-pointer" onClick={() => setLightboxImage(action.result!.imageUrl!)}>
+                        <img src={action.result.imageUrl} alt="Imagem gerada" className="w-full h-auto" />
+                        <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 backdrop-blur-[2px]">
+                          <ZoomIn className="text-white h-8 w-8" />
+                        </div>
+                      </div>
+                    </SectionCard>
+                  </div>
+                )}
+                {/* Details & Info */}
+                <div className={action.result?.imageUrl ? 'lg:w-1/2' : 'w-full'}>
+                  <SectionCard title="Detalhes e Informações" icon={<ClipboardList className="h-4 w-4" />} accentColor={accentColor}>
+                    <div className="space-y-5">
+                      {action.details?.objective && <DetailField label="Objetivo"><p className="text-sm font-medium text-foreground">{action.details.objective}</p></DetailField>}
+                      {action.details?.platform && renderPlatformField(action.details.platform)}
+                      {action.details?.description && <DetailField label="Descrição"><p className="text-sm text-foreground leading-relaxed">{action.details.description}</p></DetailField>}
+                      {action.details?.tone && Array.isArray(action.details.tone) && action.details.tone.length > 0 && (
+                        <DetailField label="Tom de Voz">
+                          <div className="flex flex-wrap gap-2 mt-1">{action.details.tone.map((t: string, idx: number) => <Badge key={idx} variant="outline">{t}</Badge>)}</div>
+                        </DetailField>
+                      )}
+                      {action.details?.additionalInfo && <DetailField label="Informações Adicionais"><p className="text-sm text-foreground leading-relaxed">{action.details.additionalInfo}</p></DetailField>}
+                      <Separator className="bg-border/10" />
+                      <div className="grid grid-cols-2 gap-4">
+                        <DetailField label="Data de Criação"><p className="text-sm font-medium text-foreground">{formatDate(action.createdAt)}</p></DetailField>
+                        <DetailField label="Marca"><p className="text-sm font-medium text-foreground">{action.brand?.name || 'Não especificada'}</p></DetailField>
+                        <DetailField label="Criado por"><p className="text-sm font-medium text-foreground break-words">{action.user?.name || 'Não especificado'}</p></DetailField>
+                        <DetailField label="Status"><Badge className={`mt-1 ${getStatusColor(action.status)}`}>{action.status}</Badge></DetailField>
+                      </div>
+                    </div>
+                  </SectionCard>
+                </div>
+              </div>
+              {/* Caption below */}
+              {action.result && (action.result.title || action.result.body || (action.result.hashtags && action.result.hashtags.length > 0)) && (
+                <SectionCard title="Legenda" icon={<FileOutput className="h-4 w-4" />} accentColor={accentColor}>
+                  <div className="space-y-6">
+                    {action.result.title && (
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Título</p>
+                          <Button variant="ghost" size="sm" onClick={() => handleCopyText(action.result!.title!)} disabled={copying}>{copying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Copy className="mr-2 h-4 w-4" />}Copiar</Button>
+                        </div>
+                        <div className="p-4 bg-muted/30 rounded-xl border border-border/10"><p className="font-medium text-foreground">{action.result.title}</p></div>
+                      </div>
+                    )}
+                    {action.result.body && (
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Corpo da Legenda</p>
+                          <Button variant="ghost" size="sm" onClick={() => handleCopyText(action.result!.body!)} disabled={copying}>{copying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Copy className="mr-2 h-4 w-4" />}Copiar</Button>
+                        </div>
+                        <div className="p-4 bg-muted/30 rounded-xl border border-border/10"><p className="whitespace-pre-wrap text-foreground leading-relaxed text-sm">{action.result.body}</p></div>
+                      </div>
+                    )}
+                    {action.result.hashtags && action.result.hashtags.length > 0 && (
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Hashtags</p>
+                          <Button variant="ghost" size="sm" onClick={() => handleCopyText(action.result!.hashtags!.join(' '))} disabled={copying}>{copying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Copy className="mr-2 h-4 w-4" />}Copiar</Button>
+                        </div>
+                        <div className="p-4 bg-muted/30 rounded-xl border border-border/10"><div className="flex flex-wrap gap-2">{action.result.hashtags.map((tag, idx) => <Badge key={idx} variant="secondary">{tag}</Badge>)}</div></div>
+                      </div>
+                    )}
+                  </div>
+                </SectionCard>
+              )}
+            </>
+          )}
+
+          {/* ══ CRIAR_CONTEUDO_RAPIDO ══ */}
+          {action.type === 'CRIAR_CONTEUDO_RAPIDO' && (
+            <div className="flex flex-col lg:flex-row gap-6">
+              {/* Image */}
+              {action.result?.imageUrl && (
+                <div className="lg:w-1/2">
+                  <SectionCard title="Imagem Gerada" icon={<Image className="h-4 w-4" />} accentColor={accentColor}
+                    headerRight={<Button variant="ghost" size="sm" onClick={() => handleDownloadImage(action.result!.imageUrl!, `imagem-${action.id}`)}><Download className="mr-2 h-4 w-4" />Baixar</Button>}
+                  >
+                    <div className="relative group rounded-xl overflow-hidden border border-border/10 shadow-sm cursor-pointer" onClick={() => setLightboxImage(action.result!.imageUrl!)}>
                       <img src={action.result.imageUrl} alt="Imagem gerada" className="w-full h-auto" />
                       <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 backdrop-blur-[2px]">
                         <ZoomIn className="text-white h-8 w-8" />
                       </div>
                     </div>
-                  )}
-                </SectionCard>
+                  </SectionCard>
+                </div>
               )}
-
-              {/* Original Image (Review) */}
-              {action.result?.originalImage && (
-                <SectionCard title="Imagem Original" icon={<Image className="h-4 w-4" />} accentColor={accentColor}>
-                  <div
-                    className="relative group rounded-xl overflow-hidden border border-border/10 shadow-sm cursor-pointer max-w-2xl mx-auto"
-                    onClick={() => setLightboxImage(action.result!.originalImage!)}
-                  >
-                    <img src={action.result.originalImage} alt="Imagem original" className="w-full h-auto" />
-                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 backdrop-blur-[2px]">
-                      <ZoomIn className="text-white h-8 w-8" />
-                    </div>
-                  </div>
-                </SectionCard>
-              )}
-            </div>
-          )}
-
-          {/* ── Details Section ── */}
-          {action.details && (
-            <SectionCard title="Detalhes da Solicitação" icon={<ClipboardList className="h-4 w-4" />} accentColor={accentColor}>
-              <div className="space-y-5">
-                {/* CRIAR_CONTEUDO / CRIAR_CONTEUDO_RAPIDO */}
-                {(action.type === 'CRIAR_CONTEUDO' || action.type === 'CRIAR_CONTEUDO_RAPIDO') && (
-                  <>
-                    {action.details.objective && <DetailField label="Objetivo"><p className="text-sm font-medium text-foreground">{action.details.objective}</p></DetailField>}
-                    {action.details.platform && renderPlatformField(action.details.platform)}
-                    {action.details.description && <DetailField label="Descrição"><p className="text-sm text-foreground leading-relaxed">{action.details.description}</p></DetailField>}
-                    {action.details.tone && Array.isArray(action.details.tone) && action.details.tone.length > 0 && (
+              {/* Details & Info */}
+              <div className={action.result?.imageUrl ? 'lg:w-1/2' : 'w-full'}>
+                <SectionCard title="Detalhes e Informações" icon={<ClipboardList className="h-4 w-4" />} accentColor={accentColor}>
+                  <div className="space-y-5">
+                    {action.details?.objective && <DetailField label="Objetivo"><p className="text-sm font-medium text-foreground">{action.details.objective}</p></DetailField>}
+                    {action.details?.platform && renderPlatformField(action.details.platform)}
+                    {action.details?.description && <DetailField label="Descrição"><p className="text-sm text-foreground leading-relaxed">{action.details.description}</p></DetailField>}
+                    {action.details?.tone && Array.isArray(action.details.tone) && action.details.tone.length > 0 && (
                       <DetailField label="Tom de Voz">
-                        <div className="flex flex-wrap gap-2 mt-1">
-                          {action.details.tone.map((t: string, idx: number) => <Badge key={idx} variant="outline">{t}</Badge>)}
-                        </div>
+                        <div className="flex flex-wrap gap-2 mt-1">{action.details.tone.map((t: string, idx: number) => <Badge key={idx} variant="outline">{t}</Badge>)}</div>
                       </DetailField>
                     )}
-                    {action.details.additionalInfo && <DetailField label="Informações Adicionais"><p className="text-sm text-foreground leading-relaxed">{action.details.additionalInfo}</p></DetailField>}
-                    {action.details.isVideoMode && (
+                    {action.details?.additionalInfo && <DetailField label="Informações Adicionais"><p className="text-sm text-foreground leading-relaxed">{action.details.additionalInfo}</p></DetailField>}
+                    {action.details?.isVideoMode && (
                       <div className="grid grid-cols-2 gap-4">
                         <DetailField label="Modo de Geração"><Badge variant="secondary">Vídeo</Badge></DetailField>
                         {action.details.ratio && <DetailField label="Proporção"><p className="text-sm font-medium text-foreground">{action.details.ratio}</p></DetailField>}
                         {action.details.duration && <DetailField label="Duração"><p className="text-sm font-medium text-foreground">{action.details.duration}s</p></DetailField>}
                       </div>
                     )}
-                  </>
-                )}
-
-                {/* GERAR_VIDEO */}
-                {action.type === 'GERAR_VIDEO' && (
-                  <>
-                    {action.details.prompt && (
-                      <DetailField label="Prompt de Geração">
-                        <div className="mt-1 p-3 bg-muted/30 rounded-lg">
-                          <p className="text-foreground whitespace-pre-wrap text-sm">{action.details.prompt}</p>
-                        </div>
-                      </DetailField>
-                    )}
-                    {action.details.objective && <DetailField label="Objetivo"><p className="text-sm font-medium text-foreground">{action.details.objective}</p></DetailField>}
-                    {action.details.platform && renderPlatformField(action.details.platform)}
-                    {action.details.brand && <DetailField label="Marca"><p className="text-sm font-medium text-foreground">{action.details.brand}</p></DetailField>}
-                    {action.details.persona && <DetailField label="Persona"><p className="text-sm font-medium text-foreground">{action.details.persona}</p></DetailField>}
-                    {action.details.theme && <DetailField label="Tema Estratégico"><p className="text-sm font-medium text-foreground">{action.details.theme}</p></DetailField>}
-                    {action.details.tone && Array.isArray(action.details.tone) && action.details.tone.length > 0 && (
-                      <DetailField label="Tom de Voz">
-                        <div className="flex flex-wrap gap-2 mt-1">
-                          {action.details.tone.map((t: string, idx: number) => <Badge key={idx} variant="outline">{t}</Badge>)}
-                        </div>
-                      </DetailField>
-                    )}
-                    {action.details.aspectRatio && <DetailField label="Proporção"><p className="text-sm font-medium text-foreground">{action.details.aspectRatio}</p></DetailField>}
-                    {action.details.additionalInfo && <DetailField label="Informações Adicionais"><p className="text-sm text-foreground leading-relaxed">{action.details.additionalInfo}</p></DetailField>}
-                  </>
-                )}
-
-                {/* REVISAR_CONTEUDO */}
-                {action.type === 'REVISAR_CONTEUDO' && (
-                  <>
-                    {action.details.reviewType && (
-                      <DetailField label="Tipo de Revisão">
-                        <Badge variant="secondary" className="mt-1">
-                          {action.details.reviewType === 'image' ? 'Imagem' : action.details.reviewType === 'caption' ? 'Legenda' : action.details.reviewType === 'text-for-image' ? 'Texto para Imagem' : action.details.reviewType}
-                        </Badge>
-                      </DetailField>
-                    )}
-                    {action.details.prompt && <DetailField label="Contexto/Ajustes Solicitados"><p className="text-sm text-foreground leading-relaxed">{action.details.prompt}</p></DetailField>}
-                    {action.details.brandName && <DetailField label="Marca"><p className="text-sm font-medium text-foreground">{action.details.brandName}</p></DetailField>}
-                    {action.details.themeName && <DetailField label="Tema Estratégico"><p className="text-sm font-medium text-foreground">{action.details.themeName}</p></DetailField>}
-                    {action.details.caption && (
-                      <DetailField label="Legenda Enviada">
-                        <div className="mt-1 p-3 bg-muted/30 rounded-lg">
-                          <p className="text-foreground whitespace-pre-wrap text-sm">{action.details.caption}</p>
-                        </div>
-                      </DetailField>
-                    )}
-                    {action.details.text && (
-                      <DetailField label="Texto Enviado">
-                        <div className="mt-1 p-3 bg-muted/30 rounded-lg">
-                          <p className="text-foreground whitespace-pre-wrap text-sm">{action.details.text}</p>
-                        </div>
-                      </DetailField>
-                    )}
-                  </>
-                )}
-
-                {/* PLANEJAR_CONTEUDO */}
-                {action.type === 'PLANEJAR_CONTEUDO' && (
-                  <>
-                    {action.details.platform && renderPlatformField(action.details.platform)}
-                    {action.details.quantity && <DetailField label="Quantidade de Posts"><p className="text-sm font-medium text-foreground">{action.details.quantity}</p></DetailField>}
-                    {action.details.theme && Array.isArray(action.details.theme) && action.details.theme.length > 0 && (
-                      <DetailField label="Temas Estratégicos">
-                        <div className="flex flex-wrap gap-2 mt-1">
-                          {action.details.theme.map((t: string, idx: number) => <Badge key={idx} variant="secondary">{t}</Badge>)}
-                        </div>
-                      </DetailField>
-                    )}
-                    {action.details.objective && <DetailField label="Objetivo"><p className="text-sm font-medium text-foreground">{action.details.objective}</p></DetailField>}
-                    {action.details.additionalInfo && <DetailField label="Informações Adicionais"><p className="text-sm text-foreground leading-relaxed">{action.details.additionalInfo}</p></DetailField>}
-                  </>
-                )}
+                    <Separator className="bg-border/10" />
+                    <div className="grid grid-cols-2 gap-4">
+                      <DetailField label="Data de Criação"><p className="text-sm font-medium text-foreground">{formatDate(action.createdAt)}</p></DetailField>
+                      <DetailField label="Marca"><p className="text-sm font-medium text-foreground">{action.brand?.name || 'Não especificada'}</p></DetailField>
+                      <DetailField label="Criado por"><p className="text-sm font-medium text-foreground break-words">{action.user?.name || 'Não especificado'}</p></DetailField>
+                      <DetailField label="Status"><Badge className={`mt-1 ${getStatusColor(action.status)}`}>{action.status}</Badge></DetailField>
+                    </div>
+                  </div>
+                </SectionCard>
               </div>
-            </SectionCard>
-          )}
-
-          {/* ── Result Section (only if there's textual content) ── */}
-          {action.result && hasTextualResult && (
-            <SectionCard title="Resultado" icon={<FileOutput className="h-4 w-4" />} accentColor={accentColor}>
-              <div className="space-y-6">
-                {/* Review Result */}
-                {action.result.review && (
-                  <div>
-                    <div className="flex items-center justify-between mb-3">
-                      <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Análise e Revisão</p>
-                      <Button variant="ghost" size="sm" onClick={() => handleCopyText(action.result!.review!)} disabled={copying}>
-                        {isCopied ? <><Check className="mr-2 h-4 w-4" />Copiado!</> : <><Copy className="mr-2 h-4 w-4" />Copiar</>}
-                      </Button>
-                    </div>
-                    <div className="p-5 bg-muted/30 rounded-xl border border-border/10">
-                      <div className="prose prose-sm prose-slate dark:prose-invert max-w-none">
-                        <ReactMarkdown components={markdownComponents}>{action.result.review}</ReactMarkdown>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Title */}
-                {action.result.title && (
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Título</p>
-                      <Button variant="ghost" size="sm" onClick={() => handleCopyText(action.result!.title!)} disabled={copying}>
-                        {copying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Copy className="mr-2 h-4 w-4" />}
-                        Copiar
-                      </Button>
-                    </div>
-                    <div className="p-4 bg-muted/30 rounded-xl border border-border/10">
-                      <p className="font-medium text-foreground">{action.result.title}</p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Body */}
-                {action.result.body && (
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Corpo da Legenda</p>
-                      <Button variant="ghost" size="sm" onClick={() => handleCopyText(action.result!.body!)} disabled={copying}>
-                        {copying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Copy className="mr-2 h-4 w-4" />}
-                        Copiar
-                      </Button>
-                    </div>
-                    <div className="p-4 bg-muted/30 rounded-xl border border-border/10">
-                      <p className="whitespace-pre-wrap text-foreground leading-relaxed text-sm">{action.result.body}</p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Hashtags */}
-                {action.result.hashtags && action.result.hashtags.length > 0 && (
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Hashtags</p>
-                      <Button variant="ghost" size="sm" onClick={() => handleCopyText(action.result!.hashtags!.join(' '))} disabled={copying}>
-                        {copying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Copy className="mr-2 h-4 w-4" />}
-                        Copiar
-                      </Button>
-                    </div>
-                    <div className="p-4 bg-muted/30 rounded-xl border border-border/10">
-                      <div className="flex flex-wrap gap-2">
-                        {action.result.hashtags.map((tag, idx) => <Badge key={idx} variant="secondary">{tag}</Badge>)}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Feedback */}
-                {action.result.feedback && (
-                  <DetailField label="Feedback">
-                    <div className="p-4 bg-muted/30 rounded-xl border border-border/10 mt-1">
-                      <p className="whitespace-pre-wrap text-sm text-foreground">{action.result.feedback}</p>
-                    </div>
-                  </DetailField>
-                )}
-
-                {/* Plan */}
-                {action.result.plan && (
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Plano de Conteúdo</p>
-                      <div className="flex gap-2">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="icon" className="h-8 w-8">
-                              <Download className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="bg-card z-50">
-                            <DropdownMenuItem onClick={() => handleDownloadDocx(action.result!.plan!)} className="cursor-pointer">
-                              <FileText className="mr-2 h-4 w-4" />Download DOCX
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleDownloadTxt(action.result!.plan!)} className="cursor-pointer">
-                              <File className="mr-2 h-4 w-4" />Download TXT
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleDownloadMd(action.result!.plan!)} className="cursor-pointer">
-                              <FileCode className="mr-2 h-4 w-4" />Download MD
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleCopyText(action.result!.plan!)} disabled={copying}>
-                          {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                        </Button>
-                      </div>
-                    </div>
-                    <div className="p-5 bg-muted/30 rounded-xl border border-border/10">
-                      <div className="prose prose-sm prose-slate dark:prose-invert max-w-none">
-                        <ReactMarkdown components={markdownComponents}>{action.result.plan}</ReactMarkdown>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </SectionCard>
-          )}
-
-          {/* ── Metadata Card (always full width at bottom) ── */}
-          <SectionCard title="Informações" icon={<Info className="h-4 w-4" />} accentColor={accentColor}>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              <DetailField label="Data de Criação">
-                <p className="text-sm font-medium text-foreground">{formatDate(action.createdAt)}</p>
-              </DetailField>
-              <DetailField label="Marca">
-                <p className="text-sm font-medium text-foreground">{action.brand?.name || 'Não especificada'}</p>
-              </DetailField>
-              <DetailField label="Criado por">
-                <p className="text-sm font-medium text-foreground break-words">{action.user?.name || 'Não especificado'}</p>
-              </DetailField>
-              <DetailField label="Status">
-                <Badge className={`mt-1 ${getStatusColor(action.status)}`}>{action.status}</Badge>
-              </DetailField>
             </div>
-          </SectionCard>
+          )}
+
+          {/* ══ GERAR_VIDEO ══ */}
+          {action.type === 'GERAR_VIDEO' && (
+            <div className="flex flex-col lg:flex-row gap-6">
+              {/* Video */}
+              {action.result?.videoUrl && (
+                <div className="lg:w-1/2">
+                  <SectionCard title="Vídeo Gerado" icon={<Video className="h-4 w-4" />} accentColor={accentColor}
+                    headerRight={<Button variant="ghost" size="sm" onClick={() => handleDownloadVideo(action.result!.videoUrl!, `video-${action.id}`)}><Download className="mr-2 h-4 w-4" />Baixar</Button>}
+                  >
+                    <div className="rounded-xl overflow-hidden border border-border/10 shadow-sm">
+                      <video src={action.result.videoUrl} controls className="w-full h-auto" playsInline>Seu navegador não suporta a tag de vídeo.</video>
+                    </div>
+                  </SectionCard>
+                </div>
+              )}
+              {/* Details & Info */}
+              <div className={action.result?.videoUrl ? 'lg:w-1/2' : 'w-full'}>
+                <SectionCard title="Detalhes e Informações" icon={<ClipboardList className="h-4 w-4" />} accentColor={accentColor}>
+                  <div className="space-y-5">
+                    {action.details?.prompt && (
+                      <DetailField label="Prompt de Geração">
+                        <div className="mt-1 p-3 bg-muted/30 rounded-lg"><p className="text-foreground whitespace-pre-wrap text-sm">{action.details.prompt}</p></div>
+                      </DetailField>
+                    )}
+                    {action.details?.objective && <DetailField label="Objetivo"><p className="text-sm font-medium text-foreground">{action.details.objective}</p></DetailField>}
+                    {action.details?.platform && renderPlatformField(action.details.platform)}
+                    {action.details?.brand && <DetailField label="Marca"><p className="text-sm font-medium text-foreground">{action.details.brand}</p></DetailField>}
+                    {action.details?.persona && <DetailField label="Persona"><p className="text-sm font-medium text-foreground">{action.details.persona}</p></DetailField>}
+                    {action.details?.theme && <DetailField label="Tema Estratégico"><p className="text-sm font-medium text-foreground">{action.details.theme}</p></DetailField>}
+                    {action.details?.tone && Array.isArray(action.details.tone) && action.details.tone.length > 0 && (
+                      <DetailField label="Tom de Voz">
+                        <div className="flex flex-wrap gap-2 mt-1">{action.details.tone.map((t: string, idx: number) => <Badge key={idx} variant="outline">{t}</Badge>)}</div>
+                      </DetailField>
+                    )}
+                    {action.details?.aspectRatio && <DetailField label="Proporção"><p className="text-sm font-medium text-foreground">{action.details.aspectRatio}</p></DetailField>}
+                    {action.details?.additionalInfo && <DetailField label="Informações Adicionais"><p className="text-sm text-foreground leading-relaxed">{action.details.additionalInfo}</p></DetailField>}
+                    <Separator className="bg-border/10" />
+                    <div className="grid grid-cols-2 gap-4">
+                      <DetailField label="Data de Criação"><p className="text-sm font-medium text-foreground">{formatDate(action.createdAt)}</p></DetailField>
+                      <DetailField label="Marca"><p className="text-sm font-medium text-foreground">{action.brand?.name || 'Não especificada'}</p></DetailField>
+                      <DetailField label="Criado por"><p className="text-sm font-medium text-foreground break-words">{action.user?.name || 'Não especificado'}</p></DetailField>
+                      <DetailField label="Status"><Badge className={`mt-1 ${getStatusColor(action.status)}`}>{action.status}</Badge></DetailField>
+                    </div>
+                  </div>
+                </SectionCard>
+              </div>
+            </div>
+          )}
+
+          {/* ══ REVISAR_CONTEUDO ══ */}
+          {action.type === 'REVISAR_CONTEUDO' && (
+            <>
+              {/* Row: Original image (if image review) + Details & Info */}
+              <div className="flex flex-col lg:flex-row gap-6">
+                {action.result?.originalImage && (
+                  <div className="lg:w-1/2">
+                    <SectionCard title="Imagem Original" icon={<Image className="h-4 w-4" />} accentColor={accentColor}>
+                      <div className="relative group rounded-xl overflow-hidden border border-border/10 shadow-sm cursor-pointer" onClick={() => setLightboxImage(action.result!.originalImage!)}>
+                        <img src={action.result.originalImage} alt="Imagem original" className="w-full h-auto" />
+                        <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 backdrop-blur-[2px]">
+                          <ZoomIn className="text-white h-8 w-8" />
+                        </div>
+                      </div>
+                    </SectionCard>
+                  </div>
+                )}
+                <div className={action.result?.originalImage ? 'lg:w-1/2' : 'w-full'}>
+                  <SectionCard title="Detalhes e Informações" icon={<ClipboardList className="h-4 w-4" />} accentColor={accentColor}>
+                    <div className="space-y-5">
+                      {action.details?.reviewType && (
+                        <DetailField label="Tipo de Revisão">
+                          <Badge variant="secondary" className="mt-1">
+                            {action.details.reviewType === 'image' ? 'Imagem' : action.details.reviewType === 'caption' ? 'Legenda' : action.details.reviewType === 'text-for-image' ? 'Texto para Imagem' : action.details.reviewType}
+                          </Badge>
+                        </DetailField>
+                      )}
+                      {action.details?.prompt && <DetailField label="Contexto/Ajustes Solicitados"><p className="text-sm text-foreground leading-relaxed">{action.details.prompt}</p></DetailField>}
+                      {action.details?.brandName && <DetailField label="Marca"><p className="text-sm font-medium text-foreground">{action.details.brandName}</p></DetailField>}
+                      {action.details?.themeName && <DetailField label="Tema Estratégico"><p className="text-sm font-medium text-foreground">{action.details.themeName}</p></DetailField>}
+                      {action.details?.caption && (
+                        <DetailField label="Legenda Enviada">
+                          <div className="mt-1 p-3 bg-muted/30 rounded-lg"><p className="text-foreground whitespace-pre-wrap text-sm">{action.details.caption}</p></div>
+                        </DetailField>
+                      )}
+                      {action.details?.text && (
+                        <DetailField label="Texto Enviado">
+                          <div className="mt-1 p-3 bg-muted/30 rounded-lg"><p className="text-foreground whitespace-pre-wrap text-sm">{action.details.text}</p></div>
+                        </DetailField>
+                      )}
+                      <Separator className="bg-border/10" />
+                      <div className="grid grid-cols-2 gap-4">
+                        <DetailField label="Data de Criação"><p className="text-sm font-medium text-foreground">{formatDate(action.createdAt)}</p></DetailField>
+                        <DetailField label="Marca"><p className="text-sm font-medium text-foreground">{action.brand?.name || 'Não especificada'}</p></DetailField>
+                        <DetailField label="Criado por"><p className="text-sm font-medium text-foreground break-words">{action.user?.name || 'Não especificado'}</p></DetailField>
+                        <DetailField label="Status"><Badge className={`mt-1 ${getStatusColor(action.status)}`}>{action.status}</Badge></DetailField>
+                      </div>
+                    </div>
+                  </SectionCard>
+                </div>
+              </div>
+              {/* Review result below */}
+              {action.result?.review && (
+                <SectionCard title="Análise e Revisão" icon={<FileOutput className="h-4 w-4" />} accentColor={accentColor}
+                  headerRight={
+                    <Button variant="ghost" size="sm" onClick={() => handleCopyText(action.result!.review!)} disabled={copying}>
+                      {isCopied ? <><Check className="mr-2 h-4 w-4" />Copiado!</> : <><Copy className="mr-2 h-4 w-4" />Copiar</>}
+                    </Button>
+                  }
+                >
+                  <div className="p-5 bg-muted/30 rounded-xl border border-border/10">
+                    <div className="prose prose-sm prose-slate dark:prose-invert max-w-none">
+                      <ReactMarkdown components={markdownComponents}>{action.result.review}</ReactMarkdown>
+                    </div>
+                  </div>
+                </SectionCard>
+              )}
+              {action.result?.feedback && (
+                <SectionCard title="Feedback" icon={<FileOutput className="h-4 w-4" />} accentColor={accentColor}>
+                  <div className="p-4 bg-muted/30 rounded-xl border border-border/10">
+                    <p className="whitespace-pre-wrap text-sm text-foreground">{action.result.feedback}</p>
+                  </div>
+                </SectionCard>
+              )}
+            </>
+          )}
+
+          {/* ══ PLANEJAR_CONTEUDO ══ */}
+          {action.type === 'PLANEJAR_CONTEUDO' && (
+            <>
+              {/* Details & Info (full width, no media) */}
+              <SectionCard title="Detalhes e Informações" icon={<ClipboardList className="h-4 w-4" />} accentColor={accentColor}>
+                <div className="space-y-5">
+                  {action.details?.platform && renderPlatformField(action.details.platform)}
+                  {action.details?.quantity && <DetailField label="Quantidade de Posts"><p className="text-sm font-medium text-foreground">{action.details.quantity}</p></DetailField>}
+                  {action.details?.theme && Array.isArray(action.details.theme) && action.details.theme.length > 0 && (
+                    <DetailField label="Temas Estratégicos">
+                      <div className="flex flex-wrap gap-2 mt-1">{action.details.theme.map((t: string, idx: number) => <Badge key={idx} variant="secondary">{t}</Badge>)}</div>
+                    </DetailField>
+                  )}
+                  {action.details?.objective && <DetailField label="Objetivo"><p className="text-sm font-medium text-foreground">{action.details.objective}</p></DetailField>}
+                  {action.details?.additionalInfo && <DetailField label="Informações Adicionais"><p className="text-sm text-foreground leading-relaxed">{action.details.additionalInfo}</p></DetailField>}
+                  <Separator className="bg-border/10" />
+                  <div className="grid grid-cols-2 gap-4">
+                    <DetailField label="Data de Criação"><p className="text-sm font-medium text-foreground">{formatDate(action.createdAt)}</p></DetailField>
+                    <DetailField label="Marca"><p className="text-sm font-medium text-foreground">{action.brand?.name || 'Não especificada'}</p></DetailField>
+                    <DetailField label="Criado por"><p className="text-sm font-medium text-foreground break-words">{action.user?.name || 'Não especificado'}</p></DetailField>
+                    <DetailField label="Status"><Badge className={`mt-1 ${getStatusColor(action.status)}`}>{action.status}</Badge></DetailField>
+                  </div>
+                </div>
+              </SectionCard>
+              {/* Plan result below */}
+              {action.result?.plan && (
+                <SectionCard title="Plano de Conteúdo" icon={<FileOutput className="h-4 w-4" />} accentColor={accentColor}
+                  headerRight={
+                    <div className="flex gap-2">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" size="icon" className="h-8 w-8"><Download className="h-4 w-4" /></Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="bg-card z-50">
+                          <DropdownMenuItem onClick={() => handleDownloadDocx(action.result!.plan!)} className="cursor-pointer"><FileText className="mr-2 h-4 w-4" />Download DOCX</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleDownloadTxt(action.result!.plan!)} className="cursor-pointer"><File className="mr-2 h-4 w-4" />Download TXT</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleDownloadMd(action.result!.plan!)} className="cursor-pointer"><FileCode className="mr-2 h-4 w-4" />Download MD</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleCopyText(action.result!.plan!)} disabled={copying}>
+                        {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                  }
+                >
+                  <div className="p-5 bg-muted/30 rounded-xl border border-border/10">
+                    <div className="prose prose-sm prose-slate dark:prose-invert max-w-none">
+                      <ReactMarkdown components={markdownComponents}>{action.result.plan}</ReactMarkdown>
+                    </div>
+                  </div>
+                </SectionCard>
+              )}
+            </>
+          )}
+
         </div>
       </div>
 
