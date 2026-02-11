@@ -1,16 +1,11 @@
-import { useState, useCallback, useMemo } from 'react';
-import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
-import { Drawer, DrawerContent, DrawerTitle } from '@/components/ui/drawer';
+import { useState, useMemo } from 'react';
 import { History as HistoryIcon, HelpCircle } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import ActionList from '@/components/historico/ActionList';
-import ActionDetails from '@/components/historico/ActionDetails';
-import type { Action, ActionSummary } from '@/types/action';
+import type { ActionSummary } from '@/types/action';
 import { ACTION_TYPE_DISPLAY } from '@/types/action';
 import { useAuth } from '@/hooks/useAuth';
-import { useIsMobile } from '@/hooks/use-mobile';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
 import { TourSelector } from '@/components/onboarding/TourSelector';
 import { historySteps, navbarSteps } from '@/components/onboarding/tourSteps';
 import historyBanner from '@/assets/history-banner.jpg';
@@ -18,11 +13,7 @@ import { useHistoryBrands, useHistoryActions } from '@/hooks/useHistoryActions';
 
 export default function History() {
   const { user } = useAuth();
-  const isMobile = useIsMobile();
   const [selectedActionSummary, setSelectedActionSummary] = useState<ActionSummary | null>(null);
-  const [selectedAction, setSelectedAction] = useState<Action | null>(null);
-  const [isLoadingActionDetails, setIsLoadingActionDetails] = useState(false);
-  const [isActionDetailsOpen, setIsActionDetailsOpen] = useState(false);
 
   const [brandFilter, setBrandFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
@@ -43,41 +34,6 @@ export default function History() {
     () => actionsData?.pages.flatMap(page => page.actions) || [],
     [actionsData]
   );
-
-  const handleSelectAction = useCallback(async (action: ActionSummary) => {
-    setSelectedActionSummary(action);
-    setIsLoadingActionDetails(true);
-    setIsActionDetailsOpen(true);
-    
-    try {
-      const { data, error } = await supabase
-        .from('actions')
-        .select(`
-          id, type, brand_id, team_id, user_id, created_at, updated_at,
-          status, approved, revisions, details, result, asset_path,
-          brands(id, name),
-          profiles!actions_user_id_fkey(id, name, email)
-        `)
-        .eq('id', action.id)
-        .single();
-
-      if (error) throw error;
-
-      setSelectedAction({
-        id: data.id, type: data.type as any, brandId: data.brand_id,
-        teamId: data.team_id, userId: data.user_id, createdAt: data.created_at,
-        updatedAt: data.updated_at, status: data.status, approved: data.approved,
-        revisions: data.revisions, details: data.details as any, result: data.result as any,
-        brand: data.brands ? { id: data.brands.id, name: data.brands.name } : undefined,
-        user: data.profiles ? { id: data.profiles.id, name: data.profiles.name, email: data.profiles.email } : undefined
-      });
-    } catch (error) {
-      console.error('Error loading action details:', error);
-      toast.error("Não foi possível carregar os detalhes. Tente novamente.");
-    } finally {
-      setIsLoadingActionDetails(false);
-    }
-  }, []);
 
   const brandOptions = useMemo(() => [
     { value: 'all', label: 'Todas as Marcas' },
@@ -138,7 +94,7 @@ export default function History() {
         <ActionList
           actions={actions}
           selectedAction={selectedActionSummary}
-          onSelectAction={handleSelectAction}
+          onSelectAction={setSelectedActionSummary}
           isLoading={isLoadingActions}
           brands={brands}
           brandFilter={brandFilter}
@@ -152,24 +108,6 @@ export default function History() {
           onLoadMore={() => fetchNextPage()}
         />
       </main>
-
-      {!isMobile && (
-        <Sheet open={isActionDetailsOpen} onOpenChange={setIsActionDetailsOpen}>
-          <SheetContent side="right" className="w-[60vw] max-w-none">
-            <SheetTitle className="text-left mb-4">Detalhes da Ação</SheetTitle>
-            <ActionDetails action={selectedAction} isLoading={isLoadingActionDetails} />
-          </SheetContent>
-        </Sheet>
-      )}
-
-      {isMobile && (
-        <Drawer open={isActionDetailsOpen} onOpenChange={setIsActionDetailsOpen}>
-          <DrawerContent className="h-[85vh]">
-            <DrawerTitle className="text-left p-6 pb-0">Detalhes da Ação</DrawerTitle>
-            <ActionDetails action={selectedAction} isLoading={isLoadingActionDetails} />
-          </DrawerContent>
-        </Drawer>
-      )}
 
       <TourSelector 
         tours={[
