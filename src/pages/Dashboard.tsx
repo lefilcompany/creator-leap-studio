@@ -35,19 +35,18 @@ const Dashboard = () => {
   }, [user]);
 
   const { data: actionsCount = 0 } = useQuery({
-    queryKey: ['dashboard-actions-count', user?.id],
+    queryKey: ['dashboard-actions-count', user?.teamId],
     queryFn: async () => {
       const { count } = await supabase
         .from('actions')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user!.id);
+        .select('*', { count: 'exact', head: true });
       return count || 0;
     },
     enabled: !!user?.id,
   });
 
   const { data: brandsCount = 0 } = useQuery({
-    queryKey: ['dashboard-brands-count', user?.id],
+    queryKey: ['dashboard-brands-count', user?.teamId],
     queryFn: async () => {
       const { count } = await supabase
         .from('brands')
