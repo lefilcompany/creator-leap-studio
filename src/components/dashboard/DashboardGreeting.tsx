@@ -22,15 +22,7 @@ export const DashboardGreeting = ({ userName }: DashboardGreetingProps) => {
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="flex items-center gap-3"
     >
-      <motion.span
-        className="text-3xl"
-        animate={{ rotate: [0, 14, -8, 14, -4, 10, 0] }}
-        transition={{ duration: 2.5, delay: 0.5, ease: "easeInOut" }}
-      >
-        {greeting.emoji}
-      </motion.span>
       <div>
         <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">
           {greeting.text}, <span className="text-primary">{firstName}</span>!
