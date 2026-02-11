@@ -1,102 +1,86 @@
 
 
-## Otimizacao de Performance - Carregamento Rapido das Paginas
+## Redesign da Home - Dashboard com identidade de IA
 
-### Problemas Identificados
+### Problema Atual
+A home atual e generica e nao transmite a identidade de um sistema de criacao de conteudo com IA. Os dados exibidos (contagem de acoes, marcas gerenciadas) nao sao atrativos nem convidam o usuario a produzir. O layout parece um painel administrativo, nao um estudio criativo.
 
-1. **Dashboard usa `useState` + `useEffect` ao inves de React Query**: A pagina Dashboard faz 4 chamadas sequenciais ao banco usando `useState`/`useEffect` manualmente, ignorando completamente o cache do React Query que ja esta configurado no projeto. Isso significa que toda vez que o usuario navega para o Dashboard, TODOS os dados sao buscados novamente do zero, sem cache.
+### Nova Visao
+Transformar o Dashboard em um **hub criativo** que convida o usuario a agir imediatamente, com visual moderno de plataforma de IA e informacoes relevantes.
 
-2. **History faz o mesmo**: A pagina de Historico tambem usa `useState`/`useEffect` com chamadas manuais, sem React Query. Cada navegacao refaz todas as queries.
+### Estrutura da Nova Home
 
-3. **Dashboard bloqueia renderizacao**: O Dashboard mostra um spinner ate que TODOS os dados estejam carregados (`isLoading || !user || !isDataLoaded`). Isso cria a percepcao de lentidao porque o usuario ve um spinner por varios segundos ate que 4 queries completem.
+#### 1. Hero de Boas-vindas com CTA principal
+- Saudacao personalizada com horario do dia ("Bom dia", "Boa tarde", "Boa noite")
+- Frase motivacional contextual sobre criacao com IA
+- Botao CTA principal grande e vibrante: "Criar com IA"
+- Badge de creditos ao lado do CTA (valor atual de creditos)
+- Gradiente de fundo sutil com tons da marca
 
-4. **Event Tracking captura TODOS os cliques**: O `useEventTracking` registra literalmente cada clique no DOM e faz um INSERT no banco para cada um. Isso gera trafico de rede desnecessario e pode atrasar outras operacoes.
+#### 2. Cards de Acoes Rapidas (grid 2x2 ou 4 colunas)
+Quatro cards visuais e interativos que representam as acoes principais do sistema:
+- **Criar Conteudo** (icone Sparkles, gradiente primary) - link para /create
+- **Revisar Conteudo** (icone CheckCircle, gradiente accent) - link para /review
+- **Planejar Conteudo** (icone Calendar, gradiente secondary) - link para /plan
+- **Gerar Video** (icone Video, gradiente purple) - link para /create/video
 
-5. **PresenceTracker inicia junto com o layout**: Faz INSERT no banco + subscribe a um channel de presenca imediatamente, adicionando mais latencia ao carregamento inicial.
+Cada card mostra:
+- Icone grande com fundo gradiente
+- Titulo da acao
+- Descricao curta
+- Custo em creditos (badge)
 
-6. **AuthContext faz queries sequenciais**: Profile e depois Team sao buscados em sequencia (team depende do profile.team_id), mas a checagem de admin e profile JA rodam em paralelo.
+#### 3. Resumo compacto (3 metricas em linha)
+Uma barra horizontal com 3 metricas lado a lado:
+- Creditos restantes (com barra de progresso mini)
+- Conteudos criados (total de acoes)
+- Marcas ativas
 
-7. **OnboardingProvider faz query separada no profiles**: Busca campos de onboarding em uma query adicional ao profiles, quando esses dados ja poderiam vir na query do AuthContext.
+#### 4. Atividades Recentes (simplificado)
+- Lista das 5 ultimas acoes com tipo, marca e data
+- Link "Ver historico completo" no final
+- Empty state convidando a criar o primeiro conteudo
 
-### Plano de Solucao
+### Detalhes Tecnicos
 
-#### 1. Migrar Dashboard para React Query (impacto ALTO)
+**Arquivo: `src/pages/Dashboard.tsx`** - Reescrita completa do componente
 
-Substituir o `useState`/`useEffect` manual por hooks React Query dedicados. Isso habilita cache automatico (5 min staleTime ja configurado), deduplicacao de queries, e renderizacao progressiva.
+Mudancas principais:
+- Manter todas as queries React Query existentes (ja otimizadas)
+- Manter TourSelector, ExpiredTrialBlocker, TrialBanner
+- Manter skeleton de carregamento progressivo
+- Redesenhar completamente o JSX do return
 
-**Arquivo: `src/pages/Dashboard.tsx`**
-
-- Criar queries individuais com `useQuery` para: contagem de acoes, contagem de marcas, acoes recentes, e creditos do plano
-- Remover os estados `dashboardData`, `isDataLoaded`, `planCredits`
-- Mostrar o layout imediatamente com skeletons/placeholders enquanto os dados carregam (renderizacao progressiva ao inves de spinner global)
-- Cada card carrega independentemente
-
+Logica de saudacao:
 ```text
-ANTES:                          DEPOIS:
-[Spinner 3s]                    [Layout imediato]
-   |                               |
-   v                            [Cards com skeleton]
-[Tudo de uma vez]                  |
-                                [Dados aparecem conforme chegam]
+hora < 12  -> "Bom dia"
+hora < 18  -> "Boa tarde"
+hora >= 18 -> "Boa noite"
 ```
 
-#### 2. Migrar History para React Query (impacto ALTO)
+Cards de acao com custos reais usando `CREDIT_COSTS` do `src/lib/creditCosts.ts`:
+- Criar Conteudo: QUICK_IMAGE (5 creditos)
+- Revisar Conteudo: CAPTION_REVIEW (2 creditos)
+- Planejar Conteudo: CONTENT_PLAN (3 creditos)
+- Gerar Video: VIDEO_GENERATION (20 creditos)
 
-**Arquivo: `src/pages/History.tsx`**
+Substituicao de icones:
+- Remover HomeIcon (generico)
+- Usar Sparkles, Wand2, BrainCircuit, Bot como icones de IA
+- Manter lucide-react como fonte de icones
 
-- Substituir `useState`/`useEffect` por `useQuery` com queryKeys que incluem filtros e paginacao
-- Isso permite cache por pagina/filtro (navegar entre paginas volta instantaneamente)
-- Marcas ja carregadas ficam em cache compartilhado com a pagina de Marcas
+Layout responsivo:
+- Mobile: 1 coluna para cards de acao, metricas empilhadas
+- Tablet: 2 colunas para cards de acao
+- Desktop: 4 colunas para cards de acao, metricas em linha
 
-#### 3. Renderizacao Progressiva no Dashboard (impacto MEDIO)
-
-**Arquivo: `src/pages/Dashboard.tsx`**
-
-- Remover a condicao `!isDataLoaded` que bloqueia toda a renderizacao
-- Mostrar o header e layout imediatamente (o nome do usuario ja vem do AuthContext)
-- Cada card de estatistica mostra um skeleton individual enquanto sua query carrega
-- Resultado: o usuario ve a pagina em menos de 200ms, com dados aparecendo progressivamente
-
-#### 4. Debounce no Event Tracking (impacto MEDIO)
-
-**Arquivo: `src/hooks/useEventTracking.ts`**
-
-- Acumular eventos de clique em um buffer e enviar em batch a cada 5 segundos (ao inves de INSERT individual por clique)
-- Usar `navigator.sendBeacon` no `beforeunload` para garantir envio dos eventos pendentes
-- Isso reduz drasticamente o numero de requests de rede concorrentes
-
-#### 5. Lazy-load do PresenceTracker (impacto BAIXO)
-
-**Arquivo: `src/components/PresenceTracker.tsx`**
-
-- Adicionar um delay de 3 segundos antes de iniciar o tracking de presenca
-- Isso evita que a query de INSERT e o channel subscribe compitam com o carregamento inicial dos dados da pagina
-
-#### 6. Incluir dados de onboarding na query do AuthContext (impacto BAIXO)
-
-**Arquivo: `src/contexts/AuthContext.tsx`** e **`src/components/onboarding/OnboardingProvider.tsx`**
-
-- Na query de `profiles` do AuthContext, ja buscar os campos `onboarding_*_completed`
-- O OnboardingProvider consome esses dados do AuthContext ao inves de fazer uma query separada
-- Elimina 1 query redundante no carregamento inicial
-
-### Resumo do Impacto
-
-| Mudanca | Queries eliminadas | Percepcao de velocidade |
-|---|---|---|
-| Dashboard com React Query | Cache evita 4 queries por visita | Instantaneo em revisita |
-| History com React Query | Cache por pagina/filtro | Navegacao entre paginas instantanea |
-| Renderizacao progressiva | 0 | Layout visivel em menos de 200ms |
-| Batch de eventos | ~50-100 requests/min reduzidos | Menos competicao de rede |
-| Delay no PresenceTracker | 1 query adiada | Carregamento inicial mais rapido |
-| Onboarding no AuthContext | 1 query eliminada | Marginalmente mais rapido |
+Animacoes:
+- Cards com `hover:scale-105` e `transition-all duration-300`
+- Entrada com `animate-fade-in` (ja existe no projeto)
+- Gradientes sutis nos cards de acao
 
 ### Arquivos Modificados
 
-1. `src/pages/Dashboard.tsx` - Migrar para React Query + renderizacao progressiva
-2. `src/pages/History.tsx` - Migrar para React Query
-3. `src/hooks/useEventTracking.ts` - Batch de eventos com buffer
-4. `src/components/PresenceTracker.tsx` - Delay no inicio
-5. `src/contexts/AuthContext.tsx` - Incluir campos onboarding na query
-6. `src/components/onboarding/OnboardingProvider.tsx` - Consumir dados do AuthContext
+1. `src/pages/Dashboard.tsx` - Redesign completo do componente (unico arquivo)
 
+Nenhum arquivo novo sera criado. Todas as dependencias (React Query, componentes UI, creditCosts) ja existem no projeto.
