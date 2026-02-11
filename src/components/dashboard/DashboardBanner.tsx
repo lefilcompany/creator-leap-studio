@@ -24,14 +24,14 @@ export const DashboardBanner = ({ userName }: DashboardBannerProps) => {
         alt=""
         className="absolute inset-0 w-full h-full object-cover object-center"
         animate={{ scale: [1, 1.03, 1] }}
-        transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
-      />
+        transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }} />
+
       {/* Subtle overlay for text readability */}
       <div className="absolute inset-0 bg-gradient-to-r from-black/35 via-black/15 to-transparent" />
 
       {/* Content */}
       <div className="relative h-full flex items-center px-6 md:px-10 z-10">
-        <div className="flex flex-col justify-center bg-black/30 backdrop-blur-sm rounded-xl px-5 py-4">
+        <div className="flex flex-col justify-center backdrop-blur-sm rounded-xl px-5 py-4 bg-primary">
           <p className="text-white/80 text-sm font-medium tracking-wide uppercase">
             {getGreeting()}
           </p>
@@ -43,6 +43,6 @@ export const DashboardBanner = ({ userName }: DashboardBannerProps) => {
           </p>
         </div>
       </div>
-    </div>
-  );
+    </div>);
+
 };
