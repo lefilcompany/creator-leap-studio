@@ -74,6 +74,10 @@
     @apply border-border;
   }
 
+  html, body {
+    @apply overflow-hidden h-screen;
+  }
+
   body {
     /* ✨ ALTERADO: Adicionado um gradiente sutil ao fundo */
     @apply bg-background text-foreground;
