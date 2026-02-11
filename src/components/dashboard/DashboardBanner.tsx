@@ -17,7 +17,7 @@ export const DashboardBanner = ({ userName }: DashboardBannerProps) => {
   const firstName = userName?.split(" ")[0] || "Usuário";
 
   return (
-    <div className="relative overflow-hidden rounded-2xl shadow-xl h-44 sm:h-48 md:h-52">
+    <div className="relative overflow-hidden rounded-2xl shadow-xl h-44 sm:h-48 md:h-56 lg:h-64">
       {/* Background image - object-bottom to always show people */}
       <motion.img
         src={dashboardBannerImg}
