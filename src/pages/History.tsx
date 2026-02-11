@@ -204,7 +204,7 @@ export default function History() {
   ];
 
   return (
-    <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8">
+    <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8 h-[calc(100%+2rem)] sm:h-[calc(100%+3rem)] lg:h-[calc(100%+4rem)] overflow-hidden">
       {/* Banner */}
       <div className="relative w-full h-56 md:h-72 flex-shrink-0 overflow-hidden">
         <img 
@@ -258,7 +258,7 @@ export default function History() {
       </div>
 
       {/* Scrollable action list */}
-      <main id="history-list" className="px-4 sm:px-6 lg:px-8 pt-4 pb-4 sm:pb-6 lg:pb-8">
+      <main id="history-list" className="px-4 sm:px-6 lg:px-8 pt-4 pb-4 sm:pb-6 lg:pb-8 flex-1 min-h-0 overflow-y-auto">
         <ActionList
           actions={actions}
           selectedAction={selectedActionSummary}
