@@ -1,28 +1,26 @@
 
-## Corrigir scroll da pagina de Historico
+
+## Corrigir scroll externo na pagina de Historico
 
 ### Problema
-A pagina de Historico tem `overflow-hidden` e restricoes de altura (`h-[calc(100%+2rem)]`) no container raiz, o que faz o banner ficar fixo e cria um scroll interno separado. Isso tambem causa o problema visivel na segunda screenshot onde o conteudo some e o background aparece "quadrado" fora do board.
+Quando os cards do historico carregam, o conteudo cresce e um scroll aparece no fundo rosa (layout externo ao board). Isso acontece porque o `html` e o `body` nao possuem `overflow: hidden`, permitindo que o navegador crie uma barra de rolagem no nivel do documento. O scroll deveria ocorrer apenas dentro do board (o container branco com bordas arredondadas), controlado pelo `<main>` no DashboardLayout.
 
 ### Solucao
-Remover as restricoes de altura e `overflow-hidden` do container raiz da pagina de Historico, seguindo exatamente o mesmo padrao da pagina de Marcas que usa scroll natural do DashboardLayout.
+Adicionar `overflow: hidden` ao `html` e `body` no CSS global para garantir que nenhum scroll externo ao board seja possivel. Todo o scroll deve acontecer exclusivamente no `<main>` do DashboardLayout (que ja tem `overflow-y-auto`).
 
-### Mudanca no arquivo
+### Detalhes tecnicos
 
-**`src/pages/History.tsx`** (1 edicao):
+**`src/index.css`** - Adicionar regra para html e body dentro do `@layer base` existente (linhas 72-83):
 
-- Linha 207: Trocar o className do container raiz de:
-  ```
-  flex flex-col -m-4 sm:-m-6 lg:-m-8 h-[calc(100%+2rem)] sm:h-[calc(100%+3rem)] lg:h-[calc(100%+4rem)] overflow-hidden
-  ```
-  Para (identico ao padrao de Marcas):
-  ```
-  flex flex-col -m-4 sm:-m-6 lg:-m-8
-  ```
+```css
+html, body {
+  @apply overflow-hidden h-screen;
+}
+```
 
-- Linha 261: No `<main id="history-list">`, remover `flex-1 min-h-0 overflow-y-auto` que forçavam o scroll interno, mantendo apenas o padding original:
-  ```
-  px-4 sm:px-6 lg:px-8 pt-4 pb-4 sm:pb-6 lg:pb-8
-  ```
+Isso sera adicionado junto ao bloco existente do `body` (linha 77), mantendo os estilos atuais (`bg-background text-foreground`, gradiente, font-family) e adicionando as restricoes de overflow e altura.
 
-Isso fara o banner, header e lista de acoes scrollarem juntos naturalmente dentro do board do DashboardLayout, exatamente como funciona na pagina de Marcas.
+Essa abordagem e segura porque:
+- O DashboardLayout ja usa `h-screen overflow-hidden` no container raiz e `overflow-y-auto` no `<main>`
+- Paginas publicas (Login, Register, etc.) tambem funcionam dentro de containers com scroll proprio
+- Nenhuma outra pagina depende do scroll do documento
