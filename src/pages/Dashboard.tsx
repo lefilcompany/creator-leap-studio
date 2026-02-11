@@ -56,6 +56,28 @@ const Dashboard = () => {
     },
     enabled: !!user?.id,
   });
+  const { data: personasCount = 0 } = useQuery({
+    queryKey: ['dashboard-personas-count', user?.id],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from('personas')
+        .select('*', { count: 'exact', head: true });
+      return count || 0;
+    },
+    enabled: !!user?.id,
+  });
+
+  const { data: themesCount = 0 } = useQuery({
+    queryKey: ['dashboard-themes-count', user?.id],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from('strategic_themes')
+        .select('*', { count: 'exact', head: true });
+      return count || 0;
+    },
+    enabled: !!user?.id,
+  });
+
   const { data: recentActivities = [] } = useQuery({
     queryKey: ['dashboard-recent-activities', user?.id],
     queryFn: async () => {
@@ -137,7 +159,7 @@ const Dashboard = () => {
 
       {/* Stats */}
       <div id="dashboard-stats">
-        <DashboardStats actionsCount={actionsCount} brandsCount={brandsCount} />
+        <DashboardStats actionsCount={actionsCount} brandsCount={brandsCount} personasCount={personasCount} themesCount={themesCount} />
       </div>
 
       {/* Recent Activity */}
