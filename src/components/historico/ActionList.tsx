@@ -5,7 +5,7 @@ import { Eye, Search, ArrowUpDown, ArrowUp, ArrowDown, List, LayoutGrid, X, Cloc
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { NativeSelect } from '@/components/ui/native-select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -315,20 +315,26 @@ export default function ActionList({
         </div>
 
         {/* Filters */}
-        <NativeSelect
-          value={brandFilter}
-          onValueChange={onBrandFilterChange}
-          options={brandOptions}
-          placeholder="Marca"
-          triggerClassName="w-full sm:w-[160px] h-10 rounded-lg shadow-sm border-muted/50"
-        />
-        <NativeSelect
-          value={typeFilter}
-          onValueChange={onTypeFilterChange}
-          options={typeOptions}
-          placeholder="Ação"
-          triggerClassName="w-full sm:w-[160px] h-10 rounded-lg shadow-sm border-muted/50"
-        />
+        <Select value={brandFilter} onValueChange={onBrandFilterChange}>
+          <SelectTrigger className="w-full sm:w-[160px] h-10 rounded-lg shadow-sm border-muted/50 bg-card">
+            <SelectValue placeholder="Marca" />
+          </SelectTrigger>
+          <SelectContent>
+            {brandOptions.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={typeFilter} onValueChange={onTypeFilterChange}>
+          <SelectTrigger className="w-full sm:w-[160px] h-10 rounded-lg shadow-sm border-muted/50 bg-card">
+            <SelectValue placeholder="Ação" />
+          </SelectTrigger>
+          <SelectContent>
+            {typeOptions.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
         {/* Sort + Clear + View Toggle */}
         <div className="flex items-center gap-2">
