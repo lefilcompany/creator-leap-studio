@@ -17,12 +17,7 @@ export const DashboardBanner = ({ userName }: DashboardBannerProps) => {
   const firstName = userName?.split(" ")[0] || "Usuário";
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="relative overflow-hidden rounded-2xl shadow-xl h-44 md:h-52"
-    >
+    <div className="relative overflow-hidden rounded-2xl shadow-xl h-44 md:h-52">
       {/* Background image */}
       <img
         src={dashboardBannerImg}
@@ -30,35 +25,42 @@ export const DashboardBanner = ({ userName }: DashboardBannerProps) => {
         className="absolute inset-0 w-full h-full object-cover"
       />
       {/* Overlay for readability */}
-      <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-black/20 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/30 to-transparent" />
 
       {/* Content */}
-      <div className="relative h-full flex flex-col justify-center px-6 md:px-10 z-10">
-        <motion.p
-          initial={{ opacity: 0, x: -10 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.2 }}
-          className="text-white/70 text-sm font-medium tracking-wide uppercase"
-        >
-          {getGreeting()}
-        </motion.p>
-        <motion.h1
-          initial={{ opacity: 0, x: -10 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.3 }}
-          className="text-2xl md:text-3xl lg:text-4xl font-bold text-white tracking-tight mt-1"
-        >
-          Olá, {firstName}!
-        </motion.h1>
-        <motion.p
-          initial={{ opacity: 0, x: -10 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.4 }}
-          className="text-white/80 text-sm md:text-base mt-1.5 max-w-md"
-        >
-          Pronto para criar conteúdos incríveis?
-        </motion.p>
+      <div className="relative h-full flex items-center justify-between px-6 md:px-10 z-10">
+        {/* Left side - static, no animation */}
+        <div className="flex flex-col justify-center">
+          <p className="text-white/70 text-sm font-medium tracking-wide uppercase">
+            {getGreeting()}
+          </p>
+          <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white tracking-tight mt-1">
+            Olá, {firstName}!
+          </h1>
+          <p className="text-white/80 text-sm md:text-base mt-1.5 max-w-md">
+            Pronto para criar conteúdos incríveis?
+          </p>
+        </div>
+
+        {/* Right side - animated decorative elements */}
+        <div className="hidden md:flex items-center gap-3">
+          <motion.div
+            animate={{ y: [0, -8, 0] }}
+            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+            className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-sm"
+          />
+          <motion.div
+            animate={{ y: [0, 8, 0] }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+            className="w-6 h-6 rounded-full bg-white/15 backdrop-blur-sm"
+          />
+          <motion.div
+            animate={{ y: [0, -6, 0], opacity: [0.3, 0.7, 0.3] }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+            className="w-14 h-14 rounded-full bg-white/5 backdrop-blur-sm border border-white/10"
+          />
+        </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
