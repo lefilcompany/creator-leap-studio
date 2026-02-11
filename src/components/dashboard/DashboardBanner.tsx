@@ -31,14 +31,14 @@ export const DashboardBanner = ({ userName }: DashboardBannerProps) => {
 
       {/* Content */}
       <div className="relative h-full flex items-center px-6 md:px-10 z-10">
-        <div className="flex flex-col justify-center">
+        <div className="flex flex-col justify-center bg-black/30 backdrop-blur-sm rounded-xl px-5 py-4">
           <p className="text-white/80 text-sm font-medium tracking-wide uppercase">
             {getGreeting()}
           </p>
-          <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white tracking-tight mt-1 drop-shadow-md">
+          <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white tracking-tight mt-1">
             Olá, {firstName}!
           </h1>
-          <p className="text-white/90 text-sm md:text-base mt-1.5 max-w-md drop-shadow-sm">
+          <p className="text-white/90 text-sm md:text-base mt-1.5 max-w-md">
             Pronto para criar conteúdos incríveis?
           </p>
         </div>
