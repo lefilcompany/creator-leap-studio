@@ -38,12 +38,20 @@ const Dashboard = () => {
     queryKey: ['dashboard-actions-count', user?.teamId],
     queryFn: async () => {
       if (!user?.teamId) return 0;
-      const { data } = await supabase
-        .rpc('get_action_summaries', {
-          p_team_id: user.teamId,
-          p_limit: 1,
-        });
-      return data?.[0]?.total_count || 0;
+      try {
+        const { data, error } = await supabase
+          .rpc('get_action_summaries', {
+            p_team_id: user.teamId,
+            p_limit: 1,
+          });
+        if (!error && data?.[0]?.total_count) return data[0].total_count;
+      } catch {}
+      // Fallback: direct count query
+      const { count } = await supabase
+        .from('actions')
+        .select('*', { count: 'exact', head: true })
+        .eq('team_id', user.teamId);
+      return count || 0;
     },
     enabled: !!user?.teamId,
   });
@@ -84,12 +92,35 @@ const Dashboard = () => {
     queryKey: ['dashboard-recent-activities', user?.teamId],
     queryFn: async () => {
       if (!user?.teamId) return [];
-      const { data } = await supabase
-        .rpc('get_action_summaries', {
-          p_team_id: user.teamId,
-          p_limit: 5,
-        });
-      return data || [];
+      try {
+        const { data, error } = await supabase
+          .rpc('get_action_summaries', {
+            p_team_id: user.teamId,
+            p_limit: 5,
+          });
+        if (!error && data && data.length > 0) return data;
+      } catch {}
+      // Fallback: direct query
+      const { data: fallbackData } = await supabase
+        .from('actions')
+        .select('id, type, created_at, approved, brand_id, brands(name), result, details, thumb_path')
+        .eq('team_id', user.teamId)
+        .order('created_at', { ascending: false })
+        .limit(5);
+      return (fallbackData || []).map((a: any) => ({
+        id: a.id,
+        type: a.type,
+        created_at: a.created_at,
+        approved: a.approved,
+        brand_id: a.brand_id,
+        brand_name: a.brands?.name || null,
+        image_url: a.result?.imageUrl || a.result?.originalImage || null,
+        title: a.result?.title || a.result?.description || null,
+        platform: a.details?.platform || null,
+        objective: a.details?.objective || null,
+        total_count: 0,
+        thumb_path: a.thumb_path || null,
+      }));
     },
     enabled: !!user?.teamId,
   });
