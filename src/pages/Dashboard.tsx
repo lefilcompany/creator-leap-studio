@@ -112,8 +112,8 @@ const Dashboard = () => {
     );
   }
 
-  const totalCredits = planCredits || user.credits || 0;
   const remainingCredits = user.credits || 0;
+  const totalCredits = Math.max(planCredits || 0, remainingCredits);
   const progressPercentage = totalCredits > 0 ? ((remainingCredits / totalCredits) * 100) : 0;
 
   const quickActions = [
