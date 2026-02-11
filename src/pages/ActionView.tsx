@@ -5,8 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Download, Copy, CheckCircle, Sparkles, Calendar, Loader2, Clock, User, Tag, Check, FileText, File, FileCode, LayoutGrid, List, ArrowLeft, Info, Image, Video, ClipboardList, FileOutput } from 'lucide-react';
+import { Download, Copy, CheckCircle, Sparkles, Calendar, Loader2, Clock, User, Tag, Check, FileText, File, FileCode, LayoutGrid, List, ArrowLeft, Info, Image, Video, ClipboardList, FileOutput, Users, Globe, X, ZoomIn } from 'lucide-react';
 import type { Action } from '@/types/action';
 import { ACTION_TYPE_DISPLAY } from '@/types/action';
 import ReactMarkdown from 'react-markdown';
@@ -19,6 +20,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { PageBreadcrumb } from "@/components/PageBreadcrumb";
+import { cn } from '@/lib/utils';
 
 // ── SectionCard ──────────────────────────────────────────────
 interface SectionCardProps {
@@ -51,6 +53,46 @@ const DetailField = ({ label, children }: { label: string; children: React.React
     <div className="mt-1.5">{children}</div>
   </div>
 );
+
+// ── PlatformIcon ─────────────────────────────────────────────
+function PlatformIcon({ platform, className = "h-4 w-4" }: { platform: string; className?: string }) {
+  switch (platform) {
+    case 'Instagram':
+      return (
+        <svg viewBox="0 0 24 24" fill="currentColor" className={cn(className, "text-[#E4405F]")}>
+          <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
+        </svg>
+      );
+    case 'Facebook':
+      return (
+        <svg viewBox="0 0 24 24" fill="currentColor" className={cn(className, "text-[#1877F2]")}>
+          <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+        </svg>
+      );
+    case 'LinkedIn':
+      return (
+        <svg viewBox="0 0 24 24" fill="currentColor" className={cn(className, "text-[#0A66C2]")}>
+          <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+        </svg>
+      );
+    case 'TikTok':
+      return (
+        <svg viewBox="0 0 24 24" fill="currentColor" className={cn(className, "text-foreground")}>
+          <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/>
+        </svg>
+      );
+    case 'Twitter/X':
+      return (
+        <svg viewBox="0 0 24 24" fill="currentColor" className={cn(className, "text-foreground")}>
+          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+        </svg>
+      );
+    case 'Comunidades':
+      return <Users className={cn(className, "text-secondary")} />;
+    default:
+      return <Globe className={cn(className, "text-muted-foreground")} />;
+  }
+}
 
 // ── Helpers ──────────────────────────────────────────────────
 const formatDate = (dateString: string) => {
@@ -125,6 +167,7 @@ export default function ActionView() {
   const [loading, setLoading] = useState(true);
   const [copying, setCopying] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
 
   // ── Data fetching ────────────────────────────────────────
   useEffect(() => {
@@ -340,6 +383,26 @@ export default function ActionView() {
 
   const hasMedia = !!(action.result?.imageUrl || action.result?.videoUrl || action.result?.originalImage);
 
+  // Check if result has textual content to display
+  const hasTextualResult = !!(
+    action.result?.review ||
+    action.result?.title ||
+    action.result?.body ||
+    (action.result?.hashtags && action.result.hashtags.length > 0) ||
+    action.result?.feedback ||
+    action.result?.plan
+  );
+
+  // ── Platform field renderer with icon ────────────────────
+  const renderPlatformField = (platform: string) => (
+    <DetailField label="Plataforma">
+      <div className="flex items-center gap-2 mt-0.5">
+        <PlatformIcon platform={platform} className="h-5 w-5" />
+        <p className="text-sm font-medium text-foreground">{platform}</p>
+      </div>
+    </DetailField>
+  );
+
   // ── Render ───────────────────────────────────────────────
   return (
     <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8">
@@ -397,266 +460,56 @@ export default function ActionView() {
         </div>
       </div>
 
-      {/* ═══ Content Grid ═══ */}
+      {/* ═══ Content – flex-col layout ═══ */}
       <div className="px-4 sm:px-6 lg:px-8 py-6 max-w-6xl mx-auto w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* ── Main Column ── */}
-          <div className={`space-y-6 ${hasMedia ? 'lg:col-span-2' : 'lg:col-span-3'}`}>
-            {/* Details Section */}
-            {action.details && (
-              <SectionCard title="Detalhes da Solicitação" icon={<ClipboardList className="h-4 w-4" />} accentColor={accentColor}>
-                <div className="space-y-5">
-                  {/* CRIAR_CONTEUDO / CRIAR_CONTEUDO_RAPIDO */}
-                  {(action.type === 'CRIAR_CONTEUDO' || action.type === 'CRIAR_CONTEUDO_RAPIDO') && (
-                    <>
-                      {action.details.objective && <DetailField label="Objetivo"><p className="text-sm font-medium text-foreground">{action.details.objective}</p></DetailField>}
-                      {action.details.platform && <DetailField label="Plataforma"><p className="text-sm font-medium text-foreground">{action.details.platform}</p></DetailField>}
-                      {action.details.description && <DetailField label="Descrição"><p className="text-sm text-foreground leading-relaxed">{action.details.description}</p></DetailField>}
-                      {action.details.tone && Array.isArray(action.details.tone) && action.details.tone.length > 0 && (
-                        <DetailField label="Tom de Voz">
-                          <div className="flex flex-wrap gap-2 mt-1">
-                            {action.details.tone.map((t: string, idx: number) => <Badge key={idx} variant="outline">{t}</Badge>)}
-                          </div>
-                        </DetailField>
-                      )}
-                      {action.details.additionalInfo && <DetailField label="Informações Adicionais"><p className="text-sm text-foreground leading-relaxed">{action.details.additionalInfo}</p></DetailField>}
-                      {action.details.isVideoMode && (
-                        <div className="grid grid-cols-2 gap-4">
-                          <DetailField label="Modo de Geração"><Badge variant="secondary">Vídeo</Badge></DetailField>
-                          {action.details.ratio && <DetailField label="Proporção"><p className="text-sm font-medium text-foreground">{action.details.ratio}</p></DetailField>}
-                          {action.details.duration && <DetailField label="Duração"><p className="text-sm font-medium text-foreground">{action.details.duration}s</p></DetailField>}
-                        </div>
-                      )}
-                    </>
-                  )}
+        <div className="flex flex-col gap-6">
 
-                  {/* GERAR_VIDEO */}
-                  {action.type === 'GERAR_VIDEO' && (
-                    <>
-                      {action.details.prompt && (
-                        <DetailField label="Prompt de Geração">
-                          <div className="mt-1 p-3 bg-muted/30 rounded-lg">
-                            <p className="text-foreground whitespace-pre-wrap text-sm">{action.details.prompt}</p>
-                          </div>
-                        </DetailField>
-                      )}
-                      {action.details.objective && <DetailField label="Objetivo"><p className="text-sm font-medium text-foreground">{action.details.objective}</p></DetailField>}
-                      {action.details.platform && <DetailField label="Plataforma"><p className="text-sm font-medium text-foreground">{action.details.platform}</p></DetailField>}
-                      {action.details.brand && <DetailField label="Marca"><p className="text-sm font-medium text-foreground">{action.details.brand}</p></DetailField>}
-                      {action.details.persona && <DetailField label="Persona"><p className="text-sm font-medium text-foreground">{action.details.persona}</p></DetailField>}
-                      {action.details.theme && <DetailField label="Tema Estratégico"><p className="text-sm font-medium text-foreground">{action.details.theme}</p></DetailField>}
-                      {action.details.tone && Array.isArray(action.details.tone) && action.details.tone.length > 0 && (
-                        <DetailField label="Tom de Voz">
-                          <div className="flex flex-wrap gap-2 mt-1">
-                            {action.details.tone.map((t: string, idx: number) => <Badge key={idx} variant="outline">{t}</Badge>)}
-                          </div>
-                        </DetailField>
-                      )}
-                      {action.details.aspectRatio && <DetailField label="Proporção"><p className="text-sm font-medium text-foreground">{action.details.aspectRatio}</p></DetailField>}
-                      {action.details.additionalInfo && <DetailField label="Informações Adicionais"><p className="text-sm text-foreground leading-relaxed">{action.details.additionalInfo}</p></DetailField>}
-                    </>
-                  )}
-
-                  {/* REVISAR_CONTEUDO */}
-                  {action.type === 'REVISAR_CONTEUDO' && (
-                    <>
-                      {action.details.reviewType && (
-                        <DetailField label="Tipo de Revisão">
-                          <Badge variant="secondary" className="mt-1">
-                            {action.details.reviewType === 'image' ? 'Imagem' : action.details.reviewType === 'caption' ? 'Legenda' : action.details.reviewType === 'text-for-image' ? 'Texto para Imagem' : action.details.reviewType}
-                          </Badge>
-                        </DetailField>
-                      )}
-                      {action.details.prompt && <DetailField label="Contexto/Ajustes Solicitados"><p className="text-sm text-foreground leading-relaxed">{action.details.prompt}</p></DetailField>}
-                      {action.details.brandName && <DetailField label="Marca"><p className="text-sm font-medium text-foreground">{action.details.brandName}</p></DetailField>}
-                      {action.details.themeName && <DetailField label="Tema Estratégico"><p className="text-sm font-medium text-foreground">{action.details.themeName}</p></DetailField>}
-                      {action.details.caption && (
-                        <DetailField label="Legenda Enviada">
-                          <div className="mt-1 p-3 bg-muted/30 rounded-lg">
-                            <p className="text-foreground whitespace-pre-wrap text-sm">{action.details.caption}</p>
-                          </div>
-                        </DetailField>
-                      )}
-                      {action.details.text && (
-                        <DetailField label="Texto Enviado">
-                          <div className="mt-1 p-3 bg-muted/30 rounded-lg">
-                            <p className="text-foreground whitespace-pre-wrap text-sm">{action.details.text}</p>
-                          </div>
-                        </DetailField>
-                      )}
-                    </>
-                  )}
-
-                  {/* PLANEJAR_CONTEUDO */}
-                  {action.type === 'PLANEJAR_CONTEUDO' && (
-                    <>
-                      {action.details.platform && <DetailField label="Plataforma"><p className="text-sm font-medium text-foreground">{action.details.platform}</p></DetailField>}
-                      {action.details.quantity && <DetailField label="Quantidade de Posts"><p className="text-sm font-medium text-foreground">{action.details.quantity}</p></DetailField>}
-                      {action.details.theme && Array.isArray(action.details.theme) && action.details.theme.length > 0 && (
-                        <DetailField label="Temas Estratégicos">
-                          <div className="flex flex-wrap gap-2 mt-1">
-                            {action.details.theme.map((t: string, idx: number) => <Badge key={idx} variant="secondary">{t}</Badge>)}
-                          </div>
-                        </DetailField>
-                      )}
-                      {action.details.objective && <DetailField label="Objetivo"><p className="text-sm font-medium text-foreground">{action.details.objective}</p></DetailField>}
-                      {action.details.additionalInfo && <DetailField label="Informações Adicionais"><p className="text-sm text-foreground leading-relaxed">{action.details.additionalInfo}</p></DetailField>}
-                    </>
-                  )}
-                </div>
-              </SectionCard>
-            )}
-
-            {/* Result Section */}
-            {action.result && (
-              <SectionCard title="Resultado" icon={<FileOutput className="h-4 w-4" />} accentColor={accentColor}>
-                <div className="space-y-6">
-                  {/* Review Result */}
-                  {action.result.review && (
-                    <div>
-                      <div className="flex items-center justify-between mb-3">
-                        <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Análise e Revisão</p>
-                        <Button variant="ghost" size="sm" onClick={() => handleCopyText(action.result!.review!)} disabled={copying}>
-                          {isCopied ? <><Check className="mr-2 h-4 w-4" />Copiado!</> : <><Copy className="mr-2 h-4 w-4" />Copiar</>}
-                        </Button>
-                      </div>
-                      <div className="p-5 bg-muted/30 rounded-xl border border-border/10">
-                        <div className="prose prose-sm prose-slate dark:prose-invert max-w-none">
-                          <ReactMarkdown components={markdownComponents}>{action.result.review}</ReactMarkdown>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Title */}
-                  {action.result.title && (
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Título</p>
-                        <Button variant="ghost" size="sm" onClick={() => handleCopyText(action.result!.title!)} disabled={copying}>
-                          {copying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Copy className="mr-2 h-4 w-4" />}
-                          Copiar
-                        </Button>
-                      </div>
-                      <div className="p-4 bg-muted/30 rounded-xl border border-border/10">
-                        <p className="font-medium text-foreground">{action.result.title}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Body */}
-                  {action.result.body && (
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Corpo da Legenda</p>
-                        <Button variant="ghost" size="sm" onClick={() => handleCopyText(action.result!.body!)} disabled={copying}>
-                          {copying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Copy className="mr-2 h-4 w-4" />}
-                          Copiar
-                        </Button>
-                      </div>
-                      <div className="p-4 bg-muted/30 rounded-xl border border-border/10">
-                        <p className="whitespace-pre-wrap text-foreground leading-relaxed text-sm">{action.result.body}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Hashtags */}
-                  {action.result.hashtags && action.result.hashtags.length > 0 && (
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Hashtags</p>
-                        <Button variant="ghost" size="sm" onClick={() => handleCopyText(action.result!.hashtags!.join(' '))} disabled={copying}>
-                          {copying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Copy className="mr-2 h-4 w-4" />}
-                          Copiar
-                        </Button>
-                      </div>
-                      <div className="p-4 bg-muted/30 rounded-xl border border-border/10">
-                        <div className="flex flex-wrap gap-2">
-                          {action.result.hashtags.map((tag, idx) => <Badge key={idx} variant="secondary">{tag}</Badge>)}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Feedback */}
-                  {action.result.feedback && (
-                    <DetailField label="Feedback">
-                      <div className="p-4 bg-muted/30 rounded-xl border border-border/10 mt-1">
-                        <p className="whitespace-pre-wrap text-sm text-foreground">{action.result.feedback}</p>
-                      </div>
-                    </DetailField>
-                  )}
-
-                  {/* Plan */}
-                  {action.result.plan && (
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Plano de Conteúdo</p>
-                        <div className="flex gap-2">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="outline" size="icon" className="h-8 w-8">
-                                <Download className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="bg-card z-50">
-                              <DropdownMenuItem onClick={() => handleDownloadDocx(action.result!.plan!)} className="cursor-pointer">
-                                <FileText className="mr-2 h-4 w-4" />Download DOCX
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleDownloadTxt(action.result!.plan!)} className="cursor-pointer">
-                                <File className="mr-2 h-4 w-4" />Download TXT
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleDownloadMd(action.result!.plan!)} className="cursor-pointer">
-                                <FileCode className="mr-2 h-4 w-4" />Download MD
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleCopyText(action.result!.plan!)} disabled={copying}>
-                            {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                          </Button>
-                        </div>
-                      </div>
-                      <div className="p-5 bg-muted/30 rounded-xl border border-border/10">
-                        <div className="prose prose-sm prose-slate dark:prose-invert max-w-none">
-                          <ReactMarkdown components={markdownComponents}>{action.result.plan}</ReactMarkdown>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </SectionCard>
-            )}
-          </div>
-
-          {/* ── Sidebar ── */}
+          {/* ── Media Section (full width, prominent) ── */}
           {hasMedia && (
-            <div className="lg:col-span-1 space-y-6">
-              {/* Media */}
+            <div className="flex flex-col gap-6">
+              {/* Main generated image/video */}
               {(action.result?.imageUrl || action.result?.videoUrl) && (
-                <SectionCard title={action.result?.videoUrl ? 'Vídeo Gerado' : 'Imagem Gerada'} icon={action.result?.videoUrl ? <Video className="h-4 w-4" /> : <Image className="h-4 w-4" />} accentColor={accentColor}>
-                  {action.result?.videoUrl && (
-                    <div className="space-y-3">
-                      <div className="rounded-xl overflow-hidden border border-border/10 shadow-sm">
-                        <video src={action.result.videoUrl} controls className="w-full h-auto" playsInline>
-                          Seu navegador não suporta a tag de vídeo.
-                        </video>
-                      </div>
-                      <Button variant="outline" size="sm" className="w-full" onClick={() => handleDownloadVideo(action.result!.videoUrl!, `video-${action.id}`)}>
+                <SectionCard
+                  title={action.result?.videoUrl ? 'Vídeo Gerado' : 'Imagem Gerada'}
+                  icon={action.result?.videoUrl ? <Video className="h-4 w-4" /> : <Image className="h-4 w-4" />}
+                  accentColor={accentColor}
+                  headerRight={
+                    action.result?.imageUrl && !action.result?.videoUrl ? (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDownloadImage(action.result!.imageUrl!, `imagem-${action.id}`)}
+                      >
                         <Download className="mr-2 h-4 w-4" />
-                        Baixar Vídeo
+                        Baixar
                       </Button>
+                    ) : action.result?.videoUrl ? (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDownloadVideo(action.result!.videoUrl!, `video-${action.id}`)}
+                      >
+                        <Download className="mr-2 h-4 w-4" />
+                        Baixar
+                      </Button>
+                    ) : null
+                  }
+                >
+                  {action.result?.videoUrl && (
+                    <div className="rounded-xl overflow-hidden border border-border/10 shadow-sm">
+                      <video src={action.result.videoUrl} controls className="w-full h-auto" playsInline>
+                        Seu navegador não suporta a tag de vídeo.
+                      </video>
                     </div>
                   )}
                   {action.result?.imageUrl && !action.result?.videoUrl && (
-                    <div className="space-y-3">
-                      <div className="relative group rounded-xl overflow-hidden border border-border/10 shadow-sm">
-                        <img src={action.result.imageUrl} alt="Imagem gerada" className="w-full h-auto" />
-                        <button
-                          onClick={() => handleDownloadImage(action.result!.imageUrl!, `imagem-${action.id}`)}
-                          className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 backdrop-blur-sm"
-                        >
-                          <Download className="text-white h-6 w-6" />
-                        </button>
+                    <div
+                      className="relative group rounded-xl overflow-hidden border border-border/10 shadow-sm cursor-pointer max-w-2xl mx-auto"
+                      onClick={() => setLightboxImage(action.result!.imageUrl!)}
+                    >
+                      <img src={action.result.imageUrl} alt="Imagem gerada" className="w-full h-auto" />
+                      <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 backdrop-blur-[2px]">
+                        <ZoomIn className="text-white h-8 w-8" />
                       </div>
                     </div>
                   )}
@@ -666,78 +519,289 @@ export default function ActionView() {
               {/* Original Image (Review) */}
               {action.result?.originalImage && (
                 <SectionCard title="Imagem Original" icon={<Image className="h-4 w-4" />} accentColor={accentColor}>
-                  <div className="relative group rounded-xl overflow-hidden border border-border/10 shadow-sm">
+                  <div
+                    className="relative group rounded-xl overflow-hidden border border-border/10 shadow-sm cursor-pointer max-w-2xl mx-auto"
+                    onClick={() => setLightboxImage(action.result!.originalImage!)}
+                  >
                     <img src={action.result.originalImage} alt="Imagem original" className="w-full h-auto" />
-                    <button
-                      onClick={() => handleDownloadImage(action.result!.originalImage!, `original-${action.id}`)}
-                      className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 backdrop-blur-sm"
-                    >
-                      <Download className="text-white h-6 w-6" />
-                    </button>
+                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 backdrop-blur-[2px]">
+                      <ZoomIn className="text-white h-8 w-8" />
+                    </div>
                   </div>
                 </SectionCard>
               )}
+            </div>
+          )}
 
-              {/* Metadata Card */}
-              <SectionCard title="Informações" icon={<Info className="h-4 w-4" />} accentColor={accentColor}>
-                <div className="space-y-4">
-                  <DetailField label="Data de Criação">
-                    <p className="text-sm font-medium text-foreground">{formatDate(action.createdAt)}</p>
-                  </DetailField>
-                  <Separator className="bg-border/10" />
-                  <DetailField label="Marca">
-                    <p className="text-sm font-medium text-foreground">{action.brand?.name || 'Não especificada'}</p>
-                  </DetailField>
-                  <Separator className="bg-border/10" />
-                  <DetailField label="Criado por">
-                    <p className="text-sm font-medium text-foreground truncate">{action.user?.name || 'Não especificado'}</p>
-                  </DetailField>
-                  <Separator className="bg-border/10" />
-                  <DetailField label="Status">
-                    <Badge className={`mt-1 ${getStatusColor(action.status)}`}>{action.status}</Badge>
-                  </DetailField>
-                  <Separator className="bg-border/10" />
-                  <DetailField label="Aprovação">
-                    <Badge variant={action.approved ? 'default' : 'secondary'} className="mt-1">
-                      {action.approved ? 'Aprovado' : 'Pendente'}
-                    </Badge>
-                  </DetailField>
-                  {(action.revisions ?? 0) > 0 && (
-                    <>
-                      <Separator className="bg-border/10" />
-                      <DetailField label="Revisões">
-                        <p className="text-sm font-medium text-foreground">{action.revisions}</p>
+          {/* ── Details Section ── */}
+          {action.details && (
+            <SectionCard title="Detalhes da Solicitação" icon={<ClipboardList className="h-4 w-4" />} accentColor={accentColor}>
+              <div className="space-y-5">
+                {/* CRIAR_CONTEUDO / CRIAR_CONTEUDO_RAPIDO */}
+                {(action.type === 'CRIAR_CONTEUDO' || action.type === 'CRIAR_CONTEUDO_RAPIDO') && (
+                  <>
+                    {action.details.objective && <DetailField label="Objetivo"><p className="text-sm font-medium text-foreground">{action.details.objective}</p></DetailField>}
+                    {action.details.platform && renderPlatformField(action.details.platform)}
+                    {action.details.description && <DetailField label="Descrição"><p className="text-sm text-foreground leading-relaxed">{action.details.description}</p></DetailField>}
+                    {action.details.tone && Array.isArray(action.details.tone) && action.details.tone.length > 0 && (
+                      <DetailField label="Tom de Voz">
+                        <div className="flex flex-wrap gap-2 mt-1">
+                          {action.details.tone.map((t: string, idx: number) => <Badge key={idx} variant="outline">{t}</Badge>)}
+                        </div>
                       </DetailField>
-                    </>
-                  )}
-                </div>
-              </SectionCard>
-            </div>
+                    )}
+                    {action.details.additionalInfo && <DetailField label="Informações Adicionais"><p className="text-sm text-foreground leading-relaxed">{action.details.additionalInfo}</p></DetailField>}
+                    {action.details.isVideoMode && (
+                      <div className="grid grid-cols-2 gap-4">
+                        <DetailField label="Modo de Geração"><Badge variant="secondary">Vídeo</Badge></DetailField>
+                        {action.details.ratio && <DetailField label="Proporção"><p className="text-sm font-medium text-foreground">{action.details.ratio}</p></DetailField>}
+                        {action.details.duration && <DetailField label="Duração"><p className="text-sm font-medium text-foreground">{action.details.duration}s</p></DetailField>}
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {/* GERAR_VIDEO */}
+                {action.type === 'GERAR_VIDEO' && (
+                  <>
+                    {action.details.prompt && (
+                      <DetailField label="Prompt de Geração">
+                        <div className="mt-1 p-3 bg-muted/30 rounded-lg">
+                          <p className="text-foreground whitespace-pre-wrap text-sm">{action.details.prompt}</p>
+                        </div>
+                      </DetailField>
+                    )}
+                    {action.details.objective && <DetailField label="Objetivo"><p className="text-sm font-medium text-foreground">{action.details.objective}</p></DetailField>}
+                    {action.details.platform && renderPlatformField(action.details.platform)}
+                    {action.details.brand && <DetailField label="Marca"><p className="text-sm font-medium text-foreground">{action.details.brand}</p></DetailField>}
+                    {action.details.persona && <DetailField label="Persona"><p className="text-sm font-medium text-foreground">{action.details.persona}</p></DetailField>}
+                    {action.details.theme && <DetailField label="Tema Estratégico"><p className="text-sm font-medium text-foreground">{action.details.theme}</p></DetailField>}
+                    {action.details.tone && Array.isArray(action.details.tone) && action.details.tone.length > 0 && (
+                      <DetailField label="Tom de Voz">
+                        <div className="flex flex-wrap gap-2 mt-1">
+                          {action.details.tone.map((t: string, idx: number) => <Badge key={idx} variant="outline">{t}</Badge>)}
+                        </div>
+                      </DetailField>
+                    )}
+                    {action.details.aspectRatio && <DetailField label="Proporção"><p className="text-sm font-medium text-foreground">{action.details.aspectRatio}</p></DetailField>}
+                    {action.details.additionalInfo && <DetailField label="Informações Adicionais"><p className="text-sm text-foreground leading-relaxed">{action.details.additionalInfo}</p></DetailField>}
+                  </>
+                )}
+
+                {/* REVISAR_CONTEUDO */}
+                {action.type === 'REVISAR_CONTEUDO' && (
+                  <>
+                    {action.details.reviewType && (
+                      <DetailField label="Tipo de Revisão">
+                        <Badge variant="secondary" className="mt-1">
+                          {action.details.reviewType === 'image' ? 'Imagem' : action.details.reviewType === 'caption' ? 'Legenda' : action.details.reviewType === 'text-for-image' ? 'Texto para Imagem' : action.details.reviewType}
+                        </Badge>
+                      </DetailField>
+                    )}
+                    {action.details.prompt && <DetailField label="Contexto/Ajustes Solicitados"><p className="text-sm text-foreground leading-relaxed">{action.details.prompt}</p></DetailField>}
+                    {action.details.brandName && <DetailField label="Marca"><p className="text-sm font-medium text-foreground">{action.details.brandName}</p></DetailField>}
+                    {action.details.themeName && <DetailField label="Tema Estratégico"><p className="text-sm font-medium text-foreground">{action.details.themeName}</p></DetailField>}
+                    {action.details.caption && (
+                      <DetailField label="Legenda Enviada">
+                        <div className="mt-1 p-3 bg-muted/30 rounded-lg">
+                          <p className="text-foreground whitespace-pre-wrap text-sm">{action.details.caption}</p>
+                        </div>
+                      </DetailField>
+                    )}
+                    {action.details.text && (
+                      <DetailField label="Texto Enviado">
+                        <div className="mt-1 p-3 bg-muted/30 rounded-lg">
+                          <p className="text-foreground whitespace-pre-wrap text-sm">{action.details.text}</p>
+                        </div>
+                      </DetailField>
+                    )}
+                  </>
+                )}
+
+                {/* PLANEJAR_CONTEUDO */}
+                {action.type === 'PLANEJAR_CONTEUDO' && (
+                  <>
+                    {action.details.platform && renderPlatformField(action.details.platform)}
+                    {action.details.quantity && <DetailField label="Quantidade de Posts"><p className="text-sm font-medium text-foreground">{action.details.quantity}</p></DetailField>}
+                    {action.details.theme && Array.isArray(action.details.theme) && action.details.theme.length > 0 && (
+                      <DetailField label="Temas Estratégicos">
+                        <div className="flex flex-wrap gap-2 mt-1">
+                          {action.details.theme.map((t: string, idx: number) => <Badge key={idx} variant="secondary">{t}</Badge>)}
+                        </div>
+                      </DetailField>
+                    )}
+                    {action.details.objective && <DetailField label="Objetivo"><p className="text-sm font-medium text-foreground">{action.details.objective}</p></DetailField>}
+                    {action.details.additionalInfo && <DetailField label="Informações Adicionais"><p className="text-sm text-foreground leading-relaxed">{action.details.additionalInfo}</p></DetailField>}
+                  </>
+                )}
+              </div>
+            </SectionCard>
           )}
 
-          {/* Metadata card when no media (full width bottom) */}
-          {!hasMedia && (
-            <div className="lg:col-span-3">
-              <SectionCard title="Informações" icon={<Info className="h-4 w-4" />} accentColor={accentColor}>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                  <DetailField label="Data de Criação">
-                    <p className="text-sm font-medium text-foreground">{formatDate(action.createdAt)}</p>
+          {/* ── Result Section (only if there's textual content) ── */}
+          {action.result && hasTextualResult && (
+            <SectionCard title="Resultado" icon={<FileOutput className="h-4 w-4" />} accentColor={accentColor}>
+              <div className="space-y-6">
+                {/* Review Result */}
+                {action.result.review && (
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Análise e Revisão</p>
+                      <Button variant="ghost" size="sm" onClick={() => handleCopyText(action.result!.review!)} disabled={copying}>
+                        {isCopied ? <><Check className="mr-2 h-4 w-4" />Copiado!</> : <><Copy className="mr-2 h-4 w-4" />Copiar</>}
+                      </Button>
+                    </div>
+                    <div className="p-5 bg-muted/30 rounded-xl border border-border/10">
+                      <div className="prose prose-sm prose-slate dark:prose-invert max-w-none">
+                        <ReactMarkdown components={markdownComponents}>{action.result.review}</ReactMarkdown>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Title */}
+                {action.result.title && (
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Título</p>
+                      <Button variant="ghost" size="sm" onClick={() => handleCopyText(action.result!.title!)} disabled={copying}>
+                        {copying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Copy className="mr-2 h-4 w-4" />}
+                        Copiar
+                      </Button>
+                    </div>
+                    <div className="p-4 bg-muted/30 rounded-xl border border-border/10">
+                      <p className="font-medium text-foreground">{action.result.title}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Body */}
+                {action.result.body && (
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Corpo da Legenda</p>
+                      <Button variant="ghost" size="sm" onClick={() => handleCopyText(action.result!.body!)} disabled={copying}>
+                        {copying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Copy className="mr-2 h-4 w-4" />}
+                        Copiar
+                      </Button>
+                    </div>
+                    <div className="p-4 bg-muted/30 rounded-xl border border-border/10">
+                      <p className="whitespace-pre-wrap text-foreground leading-relaxed text-sm">{action.result.body}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Hashtags */}
+                {action.result.hashtags && action.result.hashtags.length > 0 && (
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Hashtags</p>
+                      <Button variant="ghost" size="sm" onClick={() => handleCopyText(action.result!.hashtags!.join(' '))} disabled={copying}>
+                        {copying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Copy className="mr-2 h-4 w-4" />}
+                        Copiar
+                      </Button>
+                    </div>
+                    <div className="p-4 bg-muted/30 rounded-xl border border-border/10">
+                      <div className="flex flex-wrap gap-2">
+                        {action.result.hashtags.map((tag, idx) => <Badge key={idx} variant="secondary">{tag}</Badge>)}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Feedback */}
+                {action.result.feedback && (
+                  <DetailField label="Feedback">
+                    <div className="p-4 bg-muted/30 rounded-xl border border-border/10 mt-1">
+                      <p className="whitespace-pre-wrap text-sm text-foreground">{action.result.feedback}</p>
+                    </div>
                   </DetailField>
-                  <DetailField label="Marca">
-                    <p className="text-sm font-medium text-foreground">{action.brand?.name || 'Não especificada'}</p>
-                  </DetailField>
-                  <DetailField label="Criado por">
-                    <p className="text-sm font-medium text-foreground truncate">{action.user?.name || 'Não especificado'}</p>
-                  </DetailField>
-                  <DetailField label="Status">
-                    <Badge className={`mt-1 ${getStatusColor(action.status)}`}>{action.status}</Badge>
-                  </DetailField>
-                </div>
-              </SectionCard>
-            </div>
+                )}
+
+                {/* Plan */}
+                {action.result.plan && (
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Plano de Conteúdo</p>
+                      <div className="flex gap-2">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="icon" className="h-8 w-8">
+                              <Download className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="bg-card z-50">
+                            <DropdownMenuItem onClick={() => handleDownloadDocx(action.result!.plan!)} className="cursor-pointer">
+                              <FileText className="mr-2 h-4 w-4" />Download DOCX
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleDownloadTxt(action.result!.plan!)} className="cursor-pointer">
+                              <File className="mr-2 h-4 w-4" />Download TXT
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleDownloadMd(action.result!.plan!)} className="cursor-pointer">
+                              <FileCode className="mr-2 h-4 w-4" />Download MD
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleCopyText(action.result!.plan!)} disabled={copying}>
+                          {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="p-5 bg-muted/30 rounded-xl border border-border/10">
+                      <div className="prose prose-sm prose-slate dark:prose-invert max-w-none">
+                        <ReactMarkdown components={markdownComponents}>{action.result.plan}</ReactMarkdown>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </SectionCard>
           )}
+
+          {/* ── Metadata Card (always full width at bottom) ── */}
+          <SectionCard title="Informações" icon={<Info className="h-4 w-4" />} accentColor={accentColor}>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              <DetailField label="Data de Criação">
+                <p className="text-sm font-medium text-foreground">{formatDate(action.createdAt)}</p>
+              </DetailField>
+              <DetailField label="Marca">
+                <p className="text-sm font-medium text-foreground">{action.brand?.name || 'Não especificada'}</p>
+              </DetailField>
+              <DetailField label="Criado por">
+                <p className="text-sm font-medium text-foreground truncate">{action.user?.name || 'Não especificado'}</p>
+              </DetailField>
+              <DetailField label="Status">
+                <Badge className={`mt-1 ${getStatusColor(action.status)}`}>{action.status}</Badge>
+              </DetailField>
+            </div>
+          </SectionCard>
         </div>
       </div>
+
+      {/* ═══ Image Lightbox Dialog ═══ */}
+      <Dialog open={!!lightboxImage} onOpenChange={() => setLightboxImage(null)}>
+        <DialogContent className="max-w-[90vw] max-h-[90vh] p-2 bg-black/95 border-none">
+          <div className="relative flex items-center justify-center w-full h-full">
+            {lightboxImage && (
+              <img
+                src={lightboxImage}
+                alt="Visualização ampliada"
+                className="max-w-full max-h-[85vh] object-contain rounded-lg"
+              />
+            )}
+            <div className="absolute bottom-4 right-4 flex gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => lightboxImage && handleDownloadImage(lightboxImage, `imagem-${action.id}`)}
+              >
+                <Download className="mr-2 h-4 w-4" />
+                Baixar
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
