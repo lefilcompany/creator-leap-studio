@@ -23,8 +23,8 @@ export const DashboardBanner = ({ userName }: DashboardBannerProps) => {
         src={dashboardBannerImg}
         alt=""
         className="absolute inset-0 w-full h-full object-cover object-bottom"
-        animate={{ scale: [1, 1.06, 1] }}
-        transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+        animate={{ scale: [1, 1.03, 1] }}
+        transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
       />
       {/* Subtle overlay for text readability */}
       <div className="absolute inset-0 bg-gradient-to-r from-black/35 via-black/15 to-transparent" />
