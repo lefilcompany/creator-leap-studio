@@ -54,6 +54,7 @@ const Credits = lazy(() => import("./pages/Credits"));
 const Team = lazy(() => import("./pages/Team"));
 const TeamDashboard = lazy(() => import("./pages/TeamDashboard"));
 const Profile = lazy(() => import("./pages/Profile"));
+const PublicProfile = lazy(() => import("./pages/PublicProfile"));
 const CreditHistory = lazy(() => import("./pages/CreditHistory"));
 const About = lazy(() => import("./pages/About"));
 const Contact = lazy(() => import("./pages/Contact"));
@@ -139,6 +140,7 @@ const App = () => (
                         <Route path="team" element={<SuspenseRoute><Team /></SuspenseRoute>} />
                         <Route path="team-dashboard" element={<SuspenseRoute><TeamDashboard /></SuspenseRoute>} />
                         <Route path="profile" element={<SuspenseRoute><Profile /></SuspenseRoute>} />
+                        <Route path="profile/:userId" element={<SuspenseRoute><PublicProfile /></SuspenseRoute>} />
                         <Route path="credit-history" element={<SuspenseRoute><CreditHistory /></SuspenseRoute>} />
                         <Route path="about" element={<SuspenseRoute><About /></SuspenseRoute>} />
                         <Route path="contact" element={<SuspenseRoute><Contact /></SuspenseRoute>} />
