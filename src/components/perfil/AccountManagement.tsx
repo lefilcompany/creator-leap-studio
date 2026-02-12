@@ -18,61 +18,63 @@ export default function AccountManagement({ userEmail }: AccountManagementProps)
   return (
     <>
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-        <div className="bg-card rounded-xl shadow-md overflow-hidden">
+        <div className="bg-card rounded-xl shadow-lg overflow-hidden border border-border/50">
           <CollapsibleTrigger asChild>
-            <button className="w-full flex items-center justify-between p-4 sm:p-5 hover:bg-muted/50 transition-colors duration-200">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-destructive/10 rounded-xl">
+            <button className="w-full flex items-center justify-between p-5 sm:p-6 hover:bg-muted/40 transition-colors duration-200">
+              <div className="flex items-center gap-4">
+                <div className="p-2.5 bg-destructive/10 rounded-xl">
                   <ShieldAlert className="h-5 w-5 text-destructive" />
                 </div>
                 <div className="text-left">
-                  <h3 className="font-semibold text-foreground">Configurações Avançadas</h3>
-                  <p className="text-xs text-muted-foreground">Gerenciamento de conta e ações irreversíveis</p>
+                  <h3 className="font-semibold text-foreground text-base">Configurações Avançadas</h3>
+                  <p className="text-sm text-muted-foreground mt-0.5">Gerenciamento de conta e ações irreversíveis</p>
                 </div>
               </div>
-              <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
             </button>
           </CollapsibleTrigger>
 
           <CollapsibleContent>
-            <div className="px-4 sm:px-5 pb-4 sm:pb-5 space-y-4">
+            <div className="px-5 sm:px-6 pb-6 space-y-5 border-t border-border/50">
               {/* Warning */}
-              <Alert className="bg-destructive/5 border border-destructive/20 rounded-lg">
+              <Alert className="bg-destructive/5 border border-destructive/20 rounded-xl mt-5">
                 <AlertTriangle className="h-4 w-4 text-destructive" />
                 <AlertDescription className="text-sm ml-2">
-                  <span className="font-bold">Atenção!</span> As ações abaixo são irreversíveis.
+                  <span className="font-bold">Atenção!</span> As ações abaixo são irreversíveis. Tenha certeza antes de prosseguir.
                 </AlertDescription>
               </Alert>
 
               {/* Action Buttons */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <Button
-                  variant="outline"
-                  className="h-auto py-3 px-4 rounded-lg border-muted-foreground/20 hover:bg-muted-foreground/10 hover:border-muted-foreground/40 transition-all duration-200 flex items-center gap-3 justify-start"
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <button
+                  className="group p-5 rounded-xl border border-border/60 hover:border-muted-foreground/30 bg-muted/20 hover:bg-muted/40 transition-all duration-200 flex items-start gap-4 text-left"
                   onClick={() => setIsDeactivateDialogOpen(true)}
                 >
-                  <div className="p-1.5 bg-muted rounded-lg">
-                    <UserX className="h-4 w-4 text-muted-foreground" />
+                  <div className="p-2.5 bg-muted-foreground/10 rounded-xl group-hover:bg-muted-foreground/15 transition-colors shrink-0">
+                    <UserX className="h-5 w-5 text-muted-foreground" />
                   </div>
-                  <div className="text-left">
-                    <span className="text-sm font-medium block">Inativar Conta</span>
-                    <span className="text-xs text-muted-foreground">Dados preservados</span>
+                  <div>
+                    <span className="text-sm font-semibold text-foreground block">Inativar Conta</span>
+                    <span className="text-xs text-muted-foreground mt-1 block leading-relaxed">
+                      Sua conta será desativada, mas seus dados serão preservados
+                    </span>
                   </div>
-                </Button>
+                </button>
 
-                <Button
-                  variant="outline"
-                  className="h-auto py-3 px-4 rounded-lg border-destructive/20 hover:bg-destructive/10 hover:border-destructive/40 text-destructive hover:text-destructive transition-all duration-200 flex items-center gap-3 justify-start"
+                <button
+                  className="group p-5 rounded-xl border border-destructive/20 hover:border-destructive/40 bg-destructive/5 hover:bg-destructive/10 transition-all duration-200 flex items-start gap-4 text-left"
                   onClick={() => setIsDeleteDialogOpen(true)}
                 >
-                  <div className="p-1.5 bg-destructive/10 rounded-lg">
-                    <Trash2 className="h-4 w-4 text-destructive" />
+                  <div className="p-2.5 bg-destructive/10 rounded-xl group-hover:bg-destructive/15 transition-colors shrink-0">
+                    <Trash2 className="h-5 w-5 text-destructive" />
                   </div>
-                  <div className="text-left">
-                    <span className="text-sm font-medium block">Deletar Conta</span>
-                    <span className="text-xs text-muted-foreground text-destructive/70">Permanente</span>
+                  <div>
+                    <span className="text-sm font-semibold text-destructive block">Deletar Conta</span>
+                    <span className="text-xs text-destructive/70 mt-1 block leading-relaxed">
+                      Ação permanente — todos os dados serão removidos
+                    </span>
                   </div>
-                </Button>
+                </button>
               </div>
             </div>
           </CollapsibleContent>
