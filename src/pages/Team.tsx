@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { UserNameLink } from '@/components/UserNameLink';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -666,7 +667,7 @@ export default function Team() {
                           </AvatarFallback>
                         </Avatar>
                         <p className="font-semibold text-sm flex items-center gap-1.5 truncate max-w-full">
-                          {member.name}
+                          <UserNameLink userId={member.id} userName={member.name} className="font-semibold text-sm" />
                           {member.id === team?.admin_id && (
                             <Crown className="h-3.5 w-3.5 text-amber-500 flex-shrink-0" />
                           )}
@@ -710,7 +711,7 @@ export default function Team() {
                         </Avatar>
                         <div>
                           <p className="font-medium text-sm flex items-center gap-2">
-                            {member.name}
+                            <UserNameLink userId={member.id} userName={member.name} className="font-medium text-sm" />
                             {member.id === team?.admin_id && (
                               <Crown className="h-3.5 w-3.5 text-amber-500" />
                             )}
