@@ -35,22 +35,29 @@ const Dashboard = () => {
   }, [user]);
 
   const { data: actionsCount = 0 } = useQuery({
-    queryKey: ['dashboard-actions-count', user?.teamId],
+    queryKey: ['dashboard-actions-count', user?.id, user?.teamId],
     queryFn: async () => {
-      if (!user?.teamId) return 0;
+      if (!user?.id) return 0;
       try {
-        const { count, error } = await supabase
+        let query = supabase
           .from('actions')
           .select('*', { count: 'exact', head: true })
-          .eq('team_id', user.teamId)
           .in('type', ['CRIAR_CONTEUDO', 'CRIAR_CONTEUDO_RAPIDO']);
+        
+        if (user.teamId) {
+          query = query.eq('team_id', user.teamId);
+        } else {
+          query = query.eq('user_id', user.id);
+        }
+        
+        const { count, error } = await query;
         if (error) throw error;
         return count || 0;
       } catch {
         return 0;
       }
     },
-    enabled: !!user?.teamId,
+    enabled: !!user?.id,
   });
 
   const { data: brandsCount = 0 } = useQuery({
@@ -189,7 +196,7 @@ const Dashboard = () => {
 
       {/* Stats */}
       <div id="dashboard-stats">
-        <DashboardStats actionsCount={actionsCount} brandsCount={brandsCount} personasCount={personasCount} themesCount={themesCount} />
+        <DashboardStats actionsCount={actionsCount} brandsCount={brandsCount} personasCount={personasCount} themesCount={themesCount} hasTeam={!!user.teamId} />
       </div>
 
       {/* Recent Activity */}
