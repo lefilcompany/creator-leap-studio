@@ -182,7 +182,7 @@ export default function Notifications() {
             'relative h-9 w-9 rounded-xl border transition-all duration-300 group',
             unreadCount > 0 
               ? 'border-primary/20 bg-primary/5 text-primary hover:bg-primary/10 hover:border-primary/30' 
-              : 'h-8 w-8 md:h-10 md:w-10 rounded-lg xl:rounded-xl hover:bg-primary/10 transition-all duration-200 border border-transparent hover:border-primary/20'
+              : 'hover:bg-primary/10 transition-all duration-200 border border-transparent hover:border-primary/20'
           )}
         >
           {unreadCount > 0 ? (
