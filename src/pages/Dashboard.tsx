@@ -93,7 +93,7 @@ const Dashboard = () => {
         const { data, error } = await supabase
           .rpc('get_action_summaries', {
             p_team_id: user.teamId,
-            p_limit: 5,
+            p_limit: 6,
           });
         if (!error && data && data.length > 0) return data;
       } catch {}
