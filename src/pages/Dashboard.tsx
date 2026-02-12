@@ -38,12 +38,25 @@ const Dashboard = () => {
     queryKey: ['dashboard-actions-count', user?.teamId],
     queryFn: async () => {
       if (!user?.teamId) return 0;
-      const { count } = await supabase
-        .from('actions')
-        .select('*', { count: 'exact', head: true })
-        .eq('team_id', user.teamId)
-        .in('type', ['CRIAR_CONTEUDO', 'CRIAR_CONTEUDO_RAPIDO']);
-      return count || 0;
+      try {
+        const { data, error } = await supabase.rpc('get_action_summaries', {
+          p_team_id: user.teamId,
+          p_type_filter: 'CRIAR_CONTEUDO',
+          p_limit: 1,
+        });
+        const criarCount = (!error && data?.[0]?.total_count) || 0;
+
+        const { data: data2, error: error2 } = await supabase.rpc('get_action_summaries', {
+          p_team_id: user.teamId,
+          p_type_filter: 'CRIAR_CONTEUDO_RAPIDO',
+          p_limit: 1,
+        });
+        const rapidoCount = (!error2 && data2?.[0]?.total_count) || 0;
+
+        return criarCount + rapidoCount;
+      } catch {
+        return 0;
+      }
     },
     enabled: !!user?.teamId,
   });
