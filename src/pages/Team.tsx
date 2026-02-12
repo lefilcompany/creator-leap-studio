@@ -322,11 +322,11 @@ export default function Team() {
   // --- Banner + Header Card shared component ---
   const BannerWithHeader = ({ actions }: { actions?: React.ReactNode }) => (
     <>
-      <div className="relative h-48 md:h-56 overflow-hidden">
+      <div className="relative h-40 sm:h-48 md:h-56 lg:h-64 overflow-hidden">
         <img
           src={teamBanner}
           alt=""
-          className="absolute inset-0 w-full h-full object-cover object-bottom"
+          className="absolute inset-0 w-full h-full object-cover object-top"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/40 to-transparent" />
       </div>
