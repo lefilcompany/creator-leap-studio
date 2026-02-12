@@ -47,7 +47,7 @@ export default function AccountManagement({ userEmail }: AccountManagementProps)
               {/* Action Buttons */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <button
-                  className="group p-5 rounded-xl border border-border/60 hover:border-muted-foreground/30 bg-muted/20 hover:bg-muted/40 transition-all duration-200 flex items-start gap-4 text-left"
+                  className="group p-5 rounded-xl border border-transparent hover:border-muted-foreground/30 bg-muted/20 hover:bg-muted/40 transition-all duration-200 flex items-start gap-4 text-left"
                   onClick={() => setIsDeactivateDialogOpen(true)}
                 >
                   <div className="p-2.5 bg-muted-foreground/10 rounded-xl group-hover:bg-muted-foreground/15 transition-colors shrink-0">
@@ -62,7 +62,7 @@ export default function AccountManagement({ userEmail }: AccountManagementProps)
                 </button>
 
                 <button
-                  className="group p-5 rounded-xl border border-destructive/20 hover:border-destructive/40 bg-destructive/5 hover:bg-destructive/10 transition-all duration-200 flex items-start gap-4 text-left"
+                  className="group p-5 rounded-xl border border-transparent hover:border-destructive/40 bg-destructive/5 hover:bg-destructive/10 transition-all duration-200 flex items-start gap-4 text-left"
                   onClick={() => setIsDeleteDialogOpen(true)}
                 >
                   <div className="p-2.5 bg-destructive/10 rounded-xl group-hover:bg-destructive/15 transition-colors shrink-0">
