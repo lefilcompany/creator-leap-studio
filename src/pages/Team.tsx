@@ -309,11 +309,12 @@ export default function Team() {
     }
   };
 
-  // Members to display based on view mode
+  // Sort members alphabetically, then apply view mode
   const displayedMembers = useMemo(() => {
-    if (viewMode === 'grid') return members;
+    const sorted = [...members].sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    if (viewMode === 'grid') return sorted;
     const start = (currentPage - 1) * membersPerPage;
-    return members.slice(start, start + membersPerPage);
+    return sorted.slice(start, start + membersPerPage);
   }, [members, viewMode, currentPage, membersPerPage]);
 
   const totalPages = Math.ceil(members.length / membersPerPage);
