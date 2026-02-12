@@ -8,6 +8,7 @@ interface DashboardStatsProps {
   brandsCount: number;
   personasCount?: number;
   themesCount?: number;
+  hasTeam?: boolean;
 }
 
 const statItem = {
@@ -15,10 +16,10 @@ const statItem = {
   show: { opacity: 1, y: 0, transition: { duration: 0.35 } },
 };
 
-export const DashboardStats = ({ actionsCount, brandsCount, personasCount = 0, themesCount = 0 }: DashboardStatsProps) => {
+export const DashboardStats = ({ actionsCount, brandsCount, personasCount = 0, themesCount = 0, hasTeam = false }: DashboardStatsProps) => {
   const stats = [
     {
-      label: "Conteúdos da Equipe",
+      label: hasTeam ? "Conteúdos da Equipe" : "Conteúdos Criados",
       value: actionsCount,
       icon: Sparkles,
       color: "text-primary",
