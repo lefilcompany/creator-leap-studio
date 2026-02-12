@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link, useNavigate } from "react-router-dom";
 import { History, FileText, ArrowRight, ChevronLeft, ChevronRight, Sparkles, CheckCircle, CalendarDays, Video } from "lucide-react";
-import { useRef, useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import useEmblaCarousel from "embla-carousel-react";
 
 interface ActionSummary {
   id: string;
@@ -71,88 +72,6 @@ const getImageUrl = (activity: ActionSummary): string | null => {
   return null;
 };
 
-const useDragScroll = (ref: React.RefObject<HTMLDivElement | null>) => {
-  const [isDragging, setIsDragging] = useState(false);
-  const startX = useRef(0);
-  const scrollLeft = useRef(0);
-  const velocity = useRef(0);
-  const lastX = useRef(0);
-  const lastTime = useRef(0);
-  const momentumRaf = useRef<number | null>(null);
-
-  const stopMomentum = useCallback(() => {
-    if (momentumRaf.current) {
-      cancelAnimationFrame(momentumRaf.current);
-      momentumRaf.current = null;
-    }
-  }, []);
-
-  const startMomentum = useCallback(() => {
-    const el = ref.current;
-    if (!el) return;
-
-    const decelerate = () => {
-      velocity.current *= 0.92; // friction
-      if (Math.abs(velocity.current) < 0.5) {
-        velocity.current = 0;
-        return;
-      }
-      el.scrollLeft -= velocity.current;
-      momentumRaf.current = requestAnimationFrame(decelerate);
-    };
-    momentumRaf.current = requestAnimationFrame(decelerate);
-  }, [ref]);
-
-  const onPointerDown = useCallback((e: React.PointerEvent) => {
-    const el = ref.current;
-    if (!el) return;
-    stopMomentum();
-    setIsDragging(true);
-    startX.current = e.clientX;
-    lastX.current = e.clientX;
-    lastTime.current = Date.now();
-    scrollLeft.current = el.scrollLeft;
-    velocity.current = 0;
-    el.setPointerCapture(e.pointerId);
-    el.style.cursor = 'grabbing';
-  }, [ref, stopMomentum]);
-
-  const onPointerMove = useCallback((e: React.PointerEvent) => {
-    if (!isDragging) return;
-    const el = ref.current;
-    if (!el) return;
-
-    const now = Date.now();
-    const dt = now - lastTime.current;
-    const dx = e.clientX - lastX.current;
-
-    if (dt > 0) {
-      velocity.current = dx / dt * 16; // normalize to ~16ms frame
-    }
-
-    lastX.current = e.clientX;
-    lastTime.current = now;
-
-    const totalDx = e.clientX - startX.current;
-    el.scrollLeft = scrollLeft.current - totalDx;
-  }, [isDragging, ref]);
-
-  const onPointerUp = useCallback((e: React.PointerEvent) => {
-    const el = ref.current;
-    if (!el) return;
-    setIsDragging(false);
-    el.releasePointerCapture(e.pointerId);
-    el.style.cursor = 'grab';
-    startMomentum();
-  }, [ref, startMomentum]);
-
-  useEffect(() => {
-    return () => stopMomentum();
-  }, [stopMomentum]);
-
-  return { isDragging, onPointerDown, onPointerMove, onPointerUp };
-};
-
 const ActivitySkeleton = () => (
   <div className="flex gap-3 overflow-hidden pb-1">
     {[...Array(4)].map((_, i) => (
@@ -170,29 +89,58 @@ const ActivitySkeleton = () => (
 );
 
 export const DashboardRecentActivity = ({ activities, isLoading }: DashboardRecentActivityProps) => {
-  const scrollRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
-  const { isDragging, onPointerDown, onPointerMove, onPointerUp } = useDragScroll(scrollRef);
+  const clickAllowed = useRef(true);
+
+  const [emblaRef, emblaApi] = useEmblaCarousel({
+    dragFree: true,
+    containScroll: 'trimSnaps',
+    align: 'start',
+  });
 
   const updateScrollState = useCallback(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    setCanScrollLeft(el.scrollLeft > 4);
-    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 4);
-  }, []);
+    if (!emblaApi) return;
+    setCanScrollLeft(emblaApi.canScrollPrev());
+    setCanScrollRight(emblaApi.canScrollNext());
+  }, [emblaApi]);
 
   useEffect(() => {
-    updateScrollState();
-  }, [activities, updateScrollState]);
+    if (!emblaApi) return;
+
+    const onSelect = () => updateScrollState();
+    const onPointerDown = () => { clickAllowed.current = true; };
+    const onPointerUp = () => {
+      const engine = emblaApi.internalEngine();
+      const hasVelocity = Math.abs(engine.scrollBody.velocity()) > 0.5;
+      if (hasVelocity) clickAllowed.current = false;
+    };
+
+    emblaApi.on('select', onSelect);
+    emblaApi.on('reInit', onSelect);
+    emblaApi.on('pointerDown', onPointerDown);
+    emblaApi.on('pointerUp', onPointerUp);
+    onSelect();
+
+    return () => {
+      emblaApi.off('select', onSelect);
+      emblaApi.off('reInit', onSelect);
+      emblaApi.off('pointerDown', onPointerDown);
+      emblaApi.off('pointerUp', onPointerUp);
+    };
+  }, [emblaApi, updateScrollState]);
 
   const scroll = (dir: 'left' | 'right') => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const amount = el.clientWidth * 0.7;
-    el.scrollBy({ left: dir === 'left' ? -amount : amount, behavior: 'smooth' });
-    setTimeout(updateScrollState, 350);
+    if (!emblaApi) return;
+    if (dir === 'left') emblaApi.scrollPrev();
+    else emblaApi.scrollNext();
+  };
+
+  const handleCardClick = (activityId: string) => {
+    if (clickAllowed.current) {
+      navigate(`/action/${activityId}`);
+    }
   };
 
   return (
@@ -232,70 +180,63 @@ export const DashboardRecentActivity = ({ activities, isLoading }: DashboardRece
           {isLoading ? (
             <ActivitySkeleton />
           ) : activities.length > 0 ? (
-            <div
-              ref={scrollRef}
-              onScroll={updateScrollState}
-              onPointerDown={onPointerDown}
-              onPointerMove={onPointerMove}
-              onPointerUp={onPointerUp}
-              onPointerCancel={onPointerUp}
-              className="flex gap-3 overflow-x-auto scrollbar-none snap-x snap-mandatory pb-1 select-none touch-pan-x"
-              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', cursor: 'grab' }}
-            >
-              {activities.map((activity, index) => {
-                const config = actionConfig[activity.type] || actionConfig['CRIAR_CONTEUDO'];
-                const Icon = config.icon;
-                const imageUrl = getImageUrl(activity);
+            <div ref={emblaRef} className="overflow-hidden cursor-grab active:cursor-grabbing">
+              <div className="flex gap-3">
+                {activities.map((activity, index) => {
+                  const config = actionConfig[activity.type] || actionConfig['CRIAR_CONTEUDO'];
+                  const Icon = config.icon;
+                  const imageUrl = getImageUrl(activity);
 
-                return (
-                  <motion.div
-                    key={activity.id}
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.1 + index * 0.06 }}
-                    className="snap-start shrink-0 w-[200px] sm:w-[220px]"
-                  >
-                    <div
-                      onClick={() => { if (!isDragging) navigate(`/action/${activity.id}`); }}
-                      className="cursor-pointer rounded-xl border border-border/30 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden bg-card group h-full"
+                  return (
+                    <motion.div
+                      key={activity.id}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.1 + index * 0.06 }}
+                      className="shrink-0 w-[200px] sm:w-[220px] min-w-0"
                     >
-                      <div className={`relative h-28 bg-gradient-to-br ${config.gradient} flex items-center justify-center overflow-hidden`}>
-                        {imageUrl ? (
-                          <img
-                            src={imageUrl}
-                            alt=""
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 pointer-events-none"
-                            loading="lazy"
-                            draggable={false}
-                          />
-                        ) : (
-                          <Icon className={`h-8 w-8 ${config.color} opacity-40`} />
-                        )}
-                        <span className="absolute top-2 right-2 text-[10px] font-medium bg-foreground/60 text-white px-1.5 py-0.5 rounded-md backdrop-blur-sm">
-                          {formatRelativeDate(activity.created_at)}
-                        </span>
-                      </div>
-
-                      <div className="p-3">
-                        <div className="flex items-center gap-1.5 mb-1">
-                          <Icon className={`h-3.5 w-3.5 ${config.color} shrink-0`} />
-                          <span className="text-xs font-semibold text-foreground truncate">
-                            {formatActionType(activity.type)}
+                      <div
+                        onClick={() => handleCardClick(activity.id)}
+                        className="cursor-pointer rounded-xl border border-border/30 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden bg-card group h-full"
+                      >
+                        <div className={`relative h-28 bg-gradient-to-br ${config.gradient} flex items-center justify-center overflow-hidden`}>
+                          {imageUrl ? (
+                            <img
+                              src={imageUrl}
+                              alt=""
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 pointer-events-none"
+                              loading="lazy"
+                              draggable={false}
+                            />
+                          ) : (
+                            <Icon className={`h-8 w-8 ${config.color} opacity-40`} />
+                          )}
+                          <span className="absolute top-2 right-2 text-[10px] font-medium bg-foreground/60 text-white px-1.5 py-0.5 rounded-md backdrop-blur-sm">
+                            {formatRelativeDate(activity.created_at)}
                           </span>
                         </div>
-                        <p className="text-[11px] text-muted-foreground truncate">
-                          {activity.brand_name || 'Sem marca'}
-                        </p>
-                        {activity.title && (
-                          <p className="text-[11px] text-muted-foreground truncate mt-0.5">
-                            {activity.title}
+
+                        <div className="p-3">
+                          <div className="flex items-center gap-1.5 mb-1">
+                            <Icon className={`h-3.5 w-3.5 ${config.color} shrink-0`} />
+                            <span className="text-xs font-semibold text-foreground truncate">
+                              {formatActionType(activity.type)}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-muted-foreground truncate">
+                            {activity.brand_name || 'Sem marca'}
                           </p>
-                        )}
+                          {activity.title && (
+                            <p className="text-[11px] text-muted-foreground truncate mt-0.5">
+                              {activity.title}
+                            </p>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </motion.div>
-                );
-              })}
+                    </motion.div>
+                  );
+                })}
+              </div>
             </div>
           ) : (
             <div className="py-8 text-center">
