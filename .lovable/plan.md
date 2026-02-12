@@ -1,107 +1,68 @@
 
 
-## Refatorar carrossel de Atividade Recente usando Embla Carousel
+## Redesign da Tela de Equipe para Seguir o Padrao Visual de Marcas/Personas/Temas
 
-### Contexto
-O projeto ja possui a biblioteca `embla-carousel-react` instalada e o componente shadcn `Carousel` (`src/components/ui/carousel.tsx`) pronto para uso. O Embla e reconhecido como a melhor lib de carrossel para React, com arrasto suave nativo, momentum integrado e precisao de swipe superior.
-
-Atualmente, o carrossel usa um hook customizado `useDragScroll` com logica manual de pointer events e momentum via `requestAnimationFrame`. Isso e fragil e inferior ao que o Embla oferece nativamente.
+### Problema Atual
+A tela de Equipe (`/team`) utiliza um layout antigo com Cards empilhados, PageBreadcrumb e gradientes sutis. As telas de Marcas, Personas e Temas seguem um padrao visual moderno com:
+- Banner de imagem no topo (full-width)
+- Card header sobreposto ao banner com icone grande, titulo e botoes de acao
+- Layout sem margens (`-m-4 sm:-m-6 lg:-m-8`)
+- Sem breadcrumb (o banner substitui)
 
 ### Solucao
-Substituir toda a logica manual de drag/scroll pelo Embla Carousel usando o modo `dragFree`, que oferece:
-- Arrasto com momentum suave nativo (sem codigo manual de fisica)
-- Precisao de swipe em touch devices
-- Performance otimizada com GPU compositing
-- Snap opcional e loop
+Refatorar a tela de Equipe para adotar o mesmo padrao visual, mantendo toda a funcionalidade existente (tabs, membros, solicitacoes, conteudo compartilhado, seletor de equipes, dialogs).
 
 ### Arquivo alterado
-`src/components/dashboard/DashboardRecentActivity.tsx`
+`src/pages/Team.tsx`
 
-### O que muda
+### Alteracoes detalhadas
 
-**1. Remover o hook `useDragScroll` inteiro**
-Toda a logica de pointer events, velocity, momentum e friction sera removida (~80 linhas).
+**1. Remover PageBreadcrumb e adotar layout full-bleed**
+- Trocar `<div className="min-h-full space-y-6">` por `<div className="flex flex-col -m-4 sm:-m-6 lg:-m-8">`
+- Remover import e uso do `PageBreadcrumb`
 
-**2. Usar `useEmblaCarousel` com `dragFree: true`**
-```typescript
-import useEmblaCarousel from 'embla-carousel-react';
+**2. Adicionar banner de imagem**
+- Reutilizar o banner do dashboard (`dashboard-banner.jpg`) como imagem de fundo, ja que nao existe um banner especifico para equipes
+- Usar o mesmo padrao: `h-48 md:h-56`, gradiente overlay `from-background/80`
 
-const [emblaRef, emblaApi] = useEmblaCarousel({
-  dragFree: true,
-  containScroll: 'trimSnaps',
-  align: 'start',
-});
+**3. Substituir header Card por card sobreposto ao banner**
+- Usar o padrao `-mt-12` com `bg-card rounded-2xl shadow-lg p-4 lg:p-5`
+- Icone `UsersRound` em container `bg-primary/10 border border-primary/20 rounded-2xl`
+- Titulo "Equipes" com descricao
+- Botoes "Nova Equipe" e "Entrar em Equipe" alinhados a direita
+
+**4. Mover conteudo para area principal**
+- Seletor de equipes, info da equipe e tabs ficam dentro de `<main className="px-4 sm:px-6 lg:px-8 pt-4 pb-4 sm:pb-6 lg:pb-8">`
+- Manter toda a logica existente de tabs, membros, solicitacoes, conteudo compartilhado
+
+**5. Adaptar estados vazios e skeleton**
+- Skeleton segue o mesmo padrao (banner + card sobreposto)
+- Estado "sem equipe" mantem o layout com banner e card sobreposto, com os botoes de acao no card
+
+### O que permanece identico
+- Toda a logica de dados (loadAccessibleTeams, loadTeamContent, loadTeamManagementData)
+- Sistema de tabs (Marcas, Personas, Temas, Criacoes, Membros)
+- Gestao de membros (aprovar, rejeitar, remover)
+- Seletor de equipes multiplas
+- Dialogs de criar/entrar em equipe
+- Codigo de convite com copia
+- Paginacao de membros
+
+### Secao tecnica
+
+Estrutura HTML resultante:
+```text
+div.flex.flex-col.-m-4.sm:-m-6.lg:-m-8
+  |-- div.relative (banner image + gradient overlay)
+  |-- div.relative.px-4.-mt-12 (header card sobreposto)
+  |     |-- div.bg-card.rounded-2xl.shadow-lg (icone + titulo + botoes)
+  |-- main.px-4.pt-4.pb-4 (conteudo)
+        |-- seletor de equipes (se > 1)
+        |-- info da equipe selecionada
+        |-- tabs com todo o conteudo
+  |-- Dialogs (CreateTeam, JoinTeam)
 ```
 
-**3. Botoes de navegacao usam a API do Embla**
-```typescript
-const scroll = (dir: 'left' | 'right') => {
-  if (!emblaApi) return;
-  if (dir === 'left') emblaApi.scrollPrev();
-  else emblaApi.scrollNext();
-};
-```
-
-**4. Controle de canScrollLeft/canScrollRight via eventos Embla**
-```typescript
-useEffect(() => {
-  if (!emblaApi) return;
-  const onSelect = () => {
-    setCanScrollLeft(emblaApi.canScrollPrev());
-    setCanScrollRight(emblaApi.canScrollNext());
-  };
-  emblaApi.on('select', onSelect);
-  emblaApi.on('reInit', onSelect);
-  onSelect();
-  return () => {
-    emblaApi.off('select', onSelect);
-    emblaApi.off('reInit', onSelect);
-  };
-}, [emblaApi]);
-```
-
-**5. Prevenir clique apos arrasto**
-O Embla emite eventos que permitem detectar se houve arrasto, usado para bloquear o `navigate()`:
-```typescript
-const [clickAllowed, setClickAllowed] = useState(true);
-
-useEffect(() => {
-  if (!emblaApi) return;
-  emblaApi.on('pointerDown', () => setClickAllowed(true));
-  emblaApi.on('pointerUp', () => {
-    // Se o embla detectou drag significativo, bloqueia clique
-    if (emblaApi.internalEngine().dragHandler.pointerDown()) return;
-    setClickAllowed(!emblaApi.internalEngine().scrollBody.velocity());
-  });
-}, [emblaApi]);
-```
-
-**6. Estrutura HTML do Embla**
-```html
-<div ref={emblaRef} className="overflow-hidden cursor-grab active:cursor-grabbing">
-  <div className="flex gap-3">
-    {activities.map(activity => (
-      <div className="shrink-0 w-[200px] sm:w-[220px]">
-        <!-- card atual mantido identico -->
-      </div>
-    ))}
-  </div>
-</div>
-```
-
-### O que permanece igual
-- Visual dos cards (imagem, icone, tipo, marca, titulo, data relativa)
-- Skeleton loading
-- Estado vazio
-- Botoes de setas no header
-- Animacoes de entrada com framer-motion
-- Funcao `getImageUrl` com suporte a base64
-- Toda a estrutura do Card wrapper
-
-### Beneficios
-- Arrasto com momentum suave e natural (testado em milhares de projetos)
-- Zero logica manual de fisica - tudo gerenciado pelo Embla
-- Funciona perfeitamente em mobile, tablet e desktop
-- Reducao de ~80 linhas de codigo customizado
-- Usa uma dependencia que ja esta instalada no projeto
+Imports a adicionar: `import dashboardBanner from '@/assets/dashboard-banner.jpg'`
+Imports a remover: `PageBreadcrumb`, `Card/CardHeader/CardTitle` (parcial - ainda usado nas tabs internas)
 
