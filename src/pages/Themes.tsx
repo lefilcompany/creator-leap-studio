@@ -34,10 +34,7 @@ export default function Themes() {
   const [themeToEdit, setThemeToEdit] = useState<StrategicTheme | null>(null);
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
 
-  // Pagination
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(0);
-  const ITEMS_PER_PAGE = 10;
+  const ITEMS_PER_PAGE = 500;
 
   // Brands for dialog (full BrandSummary needed)
   const [brandSummaries, setBrandSummaries] = useState<BrandSummary[]>([]);
@@ -90,12 +87,11 @@ export default function Themes() {
       if (!user?.id) return;
       setIsLoadingThemes(true);
       try {
-        const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-        const { data, error, count } = await supabase
+        const { data, error } = await supabase
           .from('strategic_themes')
-          .select('id, brand_id, title, created_at', { count: 'exact' })
+          .select('id, brand_id, title, created_at')
           .order('created_at', { ascending: false })
-          .range(startIndex, startIndex + ITEMS_PER_PAGE - 1);
+          .limit(ITEMS_PER_PAGE);
 
         if (error) throw error;
 
@@ -107,7 +103,6 @@ export default function Themes() {
         }));
 
         setThemes(themes);
-        setTotalPages(Math.ceil((count || 0) / ITEMS_PER_PAGE));
       } catch (error) {
         console.error('Erro ao carregar temas:', error);
         toast.error("Não foi possível carregar os temas estratégicos");
@@ -116,7 +111,7 @@ export default function Themes() {
       }
     };
     loadThemes();
-  }, [user?.id, currentPage]);
+  }, [user?.id]);
 
   const handleOpenDialog = useCallback((theme: StrategicTheme | null = null) => {
     if (theme) {
@@ -382,9 +377,9 @@ export default function Themes() {
           themes={themes}
           brands={brands}
           isLoading={isLoadingThemes}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
+          currentPage={1}
+          totalPages={1}
+          onPageChange={() => {}}
           initialViewMode={initialViewMode}
         />
       </main>
