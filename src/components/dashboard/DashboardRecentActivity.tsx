@@ -75,23 +75,66 @@ const useDragScroll = (ref: React.RefObject<HTMLDivElement | null>) => {
   const [isDragging, setIsDragging] = useState(false);
   const startX = useRef(0);
   const scrollLeft = useRef(0);
+  const velocity = useRef(0);
+  const lastX = useRef(0);
+  const lastTime = useRef(0);
+  const momentumRaf = useRef<number | null>(null);
+
+  const stopMomentum = useCallback(() => {
+    if (momentumRaf.current) {
+      cancelAnimationFrame(momentumRaf.current);
+      momentumRaf.current = null;
+    }
+  }, []);
+
+  const startMomentum = useCallback(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    const decelerate = () => {
+      velocity.current *= 0.92; // friction
+      if (Math.abs(velocity.current) < 0.5) {
+        velocity.current = 0;
+        return;
+      }
+      el.scrollLeft -= velocity.current;
+      momentumRaf.current = requestAnimationFrame(decelerate);
+    };
+    momentumRaf.current = requestAnimationFrame(decelerate);
+  }, [ref]);
 
   const onPointerDown = useCallback((e: React.PointerEvent) => {
     const el = ref.current;
     if (!el) return;
+    stopMomentum();
     setIsDragging(true);
     startX.current = e.clientX;
+    lastX.current = e.clientX;
+    lastTime.current = Date.now();
     scrollLeft.current = el.scrollLeft;
+    velocity.current = 0;
     el.setPointerCapture(e.pointerId);
     el.style.cursor = 'grabbing';
-  }, [ref]);
+  }, [ref, stopMomentum]);
 
   const onPointerMove = useCallback((e: React.PointerEvent) => {
     if (!isDragging) return;
     const el = ref.current;
     if (!el) return;
-    const dx = e.clientX - startX.current;
-    el.scrollLeft = scrollLeft.current - dx;
+
+    const now = Date.now();
+    const dt = now - lastTime.current;
+    const dx = e.clientX - lastX.current;
+
+    if (dt > 0) {
+      velocity.current = dx / dt * 16; // normalize to ~16ms frame
+    }
+
+    lastX.current = e.clientX;
+    lastTime.current = now;
+
+    const totalDx = e.clientX - startX.current;
+    el.scrollLeft = scrollLeft.current - totalDx;
   }, [isDragging, ref]);
 
   const onPointerUp = useCallback((e: React.PointerEvent) => {
@@ -100,7 +143,12 @@ const useDragScroll = (ref: React.RefObject<HTMLDivElement | null>) => {
     setIsDragging(false);
     el.releasePointerCapture(e.pointerId);
     el.style.cursor = 'grab';
-  }, [ref]);
+    startMomentum();
+  }, [ref, startMomentum]);
+
+  useEffect(() => {
+    return () => stopMomentum();
+  }, [stopMomentum]);
 
   return { isDragging, onPointerDown, onPointerMove, onPointerUp };
 };
