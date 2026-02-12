@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
 import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,6 +14,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
+import { UserX, AlertTriangle, Loader2 } from 'lucide-react';
 
 interface DeactivateAccountDialogProps {
   open: boolean;
@@ -40,11 +40,9 @@ export default function DeactivateAccountDialog({ open, onOpenChange }: Deactiva
     const checkAdminStatus = async () => {
       if (!open || !user || !team) return;
 
-      // Verificar se o usuário é admin da equipe
       const isAdmin = user.isAdmin && team.admin_id === user.id;
       
       if (isAdmin) {
-        // Buscar membros da equipe (exceto o próprio usuário)
         const { data: members, error } = await supabase
           .from('profiles')
           .select('id, name, email')
@@ -78,7 +76,6 @@ export default function DeactivateAccountDialog({ open, onOpenChange }: Deactiva
       return;
     }
 
-    // Se precisa transferir admin e não selecionou ninguém
     if (needsAdminTransfer && !selectedNewAdmin) {
       toast.error('Selecione um membro para ser o novo administrador');
       return;
@@ -86,7 +83,6 @@ export default function DeactivateAccountDialog({ open, onOpenChange }: Deactiva
 
     setIsLoading(true);
     try {
-      // Verificar a senha
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email: user?.email || '',
         password: password,
@@ -98,7 +94,6 @@ export default function DeactivateAccountDialog({ open, onOpenChange }: Deactiva
         return;
       }
 
-      // Chamar edge function para inativar conta
       const { data, error: functionError } = await supabase.functions.invoke('deactivate-account', {
         body: {
           newAdminId: needsAdminTransfer ? selectedNewAdmin : null,
@@ -115,7 +110,6 @@ export default function DeactivateAccountDialog({ open, onOpenChange }: Deactiva
 
       toast.success('Conta inativada com sucesso. Você será desconectado.');
       
-      // Fazer logout e redirecionar
       await logout();
       navigate('/');
       onOpenChange(false);
@@ -129,25 +123,44 @@ export default function DeactivateAccountDialog({ open, onOpenChange }: Deactiva
     }
   };
 
+  const handleClose = () => {
+    onOpenChange(false);
+    setPassword('');
+    setSelectedNewAdmin('');
+  };
+
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Inativar Conta</AlertDialogTitle>
-          <AlertDialogDescription className="space-y-3">
-            <p>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md bg-gradient-to-br from-background to-muted/20 border border-border/50 shadow-xl [&>div]:p-0 [&>div]:overflow-visible overflow-hidden flex flex-col">
+        <div className="overflow-y-auto flex-1 p-6 space-y-0">
+          <DialogHeader className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-muted-foreground/10 rounded-xl">
+                <UserX className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <DialogTitle className="text-xl font-bold text-foreground">
+                Inativar Conta
+              </DialogTitle>
+            </div>
+            <DialogDescription className="text-sm text-muted-foreground leading-relaxed">
               Sua conta será desativada e você não poderá mais acessá-la. Seus dados serão
               preservados e você poderá reativar sua conta a qualquer momento cadastrando-se
               novamente com o mesmo email.
-            </p>
+            </DialogDescription>
+          </DialogHeader>
 
+          <div className="space-y-5 pt-5">
             {needsAdminTransfer && (
-              <div className="space-y-2 pt-2 border-t border-destructive/20">
-                <Label htmlFor="new-admin" className="text-destructive font-semibold">
-                  Você é administrador da equipe. Selecione um novo administrador:
+              <div className="space-y-3 p-4 bg-destructive/5 border border-destructive/20 rounded-xl">
+                <Label htmlFor="new-admin" className="text-sm font-semibold text-destructive flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4" />
+                  Transferir administração
                 </Label>
+                <p className="text-xs text-muted-foreground">
+                  Você é administrador da equipe. Selecione um novo administrador antes de continuar.
+                </p>
                 <Select value={selectedNewAdmin} onValueChange={setSelectedNewAdmin}>
-                  <SelectTrigger id="new-admin">
+                  <SelectTrigger id="new-admin" className="h-11 rounded-lg">
                     <SelectValue placeholder="Selecione um membro" />
                   </SelectTrigger>
                   <SelectContent>
@@ -161,40 +174,48 @@ export default function DeactivateAccountDialog({ open, onOpenChange }: Deactiva
               </div>
             )}
 
-            <div className="space-y-2 pt-2">
-              <Label htmlFor="deactivate-password">Digite sua senha para confirmar</Label>
+            <div className="space-y-2.5">
+              <Label htmlFor="deactivate-password" className="text-sm font-semibold">
+                Confirme sua senha
+              </Label>
               <Input
                 id="deactivate-password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Senha"
+                placeholder="Digite sua senha"
+                className="h-11 rounded-lg"
               />
             </div>
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
+          </div>
+        </div>
+
+        <div className="border-t border-border/50 p-4 flex flex-col sm:flex-row gap-3 bg-background/80 backdrop-blur-sm">
           <Button
             variant="outline"
-            className="border-accent text-accent hover:bg-accent hover:border-accent hover:text-white"
-            onClick={() => {
-              onOpenChange(false);
-              setPassword('');
-              setSelectedNewAdmin('');
-            }}
+            className="w-full sm:flex-1 h-10 rounded-lg"
+            onClick={handleClose}
             disabled={isLoading}
           >
             Cancelar
           </Button>
           <Button
             variant="destructive"
+            className="w-full sm:flex-1 h-10 rounded-lg"
             onClick={handleDeactivate}
             disabled={isLoading}
           >
-            {isLoading ? 'Inativando...' : 'Inativar Conta'}
+            {isLoading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                Inativando...
+              </>
+            ) : (
+              'Inativar Conta'
+            )}
           </Button>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }

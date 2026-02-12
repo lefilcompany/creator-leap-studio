@@ -1,18 +1,17 @@
 import { useState } from 'react';
 import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Trash2, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
@@ -49,7 +48,6 @@ export default function DeleteAccountDialog({ open, onOpenChange, userEmail }: D
 
     setIsLoading(true);
     try {
-      // Verificar a senha
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email: userEmail,
         password: password,
@@ -61,7 +59,6 @@ export default function DeleteAccountDialog({ open, onOpenChange, userEmail }: D
         return;
       }
 
-      // Chamar edge function para deletar conta
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData.session?.access_token;
 
@@ -83,7 +80,6 @@ export default function DeleteAccountDialog({ open, onOpenChange, userEmail }: D
 
       toast.success('Conta deletada com sucesso');
       
-      // Fazer logout e redirecionar para home
       await logout();
       navigate('/');
       onOpenChange(false);
@@ -98,97 +94,125 @@ export default function DeleteAccountDialog({ open, onOpenChange, userEmail }: D
     }
   };
 
+  const handleClose = () => {
+    onOpenChange(false);
+    setPassword('');
+    setEmailConfirm('');
+    setUnderstood(false);
+  };
+
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="max-w-md">
-        <AlertDialogHeader>
-          <AlertDialogTitle className="flex items-center gap-2 text-destructive">
-            <AlertTriangle className="h-5 w-5" />
-            Deletar Conta Permanentemente
-          </AlertDialogTitle>
-          <AlertDialogDescription className="space-y-4">
-            <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-3 space-y-2">
-              <p className="font-bold text-destructive text-sm">ATENÇÃO: ESTA AÇÃO É IRREVERSÍVEL!</p>
-              <p className="text-sm">
-                Ao deletar sua conta:
-              </p>
-              <ul className="text-sm list-disc list-inside space-y-1 ml-2">
-                <li>Todos os seus dados serão <span className="font-bold">permanentemente removidos</span></li>
-                <li>Você perderá acesso a todas as marcas, temas e conteúdos</li>
-                <li>Não será possível recuperar sua conta ou dados</li>
-                <li>Esta ação não pode ser desfeita</li>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md bg-gradient-to-br from-background to-muted/20 border border-border/50 shadow-xl [&>div]:p-0 [&>div]:overflow-visible overflow-hidden flex flex-col">
+        <div className="overflow-y-auto flex-1 p-6 space-y-0">
+          <DialogHeader className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-destructive/10 rounded-xl">
+                <Trash2 className="h-5 w-5 text-destructive" />
+              </div>
+              <DialogTitle className="text-xl font-bold text-destructive">
+                Deletar Conta
+              </DialogTitle>
+            </div>
+            <DialogDescription asChild>
+              <div className="text-sm text-muted-foreground leading-relaxed">
+                Esta ação é permanente e não pode ser desfeita.
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-5 pt-5">
+            {/* Danger zone */}
+            <div className="bg-destructive/5 border border-destructive/20 rounded-xl p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 text-destructive shrink-0" />
+                <p className="font-bold text-destructive text-sm">ATENÇÃO: IRREVERSÍVEL</p>
+              </div>
+              <ul className="text-sm text-muted-foreground list-disc list-inside space-y-1.5 ml-1">
+                <li>Todos os seus dados serão <span className="font-semibold text-foreground">permanentemente removidos</span></li>
+                <li>Você perderá acesso a marcas, temas e conteúdos</li>
+                <li>Não será possível recuperar sua conta</li>
               </ul>
             </div>
 
-            <div className="space-y-3">
-              <div className="space-y-2">
-                <Label htmlFor="delete-password">Digite sua senha</Label>
-                <Input
-                  id="delete-password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Senha"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="delete-confirm" className="text-sm font-semibold">
-                  Para confirmar, digite seu email: <span className="text-destructive font-bold">{userEmail}</span>
-                </Label>
-                <Input
-                  id="delete-confirm"
-                  type="email"
-                  value={emailConfirm}
-                  onChange={(e) => setEmailConfirm(e.target.value)}
-                  placeholder="Digite seu email aqui"
-                  className="font-medium"
-                  autoComplete="off"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Esta é uma medida de segurança adicional para confirmar sua identidade
-                </p>
-              </div>
-
-              <div className="flex items-start space-x-2">
-                <Checkbox
-                  id="understood"
-                  checked={understood}
-                  onCheckedChange={(checked) => setUnderstood(checked as boolean)}
-                />
-                <label
-                  htmlFor="understood"
-                  className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                >
-                  Eu entendo que esta ação é permanente e não pode ser desfeita
-                </label>
-              </div>
+            {/* Password */}
+            <div className="space-y-2.5">
+              <Label htmlFor="delete-password" className="text-sm font-semibold">
+                Confirme sua senha
+              </Label>
+              <Input
+                id="delete-password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Digite sua senha"
+                className="h-11 rounded-lg"
+              />
             </div>
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
+
+            {/* Email confirmation */}
+            <div className="space-y-2.5">
+              <Label htmlFor="delete-confirm" className="text-sm font-semibold">
+                Digite seu email para confirmar
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Email: <span className="text-destructive font-semibold">{userEmail}</span>
+              </p>
+              <Input
+                id="delete-confirm"
+                type="email"
+                value={emailConfirm}
+                onChange={(e) => setEmailConfirm(e.target.value)}
+                placeholder="Digite seu email aqui"
+                className="h-11 rounded-lg"
+                autoComplete="off"
+              />
+            </div>
+
+            {/* Checkbox */}
+            <div className="flex items-start gap-3 p-4 bg-muted/30 rounded-xl">
+              <Checkbox
+                id="understood"
+                checked={understood}
+                onCheckedChange={(checked) => setUnderstood(checked as boolean)}
+                className="mt-0.5"
+              />
+              <label
+                htmlFor="understood"
+                className="text-sm leading-relaxed cursor-pointer select-none"
+              >
+                Eu entendo que esta ação é <span className="font-semibold">permanente</span> e não pode ser desfeita
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div className="border-t border-border/50 p-4 flex flex-col sm:flex-row gap-3 bg-background/80 backdrop-blur-sm">
           <Button
             variant="outline"
-            className="border-accent text-accent"
-            onClick={() => {
-              onOpenChange(false);
-              setPassword('');
-              setEmailConfirm('');
-              setUnderstood(false);
-            }}
+            className="w-full sm:flex-1 h-10 rounded-lg"
+            onClick={handleClose}
             disabled={isLoading}
           >
             Cancelar
           </Button>
           <Button
             variant="destructive"
+            className="w-full sm:flex-1 h-10 rounded-lg"
             onClick={handleDelete}
             disabled={isLoading}
           >
-            {isLoading ? 'Deletando...' : 'Deletar Conta Permanentemente'}
+            {isLoading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                Deletando...
+              </>
+            ) : (
+              'Deletar Permanentemente'
+            )}
           </Button>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
