@@ -162,14 +162,13 @@ export default function Profile() {
     <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8">
       {/* Banner - Editável */}
       <div 
-        className="relative w-full h-48 md:h-56 flex-shrink-0 overflow-hidden group/banner cursor-pointer"
+        className="relative w-full h-48 md:h-56 lg:h-64 xl:h-72 flex-shrink-0 overflow-hidden group/banner cursor-pointer"
         onClick={() => !uploadingBanner && bannerInputRef.current?.click()}
       >
         <img 
           src={bannerSrc} 
           alt="" 
-          className="w-full h-full object-cover transition-transform duration-500 group-hover/banner:scale-105"
-          style={{ objectPosition: 'center 85%' }}
+          className="w-full h-full object-cover transition-transform duration-500 group-hover/banner:scale-105 object-[center_85%] lg:object-[center_65%] xl:object-[center_55%]"
           loading="lazy"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
