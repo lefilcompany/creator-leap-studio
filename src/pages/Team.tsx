@@ -360,25 +360,37 @@ export default function Team() {
   if (showSkeleton || isContentLoading) {
     return (
       <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8 animate-fade-in">
-        <div className="relative h-48 md:h-56 overflow-hidden bg-muted" />
+        <div className="relative h-40 sm:h-48 md:h-56 lg:h-64 overflow-hidden bg-muted" />
         <div className="relative px-4 sm:px-6 lg:px-8 -mt-12 z-10">
-          <div className="bg-card rounded-2xl shadow-lg border p-4 lg:p-5">
+          <div className="bg-card rounded-2xl shadow-lg p-4 lg:p-5">
             <div className="flex items-center gap-3">
               <Skeleton className="h-14 w-14 rounded-2xl" />
-              <div className="space-y-2">
-                <Skeleton className="h-8 w-32" />
-                <Skeleton className="h-4 w-56" />
+              <div className="space-y-2 flex-1">
+                <Skeleton className="h-7 w-40" />
+                <Skeleton className="h-4 w-64" />
+              </div>
+              <div className="hidden sm:flex gap-2">
+                <Skeleton className="h-9 w-28 rounded-md" />
+                <Skeleton className="h-9 w-28 rounded-md" />
               </div>
             </div>
           </div>
         </div>
-        <main className="px-4 sm:px-6 lg:px-8 pt-4 pb-4 sm:pb-6 lg:pb-8">
+        <main className="px-4 sm:px-6 lg:px-8 pt-4 pb-4 sm:pb-6 lg:pb-8 space-y-4">
+          <div className="flex items-center justify-between">
+            <Skeleton className="h-5 w-32" />
+            <div className="flex gap-2">
+              <Skeleton className="h-8 w-8 rounded-md" />
+              <Skeleton className="h-8 w-8 rounded-md" />
+            </div>
+          </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {[1, 2, 3, 4].map(i => (
-              <div key={i} className="bg-card rounded-xl border p-4 space-y-3">
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <div key={i} className="bg-card rounded-xl shadow-md p-5 space-y-3">
                 <Skeleton className="h-16 w-16 rounded-full mx-auto" />
-                <Skeleton className="h-4 w-24 mx-auto" />
-                <Skeleton className="h-3 w-32 mx-auto" />
+                <Skeleton className="h-4 w-28 mx-auto" />
+                <Skeleton className="h-3 w-36 mx-auto" />
+                <Skeleton className="h-3 w-20 mx-auto" />
               </div>
             ))}
           </div>
