@@ -326,7 +326,7 @@ export default function Team() {
         <img
           src={teamBanner}
           alt=""
-          className="absolute inset-0 w-full h-full object-cover object-top"
+          className="absolute inset-0 w-full h-full object-cover object-center"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/40 to-transparent" />
       </div>
