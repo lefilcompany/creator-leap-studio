@@ -28,10 +28,12 @@ export function PageBreadcrumb({ items, className, variant = "default" }: PageBr
 
   return (
     <Breadcrumb className={cn(
-      isOverlay && "absolute top-4 left-4 sm:left-6 lg:left-8 z-10 [&_*]:text-white/90 [&_*]:drop-shadow-md",
+      isOverlay && "absolute top-4 left-4 sm:left-6 lg:left-8 z-10",
       className
     )}>
-      <BreadcrumbList>
+      <BreadcrumbList className={cn(
+        isOverlay && "bg-black/30 backdrop-blur-sm rounded-lg px-3 py-1.5 [&_*]:text-white/90 [&_*]:drop-shadow-sm"
+      )}>
         <BreadcrumbItem>
           <BreadcrumbLink asChild>
             <Link 
