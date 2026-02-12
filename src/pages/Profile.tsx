@@ -7,16 +7,14 @@ import { supabase } from '@/integrations/supabase/client';
 import profileBannerDefault from '@/assets/profile-banner.jpg';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { toast } from 'sonner';
-import AvatarEditor from '@/components/perfil/AvatarEditor';
+import AvatarChangeModal from '@/components/perfil/AvatarChangeModal';
 
 export default function Profile() {
   const { user, isLoading, refreshProfile } = useAuth();
   const bannerInputRef = useRef<HTMLInputElement>(null);
-  const avatarInputRef = useRef<HTMLInputElement>(null);
   const [uploadingBanner, setUploadingBanner] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
-  const [editorOpen, setEditorOpen] = useState(false);
-  const [imageToEdit, setImageToEdit] = useState('');
+  const [avatarModalOpen, setAvatarModalOpen] = useState(false);
   
   const [profileData, setProfileData] = useState({
     name: '',
@@ -63,37 +61,11 @@ export default function Profile() {
       .substring(0, 2);
   };
 
-  // === Avatar handlers ===
-  const handleAvatarSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    try {
-      if (!event.target.files || event.target.files.length === 0) return;
-      const file = event.target.files[0];
-      
-      if (!file.type.startsWith('image/')) {
-        toast.error('Por favor, selecione uma imagem válida');
-        return;
-      }
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error('A imagem deve ter no máximo 5MB');
-        return;
-      }
-
-      const tempUrl = URL.createObjectURL(file);
-      setImageToEdit(tempUrl);
-      setEditorOpen(true);
-    } catch (error) {
-      console.error('Erro ao selecionar arquivo:', error);
-      toast.error('Erro ao carregar imagem');
-    } finally {
-      if (event.target) event.target.value = '';
-    }
-  };
-
+  // === Avatar save handler ===
   const handleAvatarSave = async (blob: Blob) => {
     if (!user?.id) return;
     try {
       setUploadingAvatar(true);
-      setEditorOpen(false);
 
       if (profileData.avatarUrl) {
         const oldPath = profileData.avatarUrl.split('/').pop();
@@ -124,10 +96,6 @@ export default function Profile() {
       toast.error('Erro ao atualizar foto de perfil');
     } finally {
       setUploadingAvatar(false);
-      if (imageToEdit) {
-        URL.revokeObjectURL(imageToEdit);
-        setImageToEdit('');
-      }
     }
   };
 
@@ -244,11 +212,10 @@ export default function Profile() {
               </AvatarFallback>
             </Avatar>
             
-            {/* Hover overlay for avatar edit */}
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                avatarInputRef.current?.click();
+                setAvatarModalOpen(true);
               }}
               disabled={uploadingAvatar}
               className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-200 flex items-center justify-center cursor-pointer"
@@ -259,15 +226,6 @@ export default function Profile() {
                 <Camera className="h-5 w-5 lg:h-6 lg:w-6 text-white" />
               )}
             </button>
-
-            <input
-              ref={avatarInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp,image/gif"
-              className="hidden"
-              onChange={handleAvatarSelect}
-              disabled={uploadingAvatar}
-            />
           </div>
           
           <div className="flex-1 min-w-0">
@@ -290,18 +248,14 @@ export default function Profile() {
         <AccountManagement userEmail={user.email || ''} />
       </main>
 
-      {/* Avatar Editor Modal */}
-      <AvatarEditor
-        imageUrl={imageToEdit}
-        open={editorOpen}
+      {/* Avatar Change Modal */}
+      <AvatarChangeModal
+        open={avatarModalOpen}
+        onOpenChange={setAvatarModalOpen}
+        currentAvatarUrl={profileData.avatarUrl}
+        userName={profileData.name}
         onSave={handleAvatarSave}
-        onCancel={() => {
-          setEditorOpen(false);
-          if (imageToEdit) {
-            URL.revokeObjectURL(imageToEdit);
-            setImageToEdit('');
-          }
-        }}
+        uploading={uploadingAvatar}
       />
     </div>
   );
