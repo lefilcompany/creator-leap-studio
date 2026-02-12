@@ -145,7 +145,7 @@ export default function PersonalInfoForm({ initialData }: PersonalInfoFormProps)
 
   return (
     <>
-      <Card className="h-full group shadow-lg hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-card via-primary/[0.02] to-secondary/[0.03] backdrop-blur-sm overflow-hidden">
+      <Card className="h-full group shadow-lg hover:shadow-xl transition-all duration-300 border-0 bg-card overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
         
         <CardHeader className="relative bg-gradient-to-r from-primary/8 via-secondary/5 to-accent/8 border-b border-primary/10 p-4 sm:p-6 md:p-8">
