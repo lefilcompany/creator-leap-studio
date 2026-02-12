@@ -32,7 +32,7 @@ export function PageBreadcrumb({ items, className, variant = "default" }: PageBr
       className
     )}>
       <BreadcrumbList className={cn(
-        isOverlay && "bg-black/30 backdrop-blur-sm rounded-lg px-3 py-1.5 [&_*]:text-white/90 [&_*]:drop-shadow-sm"
+        isOverlay && "bg-black/15 backdrop-blur-[2px] rounded-lg px-3 py-1.5 [&_*]:text-white/90 [&_*]:drop-shadow-sm"
       )}>
         <BreadcrumbItem>
           <BreadcrumbLink asChild>
