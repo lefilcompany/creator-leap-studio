@@ -332,7 +332,7 @@ export default function Team() {
       </div>
 
       <div className="relative px-4 sm:px-6 lg:px-8 -mt-12 z-10">
-        <div className="bg-card rounded-2xl shadow-lg border p-4 lg:p-5">
+        <div className="bg-card rounded-2xl shadow-lg p-4 lg:p-5">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-3">
               <div className="flex-shrink-0 bg-primary/10 border border-primary/20 text-primary rounded-2xl p-3">
@@ -522,7 +522,7 @@ export default function Team() {
 
             {/* Pending Requests Dropdown (admin only) */}
             {selectedTeam.isMyTeam && isTeamAdmin && (
-              <div className="bg-card rounded-xl border shadow-sm overflow-hidden">
+              <div className="bg-card rounded-xl shadow-md overflow-hidden">
                 <button
                   onClick={() => setRequestsExpanded(!requestsExpanded)}
                   className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-colors"
@@ -645,7 +645,7 @@ export default function Team() {
               {viewMode === 'grid' && (
                 <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                   {members.map((member) => (
-                    <Card key={member.id} className="group relative border shadow-sm hover:shadow-md transition-all hover:border-primary/30">
+                    <Card key={member.id} className="group relative border-0 shadow-md hover:shadow-lg transition-all">
                       <CardContent className="p-4 flex flex-col items-center text-center">
                         <Avatar className="h-16 w-16 mb-3">
                           <AvatarImage src={member.avatar_url} />
