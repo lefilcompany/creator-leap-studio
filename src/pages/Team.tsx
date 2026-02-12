@@ -1,17 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Rocket, Users, ClipboardCopy, Check, X, Crown, Loader2, UserPlus, UserMinus, 
-  Tag, Palette, UsersRound, Sparkles, FolderOpen, Plus, Eye
+  UsersRound, Plus, ChevronDown, ChevronUp, LayoutGrid, List, Mail
 } from 'lucide-react';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { CreateTeamDialog } from '@/components/auth/CreateTeamDialog';
 import { JoinTeamDialog } from '@/components/auth/JoinTeamDialog';
@@ -24,6 +21,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { Skeleton } from "@/components/ui/skeleton";
+import { motion, AnimatePresence } from 'framer-motion';
 import dashboardBanner from '@/assets/dashboard-banner.jpg';
 
 interface TeamMember {
@@ -50,13 +48,6 @@ interface TeamData {
   isMyTeam: boolean;
 }
 
-interface SharedContent {
-  brands: { id: string; name: string; segment: string }[];
-  personas: { id: string; name: string; brand_name: string }[];
-  themes: { id: string; title: string; brand_name: string }[];
-  actions: { id: string; type: string; created_at: string; brand_name: string }[];
-}
-
 export default function Team() {
   const { user, team, isLoading: isAuthLoading, reloadUserData } = useAuth();
   const navigate = useNavigate();
@@ -65,22 +56,17 @@ export default function Team() {
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [pendingRequests, setPendingRequests] = useState<JoinRequest[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const membersPerPage = 5;
+  const membersPerPage = 12;
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showJoinDialog, setShowJoinDialog] = useState(false);
   const [accessibleTeams, setAccessibleTeams] = useState<TeamData[]>([]);
   const [selectedTeam, setSelectedTeam] = useState<TeamData | null>(null);
-  const [sharedContent, setSharedContent] = useState<SharedContent>({
-    brands: [],
-    personas: [],
-    themes: [],
-    actions: []
-  });
-  const [activeTab, setActiveTab] = useState('members');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [requestsExpanded, setRequestsExpanded] = useState(false);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [members.length]);
+  }, [members.length, viewMode]);
 
   const isTeamAdmin = team?.admin_id === user?.id;
   const showSkeleton = isAuthLoading || !isTeamsLoaded;
@@ -95,9 +81,10 @@ export default function Team() {
 
   useEffect(() => {
     if (selectedTeam) {
-      loadTeamContent(selectedTeam.id);
       if (selectedTeam.isMyTeam && isTeamAdmin) {
         loadTeamManagementData();
+      } else {
+        loadTeamMembers(selectedTeam.id);
       }
     }
   }, [selectedTeam, isTeamAdmin]);
@@ -170,6 +157,24 @@ export default function Team() {
     }
   };
 
+  const loadTeamMembers = async (teamId: string) => {
+    setIsContentLoading(true);
+    try {
+      const { data: membersData, error } = await supabase
+        .from('profiles')
+        .select('id, name, email, avatar_url')
+        .eq('team_id', teamId);
+
+      if (error) throw error;
+      setMembers(membersData || []);
+      setPendingRequests([]);
+    } catch (error: any) {
+      console.error('Erro ao carregar membros:', error);
+    } finally {
+      setIsContentLoading(false);
+    }
+  };
+
   const loadTeamManagementData = async () => {
     if (!team) return;
 
@@ -224,57 +229,6 @@ export default function Team() {
       toast.error('Erro ao carregar dados da equipe');
     } finally {
       setIsContentLoading(false);
-    }
-  };
-
-  const loadTeamContent = async (teamId: string) => {
-    try {
-      const { data: brandsData } = await supabase
-        .from('brands')
-        .select('id, name, segment')
-        .eq('team_id', teamId)
-        .order('name');
-
-      const { data: personasData } = await supabase
-        .from('personas')
-        .select('id, name, brand_id, brands(name)')
-        .eq('team_id', teamId)
-        .order('name');
-
-      const { data: themesData } = await supabase
-        .from('strategic_themes')
-        .select('id, title, brand_id, brands(name)')
-        .eq('team_id', teamId)
-        .order('title');
-
-      const { data: actionsData } = await supabase
-        .from('actions')
-        .select('id, type, created_at, brand_id, brands(name)')
-        .eq('team_id', teamId)
-        .order('created_at', { ascending: false })
-        .limit(20);
-
-      setSharedContent({
-        brands: brandsData || [],
-        personas: (personasData || []).map((p: any) => ({
-          id: p.id,
-          name: p.name,
-          brand_name: p.brands?.name || 'Sem marca'
-        })),
-        themes: (themesData || []).map((t: any) => ({
-          id: t.id,
-          title: t.title,
-          brand_name: t.brands?.name || 'Sem marca'
-        })),
-        actions: (actionsData || []).map((a: any) => ({
-          id: a.id,
-          type: a.type,
-          created_at: a.created_at,
-          brand_name: a.brands?.name || 'Sem marca'
-        }))
-      });
-    } catch (error: any) {
-      console.error('Erro ao carregar conteúdo da equipe:', error);
     }
   };
 
@@ -355,21 +309,18 @@ export default function Team() {
     }
   };
 
-  const getActionTypeLabel = (type: string) => {
-    const labels: Record<string, string> = {
-      'CRIAR_CONTEUDO': 'Criação de Conteúdo',
-      'CRIAR_CONTEUDO_RAPIDO': 'Criação Rápida',
-      'REVISAR_CONTEUDO': 'Revisão de Conteúdo',
-      'PLANEJAR_CONTEUDO': 'Planejamento',
-      'GERAR_VIDEO': 'Geração de Vídeo'
-    };
-    return labels[type] || type;
-  };
+  // Members to display based on view mode
+  const displayedMembers = useMemo(() => {
+    if (viewMode === 'grid') return members;
+    const start = (currentPage - 1) * membersPerPage;
+    return members.slice(start, start + membersPerPage);
+  }, [members, viewMode, currentPage, membersPerPage]);
+
+  const totalPages = Math.ceil(members.length / membersPerPage);
 
   // --- Banner + Header Card shared component ---
   const BannerWithHeader = ({ actions }: { actions?: React.ReactNode }) => (
     <>
-      {/* Banner */}
       <div className="relative h-48 md:h-56 overflow-hidden">
         <img
           src={dashboardBanner}
@@ -379,7 +330,6 @@ export default function Team() {
         <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/40 to-transparent" />
       </div>
 
-      {/* Overlapping Header Card */}
       <div className="relative px-4 sm:px-6 lg:px-8 -mt-12 z-10">
         <div className="bg-card rounded-2xl shadow-lg border p-4 lg:p-5">
           <div className="flex items-center justify-between flex-wrap gap-4">
@@ -422,19 +372,15 @@ export default function Team() {
           </div>
         </div>
         <main className="px-4 sm:px-6 lg:px-8 pt-4 pb-4 sm:pb-6 lg:pb-8">
-          <Card className="border-0 shadow-lg">
-            <CardContent className="space-y-4 p-6">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="flex items-center gap-4">
-                  <Skeleton className="h-10 w-10 rounded-full" />
-                  <div className="space-y-2 flex-1">
-                    <Skeleton className="h-4 w-32" />
-                    <Skeleton className="h-3 w-48" />
-                  </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {[1, 2, 3, 4].map(i => (
+              <div key={i} className="bg-card rounded-xl border p-4 space-y-3">
+                <Skeleton className="h-16 w-16 rounded-full mx-auto" />
+                <Skeleton className="h-4 w-24 mx-auto" />
+                <Skeleton className="h-3 w-32 mx-auto" />
+              </div>
+            ))}
+          </div>
         </main>
       </div>
     );
@@ -538,9 +484,9 @@ export default function Team() {
         )}
 
         {selectedTeam && (
-          <>
+          <div className="space-y-4">
             {/* Selected Team Info */}
-            <Card className="shadow-lg border-0 mb-4">
+            <Card className="shadow-lg border-0">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -573,332 +519,249 @@ export default function Team() {
               </CardHeader>
             </Card>
 
-            {/* Content Tabs */}
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5 mb-4">
-                <TabsTrigger value="brands" className="flex items-center gap-2">
-                  <Tag className="h-4 w-4" />
-                  Marcas ({sharedContent.brands.length})
-                </TabsTrigger>
-                <TabsTrigger value="personas" className="flex items-center gap-2">
-                  <Users className="h-4 w-4" />
-                  Personas ({sharedContent.personas.length})
-                </TabsTrigger>
-                <TabsTrigger value="themes" className="flex items-center gap-2">
-                  <Palette className="h-4 w-4" />
-                  Temas ({sharedContent.themes.length})
-                </TabsTrigger>
-                <TabsTrigger value="actions" className="flex items-center gap-2">
-                  <Sparkles className="h-4 w-4" />
-                  Criações ({sharedContent.actions.length})
-                </TabsTrigger>
-                {selectedTeam.isMyTeam && isTeamAdmin && (
-                  <TabsTrigger value="members" className="flex items-center gap-2">
-                    <UsersRound className="h-4 w-4" />
-                    Membros ({members.length})
-                  </TabsTrigger>
-                )}
-              </TabsList>
-
-              {/* Tab: Marcas */}
-              <TabsContent value="brands">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Tag className="h-5 w-5" />
-                      Marcas da Equipe
-                    </CardTitle>
-                    <CardDescription>Marcas compartilhadas com os membros da equipe</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {sharedContent.brands.length > 0 ? (
-                      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                        {sharedContent.brands.map((brand) => (
-                          <Card 
-                            key={brand.id} 
-                            className="cursor-pointer hover:shadow-md transition-all hover:border-primary/30"
-                            onClick={() => navigate(`/brands`)}
-                          >
-                            <CardContent className="p-4">
-                              <h4 className="font-semibold">{brand.name}</h4>
-                              <p className="text-sm text-muted-foreground">{brand.segment}</p>
-                            </CardContent>
-                          </Card>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center py-8 text-muted-foreground">
-                        <FolderOpen className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                        <p>Nenhuma marca compartilhada nesta equipe</p>
-                      </div>
+            {/* Pending Requests Dropdown (admin only) */}
+            {selectedTeam.isMyTeam && isTeamAdmin && (
+              <div className="bg-card rounded-xl border shadow-sm overflow-hidden">
+                <button
+                  onClick={() => setRequestsExpanded(!requestsExpanded)}
+                  className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex-shrink-0 bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 rounded-xl p-2">
+                      <UserPlus className="h-5 w-5" />
+                    </div>
+                    <div className="text-left">
+                      <h3 className="font-semibold text-foreground">
+                        Solicitações Pendentes
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        {pendingRequests.length === 0
+                          ? 'Nenhuma solicitação pendente'
+                          : `${pendingRequests.length} solicitaç${pendingRequests.length === 1 ? 'ão' : 'ões'} pendente${pendingRequests.length === 1 ? '' : 's'}`}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {pendingRequests.length > 0 && (
+                      <span className="bg-amber-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">
+                        {pendingRequests.length}
+                      </span>
                     )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              {/* Tab: Personas */}
-              <TabsContent value="personas">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Users className="h-5 w-5" />
-                      Personas da Equipe
-                    </CardTitle>
-                    <CardDescription>Personas compartilhadas com os membros da equipe</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {sharedContent.personas.length > 0 ? (
-                      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                        {sharedContent.personas.map((persona) => (
-                          <Card 
-                            key={persona.id} 
-                            className="cursor-pointer hover:shadow-md transition-all hover:border-primary/30"
-                            onClick={() => navigate(`/personas`)}
-                          >
-                            <CardContent className="p-4">
-                              <h4 className="font-semibold">{persona.name}</h4>
-                              <p className="text-sm text-muted-foreground">{persona.brand_name}</p>
-                            </CardContent>
-                          </Card>
-                        ))}
-                      </div>
+                    {requestsExpanded ? (
+                      <ChevronUp className="h-5 w-5 text-muted-foreground" />
                     ) : (
-                      <div className="text-center py-8 text-muted-foreground">
-                        <FolderOpen className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                        <p>Nenhuma persona compartilhada nesta equipe</p>
-                      </div>
+                      <ChevronDown className="h-5 w-5 text-muted-foreground" />
                     )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
+                  </div>
+                </button>
 
-              {/* Tab: Temas */}
-              <TabsContent value="themes">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Palette className="h-5 w-5" />
-                      Temas Estratégicos da Equipe
-                    </CardTitle>
-                    <CardDescription>Temas compartilhados com os membros da equipe</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {sharedContent.themes.length > 0 ? (
-                      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                        {sharedContent.themes.map((theme) => (
-                          <Card 
-                            key={theme.id} 
-                            className="cursor-pointer hover:shadow-md transition-all hover:border-primary/30"
-                            onClick={() => navigate(`/themes`)}
-                          >
-                            <CardContent className="p-4">
-                              <h4 className="font-semibold">{theme.title}</h4>
-                              <p className="text-sm text-muted-foreground">{theme.brand_name}</p>
-                            </CardContent>
-                          </Card>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center py-8 text-muted-foreground">
-                        <FolderOpen className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                        <p>Nenhum tema compartilhado nesta equipe</p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              {/* Tab: Criações */}
-              <TabsContent value="actions">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Sparkles className="h-5 w-5" />
-                      Criações Recentes da Equipe
-                    </CardTitle>
-                    <CardDescription>Últimas criações feitas pelos membros da equipe</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {sharedContent.actions.length > 0 ? (
-                      <div className="space-y-3">
-                        {sharedContent.actions.map((action) => (
-                          <Card 
-                            key={action.id} 
-                            className="cursor-pointer hover:shadow-md transition-all hover:border-primary/30"
-                            onClick={() => navigate(`/action/${action.id}`)}
-                          >
-                            <CardContent className="p-4 flex items-center justify-between">
-                              <div>
-                                <h4 className="font-semibold">{getActionTypeLabel(action.type)}</h4>
-                                <p className="text-sm text-muted-foreground">{action.brand_name}</p>
+                <AnimatePresence>
+                  {requestsExpanded && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="border-t px-4 pb-4 pt-2 space-y-2">
+                        {pendingRequests.length > 0 ? (
+                          pendingRequests.map((request) => (
+                            <div key={request.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                              <div className="flex items-center gap-3">
+                                <Avatar className="h-10 w-10">
+                                  <AvatarImage src={request.avatar_url} />
+                                  <AvatarFallback className="bg-amber-500/10 text-amber-600">
+                                    {request.name.charAt(0)}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div>
+                                  <p className="font-medium text-sm">{request.name}</p>
+                                  <p className="text-xs text-muted-foreground">{request.email}</p>
+                                </div>
                               </div>
-                              <div className="text-right">
-                                <p className="text-sm text-muted-foreground">
-                                  {new Date(action.created_at).toLocaleDateString('pt-BR')}
-                                </p>
-                                <Button variant="ghost" size="sm">
-                                  <Eye className="h-4 w-4 mr-1" />
-                                  Ver
+                              <div className="flex gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="text-destructive hover:bg-destructive hover:text-destructive-foreground h-8 w-8 p-0"
+                                  onClick={() => handleRejectRequest(request.id, request.name)}
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="text-green-600 hover:bg-green-600 hover:text-white h-8 w-8 p-0"
+                                  onClick={() => handleApproveRequest(request.id, request.name)}
+                                >
+                                  <Check className="h-4 w-4" />
                                 </Button>
                               </div>
-                            </CardContent>
-                          </Card>
-                        ))}
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-center text-sm text-muted-foreground py-4">
+                            Nenhuma solicitação pendente no momento
+                          </p>
+                        )}
                       </div>
-                    ) : (
-                      <div className="text-center py-8 text-muted-foreground">
-                        <FolderOpen className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                        <p>Nenhuma criação nesta equipe ainda</p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
 
-              {/* Tab: Membros (apenas admin) */}
-              {selectedTeam.isMyTeam && isTeamAdmin && (
-                <TabsContent value="members">
-                  <div className="grid gap-6 lg:grid-cols-2">
-                    {/* Solicitações Pendentes */}
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-lg flex items-center gap-2">
-                          <UserPlus className="h-5 w-5" />
-                          Solicitações Pendentes
-                          {pendingRequests.length > 0 && (
-                            <span className="bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full">
-                              {pendingRequests.length}
-                            </span>
+            {/* Members Section */}
+            <div className="space-y-3">
+              {/* Toolbar */}
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <h2 className="text-lg font-semibold flex items-center gap-2">
+                  <UsersRound className="h-5 w-5 text-primary" />
+                  Membros da Equipe ({members.length})
+                </h2>
+                <div className="flex items-center gap-1 bg-muted rounded-lg p-1 ml-auto">
+                  <Button
+                    variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                    onClick={() => setViewMode('grid')}
+                  >
+                    <LayoutGrid className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                    onClick={() => setViewMode('list')}
+                  >
+                    <List className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Grid View */}
+              {viewMode === 'grid' && (
+                <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                  {members.map((member) => (
+                    <Card key={member.id} className="group relative border shadow-sm hover:shadow-md transition-all hover:border-primary/30">
+                      <CardContent className="p-4 flex flex-col items-center text-center">
+                        <Avatar className="h-16 w-16 mb-3">
+                          <AvatarImage src={member.avatar_url} />
+                          <AvatarFallback className="bg-primary/10 text-primary text-lg">
+                            {member.name.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <p className="font-semibold text-sm flex items-center gap-1.5 truncate max-w-full">
+                          {member.name}
+                          {member.id === team?.admin_id && (
+                            <Crown className="h-3.5 w-3.5 text-amber-500 flex-shrink-0" />
                           )}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        {pendingRequests.length > 0 ? (
-                          <div className="space-y-3">
-                            {pendingRequests.map((request) => (
-                              <div key={request.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                                <div className="flex items-center gap-3">
-                                  <Avatar className="h-10 w-10">
-                                    <AvatarImage src={request.avatar_url} />
-                                    <AvatarFallback>{request.name.charAt(0)}</AvatarFallback>
-                                  </Avatar>
-                                  <div>
-                                    <p className="font-medium">{request.name}</p>
-                                    <p className="text-sm text-muted-foreground">{request.email}</p>
-                                  </div>
-                                </div>
-                                <div className="flex gap-2">
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                                    onClick={() => handleRejectRequest(request.id, request.name)}
-                                  >
-                                    <X className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="text-green-600 hover:bg-green-600 hover:text-white"
-                                    onClick={() => handleApproveRequest(request.id, request.name)}
-                                  >
-                                    <Check className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-center text-muted-foreground py-4">
-                            Nenhuma solicitação pendente
-                          </p>
+                        </p>
+                        <p className="text-xs text-muted-foreground truncate max-w-full mt-0.5">
+                          {member.email}
+                        </p>
+                        {member.id === team?.admin_id && (
+                          <span className="text-[10px] bg-amber-500/10 text-amber-600 dark:text-amber-400 px-2 py-0.5 rounded-full mt-2 font-medium">
+                            Administrador
+                          </span>
+                        )}
+                        {isTeamAdmin && member.id !== team?.admin_id && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="mt-2 text-destructive hover:bg-destructive hover:text-destructive-foreground opacity-0 group-hover:opacity-100 transition-opacity h-7 text-xs"
+                            onClick={() => handleRemoveMember(member.id, member.name)}
+                          >
+                            <UserMinus className="h-3 w-3 mr-1" />
+                            Remover
+                          </Button>
                         )}
                       </CardContent>
                     </Card>
-
-                    {/* Lista de Membros */}
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-lg flex items-center gap-2">
-                          <UsersRound className="h-5 w-5" />
-                          Membros da Equipe ({members.length})
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        {members.length > 0 ? (
-                          <div className="space-y-3">
-                            {members.slice((currentPage - 1) * membersPerPage, currentPage * membersPerPage).map((member) => (
-                              <div key={member.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                                <div className="flex items-center gap-3">
-                                  <Avatar className="h-10 w-10">
-                                    <AvatarImage src={member.avatar_url} />
-                                    <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
-                                  </Avatar>
-                                  <div>
-                                    <p className="font-medium flex items-center gap-2">
-                                      {member.name}
-                                      {member.id === team?.admin_id && (
-                                        <Crown className="h-4 w-4 text-amber-500" />
-                                      )}
-                                    </p>
-                                    <p className="text-sm text-muted-foreground">{member.email}</p>
-                                  </div>
-                                </div>
-                                {member.id !== team?.admin_id && (
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                                    onClick={() => handleRemoveMember(member.id, member.name)}
-                                  >
-                                    <UserMinus className="h-4 w-4" />
-                                  </Button>
-                                )}
-                              </div>
-                            ))}
-                            
-                            {members.length > membersPerPage && (
-                              <Pagination className="mt-4">
-                                <PaginationContent>
-                                  <PaginationItem>
-                                    <PaginationPrevious 
-                                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                                      className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                                    />
-                                  </PaginationItem>
-                                  {Array.from({ length: Math.ceil(members.length / membersPerPage) }, (_, i) => i + 1).map((page) => (
-                                    <PaginationItem key={page}>
-                                      <PaginationLink
-                                        onClick={() => setCurrentPage(page)}
-                                        isActive={currentPage === page}
-                                        className="cursor-pointer"
-                                      >
-                                        {page}
-                                      </PaginationLink>
-                                    </PaginationItem>
-                                  ))}
-                                  <PaginationItem>
-                                    <PaginationNext 
-                                      onClick={() => setCurrentPage(prev => Math.min(Math.ceil(members.length / membersPerPage), prev + 1))}
-                                      className={currentPage === Math.ceil(members.length / membersPerPage) ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                                    />
-                                  </PaginationItem>
-                                </PaginationContent>
-                              </Pagination>
-                            )}
-                          </div>
-                        ) : (
-                          <p className="text-center text-muted-foreground py-4">
-                            Nenhum membro na equipe
-                          </p>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </div>
-                </TabsContent>
+                  ))}
+                </div>
               )}
-            </Tabs>
-          </>
+
+              {/* List View */}
+              {viewMode === 'list' && (
+                <div className="space-y-2">
+                  {displayedMembers.map((member) => (
+                    <div key={member.id} className="flex items-center justify-between p-3 bg-card border rounded-lg hover:shadow-sm transition-all hover:border-primary/30">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={member.avatar_url} />
+                          <AvatarFallback className="bg-primary/10 text-primary">
+                            {member.name.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-medium text-sm flex items-center gap-2">
+                            {member.name}
+                            {member.id === team?.admin_id && (
+                              <Crown className="h-3.5 w-3.5 text-amber-500" />
+                            )}
+                          </p>
+                          <p className="text-xs text-muted-foreground flex items-center gap-1">
+                            <Mail className="h-3 w-3" />
+                            {member.email}
+                          </p>
+                        </div>
+                      </div>
+                      {isTeamAdmin && member.id !== team?.admin_id && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                          onClick={() => handleRemoveMember(member.id, member.name)}
+                        >
+                          <UserMinus className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+
+                  {/* Pagination for list view */}
+                  {totalPages > 1 && (
+                    <Pagination className="mt-4">
+                      <PaginationContent>
+                        <PaginationItem>
+                          <PaginationPrevious 
+                            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                            className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                          />
+                        </PaginationItem>
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                          <PaginationItem key={page}>
+                            <PaginationLink
+                              onClick={() => setCurrentPage(page)}
+                              isActive={currentPage === page}
+                              className="cursor-pointer"
+                            >
+                              {page}
+                            </PaginationLink>
+                          </PaginationItem>
+                        ))}
+                        <PaginationItem>
+                          <PaginationNext 
+                            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                            className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                          />
+                        </PaginationItem>
+                      </PaginationContent>
+                    </Pagination>
+                  )}
+                </div>
+              )}
+
+              {members.length === 0 && (
+                <div className="text-center py-12 text-muted-foreground">
+                  <UsersRound className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                  <p>Nenhum membro na equipe</p>
+                </div>
+              )}
+            </div>
+          </div>
         )}
       </main>
 
