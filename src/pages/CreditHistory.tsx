@@ -5,15 +5,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Coins, TrendingDown, User, Calendar, ArrowLeft } from "lucide-react";
+import { Coins, TrendingDown, User, Calendar } from "lucide-react";
 import { getCreditCostLabel } from "@/lib/creditCosts";
-import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { PageBreadcrumb } from "@/components/PageBreadcrumb";
 
 export default function CreditHistory() {
   const { team } = useAuth();
   const { data: history, isLoading } = useCreditHistory(team?.id);
-  const navigate = useNavigate();
 
   const getActionLabel = (actionType: string): string => {
     const labels: Record<string, string> = {
@@ -57,14 +55,7 @@ export default function CreditHistory() {
   return (
     <div className="container mx-auto py-8 px-4 max-w-6xl">
       <div className="mb-6">
-        <Button
-          variant="ghost"
-          onClick={() => navigate(-1)}
-          className="mb-4"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Voltar
-        </Button>
+        <PageBreadcrumb items={[{ label: 'Histórico de Créditos' }]} className="mb-4" />
         <h1 className="text-3xl font-bold">Histórico de Créditos</h1>
         <p className="text-muted-foreground mt-2">
           Veja todas as ações e transações de créditos da sua equipe

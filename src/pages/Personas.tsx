@@ -18,6 +18,7 @@ import { Coins } from 'lucide-react';
 import { TourSelector } from '@/components/onboarding/TourSelector';
 import { personasSteps, navbarSteps } from '@/components/onboarding/tourSteps';
 import personasBanner from '@/assets/personas-banner.jpg';
+import { PageBreadcrumb } from '@/components/PageBreadcrumb';
 
 type PersonaFormData = Omit<Persona, 'id' | 'createdAt' | 'updatedAt' | 'teamId' | 'userId'>;
 
@@ -261,6 +262,10 @@ export default function PersonasPage() {
     <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8">
       {/* Banner */}
       <div className="relative w-full h-48 md:h-56 flex-shrink-0 overflow-hidden">
+        <PageBreadcrumb
+          variant="overlay"
+          items={[{ label: 'Personas' }]}
+        />
         <img 
           src={personasBanner} 
           alt="" 

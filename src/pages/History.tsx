@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { TourSelector } from '@/components/onboarding/TourSelector';
 import { historySteps, navbarSteps } from '@/components/onboarding/tourSteps';
 import historyBanner from '@/assets/history-banner.jpg';
+import { PageBreadcrumb } from '@/components/PageBreadcrumb';
 import { useHistoryBrands, useHistoryActions } from '@/hooks/useHistoryActions';
 
 export default function History() {
@@ -49,6 +50,10 @@ export default function History() {
     <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8">
       {/* Banner */}
       <div className="relative w-full h-56 md:h-72 flex-shrink-0 overflow-hidden">
+        <PageBreadcrumb
+          variant="overlay"
+          items={[{ label: 'Histórico' }]}
+        />
         <img src={historyBanner} alt="" className="w-full h-full object-cover" style={{ objectPosition: 'center 30%' }} loading="lazy" />
         <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
       </div>
