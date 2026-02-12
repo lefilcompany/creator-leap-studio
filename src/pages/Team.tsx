@@ -159,6 +159,12 @@ export default function Team() {
     }
   };
 
+  // Get first and second name only
+  const getDisplayName = (fullName: string) => {
+    const parts = (fullName || '').replace(/^["']|["']$/g, '').trim().split(/\s+/);
+    return parts.slice(0, 2).join(' ');
+  };
+
   // Sort members alphabetically, then apply view mode
   const displayedMembers = useMemo(() => {
     const sorted = [...members].sort((a, b) => (a.name || '').localeCompare(b.name || ''));
@@ -529,11 +535,11 @@ export default function Team() {
                         <Avatar className="h-16 w-16 mb-3">
                           <AvatarImage src={member.avatar_url} />
                           <AvatarFallback className="bg-primary/10 text-primary text-lg">
-                            {member.name.charAt(0)}
+                            {getDisplayName(member.name).charAt(0)}
                           </AvatarFallback>
                         </Avatar>
                         <p className="font-semibold text-sm flex items-center gap-1.5 truncate max-w-full">
-                          <UserNameLink userId={member.id} userName={member.name} className="font-semibold text-sm" />
+                          <UserNameLink userId={member.id} userName={getDisplayName(member.name)} className="font-semibold text-sm" />
                           {member.id === team?.admin_id && (
                             <Crown className="h-3.5 w-3.5 text-amber-500 flex-shrink-0" />
                           )}
@@ -572,12 +578,12 @@ export default function Team() {
                         <Avatar className="h-10 w-10">
                           <AvatarImage src={member.avatar_url} />
                           <AvatarFallback className="bg-primary/10 text-primary">
-                            {member.name.charAt(0)}
+                            {getDisplayName(member.name).charAt(0)}
                           </AvatarFallback>
                         </Avatar>
                         <div>
                           <p className="font-medium text-sm flex items-center gap-2">
-                            <UserNameLink userId={member.id} userName={member.name} className="font-medium text-sm" />
+                            <UserNameLink userId={member.id} userName={getDisplayName(member.name)} className="font-medium text-sm" />
                             {member.id === team?.admin_id && (
                               <Crown className="h-3.5 w-3.5 text-amber-500" />
                             )}
