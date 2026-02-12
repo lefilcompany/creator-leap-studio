@@ -169,7 +169,7 @@ export const DashboardRecentActivity = ({ activities, isLoading }: DashboardRece
               </>
             )}
             <Link to="/history">
-              <Button variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-primary gap-1">
+              <Button variant="ghost" size="sm" className="text-xs text-muted-foreground hover:bg-accent/20 hover:text-accent gap-1">
                 Ver tudo <ArrowRight className="h-3 w-3" />
               </Button>
             </Link>
