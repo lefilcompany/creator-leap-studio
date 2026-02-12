@@ -35,14 +35,14 @@ const Dashboard = () => {
   }, [user]);
 
   const { data: actionsCount = 0 } = useQuery({
-    queryKey: ['dashboard-actions-count', user?.id],
+    queryKey: ['dashboard-actions-count', user?.teamId],
     queryFn: async () => {
-      if (!user?.id) return 0;
+      if (!user?.teamId) return 0;
       try {
         const { count, error } = await supabase
           .from('actions')
           .select('*', { count: 'exact', head: true })
-          .eq('user_id', user.id)
+          .eq('team_id', user.teamId)
           .in('type', ['CRIAR_CONTEUDO', 'CRIAR_CONTEUDO_RAPIDO']);
         if (error) throw error;
         return count || 0;
@@ -50,7 +50,7 @@ const Dashboard = () => {
         return 0;
       }
     },
-    enabled: !!user?.id,
+    enabled: !!user?.teamId,
   });
 
   const { data: brandsCount = 0 } = useQuery({

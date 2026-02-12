@@ -18,7 +18,7 @@ const statItem = {
 export const DashboardStats = ({ actionsCount, brandsCount, personasCount = 0, themesCount = 0 }: DashboardStatsProps) => {
   const stats = [
     {
-      label: "Conteúdos Criados",
+      label: "Conteúdos da Equipe",
       value: actionsCount,
       icon: Sparkles,
       color: "text-primary",
