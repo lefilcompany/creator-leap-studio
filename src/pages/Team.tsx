@@ -13,6 +13,7 @@ import {
 import { toast } from 'sonner';
 import { CreateTeamDialog } from '@/components/auth/CreateTeamDialog';
 import { JoinTeamDialog } from '@/components/auth/JoinTeamDialog';
+import { RemoveMemberDialog } from '@/components/team/RemoveMemberDialog';
 import {
   Pagination,
   PaginationContent,
@@ -64,7 +65,7 @@ export default function Team() {
   const [selectedTeam, setSelectedTeam] = useState<TeamData | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [requestsExpanded, setRequestsExpanded] = useState(false);
-
+  const [memberToRemove, setMemberToRemove] = useState<TeamMember | null>(null);
   useEffect(() => {
     setCurrentPage(1);
   }, [members.length, viewMode]);
@@ -295,18 +296,28 @@ export default function Team() {
     }
 
     try {
-      const { error } = await supabase
+      // Remove team_id from profile
+      const { error: profileError } = await supabase
         .from('profiles')
         .update({ team_id: null })
         .eq('id', memberId);
 
-      if (error) throw error;
+      if (profileError) throw profileError;
+
+      // Also remove from team_members if exists
+      if (selectedTeam) {
+        await supabase
+          .from('team_members')
+          .delete()
+          .eq('user_id', memberId)
+          .eq('team_id', selectedTeam.id);
+      }
 
       setMembers(prev => prev.filter(m => m.id !== memberId));
       toast.success(`${memberName} foi removido da equipe!`);
     } catch (error: any) {
       console.error('Erro ao remover membro:', error);
-      toast.error('Erro ao remover membro');
+      toast.error('Erro ao remover membro. Tente novamente.');
     }
   };
 
@@ -685,7 +696,7 @@ export default function Team() {
                             size="sm"
                             variant="ghost"
                             className="mt-2 text-destructive hover:bg-destructive hover:text-destructive-foreground opacity-0 group-hover:opacity-100 transition-opacity h-7 text-xs"
-                            onClick={() => handleRemoveMember(member.id, member.name)}
+                            onClick={() => setMemberToRemove(member)}
                           >
                             <UserMinus className="h-3 w-3 mr-1" />
                             Remover
@@ -727,7 +738,7 @@ export default function Team() {
                           size="sm"
                           variant="outline"
                           className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                          onClick={() => handleRemoveMember(member.id, member.name)}
+                          onClick={() => setMemberToRemove(member)}
                         >
                           <UserMinus className="h-4 w-4" />
                         </Button>
@@ -799,6 +810,17 @@ export default function Team() {
           reloadUserData();
         }}
       />
+
+      {memberToRemove && (
+        <RemoveMemberDialog
+          open={!!memberToRemove}
+          onOpenChange={(open) => !open && setMemberToRemove(null)}
+          memberName={memberToRemove.name}
+          memberId={memberToRemove.id}
+          memberAvatarUrl={memberToRemove.avatar_url}
+          onConfirm={handleRemoveMember}
+        />
+      )}
     </div>
   );
 }
