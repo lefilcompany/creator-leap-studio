@@ -20,7 +20,7 @@ export default function AccountManagement({ userEmail }: AccountManagementProps)
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <div className="bg-card rounded-xl shadow-lg overflow-hidden border-0">
           <CollapsibleTrigger asChild>
-            <button className="w-full flex items-center justify-between p-5 sm:p-6 hover:bg-muted/40 transition-colors duration-200">
+            <button className="w-full flex items-center justify-between px-5 py-3 sm:px-6 sm:py-3.5 hover:bg-muted/40 transition-colors duration-200">
               <div className="flex items-center gap-4">
                 <div className="p-2.5 bg-destructive/10 rounded-xl">
                   <ShieldAlert className="h-5 w-5 text-destructive" />
