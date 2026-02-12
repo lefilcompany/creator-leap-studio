@@ -35,30 +35,22 @@ const Dashboard = () => {
   }, [user]);
 
   const { data: actionsCount = 0 } = useQuery({
-    queryKey: ['dashboard-actions-count', user?.teamId],
+    queryKey: ['dashboard-actions-count', user?.id],
     queryFn: async () => {
-      if (!user?.teamId) return 0;
+      if (!user?.id) return 0;
       try {
-        const { data, error } = await supabase.rpc('get_action_summaries', {
-          p_team_id: user.teamId,
-          p_type_filter: 'CRIAR_CONTEUDO',
-          p_limit: 1,
-        });
-        const criarCount = (!error && data?.[0]?.total_count) || 0;
-
-        const { data: data2, error: error2 } = await supabase.rpc('get_action_summaries', {
-          p_team_id: user.teamId,
-          p_type_filter: 'CRIAR_CONTEUDO_RAPIDO',
-          p_limit: 1,
-        });
-        const rapidoCount = (!error2 && data2?.[0]?.total_count) || 0;
-
-        return criarCount + rapidoCount;
+        const { count, error } = await supabase
+          .from('actions')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .in('type', ['CRIAR_CONTEUDO', 'CRIAR_CONTEUDO_RAPIDO']);
+        if (error) throw error;
+        return count || 0;
       } catch {
         return 0;
       }
     },
-    enabled: !!user?.teamId,
+    enabled: !!user?.id,
   });
 
   const { data: brandsCount = 0 } = useQuery({
