@@ -1,70 +1,107 @@
 
-## Plano: Corrigir contagem de conteudos e carrossel de atividades recentes
 
-### Problemas identificados
+## Refatorar carrossel de Atividade Recente usando Embla Carousel
 
-**1. Card "Conteudos Criados" mostra 0**
-A query direta a tabela `actions` com `.eq('team_id', ...)` retorna erro 500 porque a politica RLS (`can_access_resource`) falha em requests HEAD/count. A solucao e usar o RPC `get_action_summaries` que funciona (SECURITY DEFINER, bypass RLS) e filtrar por tipo.
+### Contexto
+O projeto ja possui a biblioteca `embla-carousel-react` instalada e o componente shadcn `Carousel` (`src/components/ui/carousel.tsx`) pronto para uso. O Embla e reconhecido como a melhor lib de carrossel para React, com arrasto suave nativo, momentum integrado e precisao de swipe superior.
 
-**2. Carrossel "Atividade Recente" mostra vazio**
-O RPC retorna dados corretamente (confirmado nos logs de rede - status 200 com dados), mas a funcao `getImageUrl` no componente descarta imagens base64 porque verifica `startsWith('http')`. Como as imagens vem como `data:image/png;base64,...`, nenhuma imagem e exibida. Alem disso, o `thumb_path` esta null para todos os registros. O resultado e que parece nao ter atividade quando na verdade os dados existem.
+Atualmente, o carrossel usa um hook customizado `useDragScroll` com logica manual de pointer events e momentum via `requestAnimationFrame`. Isso e fragil e inferior ao que o Embla oferece nativamente.
 
 ### Solucao
+Substituir toda a logica manual de drag/scroll pelo Embla Carousel usando o modo `dragFree`, que oferece:
+- Arrasto com momentum suave nativo (sem codigo manual de fisica)
+- Precisao de swipe em touch devices
+- Performance otimizada com GPU compositing
+- Snap opcional e loop
 
-**Arquivo 1: `src/pages/Dashboard.tsx`**
-- Alterar `actionsCount` para usar o RPC `get_action_summaries` com filtro `p_type_filter` para contar apenas `CRIAR_CONTEUDO` e `CRIAR_CONTEUDO_RAPIDO`, extraindo `total_count` do resultado
-- Manter o fallback direto, mas com tratamento de erro
+### Arquivo alterado
+`src/components/dashboard/DashboardRecentActivity.tsx`
 
-**Arquivo 2: `src/components/dashboard/DashboardRecentActivity.tsx`**
-- Corrigir `getImageUrl` para aceitar URLs base64 (`data:`) alem de URLs http
-- Garantir que os cards renderizam corretamente com imagens base64
+### O que muda
 
-### Detalhes tecnicos
+**1. Remover o hook `useDragScroll` inteiro**
+Toda a logica de pointer events, velocity, momentum e friction sera removida (~80 linhas).
 
-**Dashboard.tsx - actionsCount:**
+**2. Usar `useEmblaCarousel` com `dragFree: true`**
 ```typescript
-const { data: actionsCount = 0 } = useQuery({
-  queryKey: ['dashboard-actions-count', user?.teamId],
-  queryFn: async () => {
-    if (!user?.teamId) return 0;
-    // Usar RPC com filtro de tipo - retorna total_count
-    const { data, error } = await supabase.rpc('get_action_summaries', {
-      p_team_id: user.teamId,
-      p_type_filter: 'CRIAR_CONTEUDO',
-      p_limit: 1,
-    });
-    const criarCount = (!error && data?.[0]?.total_count) || 0;
-    
-    const { data: data2, error: error2 } = await supabase.rpc('get_action_summaries', {
-      p_team_id: user.teamId,
-      p_type_filter: 'CRIAR_CONTEUDO_RAPIDO',
-      p_limit: 1,
-    });
-    const rapidoCount = (!error2 && data2?.[0]?.total_count) || 0;
-    
-    return criarCount + rapidoCount;
-  },
-  enabled: !!user?.teamId,
+import useEmblaCarousel from 'embla-carousel-react';
+
+const [emblaRef, emblaApi] = useEmblaCarousel({
+  dragFree: true,
+  containScroll: 'trimSnaps',
+  align: 'start',
 });
 ```
 
-**DashboardRecentActivity.tsx - getImageUrl:**
+**3. Botoes de navegacao usam a API do Embla**
 ```typescript
-const getImageUrl = (activity: ActionSummary): string | null => {
-  if (activity.thumb_path) {
-    const { data } = supabase.storage.from('creations').getPublicUrl(activity.thumb_path);
-    return data?.publicUrl || null;
-  }
-  if (activity.image_url) {
-    // Aceitar tanto URLs http quanto data URIs (base64)
-    if (activity.image_url.startsWith('http') || activity.image_url.startsWith('data:')) {
-      return activity.image_url;
-    }
-  }
-  return null;
+const scroll = (dir: 'left' | 'right') => {
+  if (!emblaApi) return;
+  if (dir === 'left') emblaApi.scrollPrev();
+  else emblaApi.scrollNext();
 };
 ```
 
-### Arquivos alterados
-1. `src/pages/Dashboard.tsx` - query actionsCount via RPC
-2. `src/components/dashboard/DashboardRecentActivity.tsx` - aceitar imagens base64
+**4. Controle de canScrollLeft/canScrollRight via eventos Embla**
+```typescript
+useEffect(() => {
+  if (!emblaApi) return;
+  const onSelect = () => {
+    setCanScrollLeft(emblaApi.canScrollPrev());
+    setCanScrollRight(emblaApi.canScrollNext());
+  };
+  emblaApi.on('select', onSelect);
+  emblaApi.on('reInit', onSelect);
+  onSelect();
+  return () => {
+    emblaApi.off('select', onSelect);
+    emblaApi.off('reInit', onSelect);
+  };
+}, [emblaApi]);
+```
+
+**5. Prevenir clique apos arrasto**
+O Embla emite eventos que permitem detectar se houve arrasto, usado para bloquear o `navigate()`:
+```typescript
+const [clickAllowed, setClickAllowed] = useState(true);
+
+useEffect(() => {
+  if (!emblaApi) return;
+  emblaApi.on('pointerDown', () => setClickAllowed(true));
+  emblaApi.on('pointerUp', () => {
+    // Se o embla detectou drag significativo, bloqueia clique
+    if (emblaApi.internalEngine().dragHandler.pointerDown()) return;
+    setClickAllowed(!emblaApi.internalEngine().scrollBody.velocity());
+  });
+}, [emblaApi]);
+```
+
+**6. Estrutura HTML do Embla**
+```html
+<div ref={emblaRef} className="overflow-hidden cursor-grab active:cursor-grabbing">
+  <div className="flex gap-3">
+    {activities.map(activity => (
+      <div className="shrink-0 w-[200px] sm:w-[220px]">
+        <!-- card atual mantido identico -->
+      </div>
+    ))}
+  </div>
+</div>
+```
+
+### O que permanece igual
+- Visual dos cards (imagem, icone, tipo, marca, titulo, data relativa)
+- Skeleton loading
+- Estado vazio
+- Botoes de setas no header
+- Animacoes de entrada com framer-motion
+- Funcao `getImageUrl` com suporte a base64
+- Toda a estrutura do Card wrapper
+
+### Beneficios
+- Arrasto com momentum suave e natural (testado em milhares de projetos)
+- Zero logica manual de fisica - tudo gerenciado pelo Embla
+- Funciona perfeitamente em mobile, tablet e desktop
+- Reducao de ~80 linhas de codigo customizado
+- Usa uma dependencia que ja esta instalada no projeto
+
