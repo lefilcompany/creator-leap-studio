@@ -1,78 +1,100 @@
+# Perfil Publico de Usuarios
 
-# Redesign da Tela de Perfil
+## Resumo
 
-## Objetivo
-Redesenhar a pagina de Perfil seguindo o mesmo padrao visual das telas de Marcas e Temas: banner ilustrativo no topo, card header sobreposto com icone e titulo, e layout limpo sem bordas com sombras. Remover a secao "Minha Equipe" e transformar "Configuracoes Avancadas" em um dropdown colapsavel (estilo accordion/collapsible).
+Criar uma pagina de perfil publico (`/profile/:userId`) onde membros da mesma equipe podem visualizar informacoes nao sensiveis de outros usuarios. Alem disso, tornar os nomes de usuarios clicaveis em toda a plataforma (equipe, historico, etc.) para acessar esse perfil.
 
-## Mudancas Visuais
+## O que sera exibido no perfil publico
 
-### 1. Layout com Banner (como Marcas/Temas)
-- Usar margem negativa (`-m-4 sm:-m-6 lg:-m-8`) para o banner ocupar toda a largura
-- Gerar uma nova imagem de banner para o perfil no estilo flat illustration estabelecido (personagens, cores pastel lavanda/rosa)
-- Banner com gradiente overlay na parte inferior
-- Card header sobreposto ao banner com `-mt-12`, `rounded-2xl`, `shadow-lg`, sem bordas
+- Banner personalizado do usuario (ou default)
+- Foto de perfil com nome completo
+- Email do usuário
+- Estado e cidade (localizacao)
+- Badge de administrador (se aplicavel)
+- Data de entrada na equipe
+- Informacoes **NAO** exibidas: telefone e senha (dados sensiveis)
 
-### 2. Remover secao "Minha Equipe"
-- Remover completamente o bloco de `TeamInfoCard` e botao "Comprar Creditos" da pagina de perfil
-- Remover imports relacionados (`TeamInfoCard`, `Coins`, `Button` se nao usado em outro lugar)
+## Etapas de implementacao
 
-### 3. Reorganizar o conteudo
-- **Foto de Perfil**: Card com `shadow-lg` sem bordas (`border-0`), centralizado
-- **Dados Pessoais**: Card `PersonalInfoForm` em largura total (sem dividir com AccountManagement)
-- **Configuracoes Avancadas**: Substituir o card grande por um componente `Collapsible` discreto
+### 1. Criar a pagina `PublicProfile`
 
-### 4. Configuracoes Avancadas como Dropdown/Collapsible
-- Usar `Collapsible` do Radix UI (ja instalado no projeto)
-- Botao trigger com icone de cadeado/escudo + "Configuracoes Avancadas" + chevron
-- Ao expandir, revela os dois botoes: "Inativar Conta" e "Deletar Conta"
-- Visual compacto, similar ao padrao de "solicitacoes pendentes"
-- Fechado por padrao para proteger acoes destrutivas
+- Nova pagina em `src/pages/PublicProfile.tsx`
+- Rota: `/profile/:userId`
+- Layout similar ao Profile privado: banner no topo, card sobreposto com avatar e nome
+- Busca dados do usuario via `profiles` table (campos: `name`, `avatar_url`, `banner_url`, `state`, `city`, `created_at`)
+- Verificacao de acesso: apenas usuarios da mesma equipe podem visualizar
+- Estado de carregamento com skeleton
 
-## Detalhes Tecnicos
+### 2. Registrar a rota no App.tsx
 
-### Arquivos Modificados
-1. **`src/pages/Profile.tsx`** - Reescrita completa do layout:
-   - Adicionar import do banner e novo layout com margem negativa
-   - Remover imports de `TeamInfoCard`, `Coins`
-   - Estrutura: Banner -> Header Card -> Avatar Card -> PersonalInfoForm (full width) -> Collapsible de configuracoes
-   
-2. **`src/components/perfil/AccountManagement.tsx`** - Simplificar para componente colapsavel:
-   - Substituir o Card grande por um `Collapsible` com trigger compacto
-   - Dentro do collapsible: dois botoes lado a lado (Inativar e Deletar)
-   - Manter os dialogs `DeactivateAccountDialog` e `DeleteAccountDialog` intactos
+- Adicionar rota `/profile/:userId` dentro do bloco de rotas protegidas do Dashboard
+- Lazy load do componente `PublicProfile`
 
-3. **`src/assets/profile-banner.jpg`** - Nova imagem gerada no estilo flat illustration
+### 3. Criar componente reutilizavel `UserNameLink`
 
-### Estrutura do novo layout
+- Componente em `src/components/UserNameLink.tsx`
+- Recebe `userId`, `userName` e opcionalmente `avatarUrl`
+- Renderiza o nome como link clicavel (`/profile/:userId`)
+- Estilo sutil: hover com underline e cor primary
+- Se o userId for o proprio usuario logado, redireciona para `/profile` (perfil privado)
+
+### 4. Integrar `UserNameLink` na pagina de Equipe
+
+- Na grid view (cards de membros): nome do membro vira link clicavel
+- Na list view: nome do membro vira link clicavel
+- Nas solicitacoes pendentes: nome do solicitante vira link clicavel
+
+### 5. Integrar `UserNameLink` no Historico e resultados de conteudo
+
+- Onde o nome do criador de um conteudo aparece, tornar clicavel
+
+## Detalhes tecnicos
+
+### Seguranca e acesso
+
+- A RLS policy existente `Authenticated users can view basic profiles` ja permite SELECT com `true`, entao qualquer usuario autenticado pode ler profiles. Isso e suficiente para o perfil publico.
+- No frontend, a pagina filtra campos sensiveis e exibe apenas dados publicos (nome, avatar, banner, estado, cidade).
+- Email e telefone NAO serao exibidos no perfil publico.
+
+### Estrutura do componente PublicProfile
+
 ```text
 +------------------------------------------+
-|           BANNER (imagem perfil)          |
-|  gradient overlay                        |
+|           BANNER (usuario)               |
 +------------------------------------------+
-|  +------------------------------------+  |
-|  | [icon] Meu Perfil                  |  |  <- card sobreposto -mt-12
-|  |  Gerencie suas informacoes...      |  |
-|  +------------------------------------+  |
+|  [Avatar]  Nome do Usuario               |
+|            Localizacao (Estado, Cidade)   |
+|            Badge Admin (se aplicavel)     |
++------------------------------------------+
 |                                          |
-|  +------------------------------------+  |
-|  |        [Avatar grande]             |  |  <- card sem borda, shadow-lg
-|  |    [Alterar foto] [Remover]        |  |
-|  +------------------------------------+  |
+|  Card: Informacoes                       |
+|  - Membro desde: data                   |
+|  - Localizacao: Estado, Cidade           |
+|  - Equipe: Nome da equipe               |
 |                                          |
-|  +------------------------------------+  |
-|  | Dados Pessoais (full width)        |  |  <- card sem borda, shadow-lg
-|  | Nome, Email, Telefone, etc.        |  |
-|  +------------------------------------+  |
-|                                          |
-|  +------------------------------------+  |
-|  | > Configuracoes Avancadas  [v]     |  |  <- collapsible trigger
-|  |   [Inativar Conta] [Deletar Conta] |  |  <- conteudo expandido
-|  +------------------------------------+  |
 +------------------------------------------+
 ```
 
-### Componente Collapsible (Configuracoes Avancadas)
-- Trigger: card discreto com `bg-card shadow-md rounded-xl`
-- Icone `ShieldAlert` + texto + `ChevronDown` com rotacao animada
-- Conteudo: alerta de aviso + grid com dois botoes de acao
-- Tudo compacto e elegante, sem o card pesado atual
+### Componente UserNameLink
+
+```text
+Props:
+- userId: string
+- userName: string
+- className?: string
+
+Comportamento:
+- Renderiza <Link> para /profile/:userId
+- Se userId === usuario logado -> /profile
+- Estilo: hover:underline hover:text-primary cursor-pointer
+```
+
+### Arquivos a criar
+
+- `src/pages/PublicProfile.tsx` - Pagina de perfil publico
+- `src/components/UserNameLink.tsx` - Componente de link para nome
+
+### Arquivos a modificar
+
+- `src/App.tsx` - Adicionar rota `/profile/:userId`
+- `src/pages/Team.tsx` - Usar UserNameLink nos nomes dos membros (grid e list view)
