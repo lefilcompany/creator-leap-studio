@@ -63,7 +63,7 @@ const getImageUrl = (activity: ActionSummary): string | null => {
     const { data } = supabase.storage.from('creations').getPublicUrl(activity.thumb_path);
     return data?.publicUrl || null;
   }
-  if (activity.image_url && activity.image_url.startsWith('http')) {
+  if (activity.image_url && (activity.image_url.startsWith('http') || activity.image_url.startsWith('data:'))) {
     return activity.image_url;
   }
   return null;
