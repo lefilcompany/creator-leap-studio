@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertTriangle, UserX, Trash2 } from 'lucide-react';
+import { AlertTriangle, UserX, Trash2, ShieldAlert, ChevronDown } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import DeactivateAccountDialog from './DeactivateAccountDialog';
 import DeleteAccountDialog from './DeleteAccountDialog';
 
@@ -13,89 +13,71 @@ interface AccountManagementProps {
 export default function AccountManagement({ userEmail }: AccountManagementProps) {
   const [isDeactivateDialogOpen, setIsDeactivateDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
     <>
-      <Card className="shadow-lg border-0 bg-gradient-to-br from-card via-muted/[0.02] to-accent/[0.03]">
-        <CardHeader className="bg-gradient-to-r from-destructive/8 via-accent/5 to-primary/8 border-b border-destructive/10 p-4 sm:p-6 md:p-8">
-          <div className="flex items-start gap-3 sm:gap-4">
-            <div className="p-2 sm:p-3 bg-gradient-to-br from-destructive/20 to-accent/20 rounded-2xl shadow-md">
-              <AlertTriangle className="h-5 w-5 sm:h-6 sm:w-6 md:h-7 md:w-7 text-destructive" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <CardTitle className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-destructive via-accent to-primary bg-clip-text text-transparent mb-2 truncate">
-                Configurações Avançadas
-              </CardTitle>
-              <CardDescription className="text-muted-foreground text-xs sm:text-sm md:text-base">
-                Gerencie as opções avançadas da sua conta
-              </CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-
-        <CardContent className="space-y-4 sm:space-y-6 p-4 sm:p-6 md:p-8">
-          {/* Warning Alert */}
-          <Alert className="bg-gradient-to-r from-destructive/5 to-accent/5 border-2 border-destructive/20 rounded-xl shadow-sm">
-            <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-destructive" />
-            <AlertDescription className="text-foreground ml-2 text-xs sm:text-sm">
-              <span className="font-bold">Atenção!</span>
-              <br />
-              As ações abaixo são irreversíveis. Certifique-se antes de prosseguir.
-            </AlertDescription>
-          </Alert>
-
-          {/* Actions Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-            {/* Deactivate Account Card */}
-            <Card className="border-0 bg-gradient-to-br from-muted/50 to-accent/5 hover:shadow-lg transition-all duration-300">
-              <CardContent className="p-4 sm:p-6 space-y-3 sm:space-y-4">
-                <div className="flex flex-col items-center gap-2 sm:gap-3 text-center">
-                  <div className="p-3 sm:p-4 bg-gradient-to-br from-muted to-accent/20 rounded-2xl shadow-md">
-                    <UserX className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 text-muted-foreground" />
-                  </div>
-                  <h3 className="font-bold text-base sm:text-lg bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
-                    Inativar Conta
-                  </h3>
-                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                    Dados preservados. Reative facilmente cadastrando-se novamente.
-                  </p>
+      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+        <div className="bg-card rounded-xl shadow-md overflow-hidden">
+          <CollapsibleTrigger asChild>
+            <button className="w-full flex items-center justify-between p-4 sm:p-5 hover:bg-muted/50 transition-colors duration-200">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-destructive/10 rounded-xl">
+                  <ShieldAlert className="h-5 w-5 text-destructive" />
                 </div>
+                <div className="text-left">
+                  <h3 className="font-semibold text-foreground">Configurações Avançadas</h3>
+                  <p className="text-xs text-muted-foreground">Gerenciamento de conta e ações irreversíveis</p>
+                </div>
+              </div>
+              <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+            </button>
+          </CollapsibleTrigger>
+
+          <CollapsibleContent>
+            <div className="px-4 sm:px-5 pb-4 sm:pb-5 space-y-4">
+              {/* Warning */}
+              <Alert className="bg-destructive/5 border border-destructive/20 rounded-lg">
+                <AlertTriangle className="h-4 w-4 text-destructive" />
+                <AlertDescription className="text-sm ml-2">
+                  <span className="font-bold">Atenção!</span> As ações abaixo são irreversíveis.
+                </AlertDescription>
+              </Alert>
+
+              {/* Action Buttons */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Button
                   variant="outline"
-                  className="w-full h-10 sm:h-11 rounded-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] text-sm sm:text-base border-muted-foreground/30 hover:bg-muted-foreground/20 hover:border-muted-foreground hover:text-muted-foreground"
+                  className="h-auto py-3 px-4 rounded-lg border-muted-foreground/20 hover:bg-muted-foreground/10 hover:border-muted-foreground/40 transition-all duration-200 flex items-center gap-3 justify-start"
                   onClick={() => setIsDeactivateDialogOpen(true)}
                 >
-                  Inativar Conta
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Delete Account Card */}
-            <Card className="border-0 bg-gradient-to-br from-destructive/5 to-destructive/10 hover:shadow-lg transition-all duration-300">
-              <CardContent className="p-4 sm:p-6 space-y-3 sm:space-y-4">
-                <div className="flex flex-col items-center gap-2 sm:gap-3 text-center">
-                  <div className="p-3 sm:p-4 bg-gradient-to-br from-destructive/20 to-destructive/30 rounded-2xl shadow-md">
-                    <Trash2 className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 text-destructive" />
+                  <div className="p-1.5 bg-muted rounded-lg">
+                    <UserX className="h-4 w-4 text-muted-foreground" />
                   </div>
-                  <h3 className="font-bold text-base sm:text-lg text-destructive">
-                    Deletar Conta
-                  </h3>
-                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                    <span className="font-bold text-destructive">PERMANENTE!</span> Todos os dados serão removidos.
-                  </p>
-                </div>
+                  <div className="text-left">
+                    <span className="text-sm font-medium block">Inativar Conta</span>
+                    <span className="text-xs text-muted-foreground">Dados preservados</span>
+                  </div>
+                </Button>
+
                 <Button
-                  variant="destructive"
-                  className="w-full h-10 sm:h-11 rounded-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] text-sm sm:text-base"
+                  variant="outline"
+                  className="h-auto py-3 px-4 rounded-lg border-destructive/20 hover:bg-destructive/10 hover:border-destructive/40 text-destructive hover:text-destructive transition-all duration-200 flex items-center gap-3 justify-start"
                   onClick={() => setIsDeleteDialogOpen(true)}
                 >
-                  Deletar Conta
+                  <div className="p-1.5 bg-destructive/10 rounded-lg">
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </div>
+                  <div className="text-left">
+                    <span className="text-sm font-medium block">Deletar Conta</span>
+                    <span className="text-xs text-muted-foreground text-destructive/70">Permanente</span>
+                  </div>
                 </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </CardContent>
-      </Card>
+              </div>
+            </div>
+          </CollapsibleContent>
+        </div>
+      </Collapsible>
 
       <DeactivateAccountDialog
         open={isDeactivateDialogOpen}
@@ -109,4 +91,3 @@ export default function AccountManagement({ userEmail }: AccountManagementProps)
     </>
   );
 }
-
