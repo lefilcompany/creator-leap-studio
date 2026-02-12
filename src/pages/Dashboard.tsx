@@ -85,7 +85,7 @@ const Dashboard = () => {
     enabled: !!user?.id,
   });
 
-  const { data: recentActivities = [] } = useQuery({
+  const { data: recentActivities = [], isLoading: isLoadingActivities } = useQuery({
     queryKey: ['dashboard-recent-activities', user?.teamId],
     queryFn: async () => {
       if (!user?.teamId) return [];
@@ -194,7 +194,10 @@ const Dashboard = () => {
 
       {/* Recent Activity */}
       <div id="dashboard-recent-actions">
-        <DashboardRecentActivity activities={recentActivities as any} />
+        <DashboardRecentActivity 
+          activities={recentActivities as any} 
+          isLoading={isLoadingActivities} 
+        />
       </div>
     </div>
   );

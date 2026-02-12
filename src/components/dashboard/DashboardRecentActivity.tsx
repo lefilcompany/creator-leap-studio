@@ -1,9 +1,10 @@
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Link, useNavigate } from "react-router-dom";
-import { History, FileText, ArrowRight, ChevronLeft, ChevronRight, Sparkles, CheckCircle, CalendarDays, Video, ImageIcon } from "lucide-react";
-import { useRef, useState } from "react";
+import { History, FileText, ArrowRight, ChevronLeft, ChevronRight, Sparkles, CheckCircle, CalendarDays, Video } from "lucide-react";
+import { useRef, useState, useCallback, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface ActionSummary {
@@ -23,6 +24,7 @@ interface ActionSummary {
 
 interface DashboardRecentActivityProps {
   activities: ActionSummary[];
+  isLoading?: boolean;
 }
 
 const formatActionType = (type: string) => {
@@ -69,18 +71,73 @@ const getImageUrl = (activity: ActionSummary): string | null => {
   return null;
 };
 
-export const DashboardRecentActivity = ({ activities }: DashboardRecentActivityProps) => {
+const useDragScroll = (ref: React.RefObject<HTMLDivElement | null>) => {
+  const [isDragging, setIsDragging] = useState(false);
+  const startX = useRef(0);
+  const scrollLeft = useRef(0);
+
+  const onPointerDown = useCallback((e: React.PointerEvent) => {
+    const el = ref.current;
+    if (!el) return;
+    setIsDragging(true);
+    startX.current = e.clientX;
+    scrollLeft.current = el.scrollLeft;
+    el.setPointerCapture(e.pointerId);
+    el.style.cursor = 'grabbing';
+  }, [ref]);
+
+  const onPointerMove = useCallback((e: React.PointerEvent) => {
+    if (!isDragging) return;
+    const el = ref.current;
+    if (!el) return;
+    const dx = e.clientX - startX.current;
+    el.scrollLeft = scrollLeft.current - dx;
+  }, [isDragging, ref]);
+
+  const onPointerUp = useCallback((e: React.PointerEvent) => {
+    const el = ref.current;
+    if (!el) return;
+    setIsDragging(false);
+    el.releasePointerCapture(e.pointerId);
+    el.style.cursor = 'grab';
+  }, [ref]);
+
+  return { isDragging, onPointerDown, onPointerMove, onPointerUp };
+};
+
+const ActivitySkeleton = () => (
+  <div className="flex gap-3 overflow-hidden pb-1">
+    {[...Array(4)].map((_, i) => (
+      <div key={i} className="shrink-0 w-[200px] sm:w-[220px]">
+        <div className="rounded-xl border border-border/30 overflow-hidden bg-card">
+          <Skeleton className="h-28 w-full rounded-none" />
+          <div className="p-3 space-y-2">
+            <Skeleton className="h-3.5 w-24" />
+            <Skeleton className="h-3 w-16" />
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+);
+
+export const DashboardRecentActivity = ({ activities, isLoading }: DashboardRecentActivityProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
+  const { isDragging, onPointerDown, onPointerMove, onPointerUp } = useDragScroll(scrollRef);
 
-  const updateScrollState = () => {
+  const updateScrollState = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return;
     setCanScrollLeft(el.scrollLeft > 4);
     setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 4);
-  };
+  }, []);
+
+  useEffect(() => {
+    updateScrollState();
+  }, [activities, updateScrollState]);
 
   const scroll = (dir: 'left' | 'right') => {
     const el = scrollRef.current;
@@ -107,10 +164,10 @@ export const DashboardRecentActivity = ({ activities }: DashboardRecentActivityP
           <div className="flex items-center gap-1">
             {activities.length > 0 && (
               <>
-                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => scroll('left')} disabled={!canScrollLeft}>
+                <Button variant="ghost" size="icon" className="h-7 w-7 hidden sm:flex" onClick={() => scroll('left')} disabled={!canScrollLeft}>
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
-                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => scroll('right')} disabled={!canScrollRight}>
+                <Button variant="ghost" size="icon" className="h-7 w-7 hidden sm:flex" onClick={() => scroll('right')} disabled={!canScrollRight}>
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </>
@@ -124,12 +181,18 @@ export const DashboardRecentActivity = ({ activities }: DashboardRecentActivityP
         </CardHeader>
 
         <CardContent className="px-4 pb-4 pt-2">
-          {activities.length > 0 ? (
+          {isLoading ? (
+            <ActivitySkeleton />
+          ) : activities.length > 0 ? (
             <div
               ref={scrollRef}
               onScroll={updateScrollState}
-              className="flex gap-3 overflow-x-auto scrollbar-none snap-x snap-mandatory pb-1"
-              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+              onPointerDown={onPointerDown}
+              onPointerMove={onPointerMove}
+              onPointerUp={onPointerUp}
+              onPointerCancel={onPointerUp}
+              className="flex gap-3 overflow-x-auto scrollbar-none snap-x snap-mandatory pb-1 select-none touch-pan-x"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', cursor: 'grab' }}
             >
               {activities.map((activity, index) => {
                 const config = actionConfig[activity.type] || actionConfig['CRIAR_CONTEUDO'];
@@ -145,28 +208,26 @@ export const DashboardRecentActivity = ({ activities }: DashboardRecentActivityP
                     className="snap-start shrink-0 w-[200px] sm:w-[220px]"
                   >
                     <div
-                      onClick={() => navigate(`/action/${activity.id}`)}
+                      onClick={() => { if (!isDragging) navigate(`/action/${activity.id}`); }}
                       className="cursor-pointer rounded-xl border border-border/30 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden bg-card group h-full"
                     >
-                      {/* Image area */}
                       <div className={`relative h-28 bg-gradient-to-br ${config.gradient} flex items-center justify-center overflow-hidden`}>
                         {imageUrl ? (
                           <img
                             src={imageUrl}
                             alt=""
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 pointer-events-none"
                             loading="lazy"
+                            draggable={false}
                           />
                         ) : (
                           <Icon className={`h-8 w-8 ${config.color} opacity-40`} />
                         )}
-                        {/* Time badge */}
                         <span className="absolute top-2 right-2 text-[10px] font-medium bg-foreground/60 text-white px-1.5 py-0.5 rounded-md backdrop-blur-sm">
                           {formatRelativeDate(activity.created_at)}
                         </span>
                       </div>
 
-                      {/* Info */}
                       <div className="p-3">
                         <div className="flex items-center gap-1.5 mb-1">
                           <Icon className={`h-3.5 w-3.5 ${config.color} shrink-0`} />
