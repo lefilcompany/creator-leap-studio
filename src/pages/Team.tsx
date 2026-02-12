@@ -23,8 +23,8 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { PageBreadcrumb } from "@/components/PageBreadcrumb";
 import { Skeleton } from "@/components/ui/skeleton";
+import dashboardBanner from '@/assets/dashboard-banner.jpg';
 
 interface TeamMember {
   id: string;
@@ -78,27 +78,21 @@ export default function Team() {
   });
   const [activeTab, setActiveTab] = useState('members');
 
-  // Resetar página quando membros mudarem
   useEffect(() => {
     setCurrentPage(1);
   }, [members.length]);
 
   const isTeamAdmin = team?.admin_id === user?.id;
-
-  // Show skeleton until auth AND teams data are both ready
   const showSkeleton = isAuthLoading || !isTeamsLoaded;
 
-  // Carregar equipes acessíveis
   useEffect(() => {
     if (user) {
       loadAccessibleTeams();
     } else if (!isAuthLoading) {
-      // Auth finished but no user — mark as loaded
       setIsTeamsLoaded(true);
     }
   }, [user, isAuthLoading]);
 
-  // Carregar dados da equipe selecionada
   useEffect(() => {
     if (selectedTeam) {
       loadTeamContent(selectedTeam.id);
@@ -108,7 +102,6 @@ export default function Team() {
     }
   }, [selectedTeam, isTeamAdmin]);
 
-  // Definir equipe selecionada inicial
   useEffect(() => {
     if (team && accessibleTeams.length > 0) {
       const myTeam = accessibleTeams.find(t => t.id === team.id);
@@ -124,7 +117,6 @@ export default function Team() {
     if (!user) return;
 
     try {
-      // Buscar equipe própria
       const { data: myProfile } = await supabase
         .from('profiles')
         .select('team_id')
@@ -148,7 +140,6 @@ export default function Team() {
         }
       }
 
-      // Buscar outras equipes que o usuário é membro (team_members)
       const { data: memberOf } = await supabase
         .from('team_members')
         .select(`
@@ -184,7 +175,6 @@ export default function Team() {
 
     setIsContentLoading(true);
     try {
-      // Carregar membros da equipe
       const { data: membersData, error: membersError } = await supabase
         .from('profiles')
         .select('id, name, email, avatar_url')
@@ -193,7 +183,6 @@ export default function Team() {
       if (membersError) throw membersError;
       setMembers(membersData || []);
 
-      // Buscar solicitações pendentes
       const { data: requestsData, error: requestsError } = await supabase
         .from('team_join_requests')
         .select(`
@@ -206,7 +195,6 @@ export default function Team() {
 
       if (requestsError) throw requestsError;
 
-      // Buscar dados dos usuários separadamente
       if (requestsData && requestsData.length > 0) {
         const userIds = requestsData.map((req: any) => req.user_id);
         const { data: profilesData } = await supabase
@@ -241,28 +229,24 @@ export default function Team() {
 
   const loadTeamContent = async (teamId: string) => {
     try {
-      // Carregar marcas da equipe
       const { data: brandsData } = await supabase
         .from('brands')
         .select('id, name, segment')
         .eq('team_id', teamId)
         .order('name');
 
-      // Carregar personas da equipe
       const { data: personasData } = await supabase
         .from('personas')
         .select('id, name, brand_id, brands(name)')
         .eq('team_id', teamId)
         .order('name');
 
-      // Carregar temas estratégicos da equipe
       const { data: themesData } = await supabase
         .from('strategic_themes')
         .select('id, title, brand_id, brands(name)')
         .eq('team_id', teamId)
         .order('title');
 
-      // Carregar ações/criações da equipe
       const { data: actionsData } = await supabase
         .from('actions')
         .select('id, type, created_at, brand_id, brands(name)')
@@ -321,8 +305,6 @@ export default function Team() {
 
       setPendingRequests(prev => prev.filter(req => req.id !== requestId));
       toast.success(`${userName} foi adicionado à equipe!`);
-      
-      // Recarregar membros
       loadTeamManagementData();
     } catch (error: any) {
       console.error('Erro ao aprovar solicitação:', error);
@@ -384,84 +366,119 @@ export default function Team() {
     return labels[type] || type;
   };
 
+  // --- Banner + Header Card shared component ---
+  const BannerWithHeader = ({ actions }: { actions?: React.ReactNode }) => (
+    <>
+      {/* Banner */}
+      <div className="relative h-48 md:h-56 overflow-hidden">
+        <img
+          src={dashboardBanner}
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover object-bottom"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/40 to-transparent" />
+      </div>
+
+      {/* Overlapping Header Card */}
+      <div className="relative px-4 sm:px-6 lg:px-8 -mt-12 z-10">
+        <div className="bg-card rounded-2xl shadow-lg border p-4 lg:p-5">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex items-center gap-3">
+              <div className="flex-shrink-0 bg-primary/10 border border-primary/20 text-primary rounded-2xl p-3">
+                <UsersRound className="h-7 w-7" />
+              </div>
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
+                  Equipes
+                </h1>
+                <p className="text-sm text-muted-foreground">
+                  {accessibleTeams.length > 1
+                    ? `Você tem acesso a ${accessibleTeams.length} equipes`
+                    : 'Colabore com outros usuários compartilhando marcas, personas e temas'}
+                </p>
+              </div>
+            </div>
+            {actions && <div className="flex gap-2">{actions}</div>}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+
+  // --- Skeleton state ---
   if (showSkeleton || isContentLoading) {
     return (
-      <div className="min-h-full space-y-6 animate-fade-in">
-        <PageBreadcrumb items={[{ label: "Equipes" }]} />
-        <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5">
-          <CardHeader className="pb-4">
+      <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8 animate-fade-in">
+        <div className="relative h-48 md:h-56 overflow-hidden bg-muted" />
+        <div className="relative px-4 sm:px-6 lg:px-8 -mt-12 z-10">
+          <div className="bg-card rounded-2xl shadow-lg border p-4 lg:p-5">
             <div className="flex items-center gap-3">
-              <Skeleton className="h-14 w-14 rounded-lg" />
+              <Skeleton className="h-14 w-14 rounded-2xl" />
               <div className="space-y-2">
                 <Skeleton className="h-8 w-32" />
                 <Skeleton className="h-4 w-56" />
               </div>
             </div>
-          </CardHeader>
-        </Card>
-        <Card className="shadow-lg border-0">
-          <CardHeader>
-            <Skeleton className="h-6 w-40" />
-            <Skeleton className="h-4 w-64" />
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="flex items-center gap-4">
-                <Skeleton className="h-10 w-10 rounded-full" />
-                <div className="space-y-2 flex-1">
-                  <Skeleton className="h-4 w-32" />
-                  <Skeleton className="h-3 w-48" />
+          </div>
+        </div>
+        <main className="px-4 sm:px-6 lg:px-8 pt-4 pb-4 sm:pb-6 lg:pb-8">
+          <Card className="border-0 shadow-lg">
+            <CardContent className="space-y-4 p-6">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="flex items-center gap-4">
+                  <Skeleton className="h-10 w-10 rounded-full" />
+                  <div className="space-y-2 flex-1">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-3 w-48" />
+                  </div>
                 </div>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+              ))}
+            </CardContent>
+          </Card>
+        </main>
       </div>
     );
   }
 
-  // Sem equipe - mostrar opções para criar/entrar
+  // --- No team state ---
   if (!team && accessibleTeams.length === 0) {
     return (
-      <div className="min-h-full space-y-6 animate-fade-in">
-        {/* Breadcrumb Navigation */}
-        <PageBreadcrumb items={[{ label: "Equipes" }]} />
+      <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8 animate-fade-in">
+        <BannerWithHeader
+          actions={
+            <>
+              <Button onClick={() => setShowCreateDialog(true)} size="sm">
+                <Plus className="h-4 w-4 mr-2" />
+                Criar Equipe
+              </Button>
+              <Button onClick={() => setShowJoinDialog(true)} variant="outline" size="sm">
+                <UserPlus className="h-4 w-4 mr-2" />
+                Entrar em Equipe
+              </Button>
+            </>
+          }
+        />
 
-        <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5 hover:shadow-xl transition-shadow duration-300">
-          <CardHeader className="pb-4">
-            <div className="flex items-center gap-3">
-              <div className="flex-shrink-0 bg-primary/10 text-primary rounded-lg p-3">
-                <UsersRound className="h-8 w-8" />
-              </div>
-              <div>
-                <CardTitle className="text-3xl font-bold">
-                  Equipes
-                </CardTitle>
-                <p className="text-muted-foreground">Colabore com outros usuários compartilhando marcas, personas e temas.</p>
-              </div>
+        <main className="px-4 sm:px-6 lg:px-8 pt-4 pb-4 sm:pb-6 lg:pb-8">
+          <Card className="border-0 shadow-lg p-8 text-center">
+            <UsersRound className="h-16 w-16 mx-auto text-muted-foreground/50 mb-4" />
+            <h3 className="text-xl font-semibold mb-2">Você não está em nenhuma equipe</h3>
+            <p className="text-muted-foreground mb-6">
+              Equipes permitem compartilhar marcas, personas e temas com outros membros, além de visualizar as criações de todos.
+            </p>
+            <div className="flex gap-4 justify-center flex-wrap">
+              <Button onClick={() => setShowCreateDialog(true)} variant="default" size="lg">
+                <Plus className="h-5 w-5 mr-2" />
+                Criar Equipe
+              </Button>
+              <Button onClick={() => setShowJoinDialog(true)} variant="outline" size="lg">
+                <UserPlus className="h-5 w-5 mr-2" />
+                Entrar em uma Equipe
+              </Button>
             </div>
-          </CardHeader>
-        </Card>
+          </Card>
+        </main>
 
-        <Card className="shadow-lg border-0 p-8 text-center">
-          <UsersRound className="h-16 w-16 mx-auto text-muted-foreground/50 mb-4" />
-          <h3 className="text-xl font-semibold mb-2">Você não está em nenhuma equipe</h3>
-          <p className="text-muted-foreground mb-6">
-            Equipes permitem compartilhar marcas, personas e temas com outros membros, além de visualizar as criações de todos.
-          </p>
-          <div className="flex gap-4 justify-center flex-wrap">
-            <Button onClick={() => setShowCreateDialog(true)} variant="default" size="lg">
-              <Plus className="h-5 w-5 mr-2" />
-              Criar Equipe
-            </Button>
-            <Button onClick={() => setShowJoinDialog(true)} variant="outline" size="lg">
-              <UserPlus className="h-5 w-5 mr-2" />
-              Entrar em uma Equipe
-            </Button>
-          </div>
-        </Card>
-
-        {/* Dialogs */}
         <CreateTeamDialog
           open={showCreateDialog}
           onClose={() => setShowCreateDialog(false)}
@@ -484,425 +501,406 @@ export default function Team() {
     );
   }
 
+  // --- Main state with team ---
   return (
-    <div className="min-h-full space-y-6 animate-fade-in">
-      {/* Breadcrumb Navigation */}
-      <PageBreadcrumb items={[{ label: "Equipes" }]} />
-
-      {/* Header */}
-      <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5 hover:shadow-xl transition-shadow duration-300">
-        <CardHeader className="pb-4">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div className="flex items-center gap-3">
-              <div className="flex-shrink-0 bg-primary/10 text-primary rounded-lg p-3">
-                <UsersRound className="h-8 w-8" />
-              </div>
-              <div>
-                <CardTitle className="text-3xl font-bold">
-                  Equipes
-                </CardTitle>
-                <p className="text-muted-foreground">
-                  {accessibleTeams.length === 1 
-                    ? 'Gerencie sua equipe e conteúdo compartilhado'
-                    : `Você tem acesso a ${accessibleTeams.length} equipes`}
-                </p>
-              </div>
-            </div>
-            
-            <div className="flex gap-2">
-              <Button onClick={() => setShowCreateDialog(true)} variant="outline" size="sm">
-                <Plus className="h-4 w-4 mr-2" />
-                Nova Equipe
-              </Button>
-              <Button onClick={() => setShowJoinDialog(true)} variant="outline" size="sm">
-                <UserPlus className="h-4 w-4 mr-2" />
-                Entrar em Equipe
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-      </Card>
-
-      {/* Seletor de Equipes */}
-      {accessibleTeams.length > 1 && (
-        <div className="flex gap-2 flex-wrap">
-          {accessibleTeams.map((t) => (
-            <Button
-              key={t.id}
-              variant={selectedTeam?.id === t.id ? 'default' : 'outline'}
-              onClick={() => setSelectedTeam(t)}
-              className="flex items-center gap-2"
-            >
-              {t.isMyTeam && <Crown className="h-4 w-4" />}
-              {t.name}
+    <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8 animate-fade-in">
+      <BannerWithHeader
+        actions={
+          <>
+            <Button onClick={() => setShowCreateDialog(true)} variant="outline" size="sm">
+              <Plus className="h-4 w-4 mr-2" />
+              Nova Equipe
             </Button>
-          ))}
-        </div>
-      )}
+            <Button onClick={() => setShowJoinDialog(true)} variant="outline" size="sm">
+              <UserPlus className="h-4 w-4 mr-2" />
+              Entrar em Equipe
+            </Button>
+          </>
+        }
+      />
 
-      {selectedTeam && (
-        <>
-          {/* Info da Equipe Selecionada */}
-          <Card className="shadow-lg border-0">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="flex-shrink-0 bg-secondary/10 text-secondary rounded-lg p-2">
-                    <Rocket className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-xl flex items-center gap-2">
-                      {selectedTeam.name}
-                      {selectedTeam.isMyTeam && (
-                        <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
-                          Minha Equipe
-                        </span>
-                      )}
-                    </CardTitle>
-                    {selectedTeam.isMyTeam && isTeamAdmin && (
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-sm text-muted-foreground">Código:</span>
-                        <code className="text-sm bg-muted px-2 py-0.5 rounded font-mono">
-                          {team?.code}
-                        </code>
-                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={copyToClipboard}>
-                          <ClipboardCopy className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </CardHeader>
-          </Card>
+      <main className="px-4 sm:px-6 lg:px-8 pt-4 pb-4 sm:pb-6 lg:pb-8">
+        {/* Team Selector */}
+        {accessibleTeams.length > 1 && (
+          <div className="flex gap-2 flex-wrap mb-4">
+            {accessibleTeams.map((t) => (
+              <Button
+                key={t.id}
+                variant={selectedTeam?.id === t.id ? 'default' : 'outline'}
+                onClick={() => setSelectedTeam(t)}
+                className="flex items-center gap-2"
+              >
+                {t.isMyTeam && <Crown className="h-4 w-4" />}
+                {t.name}
+              </Button>
+            ))}
+          </div>
+        )}
 
-          {/* Tabs de Conteúdo */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5 mb-4">
-              <TabsTrigger value="brands" className="flex items-center gap-2">
-                <Tag className="h-4 w-4" />
-                Marcas ({sharedContent.brands.length})
-              </TabsTrigger>
-              <TabsTrigger value="personas" className="flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                Personas ({sharedContent.personas.length})
-              </TabsTrigger>
-              <TabsTrigger value="themes" className="flex items-center gap-2">
-                <Palette className="h-4 w-4" />
-                Temas ({sharedContent.themes.length})
-              </TabsTrigger>
-              <TabsTrigger value="actions" className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4" />
-                Criações ({sharedContent.actions.length})
-              </TabsTrigger>
-              {selectedTeam.isMyTeam && isTeamAdmin && (
-                <TabsTrigger value="members" className="flex items-center gap-2">
-                  <UsersRound className="h-4 w-4" />
-                  Membros ({members.length})
-                </TabsTrigger>
-              )}
-            </TabsList>
-
-            {/* Tab: Marcas */}
-            <TabsContent value="brands">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Tag className="h-5 w-5" />
-                    Marcas da Equipe
-                  </CardTitle>
-                  <CardDescription>Marcas compartilhadas com os membros da equipe</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {sharedContent.brands.length > 0 ? (
-                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                      {sharedContent.brands.map((brand) => (
-                        <Card 
-                          key={brand.id} 
-                          className="cursor-pointer hover:shadow-md transition-all hover:border-primary/30"
-                          onClick={() => navigate(`/brands`)}
-                        >
-                          <CardContent className="p-4">
-                            <h4 className="font-semibold">{brand.name}</h4>
-                            <p className="text-sm text-muted-foreground">{brand.segment}</p>
-                          </CardContent>
-                        </Card>
-                      ))}
+        {selectedTeam && (
+          <>
+            {/* Selected Team Info */}
+            <Card className="shadow-lg border-0 mb-4">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="flex-shrink-0 bg-secondary/10 text-secondary rounded-lg p-2">
+                      <Rocket className="h-6 w-6" />
                     </div>
-                  ) : (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <FolderOpen className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                      <p>Nenhuma marca compartilhada nesta equipe</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Tab: Personas */}
-            <TabsContent value="personas">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Users className="h-5 w-5" />
-                    Personas da Equipe
-                  </CardTitle>
-                  <CardDescription>Personas compartilhadas com os membros da equipe</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {sharedContent.personas.length > 0 ? (
-                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                      {sharedContent.personas.map((persona) => (
-                        <Card 
-                          key={persona.id} 
-                          className="cursor-pointer hover:shadow-md transition-all hover:border-primary/30"
-                          onClick={() => navigate(`/personas`)}
-                        >
-                          <CardContent className="p-4">
-                            <h4 className="font-semibold">{persona.name}</h4>
-                            <p className="text-sm text-muted-foreground">{persona.brand_name}</p>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <FolderOpen className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                      <p>Nenhuma persona compartilhada nesta equipe</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Tab: Temas */}
-            <TabsContent value="themes">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Palette className="h-5 w-5" />
-                    Temas Estratégicos da Equipe
-                  </CardTitle>
-                  <CardDescription>Temas compartilhados com os membros da equipe</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {sharedContent.themes.length > 0 ? (
-                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                      {sharedContent.themes.map((theme) => (
-                        <Card 
-                          key={theme.id} 
-                          className="cursor-pointer hover:shadow-md transition-all hover:border-primary/30"
-                          onClick={() => navigate(`/themes`)}
-                        >
-                          <CardContent className="p-4">
-                            <h4 className="font-semibold">{theme.title}</h4>
-                            <p className="text-sm text-muted-foreground">{theme.brand_name}</p>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <FolderOpen className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                      <p>Nenhum tema compartilhado nesta equipe</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Tab: Criações */}
-            <TabsContent value="actions">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Sparkles className="h-5 w-5" />
-                    Criações Recentes da Equipe
-                  </CardTitle>
-                  <CardDescription>Últimas criações feitas pelos membros da equipe</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {sharedContent.actions.length > 0 ? (
-                    <div className="space-y-3">
-                      {sharedContent.actions.map((action) => (
-                        <Card 
-                          key={action.id} 
-                          className="cursor-pointer hover:shadow-md transition-all hover:border-primary/30"
-                          onClick={() => navigate(`/action/${action.id}`)}
-                        >
-                          <CardContent className="p-4 flex items-center justify-between">
-                            <div>
-                              <h4 className="font-semibold">{getActionTypeLabel(action.type)}</h4>
-                              <p className="text-sm text-muted-foreground">{action.brand_name}</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-sm text-muted-foreground">
-                                {new Date(action.created_at).toLocaleDateString('pt-BR')}
-                              </p>
-                              <Button variant="ghost" size="sm">
-                                <Eye className="h-4 w-4 mr-1" />
-                                Ver
-                              </Button>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <FolderOpen className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                      <p>Nenhuma criação nesta equipe ainda</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Tab: Membros (apenas admin) */}
-            {selectedTeam.isMyTeam && isTeamAdmin && (
-              <TabsContent value="members">
-                <div className="grid gap-6 lg:grid-cols-2">
-                  {/* Solicitações Pendentes */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <UserPlus className="h-5 w-5" />
-                        Solicitações Pendentes
-                        {pendingRequests.length > 0 && (
-                          <span className="bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full">
-                            {pendingRequests.length}
+                    <div>
+                      <CardTitle className="text-xl flex items-center gap-2">
+                        {selectedTeam.name}
+                        {selectedTeam.isMyTeam && (
+                          <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
+                            Minha Equipe
                           </span>
                         )}
                       </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      {pendingRequests.length > 0 ? (
-                        <div className="space-y-3">
-                          {pendingRequests.map((request) => (
-                            <div key={request.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                              <div className="flex items-center gap-3">
-                                <Avatar className="h-10 w-10">
-                                  <AvatarImage src={request.avatar_url} />
-                                  <AvatarFallback>{request.name.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                                <div>
-                                  <p className="font-medium">{request.name}</p>
-                                  <p className="text-sm text-muted-foreground">{request.email}</p>
-                                </div>
-                              </div>
-                              <div className="flex gap-2">
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                                  onClick={() => handleRejectRequest(request.id, request.name)}
-                                >
-                                  <X className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="text-green-600 hover:bg-green-600 hover:text-white"
-                                  onClick={() => handleApproveRequest(request.id, request.name)}
-                                >
-                                  <Check className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </div>
-                          ))}
+                      {selectedTeam.isMyTeam && isTeamAdmin && (
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-sm text-muted-foreground">Código:</span>
+                          <code className="text-sm bg-muted px-2 py-0.5 rounded font-mono">
+                            {team?.code}
+                          </code>
+                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={copyToClipboard}>
+                            <ClipboardCopy className="h-3 w-3" />
+                          </Button>
                         </div>
-                      ) : (
-                        <p className="text-center text-muted-foreground py-4">
-                          Nenhuma solicitação pendente
-                        </p>
                       )}
-                    </CardContent>
-                  </Card>
-
-                  {/* Lista de Membros */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <UsersRound className="h-5 w-5" />
-                        Membros da Equipe ({members.length})
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      {members.length > 0 ? (
-                        <div className="space-y-3">
-                          {members.slice((currentPage - 1) * membersPerPage, currentPage * membersPerPage).map((member) => (
-                            <div key={member.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                              <div className="flex items-center gap-3">
-                                <Avatar className="h-10 w-10">
-                                  <AvatarImage src={member.avatar_url} />
-                                  <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                                <div>
-                                  <p className="font-medium flex items-center gap-2">
-                                    {member.name}
-                                    {member.id === team?.admin_id && (
-                                      <Crown className="h-4 w-4 text-amber-500" />
-                                    )}
-                                  </p>
-                                  <p className="text-sm text-muted-foreground">{member.email}</p>
-                                </div>
-                              </div>
-                              {member.id !== team?.admin_id && (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                                  onClick={() => handleRemoveMember(member.id, member.name)}
-                                >
-                                  <UserMinus className="h-4 w-4" />
-                                </Button>
-                              )}
-                            </div>
-                          ))}
-                          
-                          {members.length > membersPerPage && (
-                            <Pagination className="mt-4">
-                              <PaginationContent>
-                                <PaginationItem>
-                                  <PaginationPrevious 
-                                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                                    className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                                  />
-                                </PaginationItem>
-                                {Array.from({ length: Math.ceil(members.length / membersPerPage) }, (_, i) => i + 1).map((page) => (
-                                  <PaginationItem key={page}>
-                                    <PaginationLink
-                                      onClick={() => setCurrentPage(page)}
-                                      isActive={currentPage === page}
-                                      className="cursor-pointer"
-                                    >
-                                      {page}
-                                    </PaginationLink>
-                                  </PaginationItem>
-                                ))}
-                                <PaginationItem>
-                                  <PaginationNext 
-                                    onClick={() => setCurrentPage(prev => Math.min(Math.ceil(members.length / membersPerPage), prev + 1))}
-                                    className={currentPage === Math.ceil(members.length / membersPerPage) ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                                  />
-                                </PaginationItem>
-                              </PaginationContent>
-                            </Pagination>
-                          )}
-                        </div>
-                      ) : (
-                        <p className="text-center text-muted-foreground py-4">
-                          Nenhum membro na equipe
-                        </p>
-                      )}
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
                 </div>
+              </CardHeader>
+            </Card>
+
+            {/* Content Tabs */}
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5 mb-4">
+                <TabsTrigger value="brands" className="flex items-center gap-2">
+                  <Tag className="h-4 w-4" />
+                  Marcas ({sharedContent.brands.length})
+                </TabsTrigger>
+                <TabsTrigger value="personas" className="flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  Personas ({sharedContent.personas.length})
+                </TabsTrigger>
+                <TabsTrigger value="themes" className="flex items-center gap-2">
+                  <Palette className="h-4 w-4" />
+                  Temas ({sharedContent.themes.length})
+                </TabsTrigger>
+                <TabsTrigger value="actions" className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4" />
+                  Criações ({sharedContent.actions.length})
+                </TabsTrigger>
+                {selectedTeam.isMyTeam && isTeamAdmin && (
+                  <TabsTrigger value="members" className="flex items-center gap-2">
+                    <UsersRound className="h-4 w-4" />
+                    Membros ({members.length})
+                  </TabsTrigger>
+                )}
+              </TabsList>
+
+              {/* Tab: Marcas */}
+              <TabsContent value="brands">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Tag className="h-5 w-5" />
+                      Marcas da Equipe
+                    </CardTitle>
+                    <CardDescription>Marcas compartilhadas com os membros da equipe</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {sharedContent.brands.length > 0 ? (
+                      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                        {sharedContent.brands.map((brand) => (
+                          <Card 
+                            key={brand.id} 
+                            className="cursor-pointer hover:shadow-md transition-all hover:border-primary/30"
+                            onClick={() => navigate(`/brands`)}
+                          >
+                            <CardContent className="p-4">
+                              <h4 className="font-semibold">{brand.name}</h4>
+                              <p className="text-sm text-muted-foreground">{brand.segment}</p>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <FolderOpen className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                        <p>Nenhuma marca compartilhada nesta equipe</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
               </TabsContent>
-            )}
-          </Tabs>
-        </>
-      )}
+
+              {/* Tab: Personas */}
+              <TabsContent value="personas">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Users className="h-5 w-5" />
+                      Personas da Equipe
+                    </CardTitle>
+                    <CardDescription>Personas compartilhadas com os membros da equipe</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {sharedContent.personas.length > 0 ? (
+                      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                        {sharedContent.personas.map((persona) => (
+                          <Card 
+                            key={persona.id} 
+                            className="cursor-pointer hover:shadow-md transition-all hover:border-primary/30"
+                            onClick={() => navigate(`/personas`)}
+                          >
+                            <CardContent className="p-4">
+                              <h4 className="font-semibold">{persona.name}</h4>
+                              <p className="text-sm text-muted-foreground">{persona.brand_name}</p>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <FolderOpen className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                        <p>Nenhuma persona compartilhada nesta equipe</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Tab: Temas */}
+              <TabsContent value="themes">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Palette className="h-5 w-5" />
+                      Temas Estratégicos da Equipe
+                    </CardTitle>
+                    <CardDescription>Temas compartilhados com os membros da equipe</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {sharedContent.themes.length > 0 ? (
+                      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                        {sharedContent.themes.map((theme) => (
+                          <Card 
+                            key={theme.id} 
+                            className="cursor-pointer hover:shadow-md transition-all hover:border-primary/30"
+                            onClick={() => navigate(`/themes`)}
+                          >
+                            <CardContent className="p-4">
+                              <h4 className="font-semibold">{theme.title}</h4>
+                              <p className="text-sm text-muted-foreground">{theme.brand_name}</p>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <FolderOpen className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                        <p>Nenhum tema compartilhado nesta equipe</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Tab: Criações */}
+              <TabsContent value="actions">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Sparkles className="h-5 w-5" />
+                      Criações Recentes da Equipe
+                    </CardTitle>
+                    <CardDescription>Últimas criações feitas pelos membros da equipe</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {sharedContent.actions.length > 0 ? (
+                      <div className="space-y-3">
+                        {sharedContent.actions.map((action) => (
+                          <Card 
+                            key={action.id} 
+                            className="cursor-pointer hover:shadow-md transition-all hover:border-primary/30"
+                            onClick={() => navigate(`/action/${action.id}`)}
+                          >
+                            <CardContent className="p-4 flex items-center justify-between">
+                              <div>
+                                <h4 className="font-semibold">{getActionTypeLabel(action.type)}</h4>
+                                <p className="text-sm text-muted-foreground">{action.brand_name}</p>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-sm text-muted-foreground">
+                                  {new Date(action.created_at).toLocaleDateString('pt-BR')}
+                                </p>
+                                <Button variant="ghost" size="sm">
+                                  <Eye className="h-4 w-4 mr-1" />
+                                  Ver
+                                </Button>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <FolderOpen className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                        <p>Nenhuma criação nesta equipe ainda</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Tab: Membros (apenas admin) */}
+              {selectedTeam.isMyTeam && isTeamAdmin && (
+                <TabsContent value="members">
+                  <div className="grid gap-6 lg:grid-cols-2">
+                    {/* Solicitações Pendentes */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <UserPlus className="h-5 w-5" />
+                          Solicitações Pendentes
+                          {pendingRequests.length > 0 && (
+                            <span className="bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full">
+                              {pendingRequests.length}
+                            </span>
+                          )}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        {pendingRequests.length > 0 ? (
+                          <div className="space-y-3">
+                            {pendingRequests.map((request) => (
+                              <div key={request.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                                <div className="flex items-center gap-3">
+                                  <Avatar className="h-10 w-10">
+                                    <AvatarImage src={request.avatar_url} />
+                                    <AvatarFallback>{request.name.charAt(0)}</AvatarFallback>
+                                  </Avatar>
+                                  <div>
+                                    <p className="font-medium">{request.name}</p>
+                                    <p className="text-sm text-muted-foreground">{request.email}</p>
+                                  </div>
+                                </div>
+                                <div className="flex gap-2">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                                    onClick={() => handleRejectRequest(request.id, request.name)}
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="text-green-600 hover:bg-green-600 hover:text-white"
+                                    onClick={() => handleApproveRequest(request.id, request.name)}
+                                  >
+                                    <Check className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-center text-muted-foreground py-4">
+                            Nenhuma solicitação pendente
+                          </p>
+                        )}
+                      </CardContent>
+                    </Card>
+
+                    {/* Lista de Membros */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <UsersRound className="h-5 w-5" />
+                          Membros da Equipe ({members.length})
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        {members.length > 0 ? (
+                          <div className="space-y-3">
+                            {members.slice((currentPage - 1) * membersPerPage, currentPage * membersPerPage).map((member) => (
+                              <div key={member.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                                <div className="flex items-center gap-3">
+                                  <Avatar className="h-10 w-10">
+                                    <AvatarImage src={member.avatar_url} />
+                                    <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
+                                  </Avatar>
+                                  <div>
+                                    <p className="font-medium flex items-center gap-2">
+                                      {member.name}
+                                      {member.id === team?.admin_id && (
+                                        <Crown className="h-4 w-4 text-amber-500" />
+                                      )}
+                                    </p>
+                                    <p className="text-sm text-muted-foreground">{member.email}</p>
+                                  </div>
+                                </div>
+                                {member.id !== team?.admin_id && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                                    onClick={() => handleRemoveMember(member.id, member.name)}
+                                  >
+                                    <UserMinus className="h-4 w-4" />
+                                  </Button>
+                                )}
+                              </div>
+                            ))}
+                            
+                            {members.length > membersPerPage && (
+                              <Pagination className="mt-4">
+                                <PaginationContent>
+                                  <PaginationItem>
+                                    <PaginationPrevious 
+                                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                                      className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                                    />
+                                  </PaginationItem>
+                                  {Array.from({ length: Math.ceil(members.length / membersPerPage) }, (_, i) => i + 1).map((page) => (
+                                    <PaginationItem key={page}>
+                                      <PaginationLink
+                                        onClick={() => setCurrentPage(page)}
+                                        isActive={currentPage === page}
+                                        className="cursor-pointer"
+                                      >
+                                        {page}
+                                      </PaginationLink>
+                                    </PaginationItem>
+                                  ))}
+                                  <PaginationItem>
+                                    <PaginationNext 
+                                      onClick={() => setCurrentPage(prev => Math.min(Math.ceil(members.length / membersPerPage), prev + 1))}
+                                      className={currentPage === Math.ceil(members.length / membersPerPage) ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                                    />
+                                  </PaginationItem>
+                                </PaginationContent>
+                              </Pagination>
+                            )}
+                          </div>
+                        ) : (
+                          <p className="text-center text-muted-foreground py-4">
+                            Nenhum membro na equipe
+                          </p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </div>
+                </TabsContent>
+              )}
+            </Tabs>
+          </>
+        )}
+      </main>
 
       {/* Dialogs */}
       <CreateTeamDialog
