@@ -5,8 +5,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Crown, MapPin, CalendarDays, Users, Mail, ArrowLeft } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Crown, MapPin, CalendarDays, Users, Mail } from 'lucide-react';
+import { PageBreadcrumb } from '@/components/PageBreadcrumb';
 import profileBannerDefault from '@/assets/profile-banner.jpg';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -136,6 +136,13 @@ export default function PublicProfile() {
     <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8 animate-fade-in">
       {/* Banner */}
       <div className="relative w-full h-48 md:h-56 lg:h-64 xl:h-72 flex-shrink-0 overflow-hidden">
+        <PageBreadcrumb
+          variant="overlay"
+          items={[
+            { label: 'Equipe', href: '/team' },
+            { label: profile.name },
+          ]}
+        />
         <img
           src={bannerSrc}
           alt=""
@@ -175,15 +182,6 @@ export default function PublicProfile() {
             )}
           </div>
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate(-1)}
-            className="flex-shrink-0 hidden sm:flex"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Voltar
-          </Button>
         </div>
       </div>
 
@@ -247,13 +245,6 @@ export default function PublicProfile() {
           </CardContent>
         </Card>
 
-        {/* Mobile back button */}
-        <div className="sm:hidden mt-4">
-          <Button variant="outline" className="w-full" onClick={() => navigate(-1)}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Voltar
-          </Button>
-        </div>
       </main>
     </div>
   );

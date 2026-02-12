@@ -9,8 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
+import { PageBreadcrumb } from '@/components/PageBreadcrumb';
 import { 
-  ArrowLeft, 
   BarChart3, 
   Calendar, 
   Search, 
@@ -257,18 +257,11 @@ export default function TeamDashboard() {
   return (
     <div className="min-h-full space-y-6 animate-fade-in p-4 md:p-6">
       {/* Header */}
+      <PageBreadcrumb items={[{ label: 'Equipe', href: '/team' }, { label: 'Dashboard' }]} className="mb-4" />
       <Card className="shadow-lg border-0 bg-gradient-to-br from-primary/10 via-primary/5 to-background hover:shadow-xl transition-shadow duration-300">
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate('/team')}
-                className="hover:bg-primary/10 hover:scale-105 transition-all duration-200"
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
               <div className="flex items-center gap-4">
                 <div className="flex-shrink-0 bg-primary/10 text-primary rounded-2xl p-4">
                   <BarChart3 className="h-8 w-8 md:h-10 md:w-10" />

@@ -1,4 +1,5 @@
 import { ImageIcon, Camera, Loader2 } from 'lucide-react';
+import { PageBreadcrumb } from '@/components/PageBreadcrumb';
 import { useEffect, useState, useRef } from 'react';
 import PersonalInfoForm from '@/components/perfil/PersonalInfoForm';
 import AccountManagement from '@/components/perfil/AccountManagement';
@@ -165,6 +166,10 @@ export default function Profile() {
         className="relative w-full h-48 md:h-56 lg:h-64 xl:h-72 flex-shrink-0 overflow-hidden group/banner cursor-pointer"
         onClick={() => !uploadingBanner && bannerInputRef.current?.click()}
       >
+        <PageBreadcrumb
+          variant="overlay"
+          items={[{ label: 'Meu Perfil' }]}
+        />
         <img 
           src={bannerSrc} 
           alt="" 

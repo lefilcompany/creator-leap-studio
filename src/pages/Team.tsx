@@ -25,6 +25,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from 'framer-motion';
 import teamBanner from '@/assets/team-banner.jpg';
+import { PageBreadcrumb } from '@/components/PageBreadcrumb';
 
 interface TeamMember {
   id: string;
@@ -335,6 +336,10 @@ export default function Team() {
   const BannerWithHeader = ({ actions }: { actions?: React.ReactNode }) => (
     <>
       <div className="relative h-40 sm:h-48 md:h-56 lg:h-64 overflow-hidden">
+        <PageBreadcrumb
+          variant="overlay"
+          items={[{ label: 'Equipe' }]}
+        />
         <img
           src={teamBanner}
           alt=""

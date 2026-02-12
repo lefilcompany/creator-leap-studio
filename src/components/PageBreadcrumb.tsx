@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Home } from "lucide-react";
+import { cn } from "@/lib/utils";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -19,17 +20,26 @@ interface BreadcrumbItemType {
 interface PageBreadcrumbProps {
   items: BreadcrumbItemType[];
   className?: string;
+  variant?: "default" | "overlay";
 }
 
-export function PageBreadcrumb({ items, className }: PageBreadcrumbProps) {
+export function PageBreadcrumb({ items, className, variant = "default" }: PageBreadcrumbProps) {
+  const isOverlay = variant === "overlay";
+
   return (
-    <Breadcrumb className={className}>
+    <Breadcrumb className={cn(
+      isOverlay && "absolute top-4 left-4 sm:left-6 lg:left-8 z-10 [&_*]:text-white/90 [&_*]:drop-shadow-md",
+      className
+    )}>
       <BreadcrumbList>
         <BreadcrumbItem>
           <BreadcrumbLink asChild>
             <Link 
               to="/dashboard" 
-              className="flex items-center text-muted-foreground hover:text-primary transition-colors"
+              className={cn(
+                "flex items-center transition-colors",
+                isOverlay ? "hover:text-white" : "text-muted-foreground hover:text-primary"
+              )}
             >
               <Home className="h-4 w-4" />
             </Link>
@@ -42,7 +52,10 @@ export function PageBreadcrumb({ items, className }: PageBreadcrumbProps) {
               <BreadcrumbSeparator />
               <BreadcrumbItem>
                 {isLast || !item.href ? (
-                  <BreadcrumbPage className="text-foreground font-medium flex items-center gap-1.5">
+                  <BreadcrumbPage className={cn(
+                    "font-medium flex items-center gap-1.5",
+                    isOverlay ? "text-white" : "text-foreground"
+                  )}>
                     {item.icon}
                     {item.label}
                   </BreadcrumbPage>
@@ -51,7 +64,10 @@ export function PageBreadcrumb({ items, className }: PageBreadcrumbProps) {
                     <Link 
                       to={item.href}
                       state={item.state}
-                      className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-1.5"
+                      className={cn(
+                        "transition-colors flex items-center gap-1.5",
+                        isOverlay ? "hover:text-white" : "text-muted-foreground hover:text-primary"
+                      )}
                     >
                       {item.icon}
                       {item.label}

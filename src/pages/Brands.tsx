@@ -17,6 +17,7 @@ import { CreditConfirmationDialog } from '@/components/CreditConfirmationDialog'
 import { TourSelector } from '@/components/onboarding/TourSelector';
 import { brandsSteps, navbarSteps } from '@/components/onboarding/tourSteps';
 import brandsBanner from '@/assets/brands-banner.jpg';
+import { PageBreadcrumb } from '@/components/PageBreadcrumb';
 
 type BrandFormData = Omit<Brand, 'id' | 'createdAt' | 'updatedAt' | 'teamId' | 'userId'>;
 
@@ -220,6 +221,10 @@ export default function MarcasPage() {
     <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8">
       {/* Banner */}
       <div className="relative w-full h-48 md:h-56 flex-shrink-0 overflow-hidden">
+        <PageBreadcrumb
+          variant="overlay"
+          items={[{ label: 'Marcas' }]}
+        />
         <img 
           src={brandsBanner} 
           alt="" 
