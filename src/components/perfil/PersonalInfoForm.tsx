@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { NativeSelect } from '@/components/ui/native-select';
-import { User, Loader2 } from 'lucide-react';
+import { UserRoundPen, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import ChangePasswordDialog from './ChangePasswordDialog';
@@ -151,7 +151,7 @@ export default function PersonalInfoForm({ initialData }: PersonalInfoFormProps)
         <CardHeader className="relative bg-gradient-to-r from-primary/8 via-secondary/5 to-accent/8 border-b border-primary/10 p-3 sm:p-5 md:p-6">
           <div className="flex items-center gap-3">
             <div className="relative p-2 sm:p-2.5 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-xl shadow-md group-hover:shadow-lg group-hover:scale-105 transition-all duration-300">
-              <User className="h-5 w-5 sm:h-6 sm:w-6 text-primary relative z-10" />
+              <UserRoundPen className="h-5 w-5 sm:h-6 sm:w-6 text-primary relative z-10" />
             </div>
             <div className="flex-1 min-w-0">
               <CardTitle className="text-lg sm:text-xl md:text-2xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent truncate">
