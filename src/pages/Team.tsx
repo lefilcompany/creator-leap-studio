@@ -26,6 +26,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from 'framer-motion';
 import teamBanner from '@/assets/team-banner.jpg';
 import { PageBreadcrumb } from '@/components/PageBreadcrumb';
+import { useAccessibleTeams, useTeamMembers, usePendingRequests, useInvalidateTeamData } from '@/hooks/useTeamData';
 
 interface TeamMember {
   id: string;
@@ -34,206 +35,45 @@ interface TeamMember {
   avatar_url?: string;
 }
 
-interface JoinRequest {
-  id: string;
-  name: string;
-  email: string;
-  created_at: string;
-  avatar_url?: string;
-}
-
-interface TeamData {
-  id: string;
-  name: string;
-  code: string;
-  admin_id: string;
-  plan_id: string;
-  isMyTeam: boolean;
-}
-
 export default function Team() {
   const { user, team, isLoading: isAuthLoading, reloadUserData } = useAuth();
   const navigate = useNavigate();
-  const [isContentLoading, setIsContentLoading] = useState(false);
-  const [isTeamsLoaded, setIsTeamsLoaded] = useState(false);
-  const [members, setMembers] = useState<TeamMember[]>([]);
-  const [pendingRequests, setPendingRequests] = useState<JoinRequest[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const membersPerPage = 12;
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showJoinDialog, setShowJoinDialog] = useState(false);
-  const [accessibleTeams, setAccessibleTeams] = useState<TeamData[]>([]);
-  const [selectedTeam, setSelectedTeam] = useState<TeamData | null>(null);
+  const [selectedTeam, setSelectedTeam] = useState<any>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [requestsExpanded, setRequestsExpanded] = useState(false);
   const [memberToRemove, setMemberToRemove] = useState<TeamMember | null>(null);
+
+  const isTeamAdmin = team?.admin_id === user?.id;
+
+  // React Query hooks with caching
+  const { data: accessibleTeams = [], isLoading: isTeamsLoading } = useAccessibleTeams();
+  const { data: members = [], isLoading: isMembersLoading } = useTeamMembers(selectedTeam?.id);
+  const { data: pendingRequests = [], isLoading: isRequestsLoading } = usePendingRequests(
+    selectedTeam?.isMyTeam ? selectedTeam?.id : undefined,
+    isTeamAdmin
+  );
+  const { invalidateMembers, invalidateRequests, invalidateTeams, invalidateAll } = useInvalidateTeamData();
+
+  const showSkeleton = isAuthLoading || isTeamsLoading;
+
   useEffect(() => {
     setCurrentPage(1);
   }, [members.length, viewMode]);
 
-  const isTeamAdmin = team?.admin_id === user?.id;
-  const showSkeleton = isAuthLoading || !isTeamsLoaded;
-
-  useEffect(() => {
-    if (user) {
-      loadAccessibleTeams();
-    } else if (!isAuthLoading) {
-      setIsTeamsLoaded(true);
-    }
-  }, [user, isAuthLoading]);
-
-  useEffect(() => {
-    if (selectedTeam) {
-      if (selectedTeam.isMyTeam && isTeamAdmin) {
-        loadTeamManagementData();
-      } else {
-        loadTeamMembers(selectedTeam.id);
-      }
-    }
-  }, [selectedTeam, isTeamAdmin]);
-
   useEffect(() => {
     if (team && accessibleTeams.length > 0) {
       const myTeam = accessibleTeams.find(t => t.id === team.id);
-      if (myTeam) {
+      if (myTeam && selectedTeam?.id !== myTeam.id) {
         setSelectedTeam(myTeam);
       }
     } else if (accessibleTeams.length > 0 && !selectedTeam) {
       setSelectedTeam(accessibleTeams[0]);
     }
   }, [team, accessibleTeams]);
-
-  const loadAccessibleTeams = async () => {
-    if (!user) return;
-
-    try {
-      const { data: myProfile } = await supabase
-        .from('profiles')
-        .select('team_id')
-        .eq('id', user.id)
-        .single();
-
-      const teams: TeamData[] = [];
-
-      if (myProfile?.team_id) {
-        const { data: myTeamData } = await supabase
-          .from('teams')
-          .select('id, name, code, admin_id, plan_id')
-          .eq('id', myProfile.team_id)
-          .single();
-
-        if (myTeamData) {
-          teams.push({
-            ...myTeamData,
-            isMyTeam: true
-          });
-        }
-      }
-
-      const { data: memberOf } = await supabase
-        .from('team_members')
-        .select(`
-          team_id,
-          teams:team_id (
-            id, name, code, admin_id, plan_id
-          )
-        `)
-        .eq('user_id', user.id);
-
-      if (memberOf) {
-        for (const membership of memberOf) {
-          const teamData = membership.teams as unknown as TeamData;
-          if (teamData && !teams.find(t => t.id === teamData.id)) {
-            teams.push({
-              ...teamData,
-              isMyTeam: false
-            });
-          }
-        }
-      }
-
-      setAccessibleTeams(teams);
-    } catch (error: any) {
-      console.error('Erro ao carregar equipes:', error);
-    } finally {
-      setIsTeamsLoaded(true);
-    }
-  };
-
-  const loadTeamMembers = async (teamId: string) => {
-    setIsContentLoading(true);
-    try {
-      const { data: membersData, error } = await supabase
-        .from('profiles')
-        .select('id, name, email, avatar_url')
-        .eq('team_id', teamId);
-
-      if (error) throw error;
-      setMembers(membersData || []);
-      setPendingRequests([]);
-    } catch (error: any) {
-      console.error('Erro ao carregar membros:', error);
-    } finally {
-      setIsContentLoading(false);
-    }
-  };
-
-  const loadTeamManagementData = async () => {
-    if (!team) return;
-
-    setIsContentLoading(true);
-    try {
-      const { data: membersData, error: membersError } = await supabase
-        .from('profiles')
-        .select('id, name, email, avatar_url')
-        .eq('team_id', team.id);
-
-      if (membersError) throw membersError;
-      setMembers(membersData || []);
-
-      const { data: requestsData, error: requestsError } = await supabase
-        .from('team_join_requests')
-        .select(`
-          id,
-          user_id,
-          created_at
-        `)
-        .eq('team_id', team.id)
-        .eq('status', 'pending');
-
-      if (requestsError) throw requestsError;
-
-      if (requestsData && requestsData.length > 0) {
-        const userIds = requestsData.map((req: any) => req.user_id);
-        const { data: profilesData } = await supabase
-          .from('profiles')
-          .select('id, name, email, avatar_url')
-          .in('id', userIds);
-
-        const profilesMap = new Map(profilesData?.map(p => [p.id, p]) || []);
-
-        const formattedRequests = requestsData.map((req: any) => {
-          const profile = profilesMap.get(req.user_id);
-          return {
-            id: req.id,
-            name: profile?.name || 'Usuário',
-            email: profile?.email || '',
-            avatar_url: profile?.avatar_url || '',
-            created_at: req.created_at,
-          };
-        });
-
-        setPendingRequests(formattedRequests);
-      } else {
-        setPendingRequests([]);
-      }
-    } catch (error: any) {
-      console.error('Erro ao carregar dados da equipe:', error);
-      toast.error('Erro ao carregar dados da equipe');
-    } finally {
-      setIsContentLoading(false);
-    }
-  };
 
   const copyToClipboard = () => {
     if (team?.code) {
@@ -260,9 +100,8 @@ export default function Team() {
 
       if (error) throw error;
 
-      setPendingRequests(prev => prev.filter(req => req.id !== requestId));
       toast.success(`${userName} foi adicionado à equipe!`);
-      loadTeamManagementData();
+      invalidateAll(selectedTeam?.id);
     } catch (error: any) {
       console.error('Erro ao aprovar solicitação:', error);
       toast.error('Erro ao aprovar solicitação');
@@ -282,8 +121,8 @@ export default function Team() {
 
       if (error) throw error;
 
-      setPendingRequests(prev => prev.filter(req => req.id !== requestId));
       toast.info(`Solicitação de ${userName} foi recusada.`);
+      invalidateRequests(selectedTeam?.id);
     } catch (error: any) {
       console.error('Erro ao rejeitar solicitação:', error);
       toast.error('Erro ao rejeitar solicitação');
@@ -297,7 +136,6 @@ export default function Team() {
     }
 
     try {
-      // Remove team_id from profile
       const { error: profileError } = await supabase
         .from('profiles')
         .update({ team_id: null })
@@ -305,7 +143,6 @@ export default function Team() {
 
       if (profileError) throw profileError;
 
-      // Also remove from team_members if exists
       if (selectedTeam) {
         await supabase
           .from('team_members')
@@ -314,8 +151,8 @@ export default function Team() {
           .eq('team_id', selectedTeam.id);
       }
 
-      setMembers(prev => prev.filter(m => m.id !== memberId));
       toast.success(`${memberName} foi removido da equipe!`);
+      invalidateMembers(selectedTeam?.id);
     } catch (error: any) {
       console.error('Erro ao remover membro:', error);
       toast.error('Erro ao remover membro. Tente novamente.');
@@ -374,7 +211,7 @@ export default function Team() {
   );
 
   // --- Skeleton state ---
-  if (showSkeleton || isContentLoading) {
+  if (showSkeleton) {
     return (
       <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8 animate-fade-in">
         <div className="relative h-40 sm:h-48 md:h-56 lg:h-64 overflow-hidden bg-muted" />
@@ -670,8 +507,21 @@ export default function Team() {
                 </div>
               </div>
 
+              {/* Loading members */}
+              {isMembersLoading && (
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                  {[1, 2, 3, 4].map(i => (
+                    <div key={i} className="bg-card rounded-xl shadow-md p-5 space-y-3">
+                      <Skeleton className="h-16 w-16 rounded-full mx-auto" />
+                      <Skeleton className="h-4 w-28 mx-auto" />
+                      <Skeleton className="h-3 w-36 mx-auto" />
+                    </div>
+                  ))}
+                </div>
+              )}
+
               {/* Grid View */}
-              {viewMode === 'grid' && (
+              {!isMembersLoading && viewMode === 'grid' && (
                 <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                   {members.map((member) => (
                     <Card key={member.id} className="group relative border-0 shadow-md hover:shadow-lg transition-all">
@@ -714,7 +564,7 @@ export default function Team() {
               )}
 
               {/* List View */}
-              {viewMode === 'list' && (
+              {!isMembersLoading && viewMode === 'list' && (
                 <div className="space-y-2">
                   {displayedMembers.map((member) => (
                     <div key={member.id} className="flex items-center justify-between p-3 bg-card border rounded-lg hover:shadow-sm transition-all hover:border-primary/30">
@@ -784,7 +634,7 @@ export default function Team() {
                 </div>
               )}
 
-              {members.length === 0 && (
+              {!isMembersLoading && members.length === 0 && (
                 <div className="text-center py-12 text-muted-foreground">
                   <UsersRound className="h-12 w-12 mx-auto mb-2 opacity-50" />
                   <p>Nenhum membro na equipe</p>
@@ -802,7 +652,7 @@ export default function Team() {
         onSuccess={() => {
           setShowCreateDialog(false);
           reloadUserData();
-          loadAccessibleTeams();
+          invalidateTeams();
         }}
         context="login"
       />
