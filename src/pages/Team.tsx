@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/pagination";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from 'framer-motion';
-import dashboardBanner from '@/assets/dashboard-banner.jpg';
+import teamBanner from '@/assets/team-banner.jpg';
 
 interface TeamMember {
   id: string;
@@ -324,7 +324,7 @@ export default function Team() {
     <>
       <div className="relative h-48 md:h-56 overflow-hidden">
         <img
-          src={dashboardBanner}
+          src={teamBanner}
           alt=""
           className="absolute inset-0 w-full h-full object-cover object-bottom"
         />
