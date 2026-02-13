@@ -41,7 +41,7 @@ const Dashboard = () => {
       try {
         let query = supabase
           .from('actions')
-          .select('*', { count: 'exact', head: true })
+          .select('id', { count: 'exact', head: true })
           .in('type', ['CRIAR_CONTEUDO', 'CRIAR_CONTEUDO_RAPIDO']);
         
         if (user.teamId) {
@@ -58,6 +58,8 @@ const Dashboard = () => {
       }
     },
     enabled: !!user?.id,
+    staleTime: 1000 * 60 * 5,
+    retry: 2,
   });
 
   const { data: brandsCount = 0 } = useQuery({
@@ -65,20 +67,22 @@ const Dashboard = () => {
     queryFn: async () => {
       const { count } = await supabase
         .from('brands')
-        .select('*', { count: 'exact', head: true });
+        .select('id', { count: 'exact', head: true });
       return count || 0;
     },
     enabled: !!user?.id,
+    staleTime: 1000 * 60 * 5,
   });
   const { data: personasCount = 0 } = useQuery({
     queryKey: ['dashboard-personas-count', user?.id],
     queryFn: async () => {
       const { count } = await supabase
         .from('personas')
-        .select('*', { count: 'exact', head: true });
+        .select('id', { count: 'exact', head: true });
       return count || 0;
     },
     enabled: !!user?.id,
+    staleTime: 1000 * 60 * 5,
   });
 
   const { data: themesCount = 0 } = useQuery({
@@ -86,10 +90,11 @@ const Dashboard = () => {
     queryFn: async () => {
       const { count } = await supabase
         .from('strategic_themes')
-        .select('*', { count: 'exact', head: true });
+        .select('id', { count: 'exact', head: true });
       return count || 0;
     },
     enabled: !!user?.id,
+    staleTime: 1000 * 60 * 5,
   });
 
   const { data: recentActivities = [], isLoading: isLoadingActivities } = useQuery({
