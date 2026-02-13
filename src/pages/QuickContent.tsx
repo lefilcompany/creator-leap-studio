@@ -403,7 +403,7 @@ export default function QuickContent() {
 
       {/* Main Form */}
       <main className="px-4 sm:px-6 lg:px-8 pt-4 pb-8 flex-1">
-        <div className="max-w-7xl mx-auto space-y-4">
+        <div className="max-w-7xl mx-auto space-y-4 mt-4">
           {/* Progress Bar */}
           <CreationProgressBar currentStep={loading ? "generating" : "config"} className="max-w-xs mx-auto" />
 
