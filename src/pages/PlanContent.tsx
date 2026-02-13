@@ -356,9 +356,9 @@ const PlanContent = () => {
                       />
                       <p className="text-xs text-muted-foreground flex items-start gap-1.5">
                         <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
-                        {brands.length === 0 
-                          ? <span>Cadastre uma marca antes de criar conteúdo planejado</span>
-                          : <span>Selecionar uma marca ajuda a IA a criar conteúdo alinhado com sua identidade visual</span>
+                         {brands.length === 0 
+                          ? <span>Cadastre uma marca antes de planejar conteúdo</span>
+                          : <span>O planejamento será baseado na identidade e diretrizes dessa marca</span>
                         }
                       </p>
                     </>
@@ -387,7 +387,7 @@ const PlanContent = () => {
                       />
                       <p className="text-xs text-muted-foreground flex items-start gap-1.5">
                         <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
-                        <span>A plataforma define o formato e linguagem ideal dos posts</span>
+                        <span>O planejamento será adaptado ao formato e linguagem da plataforma escolhida</span>
                       </p>
                     </>
                   )}
@@ -414,7 +414,7 @@ const PlanContent = () => {
                       />
                       <p className="text-xs text-muted-foreground flex items-start gap-1.5">
                         <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
-                        <span>O tema estratégico define tom de voz, público-alvo e objetivos da criação</span>
+                        <span>O planejamento seguirá o tom de voz, público-alvo e objetivos do tema selecionado</span>
                       </p>
                     </>
                   )}
@@ -442,7 +442,7 @@ const PlanContent = () => {
                       />
                       <p className="text-xs text-muted-foreground flex items-start gap-1.5">
                         <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
-                        <span>Máximo de 7 posts por planejamento</span>
+                        <span>Defina quantos posts o planejamento deve gerar (máx. 7)</span>
                       </p>
                     </>
                   )}
@@ -493,7 +493,7 @@ const PlanContent = () => {
                   />
                   <p className="text-xs text-muted-foreground flex items-start gap-1.5">
                     <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
-                    <span>Seja específico sobre o resultado esperado com os posts</span>
+                    <span>Descreva o que você espera alcançar com esse planejamento</span>
                   </p>
                 </div>
                 <div id="plan-additional-info-field" className="space-y-1.5">
@@ -509,7 +509,7 @@ const PlanContent = () => {
                   />
                   <p className="text-xs text-muted-foreground flex items-start gap-1.5">
                     <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
-                    <span>Adicione contexto extra para a IA gerar posts mais direcionados</span>
+                    <span>Contexto extra ajuda a IA a criar um planejamento mais preciso e direcionado</span>
                   </p>
                 </div>
               </div>
