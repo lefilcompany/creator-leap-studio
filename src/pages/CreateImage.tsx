@@ -881,82 +881,141 @@ export default function CreateImage() {
           {/* Progress Bar */}
           <CreationProgressBar currentStep={loading ? "generating" : "config"} className="max-w-xs mx-auto" />
 
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-            {/* Configuração Básica */}
-            <div className="space-y-4">
-              <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
-                <CardHeader className="pb-4 border-b border-border/30">
-                  <h2 className="text-lg font-bold text-foreground flex items-center gap-3">
-                    <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-                    Configuração Básica
-                  </h2>
-                  <p className="text-muted-foreground text-sm">
-                    Defina marca, tema e público-alvo
-                  </p>
-                </CardHeader>
-                <CardContent className="space-y-5 p-4 md:p-5">
-                  <div className="space-y-3">
-                    <Label htmlFor="brand" className="text-sm font-semibold text-foreground">
-                      Marca <span className="text-destructive">*</span>
+          <div className="space-y-4">
+            {/* 1. Descrição */}
+            <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
+              <CardContent className="p-4 md:p-5 space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="objective" className="text-sm font-bold text-foreground">
+                    Objetivo do Post <span className="text-destructive">*</span>
+                  </Label>
+                  <Textarea
+                    id="objective"
+                    placeholder="Qual a principal meta? (ex: gerar engajamento, anunciar um produto)"
+                    value={formData.objective}
+                    onChange={handleInputChange}
+                    rows={3}
+                    className={`resize-none rounded-xl border-2 bg-background/50 text-sm transition-all ${
+                      missingFields.includes('objective') 
+                        ? 'border-destructive ring-2 ring-destructive/20' 
+                        : 'border-border/50 hover:border-border/70 focus:border-primary/50'
+                    }`}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="description" className="text-sm font-bold text-foreground">
+                      Descrição Visual da Imagem <span className="text-destructive">*</span>
                     </Label>
-                    {isLoadingData ? (
-                      <SelectSkeleton />
-                    ) : (
+                    <span className={`text-xs font-medium ${
+                      formData.description.length > 5000 ? 'text-destructive' 
+                        : formData.description.length > 4500 ? 'text-orange-500' 
+                        : 'text-muted-foreground'
+                    }`}>
+                      {formData.description.length}/5000
+                    </span>
+                  </div>
+                  <Textarea
+                    id="description"
+                    placeholder="Descreva a cena, iluminação e emoção desejada..."
+                    value={formData.description}
+                    onChange={handleInputChange}
+                    maxLength={5000}
+                    rows={5}
+                    className={`resize-none rounded-xl border-2 bg-background/50 text-sm transition-all ${
+                      missingFields.includes('description') 
+                        ? 'border-destructive ring-2 ring-destructive/20' 
+                        : 'border-border/50 hover:border-border/70 focus:border-primary/50'
+                    }`}
+                  />
+                  <p className="text-xs text-muted-foreground flex items-start gap-1.5">
+                    <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
+                    <span>Seja específico sobre cena, iluminação, cores e estilo desejado</span>
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* 2. Contexto Criativo */}
+            <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
+              <CardContent className="p-4 md:p-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Marca */}
+                  {isLoadingData ? <SelectSkeleton /> : (
+                    <div className="space-y-1.5">
+                      <Label htmlFor="brand" className="text-sm font-bold text-foreground">
+                        Marca <span className="text-destructive">*</span>
+                      </Label>
                       <NativeSelect
                         value={formData.brand}
                         onValueChange={(value) => handleSelectChange("brand", value)}
                         options={brands.map((b) => ({ value: b.id, label: b.name }))}
                         placeholder={brands.length === 0 ? "Nenhuma marca cadastrada" : "Selecione a marca"}
                         disabled={brands.length === 0}
-                        triggerClassName={`h-11 rounded-xl border-2 bg-background/50 text-sm hover:border-primary/50 transition-all ${
+                        triggerClassName={`h-10 rounded-lg border-2 bg-background/50 hover:border-border/70 transition-colors ${
                           missingFields.includes('brand') ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/50'
                         }`}
                       />
-                    )}
-                    {!isLoadingData && brands.length === 0 && (
-                      <p className="text-xs text-muted-foreground">
-                        Você precisa cadastrar uma marca antes.{" "}
-                        <button onClick={() => navigate("/brands")} className="text-primary hover:underline font-medium">
-                          Ir para Marcas
-                        </button>
+                      {!isLoadingData && brands.length === 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          Cadastre uma marca antes.{" "}
+                          <button onClick={() => navigate("/brands")} className="text-primary hover:underline font-medium">
+                            Ir para Marcas
+                          </button>
+                        </p>
+                      )}
+                      <p className="text-xs text-muted-foreground flex items-start gap-1.5">
+                        <Info className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                        <span>A marca ajuda a IA a criar conteúdo alinhado com sua identidade visual</span>
                       </p>
-                    )}
-                  </div>
+                    </div>
+                  )}
 
-                  <div className="space-y-3">
-                    <Label htmlFor="theme" className="text-sm font-semibold text-foreground">Tema Estratégico</Label>
-                    {isLoadingData ? (
-                      <SelectSkeleton />
-                    ) : (
-                      <NativeSelect
-                        value={formData.theme}
-                        onValueChange={(value) => handleSelectChange("theme", value)}
-                        options={filteredThemes.map((t) => ({ value: t.id, label: t.title }))}
-                        placeholder={!formData.brand ? "Primeiro, escolha a marca" : filteredThemes.length === 0 ? "Nenhum tema disponível" : "Selecione um tema (opcional)"}
-                        disabled={!formData.brand || filteredThemes.length === 0}
-                        triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50 text-sm hover:border-primary/50 transition-all"
-                      />
-                    )}
-                  </div>
-
-                  <div className="space-y-3">
-                    <Label htmlFor="persona" className="text-sm font-semibold text-foreground">Persona</Label>
-                    {isLoadingData ? (
-                      <SelectSkeleton />
-                    ) : (
+                  {/* Persona */}
+                  {isLoadingData ? <SelectSkeleton /> : (
+                    <div className="space-y-1.5">
+                      <Label htmlFor="persona" className="text-sm font-bold text-foreground">
+                        Persona <span className="text-muted-foreground font-normal text-xs">(opcional)</span>
+                      </Label>
                       <NativeSelect
                         value={formData.persona}
                         onValueChange={(value) => handleSelectChange("persona", value)}
                         options={filteredPersonas.map((p) => ({ value: p.id, label: p.name }))}
-                        placeholder={!formData.brand ? "Primeiro, escolha a marca" : "Adicionar persona"}
+                        placeholder={!formData.brand ? "Selecione uma marca primeiro" : filteredPersonas.length === 0 ? "Nenhuma persona cadastrada" : "Selecione uma persona"}
                         disabled={!formData.brand || filteredPersonas.length === 0}
-                        triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50 text-sm hover:border-primary/50 transition-all"
+                        triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
                       />
-                    )}
-                  </div>
+                      <p className="text-xs text-muted-foreground flex items-start gap-1.5">
+                        <Info className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                        <span>A persona ajuda a IA a criar conteúdo direcionado ao seu público-alvo</span>
+                      </p>
+                    </div>
+                  )}
 
-                  <div className="space-y-3">
-                    <Label htmlFor="platform" className="text-sm font-semibold text-foreground">
+                  {/* Tema Estratégico */}
+                  {isLoadingData ? <SelectSkeleton /> : (
+                    <div className="space-y-1.5">
+                      <Label htmlFor="theme" className="text-sm font-bold text-foreground">
+                        Tema Estratégico <span className="text-muted-foreground font-normal text-xs">(opcional)</span>
+                      </Label>
+                      <NativeSelect
+                        value={formData.theme}
+                        onValueChange={(value) => handleSelectChange("theme", value)}
+                        options={filteredThemes.map((t) => ({ value: t.id, label: t.title }))}
+                        placeholder={!formData.brand ? "Selecione uma marca primeiro" : filteredThemes.length === 0 ? "Nenhum tema disponível" : "Selecione um tema"}
+                        disabled={!formData.brand || filteredThemes.length === 0}
+                        triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
+                      />
+                      <p className="text-xs text-muted-foreground flex items-start gap-1.5">
+                        <Info className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                        <span>O tema estratégico define tom de voz, público-alvo e objetivos da criação</span>
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Plataforma */}
+                  <div className="space-y-1.5">
+                    <Label htmlFor="platform" className="text-sm font-bold text-foreground">
                       Plataforma <span className="text-destructive">*</span>
                     </Label>
                     <NativeSelect
@@ -971,14 +1030,53 @@ export default function CreateImage() {
                         { value: "Comunidades", label: "Comunidades" },
                       ]}
                       placeholder="Onde será postado?"
-                      triggerClassName={`h-11 rounded-xl border-2 bg-background/50 text-sm hover:border-primary/50 transition-all ${
+                      triggerClassName={`h-10 rounded-lg border-2 bg-background/50 hover:border-border/70 transition-colors ${
                         missingFields.includes('platform') ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/50'
                       }`}
                     />
+                    <p className="text-xs text-muted-foreground flex items-start gap-1.5">
+                      <Info className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                      <span>Selecionar plataforma ajusta automaticamente a proporção ideal</span>
+                    </p>
                   </div>
+                </div>
+              </CardContent>
+            </Card>
 
-                  <div className="space-y-3">
-                    <Label htmlFor="visualStyle" className="text-sm font-semibold text-foreground">Estilo Visual</Label>
+            {platformGuidelines.length > 0 && (
+              <Card className="bg-primary/5 border-primary/20">
+                <CardContent className="p-4 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Info className="h-4 w-4 text-primary flex-shrink-0" />
+                    <p className="text-sm font-semibold text-primary">
+                      Diretrizes para {formData.platform} ({contentType === "organic" ? "Orgânico" : "Anúncio"})
+                    </p>
+                  </div>
+                  <ul className="space-y-1 text-xs text-muted-foreground">
+                    {platformGuidelines.map((guideline, idx) => (
+                      <li key={idx} className="flex items-start gap-2">
+                        <span className="text-primary mt-0.5">•</span>
+                        <span>{guideline}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  {recommendedAspectRatio && (
+                    <p className="text-xs text-primary/80 font-medium mt-2 pt-2 border-t border-primary/20">
+                      💡 Proporção recomendada: {recommendedAspectRatio}
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* 3. Estilo Visual */}
+            <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
+              <CardContent className="p-4 md:p-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="visualStyle" className="text-sm font-bold text-foreground">
+                      Estilo Visual
+                    </Label>
                     <NativeSelect
                       value={formData.visualStyle || 'realistic'}
                       onValueChange={(value) => handleSelectChange("visualStyle" as keyof Omit<FormData, "tone">, value)}
@@ -995,15 +1093,19 @@ export default function CreateImage() {
                         { value: 'vintage', label: 'Vintage/Retrô' }
                       ]}
                       placeholder="Selecione um estilo"
-                      triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50 text-sm hover:border-primary/50 transition-all"
+                      triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
                     />
+                    <p className="text-xs text-muted-foreground flex items-start gap-1.5">
+                      <Info className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                      <span>O estilo visual define a aparência da imagem gerada</span>
+                    </p>
                   </div>
 
-                  <div className="space-y-3">
-                    <Label className="text-sm font-semibold text-foreground">
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-bold text-foreground">
                       Tipo de Conteúdo <span className="text-destructive">*</span>
                     </Label>
-                    <div id="content-type-selector" className="flex items-center space-x-1 rounded-xl bg-muted p-1 border-2 border-border/30">
+                    <div id="content-type-selector" className="flex items-center space-x-1 rounded-lg bg-muted p-1 border-2 border-border/30 h-10">
                       <Button
                         type="button"
                         variant={contentType === "organic" ? "default" : "ghost"}
@@ -1014,7 +1116,7 @@ export default function CreateImage() {
                             setPlatformGuidelines(guidelines);
                           }
                         }}
-                        className="flex-1 rounded-lg font-semibold"
+                        className="flex-1 rounded-md font-semibold h-7 text-xs"
                       >
                         Orgânico
                       </Button>
@@ -1028,254 +1130,188 @@ export default function CreateImage() {
                             setPlatformGuidelines(guidelines);
                           }
                         }}
-                        className="flex-1 rounded-lg font-semibold"
+                        className="flex-1 rounded-md font-semibold h-7 text-xs"
                       >
                         Anúncio
                       </Button>
                     </div>
+                    <p className="text-xs text-muted-foreground flex items-start gap-1.5">
+                      <Info className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                      <span>Define as diretrizes de criação do conteúdo</span>
+                    </p>
                   </div>
+                </div>
+              </CardContent>
+            </Card>
 
-                  {platformGuidelines.length > 0 && (
-                    <Card className="bg-primary/5 border-primary/20">
-                      <CardContent className="p-4 space-y-2">
-                        <div className="flex items-center gap-2">
-                          <Info className="h-4 w-4 text-primary flex-shrink-0" />
-                          <p className="text-sm font-semibold text-primary">
-                            Diretrizes para {formData.platform} ({contentType === "organic" ? "Orgânico" : "Anúncio"})
-                          </p>
-                        </div>
-                        <ul className="space-y-1 text-xs text-muted-foreground">
-                          {platformGuidelines.map((guideline, idx) => (
-                            <li key={idx} className="flex items-start gap-2">
-                              <span className="text-primary mt-0.5">•</span>
-                              <span>{guideline}</span>
-                            </li>
-                          ))}
-                        </ul>
-                        {recommendedAspectRatio && (
-                          <p className="text-xs text-primary/80 font-medium mt-2 pt-2 border-t border-primary/20">
-                            💡 Proporção recomendada: {recommendedAspectRatio}
-                          </p>
-                        )}
-                      </CardContent>
-                    </Card>
-                  )}
-
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="referenceFile" className="text-sm font-semibold text-foreground">
-                        Imagem de Referência <span className="text-destructive">*</span>
-                      </Label>
-                      <span className={`text-xs font-medium ${
-                        referenceFiles.length >= 5 ? 'text-destructive' 
-                          : referenceFiles.length >= 4 ? 'text-orange-500' 
-                          : 'text-muted-foreground'
-                      }`}>
-                        {referenceFiles.length}/5 imagens
-                      </span>
-                    </div>
-
-                    <div className="space-y-3">
-                      <Input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/*"
-                        multiple
-                        disabled={referenceFiles.length >= 5}
-                        onChange={(e) => {
-                          const files = Array.from(e.target.files || []);
-                          const maxFiles = 5;
-                          const remainingSlots = maxFiles - referenceFiles.length;
-                          const filesToAdd = files.slice(0, remainingSlots);
-                          if (files.length > remainingSlots) {
-                            toast.error(`Você pode adicionar no máximo 5 imagens. ${filesToAdd.length} imagem(ns) adicionada(s).`);
-                          }
-                          setReferenceFiles((prev) => [...prev, ...filesToAdd]);
-                        }}
-                        className={`h-14 rounded-xl border-2 bg-background/50 transition-all hover:border-primary/50 ${
-                          missingFields.includes('referenceFiles') ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/50'
-                        }`}
-                      />
-
-                      <div
-                        ref={pasteAreaRef}
-                        tabIndex={0}
-                        onPaste={handlePaste}
-                        className={`border-2 border-dashed rounded-xl p-4 text-center bg-muted/20 hover:bg-muted/40 transition-all cursor-pointer ${
-                          missingFields.includes('referenceFiles') 
-                            ? 'border-destructive ring-destructive/50' 
-                            : 'border-border/50'
-                        }`}
+            {/* 4. Tom de Voz */}
+            <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
+              <CardContent className="p-4 md:p-5 space-y-2">
+                <Label htmlFor="tone" className="text-sm font-bold text-foreground">
+                  Tom de Voz <span className="text-destructive">*</span> <span className="text-muted-foreground font-normal text-xs">(máximo 4)</span>
+                </Label>
+                <Select onValueChange={handleToneSelect} value="">
+                  <SelectTrigger className={`h-10 rounded-lg border-2 bg-background/50 text-sm transition-colors ${
+                    missingFields.includes('tone') ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/50 hover:border-border/70'
+                  }`}>
+                    <SelectValue placeholder="Selecione um tom de voz" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl border-border/20">
+                    {toneOptions.map((t) => (
+                      <SelectItem key={t} value={t} className="rounded-lg capitalize">{t}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {formData.tone.length > 0 && (
+                  <div className="flex flex-wrap gap-2 p-3 bg-primary/5 rounded-xl border border-primary/20">
+                    {formData.tone.map((t) => (
+                      <Badge
+                        key={t}
+                        variant="secondary"
+                        className="bg-primary/10 text-primary border-primary/30 pr-1 text-xs font-medium gap-2 hover:bg-primary/20 transition-colors"
                       >
-                        <ImagePlus className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
-                        <p className="text-sm text-muted-foreground">Cole sua imagem aqui (Ctrl+V)</p>
-                      </div>
-
-                      {referenceFiles.length > 0 && (
-                        <div className="space-y-2 p-3 bg-primary/5 rounded-xl border-2 border-primary/20">
-                          <p className="text-xs font-semibold text-primary mb-2">
-                            {referenceFiles.length} imagem(ns) selecionada(s):
-                          </p>
-                          <div className="space-y-2">
-                            {referenceFiles.map((file, idx) => (
-                              <div key={idx} className="bg-background/60 rounded-lg p-3 hover:bg-background transition-colors">
-                                <div className="flex items-center justify-between mb-2">
-                                  <span className="text-sm text-foreground font-medium flex items-center gap-2 min-w-0 flex-1">
-                                    <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0"></div>
-                                    <span className="truncate">{file.name}</span>
-                                  </span>
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => handleRemoveFile(idx)}
-                                    className="h-6 w-6 p-0 text-destructive hover:bg-destructive/10 rounded-full flex-shrink-0 ml-2"
-                                  >
-                                    <X className="h-3 w-3" />
-                                  </Button>
-                                </div>
-                                <div className="flex items-start gap-2 mt-2 pt-2 border-t border-border/20">
-                                  <Checkbox
-                                    id={`preserve-${idx}`}
-                                    checked={preserveImageIndices.includes(idx)}
-                                    onCheckedChange={() => handleTogglePreserve(idx)}
-                                    className="mt-0.5"
-                                  />
-                                  <Label htmlFor={`preserve-${idx}`} className="text-xs text-muted-foreground cursor-pointer leading-tight">
-                                    Preservar traços desta imagem (cores, estilo, elementos visuais)
-                                  </Label>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                          <div className="mt-3 p-2 bg-accent/10 rounded-lg border border-accent/20">
-                            <p className="text-xs text-muted-foreground flex items-start gap-1.5">
-                              <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0 text-accent" />
-                              <span>
-                                <strong className="text-accent">Dica:</strong> Marque "Preservar traços" nas imagens da sua marca/identidade visual. 
-                                As outras servirão apenas como referência de estilo.
-                              </span>
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                        {t}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleToneRemove(t)}
+                          className="h-4 w-4 p-0 hover:bg-destructive/20 rounded-full"
+                        >
+                          <X className="h-3 w-3 text-destructive" />
+                        </Button>
+                      </Badge>
+                    ))}
                   </div>
-                </CardContent>
-              </Card>
-            </div>
+                )}
+              </CardContent>
+            </Card>
 
-            {/* Detalhes do Conteúdo */}
-            <div className="space-y-4">
-              <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
-                <CardHeader className="pb-4 border-b border-border/30">
-                  <h2 className="text-lg font-bold text-foreground flex items-center gap-3">
-                    <div className="w-2 h-2 bg-accent rounded-full animate-pulse"></div>
-                    Detalhes do Conteúdo
-                  </h2>
-                  <p className="text-muted-foreground text-sm">
-                    Descreva o objetivo e características do post
+            {/* 5. Imagens de Referência */}
+            <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
+              <CardContent className="p-4 md:p-5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-bold text-foreground flex items-center gap-2">
+                    <ImagePlus className="h-4 w-4" />
+                    Imagens de Referência <span className="text-destructive">*</span>
+                  </Label>
+                  <span className={`text-xs font-medium ${
+                    referenceFiles.length >= 5 ? 'text-destructive' 
+                      : referenceFiles.length >= 4 ? 'text-orange-500' 
+                      : 'text-muted-foreground'
+                  }`}>
+                    {referenceFiles.length}/5 imagens
+                  </span>
+                </div>
+
+                <Input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  disabled={referenceFiles.length >= 5}
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files || []);
+                    const maxFiles = 5;
+                    const remainingSlots = maxFiles - referenceFiles.length;
+                    const filesToAdd = files.slice(0, remainingSlots);
+                    if (files.length > remainingSlots) {
+                      toast.error(`Você pode adicionar no máximo 5 imagens. ${filesToAdd.length} imagem(ns) adicionada(s).`);
+                    }
+                    setReferenceFiles((prev) => [...prev, ...filesToAdd]);
+                  }}
+                  className={`h-11 rounded-xl border-2 bg-background/50 transition-all file:mr-4 file:h-full file:py-0 file:px-5 file:rounded-l-[10px] file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 hover:border-primary/30 ${
+                    missingFields.includes('referenceFiles') ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/50'
+                  }`}
+                />
+
+                <div
+                  ref={pasteAreaRef}
+                  tabIndex={0}
+                  onPaste={handlePaste}
+                  className={`border-2 border-dashed rounded-xl p-4 text-center bg-muted/20 hover:bg-muted/30 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50 ${
+                    missingFields.includes('referenceFiles') 
+                      ? 'border-destructive' 
+                      : 'border-border/50'
+                  }`}
+                >
+                  <ImagePlus className="h-8 w-8 mx-auto mb-2 text-muted-foreground/60" />
+                  <p className="text-sm text-muted-foreground font-medium">
+                    Cole suas imagens aqui (Ctrl+V)
                   </p>
-                </CardHeader>
-                <CardContent className="space-y-5 p-4 md:p-5">
-                  <div className="space-y-3">
-                    <Label htmlFor="objective" className="text-sm font-semibold text-foreground">
-                      Objetivo do Post <span className="text-destructive">*</span>
-                    </Label>
-                    <Textarea
-                      id="objective"
-                      placeholder="Qual a principal meta? (ex: gerar engajamento, anunciar um produto)"
-                      value={formData.objective}
-                      onChange={handleInputChange}
-                      className={`min-h-[100px] rounded-xl border-2 bg-background/50 resize-none text-sm transition-all ${
-                        missingFields.includes('objective') 
-                          ? 'border-destructive ring-2 ring-destructive/20' 
-                          : 'border-border/50 hover:border-primary/50'
-                      }`}
-                    />
-                  </div>
+                  <p className="text-xs text-muted-foreground/70 mt-1">
+                    ou clique para selecionar arquivos
+                  </p>
+                </div>
 
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="description" className="text-sm font-semibold text-foreground">
-                        Descrição Visual da Imagem <span className="text-destructive">*</span>
-                      </Label>
-                      <span className={`text-xs font-medium ${
-                        formData.description.length > 5000 ? 'text-destructive' 
-                          : formData.description.length > 4500 ? 'text-orange-500' 
-                          : 'text-muted-foreground'
-                      }`}>
-                        {formData.description.length}/5000
-                      </span>
-                    </div>
-                    <Textarea
-                      id="description"
-                      placeholder="Descreva a cena, iluminação e emoção desejada..."
-                      value={formData.description}
-                      onChange={handleInputChange}
-                      maxLength={5000}
-                      className={`min-h-[120px] rounded-xl border-2 bg-background/50 resize-none text-sm transition-all ${
-                        missingFields.includes('description') 
-                          ? 'border-destructive ring-2 ring-destructive/20' 
-                          : 'border-border/50 hover:border-primary/50'
-                      }`}
-                    />
-                  </div>
-
-                  <div id="tone-of-voice" className="space-y-3">
-                    <Label htmlFor="tone" className="text-sm font-semibold text-foreground">
-                      Tom de Voz <span className="text-destructive">*</span> (máximo 4)
-                    </Label>
-                    <Select onValueChange={handleToneSelect} value="">
-                      <SelectTrigger className={`h-11 rounded-xl border-2 bg-background/50 text-sm transition-all ${
-                        missingFields.includes('tone') ? 'border-destructive ring-2 ring-destructive/20 hover:border-destructive' : 'border-border/50 hover:border-primary/50'
-                      }`}>
-                        <SelectValue placeholder="Selecione um tom de voz" />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl border-border/20">
-                        {toneOptions.map((t) => (
-                          <SelectItem key={t} value={t} className="rounded-lg capitalize">{t}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {formData.tone.length > 0 && (
-                      <div className="flex flex-wrap gap-2 p-3 bg-primary/5 rounded-xl border-2 border-primary/20">
-                        {formData.tone.map((t) => (
-                          <Badge
-                            key={t}
-                            variant="secondary"
-                            className="bg-primary/10 text-primary border-primary/30 pr-1 text-xs font-medium gap-2 hover:bg-primary/20 transition-colors"
-                          >
-                            {t}
+                {referenceFiles.length > 0 && (
+                  <div className="space-y-2 p-3 bg-primary/5 rounded-xl border border-primary/20">
+                    <p className="text-xs font-semibold text-primary mb-2">
+                      {referenceFiles.length} imagem(ns) selecionada(s):
+                    </p>
+                    <div className="space-y-2">
+                      {referenceFiles.map((file, idx) => (
+                        <div key={idx} className="bg-background/50 rounded-lg p-3 group hover:bg-background transition-colors">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm text-foreground font-medium flex items-center gap-2 min-w-0 flex-1">
+                              <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0"></div>
+                              <span className="truncate">{file.name}</span>
+                            </span>
                             <Button
+                              type="button"
                               variant="ghost"
                               size="sm"
-                              onClick={() => handleToneRemove(t)}
-                              className="h-4 w-4 p-0 hover:bg-destructive/20 rounded-full"
+                              onClick={() => handleRemoveFile(idx)}
+                              className="h-7 w-7 p-0 hover:bg-destructive/10 hover:text-destructive flex-shrink-0"
                             >
-                              <X className="h-3 w-3 text-destructive" />
+                              <X className="h-3.5 w-3.5" />
                             </Button>
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
+                          </div>
+                          <div className="flex items-center gap-2 pl-4">
+                            <Checkbox
+                              id={`preserve-${idx}`}
+                              checked={preserveImageIndices.includes(idx)}
+                              onCheckedChange={() => handleTogglePreserve(idx)}
+                              className="mt-0.5"
+                            />
+                            <Label htmlFor={`preserve-${idx}`} className="text-xs text-muted-foreground cursor-pointer">
+                              Preservar traços desta imagem na geração final
+                            </Label>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
+                )}
 
-                  <div className="space-y-3">
-                    <Label htmlFor="additionalInfo" className="text-sm font-semibold text-foreground">
-                      Informações Adicionais
-                    </Label>
-                    <Textarea
-                      id="additionalInfo"
-                      placeholder="Outras instruções ou contexto relevante..."
-                      value={formData.additionalInfo}
-                      onChange={handleInputChange}
-                      className="min-h-[80px] rounded-xl border-2 border-border/50 bg-background/50 resize-none text-sm hover:border-primary/50 transition-all"
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+                <div className="bg-accent/30 border border-accent/50 rounded-lg p-3 space-y-2">
+                  <p className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                    <Info className="h-3.5 w-3.5 flex-shrink-0" />
+                    Como usar imagens de referência:
+                  </p>
+                  <ul className="text-xs text-muted-foreground space-y-1 pl-5 list-disc">
+                    <li><strong>Sem marcação:</strong> A IA usa apenas como inspiração de estilo, cores e composição</li>
+                    <li><strong>Com marcação "Preservar traços":</strong> A IA mantém os elementos visuais originais da imagem no resultado final</li>
+                  </ul>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* 6. Informações Adicionais */}
+            <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
+              <CardContent className="p-4 md:p-5 space-y-2">
+                <Label htmlFor="additionalInfo" className="text-sm font-bold text-foreground">
+                  Informações Adicionais <span className="text-muted-foreground font-normal text-xs">(opcional)</span>
+                </Label>
+                <Textarea
+                  id="additionalInfo"
+                  placeholder="Outras instruções ou contexto relevante..."
+                  value={formData.additionalInfo}
+                  onChange={handleInputChange}
+                  rows={3}
+                  className="resize-none rounded-xl border-2 border-border/50 bg-background/50 text-sm hover:border-border/70 focus:border-primary/50 transition-colors"
+                />
+              </CardContent>
+            </Card>
           </div>
 
           {/* Botão Gerar Conteúdo */}
