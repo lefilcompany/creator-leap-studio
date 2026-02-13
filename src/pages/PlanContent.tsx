@@ -416,30 +416,6 @@ const PlanContent = () => {
                     </>
                   )}
 
-                  {/* Selected Themes Display */}
-                  {formData.theme.length > 0 && (
-                    <div className="flex flex-wrap gap-2 pt-1">
-                      {formData.theme.map((themeId) => {
-                        const theme = themes.find((t) => t.id === themeId);
-                        return (
-                          <Badge
-                            key={themeId}
-                            variant="secondary"
-                            className="gap-1.5 pl-3 pr-1.5 py-1 text-xs font-medium bg-primary/10 text-primary border border-primary/20 hover:bg-primary/15"
-                          >
-                            {theme?.title || themeId}
-                            <button
-                              onClick={() => handleThemeRemove(themeId)}
-                              className="ml-0.5 w-4 h-4 rounded-full bg-primary/20 text-primary hover:bg-destructive hover:text-destructive-foreground transition-colors flex items-center justify-center"
-                              aria-label={`Remover tema ${theme?.title || themeId}`}
-                            >
-                              <X size={10} />
-                            </button>
-                          </Badge>
-                        );
-                      })}
-                    </div>
-                  )}
                 </div>
 
                 <div id="plan-quantity-field" className="space-y-1.5">
@@ -469,6 +445,31 @@ const PlanContent = () => {
                   )}
                 </div>
               </div>
+
+              {/* Selected Themes - full width below grid */}
+              {formData.theme.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-border/30">
+                  {formData.theme.map((themeId) => {
+                    const theme = themes.find((t) => t.id === themeId);
+                    return (
+                      <Badge
+                        key={themeId}
+                        variant="secondary"
+                        className="gap-1.5 pl-3 pr-1.5 py-1 text-xs font-medium bg-primary/10 text-primary border border-primary/20 hover:bg-primary/15"
+                      >
+                        {theme?.title || themeId}
+                        <button
+                          onClick={() => handleThemeRemove(themeId)}
+                          className="ml-0.5 w-4 h-4 rounded-full bg-primary/20 text-primary hover:bg-destructive hover:text-destructive-foreground transition-colors flex items-center justify-center"
+                          aria-label={`Remover tema ${theme?.title || themeId}`}
+                        >
+                          <X size={10} />
+                        </button>
+                      </Badge>
+                    );
+                  })}
+                </div>
+              )}
             </CardContent>
           </Card>
 
