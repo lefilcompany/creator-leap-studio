@@ -298,7 +298,21 @@ const ReviewContent = () => {
       {/* Banner */}
       <div className="relative w-full h-48 md:h-56 flex-shrink-0 overflow-hidden">
         <PageBreadcrumb
-          items={[{ label: "Revisar Conteúdo" }]}
+          items={
+            !reviewType
+              ? [{ label: "Revisar Conteúdo" }]
+              : [
+                  { label: "Revisar Conteúdo", href: "/review", state: { reset: true } },
+                  {
+                    label:
+                      reviewType === "image"
+                        ? "Revisar Imagem"
+                        : reviewType === "caption"
+                          ? "Revisar Legenda"
+                          : "Revisar Texto para Imagem",
+                  },
+                ]
+          }
           variant="overlay"
         />
         <img
@@ -316,11 +330,23 @@ const ReviewContent = () => {
           className="bg-card rounded-2xl shadow-lg p-4 lg:p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
         >
           <div className="flex items-center gap-3">
-            <div className="flex-shrink-0 bg-primary/10 border border-primary/20 shadow-sm text-primary rounded-2xl p-3 lg:p-4">
-              <CheckCircle className="h-8 w-8 lg:h-10 lg:w-10" />
+            <div className={`flex-shrink-0 ${
+              reviewType === 'caption' ? 'bg-secondary/10 border-secondary/20 text-secondary' :
+              reviewType === 'text-for-image' ? 'bg-accent/10 border-accent/20 text-accent' :
+              'bg-primary/10 border-primary/20 text-primary'
+            } border shadow-sm rounded-2xl p-3 lg:p-4`}>
+              {reviewType === 'image' ? <ImageIcon className="h-8 w-8 lg:h-10 lg:w-10" /> :
+               reviewType === 'caption' ? <FileText className="h-8 w-8 lg:h-10 lg:w-10" /> :
+               reviewType === 'text-for-image' ? <Type className="h-8 w-8 lg:h-10 lg:w-10" /> :
+               <CheckCircle className="h-8 w-8 lg:h-10 lg:w-10" />}
             </div>
             <div>
-              <h1 className="text-2xl lg:text-3xl font-bold text-foreground">Revisar Conteúdo</h1>
+              <h1 className="text-2xl lg:text-3xl font-bold text-foreground">
+                {!reviewType ? 'Revisar Conteúdo' :
+                 reviewType === 'image' ? 'Revisar Imagem' :
+                 reviewType === 'caption' ? 'Revisar Legenda' :
+                 'Revisar Texto para Imagem'}
+              </h1>
               <p className="text-sm lg:text-base text-muted-foreground">{dynamicDescription}</p>
             </div>
           </div>
@@ -630,47 +656,34 @@ const ReviewContent = () => {
               </Card>
 
               {/* Actions */}
-              <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
-                <CardContent className="p-6">
-                  <div className="flex flex-col items-center gap-4">
-                    <div className="flex gap-4 w-full max-w-lg">
-                      <Button
-                        onClick={handleReset}
-                        variant="outline"
-                        className="flex-1 h-14 rounded-2xl text-lg font-bold border-2 hover:bg-accent/20 hover:text-accent-foreground hover:border-accent"
-                      >
-                        Voltar
-                      </Button>
-                      <Button
-                        id="review-submit-button"
-                        onClick={handleSubmit}
-                        disabled={
-                          loading ||
-                          !brand ||
-                          !adjustmentsPrompt ||
-                          (reviewType === "image" && !imageFile) ||
-                          (reviewType === "caption" && !captionText) ||
-                          (reviewType === "text-for-image" && !textForImage)
-                        }
-                        className="flex-1 h-14 rounded-2xl text-lg font-bold bg-gradient-to-r from-primary via-purple-600 to-secondary hover:from-primary/90 shadow-xl transition-all duration-500 disabled:opacity-50"
-                      >
-                        {loading ? (
-                          <>
-                            <Loader2 className="animate-spin mr-3 h-5 w-5" />
-                            <span>Processando...</span>
-                          </>
-                        ) : (
-                          <>
-                            <Sparkles className="mr-3 h-5 w-5" />
-                            <span>Gerar Revisão</span>
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                    {error && <p className="text-destructive mt-4 text-center text-base">{error}</p>}
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="flex flex-col items-center gap-4">
+                <Button
+                  id="review-submit-button"
+                  onClick={handleSubmit}
+                  disabled={
+                    loading ||
+                    !brand ||
+                    !adjustmentsPrompt ||
+                    (reviewType === "image" && !imageFile) ||
+                    (reviewType === "caption" && !captionText) ||
+                    (reviewType === "text-for-image" && !textForImage)
+                  }
+                  className="w-full max-w-lg h-14 rounded-2xl text-lg font-bold bg-gradient-to-r from-primary via-purple-600 to-secondary hover:from-primary/90 shadow-xl transition-all duration-500 disabled:opacity-50"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="animate-spin mr-3 h-5 w-5" />
+                      <span>Processando...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="mr-3 h-5 w-5" />
+                      <span>Gerar Revisão</span>
+                    </>
+                  )}
+                </Button>
+                {error && <p className="text-destructive mt-4 text-center text-base">{error}</p>}
+              </div>
             </>
           )}
         </div>
