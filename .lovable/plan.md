@@ -1,78 +1,98 @@
 
 
-# Melhoria da Tela de Criacao Rapida (/quick-content)
+# Aplicar Estilo Padrao do Sistema nas Telas CreateImage e CreateVideo
 
 ## Resumo
-Reestruturar a pagina QuickContent para (1) carregar dados instantaneamente com cache React Query, (2) aplicar a identidade visual padrao com banner + header card sobreposto, (3) usar Skeletons em vez de spinner bloqueante, e (4) ampliar o layout para ocupar melhor telas grandes.
+Reestruturar as paginas `/create/image` (CreateImage) e `/create/video` (CreateVideo) para seguir o mesmo padrao visual e arquitetural ja estabelecido na pagina `/quick-content` (QuickContent): banner ilustrativo full-bleed, breadcrumb overlay, header card sobreposto, cards sem bordas com sombra, layout `max-w-7xl`, e carregamento com React Query + Skeletons.
 
 ## Mudancas
 
-### 1. Carregamento rapido com React Query
-- Substituir o carregamento manual (`useState` + `useEffect` + `loadData`) por queries React Query com `staleTime: 5min`
-- Marcas, Temas e Personas serao cacheados e compartilhados entre paginas (mesmas queryKeys ja usadas em Brands, Themes, Personas)
-- Resultado: segunda visita a pagina carrega instantaneamente
+### 1. CreateImage (`src/pages/CreateImage.tsx`)
 
-### 2. Layout com identidade visual (Banner + Header Card)
-- Adicionar banner ilustrativo no topo remetendo a criacao rapida de conteudo com IA (gerar imagem dedicada ou reutilizar `create-banner.jpg` ja existente)
-- Breadcrumb overlay sobre o banner
-- Header card sobreposto ao banner (`-mt-12`) com icone, titulo, descricao e card de creditos
-- Container principal com margens negativas (`-m-4 sm:-m-6 lg:-m-8`) como nas outras paginas
+**Layout e Visual:**
+- Remover fundo gradiente (`bg-gradient-to-br from-pink-50/50...`) e substituir pelo container padrao (`-m-4 sm:-m-6 lg:-m-8`)
+- Adicionar banner ilustrativo no topo (`create-banner.jpg`) com `h-48 md:h-64 lg:h-72`
+- Mover breadcrumb para variante `overlay` sobre o banner, com caminho: "Criar Conteudo" (link para /create) > "Criar Imagem"
+- Adicionar header card sobreposto (`-mt-12`) com icone ImageIcon, titulo, descricao e card de creditos (mesmo estilo do QuickContent)
+- Expandir layout de `max-w-5xl` para `max-w-7xl`
+- Atualizar cards de formulario para `border-0 shadow-lg rounded-2xl` (removendo bordas purple customizadas)
+- Adicionar `CreationProgressBar` no topo do formulario
+- Remover spinner de loading bloqueante e usar Skeletons nos campos
 
-### 3. Skeleton loading em vez de spinner
-- Substituir o spinner bloqueante (`loadingData ? <Loader2>`) por Skeletons nos campos de formulario
-- Os campos de prompt, estilo visual e imagens de referencia renderizam imediatamente
-- Apenas os selects de Marca, Tema, Persona mostram Skeleton enquanto carregam
+**Carregamento com React Query:**
+- Substituir o carregamento manual (`useState` + `useEffect` + `loadData`) por queries React Query com `staleTime: 5min` para brands, themes e personas
+- Manter a logica de `team` como query separada
+- Remover os estados `isLoadingData`, `brands`, `themes`, `personas` manuais
 
-### 4. Layout mais amplo para desktop
-- Mudar de `max-w-4xl` para `max-w-7xl` para reduzir o espaco lateral em telas grandes
-- O grid de "Contexto Criativo" (2x2) e campos ocuparao melhor o espaco disponivel
-- Manter responsividade em telas menores
+### 2. CreateVideo (`src/pages/CreateVideo.tsx`)
+
+**Layout e Visual:**
+- Mesmas mudancas de layout que CreateImage: container `-m-4`, banner, breadcrumb overlay, header card sobreposto
+- Breadcrumb: "Criar Conteudo" (link para /create) > "Criar Video"
+- Icone do header: Video (ja importado)
+- Expandir layout de `max-w-4xl` para `max-w-7xl`
+- Atualizar cards de formulario para `border-0 shadow-lg rounded-2xl`
+- Remover estilo purple customizado dos selects e cards
+- Remover spinner de loading bloqueante e usar Skeletons
+
+**Carregamento com React Query:**
+- Substituir carregamento manual por React Query (mesma abordagem que CreateImage)
+- Queries para brands, themes, personas com `staleTime: 5min`
 
 ## Detalhes tecnicos
 
-### Arquivo a modificar
-- `src/pages/QuickContent.tsx` - Reestruturar layout e substituir carregamento manual por React Query
+### Estrutura do novo layout (aplicada a ambas as paginas)
 
-### Estrutura do novo layout
 ```text
-div.flex.flex-col.-m-4.sm:-m-6.lg:-m-8
-  |-- div.relative (banner h-48 md:h-56)
+div.flex.flex-col.-m-4.sm:-m-6.lg:-m-8.min-h-full
+  |-- TourSelector (mantido)
+  |
+  |-- div.relative.h-48.md:h-64.lg:h-72 (banner)
   |     |-- PageBreadcrumb variant="overlay"
   |     |-- img (create-banner.jpg)
-  |     |-- div (gradient overlay)
+  |     |-- div (gradient overlay from-background)
   |
-  |-- div.relative.px-4.-mt-12 (header card)
-  |     |-- div.bg-card.rounded-2xl.shadow-lg
-  |           |-- Icone Zap + Titulo + Descricao + HelpCircle
-  |           |-- Card de creditos
+  |-- div.relative.px-4.sm:px-6.lg:px-8.-mt-12.z-10 (header card)
+  |     |-- div.max-w-7xl.mx-auto
+  |           |-- div.bg-card.rounded-2xl.shadow-lg.p-4.md:p-6
+  |                 |-- Icone + Titulo + Descricao
+  |                 |-- Card de creditos
   |
-  |-- main.px-4.pt-4.pb-8 (formulario)
-        |-- div.max-w-7xl.mx-auto.space-y-4
+  |-- main.px-4.sm:px-6.lg:px-8.pt-4.pb-8.flex-1
+        |-- div.max-w-7xl.mx-auto.space-y-4.mt-4
               |-- CreationProgressBar
-              |-- Cards de formulario (prompt, contexto, estilo, ref images, advanced)
+              |-- Cards de formulario (border-0 shadow-lg)
               |-- Botao Gerar
 ```
 
-### React Query - Queries com cache
+### React Query - Substituicao do carregamento manual
+
+Em ambas as paginas, trocar:
 ```text
-useQuery(['quick-content-brands', teamId/userId])  -> staleTime: 5min
-useQuery(['quick-content-themes', teamId/userId])   -> staleTime: 5min
-useQuery(['quick-content-personas', teamId/userId]) -> staleTime: 5min
+useState + useEffect + loadData + Promise.all
+```
+Por:
+```text
+useQuery(['brands', teamId], fetchBrands, { staleTime: 5min })
+useQuery(['themes', teamId], fetchThemes, { staleTime: 5min })
+useQuery(['personas', teamId], fetchPersonas, { staleTime: 5min })
 ```
 
-As queries serao feitas em paralelo (Promise.all implicitamente pelo React Query) e os selects mostrarao Skeleton durante o carregamento.
+As queryKeys serao as mesmas ja usadas no QuickContent (`['brands', teamId]`, etc.), garantindo cache compartilhado entre paginas.
 
-### Importacoes adicionais
+### Importacoes adicionais em ambas as paginas
 - `useQuery` de `@tanstack/react-query`
-- `Skeleton` de `@/components/ui/skeleton`
-- `HelpCircle` e `Popover/PopoverContent/PopoverTrigger` (ja importados parcialmente)
-- `createBanner` de `@/assets/create-banner.jpg` (reutilizar banner ja criado)
+- `CreationProgressBar` de `@/components/CreationProgressBar`
+- `createBanner` de `@/assets/create-banner.jpg`
+- `HelpCircle` de `lucide-react`
+- `Popover`, `PopoverContent`, `PopoverTrigger` de `@/components/ui/popover`
 
-### Hierarquia dos campos preservada
-A ordem dos campos permanece identica:
-1. Prompt (descricao do que criar)
-2. Contexto Criativo (Marca, Persona, Tema, Plataforma)
-3. Estilo Visual
-4. Imagens de Referencia
-5. Opcoes Avancadas (Accordion)
-6. Botao Gerar
+### Funcionalidade preservada
+- Toda a logica de geracao de conteudo (handleGenerateContent, handleGenerateVideo) permanece intacta
+- Validacao de formularios, upload de imagens, compressao, tone selection -- tudo mantido
+- Apenas o layout/visual e o metodo de carregamento de dados serao alterados
+
+### Arquivos modificados
+- `src/pages/CreateImage.tsx` - Layout + React Query
+- `src/pages/CreateVideo.tsx` - Layout + React Query
+
