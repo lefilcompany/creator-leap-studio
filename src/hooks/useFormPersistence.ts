@@ -30,12 +30,28 @@ export function useFormPersistence({
     }
   }, [formData, key, excludeFields]);
 
-  // Recuperar do sessionStorage na montagem
+  // Verifica se um objeto tem pelo menos um valor significativo
+  const hasSignificantValues = (data: any): boolean => {
+    if (!data || typeof data !== 'object') return false;
+    return Object.values(data).some(value => {
+      if (Array.isArray(value)) return value.length > 0;
+      if (typeof value === 'string') return value.trim().length > 0;
+      if (typeof value === 'number') return true;
+      if (typeof value === 'boolean') return true;
+      if (typeof value === 'object' && value !== null) return Object.keys(value).length > 0;
+      return false;
+    });
+  };
+
+  // Recuperar do sessionStorage na montagem (retorna null se dados vazios)
   const loadPersistedData = () => {
     try {
       const saved = sessionStorage.getItem(key);
       if (saved) {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        if (hasSignificantValues(parsed)) {
+          return parsed;
+        }
       }
     } catch (error) {
       console.error('Error loading form state:', error);
