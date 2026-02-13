@@ -96,10 +96,6 @@ export default function PersonaDialog({ isOpen, onOpenChange, onSave, personaToE
       const draft = loadDraft();
       if (draft) {
         form.reset(draft);
-        toast.info('Rascunho recuperado', {
-          description: 'Seus dados foram restaurados automaticamente.',
-          icon: <Save className="h-4 w-4" />,
-        });
       } else {
         form.reset({
           brandId: '',

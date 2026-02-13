@@ -125,10 +125,6 @@ export default function ThemeDialog({ isOpen, onOpenChange, onSave, themeToEdit,
         const hashtags = draft.hashtags?.split(/\s+/).filter(Boolean) || [];
         setHashtagList(hashtags);
         
-        toast.info('Rascunho recuperado', {
-          description: 'Seus dados foram restaurados automaticamente.',
-          icon: <Save className="h-4 w-4" />,
-        });
       } else {
         setFormData(initialFormData);
         setToneList([]);

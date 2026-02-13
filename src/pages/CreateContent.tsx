@@ -171,7 +171,7 @@ export default function CreateContent() {
     const persisted = loadPersistedData();
     if (persisted) {
       setFormData(prev => ({ ...prev, ...persisted }));
-      toast.info('Rascunho recuperado');
+      
     }
   }, []);
 
