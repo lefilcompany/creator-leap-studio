@@ -1,79 +1,70 @@
 
+# Corrigir Toast "Rascunho recuperado" Aparecendo Sem Dados
 
-# Aplicar Estilo Padrao do Sistema na Tela ReviewContent
+## Problema
+O toast "Rascunho recuperado" aparece toda vez que voce entra nas telas de criacao e revisao, mesmo sem ter nenhum rascunho real salvo. Isso acontece porque:
 
-## Resumo
-Reestruturar a pagina `/review` (ReviewContent) para seguir o mesmo padrao visual e arquitetural das demais paginas de criacao: banner ilustrativo full-bleed, breadcrumb overlay, header card sobreposto, cards sem bordas com sombra, layout `max-w-7xl`, e carregamento com React Query + Skeletons.
+1. O hook `useFormPersistence` salva o estado do formulario no sessionStorage automaticamente
+2. Ao carregar a pagina, o formulario vazio e salvo no storage
+3. Na proxima visita, `loadPersistedData()` retorna esse objeto vazio (que passa no `if (persisted)`)
+4. O toast e exibido mesmo sem dados relevantes
 
-## Mudancas
+Apenas a pagina QuickContent usa a verificacao `hasRelevantData` antes de exibir o toast. Todas as outras paginas exibem o toast incondicional.
 
-### 1. Layout e Visual (`src/pages/ReviewContent.tsx`)
+## Solucao
 
-- Substituir o container atual (`div.h-full.w-full.flex.flex-col > div.max-w-7xl`) pelo container padrao com margens negativas (`-m-4 sm:-m-6 lg:-m-8 min-h-full`)
-- Adicionar banner ilustrativo no topo usando `create-banner.jpg` (tematica de IA e criacao, coerente com revisao por IA)
-- Mover breadcrumb para variante `overlay` sobre o banner: Home > "Revisar Conteudo"
-- Adicionar header card sobreposto (`-mt-12`) com icone CheckCircle, titulo dinamico, descricao contextual e card de creditos (mesmo estilo do QuickContent)
-- Remover o card header antigo com gradiente (`bg-gradient-to-r from-primary/5 via-secondary/5`)
-- Atualizar todos os cards de formulario para `border-0 shadow-lg rounded-2xl` (removendo backdrop-blur, bordas e gradientes de header)
-- Remover o spinner de loading bloqueante (`Loader2` fullscreen) e usar Skeletons nos selects
+Mover a validacao de dados relevantes para dentro do proprio hook `useFormPersistence`, tornando-a obrigatoria para todos os consumidores.
 
-### 2. React Query para dados
+### 1. Atualizar `src/hooks/useFormPersistence.ts`
 
-- Substituir o carregamento manual (`useState` + `useEffect` + `loadData`) por `useQuery` com `staleTime: 5min` para brands e themes
-- Usar as mesmas `queryKeys` (`['brands', teamId]`, `['themes', teamId]`) para compartilhar cache com outras paginas
-- Remover os estados `isLoadingData`, `brands`, `themes` manuais
-- Manter a logica de `filteredThemes` como derivacao computada
+- Modificar `loadPersistedData` para retornar `null` quando os dados forem vazios/padrao (todos os valores sao strings vazias, arrays vazios, ou nulos)
+- Adicionar uma funcao interna que verifica se o objeto tem pelo menos um campo com valor significativo (string nao-vazia, array com itens, etc.)
 
-### 3. Estrutura do novo layout
+### 2. Atualizar 5 paginas que usam `useFormPersistence`
 
+Adicionar verificacao com `hasRelevantData` antes de exibir o toast em cada pagina:
+
+- **`src/pages/ReviewContent.tsx`** (linha 117): Adicionar checagem se os dados persistidos tem conteudo real antes do `toast.info`
+- **`src/pages/CreateContent.tsx`** (linha 174): Idem
+- **`src/pages/CreateImage.tsx`** (linha 248): Idem
+- **`src/pages/PlanContent.tsx`** (linha 61): Idem
+- **`src/pages/QuickContent.tsx`**: Ja usa `hasRelevantData` - manter como esta
+
+### 3. Atualizar 3 dialogs que usam `useDraftForm`
+
+Adicionar verificacao com `hasFormData` antes de exibir o toast:
+
+- **`src/components/personas/PersonaDialog.tsx`** (linha 99): Verificar se o draft tem dados reais
+- **`src/components/temas/ThemeDialog.tsx`** (linha 128): Idem
+- **`src/components/marcas/BrandDialog.tsx`**: Verificar se ja tem protecao (provavelmente nao exibe toast)
+
+### Detalhes tecnicos
+
+**Padrao a aplicar em cada pagina** (exemplo ReviewContent):
 ```text
-div.flex.flex-col.-m-4.sm:-m-6.lg:-m-8.min-h-full
-  |-- OnboardingTour (mantido)
-  |
-  |-- div.relative.h-48.md:h-64.lg:h-72 (banner)
-  |     |-- PageBreadcrumb variant="overlay" [Home > "Revisar Conteudo"]
-  |     |-- img (create-banner.jpg)
-  |     |-- div (gradient overlay from-background)
-  |
-  |-- div.relative.px-4.sm:px-6.lg:px-8.-mt-12.z-10 (header card)
-  |     |-- div.max-w-7xl.mx-auto
-  |           |-- div.bg-card.rounded-2xl.shadow-lg.p-4.md:p-6
-  |                 |-- CheckCircle + Titulo + Descricao dinamica
-  |                 |-- Card de creditos
-  |
-  |-- main.px-4.sm:px-6.lg:px-8.pt-4.pb-8.flex-1
-        |-- div.max-w-7xl.mx-auto.space-y-4.mt-4
-              |-- Card "Tipo de Revisao" (border-0 shadow-lg) - grid 3 colunas
-              |-- Card "Configuracao Basica" (border-0 shadow-lg) - Marca + Tema
-              |-- Card "Conteudo para Revisao" (border-0 shadow-lg) - campos dinamicos
-              |-- Card "Acoes" (border-0 shadow-lg) - botoes
+// ANTES:
+if (persisted) {
+  // restaurar campos...
+  toast.info("Rascunho recuperado");
+}
+
+// DEPOIS:
+if (persisted && hasRelevantData(persisted)) {
+  // restaurar campos...
+  toast.info("Rascunho recuperado");
+}
 ```
 
-### 4. Detalhes tecnicos
+Para as paginas que nao expoe `hasRelevantData` do hook, sera necessario:
+- Desestruturar `hasRelevantData` do retorno de `useFormPersistence` (ja existe no hook)
+- Ou criar uma funcao auxiliar simples que verifica se algum valor do objeto e significativo
 
-**Importacoes adicionais:**
-- `useQuery` de `@tanstack/react-query`
-- `createBanner` de `@/assets/create-banner.jpg`
-- `HelpCircle` de `lucide-react`
-- `Popover`, `PopoverContent`, `PopoverTrigger` de `@/components/ui/popover`
-
-**React Query:**
-```text
-useQuery(['brands', teamId], fetchBrands, { staleTime: 5min })
-useQuery(['themes', teamId], fetchThemes, { staleTime: 5min })
-```
-
-**Cards atualizados:**
-- Todos os cards passam de `backdrop-blur-sm bg-card/60 border border-border/20` para `border-0 shadow-lg rounded-2xl`
-- Remover headers com gradiente interno (`bg-gradient-to-r from-primary/5`) nos cards de secao
-- Manter titulos de secao com icone de bolinha colorida (`w-2 h-2 bg-primary rounded-full`)
-
-### 5. Funcionalidade preservada
-- Toda a logica de revisao (handleSubmit, review-image, review-caption, review-text-for-image) permanece intacta
-- Selecao de tipo de revisao, upload de imagem, persistencia de formulario -- tudo mantido
-- Tours de onboarding mantidos
-- Apenas o layout/visual e o metodo de carregamento de dados serao alterados
-
-### Arquivo modificado
+### Arquivos modificados
 - `src/pages/ReviewContent.tsx`
+- `src/pages/CreateContent.tsx`
+- `src/pages/CreateImage.tsx`
+- `src/pages/PlanContent.tsx`
+- `src/components/personas/PersonaDialog.tsx`
+- `src/components/temas/ThemeDialog.tsx`
 
+Nenhuma funcionalidade sera removida - apenas o toast nao aparecera mais quando nao houver dados reais salvos.
