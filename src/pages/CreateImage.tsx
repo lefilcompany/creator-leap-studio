@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,7 +17,8 @@ import { NativeSelect } from "@/components/ui/native-select";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Sparkles, Zap, X, Info, ImagePlus, Coins, Image as ImageIcon } from "lucide-react";
+import { Loader2, Sparkles, Zap, X, Info, ImagePlus, Coins, Image as ImageIcon, HelpCircle } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { CREDIT_COSTS } from "@/lib/creditCosts";
@@ -32,6 +34,8 @@ import { useFormPersistence } from '@/hooks/useFormPersistence';
 import { TourSelector } from '@/components/onboarding/TourSelector';
 import { createContentSteps, navbarSteps } from '@/components/onboarding/tourSteps';
 import { PageBreadcrumb } from "@/components/PageBreadcrumb";
+import { CreationProgressBar } from "@/components/CreationProgressBar";
+import createBanner from "@/assets/create-banner.jpg";
 
 enum GenerationStep {
   IDLE = "IDLE",
@@ -104,13 +108,6 @@ export default function CreateImage() {
     imageTextPosition: "center",
   });
 
-  const [team, setTeam] = useState<Team | null>(null);
-  const [brands, setBrands] = useState<BrandSummary[]>([]);
-  const [themes, setThemes] = useState<StrategicThemeSummary[]>([]);
-  const [personas, setPersonas] = useState<PersonaSummary[]>([]);
-  const [isLoadingData, setIsLoadingData] = useState(true);
-  const [filteredThemes, setFilteredThemes] = useState<StrategicThemeSummary[]>([]);
-  const [filteredPersonas, setFilteredPersonas] = useState<PersonaSummary[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [generationStep, setGenerationStep] = useState<GenerationStep>(GenerationStep.IDLE);
   const [generationProgress, setGenerationProgress] = useState<number>(0);
@@ -123,6 +120,120 @@ export default function CreateImage() {
   const [platformGuidelines, setPlatformGuidelines] = useState<string[]>([]);
   const [recommendedAspectRatio, setRecommendedAspectRatio] = useState<string>("");
   const [preserveImageIndices, setPreserveImageIndices] = useState<number[]>([]);
+
+  // React Query for brands, themes, personas
+  const teamId = user?.teamId;
+  const userId = user?.id;
+
+  const { data: brands = [], isLoading: loadingBrands } = useQuery({
+    queryKey: ['brands', teamId],
+    queryFn: async () => {
+      if (!teamId) return [];
+      const { data, error } = await supabase
+        .from('brands')
+        .select('id, name, responsible, created_at, updated_at')
+        .eq('team_id', teamId)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return (data || []).map((brand: any) => ({
+        id: brand.id,
+        name: brand.name,
+        responsible: brand.responsible,
+        brandColor: null,
+        avatarUrl: null,
+        createdAt: brand.created_at,
+        updatedAt: brand.updated_at,
+      })) as BrandSummary[];
+    },
+    enabled: !!teamId,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const { data: themes = [], isLoading: loadingThemes } = useQuery({
+    queryKey: ['themes', teamId],
+    queryFn: async () => {
+      if (!teamId) return [];
+      const { data, error } = await supabase
+        .from('strategic_themes')
+        .select('id, brand_id, title, created_at')
+        .eq('team_id', teamId)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return (data || []).map((theme: any) => ({
+        id: theme.id,
+        brandId: theme.brand_id,
+        title: theme.title,
+        createdAt: theme.created_at,
+      })) as StrategicThemeSummary[];
+    },
+    enabled: !!teamId,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const { data: personas = [], isLoading: loadingPersonas } = useQuery({
+    queryKey: ['personas', teamId],
+    queryFn: async () => {
+      if (!teamId) return [];
+      const { data, error } = await supabase
+        .from('personas')
+        .select('id, brand_id, name, created_at')
+        .eq('team_id', teamId)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return (data || []).map((persona: any) => ({
+        id: persona.id,
+        brandId: persona.brand_id,
+        name: persona.name,
+        createdAt: persona.created_at,
+      })) as PersonaSummary[];
+    },
+    enabled: !!teamId,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const { data: team = null } = useQuery({
+    queryKey: ['team', teamId],
+    queryFn: async () => {
+      if (!teamId) return null;
+      const { data: teamData, error } = await supabase
+        .from('teams')
+        .select('*, plan:plans(*)')
+        .eq('id', teamId)
+        .single();
+      if (error) throw error;
+      return {
+        id: teamData.id,
+        name: teamData.name,
+        code: teamData.code,
+        admin: teamData.admin_id,
+        admin_id: teamData.admin_id,
+        members: [],
+        pending: [],
+        plan: teamData.plan ? {
+          id: teamData.plan.id,
+          name: teamData.plan.name,
+          description: teamData.plan.description || '',
+          price: Number(teamData.plan.price_monthly || 0),
+          credits: (teamData.plan as any).credits || 0,
+          maxMembers: teamData.plan.max_members,
+          maxBrands: teamData.plan.max_brands,
+          maxStrategicThemes: teamData.plan.max_strategic_themes,
+          maxPersonas: teamData.plan.max_personas,
+          trialDays: teamData.plan.trial_days || 0,
+          isActive: teamData.plan.is_active,
+          stripePriceId: teamData.plan.stripe_price_id_monthly,
+        } : null,
+        credits: (teamData as any).credits || 0,
+        free_brands_used: (teamData as any).free_brands_used || 0,
+        free_personas_used: (teamData as any).free_personas_used || 0,
+        free_themes_used: (teamData as any).free_themes_used || 0,
+      } as Team;
+    },
+    enabled: !!teamId,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const isLoadingData = loadingBrands || loadingThemes || loadingPersonas;
 
   const { loadPersistedData, clearPersistedData } = useFormPersistence({
     key: 'create-image-form',
@@ -177,126 +288,20 @@ export default function CreateImage() {
     }
   };
 
-  useEffect(() => {
-    const loadData = async () => {
-      if (!user?.teamId || !user?.id) {
-        if (user) setIsLoadingData(false);
-        return;
-      }
-
-      try {
-        const [
-          { data: teamData, error: teamError },
-          { data: brandsData, error: brandsError },
-          { data: themesData, error: themesError },
-          { data: personasData, error: personasError }
-        ] = await Promise.all([
-          supabase
-            .from('teams')
-            .select('*, plan:plans(*)')
-            .eq('id', user.teamId)
-            .single(),
-          supabase
-            .from('brands')
-            .select('id, name, responsible, created_at, updated_at')
-            .eq('team_id', user.teamId)
-            .order('created_at', { ascending: false }),
-          supabase
-            .from('strategic_themes')
-            .select('id, brand_id, title, created_at')
-            .eq('team_id', user.teamId)
-            .order('created_at', { ascending: false }),
-          supabase
-            .from('personas')
-            .select('id, brand_id, name, created_at')
-            .eq('team_id', user.teamId)
-            .order('created_at', { ascending: false })
-        ]);
-
-        if (teamError) throw teamError;
-        if (brandsError) throw brandsError;
-        if (themesError) throw themesError;
-        if (personasError) throw personasError;
-
-        const mappedTeam: Team = {
-          id: teamData.id,
-          name: teamData.name,
-          code: teamData.code,
-          admin: teamData.admin_id,
-          admin_id: teamData.admin_id,
-          members: [],
-          pending: [],
-          plan: teamData.plan ? {
-            id: teamData.plan.id,
-            name: teamData.plan.name,
-            description: teamData.plan.description || '',
-            price: Number(teamData.plan.price_monthly || 0),
-            credits: (teamData.plan as any).credits || 0,
-            maxMembers: teamData.plan.max_members,
-            maxBrands: teamData.plan.max_brands,
-            maxStrategicThemes: teamData.plan.max_strategic_themes,
-            maxPersonas: teamData.plan.max_personas,
-            trialDays: teamData.plan.trial_days || 0,
-            isActive: teamData.plan.is_active,
-            stripePriceId: teamData.plan.stripe_price_id_monthly,
-          } : null,
-          credits: (teamData as any).credits || 0,
-          free_brands_used: (teamData as any).free_brands_used || 0,
-          free_personas_used: (teamData as any).free_personas_used || 0,
-          free_themes_used: (teamData as any).free_themes_used || 0,
-        };
-
-        const mappedBrands: BrandSummary[] = (brandsData || []).map((brand) => ({
-          id: brand.id,
-          name: brand.name,
-          responsible: brand.responsible,
-          brandColor: null,
-          avatarUrl: null,
-          createdAt: brand.created_at,
-          updatedAt: brand.updated_at,
-        }));
-
-        const mappedThemes: StrategicThemeSummary[] = (themesData || []).map((theme) => ({
-          id: theme.id,
-          brandId: theme.brand_id,
-          title: theme.title,
-          createdAt: theme.created_at,
-        }));
-
-        const mappedPersonas: PersonaSummary[] = (personasData || []).map((persona) => ({
-          id: persona.id,
-          brandId: persona.brand_id,
-          name: persona.name,
-          createdAt: persona.created_at,
-        }));
-
-        setTeam(mappedTeam);
-        setBrands(mappedBrands);
-        setThemes(mappedThemes);
-        setPersonas(mappedPersonas);
-        setIsLoadingData(false);
-      } catch (error: any) {
-        console.error("Erro ao carregar dados:", error);
-        toast.error("Erro ao carregar dados do formulário");
-        setIsLoadingData(false);
-      }
-    };
-    loadData();
-  }, [user]);
+  // Filtered themes/personas based on brand
+  const filteredThemes = useMemo(() => 
+    formData.brand ? themes.filter((t) => t.brandId === formData.brand) : [],
+    [themes, formData.brand]
+  );
+  const filteredPersonas = useMemo(() => 
+    formData.brand ? personas.filter((p) => p.brandId === formData.brand) : [],
+    [personas, formData.brand]
+  );
 
   useEffect(() => {
     const selectedBrand = brands.find((b) => b.id === formData.brand);
-    
-    setFilteredThemes(
-      selectedBrand ? themes.filter((t) => t.brandId === selectedBrand.id) : []
-    );
-    setFilteredPersonas(
-      selectedBrand ? personas.filter((p) => p.brandId === selectedBrand.id) : []
-    );
-
     if (selectedBrand) {
       setBrandImages([]);
-      
       supabase
         .from('brands')
         .select('logo, moodboard, reference_image')
@@ -308,18 +313,16 @@ export default function CreateImage() {
             const logo = fullBrand.logo as any;
             const moodboard = fullBrand.moodboard as any;
             const referenceImage = fullBrand.reference_image as any;
-            
             if (logo?.content) images.push(logo.content);
             if (moodboard?.content) images.push(moodboard.content);
             if (referenceImage?.content) images.push(referenceImage.content);
-            
             setBrandImages(images);
           }
         });
     } else {
       setBrandImages([]);
     }
-  }, [brands, themes, personas, formData.brand, supabase]);
+  }, [brands, formData.brand]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -410,14 +413,12 @@ export default function CreateImage() {
 
   const validateForm = () => {
     const missing: string[] = [];
-    
     if (!formData.brand) missing.push('brand');
     if (!formData.objective) missing.push('objective');
     if (!formData.platform) missing.push('platform');
     if (!formData.description) missing.push('description');
     if (formData.tone.length === 0) missing.push('tone');
     if (referenceFiles.length === 0) missing.push('referenceFiles');
-    
     setMissingFields(missing);
     return missing.length === 0;
   };
@@ -451,28 +452,18 @@ export default function CreateImage() {
             img.onload = () => {
               const canvas = document.createElement('canvas');
               const ctx = canvas.getContext('2d')!;
-              
               const MAX_WIDTH = 1024;
               const MAX_HEIGHT = 1024;
               let width = img.width;
               let height = img.height;
-              
               if (width > height) {
-                if (width > MAX_WIDTH) {
-                  height *= MAX_WIDTH / width;
-                  width = MAX_WIDTH;
-                }
+                if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
               } else {
-                if (height > MAX_HEIGHT) {
-                  width *= MAX_HEIGHT / height;
-                  height = MAX_HEIGHT;
-                }
+                if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
               }
-              
               canvas.width = width;
               canvas.height = height;
               ctx.drawImage(img, 0, 0, width, height);
-              
               const base64 = canvas.toDataURL('image/jpeg', 0.8);
               resolve(base64);
             };
@@ -491,7 +482,6 @@ export default function CreateImage() {
           id: toastId,
           description: `Comprimindo imagem ${i + 1}/${referenceFiles.length}...`,
         });
-        
         const base64 = await compressImage(file);
         referenceImagesBase64.push(base64);
       }
@@ -512,7 +502,6 @@ export default function CreateImage() {
       if (brandImagesCount + userImagesCount > maxTotalImages) {
         const availableSlots = Math.max(0, maxTotalImages - brandImagesCount);
         finalUserImages = referenceImagesBase64.slice(0, availableSlots);
-        
         if (availableSlots < userImagesCount) {
           toast.warning(
             `Limite de imagens atingido. Usando ${brandImagesCount} imagens da marca + ${availableSlots} suas imagens (total: ${brandImagesCount + availableSlots})`,
@@ -520,8 +509,6 @@ export default function CreateImage() {
           );
         }
       }
-      
-      const allReferenceImages = [...finalBrandImages, ...finalUserImages];
 
       const selectedBrand = brands.find(b => b.id === formData.brand);
       const selectedTheme = themes.find(t => t.id === formData.theme);
@@ -562,12 +549,10 @@ export default function CreateImage() {
         toast.error("Por favor, selecione uma marca válida", { id: toastId });
         return;
       }
-      
       if (formData.theme && !uuidRegex.test(formData.theme)) {
         toast.error("Tema estratégico inválido", { id: toastId });
         return;
       }
-      
       if (formData.persona && !uuidRegex.test(formData.persona)) {
         toast.error("Persona inválida", { id: toastId });
         return;
@@ -644,7 +629,6 @@ export default function CreateImage() {
         const errorText = await captionResponse.text();
         console.error("❌ Erro na geração de legenda:", errorText);
         isLocalFallback = true;
-        
         toast.error("Erro ao gerar legenda", {
           description: "Usando legenda padrão. Você pode editá-la depois.",
           duration: 4000,
@@ -664,15 +648,7 @@ export default function CreateImage() {
           Twitter: { maxLength: 280, recommendedHashtags: 2 },
         }[platform] || { maxLength: 500, recommendedHashtags: 5 };
 
-        const fallbackBody = `🌟 ${brandName} apresenta: ${themeName}
-
-${formData.description}
-
-💡 ${formData.objective}
-
-🎯 Tom: ${formData.tone.join(", ")}
-
-💬 Comente o que achou!`;
+        const fallbackBody = `🌟 ${brandName} apresenta: ${themeName}\n\n${formData.description}\n\n💡 ${formData.objective}\n\n🎯 Tom: ${formData.tone.join(", ")}\n\n💬 Comente o que achou!`;
 
         captionData = {
           title: `${brandName} | ${themeName} 🚀`,
@@ -750,7 +726,6 @@ ${formData.description}
               description: errorData.message || "A solicitação viola regulamentações publicitárias brasileiras",
               duration: 8000,
             });
-            
             if (errorData.recommendation) {
               setTimeout(() => {
                 toast.info("Sugestão", {
@@ -794,16 +769,16 @@ ${formData.description}
     }
   };
 
-  if (isLoadingData) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
+  const SelectSkeleton = () => (
+    <div className="space-y-1.5">
+      <Skeleton className="h-4 w-24" />
+      <Skeleton className="h-10 w-full rounded-lg" />
+      <Skeleton className="h-3 w-48" />
+    </div>
+  );
 
   return (
-    <div className="min-h-full w-full bg-gradient-to-br from-pink-50/50 via-purple-50/30 to-pink-50/50 dark:from-background dark:via-background dark:to-muted/20">
+    <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8 min-h-full">
       <TourSelector 
         tours={[
           {
@@ -821,549 +796,516 @@ ${formData.description}
         ]}
         startDelay={500}
       />
-      <div className="max-w-5xl mx-auto space-y-6">
-        {/* Breadcrumb Navigation */}
-        <PageBreadcrumb items={[{ label: "Criar Imagem" }]} />
 
-        {/* Header */}
-        <Card className="border-purple-200/50 dark:border-purple-500/20 bg-gradient-to-r from-pink-50/80 via-purple-50/60 to-pink-50/80 dark:from-purple-500/10 dark:via-purple-500/5 dark:to-purple-500/10 shadow-sm">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="bg-gradient-to-br from-purple-500 to-pink-500 text-white rounded-2xl p-3 shadow-md">
-                  <ImageIcon className="h-7 w-7" />
+      {/* Banner */}
+      <div className="relative h-48 md:h-64 lg:h-72 overflow-hidden">
+        <PageBreadcrumb
+          items={[{ label: "Criar Conteúdo", href: "/create" }, { label: "Criar Imagem" }]}
+          variant="overlay"
+        />
+        <img
+          src={createBanner}
+          alt="Criar Imagem"
+          className="w-full h-full object-cover object-center"
+          loading="eager"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+      </div>
+
+      {/* Header Card */}
+      <div className="relative px-4 sm:px-6 lg:px-8 -mt-12 z-10">
+        <div className="max-w-7xl mx-auto">
+          <div className="bg-card rounded-2xl shadow-lg p-4 md:p-6">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="flex-shrink-0 bg-primary/10 text-primary rounded-xl p-2.5 md:p-3">
+                  <ImageIcon className="h-5 w-5 md:h-6 md:w-6 lg:h-8 lg:w-8" />
                 </div>
-                <div>
-                  <h1 className="text-3xl font-bold text-foreground">
-                    Criar Imagem
-                  </h1>
-                  <p className="text-muted-foreground text-sm mt-0.5">Gere imagens profissionais com IA</p>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-foreground">
+                      Criar Imagem
+                    </h1>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button className="text-muted-foreground hover:text-foreground transition-colors">
+                          <HelpCircle className="h-4 w-4" />
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="text-sm w-72" side="bottom">
+                        <p className="font-medium mb-1">Criar Imagem</p>
+                        <p className="text-muted-foreground text-xs">
+                          Gere imagens profissionais com IA. Selecione marca, tema e persona para personalizar o resultado com sua identidade visual.
+                        </p>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <p className="text-muted-foreground text-xs md:text-sm">
+                    Gere imagens profissionais com IA
+                  </p>
                 </div>
               </div>
               {user && (
-                <Card className="bg-gradient-to-br from-purple-100/80 to-pink-100/80 dark:from-purple-500/10 dark:to-pink-500/10 border-purple-300/50 dark:border-purple-500/20 shadow-sm">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="bg-gradient-to-br from-purple-500 to-pink-500 text-white rounded-full p-2 shadow-sm">
-                        <Zap className="h-4 w-4" />
+                <Card className="bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/20 flex-shrink-0">
+                  <CardContent className="p-2.5 md:p-3">
+                    <div className="flex items-center justify-center gap-3">
+                      <div className="relative flex-shrink-0">
+                        <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary rounded-full blur-sm opacity-40"></div>
+                        <div className="relative bg-gradient-to-r from-primary to-secondary text-white rounded-full p-2">
+                          <Zap className="h-4 w-4" />
+                        </div>
                       </div>
-                      <div>
-                        <div className="flex items-baseline gap-1.5">
-                          <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                      <div className="flex flex-col">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent whitespace-nowrap">
                             {user?.credits || 0}
                           </span>
-                          <span className="text-xs text-muted-foreground font-medium">Créditos</span>
+                          <p className="text-sm text-muted-foreground font-medium leading-tight whitespace-nowrap">
+                            Créditos
+                          </p>
                         </div>
-                        <p className="text-[10px] text-muted-foreground">Disponíveis</p>
+                        <p className="text-xs text-muted-foreground">Disponíveis</p>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
               )}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
+      </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-          {/* Configuração Básica */}
-          <div className="space-y-6">
-            <Card className="backdrop-blur-sm bg-card/90 border-2 border-border/50 shadow-xl rounded-2xl">
-              <CardHeader className="pb-4 bg-gradient-to-r from-primary/5 to-accent/5 rounded-t-2xl border-b-2 border-border/30">
-                <h2 className="text-xl font-bold text-foreground flex items-center gap-3">
-                  <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-                  Configuração Básica
-                </h2>
-                <p className="text-muted-foreground text-sm">
-                  Defina marca, tema e público-alvo
-                </p>
-              </CardHeader>
-              <CardContent className="space-y-5 p-6">
-                <div className="space-y-3">
-                  <Label
-                    htmlFor="brand"
-                    className="text-sm font-semibold text-foreground"
-                  >
-                    Marca <span className="text-destructive">*</span>
-                  </Label>
-                  {isLoadingData ? (
-                    <Skeleton className="h-11 w-full rounded-xl" />
-                  ) : (
-                    <NativeSelect
-                      value={formData.brand}
-                      onValueChange={(value) => handleSelectChange("brand", value)}
-                      options={brands.map((b) => ({ value: b.id, label: b.name }))}
-                      placeholder={brands.length === 0 ? "Nenhuma marca cadastrada" : "Selecione a marca"}
-                      disabled={brands.length === 0}
-                      triggerClassName={`h-11 rounded-xl border-2 bg-background/50 text-sm hover:border-primary/50 transition-all ${
-                        missingFields.includes('brand') ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/50'
-                      }`}
-                    />
-                  )}
-                  {!isLoadingData && brands.length === 0 && (
-                    <p className="text-xs text-muted-foreground">
-                      Você precisa cadastrar uma marca antes.{" "}
-                      <button
-                        onClick={() => navigate("/brands")}
-                        className="text-primary hover:underline font-medium"
-                      >
-                        Ir para Marcas
-                      </button>
-                    </p>
-                  )}
-                </div>
+      {/* Main Form */}
+      <main className="px-4 sm:px-6 lg:px-8 pt-4 pb-8 flex-1">
+        <div className="max-w-7xl mx-auto space-y-4 mt-4">
+          {/* Progress Bar */}
+          <CreationProgressBar currentStep={loading ? "generating" : "config"} className="max-w-xs mx-auto" />
 
-                <div className="space-y-3">
-                  <Label
-                    htmlFor="theme"
-                    className="text-sm font-semibold text-foreground"
-                  >
-                    Tema Estratégico
-                  </Label>
-                  {isLoadingData ? (
-                    <Skeleton className="h-11 w-full rounded-xl" />
-                  ) : (
-                    <NativeSelect
-                      value={formData.theme}
-                      onValueChange={(value) => handleSelectChange("theme", value)}
-                      options={filteredThemes.map((t) => ({ value: t.id, label: t.title }))}
-                      placeholder={
-                        !formData.brand
-                          ? "Primeiro, escolha a marca"
-                          : filteredThemes.length === 0
-                          ? "Nenhum tema disponível"
-                          : "Selecione um tema (opcional)"
-                      }
-                      disabled={!formData.brand || filteredThemes.length === 0}
-                      triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50 text-sm hover:border-primary/50 transition-all"
-                    />
-                  )}
-                </div>
-
-                <div className="space-y-3">
-                  <Label
-                    htmlFor="persona"
-                    className="text-sm font-semibold text-foreground"
-                  >
-                    Persona
-                  </Label>
-                  {isLoadingData ? (
-                    <Skeleton className="h-11 w-full rounded-xl" />
-                  ) : (
-                    <NativeSelect
-                      value={formData.persona}
-                      onValueChange={(value) => handleSelectChange("persona", value)}
-                      options={filteredPersonas.map((p) => ({ value: p.id, label: p.name }))}
-                      placeholder={
-                        !formData.brand
-                          ? "Primeiro, escolha a marca"
-                          : "Adicionar persona"
-                      }
-                      disabled={!formData.brand || filteredPersonas.length === 0}
-                      triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50 text-sm hover:border-primary/50 transition-all"
-                    />
-                  )}
-                </div>
-
-                <div className="space-y-3">
-                  <Label
-                    htmlFor="platform"
-                    className="text-sm font-semibold text-foreground"
-                  >
-                    Plataforma <span className="text-destructive">*</span>
-                  </Label>
-                  <NativeSelect
-                    value={formData.platform}
-                    onValueChange={(value) => handleSelectChange("platform", value)}
-                    options={[
-                      { value: "Instagram", label: "Instagram" },
-                      { value: "Facebook", label: "Facebook" },
-                      { value: "TikTok", label: "TikTok" },
-                      { value: "Twitter/X", label: "Twitter (X)" },
-                      { value: "LinkedIn", label: "LinkedIn" },
-                      { value: "Comunidades", label: "Comunidades" },
-                    ]}
-                    placeholder="Onde será postado?"
-                    triggerClassName={`h-11 rounded-xl border-2 bg-background/50 text-sm hover:border-primary/50 transition-all ${
-                      missingFields.includes('platform') ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/50'
-                    }`}
-                  />
-                </div>
-
-                <div className="space-y-3">
-                  <Label
-                    htmlFor="visualStyle"
-                    className="text-sm font-semibold text-foreground"
-                  >
-                    Estilo Visual
-                  </Label>
-                  <NativeSelect
-                    value={formData.visualStyle || 'realistic'}
-                    onValueChange={(value) => handleSelectChange("visualStyle" as keyof Omit<FormData, "tone">, value)}
-                    options={[
-                      { value: 'realistic', label: 'Fotorealístico' },
-                      { value: 'animated', label: 'Animado 3D (Pixar/Disney)' },
-                      { value: 'cartoon', label: 'Cartoon' },
-                      { value: 'anime', label: 'Anime/Mangá' },
-                      { value: 'watercolor', label: 'Aquarela' },
-                      { value: 'oil_painting', label: 'Pintura a Óleo' },
-                      { value: 'digital_art', label: 'Arte Digital' },
-                      { value: 'sketch', label: 'Desenho/Sketch' },
-                      { value: 'minimalist', label: 'Minimalista' },
-                      { value: 'vintage', label: 'Vintage/Retrô' }
-                    ]}
-                    placeholder="Selecione um estilo"
-                    triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50 text-sm hover:border-primary/50 transition-all"
-                  />
-                </div>
-
-                <div className="space-y-3">
-                  <Label className="text-sm font-semibold text-foreground">
-                    Tipo de Conteúdo <span className="text-destructive">*</span>
-                  </Label>
-                  <div id="content-type-selector" className="flex items-center space-x-1 rounded-xl bg-muted p-1 border-2 border-border/30">
-                    <Button
-                      type="button"
-                      variant={contentType === "organic" ? "default" : "ghost"}
-                      onClick={() => {
-                        setContentType("organic");
-                        if (formData.platform) {
-                          const guidelines = getCaptionGuidelines(formData.platform, "organic");
-                          setPlatformGuidelines(guidelines);
-                        }
-                      }}
-                      className="flex-1 rounded-lg font-semibold"
-                    >
-                      Orgânico
-                    </Button>
-                    <Button
-                      type="button"
-                      variant={contentType === "ads" ? "default" : "ghost"}
-                      onClick={() => {
-                        setContentType("ads");
-                        if (formData.platform) {
-                          const guidelines = getCaptionGuidelines(formData.platform, "ads");
-                          setPlatformGuidelines(guidelines);
-                        }
-                      }}
-                      className="flex-1 rounded-lg font-semibold"
-                    >
-                      Anúncio
-                    </Button>
-                  </div>
-                </div>
-
-                {platformGuidelines.length > 0 && (
-                  <Card className="bg-primary/5 border-primary/20">
-                    <CardContent className="p-4 space-y-2">
-                      <div className="flex items-center gap-2">
-                        <Info className="h-4 w-4 text-primary flex-shrink-0" />
-                        <p className="text-sm font-semibold text-primary">
-                          Diretrizes para {formData.platform} ({contentType === "organic" ? "Orgânico" : "Anúncio"})
-                        </p>
-                      </div>
-                      <ul className="space-y-1 text-xs text-muted-foreground">
-                        {platformGuidelines.map((guideline, idx) => (
-                          <li key={idx} className="flex items-start gap-2">
-                            <span className="text-primary mt-0.5">•</span>
-                            <span>{guideline}</span>
-                          </li>
-                        ))}
-                      </ul>
-                      {recommendedAspectRatio && (
-                        <p className="text-xs text-primary/80 font-medium mt-2 pt-2 border-t border-primary/20">
-                          💡 Proporção recomendada: {recommendedAspectRatio}
-                        </p>
-                      )}
-                    </CardContent>
-                  </Card>
-                )}
-
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label
-                      htmlFor="referenceFile"
-                      className="text-sm font-semibold text-foreground"
-                    >
-                      Imagem de Referência <span className="text-destructive">*</span>
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+            {/* Configuração Básica */}
+            <div className="space-y-4">
+              <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
+                <CardHeader className="pb-4 border-b border-border/30">
+                  <h2 className="text-lg font-bold text-foreground flex items-center gap-3">
+                    <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                    Configuração Básica
+                  </h2>
+                  <p className="text-muted-foreground text-sm">
+                    Defina marca, tema e público-alvo
+                  </p>
+                </CardHeader>
+                <CardContent className="space-y-5 p-4 md:p-5">
+                  <div className="space-y-3">
+                    <Label htmlFor="brand" className="text-sm font-semibold text-foreground">
+                      Marca <span className="text-destructive">*</span>
                     </Label>
-                    <span className={`text-xs font-medium ${
-                      referenceFiles.length >= 5
-                        ? 'text-destructive' 
-                        : referenceFiles.length >= 4
-                          ? 'text-orange-500' 
-                          : 'text-muted-foreground'
-                    }`}>
-                      {referenceFiles.length}/5 imagens
-                    </span>
+                    {isLoadingData ? (
+                      <SelectSkeleton />
+                    ) : (
+                      <NativeSelect
+                        value={formData.brand}
+                        onValueChange={(value) => handleSelectChange("brand", value)}
+                        options={brands.map((b) => ({ value: b.id, label: b.name }))}
+                        placeholder={brands.length === 0 ? "Nenhuma marca cadastrada" : "Selecione a marca"}
+                        disabled={brands.length === 0}
+                        triggerClassName={`h-11 rounded-xl border-2 bg-background/50 text-sm hover:border-primary/50 transition-all ${
+                          missingFields.includes('brand') ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/50'
+                        }`}
+                      />
+                    )}
+                    {!isLoadingData && brands.length === 0 && (
+                      <p className="text-xs text-muted-foreground">
+                        Você precisa cadastrar uma marca antes.{" "}
+                        <button onClick={() => navigate("/brands")} className="text-primary hover:underline font-medium">
+                          Ir para Marcas
+                        </button>
+                      </p>
+                    )}
                   </div>
 
                   <div className="space-y-3">
-                    <Input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      multiple
-                      disabled={referenceFiles.length >= 5}
-                      onChange={(e) => {
-                        const files = Array.from(e.target.files || []);
-                        const maxFiles = 5;
-                        const remainingSlots = maxFiles - referenceFiles.length;
-                        const filesToAdd = files.slice(0, remainingSlots);
-                        
-                        if (files.length > remainingSlots) {
-                          toast.error(`Você pode adicionar no máximo 5 imagens. ${filesToAdd.length} imagem(ns) adicionada(s).`);
-                        }
-                        
-                        setReferenceFiles((prev) => [...prev, ...filesToAdd]);
-                      }}
-                      className={`h-14 rounded-xl border-2 bg-background/50 transition-all hover:border-primary/50 ${
-                        missingFields.includes('referenceFiles') ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/50'
+                    <Label htmlFor="theme" className="text-sm font-semibold text-foreground">Tema Estratégico</Label>
+                    {isLoadingData ? (
+                      <SelectSkeleton />
+                    ) : (
+                      <NativeSelect
+                        value={formData.theme}
+                        onValueChange={(value) => handleSelectChange("theme", value)}
+                        options={filteredThemes.map((t) => ({ value: t.id, label: t.title }))}
+                        placeholder={!formData.brand ? "Primeiro, escolha a marca" : filteredThemes.length === 0 ? "Nenhum tema disponível" : "Selecione um tema (opcional)"}
+                        disabled={!formData.brand || filteredThemes.length === 0}
+                        triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50 text-sm hover:border-primary/50 transition-all"
+                      />
+                    )}
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label htmlFor="persona" className="text-sm font-semibold text-foreground">Persona</Label>
+                    {isLoadingData ? (
+                      <SelectSkeleton />
+                    ) : (
+                      <NativeSelect
+                        value={formData.persona}
+                        onValueChange={(value) => handleSelectChange("persona", value)}
+                        options={filteredPersonas.map((p) => ({ value: p.id, label: p.name }))}
+                        placeholder={!formData.brand ? "Primeiro, escolha a marca" : "Adicionar persona"}
+                        disabled={!formData.brand || filteredPersonas.length === 0}
+                        triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50 text-sm hover:border-primary/50 transition-all"
+                      />
+                    )}
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label htmlFor="platform" className="text-sm font-semibold text-foreground">
+                      Plataforma <span className="text-destructive">*</span>
+                    </Label>
+                    <NativeSelect
+                      value={formData.platform}
+                      onValueChange={(value) => handleSelectChange("platform", value)}
+                      options={[
+                        { value: "Instagram", label: "Instagram" },
+                        { value: "Facebook", label: "Facebook" },
+                        { value: "TikTok", label: "TikTok" },
+                        { value: "Twitter/X", label: "Twitter (X)" },
+                        { value: "LinkedIn", label: "LinkedIn" },
+                        { value: "Comunidades", label: "Comunidades" },
+                      ]}
+                      placeholder="Onde será postado?"
+                      triggerClassName={`h-11 rounded-xl border-2 bg-background/50 text-sm hover:border-primary/50 transition-all ${
+                        missingFields.includes('platform') ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/50'
                       }`}
                     />
+                  </div>
 
-                    <div
-                      ref={pasteAreaRef}
-                      tabIndex={0}
-                      onPaste={handlePaste}
-                      className={`border-2 border-dashed rounded-xl p-4 text-center bg-muted/20 hover:bg-muted/40 transition-all cursor-pointer ${
-                        missingFields.includes('referenceFiles') 
-                          ? 'border-destructive ring-destructive/50' 
-                          : 'border-border/50'
-                      }`}
-                    >
-                      <ImagePlus className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
-                      <p className="text-sm text-muted-foreground">
-                        Cole sua imagem aqui (Ctrl+V)
-                      </p>
+                  <div className="space-y-3">
+                    <Label htmlFor="visualStyle" className="text-sm font-semibold text-foreground">Estilo Visual</Label>
+                    <NativeSelect
+                      value={formData.visualStyle || 'realistic'}
+                      onValueChange={(value) => handleSelectChange("visualStyle" as keyof Omit<FormData, "tone">, value)}
+                      options={[
+                        { value: 'realistic', label: 'Fotorealístico' },
+                        { value: 'animated', label: 'Animado 3D (Pixar/Disney)' },
+                        { value: 'cartoon', label: 'Cartoon' },
+                        { value: 'anime', label: 'Anime/Mangá' },
+                        { value: 'watercolor', label: 'Aquarela' },
+                        { value: 'oil_painting', label: 'Pintura a Óleo' },
+                        { value: 'digital_art', label: 'Arte Digital' },
+                        { value: 'sketch', label: 'Desenho/Sketch' },
+                        { value: 'minimalist', label: 'Minimalista' },
+                        { value: 'vintage', label: 'Vintage/Retrô' }
+                      ]}
+                      placeholder="Selecione um estilo"
+                      triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50 text-sm hover:border-primary/50 transition-all"
+                    />
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label className="text-sm font-semibold text-foreground">
+                      Tipo de Conteúdo <span className="text-destructive">*</span>
+                    </Label>
+                    <div id="content-type-selector" className="flex items-center space-x-1 rounded-xl bg-muted p-1 border-2 border-border/30">
+                      <Button
+                        type="button"
+                        variant={contentType === "organic" ? "default" : "ghost"}
+                        onClick={() => {
+                          setContentType("organic");
+                          if (formData.platform) {
+                            const guidelines = getCaptionGuidelines(formData.platform, "organic");
+                            setPlatformGuidelines(guidelines);
+                          }
+                        }}
+                        className="flex-1 rounded-lg font-semibold"
+                      >
+                        Orgânico
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={contentType === "ads" ? "default" : "ghost"}
+                        onClick={() => {
+                          setContentType("ads");
+                          if (formData.platform) {
+                            const guidelines = getCaptionGuidelines(formData.platform, "ads");
+                            setPlatformGuidelines(guidelines);
+                          }
+                        }}
+                        className="flex-1 rounded-lg font-semibold"
+                      >
+                        Anúncio
+                      </Button>
                     </div>
+                  </div>
 
-                    {referenceFiles.length > 0 && (
-                      <div className="space-y-2 p-3 bg-primary/5 rounded-xl border-2 border-primary/20">
-                        <p className="text-xs font-semibold text-primary mb-2">
-                          {referenceFiles.length} imagem(ns) selecionada(s):
-                        </p>
-                        <div className="space-y-2">
-                          {referenceFiles.map((file, idx) => (
-                            <div key={idx} className="bg-background/60 rounded-lg p-3 hover:bg-background transition-colors">
-                              <div className="flex items-center justify-between mb-2">
-                                <span className="text-sm text-foreground font-medium flex items-center gap-2 min-w-0 flex-1">
-                                  <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0"></div>
-                                  <span className="truncate">{file.name}</span>
-                                </span>
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleRemoveFile(idx)}
-                                  className="h-6 w-6 p-0 text-destructive hover:bg-destructive/10 rounded-full flex-shrink-0 ml-2"
-                                >
-                                  <X className="h-3 w-3" />
-                                </Button>
-                              </div>
-                              
-                              <div className="flex items-start gap-2 mt-2 pt-2 border-t border-border/20">
-                                <Checkbox
-                                  id={`preserve-${idx}`}
-                                  checked={preserveImageIndices.includes(idx)}
-                                  onCheckedChange={() => handleTogglePreserve(idx)}
-                                  className="mt-0.5"
-                                />
-                                <Label
-                                  htmlFor={`preserve-${idx}`}
-                                  className="text-xs text-muted-foreground cursor-pointer leading-tight"
-                                >
-                                  Preservar traços desta imagem (cores, estilo, elementos visuais)
-                                </Label>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                        
-                        <div className="mt-3 p-2 bg-accent/10 rounded-lg border border-accent/20">
-                          <p className="text-xs text-muted-foreground flex items-start gap-1.5">
-                            <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0 text-accent" />
-                            <span>
-                              <strong className="text-accent">Dica:</strong> Marque "Preservar traços" nas imagens da sua marca/identidade visual. 
-                              As outras servirão apenas como referência de estilo.
-                            </span>
+                  {platformGuidelines.length > 0 && (
+                    <Card className="bg-primary/5 border-primary/20">
+                      <CardContent className="p-4 space-y-2">
+                        <div className="flex items-center gap-2">
+                          <Info className="h-4 w-4 text-primary flex-shrink-0" />
+                          <p className="text-sm font-semibold text-primary">
+                            Diretrizes para {formData.platform} ({contentType === "organic" ? "Orgânico" : "Anúncio"})
                           </p>
                         </div>
+                        <ul className="space-y-1 text-xs text-muted-foreground">
+                          {platformGuidelines.map((guideline, idx) => (
+                            <li key={idx} className="flex items-start gap-2">
+                              <span className="text-primary mt-0.5">•</span>
+                              <span>{guideline}</span>
+                            </li>
+                          ))}
+                        </ul>
+                        {recommendedAspectRatio && (
+                          <p className="text-xs text-primary/80 font-medium mt-2 pt-2 border-t border-primary/20">
+                            💡 Proporção recomendada: {recommendedAspectRatio}
+                          </p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="referenceFile" className="text-sm font-semibold text-foreground">
+                        Imagem de Referência <span className="text-destructive">*</span>
+                      </Label>
+                      <span className={`text-xs font-medium ${
+                        referenceFiles.length >= 5 ? 'text-destructive' 
+                          : referenceFiles.length >= 4 ? 'text-orange-500' 
+                          : 'text-muted-foreground'
+                      }`}>
+                        {referenceFiles.length}/5 imagens
+                      </span>
+                    </div>
+
+                    <div className="space-y-3">
+                      <Input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        disabled={referenceFiles.length >= 5}
+                        onChange={(e) => {
+                          const files = Array.from(e.target.files || []);
+                          const maxFiles = 5;
+                          const remainingSlots = maxFiles - referenceFiles.length;
+                          const filesToAdd = files.slice(0, remainingSlots);
+                          if (files.length > remainingSlots) {
+                            toast.error(`Você pode adicionar no máximo 5 imagens. ${filesToAdd.length} imagem(ns) adicionada(s).`);
+                          }
+                          setReferenceFiles((prev) => [...prev, ...filesToAdd]);
+                        }}
+                        className={`h-14 rounded-xl border-2 bg-background/50 transition-all hover:border-primary/50 ${
+                          missingFields.includes('referenceFiles') ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/50'
+                        }`}
+                      />
+
+                      <div
+                        ref={pasteAreaRef}
+                        tabIndex={0}
+                        onPaste={handlePaste}
+                        className={`border-2 border-dashed rounded-xl p-4 text-center bg-muted/20 hover:bg-muted/40 transition-all cursor-pointer ${
+                          missingFields.includes('referenceFiles') 
+                            ? 'border-destructive ring-destructive/50' 
+                            : 'border-border/50'
+                        }`}
+                      >
+                        <ImagePlus className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
+                        <p className="text-sm text-muted-foreground">Cole sua imagem aqui (Ctrl+V)</p>
+                      </div>
+
+                      {referenceFiles.length > 0 && (
+                        <div className="space-y-2 p-3 bg-primary/5 rounded-xl border-2 border-primary/20">
+                          <p className="text-xs font-semibold text-primary mb-2">
+                            {referenceFiles.length} imagem(ns) selecionada(s):
+                          </p>
+                          <div className="space-y-2">
+                            {referenceFiles.map((file, idx) => (
+                              <div key={idx} className="bg-background/60 rounded-lg p-3 hover:bg-background transition-colors">
+                                <div className="flex items-center justify-between mb-2">
+                                  <span className="text-sm text-foreground font-medium flex items-center gap-2 min-w-0 flex-1">
+                                    <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0"></div>
+                                    <span className="truncate">{file.name}</span>
+                                  </span>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleRemoveFile(idx)}
+                                    className="h-6 w-6 p-0 text-destructive hover:bg-destructive/10 rounded-full flex-shrink-0 ml-2"
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                                <div className="flex items-start gap-2 mt-2 pt-2 border-t border-border/20">
+                                  <Checkbox
+                                    id={`preserve-${idx}`}
+                                    checked={preserveImageIndices.includes(idx)}
+                                    onCheckedChange={() => handleTogglePreserve(idx)}
+                                    className="mt-0.5"
+                                  />
+                                  <Label htmlFor={`preserve-${idx}`} className="text-xs text-muted-foreground cursor-pointer leading-tight">
+                                    Preservar traços desta imagem (cores, estilo, elementos visuais)
+                                  </Label>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="mt-3 p-2 bg-accent/10 rounded-lg border border-accent/20">
+                            <p className="text-xs text-muted-foreground flex items-start gap-1.5">
+                              <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0 text-accent" />
+                              <span>
+                                <strong className="text-accent">Dica:</strong> Marque "Preservar traços" nas imagens da sua marca/identidade visual. 
+                                As outras servirão apenas como referência de estilo.
+                              </span>
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Detalhes do Conteúdo */}
+            <div className="space-y-4">
+              <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
+                <CardHeader className="pb-4 border-b border-border/30">
+                  <h2 className="text-lg font-bold text-foreground flex items-center gap-3">
+                    <div className="w-2 h-2 bg-accent rounded-full animate-pulse"></div>
+                    Detalhes do Conteúdo
+                  </h2>
+                  <p className="text-muted-foreground text-sm">
+                    Descreva o objetivo e características do post
+                  </p>
+                </CardHeader>
+                <CardContent className="space-y-5 p-4 md:p-5">
+                  <div className="space-y-3">
+                    <Label htmlFor="objective" className="text-sm font-semibold text-foreground">
+                      Objetivo do Post <span className="text-destructive">*</span>
+                    </Label>
+                    <Textarea
+                      id="objective"
+                      placeholder="Qual a principal meta? (ex: gerar engajamento, anunciar um produto)"
+                      value={formData.objective}
+                      onChange={handleInputChange}
+                      className={`min-h-[100px] rounded-xl border-2 bg-background/50 resize-none text-sm transition-all ${
+                        missingFields.includes('objective') 
+                          ? 'border-destructive ring-2 ring-destructive/20' 
+                          : 'border-border/50 hover:border-primary/50'
+                      }`}
+                    />
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="description" className="text-sm font-semibold text-foreground">
+                        Descrição Visual da Imagem <span className="text-destructive">*</span>
+                      </Label>
+                      <span className={`text-xs font-medium ${
+                        formData.description.length > 5000 ? 'text-destructive' 
+                          : formData.description.length > 4500 ? 'text-orange-500' 
+                          : 'text-muted-foreground'
+                      }`}>
+                        {formData.description.length}/5000
+                      </span>
+                    </div>
+                    <Textarea
+                      id="description"
+                      placeholder="Descreva a cena, iluminação e emoção desejada..."
+                      value={formData.description}
+                      onChange={handleInputChange}
+                      maxLength={5000}
+                      className={`min-h-[120px] rounded-xl border-2 bg-background/50 resize-none text-sm transition-all ${
+                        missingFields.includes('description') 
+                          ? 'border-destructive ring-2 ring-destructive/20' 
+                          : 'border-border/50 hover:border-primary/50'
+                      }`}
+                    />
+                  </div>
+
+                  <div id="tone-of-voice" className="space-y-3">
+                    <Label htmlFor="tone" className="text-sm font-semibold text-foreground">
+                      Tom de Voz <span className="text-destructive">*</span> (máximo 4)
+                    </Label>
+                    <Select onValueChange={handleToneSelect} value="">
+                      <SelectTrigger className={`h-11 rounded-xl border-2 bg-background/50 text-sm transition-all ${
+                        missingFields.includes('tone') ? 'border-destructive ring-2 ring-destructive/20 hover:border-destructive' : 'border-border/50 hover:border-primary/50'
+                      }`}>
+                        <SelectValue placeholder="Selecione um tom de voz" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl border-border/20">
+                        {toneOptions.map((t) => (
+                          <SelectItem key={t} value={t} className="rounded-lg capitalize">{t}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {formData.tone.length > 0 && (
+                      <div className="flex flex-wrap gap-2 p-3 bg-primary/5 rounded-xl border-2 border-primary/20">
+                        {formData.tone.map((t) => (
+                          <Badge
+                            key={t}
+                            variant="secondary"
+                            className="bg-primary/10 text-primary border-primary/30 pr-1 text-xs font-medium gap-2 hover:bg-primary/20 transition-colors"
+                          >
+                            {t}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleToneRemove(t)}
+                              className="h-4 w-4 p-0 hover:bg-destructive/20 rounded-full"
+                            >
+                              <X className="h-3 w-3 text-destructive" />
+                            </Button>
+                          </Badge>
+                        ))}
                       </div>
                     )}
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
 
-          {/* Detalhes do Conteúdo */}
-          <div className="space-y-6">
-            <Card className="backdrop-blur-sm bg-card/90 border-2 border-border/50 shadow-xl rounded-2xl">
-              <CardHeader className="pb-4 bg-gradient-to-r from-accent/5 to-primary/5 rounded-t-2xl border-b-2 border-border/30">
-                <h2 className="text-xl font-bold text-foreground flex items-center gap-3">
-                  <div className="w-2 h-2 bg-accent rounded-full animate-pulse"></div>
-                  Detalhes do Conteúdo
-                </h2>
-                <p className="text-muted-foreground text-sm">
-                  Descreva o objetivo e características do post
-                </p>
-              </CardHeader>
-              <CardContent className="space-y-5 p-6">
-                <div className="space-y-3">
-                  <Label
-                    htmlFor="objective"
-                    className="text-sm font-semibold text-foreground"
-                  >
-                    Objetivo do Post <span className="text-destructive">*</span>
-                  </Label>
-                  <Textarea
-                    id="objective"
-                    placeholder="Qual a principal meta? (ex: gerar engajamento, anunciar um produto)"
-                    value={formData.objective}
-                    onChange={handleInputChange}
-                    className={`min-h-[100px] rounded-xl border-2 bg-background/50 resize-none text-sm transition-all ${
-                      missingFields.includes('objective') 
-                        ? 'border-destructive ring-2 ring-destructive/20' 
-                        : 'border-border/50 hover:border-primary/50'
-                    }`}
-                  />
-                </div>
-
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label
-                      htmlFor="description"
-                      className="text-sm font-semibold text-foreground"
-                    >
-                      Descrição Visual da Imagem <span className="text-destructive">*</span>
+                  <div className="space-y-3">
+                    <Label htmlFor="additionalInfo" className="text-sm font-semibold text-foreground">
+                      Informações Adicionais
                     </Label>
-                    <span className={`text-xs font-medium ${
-                      formData.description.length > 5000 
-                        ? 'text-destructive' 
-                        : formData.description.length > 4500 
-                          ? 'text-orange-500' 
-                          : 'text-muted-foreground'
-                    }`}>
-                      {formData.description.length}/5000
-                    </span>
+                    <Textarea
+                      id="additionalInfo"
+                      placeholder="Outras instruções ou contexto relevante..."
+                      value={formData.additionalInfo}
+                      onChange={handleInputChange}
+                      className="min-h-[80px] rounded-xl border-2 border-border/50 bg-background/50 resize-none text-sm hover:border-primary/50 transition-all"
+                    />
                   </div>
-                  <Textarea
-                    id="description"
-                    placeholder="Descreva a cena, iluminação e emoção desejada..."
-                    value={formData.description}
-                    onChange={handleInputChange}
-                    maxLength={5000}
-                    className={`min-h-[120px] rounded-xl border-2 bg-background/50 resize-none text-sm transition-all ${
-                      missingFields.includes('description') 
-                        ? 'border-destructive ring-2 ring-destructive/20' 
-                        : 'border-border/50 hover:border-primary/50'
-                    }`}
-                  />
-                </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
 
-                <div id="tone-of-voice" className="space-y-3">
-                  <Label
-                    htmlFor="tone"
-                    className="text-sm font-semibold text-foreground"
-                  >
-                    Tom de Voz <span className="text-destructive">*</span> (máximo 4)
-                  </Label>
-                  <Select onValueChange={handleToneSelect} value="">
-                    <SelectTrigger className={`h-11 rounded-xl border-2 bg-background/50 text-sm transition-all ${
-                      missingFields.includes('tone') ? 'border-destructive ring-2 ring-destructive/20 hover:border-destructive' : 'border-border/50 hover:border-primary/50'
-                    }`}>
-                      <SelectValue placeholder="Selecione um tom de voz" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl border-border/20">
-                      {toneOptions.map((t) => (
-                        <SelectItem key={t} value={t} className="rounded-lg capitalize">
-                          {t}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {formData.tone.length > 0 && (
-                    <div className="flex flex-wrap gap-2 p-3 bg-primary/5 rounded-xl border-2 border-primary/20">
-                      {formData.tone.map((t) => (
-                        <Badge
-                          key={t}
-                          variant="secondary"
-                          className="bg-primary/10 text-primary border-primary/30 pr-1 text-xs font-medium gap-2 hover:bg-primary/20 transition-colors"
-                        >
-                          {t}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleToneRemove(t)}
-                            className="h-4 w-4 p-0 hover:bg-destructive/20 rounded-full"
-                          >
-                            <X className="h-3 w-3 text-destructive" />
-                          </Button>
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <div className="space-y-3">
-                  <Label
-                    htmlFor="additionalInfo"
-                    className="text-sm font-semibold text-foreground"
-                  >
-                    Informações Adicionais
-                  </Label>
-                  <Textarea
-                    id="additionalInfo"
-                    placeholder="Outras instruções ou contexto relevante..."
-                    value={formData.additionalInfo}
-                    onChange={handleInputChange}
-                    className="min-h-[80px] rounded-xl border-2 border-border/50 bg-background/50 resize-none text-sm hover:border-primary/50 transition-all"
-                  />
-                </div>
-              </CardContent>
-            </Card>
+          {/* Botão Gerar Conteúdo */}
+          <div className="flex justify-end pb-6">
+            <Button
+              id="generate-button"
+              onClick={handleGenerateContent}
+              disabled={loading || !isFormValid}
+              size="lg"
+              className="bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_100%] animate-gradient text-primary-foreground hover:opacity-90 transition-opacity shadow-lg gap-2"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="animate-spin h-5 w-5" />
+                  <span>Gerando imagem...</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-5 w-5" />
+                  <span>Gerar Imagem</span>
+                  <Badge variant="secondary" className="ml-2 bg-primary-foreground/20 text-primary-foreground border-primary-foreground/30">
+                    <Coins className="h-3 w-3 mr-1" />
+                    {CREDIT_COSTS.COMPLETE_IMAGE}
+                  </Badge>
+                </>
+              )}
+            </Button>
           </div>
         </div>
-
-        {/* Botão Gerar Conteúdo */}
-        <div className="pt-6 pb-8">
-          <Card className="bg-gradient-to-r from-primary/5 via-accent/5 to-primary/5 border-2 border-primary/20 rounded-2xl shadow-2xl">
-            <CardContent className="p-6">
-              <div className="flex flex-col items-center gap-4">
-                <Button
-                  id="generate-button"
-                  onClick={handleGenerateContent}
-                  disabled={loading || !isFormValid}
-                  className="w-full max-w-md h-14 rounded-2xl text-lg font-bold bg-gradient-to-r from-primary via-accent to-primary hover:from-primary/90 hover:via-accent/90 hover:to-primary/90 shadow-xl hover:shadow-2xl transition-all duration-300 disabled:opacity-50 gap-2"
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="animate-spin h-5 w-5" />
-                      <span>Gerando imagem...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="h-5 w-5" />
-                      <span>Gerar Imagem</span>
-                      <Badge variant="secondary" className="ml-2 bg-primary-foreground/20 text-primary-foreground border-primary-foreground/30">
-                        <Coins className="h-3 w-3 mr-1" />
-                        {CREDIT_COSTS.COMPLETE_IMAGE}
-                      </Badge>
-                    </>
-                  )}
-                </Button>
-                {!isFormValid && !loading && (
-                  <div className="text-center bg-muted/40 p-3 rounded-xl border-2 border-border/30 max-w-md">
-                    <p className="text-muted-foreground text-sm">
-                      Complete todos os campos obrigatórios (*) para gerar
-                    </p>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      </main>
     </div>
   );
 }
