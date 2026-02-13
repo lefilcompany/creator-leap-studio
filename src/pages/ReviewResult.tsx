@@ -1,10 +1,12 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { ArrowLeft, Copy, Download, CheckCircle } from 'lucide-react';
+import { Copy, Download, CheckCircle, RotateCcw } from 'lucide-react';
 import { toast } from 'sonner';
 import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
+import { PageBreadcrumb } from '@/components/PageBreadcrumb';
+import reviewBanner from '@/assets/review-banner.jpg';
 
 const ReviewResult = () => {
   const location = useLocation();
@@ -47,63 +49,80 @@ const ReviewResult = () => {
   };
 
   return (
-    <div className="min-h-full p-6">
-      <div className="max-w-7xl mx-auto space-y-8">
-        <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5">
-          <CardHeader className="pb-4">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="flex-shrink-0 bg-primary/10 text-primary rounded-lg p-3">
-                  <CheckCircle className="h-8 w-8" />
-                </div>
-                <div>
-                  <h1 className="text-3xl font-bold">Revisão Completa</h1>
-                  <p className="text-muted-foreground text-base">
-                    {reviewType === 'image' && 'Sugestões para sua imagem'}
-                    {reviewType === 'caption' && 'Sugestões para sua legenda'}
-                    {reviewType === 'text-for-image' && 'Texto otimizado para geração de imagem'}
-                  </p>
-                </div>
-              </div>
-              <div className="flex gap-3">
-                <Button onClick={handleCopy} variant="outline" className="rounded-xl">
-                  <Copy className="mr-2 h-4 w-4" />
-                  {isCopied ? 'Copiado!' : 'Copiar'}
-                </Button>
-                <Button onClick={handleDownload} variant="outline" className="rounded-xl">
-                  <Download className="mr-2 h-4 w-4" />
-                  Download
-                </Button>
-                <Button onClick={() => navigate('/review')} variant="outline" className="rounded-xl">
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Nova Revisão
-                </Button>
-              </div>
+    <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8 min-h-full">
+      {/* Banner */}
+      <div className="relative w-full h-48 md:h-56 flex-shrink-0 overflow-hidden">
+        <PageBreadcrumb
+          items={[
+            { label: "Revisar Conteúdo", href: "/review" },
+            { label: "Resultado da Revisão" },
+          ]}
+          variant="overlay"
+        />
+        <img
+          src={reviewBanner}
+          alt="Resultado da Revisão"
+          className="w-full h-full object-cover object-center"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
+      </div>
+
+      {/* Header Card */}
+      <div className="relative px-4 sm:px-6 lg:px-8 -mt-12 flex-shrink-0 z-10">
+        <div className="bg-card rounded-2xl shadow-lg p-4 lg:p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="flex-shrink-0 bg-primary/10 border border-primary/20 shadow-sm text-primary rounded-2xl p-3 lg:p-4">
+              <CheckCircle className="h-8 w-8 lg:h-10 lg:w-10" />
             </div>
-          </CardHeader>
-        </Card>
+            <div>
+              <h1 className="text-2xl lg:text-3xl font-bold text-foreground">Revisão Completa</h1>
+              <p className="text-sm lg:text-base text-muted-foreground">
+                {reviewType === 'image' && 'Sugestões para sua imagem'}
+                {reviewType === 'caption' && 'Sugestões para sua legenda'}
+                {reviewType === 'text-for-image' && 'Texto otimizado para geração de imagem'}
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-3 flex-wrap">
+            <Button onClick={handleCopy} variant="outline" className="rounded-xl">
+              <Copy className="mr-2 h-4 w-4" />
+              {isCopied ? 'Copiado!' : 'Copiar'}
+            </Button>
+            <Button onClick={handleDownload} variant="outline" className="rounded-xl">
+              <Download className="mr-2 h-4 w-4" />
+              Download
+            </Button>
+            <Button onClick={() => navigate('/review')} variant="outline" className="rounded-xl">
+              <RotateCcw className="mr-2 h-4 w-4" />
+              Nova Revisão
+            </Button>
+          </div>
+        </div>
+      </div>
 
-        {brandName && (
-          <Card className="backdrop-blur-sm bg-card/60 border border-border/20">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                <span><strong>Marca:</strong> {brandName}</span>
-                {themeName && <span><strong>Tema:</strong> {themeName}</span>}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+      {/* Main Content */}
+      <main className="px-4 sm:px-6 lg:px-8 pt-4 pb-4 sm:pb-6 lg:pb-8 flex-1">
+        <div className="max-w-7xl mx-auto space-y-4">
+          {brandName && (
+            <Card className="border-0 shadow-lg rounded-2xl">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                  <span><strong>Marca:</strong> {brandName}</span>
+                  {themeName && <span><strong>Tema:</strong> {themeName}</span>}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
-        <div className="flex flex-col gap-6">
           {reviewType === 'image' && originalContent && (
-            <Card className="backdrop-blur-sm bg-card/60 border border-border/20 shadow-lg rounded-2xl max-w-2xl mx-auto">
-              <CardHeader className="pb-4 bg-gradient-to-r from-secondary/5 to-accent/5">
+            <Card className="border-0 shadow-lg rounded-2xl max-w-2xl mx-auto">
+              <CardHeader className="pb-4">
                 <h2 className="text-xl font-semibold flex items-center gap-3">
                   <div className="w-2 h-2 bg-secondary rounded-full"></div>
                   Imagem Original
                 </h2>
               </CardHeader>
-              <CardContent className="p-6">
+              <CardContent className="p-6 pt-0">
                 <div className="w-full aspect-square max-w-md mx-auto bg-muted/50 rounded-2xl flex items-center justify-center border-2 border-dashed border-secondary relative overflow-hidden">
                   <img src={originalContent} alt="Original" className="w-full h-full rounded-2xl object-cover" />
                 </div>
@@ -112,30 +131,30 @@ const ReviewResult = () => {
           )}
 
           {(reviewType === 'caption' || reviewType === 'text-for-image') && originalContent && (
-            <Card className="backdrop-blur-sm bg-card/60 border border-border/20 shadow-lg rounded-2xl">
-              <CardHeader className="pb-4 bg-gradient-to-r from-secondary/5 to-accent/5">
+            <Card className="border-0 shadow-lg rounded-2xl">
+              <CardHeader className="pb-4">
                 <h2 className="text-xl font-semibold flex items-center gap-3">
                   <div className="w-2 h-2 bg-secondary rounded-full"></div>
                   {reviewType === 'caption' ? 'Legenda Original' : 'Texto Original'}
                 </h2>
               </CardHeader>
-              <CardContent className="p-6">
-                <div className="min-h-[400px] bg-card rounded-2xl p-6 border-2 border-secondary/20">
+              <CardContent className="p-6 pt-0">
+                <div className="min-h-[200px] bg-muted/30 rounded-2xl p-6 border-2 border-secondary/20">
                   <p className="whitespace-pre-wrap text-base leading-relaxed">{originalContent}</p>
                 </div>
               </CardContent>
             </Card>
           )}
 
-          <Card className="backdrop-blur-sm bg-card/60 border border-border/20 shadow-lg rounded-2xl">
-            <CardHeader className="pb-4 bg-gradient-to-r from-primary/5 to-secondary/5">
+          <Card className="border-0 shadow-lg rounded-2xl">
+            <CardHeader className="pb-4">
               <h2 className="text-xl font-semibold flex items-center gap-3">
                 <div className="w-2 h-2 bg-primary rounded-full"></div>
                 Revisão da IA
               </h2>
             </CardHeader>
-            <CardContent className="p-6">
-              <div className="min-h-[400px] bg-card rounded-2xl p-6 border-2 border-primary/20 overflow-y-auto prose prose-sm dark:prose-invert max-w-none">
+            <CardContent className="p-6 pt-0">
+              <div className="min-h-[400px] bg-muted/30 rounded-2xl p-6 border-2 border-primary/20 overflow-y-auto prose prose-sm dark:prose-invert max-w-none">
                 <ReactMarkdown
                   components={{
                     h1: ({ node, ...props }) => <h1 className="text-2xl font-bold mb-4 text-primary" {...props} />,
@@ -153,24 +172,24 @@ const ReviewResult = () => {
               </div>
             </CardContent>
           </Card>
-        </div>
 
-        {actionId && (
-          <Card className="backdrop-blur-sm bg-card/60 border border-border/20">
-            <CardContent className="p-4">
-              <p className="text-sm text-muted-foreground text-center">
-                Esta revisão foi salva no seu histórico.{' '}
-                <button 
-                  onClick={() => navigate(`/action/${actionId}`)}
-                  className="text-primary hover:underline font-medium"
-                >
-                  Ver no histórico
-                </button>
-              </p>
-            </CardContent>
-          </Card>
-        )}
-      </div>
+          {actionId && (
+            <Card className="border-0 shadow-lg rounded-2xl">
+              <CardContent className="p-4">
+                <p className="text-sm text-muted-foreground text-center">
+                  Esta revisão foi salva no seu histórico.{' '}
+                  <button
+                    onClick={() => navigate(`/action/${actionId}`)}
+                    className="text-primary hover:underline font-medium"
+                  >
+                    Ver no histórico
+                  </button>
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </main>
     </div>
   );
 };
