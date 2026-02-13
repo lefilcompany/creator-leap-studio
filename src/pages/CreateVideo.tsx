@@ -5,14 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { NativeSelect } from "@/components/ui/native-select";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Sparkles, Zap, Video, Coins, Info, ImagePlus, X, HelpCircle } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Separator } from "@/components/ui/separator";
 import { CREDIT_COSTS } from "@/lib/creditCosts";
 import { toast } from "sonner";
 import type { BrandSummary } from "@/types/brand";
@@ -344,149 +342,113 @@ export default function CreateVideo() {
           {/* Progress Bar */}
           <CreationProgressBar currentStep={loading ? "generating" : "config"} className="max-w-xs mx-auto" />
 
-          {/* Form Card */}
+          {/* 1. Descrição do Vídeo */}
           <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
-            <CardHeader className="pb-4 border-b border-border/30">
-              <div className="flex items-center gap-3">
-                <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-                <div>
-                  <h2 className="text-lg font-bold text-foreground">Configure sua criação</h2>
-                  <p className="text-sm text-muted-foreground mt-0.5">Descreva o que deseja criar e personalize as opções</p>
-                </div>
+            <CardContent className="p-4 md:p-5 space-y-4">
+              <div className="space-y-2">
+                <Label className="text-sm font-bold text-foreground">
+                  Descreva o que você quer criar <span className="text-destructive">*</span>
+                </Label>
+                <Textarea
+                  placeholder="Ex: Um vídeo mostrando um produto sendo usado em diferentes cenários, com transições suaves e música de fundo inspiradora..."
+                  value={formData.description}
+                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                  rows={5}
+                  className="resize-none rounded-xl border-2 border-border/50 bg-background/50 hover:border-border/70 focus:border-primary/50 transition-colors"
+                />
+                <p className="text-xs text-muted-foreground flex items-start gap-1.5">
+                  <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
+                  <span>Seja específico sobre cenas, movimentos, estilo e mood desejado</span>
+                </p>
               </div>
-            </CardHeader>
-            <CardContent className="space-y-6 p-4 md:p-6">
-              {/* Marca */}
-              <div className="space-y-2.5">
-                <Label className="text-sm font-semibold text-foreground">Marca <span className="text-muted-foreground font-normal">(opcional)</span></Label>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-bold text-foreground">
+                  Objetivo <span className="text-destructive">*</span>
+                </Label>
+                <Textarea
+                  placeholder="Qual a principal meta deste vídeo?"
+                  value={formData.objective}
+                  onChange={(e) => setFormData(prev => ({ ...prev, objective: e.target.value }))}
+                  rows={2}
+                  className="resize-none rounded-xl border-2 border-border/50 bg-background/50 hover:border-border/70 focus:border-primary/50 transition-colors"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 2. Contexto Criativo */}
+          <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
+            <CardContent className="p-4 md:p-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Marca */}
                 {isLoadingData ? <SelectSkeleton /> : (
-                  <>
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-bold text-foreground">
+                      Marca <span className="text-muted-foreground font-normal text-xs">(opcional)</span>
+                    </Label>
                     <NativeSelect
                       value={formData.brand}
                       onValueChange={(value) => setFormData(prev => ({ ...prev, brand: value, theme: "", persona: "" }))}
                       options={brands.map((b) => ({ value: b.id, label: b.name }))}
-                      placeholder="Nenhuma marca selecionada"
-                      triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50 hover:border-primary/50 transition-colors"
+                      placeholder={brands.length === 0 ? "Nenhuma marca cadastrada" : "Nenhuma marca selecionada"}
+                      disabled={brands.length === 0}
+                      triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
                     />
-                    {formData.brand && (
-                      <div className="flex items-start gap-2 text-xs text-muted-foreground bg-muted/50 dark:bg-muted/30 rounded-lg p-3">
-                        <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                        <p>Selecionar uma marca ajuda a IA a criar conteúdo alinhado com sua identidade visual</p>
-                      </div>
-                    )}
-                  </>
+                    <p className="text-xs text-muted-foreground flex items-start gap-1.5">
+                      <Info className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                      <span>{brands.length === 0 ? "Cadastre uma marca para conteúdo personalizado" : "Selecionar uma marca ajuda a IA a criar conteúdo alinhado"}</span>
+                    </p>
+                  </div>
                 )}
-              </div>
 
-              {/* Tema Estratégico */}
-              {formData.brand && filteredThemes.length > 0 && (
-                <div className="space-y-2.5">
-                  <Label className="text-sm font-semibold text-foreground">Tema Estratégico <span className="text-muted-foreground font-normal">(opcional)</span></Label>
-                  <NativeSelect
-                    value={formData.theme}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, theme: value }))}
-                    options={filteredThemes.map((t) => ({ value: t.id, label: t.title }))}
-                    placeholder="Nenhum tema selecionado"
-                    triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50 hover:border-primary/50 transition-colors"
-                  />
-                </div>
-              )}
+                {/* Persona */}
+                {isLoadingData ? <SelectSkeleton /> : (
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-bold text-foreground">
+                      Persona <span className="text-muted-foreground font-normal text-xs">(opcional)</span>
+                    </Label>
+                    <NativeSelect
+                      value={formData.persona}
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, persona: value }))}
+                      options={filteredPersonas.map((p) => ({ value: p.id, label: p.name }))}
+                      placeholder={!formData.brand ? "Selecione uma marca primeiro" : filteredPersonas.length === 0 ? "Nenhuma persona para esta marca" : "Nenhuma persona selecionada"}
+                      disabled={!formData.brand || filteredPersonas.length === 0}
+                      triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
+                    />
+                    <p className="text-xs text-muted-foreground flex items-start gap-1.5">
+                      <Info className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                      <span>A persona ajuda a IA a criar conteúdo direcionado ao seu público-alvo</span>
+                    </p>
+                  </div>
+                )}
 
-              {/* Persona */}
-              {formData.brand && filteredPersonas.length > 0 && (
-                <div className="space-y-2.5">
-                  <Label className="text-sm font-semibold text-foreground">Persona <span className="text-muted-foreground font-normal">(opcional)</span></Label>
-                  <NativeSelect
-                    value={formData.persona}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, persona: value }))}
-                    options={filteredPersonas.map((p) => ({ value: p.id, label: p.name }))}
-                    placeholder="Nenhuma persona selecionada"
-                    triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50 hover:border-primary/50 transition-colors"
-                  />
-                </div>
-              )}
-
-              {/* Configurações do Vídeo */}
-              <Separator />
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2.5">
-                  <Label className="text-sm font-semibold text-foreground">Estilo Visual</Label>
-                  <NativeSelect
-                    value={formData.videoVisualStyle}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, videoVisualStyle: value as any }))}
-                    options={[
-                      { value: "cinematic", label: "Cinemático" },
-                      { value: "animation", label: "Animação" },
-                      { value: "realistic", label: "Realístico" },
-                      { value: "creative", label: "Criativo" },
-                    ]}
-                    placeholder="Selecione o estilo"
-                    triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50 hover:border-primary/50 transition-colors"
-                  />
-                </div>
-
-                <div className="space-y-2.5">
-                  <Label className="text-sm font-semibold text-foreground">Proporção</Label>
-                  <NativeSelect
-                    value={formData.videoAspectRatio}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, videoAspectRatio: value as any }))}
-                    options={[
-                      { value: "16:9", label: "16:9 (Horizontal)" },
-                      { value: "9:16", label: "9:16 (Vertical)" },
-                    ]}
-                    placeholder="Selecione a proporção"
-                    triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50 hover:border-primary/50 transition-colors"
-                  />
-                </div>
-
-                <div className="space-y-2.5">
-                  <Label className="text-sm font-semibold text-foreground">Resolução</Label>
-                  <NativeSelect
-                    value={formData.videoResolution}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, videoResolution: value as any }))}
-                    options={[
-                      { value: "720p", label: "720p (HD)" },
-                      { value: "1080p", label: "1080p (Full HD)" },
-                    ]}
-                    placeholder="Selecione a resolução"
-                    triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50 hover:border-primary/50 transition-colors"
-                  />
-                </div>
-
-                <div className="space-y-2.5">
-                  <Label className="text-sm font-semibold text-foreground">Duração</Label>
-                  <NativeSelect
-                    value={String(formData.videoDuration)}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, videoDuration: Number(value) as any }))}
-                    options={[
-                      { value: "4", label: "4 segundos" },
-                      { value: "6", label: "6 segundos" },
-                      { value: "8", label: "8 segundos" },
-                    ]}
-                    placeholder="Selecione a duração"
-                    triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50 hover:border-primary/50 transition-colors"
-                  />
-                </div>
-
-                <div className="space-y-2.5">
-                  <Label className="text-sm font-semibold text-foreground">Estilo de Áudio</Label>
-                  <NativeSelect
-                    value={formData.videoAudioStyle}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, videoAudioStyle: value as any }))}
-                    options={[
-                      { value: "dialogue", label: "Diálogo" },
-                      { value: "sound_effects", label: "Efeitos Sonoros" },
-                      { value: "music", label: "Música" },
-                      { value: "none", label: "Sem Áudio" },
-                    ]}
-                    placeholder="Selecione o áudio"
-                    triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50 hover:border-primary/50 transition-colors"
-                  />
-                </div>
+                {/* Tema Estratégico */}
+                {isLoadingData ? <SelectSkeleton /> : (
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-bold text-foreground">
+                      Tema Estratégico <span className="text-muted-foreground font-normal text-xs">(opcional)</span>
+                    </Label>
+                    <NativeSelect
+                      value={formData.theme}
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, theme: value }))}
+                      options={filteredThemes.map((t) => ({ value: t.id, label: t.title }))}
+                      placeholder={!formData.brand ? "Selecione uma marca primeiro" : filteredThemes.length === 0 ? "Nenhum tema para esta marca" : "Nenhum tema selecionado"}
+                      disabled={!formData.brand || filteredThemes.length === 0}
+                      triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
+                    />
+                    <p className="text-xs text-muted-foreground flex items-start gap-1.5">
+                      <Info className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                      <span>O tema estratégico define tom de voz, público-alvo e objetivos</span>
+                    </p>
+                  </div>
+                )}
 
                 {/* Plataforma */}
-                <div className="space-y-2.5">
-                  <Label className="text-sm font-semibold text-foreground">Plataforma <span className="text-muted-foreground font-normal">(opcional)</span></Label>
+                <div className="space-y-1.5">
+                  <Label className="text-sm font-bold text-foreground">
+                    Plataforma <span className="text-muted-foreground font-normal text-xs">(opcional)</span>
+                  </Label>
                   <NativeSelect
                     value={formData.platform}
                     onValueChange={(value) => setFormData(prev => ({ ...prev, platform: value }))}
@@ -498,111 +460,190 @@ export default function CreateVideo() {
                       { value: "LinkedIn", label: "LinkedIn" },
                     ]}
                     placeholder="Nenhuma plataforma selecionada"
-                    triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50 hover:border-primary/50 transition-colors"
+                    triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
+                  />
+                  <p className="text-xs text-muted-foreground flex items-start gap-1.5">
+                    <Info className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                    <span>Selecionar plataforma ajuda a IA a otimizar o formato</span>
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 3. Configurações do Vídeo */}
+          <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
+            <CardContent className="p-4 md:p-5 space-y-3">
+              <Label className="text-sm font-bold text-foreground flex items-center gap-2">
+                <Video className="h-4 w-4 text-primary" />
+                Configurações do Vídeo
+              </Label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium text-foreground">Estilo Visual</Label>
+                  <NativeSelect
+                    value={formData.videoVisualStyle}
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, videoVisualStyle: value as any }))}
+                    options={[
+                      { value: "cinematic", label: "Cinemático" },
+                      { value: "animation", label: "Animação" },
+                      { value: "realistic", label: "Realístico" },
+                      { value: "creative", label: "Criativo" },
+                    ]}
+                    placeholder="Selecione o estilo"
+                    triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium text-foreground">Proporção</Label>
+                  <NativeSelect
+                    value={formData.videoAspectRatio}
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, videoAspectRatio: value as any }))}
+                    options={[
+                      { value: "16:9", label: "16:9 (Horizontal)" },
+                      { value: "9:16", label: "9:16 (Vertical)" },
+                    ]}
+                    placeholder="Selecione a proporção"
+                    triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium text-foreground">Resolução</Label>
+                  <NativeSelect
+                    value={formData.videoResolution}
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, videoResolution: value as any }))}
+                    options={[
+                      { value: "720p", label: "720p (HD)" },
+                      { value: "1080p", label: "1080p (Full HD)" },
+                    ]}
+                    placeholder="Selecione a resolução"
+                    triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium text-foreground">Duração</Label>
+                  <NativeSelect
+                    value={String(formData.videoDuration)}
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, videoDuration: Number(value) as any }))}
+                    options={[
+                      { value: "4", label: "4 segundos" },
+                      { value: "6", label: "6 segundos" },
+                      { value: "8", label: "8 segundos" },
+                    ]}
+                    placeholder="Selecione a duração"
+                    triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium text-foreground">Estilo de Áudio</Label>
+                  <NativeSelect
+                    value={formData.videoAudioStyle}
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, videoAudioStyle: value as any }))}
+                    options={[
+                      { value: "dialogue", label: "Diálogo" },
+                      { value: "sound_effects", label: "Efeitos Sonoros" },
+                      { value: "music", label: "Música" },
+                      { value: "none", label: "Sem Áudio" },
+                    ]}
+                    placeholder="Selecione o áudio"
+                    triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
                   />
                 </div>
               </div>
+            </CardContent>
+          </Card>
 
-              <Separator />
-
-              {/* Imagem de Referência */}
-              <div className="space-y-2.5">
-                <Label className="text-sm font-semibold text-foreground">Imagem de Referência <span className="text-muted-foreground font-normal">(opcional)</span></Label>
-                <div className="flex items-start gap-2 text-xs text-muted-foreground bg-muted/50 dark:bg-muted/30 rounded-lg p-3 mb-3">
-                  <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                  <p>Adicione uma imagem para criar um vídeo baseado nela. A IA usará a imagem como referência visual.</p>
+          {/* 4. Tom de Voz */}
+          <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
+            <CardContent className="p-4 md:p-5 space-y-2">
+              <Label className="text-sm font-bold text-foreground">
+                Tom de Voz <span className="text-destructive">*</span>
+              </Label>
+              <NativeSelect
+                value=""
+                onValueChange={(tone) => { if (!formData.tone.includes(tone) && formData.tone.length < 4) setFormData(prev => ({ ...prev, tone: [...prev.tone, tone] })); }}
+                options={toneOptions.map((t) => ({ value: t, label: t.charAt(0).toUpperCase() + t.slice(1) }))}
+                placeholder="Selecione um tom"
+                triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
+              />
+              {formData.tone.length > 0 && (
+                <div className="flex flex-wrap gap-2 p-3 bg-primary/5 rounded-xl border border-primary/20">
+                  {formData.tone.map((t) => (
+                    <Badge key={t} variant="secondary" className="bg-primary/10 text-primary border-primary/30 capitalize gap-1">
+                      {t}
+                      <button onClick={() => setFormData(prev => ({ ...prev, tone: prev.tone.filter(x => x !== t) }))} className="ml-1 hover:text-destructive">
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  ))}
                 </div>
-                
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="hidden"
-                />
-                
-                {referenceImage ? (
-                  <div className="relative rounded-xl overflow-hidden border-2 border-border/50 bg-muted/30">
-                    <img 
-                      src={referenceImage} 
-                      alt="Imagem de referência" 
-                      className="w-full max-h-[200px] object-contain"
-                    />
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="icon"
-                      className="absolute top-2 right-2 h-8 w-8 rounded-full shadow-lg"
-                      onClick={removeReferenceImage}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                    <div className="absolute bottom-2 left-2">
-                      <Badge className="bg-primary text-primary-foreground border-0">
-                        Imagem para vídeo
-                      </Badge>
-                    </div>
-                  </div>
-                ) : (
+              )}
+              <p className="text-xs text-muted-foreground flex items-start gap-1.5">
+                <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
+                <span>Selecione até 4 tons de voz para guiar a criação do vídeo</span>
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* 5. Imagem de Referência */}
+          <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
+            <CardContent className="p-4 md:p-5 space-y-3">
+              <Label className="text-sm font-bold text-foreground flex items-center gap-2">
+                <ImagePlus className="h-4 w-4 text-primary" />
+                Imagem de Referência <span className="text-muted-foreground font-normal text-xs">(opcional)</span>
+              </Label>
+              <div className="flex items-start gap-2 text-xs text-muted-foreground bg-muted/50 dark:bg-muted/30 rounded-lg p-3">
+                <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                <p>Adicione uma imagem para criar um vídeo baseado nela. A IA usará a imagem como referência visual.</p>
+              </div>
+              
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="hidden"
+              />
+              
+              {referenceImage ? (
+                <div className="relative rounded-xl overflow-hidden border-2 border-border/50 bg-muted/30">
+                  <img 
+                    src={referenceImage} 
+                    alt="Imagem de referência" 
+                    className="w-full max-h-[200px] object-contain"
+                  />
                   <Button
                     type="button"
-                    variant="outline"
-                    className="w-full h-24 rounded-xl border-2 border-dashed border-border/50 hover:border-primary/50 hover:bg-muted/30 transition-all"
-                    onClick={() => fileInputRef.current?.click()}
+                    variant="destructive"
+                    size="icon"
+                    className="absolute top-2 right-2 h-8 w-8 rounded-full shadow-lg"
+                    onClick={removeReferenceImage}
                   >
-                    <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                      <ImagePlus className="h-8 w-8" />
-                      <span className="text-sm">Clique para adicionar imagem de referência</span>
-                    </div>
+                    <X className="h-4 w-4" />
                   </Button>
-                )}
-              </div>
-
-              {/* Descrição */}
-              <div className="space-y-2.5">
-                <Label className="text-sm font-semibold text-foreground">Descreva o que você quer criar <span className="text-destructive">*</span></Label>
-                <Textarea
-                  placeholder="Ex: Um vídeo mostrando um produto sendo usado em diferentes cenários, com transições suaves e música de fundo inspiradora..."
-                  value={formData.description}
-                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  className="min-h-[120px] rounded-xl border-2 border-border/50 bg-background/50 hover:border-primary/50 transition-colors resize-none"
-                />
-              </div>
-
-              {/* Objetivo */}
-              <div className="space-y-2.5">
-                <Label className="text-sm font-semibold text-foreground">Objetivo <span className="text-destructive">*</span></Label>
-                <Textarea
-                  placeholder="Qual a principal meta deste vídeo?"
-                  value={formData.objective}
-                  onChange={(e) => setFormData(prev => ({ ...prev, objective: e.target.value }))}
-                  className="min-h-[80px] rounded-xl border-2 border-border/50 bg-background/50 hover:border-primary/50 transition-colors resize-none"
-                />
-              </div>
-
-              {/* Tom de Voz */}
-              <div className="space-y-2.5">
-                <Label className="text-sm font-semibold text-foreground">Tom de Voz <span className="text-destructive">*</span></Label>
-                <NativeSelect
-                  value=""
-                  onValueChange={(tone) => { if (!formData.tone.includes(tone) && formData.tone.length < 4) setFormData(prev => ({ ...prev, tone: [...prev.tone, tone] })); }}
-                  options={toneOptions.map((t) => ({ value: t, label: t.charAt(0).toUpperCase() + t.slice(1) }))}
-                  placeholder="Selecione um tom"
-                  triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50 hover:border-primary/50 transition-colors"
-                />
-                {formData.tone.length > 0 && (
-                  <div className="flex flex-wrap gap-2 p-3 bg-primary/5 rounded-xl border border-primary/20">
-                    {formData.tone.map((t) => (
-                      <Badge key={t} variant="secondary" className="bg-primary/10 text-primary border-primary/30 capitalize gap-1">
-                        {t}
-                        <button onClick={() => setFormData(prev => ({ ...prev, tone: prev.tone.filter(x => x !== t) }))} className="ml-1 hover:text-destructive">
-                          <X className="h-3 w-3" />
-                        </button>
-                      </Badge>
-                    ))}
+                  <div className="absolute bottom-2 left-2">
+                    <Badge className="bg-primary text-primary-foreground border-0">
+                      Imagem para vídeo
+                    </Badge>
                   </div>
-                )}
-              </div>
+                </div>
+              ) : (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full h-24 rounded-xl border-2 border-dashed border-border/50 hover:border-primary/50 hover:bg-muted/30 transition-all"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                    <ImagePlus className="h-8 w-8" />
+                    <span className="text-sm">Clique para adicionar imagem de referência</span>
+                  </div>
+                </Button>
+              )}
             </CardContent>
           </Card>
 
