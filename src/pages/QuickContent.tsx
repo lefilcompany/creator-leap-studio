@@ -544,16 +544,16 @@ export default function QuickContent() {
                   value={formData.visualStyle}
                   onValueChange={value => setFormData({ ...formData, visualStyle: value })}
                   options={[
-                    { value: "realistic", label: "📷 Fotorealístico" },
-                    { value: "animated", label: "✨ Animado / 3D" },
-                    { value: "cartoon", label: "🎨 Cartoon / Desenho" },
-                    { value: "anime", label: "🌸 Anime / Mangá" },
-                    { value: "watercolor", label: "🖌️ Aquarela" },
-                    { value: "oil_painting", label: "🎭 Pintura a Óleo" },
-                    { value: "digital_art", label: "💻 Arte Digital" },
-                    { value: "sketch", label: "✏️ Esboço / Rascunho" },
-                    { value: "minimalist", label: "◻️ Minimalista" },
-                    { value: "vintage", label: "📼 Vintage / Retrô" },
+                    { value: "realistic", label: "Fotorealístico" },
+                    { value: "animated", label: "Animado / 3D" },
+                    { value: "cartoon", label: "Cartoon / Desenho" },
+                    { value: "anime", label: "Anime / Mangá" },
+                    { value: "watercolor", label: "Aquarela" },
+                    { value: "oil_painting", label: "Pintura a Óleo" },
+                    { value: "digital_art", label: "Arte Digital" },
+                    { value: "sketch", label: "Esboço / Rascunho" },
+                    { value: "minimalist", label: "Minimalista" },
+                    { value: "vintage", label: "Vintage / Retrô" },
                   ]}
                   placeholder="Selecione um estilo"
                   triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
