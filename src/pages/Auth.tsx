@@ -57,8 +57,6 @@ const Auth = () => {
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
-  const [failedAttempts, setFailedAttempts] = useState(0);
-  const [showPasswordResetSuggestion, setShowPasswordResetSuggestion] = useState(false);
 
   // Register states
   const [formData, setFormData] = useState({
@@ -95,20 +93,14 @@ const Auth = () => {
   const handleCouponInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value;
     
-    // Se parece com cupom promocional (contém letras minúsculas ou termina com 200)
     if (/[a-z]/.test(value) || value.toLowerCase().endsWith('200')) {
-      // Manter como está, apenas remover espaços
       value = value.replace(/\s/g, '').toLowerCase();
       setCouponCode(value);
       setIsValidCouponFormat(isPromoCoupon(value));
     } else {
-      // Formato checksum - aplicar formatação automática
       value = value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-      
-      // Limitar a exatamente 10 caracteres (sem hífens)
       value = value.slice(0, 10);
       
-      // Adicionar hífens automaticamente
       let formatted = value;
       if (value.length > 2) {
         formatted = value.slice(0, 2) + '-' + value.slice(2);
@@ -143,8 +135,6 @@ const Auth = () => {
         navigate("/system", { replace: true });
         return;
       }
-
-      // Usuário autenticado - redirecionar direto ao dashboard (sem exigir equipe)
       console.log("[Auth] Auth complete, redirecting to dashboard");
       navigate("/dashboard", { replace: true });
     }
@@ -194,19 +184,14 @@ const Auth = () => {
       });
 
       if (error) {
-        setFailedAttempts(failedAttempts + 1);
-        setShowPasswordResetSuggestion(true);
         toast.error(t.login.invalidCredentials, {
+          description: "Verifique seu e-mail e senha. Se esqueceu sua senha, use o link 'Esqueceu a senha?' abaixo.",
           duration: 6000,
         });
         return;
       }
 
-      setFailedAttempts(0);
-      setShowPasswordResetSuggestion(false);
-
       if (data.user) {
-        // Verificar se o usuário precisa trocar a senha e se é System Admin
         const [profileResult, systemAdminResult] = await Promise.all([
           supabase
             .from("profiles")
@@ -235,13 +220,11 @@ const Auth = () => {
           return;
         }
 
-        // System Admin redireciona para área de sistema
         if (isSystemAdmin) {
           navigate("/system", { replace: true });
           return;
         }
 
-        // Usuário autenticado - redirecionar direto (sem exigir equipe)
         setWaitingForAuth(true);
       }
     } catch (error) {
@@ -292,7 +275,6 @@ const Auth = () => {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validar campos obrigatórios
     if (
       !formData.name ||
       !formData.email ||
@@ -316,15 +298,6 @@ const Auth = () => {
     }
 
     if (!isPasswordValid) {
-      toast.error("A senha deve ter no mínimo 6 caracteres");
-      return;
-    }
-
-    if (formData.password !== confirmPassword) {
-      toast.error("As senhas não coincidem");
-      return;
-    }
-    if (!formData.password || formData.password.length < 6) {
       toast.error("A senha deve ter no mínimo 6 caracteres");
       return;
     }
@@ -371,7 +344,6 @@ const Auth = () => {
           console.error("Erro ao enviar para RD Station:", rdError);
         }
 
-        // Resgatar cupom se fornecido
         if (couponCode && isValidCouponFormat) {
           try {
             await supabase.functions.invoke("redeem-coupon", {
@@ -383,7 +355,6 @@ const Auth = () => {
           }
         }
 
-        // Redirecionar direto ao dashboard (sem exigir equipe)
         setWaitingForAuth(true);
       }
     } catch (err) {
@@ -393,12 +364,12 @@ const Auth = () => {
     }
   };
 
-  // Renderização direta do formulário de login (sem useMemo para evitar conflitos DOM)
+  // Formulário de login
   const loginFormContent = (
-    <form ref={loginFormRef} onSubmit={handleLogin} className="space-y-4 sm:space-y-6">
+    <form ref={loginFormRef} onSubmit={handleLogin} className="space-y-5">
       <div className="space-y-2">
         <div className="relative">
-          <Mail className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
+          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             id="login-email"
             type="email"
@@ -406,14 +377,14 @@ const Auth = () => {
             required
             value={loginEmail}
             onChange={(e) => setLoginEmail(e.target.value)}
-            className="pl-9 sm:pl-10 h-9 sm:h-10 text-sm"
+            className="pl-10 h-11 text-sm"
           />
         </div>
       </div>
 
       <div className="space-y-2">
         <div className="relative">
-          <Lock className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
+          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             id="login-password"
             type={showPassword ? "text" : "password"}
@@ -421,43 +392,17 @@ const Auth = () => {
             required
             value={loginPassword}
             onChange={(e) => setLoginPassword(e.target.value)}
-            className="pl-9 sm:pl-10 pr-9 sm:pr-10 h-9 sm:h-10 text-sm"
+            className="pl-10 pr-10 h-11 text-sm"
           />
           <Button
             type="button"
             variant="ghost"
             size="icon"
-            className="absolute top-1/2 -translate-y-1/2 right-0.5 h-8 w-8 sm:h-9 sm:w-9 text-muted-foreground hover:bg-accent/60"
+            className="absolute top-1/2 -translate-y-1/2 right-0.5 h-9 w-9 text-muted-foreground hover:bg-accent/60"
             onClick={() => setShowPassword(!showPassword)}
           >
-            {showPassword ? (
-              <EyeOff size={16} className="sm:w-5 sm:h-5" />
-            ) : (
-              <Eye size={16} className="sm:w-5 sm:h-5" />
-            )}
+            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
           </Button>
-        </div>
-      </div>
-
-      {/* Sugestão de reset - sempre renderizado, visibilidade controlada por CSS */}
-      <div 
-        className={`mb-4 p-4 bg-destructive/10 border-2 border-destructive/30 rounded-lg transition-all duration-300 ${
-          showPasswordResetSuggestion ? 'opacity-100 max-h-40' : 'opacity-0 max-h-0 overflow-hidden p-0 mb-0 border-0'
-        }`}
-        aria-hidden={!showPasswordResetSuggestion}
-      >
-        <div className="flex items-start gap-3">
-          <Mail className="h-5 w-5 text-destructive mt-0.5 flex-shrink-0" />
-          <div className="flex-1">
-            <p className="text-sm font-semibold text-destructive mb-1">{t.login.incorrectCredentials}</p>
-            <p className="text-xs text-muted-foreground mb-2">{t.login.resetPasswordSuggestion}</p>
-            <a
-              href="/forgot-password"
-              className="text-sm text-destructive hover:text-destructive/80 font-semibold underline underline-offset-2"
-            >
-              {t.login.resetMyPassword}
-            </a>
-          </div>
         </div>
       </div>
 
@@ -474,17 +419,17 @@ const Auth = () => {
         </div>
         <a
           href="/forgot-password"
-          className={`text-sm transition-all duration-300 ${showPasswordResetSuggestion ? "text-destructive hover:text-destructive/80 font-semibold animate-pulse" : "text-primary hover:text-primary/80"}`}
+          className="text-sm text-primary hover:text-primary/80 transition-colors"
         >
           {t.login.forgotPassword}
         </a>
       </div>
 
-      <div className="pt-4 sm:pt-6">
+      <div className="pt-2">
         <Button
           type="submit"
           disabled={loading}
-          className="w-full h-9 sm:h-10 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-medium rounded-lg sm:rounded-xl transition-all duration-300 hover:opacity-90 disabled:opacity-50 text-sm"
+          className="w-full h-11 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-semibold rounded-xl transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 disabled:opacity-50 text-sm"
         >
           {loading ? (
             <div className="flex items-center gap-2">
@@ -499,29 +444,28 @@ const Auth = () => {
     </form>
   );
 
-
-  // Renderização direta do formulário de registro (sem useMemo para evitar conflitos DOM)
+  // Formulário de registro
   const registerFormContent = (
     <form ref={registerFormRef} onSubmit={handleRegister} className="space-y-4">
       {/* Grupo 1: Informações Pessoais */}
-      <div className="space-y-3 p-4 rounded-lg bg-muted/20 border border-border/40">
+      <div className="space-y-3 p-4 rounded-xl bg-muted/20 border border-border/30">
         <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
           Informações Pessoais
         </Label>
         <div className="relative">
-          <User className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
+          <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             id="name"
             placeholder="Nome Completo"
             required
             value={formData.name}
             onChange={handleInputChange}
-            className="pl-9 sm:pl-10 h-9 sm:h-10 text-sm"
+            className="pl-10 h-11 text-sm"
           />
         </div>
 
         <div className="relative">
-          <Mail className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
+          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             id="email"
             type="email"
@@ -529,17 +473,17 @@ const Auth = () => {
             required
             value={formData.email}
             onChange={handleInputChange}
-            className="pl-9 sm:pl-10 h-9 sm:h-10 text-sm"
+            className="pl-10 h-11 text-sm"
           />
         </div>
       </div>
 
       {/* Grupo 2: Segurança */}
-      <div className="space-y-3 p-4 rounded-lg bg-muted/20 border border-border/40">
+      <div className="space-y-3 p-4 rounded-xl bg-muted/20 border border-border/30">
         <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Segurança</Label>
         <div className="flex flex-col sm:grid sm:grid-cols-2 gap-2">
           <div className="relative">
-            <Lock className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               id="password"
               type={showPassword ? "text" : "password"}
@@ -548,7 +492,7 @@ const Auth = () => {
               minLength={6}
               value={formData.password}
               onChange={handleInputChange}
-              className="pl-9 sm:pl-10 pr-9 sm:pr-10 h-9 sm:h-10 text-sm"
+              className="pl-10 pr-10 h-11 text-sm"
             />
             <Button
               type="button"
@@ -562,7 +506,7 @@ const Auth = () => {
           </div>
 
           <div className="relative">
-            <Lock className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               id="confirmPassword"
               type={showPassword ? "text" : "password"}
@@ -570,15 +514,15 @@ const Auth = () => {
               required
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="pl-9 sm:pl-10 h-9 sm:h-10 text-sm"
+              className="pl-10 h-11 text-sm"
             />
           </div>
         </div>
       </div>
 
-      {/* Validação de senha - sempre renderizado, visibilidade controlada por CSS */}
+      {/* Validação de senha */}
       <div 
-        className={`bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 p-2 sm:p-3 rounded-lg border border-green-200/50 dark:border-green-800/50 transition-all duration-300 ${
+        className={`bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 p-2.5 rounded-xl border border-green-200/50 dark:border-green-800/50 transition-all duration-300 ${
           formData.password ? 'opacity-100 max-h-20' : 'opacity-0 max-h-0 overflow-hidden p-0 border-0'
         }`}
         aria-hidden={!formData.password}
@@ -613,31 +557,30 @@ const Auth = () => {
       </div>
 
       {/* Grupo 3: Informações de Contato */}
-      <div className="space-y-3 p-4 rounded-lg bg-muted/20 border border-border/40">
+      <div className="space-y-3 p-4 rounded-xl bg-muted/20 border border-border/30">
         <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
           Informações de Contato
         </Label>
         <div className="relative">
-          <Phone className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
+          <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             id="phone"
             placeholder="Telefone"
             required
             value={formData.phone}
             onChange={handleInputChange}
-            className="pl-9 sm:pl-10 h-9 sm:h-10 text-sm"
+            className="pl-10 h-11 text-sm"
             maxLength={15}
           />
         </div>
 
-        {/* Select nativo para evitar conflitos com extensões de navegador */}
         <div className="relative">
           <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
           <select
             value={formData.state}
             onChange={(e) => handleSelectChange("state", e.target.value)}
             disabled={loadingStates}
-            className="w-full h-9 sm:h-10 text-sm px-3 pr-10 rounded-md border border-input bg-background text-foreground appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="w-full h-11 text-sm px-3 pr-10 rounded-md border border-input bg-background text-foreground appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             data-lpignore="true"
             data-1p-ignore="true"
             autoComplete="off"
@@ -651,7 +594,6 @@ const Auth = () => {
           </select>
         </div>
 
-        {/* Select de cidade - sempre renderizado, visibilidade controlada por CSS */}
         <div className={`transition-all duration-300 ${formData.state ? 'opacity-100 max-h-20' : 'opacity-0 max-h-0 overflow-hidden'}`}>
           <div className="relative">
             <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
@@ -659,7 +601,7 @@ const Auth = () => {
               value={formData.city}
               onChange={(e) => handleSelectChange("city", e.target.value)}
               disabled={loadingCities || !formData.state}
-              className="w-full h-9 sm:h-10 text-sm px-3 pr-10 rounded-md border border-input bg-background text-foreground appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              className="w-full h-11 text-sm px-3 pr-10 rounded-md border border-input bg-background text-foreground appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               data-lpignore="true"
               data-1p-ignore="true"
               autoComplete="off"
@@ -676,22 +618,21 @@ const Auth = () => {
       </div>
 
       {/* Grupo 4: Cupom (Opcional) */}
-      <div className="space-y-3 p-4 rounded-lg bg-muted/20 border border-border/40">
+      <div className="space-y-3 p-4 rounded-xl bg-muted/20 border border-border/30">
         <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
           Cupom (Opcional)
         </Label>
         <div className="relative">
-          <Ticket className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
+          <Ticket className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             id="couponCode"
             placeholder="Digite seu cupom"
             value={couponCode}
             onChange={handleCouponInput}
-            className="pl-9 sm:pl-10 h-9 sm:h-10 text-sm font-mono tracking-wider"
+            className="pl-10 h-11 text-sm font-mono tracking-wider"
             maxLength={30}
           />
         </div>
-        {/* Validação de cupom - sempre renderizado, visibilidade controlada por CSS */}
         <p className={`text-xs transition-all duration-200 ${couponCode ? 'opacity-100 h-auto' : 'opacity-0 h-0 overflow-hidden'}`}>
           {isValidCouponFormat ? (
             <span className="text-green-600 font-medium">✓ Formato válido</span>
@@ -701,7 +642,7 @@ const Auth = () => {
         </p>
       </div>
 
-      <div className="space-y-4 pt-4 sm:pt-6">
+      <div className="space-y-4 pt-2">
         <div className="flex items-start gap-2">
           <Checkbox
             id="privacy"
@@ -735,7 +676,7 @@ const Auth = () => {
 
         <Button
           type="submit"
-          className="w-full h-10 lg:h-11 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-medium rounded-xl transition-all duration-300 hover:opacity-90"
+          className="w-full h-11 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-semibold rounded-xl transition-all duration-300 hover:shadow-lg hover:shadow-primary/20"
           disabled={
             loading ||
             !formData.name ||
@@ -755,58 +696,21 @@ const Auth = () => {
 
   return (
     <>
-      <div className="min-h-screen flex flex-col items-center justify-center relative overflow-y-auto bg-gradient-to-br from-background via-purple-50/5 to-pink-50/10 dark:via-purple-950/5 dark:to-pink-950/10 p-4 sm:p-6">
-        {/* Elementos decorativos animados com motion blur */}
+      <div className="min-h-screen flex flex-col items-center justify-center relative overflow-y-auto bg-gradient-to-br from-rose-50/40 via-background to-violet-50/30 dark:from-background dark:via-background dark:to-purple-950/10 p-4 sm:p-6">
+        {/* Elementos decorativos animados */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {/* Bolinhas de fundo sutis */}
+          {/* Esfera rosa suave */}
           <motion.div
-            className="absolute top-20 -left-20 w-96 h-96 rounded-full"
+            className="absolute top-20 -left-20 w-80 h-80 sm:w-96 sm:h-96 rounded-full"
             style={{
               background:
-                "radial-gradient(circle, hsl(var(--primary) / 0.25) 0%, hsl(330 100% 50% / 0.1) 70%, transparent 100%)",
-              filter: "blur(50px) sm:blur(70px)",
+                "radial-gradient(circle, hsl(330 80% 70% / 0.15) 0%, hsl(330 100% 50% / 0.05) 70%, transparent 100%)",
+              filter: "blur(60px)",
             }}
             animate={{
-              x: [0, 100, 0],
-              y: [0, -50, 0],
-              scale: [1, 1.2, 1],
-            }}
-            transition={{
-              duration: 20,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          />
-
-          <motion.div
-            className="absolute bottom-20 -right-20 w-[500px] h-[500px] rounded-full"
-            style={{
-              background:
-                "radial-gradient(circle, hsl(190 100% 50% / 0.2) 0%, hsl(220 100% 50% / 0.1) 70%, transparent 100%)",
-              filter: "blur(60px) sm:blur(90px)",
-            }}
-            animate={{
-              x: [0, -80, 0],
-              y: [0, 60, 0],
-              scale: [1, 1.1, 1],
-            }}
-            transition={{
-              duration: 25,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          />
-
-          {/* Apenas 3 logos flutuantes bem distribuídos */}
-          <motion.img
-            src={decorativeElement}
-            alt=""
-            className="absolute top-[10%] right-[8%] w-64 h-64 sm:w-72 sm:h-72 object-contain opacity-8"
-            style={{ filter: "blur(12px)" }}
-            animate={{
-              y: [0, -35, 35, 0],
-              rotate: [0, 12, -12, 0],
-              scale: [1, 1.08, 0.92, 1],
+              x: [0, 80, 0],
+              y: [0, -40, 0],
+              scale: [1, 1.15, 1],
             }}
             transition={{
               duration: 22,
@@ -815,56 +719,77 @@ const Auth = () => {
             }}
           />
 
+          {/* Esfera lilás/azul suave */}
+          <motion.div
+            className="absolute bottom-20 -right-20 w-[400px] h-[400px] sm:w-[500px] sm:h-[500px] rounded-full"
+            style={{
+              background:
+                "radial-gradient(circle, hsl(270 60% 70% / 0.12) 0%, hsl(220 80% 60% / 0.06) 70%, transparent 100%)",
+              filter: "blur(70px)",
+            }}
+            animate={{
+              x: [0, -60, 0],
+              y: [0, 50, 0],
+              scale: [1, 1.1, 1],
+            }}
+            transition={{
+              duration: 26,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          />
+
+          {/* 2 logos flutuantes sutis */}
           <motion.img
             src={decorativeElement}
             alt=""
-            className="absolute top-[45%] left-[6%] w-56 h-56 sm:w-68 sm:h-68 object-contain opacity-8"
-            style={{ filter: "blur(12px)" }}
+            className="absolute top-[8%] right-[6%] w-48 h-48 sm:w-64 sm:h-64 object-contain opacity-[0.04]"
+            style={{ filter: "blur(8px)" }}
             animate={{
-              x: [0, 30, -30, 0],
-              y: [0, -40, 25, 0],
-              rotate: [0, -15, 15, 0],
-              scale: [1, 0.95, 1.1, 1],
+              y: [0, -30, 30, 0],
+              rotate: [0, 10, -10, 0],
+              scale: [1, 1.06, 0.94, 1],
             }}
             transition={{
-              duration: 25,
+              duration: 24,
               repeat: Infinity,
               ease: "easeInOut",
-              delay: 1.5,
             }}
           />
 
           <motion.img
             src={decorativeElement}
             alt=""
-            className="absolute bottom-[15%] right-[10%] w-60 h-60 sm:w-70 sm:h-70 object-contain opacity-8"
-            style={{ filter: "blur(12px)" }}
+            className="absolute bottom-[12%] left-[5%] w-44 h-44 sm:w-56 sm:h-56 object-contain opacity-[0.04]"
+            style={{ filter: "blur(8px)" }}
             animate={{
-              x: [0, -40, 40, 0],
-              y: [0, 45, -30, 0],
-              rotate: [0, -18, 18, 0],
-              scale: [1, 1.1, 0.88, 1],
+              x: [0, 25, -25, 0],
+              y: [0, -35, 20, 0],
+              rotate: [0, -12, 12, 0],
+              scale: [1, 0.96, 1.08, 1],
             }}
             transition={{
-              duration: 24,
+              duration: 28,
               repeat: Infinity,
               ease: "easeInOut",
-              delay: 3,
+              delay: 2,
             }}
           />
         </div>
-        {/* Botão de tema no canto superior direito */}
+
+        {/* Botão de tema */}
         <Button
           variant="ghost"
           size="icon"
-          className="absolute top-4 right-4 z-50"
+          className="absolute top-4 right-4 z-50 rounded-full bg-card/50 backdrop-blur-sm border border-border/30 hover:bg-card/80"
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
         >
           {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
         </Button>
-        {/* Container centralizado para Logo + Card */}
-        <div className="flex flex-col items-center gap-6 sm:gap-8 z-10 w-full max-w-[95%] sm:max-w-md">
-          {/* Logo no topo */}
+
+        {/* Container centralizado */}
+        <div className="flex flex-col items-center gap-6 sm:gap-8 z-10 w-full sm:max-w-[440px]">
+          {/* Logo */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -874,16 +799,16 @@ const Auth = () => {
             <CreatorLogo />
           </motion.div>
 
-          {/* Card de auth centralizado - Responsivo para todos os dispositivos */}
+          {/* Card de auth */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.2 }}
             className="w-full relative flex-shrink-0"
           >
-            <div className="bg-card/80 backdrop-blur-xl rounded-t-3xl sm:rounded-2xl shadow-2xl border border-primary/10 p-4 sm:p-6 md:p-8 flex flex-col">
-              {/* Novo Sistema de Tabs Modernas */}
-              <div className="flex mb-4 sm:mb-6 flex-shrink-0">
+            <div className="bg-card/90 backdrop-blur-xl rounded-2xl shadow-xl shadow-primary/5 border border-border/40 p-5 sm:p-7 md:p-8 flex flex-col">
+              {/* Tabs */}
+              <div className="flex mb-5 sm:mb-6 flex-shrink-0 border-b border-border/30">
                 <button
                   onClick={() => setIsLoginMode(true)}
                   className={`flex-1 pb-3 text-center font-semibold transition-all relative ${
@@ -894,7 +819,7 @@ const Auth = () => {
                   {isLoginMode && (
                     <motion.div
                       layoutId="activeTab"
-                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
+                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full"
                       transition={{
                         type: "spring",
                         stiffness: 500,
@@ -913,7 +838,7 @@ const Auth = () => {
                   {!isLoginMode && (
                     <motion.div
                       layoutId="activeTab"
-                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
+                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full"
                       transition={{
                         type: "spring",
                         stiffness: 500,
@@ -924,7 +849,8 @@ const Auth = () => {
                 </button>
               </div>
 
-              <div className="text-center mb-2 sm:mb-3 md:mb-4 flex-shrink-0">
+              {/* Título */}
+              <div className="text-center mb-4 flex-shrink-0">
                 <AnimatePresence mode="wait">
                   <motion.h2
                     key={isLoginMode ? "login-title" : "register-title"}
@@ -932,17 +858,18 @@ const Auth = () => {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 10 }}
                     transition={{ duration: 0.2 }}
-                    className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent mb-2"
+                    className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent mb-1.5"
                   >
                     {isLoginMode ? t.login.welcome : "Crie sua conta"}
                   </motion.h2>
                 </AnimatePresence>
-                <p className="text-sm sm:text-base text-muted-foreground">
+                <p className="text-sm text-muted-foreground">
                   {isLoginMode ? t.login.welcomeMessage : "Comece a criar conteúdo estratégico hoje"}
                 </p>
               </div>
 
-              <div className="flex-1 min-h-0 -mx-1 px-1">
+              {/* Formulário com scroll para cadastro */}
+              <div className={`flex-1 min-h-0 -mx-1 px-1 ${!isLoginMode ? 'max-h-[50vh] overflow-y-auto' : ''}`}>
                 <AnimatePresence mode="wait" initial={false}>
                   <motion.div
                     key={isLoginMode ? "login" : "register"}
@@ -977,21 +904,18 @@ const Auth = () => {
               </div>
             </div>
           </motion.div>
-        </div>{" "}
-        {/* Fim do container centralizado */}
+        </div>
       </div>
 
-      {/* Modal de Política de Privacidade - Melhorado para Mobile/Tablet */}
+      {/* Modal de Política de Privacidade */}
       <Dialog open={privacyModalOpen} onOpenChange={setPrivacyModalOpen}>
         <DialogContent className="max-w-[95vw] sm:max-w-lg w-full max-h-[calc(100vh-2rem)] p-0 flex flex-col overflow-hidden">
-          {/* Header Fixo */}
           <DialogHeader className="flex-shrink-0 bg-background border-b p-4 sm:p-6 pb-3 sm:pb-4">
             <DialogTitle className="text-base sm:text-lg font-bold leading-tight pr-8 text-foreground">
               Política de Privacidade – Uso de Dados e IA
             </DialogTitle>
           </DialogHeader>
 
-          {/* Conteúdo Scrollável com Fade Indicator */}
           <div className="flex-1 overflow-y-auto overflow-x-hidden px-4 py-3 sm:px-6 sm:py-4 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent relative">
             <div className="space-y-3 sm:space-y-4 text-sm text-muted-foreground pb-8">
               <p className="font-medium text-foreground text-sm leading-relaxed">
@@ -1034,11 +958,9 @@ const Auth = () => {
               </div>
             </div>
 
-            {/* Fade Indicator - Gradiente no final do scroll */}
             <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background via-background/80 to-transparent pointer-events-none" />
           </div>
 
-          {/* Footer Fixo com Botões Sempre Visíveis */}
           <DialogFooter className="flex-shrink-0 bg-background border-t shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] p-4 sm:p-6 pt-3 sm:pt-4">
             <div className="flex flex-col-reverse sm:flex-row gap-3 w-full">
               <Button
