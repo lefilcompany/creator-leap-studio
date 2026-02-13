@@ -334,18 +334,18 @@ const PlanContent = () => {
 
           {/* Card: Configuração Básica */}
           <Card id="plan-filters" className="backdrop-blur-sm bg-card/60 border border-border/20 shadow-lg shadow-black/5 rounded-2xl overflow-hidden">
-            <CardHeader className="pb-4 bg-gradient-to-r from-primary/5 to-secondary/5">
-              <h2 className="text-xl font-semibold">Configuração Básica</h2>
-              <p className="text-muted-foreground text-sm">Defina marca, plataforma e quantidade de posts</p>
+            <CardHeader className="pb-3 pt-4 px-4 sm:px-6 bg-gradient-to-r from-primary/5 to-secondary/5">
+              <h2 className="text-base sm:text-lg font-semibold">Configuração Básica</h2>
+              <p className="text-muted-foreground text-xs sm:text-sm">Defina marca, plataforma e quantidade de posts</p>
             </CardHeader>
-            <CardContent className="p-4 sm:p-8">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div id="plan-brand-field" className="space-y-2">
+            <CardContent className="p-4 sm:p-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
+                <div id="plan-brand-field" className="space-y-1.5">
                   <Label htmlFor="brand" className="text-xs md:text-sm font-semibold text-foreground">
                     Marca <span className="text-destructive">*</span>
                   </Label>
                   {isLoadingData ? (
-                    <Skeleton className="h-10 md:h-11 w-full rounded-xl" />
+                    <Skeleton className="h-9 md:h-10 w-full rounded-xl" />
                   ) : (
                     <>
                       <NativeSelect
@@ -354,7 +354,7 @@ const PlanContent = () => {
                         options={brands.map((brand) => ({ value: brand.id, label: brand.name }))}
                         placeholder={brands.length === 0 ? "Nenhuma marca cadastrada" : "Selecione a marca"}
                         disabled={brands.length === 0}
-                        triggerClassName="h-10 md:h-11 rounded-xl border-2 border-border/50 bg-background/50 hover:border-primary/30 transition-colors"
+                        triggerClassName="h-9 md:h-10 rounded-xl border-2 border-border/50 bg-background/50 hover:border-primary/30 transition-colors"
                       />
                       {brands.length === 0 && (
                         <p className="text-xs text-amber-600 dark:text-amber-500 flex items-start gap-1.5">
@@ -366,12 +366,12 @@ const PlanContent = () => {
                   )}
                 </div>
 
-                <div id="plan-platform-field" className="space-y-2">
+                <div id="plan-platform-field" className="space-y-1.5">
                   <Label htmlFor="platform" className="text-xs md:text-sm font-semibold text-foreground">
                     Plataforma <span className="text-destructive">*</span>
                   </Label>
                   {isLoadingData ? (
-                    <Skeleton className="h-10 md:h-11 w-full rounded-xl" />
+                    <Skeleton className="h-9 md:h-10 w-full rounded-xl" />
                   ) : (
                     <NativeSelect
                       value={formData.platform}
@@ -383,17 +383,17 @@ const PlanContent = () => {
                         { value: "twitter", label: "Twitter (X)" },
                       ]}
                       placeholder="Selecione a plataforma"
-                      triggerClassName="h-10 md:h-11 rounded-xl border-2 border-border/50 bg-background/50 hover:border-secondary/30 transition-colors"
+                      triggerClassName="h-9 md:h-10 rounded-xl border-2 border-border/50 bg-background/50 hover:border-secondary/30 transition-colors"
                     />
                   )}
                 </div>
 
-                <div id="plan-quantity-field" className="space-y-2">
+                <div id="plan-quantity-field" className="space-y-1.5">
                   <Label htmlFor="quantity" className="text-xs md:text-sm font-semibold text-foreground">
-                    Quantidade de Posts <span className="text-destructive">*</span>
+                    Qtd. de Posts <span className="text-destructive">*</span>
                   </Label>
                   {isLoadingData ? (
-                    <Skeleton className="h-10 md:h-11 w-full rounded-xl" />
+                    <Skeleton className="h-9 md:h-10 w-full rounded-xl" />
                   ) : (
                     <Input
                       id="quantity"
@@ -404,7 +404,7 @@ const PlanContent = () => {
                       value={formData.quantity}
                       onChange={handleQuantityChange}
                       onBlur={handleQuantityBlur}
-                      className="h-10 md:h-11 rounded-xl border-2 border-border/50 bg-background/50 hover:border-accent/30 transition-colors text-center font-semibold"
+                      className="h-9 md:h-10 rounded-xl border-2 border-border/50 bg-background/50 hover:border-accent/30 transition-colors text-center font-semibold"
                     />
                   )}
                 </div>
@@ -414,24 +414,24 @@ const PlanContent = () => {
 
           {/* Card: Temas Estratégicos */}
           <Card id="plan-themes-field" className="backdrop-blur-sm bg-card/60 border border-border/20 shadow-lg shadow-black/5 rounded-2xl overflow-hidden">
-            <CardHeader className="pb-4 bg-gradient-to-r from-accent/5 to-primary/5">
+            <CardHeader className="pb-3 pt-4 px-4 sm:px-6 bg-gradient-to-r from-accent/5 to-primary/5">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-xl font-semibold">Temas Estratégicos</h2>
-                  <p className="text-muted-foreground text-sm">Selecione os temas para o planejamento</p>
+                  <h2 className="text-base sm:text-lg font-semibold">Temas Estratégicos</h2>
+                  <p className="text-muted-foreground text-xs sm:text-sm">Selecione os temas para o planejamento</p>
                 </div>
                 <span className="text-xs text-muted-foreground bg-muted/30 px-2 py-1 rounded-full">
                   {formData.theme.length} selecionados
                 </span>
               </div>
             </CardHeader>
-            <CardContent className="p-4 sm:p-8 space-y-4">
-              <div className="space-y-2">
+            <CardContent className="p-4 sm:p-6 space-y-3">
+              <div className="space-y-1.5">
                 <Label htmlFor="theme" className="text-xs md:text-sm font-semibold text-foreground">
                   Adicionar Tema <span className="text-destructive">*</span>
                 </Label>
                 {isLoadingData ? (
-                  <Skeleton className="h-10 md:h-11 w-full rounded-xl" />
+                  <Skeleton className="h-9 md:h-10 w-full rounded-xl" />
                 ) : (
                   <NativeSelect
                     value=""
@@ -441,7 +441,7 @@ const PlanContent = () => {
                       .map((t) => ({ value: t.id, label: t.title }))}
                     placeholder={!formData.brand ? "Primeiro, escolha a marca" : "Adicionar tema estratégico"}
                     disabled={!formData.brand || filteredThemes.length === 0}
-                    triggerClassName="h-10 md:h-11 rounded-xl border-2 border-border/50 bg-background/50 hover:border-primary/30 transition-colors disabled:opacity-50"
+                    triggerClassName="h-9 md:h-10 rounded-xl border-2 border-border/50 bg-background/50 hover:border-primary/30 transition-colors disabled:opacity-50"
                   />
                 )}
               </div>
@@ -449,28 +449,28 @@ const PlanContent = () => {
               {/* Selected Themes Display */}
               <div className="relative">
                 {formData.theme.length === 0 ? (
-                  <div className="flex items-center justify-center min-h-[80px] rounded-xl border-2 border-dashed border-border/30 bg-muted/10 transition-all hover:bg-muted/20">
-                    <p className="text-sm text-muted-foreground">Nenhum tema selecionado</p>
+                  <div className="flex items-center justify-center min-h-[60px] rounded-xl border-2 border-dashed border-border/30 bg-muted/10 transition-all hover:bg-muted/20">
+                    <p className="text-xs sm:text-sm text-muted-foreground">Nenhum tema selecionado</p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 p-4 rounded-xl border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 p-3 rounded-xl border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10">
                     {formData.theme.map((themeId, index) => {
                       const theme = themes.find((t) => t.id === themeId);
                       return (
                         <div
                           key={themeId}
-                          className="group flex items-center justify-between bg-background/80 backdrop-blur-sm border border-primary/20 rounded-xl px-4 py-3 shadow-sm hover:shadow-md transition-all hover:scale-105 animate-fade-in"
+                          className="group flex items-center justify-between bg-background/80 backdrop-blur-sm border border-primary/20 rounded-lg px-3 py-2 shadow-sm hover:shadow-md transition-all animate-fade-in"
                           style={{ animationDelay: `${index * 0.1}s` }}
                         >
-                          <span className="text-sm font-medium text-foreground truncate flex-1 mr-2">
+                          <span className="text-xs sm:text-sm font-medium text-foreground truncate flex-1 mr-2">
                             {theme?.title || themeId}
                           </span>
                           <button
                             onClick={() => handleThemeRemove(themeId)}
-                            className="flex-shrink-0 w-6 h-6 rounded-full bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground transition-all flex items-center justify-center group-hover:scale-110"
+                            className="flex-shrink-0 w-5 h-5 rounded-full bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground transition-all flex items-center justify-center"
                             aria-label={`Remover tema ${theme?.title || themeId}`}
                           >
-                            <X size={12} />
+                            <X size={10} />
                           </button>
                         </div>
                       );
@@ -483,13 +483,13 @@ const PlanContent = () => {
 
           {/* Card: Detalhes do Planejamento */}
           <Card className="backdrop-blur-sm bg-card/60 border border-border/20 shadow-lg shadow-black/5 rounded-2xl overflow-hidden">
-            <CardHeader className="pb-4 bg-gradient-to-r from-secondary/5 to-accent/5">
-              <h2 className="text-xl font-semibold">Detalhes do Planejamento</h2>
-              <p className="text-muted-foreground text-sm">Descreva os objetivos e informações adicionais</p>
+            <CardHeader className="pb-3 pt-4 px-4 sm:px-6 bg-gradient-to-r from-secondary/5 to-accent/5">
+              <h2 className="text-base sm:text-lg font-semibold">Detalhes do Planejamento</h2>
+              <p className="text-muted-foreground text-xs sm:text-sm">Descreva os objetivos e informações adicionais</p>
             </CardHeader>
-            <CardContent className="p-4 sm:p-8">
-              <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
-                <div id="plan-objective-field" className="space-y-2">
+            <CardContent className="p-4 sm:p-6">
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-5">
+                <div id="plan-objective-field" className="space-y-1.5">
                   <Label htmlFor="objective" className="text-xs md:text-sm font-semibold text-foreground">
                     Objetivo dos Posts <span className="text-destructive">*</span>
                   </Label>
@@ -498,10 +498,10 @@ const PlanContent = () => {
                     placeholder="Ex: Gerar engajamento, educar o público, aumentar vendas..."
                     value={formData.objective}
                     onChange={handleInputChange}
-                    className="h-32 sm:h-48 lg:h-64 rounded-xl border-2 border-border/50 bg-background/50 resize-none"
+                    className="h-28 sm:h-36 lg:h-44 rounded-xl border-2 border-border/50 bg-background/50 resize-none text-sm"
                   />
                 </div>
-                <div id="plan-additional-info-field" className="space-y-2">
+                <div id="plan-additional-info-field" className="space-y-1.5">
                   <Label htmlFor="additionalInfo" className="text-xs md:text-sm font-semibold text-foreground">
                     Informações Adicionais
                   </Label>
@@ -510,7 +510,7 @@ const PlanContent = () => {
                     placeholder="Ex: Usar cores da marca, focar em jovens de 18-25 anos..."
                     value={formData.additionalInfo}
                     onChange={handleInputChange}
-                    className="h-32 sm:h-48 lg:h-64 rounded-xl border-2 border-border/50 bg-background/50 resize-none"
+                    className="h-28 sm:h-36 lg:h-44 rounded-xl border-2 border-border/50 bg-background/50 resize-none text-sm"
                   />
                 </div>
               </div>
@@ -519,8 +519,8 @@ const PlanContent = () => {
 
           {/* Action Button */}
           <Card className="bg-gradient-to-r from-primary/5 via-secondary/5 to-accent/5 border border-border/20 rounded-2xl shadow-lg">
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex flex-col items-center gap-4">
+            <CardContent className="p-4 sm:p-5">
+              <div className="flex flex-col items-center gap-3">
                 <Button
                   id="create-plan-button"
                   onClick={generatePlan}
@@ -531,18 +531,18 @@ const PlanContent = () => {
                     !formData.platform ||
                     !formData.objective
                   }
-                  className="w-full max-w-lg h-12 sm:h-14 rounded-2xl text-base sm:text-lg font-bold bg-gradient-to-r from-primary via-purple-600 to-secondary hover:from-primary/90 shadow-xl transition-all duration-500 disabled:opacity-50 gap-2"
+                  className="w-full max-w-lg h-11 sm:h-12 rounded-xl text-sm sm:text-base font-bold bg-gradient-to-r from-primary via-purple-600 to-secondary hover:from-primary/90 shadow-xl transition-all duration-500 disabled:opacity-50 gap-2"
                 >
                   {loading ? (
                     <>
-                      <Loader2 className="animate-spin mr-2 sm:mr-3 h-4 w-4 sm:h-5 sm:w-5" />
+                      <Loader2 className="animate-spin mr-2 h-4 w-4" />
                       <span>Gerando...</span>
                     </>
                   ) : (
                     <>
-                      <Calendar className="mr-2 sm:mr-3 h-4 w-4 sm:h-5 sm:w-5" />
+                      <Calendar className="mr-2 h-4 w-4" />
                       <span>Gerar Planejamento</span>
-                      <Badge variant="secondary" className="ml-2 bg-primary-foreground/20 text-primary-foreground border-primary-foreground/30 gap-1">
+                      <Badge variant="secondary" className="ml-2 bg-primary-foreground/20 text-primary-foreground border-primary-foreground/30 gap-1 text-xs">
                         <Coins className="h-3 w-3" />
                         {CREDIT_COSTS.CONTENT_PLAN}
                       </Badge>
@@ -550,8 +550,8 @@ const PlanContent = () => {
                   )}
                 </Button>
                 {(!formData.brand || formData.theme.length === 0 || !formData.platform || !formData.objective) && (
-                  <div className="text-center bg-muted/30 p-3 rounded-xl border border-border/30 w-full max-w-lg">
-                    <p className="text-xs sm:text-sm text-muted-foreground">
+                  <div className="text-center bg-muted/30 p-2.5 rounded-lg border border-border/30 w-full max-w-lg">
+                    <p className="text-xs text-muted-foreground">
                       Preencha todos os campos obrigatórios (*) para continuar
                     </p>
                   </div>
