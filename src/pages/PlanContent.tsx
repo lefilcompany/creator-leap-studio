@@ -333,164 +333,151 @@ const PlanContent = () => {
         <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
 
           {/* Card: Configuração Básica */}
-          <Card id="plan-filters" className="backdrop-blur-sm bg-card/60 border border-border/20 shadow-lg shadow-black/5 rounded-2xl overflow-hidden">
-            <CardHeader className="pb-3 pt-4 px-4 sm:px-6 bg-gradient-to-r from-primary/5 to-secondary/5">
-              <h2 className="text-base sm:text-lg font-semibold">Configuração Básica</h2>
-              <p className="text-muted-foreground text-xs sm:text-sm">Defina marca, plataforma e quantidade de posts</p>
-            </CardHeader>
-            <CardContent className="p-4 sm:p-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
+          <Card id="plan-filters" className="bg-card border-0 shadow-md rounded-2xl overflow-hidden">
+            <CardContent className="p-5 sm:p-7">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
                 <div id="plan-brand-field" className="space-y-1.5">
-                  <Label htmlFor="brand" className="text-xs md:text-sm font-semibold text-foreground">
+                  <Label htmlFor="brand" className="text-sm font-bold text-foreground">
                     Marca <span className="text-destructive">*</span>
                   </Label>
                   {isLoadingData ? (
-                    <Skeleton className="h-9 md:h-10 w-full rounded-xl" />
+                    <Skeleton className="h-10 w-full rounded-xl" />
                   ) : (
                     <>
                       <NativeSelect
                         value={formData.brand}
                         onValueChange={handleBrandChange}
                         options={brands.map((brand) => ({ value: brand.id, label: brand.name }))}
-                        placeholder={brands.length === 0 ? "Nenhuma marca cadastrada" : "Selecione a marca"}
+                        placeholder={brands.length === 0 ? "Nenhuma marca cadastrada" : "Nenhuma marca selecionada"}
                         disabled={brands.length === 0}
-                        triggerClassName="h-9 md:h-10 rounded-xl border-2 border-border/50 bg-background/50 hover:border-primary/30 transition-colors"
+                        triggerClassName="h-10 rounded-xl border-2 border-border bg-background hover:border-primary/40 transition-colors"
                       />
-                      {brands.length === 0 && (
-                        <p className="text-xs text-amber-600 dark:text-amber-500 flex items-start gap-1.5">
-                          <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
-                          <span>Cadastre uma marca antes de criar conteúdo planejado</span>
-                        </p>
-                      )}
+                      <p className="text-xs text-muted-foreground flex items-start gap-1.5">
+                        <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
+                        {brands.length === 0 
+                          ? <span>Cadastre uma marca antes de criar conteúdo planejado</span>
+                          : <span>Selecionar uma marca ajuda a IA a criar conteúdo alinhado com sua identidade visual</span>
+                        }
+                      </p>
                     </>
                   )}
                 </div>
 
                 <div id="plan-platform-field" className="space-y-1.5">
-                  <Label htmlFor="platform" className="text-xs md:text-sm font-semibold text-foreground">
+                  <Label htmlFor="platform" className="text-sm font-bold text-foreground">
                     Plataforma <span className="text-destructive">*</span>
                   </Label>
                   {isLoadingData ? (
-                    <Skeleton className="h-9 md:h-10 w-full rounded-xl" />
+                    <Skeleton className="h-10 w-full rounded-xl" />
                   ) : (
-                    <NativeSelect
-                      value={formData.platform}
-                      onValueChange={handlePlatformChange}
-                      options={[
-                        { value: "instagram", label: "Instagram" },
-                        { value: "facebook", label: "Facebook" },
-                        { value: "linkedin", label: "LinkedIn" },
-                        { value: "twitter", label: "Twitter (X)" },
-                      ]}
-                      placeholder="Selecione a plataforma"
-                      triggerClassName="h-9 md:h-10 rounded-xl border-2 border-border/50 bg-background/50 hover:border-secondary/30 transition-colors"
-                    />
+                    <>
+                      <NativeSelect
+                        value={formData.platform}
+                        onValueChange={handlePlatformChange}
+                        options={[
+                          { value: "instagram", label: "Instagram" },
+                          { value: "facebook", label: "Facebook" },
+                          { value: "linkedin", label: "LinkedIn" },
+                          { value: "twitter", label: "Twitter (X)" },
+                        ]}
+                        placeholder="Nenhuma plataforma selecionada"
+                        triggerClassName="h-10 rounded-xl border-2 border-border bg-background hover:border-primary/40 transition-colors"
+                      />
+                      <p className="text-xs text-muted-foreground flex items-start gap-1.5">
+                        <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
+                        <span>A plataforma define o formato e linguagem ideal dos posts</span>
+                      </p>
+                    </>
+                  )}
+                </div>
+
+                <div id="plan-themes-field" className="space-y-1.5">
+                  <Label htmlFor="theme" className="text-sm font-bold text-foreground">
+                    Tema Estratégico <span className="text-destructive">*</span>
+                  </Label>
+                  {isLoadingData ? (
+                    <Skeleton className="h-10 w-full rounded-xl" />
+                  ) : (
+                    <>
+                      <NativeSelect
+                        value=""
+                        onValueChange={handleThemeSelect}
+                        options={filteredThemes
+                          .filter((t) => !formData.theme.includes(t.id))
+                          .map((t) => ({ value: t.id, label: t.title }))}
+                        placeholder={!formData.brand ? "Selecione uma marca primeiro" : "Adicionar tema estratégico"}
+                        disabled={!formData.brand || filteredThemes.length === 0}
+                        triggerClassName="h-10 rounded-xl border-2 border-border bg-background hover:border-primary/40 transition-colors disabled:opacity-50"
+                      />
+                      <p className="text-xs text-muted-foreground flex items-start gap-1.5">
+                        <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
+                        <span>O tema estratégico define tom de voz, público-alvo e objetivos da criação</span>
+                      </p>
+                    </>
+                  )}
+
+                  {/* Selected Themes Display */}
+                  {formData.theme.length > 0 && (
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {formData.theme.map((themeId) => {
+                        const theme = themes.find((t) => t.id === themeId);
+                        return (
+                          <Badge
+                            key={themeId}
+                            variant="secondary"
+                            className="gap-1.5 pl-3 pr-1.5 py-1 text-xs font-medium bg-primary/10 text-primary border border-primary/20 hover:bg-primary/15"
+                          >
+                            {theme?.title || themeId}
+                            <button
+                              onClick={() => handleThemeRemove(themeId)}
+                              className="ml-0.5 w-4 h-4 rounded-full bg-primary/20 text-primary hover:bg-destructive hover:text-destructive-foreground transition-colors flex items-center justify-center"
+                              aria-label={`Remover tema ${theme?.title || themeId}`}
+                            >
+                              <X size={10} />
+                            </button>
+                          </Badge>
+                        );
+                      })}
+                    </div>
                   )}
                 </div>
 
                 <div id="plan-quantity-field" className="space-y-1.5">
-                  <Label htmlFor="quantity" className="text-xs md:text-sm font-semibold text-foreground">
+                  <Label htmlFor="quantity" className="text-sm font-bold text-foreground">
                     Qtd. de Posts <span className="text-destructive">*</span>
                   </Label>
                   {isLoadingData ? (
-                    <Skeleton className="h-9 md:h-10 w-full rounded-xl" />
+                    <Skeleton className="h-10 w-full rounded-xl" />
                   ) : (
-                    <Input
-                      id="quantity"
-                      type="number"
-                      min="1"
-                      max="7"
-                      placeholder="1-7"
-                      value={formData.quantity}
-                      onChange={handleQuantityChange}
-                      onBlur={handleQuantityBlur}
-                      className="h-9 md:h-10 rounded-xl border-2 border-border/50 bg-background/50 hover:border-accent/30 transition-colors text-center font-semibold"
-                    />
+                    <>
+                      <Input
+                        id="quantity"
+                        type="number"
+                        min="1"
+                        max="7"
+                        placeholder="1-7"
+                        value={formData.quantity}
+                        onChange={handleQuantityChange}
+                        onBlur={handleQuantityBlur}
+                        className="h-10 rounded-xl border-2 border-border bg-background hover:border-primary/40 transition-colors text-center font-semibold"
+                      />
+                      <p className="text-xs text-muted-foreground flex items-start gap-1.5">
+                        <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
+                        <span>Máximo de 7 posts por planejamento</span>
+                      </p>
+                    </>
                   )}
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Card: Temas Estratégicos */}
-          <Card id="plan-themes-field" className="backdrop-blur-sm bg-card/60 border border-border/20 shadow-lg shadow-black/5 rounded-2xl overflow-hidden">
-            <CardHeader className="pb-3 pt-4 px-4 sm:px-6 bg-gradient-to-r from-accent/5 to-primary/5">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-base sm:text-lg font-semibold">Temas Estratégicos</h2>
-                  <p className="text-muted-foreground text-xs sm:text-sm">Selecione os temas para o planejamento</p>
-                </div>
-                <span className="text-xs text-muted-foreground bg-muted/30 px-2 py-1 rounded-full">
-                  {formData.theme.length} selecionados
-                </span>
-              </div>
-            </CardHeader>
-            <CardContent className="p-4 sm:p-6 space-y-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="theme" className="text-xs md:text-sm font-semibold text-foreground">
-                  Adicionar Tema <span className="text-destructive">*</span>
-                </Label>
-                {isLoadingData ? (
-                  <Skeleton className="h-9 md:h-10 w-full rounded-xl" />
-                ) : (
-                  <NativeSelect
-                    value=""
-                    onValueChange={handleThemeSelect}
-                    options={filteredThemes
-                      .filter((t) => !formData.theme.includes(t.id))
-                      .map((t) => ({ value: t.id, label: t.title }))}
-                    placeholder={!formData.brand ? "Primeiro, escolha a marca" : "Adicionar tema estratégico"}
-                    disabled={!formData.brand || filteredThemes.length === 0}
-                    triggerClassName="h-9 md:h-10 rounded-xl border-2 border-border/50 bg-background/50 hover:border-primary/30 transition-colors disabled:opacity-50"
-                  />
-                )}
-              </div>
-
-              {/* Selected Themes Display */}
-              <div className="relative">
-                {formData.theme.length === 0 ? (
-                  <div className="flex items-center justify-center min-h-[60px] rounded-xl border-2 border-dashed border-border/30 bg-muted/10 transition-all hover:bg-muted/20">
-                    <p className="text-xs sm:text-sm text-muted-foreground">Nenhum tema selecionado</p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 p-3 rounded-xl border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10">
-                    {formData.theme.map((themeId, index) => {
-                      const theme = themes.find((t) => t.id === themeId);
-                      return (
-                        <div
-                          key={themeId}
-                          className="group flex items-center justify-between bg-background/80 backdrop-blur-sm border border-primary/20 rounded-lg px-3 py-2 shadow-sm hover:shadow-md transition-all animate-fade-in"
-                          style={{ animationDelay: `${index * 0.1}s` }}
-                        >
-                          <span className="text-xs sm:text-sm font-medium text-foreground truncate flex-1 mr-2">
-                            {theme?.title || themeId}
-                          </span>
-                          <button
-                            onClick={() => handleThemeRemove(themeId)}
-                            className="flex-shrink-0 w-5 h-5 rounded-full bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground transition-all flex items-center justify-center"
-                            aria-label={`Remover tema ${theme?.title || themeId}`}
-                          >
-                            <X size={10} />
-                          </button>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
               </div>
             </CardContent>
           </Card>
 
           {/* Card: Detalhes do Planejamento */}
-          <Card className="backdrop-blur-sm bg-card/60 border border-border/20 shadow-lg shadow-black/5 rounded-2xl overflow-hidden">
-            <CardHeader className="pb-3 pt-4 px-4 sm:px-6 bg-gradient-to-r from-secondary/5 to-accent/5">
-              <h2 className="text-base sm:text-lg font-semibold">Detalhes do Planejamento</h2>
-              <p className="text-muted-foreground text-xs sm:text-sm">Descreva os objetivos e informações adicionais</p>
-            </CardHeader>
-            <CardContent className="p-4 sm:p-6">
-              <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-5">
+          <Card className="bg-card border-0 shadow-md rounded-2xl overflow-hidden">
+            <CardContent className="p-5 sm:p-7">
+              <div className="space-y-5 sm:space-y-6">
                 <div id="plan-objective-field" className="space-y-1.5">
-                  <Label htmlFor="objective" className="text-xs md:text-sm font-semibold text-foreground">
+                  <Label htmlFor="objective" className="text-sm font-bold text-foreground">
                     Objetivo dos Posts <span className="text-destructive">*</span>
                   </Label>
                   <Textarea
@@ -498,20 +485,28 @@ const PlanContent = () => {
                     placeholder="Ex: Gerar engajamento, educar o público, aumentar vendas..."
                     value={formData.objective}
                     onChange={handleInputChange}
-                    className="h-28 sm:h-36 lg:h-44 rounded-xl border-2 border-border/50 bg-background/50 resize-none text-sm"
+                    className="min-h-[100px] sm:min-h-[120px] rounded-xl border-2 border-border bg-background resize-none text-sm hover:border-primary/40 transition-colors"
                   />
+                  <p className="text-xs text-muted-foreground flex items-start gap-1.5">
+                    <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
+                    <span>Seja específico sobre o resultado esperado com os posts</span>
+                  </p>
                 </div>
                 <div id="plan-additional-info-field" className="space-y-1.5">
-                  <Label htmlFor="additionalInfo" className="text-xs md:text-sm font-semibold text-foreground">
-                    Informações Adicionais
+                  <Label htmlFor="additionalInfo" className="text-sm font-bold text-foreground">
+                    Informações Adicionais <span className="text-muted-foreground font-normal">(opcional)</span>
                   </Label>
                   <Textarea
                     id="additionalInfo"
                     placeholder="Ex: Usar cores da marca, focar em jovens de 18-25 anos..."
                     value={formData.additionalInfo}
                     onChange={handleInputChange}
-                    className="h-28 sm:h-36 lg:h-44 rounded-xl border-2 border-border/50 bg-background/50 resize-none text-sm"
+                    className="min-h-[100px] sm:min-h-[120px] rounded-xl border-2 border-border bg-background resize-none text-sm hover:border-primary/40 transition-colors"
                   />
+                  <p className="text-xs text-muted-foreground flex items-start gap-1.5">
+                    <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
+                    <span>Adicione contexto extra para a IA gerar posts mais direcionados</span>
+                  </p>
                 </div>
               </div>
             </CardContent>
