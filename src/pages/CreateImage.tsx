@@ -1115,6 +1115,10 @@ export default function CreateImage() {
                             const guidelines = getCaptionGuidelines(formData.platform, "organic");
                             setPlatformGuidelines(guidelines);
                           }
+                          toast.info("📢 Conteúdo Orgânico", {
+                            description: "A IA gerará conteúdo focado em engajamento natural, sem linguagem promocional direta. Ideal para posts de feed, stories e conteúdo educativo.",
+                            duration: 5000,
+                          });
                         }}
                         className="flex-1 rounded-md font-semibold h-7 text-xs"
                       >
@@ -1129,6 +1133,10 @@ export default function CreateImage() {
                             const guidelines = getCaptionGuidelines(formData.platform, "ads");
                             setPlatformGuidelines(guidelines);
                           }
+                          toast.info("💰 Conteúdo de Anúncio", {
+                            description: "A IA gerará conteúdo com foco em conversão, incluindo CTAs diretos, linguagem persuasiva e compliance com políticas de anúncios da plataforma.",
+                            duration: 5000,
+                          });
                         }}
                         className="flex-1 rounded-md font-semibold h-7 text-xs"
                       >
