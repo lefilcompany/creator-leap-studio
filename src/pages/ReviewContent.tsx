@@ -23,7 +23,7 @@ import {
   reviewContentTextSteps,
 } from "@/components/onboarding/tourSteps";
 import { PageBreadcrumb } from "@/components/PageBreadcrumb";
-import createBanner from "@/assets/create-banner.jpg";
+import reviewBanner from "@/assets/review-banner.jpg";
 
 type ReviewType = "image" | "caption" | "text-for-image";
 
@@ -302,7 +302,7 @@ const ReviewContent = () => {
           variant="overlay"
         />
         <img
-          src={createBanner}
+          src={reviewBanner}
           alt="Revisar Conteúdo"
           className="w-full h-full object-cover"
         />
