@@ -296,7 +296,7 @@ const ReviewContent = () => {
       )}
 
       {/* Banner */}
-      <div className="relative h-48 md:h-64 lg:h-72 xl:h-80 2xl:h-[22rem] overflow-hidden">
+      <div className="relative w-full h-48 md:h-56 flex-shrink-0 overflow-hidden">
         <PageBreadcrumb
           items={[{ label: "Revisar Conteúdo" }]}
           variant="overlay"
@@ -306,60 +306,59 @@ const ReviewContent = () => {
           alt="Revisar Conteúdo"
           className="w-full h-full object-cover object-center"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
       </div>
 
       {/* Header Card */}
-      <div className="relative px-4 sm:px-6 lg:px-8 -mt-12 z-10">
-        <div className="max-w-7xl mx-auto">
-          <div id="review-content-header" className="bg-card rounded-2xl shadow-lg p-4 md:p-6">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="flex-shrink-0 bg-primary/10 text-primary rounded-xl p-3">
-                  <CheckCircle className="h-6 w-6 md:h-8 md:w-8" />
-                </div>
-                <div>
-                  <h1 className="text-2xl md:text-3xl font-bold text-foreground">Revisar Conteúdo</h1>
-                  <p className="text-muted-foreground text-sm md:text-base">{dynamicDescription}</p>
-                </div>
-              </div>
-              {isLoadingData ? (
-                <Skeleton className="h-14 w-full sm:w-40 rounded-xl" />
-              ) : (
-                user && (
-                  <Card className="bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/30 flex-shrink-0">
-                    <CardContent className="p-3">
-                      <div className="flex items-center justify-center gap-4">
-                        <div className="relative">
-                          <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary rounded-full blur-sm opacity-40"></div>
-                          <div className="relative bg-gradient-to-r from-primary to-secondary text-primary-foreground rounded-full p-2">
-                            <Zap className="h-4 w-4" />
-                          </div>
-                        </div>
-                        <div className="text-left gap-4 flex justify-center items-center">
-                          <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                            {user.credits || 0}
-                          </span>
-                          <p className="text-md text-muted-foreground font-medium leading-tight">Créditos Restantes</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )
-              )}
+      <div className="relative px-4 sm:px-6 lg:px-8 -mt-12 flex-shrink-0 z-10">
+        <div
+          id="review-content-header"
+          className="bg-card rounded-2xl shadow-lg p-4 lg:p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
+        >
+          <div className="flex items-center gap-3">
+            <div className="flex-shrink-0 bg-primary/10 border border-primary/20 shadow-sm text-primary rounded-2xl p-3 lg:p-4">
+              <CheckCircle className="h-8 w-8 lg:h-10 lg:w-10" />
+            </div>
+            <div>
+              <h1 className="text-2xl lg:text-3xl font-bold text-foreground">Revisar Conteúdo</h1>
+              <p className="text-sm lg:text-base text-muted-foreground">{dynamicDescription}</p>
             </div>
           </div>
+          {isLoadingData ? (
+            <Skeleton className="h-14 w-40 rounded-xl" />
+          ) : (
+            user && (
+              <Card className="bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/30 flex-shrink-0">
+                <CardContent className="p-3">
+                  <div className="flex items-center justify-center gap-4">
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary rounded-full blur-sm opacity-40"></div>
+                      <div className="relative bg-gradient-to-r from-primary to-secondary text-primary-foreground rounded-full p-2">
+                        <Zap className="h-4 w-4" />
+                      </div>
+                    </div>
+                    <div className="text-left gap-4 flex justify-center items-center">
+                      <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                        {user.credits || 0}
+                      </span>
+                      <p className="text-xs text-muted-foreground font-medium leading-tight">Créditos</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )
+          )}
         </div>
       </div>
 
       {/* Main Content */}
-      <main className="px-4 sm:px-6 lg:px-8 pt-4 pb-8 flex-1">
-        <div className="max-w-7xl mx-auto space-y-4 mt-4">
+      <main className="px-4 sm:px-6 lg:px-8 pt-4 pb-4 sm:pb-6 lg:pb-8 flex-1">
+        <div className={!reviewType ? "" : "max-w-7xl mx-auto space-y-4"}>
           {/* Review Type Selection */}
           {!reviewType && (
-            <div id="review-type-selection">
-              <RadioGroup value={reviewType || ""} onValueChange={(value) => setReviewType(value as ReviewType)}>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div id="review-type-selection" className="h-full">
+              <RadioGroup value={reviewType || ""} onValueChange={(value) => setReviewType(value as ReviewType)} className="h-full">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-full">
                   <label htmlFor="image" className="cursor-pointer h-full">
                     <Card className="border-0 shadow-lg hover:shadow-xl hover:bg-primary/10 hover:border-primary/30 transition-all duration-300 h-full active:scale-[0.98] touch-manipulation rounded-2xl">
                       <CardContent className="p-6 flex flex-col items-center text-center gap-4 h-full justify-between">
