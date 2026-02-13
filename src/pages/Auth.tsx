@@ -783,7 +783,7 @@ const Auth = () => {
         <Button
           variant="ghost"
           size="icon"
-          className="absolute top-4 right-4 z-50 rounded-full bg-card/50 backdrop-blur-sm border border-border/30 hover:bg-card/80"
+          className="absolute top-4 right-4 z-50 rounded-full bg-card/40 backdrop-blur-sm border-0 hover:bg-primary/10 hover:text-primary transition-colors"
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
         >
           {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
