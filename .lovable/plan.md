@@ -1,54 +1,60 @@
 
-
-# Breadcrumb sobre o Banner + Remover botoes "Voltar"
+# Redesign da Tela "Criar Conteudo" com Identidade Visual do Sistema
 
 ## Resumo
-Remover os botoes "Voltar" da pagina PublicProfile e adicionar o componente `PageBreadcrumb` sobreposto no canto superior esquerdo do banner em todas as paginas que possuem banner. Para paginas sem banner, adicionar breadcrumb normalmente onde ainda nao existe. O Dashboard (home) nao recebera breadcrumb.
+Reestruturar a pagina `ContentCreationSelector` para seguir o mesmo padrao visual das paginas de Marcas, Temas e Personas: banner ilustrativo no topo com breadcrumb overlay, card de cabecalho sobreposto ao banner, e cards de selecao com o estilo visual limpo (border-0, shadow-lg) ja estabelecido no sistema.
 
-## Paginas com banner (breadcrumb sobreposto no banner)
-Estas paginas possuem um banner ilustrativo no topo. O breadcrumb sera posicionado com `absolute` dentro do container do banner, no canto superior esquerdo, com texto claro (branco com leve sombra) para contraste contra a imagem.
+## O que muda
 
-1. **PublicProfile** (`/profile/:userId`) - Remover botoes "Voltar" (desktop e mobile), adicionar breadcrumb no banner: `Home > Equipe > Nome do Usuario`
-2. **Profile** (`/profile`) - Adicionar breadcrumb no banner: `Home > Meu Perfil`
-3. **Team** (`/team`) - Adicionar breadcrumb no banner: `Home > Equipe`
-4. **Brands** (`/brands`) - Ja possui breadcrumb abaixo do banner, mover para dentro do banner
-5. **Themes** (`/themes`) - Ja possui breadcrumb abaixo do banner, mover para dentro do banner
-6. **Personas** (`/personas`) - Ja possui breadcrumb abaixo do banner, mover para dentro do banner
-7. **History** (`/history`) - Adicionar breadcrumb no banner: `Home > Historico`
+### 1. Novo banner ilustrativo
+- Criar uma imagem de banner dedicada para a pagina de criacao de conteudo (sera necessario adicionar `create-banner.jpg` aos assets ou reutilizar o `dashboard-banner.jpg` que ja tem o tema de criacao com IA e bonecos cartoon)
+- Como a pagina nao possui um asset proprio e o `dashboard-banner.jpg` ja traz a identidade visual correta (bonecos cartoon, tema de criacao, paleta pastel), sera reutilizado como banner desta pagina
+- Banner com `object-cover`, gradiente de fade para `background`, e breadcrumb overlay no canto superior esquerdo
 
-## Paginas sem banner (breadcrumb normal, ja existente)
-Estas paginas ja possuem breadcrumb e nao precisam de alteracoes:
-- Credits, Plans, CreateImage, CreateVideo, QuickContent, PlanContent, ReviewContent, AnimateImage, ContentCreationSelector, ActionView, BrandView, ThemeView, PersonaView, QuickContentResult
+### 2. Layout alinhado ao padrao (Banner + Header Card sobreposto)
+- Container principal com margens negativas (`-m-4 sm:-m-6 lg:-m-8`) como Brands/Themes/Personas
+- Banner no topo (h-48 md:h-56) com a imagem ilustrativa
+- Card de cabecalho sobreposto ao banner (`-mt-12`) contendo:
+  - Icone em container com fundo colorido (como Tag em Brands, Palette em Themes)
+  - Titulo "Criar Conteudo" e descricao
+  - Card de creditos do usuario (mantido do layout atual)
 
-## Paginas sem breadcrumb a adicionar
-- **CreditHistory** - Adicionar breadcrumb: `Home > Historico de Creditos`
-- **TeamDashboard** - Adicionar breadcrumb: `Home > Equipe > Dashboard`
+### 3. Cards de selecao com estilo padronizado
+- Container dos cards com `border-0 shadow-lg rounded-2xl` (padrao visual-management-standard)
+- Cards individuais com `border-0 shadow-md` e hover com `shadow-lg` e `border-primary`
+- Manter o grid 2x2 com os 4 tipos de criacao
+- Manter a funcionalidade de auto-navegacao ao clicar
 
 ## Detalhes tecnicos
 
-### Estilo do breadcrumb sobre o banner
-O breadcrumb sera posicionado dentro do container `relative` do banner com classes:
+### Arquivo a modificar
+- `src/pages/ContentCreationSelector.tsx` - Reestruturar completamente o layout
+
+### Estrutura do novo layout
 ```text
-absolute top-4 left-4 sm:left-6 lg:left-8 z-10
+div.flex.flex-col.-m-4.sm:-m-6.lg:-m-8
+  |-- div.relative (banner container)
+  |     |-- PageBreadcrumb variant="overlay"
+  |     |-- img (dashboard-banner.jpg)
+  |     |-- div (gradient overlay)
+  |
+  |-- div.relative.px-4.-mt-12 (header card, sobrepondo banner)
+  |     |-- Card (bg-card rounded-2xl shadow-lg)
+  |           |-- Icone + Titulo + Descricao
+  |           |-- Card de creditos
+  |
+  |-- main.px-4.pt-4.pb-8 (area de selecao)
+        |-- Card (border-0 shadow-lg rounded-2xl)
+              |-- CardHeader (com titulo "Tipo de Criacao")
+              |-- CardContent (grid 2x2 com os 4 cards)
 ```
-Os textos e icones usarao cores claras para contraste contra a imagem do banner:
-```text
-[&_*]:text-white/90 [&_*]:drop-shadow-md
-```
-O icone Home e os separadores tambem serao brancos com sombra para garantir legibilidade.
 
-### Alteracoes no PageBreadcrumb
-Adicionar uma prop `variant` opcional (`default` | `overlay`) ao componente `PageBreadcrumb` para aplicar estilos de sobreposicao (texto branco com sombra) automaticamente quando usado sobre banners.
+### Cards de tipo de criacao
+- Manter a mesma logica de `RadioGroup` + auto-navegacao
+- Estilizar com `border-0 shadow-md hover:shadow-lg hover:border-primary/50 transition-all`
+- Manter badges de creditos com cores tematicas por tipo
+- Card "Animar Imagem" continua desabilitado com `opacity-60`
 
-### Arquivos a modificar
-- `src/components/PageBreadcrumb.tsx` - Adicionar variante `overlay`
-- `src/pages/PublicProfile.tsx` - Remover botoes Voltar, adicionar breadcrumb overlay no banner
-- `src/pages/Profile.tsx` - Adicionar breadcrumb overlay no banner
-- `src/pages/Team.tsx` - Adicionar breadcrumb overlay no banner
-- `src/pages/Brands.tsx` - Mover breadcrumb para dentro do banner com overlay
-- `src/pages/Themes.tsx` - Mover breadcrumb para dentro do banner com overlay
-- `src/pages/Personas.tsx` - Mover breadcrumb para dentro do banner com overlay
-- `src/pages/History.tsx` - Adicionar breadcrumb overlay no banner
-- `src/pages/CreditHistory.tsx` - Adicionar breadcrumb normal
-- `src/pages/TeamDashboard.tsx` - Adicionar breadcrumb normal
-
+### Importacoes adicionais
+- `import dashboardBanner from '@/assets/dashboard-banner.jpg'` (reutilizando banner existente)
+- HelpCircle e Popover para tooltip informativo (como nas outras paginas)
