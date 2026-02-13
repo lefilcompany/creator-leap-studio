@@ -1,52 +1,54 @@
 
-# Refatorar Tela de Planejar Conteudo para o Padrao Visual do Sistema
 
-## Objetivo
-Alinhar a pagina de Planejar Conteudo (`/plan`) ao padrao visual usado em Revisar Conteudo (`/review`) e demais paginas de gestao: banner ilustrativo, breadcrumb overlay, header card sobreposto e formulario em cards tematicos.
+# Plano: Redesign da Tela de Login e Cadastro
 
-## Mudancas
+## Resumo
+Melhorar visualmente a tela de autenticacao (Login e Cadastro) na rota `/`, aprimorando o background, removendo mensagens de erro inline em favor de toasts, e garantindo centralizacao e funcionalidade completa.
 
-### 1. Gerar imagem de banner para planejamento
-- Usar a IA de imagem integrada para criar um banner ilustrativo no estilo flat/cartoon (mesmo estilo dos outros banners do sistema)
-- Tema: calendario de conteudo, redes sociais, planejamento de posts
-- Proporcao 3:1 (1000x300), tons pastel, sem texto
-- Salvar como `src/assets/plan-banner.jpg`
+## Mudancas Planejadas
 
-### 2. Refatorar layout completo do `src/pages/PlanContent.tsx`
+### 1. Remover Mensagens de Erro Inline
+- Remover o bloco vermelho de "sugestao de reset de senha" que aparece dentro do formulario de login (linhas 442-462 do Auth.tsx)
+- Manter apenas os toasts (sonner) para feedback de erros - ja existentes no codigo
+- Remover o estado `showPasswordResetSuggestion` e logica associada, simplificando o componente
 
-**Estrutura nova (igual ao ReviewContent):**
+### 2. Melhorar o Background
+- Substituir o gradiente atual por um fundo mais sofisticado com tons suaves de rosa/lilas alinhados a identidade visual do Creator
+- Ajustar as esferas animadas para cores mais harmonicas (rosa claro, lilas, azul claro) com opacidades reduzidas
+- Reduzir a quantidade de elementos decorativos flutuantes de 3 para 2, com melhor posicionamento
+- Melhorar contraste entre modo claro e escuro
 
-```text
-div (flex flex-col -m-4 sm:-m-6 lg:-m-8)
-  |-- Banner (relative, h-48 md:h-56, com imagem)
-  |     |-- PageBreadcrumb variant="overlay"
-  |     |-- img (plan-banner.jpg)
-  |     |-- gradient overlay
-  |
-  |-- Header Card (-mt-12, sobrepondo o banner)
-  |     |-- Icone Calendar + Titulo + Descricao
-  |     |-- Card de creditos (lado direito)
-  |
-  |-- Main Content (px-4 sm:px-6 lg:px-8)
-        |-- Card "Configuracao Basica" (marca, plataforma, quantidade)
-        |-- Card "Temas Estrategicos" (selecao de temas)
-        |-- Card "Detalhes do Planejamento" (objetivo, info adicional)
-        |-- Botao "Gerar Planejamento"
-```
+### 3. Centralizar e Polir o Card
+- Garantir centralizacao vertical e horizontal perfeita em todas as resolucoes
+- Aumentar levemente o padding interno do card para dar mais respiro
+- Melhorar as tabs Login/Cadastro com um estilo mais limpo (underline animada ja existe, sera mantida)
+- Adicionar sombra mais suave e borda mais definida no card
 
-**Mudancas especificas:**
-- Wrapper externo: trocar `min-h-full w-full p-3 sm:p-6` por `flex flex-col -m-4 sm:-m-6 lg:-m-8 min-h-full` (padrão de paginas com banner)
-- Adicionar banner com `PageBreadcrumb variant="overlay"` e imagem de fundo
-- Mover header para card sobreposto com `-mt-12` e `z-10`
-- Separar "Temas Estrategicos" em seu proprio card (atualmente esta junto com Configuracao Basica)
-- Manter os cards de Detalhes e Botao como estao, ajustando classes menores para consistencia
-- Corrigir texto "Revisoes Restantes" para "Creditos Restantes" no card de creditos (esta errado atualmente)
+### 4. Melhorar o Formulario de Login
+- Remover a secao inline de "credenciais incorretas" - usar apenas toast
+- Manter o link "Esqueceu a senha?" sem efeito de pulsacao (remover `animate-pulse`)
+- Botao de submit com estilo mais consistente
 
-### 3. Melhorar campos do formulario
-- Usar o mesmo padrao de labels do CreateContent: `text-xs md:text-sm font-semibold` com `<span className="text-destructive">*</span>` para obrigatorios
-- Cards com `rounded-2xl` e headers com gradiente sutil
-- Inputs com `h-10 md:h-11 rounded-xl border-2` (padrão CreateContent) em vez de `h-12 rounded-2xl`
+### 5. Melhorar o Formulario de Cadastro
+- Manter a estrutura de grupos (Informacoes Pessoais, Seguranca, Contato, Cupom)
+- Melhorar espacamento entre grupos para formularios longos
+- Garantir scroll suave quando o formulario de cadastro ultrapassa a viewport
 
-## Arquivos modificados
-- `src/pages/PlanContent.tsx` - Refatoracao completa do layout
-- `src/assets/plan-banner.jpg` - Nova imagem de banner (gerada por IA)
+### 6. Limpar Codigo Legado
+- O arquivo `Login.tsx` e `Register.tsx` parecem ser paginas legadas que nao sao mais usadas nas rotas (a rota `/` usa `Auth.tsx`)
+- Nenhuma alteracao necessaria neles, pois nao estao ativos
+
+## Detalhes Tecnicos
+
+**Arquivo editado:** `src/pages/Auth.tsx`
+
+**Alteracoes especificas:**
+1. Remover estado `showPasswordResetSuggestion`, `failedAttempts` e logica associada
+2. No `handleLogin`, manter apenas `toast.error()` no caso de erro - com mensagem mais descritiva sugerindo reset apos falhas
+3. Remover o bloco JSX do "reset suggestion" (div com `bg-destructive/10`)
+4. Remover a classe `animate-pulse` do link "Esqueceu a senha?"
+5. Ajustar cores do background: usar `from-rose-50/30 via-background to-violet-50/20` no modo claro
+6. Reduzir blur e opacidade dos elementos decorativos para nao competir com o card
+7. Garantir `overflow-y-auto` no container do formulario de cadastro para scroll adequado
+8. Ajustar max-width do card para `sm:max-w-[440px]` para melhor proporcao
+
