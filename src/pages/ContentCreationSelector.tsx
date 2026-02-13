@@ -64,7 +64,7 @@ export default function ContentCreationSelector() {
         <img
           src={createBanner}
           alt=""
-          className="w-full h-full object-cover object-[center_35%]"
+          className="w-full h-full object-cover object-[center_55%]"
           loading="lazy"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
