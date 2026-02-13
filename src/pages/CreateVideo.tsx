@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,18 +10,20 @@ import { NativeSelect } from "@/components/ui/native-select";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Sparkles, Zap, Video, Coins, Info, ImagePlus, X } from "lucide-react";
+import { Loader2, Sparkles, Zap, Video, Coins, Info, ImagePlus, X, HelpCircle } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { CREDIT_COSTS } from "@/lib/creditCosts";
 import { toast } from "sonner";
 import type { BrandSummary } from "@/types/brand";
 import type { StrategicThemeSummary } from "@/types/theme";
 import type { PersonaSummary } from "@/types/persona";
-import type { Team } from "@/types/theme";
 import { useAuth } from "@/hooks/useAuth";
 import { TourSelector } from "@/components/onboarding/TourSelector";
 import { navbarSteps } from "@/components/onboarding/tourSteps";
 import { PageBreadcrumb } from "@/components/PageBreadcrumb";
+import { CreationProgressBar } from "@/components/CreationProgressBar";
+import createBanner from "@/assets/create-banner.jpg";
 
 interface FormData {
   brand: string;
@@ -62,99 +65,86 @@ export default function CreateVideo() {
     videoDuration: 8,
   });
 
-  const [team, setTeam] = useState<Team | null>(null);
-  const [brands, setBrands] = useState<BrandSummary[]>([]);
-  const [themes, setThemes] = useState<StrategicThemeSummary[]>([]);
-  const [personas, setPersonas] = useState<PersonaSummary[]>([]);
-  const [isLoadingData, setIsLoadingData] = useState(true);
-  const [filteredThemes, setFilteredThemes] = useState<StrategicThemeSummary[]>([]);
-  const [filteredPersonas, setFilteredPersonas] = useState<PersonaSummary[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [referenceImage, setReferenceImage] = useState<string | null>(null);
   const [referenceImageFile, setReferenceImageFile] = useState<File | null>(null);
 
-  useEffect(() => {
-    const loadData = async () => {
-      if (!user?.teamId || !user?.id) {
-        if (user) setIsLoadingData(false);
-        return;
-      }
+  // React Query for brands, themes, personas
+  const teamId = user?.teamId;
+  const userId = user?.id;
 
-      try {
-        const [
-          { data: teamData },
-          { data: brandsData },
-          { data: themesData },
-          { data: personasData }
-        ] = await Promise.all([
-          supabase.from('teams').select('*, plan:plans(*)').eq('id', user.teamId).single(),
-          supabase.from('brands').select('id, name, responsible, created_at, updated_at').eq('team_id', user.teamId).order('created_at', { ascending: false }),
-          supabase.from('strategic_themes').select('id, brand_id, title, created_at').eq('team_id', user.teamId).order('created_at', { ascending: false }),
-          supabase.from('personas').select('id, brand_id, name, created_at').eq('team_id', user.teamId).order('created_at', { ascending: false })
-        ]);
+  const { data: brands = [], isLoading: loadingBrands } = useQuery({
+    queryKey: ['brands', teamId],
+    queryFn: async () => {
+      if (!teamId) return [];
+      const { data, error } = await supabase
+        .from('brands')
+        .select('id, name, responsible, created_at, updated_at')
+        .eq('team_id', teamId)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return (data || []).map((b: any) => ({
+        id: b.id, name: b.name, responsible: b.responsible,
+        brandColor: null, avatarUrl: null, createdAt: b.created_at, updatedAt: b.updated_at,
+      })) as BrandSummary[];
+    },
+    enabled: !!teamId,
+    staleTime: 1000 * 60 * 5,
+  });
 
-        const mappedTeam: Team = {
-          id: teamData.id,
-          name: teamData.name,
-          code: teamData.code,
-          admin: teamData.admin_id,
-          admin_id: teamData.admin_id,
-          members: [],
-          pending: [],
-          plan: teamData.plan ? {
-            id: teamData.plan.id,
-            name: teamData.plan.name,
-            description: teamData.plan.description || '',
-            price: Number(teamData.plan.price_monthly || 0),
-            credits: (teamData.plan as any).credits || 0,
-            maxMembers: teamData.plan.max_members,
-            maxBrands: teamData.plan.max_brands,
-            maxStrategicThemes: teamData.plan.max_strategic_themes,
-            maxPersonas: teamData.plan.max_personas,
-            trialDays: teamData.plan.trial_days || 0,
-            isActive: teamData.plan.is_active,
-            stripePriceId: teamData.plan.stripe_price_id_monthly,
-          } : null,
-          credits: (teamData as any).credits || 0,
-          free_brands_used: (teamData as any).free_brands_used || 0,
-          free_personas_used: (teamData as any).free_personas_used || 0,
-          free_themes_used: (teamData as any).free_themes_used || 0,
-        };
+  const { data: themes = [], isLoading: loadingThemes } = useQuery({
+    queryKey: ['themes', teamId],
+    queryFn: async () => {
+      if (!teamId) return [];
+      const { data, error } = await supabase
+        .from('strategic_themes')
+        .select('id, brand_id, title, created_at')
+        .eq('team_id', teamId)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return (data || []).map((t: any) => ({
+        id: t.id, brandId: t.brand_id, title: t.title, createdAt: t.created_at,
+      })) as StrategicThemeSummary[];
+    },
+    enabled: !!teamId,
+    staleTime: 1000 * 60 * 5,
+  });
 
-        setTeam(mappedTeam);
-        setBrands((brandsData || []).map((b: any) => ({ id: b.id, name: b.name, responsible: b.responsible, brandColor: null, avatarUrl: null, createdAt: b.created_at, updatedAt: b.updated_at })));
-        setThemes((themesData || []).map((t: any) => ({ id: t.id, brandId: t.brand_id, title: t.title, createdAt: t.created_at })));
-        setPersonas((personasData || []).map((p: any) => ({ id: p.id, brandId: p.brand_id, name: p.name, createdAt: p.created_at })));
-        setIsLoadingData(false);
-      } catch (error: any) {
-        console.error("Erro ao carregar dados:", error);
-        toast.error("Erro ao carregar dados");
-        setIsLoadingData(false);
-      }
-    };
-    loadData();
-  }, [user]);
+  const { data: personas = [], isLoading: loadingPersonas } = useQuery({
+    queryKey: ['personas', teamId],
+    queryFn: async () => {
+      if (!teamId) return [];
+      const { data, error } = await supabase
+        .from('personas')
+        .select('id, brand_id, name, created_at')
+        .eq('team_id', teamId)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return (data || []).map((p: any) => ({
+        id: p.id, brandId: p.brand_id, name: p.name, createdAt: p.created_at,
+      })) as PersonaSummary[];
+    },
+    enabled: !!teamId,
+    staleTime: 1000 * 60 * 5,
+  });
 
-  useEffect(() => {
-    const selectedBrand = brands.find((b) => b.id === formData.brand);
-    setFilteredThemes(selectedBrand ? themes.filter((t) => t.brandId === selectedBrand.id) : []);
-    setFilteredPersonas(selectedBrand ? personas.filter((p) => p.brandId === selectedBrand.id) : []);
-  }, [brands, themes, personas, formData.brand]);
+  const isLoadingData = loadingBrands || loadingThemes || loadingPersonas;
+
+  // Filtered themes/personas based on brand
+  const filteredThemes = formData.brand ? themes.filter((t) => t.brandId === formData.brand) : [];
+  const filteredPersonas = formData.brand ? personas.filter((p) => p.brandId === formData.brand) : [];
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     if (!file.type.startsWith('image/')) {
       toast.error("Por favor, selecione um arquivo de imagem válido.");
       return;
     }
-
     if (file.size > 10 * 1024 * 1024) {
       toast.error("A imagem deve ter no máximo 10MB.");
       return;
     }
-
     setReferenceImageFile(file);
     const reader = new FileReader();
     reader.onload = (event) => {
@@ -176,7 +166,6 @@ export default function CreateVideo() {
   const handleGenerateVideo = async () => {
     if (!user) return toast.error("Usuário não encontrado.");
     if ((user?.credits || 0) <= 0) return toast.error("Créditos insuficientes.");
-    
     if (!formData.objective || !formData.description || formData.tone.length === 0) {
       return toast.error("Preencha todos os campos obrigatórios.");
     }
@@ -212,7 +201,6 @@ export default function CreateVideo() {
         throw new Error("Não foi possível iniciar a geração (ação não registrada).");
       }
 
-      // Preparar imagens de referência se houver
       const preserveImages = referenceImage ? [referenceImage] : [];
 
       const { data: responseData, error: invokeError } = await supabase.functions.invoke('generate-video', {
@@ -229,12 +217,7 @@ export default function CreateVideo() {
         },
       });
 
-      // Atualizar créditos do usuário após geração
-      try {
-        await refreshUserCredits();
-      } catch {
-        // noop
-      }
+      try { await refreshUserCredits(); } catch { /* noop */ }
 
       if (invokeError) {
         console.error('Erro ao chamar generate-video:', invokeError);
@@ -257,278 +240,399 @@ export default function CreateVideo() {
     }
   };
 
-  if (isLoadingData) {
-    return <div className="flex items-center justify-center min-h-screen"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
-  }
+  const SelectSkeleton = () => (
+    <div className="space-y-1.5">
+      <Skeleton className="h-4 w-24" />
+      <Skeleton className="h-10 w-full rounded-lg" />
+      <Skeleton className="h-3 w-48" />
+    </div>
+  );
 
   return (
-    <div className="h-full w-full flex flex-col overflow-y-auto bg-gradient-to-br from-pink-50/50 via-purple-50/30 to-pink-50/50 dark:from-background dark:via-background dark:to-muted/20">
-      <div className="w-full max-w-4xl mx-auto space-y-6 py-2">
-        {/* Breadcrumb Navigation */}
-        <PageBreadcrumb items={[{ label: "Criar Vídeo" }]} />
+    <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8 min-h-full">
+      <TourSelector 
+        tours={[{
+          tourType: 'navbar',
+          steps: navbarSteps,
+          label: 'Tour da Navegação',
+          targetElement: '#sidebar-logo'
+        }]}
+        startDelay={500}
+      />
 
-        {/* Header */}
-        <Card className="border-purple-200/50 dark:border-purple-500/20 bg-gradient-to-r from-pink-50/80 via-purple-50/60 to-pink-50/80 dark:from-purple-500/10 dark:via-purple-500/5 dark:to-purple-500/10 shadow-sm">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="bg-gradient-to-br from-purple-500 to-pink-500 text-white rounded-2xl p-3 shadow-md">
-                  <Video className="h-7 w-7" />
+      {/* Banner */}
+      <div className="relative h-48 md:h-64 lg:h-72 overflow-hidden">
+        <PageBreadcrumb
+          items={[{ label: "Criar Conteúdo", href: "/create" }, { label: "Criar Vídeo" }]}
+          variant="overlay"
+        />
+        <img
+          src={createBanner}
+          alt="Criar Vídeo"
+          className="w-full h-full object-cover object-center"
+          loading="eager"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+      </div>
+
+      {/* Header Card */}
+      <div className="relative px-4 sm:px-6 lg:px-8 -mt-12 z-10">
+        <div className="max-w-7xl mx-auto">
+          <div className="bg-card rounded-2xl shadow-lg p-4 md:p-6">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="flex-shrink-0 bg-primary/10 text-primary rounded-xl p-2.5 md:p-3">
+                  <Video className="h-5 w-5 md:h-6 md:w-6 lg:h-8 lg:w-8" />
                 </div>
-                <div>
-                  <h1 className="text-3xl font-bold text-foreground">
-                    Criar Vídeo
-                  </h1>
-                  <p className="text-muted-foreground text-sm mt-0.5">Gere vídeos profissionais com IA</p>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-foreground">
+                      Criar Vídeo
+                    </h1>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button className="text-muted-foreground hover:text-foreground transition-colors">
+                          <HelpCircle className="h-4 w-4" />
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="text-sm w-72" side="bottom">
+                        <p className="font-medium mb-1">Criar Vídeo</p>
+                        <p className="text-muted-foreground text-xs">
+                          Gere vídeos profissionais com IA. Descreva o que deseja criar, selecione marca e persona para personalizar o resultado.
+                        </p>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <p className="text-muted-foreground text-xs md:text-sm">
+                    Gere vídeos profissionais com IA
+                  </p>
                 </div>
               </div>
               {user && (
-                <Card className="bg-gradient-to-br from-purple-100/80 to-pink-100/80 dark:from-purple-500/10 dark:to-pink-500/10 border-purple-300/50 dark:border-purple-500/20 shadow-sm">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="bg-gradient-to-br from-purple-500 to-pink-500 text-white rounded-full p-2 shadow-sm">
-                        <Zap className="h-4 w-4" />
+                <Card className="bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/20 flex-shrink-0">
+                  <CardContent className="p-2.5 md:p-3">
+                    <div className="flex items-center justify-center gap-3">
+                      <div className="relative flex-shrink-0">
+                        <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary rounded-full blur-sm opacity-40"></div>
+                        <div className="relative bg-gradient-to-r from-primary to-secondary text-white rounded-full p-2">
+                          <Zap className="h-4 w-4" />
+                        </div>
                       </div>
-                      <div>
-                        <div className="flex items-baseline gap-1.5">
-                          <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                      <div className="flex flex-col">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent whitespace-nowrap">
                             {user?.credits || 0}
                           </span>
-                          <span className="text-xs text-muted-foreground font-medium">Créditos</span>
+                          <p className="text-sm text-muted-foreground font-medium leading-tight whitespace-nowrap">
+                            Créditos
+                          </p>
                         </div>
-                        <p className="text-[10px] text-muted-foreground">Disponíveis</p>
+                        <p className="text-xs text-muted-foreground">Disponíveis</p>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
               )}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
+      </div>
 
-        {/* Main Form */}
-        <Card className="border-purple-200/50 dark:border-border/50 bg-white/80 dark:bg-card/90 backdrop-blur-sm shadow-sm">
-          <CardHeader className="pb-6 border-b border-border/50">
-            <div className="flex items-center gap-3">
-              <div className="bg-gradient-to-br from-purple-500 to-pink-500 text-white rounded-xl p-2">
-                <Sparkles className="h-5 w-5" />
+      {/* Main Form */}
+      <main className="px-4 sm:px-6 lg:px-8 pt-4 pb-8 flex-1">
+        <div className="max-w-7xl mx-auto space-y-4 mt-4">
+          {/* Progress Bar */}
+          <CreationProgressBar currentStep={loading ? "generating" : "config"} className="max-w-xs mx-auto" />
+
+          {/* Form Card */}
+          <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
+            <CardHeader className="pb-4 border-b border-border/30">
+              <div className="flex items-center gap-3">
+                <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                <div>
+                  <h2 className="text-lg font-bold text-foreground">Configure sua criação</h2>
+                  <p className="text-sm text-muted-foreground mt-0.5">Descreva o que deseja criar e personalize as opções</p>
+                </div>
               </div>
-              <div>
-                <h2 className="text-xl font-bold text-foreground">Configure sua criação</h2>
-                <p className="text-sm text-muted-foreground mt-0.5">Descreva o que deseja criar e personalize as opções</p>
+            </CardHeader>
+            <CardContent className="space-y-6 p-4 md:p-6">
+              {/* Marca */}
+              <div className="space-y-2.5">
+                <Label className="text-sm font-semibold text-foreground">Marca <span className="text-muted-foreground font-normal">(opcional)</span></Label>
+                {isLoadingData ? <SelectSkeleton /> : (
+                  <>
+                    <NativeSelect
+                      value={formData.brand}
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, brand: value, theme: "", persona: "" }))}
+                      options={brands.map((b) => ({ value: b.id, label: b.name }))}
+                      placeholder="Nenhuma marca selecionada"
+                      triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50 hover:border-primary/50 transition-colors"
+                    />
+                    {formData.brand && (
+                      <div className="flex items-start gap-2 text-xs text-muted-foreground bg-muted/50 dark:bg-muted/30 rounded-lg p-3">
+                        <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                        <p>Selecionar uma marca ajuda a IA a criar conteúdo alinhado com sua identidade visual</p>
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-6 p-6">
-            {/* Marca */}
-            <div className="space-y-2.5">
-              <Label className="text-sm font-semibold text-foreground">Marca <span className="text-muted-foreground font-normal">(opcional)</span></Label>
-              {isLoadingData ? <Skeleton className="h-11 w-full rounded-xl" /> : (
-                <>
+
+              {/* Tema Estratégico */}
+              {formData.brand && filteredThemes.length > 0 && (
+                <div className="space-y-2.5">
+                  <Label className="text-sm font-semibold text-foreground">Tema Estratégico <span className="text-muted-foreground font-normal">(opcional)</span></Label>
                   <NativeSelect
-                    value={formData.brand}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, brand: value, theme: "", persona: "" }))}
-                    options={brands.map((b) => ({ value: b.id, label: b.name }))}
-                    placeholder="Nenhuma marca selecionada"
-                    triggerClassName="h-11 rounded-xl border-purple-200 dark:border-border hover:border-purple-300 dark:hover:border-purple-500/50 transition-colors"
+                    value={formData.theme}
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, theme: value }))}
+                    options={filteredThemes.map((t) => ({ value: t.id, label: t.title }))}
+                    placeholder="Nenhum tema selecionado"
+                    triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50 hover:border-primary/50 transition-colors"
                   />
-                  {formData.brand && (
-                    <div className="flex items-start gap-2 text-xs text-muted-foreground bg-muted/50 dark:bg-muted/30 rounded-lg p-3">
-                      <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                      <p>Selecionar uma marca ajuda a IA a criar conteúdo alinhado com sua identidade visual</p>
-                    </div>
-                  )}
-                </>
+                </div>
               )}
-            </div>
 
-            {/* Tema Estratégico */}
-            {formData.brand && filteredThemes.length > 0 && (
-              <div className="space-y-2.5">
-                <Label className="text-sm font-semibold text-foreground">Tema Estratégico <span className="text-muted-foreground font-normal">(opcional)</span></Label>
-                <NativeSelect
-                  value={formData.theme}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, theme: value }))}
-                  options={filteredThemes.map((t) => ({ value: t.id, label: t.title }))}
-                  placeholder="Nenhum tema selecionado"
-                  triggerClassName="h-11 rounded-xl border-purple-200 dark:border-border hover:border-purple-300 dark:hover:border-purple-500/50 transition-colors"
-                />
-              </div>
-            )}
-
-            {/* Persona */}
-            {formData.brand && filteredPersonas.length > 0 && (
-              <div className="space-y-2.5">
-                <Label className="text-sm font-semibold text-foreground">Persona <span className="text-muted-foreground font-normal">(opcional)</span></Label>
-                <NativeSelect
-                  value={formData.persona}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, persona: value }))}
-                  options={filteredPersonas.map((p) => ({ value: p.id, label: p.name }))}
-                  placeholder="Nenhuma persona selecionada"
-                  triggerClassName="h-11 rounded-xl border-purple-200 dark:border-border hover:border-purple-300 dark:hover:border-purple-500/50 transition-colors"
-                />
-              </div>
-            )}
-
-            {/* Plataforma */}
-            <div className="space-y-2.5">
-              <Label className="text-sm font-semibold text-foreground">Plataforma <span className="text-muted-foreground font-normal">(opcional)</span></Label>
-              <NativeSelect
-                value={formData.platform}
-                onValueChange={(value) => setFormData(prev => ({ ...prev, platform: value }))}
-                options={[
-                  { value: "Instagram", label: "Instagram" },
-                  { value: "Facebook", label: "Facebook" },
-                  { value: "TikTok", label: "TikTok" },
-                  { value: "Twitter/X", label: "Twitter (X)" },
-                  { value: "LinkedIn", label: "LinkedIn" },
-                ]}
-                placeholder="Nenhuma plataforma selecionada"
-                triggerClassName="h-11 rounded-xl border-purple-200 dark:border-border hover:border-purple-300 dark:hover:border-purple-500/50 transition-colors"
-              />
-              <div className="flex items-start gap-2 text-xs text-muted-foreground bg-muted/50 dark:bg-muted/30 rounded-lg p-3">
-                <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                <p>Selecionar plataforma ajusta automaticamente a proporção ideal</p>
-              </div>
-            </div>
-
-            <Separator className="my-6" />
-
-            {/* Imagem de Referência */}
-            <div className="space-y-2.5">
-              <Label className="text-sm font-semibold text-foreground">Imagem de Referência <span className="text-muted-foreground font-normal">(opcional)</span></Label>
-              <div className="flex items-start gap-2 text-xs text-muted-foreground bg-muted/50 dark:bg-muted/30 rounded-lg p-3 mb-3">
-                <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                <p>Adicione uma imagem para criar um vídeo baseado nela. A IA usará a imagem como referência visual.</p>
-              </div>
-              
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-                className="hidden"
-              />
-              
-              {referenceImage ? (
-                <div className="relative rounded-xl overflow-hidden border-2 border-purple-200 dark:border-purple-500/30 bg-muted/30">
-                  <img 
-                    src={referenceImage} 
-                    alt="Imagem de referência" 
-                    className="w-full max-h-[200px] object-contain"
+              {/* Persona */}
+              {formData.brand && filteredPersonas.length > 0 && (
+                <div className="space-y-2.5">
+                  <Label className="text-sm font-semibold text-foreground">Persona <span className="text-muted-foreground font-normal">(opcional)</span></Label>
+                  <NativeSelect
+                    value={formData.persona}
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, persona: value }))}
+                    options={filteredPersonas.map((p) => ({ value: p.id, label: p.name }))}
+                    placeholder="Nenhuma persona selecionada"
+                    triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50 hover:border-primary/50 transition-colors"
                   />
+                </div>
+              )}
+
+              {/* Configurações do Vídeo */}
+              <Separator />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2.5">
+                  <Label className="text-sm font-semibold text-foreground">Estilo Visual</Label>
+                  <NativeSelect
+                    value={formData.videoVisualStyle}
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, videoVisualStyle: value as any }))}
+                    options={[
+                      { value: "cinematic", label: "Cinemático" },
+                      { value: "animation", label: "Animação" },
+                      { value: "realistic", label: "Realístico" },
+                      { value: "creative", label: "Criativo" },
+                    ]}
+                    placeholder="Selecione o estilo"
+                    triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50 hover:border-primary/50 transition-colors"
+                  />
+                </div>
+
+                <div className="space-y-2.5">
+                  <Label className="text-sm font-semibold text-foreground">Proporção</Label>
+                  <NativeSelect
+                    value={formData.videoAspectRatio}
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, videoAspectRatio: value as any }))}
+                    options={[
+                      { value: "16:9", label: "16:9 (Horizontal)" },
+                      { value: "9:16", label: "9:16 (Vertical)" },
+                    ]}
+                    placeholder="Selecione a proporção"
+                    triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50 hover:border-primary/50 transition-colors"
+                  />
+                </div>
+
+                <div className="space-y-2.5">
+                  <Label className="text-sm font-semibold text-foreground">Resolução</Label>
+                  <NativeSelect
+                    value={formData.videoResolution}
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, videoResolution: value as any }))}
+                    options={[
+                      { value: "720p", label: "720p (HD)" },
+                      { value: "1080p", label: "1080p (Full HD)" },
+                    ]}
+                    placeholder="Selecione a resolução"
+                    triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50 hover:border-primary/50 transition-colors"
+                  />
+                </div>
+
+                <div className="space-y-2.5">
+                  <Label className="text-sm font-semibold text-foreground">Duração</Label>
+                  <NativeSelect
+                    value={String(formData.videoDuration)}
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, videoDuration: Number(value) as any }))}
+                    options={[
+                      { value: "4", label: "4 segundos" },
+                      { value: "6", label: "6 segundos" },
+                      { value: "8", label: "8 segundos" },
+                    ]}
+                    placeholder="Selecione a duração"
+                    triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50 hover:border-primary/50 transition-colors"
+                  />
+                </div>
+
+                <div className="space-y-2.5">
+                  <Label className="text-sm font-semibold text-foreground">Estilo de Áudio</Label>
+                  <NativeSelect
+                    value={formData.videoAudioStyle}
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, videoAudioStyle: value as any }))}
+                    options={[
+                      { value: "dialogue", label: "Diálogo" },
+                      { value: "sound_effects", label: "Efeitos Sonoros" },
+                      { value: "music", label: "Música" },
+                      { value: "none", label: "Sem Áudio" },
+                    ]}
+                    placeholder="Selecione o áudio"
+                    triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50 hover:border-primary/50 transition-colors"
+                  />
+                </div>
+
+                {/* Plataforma */}
+                <div className="space-y-2.5">
+                  <Label className="text-sm font-semibold text-foreground">Plataforma <span className="text-muted-foreground font-normal">(opcional)</span></Label>
+                  <NativeSelect
+                    value={formData.platform}
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, platform: value }))}
+                    options={[
+                      { value: "Instagram", label: "Instagram" },
+                      { value: "Facebook", label: "Facebook" },
+                      { value: "TikTok", label: "TikTok" },
+                      { value: "Twitter/X", label: "Twitter (X)" },
+                      { value: "LinkedIn", label: "LinkedIn" },
+                    ]}
+                    placeholder="Nenhuma plataforma selecionada"
+                    triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50 hover:border-primary/50 transition-colors"
+                  />
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Imagem de Referência */}
+              <div className="space-y-2.5">
+                <Label className="text-sm font-semibold text-foreground">Imagem de Referência <span className="text-muted-foreground font-normal">(opcional)</span></Label>
+                <div className="flex items-start gap-2 text-xs text-muted-foreground bg-muted/50 dark:bg-muted/30 rounded-lg p-3 mb-3">
+                  <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                  <p>Adicione uma imagem para criar um vídeo baseado nela. A IA usará a imagem como referência visual.</p>
+                </div>
+                
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
+                
+                {referenceImage ? (
+                  <div className="relative rounded-xl overflow-hidden border-2 border-border/50 bg-muted/30">
+                    <img 
+                      src={referenceImage} 
+                      alt="Imagem de referência" 
+                      className="w-full max-h-[200px] object-contain"
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="icon"
+                      className="absolute top-2 right-2 h-8 w-8 rounded-full shadow-lg"
+                      onClick={removeReferenceImage}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                    <div className="absolute bottom-2 left-2">
+                      <Badge className="bg-primary text-primary-foreground border-0">
+                        Imagem para vídeo
+                      </Badge>
+                    </div>
+                  </div>
+                ) : (
                   <Button
                     type="button"
-                    variant="destructive"
-                    size="icon"
-                    className="absolute top-2 right-2 h-8 w-8 rounded-full shadow-lg"
-                    onClick={removeReferenceImage}
+                    variant="outline"
+                    className="w-full h-24 rounded-xl border-2 border-dashed border-border/50 hover:border-primary/50 hover:bg-muted/30 transition-all"
+                    onClick={() => fileInputRef.current?.click()}
                   >
-                    <X className="h-4 w-4" />
+                    <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                      <ImagePlus className="h-8 w-8" />
+                      <span className="text-sm">Clique para adicionar imagem de referência</span>
+                    </div>
                   </Button>
-                  <div className="absolute bottom-2 left-2">
-                    <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0">
-                      Imagem para vídeo
-                    </Badge>
+                )}
+              </div>
+
+              {/* Descrição */}
+              <div className="space-y-2.5">
+                <Label className="text-sm font-semibold text-foreground">Descreva o que você quer criar <span className="text-destructive">*</span></Label>
+                <Textarea
+                  placeholder="Ex: Um vídeo mostrando um produto sendo usado em diferentes cenários, com transições suaves e música de fundo inspiradora..."
+                  value={formData.description}
+                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                  className="min-h-[120px] rounded-xl border-2 border-border/50 bg-background/50 hover:border-primary/50 transition-colors resize-none"
+                />
+              </div>
+
+              {/* Objetivo */}
+              <div className="space-y-2.5">
+                <Label className="text-sm font-semibold text-foreground">Objetivo <span className="text-destructive">*</span></Label>
+                <Textarea
+                  placeholder="Qual a principal meta deste vídeo?"
+                  value={formData.objective}
+                  onChange={(e) => setFormData(prev => ({ ...prev, objective: e.target.value }))}
+                  className="min-h-[80px] rounded-xl border-2 border-border/50 bg-background/50 hover:border-primary/50 transition-colors resize-none"
+                />
+              </div>
+
+              {/* Tom de Voz */}
+              <div className="space-y-2.5">
+                <Label className="text-sm font-semibold text-foreground">Tom de Voz <span className="text-destructive">*</span></Label>
+                <NativeSelect
+                  value=""
+                  onValueChange={(tone) => { if (!formData.tone.includes(tone) && formData.tone.length < 4) setFormData(prev => ({ ...prev, tone: [...prev.tone, tone] })); }}
+                  options={toneOptions.map((t) => ({ value: t, label: t.charAt(0).toUpperCase() + t.slice(1) }))}
+                  placeholder="Selecione um tom"
+                  triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50 hover:border-primary/50 transition-colors"
+                />
+                {formData.tone.length > 0 && (
+                  <div className="flex flex-wrap gap-2 p-3 bg-primary/5 rounded-xl border border-primary/20">
+                    {formData.tone.map((t) => (
+                      <Badge key={t} variant="secondary" className="bg-primary/10 text-primary border-primary/30 capitalize gap-1">
+                        {t}
+                        <button onClick={() => setFormData(prev => ({ ...prev, tone: prev.tone.filter(x => x !== t) }))} className="ml-1 hover:text-destructive">
+                          <X className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    ))}
                   </div>
-                </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Generate Button */}
+          <div className="flex justify-end pb-6">
+            <Button
+              onClick={handleGenerateVideo}
+              disabled={loading}
+              size="lg"
+              className="bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_100%] animate-gradient text-primary-foreground hover:opacity-90 transition-opacity shadow-lg gap-2"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="animate-spin h-5 w-5" />
+                  <span>Gerando vídeo...</span>
+                </>
               ) : (
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full h-24 rounded-xl border-2 border-dashed border-purple-200 dark:border-purple-500/30 hover:border-purple-400 dark:hover:border-purple-500/50 hover:bg-purple-50/50 dark:hover:bg-purple-500/5 transition-all"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                    <ImagePlus className="h-8 w-8" />
-                    <span className="text-sm">Clique para adicionar imagem de referência</span>
-                  </div>
-                </Button>
+                <>
+                  <Sparkles className="h-5 w-5" />
+                  <span>Gerar Vídeo</span>
+                  <Badge variant="secondary" className="ml-2 bg-primary-foreground/20 text-primary-foreground border-primary-foreground/30 gap-1">
+                    <Coins className="h-3 w-3" />
+                    {CREDIT_COSTS.VIDEO_GENERATION}
+                  </Badge>
+                </>
               )}
-            </div>
-
-            {/* Descrição */}
-            <div className="space-y-2.5">
-              <Label className="text-sm font-semibold text-foreground">Descreva o que você quer criar <span className="text-destructive">*</span></Label>
-              <Textarea
-                placeholder="Ex: Um vídeo mostrando um produto sendo usado em diferentes cenários, com transições suaves e música de fundo inspiradora..."
-                value={formData.description}
-                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                className="min-h-[120px] rounded-xl border-purple-200 dark:border-border hover:border-purple-300 dark:hover:border-purple-500/50 transition-colors resize-none"
-              />
-            </div>
-
-            {/* Objetivo */}
-            <div className="space-y-2.5">
-              <Label className="text-sm font-semibold text-foreground">Objetivo <span className="text-destructive">*</span></Label>
-              <Textarea
-                placeholder="Qual a principal meta deste vídeo?"
-                value={formData.objective}
-                onChange={(e) => setFormData(prev => ({ ...prev, objective: e.target.value }))}
-                className="min-h-[80px] rounded-xl border-purple-200 dark:border-border hover:border-purple-300 dark:hover:border-purple-500/50 transition-colors resize-none"
-              />
-            </div>
-
-            {/* Tom de Voz */}
-            <div className="space-y-2.5">
-              <Label className="text-sm font-semibold text-foreground">Tom de Voz <span className="text-destructive">*</span></Label>
-              <NativeSelect
-                value=""
-                onValueChange={(tone) => { if (!formData.tone.includes(tone) && formData.tone.length < 4) setFormData(prev => ({ ...prev, tone: [...prev.tone, tone] })); }}
-                options={toneOptions.map((t) => ({ value: t, label: t.charAt(0).toUpperCase() + t.slice(1) }))}
-                placeholder="Selecione um tom"
-                triggerClassName="h-11 rounded-xl border-purple-200 dark:border-border hover:border-purple-300 dark:hover:border-purple-500/50 transition-colors"
-              />
-              {formData.tone.length > 0 && (
-                <div className="flex flex-wrap gap-2 p-3 bg-purple-100/50 dark:bg-purple-500/10 rounded-xl border border-purple-200 dark:border-purple-500/20">
-                  {formData.tone.map((t) => (
-                    <Badge key={t} variant="secondary" className="bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0 capitalize">
-                      {t}
-                    </Badge>
-                  ))}
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Generate Button */}
-        <div className="pt-2 pb-8">
-          <Button
-            onClick={handleGenerateVideo}
-            disabled={loading}
-            className="w-full h-14 rounded-2xl text-base font-semibold bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 hover:opacity-90 shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
-          >
-            {loading ? (
-              <>
-                <Loader2 className="animate-spin h-5 w-5 mr-2" />
-                <span>Gerando vídeo...</span>
-              </>
-            ) : (
-              <>
-                <Sparkles className="h-5 w-5 mr-2" />
-                <span>Gerar Vídeo</span>
-                <Badge variant="secondary" className="ml-3 bg-white/20 text-white border-0 hover:bg-white/30">
-                  <Coins className="h-3 w-3 mr-1" />
-                  {CREDIT_COSTS.VIDEO_GENERATION}
-                </Badge>
-              </>
-            )}
-          </Button>
+            </Button>
+          </div>
         </div>
-
-        <TourSelector 
-          tours={[
-            {
-              tourType: 'navbar',
-              steps: navbarSteps,
-              label: 'Tour da Navegação',
-              targetElement: '#sidebar-logo'
-            }
-          ]}
-          startDelay={500}
-        />
-      </div>
+      </main>
     </div>
   );
 }
