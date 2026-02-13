@@ -104,18 +104,9 @@ const ReviewContent = () => {
     excludeFields: ["imageFile", "previewUrl"],
   });
 
-  // Carregar dados persistidos na montagem
+  // Limpar dados persistidos ao montar - sempre iniciar do zero
   useEffect(() => {
-    const persisted = loadPersistedData();
-    if (persisted) {
-      if (persisted.reviewType) setReviewType(persisted.reviewType);
-      if (persisted.brand) setBrand(persisted.brand);
-      if (persisted.theme) setTheme(persisted.theme);
-      if (persisted.adjustmentsPrompt) setAdjustmentsPrompt(persisted.adjustmentsPrompt);
-      if (persisted.captionText) setCaptionText(persisted.captionText);
-      if (persisted.textForImage) setTextForImage(persisted.textForImage);
-      
-    }
+    clearPersistedData();
   }, []);
 
   // Detectar reset do sidebar
