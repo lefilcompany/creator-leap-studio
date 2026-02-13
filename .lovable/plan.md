@@ -1,73 +1,52 @@
 
+# Refatorar Tela de Planejar Conteudo para o Padrao Visual do Sistema
 
-# Melhorar Navegacao e Layout da Tela de Revisao
+## Objetivo
+Alinhar a pagina de Planejar Conteudo (`/plan`) ao padrao visual usado em Revisar Conteudo (`/review`) e demais paginas de gestao: banner ilustrativo, breadcrumb overlay, header card sobreposto e formulario em cards tematicos.
 
-## Problema Atual
+## Mudancas
 
-1. **Breadcrumb incorreto**: Quando o usuario seleciona um tipo de revisao (Imagem, Legenda, Texto), o breadcrumb continua mostrando apenas "Revisar Conteudo" sem indicar o tipo selecionado
-2. **Botao "Voltar" mal posicionado**: O botao para voltar a selecao de tipo fica la embaixo, dentro do card de acoes, misturado com o botao "Gerar Revisao" - contra-intuitivo e dificil de encontrar
-3. **Pagina ReviewResult sem breadcrumb**: A pagina de resultado nao possui breadcrumb nem banner, quebrando o padrao visual do sistema
+### 1. Gerar imagem de banner para planejamento
+- Usar a IA de imagem integrada para criar um banner ilustrativo no estilo flat/cartoon (mesmo estilo dos outros banners do sistema)
+- Tema: calendario de conteudo, redes sociais, planejamento de posts
+- Proporcao 3:1 (1000x300), tons pastel, sem texto
+- Salvar como `src/assets/plan-banner.jpg`
 
-## Solucao
+### 2. Refatorar layout completo do `src/pages/PlanContent.tsx`
 
-### 1. Breadcrumb dinamico no ReviewContent
-
-Quando um tipo de revisao for selecionado, o breadcrumb passa a mostrar a hierarquia completa:
-
-```text
-Home > Revisar Conteudo > Revisar Imagem
-Home > Revisar Conteudo > Revisar Legenda
-Home > Revisar Conteudo > Revisar Texto para Imagem
-```
-
-O item "Revisar Conteudo" sera clicavel e ao clicar, reseta o formulario para a selecao de tipo (funciona como o botao "Voltar" atual).
-
-### 2. Remover botao "Voltar" do rodape
-
-Como o breadcrumb ja fornece a navegacao de retorno, o botao "Voltar" sera removido do card de acoes. O botao "Gerar Revisao" ocupara a largura total, ficando mais proeminente e limpo.
-
-### 3. Header Card dinamico
-
-O titulo e icone do header card mudam conforme o tipo selecionado:
-- Imagem: icone ImageIcon com cor primary
-- Legenda: icone FileText com cor secondary
-- Texto: icone Type com cor accent
-
-### 4. Pagina ReviewResult com banner e breadcrumb
-
-Adicionar o mesmo padrao visual (banner + breadcrumb overlay + header card) na pagina de resultado, com breadcrumb:
+**Estrutura nova (igual ao ReviewContent):**
 
 ```text
-Home > Revisar Conteudo > Resultado da Revisao
+div (flex flex-col -m-4 sm:-m-6 lg:-m-8)
+  |-- Banner (relative, h-48 md:h-56, com imagem)
+  |     |-- PageBreadcrumb variant="overlay"
+  |     |-- img (plan-banner.jpg)
+  |     |-- gradient overlay
+  |
+  |-- Header Card (-mt-12, sobrepondo o banner)
+  |     |-- Icone Calendar + Titulo + Descricao
+  |     |-- Card de creditos (lado direito)
+  |
+  |-- Main Content (px-4 sm:px-6 lg:px-8)
+        |-- Card "Configuracao Basica" (marca, plataforma, quantidade)
+        |-- Card "Temas Estrategicos" (selecao de temas)
+        |-- Card "Detalhes do Planejamento" (objetivo, info adicional)
+        |-- Botao "Gerar Planejamento"
 ```
 
-## Detalhes Tecnicos
+**Mudancas especificas:**
+- Wrapper externo: trocar `min-h-full w-full p-3 sm:p-6` por `flex flex-col -m-4 sm:-m-6 lg:-m-8 min-h-full` (padrão de paginas com banner)
+- Adicionar banner com `PageBreadcrumb variant="overlay"` e imagem de fundo
+- Mover header para card sobreposto com `-mt-12` e `z-10`
+- Separar "Temas Estrategicos" em seu proprio card (atualmente esta junto com Configuracao Basica)
+- Manter os cards de Detalhes e Botao como estao, ajustando classes menores para consistencia
+- Corrigir texto "Revisoes Restantes" para "Creditos Restantes" no card de creditos (esta errado atualmente)
 
-### Arquivo: `src/pages/ReviewContent.tsx`
+### 3. Melhorar campos do formulario
+- Usar o mesmo padrao de labels do CreateContent: `text-xs md:text-sm font-semibold` com `<span className="text-destructive">*</span>` para obrigatorios
+- Cards com `rounded-2xl` e headers com gradiente sutil
+- Inputs com `h-10 md:h-11 rounded-xl border-2` (padrão CreateContent) em vez de `h-12 rounded-2xl`
 
-**Breadcrumb dinamico (linha 300-303):**
-- Quando `reviewType` e `null`: items = `[{ label: "Revisar Conteudo" }]`
-- Quando `reviewType` tem valor: items = `[{ label: "Revisar Conteudo", href: "#", onClick: handleReset }, { label: "Revisar Imagem" }]`
-- Como o `PageBreadcrumb` usa `Link` com `href`, sera necessario usar o clique no breadcrumb para chamar `handleReset()` em vez de navegar. Alternativa: usar `href="/review"` com `state: { reset: true }` que ja e suportado pelo componente (linhas 122-128).
-
-**Remover botao "Voltar" (linhas 632-673):**
-- Remover o card de acoes que envolve ambos os botoes
-- Mover o botao "Gerar Revisao" para ficar diretamente abaixo do card de conteudo, sem wrapper extra
-- Remover o botao "Voltar" completamente
-
-### Arquivo: `src/pages/ReviewResult.tsx`
-
-**Adicionar banner e breadcrumb:**
-- Importar `reviewBanner` e `PageBreadcrumb`
-- Adicionar estrutura de banner identica ao ReviewContent
-- Breadcrumb: `Home > Revisar Conteudo > Resultado`
-- Converter header existente para o padrao de header card sobreposto (-mt-12)
-
-### Arquivo: `src/components/PageBreadcrumb.tsx`
-
-- Nenhuma alteracao necessaria - o componente ja suporta `href` e `state` nos items intermediarios
-
-### Arquivos modificados
-- `src/pages/ReviewContent.tsx`
-- `src/pages/ReviewResult.tsx`
-
+## Arquivos modificados
+- `src/pages/PlanContent.tsx` - Refatoracao completa do layout
+- `src/assets/plan-banner.jpg` - Nova imagem de banner (gerada por IA)
