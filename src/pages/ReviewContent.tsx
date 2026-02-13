@@ -1,16 +1,14 @@
-import { useState, ChangeEvent, useEffect } from "react";
+import { useState, ChangeEvent, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { NativeSelect } from "@/components/ui/native-select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Loader2, Image as ImageIcon, FileText, Type, Sparkles, CheckCircle, Zap } from "lucide-react";
-import type { Brand } from "@/types/brand";
-import type { StrategicTheme, Team } from "@/types/theme";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,10 +22,7 @@ import {
   reviewContentTextSteps,
 } from "@/components/onboarding/tourSteps";
 import { PageBreadcrumb } from "@/components/PageBreadcrumb";
-
-// Tipos para os dados leves do formulário
-type LightBrand = Pick<Brand, "id" | "name">;
-type LightTheme = Pick<StrategicTheme, "id" | "title" | "brandId">;
+import createBanner from "@/assets/create-banner.jpg";
 
 type ReviewType = "image" | "caption" | "text-for-image";
 
@@ -47,10 +42,52 @@ const ReviewContent = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [brands, setBrands] = useState<LightBrand[]>([]);
-  const [themes, setThemes] = useState<LightTheme[]>([]);
-  const [isLoadingData, setIsLoadingData] = useState(true);
-  const [filteredThemes, setFilteredThemes] = useState<LightTheme[]>([]);
+  // React Query for brands
+  const { data: brands = [], isLoading: isLoadingBrands } = useQuery({
+    queryKey: ['brands', user?.teamId],
+    queryFn: async () => {
+      if (!user) return [];
+      const query = supabase.from("brands").select("id, name");
+      if (user.teamId) {
+        query.eq("team_id", user.teamId);
+      } else {
+        query.eq("user_id", user.id);
+      }
+      const { data, error } = await query;
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  // React Query for themes
+  const { data: themes = [], isLoading: isLoadingThemes } = useQuery({
+    queryKey: ['themes', user?.teamId],
+    queryFn: async () => {
+      if (!user) return [];
+      const query = supabase.from("strategic_themes").select("id, title, brand_id");
+      if (user.teamId) {
+        query.eq("team_id", user.teamId);
+      } else {
+        query.eq("user_id", user.id);
+      }
+      const { data, error } = await query;
+      if (error) throw error;
+      return (data || []).map((t) => ({ id: t.id, title: t.title, brandId: t.brand_id }));
+    },
+    enabled: !!user,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const isLoadingData = isLoadingBrands || isLoadingThemes;
+
+  // Filtered themes derived from brand selection
+  const filteredThemes = useMemo(() => {
+    if (!brand) return [];
+    const selectedBrand = brands.find((b) => b.id === brand);
+    return selectedBrand ? themes.filter((t) => t.brandId === selectedBrand.id) : [];
+  }, [brand, brands, themes]);
 
   // Persistência de formulário
   const { loadPersistedData, clearPersistedData } = useFormPersistence({
@@ -63,7 +100,7 @@ const ReviewContent = () => {
       captionText,
       textForImage,
     },
-    excludeFields: ["imageFile", "previewUrl"], // Não persistir arquivo de imagem
+    excludeFields: ["imageFile", "previewUrl"],
   });
 
   // Carregar dados persistidos na montagem
@@ -80,63 +117,14 @@ const ReviewContent = () => {
     }
   }, []);
 
-  // Detectar reset do sidebar e resetar estado
+  // Detectar reset do sidebar
   useEffect(() => {
     const locationState = location.state as { reset?: boolean } | null;
     if (locationState?.reset) {
       handleReset();
-      // Limpar o state para não resetar em próximos renders
       navigate(location.pathname, { replace: true, state: {} });
     }
   }, [location.state]);
-
-  useEffect(() => {
-    const loadData = async () => {
-      if (!user) return;
-
-      try {
-        // Carregar marcas do usuário ou time
-        const brandsQuery = supabase.from("brands").select("id, name");
-        if (user.teamId) {
-          brandsQuery.eq("team_id", user.teamId);
-        } else {
-          brandsQuery.eq("user_id", user.id);
-        }
-        const { data: brandsData, error: brandsError } = await brandsQuery;
-
-        if (brandsError) throw brandsError;
-        setBrands(brandsData || []);
-
-        // Carregar temas do usuário ou time
-        const themesQuery = supabase.from("strategic_themes").select("id, title, brand_id");
-        if (user.teamId) {
-          themesQuery.eq("team_id", user.teamId);
-        } else {
-          themesQuery.eq("user_id", user.id);
-        }
-        const { data: themesData, error: themesError } = await themesQuery;
-
-        if (themesError) throw themesError;
-        setThemes(themesData?.map((t) => ({ id: t.id, title: t.title, brandId: t.brand_id })) || []);
-      } catch (err: any) {
-        console.error("Error loading data:", err);
-        toast.error("Erro ao carregar dados");
-      } finally {
-        setIsLoadingData(false);
-      }
-    };
-
-    loadData();
-  }, [user]);
-
-  useEffect(() => {
-    if (brand) {
-      const selectedBrand = brands.find((b) => b.id === brand);
-      setFilteredThemes(selectedBrand ? themes.filter((t) => t.brandId === selectedBrand.id) : []);
-    } else {
-      setFilteredThemes([]);
-    }
-  }, [brand, brands, themes]);
 
   const handleBrandChange = (value: string) => {
     setBrand(value);
@@ -243,9 +231,8 @@ const ReviewContent = () => {
       }
 
       if (result?.review) {
-        clearPersistedData(); // Limpar rascunho após sucesso
+        clearPersistedData();
 
-        // Atualizar créditos do usuário antes de navegar
         try {
           await refreshUserCredits();
         } catch (error) {
@@ -285,58 +272,54 @@ const ReviewContent = () => {
     setError(null);
   };
 
-  if (isLoadingData) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-accent" />
-      </div>
-    );
-  }
+  const dynamicDescription = !reviewType
+    ? "Escolha o tipo de revisão que deseja fazer"
+    : reviewType === "image"
+      ? "Receba sugestões da IA para aprimorar sua imagem"
+      : reviewType === "caption"
+        ? "Melhore sua legenda com sugestões da IA"
+        : "Otimize seu texto para gerar imagens impactantes";
 
   return (
-    <div className="h-full w-full flex flex-col">
-      {/* Tour inicial - só aparece quando reviewType é null */}
+    <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8 min-h-full">
+      {/* Onboarding Tours */}
       {!reviewType && <OnboardingTour tourType="review_content" steps={reviewContentInitialSteps} />}
-
-      {/* Tour específico de Revisar Imagem */}
       {reviewType === "image" && (
         <OnboardingTour tourType="review_content_image" steps={reviewContentImageSteps} startDelay={500} />
       )}
-
-      {/* Tour específico de Revisar Legenda */}
       {reviewType === "caption" && (
         <OnboardingTour tourType="review_content_caption" steps={reviewContentCaptionSteps} startDelay={500} />
       )}
-
-      {/* Tour específico de Revisar Texto para Imagem */}
       {reviewType === "text-for-image" && (
         <OnboardingTour tourType="review_content_text" steps={reviewContentTextSteps} startDelay={500} />
       )}
-      <div className="max-w-7xl mx-auto space-y-8">
-        {/* Breadcrumb Navigation */}
-        <PageBreadcrumb items={[{ label: "Revisar Conteúdo" }]} />
 
-        <Card
-          id="review-content-header"
-          className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5"
-        >
-          <CardHeader className="pb-4">
+      {/* Banner */}
+      <div className="relative h-48 md:h-64 lg:h-72 overflow-hidden">
+        <PageBreadcrumb
+          items={[{ label: "Revisar Conteúdo" }]}
+          variant="overlay"
+        />
+        <img
+          src={createBanner}
+          alt="Revisar Conteúdo"
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
+      </div>
+
+      {/* Header Card */}
+      <div className="relative px-4 sm:px-6 lg:px-8 -mt-12 z-10">
+        <div className="max-w-7xl mx-auto">
+          <div id="review-content-header" className="bg-card rounded-2xl shadow-lg p-4 md:p-6">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="flex-shrink-0 bg-primary/10 text-primary rounded-lg p-3">
-                  <CheckCircle className="h-8 w-8" />
+                <div className="flex-shrink-0 bg-primary/10 text-primary rounded-xl p-3">
+                  <CheckCircle className="h-6 w-6 md:h-8 md:w-8" />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold">Revisar Conteúdo</h1>
-                  <p className="text-muted-foreground text-base">
-                    {!reviewType
-                      ? "Escolha o tipo de revisão que deseja fazer"
-                      : reviewType === "image"
-                        ? "Receba sugestões da IA para aprimorar sua imagem"
-                        : reviewType === "caption"
-                          ? "Melhore sua legenda com sugestões da IA"
-                          : "Otimize seu texto para gerar imagens impactantes"}
-                  </p>
+                  <h1 className="text-2xl md:text-3xl font-bold text-foreground">Revisar Conteúdo</h1>
+                  <p className="text-muted-foreground text-sm md:text-base">{dynamicDescription}</p>
                 </div>
               </div>
               {isLoadingData ? (
@@ -348,7 +331,7 @@ const ReviewContent = () => {
                       <div className="flex items-center justify-center gap-4">
                         <div className="relative">
                           <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary rounded-full blur-sm opacity-40"></div>
-                          <div className="relative bg-gradient-to-r from-primary to-secondary text-white rounded-full p-2">
+                          <div className="relative bg-gradient-to-r from-primary to-secondary text-primary-foreground rounded-full p-2">
                             <Zap className="h-4 w-4" />
                           </div>
                         </div>
@@ -364,284 +347,288 @@ const ReviewContent = () => {
                 )
               )}
             </div>
-          </CardHeader>
-        </Card>
+          </div>
+        </div>
+      </div>
 
-        {!reviewType && (
-          <Card
-            id="review-type-selection"
-            className="backdrop-blur-sm bg-card/60 border border-border/20 shadow-lg shadow-black/5 rounded-2xl"
-          >
-            <CardHeader className="pb-4 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-2xl">
-              <h2 className="text-xl font-semibold flex items-center gap-3">
-                <div className="w-2 h-2 bg-primary rounded-full"></div>
-                Tipo de Revisão
-              </h2>
-              <p className="text-muted-foreground text-sm">Selecione o que você deseja revisar com IA</p>
-            </CardHeader>
-            <CardContent className="p-6">
-              <RadioGroup value={reviewType || ""} onValueChange={(value) => setReviewType(value as ReviewType)}>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <label htmlFor="image" className="cursor-pointer h-full">
-                    <Card className="hover:border-primary transition-all duration-300 hover:shadow-lg h-full">
-                      <CardContent className="p-6 flex flex-col items-center text-center gap-4 h-full justify-between min-h-[240px]">
-                        <RadioGroupItem value="image" id="image" className="sr-only" />
-                        <div className="flex flex-col items-center gap-4 flex-1 justify-center">
-                          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                            <ImageIcon className="h-8 w-8 text-primary" />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-lg mb-2">Revisar Imagem</h3>
-                            <p className="text-sm text-muted-foreground">
-                              Envie uma imagem e receba sugestões de melhorias visuais
-                            </p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </label>
-
-                  <label htmlFor="caption" className="cursor-pointer h-full">
-                    <Card className="hover:border-primary transition-all duration-300 hover:shadow-lg h-full">
-                      <CardContent className="p-6 flex flex-col items-center text-center gap-4 h-full justify-between min-h-[240px]">
-                        <RadioGroupItem value="caption" id="caption" className="sr-only" />
-                        <div className="flex flex-col items-center gap-4 flex-1 justify-center">
-                          <div className="w-16 h-16 rounded-full bg-secondary/10 flex items-center justify-center flex-shrink-0">
-                            <FileText className="h-8 w-8 text-secondary" />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-lg mb-2">Revisar Legenda</h3>
-                            <p className="text-sm text-muted-foreground">
-                              Melhore legendas existentes com sugestões da IA
-                            </p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </label>
-
-                  <label htmlFor="text-for-image" className="cursor-pointer h-full">
-                    <Card className="hover:border-primary transition-all duration-300 hover:shadow-lg h-full">
-                      <CardContent className="p-6 flex flex-col items-center text-center gap-4 h-full justify-between min-h-[240px]">
-                        <RadioGroupItem value="text-for-image" id="text-for-image" className="sr-only" />
-                        <div className="flex flex-col items-center gap-4 flex-1 justify-center">
-                          <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0">
-                            <Type className="h-8 w-8 text-accent" />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-lg mb-2">Revisar Texto para Imagem</h3>
-                            <p className="text-sm text-muted-foreground">
-                              Otimize textos que serão inseridos em imagens de posts
-                            </p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </label>
-                </div>
-              </RadioGroup>
-            </CardContent>
-          </Card>
-        )}
-
-        {reviewType && (
-          <>
-            <Card className="backdrop-blur-sm bg-card/60 border border-border/20 shadow-lg shadow-black/5 rounded-2xl">
-              <CardHeader className="pb-4 bg-gradient-to-r from-primary/5 to-secondary/5">
+      {/* Main Content */}
+      <main className="px-4 sm:px-6 lg:px-8 pt-4 pb-8 flex-1">
+        <div className="max-w-7xl mx-auto space-y-4 mt-4">
+          {/* Review Type Selection */}
+          {!reviewType && (
+            <Card id="review-type-selection" className="border-0 shadow-lg rounded-2xl overflow-hidden">
+              <CardHeader className="pb-4">
                 <h2 className="text-xl font-semibold flex items-center gap-3">
                   <div className="w-2 h-2 bg-primary rounded-full"></div>
-                  Configuração Básica
+                  Tipo de Revisão
                 </h2>
-                <p className="text-muted-foreground text-sm">Defina marca e tema para contextualizar a IA</p>
+                <p className="text-muted-foreground text-sm">Selecione o que você deseja revisar com IA</p>
               </CardHeader>
-              <CardContent className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div id="review-brand-field" className="space-y-3">
-                    <Label htmlFor="brand" className="text-sm font-semibold text-foreground">
-                      Marca <span className="text-red-600">*</span>
-                    </Label>
-                    {isLoadingData ? (
-                      <Skeleton className="h-11 w-full rounded-xl" />
-                    ) : (
-                      <NativeSelect
-                        value={brand}
-                        onValueChange={handleBrandChange}
-                        options={brands.map((b) => ({ value: b.id, label: b.name }))}
-                        placeholder="Selecione a marca"
-                        triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50"
-                      />
-                    )}
+              <CardContent className="p-6 pt-0">
+                <RadioGroup value={reviewType || ""} onValueChange={(value) => setReviewType(value as ReviewType)}>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <label htmlFor="image" className="cursor-pointer h-full">
+                      <Card className="hover:border-primary transition-all duration-300 hover:shadow-lg h-full">
+                        <CardContent className="p-6 flex flex-col items-center text-center gap-4 h-full justify-between min-h-[240px]">
+                          <RadioGroupItem value="image" id="image" className="sr-only" />
+                          <div className="flex flex-col items-center gap-4 flex-1 justify-center">
+                            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                              <ImageIcon className="h-8 w-8 text-primary" />
+                            </div>
+                            <div>
+                              <h3 className="font-semibold text-lg mb-2">Revisar Imagem</h3>
+                              <p className="text-sm text-muted-foreground">
+                                Envie uma imagem e receba sugestões de melhorias visuais
+                              </p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </label>
+
+                    <label htmlFor="caption" className="cursor-pointer h-full">
+                      <Card className="hover:border-primary transition-all duration-300 hover:shadow-lg h-full">
+                        <CardContent className="p-6 flex flex-col items-center text-center gap-4 h-full justify-between min-h-[240px]">
+                          <RadioGroupItem value="caption" id="caption" className="sr-only" />
+                          <div className="flex flex-col items-center gap-4 flex-1 justify-center">
+                            <div className="w-16 h-16 rounded-full bg-secondary/10 flex items-center justify-center flex-shrink-0">
+                              <FileText className="h-8 w-8 text-secondary" />
+                            </div>
+                            <div>
+                              <h3 className="font-semibold text-lg mb-2">Revisar Legenda</h3>
+                              <p className="text-sm text-muted-foreground">
+                                Melhore legendas existentes com sugestões da IA
+                              </p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </label>
+
+                    <label htmlFor="text-for-image" className="cursor-pointer h-full">
+                      <Card className="hover:border-primary transition-all duration-300 hover:shadow-lg h-full">
+                        <CardContent className="p-6 flex flex-col items-center text-center gap-4 h-full justify-between min-h-[240px]">
+                          <RadioGroupItem value="text-for-image" id="text-for-image" className="sr-only" />
+                          <div className="flex flex-col items-center gap-4 flex-1 justify-center">
+                            <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0">
+                              <Type className="h-8 w-8 text-accent" />
+                            </div>
+                            <div>
+                              <h3 className="font-semibold text-lg mb-2">Revisar Texto para Imagem</h3>
+                              <p className="text-sm text-muted-foreground">
+                                Otimize textos que serão inseridos em imagens de posts
+                              </p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </label>
                   </div>
-                  <div id="review-theme-field" className="space-y-3">
-                    <Label htmlFor="theme" className="text-sm font-semibold text-foreground">
-                      Tema Estratégico (Opcional)
-                    </Label>
-                    {isLoadingData ? (
-                      <Skeleton className="h-11 w-full rounded-xl" />
-                    ) : (
-                      <NativeSelect
-                        value={theme}
-                        onValueChange={setTheme}
-                        options={filteredThemes.map((t) => ({ value: t.id, label: t.title }))}
-                        placeholder={!brand ? "Primeiro, escolha a marca" : "Selecione o tema"}
-                        disabled={!brand || filteredThemes.length === 0}
-                        triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50 disabled:opacity-50"
-                      />
-                    )}
-                  </div>
-                </div>
+                </RadioGroup>
               </CardContent>
             </Card>
+          )}
 
-            <Card className="backdrop-blur-sm bg-card/60 border border-border/20 shadow-lg shadow-black/5 rounded-2xl">
-              <CardHeader className="pb-4 bg-gradient-to-r from-secondary/5 to-accent/5">
-                <h2 className="text-xl font-semibold flex items-center gap-3">
-                  <div className="w-2 h-2 bg-secondary rounded-full"></div>
-                  {reviewType === "image" && "Análise da Imagem"}
-                  {reviewType === "caption" && "Revisão da Legenda"}
-                  {reviewType === "text-for-image" && "Revisão de Texto para Imagem"}
-                </h2>
-                <p className="text-muted-foreground text-sm">
-                  {reviewType === "image" && "Envie a imagem e descreva o que precisa melhorar"}
-                  {reviewType === "caption" && "Cole a legenda e descreva como quer melhorá-la"}
-                  {reviewType === "text-for-image" && "Revise o texto que será inserido na imagem do post"}
-                </p>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {reviewType === "image" && (
-                    <>
-                      <div id="review-content-input" className="space-y-3">
-                        <Label htmlFor="file-upload" className="text-sm font-semibold text-foreground">
-                          Sua Imagem *
-                        </Label>
-                        <div className="relative mt-2 flex justify-center rounded-xl border-2 border-dashed border-border/50 p-8 h-64 items-center">
-                          <div className="text-center w-full">
-                            {previewUrl ? (
-                              <img
-                                src={previewUrl}
-                                alt="Pré-visualização"
-                                className="mx-auto h-48 w-auto rounded-lg object-contain"
+          {reviewType && (
+            <>
+              {/* Basic Config */}
+              <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
+                <CardHeader className="pb-4">
+                  <h2 className="text-xl font-semibold flex items-center gap-3">
+                    <div className="w-2 h-2 bg-primary rounded-full"></div>
+                    Configuração Básica
+                  </h2>
+                  <p className="text-muted-foreground text-sm">Defina marca e tema para contextualizar a IA</p>
+                </CardHeader>
+                <CardContent className="p-6 pt-0">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div id="review-brand-field" className="space-y-3">
+                      <Label htmlFor="brand" className="text-sm font-semibold text-foreground">
+                        Marca <span className="text-destructive">*</span>
+                      </Label>
+                      {isLoadingData ? (
+                        <Skeleton className="h-11 w-full rounded-xl" />
+                      ) : (
+                        <NativeSelect
+                          value={brand}
+                          onValueChange={handleBrandChange}
+                          options={brands.map((b) => ({ value: b.id, label: b.name }))}
+                          placeholder="Selecione a marca"
+                          triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50"
+                        />
+                      )}
+                    </div>
+                    <div id="review-theme-field" className="space-y-3">
+                      <Label htmlFor="theme" className="text-sm font-semibold text-foreground">
+                        Tema Estratégico (Opcional)
+                      </Label>
+                      {isLoadingData ? (
+                        <Skeleton className="h-11 w-full rounded-xl" />
+                      ) : (
+                        <NativeSelect
+                          value={theme}
+                          onValueChange={setTheme}
+                          options={filteredThemes.map((t) => ({ value: t.id, label: t.title }))}
+                          placeholder={!brand ? "Primeiro, escolha a marca" : "Selecione o tema"}
+                          disabled={!brand || filteredThemes.length === 0}
+                          triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50 disabled:opacity-50"
+                        />
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Content Review */}
+              <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
+                <CardHeader className="pb-4">
+                  <h2 className="text-xl font-semibold flex items-center gap-3">
+                    <div className="w-2 h-2 bg-secondary rounded-full"></div>
+                    {reviewType === "image" && "Análise da Imagem"}
+                    {reviewType === "caption" && "Revisão da Legenda"}
+                    {reviewType === "text-for-image" && "Revisão de Texto para Imagem"}
+                  </h2>
+                  <p className="text-muted-foreground text-sm">
+                    {reviewType === "image" && "Envie a imagem e descreva o que precisa melhorar"}
+                    {reviewType === "caption" && "Cole a legenda e descreva como quer melhorá-la"}
+                    {reviewType === "text-for-image" && "Revise o texto que será inserido na imagem do post"}
+                  </p>
+                </CardHeader>
+                <CardContent className="p-6 pt-0">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {reviewType === "image" && (
+                      <>
+                        <div id="review-content-input" className="space-y-3">
+                          <Label htmlFor="file-upload" className="text-sm font-semibold text-foreground">
+                            Sua Imagem *
+                          </Label>
+                          <div className="relative mt-2 flex justify-center rounded-xl border-2 border-dashed border-border/50 p-8 h-64 items-center">
+                            <div className="text-center w-full">
+                              {previewUrl ? (
+                                <img
+                                  src={previewUrl}
+                                  alt="Pré-visualização"
+                                  className="mx-auto h-48 w-auto rounded-lg object-contain"
+                                />
+                              ) : (
+                                <>
+                                  <ImageIcon className="mx-auto h-16 w-16 text-muted-foreground/50" />
+                                  <p className="mt-4 text-base text-muted-foreground">
+                                    Arraste e solte ou clique para enviar
+                                  </p>
+                                </>
+                              )}
+                              <input
+                                id="file-upload"
+                                type="file"
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                accept="image/png, image/jpeg"
+                                onChange={handleImageChange}
                               />
-                            ) : (
-                              <>
-                                <ImageIcon className="mx-auto h-16 w-16 text-muted-foreground/50" />
-                                <p className="mt-4 text-base text-muted-foreground">
-                                  Arraste e solte ou clique para enviar
-                                </p>
-                              </>
-                            )}
-                            <input
-                              id="file-upload"
-                              type="file"
-                              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                              accept="image/png, image/jpeg"
-                              onChange={handleImageChange}
-                            />
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      <div id="review-adjustments-prompt" className="space-y-3">
-                        <Label htmlFor="adjustmentsPrompt" className="text-sm font-semibold text-foreground">
-                          O que você gostaria de ajustar? *
-                        </Label>
-                        <Textarea
-                          id="adjustmentsPrompt"
-                          placeholder="Descreva o objetivo e o que você espera da imagem. Ex: 'Quero que a imagem transmita mais energia e seja mais vibrante'"
-                          value={adjustmentsPrompt}
-                          onChange={(e) => setAdjustmentsPrompt(e.target.value)}
-                          className="h-64 rounded-xl border-2 border-border/50 bg-background/50 resize-none"
-                        />
-                      </div>
-                    </>
-                  )}
+                        <div id="review-adjustments-prompt" className="space-y-3">
+                          <Label htmlFor="adjustmentsPrompt" className="text-sm font-semibold text-foreground">
+                            O que você gostaria de ajustar? *
+                          </Label>
+                          <Textarea
+                            id="adjustmentsPrompt"
+                            placeholder="Descreva o objetivo e o que você espera da imagem. Ex: 'Quero que a imagem transmita mais energia e seja mais vibrante'"
+                            value={adjustmentsPrompt}
+                            onChange={(e) => setAdjustmentsPrompt(e.target.value)}
+                            className="h-64 rounded-xl border-2 border-border/50 bg-background/50 resize-none"
+                          />
+                        </div>
+                      </>
+                    )}
 
-                  {reviewType === "caption" && (
-                    <>
-                      <div id="review-content-input" className="space-y-3">
-                        <Label htmlFor="captionText" className="text-sm font-semibold text-foreground">
-                          Sua Legenda *
-                          <span className="text-xs font-normal text-muted-foreground ml-2">
-                            ({captionText.length}/8000)
-                          </span>
-                        </Label>
-                        <Textarea
-                          id="captionText"
-                          placeholder="Cole aqui a legenda que você quer melhorar..."
-                          value={captionText}
-                          onChange={(e) => setCaptionText(e.target.value)}
-                          maxLength={8000}
-                          className="h-64 rounded-xl border-2 border-border/50 bg-background/50 resize-none"
-                        />
-                      </div>
-                      <div id="review-adjustments-prompt" className="space-y-3">
-                        <Label htmlFor="adjustmentsPrompt" className="text-sm font-semibold text-foreground">
-                          O que você quer melhorar? *
-                          <span className="text-xs font-normal text-muted-foreground ml-2">
-                            ({adjustmentsPrompt.length}/5000)
-                          </span>
-                        </Label>
-                        <Textarea
-                          id="adjustmentsPrompt"
-                          placeholder="Descreva como quer melhorar a legenda. Ex: 'Tornar mais engajadora e adicionar call-to-action'"
-                          value={adjustmentsPrompt}
-                          onChange={(e) => setAdjustmentsPrompt(e.target.value)}
-                          maxLength={5000}
-                          className="h-64 rounded-xl border-2 border-border/50 bg-background/50 resize-none"
-                        />
-                      </div>
-                    </>
-                  )}
+                    {reviewType === "caption" && (
+                      <>
+                        <div id="review-content-input" className="space-y-3">
+                          <Label htmlFor="captionText" className="text-sm font-semibold text-foreground">
+                            Sua Legenda *
+                            <span className="text-xs font-normal text-muted-foreground ml-2">
+                              ({captionText.length}/8000)
+                            </span>
+                          </Label>
+                          <Textarea
+                            id="captionText"
+                            placeholder="Cole aqui a legenda que você quer melhorar..."
+                            value={captionText}
+                            onChange={(e) => setCaptionText(e.target.value)}
+                            maxLength={8000}
+                            className="h-64 rounded-xl border-2 border-border/50 bg-background/50 resize-none"
+                          />
+                        </div>
+                        <div id="review-adjustments-prompt" className="space-y-3">
+                          <Label htmlFor="adjustmentsPrompt" className="text-sm font-semibold text-foreground">
+                            O que você quer melhorar? *
+                            <span className="text-xs font-normal text-muted-foreground ml-2">
+                              ({adjustmentsPrompt.length}/5000)
+                            </span>
+                          </Label>
+                          <Textarea
+                            id="adjustmentsPrompt"
+                            placeholder="Descreva como quer melhorar a legenda. Ex: 'Tornar mais engajadora e adicionar call-to-action'"
+                            value={adjustmentsPrompt}
+                            onChange={(e) => setAdjustmentsPrompt(e.target.value)}
+                            maxLength={5000}
+                            className="h-64 rounded-xl border-2 border-border/50 bg-background/50 resize-none"
+                          />
+                        </div>
+                      </>
+                    )}
 
-                  {reviewType === "text-for-image" && (
-                    <>
-                      <div id="review-content-input" className="space-y-3">
-                        <Label htmlFor="textForImage" className="text-sm font-semibold text-foreground">
-                          Texto que Irá na Imagem *
-                          <span className="text-xs font-normal text-muted-foreground ml-2">
-                            ({textForImage.length}/8000)
-                          </span>
-                        </Label>
-                        <Textarea
-                          id="textForImage"
-                          placeholder="Cole aqui o texto que será inserido na imagem do post (frase, citação, mensagem principal, etc.)..."
-                          value={textForImage}
-                          onChange={(e) => setTextForImage(e.target.value)}
-                          maxLength={8000}
-                          className="h-64 rounded-xl border-2 border-border/50 bg-background/50 resize-none"
-                        />
-                      </div>
-                      <div id="review-adjustments-prompt" className="space-y-3">
-                        <Label htmlFor="adjustmentsPrompt" className="text-sm font-semibold text-foreground">
-                          Ajustes e Contexto da Imagem *
-                          <span className="text-xs font-normal text-muted-foreground ml-2">
-                            ({adjustmentsPrompt.length}/5000)
-                          </span>
-                        </Label>
-                        <Textarea
-                          id="adjustmentsPrompt"
-                          placeholder="Descreva como quer melhorar o texto e o contexto da imagem onde ele será usado. Ex: 'Tornar o texto mais curto e impactante para Instagram, será usado em post motivacional com fundo azul'"
-                          value={adjustmentsPrompt}
-                          onChange={(e) => setAdjustmentsPrompt(e.target.value)}
-                          maxLength={5000}
-                          className="h-64 rounded-xl border-2 border-border/50 bg-background/50 resize-none"
-                        />
-                      </div>
-                    </>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+                    {reviewType === "text-for-image" && (
+                      <>
+                        <div id="review-content-input" className="space-y-3">
+                          <Label htmlFor="textForImage" className="text-sm font-semibold text-foreground">
+                            Texto que Irá na Imagem *
+                            <span className="text-xs font-normal text-muted-foreground ml-2">
+                              ({textForImage.length}/8000)
+                            </span>
+                          </Label>
+                          <Textarea
+                            id="textForImage"
+                            placeholder="Cole aqui o texto que será inserido na imagem do post (frase, citação, mensagem principal, etc.)..."
+                            value={textForImage}
+                            onChange={(e) => setTextForImage(e.target.value)}
+                            maxLength={8000}
+                            className="h-64 rounded-xl border-2 border-border/50 bg-background/50 resize-none"
+                          />
+                        </div>
+                        <div id="review-adjustments-prompt" className="space-y-3">
+                          <Label htmlFor="adjustmentsPrompt" className="text-sm font-semibold text-foreground">
+                            Ajustes e Contexto da Imagem *
+                            <span className="text-xs font-normal text-muted-foreground ml-2">
+                              ({adjustmentsPrompt.length}/5000)
+                            </span>
+                          </Label>
+                          <Textarea
+                            id="adjustmentsPrompt"
+                            placeholder="Descreva como quer melhorar o texto e o contexto da imagem onde ele será usado. Ex: 'Tornar o texto mais curto e impactante para Instagram, será usado em post motivacional com fundo azul'"
+                            value={adjustmentsPrompt}
+                            onChange={(e) => setAdjustmentsPrompt(e.target.value)}
+                            maxLength={5000}
+                            className="h-64 rounded-xl border-2 border-border/50 bg-background/50 resize-none"
+                          />
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
 
-            <div className="mt-8">
-              <Card className="bg-gradient-to-r from-primary/5 via-secondary/5 to-accent/5 border border-border/20 rounded-2xl shadow-lg">
+              {/* Actions */}
+              <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
                 <CardContent className="p-6">
                   <div className="flex flex-col items-center gap-4">
                     <div className="flex gap-4 w-full max-w-lg">
                       <Button
                         onClick={handleReset}
                         variant="outline"
-                        className="flex-1 h-14 rounded-2xl text-lg font-bold border-2 hover:bg-accent/20 hover:text-accent hover:border-accent"
+                        className="flex-1 h-14 rounded-2xl text-lg font-bold border-2 hover:bg-accent/20 hover:text-accent-foreground hover:border-accent"
                       >
                         Voltar
                       </Button>
@@ -675,10 +662,10 @@ const ReviewContent = () => {
                   </div>
                 </CardContent>
               </Card>
-            </div>
-          </>
-        )}
-      </div>
+            </>
+          )}
+        </div>
+      </main>
     </div>
   );
 };
