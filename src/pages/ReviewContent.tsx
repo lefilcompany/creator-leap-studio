@@ -296,7 +296,7 @@ const ReviewContent = () => {
       )}
 
       {/* Banner */}
-      <div className="relative h-48 md:h-64 lg:h-72 overflow-hidden">
+      <div className="relative h-48 md:h-64 lg:h-72 xl:h-80 2xl:h-[22rem] overflow-hidden">
         <PageBreadcrumb
           items={[{ label: "Revisar Conteúdo" }]}
           variant="overlay"
@@ -304,7 +304,7 @@ const ReviewContent = () => {
         <img
           src={reviewBanner}
           alt="Revisar Conteúdo"
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover object-center"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
       </div>
