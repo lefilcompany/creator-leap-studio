@@ -1,60 +1,78 @@
 
-# Redesign da Tela "Criar Conteudo" com Identidade Visual do Sistema
+
+# Melhoria da Tela de Criacao Rapida (/quick-content)
 
 ## Resumo
-Reestruturar a pagina `ContentCreationSelector` para seguir o mesmo padrao visual das paginas de Marcas, Temas e Personas: banner ilustrativo no topo com breadcrumb overlay, card de cabecalho sobreposto ao banner, e cards de selecao com o estilo visual limpo (border-0, shadow-lg) ja estabelecido no sistema.
+Reestruturar a pagina QuickContent para (1) carregar dados instantaneamente com cache React Query, (2) aplicar a identidade visual padrao com banner + header card sobreposto, (3) usar Skeletons em vez de spinner bloqueante, e (4) ampliar o layout para ocupar melhor telas grandes.
 
-## O que muda
+## Mudancas
 
-### 1. Novo banner ilustrativo
-- Criar uma imagem de banner dedicada para a pagina de criacao de conteudo (sera necessario adicionar `create-banner.jpg` aos assets ou reutilizar o `dashboard-banner.jpg` que ja tem o tema de criacao com IA e bonecos cartoon)
-- Como a pagina nao possui um asset proprio e o `dashboard-banner.jpg` ja traz a identidade visual correta (bonecos cartoon, tema de criacao, paleta pastel), sera reutilizado como banner desta pagina
-- Banner com `object-cover`, gradiente de fade para `background`, e breadcrumb overlay no canto superior esquerdo
+### 1. Carregamento rapido com React Query
+- Substituir o carregamento manual (`useState` + `useEffect` + `loadData`) por queries React Query com `staleTime: 5min`
+- Marcas, Temas e Personas serao cacheados e compartilhados entre paginas (mesmas queryKeys ja usadas em Brands, Themes, Personas)
+- Resultado: segunda visita a pagina carrega instantaneamente
 
-### 2. Layout alinhado ao padrao (Banner + Header Card sobreposto)
-- Container principal com margens negativas (`-m-4 sm:-m-6 lg:-m-8`) como Brands/Themes/Personas
-- Banner no topo (h-48 md:h-56) com a imagem ilustrativa
-- Card de cabecalho sobreposto ao banner (`-mt-12`) contendo:
-  - Icone em container com fundo colorido (como Tag em Brands, Palette em Themes)
-  - Titulo "Criar Conteudo" e descricao
-  - Card de creditos do usuario (mantido do layout atual)
+### 2. Layout com identidade visual (Banner + Header Card)
+- Adicionar banner ilustrativo no topo remetendo a criacao rapida de conteudo com IA (gerar imagem dedicada ou reutilizar `create-banner.jpg` ja existente)
+- Breadcrumb overlay sobre o banner
+- Header card sobreposto ao banner (`-mt-12`) com icone, titulo, descricao e card de creditos
+- Container principal com margens negativas (`-m-4 sm:-m-6 lg:-m-8`) como nas outras paginas
 
-### 3. Cards de selecao com estilo padronizado
-- Container dos cards com `border-0 shadow-lg rounded-2xl` (padrao visual-management-standard)
-- Cards individuais com `border-0 shadow-md` e hover com `shadow-lg` e `border-primary`
-- Manter o grid 2x2 com os 4 tipos de criacao
-- Manter a funcionalidade de auto-navegacao ao clicar
+### 3. Skeleton loading em vez de spinner
+- Substituir o spinner bloqueante (`loadingData ? <Loader2>`) por Skeletons nos campos de formulario
+- Os campos de prompt, estilo visual e imagens de referencia renderizam imediatamente
+- Apenas os selects de Marca, Tema, Persona mostram Skeleton enquanto carregam
+
+### 4. Layout mais amplo para desktop
+- Mudar de `max-w-4xl` para `max-w-7xl` para reduzir o espaco lateral em telas grandes
+- O grid de "Contexto Criativo" (2x2) e campos ocuparao melhor o espaco disponivel
+- Manter responsividade em telas menores
 
 ## Detalhes tecnicos
 
 ### Arquivo a modificar
-- `src/pages/ContentCreationSelector.tsx` - Reestruturar completamente o layout
+- `src/pages/QuickContent.tsx` - Reestruturar layout e substituir carregamento manual por React Query
 
 ### Estrutura do novo layout
 ```text
 div.flex.flex-col.-m-4.sm:-m-6.lg:-m-8
-  |-- div.relative (banner container)
+  |-- div.relative (banner h-48 md:h-56)
   |     |-- PageBreadcrumb variant="overlay"
-  |     |-- img (dashboard-banner.jpg)
+  |     |-- img (create-banner.jpg)
   |     |-- div (gradient overlay)
   |
-  |-- div.relative.px-4.-mt-12 (header card, sobrepondo banner)
-  |     |-- Card (bg-card rounded-2xl shadow-lg)
-  |           |-- Icone + Titulo + Descricao
+  |-- div.relative.px-4.-mt-12 (header card)
+  |     |-- div.bg-card.rounded-2xl.shadow-lg
+  |           |-- Icone Zap + Titulo + Descricao + HelpCircle
   |           |-- Card de creditos
   |
-  |-- main.px-4.pt-4.pb-8 (area de selecao)
-        |-- Card (border-0 shadow-lg rounded-2xl)
-              |-- CardHeader (com titulo "Tipo de Criacao")
-              |-- CardContent (grid 2x2 com os 4 cards)
+  |-- main.px-4.pt-4.pb-8 (formulario)
+        |-- div.max-w-7xl.mx-auto.space-y-4
+              |-- CreationProgressBar
+              |-- Cards de formulario (prompt, contexto, estilo, ref images, advanced)
+              |-- Botao Gerar
 ```
 
-### Cards de tipo de criacao
-- Manter a mesma logica de `RadioGroup` + auto-navegacao
-- Estilizar com `border-0 shadow-md hover:shadow-lg hover:border-primary/50 transition-all`
-- Manter badges de creditos com cores tematicas por tipo
-- Card "Animar Imagem" continua desabilitado com `opacity-60`
+### React Query - Queries com cache
+```text
+useQuery(['quick-content-brands', teamId/userId])  -> staleTime: 5min
+useQuery(['quick-content-themes', teamId/userId])   -> staleTime: 5min
+useQuery(['quick-content-personas', teamId/userId]) -> staleTime: 5min
+```
+
+As queries serao feitas em paralelo (Promise.all implicitamente pelo React Query) e os selects mostrarao Skeleton durante o carregamento.
 
 ### Importacoes adicionais
-- `import dashboardBanner from '@/assets/dashboard-banner.jpg'` (reutilizando banner existente)
-- HelpCircle e Popover para tooltip informativo (como nas outras paginas)
+- `useQuery` de `@tanstack/react-query`
+- `Skeleton` de `@/components/ui/skeleton`
+- `HelpCircle` e `Popover/PopoverContent/PopoverTrigger` (ja importados parcialmente)
+- `createBanner` de `@/assets/create-banner.jpg` (reutilizar banner ja criado)
+
+### Hierarquia dos campos preservada
+A ordem dos campos permanece identica:
+1. Prompt (descricao do que criar)
+2. Contexto Criativo (Marca, Persona, Tema, Plataforma)
+3. Estilo Visual
+4. Imagens de Referencia
+5. Opcoes Avancadas (Accordion)
+6. Botao Gerar
