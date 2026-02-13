@@ -286,7 +286,7 @@ const PlanContent = () => {
       </div>
 
       {/* Header Card */}
-      <div className="relative px-4 sm:px-6 lg:px-8 -mt-12 flex-shrink-0 z-10">
+      <div className="relative px-4 sm:px-6 lg:px-8 -mt-12 flex-shrink-0 z-10 max-w-7xl mx-auto w-full">
         <div
           id="plan-header"
           className="bg-card rounded-2xl shadow-lg p-4 lg:p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
