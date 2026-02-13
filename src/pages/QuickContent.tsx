@@ -328,7 +328,7 @@ export default function QuickContent() {
       }]} startDelay={500} />
 
       {/* Banner */}
-      <div className="relative h-48 md:h-56 overflow-hidden">
+      <div className="relative h-48 md:h-64 lg:h-72 overflow-hidden">
         <PageBreadcrumb
           items={[{ label: "Criar Conteúdo", href: "/create" }, { label: "Criação Rápida" }]}
           variant="overlay"
@@ -336,7 +336,7 @@ export default function QuickContent() {
         <img
           src={createBanner}
           alt="Criação Rápida"
-          className="w-full h-full object-cover object-bottom"
+          className="w-full h-full object-cover object-center"
           loading="eager"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
