@@ -42,7 +42,19 @@ export function useDraftForm<T extends Record<string, any>>(
     }, debounceMs);
   }, [draftKey, debounceMs]);
 
-  // Recuperar rascunho do localStorage
+  // Verificar se o formulário tem dados (não está vazio)
+  const hasFormData = useCallback((data: T): boolean => {
+    return Object.values(data).some(value => {
+      if (Array.isArray(value)) return value.length > 0;
+      if (typeof value === 'string') return value.trim().length > 0;
+      if (typeof value === 'object' && value !== null) {
+        return Object.keys(value).length > 0;
+      }
+      return value !== null && value !== undefined && value !== '';
+    });
+  }, []);
+
+  // Recuperar rascunho do localStorage (retorna null se dados vazios)
   const loadDraft = useCallback((): T | null => {
     try {
       const stored = localStorage.getItem(draftKey);
@@ -57,12 +69,16 @@ export function useDraftForm<T extends Record<string, any>>(
         return null;
       }
 
+      if (!hasFormData(draftData.data)) {
+        return null;
+      }
+
       return draftData.data;
     } catch (error) {
       console.error('Error loading draft:', error);
       return null;
     }
-  }, [draftKey, expirationHours]);
+  }, [draftKey, expirationHours, hasFormData]);
 
   // Limpar rascunho do localStorage
   const clearDraft = useCallback(() => {
@@ -91,18 +107,6 @@ export function useDraftForm<T extends Record<string, any>>(
       return false;
     }
   }, [draftKey, expirationHours]);
-
-  // Verificar se o formulário tem dados (não está vazio)
-  const hasFormData = useCallback((data: T): boolean => {
-    return Object.values(data).some(value => {
-      if (Array.isArray(value)) return value.length > 0;
-      if (typeof value === 'string') return value.trim().length > 0;
-      if (typeof value === 'object' && value !== null) {
-        return Object.keys(value).length > 0;
-      }
-      return value !== null && value !== undefined && value !== '';
-    });
-  }, []);
 
   // Salvar rascunho automaticamente quando formData mudar (exceto no mount inicial)
   useEffect(() => {
