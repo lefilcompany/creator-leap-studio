@@ -344,59 +344,61 @@ export default function QuickContent() {
 
       {/* Header Card */}
       <div className="relative px-4 sm:px-6 lg:px-8 -mt-12 z-10">
-        <div className="bg-card rounded-2xl shadow-lg p-4 md:p-6">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4">
-            <div className="flex items-center gap-3 flex-1 min-w-0">
-              <div className="flex-shrink-0 bg-primary/10 text-primary rounded-xl p-2.5 md:p-3">
-                <Zap className="h-5 w-5 md:h-6 md:w-6 lg:h-8 lg:w-8" />
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-foreground">
-                    Criação Rápida
-                  </h1>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <button className="text-muted-foreground hover:text-foreground transition-colors">
-                        <HelpCircle className="h-4 w-4" />
-                      </button>
-                    </PopoverTrigger>
-                    <PopoverContent className="text-sm w-72" side="bottom">
-                      <p className="font-medium mb-1">Criação Rápida</p>
-                      <p className="text-muted-foreground text-xs">
-                        Gere imagens rapidamente com IA. Descreva o que deseja criar, selecione opcionalmente uma marca, persona e tema estratégico para personalizar o resultado.
-                      </p>
-                    </PopoverContent>
-                  </Popover>
+        <div className="max-w-7xl mx-auto">
+          <div className="bg-card rounded-2xl shadow-lg p-4 md:p-6">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="flex-shrink-0 bg-primary/10 text-primary rounded-xl p-2.5 md:p-3">
+                  <Zap className="h-5 w-5 md:h-6 md:w-6 lg:h-8 lg:w-8" />
                 </div>
-                <p className="text-muted-foreground text-xs md:text-sm">
-                  Gere imagens rapidamente com IA
-                </p>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-foreground">
+                      Criação Rápida
+                    </h1>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button className="text-muted-foreground hover:text-foreground transition-colors">
+                          <HelpCircle className="h-4 w-4" />
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="text-sm w-72" side="bottom">
+                        <p className="font-medium mb-1">Criação Rápida</p>
+                        <p className="text-muted-foreground text-xs">
+                          Gere imagens rapidamente com IA. Descreva o que deseja criar, selecione opcionalmente uma marca, persona e tema estratégico para personalizar o resultado.
+                        </p>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <p className="text-muted-foreground text-xs md:text-sm">
+                    Gere imagens rapidamente com IA
+                  </p>
+                </div>
               </div>
+              <Card className="bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/20 flex-shrink-0">
+                <CardContent className="p-2.5 md:p-3">
+                  <div className="flex items-center justify-center gap-3">
+                    <div className="relative flex-shrink-0">
+                      <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary rounded-full blur-sm opacity-40"></div>
+                      <div className="relative bg-gradient-to-r from-primary to-secondary text-white rounded-full p-2">
+                        <Zap className="h-4 w-4" />
+                      </div>
+                    </div>
+                    <div className="flex flex-col">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent whitespace-nowrap">
+                          {user?.credits || 0}
+                        </span>
+                        <p className="text-sm text-muted-foreground font-medium leading-tight whitespace-nowrap">
+                          Créditos
+                        </p>
+                      </div>
+                      <p className="text-xs text-muted-foreground">Disponíveis</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
-            <Card className="bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/20 flex-shrink-0">
-              <CardContent className="p-2.5 md:p-3">
-                <div className="flex items-center justify-center gap-3">
-                  <div className="relative flex-shrink-0">
-                    <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary rounded-full blur-sm opacity-40"></div>
-                    <div className="relative bg-gradient-to-r from-primary to-secondary text-white rounded-full p-2">
-                      <Zap className="h-4 w-4" />
-                    </div>
-                  </div>
-                  <div className="flex flex-col">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent whitespace-nowrap">
-                        {user?.credits || 0}
-                      </span>
-                      <p className="text-sm text-muted-foreground font-medium leading-tight whitespace-nowrap">
-                        Créditos
-                      </p>
-                    </div>
-                    <p className="text-xs text-muted-foreground">Disponíveis</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </div>
       </div>
