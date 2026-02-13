@@ -59,7 +59,7 @@ export default function ContentCreationSelector() {
       <OnboardingTour tourType="create_content" steps={contentCreationSelectorSteps} />
 
       {/* Banner */}
-      <div className="relative w-full h-48 md:h-56 flex-shrink-0 overflow-hidden">
+      <div className="relative w-full h-56 md:h-64 lg:h-72 flex-shrink-0 overflow-hidden">
         <PageBreadcrumb items={[{ label: "Criar Conteúdo" }]} variant="overlay" />
         <img
           src={createBanner}
