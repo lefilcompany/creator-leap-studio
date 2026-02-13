@@ -43,7 +43,7 @@ const PlanContent = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [brands, setBrands] = useState<any[]>([]);
   const [themes, setThemes] = useState<any[]>([]);
-  const [creditsRemaining, setCreditsRemaining] = useState<number>(0);
+  const creditsRemaining = user?.credits ?? 0;
   const [isLoadingData, setIsLoadingData] = useState(true);
 
   // Persistência de formulário
@@ -72,27 +72,22 @@ const PlanContent = () => {
         const [
           { data: brandsData, error: brandsError },
           { data: themesData, error: themesError },
-          { data: teamData, error: teamError },
         ] = await Promise.all([
           supabase.from("brands").select("id, name").eq("team_id", user.teamId),
           supabase.from("strategic_themes").select("id, title, brand_id").eq("team_id", user.teamId),
-          supabase.from("teams").select("credits").eq("id", user.teamId).maybeSingle(),
         ]);
 
         if (brandsError) throw brandsError;
         if (themesError) throw themesError;
-        if (teamError) throw teamError;
 
         setBrands(brandsData || []);
         setThemes(themesData || []);
-        setCreditsRemaining((teamData as any)?.credits || 0);
         setIsLoadingData(false);
       } catch (error) {
         console.error("Error loading data:", error);
         toast.error("Erro ao carregar dados");
         setBrands([]);
         setThemes([]);
-        setCreditsRemaining(0);
         setIsLoadingData(false);
       }
     };
@@ -226,8 +221,6 @@ const PlanContent = () => {
           actionId: data.actionId,
         },
       });
-
-      setCreditsRemaining(data.creditsRemaining);
       toast.success("Planejamento gerado com sucesso!");
     } catch (err: any) {
       console.error("Error generating plan:", err);
