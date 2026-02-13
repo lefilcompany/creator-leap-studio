@@ -475,7 +475,7 @@ const PlanContent = () => {
           {/* Card: Detalhes do Planejamento */}
           <Card className="bg-card border-0 shadow-md rounded-2xl overflow-hidden">
             <CardContent className="p-5 sm:p-7">
-              <div className="space-y-5 sm:space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-6">
                 <div id="plan-objective-field" className="space-y-1.5">
                   <Label htmlFor="objective" className="text-sm font-bold text-foreground">
                     Objetivo dos Posts <span className="text-destructive">*</span>
