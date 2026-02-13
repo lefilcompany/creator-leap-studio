@@ -114,7 +114,7 @@ const ReviewContent = () => {
       if (persisted.adjustmentsPrompt) setAdjustmentsPrompt(persisted.adjustmentsPrompt);
       if (persisted.captionText) setCaptionText(persisted.captionText);
       if (persisted.textForImage) setTextForImage(persisted.textForImage);
-      toast.info("Rascunho recuperado");
+      
     }
   }, []);
 

@@ -245,7 +245,7 @@ export default function CreateImage() {
     const persisted = loadPersistedData();
     if (persisted) {
       setFormData(prev => ({ ...prev, ...persisted }));
-      toast.info('Rascunho recuperado');
+      
     }
   }, []);
 

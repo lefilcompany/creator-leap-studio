@@ -134,9 +134,6 @@ export default function QuickContent() {
     const persisted = loadPersistedData();
     if (persisted) {
       setFormData(prev => ({ ...prev, ...persisted }));
-      if (hasRelevantData(persisted)) {
-        toast.info('Rascunho recuperado', { description: 'Continuando de onde você parou' });
-      }
     }
   }, []);
 
