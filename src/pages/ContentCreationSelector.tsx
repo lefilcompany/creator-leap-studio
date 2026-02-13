@@ -151,7 +151,7 @@ export default function ContentCreationSelector() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-full">
             {/* Criação Rápida */}
             <label htmlFor="quick" className="cursor-pointer h-full" onClick={() => setCreationType("quick")}>
-              <Card className="border-0 shadow-lg hover:shadow-xl hover:border-primary/50 transition-all duration-300 h-full active:scale-[0.98] touch-manipulation rounded-2xl">
+              <Card className="border-0 shadow-lg hover:shadow-xl hover:bg-accent/10 hover:border-accent/30 transition-all duration-300 h-full active:scale-[0.98] touch-manipulation rounded-2xl">
                 <CardContent className="p-6 flex flex-col items-center text-center gap-4 h-full justify-between">
                   <RadioGroupItem value="quick" id="quick" className="sr-only" />
                   <div className="flex flex-col items-center gap-4 flex-1 justify-center">
@@ -177,7 +177,7 @@ export default function ContentCreationSelector() {
 
             {/* Criação Personalizada */}
             <label htmlFor="image" className="cursor-pointer h-full" onClick={() => setCreationType("image")}>
-              <Card className="border-0 shadow-lg hover:shadow-xl hover:border-primary/50 transition-all duration-300 h-full active:scale-[0.98] touch-manipulation rounded-2xl">
+              <Card className="border-0 shadow-lg hover:shadow-xl hover:bg-primary/10 hover:border-primary/30 transition-all duration-300 h-full active:scale-[0.98] touch-manipulation rounded-2xl">
                 <CardContent className="p-6 flex flex-col items-center text-center gap-4 h-full justify-between">
                   <RadioGroupItem value="image" id="image" className="sr-only" />
                   <div className="flex flex-col items-center gap-4 flex-1 justify-center">
@@ -203,7 +203,7 @@ export default function ContentCreationSelector() {
 
             {/* Criação de Vídeo */}
             <label htmlFor="video" className="cursor-pointer h-full" onClick={() => setCreationType("video")}>
-              <Card className="border-0 shadow-lg hover:shadow-xl hover:border-primary/50 transition-all duration-300 h-full active:scale-[0.98] touch-manipulation rounded-2xl">
+              <Card className="border-0 shadow-lg hover:shadow-xl hover:bg-secondary/10 hover:border-secondary/30 transition-all duration-300 h-full active:scale-[0.98] touch-manipulation rounded-2xl">
                 <CardContent className="p-6 flex flex-col items-center text-center gap-4 h-full justify-between">
                   <RadioGroupItem value="video" id="video" className="sr-only" />
                   <div className="flex flex-col items-center gap-4 flex-1 justify-center">
