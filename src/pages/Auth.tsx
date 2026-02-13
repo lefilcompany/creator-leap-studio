@@ -770,7 +770,7 @@ const Auth = () => {
           <motion.img
             src={decorativeElement}
             alt=""
-            className="absolute top-[8%] right-[6%] w-44 h-44 sm:w-60 sm:h-60 object-contain opacity-[0.06] dark:opacity-[0.03]"
+            className="absolute top-[8%] right-[6%] w-44 h-44 sm:w-60 sm:h-60 object-contain opacity-[0.09] dark:opacity-[0.04]"
             style={{ filter: "blur(4px)" }}
             animate={{
               y: [0, -25, 25, 0],
@@ -783,7 +783,7 @@ const Auth = () => {
           <motion.img
             src={decorativeElement}
             alt=""
-            className="absolute bottom-[8%] left-[5%] w-40 h-40 sm:w-52 sm:h-52 object-contain opacity-[0.06] dark:opacity-[0.03]"
+            className="absolute bottom-[8%] left-[5%] w-40 h-40 sm:w-52 sm:h-52 object-contain opacity-[0.09] dark:opacity-[0.04]"
             style={{ filter: "blur(4px)" }}
             animate={{
               x: [0, 22, -22, 0],
