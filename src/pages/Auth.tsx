@@ -696,84 +696,86 @@ const Auth = () => {
 
   return (
     <>
-      <div className="min-h-screen flex flex-col items-center justify-center relative overflow-y-auto bg-gradient-to-br from-rose-50/40 via-background to-violet-50/30 dark:from-background dark:via-background dark:to-purple-950/10 p-4 sm:p-6">
-        {/* Elementos decorativos animados */}
+      <div className="min-h-screen flex flex-col items-center justify-center relative overflow-y-auto p-4 sm:p-6"
+        style={{
+          background: 'linear-gradient(135deg, hsl(330 60% 96%) 0%, hsl(300 40% 97%) 25%, hsl(0 0% 100%) 50%, hsl(270 50% 96%) 75%, hsl(200 60% 96%) 100%)',
+        }}
+      >
+        {/* Dark mode override */}
+        <div className="absolute inset-0 bg-background dark:block hidden" />
+        
+        {/* Elementos decorativos — esferas de marca */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {/* Esfera rosa suave */}
+          {/* Rosa/Magenta — cor primária da logo */}
           <motion.div
-            className="absolute top-20 -left-20 w-80 h-80 sm:w-96 sm:h-96 rounded-full"
+            className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full"
             style={{
-              background:
-                "radial-gradient(circle, hsl(330 80% 70% / 0.15) 0%, hsl(330 100% 50% / 0.05) 70%, transparent 100%)",
-              filter: "blur(60px)",
+              background: "radial-gradient(circle, hsl(var(--primary) / 0.12) 0%, hsl(var(--primary) / 0.04) 50%, transparent 70%)",
+              filter: "blur(80px)",
             }}
             animate={{
-              x: [0, 80, 0],
-              y: [0, -40, 0],
-              scale: [1, 1.15, 1],
-            }}
-            transition={{
-              duration: 22,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          />
-
-          {/* Esfera lilás/azul suave */}
-          <motion.div
-            className="absolute bottom-20 -right-20 w-[400px] h-[400px] sm:w-[500px] sm:h-[500px] rounded-full"
-            style={{
-              background:
-                "radial-gradient(circle, hsl(270 60% 70% / 0.12) 0%, hsl(220 80% 60% / 0.06) 70%, transparent 100%)",
-              filter: "blur(70px)",
-            }}
-            animate={{
-              x: [0, -60, 0],
-              y: [0, 50, 0],
+              x: [0, 60, 0],
+              y: [0, -30, 0],
               scale: [1, 1.1, 1],
             }}
-            transition={{
-              duration: 26,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
+            transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
           />
 
-          {/* 2 logos flutuantes sutis */}
+          {/* Violeta — cor secundária da logo */}
+          <motion.div
+            className="absolute top-1/2 -right-40 w-[450px] h-[450px] rounded-full"
+            style={{
+              background: "radial-gradient(circle, hsl(var(--secondary) / 0.10) 0%, hsl(var(--secondary) / 0.03) 50%, transparent 70%)",
+              filter: "blur(80px)",
+            }}
+            animate={{
+              x: [0, -50, 0],
+              y: [0, 40, 0],
+              scale: [1, 1.08, 1],
+            }}
+            transition={{ duration: 28, repeat: Infinity, ease: "easeInOut" }}
+          />
+
+          {/* Cyan/Azul — cor accent da logo */}
+          <motion.div
+            className="absolute -bottom-24 left-1/4 w-[400px] h-[400px] rounded-full"
+            style={{
+              background: "radial-gradient(circle, hsl(var(--accent) / 0.08) 0%, hsl(var(--accent) / 0.02) 50%, transparent 70%)",
+              filter: "blur(80px)",
+            }}
+            animate={{
+              x: [0, 40, -20, 0],
+              y: [0, -30, 0],
+              scale: [1, 1.06, 1],
+            }}
+            transition={{ duration: 30, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+          />
+
+          {/* Logos decorativos sutis */}
           <motion.img
             src={decorativeElement}
             alt=""
-            className="absolute top-[8%] right-[6%] w-48 h-48 sm:w-64 sm:h-64 object-contain opacity-[0.04]"
-            style={{ filter: "blur(8px)" }}
+            className="absolute top-[10%] right-[8%] w-40 h-40 sm:w-56 sm:h-56 object-contain opacity-[0.035] dark:opacity-[0.02]"
+            style={{ filter: "blur(6px)" }}
             animate={{
-              y: [0, -30, 30, 0],
-              rotate: [0, 10, -10, 0],
-              scale: [1, 1.06, 0.94, 1],
+              y: [0, -25, 25, 0],
+              rotate: [0, 8, -8, 0],
+              scale: [1, 1.04, 0.96, 1],
             }}
-            transition={{
-              duration: 24,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
+            transition={{ duration: 26, repeat: Infinity, ease: "easeInOut" }}
           />
 
           <motion.img
             src={decorativeElement}
             alt=""
-            className="absolute bottom-[12%] left-[5%] w-44 h-44 sm:w-56 sm:h-56 object-contain opacity-[0.04]"
-            style={{ filter: "blur(8px)" }}
+            className="absolute bottom-[10%] left-[6%] w-36 h-36 sm:w-48 sm:h-48 object-contain opacity-[0.035] dark:opacity-[0.02]"
+            style={{ filter: "blur(6px)" }}
             animate={{
-              x: [0, 25, -25, 0],
-              y: [0, -35, 20, 0],
-              rotate: [0, -12, 12, 0],
-              scale: [1, 0.96, 1.08, 1],
+              x: [0, 20, -20, 0],
+              y: [0, -30, 15, 0],
+              rotate: [0, -10, 10, 0],
             }}
-            transition={{
-              duration: 28,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: 2,
-            }}
+            transition={{ duration: 30, repeat: Infinity, ease: "easeInOut", delay: 3 }}
           />
         </div>
 
