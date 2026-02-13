@@ -10,6 +10,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Loader2, Image as ImageIcon, FileText, Type, Sparkles, CheckCircle, Zap } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { CREDIT_COSTS } from "@/lib/creditCosts";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useFormPersistence } from "@/hooks/useFormPersistence";
@@ -356,77 +357,86 @@ const ReviewContent = () => {
         <div className="max-w-7xl mx-auto space-y-4 mt-4">
           {/* Review Type Selection */}
           {!reviewType && (
-            <Card id="review-type-selection" className="border-0 shadow-lg rounded-2xl overflow-hidden">
-              <CardHeader className="pb-4">
-                <h2 className="text-xl font-semibold flex items-center gap-3">
-                  <div className="w-2 h-2 bg-primary rounded-full"></div>
-                  Tipo de Revisão
-                </h2>
-                <p className="text-muted-foreground text-sm">Selecione o que você deseja revisar com IA</p>
-              </CardHeader>
-              <CardContent className="p-6 pt-0">
-                <RadioGroup value={reviewType || ""} onValueChange={(value) => setReviewType(value as ReviewType)}>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <label htmlFor="image" className="cursor-pointer h-full">
-                      <Card className="hover:border-primary transition-all duration-300 hover:shadow-lg h-full">
-                        <CardContent className="p-6 flex flex-col items-center text-center gap-4 h-full justify-between min-h-[240px]">
-                          <RadioGroupItem value="image" id="image" className="sr-only" />
-                          <div className="flex flex-col items-center gap-4 flex-1 justify-center">
-                            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                              <ImageIcon className="h-8 w-8 text-primary" />
-                            </div>
-                            <div>
-                              <h3 className="font-semibold text-lg mb-2">Revisar Imagem</h3>
-                              <p className="text-sm text-muted-foreground">
-                                Envie uma imagem e receba sugestões de melhorias visuais
-                              </p>
-                            </div>
+            <div id="review-type-selection">
+              <RadioGroup value={reviewType || ""} onValueChange={(value) => setReviewType(value as ReviewType)}>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <label htmlFor="image" className="cursor-pointer h-full">
+                    <Card className="border-0 shadow-lg hover:shadow-xl hover:bg-primary/10 hover:border-primary/30 transition-all duration-300 h-full active:scale-[0.98] touch-manipulation rounded-2xl">
+                      <CardContent className="p-6 flex flex-col items-center text-center gap-4 h-full justify-between">
+                        <RadioGroupItem value="image" id="image" className="sr-only" />
+                        <div className="flex flex-col items-center gap-4 flex-1 justify-center">
+                          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                            <ImageIcon className="h-8 w-8 text-primary" />
                           </div>
-                        </CardContent>
-                      </Card>
-                    </label>
+                          <div className="space-y-1.5">
+                            <h3 className="font-semibold text-lg">Revisar Imagem</h3>
+                            <p className="text-sm text-muted-foreground leading-relaxed">
+                              Envie uma imagem e receba sugestões de melhorias visuais
+                            </p>
+                          </div>
+                        </div>
+                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/15 border border-primary/30">
+                          <ImageIcon className="h-4 w-4 text-primary" />
+                          <span className="text-sm font-bold text-primary">
+                            {CREDIT_COSTS.IMAGE_REVIEW} créditos
+                          </span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </label>
 
-                    <label htmlFor="caption" className="cursor-pointer h-full">
-                      <Card className="hover:border-primary transition-all duration-300 hover:shadow-lg h-full">
-                        <CardContent className="p-6 flex flex-col items-center text-center gap-4 h-full justify-between min-h-[240px]">
-                          <RadioGroupItem value="caption" id="caption" className="sr-only" />
-                          <div className="flex flex-col items-center gap-4 flex-1 justify-center">
-                            <div className="w-16 h-16 rounded-full bg-secondary/10 flex items-center justify-center flex-shrink-0">
-                              <FileText className="h-8 w-8 text-secondary" />
-                            </div>
-                            <div>
-                              <h3 className="font-semibold text-lg mb-2">Revisar Legenda</h3>
-                              <p className="text-sm text-muted-foreground">
-                                Melhore legendas existentes com sugestões da IA
-                              </p>
-                            </div>
+                  <label htmlFor="caption" className="cursor-pointer h-full">
+                    <Card className="border-0 shadow-lg hover:shadow-xl hover:bg-secondary/10 hover:border-secondary/30 transition-all duration-300 h-full active:scale-[0.98] touch-manipulation rounded-2xl">
+                      <CardContent className="p-6 flex flex-col items-center text-center gap-4 h-full justify-between">
+                        <RadioGroupItem value="caption" id="caption" className="sr-only" />
+                        <div className="flex flex-col items-center gap-4 flex-1 justify-center">
+                          <div className="w-16 h-16 rounded-full bg-secondary/10 flex items-center justify-center flex-shrink-0">
+                            <FileText className="h-8 w-8 text-secondary" />
                           </div>
-                        </CardContent>
-                      </Card>
-                    </label>
+                          <div className="space-y-1.5">
+                            <h3 className="font-semibold text-lg">Revisar Legenda</h3>
+                            <p className="text-sm text-muted-foreground leading-relaxed">
+                              Melhore legendas existentes com sugestões da IA
+                            </p>
+                          </div>
+                        </div>
+                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/15 border border-secondary/30">
+                          <FileText className="h-4 w-4 text-secondary" />
+                          <span className="text-sm font-bold text-secondary">
+                            {CREDIT_COSTS.CAPTION_REVIEW} créditos
+                          </span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </label>
 
-                    <label htmlFor="text-for-image" className="cursor-pointer h-full">
-                      <Card className="hover:border-primary transition-all duration-300 hover:shadow-lg h-full">
-                        <CardContent className="p-6 flex flex-col items-center text-center gap-4 h-full justify-between min-h-[240px]">
-                          <RadioGroupItem value="text-for-image" id="text-for-image" className="sr-only" />
-                          <div className="flex flex-col items-center gap-4 flex-1 justify-center">
-                            <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0">
-                              <Type className="h-8 w-8 text-accent" />
-                            </div>
-                            <div>
-                              <h3 className="font-semibold text-lg mb-2">Revisar Texto para Imagem</h3>
-                              <p className="text-sm text-muted-foreground">
-                                Otimize textos que serão inseridos em imagens de posts
-                              </p>
-                            </div>
+                  <label htmlFor="text-for-image" className="cursor-pointer h-full">
+                    <Card className="border-0 shadow-lg hover:shadow-xl hover:bg-accent/10 hover:border-accent/30 transition-all duration-300 h-full active:scale-[0.98] touch-manipulation rounded-2xl">
+                      <CardContent className="p-6 flex flex-col items-center text-center gap-4 h-full justify-between">
+                        <RadioGroupItem value="text-for-image" id="text-for-image" className="sr-only" />
+                        <div className="flex flex-col items-center gap-4 flex-1 justify-center">
+                          <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0">
+                            <Type className="h-8 w-8 text-accent" />
                           </div>
-                        </CardContent>
-                      </Card>
-                    </label>
-                  </div>
-                </RadioGroup>
-              </CardContent>
-            </Card>
+                          <div className="space-y-1.5">
+                            <h3 className="font-semibold text-lg">Revisar Texto para Imagem</h3>
+                            <p className="text-sm text-muted-foreground leading-relaxed">
+                              Otimize textos que serão inseridos em imagens de posts
+                            </p>
+                          </div>
+                        </div>
+                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/15 border border-accent/30">
+                          <Type className="h-4 w-4 text-accent" />
+                          <span className="text-sm font-bold text-accent">
+                            {CREDIT_COSTS.TEXT_REVIEW} créditos
+                          </span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </label>
+                </div>
+              </RadioGroup>
+            </div>
           )}
 
           {reviewType && (
