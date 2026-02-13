@@ -1,70 +1,73 @@
 
-# Corrigir Toast "Rascunho recuperado" Aparecendo Sem Dados
 
-## Problema
-O toast "Rascunho recuperado" aparece toda vez que voce entra nas telas de criacao e revisao, mesmo sem ter nenhum rascunho real salvo. Isso acontece porque:
+# Melhorar Navegacao e Layout da Tela de Revisao
 
-1. O hook `useFormPersistence` salva o estado do formulario no sessionStorage automaticamente
-2. Ao carregar a pagina, o formulario vazio e salvo no storage
-3. Na proxima visita, `loadPersistedData()` retorna esse objeto vazio (que passa no `if (persisted)`)
-4. O toast e exibido mesmo sem dados relevantes
+## Problema Atual
 
-Apenas a pagina QuickContent usa a verificacao `hasRelevantData` antes de exibir o toast. Todas as outras paginas exibem o toast incondicional.
+1. **Breadcrumb incorreto**: Quando o usuario seleciona um tipo de revisao (Imagem, Legenda, Texto), o breadcrumb continua mostrando apenas "Revisar Conteudo" sem indicar o tipo selecionado
+2. **Botao "Voltar" mal posicionado**: O botao para voltar a selecao de tipo fica la embaixo, dentro do card de acoes, misturado com o botao "Gerar Revisao" - contra-intuitivo e dificil de encontrar
+3. **Pagina ReviewResult sem breadcrumb**: A pagina de resultado nao possui breadcrumb nem banner, quebrando o padrao visual do sistema
 
 ## Solucao
 
-Mover a validacao de dados relevantes para dentro do proprio hook `useFormPersistence`, tornando-a obrigatoria para todos os consumidores.
+### 1. Breadcrumb dinamico no ReviewContent
 
-### 1. Atualizar `src/hooks/useFormPersistence.ts`
+Quando um tipo de revisao for selecionado, o breadcrumb passa a mostrar a hierarquia completa:
 
-- Modificar `loadPersistedData` para retornar `null` quando os dados forem vazios/padrao (todos os valores sao strings vazias, arrays vazios, ou nulos)
-- Adicionar uma funcao interna que verifica se o objeto tem pelo menos um campo com valor significativo (string nao-vazia, array com itens, etc.)
-
-### 2. Atualizar 5 paginas que usam `useFormPersistence`
-
-Adicionar verificacao com `hasRelevantData` antes de exibir o toast em cada pagina:
-
-- **`src/pages/ReviewContent.tsx`** (linha 117): Adicionar checagem se os dados persistidos tem conteudo real antes do `toast.info`
-- **`src/pages/CreateContent.tsx`** (linha 174): Idem
-- **`src/pages/CreateImage.tsx`** (linha 248): Idem
-- **`src/pages/PlanContent.tsx`** (linha 61): Idem
-- **`src/pages/QuickContent.tsx`**: Ja usa `hasRelevantData` - manter como esta
-
-### 3. Atualizar 3 dialogs que usam `useDraftForm`
-
-Adicionar verificacao com `hasFormData` antes de exibir o toast:
-
-- **`src/components/personas/PersonaDialog.tsx`** (linha 99): Verificar se o draft tem dados reais
-- **`src/components/temas/ThemeDialog.tsx`** (linha 128): Idem
-- **`src/components/marcas/BrandDialog.tsx`**: Verificar se ja tem protecao (provavelmente nao exibe toast)
-
-### Detalhes tecnicos
-
-**Padrao a aplicar em cada pagina** (exemplo ReviewContent):
 ```text
-// ANTES:
-if (persisted) {
-  // restaurar campos...
-  toast.info("Rascunho recuperado");
-}
-
-// DEPOIS:
-if (persisted && hasRelevantData(persisted)) {
-  // restaurar campos...
-  toast.info("Rascunho recuperado");
-}
+Home > Revisar Conteudo > Revisar Imagem
+Home > Revisar Conteudo > Revisar Legenda
+Home > Revisar Conteudo > Revisar Texto para Imagem
 ```
 
-Para as paginas que nao expoe `hasRelevantData` do hook, sera necessario:
-- Desestruturar `hasRelevantData` do retorno de `useFormPersistence` (ja existe no hook)
-- Ou criar uma funcao auxiliar simples que verifica se algum valor do objeto e significativo
+O item "Revisar Conteudo" sera clicavel e ao clicar, reseta o formulario para a selecao de tipo (funciona como o botao "Voltar" atual).
+
+### 2. Remover botao "Voltar" do rodape
+
+Como o breadcrumb ja fornece a navegacao de retorno, o botao "Voltar" sera removido do card de acoes. O botao "Gerar Revisao" ocupara a largura total, ficando mais proeminente e limpo.
+
+### 3. Header Card dinamico
+
+O titulo e icone do header card mudam conforme o tipo selecionado:
+- Imagem: icone ImageIcon com cor primary
+- Legenda: icone FileText com cor secondary
+- Texto: icone Type com cor accent
+
+### 4. Pagina ReviewResult com banner e breadcrumb
+
+Adicionar o mesmo padrao visual (banner + breadcrumb overlay + header card) na pagina de resultado, com breadcrumb:
+
+```text
+Home > Revisar Conteudo > Resultado da Revisao
+```
+
+## Detalhes Tecnicos
+
+### Arquivo: `src/pages/ReviewContent.tsx`
+
+**Breadcrumb dinamico (linha 300-303):**
+- Quando `reviewType` e `null`: items = `[{ label: "Revisar Conteudo" }]`
+- Quando `reviewType` tem valor: items = `[{ label: "Revisar Conteudo", href: "#", onClick: handleReset }, { label: "Revisar Imagem" }]`
+- Como o `PageBreadcrumb` usa `Link` com `href`, sera necessario usar o clique no breadcrumb para chamar `handleReset()` em vez de navegar. Alternativa: usar `href="/review"` com `state: { reset: true }` que ja e suportado pelo componente (linhas 122-128).
+
+**Remover botao "Voltar" (linhas 632-673):**
+- Remover o card de acoes que envolve ambos os botoes
+- Mover o botao "Gerar Revisao" para ficar diretamente abaixo do card de conteudo, sem wrapper extra
+- Remover o botao "Voltar" completamente
+
+### Arquivo: `src/pages/ReviewResult.tsx`
+
+**Adicionar banner e breadcrumb:**
+- Importar `reviewBanner` e `PageBreadcrumb`
+- Adicionar estrutura de banner identica ao ReviewContent
+- Breadcrumb: `Home > Revisar Conteudo > Resultado`
+- Converter header existente para o padrao de header card sobreposto (-mt-12)
+
+### Arquivo: `src/components/PageBreadcrumb.tsx`
+
+- Nenhuma alteracao necessaria - o componente ja suporta `href` e `state` nos items intermediarios
 
 ### Arquivos modificados
 - `src/pages/ReviewContent.tsx`
-- `src/pages/CreateContent.tsx`
-- `src/pages/CreateImage.tsx`
-- `src/pages/PlanContent.tsx`
-- `src/components/personas/PersonaDialog.tsx`
-- `src/components/temas/ThemeDialog.tsx`
+- `src/pages/ReviewResult.tsx`
 
-Nenhuma funcionalidade sera removida - apenas o toast nao aparecera mais quando nao houver dados reais salvos.
