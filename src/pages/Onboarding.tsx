@@ -315,21 +315,33 @@ const Onboarding = () => {
       if (data.user) {
         await reloadUserData();
 
-        // If custom selected, proceed to checkout
+        // Se selecionou pacote pago, vai para checkout
         if (isCustomSelected) {
           await initiateCheckout(data.user.id);
           return;
         }
 
-        // If no package selected or free, just go to dashboard
-        if (!selectedPackage || selectedPackage.price === 0) {
-          toast.success("Conta criada com sucesso! Bem-vindo ao Creator!");
-          navigate('/dashboard');
+        if (selectedPackage && selectedPackage.price > 0) {
+          await initiateCheckout(data.user.id);
           return;
         }
 
-        // Otherwise, proceed to checkout
-        await initiateCheckout(data.user.id);
+        // Sem pacote ou gratuito: redirecionar para cadastro de cartão
+        try {
+          const { data: setupData, error: setupError } = await supabase.functions.invoke('setup-card', {
+            body: { return_url: '/dashboard' }
+          });
+
+          if (!setupError && setupData?.url) {
+            window.location.href = setupData.url;
+            return;
+          }
+        } catch (cardError) {
+          console.error('Erro ao configurar cartão:', cardError);
+        }
+
+        toast.success("Conta criada com sucesso! Bem-vindo ao Creator!");
+        navigate('/dashboard');
       }
     } catch (error: any) {
       console.error("Erro no cadastro:", error);

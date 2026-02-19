@@ -197,18 +197,32 @@ const Register = () => {
           });
         } catch (rdError) {
           console.error('Erro ao enviar para RD Station:', rdError);
-          // Não impede o fluxo se houver erro
         }
         
-        // Verificar se há returnUrl para redirecionar após cadastro
+        // Redirecionar para cadastro de cartão de crédito via Stripe
+        try {
+          const { data: setupData, error: setupError } = await supabase.functions.invoke('setup-card', {
+            body: { return_url: '/dashboard' }
+          });
+
+          if (setupError) throw setupError;
+
+          if (setupData?.url) {
+            window.location.href = setupData.url;
+            return;
+          }
+        } catch (cardError) {
+          console.error('Erro ao configurar cartão:', cardError);
+          // Se falhar, continua para o dashboard normalmente
+        }
+
+        // Fallback - ir para dashboard
         const returnUrl = searchParams.get('returnUrl');
         const safeReturnUrl = validateReturnUrl(returnUrl);
         
         if (returnUrl && safeReturnUrl !== '/dashboard') {
-          // Se há returnUrl válido, redirecionar para lá (ex: /subscribe)
           navigate(safeReturnUrl);
         } else {
-          // Fluxo padrão - mostrar seleção de equipe
           setShowTeamSelection(true);
         }
       }
