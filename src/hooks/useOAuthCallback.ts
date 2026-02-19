@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { validateReturnUrl } from '@/lib/auth-urls';
 
 export function useOAuthCallback() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [showTeamDialog, setShowTeamDialog] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -54,15 +56,17 @@ export function useOAuthCallback() {
           if (!retryProfile.team_id) {
             setShowTeamDialog(true);
           } else {
+            const destination = validateReturnUrl(searchParams.get('returnUrl'));
             toast.success(`Bem-vindo(a), ${retryProfile.name}!`);
-            navigate('/dashboard');
+            navigate(destination);
           }
         } else {
           if (!profile.team_id) {
             setShowTeamDialog(true);
           } else {
+            const destination = validateReturnUrl(searchParams.get('returnUrl'));
             toast.success(`Bem-vindo(a), ${profile.name}!`);
-            navigate('/dashboard');
+            navigate(destination);
           }
         }
       } catch (error) {
@@ -75,7 +79,7 @@ export function useOAuthCallback() {
     };
 
     handleOAuthCallback();
-  }, [navigate, isProcessing]);
+  }, [navigate, isProcessing, searchParams]);
 
   const handleTeamDialogClose = () => {
     setShowTeamDialog(false);

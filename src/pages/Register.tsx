@@ -16,6 +16,7 @@ import { TeamSelectionDialog } from "@/components/auth/TeamSelectionDialog";
 import { useOAuthCallback } from "@/hooks/useOAuthCallback";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useExtensionProtection, useFormProtection } from "@/hooks/useExtensionProtection";
+import { getOAuthRedirectUri, getEmailRedirectUrl, getAuthBaseUrl } from "@/lib/auth-urls";
 
 // Interfaces para os dados do IBGE
 interface State {
@@ -170,7 +171,7 @@ const Register = () => {
             state: formData.state,
             city: formData.city,
           },
-          emailRedirectTo: `${window.location.origin}/dashboard`,
+          emailRedirectTo: getEmailRedirectUrl('/dashboard'),
         },
       });
       if (error) {
@@ -226,14 +227,19 @@ const Register = () => {
     }
     setGoogleLoading(true);
     try {
+      const redirectUri = getOAuthRedirectUri();
+      console.log("[Register] OAuth redirect_uri:", redirectUri);
       const { error } = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
+        redirect_uri: redirectUri,
         extraParams: {
           prompt: "consent",
         },
       });
       if (error) {
         console.error("Google OAuth error:", error);
+        if (String(error).includes("redirect_uri_mismatch")) {
+          console.error("[Register] redirect_uri_mismatch - verifique as Authorized Redirect URIs no Google Cloud Console");
+        }
         toast.error("Erro ao cadastrar com Google. Tente novamente.");
         setGoogleLoading(false);
       }
@@ -251,9 +257,10 @@ const Register = () => {
     setFacebookLoading(true);
     try {
       const returnUrl = searchParams.get('returnUrl');
+      const baseUrl = getAuthBaseUrl();
       const redirectTo = returnUrl 
-        ? `${window.location.origin}/register?returnUrl=${encodeURIComponent(returnUrl)}`
-        : `${window.location.origin}/register`;
+        ? `${baseUrl}/register?returnUrl=${encodeURIComponent(returnUrl)}`
+        : `${baseUrl}/register`;
       
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "facebook",

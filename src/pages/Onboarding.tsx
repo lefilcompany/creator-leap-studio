@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { getEmailRedirectUrl } from "@/lib/auth-urls";
 import { useExtensionProtection, useFormProtection } from "@/hooks/useExtensionProtection";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -293,7 +294,7 @@ const Onboarding = () => {
     setIsLoading(true);
 
     try {
-      const redirectUrl = `${window.location.origin}/dashboard`;
+      const redirectUrl = getEmailRedirectUrl('/dashboard');
       
       const { data, error } = await supabase.auth.signUp({
         email: formData.email,
