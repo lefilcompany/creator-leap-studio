@@ -19,6 +19,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslation } from "@/hooks/useTranslation";
 // NativeSelect used for dropdowns to avoid extension conflicts
 import { useAuth } from "@/hooks/useAuth";
+import { getOAuthRedirectUri, validateReturnUrl } from "@/lib/auth-urls";
 import { motion } from "framer-motion";
 import decorativeElement from "@/assets/decorative-element.png";
 
@@ -51,7 +52,7 @@ const Login = () => {
         console.log('[Login] Admin user detected, redirecting to /admin');
         navigate('/admin', { replace: true });
       } else if (team) {
-        const returnUrl = searchParams.get('returnUrl') || '/dashboard';
+        const returnUrl = validateReturnUrl(searchParams.get('returnUrl'));
         console.log('[Login] Auth complete, redirecting to:', returnUrl);
         navigate(returnUrl, { replace: true });
       }
@@ -151,14 +152,19 @@ const Login = () => {
   const handleGoogleLogin = async () => {
     setGoogleLoading(true);
     try {
+      const redirectUri = getOAuthRedirectUri();
+      console.log("[Login] OAuth redirect_uri:", redirectUri);
       const { error } = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
+        redirect_uri: redirectUri,
         extraParams: {
           prompt: "select_account",
         },
       });
       if (error) {
         console.error("Google OAuth error:", error);
+        if (String(error).includes("redirect_uri_mismatch")) {
+          console.error("[Login] redirect_uri_mismatch - verifique as Authorized Redirect URIs no Google Cloud Console");
+        }
         toast.error("Erro ao entrar com Google. Tente novamente.");
         setGoogleLoading(false);
       }

@@ -16,6 +16,7 @@ import { Loader2, AlertTriangle, CheckCircle, Eye, EyeOff, User, Mail, Phone, Lo
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { getEmailRedirectUrl } from "@/lib/auth-urls";
 
 // Interfaces para os dados do IBGE
 interface State {
@@ -175,7 +176,7 @@ export default function Subscribe() {
             state: registerData.state,
             city: registerData.city,
           },
-          emailRedirectTo: `${window.location.origin}/subscribe`,
+          emailRedirectTo: getEmailRedirectUrl('/subscribe'),
         },
       });
 

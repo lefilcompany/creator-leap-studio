@@ -32,6 +32,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useAuth } from "@/hooks/useAuth";
 import { useExtensionProtection, useFormProtection } from "@/hooks/useExtensionProtection";
+import { getOAuthRedirectUri, getEmailRedirectUrl } from "@/lib/auth-urls";
 import decorativeElement from "@/assets/decorative-element.png";
 
 // Interfaces para os dados do IBGE
@@ -325,7 +326,7 @@ const Auth = () => {
             state: formData.state,
             city: formData.city,
           },
-          emailRedirectTo: `${window.location.origin}/dashboard`,
+          emailRedirectTo: getEmailRedirectUrl('/dashboard'),
         },
       });
 
@@ -378,14 +379,19 @@ const Auth = () => {
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
     try {
+      const redirectUri = getOAuthRedirectUri();
+      console.log("[Auth] OAuth redirect_uri:", redirectUri);
       const { error } = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
+        redirect_uri: redirectUri,
         extraParams: {
           prompt: "select_account",
         },
       });
       if (error) {
         console.error("Google OAuth error:", error);
+        if (String(error).includes("redirect_uri_mismatch")) {
+          console.error("[Auth] redirect_uri_mismatch - verifique as Authorized Redirect URIs no Google Cloud Console");
+        }
         toast.error("Erro ao entrar com Google. Tente novamente.");
         setGoogleLoading(false);
       }

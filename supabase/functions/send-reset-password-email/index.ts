@@ -18,6 +18,12 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const ALLOWED_DOMAINS = [
+  "pla.creator.lefil.com.br",
+  "www.pla.creator.lefil.com.br",
+];
+const DEFAULT_APP_URL = "https://pla.creator.lefil.com.br";
+
 // Template de email de recuperação de senha
 function getPasswordResetEmailTemplate(resetUrl: string): string {
   const logoUrl = "https://pla.creator.lefil.com.br/logoCreatorBranca.png";
@@ -203,13 +209,17 @@ serve(async (req) => {
 
     // Detectar o domínio de origem da requisição
     const origin = req.headers.get("origin") || req.headers.get("referer") || "";
-    let appUrl = "https://pla.creator.lefil.com.br"; // Fallback para domínio principal
+    let appUrl = DEFAULT_APP_URL;
 
-    // Extrair domínio base do origin/referer
+    // Extrair e validar domínio de origem contra lista permitida
     if (origin) {
       try {
         const url = new URL(origin);
-        appUrl = `${url.protocol}//${url.host}`;
+        if (ALLOWED_DOMAINS.includes(url.hostname)) {
+          appUrl = `https://${ALLOWED_DOMAINS[0]}`; // Always use canonical (non-www)
+        } else {
+          console.warn(`Origin "${url.hostname}" not in allowed domains, using default`);
+        }
       } catch (e) {
         console.log("Could not parse origin, using default domain");
       }
