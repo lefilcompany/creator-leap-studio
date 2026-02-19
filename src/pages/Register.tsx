@@ -501,6 +501,30 @@ const Register = () => {
           {isLoading ? <Loader2 className="animate-spin h-4 w-4" /> : "CRIAR CONTA"}
         </Button>
 
+        <div className="relative my-1">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t border-border/50" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-card/80 px-2 text-muted-foreground">ou</span>
+          </div>
+        </div>
+
+        <Button
+          type="button"
+          variant="outline"
+          disabled={googleLoading || !privacyChecked || !privacyAccepted}
+          onClick={handleGoogleSignup}
+          className="w-full h-10 lg:h-11 rounded-xl font-medium transition-all duration-300"
+        >
+          {googleLoading ? (
+            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+          ) : (
+            <Chrome className="h-4 w-4 mr-2" />
+          )}
+          Cadastrar com Google
+        </Button>
+
         <div className="text-center">
           <span className="text-muted-foreground text-sm">Já tem uma conta? </span>
           <a href="/" className="text-primary hover:text-primary/80 font-medium text-sm transition-colors">
