@@ -16,6 +16,7 @@ import {
   RefreshCw,
   PanelLeft,
   Columns2,
+  CreditCard,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Input } from "@/components/ui/input";
@@ -67,6 +68,7 @@ export const Header = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [showMobileSearch, setShowMobileSearch] = useState(false);
   const [showCouponDialog, setShowCouponDialog] = useState(false);
+  const [isLoadingPortal, setIsLoadingPortal] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
 
   // Se o trial expirou, desabilita funcionalidades
@@ -75,6 +77,53 @@ export const Header = () => {
   const handleLogout = async () => {
     await logout();
     navigate("/");
+  };
+
+  const handleManageCard = async () => {
+    if (!user?.id) return;
+    setIsLoadingPortal(true);
+    try {
+      // Check if user has a Stripe customer ID
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("stripe_customer_id")
+        .eq("id", user.id)
+        .single();
+
+      if (!profile?.stripe_customer_id) {
+        toast({
+          title: "Nenhum cartão vinculado",
+          description: "Você ainda não tem um cartão de crédito cadastrado. Vamos configurar agora.",
+          duration: 4000,
+        });
+        // Redirect to setup-card
+        const { data, error } = await supabase.functions.invoke("setup-card", {
+          body: { return_url: "/dashboard" },
+        });
+        if (!error && data?.url) {
+          window.location.href = data.url;
+        }
+        return;
+      }
+
+      // User has a Stripe customer - open customer portal
+      const { data, error } = await supabase.functions.invoke("customer-portal", {
+        body: {},
+      });
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, "_blank");
+      }
+    } catch (err) {
+      console.error("Error managing card:", err);
+      toast({
+        title: "Erro",
+        description: "Não foi possível abrir o gerenciamento de cartão. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingPortal(false);
+    }
   };
 
   // Focus search on mobile when opened
@@ -300,6 +349,14 @@ export const Header = () => {
                 >
                   <RefreshCw className="mr-3 h-4 w-4" />
                   <span>Refazer Tours</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="p-3 cursor-pointer"
+                  onClick={handleManageCard}
+                  disabled={isLoadingPortal}
+                >
+                  <CreditCard className="mr-3 h-4 w-4" />
+                  <span>{isLoadingPortal ? "Carregando..." : "Gerenciar Cartão"}</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DialogTrigger asChild>
