@@ -39,7 +39,7 @@ export function getAuthBaseUrl(): string {
  * This is passed to lovable.auth.signInWithOAuth as redirect_uri.
  */
 export function getOAuthRedirectUri(): string {
-  return getAuthBaseUrl();
+  return `${getAuthBaseUrl()}/~oauth/callback`;
 }
 
 /**
