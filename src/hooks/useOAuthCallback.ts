@@ -14,17 +14,51 @@ export function useOAuthCallback() {
     const handleOAuthCallback = async () => {
       if (isProcessing.current) return;
 
-      // Detect OAuth signals: hash tokens, code param, or returning from OAuth
       const hash = window.location.hash;
       const code = searchParams.get('code');
       const hasHashToken = hash.includes('access_token');
+      const hasHashError = hash.includes('error=');
 
       console.log('[OAuth] Callback check:', {
+        origin: window.location.origin,
         hasHashToken,
+        hasHashError,
         hasCode: !!code,
-        hash: hash ? hash.substring(0, 50) + '...' : '(empty)',
+        hash: hasHashError ? hash : (hash ? hash.substring(0, 50) + '...' : '(empty)'),
         pathname: window.location.pathname,
       });
+
+      // Handle OAuth errors in hash BEFORE processing tokens
+      if (hasHashError) {
+        const hashParams = new URLSearchParams(hash.substring(1));
+        const error = hashParams.get('error') || 'unknown_error';
+        const errorDescription = hashParams.get('error_description') || '';
+
+        console.error('[OAuth] Callback error detected in hash:', {
+          error,
+          errorDescription,
+          origin: window.location.origin,
+          fullHash: hash,
+        });
+
+        // Map error to user-friendly message
+        let userMessage: string;
+        if (error === 'access_denied') {
+          userMessage = 'Acesso negado. Você cancelou a autorização ou não tem permissão.';
+        } else if (errorDescription.includes('failed to exchange authorization code')) {
+          userMessage = 'Falha ao trocar o código de autorização. Verifique se o redirect URI está configurado corretamente.';
+        } else {
+          userMessage = errorDescription
+            ? `Erro na autenticação: ${decodeURIComponent(errorDescription)}`
+            : 'Ocorreu um erro durante a autenticação com Google. Tente novamente.';
+        }
+
+        toast.error(userMessage);
+
+        // Clean hash to prevent reprocessing
+        window.history.replaceState(null, '', window.location.pathname + window.location.search);
+        return;
+      }
 
       // No OAuth signal detected - skip
       if (!hasHashToken && !code) {
