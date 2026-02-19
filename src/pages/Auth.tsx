@@ -11,8 +11,9 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { CreatorLogo } from "@/components/CreatorLogo";
-import { Eye, EyeOff, Mail, Lock, Sun, Moon, Loader2, User, Phone, ChevronDown, Ticket } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, Sun, Moon, Loader2, User, Phone, ChevronDown, Ticket, Chrome } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable/index";
 import { toast } from "sonner";
 import { TeamSelectionDialog } from "@/components/auth/TeamSelectionDialog";
 import ChangePasswordDialog from "@/components/perfil/ChangePasswordDialog";
@@ -52,6 +53,7 @@ const Auth = () => {
   const [showTeamSelection, setShowTeamSelection] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [waitingForAuth, setWaitingForAuth] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   // Login states
   const [loginEmail, setLoginEmail] = useState("");
@@ -364,6 +366,27 @@ const Auth = () => {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    setGoogleLoading(true);
+    try {
+      const { error } = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+        extraParams: {
+          prompt: "select_account",
+        },
+      });
+      if (error) {
+        console.error("Google OAuth error:", error);
+        toast.error("Erro ao entrar com Google. Tente novamente.");
+        setGoogleLoading(false);
+      }
+    } catch (error) {
+      console.error("Google login error:", error);
+      toast.error("Erro ao entrar com Google. Tente novamente.");
+      setGoogleLoading(false);
+    }
+  };
+
   // Formulário de login
   const loginFormContent = (
     <form ref={loginFormRef} onSubmit={handleLogin} className="space-y-5">
@@ -441,6 +464,30 @@ const Auth = () => {
           )}
         </Button>
       </div>
+
+      <div className="relative my-3">
+        <div className="absolute inset-0 flex items-center">
+          <span className="w-full border-t border-border/50" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-card/80 px-2 text-muted-foreground">ou</span>
+        </div>
+      </div>
+
+      <Button
+        type="button"
+        variant="outline"
+        disabled={googleLoading}
+        onClick={handleGoogleSignIn}
+        className="w-full h-11 rounded-xl font-medium transition-all duration-300 text-sm"
+      >
+        {googleLoading ? (
+          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+        ) : (
+          <Chrome className="h-4 w-4 mr-2" />
+        )}
+        Entrar com Google
+      </Button>
     </form>
   );
 
@@ -688,6 +735,30 @@ const Auth = () => {
           }
         >
           {loading ? <Loader2 className="animate-spin h-4 w-4" /> : "CRIAR CONTA"}
+        </Button>
+
+        <div className="relative my-2">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t border-border/50" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-card/80 px-2 text-muted-foreground">ou</span>
+          </div>
+        </div>
+
+        <Button
+          type="button"
+          variant="outline"
+          disabled={googleLoading || !privacyChecked || !privacyAccepted}
+          onClick={handleGoogleSignIn}
+          className="w-full h-11 rounded-xl font-medium transition-all duration-300 text-sm"
+        >
+          {googleLoading ? (
+            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+          ) : (
+            <Chrome className="h-4 w-4 mr-2" />
+          )}
+          Cadastrar com Google
         </Button>
       </div>
     </form>
