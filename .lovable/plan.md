@@ -1,110 +1,87 @@
 
 
-## Refatoracao do Fluxo OAuth para Dominio Proprio
+## Correcao do Fluxo OAuth: Tratamento de Erros e Deploy
 
-### Resumo
+### Problema Identificado
 
-Centralizar todas as URLs de autenticacao (OAuth Google, signup email redirect, reset password) em um unico utilitario `src/lib/auth-urls.ts`, eliminando o uso direto de `window.location.origin` e garantindo que em producao apenas `https://pla.creator.lefil.com.br` seja usado.
+Existem dois problemas distintos:
 
-### O que sera criado
+**1. Erro de callback OAuth nao tratado**
+Apos o consentimento do Google, o callback retorna com `#error=server_error&error_description=failed%20to%20exchange%20authorization%20code` no hash. O hook `useOAuthCallback.ts` atualmente so verifica `access_token` e `code` -- ele ignora completamente erros no hash, fazendo o usuario voltar silenciosamente para a tela de login sem feedback.
 
-**1. Novo arquivo: `src/lib/auth-urls.ts`**
+**2. Timeout no deploy de edge functions**
+O erro `Bundle generation timed out` e um problema transiente de infraestrutura, nao um problema de codigo. As edge functions precisam ser re-deployadas.
 
-Utilitario central com:
-- `getAuthBaseUrl()`: retorna `https://pla.creator.lefil.com.br` em producao (detectado via hostname), ou `window.location.origin` em desenvolvimento/preview
-- `getOAuthRedirectUri()`: retorna a base URL para o `redirect_uri` do OAuth
-- `getEmailRedirectUrl(path)`: retorna URL completa para redirects de email (signup, reset)
-- `validateReturnUrl(url)`: valida que returnUrl e uma rota interna (comeca com `/`, sem `//`, sem dominio externo) - previne open redirect
-- Lista de dominios permitidos como constante
-- Logs de warning quando dominio detectado nao esta na lista permitida
+### O que sera alterado
 
-### O que sera modificado
+**Arquivo: `src/hooks/useOAuthCallback.ts`**
 
-**2. `src/pages/Auth.tsx`** (arquivo principal de login/registro)
-- Importar `getAuthBaseUrl`, `getOAuthRedirectUri`, `getEmailRedirectUrl` de `auth-urls.ts`
-- `handleGoogleSignIn`: trocar `window.location.origin` por `getOAuthRedirectUri()`
-- `handleRegister` (`emailRedirectTo`): trocar por `getEmailRedirectUrl('/dashboard')`
-- Adicionar log de erro claro para falhas OAuth com mensagem sobre `redirect_uri_mismatch`
+Adicionar deteccao e tratamento de `#error=` no hash do callback:
 
-**3. `src/pages/Login.tsx`**
-- Importar utilitario
-- `handleGoogleLogin`: trocar `window.location.origin` por `getOAuthRedirectUri()`
-- Melhorar log de erro OAuth
+- Antes de verificar `access_token` ou `code`, checar se o hash contem `error=`
+- Se sim, extrair `error` e `error_description` do hash
+- Exibir toast com mensagem clara para o usuario (ex: "Falha na autenticacao com Google")
+- Logar detalhes tecnicos no console para diagnostico
+- Limpar o hash da URL para evitar reprocessamento
+- Nao marcar `isProcessing` como true nesse caso (permitir retry)
 
-**4. `src/pages/Register.tsx`**
-- Importar utilitario
-- `handleGoogleSignup`: trocar `window.location.origin` por `getOAuthRedirectUri()`
-- `handleRegister` (`emailRedirectTo`): trocar por `getEmailRedirectUrl('/dashboard')`
-- Facebook OAuth: trocar `window.location.origin` por `getAuthBaseUrl()`
+Melhorias adicionais:
+- Logar o `window.location.origin` efetivo no callback para diagnostico
+- Logar o hash completo (nao truncado) quando contem erro
 
-**5. `src/pages/Subscribe.tsx`**
-- `emailRedirectTo`: trocar por `getEmailRedirectUrl('/subscribe')`
+**Edge Functions**
 
-**6. `src/pages/Onboarding.tsx`**
-- `emailRedirectTo`: trocar por `getEmailRedirectUrl('/dashboard')`
-
-**7. `src/hooks/useOAuthCallback.ts`**
-- Importar `validateReturnUrl` de `auth-urls.ts`
-- Aplicar validacao de returnUrl antes de redirecionar
-- Adicionar logs claros para erros de callback OAuth
-
-**8. `supabase/functions/send-reset-password-email/index.ts`**
-- Adicionar lista de dominios permitidos no servidor
-- Validar que o `origin` detectado esta na lista antes de usar
-- Se nao estiver, usar fallback `https://pla.creator.lefil.com.br`
+- Re-deploy de todas as edge functions para resolver o timeout transiente
 
 ### O que NAO sera alterado
 
-- `src/integrations/lovable/index.ts` - arquivo auto-gerado, nao pode ser modificado
-- `src/integrations/supabase/client.ts` - arquivo auto-gerado
-- Fluxo de sessao, onboarding e team selection - preservados integralmente
-- Login/senha tradicional - nenhuma alteracao
-
-### Documentacao
-
-**9. Novo arquivo: `OAUTH_SETUP.md`**
-
-Documentacao com:
-- URLs que devem existir no Google Cloud Console (origens JS + redirect URIs)
-- URLs que devem estar no backend (Site URL + allow list)
-- Como testar em producao
-- Checklist de validacao manual
-
----
+- `src/lib/auth-urls.ts` -- ja esta correto e centralizado
+- `src/pages/Auth.tsx`, `Login.tsx`, `Register.tsx` -- ja usam `getOAuthRedirectUri()` corretamente
+- `src/integrations/lovable/index.ts` -- auto-gerado, nao pode ser modificado
+- `supabase/functions/send-reset-password-email/index.ts` -- ja esta correto
+- Fluxo de sessao, team selection, login/senha -- preservados
 
 ### Secao Tecnica
 
-**Logica do `getAuthBaseUrl()`:**
+**Logica de deteccao de erro no hash:**
+
 ```text
-if hostname contains "pla.creator.lefil.com.br" -> return "https://pla.creator.lefil.com.br"
-if hostname contains "www.pla.creator.lefil.com.br" -> return "https://pla.creator.lefil.com.br" (canonical sem www)
-else -> return window.location.origin (dev/preview)
+hash = window.location.hash
+if hash contains "error=" ->
+  extrair error e error_description
+  exibir toast com mensagem amigavel
+  logar detalhes no console
+  return (nao processar como sucesso)
+if hash contains "access_token" -> fluxo implicit (existente)
+if searchParams has "code" -> fluxo PKCE (existente)
 ```
 
-**Logica do `validateReturnUrl(url)`:**
-```text
-if url is null/empty -> return "/dashboard"
-if url starts with "//" or contains "://" -> return "/dashboard"
-if url does not start with "/" -> return "/dashboard"
-return url
-```
+**Mensagens de erro mapeadas:**
 
-**Arquivos modificados (total: 8)**
-1. `src/lib/auth-urls.ts` (novo)
-2. `src/pages/Auth.tsx`
-3. `src/pages/Login.tsx`
-4. `src/pages/Register.tsx`
-5. `src/pages/Subscribe.tsx`
-6. `src/pages/Onboarding.tsx`
-7. `src/hooks/useOAuthCallback.ts`
-8. `supabase/functions/send-reset-password-email/index.ts`
-9. `OAUTH_SETUP.md` (novo)
+- `server_error` + `failed to exchange authorization code` -> "Falha ao trocar o codigo de autorizacao. Verifique se o redirect URI esta configurado corretamente no Google Cloud Console."
+- `access_denied` -> "Acesso negado. Voce cancelou a autorizacao ou nao tem permissao."
+- Outros -> Mensagem generica com o error_description original
 
-**Checklist de validacao manual:**
-1. Abrir `https://pla.creator.lefil.com.br` e clicar "Entrar com Google" - deve redirecionar e voltar sem erro 400
-2. Criar conta com Google na tela de registro - mesmo comportamento
-3. Login com email/senha - deve continuar funcionando normalmente
-4. Esqueceu a senha - link no email deve apontar para `pla.creator.lefil.com.br/reset-password`
-5. Verificar no console do navegador que nao ha referencias a `lovable.app` nos redirects OAuth
-6. Tentar manipular returnUrl com URL externa (ex: `?returnUrl=https://evil.com`) - deve cair no `/dashboard`
+**Sobre o erro `failed to exchange authorization code`:**
+
+Este erro ocorre no servidor OAuth proxy do Lovable Cloud quando tenta trocar o authorization code com o Google. As causas mais comuns sao:
+1. Redirect URI no Google Cloud Console nao inclui o callback correto
+2. Client ID/Secret incorretos ou expirados
+3. Problema transiente no servidor
+
+O tratamento no frontend garante que o usuario veja uma mensagem clara em vez de ser silenciosamente redirecionado para o login.
+
+### Checklist de validacao manual
+
+1. Testar login com Google -- se funcionar, confirmar sessao no console (`[OAuth] Session obtained`)
+2. Se o erro persistir, verificar no console a mensagem de erro detalhada com origin e error_description
+3. Confirmar que o toast de erro aparece para o usuario em vez de falha silenciosa
+4. Verificar no Google Cloud Console que o Redirect URI `https://pla.creator.lefil.com.br/~oauth/callback` esta registrado
+5. Confirmar que o edge function `send-reset-password-email` esta deployada apos re-deploy
+
+### Logs para verificar em caso de falha
+
+- `[OAuth] Callback error detected in hash:` -- mostra o erro retornado pelo servidor OAuth
+- `[OAuth] Callback check:` -- mostra origin, presenca de code/token/error
+- `[OAuth] Session obtained:` -- confirma sessao valida apos sucesso
 
