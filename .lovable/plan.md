@@ -1,38 +1,47 @@
 
 
-## Fix: Google OAuth "redirect_uri_mismatch" Error on Custom Domain
+## Correção: Erro 400 redirect_uri_mismatch no domínio creator-v4.lovable.app
 
-### The Problem
+### Problema
 
-When you click "Login with Google" on your custom domain `pla.creator.lefil.com.br`, Google rejects the request with a **400 error** because the redirect URI (`https://pla.creator.lefil.com.br`) is not registered as an authorized URI in the OAuth configuration.
+O Google OAuth está rejeitando a requisição com erro 400 porque a URL `https://creator-v4.lovable.app/~oauth/callback` não está registrada como URI de redirecionamento autorizada.
 
-### Root Cause
+### Causa
 
-This is NOT a code bug. The code already correctly uses `window.location.origin` as the redirect URI. The issue is that the **Lovable Cloud authentication settings** need to include your custom domain as an allowed redirect URL.
+Na configuração de URLs permitidas (URL Allow List) do backend, foram adicionadas apenas as URLs do domínio customizado (`pla.creator.lefil.com.br`). O domínio publicado padrão (`creator-v4.lovable.app`) também precisa estar na lista.
 
-### Solution
+### Solução (Configuracao no Backend - sem alteracao de codigo)
 
-You need to add your custom domain to the **Redirect URLs** in the authentication settings:
-
-1. Open your **Lovable Cloud backend** (use the button below)
-2. Navigate to **Users** then **Authentication Settings**
-3. Find the **Redirect URLs** (or Site URL / Allowed Redirect URLs) section
-4. Add the following URLs:
+1. Abra o backend do Lovable Cloud
+2. Vá em **Users** -> **Authentication Settings**
+3. Na secao **Redirect URLs** (URL Allow List), adicione:
+   - `https://creator-v4.lovable.app`
+   - `https://creator-v4.lovable.app/**`
+4. Certifique-se de que as URLs existentes do dominio customizado permanecem:
    - `https://pla.creator.lefil.com.br`
-   - `https://pla.creator.lefil.com.br/**` (wildcard for all subpaths)
-5. Save the changes
+   - `https://pla.creator.lefil.com.br/**`
+5. Salve as alteracoes
 
-Once these URLs are authorized, Google OAuth will work correctly on your custom domain.
+### Nao ha alteracoes de codigo necessarias
 
-### No Code Changes Needed
-
-The current code in `Auth.tsx` is already correct:
+O codigo em `Auth.tsx` ja esta correto:
 ```typescript
-redirect_uri: window.location.origin
-// This resolves to https://pla.creator.lefil.com.br when accessed from that domain
+const { error } = await lovable.auth.signInWithOAuth("google", {
+  redirect_uri: window.location.origin,
+  extraParams: { prompt: "select_account" },
+});
 ```
 
-### Technical Details
+O `window.location.origin` resolve dinamicamente para o dominio correto (seja `creator-v4.lovable.app` ou `pla.creator.lefil.com.br`). O problema e exclusivamente de configuracao no backend.
 
-The Lovable Cloud managed OAuth solution handles the Google OAuth client configuration. When a custom domain is used, the redirect URI changes from the default `*.lovable.app` domain to the custom domain, which must be explicitly whitelisted in the authentication redirect URL configuration.
+### Secao Tecnica
+
+O fluxo OAuth do Google funciona assim:
+1. Usuario clica "Entrar com Google"
+2. O codigo envia `redirect_uri: window.location.origin` (ex: `https://creator-v4.lovable.app`)
+3. A biblioteca `@lovable.dev/cloud-auth-js` adiciona `/~oauth/callback` ao final, formando `https://creator-v4.lovable.app/~oauth/callback`
+4. O Google verifica se essa URI esta autorizada nas configuracoes OAuth
+5. Se nao estiver na lista, retorna erro 400 `redirect_uri_mismatch`
+
+Ao adicionar ambos os dominios na lista de URLs permitidas, o login com Google funcionara tanto no dominio padrao quanto no customizado.
 
