@@ -8,15 +8,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { CreatorLogo } from "@/components/CreatorLogo";
-import { Eye, EyeOff, User, Mail, Phone, Lock, Loader2, Chrome, Facebook, ArrowLeft } from "lucide-react";
+import { Eye, EyeOff, User, Mail, Phone, Lock, Loader2, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
+
 import { TeamSelectionDialog } from "@/components/auth/TeamSelectionDialog";
-import { useOAuthCallback } from "@/hooks/useOAuthCallback";
+
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useExtensionProtection, useFormProtection } from "@/hooks/useExtensionProtection";
-import { getOAuthRedirectUri, getEmailRedirectUrl, getAuthBaseUrl, validateReturnUrl } from "@/lib/auth-urls";
+import { getEmailRedirectUrl, validateReturnUrl } from "@/lib/auth-urls";
 
 // Interfaces para os dados do IBGE
 interface State {
@@ -62,9 +62,7 @@ const Register = () => {
 
   // Team selection
   const [showTeamSelection, setShowTeamSelection] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
-  const [facebookLoading, setFacebookLoading] = useState(false);
-  const { showTeamDialog: oauthTeamDialog, handleTeamDialogClose: handleOAuthTeamDialogClose } = useOAuthCallback();
+  
   const isMobile = useIsMobile();
   const [sheetOpen, setSheetOpen] = useState(false);
 
@@ -219,72 +217,6 @@ const Register = () => {
       toast.error("Erro de conexão durante o cadastro");
     } finally {
       setIsLoading(false);
-    }
-  };
-  const handleGoogleSignup = async () => {
-    if (!privacyChecked || !privacyAccepted) {
-      toast.error("É necessário aceitar a Política de Privacidade para se cadastrar.");
-      return;
-    }
-    setGoogleLoading(true);
-    try {
-      const redirectUri = getOAuthRedirectUri();
-      console.log("[Register] OAuth redirect_uri:", redirectUri);
-      const { error } = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: redirectUri,
-        extraParams: {
-          prompt: "consent",
-        },
-      });
-      if (error) {
-        console.error("Google OAuth error:", error);
-        if (String(error).includes("redirect_uri_mismatch")) {
-          console.error("[Register] redirect_uri_mismatch - verifique as Authorized Redirect URIs no Google Cloud Console");
-        }
-        toast.error("Erro ao cadastrar com Google. Tente novamente.");
-        setGoogleLoading(false);
-      }
-    } catch (error) {
-      console.error("Google signup error:", error);
-      toast.error("Erro ao cadastrar com Google. Tente novamente mais tarde.");
-      setGoogleLoading(false);
-    }
-  };
-  const handleFacebookSignup = async () => {
-    if (!privacyChecked || !privacyAccepted) {
-      toast.error("É necessário aceitar a Política de Privacidade para se cadastrar.");
-      return;
-    }
-    setFacebookLoading(true);
-    try {
-      const returnUrl = searchParams.get('returnUrl');
-      const baseUrl = getAuthBaseUrl();
-      const redirectTo = returnUrl 
-        ? `${baseUrl}/register?returnUrl=${encodeURIComponent(returnUrl)}`
-        : `${baseUrl}/register`;
-      
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "facebook",
-        options: {
-          redirectTo,
-          scopes: "email,public_profile",
-        },
-      });
-      if (error) {
-        console.error("Facebook OAuth error:", error);
-        if (error.message.includes("provider is not enabled") || error.message.includes("Unsupported provider")) {
-          toast.error("Cadastro com Facebook não está configurado. Entre em contato com o administrador.", {
-            duration: 5000,
-          });
-        } else {
-          toast.error(error.message);
-        }
-        setFacebookLoading(false);
-      }
-    } catch (error) {
-      console.error("Facebook signup error:", error);
-      toast.error("Erro ao cadastrar com Facebook. Tente novamente mais tarde.");
-      setFacebookLoading(false);
     }
   };
   const registerForm = useMemo(
@@ -509,29 +441,6 @@ const Register = () => {
           {isLoading ? <Loader2 className="animate-spin h-4 w-4" /> : "CRIAR CONTA"}
         </Button>
 
-        <div className="relative my-1">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t border-border/50" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-card/80 px-2 text-muted-foreground">ou</span>
-          </div>
-        </div>
-
-        <Button
-          type="button"
-          variant="outline"
-          disabled={googleLoading || !privacyChecked || !privacyAccepted}
-          onClick={handleGoogleSignup}
-          className="w-full h-10 lg:h-11 rounded-xl font-medium transition-all duration-300"
-        >
-          {googleLoading ? (
-            <Loader2 className="h-4 w-4 animate-spin mr-2" />
-          ) : (
-            <Chrome className="h-4 w-4 mr-2" />
-          )}
-          Cadastrar com Google
-        </Button>
 
         <div className="text-center">
           <span className="text-muted-foreground text-sm">Já tem uma conta? </span>
@@ -547,8 +456,6 @@ const Register = () => {
       showPassword,
       error,
       isLoading,
-      googleLoading,
-      facebookLoading,
       privacyChecked,
       privacyAccepted,
       states,
@@ -560,8 +467,6 @@ const Register = () => {
       handleRegister,
       handleInputChange,
       handleSelectChange,
-      handleGoogleSignup,
-      handleFacebookSignup,
       setPrivacyModalOpen,
     ],
   );
@@ -789,14 +694,10 @@ const Register = () => {
 
       {/* Team Selection Dialog */}
       <TeamSelectionDialog
-        open={showTeamSelection || oauthTeamDialog}
+        open={showTeamSelection}
         onClose={() => {
           setShowTeamSelection(false);
-          if (oauthTeamDialog) {
-            handleOAuthTeamDialogClose();
-          } else {
-            navigate("/");
-          }
+          navigate("/");
         }}
         context="register"
       />

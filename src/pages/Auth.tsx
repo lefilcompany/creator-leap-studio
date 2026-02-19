@@ -13,26 +13,18 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { CreatorLogo } from "@/components/CreatorLogo";
 import { Eye, EyeOff, Mail, Lock, Sun, Moon, Loader2, User, Phone, ChevronDown, Ticket } from "lucide-react";
 
-const GoogleIcon = ({ className }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
-    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-  </svg>
-);
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
+
 import { toast } from "sonner";
 import { TeamSelectionDialog } from "@/components/auth/TeamSelectionDialog";
 import ChangePasswordDialog from "@/components/perfil/ChangePasswordDialog";
-import { useOAuthCallback } from "@/hooks/useOAuthCallback";
+
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useAuth } from "@/hooks/useAuth";
 import { useExtensionProtection, useFormProtection } from "@/hooks/useExtensionProtection";
-import { getOAuthRedirectUri, getEmailRedirectUrl } from "@/lib/auth-urls";
+import { getEmailRedirectUrl } from "@/lib/auth-urls";
 import decorativeElement from "@/assets/decorative-element.png";
 
 // Interfaces para os dados do IBGE
@@ -63,7 +55,7 @@ const Auth = () => {
   const [showTeamSelection, setShowTeamSelection] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [waitingForAuth, setWaitingForAuth] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
+  
 
   // Login states
   const [loginEmail, setLoginEmail] = useState("");
@@ -131,7 +123,7 @@ const Auth = () => {
   const { theme, setTheme } = useTheme();
   const { language } = useLanguage();
   const { user, team, isLoading: authLoading } = useAuth();
-  const { showTeamDialog: oauthTeamDialog, handleTeamDialogClose: handleOAuthTeamDialogClose } = useOAuthCallback();
+  
   const isMobile = useIsMobile();
   const [sheetOpen, setSheetOpen] = useState(false);
 
@@ -376,31 +368,6 @@ const Auth = () => {
     }
   };
 
-  const handleGoogleSignIn = async () => {
-    setGoogleLoading(true);
-    try {
-      const redirectUri = getOAuthRedirectUri();
-      console.log("[Auth] OAuth redirect_uri:", redirectUri);
-      const { error } = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: redirectUri,
-        extraParams: {
-          prompt: "select_account",
-        },
-      });
-      if (error) {
-        console.error("Google OAuth error:", error);
-        if (String(error).includes("redirect_uri_mismatch")) {
-          console.error("[Auth] redirect_uri_mismatch - verifique as Authorized Redirect URIs no Google Cloud Console");
-        }
-        toast.error("Erro ao entrar com Google. Tente novamente.");
-        setGoogleLoading(false);
-      }
-    } catch (error) {
-      console.error("Google login error:", error);
-      toast.error("Erro ao entrar com Google. Tente novamente.");
-      setGoogleLoading(false);
-    }
-  };
 
   // Formulário de login
   const loginFormContent = (
@@ -480,60 +447,12 @@ const Auth = () => {
         </Button>
       </div>
 
-      <div className="relative my-3">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t border-border/50" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-card/80 px-2 text-muted-foreground">ou</span>
-        </div>
-      </div>
-
-      <Button
-        type="button"
-        variant="outline"
-        disabled={googleLoading}
-        onClick={handleGoogleSignIn}
-        className="w-full h-11 rounded-xl font-medium transition-all duration-300 text-sm"
-      >
-        {googleLoading ? (
-          <Loader2 className="h-4 w-4 animate-spin mr-2" />
-        ) : (
-          <GoogleIcon className="h-4 w-4 mr-2" />
-        )}
-        Entrar com Google
-      </Button>
     </form>
   );
 
   // Formulário de registro
   const registerFormContent = (
     <form ref={registerFormRef} onSubmit={handleRegister} className="space-y-4">
-      {/* Google Sign-up button at the top for visibility */}
-      <Button
-        type="button"
-        variant="outline"
-        disabled={googleLoading}
-        onClick={handleGoogleSignIn}
-        className="w-full h-12 rounded-xl font-medium transition-all duration-300 text-sm border-2 border-primary/30 hover:border-primary/60 hover:bg-primary/5"
-      >
-        {googleLoading ? (
-          <Loader2 className="h-4 w-4 animate-spin mr-2" />
-        ) : (
-          <GoogleIcon className="h-4 w-4 mr-2" />
-        )}
-        Cadastrar com Google
-      </Button>
-
-      <div className="relative my-1">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t border-border/50" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-card/80 px-2 text-muted-foreground">ou preencha o formulário</span>
-        </div>
-      </div>
-
       {/* Grupo 1: Informações Pessoais */}
       <div className="space-y-3 p-4 rounded-xl bg-muted/20 border border-border/30">
         <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
@@ -1112,13 +1031,6 @@ const Auth = () => {
         }}
       />
 
-      <TeamSelectionDialog
-        open={oauthTeamDialog}
-        onClose={() => {
-          handleOAuthTeamDialogClose();
-          navigate("/dashboard", { replace: true });
-        }}
-      />
 
       <ChangePasswordDialog
         isOpen={showChangePassword}
