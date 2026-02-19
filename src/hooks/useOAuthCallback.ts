@@ -3,10 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-function isProfileIncomplete(profile: { phone?: string | null; state?: string | null; city?: string | null }) {
-  return !profile.phone || !profile.state || !profile.city;
-}
-
 export function useOAuthCallback() {
   const navigate = useNavigate();
   const [showTeamDialog, setShowTeamDialog] = useState(false);
@@ -14,7 +10,6 @@ export function useOAuthCallback() {
 
   useEffect(() => {
     const handleOAuthCallback = async () => {
-      // Check if we're in an OAuth callback
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
       const accessToken = hashParams.get('access_token');
       
@@ -23,7 +18,6 @@ export function useOAuthCallback() {
       setIsProcessing(true);
 
       try {
-        // Get the current session
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) throw sessionError;
@@ -33,21 +27,19 @@ export function useOAuthCallback() {
           return;
         }
 
-        // Check if user has a profile
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select('team_id, name, email, phone, state, city')
+          .select('team_id, name, email')
           .eq('id', session.user.id)
           .single();
 
         if (profileError) {
           console.error('Error fetching profile:', profileError);
-          // Profile might not exist yet, wait a bit and retry
           await new Promise(resolve => setTimeout(resolve, 1500));
           
           const { data: retryProfile, error: retryError } = await supabase
             .from('profiles')
-            .select('team_id, name, email, phone, state, city')
+            .select('team_id, name, email')
             .eq('id', session.user.id)
             .single();
 
@@ -59,13 +51,6 @@ export function useOAuthCallback() {
             return;
           }
 
-          // Check if profile is incomplete (missing required fields from registration)
-          if (isProfileIncomplete(retryProfile)) {
-            navigate('/complete-profile', { replace: true });
-            setIsProcessing(false);
-            return;
-          }
-
           if (!retryProfile.team_id) {
             setShowTeamDialog(true);
           } else {
@@ -73,13 +58,6 @@ export function useOAuthCallback() {
             navigate('/dashboard');
           }
         } else {
-          // Check if profile is incomplete (missing required fields from registration)
-          if (isProfileIncomplete(profile)) {
-            navigate('/complete-profile', { replace: true });
-            setIsProcessing(false);
-            return;
-          }
-
           if (!profile.team_id) {
             setShowTeamDialog(true);
           } else {

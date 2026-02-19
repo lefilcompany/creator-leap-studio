@@ -16,6 +16,7 @@ import { DashboardCreditsCard } from "@/components/dashboard/DashboardCreditsCar
 import { DashboardQuickActions } from "@/components/dashboard/DashboardQuickActions";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { DashboardRecentActivity } from "@/components/dashboard/DashboardRecentActivity";
+import { IncompleteProfileBanner } from "@/components/dashboard/IncompleteProfileBanner";
 
 const Dashboard = () => {
   const { user, isLoading } = useAuth();
@@ -183,6 +184,7 @@ const Dashboard = () => {
       
       <ExpiredTrialBlocker />
       <TrialBanner />
+      <IncompleteProfileBanner />
 
       {/* Banner */}
       <DashboardBanner userName={user.name} />
