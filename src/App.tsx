@@ -111,6 +111,7 @@ const App = () => (
                       <Route path="/onboarding/success" element={<SuspenseRoute><OnboardingSuccess /></SuspenseRoute>} />
                       <Route path="/onboarding/canceled" element={<SuspenseRoute><OnboardingCanceled /></SuspenseRoute>} />
                       <Route path="/payment-success" element={<SuspenseRoute><PaymentSuccess /></SuspenseRoute>} />
+                      <Route path="/contact" element={<SuspenseRoute><Contact /></SuspenseRoute>} />
                       
                       {/* Dashboard routes with sidebar layout */}
                       <Route path="/" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
@@ -143,7 +144,6 @@ const App = () => (
                         <Route path="profile/:userId" element={<SuspenseRoute><PublicProfile /></SuspenseRoute>} />
                         <Route path="credit-history" element={<SuspenseRoute><CreditHistory /></SuspenseRoute>} />
                         <Route path="about" element={<SuspenseRoute><About /></SuspenseRoute>} />
-                        <Route path="contact" element={<SuspenseRoute><Contact /></SuspenseRoute>} />
                         <Route path="action/:actionId" element={<SuspenseRoute><ActionView /></SuspenseRoute>} />
                       </Route>
                       
