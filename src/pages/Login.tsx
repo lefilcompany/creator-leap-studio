@@ -7,8 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { CreatorLogo } from "@/components/CreatorLogo";
-import { Eye, EyeOff, Mail, Lock, Sun, Moon, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, Sun, Moon, Loader2, Chrome } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable/index";
 import { toast } from "sonner";
 import { TeamSelectionDialog } from "@/components/auth/TeamSelectionDialog";
 import ChangePasswordDialog from "@/components/perfil/ChangePasswordDialog";
@@ -28,6 +29,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [showTeamSelection, setShowTeamSelection] = useState(false);
   const [failedAttempts, setFailedAttempts] = useState(0);
   const [showPasswordResetSuggestion, setShowPasswordResetSuggestion] = useState(false);
@@ -145,6 +147,28 @@ const Login = () => {
       setLoading(false);
     }
   };
+
+  const handleGoogleLogin = async () => {
+    setGoogleLoading(true);
+    try {
+      const { error } = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+        extraParams: {
+          prompt: "select_account",
+        },
+      });
+      if (error) {
+        console.error("Google OAuth error:", error);
+        toast.error("Erro ao entrar com Google. Tente novamente.");
+        setGoogleLoading(false);
+      }
+    } catch (error) {
+      console.error("Google login error:", error);
+      toast.error("Erro ao entrar com Google. Tente novamente.");
+      setGoogleLoading(false);
+    }
+  };
+
   const isMobile = useIsMobile();
   const [sheetOpen, setSheetOpen] = useState(false);
   const loginForm = useMemo(
@@ -239,6 +263,30 @@ const Login = () => {
           )}
         </Button>
 
+        <div className="relative my-2">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t border-border/50" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-card/80 px-2 text-muted-foreground">ou</span>
+          </div>
+        </div>
+
+        <Button
+          type="button"
+          variant="outline"
+          disabled={googleLoading}
+          onClick={handleGoogleLogin}
+          className="w-full h-11 rounded-xl font-medium transition-all duration-300"
+        >
+          {googleLoading ? (
+            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+          ) : (
+            <Chrome className="h-4 w-4 mr-2" />
+          )}
+          Entrar com Google
+        </Button>
+
         <div className="text-center">
           <span className="text-muted-foreground text-sm">{t.login.noAccount} </span>
           <a href="/?mode=register" className="text-primary hover:text-primary/80 font-medium text-sm transition-colors">
@@ -255,6 +303,8 @@ const Login = () => {
       loading,
       showPasswordResetSuggestion,
       handleLogin,
+      googleLoading,
+      handleGoogleLogin,
     ],
   );
   return (
