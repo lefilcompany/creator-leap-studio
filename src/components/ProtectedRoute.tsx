@@ -23,7 +23,8 @@ export default function ProtectedRoute({ children, requireTeam = false }: Protec
     // Verificar se realmente não há sessão ativa antes de redirecionar
     if (!session || !user) {
       // Double check: verificar localStorage antes de redirecionar
-      const hasStoredSession = localStorage.getItem('sb-afxwqkrneraatgovhpkb-auth-token');
+      const supabaseProjectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+      const hasStoredSession = localStorage.getItem(`sb-${supabaseProjectId}-auth-token`);
       
       if (hasStoredSession) {
         return; // Aguardar auth context processar
