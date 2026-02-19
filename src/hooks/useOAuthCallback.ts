@@ -3,6 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+function isProfileIncomplete(profile: { phone?: string | null; state?: string | null; city?: string | null }) {
+  return !profile.phone || !profile.state || !profile.city;
+}
+
 export function useOAuthCallback() {
   const navigate = useNavigate();
   const [showTeamDialog, setShowTeamDialog] = useState(false);
@@ -29,28 +33,35 @@ export function useOAuthCallback() {
           return;
         }
 
-        // Check if user has a profile and team
+        // Check if user has a profile
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select('team_id, name, email')
+          .select('team_id, name, email, phone, state, city')
           .eq('id', session.user.id)
           .single();
 
         if (profileError) {
           console.error('Error fetching profile:', profileError);
           // Profile might not exist yet, wait a bit and retry
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          await new Promise(resolve => setTimeout(resolve, 1500));
           
           const { data: retryProfile, error: retryError } = await supabase
             .from('profiles')
-            .select('team_id, name, email')
+            .select('team_id, name, email, phone, state, city')
             .eq('id', session.user.id)
             .single();
 
           if (retryError) {
             toast.error("Não foi possível carregar seus dados. Tente fazer login novamente.");
             await supabase.auth.signOut();
-            navigate('/login');
+            navigate('/');
+            setIsProcessing(false);
+            return;
+          }
+
+          // Check if profile is incomplete (missing required fields from registration)
+          if (isProfileIncomplete(retryProfile)) {
+            navigate('/complete-profile', { replace: true });
             setIsProcessing(false);
             return;
           }
@@ -62,6 +73,13 @@ export function useOAuthCallback() {
             navigate('/dashboard');
           }
         } else {
+          // Check if profile is incomplete (missing required fields from registration)
+          if (isProfileIncomplete(profile)) {
+            navigate('/complete-profile', { replace: true });
+            setIsProcessing(false);
+            return;
+          }
+
           if (!profile.team_id) {
             setShowTeamDialog(true);
           } else {
@@ -72,7 +90,7 @@ export function useOAuthCallback() {
       } catch (error) {
         console.error('OAuth callback error:', error);
         toast.error("Ocorreu um erro durante a autenticação. Tente novamente.");
-        navigate('/login');
+        navigate('/');
       } finally {
         setIsProcessing(false);
       }
