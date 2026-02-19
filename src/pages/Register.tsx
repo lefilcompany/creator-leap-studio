@@ -16,7 +16,7 @@ import { TeamSelectionDialog } from "@/components/auth/TeamSelectionDialog";
 import { useOAuthCallback } from "@/hooks/useOAuthCallback";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useExtensionProtection, useFormProtection } from "@/hooks/useExtensionProtection";
-import { getOAuthRedirectUri, getEmailRedirectUrl, getAuthBaseUrl } from "@/lib/auth-urls";
+import { getOAuthRedirectUri, getEmailRedirectUrl, getAuthBaseUrl, validateReturnUrl } from "@/lib/auth-urls";
 
 // Interfaces para os dados do IBGE
 interface State {
@@ -204,10 +204,11 @@ const Register = () => {
         
         // Verificar se há returnUrl para redirecionar após cadastro
         const returnUrl = searchParams.get('returnUrl');
+        const safeReturnUrl = validateReturnUrl(returnUrl);
         
-        if (returnUrl) {
-          // Se há returnUrl, redirecionar para lá (ex: /subscribe)
-          navigate(returnUrl);
+        if (returnUrl && safeReturnUrl !== '/dashboard') {
+          // Se há returnUrl válido, redirecionar para lá (ex: /subscribe)
+          navigate(safeReturnUrl);
         } else {
           // Fluxo padrão - mostrar seleção de equipe
           setShowTeamSelection(true);

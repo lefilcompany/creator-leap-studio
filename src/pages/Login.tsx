@@ -473,6 +473,17 @@ const Login = () => {
             </div>
           </motion.div>
         )}
+
+        {/* Links de Política de Privacidade e Contato */}
+        <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground mt-4 z-10">
+          <a href="/privacy" className="hover:text-primary transition-colors underline underline-offset-2">
+            Política de Privacidade
+          </a>
+          <span>•</span>
+          <a href="/contact" className="hover:text-primary transition-colors underline underline-offset-2">
+            Contato
+          </a>
+        </div>
       </div>
 
       <TeamSelectionDialog 
