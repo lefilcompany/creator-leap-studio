@@ -11,6 +11,7 @@ import { CreatorLogo } from "@/components/CreatorLogo";
 import { Eye, EyeOff, User, Mail, Phone, Lock, Loader2, Chrome, Facebook, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable/index";
 import { TeamSelectionDialog } from "@/components/auth/TeamSelectionDialog";
 import { useOAuthCallback } from "@/hooks/useOAuthCallback";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -225,30 +226,15 @@ const Register = () => {
     }
     setGoogleLoading(true);
     try {
-      const returnUrl = searchParams.get('returnUrl');
-      const redirectTo = returnUrl 
-        ? `${window.location.origin}/register?returnUrl=${encodeURIComponent(returnUrl)}`
-        : `${window.location.origin}/register`;
-      
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo,
-          queryParams: {
-            access_type: "offline",
-            prompt: "consent",
-          },
+      const { error } = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+        extraParams: {
+          prompt: "consent",
         },
       });
       if (error) {
         console.error("Google OAuth error:", error);
-        if (error.message.includes("provider is not enabled") || error.message.includes("Unsupported provider")) {
-          toast.error("Cadastro com Google não está configurado. Entre em contato com o administrador.", {
-            duration: 5000,
-          });
-        } else {
-          toast.error(error.message);
-        }
+        toast.error("Erro ao cadastrar com Google. Tente novamente.");
         setGoogleLoading(false);
       }
     } catch (error) {
