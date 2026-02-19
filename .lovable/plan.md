@@ -1,47 +1,110 @@
 
 
-## Correção: Erro 400 redirect_uri_mismatch no domínio creator-v4.lovable.app
+## Refatoracao do Fluxo OAuth para Dominio Proprio
 
-### Problema
+### Resumo
 
-O Google OAuth está rejeitando a requisição com erro 400 porque a URL `https://creator-v4.lovable.app/~oauth/callback` não está registrada como URI de redirecionamento autorizada.
+Centralizar todas as URLs de autenticacao (OAuth Google, signup email redirect, reset password) em um unico utilitario `src/lib/auth-urls.ts`, eliminando o uso direto de `window.location.origin` e garantindo que em producao apenas `https://pla.creator.lefil.com.br` seja usado.
 
-### Causa
+### O que sera criado
 
-Na configuração de URLs permitidas (URL Allow List) do backend, foram adicionadas apenas as URLs do domínio customizado (`pla.creator.lefil.com.br`). O domínio publicado padrão (`creator-v4.lovable.app`) também precisa estar na lista.
+**1. Novo arquivo: `src/lib/auth-urls.ts`**
 
-### Solução (Configuracao no Backend - sem alteracao de codigo)
+Utilitario central com:
+- `getAuthBaseUrl()`: retorna `https://pla.creator.lefil.com.br` em producao (detectado via hostname), ou `window.location.origin` em desenvolvimento/preview
+- `getOAuthRedirectUri()`: retorna a base URL para o `redirect_uri` do OAuth
+- `getEmailRedirectUrl(path)`: retorna URL completa para redirects de email (signup, reset)
+- `validateReturnUrl(url)`: valida que returnUrl e uma rota interna (comeca com `/`, sem `//`, sem dominio externo) - previne open redirect
+- Lista de dominios permitidos como constante
+- Logs de warning quando dominio detectado nao esta na lista permitida
 
-1. Abra o backend do Lovable Cloud
-2. Vá em **Users** -> **Authentication Settings**
-3. Na secao **Redirect URLs** (URL Allow List), adicione:
-   - `https://creator-v4.lovable.app`
-   - `https://creator-v4.lovable.app/**`
-4. Certifique-se de que as URLs existentes do dominio customizado permanecem:
-   - `https://pla.creator.lefil.com.br`
-   - `https://pla.creator.lefil.com.br/**`
-5. Salve as alteracoes
+### O que sera modificado
 
-### Nao ha alteracoes de codigo necessarias
+**2. `src/pages/Auth.tsx`** (arquivo principal de login/registro)
+- Importar `getAuthBaseUrl`, `getOAuthRedirectUri`, `getEmailRedirectUrl` de `auth-urls.ts`
+- `handleGoogleSignIn`: trocar `window.location.origin` por `getOAuthRedirectUri()`
+- `handleRegister` (`emailRedirectTo`): trocar por `getEmailRedirectUrl('/dashboard')`
+- Adicionar log de erro claro para falhas OAuth com mensagem sobre `redirect_uri_mismatch`
 
-O codigo em `Auth.tsx` ja esta correto:
-```typescript
-const { error } = await lovable.auth.signInWithOAuth("google", {
-  redirect_uri: window.location.origin,
-  extraParams: { prompt: "select_account" },
-});
-```
+**3. `src/pages/Login.tsx`**
+- Importar utilitario
+- `handleGoogleLogin`: trocar `window.location.origin` por `getOAuthRedirectUri()`
+- Melhorar log de erro OAuth
 
-O `window.location.origin` resolve dinamicamente para o dominio correto (seja `creator-v4.lovable.app` ou `pla.creator.lefil.com.br`). O problema e exclusivamente de configuracao no backend.
+**4. `src/pages/Register.tsx`**
+- Importar utilitario
+- `handleGoogleSignup`: trocar `window.location.origin` por `getOAuthRedirectUri()`
+- `handleRegister` (`emailRedirectTo`): trocar por `getEmailRedirectUrl('/dashboard')`
+- Facebook OAuth: trocar `window.location.origin` por `getAuthBaseUrl()`
+
+**5. `src/pages/Subscribe.tsx`**
+- `emailRedirectTo`: trocar por `getEmailRedirectUrl('/subscribe')`
+
+**6. `src/pages/Onboarding.tsx`**
+- `emailRedirectTo`: trocar por `getEmailRedirectUrl('/dashboard')`
+
+**7. `src/hooks/useOAuthCallback.ts`**
+- Importar `validateReturnUrl` de `auth-urls.ts`
+- Aplicar validacao de returnUrl antes de redirecionar
+- Adicionar logs claros para erros de callback OAuth
+
+**8. `supabase/functions/send-reset-password-email/index.ts`**
+- Adicionar lista de dominios permitidos no servidor
+- Validar que o `origin` detectado esta na lista antes de usar
+- Se nao estiver, usar fallback `https://pla.creator.lefil.com.br`
+
+### O que NAO sera alterado
+
+- `src/integrations/lovable/index.ts` - arquivo auto-gerado, nao pode ser modificado
+- `src/integrations/supabase/client.ts` - arquivo auto-gerado
+- Fluxo de sessao, onboarding e team selection - preservados integralmente
+- Login/senha tradicional - nenhuma alteracao
+
+### Documentacao
+
+**9. Novo arquivo: `OAUTH_SETUP.md`**
+
+Documentacao com:
+- URLs que devem existir no Google Cloud Console (origens JS + redirect URIs)
+- URLs que devem estar no backend (Site URL + allow list)
+- Como testar em producao
+- Checklist de validacao manual
+
+---
 
 ### Secao Tecnica
 
-O fluxo OAuth do Google funciona assim:
-1. Usuario clica "Entrar com Google"
-2. O codigo envia `redirect_uri: window.location.origin` (ex: `https://creator-v4.lovable.app`)
-3. A biblioteca `@lovable.dev/cloud-auth-js` adiciona `/~oauth/callback` ao final, formando `https://creator-v4.lovable.app/~oauth/callback`
-4. O Google verifica se essa URI esta autorizada nas configuracoes OAuth
-5. Se nao estiver na lista, retorna erro 400 `redirect_uri_mismatch`
+**Logica do `getAuthBaseUrl()`:**
+```text
+if hostname contains "pla.creator.lefil.com.br" -> return "https://pla.creator.lefil.com.br"
+if hostname contains "www.pla.creator.lefil.com.br" -> return "https://pla.creator.lefil.com.br" (canonical sem www)
+else -> return window.location.origin (dev/preview)
+```
 
-Ao adicionar ambos os dominios na lista de URLs permitidas, o login com Google funcionara tanto no dominio padrao quanto no customizado.
+**Logica do `validateReturnUrl(url)`:**
+```text
+if url is null/empty -> return "/dashboard"
+if url starts with "//" or contains "://" -> return "/dashboard"
+if url does not start with "/" -> return "/dashboard"
+return url
+```
+
+**Arquivos modificados (total: 8)**
+1. `src/lib/auth-urls.ts` (novo)
+2. `src/pages/Auth.tsx`
+3. `src/pages/Login.tsx`
+4. `src/pages/Register.tsx`
+5. `src/pages/Subscribe.tsx`
+6. `src/pages/Onboarding.tsx`
+7. `src/hooks/useOAuthCallback.ts`
+8. `supabase/functions/send-reset-password-email/index.ts`
+9. `OAUTH_SETUP.md` (novo)
+
+**Checklist de validacao manual:**
+1. Abrir `https://pla.creator.lefil.com.br` e clicar "Entrar com Google" - deve redirecionar e voltar sem erro 400
+2. Criar conta com Google na tela de registro - mesmo comportamento
+3. Login com email/senha - deve continuar funcionando normalmente
+4. Esqueceu a senha - link no email deve apontar para `pla.creator.lefil.com.br/reset-password`
+5. Verificar no console do navegador que nao ha referencias a `lovable.app` nos redirects OAuth
+6. Tentar manipular returnUrl com URL externa (ex: `?returnUrl=https://evil.com`) - deve cair no `/dashboard`
 
