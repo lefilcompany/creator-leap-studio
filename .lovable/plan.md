@@ -1,54 +1,38 @@
 
 
-# Plano: Redesign da Tela de Login e Cadastro
+## Fix: Google OAuth "redirect_uri_mismatch" Error on Custom Domain
 
-## Resumo
-Melhorar visualmente a tela de autenticacao (Login e Cadastro) na rota `/`, aprimorando o background, removendo mensagens de erro inline em favor de toasts, e garantindo centralizacao e funcionalidade completa.
+### The Problem
 
-## Mudancas Planejadas
+When you click "Login with Google" on your custom domain `pla.creator.lefil.com.br`, Google rejects the request with a **400 error** because the redirect URI (`https://pla.creator.lefil.com.br`) is not registered as an authorized URI in the OAuth configuration.
 
-### 1. Remover Mensagens de Erro Inline
-- Remover o bloco vermelho de "sugestao de reset de senha" que aparece dentro do formulario de login (linhas 442-462 do Auth.tsx)
-- Manter apenas os toasts (sonner) para feedback de erros - ja existentes no codigo
-- Remover o estado `showPasswordResetSuggestion` e logica associada, simplificando o componente
+### Root Cause
 
-### 2. Melhorar o Background
-- Substituir o gradiente atual por um fundo mais sofisticado com tons suaves de rosa/lilas alinhados a identidade visual do Creator
-- Ajustar as esferas animadas para cores mais harmonicas (rosa claro, lilas, azul claro) com opacidades reduzidas
-- Reduzir a quantidade de elementos decorativos flutuantes de 3 para 2, com melhor posicionamento
-- Melhorar contraste entre modo claro e escuro
+This is NOT a code bug. The code already correctly uses `window.location.origin` as the redirect URI. The issue is that the **Lovable Cloud authentication settings** need to include your custom domain as an allowed redirect URL.
 
-### 3. Centralizar e Polir o Card
-- Garantir centralizacao vertical e horizontal perfeita em todas as resolucoes
-- Aumentar levemente o padding interno do card para dar mais respiro
-- Melhorar as tabs Login/Cadastro com um estilo mais limpo (underline animada ja existe, sera mantida)
-- Adicionar sombra mais suave e borda mais definida no card
+### Solution
 
-### 4. Melhorar o Formulario de Login
-- Remover a secao inline de "credenciais incorretas" - usar apenas toast
-- Manter o link "Esqueceu a senha?" sem efeito de pulsacao (remover `animate-pulse`)
-- Botao de submit com estilo mais consistente
+You need to add your custom domain to the **Redirect URLs** in the authentication settings:
 
-### 5. Melhorar o Formulario de Cadastro
-- Manter a estrutura de grupos (Informacoes Pessoais, Seguranca, Contato, Cupom)
-- Melhorar espacamento entre grupos para formularios longos
-- Garantir scroll suave quando o formulario de cadastro ultrapassa a viewport
+1. Open your **Lovable Cloud backend** (use the button below)
+2. Navigate to **Users** then **Authentication Settings**
+3. Find the **Redirect URLs** (or Site URL / Allowed Redirect URLs) section
+4. Add the following URLs:
+   - `https://pla.creator.lefil.com.br`
+   - `https://pla.creator.lefil.com.br/**` (wildcard for all subpaths)
+5. Save the changes
 
-### 6. Limpar Codigo Legado
-- O arquivo `Login.tsx` e `Register.tsx` parecem ser paginas legadas que nao sao mais usadas nas rotas (a rota `/` usa `Auth.tsx`)
-- Nenhuma alteracao necessaria neles, pois nao estao ativos
+Once these URLs are authorized, Google OAuth will work correctly on your custom domain.
 
-## Detalhes Tecnicos
+### No Code Changes Needed
 
-**Arquivo editado:** `src/pages/Auth.tsx`
+The current code in `Auth.tsx` is already correct:
+```typescript
+redirect_uri: window.location.origin
+// This resolves to https://pla.creator.lefil.com.br when accessed from that domain
+```
 
-**Alteracoes especificas:**
-1. Remover estado `showPasswordResetSuggestion`, `failedAttempts` e logica associada
-2. No `handleLogin`, manter apenas `toast.error()` no caso de erro - com mensagem mais descritiva sugerindo reset apos falhas
-3. Remover o bloco JSX do "reset suggestion" (div com `bg-destructive/10`)
-4. Remover a classe `animate-pulse` do link "Esqueceu a senha?"
-5. Ajustar cores do background: usar `from-rose-50/30 via-background to-violet-50/20` no modo claro
-6. Reduzir blur e opacidade dos elementos decorativos para nao competir com o card
-7. Garantir `overflow-y-auto` no container do formulario de cadastro para scroll adequado
-8. Ajustar max-width do card para `sm:max-w-[440px]` para melhor proporcao
+### Technical Details
+
+The Lovable Cloud managed OAuth solution handles the Google OAuth client configuration. When a custom domain is used, the redirect URI changes from the default `*.lovable.app` domain to the custom domain, which must be explicitly whitelisted in the authentication redirect URL configuration.
 
