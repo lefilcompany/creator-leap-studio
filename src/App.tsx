@@ -26,6 +26,7 @@ const Onboarding = lazy(() => import("./pages/Onboarding"));
 const OnboardingSuccess = lazy(() => import("./pages/OnboardingSuccess"));
 const OnboardingCanceled = lazy(() => import("./pages/OnboardingCanceled"));
 const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
+const CompleteProfile = lazy(() => import("./pages/CompleteProfile"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Lazy loaded pages - Dashboard
@@ -111,6 +112,7 @@ const App = () => (
                       <Route path="/onboarding/success" element={<SuspenseRoute><OnboardingSuccess /></SuspenseRoute>} />
                       <Route path="/onboarding/canceled" element={<SuspenseRoute><OnboardingCanceled /></SuspenseRoute>} />
                       <Route path="/payment-success" element={<SuspenseRoute><PaymentSuccess /></SuspenseRoute>} />
+                      <Route path="/complete-profile" element={<SuspenseRoute><CompleteProfile /></SuspenseRoute>} />
                       
                       {/* Dashboard routes with sidebar layout */}
                       <Route path="/" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
