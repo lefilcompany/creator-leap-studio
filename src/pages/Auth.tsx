@@ -494,6 +494,31 @@ const Auth = () => {
   // Formulário de registro
   const registerFormContent = (
     <form ref={registerFormRef} onSubmit={handleRegister} className="space-y-4">
+      {/* Google Sign-up button at the top for visibility */}
+      <Button
+        type="button"
+        variant="outline"
+        disabled={googleLoading}
+        onClick={handleGoogleSignIn}
+        className="w-full h-12 rounded-xl font-medium transition-all duration-300 text-sm border-2 border-primary/30 hover:border-primary/60 hover:bg-primary/5"
+      >
+        {googleLoading ? (
+          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+        ) : (
+          <Chrome className="h-4 w-4 mr-2" />
+        )}
+        Cadastrar com Google
+      </Button>
+
+      <div className="relative my-1">
+        <div className="absolute inset-0 flex items-center">
+          <span className="w-full border-t border-border/50" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-card/80 px-2 text-muted-foreground">ou preencha o formulário</span>
+        </div>
+      </div>
+
       {/* Grupo 1: Informações Pessoais */}
       <div className="space-y-3 p-4 rounded-xl bg-muted/20 border border-border/30">
         <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
@@ -735,30 +760,6 @@ const Auth = () => {
           }
         >
           {loading ? <Loader2 className="animate-spin h-4 w-4" /> : "CRIAR CONTA"}
-        </Button>
-
-        <div className="relative my-2">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t border-border/50" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-card/80 px-2 text-muted-foreground">ou</span>
-          </div>
-        </div>
-
-        <Button
-          type="button"
-          variant="outline"
-          disabled={googleLoading || !privacyChecked || !privacyAccepted}
-          onClick={handleGoogleSignIn}
-          className="w-full h-11 rounded-xl font-medium transition-all duration-300 text-sm"
-        >
-          {googleLoading ? (
-            <Loader2 className="h-4 w-4 animate-spin mr-2" />
-          ) : (
-            <Chrome className="h-4 w-4 mr-2" />
-          )}
-          Cadastrar com Google
         </Button>
       </div>
     </form>
