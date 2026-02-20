@@ -101,7 +101,7 @@ export default function Contact() {
                   Enviar Email
                 </a>
               </Button>
-              <Button asChild variant="outline" className="border-green-500/50 text-green-600 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-950">
+              <Button asChild variant="outline" className="border-green-500/50 text-green-600 hover:text-green-600 hover:bg-green-50 hover:border-green-500/50 dark:hover:bg-green-950">
                 <a href="https://wa.me/558199660072" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
                   <Phone className="h-4 w-4" />
                   Chamar no WhatsApp
