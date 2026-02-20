@@ -1,55 +1,32 @@
 
-# Redesign da Pagina /privacy
+# Melhoria do Design da Pagina /privacy
 
 ## Objetivo
-Redesenhar a pagina de Politica de Privacidade para seguir o padrao visual estabelecido no sistema (banner com imagem + header card sobreposto + conteudo scrollavel), mantendo-a como rota publica.
+Alinhar o header card e o accordion da pagina de privacidade com o padrao visual usado nas demais paginas do sistema (Marcas, Historico, etc.).
 
-## Mudancas Planejadas
+## Mudancas em `src/pages/Privacy.tsx`
 
-### 1. Criar imagem de banner para privacidade
-- Adicionar uma nova imagem de banner tematica (privacidade/seguranca de dados) no diretorio `src/assets/`
-- Seguir o padrao de banners existentes (ex: `brands-banner.jpg`, `profile-banner.jpg`)
-- Caso nao haja imagem disponivel, usar um banner com gradiente e icone de escudo como fallback visual
+### 1. Header Card - Alinhar com padrao do sistema
+O header card atual usa `Card` com `CardHeader`, mas o padrao do sistema usa divs com classes especificas. Sera atualizado para:
+- Container: `bg-card rounded-2xl shadow-lg p-4 lg:p-5` (igual Brands/History)
+- Icone: container com `bg-primary/10 border border-primary/20 shadow-sm rounded-2xl p-3 lg:p-4` e icone maior `h-8 w-8 lg:h-10 lg:w-10`
+- Titulo: `text-2xl lg:text-3xl font-bold text-foreground`
+- Descricao: `text-sm lg:text-base text-muted-foreground`
 
-### 2. Reestruturar o layout da pagina `src/pages/Privacy.tsx`
-A pagina sera reestruturada para seguir o padrao das paginas internas do sistema:
+### 2. Accordion - Remover Card wrapper e melhorar items
+- Remover o `Card` que envolve o accordion (o sistema nao usa card extra para listas)
+- Cada item do accordion sera um card individual com:
+  - `bg-card rounded-2xl shadow-sm mb-3` para separacao visual
+  - Trigger com padding interno adequado (`p-4 lg:p-5`)
+  - Icone maior no trigger (`w-10 h-10` com `rounded-2xl`)
+  - Hover com `hover:shadow-md` para feedback visual
+  - Conteudo com padding consistente e sem margin-left excessivo
+- Bordas removidas dos items (usar gap/margin entre cards)
 
-- **Container scrollavel**: Envolver todo o conteudo em um container com `overflow-y-auto` e `h-screen` para permitir scroll
-- **Banner no topo**: Imagem de fundo com overlay gradiente (padrao `bg-gradient-to-t from-background/80 via-background/20 to-transparent`)
-- **Header card sobreposto**: Card com `-mt-12` contendo icone Shield, titulo e descricao, seguindo o padrao de `Brands.tsx`
-- **Secoes com Accordion**: Converter as secoes em um layout de accordion (ou manter cards empilhados) com scroll natural
-- **Botao de voltar**: Manter como breadcrumb overlay no banner, seguindo o padrao `PageBreadcrumb`
-- **Margem negativa**: Usar `-m-4 sm:-m-6 lg:-m-8` caso esteja dentro do DashboardLayout, ou ajustar para standalone
+### 3. Detalhes tecnicos
+- Substituir `Card`/`CardHeader`/`CardTitle`/`CardDescription` do header por divs estilizadas
+- Manter o accordion funcional mas com visual de cards separados
+- Manter scroll, breadcrumb e banner como estao (ja funcionando)
 
-### 3. Estrutura do novo layout
-
-```text
-+--------------------------------------------------+
-|  BANNER (imagem ou gradiente com escudo)          |
-|  [<- Voltar]                                      |
-+--------------------------------------------------+
-|  +--------------------------------------------+  |
-|  | [Shield]  Politica de Privacidade           |  |  <- Header card (-mt-12)
-|  |           Transparencia e seguranca...      |  |
-|  +--------------------------------------------+  |
-|                                                   |
-|  [Secao 1: Introducao]                           |
-|  [Secao 2: Definicoes]                           |
-|  [Secao 3: Dados Coletados]                      |
-|  ...                                              |
-|  [Secao 13: Canal de Atendimento]                |
-|                                                   |
-|  Rodape com copyright                             |
-+--------------------------------------------------+
-```
-
-### 4. Detalhes tecnicos
-
-- **Banner**: Usar gradiente com cores do tema (`from-primary/20 via-secondary/10 to-background`) com icones decorativos de seguranca (Shield, Lock) em opacidade baixa, ja que nao temos uma imagem especifica de privacidade
-- **Scroll**: A pagina e uma rota publica standalone, entao usar `min-h-screen overflow-y-auto` no container raiz (remover `overflow-hidden` do html/body via classe local)
-- **Secoes**: Manter os cards de cada secao com hover shadow, mas alinhar padding e spacing com o padrao do sistema (`px-4 sm:px-6 lg:px-8`)
-- **Responsividade**: Banner com `h-48 md:h-56`, header card responsivo
-- **Dark mode**: Funciona automaticamente via variaveis CSS do tema
-
-### 5. Arquivos modificados
-- `src/pages/Privacy.tsx` - Redesign completo do layout
+### Arquivo modificado
+- `src/pages/Privacy.tsx`
