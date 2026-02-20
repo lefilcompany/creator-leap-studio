@@ -593,84 +593,78 @@ const Onboarding = () => {
             transition={{ delay: 0.5 }}
             className="mt-10"
           >
-            <div className="relative overflow-hidden rounded-2xl bg-card shadow-sm border border-dashed border-primary/30 hover:border-primary/50 hover:shadow-md transition-all duration-300">
+            <div className="relative overflow-hidden rounded-2xl bg-card shadow-sm hover:shadow-lg border-0 transition-all duration-300">
               <div className="h-1.5 bg-gradient-to-r from-primary/50 via-primary to-primary/50" />
               
-              <div className="p-5 lg:p-6">
-                <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
+              <div className="p-5">
+                <div className="flex flex-col lg:flex-row items-center gap-6">
                   {/* Info */}
-                  <div className="flex-1 text-center lg:text-left">
-                    <div className="flex items-center gap-3 justify-center lg:justify-start mb-3">
-                      <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
-                        <ShoppingCart className="h-6 w-6 text-primary" />
-                      </div>
-                      <h3 className="text-xl font-bold text-foreground">Compra Avulsa</h3>
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <ShoppingCart className="h-5 w-5 text-primary" />
                     </div>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Compre créditos avulsos de 5 em 5. Cada crédito custa <span className="font-semibold text-primary">R$ {CREDIT_PRICE.toFixed(2)}</span>
-                    </p>
-                    <div className="flex items-center justify-center lg:justify-start gap-2 text-sm text-muted-foreground">
-                      <Zap className="h-4 w-4 text-primary" />
-                      <span>Pagamento único via Stripe</span>
+                    <div>
+                      <h3 className="text-lg font-bold text-foreground">Compra Avulsa</h3>
+                      <p className="text-sm text-muted-foreground">
+                        De 5 em 5 · <span className="font-semibold text-primary">R$ {CREDIT_PRICE.toFixed(2)}</span>/crédito
+                      </p>
                     </div>
                   </div>
 
-                  {/* Seletor de quantidade */}
-                  <div className="flex flex-col items-center gap-4">
-                    <div className="flex items-center gap-4">
+                  {/* Seletor + Preço + Botão em linha */}
+                  <div className="flex items-center gap-4 flex-wrap justify-center">
+                    <div className="flex items-center gap-3">
                       <Button
                         variant="outline"
                         size="icon"
-                        className="h-12 w-12 rounded-full border-2 hover:bg-primary hover:text-primary-foreground transition-all"
+                        className="h-10 w-10 rounded-full hover:bg-primary hover:text-primary-foreground transition-all"
                         onClick={decrementCredits}
                         disabled={customCredits <= MIN_CREDITS}
                       >
-                        <Minus className="h-5 w-5" />
+                        <Minus className="h-4 w-4" />
                       </Button>
                       
-                      <div className="text-center min-w-[140px]">
+                      <div className="text-center min-w-[80px]">
                         <motion.div 
                           key={customCredits}
                           initial={{ scale: 1.2, opacity: 0 }}
                           animate={{ scale: 1, opacity: 1 }}
-                          className="text-5xl font-bold text-primary"
+                          className="text-3xl font-bold text-primary"
                         >
                           {customCredits}
                         </motion.div>
-                        <p className="text-sm text-muted-foreground">créditos</p>
+                        <p className="text-xs text-muted-foreground">créditos</p>
                       </div>
                       
                       <Button
                         variant="outline"
                         size="icon"
-                        className="h-12 w-12 rounded-full border-2 hover:bg-primary hover:text-primary-foreground transition-all"
+                        className="h-10 w-10 rounded-full hover:bg-primary hover:text-primary-foreground transition-all"
                         onClick={incrementCredits}
                         disabled={customCredits >= MAX_CREDITS}
                       >
-                        <Plus className="h-5 w-5" />
+                        <Plus className="h-4 w-4" />
                       </Button>
                     </div>
 
-                    {/* Preço total */}
                     <motion.div 
                       key={customCredits * CREDIT_PRICE}
                       initial={{ scale: 1.1 }}
                       animate={{ scale: 1 }}
-                      className="bg-primary/10 px-6 py-3 rounded-xl border border-primary/20"
+                      className="bg-primary/10 px-4 py-2 rounded-xl border border-primary/20 text-center"
                     >
-                      <p className="text-sm text-muted-foreground text-center">Total</p>
-                      <p className="text-3xl font-bold text-primary">
+                      <p className="text-xs text-muted-foreground">Total</p>
+                      <p className="text-xl font-bold text-primary">
                         R$ {(customCredits * CREDIT_PRICE).toFixed(2)}
                       </p>
                     </motion.div>
 
-                    {/* Botão de compra */}
                     <Button
                       onClick={handleCustomSelect}
                       size="lg"
-                      className="w-full h-14 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                      className="h-12 font-semibold shadow-sm hover:shadow-lg transition-all duration-300"
                     >
-                      <ShoppingCart className="h-5 w-5 mr-2" />
+                      <ShoppingCart className="h-4 w-4 mr-2" />
                       Comprar {customCredits} Créditos
                     </Button>
                   </div>
