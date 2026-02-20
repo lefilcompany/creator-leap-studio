@@ -395,7 +395,7 @@ const Credits = () => {
 
   return (
     <div className="space-y-6 pb-8 animate-fade-in">
-      <PageBreadcrumb items={[{ label: "Comprar Créditos" }]} />
+      <PageBreadcrumb items={[{ label: "Créditos" }]} />
 
       {/* Header */}
       <Card className="border-0 shadow-md bg-gradient-to-br from-primary/10 via-primary/5 to-card rounded-2xl overflow-hidden">
