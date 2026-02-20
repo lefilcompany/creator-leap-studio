@@ -1,5 +1,6 @@
 import { Shield, Info, Database, Scale, Target, Brain, Share2, Cookie, UserCheck, Clock, Lock, RefreshCw, Mail } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import privacyBanner from "@/assets/privacy-banner.jpg";
@@ -205,8 +206,22 @@ const privacySections = [
 ];
 
 const Privacy = () => {
+  // Override global overflow-hidden on html/body to allow scrolling
+  useEffect(() => {
+    document.documentElement.style.overflow = "auto";
+    document.documentElement.style.height = "auto";
+    document.body.style.overflow = "auto";
+    document.body.style.height = "auto";
+    return () => {
+      document.documentElement.style.overflow = "";
+      document.documentElement.style.height = "";
+      document.body.style.overflow = "";
+      document.body.style.height = "";
+    };
+  }, []);
+
   return (
-    <div className="min-h-screen overflow-y-auto bg-background">
+    <div className="min-h-screen bg-background">
       {/* Banner */}
       <div className="relative h-56 lg:h-72">
         <img
@@ -217,12 +232,10 @@ const Privacy = () => {
         <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
         
         {/* Breadcrumb overlay */}
-        <div className="absolute top-4 left-4 sm:left-6 lg:left-8 z-10">
-          <PageBreadcrumb
-            items={[{ label: "Política de Privacidade" }]}
-            variant="overlay"
-          />
-        </div>
+        <PageBreadcrumb
+          items={[{ label: "Política de Privacidade" }]}
+          variant="overlay"
+        />
       </div>
 
       {/* Content container */}
@@ -251,8 +264,8 @@ const Privacy = () => {
               {privacySections.map((section, index) => {
                 const Icon = section.icon;
                 return (
-                  <AccordionItem key={index} value={`section-${index}`} className="border-b border-border last:border-0">
-                    <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-muted/50 transition-colors">
+                  <AccordionItem key={index} value={`section-${index}`} className="border-b border-border/50 last:border-0 px-6">
+                    <AccordionTrigger className="py-4 hover:no-underline hover:bg-muted/30 -mx-3 px-3 rounded-lg transition-colors">
                       <div className="flex items-center gap-3 text-left">
                         <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
                           <Icon className="w-4 h-4 text-primary" />
@@ -262,7 +275,7 @@ const Privacy = () => {
                         </span>
                       </div>
                     </AccordionTrigger>
-                    <AccordionContent className="px-6 pb-6 pt-0 ml-11">
+                    <AccordionContent className="pb-6 pt-0 ml-11">
                       {section.content}
                     </AccordionContent>
                   </AccordionItem>
