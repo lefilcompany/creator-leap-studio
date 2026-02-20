@@ -597,8 +597,8 @@ const Credits = () => {
           </CollapsibleTrigger>
           <CollapsibleContent>
             <CardContent className="px-5 sm:px-6 pb-5 pt-2">
-              <div className="text-center space-y-2">
-                <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground text-justify">
                   Os créditos são consumidos ao usar as ferramentas de criação de conteúdo com IA. 
                   Cada tipo de criação tem um custo diferente. Os créditos comprados nunca expiram 
                   e você pode comprar mais a qualquer momento.
