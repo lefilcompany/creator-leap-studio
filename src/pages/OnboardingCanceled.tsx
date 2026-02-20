@@ -24,8 +24,8 @@ const OnboardingCanceled = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Banner - taller with better object positioning */}
-      <div className="relative h-52 lg:h-64 flex-shrink-0">
+      {/* Banner */}
+      <div className="relative h-40 lg:h-48 flex-shrink-0">
         <img
           src={canceledBanner}
           alt="Pagamento Cancelado"
@@ -34,17 +34,17 @@ const OnboardingCanceled = () => {
         <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent" />
         
         {/* Logo overlay */}
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 bg-card/80 backdrop-blur-sm rounded-2xl px-5 py-2.5 shadow-md">
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 bg-card/80 backdrop-blur-sm rounded-2xl px-4 py-2 shadow-md">
           <CreatorLogo />
         </div>
       </div>
 
-      {/* Content - single unified card, no dividers */}
-      <div className="flex-1 flex flex-col items-center px-4 sm:px-6 pb-8 -mt-16 relative z-10">
+      {/* Content */}
+      <div className="flex-1 flex flex-col items-center px-4 sm:px-6 pb-6 -mt-14 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-lg bg-card rounded-2xl shadow-lg p-6 lg:p-8 flex flex-col gap-6"
+          className="w-full max-w-lg bg-card rounded-2xl shadow-lg p-5 lg:p-6 flex flex-col gap-5"
         >
           {/* Header */}
           <div className="text-center flex flex-col items-center gap-3">
