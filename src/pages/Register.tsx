@@ -17,6 +17,8 @@ import { TeamSelectionDialog } from "@/components/auth/TeamSelectionDialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useExtensionProtection, useFormProtection } from "@/hooks/useExtensionProtection";
 import { getEmailRedirectUrl, validateReturnUrl } from "@/lib/auth-urls";
+import { useOAuthCallback } from "@/hooks/useOAuthCallback";
+import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 
 // Interfaces para os dados do IBGE
 interface State {
@@ -455,6 +457,16 @@ const Register = () => {
           {isLoading ? <Loader2 className="animate-spin h-4 w-4" /> : "CRIAR CONTA"}
         </Button>
 
+        <div className="relative my-2">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t border-border" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-card/80 px-2 text-muted-foreground">ou</span>
+          </div>
+        </div>
+
+        <GoogleSignInButton label="Cadastrar com Google" />
 
         <div className="text-center">
           <span className="text-muted-foreground text-sm">Já tem uma conta? </span>

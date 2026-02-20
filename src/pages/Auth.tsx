@@ -25,6 +25,8 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useAuth } from "@/hooks/useAuth";
 import { useExtensionProtection, useFormProtection } from "@/hooks/useExtensionProtection";
 import { getEmailRedirectUrl } from "@/lib/auth-urls";
+import { useOAuthCallback } from "@/hooks/useOAuthCallback";
+import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 import decorativeElement from "@/assets/decorative-element.png";
 
 // Interfaces para os dados do IBGE
@@ -126,6 +128,9 @@ const Auth = () => {
   
   const isMobile = useIsMobile();
   const [sheetOpen, setSheetOpen] = useState(false);
+
+  // Handle OAuth callback (Google sign-in return)
+  const { showTeamDialog: showOAuthTeamDialog, handleTeamDialogClose: handleOAuthTeamDialogClose } = useOAuthCallback();
 
   // Validações de senha para registro
   const passwordsMatch = formData.password === confirmPassword;
@@ -462,6 +467,16 @@ const Auth = () => {
         </Button>
       </div>
 
+      <div className="relative my-4">
+        <div className="absolute inset-0 flex items-center">
+          <span className="w-full border-t border-border" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-card/80 px-2 text-muted-foreground">ou</span>
+        </div>
+      </div>
+
+      <GoogleSignInButton />
     </form>
   );
 
@@ -708,8 +723,19 @@ const Auth = () => {
             !privacyAccepted
           }
         >
-          {loading ? <Loader2 className="animate-spin h-4 w-4" /> : "CRIAR CONTA"}
+        {loading ? <Loader2 className="animate-spin h-4 w-4" /> : "CRIAR CONTA"}
         </Button>
+
+        <div className="relative my-2">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t border-border" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-card/80 px-2 text-muted-foreground">ou</span>
+          </div>
+        </div>
+
+        <GoogleSignInButton label="Cadastrar com Google" />
       </div>
     </form>
   );
@@ -1055,6 +1081,13 @@ const Auth = () => {
             setWaitingForAuth(true);
           }
         }}
+      />
+
+      {/* OAuth team dialog */}
+      <TeamSelectionDialog
+        open={showOAuthTeamDialog}
+        onClose={handleOAuthTeamDialogClose}
+        context="login"
       />
     </>
   );
