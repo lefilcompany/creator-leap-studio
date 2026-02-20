@@ -6,7 +6,6 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CreatorLogo } from "@/components/CreatorLogo";
 import { 
@@ -412,13 +411,13 @@ const Onboarding = () => {
         whileHover={{ scale: 1.02, y: -4 }}
         className="h-full"
       >
-        <Card
+        <div
           className={cn(
-            "relative h-full cursor-pointer transition-all duration-300 overflow-hidden group",
-            "border-2 hover:shadow-2xl",
-            isSelected ? "border-primary ring-2 ring-primary/20 shadow-xl" : "border-border hover:border-primary/50",
+            "relative h-full cursor-pointer transition-all duration-300 overflow-hidden group rounded-2xl bg-card",
+            "border hover:shadow-md",
+            isSelected ? "border-primary ring-2 ring-primary/20 shadow-lg" : "border-border/50 shadow-sm hover:border-primary/50",
             isPopular && "ring-2 ring-primary/30",
-            isEnterprise && "border-amber-500/50"
+            isEnterprise && "border-amber-500/30"
           )}
           onClick={() => handlePackageSelect(pkg)}
         >
@@ -450,35 +449,33 @@ const Onboarding = () => {
             </motion.div>
           )}
 
-          <CardHeader className="relative pb-2">
+          <div className="relative p-5 pb-2">
             <div className={cn(
-              "w-14 h-14 rounded-2xl flex items-center justify-center mb-4 transition-all duration-300",
+              "w-12 h-12 rounded-2xl flex items-center justify-center mb-4 transition-all duration-300",
               "bg-gradient-to-br shadow-lg",
               colorClass
             )}>
-              <Icon className="h-7 w-7 text-white" />
+              <Icon className="h-6 w-6 text-white" />
             </div>
             
-            <CardTitle className="text-2xl font-bold">{pkg.name}</CardTitle>
-            <CardDescription className="text-sm min-h-[2.5rem]">{pkg.description}</CardDescription>
+            <h3 className="text-xl font-bold text-foreground">{pkg.name}</h3>
+            <p className="text-sm text-muted-foreground min-h-[2.5rem] mt-1">{pkg.description}</p>
             
             <div className="mt-4 flex items-baseline gap-1">
               {isEnterprise ? (
-                <span className="text-2xl font-bold text-amber-600">Entre em contato</span>
+                <span className="text-xl font-bold text-amber-600">Entre em contato</span>
               ) : (
-                <>
-                  <span className="text-4xl font-bold">R$ {pkg.price.toLocaleString('pt-BR')}</span>
-                </>
+                <span className="text-3xl font-bold text-foreground">R$ {pkg.price.toLocaleString('pt-BR')}</span>
               )}
             </div>
-          </CardHeader>
+          </div>
 
-          <CardContent className="relative space-y-4">
+          <div className="relative p-5 pt-2 space-y-4">
             {/* Credits highlight */}
-            <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/5 border border-primary/10">
-              <Zap className="h-6 w-6 text-primary flex-shrink-0" />
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-primary/5 border border-primary/10">
+              <Zap className="h-5 w-5 text-primary flex-shrink-0" />
               <div>
-                <span className="text-2xl font-bold text-primary">
+                <span className="text-xl font-bold text-primary">
                   {isEnterprise ? '∞' : pkg.credits.toLocaleString('pt-BR')}
                 </span>
                 <span className="text-sm text-muted-foreground ml-1">créditos</span>
@@ -513,8 +510,8 @@ const Onboarding = () => {
                 </>
               )}
             </Button>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </motion.div>
     );
   };
@@ -597,18 +594,20 @@ const Onboarding = () => {
             transition={{ delay: 0.5 }}
             className="mt-10"
           >
-            <Card className="relative overflow-hidden border-2 border-dashed border-primary/30 hover:border-primary/50 transition-all duration-300">
-              <div className="h-2 bg-gradient-to-r from-primary/50 via-primary to-primary/50" />
+            <div className="relative overflow-hidden rounded-2xl bg-card shadow-sm border border-dashed border-primary/30 hover:border-primary/50 hover:shadow-md transition-all duration-300">
+              <div className="h-1.5 bg-gradient-to-r from-primary/50 via-primary to-primary/50" />
               
-              <CardContent className="pt-8 pb-8">
+              <div className="p-5 lg:p-6">
                 <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
                   {/* Info */}
                   <div className="flex-1 text-center lg:text-left">
-                    <div className="flex items-center gap-2 justify-center lg:justify-start mb-3">
-                      <ShoppingCart className="h-6 w-6 text-primary" />
-                      <h3 className="text-2xl font-bold">Compra Avulsa</h3>
+                    <div className="flex items-center gap-3 justify-center lg:justify-start mb-3">
+                      <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
+                        <ShoppingCart className="h-6 w-6 text-primary" />
+                      </div>
+                      <h3 className="text-xl font-bold text-foreground">Compra Avulsa</h3>
                     </div>
-                    <p className="text-muted-foreground mb-4">
+                    <p className="text-sm text-muted-foreground mb-4">
                       Compre créditos avulsos de 5 em 5. Cada crédito custa <span className="font-semibold text-primary">R$ {CREDIT_PRICE.toFixed(2)}</span>
                     </p>
                     <div className="flex items-center justify-center lg:justify-start gap-2 text-sm text-muted-foreground">
@@ -670,15 +669,15 @@ const Onboarding = () => {
                     <Button
                       onClick={handleCustomSelect}
                       size="lg"
-                      className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl transition-all duration-300"
+                      className="w-full h-14 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
                     >
                       <ShoppingCart className="h-5 w-5 mr-2" />
                       Comprar {customCredits} Créditos
                     </Button>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </motion.div>
         </>
       )}
@@ -692,7 +691,7 @@ const Onboarding = () => {
       exit={{ opacity: 0, x: -50 }}
       className="w-full max-w-lg mx-auto"
     >
-      <Card className="border-2 shadow-2xl overflow-hidden">
+      <div className="rounded-2xl bg-card shadow-lg border border-border/50 overflow-hidden">
         {/* Package/Custom summary header */}
         {(selectedPackage || isCustomSelected) && (
           <div className={cn(
@@ -747,18 +746,18 @@ const Onboarding = () => {
           </div>
         )}
 
-        <CardHeader className="text-center pb-2">
-          <CardTitle className="text-2xl">
+        <div className="text-center p-5 pb-2">
+          <h2 className="text-2xl font-bold text-foreground">
             {authMode === 'register' ? 'Criar sua conta' : 'Entrar na sua conta'}
-          </CardTitle>
-          <CardDescription>
+          </h2>
+          <p className="text-sm text-muted-foreground mt-1">
             {authMode === 'register' 
               ? 'Preencha seus dados para começar' 
               : 'Use suas credenciais para continuar'}
-          </CardDescription>
-        </CardHeader>
+          </p>
+        </div>
 
-        <CardContent>
+        <div className="px-5 pb-5">
           {/* Auth mode toggle */}
           <div className="flex mb-6 p-1 bg-muted rounded-lg">
             <Button
@@ -1006,8 +1005,8 @@ const Onboarding = () => {
               </div>
             )}
           </form>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </motion.div>
   );
 
@@ -1027,15 +1026,29 @@ const Onboarding = () => {
     </motion.div>
   );
 
+  // Override global overflow-hidden on html/body to allow scrolling
+  useEffect(() => {
+    document.documentElement.style.overflow = "auto";
+    document.documentElement.style.height = "auto";
+    document.body.style.overflow = "auto";
+    document.body.style.height = "auto";
+    return () => {
+      document.documentElement.style.overflow = "";
+      document.documentElement.style.height = "";
+      document.body.style.overflow = "";
+      document.body.style.height = "";
+    };
+  }, []);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/30 overflow-y-auto">
+    <div className="min-h-screen bg-background">
       {/* Background decoration */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
       </div>
 
-      <div className="relative min-h-screen flex flex-col p-4 md:p-8">
+      <div className="relative flex flex-col p-4 md:p-8">
         {/* Header */}
         <header className="flex items-center justify-between mb-8">
           <Button 
@@ -1086,11 +1099,11 @@ const Onboarding = () => {
         </div>
 
         {/* Content */}
-        <main className="flex-1 flex items-center justify-center">
+        <main className="flex-1 pb-8">
           <AnimatePresence mode="wait">
             {currentStep === 'packages' && renderPackagesStep()}
-            {currentStep === 'auth' && renderAuthStep()}
-            {currentStep === 'checkout' && renderCheckoutStep()}
+            {currentStep === 'auth' && <div className="flex items-center justify-center">{renderAuthStep()}</div>}
+            {currentStep === 'checkout' && <div className="flex items-center justify-center py-20">{renderCheckoutStep()}</div>}
           </AnimatePresence>
         </main>
 
