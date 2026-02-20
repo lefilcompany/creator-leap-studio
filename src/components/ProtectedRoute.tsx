@@ -45,12 +45,12 @@ export default function ProtectedRoute({ children, requireTeam = false }: Protec
     // Verificar créditos expirados apenas se exigir verificação
     if (isTrialExpired && user?.credits <= 0) {
       const currentPath = window.location.pathname;
-      const allowedPaths = ['/plans', '/history', '/profile', '/credits'];
+      const allowedPaths = ['/credits', '/history', '/profile', '/credit-history'];
       const isAllowedPath = allowedPaths.some(path => currentPath.startsWith(path));
       
       if (!isAllowedPath) {
         toast.error('Seus créditos acabaram. Adquira mais créditos para continuar.');
-        navigate('/plans?expired=true');
+        navigate('/credits?expired=true');
         return;
       }
     }

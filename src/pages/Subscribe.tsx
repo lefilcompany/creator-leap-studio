@@ -607,7 +607,7 @@ export default function Subscribe() {
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={() => navigate('/plans')} 
+                  onClick={() => navigate('/credits')} 
                   className="mt-2"
                 >
                   Gerenciar Plano Atual

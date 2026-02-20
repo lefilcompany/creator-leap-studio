@@ -61,7 +61,7 @@ export const DashboardCreditsCard = ({
               whileTap={{ scale: 0.95 }}
               className="self-end sm:self-auto"
             >
-              <Link to="/plans">
+              <Link to="/credits">
                 <Button size="sm" className={`rounded-full gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90 shadow-md text-xs sm:text-sm font-semibold px-5 ${isLow ? 'animate-[pulse_2s_cubic-bezier(0.4,0,0.6,1)_infinite]' : ''}`}>
                   <Zap className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                   Comprar Créditos

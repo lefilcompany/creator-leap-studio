@@ -77,7 +77,7 @@ export const ExpiredTrialBlocker = () => {
             Falar no WhatsApp
           </Button>
           <Button
-            onClick={() => navigate("/plans")}
+            onClick={() => navigate("/credits")}
             className="w-full sm:w-auto"
           >
             Comprar Créditos
