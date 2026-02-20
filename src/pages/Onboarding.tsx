@@ -1071,10 +1071,10 @@ const Onboarding = () => {
 
         {/* Progress indicator */}
         <div className="max-w-md mx-auto w-full mb-8">
-          <div className="flex items-center justify-between relative">
-            <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-muted -translate-y-1/2" />
+          <div className="flex items-start justify-between relative">
+            <div className="absolute top-5 left-0 right-0 h-0.5 bg-muted" />
             <div 
-              className="absolute top-1/2 left-0 h-0.5 bg-primary -translate-y-1/2 transition-all duration-500"
+              className="absolute top-5 left-0 h-0.5 bg-primary transition-all duration-500"
               style={{ 
                 width: currentStep === 'packages' ? '0%' : currentStep === 'auth' ? '50%' : '100%' 
               }}
