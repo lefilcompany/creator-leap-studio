@@ -7,7 +7,6 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { motion } from "framer-motion";
-import planBanner from "@/assets/plan-banner.jpg";
 
 const OnboardingSuccess = () => {
   const navigate = useNavigate();
@@ -84,74 +83,63 @@ const OnboardingSuccess = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Banner */}
-      <div className="relative h-56 lg:h-72">
-        <img
-          src={planBanner}
-          alt="Pagamento Confirmado"
-          className="w-full h-full object-cover object-[center_55%]"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
-        
-        {/* Logo overlay */}
-        <div className="absolute top-6 left-1/2 -translate-x-1/2 z-10">
-          <CreatorLogo />
-        </div>
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4 sm:px-6 py-8">
+      <div className="mb-6">
+        <CreatorLogo />
       </div>
 
-      {/* Content */}
-      <div className="max-w-lg mx-auto px-4 sm:px-6 pb-12">
-        {/* Header card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="-mt-12 relative z-10 bg-card rounded-2xl shadow-lg p-6 lg:p-8 text-center"
-        >
-          <div className="flex justify-center mb-5">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-lg bg-card rounded-2xl shadow-lg p-5 lg:p-6 flex flex-col gap-5"
+      >
+        {/* Header */}
+        <div className="text-center flex flex-col items-center gap-3">
+          <div className="flex justify-center">
             {isVerifying ? (
-              <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center relative">
-                <Loader2 className="h-10 w-10 text-primary animate-spin" />
-                <Sparkles className="h-5 w-5 text-primary absolute -top-1 -right-1 animate-pulse" />
+              <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center relative">
+                <Loader2 className="h-8 w-8 text-primary animate-spin" />
+                <Sparkles className="h-4 w-4 text-primary absolute -top-1 -right-1 animate-pulse" />
               </div>
             ) : verificationSuccess ? (
               <motion.div 
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                className="h-20 w-20 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center"
+                className="h-16 w-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center"
               >
-                <CheckCircle className="h-10 w-10 text-green-600" />
+                <CheckCircle className="h-8 w-8 text-green-600" />
               </motion.div>
             ) : (
-              <div className="h-20 w-20 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
-                <Loader2 className="h-8 w-8 text-amber-600 animate-spin" />
+              <div className="h-16 w-16 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                <Loader2 className="h-7 w-7 text-amber-600 animate-spin" />
               </div>
             )}
           </div>
 
-          <h1 className="text-2xl lg:text-3xl font-bold text-foreground mb-2">
-            {isVerifying && "Verificando Pagamento..."}
-            {!isVerifying && verificationSuccess && "Pagamento Confirmado!"}
-            {!isVerifying && !verificationSuccess && "Processando..."}
-          </h1>
-          
-          <p className="text-sm lg:text-base text-muted-foreground">
-            {isVerifying && "Aguarde enquanto confirmamos seu pagamento"}
-            {!isVerifying && verificationSuccess && "Bem-vindo ao Creator!"}
-            {!isVerifying && !verificationSuccess && "Seu pagamento está sendo processado"}
-          </p>
-        </motion.div>
+          <div>
+            <h1 className="text-2xl lg:text-3xl font-bold text-foreground">
+              {isVerifying && "Verificando Pagamento..."}
+              {!isVerifying && verificationSuccess && "Pagamento Confirmado!"}
+              {!isVerifying && !verificationSuccess && "Processando..."}
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              {isVerifying && "Aguarde enquanto confirmamos seu pagamento"}
+              {!isVerifying && verificationSuccess && "Bem-vindo ao Creator!"}
+              {!isVerifying && !verificationSuccess && "Seu pagamento está sendo processado"}
+            </p>
+          </div>
+        </div>
 
-        {/* Credits card */}
+        {/* Credits inner card */}
         {verificationSuccess && (
           <motion.div 
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="mt-4 bg-card rounded-2xl shadow-sm p-6 text-center"
+            className="bg-muted/50 rounded-xl p-5 text-center"
           >
-            <div className="flex items-center justify-center gap-2 mb-3">
-              <Zap className="h-5 w-5 text-primary" />
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <Zap className="h-4 w-4 text-primary" />
               <span className="text-sm font-medium text-muted-foreground">Seus créditos</span>
             </div>
             {creditsAdded > 0 && (
@@ -170,12 +158,7 @@ const OnboardingSuccess = () => {
 
         {/* Actions */}
         {!isVerifying && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="mt-4 bg-card rounded-2xl shadow-sm p-6 space-y-4"
-          >
+          <div className="flex flex-col gap-3">
             <p className="text-sm text-muted-foreground text-center">
               {verificationSuccess 
                 ? 'Redirecionando para o dashboard...'
@@ -184,15 +167,15 @@ const OnboardingSuccess = () => {
             
             <Button 
               onClick={() => navigate('/dashboard', { replace: true })} 
-              className="w-full h-12"
+              className="w-full h-11"
               size="lg"
             >
               Ir para o Dashboard
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
-          </motion.div>
+          </div>
         )}
-      </div>
+      </motion.div>
     </div>
   );
 };
