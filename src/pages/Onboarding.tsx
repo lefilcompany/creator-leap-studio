@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { CreatorLogo } from "@/components/CreatorLogo";
 import { 
   Eye, EyeOff, User, Mail, Phone, Lock, Loader2, CheckCircle, 
-  ArrowLeft, ArrowRight, Zap, Crown, Rocket, Sparkles, Star, Gift, Shield, Clock, MessageCircle, Plus, Minus, ShoppingCart
+  ArrowLeft, ArrowRight, Zap, Crown, Rocket, Sparkles, Star, Gift, Shield, Clock, MessageCircle, Plus, Minus, ShoppingCart, Info
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -605,9 +605,10 @@ const Onboarding = () => {
                     </div>
                     <div>
                       <h3 className="text-lg font-bold text-foreground">Compra Avulsa</h3>
-                      <p className="text-sm text-muted-foreground">
-                        De 5 em 5 · <span className="font-semibold text-primary">R$ {CREDIT_PRICE.toFixed(2)}</span>/crédito
-                      </p>
+                      <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                        <Info className="h-3.5 w-3.5 text-primary flex-shrink-0" />
+                        <span>Compre créditos sob demanda, de 5 em 5 · <span className="font-semibold text-primary">R$ {CREDIT_PRICE.toFixed(2)}</span>/crédito</span>
+                      </div>
                     </div>
                   </div>
 
