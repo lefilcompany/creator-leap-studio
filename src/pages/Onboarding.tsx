@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { CreatorLogo } from "@/components/CreatorLogo";
 import { 
@@ -603,8 +604,16 @@ const Onboarding = () => {
                     <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center flex-shrink-0">
                       <ShoppingCart className="h-5 w-5 text-primary" />
                     </div>
-                    <div>
+                    <div className="flex items-center gap-1.5">
                       <h3 className="text-lg font-bold text-foreground">Compra Avulsa</h3>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="h-3.5 w-3.5 text-muted-foreground hover:text-primary cursor-help transition-colors hidden lg:block" />
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="max-w-[260px]">
+                          <p>Compre créditos sob demanda, de 5 em 5 · R$ {CREDIT_PRICE.toFixed(2)}/crédito</p>
+                        </TooltipContent>
+                      </Tooltip>
                     </div>
                   </div>
 
@@ -668,7 +677,7 @@ const Onboarding = () => {
                 </div>
               </div>
             </div>
-            <div className="flex items-center justify-start gap-1.5 text-sm text-muted-foreground mt-2 px-2">
+            <div className="flex items-center justify-start gap-1.5 text-sm text-muted-foreground mt-2 px-2 lg:hidden">
               <Info className="h-3.5 w-3.5 text-primary flex-shrink-0" />
               <span>Compre créditos sob demanda, de 5 em 5 · <span className="font-semibold text-primary">R$ {CREDIT_PRICE.toFixed(2)}</span>/crédito</span>
             </div>
