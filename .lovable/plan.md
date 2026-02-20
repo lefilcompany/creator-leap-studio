@@ -1,87 +1,55 @@
 
+# Redesign da Pagina /privacy
 
-## Correcao do Fluxo OAuth: Tratamento de Erros e Deploy
+## Objetivo
+Redesenhar a pagina de Politica de Privacidade para seguir o padrao visual estabelecido no sistema (banner com imagem + header card sobreposto + conteudo scrollavel), mantendo-a como rota publica.
 
-### Problema Identificado
+## Mudancas Planejadas
 
-Existem dois problemas distintos:
+### 1. Criar imagem de banner para privacidade
+- Adicionar uma nova imagem de banner tematica (privacidade/seguranca de dados) no diretorio `src/assets/`
+- Seguir o padrao de banners existentes (ex: `brands-banner.jpg`, `profile-banner.jpg`)
+- Caso nao haja imagem disponivel, usar um banner com gradiente e icone de escudo como fallback visual
 
-**1. Erro de callback OAuth nao tratado**
-Apos o consentimento do Google, o callback retorna com `#error=server_error&error_description=failed%20to%20exchange%20authorization%20code` no hash. O hook `useOAuthCallback.ts` atualmente so verifica `access_token` e `code` -- ele ignora completamente erros no hash, fazendo o usuario voltar silenciosamente para a tela de login sem feedback.
+### 2. Reestruturar o layout da pagina `src/pages/Privacy.tsx`
+A pagina sera reestruturada para seguir o padrao das paginas internas do sistema:
 
-**2. Timeout no deploy de edge functions**
-O erro `Bundle generation timed out` e um problema transiente de infraestrutura, nao um problema de codigo. As edge functions precisam ser re-deployadas.
+- **Container scrollavel**: Envolver todo o conteudo em um container com `overflow-y-auto` e `h-screen` para permitir scroll
+- **Banner no topo**: Imagem de fundo com overlay gradiente (padrao `bg-gradient-to-t from-background/80 via-background/20 to-transparent`)
+- **Header card sobreposto**: Card com `-mt-12` contendo icone Shield, titulo e descricao, seguindo o padrao de `Brands.tsx`
+- **Secoes com Accordion**: Converter as secoes em um layout de accordion (ou manter cards empilhados) com scroll natural
+- **Botao de voltar**: Manter como breadcrumb overlay no banner, seguindo o padrao `PageBreadcrumb`
+- **Margem negativa**: Usar `-m-4 sm:-m-6 lg:-m-8` caso esteja dentro do DashboardLayout, ou ajustar para standalone
 
-### O que sera alterado
-
-**Arquivo: `src/hooks/useOAuthCallback.ts`**
-
-Adicionar deteccao e tratamento de `#error=` no hash do callback:
-
-- Antes de verificar `access_token` ou `code`, checar se o hash contem `error=`
-- Se sim, extrair `error` e `error_description` do hash
-- Exibir toast com mensagem clara para o usuario (ex: "Falha na autenticacao com Google")
-- Logar detalhes tecnicos no console para diagnostico
-- Limpar o hash da URL para evitar reprocessamento
-- Nao marcar `isProcessing` como true nesse caso (permitir retry)
-
-Melhorias adicionais:
-- Logar o `window.location.origin` efetivo no callback para diagnostico
-- Logar o hash completo (nao truncado) quando contem erro
-
-**Edge Functions**
-
-- Re-deploy de todas as edge functions para resolver o timeout transiente
-
-### O que NAO sera alterado
-
-- `src/lib/auth-urls.ts` -- ja esta correto e centralizado
-- `src/pages/Auth.tsx`, `Login.tsx`, `Register.tsx` -- ja usam `getOAuthRedirectUri()` corretamente
-- `src/integrations/lovable/index.ts` -- auto-gerado, nao pode ser modificado
-- `supabase/functions/send-reset-password-email/index.ts` -- ja esta correto
-- Fluxo de sessao, team selection, login/senha -- preservados
-
-### Secao Tecnica
-
-**Logica de deteccao de erro no hash:**
+### 3. Estrutura do novo layout
 
 ```text
-hash = window.location.hash
-if hash contains "error=" ->
-  extrair error e error_description
-  exibir toast com mensagem amigavel
-  logar detalhes no console
-  return (nao processar como sucesso)
-if hash contains "access_token" -> fluxo implicit (existente)
-if searchParams has "code" -> fluxo PKCE (existente)
++--------------------------------------------------+
+|  BANNER (imagem ou gradiente com escudo)          |
+|  [<- Voltar]                                      |
++--------------------------------------------------+
+|  +--------------------------------------------+  |
+|  | [Shield]  Politica de Privacidade           |  |  <- Header card (-mt-12)
+|  |           Transparencia e seguranca...      |  |
+|  +--------------------------------------------+  |
+|                                                   |
+|  [Secao 1: Introducao]                           |
+|  [Secao 2: Definicoes]                           |
+|  [Secao 3: Dados Coletados]                      |
+|  ...                                              |
+|  [Secao 13: Canal de Atendimento]                |
+|                                                   |
+|  Rodape com copyright                             |
++--------------------------------------------------+
 ```
 
-**Mensagens de erro mapeadas:**
+### 4. Detalhes tecnicos
 
-- `server_error` + `failed to exchange authorization code` -> "Falha ao trocar o codigo de autorizacao. Verifique se o redirect URI esta configurado corretamente no Google Cloud Console."
-- `access_denied` -> "Acesso negado. Voce cancelou a autorizacao ou nao tem permissao."
-- Outros -> Mensagem generica com o error_description original
+- **Banner**: Usar gradiente com cores do tema (`from-primary/20 via-secondary/10 to-background`) com icones decorativos de seguranca (Shield, Lock) em opacidade baixa, ja que nao temos uma imagem especifica de privacidade
+- **Scroll**: A pagina e uma rota publica standalone, entao usar `min-h-screen overflow-y-auto` no container raiz (remover `overflow-hidden` do html/body via classe local)
+- **Secoes**: Manter os cards de cada secao com hover shadow, mas alinhar padding e spacing com o padrao do sistema (`px-4 sm:px-6 lg:px-8`)
+- **Responsividade**: Banner com `h-48 md:h-56`, header card responsivo
+- **Dark mode**: Funciona automaticamente via variaveis CSS do tema
 
-**Sobre o erro `failed to exchange authorization code`:**
-
-Este erro ocorre no servidor OAuth proxy do Lovable Cloud quando tenta trocar o authorization code com o Google. As causas mais comuns sao:
-1. Redirect URI no Google Cloud Console nao inclui o callback correto
-2. Client ID/Secret incorretos ou expirados
-3. Problema transiente no servidor
-
-O tratamento no frontend garante que o usuario veja uma mensagem clara em vez de ser silenciosamente redirecionado para o login.
-
-### Checklist de validacao manual
-
-1. Testar login com Google -- se funcionar, confirmar sessao no console (`[OAuth] Session obtained`)
-2. Se o erro persistir, verificar no console a mensagem de erro detalhada com origin e error_description
-3. Confirmar que o toast de erro aparece para o usuario em vez de falha silenciosa
-4. Verificar no Google Cloud Console que o Redirect URI `https://pla.creator.lefil.com.br/~oauth/callback` esta registrado
-5. Confirmar que o edge function `send-reset-password-email` esta deployada apos re-deploy
-
-### Logs para verificar em caso de falha
-
-- `[OAuth] Callback error detected in hash:` -- mostra o erro retornado pelo servidor OAuth
-- `[OAuth] Callback check:` -- mostra origin, presenca de code/token/error
-- `[OAuth] Session obtained:` -- confirma sessao valida apos sucesso
-
+### 5. Arquivos modificados
+- `src/pages/Privacy.tsx` - Redesign completo do layout
