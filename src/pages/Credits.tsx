@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -24,6 +25,8 @@ import {
   Minus,
   ShoppingCart,
   Check,
+  ChevronDown,
+  HelpCircle,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PageBreadcrumb } from "@/components/PageBreadcrumb";
@@ -449,146 +452,171 @@ const Credits = () => {
         {packages.map((pkg) => renderPackageCard(pkg, pkg.id === 'pack_pro'))}
       </div>
 
-      {/* Compra Avulsa */}
+      {/* Compra Avulsa - Collapsible */}
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3, duration: 0.5 }}
       >
-        <Card className="relative overflow-hidden border-0 shadow-md hover:shadow-lg transition-all duration-300">
-          <div className="h-1 bg-gradient-to-r from-primary/40 via-primary to-primary/40" />
-          
-          <CardContent className="p-4 sm:p-6">
-            <div className="flex flex-col xl:flex-row items-center gap-5 xl:gap-8">
-              {/* Info */}
-              <div className="flex-1 min-w-0 text-center xl:text-left">
-                <div className="flex items-center justify-center xl:justify-start gap-2 mb-1">
-                  <ShoppingCart className="h-5 w-5 text-primary flex-shrink-0" />
-                  <h3 className="text-lg font-bold whitespace-nowrap">Compra Avulsa</h3>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Compre créditos avulsos de 5 em 5. Cada crédito custa <span className="font-semibold text-primary">R$ {CREDIT_PRICE.toFixed(2)}</span>
-                </p>
-                <div className="flex items-center justify-center xl:justify-start gap-1.5 text-xs text-muted-foreground mt-1">
-                  <Check className="h-3.5 w-3.5 text-primary flex-shrink-0" />
-                  <span>Pagamento único via Stripe</span>
-                </div>
-              </div>
-
-              {/* Quantity selector + Total + Button */}
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-5 w-full xl:w-auto">
-                {/* Quantity selector */}
+        <Collapsible>
+          <Card className="border-0 shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden">
+            <CollapsibleTrigger className="w-full">
+              <div className="flex items-center justify-between p-4 sm:p-5 cursor-pointer hover:bg-muted/30 transition-colors">
                 <div className="flex items-center gap-3">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-10 w-10 rounded-full border-2 hover:bg-primary hover:text-primary-foreground transition-all flex-shrink-0"
-                    onClick={decrementCredits}
-                    disabled={customCredits <= MIN_CREDITS}
-                  >
-                    <Minus className="h-4 w-4" />
-                  </Button>
-                  
-                  <div className="text-center min-w-[80px]">
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      value={creditInputValue}
-                      onChange={(e) => {
-                        const raw = e.target.value.replace(/[^0-9]/g, '');
-                        setCreditInputValue(raw);
-                      }}
-                      onBlur={() => {
-                        const val = parseInt(creditInputValue);
-                        if (isNaN(val) || val < MIN_CREDITS) {
-                          setCustomCredits(MIN_CREDITS);
-                          setCreditInputValue(String(MIN_CREDITS));
-                        } else {
-                          const clamped = Math.min(val, MAX_CREDITS);
-                          const rounded = Math.round(clamped / CREDIT_STEP) * CREDIT_STEP || MIN_CREDITS;
-                          setCustomCredits(rounded);
-                          setCreditInputValue(String(rounded));
-                        }
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          (e.target as HTMLInputElement).blur();
-                        }
-                      }}
-                      min={MIN_CREDITS}
-                      max={MAX_CREDITS}
-                      step={CREDIT_STEP}
-                      className="w-24 text-center text-4xl xl:text-5xl font-bold text-primary bg-transparent border-none outline-none focus:ring-0 appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [-moz-appearance:textfield]"
-                    />
-                    <p className="text-xs text-muted-foreground -mt-1">créditos</p>
+                  <div className="p-2 rounded-xl bg-primary/10 text-primary">
+                    <ShoppingCart className="h-5 w-5" />
                   </div>
-                  
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-10 w-10 rounded-full border-2 hover:bg-primary hover:text-primary-foreground transition-all flex-shrink-0"
-                    onClick={incrementCredits}
-                    disabled={customCredits >= MAX_CREDITS}
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
+                  <div className="text-left">
+                    <h3 className="text-base font-bold">Compra Avulsa</h3>
+                    <p className="text-xs text-muted-foreground">
+                      Créditos avulsos a <span className="font-semibold text-primary">R$ {CREDIT_PRICE.toFixed(2)}</span> cada
+                    </p>
+                  </div>
                 </div>
-
-                {/* Total price */}
-                <motion.div 
-                  key={customCredits * CREDIT_PRICE}
-                  initial={{ scale: 1.05 }}
-                  animate={{ scale: 1 }}
-                  className="bg-primary/10 px-5 py-2.5 rounded-xl border border-primary/20 text-center flex-shrink-0"
-                >
-                  <p className="text-xs text-muted-foreground">Total</p>
-                  <p className="text-2xl font-bold text-primary">
-                    R$ {(customCredits * CREDIT_PRICE).toFixed(2)}
-                  </p>
-                </motion.div>
-
-                {/* Buy button */}
-                <Button
-                  onClick={handleCustomPurchase}
-                  disabled={loadingCustom}
-                  size="lg"
-                  className="w-full sm:w-auto h-12 px-6 text-base font-semibold bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl transition-all duration-300 flex-shrink-0"
-                >
-                  {loadingCustom ? (
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                  ) : (
-                    <>
-                      <ShoppingCart className="h-4 w-4 mr-2" />
-                      Comprar {customCredits} Créditos
-                    </>
-                  )}
-                </Button>
+                <ChevronDown className="h-5 w-5 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="h-px bg-border/50" />
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex flex-col xl:flex-row items-center gap-5 xl:gap-8">
+                  <div className="flex-1 min-w-0 text-center xl:text-left">
+                    <p className="text-sm text-muted-foreground">
+                      Compre créditos avulsos de 5 em 5. Cada crédito custa <span className="font-semibold text-primary">R$ {CREDIT_PRICE.toFixed(2)}</span>
+                    </p>
+                    <div className="flex items-center justify-center xl:justify-start gap-1.5 text-xs text-muted-foreground mt-1">
+                      <Check className="h-3.5 w-3.5 text-primary flex-shrink-0" />
+                      <span>Pagamento único via Stripe</span>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-5 w-full xl:w-auto">
+                    <div className="flex items-center gap-3">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-10 w-10 rounded-full border-2 hover:bg-primary hover:text-primary-foreground transition-all flex-shrink-0"
+                        onClick={decrementCredits}
+                        disabled={customCredits <= MIN_CREDITS}
+                      >
+                        <Minus className="h-4 w-4" />
+                      </Button>
+                      
+                      <div className="text-center min-w-[80px]">
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          value={creditInputValue}
+                          onChange={(e) => {
+                            const raw = e.target.value.replace(/[^0-9]/g, '');
+                            setCreditInputValue(raw);
+                          }}
+                          onBlur={() => {
+                            const val = parseInt(creditInputValue);
+                            if (isNaN(val) || val < MIN_CREDITS) {
+                              setCustomCredits(MIN_CREDITS);
+                              setCreditInputValue(String(MIN_CREDITS));
+                            } else {
+                              const clamped = Math.min(val, MAX_CREDITS);
+                              const rounded = Math.round(clamped / CREDIT_STEP) * CREDIT_STEP || MIN_CREDITS;
+                              setCustomCredits(rounded);
+                              setCreditInputValue(String(rounded));
+                            }
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              (e.target as HTMLInputElement).blur();
+                            }
+                          }}
+                          min={MIN_CREDITS}
+                          max={MAX_CREDITS}
+                          step={CREDIT_STEP}
+                          className="w-24 text-center text-4xl xl:text-5xl font-bold text-primary bg-transparent border-none outline-none focus:ring-0 appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [-moz-appearance:textfield]"
+                        />
+                        <p className="text-xs text-muted-foreground -mt-1">créditos</p>
+                      </div>
+                      
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-10 w-10 rounded-full border-2 hover:bg-primary hover:text-primary-foreground transition-all flex-shrink-0"
+                        onClick={incrementCredits}
+                        disabled={customCredits >= MAX_CREDITS}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+
+                    <motion.div 
+                      key={customCredits * CREDIT_PRICE}
+                      initial={{ scale: 1.05 }}
+                      animate={{ scale: 1 }}
+                      className="bg-primary/10 px-5 py-2.5 rounded-xl text-center flex-shrink-0"
+                    >
+                      <p className="text-xs text-muted-foreground">Total</p>
+                      <p className="text-2xl font-bold text-primary">
+                        R$ {(customCredits * CREDIT_PRICE).toFixed(2)}
+                      </p>
+                    </motion.div>
+
+                    <Button
+                      onClick={handleCustomPurchase}
+                      disabled={loadingCustom}
+                      size="lg"
+                      className="w-full sm:w-auto h-12 px-6 text-base font-semibold shadow-md hover:shadow-lg transition-all duration-300 flex-shrink-0"
+                    >
+                      {loadingCustom ? (
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                      ) : (
+                        <>
+                          <ShoppingCart className="h-4 w-4 mr-2" />
+                          Comprar {customCredits} Créditos
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
       </motion.div>
 
-      {/* Info section */}
-      <Card className="border-0 shadow-md bg-muted/30">
-        <CardContent className="p-5 sm:p-6">
-          <div className="text-center space-y-2">
-            <h3 className="font-semibold">Como funcionam os créditos?</h3>
-            <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
-              Os créditos são consumidos ao usar as ferramentas de criação de conteúdo com IA. 
-              Cada tipo de criação tem um custo diferente. Os créditos comprados nunca expiram 
-              e você pode comprar mais a qualquer momento.
-            </p>
-            <Button 
-              variant="link" 
-              className="text-primary"
-              onClick={() => navigate('/credit-history')}
-            >
-              Ver histórico de uso de créditos
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Info section - Collapsible */}
+      <Collapsible>
+        <Card className="border-0 shadow-md overflow-hidden">
+          <CollapsibleTrigger className="w-full">
+            <div className="flex items-center justify-between p-4 sm:p-5 cursor-pointer hover:bg-muted/30 transition-colors">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-muted text-muted-foreground">
+                  <HelpCircle className="h-5 w-5" />
+                </div>
+                <h3 className="text-base font-bold text-left">Como funcionam os créditos?</h3>
+              </div>
+              <ChevronDown className="h-5 w-5 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
+            </div>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <div className="h-px bg-border/50" />
+            <CardContent className="p-5 sm:p-6">
+              <div className="text-center space-y-2">
+                <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
+                  Os créditos são consumidos ao usar as ferramentas de criação de conteúdo com IA. 
+                  Cada tipo de criação tem um custo diferente. Os créditos comprados nunca expiram 
+                  e você pode comprar mais a qualquer momento.
+                </p>
+                <Button 
+                  variant="link" 
+                  className="text-primary"
+                  onClick={() => navigate('/credit-history')}
+                >
+                  Ver histórico de uso de créditos
+                </Button>
+              </div>
+            </CardContent>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
     </div>
   );
 };
