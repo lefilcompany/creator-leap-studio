@@ -248,7 +248,7 @@ export function AppSidebar() {
                 <TooltipTrigger asChild>
                   <NavLink
                     id="nav-credits"
-                    to="/plans"
+                    to="/credits"
                     onClick={handleMobileNavigate}
                     className="flex items-center justify-center gap-3 p-3 rounded-lg transition-all duration-300 ease-in-out hover:scale-105 bg-gradient-to-r from-primary to-secondary text-primary-foreground shadow-lg"
                   >
@@ -265,7 +265,7 @@ export function AppSidebar() {
             ) : (
               <NavLink
                 id="nav-credits"
-                to="/plans"
+                to="/credits"
                 onClick={handleMobileNavigate}
                 className="flex items-center gap-3 p-3 rounded-lg transition-all duration-300 ease-in-out hover:scale-105 bg-gradient-to-r from-primary to-secondary text-primary-foreground shadow-lg"
               >

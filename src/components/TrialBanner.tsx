@@ -33,7 +33,7 @@ export const TrialBanner = () => {
             }
           </p>
           <Button
-            onClick={() => navigate("/plans")}
+            onClick={() => navigate("/credits")}
             size="sm"
             variant={isZero ? "destructive" : "default"}
           >
