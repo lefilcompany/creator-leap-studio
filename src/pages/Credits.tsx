@@ -319,13 +319,13 @@ const Credits = () => {
           </CardHeader>
 
           <CardContent className="relative space-y-4">
-            <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/5 border border-primary/10">
-              <Zap className="h-6 w-6 text-primary flex-shrink-0" />
-              <div>
-                <span className="text-2xl font-bold text-primary">
+            <div className="flex items-center justify-center gap-2.5 p-3.5 rounded-xl bg-primary/8 border border-primary/10">
+              <Zap className="h-5 w-5 text-primary flex-shrink-0" />
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-2xl font-bold text-primary leading-none">
                   {isEnterprise ? '∞' : pkg.credits.toLocaleString('pt-BR')}
                 </span>
-                <span className="text-sm text-muted-foreground ml-1">créditos</span>
+                <span className="text-sm font-medium text-muted-foreground">créditos</span>
               </div>
             </div>
 
