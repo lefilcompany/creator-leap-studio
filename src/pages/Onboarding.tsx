@@ -413,11 +413,10 @@ const Onboarding = () => {
       >
         <div
           className={cn(
-            "relative h-full cursor-pointer transition-all duration-300 overflow-hidden group rounded-2xl bg-card",
-            "border hover:shadow-md",
-            isSelected ? "border-primary ring-2 ring-primary/20 shadow-lg" : "border-border/50 shadow-sm hover:border-primary/50",
+            "relative h-full cursor-pointer transition-all duration-300 overflow-hidden group rounded-2xl bg-card border-0",
+            "shadow-sm hover:shadow-lg",
+            isSelected ? "ring-2 ring-primary/20 shadow-lg" : "",
             isPopular && "ring-2 ring-primary/30",
-            isEnterprise && "border-amber-500/30"
           )}
           onClick={() => handlePackageSelect(pkg)}
         >
