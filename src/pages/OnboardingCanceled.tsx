@@ -24,14 +24,14 @@ const OnboardingCanceled = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Banner */}
-      <div className="relative h-44 lg:h-56 flex-shrink-0">
+      {/* Banner - taller with better object positioning */}
+      <div className="relative h-52 lg:h-64 flex-shrink-0">
         <img
           src={canceledBanner}
           alt="Pagamento Cancelado"
-          className="w-full h-full object-cover object-[center_60%]"
+          className="w-full h-full object-cover object-[center_45%]"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent" />
         
         {/* Logo overlay */}
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 bg-card/80 backdrop-blur-sm rounded-2xl px-5 py-2.5 shadow-md">
@@ -39,8 +39,8 @@ const OnboardingCanceled = () => {
         </div>
       </div>
 
-      {/* Content - single unified card */}
-      <div className="flex-1 flex flex-col items-center px-4 sm:px-6 pb-8 -mt-14 relative z-10">
+      {/* Content - single unified card, no dividers */}
+      <div className="flex-1 flex flex-col items-center px-4 sm:px-6 pb-8 -mt-16 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -61,11 +61,8 @@ const OnboardingCanceled = () => {
             </div>
           </div>
 
-          {/* Divider */}
-          <div className="h-px bg-border" />
-
-          {/* Info section */}
-          <div>
+          {/* Info section as inner card */}
+          <div className="bg-muted/50 rounded-xl p-4">
             <div className="flex items-center gap-2 mb-3">
               <div className="flex-shrink-0 w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
                 <Info className="w-3.5 h-3.5 text-primary" />
@@ -91,9 +88,6 @@ const OnboardingCanceled = () => {
               </li>
             </ul>
           </div>
-
-          {/* Divider */}
-          <div className="h-px bg-border" />
 
           {/* Actions */}
           <div className="flex flex-col gap-3">
