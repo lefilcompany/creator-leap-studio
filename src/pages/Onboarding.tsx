@@ -677,7 +677,7 @@ const Onboarding = () => {
                 </div>
               </div>
             </div>
-            <div className="flex items-center justify-start gap-1.5 text-sm text-muted-foreground mt-2 px-2 lg:hidden">
+            <div className="flex items-center justify-center gap-1.5 text-sm text-muted-foreground mt-2 px-2 lg:hidden">
               <Info className="h-3.5 w-3.5 text-primary flex-shrink-0" />
               <span>Compre créditos sob demanda, de 5 em 5 · <span className="font-semibold text-primary">R$ {CREDIT_PRICE.toFixed(2)}</span>/crédito</span>
             </div>
