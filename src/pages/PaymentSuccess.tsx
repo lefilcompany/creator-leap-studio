@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle2, Loader2, XCircle, ArrowRight, Sparkles } from "lucide-react";
+import { CreatorLogo } from "@/components/CreatorLogo";
+import { CheckCircle, Loader2, XCircle, ArrowRight, Sparkles, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { motion } from "framer-motion";
@@ -23,7 +23,6 @@ export default function PaymentSuccess() {
       const sessionId = searchParams.get('session_id');
       
       if (!sessionId) {
-        // Fallback: verificar perfil diretamente
         await verifyProfileCredits();
         return;
       }
@@ -61,7 +60,6 @@ export default function PaymentSuccess() {
             toast.success(`✅ ${data.credits_added} créditos adicionados!`);
           }
           
-          // Auto-redirect após 3 segundos
           setTimeout(() => {
             navigate('/dashboard', { replace: true });
           }, 3000);
@@ -89,7 +87,6 @@ export default function PaymentSuccess() {
           return;
         }
 
-        // Aguardar processamento
         await new Promise(resolve => setTimeout(resolve, 2000));
 
         const { data: profile } = await supabase
@@ -124,105 +121,127 @@ export default function PaymentSuccess() {
   }, [searchParams, navigate, refreshUserCredits]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center p-4">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.3 }}
-      >
-        <Card className="w-full max-w-lg shadow-xl border-2">
-          <CardHeader className="text-center pb-4">
-            <CardTitle className="text-3xl font-bold">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/30 flex flex-col items-center justify-center px-4 sm:px-6 py-8">
+      {/* Decorative background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-primary/5 blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full bg-primary/5 blur-3xl" />
+      </div>
+
+      <div className="relative z-10 w-full max-w-md flex flex-col items-center">
+        {/* Logo */}
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <CreatorLogo />
+        </motion.div>
+
+        {/* Main card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="w-full bg-card rounded-2xl shadow-lg border border-border/50 p-6 lg:p-8 flex flex-col gap-6"
+        >
+          {/* Status icon + title */}
+          <div className="text-center flex flex-col items-center gap-4">
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+            >
               {isVerifying ? (
-                <div className="flex flex-col items-center gap-4">
-                  <div className="relative">
-                    <Loader2 className="h-16 w-16 animate-spin text-primary" />
-                    <Sparkles className="h-6 w-6 text-primary absolute -top-1 -right-1 animate-pulse" />
-                  </div>
-                  <span>Verificando...</span>
+                <div className="h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center relative shadow-sm">
+                  <Loader2 className="h-8 w-8 text-primary animate-spin" />
+                  <Sparkles className="h-4 w-4 text-primary absolute -top-1.5 -right-1.5 animate-pulse" />
                 </div>
               ) : verificationStatus === 'success' ? (
-                <motion.div 
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  className="flex flex-col items-center gap-4"
-                >
-                  <div className="h-20 w-20 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                    <CheckCircle2 className="h-12 w-12 text-green-600" />
-                  </div>
-                  <span className="text-green-600">Pagamento Confirmado!</span>
-                </motion.div>
+                <div className="h-16 w-16 rounded-2xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center shadow-sm">
+                  <CheckCircle className="h-8 w-8 text-green-600" />
+                </div>
               ) : verificationStatus === 'error' ? (
-                <div className="flex flex-col items-center gap-4">
-                  <div className="h-20 w-20 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-                    <XCircle className="h-12 w-12 text-red-600" />
-                  </div>
-                  <span className="text-red-600">Erro na Verificação</span>
+                <div className="h-16 w-16 rounded-2xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center shadow-sm">
+                  <XCircle className="h-8 w-8 text-red-600" />
                 </div>
               ) : (
-                <div className="flex flex-col items-center gap-4">
-                  <Loader2 className="h-12 w-12 animate-spin text-amber-500" />
-                  <span className="text-amber-600">Processando...</span>
+                <div className="h-16 w-16 rounded-2xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center shadow-sm">
+                  <Loader2 className="h-7 w-7 text-amber-600 animate-spin" />
                 </div>
               )}
-            </CardTitle>
-            <CardDescription className="text-lg mt-4">
-              {message}
-            </CardDescription>
-          </CardHeader>
-          
-          <CardContent className="space-y-6">
-            {verificationStatus === 'success' && (
-              <motion.div 
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-6 text-center"
+            </motion.div>
+
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">
+                {isVerifying ? 'Verificando...' : 
+                 verificationStatus === 'success' ? 'Pagamento Confirmado!' :
+                 verificationStatus === 'error' ? 'Erro na Verificação' : 'Processando...'}
+              </h1>
+              <p className="text-sm text-muted-foreground mt-1">
+                {message}
+              </p>
+            </div>
+          </div>
+
+          {/* Credits inner card */}
+          {verificationStatus === 'success' && (
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="bg-muted/40 rounded-xl p-5 text-center"
+            >
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <Zap className="h-4 w-4 text-primary" />
+                <span className="text-sm font-medium text-muted-foreground">Seus créditos</span>
+              </div>
+              {creditsAdded > 0 && (
+                <p className="text-sm text-green-600/80 dark:text-green-400/80 mb-1">
+                  +{creditsAdded} créditos adicionados
+                </p>
+              )}
+              <p className="text-4xl font-bold text-primary">
+                {newBalance}
+              </p>
+              <p className="text-sm text-muted-foreground mt-1">
+                créditos disponíveis
+              </p>
+            </motion.div>
+          )}
+
+          {/* Actions */}
+          {!isVerifying && (
+            <div className="flex flex-col gap-3">
+              <Button 
+                onClick={() => navigate('/dashboard', { replace: true })} 
+                className="w-full h-11"
+                size="lg"
               >
-                {creditsAdded > 0 && (
-                  <p className="text-lg text-green-600/80 dark:text-green-400/80 mb-2">
-                    +{creditsAdded} créditos adicionados
-                  </p>
-                )}
-                <p className="text-4xl font-bold text-green-600 dark:text-green-400">
-                  {newBalance} créditos
-                </p>
-                <p className="text-sm text-green-600/80 dark:text-green-400/80 mt-1">
-                  disponíveis agora
-                </p>
-              </motion.div>
-            )}
-            
-            {!isVerifying && (
-              <div className="space-y-3">
-                <p className="text-sm text-muted-foreground text-center">
-                  {verificationStatus === 'success' 
-                    ? 'Redirecionando para o dashboard em 3 segundos...'
-                    : 'Clique abaixo para continuar'}
-                </p>
-                
+                Ir para o Dashboard
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+              
+              {verificationStatus !== 'success' && (
                 <Button 
-                  onClick={() => navigate('/dashboard', { replace: true })} 
-                  className="w-full h-12 text-lg"
+                  onClick={() => navigate('/credits')} 
+                  variant="outline"
+                  className="w-full h-11"
                   size="lg"
                 >
-                  Ir para o Dashboard
-                  <ArrowRight className="ml-2 h-5 w-5" />
+                  Ver Créditos
                 </Button>
-                
-                {verificationStatus !== 'success' && (
-                  <Button 
-                    onClick={() => navigate('/credits')} 
-                    variant="outline"
-                    className="w-full"
-                  >
-                    Ver Créditos
-                  </Button>
-                )}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </motion.div>
+              )}
+
+              <p className="text-xs text-muted-foreground text-center">
+                {verificationStatus === 'success' 
+                  ? 'Redirecionando automaticamente em 3 segundos...'
+                  : 'Clique acima para continuar'}
+              </p>
+            </div>
+          )}
+        </motion.div>
+      </div>
     </div>
   );
 }
