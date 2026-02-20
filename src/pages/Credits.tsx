@@ -272,9 +272,9 @@ const Credits = () => {
         <Card
           className={cn(
             "relative h-full transition-all duration-300 overflow-hidden group",
-            "border-2 hover:shadow-2xl",
-            isPopular && "ring-2 ring-primary/30 shadow-xl",
-            isEnterprise && "border-amber-500/50"
+            "border-0 shadow-md hover:shadow-xl",
+            isPopular && "ring-2 ring-primary/20 shadow-lg",
+            isEnterprise && "ring-1 ring-amber-500/30"
           )}
         >
           <div className={cn(
@@ -369,7 +369,7 @@ const Credits = () => {
   if (verifyingPayment) {
     return (
       <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
-        <Card className="w-auto">
+        <Card className="w-auto border-0 shadow-lg">
           <CardContent className="pt-6 flex flex-col items-center gap-4">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
             <p className="text-lg font-medium">Verificando pagamento...</p>
@@ -395,32 +395,34 @@ const Credits = () => {
       <PageBreadcrumb items={[{ label: "Comprar Créditos" }]} />
 
       {/* Header */}
-      <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-background rounded-2xl p-6 md:p-8 shadow-lg">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="flex-shrink-0 bg-primary/10 text-primary rounded-2xl p-4">
-              <Coins className="h-8 w-8 md:h-10 md:w-10" />
-            </div>
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-1">Pacotes de Créditos</h1>
-              <p className="text-sm md:text-base text-muted-foreground">
-                Compre créditos para usar nas ferramentas de criação com IA
-              </p>
-            </div>
-          </div>
-          
-          {user && (
-            <div className="flex items-center gap-3 bg-card px-4 py-3 rounded-xl border shadow-sm">
-              <p className="text-sm text-muted-foreground whitespace-nowrap">Seu saldo atual</p>
-              <div className="flex items-center gap-1.5">
-                <Zap className="h-5 w-5 text-primary" />
-                <span className="text-2xl font-bold text-primary">{user.credits || 0}</span>
-                <span className="text-sm text-muted-foreground">créditos</span>
+      <Card className="border-0 shadow-md bg-gradient-to-br from-primary/10 via-primary/5 to-card rounded-2xl overflow-hidden">
+        <CardContent className="p-5 sm:p-6 md:p-8">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="flex-shrink-0 bg-primary/10 text-primary rounded-2xl p-3 sm:p-4">
+                <Coins className="h-7 w-7 sm:h-8 sm:w-8 md:h-10 md:w-10" />
+              </div>
+              <div>
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-1">Pacotes de Créditos</h1>
+                <p className="text-xs sm:text-sm md:text-base text-muted-foreground">
+                  Compre créditos para usar nas ferramentas de criação com IA
+                </p>
               </div>
             </div>
-          )}
-        </div>
-      </div>
+            
+            {user && (
+              <div className="flex items-center gap-3 bg-card/80 backdrop-blur-sm px-4 py-3 rounded-xl shadow-sm">
+                <p className="text-sm text-muted-foreground whitespace-nowrap">Seu saldo atual</p>
+                <div className="flex items-center gap-1.5">
+                  <Zap className="h-5 w-5 text-primary" />
+                  <span className="text-2xl font-bold text-primary">{user.credits || 0}</span>
+                  <span className="text-sm text-muted-foreground">créditos</span>
+                </div>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Benefits bar */}
       <div className="flex flex-wrap justify-center gap-6 text-sm text-muted-foreground">
@@ -443,7 +445,7 @@ const Credits = () => {
       </div>
 
       {/* Packages grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
         {packages.map((pkg) => renderPackageCard(pkg, pkg.id === 'pack_pro'))}
       </div>
 
@@ -453,7 +455,7 @@ const Credits = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3, duration: 0.5 }}
       >
-        <Card className="relative overflow-hidden border-2 border-dashed border-primary/30 hover:border-primary/50 transition-all duration-300">
+        <Card className="relative overflow-hidden border-0 shadow-md hover:shadow-lg transition-all duration-300">
           <div className="h-1 bg-gradient-to-r from-primary/40 via-primary to-primary/40" />
           
           <CardContent className="p-4 sm:p-6">
@@ -568,8 +570,8 @@ const Credits = () => {
       </motion.div>
 
       {/* Info section */}
-      <Card className="bg-muted/50">
-        <CardContent className="p-6">
+      <Card className="border-0 shadow-md bg-muted/30">
+        <CardContent className="p-5 sm:p-6">
           <div className="text-center space-y-2">
             <h3 className="font-semibold">Como funcionam os créditos?</h3>
             <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
