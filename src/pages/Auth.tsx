@@ -136,9 +136,9 @@ const Auth = () => {
   const passwordsMatch = formData.password === confirmPassword;
   const isPasswordValid = formData.password && formData.password.length >= 6;
 
-  // Redireciona automaticamente quando autenticado
+  // Redireciona automaticamente quando autenticado (inclui retorno do OAuth)
   useEffect(() => {
-    if (waitingForAuth && !authLoading && user && !showChangePassword) {
+    if (!authLoading && user && !showChangePassword) {
       if (user.isAdmin) {
         console.log("[Auth] System Admin authenticated, redirecting to /system");
         navigate("/system", { replace: true });
@@ -147,7 +147,7 @@ const Auth = () => {
       console.log("[Auth] Auth complete, redirecting to dashboard");
       navigate("/dashboard", { replace: true });
     }
-  }, [waitingForAuth, authLoading, user, showChangePassword, navigate]);
+  }, [authLoading, user, showChangePassword, navigate]);
 
   // Busca os estados do Brasil na API do IBGE
   useEffect(() => {
