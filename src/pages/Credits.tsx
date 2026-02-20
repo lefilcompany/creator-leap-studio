@@ -458,12 +458,12 @@ const Credits = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3, duration: 0.5 }}
       >
-        <Collapsible>
+        <Collapsible className="group">
           <Card className="border-0 shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden">
-            <CollapsibleTrigger className="w-full">
-              <div className="flex items-center justify-between p-4 sm:p-5 cursor-pointer hover:bg-muted/30 transition-colors">
+            <CollapsibleTrigger className="w-full" asChild>
+              <button className="flex items-center justify-between w-full p-4 sm:p-5 cursor-pointer hover:bg-muted/20 transition-colors active:scale-[0.99]">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-xl bg-primary/10 text-primary">
+                  <div className="p-2.5 rounded-xl bg-primary/10 text-primary">
                     <ShoppingCart className="h-5 w-5" />
                   </div>
                   <div className="text-left">
@@ -473,12 +473,11 @@ const Credits = () => {
                     </p>
                   </div>
                 </div>
-                <ChevronDown className="h-5 w-5 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
-              </div>
+                <ChevronDown className="h-5 w-5 text-muted-foreground transition-transform duration-300 group-data-[state=open]:rotate-180" />
+              </button>
             </CollapsibleTrigger>
             <CollapsibleContent>
-              <div className="h-px bg-border/50" />
-              <CardContent className="p-4 sm:p-6">
+              <CardContent className="px-4 sm:px-6 pb-5 pt-2">
                 <div className="flex flex-col xl:flex-row items-center gap-5 xl:gap-8">
                   <div className="flex-1 min-w-0 text-center xl:text-left">
                     <p className="text-sm text-muted-foreground">
@@ -583,22 +582,21 @@ const Credits = () => {
       </motion.div>
 
       {/* Info section - Collapsible */}
-      <Collapsible>
+      <Collapsible className="group">
         <Card className="border-0 shadow-md overflow-hidden">
-          <CollapsibleTrigger className="w-full">
-            <div className="flex items-center justify-between p-4 sm:p-5 cursor-pointer hover:bg-muted/30 transition-colors">
+          <CollapsibleTrigger className="w-full" asChild>
+            <button className="flex items-center justify-between w-full p-4 sm:p-5 cursor-pointer hover:bg-muted/20 transition-colors active:scale-[0.99]">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-muted text-muted-foreground">
+                <div className="p-2.5 rounded-xl bg-muted/50 text-muted-foreground">
                   <HelpCircle className="h-5 w-5" />
                 </div>
                 <h3 className="text-base font-bold text-left">Como funcionam os créditos?</h3>
               </div>
-              <ChevronDown className="h-5 w-5 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
-            </div>
+              <ChevronDown className="h-5 w-5 text-muted-foreground transition-transform duration-300 group-data-[state=open]:rotate-180" />
+            </button>
           </CollapsibleTrigger>
           <CollapsibleContent>
-            <div className="h-px bg-border/50" />
-            <CardContent className="p-5 sm:p-6">
+            <CardContent className="px-5 sm:px-6 pb-5 pt-2">
               <div className="text-center space-y-2">
                 <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
                   Os créditos são consumidos ao usar as ferramentas de criação de conteúdo com IA. 
