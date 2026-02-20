@@ -1,7 +1,6 @@
 import { Shield, Info, Database, Scale, Target, Brain, Share2, Cookie, UserCheck, Clock, Lock, RefreshCw, Mail } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import privacyBanner from "@/assets/privacy-banner.jpg";
 import { PageBreadcrumb } from "@/components/PageBreadcrumb";
@@ -241,49 +240,45 @@ const Privacy = () => {
       {/* Content container */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
         {/* Header card */}
-        <Card className="-mt-12 relative z-10 border-0 shadow-lg mb-8">
-          <CardHeader className="flex flex-row items-center gap-4">
-            <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-              <Shield className="w-6 h-6 text-primary" />
+        <div className="-mt-12 relative z-10 bg-card rounded-2xl shadow-lg p-4 lg:p-5 mb-8">
+          <div className="flex items-center gap-4">
+            <div className="flex-shrink-0 bg-primary/10 border border-primary/20 shadow-sm rounded-2xl p-3 lg:p-4">
+              <Shield className="h-8 w-8 lg:h-10 lg:w-10 text-primary" />
             </div>
             <div>
-              <CardTitle className="text-2xl">
+              <h1 className="text-2xl lg:text-3xl font-bold text-foreground">
                 Política de Privacidade, Uso de Dados e Inteligência Artificial
-              </CardTitle>
-              <CardDescription className="mt-1">
+              </h1>
+              <p className="text-sm lg:text-base text-muted-foreground mt-1">
                 Transparência e segurança no tratamento dos seus dados
-              </CardDescription>
+              </p>
             </div>
-          </CardHeader>
-        </Card>
+          </div>
+        </div>
 
         {/* Accordion sections */}
-        <Card className="border-0 shadow-md">
-          <CardContent className="p-0">
-            <Accordion type="multiple" defaultValue={["section-0"]} className="w-full">
-              {privacySections.map((section, index) => {
-                const Icon = section.icon;
-                return (
-                  <AccordionItem key={index} value={`section-${index}`} className="border-b border-border/50 last:border-0 px-6">
-                    <AccordionTrigger className="py-4 hover:no-underline hover:bg-muted/30 -mx-3 px-3 rounded-lg transition-colors">
-                      <div className="flex items-center gap-3 text-left">
-                        <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                          <Icon className="w-4 h-4 text-primary" />
-                        </div>
-                        <span className="text-base font-semibold text-foreground">
-                          {section.title}
-                        </span>
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent className="pb-6 pt-0 ml-11">
-                      {section.content}
-                    </AccordionContent>
-                  </AccordionItem>
-                );
-              })}
-            </Accordion>
-          </CardContent>
-        </Card>
+        <Accordion type="multiple" defaultValue={["section-0"]} className="w-full space-y-3">
+          {privacySections.map((section, index) => {
+            const Icon = section.icon;
+            return (
+              <AccordionItem key={index} value={`section-${index}`} className="bg-card rounded-2xl shadow-sm border-0 hover:shadow-md transition-shadow">
+                <AccordionTrigger className="p-4 lg:p-5 hover:no-underline rounded-2xl">
+                  <div className="flex items-center gap-3 text-left">
+                    <div className="flex-shrink-0 w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center">
+                      <Icon className="w-5 h-5 text-primary" />
+                    </div>
+                    <span className="text-base font-semibold text-foreground">
+                      {section.title}
+                    </span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="px-4 lg:px-5 pb-5 pt-0 ml-[52px]">
+                  {section.content}
+                </AccordionContent>
+              </AccordionItem>
+            );
+          })}
+        </Accordion>
 
         {/* Footer */}
         <div className="mt-10 text-center text-sm text-muted-foreground border-t border-border pt-6">
