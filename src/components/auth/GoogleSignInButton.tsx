@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { lovable } from "@/integrations/lovable/index";
 import { toast } from "sonner";
+import { getAuthBaseUrl } from "@/lib/auth-urls";
 
 interface GoogleSignInButtonProps {
   label?: string;
@@ -16,7 +17,7 @@ export function GoogleSignInButton({ label = "Continuar com Google", className }
     setLoading(true);
     try {
       const { error } = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
+        redirect_uri: getAuthBaseUrl(),
       });
 
       if (error) {
