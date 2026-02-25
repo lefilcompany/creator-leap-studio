@@ -20,8 +20,6 @@ import { useTranslation } from "@/hooks/useTranslation";
 // NativeSelect used for dropdowns to avoid extension conflicts
 import { useAuth } from "@/hooks/useAuth";
 import { validateReturnUrl } from "@/lib/auth-urls";
-import { useOAuthCallback } from "@/hooks/useOAuthCallback";
-import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 import { motion } from "framer-motion";
 import decorativeElement from "@/assets/decorative-element.png";
 
@@ -44,8 +42,6 @@ const Login = () => {
   const { language } = useLanguage();
   const { user, team, isLoading: authLoading } = useAuth();
   
-  // Handle OAuth callback
-  const { showTeamDialog: showOAuthTeamDialog, handleTeamDialogClose: handleOAuthTeamDialogClose } = useOAuthCallback();
   
 
   // Redireciona automaticamente quando autenticado
@@ -247,17 +243,6 @@ const Login = () => {
             t.login.signIn
           )}
         </Button>
-
-        <div className="relative my-4">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t border-border" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-card/80 px-2 text-muted-foreground">ou</span>
-          </div>
-        </div>
-
-        <GoogleSignInButton />
 
         <div className="text-center">
           <span className="text-muted-foreground text-sm">{t.login.noAccount} </span>
@@ -469,12 +454,6 @@ const Login = () => {
         }}
       />
 
-      {/* OAuth team dialog */}
-      <TeamSelectionDialog
-        open={showOAuthTeamDialog}
-        onClose={handleOAuthTeamDialogClose}
-        context="login"
-      />
     </>
   );
 };
