@@ -169,7 +169,8 @@ const Dashboard = () => {
   }
 
   const remainingCredits = user.credits || 0;
-  const totalCredits = Math.max(planCredits || 0, remainingCredits);
+  const maxCredits = user.maxCredits || 0;
+  const totalCredits = Math.max(maxCredits, planCredits || 0, remainingCredits);
   const progressPercentage = totalCredits > 0 ? ((remainingCredits / totalCredits) * 100) : 0;
 
   return (

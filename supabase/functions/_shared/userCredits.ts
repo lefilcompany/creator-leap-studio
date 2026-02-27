@@ -108,7 +108,7 @@ export async function addUserCredits(
   // Buscar créditos atuais
   const { data: profile, error: fetchError } = await supabase
     .from('profiles')
-    .select('credits')
+    .select('credits, max_credits')
     .eq('id', userId)
     .single();
 
@@ -117,12 +117,14 @@ export async function addUserCredits(
   }
 
   const currentCredits = profile.credits || 0;
+  const currentMaxCredits = profile.max_credits || 0;
   const newCredits = currentCredits + amount;
+  const newMaxCredits = Math.max(currentMaxCredits, newCredits);
 
-  // Atualizar créditos
+  // Atualizar créditos e max_credits
   const { error: updateError } = await supabase
     .from('profiles')
-    .update({ credits: newCredits })
+    .update({ credits: newCredits, max_credits: newMaxCredits })
     .eq('id', userId);
 
   if (updateError) {

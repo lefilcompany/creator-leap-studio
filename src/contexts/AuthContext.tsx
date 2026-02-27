@@ -12,6 +12,7 @@ interface User {
   avatarUrl?: string;
   // Créditos individuais do usuário
   credits: number;
+  maxCredits: number;
   planId: string;
   subscriptionStatus?: string;
   subscriptionPeriodEnd?: string;
@@ -172,6 +173,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         avatarUrl: profile.avatar_url,
         // Créditos individuais
         credits: profile.credits || 0,
+        maxCredits: profile.max_credits || profile.credits || 0,
         planId: profile.plan_id || 'free',
         subscriptionStatus: profile.subscription_status,
         subscriptionPeriodEnd: profile.subscription_period_end,
@@ -276,6 +278,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           teamId: profile.team_id,
           avatarUrl: profile.avatar_url,
           credits: profile.credits || 0,
+          maxCredits: profile.max_credits || profile.credits || 0,
           planId: profile.plan_id || 'free',
           subscriptionStatus: profile.subscription_status,
           subscriptionPeriodEnd: profile.subscription_period_end,
@@ -403,14 +406,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     const { data, error } = await supabase
       .from('profiles')
-      .select('credits')
+      .select('credits, max_credits')
       .eq('id', user.id)
       .single();
       
     if (error) return;
       
     if (data) {
-      setUser(prev => prev ? { ...prev, credits: data.credits || 0 } : null);
+      setUser(prev => prev ? { ...prev, credits: data.credits || 0, maxCredits: data.max_credits || data.credits || 0 } : null);
     }
   }, [user?.id]);
 
