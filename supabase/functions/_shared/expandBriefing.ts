@@ -138,6 +138,7 @@ A descrição bruta do usuário (campo "Descreva o que você quer criar") é a D
 Todo o briefing expandido DEVE servir ao que o usuário pediu. NUNCA substitua, ignore ou desvie do pedido original.
 O contexto (marca, tema, persona, plataforma) serve apenas para ENRIQUECER e CONTEXTUALIZAR o pedido, NUNCA para sobrescrevê-lo.
 Se o usuário pediu "um gato num sofá", o briefing DEVE ser sobre um gato num sofá — com iluminação, lente e atmosfera adequadas, mas SEMPRE um gato num sofá.
+INSTRUÇÕES ESPECÍFICAS DO USUÁRIO (posicionamento de logo, texto, legendas, elementos específicos) DEVEM ser preservadas LITERALMENTE no briefing expandido. NUNCA abstraia ou omita instruções concretas como "coloque a logo no canto superior esquerdo" ou "adicione texto na parte inferior".
 
 REGRAS SOBRE IMAGENS DE REFERÊNCIA:
 Quando o usuário fornece imagens de referência (da marca ou de estilo), o gerador de imagens receberá essas imagens junto com o briefing.

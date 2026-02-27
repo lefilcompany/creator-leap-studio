@@ -342,10 +342,10 @@ serve(async (req) => {
       styleReferenceImagesCount: styleReferenceImages?.length || 0,
     }, GEMINI_API_KEY!);
 
-    // Use expanded briefing if available
+    // Use expanded briefing if available, but ALWAYS keep original prompt as reinforcement
     if (briefingResult.expandedPrompt !== briefingResult.originalPrompt) {
       console.log('[Stage 2] Using expanded briefing for image generation');
-      userPrompt = `GENERATE NEW IMAGE based on the following detailed visual briefing:\n\n${briefingResult.expandedPrompt}`;
+      userPrompt = `GENERATE NEW IMAGE based on the following detailed visual briefing:\n\n${briefingResult.expandedPrompt}\n\n[ORIGINAL USER REQUEST - MUST BE FOLLOWED]: ${prompt}`;
     }
     
     // Add context sections
