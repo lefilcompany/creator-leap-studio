@@ -202,6 +202,8 @@ serve(async (req) => {
       mood: formData.mood || undefined,
       negativePrompt: formData.negativePrompt || undefined,
       additionalInfo: formData.additionalInfo || undefined,
+      preserveImagesCount: formData.preserveImages?.length || 0,
+      styleReferenceImagesCount: formData.styleReferenceImages?.length || 0,
     }, GEMINI_API_KEY);
 
     // Replace the main instruction section with the expanded briefing

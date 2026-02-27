@@ -43,6 +43,10 @@ interface BriefingContext {
   negativePrompt?: string;
   /** Informações adicionais */
   additionalInfo?: string;
+  /** Quantidade de imagens de referência da marca */
+  preserveImagesCount?: number;
+  /** Quantidade de imagens de referência de estilo */
+  styleReferenceImagesCount?: number;
 }
 
 interface ExpandedBriefing {
@@ -129,6 +133,18 @@ export async function expandBriefing(
 function buildSystemPrompt(): string {
   return `Você é um Diretor de Arte e Estrategista Visual Sênior. Sua tarefa é transformar descrições brutas de formulários em BRIEFINGS VISUAIS cinematográficos detalhados para um gerador de imagens de IA.
 
+REGRA MAIS IMPORTANTE — PRIORIDADE ABSOLUTA DO PEDIDO DO USUÁRIO:
+A descrição bruta do usuário (campo "Descreva o que você quer criar") é a DIRETRIZ PRINCIPAL e INVIOLÁVEL. 
+Todo o briefing expandido DEVE servir ao que o usuário pediu. NUNCA substitua, ignore ou desvie do pedido original.
+O contexto (marca, tema, persona, plataforma) serve apenas para ENRIQUECER e CONTEXTUALIZAR o pedido, NUNCA para sobrescrevê-lo.
+Se o usuário pediu "um gato num sofá", o briefing DEVE ser sobre um gato num sofá — com iluminação, lente e atmosfera adequadas, mas SEMPRE um gato num sofá.
+
+REGRAS SOBRE IMAGENS DE REFERÊNCIA:
+Quando o usuário fornece imagens de referência (da marca ou de estilo), o gerador de imagens receberá essas imagens junto com o briefing.
+1. Se houver imagens da marca/identidade: O briefing DEVE instruir a manter a paleta de cores, estilo visual, tipografia e elementos visuais dessas imagens. A nova imagem deve parecer PARTE DO MESMO CONJUNTO VISUAL.
+2. Se houver imagens de referência de estilo: O briefing DEVE instruir a absorver a atmosfera, paleta e estética dessas referências.
+3. Mencione explicitamente no briefing: "Maintain the visual identity, color palette, and design elements from the provided reference images."
+
 REGRAS ABSOLUTAS:
 1. Responda APENAS com o briefing visual expandido. Sem explicações, sem títulos, sem formatação markdown.
 2. O briefing deve ser um parágrafo contínuo e rico em detalhes visuais.
@@ -155,7 +171,8 @@ REGRAS DE TIPOGRAFIA E LEGIBILIDADE (quando houver texto na imagem):
 function buildExpansionPrompt(ctx: BriefingContext): string {
   const sections: string[] = [];
 
-  sections.push(`DESCRIÇÃO BRUTA DO USUÁRIO: "${ctx.prompt}"`);
+  sections.push(`⭐ PEDIDO PRINCIPAL DO USUÁRIO (PRIORIDADE MÁXIMA): "${ctx.prompt}"
+O briefing expandido DEVE ser fiel a este pedido. Tudo abaixo é contexto complementar.`);
 
   if (ctx.brandContext) {
     sections.push(`CONTEXTO DA MARCA: ${ctx.brandContext}`);
@@ -239,12 +256,21 @@ function buildExpansionPrompt(ctx: BriefingContext): string {
     sections.push(`INFORMAÇÕES ADICIONAIS: ${ctx.additionalInfo}`);
   }
 
+  // Reference images context
+  if (ctx.preserveImagesCount && ctx.preserveImagesCount > 0) {
+    sections.push(`IMAGENS DE REFERÊNCIA DA MARCA: ${ctx.preserveImagesCount} imagem(ns) da identidade visual da marca foram fornecidas junto com este briefing. O resultado DEVE manter a mesma paleta de cores, estilo visual, tipografia e elementos de design dessas imagens. A nova imagem deve parecer parte do mesmo conjunto visual.`);
+  }
+  if (ctx.styleReferenceImagesCount && ctx.styleReferenceImagesCount > 0) {
+    sections.push(`IMAGENS DE REFERÊNCIA DE ESTILO: ${ctx.styleReferenceImagesCount} imagem(ns) de referência de estilo foram fornecidas. Absorva a atmosfera, paleta e estética dessas referências na composição final.`);
+  }
+
   sections.push(`\nSUA MISSÃO:
-1. Expanda a descrição bruta acima para uma cena visual cinematográfica detalhada em INGLÊS.
+1. Expanda o PEDIDO PRINCIPAL DO USUÁRIO acima para uma cena visual cinematográfica detalhada em INGLÊS. O pedido do usuário é a diretriz central — NÃO desvie dele.
 2. Descreva iluminação, lente (ex: 35mm, 85mm, macro), cores dominantes, texturas, expressões faciais se houver pessoas.
 3. Ajuste a atmosfera ao tom/estilo solicitado.
 4. Se houver texto para a imagem, aplique TODAS as 10 regras de tipografia: contraste forte, hierarquia tipográfica, espaçamento, texto curto, fonte legível, responsividade, overlay/faixa atrás do texto em fundos complexos, alinhamento estratégico, sobreposições semitransparentes, e elementos gráficos de destaque.
-5. Responda APENAS com o briefing expandido, sem explicações ou títulos.`);
+5. Se houver imagens de referência, inclua a instrução: "Maintain the visual identity, color palette, and design elements from the provided reference images."
+6. Responda APENAS com o briefing expandido, sem explicações ou títulos.`);
 
   return sections.join('\n\n');
 }

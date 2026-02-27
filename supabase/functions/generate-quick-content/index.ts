@@ -338,6 +338,8 @@ serve(async (req) => {
       detailLevel: detailLevel !== 7 ? detailLevel : undefined,
       mood: mood !== 'auto' ? mood : undefined,
       negativePrompt: negativePrompt || undefined,
+      preserveImagesCount: preserveImages?.length || 0,
+      styleReferenceImagesCount: styleReferenceImages?.length || 0,
     }, GEMINI_API_KEY!);
 
     // Use expanded briefing if available
