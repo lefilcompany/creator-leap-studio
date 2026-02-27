@@ -134,11 +134,22 @@ REGRAS ABSOLUTAS:
 2. O briefing deve ser um parágrafo contínuo e rico em detalhes visuais.
 3. Descreva a cena como se estivesse dirigindo um fotógrafo profissional ou diretor de cinema.
 4. Inclua SEMPRE: iluminação, lente/perspectiva, cores dominantes, atmosfera, texturas, expressões.
-5. Se houver texto para incluir na imagem, descreva exatamente como ele deve ser renderizado (fonte, posição, cor, tamanho).
-6. Mantenha o briefing em INGLÊS para melhor resultado do gerador de imagens.
-7. NUNCA adicione elementos que não foram solicitados ou implícitos no contexto.
-8. O briefing deve ter entre 150-400 palavras.
-9. COMPLIANCE: Respeite as diretrizes éticas brasileiras (CONAR/CDC). Nunca inclua discriminação, consumo de álcool, ou conteúdo inadequado para menores se o público incluir jovens.`;
+5. Mantenha o briefing em INGLÊS para melhor resultado do gerador de imagens.
+6. NUNCA adicione elementos que não foram solicitados ou implícitos no contexto.
+7. O briefing deve ter entre 150-400 palavras.
+8. COMPLIANCE: Respeite as diretrizes éticas brasileiras (CONAR/CDC). Nunca inclua discriminação, consumo de álcool, ou conteúdo inadequado para menores se o público incluir jovens.
+
+REGRAS DE TIPOGRAFIA E LEGIBILIDADE (quando houver texto na imagem):
+1. CONTRASTE: O texto DEVE ter alto contraste com o fundo. Texto claro sobre fundo escuro ou vice-versa. NUNCA cores que se misturem.
+2. HIERARQUIA TIPOGRÁFICA: Use tamanhos diferentes — título/mensagem principal em fonte grande e bold, subtítulos menores, corpo de texto menor ainda. Guie o olhar do espectador.
+3. ESPAÇAMENTO: Line-height entre 1.2x e 1.5x o tamanho da fonte. Margens generosas. Texto NUNCA deve ocupar toda a área disponível.
+4. LIMITE DE TEXTO: Texto curto e objetivo. Mensagem principal logo no início. CTAs diretas e concisas.
+5. FONTE LEGÍVEL: Fontes claras e fáceis de ler em dispositivos móveis. Sans-serif robusta para popular, serifada elegante para formal. NUNCA fontes extravagantes ilegíveis.
+6. RESPONSIVIDADE: O texto deve ser legível tanto em tela cheia quanto em thumbnails pequenos.
+7. FUNDO LIMPO SOB O TEXTO: Se o fundo for complexo/detalhado, SEMPRE adicione uma caixa ou faixa semitransparente (overlay) atrás do texto para garantir legibilidade. Desfoque ou escureça a área atrás do texto.
+8. ALINHAMENTO ESTRATÉGICO: Centralize para impacto ou alinhe à esquerda/direita para organização visual. Posicione o texto em áreas de respiro da composição, NUNCA sobre elementos visuais importantes.
+9. SOBREPOSIÇÕES: Use blocos de cor semitransparente, faixas ou gradientes para destacar texto sobre imagens sem ocultar o conteúdo visual principal.
+10. ELEMENTOS GRÁFICOS: Inclua linhas, formas ou molduras sutis que emoldurem e destaquem o texto, reforçando a hierarquia visual sem poluir.`;
 }
 
 function buildExpansionPrompt(ctx: BriefingContext): string {
@@ -217,7 +228,7 @@ function buildExpansionPrompt(ctx: BriefingContext): string {
   }
 
   if (ctx.textContent?.trim()) {
-    sections.push(`TEXTO PARA INCLUIR NA IMAGEM: "${ctx.textContent}" — Descreva a tipografia ideal, posição, cor e estilo da fonte para máxima legibilidade e impacto.`);
+    sections.push(`TEXTO PARA INCLUIR NA IMAGEM: "${ctx.textContent}" — Aplique TODAS as regras de tipografia e legibilidade: alto contraste com o fundo, hierarquia tipográfica clara (título grande e bold), espaçamento generoso, fonte legível em mobile, faixa/overlay semitransparente atrás do texto se o fundo for complexo, alinhamento estratégico em área de respiro, e elementos gráficos sutis para emoldurar.`);
   }
 
   if (ctx.negativePrompt) {
@@ -232,7 +243,7 @@ function buildExpansionPrompt(ctx: BriefingContext): string {
 1. Expanda a descrição bruta acima para uma cena visual cinematográfica detalhada em INGLÊS.
 2. Descreva iluminação, lente (ex: 35mm, 85mm, macro), cores dominantes, texturas, expressões faciais se houver pessoas.
 3. Ajuste a atmosfera ao tom/estilo solicitado.
-4. Se houver texto para a imagem, descreva a tipografia e posicionamento ideal.
+4. Se houver texto para a imagem, aplique TODAS as 10 regras de tipografia: contraste forte, hierarquia tipográfica, espaçamento, texto curto, fonte legível, responsividade, overlay/faixa atrás do texto em fundos complexos, alinhamento estratégico, sobreposições semitransparentes, e elementos gráficos de destaque.
 5. Responda APENAS com o briefing expandido, sem explicações ou títulos.`);
 
   return sections.join('\n\n');
