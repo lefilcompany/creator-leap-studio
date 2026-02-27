@@ -3,6 +3,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
 import { checkUserCredits, deductUserCredits, recordUserCreditUsage } from '../_shared/userCredits.ts';
+import { expandBriefing } from '../_shared/expandBriefing.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -259,6 +260,16 @@ serve(async (req) => {
     
     const styleSettings = getStyleSettings(visualStyle);
     console.log('Visual style applied:', visualStyle);
+
+    // Fetch API key early (needed for briefing expansion)
+    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+    if (!GEMINI_API_KEY) {
+      console.error('GEMINI_API_KEY not configured');
+      return new Response(
+        JSON.stringify({ error: 'GEMINI_API_KEY não configurada.' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
     
     // Detect if this is a portrait/face request (only for realistic style)
     const isPortraitRequest = (promptText: string): boolean => {
@@ -307,8 +318,33 @@ serve(async (req) => {
     // ========================================
     // Construct a detailed prompt incorporating all user inputs
     
-    // Start with the main instruction
+    // Stage 1: Build base prompt
     let userPrompt = `GENERATE NEW IMAGE: ${prompt}`;
+    
+    // Stage 2: Expand briefing with LLM (text model)
+    console.log('[Stage 1] Base prompt built, expanding with LLM...');
+    const briefingResult = await expandBriefing({
+      prompt,
+      brandContext: brandContext || undefined,
+      themeContext: themeContext || undefined,
+      personaContext: personaContext || undefined,
+      platform: platform || undefined,
+      visualStyle: visualStyle || 'realistic',
+      contentType: 'organic',
+      colorPalette: colorPalette !== 'auto' ? colorPalette : undefined,
+      lighting: lighting !== 'natural' ? lighting : undefined,
+      composition: composition !== 'auto' ? composition : undefined,
+      cameraAngle: cameraAngle !== 'eye_level' ? cameraAngle : undefined,
+      detailLevel: detailLevel !== 7 ? detailLevel : undefined,
+      mood: mood !== 'auto' ? mood : undefined,
+      negativePrompt: negativePrompt || undefined,
+    }, GEMINI_API_KEY!);
+
+    // Use expanded briefing if available
+    if (briefingResult.expandedPrompt !== briefingResult.originalPrompt) {
+      console.log('[Stage 2] Using expanded briefing for image generation');
+      userPrompt = `GENERATE NEW IMAGE based on the following detailed visual briefing:\n\n${briefingResult.expandedPrompt}`;
+    }
     
     // Add context sections
     const contextSections: string[] = [];
@@ -531,14 +567,6 @@ serve(async (req) => {
     console.log('Reference images prepared:', imageInputs.length);
 
     // Call Gemini API with improved settings
-    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
-    if (!GEMINI_API_KEY) {
-      console.error('GEMINI_API_KEY not configured');
-      return new Response(
-        JSON.stringify({ error: 'GEMINI_API_KEY não configurada.' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
 
     // Build the request body with images if available
     const requestParts: any[] = [{ text: userPrompt }];

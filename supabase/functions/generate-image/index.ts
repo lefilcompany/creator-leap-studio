@@ -3,6 +3,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
 import { checkUserCredits, deductUserCredits, recordUserCreditUsage } from '../_shared/userCredits.ts';
+import { expandBriefing } from '../_shared/expandBriefing.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -172,7 +173,7 @@ serve(async (req) => {
 
     const creditsBefore = creditsCheck.currentCredits;
 
-    // Build comprehensive structured prompt
+    // Stage 1: Build base prompt from form data
     let enhancedPrompt = buildDetailedPrompt(formData);
 
     const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
@@ -180,7 +181,42 @@ serve(async (req) => {
       throw new Error('GEMINI_API_KEY not configured');
     }
 
-    console.log('Calling Gemini Image Preview API...');
+    // Stage 2: Expand briefing with LLM (text model)
+    console.log('[Stage 1] Base prompt built, expanding with LLM...');
+    const briefingResult = await expandBriefing({
+      prompt: formData.description,
+      brandContext: formData.brand ? `${formData.brand}` : undefined,
+      themeContext: formData.theme || undefined,
+      personaContext: formData.persona || undefined,
+      platform: formData.platform || undefined,
+      visualStyle: formData.visualStyle || 'realistic',
+      tones: Array.isArray(formData.tone) ? formData.tone : (formData.tone ? [formData.tone] : undefined),
+      contentType: formData.contentType || 'organic',
+      objective: formData.objective || undefined,
+      textContent: formData.includeText ? formData.textContent : undefined,
+      colorPalette: formData.colorPalette || undefined,
+      lighting: formData.lighting || undefined,
+      composition: formData.composition || undefined,
+      cameraAngle: formData.cameraAngle || undefined,
+      detailLevel: formData.detailLevel || undefined,
+      mood: formData.mood || undefined,
+      negativePrompt: formData.negativePrompt || undefined,
+      additionalInfo: formData.additionalInfo || undefined,
+    }, GEMINI_API_KEY);
+
+    // Replace the main instruction section with the expanded briefing
+    if (briefingResult.expandedPrompt !== briefingResult.originalPrompt) {
+      console.log('[Stage 2] Using expanded briefing for image generation');
+      // Keep compliance and style sections, but replace the main instruction with expanded briefing
+      enhancedPrompt = enhancedPrompt.replace(
+        /\[INSTRUCTION\]\nGERER NOVA IMAGEM:.*?(?=\n\n\[)/s,
+        `[INSTRUCTION]\n${briefingResult.expandedPrompt}`
+      );
+      // If the replace didn't match (different format), prepend the expanded briefing
+      if (!enhancedPrompt.includes(briefingResult.expandedPrompt)) {
+        enhancedPrompt = `[EXPANDED VISUAL BRIEFING]\n${briefingResult.expandedPrompt}\n\n${enhancedPrompt}`;
+      }
+    }
 
     // Build messages array with reference images
     const messageContent: any[] = [
