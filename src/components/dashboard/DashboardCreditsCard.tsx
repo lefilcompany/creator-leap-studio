@@ -27,7 +27,7 @@ export const DashboardCreditsCard = ({
     >
       <Card
         id="dashboard-credits-card"
-        className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-primary/10 via-card to-secondary/10"
+        className="relative overflow-hidden border-0 shadow-lg"
       >
         {/* Decorative circles */}
         <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-primary/5 blur-2xl" />
