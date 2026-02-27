@@ -11,10 +11,11 @@ interface TeamInfoCardProps {
   userRole: 'admin' | 'member';
   // Créditos individuais do usuário (opcional para exibição)
   userCredits?: number;
+  userMaxCredits?: number;
   userPlanCredits?: number;
 }
 
-export default function TeamInfoCard({ team, userRole, userCredits, userPlanCredits }: TeamInfoCardProps) {
+export default function TeamInfoCard({ team, userRole, userCredits, userMaxCredits, userPlanCredits }: TeamInfoCardProps) {
   const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -42,7 +43,7 @@ export default function TeamInfoCard({ team, userRole, userCredits, userPlanCred
 
   // Usar créditos do usuário individual (passados via props) ou fallback para team
   const remainingCredits = userCredits ?? team.credits ?? 0;
-  const totalCredits = userPlanCredits ?? team.plan?.credits ?? 0;
+  const totalCredits = Math.max(userMaxCredits ?? userPlanCredits ?? team.plan?.credits ?? 0, remainingCredits);
   const usedCredits = Math.max(0, totalCredits - remainingCredits);
   
   // Progress bar decrescente - mostra créditos restantes

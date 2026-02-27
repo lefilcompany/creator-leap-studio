@@ -537,6 +537,7 @@ export type Database = {
           email: string
           force_password_change: boolean | null
           id: string
+          max_credits: number | null
           migration_user: boolean | null
           name: string
           onboarding_brands_completed: boolean | null
@@ -574,6 +575,7 @@ export type Database = {
           email: string
           force_password_change?: boolean | null
           id: string
+          max_credits?: number | null
           migration_user?: boolean | null
           name: string
           onboarding_brands_completed?: boolean | null
@@ -611,6 +613,7 @@ export type Database = {
           email?: string
           force_password_change?: boolean | null
           id?: string
+          max_credits?: number | null
           migration_user?: boolean | null
           name?: string
           onboarding_brands_completed?: boolean | null
