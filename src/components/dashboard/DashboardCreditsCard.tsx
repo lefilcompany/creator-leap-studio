@@ -27,7 +27,7 @@ export const DashboardCreditsCard = ({
     >
       <Card
         id="dashboard-credits-card"
-        className="relative overflow-hidden border-0 shadow-lg"
+        className="relative overflow-hidden shadow-none border"
       >
         {/* Decorative circles */}
         <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-primary/5 blur-2xl" />
