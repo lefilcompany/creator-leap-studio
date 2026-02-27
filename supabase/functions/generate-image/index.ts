@@ -206,17 +206,16 @@ serve(async (req) => {
       styleReferenceImagesCount: formData.styleReferenceImages?.length || 0,
     }, GEMINI_API_KEY);
 
-    // Replace the main instruction section with the expanded briefing
+    // Replace the main instruction section with the expanded briefing, but reinforce original prompt
     if (briefingResult.expandedPrompt !== briefingResult.originalPrompt) {
       console.log('[Stage 2] Using expanded briefing for image generation');
-      // Keep compliance and style sections, but replace the main instruction with expanded briefing
+      const reinforcedBriefing = `${briefingResult.expandedPrompt}\n\n[ORIGINAL USER REQUEST - MUST BE FOLLOWED]: ${briefingResult.originalPrompt}`;
       enhancedPrompt = enhancedPrompt.replace(
         /\[INSTRUCTION\]\nGERER NOVA IMAGEM:.*?(?=\n\n\[)/s,
-        `[INSTRUCTION]\n${briefingResult.expandedPrompt}`
+        `[INSTRUCTION]\n${reinforcedBriefing}`
       );
-      // If the replace didn't match (different format), prepend the expanded briefing
       if (!enhancedPrompt.includes(briefingResult.expandedPrompt)) {
-        enhancedPrompt = `[EXPANDED VISUAL BRIEFING]\n${briefingResult.expandedPrompt}\n\n${enhancedPrompt}`;
+        enhancedPrompt = `[EXPANDED VISUAL BRIEFING]\n${reinforcedBriefing}\n\n${enhancedPrompt}`;
       }
     }
 
