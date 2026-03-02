@@ -27,8 +27,8 @@ function cleanInput(text: string | string[] | undefined | null): string {
 const getStyleSettings = (styleType: string) => {
   const styles: Record<string, { suffix: string; negativePrompt: string }> = {
     realistic: {
-      suffix: "high-end portrait photography, hyper-realistic eyes with catchlight, detailed skin pores, fine facial hair, masterpiece, 8k, shot on 85mm lens, f/1.8, cinematic lighting, sharp focus on eyes, natural skin tone, professional studio lighting",
-      negativePrompt: "deformed eyes, asymmetrical face, plastic skin, doll-like, cartoon, anime, 3d render, lowres, fused eyes, extra eyelashes, bad anatomy, elongated face, makeup overkill, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, jpeg artifacts, signature, watermark, blurry, crossed eyes, lazy eye, unnatural skin color"
+      suffix: "high-end portrait photography, hyper-realistic, masterpiece, 8k, shot on 85mm lens, f/1.8, cinematic lighting, sharp focus, natural skin tone, professional studio lighting",
+      negativePrompt: "deformed, asymmetrical face, plastic skin, doll-like, cartoon, anime, 3d render, lowres, bad anatomy, bad hands, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, jpeg artifacts, blurry, unnatural skin color"
     },
     animated: {
       suffix: "3D animated character in Pixar/Disney style, expressive features, smooth stylized rendering, vibrant colors, professional 3D animation quality, studio lighting, octane render",
@@ -85,6 +85,189 @@ const isPortraitRequest = (promptText: string): boolean => {
   return portraitKeywords.some(keyword => lowerPrompt.includes(keyword));
 };
 
+// =====================================
+// BRIEFING DOCUMENT BUILDER
+// Generates a readable document for the text LLM only.
+// This document is NEVER sent to the image model.
+// =====================================
+function buildBriefingDocument(formData: any): string {
+  const sections: string[] = [];
+  
+  const description = cleanInput(formData.description);
+  const brand = cleanInput(formData.brand);
+  const theme = cleanInput(formData.theme);
+  const persona = cleanInput(formData.persona);
+  const platform = cleanInput(formData.platform);
+  const objective = cleanInput(formData.objective);
+  const tones = Array.isArray(formData.tone) ? formData.tone : (formData.tone ? [formData.tone] : []);
+  const additionalInfo = cleanInput(formData.additionalInfo);
+  const contentType = formData.contentType || 'organic';
+  const visualStyle = formData.visualStyle || 'realistic';
+  const negativePrompt = cleanInput(formData.negativePrompt);
+  const colorPalette = formData.colorPalette || 'auto';
+  const lighting = formData.lighting || 'natural';
+  const composition = formData.composition || 'auto';
+  const cameraAngle = formData.cameraAngle || 'eye_level';
+  const detailLevel = formData.detailLevel || 7;
+  const mood = formData.mood || 'auto';
+  const preserveImages = formData.preserveImages || [];
+  const styleReferenceImages = formData.styleReferenceImages || [];
+
+  // Primary request
+  sections.push(`PEDIDO PRINCIPAL DO USUÁRIO (PRIORIDADE MÁXIMA): ${description}`);
+
+  // Brand context
+  if (brand) {
+    sections.push(`CONTEXTO DA MARCA: ${brand}${theme ? `\nTema estratégico: ${theme}` : ''}`);
+  }
+
+  // Persona
+  if (persona) {
+    sections.push(`PÚBLICO-ALVO (PERSONA): ${persona}`);
+  }
+
+  // Platform
+  if (platform) {
+    const platformMap: Record<string, string> = {
+      'instagram_feed': 'Instagram Feed (formato quadrado, alto impacto visual)',
+      'instagram_stories': 'Instagram Stories (vertical 9:16, dinâmico)',
+      'instagram_reels': 'Instagram Reels (vertical 9:16, tendência)',
+      'facebook_post': 'Facebook (compartilhável)',
+      'linkedin_post': 'LinkedIn (profissional, corporativo)',
+      'tiktok': 'TikTok (vertical, jovem, dinâmico)',
+      'youtube_thumbnail': 'YouTube Thumbnail (16:9, chamar atenção)',
+      'twitter': 'Twitter/X (horizontal, conciso)',
+      'pinterest': 'Pinterest (vertical, estético)',
+    };
+    sections.push(`PLATAFORMA: ${platformMap[platform] || platform}`);
+  }
+
+  // Content type
+  sections.push(`TIPO DE CONTEÚDO: ${contentType === 'ads' ? 'Publicidade paga (foco em conversão e CTA)' : 'Conteúdo orgânico (foco em engajamento e conexão)'}`);
+
+  // Objective
+  if (objective) {
+    sections.push(`OBJETIVO DO POST: ${objective}`);
+  }
+
+  // Tones
+  if (tones.length > 0) {
+    const toneLabels: Record<string, string> = {
+      'inspirador': 'inspirador e motivacional',
+      'motivacional': 'motivacional e encorajador',
+      'profissional': 'profissional e corporativo',
+      'casual': 'casual e relaxado',
+      'elegante': 'elegante e sofisticado',
+      'moderno': 'moderno e contemporâneo',
+      'tradicional': 'tradicional e clássico',
+      'divertido': 'divertido e lúdico',
+      'sério': 'sério e formal'
+    };
+    sections.push(`TOM DE VOZ: ${tones.map((t: string) => toneLabels[t] || t).join(', ')}`);
+  }
+
+  // Visual style
+  const styleMap: Record<string, string> = {
+    'realistic': 'Fotografia hiper-realista, cinematográfica',
+    'animated': 'Animação 3D estilo Pixar/Disney',
+    'cartoon': 'Ilustração cartoon com cores vibrantes',
+    'anime': 'Arte anime/manga com estética japonesa',
+    'watercolor': 'Pintura aquarela com texturas suaves',
+    'oil_painting': 'Pintura a óleo clássica',
+    'digital_art': 'Arte digital profissional, concept art',
+    'sketch': 'Desenho a lápis, sketch artístico',
+    'minimalist': 'Design minimalista, clean e elegante',
+    'vintage': 'Estética vintage/retrô nostálgica',
+  };
+  sections.push(`ESTILO VISUAL: ${styleMap[visualStyle] || visualStyle}`);
+
+  // Advanced visual settings
+  const advancedParts: string[] = [];
+  if (colorPalette !== 'auto') {
+    const colorLabels: Record<string, string> = {
+      warm: 'Tons quentes (laranja, vermelho, dourado)',
+      cool: 'Tons frios (azul, verde, roxo)',
+      monochrome: 'Monocromático',
+      vibrant: 'Cores vibrantes e saturadas',
+      pastel: 'Cores pastel suaves',
+      earthy: 'Tons terrosos naturais'
+    };
+    advancedParts.push(`Paleta: ${colorLabels[colorPalette] || colorPalette}`);
+  }
+  if (lighting !== 'natural') {
+    const lightLabels: Record<string, string> = {
+      studio: 'Iluminação de estúdio profissional',
+      dramatic: 'Iluminação dramática Rembrandt, alto contraste',
+      soft: 'Iluminação suave difusa',
+      backlit: 'Contraluz com rim light',
+      golden_hour: 'Golden hour, tons quentes e mágicos'
+    };
+    advancedParts.push(`Iluminação: ${lightLabels[lighting] || lighting}`);
+  }
+  if (composition !== 'auto') {
+    const compLabels: Record<string, string> = {
+      rule_of_thirds: 'Regra dos terços',
+      centered: 'Composição centralizada e simétrica',
+      leading_lines: 'Linhas guia direcionando o olhar',
+      frame_within_frame: 'Moldura dentro da moldura',
+      symmetrical: 'Simétrica e equilibrada'
+    };
+    advancedParts.push(`Composição: ${compLabels[composition] || composition}`);
+  }
+  if (cameraAngle !== 'eye_level') {
+    const camLabels: Record<string, string> = {
+      bird_eye: 'Vista aérea (de cima)',
+      low_angle: 'Ângulo baixo (heroico)',
+      dutch_angle: 'Dutch angle (inclinado, dinâmico)',
+      over_shoulder: 'Over the shoulder',
+      close_up: 'Close-up detalhado'
+    };
+    advancedParts.push(`Câmera: ${camLabels[cameraAngle] || cameraAngle}`);
+  }
+  if (mood !== 'auto') {
+    const moodLabels: Record<string, string> = {
+      energetic: 'Atmosfera energética e dinâmica',
+      calm: 'Atmosfera calma e serena',
+      mysterious: 'Atmosfera misteriosa e intrigante',
+      joyful: 'Atmosfera alegre e festiva',
+      melancholic: 'Atmosfera melancólica e contemplativa',
+      powerful: 'Atmosfera poderosa e impactante'
+    };
+    advancedParts.push(`Clima: ${moodLabels[mood] || mood}`);
+  }
+  if (detailLevel !== 7) advancedParts.push(`Nível de detalhe: ${detailLevel}/10`);
+
+  if (advancedParts.length > 0) {
+    sections.push(`CONFIGURAÇÕES VISUAIS AVANÇADAS:\n${advancedParts.join('\n')}`);
+  }
+
+  // Reference images info
+  if (preserveImages.length > 0) {
+    sections.push(`IMAGENS DE REFERÊNCIA DA MARCA: ${preserveImages.length} imagem(ns) da identidade visual foram fornecidas. O resultado deve manter a mesma paleta de cores, estilo e elementos de design.`);
+  }
+  if (styleReferenceImages.length > 0) {
+    sections.push(`IMAGENS DE REFERÊNCIA DE ESTILO: ${styleReferenceImages.length} imagem(ns) de referência de estilo foram fornecidas. Absorva a atmosfera e estética.`);
+  }
+
+  // Additional info
+  if (additionalInfo) {
+    sections.push(`INFORMAÇÕES ADICIONAIS: ${additionalInfo}`);
+  }
+
+  // User negative prompt
+  if (negativePrompt) {
+    sections.push(`ELEMENTOS A EVITAR (pedido do usuário): ${negativePrompt}`);
+  }
+
+  // Compliance (for the LLM to incorporate silently)
+  sections.push(`COMPLIANCE (incorporar silenciosamente na descrição visual):
+- Respeitar diretrizes éticas brasileiras (CONAR/CDC)
+- Sem discriminação, sem consumo de álcool visível
+- Se público incluir menores, restrições máximas`);
+
+  return sections.join('\n\n');
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -119,7 +302,7 @@ serve(async (req) => {
 
     const authenticatedUserId = user.id;
 
-    // Fetch user profile (team_id agora é opcional)
+    // Fetch user profile
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('team_id, credits')
@@ -134,7 +317,6 @@ serve(async (req) => {
       );
     }
 
-    // team_id agora é opcional
     const authenticatedTeamId = profile?.team_id || null;
 
     const formData = await req.json();
@@ -150,18 +332,14 @@ serve(async (req) => {
     console.log('Generate Image Request:', { 
       description: formData.description?.substring(0, 100),
       brandId: formData.brandId,
-      themeId: formData.themeId,
-      personaId: formData.personaId,
       platform: formData.platform,
       visualStyle: formData.visualStyle,
-      contentType: formData.contentType,
       userId: authenticatedUserId, 
-      teamId: authenticatedTeamId,
       preserveImagesCount: formData.preserveImages?.length || 0,
       styleReferenceImagesCount: formData.styleReferenceImages?.length || 0,
     });
 
-    // Check user credits (individual)
+    // Check user credits
     const creditsCheck = await checkUserCredits(supabase, authenticatedUserId, CREDIT_COSTS.COMPLETE_IMAGE);
 
     if (!creditsCheck.hasCredits) {
@@ -173,134 +351,123 @@ serve(async (req) => {
 
     const creditsBefore = creditsCheck.currentCredits;
 
-    // Stage 1: Build base prompt from form data
-    let enhancedPrompt = buildDetailedPrompt(formData);
-
     const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
     if (!GEMINI_API_KEY) {
       throw new Error('GEMINI_API_KEY not configured');
     }
 
-    // Stage 2: Expand briefing with LLM (text model)
-    console.log('[Stage 1] Base prompt built, expanding with LLM...');
+    // =====================================
+    // STAGE 1: Build Briefing Document (for text LLM only)
+    // =====================================
+    const briefingDocument = buildBriefingDocument(formData);
+    console.log('[Stage 1] Briefing document built:', briefingDocument.length, 'chars');
+
+    // =====================================
+    // STAGE 2: Expand with text LLM -> pure visual description
+    // =====================================
+    const includeText = formData.includeText ?? false;
+    const textContent = includeText ? cleanInput(formData.textContent) : undefined;
+
     const briefingResult = await expandBriefing({
-      prompt: formData.description,
-      brandContext: formData.brand ? `${formData.brand}` : undefined,
-      themeContext: formData.theme || undefined,
-      personaContext: formData.persona || undefined,
-      platform: formData.platform || undefined,
+      briefingDocument,
       visualStyle: formData.visualStyle || 'realistic',
-      tones: Array.isArray(formData.tone) ? formData.tone : (formData.tone ? [formData.tone] : undefined),
-      contentType: formData.contentType || 'organic',
-      objective: formData.objective || undefined,
-      textContent: formData.includeText ? formData.textContent : undefined,
-      colorPalette: formData.colorPalette || undefined,
-      lighting: formData.lighting || undefined,
-      composition: formData.composition || undefined,
-      cameraAngle: formData.cameraAngle || undefined,
-      detailLevel: formData.detailLevel || undefined,
-      mood: formData.mood || undefined,
-      negativePrompt: formData.negativePrompt || undefined,
-      additionalInfo: formData.additionalInfo || undefined,
-      preserveImagesCount: formData.preserveImages?.length || 0,
-      styleReferenceImagesCount: formData.styleReferenceImages?.length || 0,
+      hasTextOverlay: includeText,
+      textContent: textContent || undefined,
     }, GEMINI_API_KEY);
 
-    // Replace the main instruction section with the expanded briefing, but reinforce original prompt
-    if (briefingResult.expandedPrompt !== briefingResult.originalPrompt) {
-      console.log('[Stage 2] Using expanded briefing for image generation');
-      const reinforcedBriefing = `${briefingResult.expandedPrompt}\n\n[ORIGINAL USER REQUEST - MUST BE FOLLOWED]: ${briefingResult.originalPrompt}`;
-      enhancedPrompt = enhancedPrompt.replace(
-        /\[INSTRUCTION\]\nGERER NOVA IMAGEM:.*?(?=\n\n\[)/s,
-        `[INSTRUCTION]\n${reinforcedBriefing}`
-      );
-      if (!enhancedPrompt.includes(briefingResult.expandedPrompt)) {
-        enhancedPrompt = `[EXPANDED VISUAL BRIEFING]\n${reinforcedBriefing}\n\n${enhancedPrompt}`;
-      }
+    // =====================================
+    // STAGE 3: Build final clean prompt for image model
+    // =====================================
+    const visualStyle = formData.visualStyle || 'realistic';
+    const description = cleanInput(formData.description);
+    const styleSettings = getStyleSettings(visualStyle);
+    const isPortrait = visualStyle === 'realistic' && isPortraitRequest(description);
+
+    let finalStyleSuffix = styleSettings.suffix;
+    if (isPortrait) {
+      finalStyleSuffix = "high-end portrait photography, hyper-realistic eyes with catchlight, detailed skin pores, masterpiece, 8k, shot on 85mm lens, f/1.4, cinematic lighting, sharp focus on eyes, natural skin tone, professional studio lighting, detailed iris";
     }
 
-    // Build messages array with reference images
+    // If expansion succeeded, use it; otherwise fallback to raw description
+    const visualDescription = briefingResult.expandedPrompt || description;
+    const finalCleanPrompt = `${visualDescription}, ${finalStyleSuffix}`;
+
+    // Build negative prompt
+    const userNegativePrompt = cleanInput(formData.negativePrompt);
+    const negativeComponents = [styleSettings.negativePrompt];
+    if (userNegativePrompt) negativeComponents.push(userNegativePrompt);
+    // When no text requested, add text-related terms to negative prompt
+    if (!includeText) {
+      negativeComponents.push('text, signature, watermark, words, typography, spelling, letters, numbers');
+    }
+    const finalNegativePrompt = negativeComponents.filter(Boolean).join(', ');
+
+    console.log('[Stage 3] Final prompt length:', finalCleanPrompt.length, 'chars');
+    console.log('[Stage 3] Negative prompt:', finalNegativePrompt.substring(0, 200));
+
+    // =====================================
+    // STAGE 4: Prepare reference images (limited to prevent dilution)
+    // =====================================
+    // IMPORTANT: Sending too many reference images dilutes the prompt's influence.
+    // We limit to max 2 brand images + 1 style image = 3 total.
+    const preserveImages: string[] = (formData.preserveImages || []).slice(0, 2);
+    const styleReferenceImages: string[] = (formData.styleReferenceImages || []).slice(0, 1);
+
     const messageContent: any[] = [
-      { type: 'text', text: enhancedPrompt }
+      { type: 'text', text: finalCleanPrompt }
     ];
-    
-    // Add preserve images first (highest priority - brand images)
-    const preserveImages = formData.preserveImages || [];
-    if (preserveImages && preserveImages.length > 0) {
-      console.log(`✅ Adicionando ${preserveImages.length} imagem(ns) da marca/identidade...`);
-      preserveImages.forEach((img: string, index: number) => {
-        console.log(`  - Imagem marca ${index + 1}: ${(img.length / 1024).toFixed(0)}KB`);
-        messageContent.push({
-          type: 'image_url',
-          image_url: { url: img }
-        });
-      });
-    }
-    
-    // Add style reference images after (user uploads)
-    const styleReferenceImages = formData.styleReferenceImages || [];
-    if (styleReferenceImages && styleReferenceImages.length > 0) {
-      console.log(`✅ Adicionando ${styleReferenceImages.length} imagem(ns) de referência do usuário...`);
-      styleReferenceImages.forEach((img: string, index: number) => {
-        console.log(`  - Imagem usuário ${index + 1}: ${(img.length / 1024).toFixed(0)}KB`);
-        messageContent.push({
-          type: 'image_url',
-          image_url: { url: img }
-        });
-      });
-    }
-    
-    console.log(`📦 Total de conteúdos na mensagem: ${messageContent.length} (1 texto + ${messageContent.length - 1} imagens)`);
 
-    // Retry logic for image generation
+    if (preserveImages.length > 0) {
+      console.log(`✅ Adding ${preserveImages.length} brand reference image(s) (max 2)`);
+      preserveImages.forEach((img: string, index: number) => {
+        messageContent.push({ type: 'image_url', image_url: { url: img } });
+      });
+    }
+
+    if (styleReferenceImages.length > 0) {
+      console.log(`✅ Adding ${styleReferenceImages.length} style reference image(s) (max 1)`);
+      styleReferenceImages.forEach((img: string) => {
+        messageContent.push({ type: 'image_url', image_url: { url: img } });
+      });
+    }
+
+    console.log(`📦 Total message parts: ${messageContent.length} (1 text + ${messageContent.length - 1} images)`);
+
+    // =====================================
+    // STAGE 5: Generate image with retry logic
+    // =====================================
     const MAX_RETRIES = 3;
     let lastError: any = null;
     let imageUrl: string | null = null;
-    let description = 'Imagem gerada com sucesso';
+    let resultDescription = 'Imagem gerada com sucesso';
 
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       try {
         console.log(`Image generation attempt ${attempt}/${MAX_RETRIES}...`);
 
-        // Convert messageContent to Gemini format
+        // Convert to Gemini format
         const geminiParts = await Promise.all(messageContent.map(async (item: any) => {
           if (item.type === "text") {
             return { text: item.text };
           } else if (item.type === "image_url") {
             const url = item.image_url.url;
             
-            // If it's already base64
             if (url.startsWith('data:')) {
               const base64Data = url.split(',')[1];
               const mimeType = url.match(/data:(.*?);/)?.[1] || 'image/png';
-              return { 
-                inlineData: { 
-                  mimeType, 
-                  data: base64Data 
-                } 
-              };
+              return { inlineData: { mimeType, data: base64Data } };
             }
             
-            // If it's a URL, fetch and convert to base64
             try {
               const imageResponse = await fetch(url);
               if (!imageResponse.ok) {
                 console.error(`Failed to fetch image from ${url}: ${imageResponse.status}`);
                 return null;
               }
-              
               const arrayBuffer = await imageResponse.arrayBuffer();
               const base64Data = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
-              
-              // Detect mime type from content-type header or default to png
               const contentType = imageResponse.headers.get('content-type') || 'image/png';
-              
-              return { 
-                inlineData: { 
-                  mimeType: contentType, 
-                  data: base64Data 
-                } 
-              };
+              return { inlineData: { mimeType: contentType, data: base64Data } };
             } catch (fetchError) {
               console.error(`Error fetching image from ${url}:`, fetchError);
               return null;
@@ -327,7 +494,6 @@ serve(async (req) => {
           const errorText = await response.text();
           console.error(`Gemini API error (attempt ${attempt}):`, response.status, errorText);
           
-          // Don't retry on rate limit errors
           if (response.status === 429) {
             return new Response(
               JSON.stringify({ error: 'Limite de requisições excedido. Tente novamente mais tarde.' }),
@@ -338,11 +504,9 @@ serve(async (req) => {
           lastError = new Error(`Gemini API error: ${response.status}`);
           
           if (attempt < MAX_RETRIES) {
-            console.log(`Retrying in 2 seconds... (attempt ${attempt + 1}/${MAX_RETRIES})`);
             await new Promise(resolve => setTimeout(resolve, 2000));
             continue;
           }
-          
           throw lastError;
         }
 
@@ -358,15 +522,13 @@ serve(async (req) => {
               const base64Image = part.inlineData.data;
               const mimeType = part.inlineData.mimeType || 'image/png';
               imageUrl = `data:${mimeType};base64,${base64Image}`;
-              console.log('Image extracted successfully from Gemini response');
               break;
             }
           }
 
-          // Extract text description if available
           for (const part of parts) {
             if (part.text) {
-              description = part.text;
+              resultDescription = part.text;
               break;
             }
           }
@@ -376,15 +538,13 @@ serve(async (req) => {
           throw new Error('No image found in Gemini response');
         }
 
-        // Success - break retry loop
-        break;
+        break; // Success
 
       } catch (error) {
         console.error(`Attempt ${attempt} failed:`, error);
         lastError = error;
         
         if (attempt < MAX_RETRIES) {
-          console.log(`Retrying in 2 seconds... (attempt ${attempt + 1}/${MAX_RETRIES})`);
           await new Promise(resolve => setTimeout(resolve, 2000));
         }
       }
@@ -398,12 +558,11 @@ serve(async (req) => {
       );
     }
 
-    // Upload image to Supabase Storage
+    // Upload image to storage
     console.log('Uploading image to storage...');
     const timestamp = Date.now();
     const fileName = `content-images/${authenticatedTeamId}/${timestamp}.png`;
     
-    // Convert base64 to blob
     const base64Data = imageUrl.split(',')[1];
     const binaryData = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
     
@@ -422,14 +581,13 @@ serve(async (req) => {
       );
     }
 
-    // Get public URL
     const { data: { publicUrl } } = supabase.storage
       .from('content-images')
       .getPublicUrl(fileName);
 
     console.log('Image uploaded successfully:', publicUrl);
 
-    // Deduct user credits (individual)
+    // Deduct credits
     const deductResult = await deductUserCredits(supabase, authenticatedUserId, CREDIT_COSTS.COMPLETE_IMAGE);
     const creditsAfter = deductResult.newCredits;
 
@@ -449,7 +607,7 @@ serve(async (req) => {
       metadata: { platform: formData.platform, visualStyle: formData.visualStyle }
     });
 
-    // Save to history (actions table) with storage paths
+    // Save to history
     const { data: actionData, error: actionError } = await supabase
       .from('actions')
       .insert({
@@ -469,12 +627,12 @@ serve(async (req) => {
           platform: formData.platform,
           visualStyle: formData.visualStyle,
           contentType: formData.contentType,
-          preserveImagesCount: formData.preserveImages?.length || 0,
-          styleReferenceImagesCount: formData.styleReferenceImages?.length || 0
+          preserveImagesCount: preserveImages.length,
+          styleReferenceImagesCount: styleReferenceImages.length
         },
         result: {
           imageUrl: publicUrl,
-          description: description
+          description: resultDescription
         }
       })
       .select()
@@ -487,7 +645,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         imageUrl: publicUrl,
-        description: description,
+        description: resultDescription,
         actionId: actionData?.id,
         success: true 
       }),
@@ -502,325 +660,3 @@ serve(async (req) => {
     );
   }
 });
-
-// =====================================
-// STRUCTURED PROMPT BUILDER
-// =====================================
-function buildDetailedPrompt(formData: any): string {
-  const promptSections: string[] = [];
-  
-  // Extract and clean all inputs
-  const brand = cleanInput(formData.brand);
-  const theme = cleanInput(formData.theme);
-  const persona = cleanInput(formData.persona);
-  const platform = cleanInput(formData.platform);
-  const objective = cleanInput(formData.objective);
-  const description = cleanInput(formData.description);
-  const tones = Array.isArray(formData.tone) ? formData.tone : (formData.tone ? [formData.tone] : []);
-  const additionalInfo = cleanInput(formData.additionalInfo);
-  const contentType = formData.contentType || 'organic';
-  const visualStyle = formData.visualStyle || 'realistic';
-  
-  // Advanced configurations
-  const negativePrompt = cleanInput(formData.negativePrompt);
-  const colorPalette = formData.colorPalette || 'auto';
-  const lighting = formData.lighting || 'natural';
-  const composition = formData.composition || 'auto';
-  const cameraAngle = formData.cameraAngle || 'eye_level';
-  const detailLevel = formData.detailLevel || 7;
-  const mood = formData.mood || 'auto';
-  
-  // Reference images
-  const preserveImages = formData.preserveImages || [];
-  const styleReferenceImages = formData.styleReferenceImages || [];
-
-  // =====================================
-  // [1] COMPLIANCE - Brazilian Advertising Regulations
-  // =====================================
-  promptSections.push(`[COMPLIANCE]
-DIRETRIZES ÉTICAS E LEGAIS OBRIGATÓRIAS (Código CONAR e CDC - Brasil):
-- HONESTIDADE: A imagem NÃO PODE induzir ao erro sobre características do produto/serviço
-- DIGNIDADE HUMANA: PROIBIDO qualquer forma de discriminação
-- PROTEÇÃO DE VULNERÁVEIS: Se público incluir menores, aplique restrições MÁXIMAS
-- BEBIDAS ALCOÓLICAS: NUNCA mostre ou sugira o ato de consumo/ingestão
-- ALIMENTOS: NÃO estimule consumo excessivo ou compulsivo
-- APOSTAS/JOGOS: OBRIGATÓRIO símbolo 18+ de forma visível
-- SUSTENTABILIDADE: Benefícios ambientais devem ser específicos, não vagos
-- CONCORRÊNCIA: NÃO ridicularize ou deprecie concorrentes
-ESTAS DIRETRIZES SÃO INVIOLÁVEIS.`);
-
-  // =====================================
-  // [2] MAIN INSTRUCTION
-  // =====================================
-  promptSections.push(`[INSTRUCTION]
-GERAR NOVA IMAGEM: ${description}`);
-
-  // =====================================
-  // [3] BRAND CONTEXT
-  // =====================================
-  if (brand) {
-    promptSections.push(`[BRAND CONTEXT]
-MARCA: ${brand}
-${theme ? `TEMA ESTRATÉGICO: ${theme}` : ''}
-A imagem deve refletir a identidade visual e valores da marca.`);
-  }
-
-  // =====================================
-  // [4] TARGET AUDIENCE (PERSONA)
-  // =====================================
-  if (persona) {
-    promptSections.push(`[TARGET AUDIENCE]
-PERSONA: ${persona}
-A imagem deve ressoar emocionalmente e visualmente com este público-alvo específico.`);
-  }
-
-  // =====================================
-  // [5] PLATFORM OPTIMIZATION
-  // =====================================
-  if (platform) {
-    const platformLabels: Record<string, string> = {
-      'Instagram': 'Instagram (visual-first, engagement-focused, mobile-optimized)',
-      'Facebook': 'Facebook (broad audience, shareable, community-focused)',
-      'TikTok': 'TikTok (dynamic, trendy, youth-oriented)',
-      'Twitter/X': 'Twitter/X (concise, newsworthy, conversation-starter)',
-      'LinkedIn': 'LinkedIn (professional, business-oriented, thought-leadership)',
-      'Comunidades': 'Communities (niche-focused, authentic, value-driven)',
-      'instagram_feed': 'Instagram Feed (square format, high visual impact)',
-      'instagram_stories': 'Instagram Stories (vertical 9:16, ephemeral, dynamic)',
-      'instagram_reels': 'Instagram Reels (vertical 9:16, trendy, engaging)',
-      'linkedin_post': 'LinkedIn (professional, business-oriented)',
-      'tiktok': 'TikTok (vertical 9:16, trendy, youth-oriented)',
-      'facebook_post': 'Facebook (shareable, community-focused)',
-      'twitter': 'Twitter/X (concise, newsworthy)',
-      'pinterest': 'Pinterest (vertical, aesthetic, inspirational)',
-      'youtube_thumbnail': 'YouTube Thumbnail (16:9, attention-grabbing, click-worthy)'
-    };
-    promptSections.push(`[PLATFORM]
-Optimized for ${platformLabels[platform] || platform}`);
-  }
-
-  // =====================================
-  // [6] CONTENT TYPE
-  // =====================================
-  if (contentType === 'ads') {
-    promptSections.push(`[CONTENT TYPE]
-PAID ADVERTISING CONTENT
-- Commercial and persuasive focus
-- Clear call-to-action implied
-- Product/service prominence
-- Conversion-oriented composition`);
-  } else {
-    promptSections.push(`[CONTENT TYPE]
-ORGANIC SOCIAL MEDIA CONTENT
-- Engagement and connection focus
-- Authentic and relatable
-- Community-building elements
-- Shareable and memorable`);
-  }
-
-  // =====================================
-  // [7] POST OBJECTIVE
-  // =====================================
-  if (objective) {
-    promptSections.push(`[POST OBJECTIVE]
-${objective}`);
-  }
-
-  // =====================================
-  // [8] TONE OF VOICE
-  // =====================================
-  if (tones.length > 0) {
-    const toneLabels: Record<string, string> = {
-      'inspirador': 'inspiring and uplifting',
-      'motivacional': 'motivational and encouraging',
-      'profissional': 'professional and corporate',
-      'casual': 'casual and relaxed',
-      'elegante': 'elegant and sophisticated',
-      'moderno': 'modern and contemporary',
-      'tradicional': 'traditional and classic',
-      'divertido': 'fun and playful',
-      'sério': 'serious and formal'
-    };
-    const tonesList = tones.map((t: string) => toneLabels[t] || t).join(', ');
-    promptSections.push(`[TONE OF VOICE]
-${tonesList}
-The visual mood and atmosphere should reflect these tones.`);
-  }
-
-  // =====================================
-  // [9] ADDITIONAL CONTEXT
-  // =====================================
-  if (additionalInfo) {
-    promptSections.push(`[ADDITIONAL CONTEXT]
-${additionalInfo}`);
-  }
-
-  // =====================================
-  // [10] VISUAL STYLE
-  // =====================================
-  const styleSettings = getStyleSettings(visualStyle);
-  const isPortrait = visualStyle === 'realistic' && isPortraitRequest(description || '');
-  
-  // For portraits in realistic style, use enhanced portrait settings
-  let finalStyleSuffix = styleSettings.suffix;
-  if (isPortrait) {
-    finalStyleSuffix = "high-end portrait photography, hyper-realistic eyes with catchlight, detailed skin pores, fine facial hair, masterpiece, 8k, shot on 85mm lens, f/1.4, cinematic lighting, sharp focus on eyes, natural skin tone, professional studio lighting, detailed iris, catchlight in eyes";
-  }
-  
-  promptSections.push(`[VISUAL STYLE]
-${visualStyle.toUpperCase()}
-${finalStyleSuffix}`);
-
-  // =====================================
-  // [11] REFERENCE IMAGES INSTRUCTIONS
-  // =====================================
-  if (preserveImages.length > 0) {
-    promptSections.push(`[BRAND IDENTITY IMAGES] (${preserveImages.length} provided)
-These are OFFICIAL brand identity images:
-- Use EXACTLY the visual style, color palette, and aesthetic from these images
-- Maintain the SAME visual quality and finish level
-- Replicate design elements (borders, textures, filters, effects)
-- Preserve the atmosphere and mood transmitted
-- The new image MUST look like part of the same visual set
-- If there are logos or specific elements, keep them recognizable`);
-  }
-
-  if (styleReferenceImages.length > 0) {
-    promptSections.push(`[STYLE REFERENCE IMAGES] (${styleReferenceImages.length} provided)
-Use these as additional inspiration:
-- Analyze visual elements (colors, layout, objects, atmosphere)
-- Adapt these elements coherently
-- Use as complement to main brand images
-- Not necessary to replicate exactly, just draw inspiration`);
-  }
-
-  // =====================================
-  // [12] ADVANCED STYLE SETTINGS
-  // =====================================
-  const advancedSettings: string[] = [];
-  
-  // Color Palette
-  if (colorPalette !== 'auto') {
-    const colorPaletteLabels: Record<string, string> = {
-      warm: 'Warm palette: orange, red, yellow, and golden tones',
-      cool: 'Cool palette: blue, green, purple, and silver tones',
-      monochrome: 'Monochromatic palette with variations of a single tone',
-      vibrant: 'Vibrant palette with saturated and contrasting colors',
-      pastel: 'Soft pastel colors, delicate and subtle',
-      earthy: 'Earthy palette with natural brown, green, and beige tones'
-    };
-    if (colorPaletteLabels[colorPalette]) {
-      advancedSettings.push(`Color: ${colorPaletteLabels[colorPalette]}`);
-    }
-  }
-  
-  // Lighting
-  if (lighting !== 'natural') {
-    const lightingLabels: Record<string, string> = {
-      studio: 'Professional studio lighting with softboxes, controlled shadows',
-      dramatic: 'Dramatic Rembrandt lighting with high contrast, chiaroscuro effect',
-      soft: 'Soft diffused lighting with minimal shadows, flattering',
-      backlit: 'Backlighting creating rim light and subtle lens flare, halo effect',
-      golden_hour: 'Golden hour lighting with warm orange tones, magical atmosphere'
-    };
-    if (lightingLabels[lighting]) {
-      advancedSettings.push(`Lighting: ${lightingLabels[lighting]}`);
-    }
-  } else {
-    advancedSettings.push('Lighting: Natural daylight, soft shadows, balanced exposure');
-  }
-  
-  // Composition
-  if (composition !== 'auto') {
-    const compositionLabels: Record<string, string> = {
-      rule_of_thirds: 'Rule of thirds composition',
-      centered: 'Centered and symmetrical composition',
-      leading_lines: 'Leading lines guiding the eye',
-      frame_within_frame: 'Frame within frame composition',
-      symmetrical: 'Symmetrical and balanced composition'
-    };
-    if (compositionLabels[composition]) {
-      advancedSettings.push(`Composition: ${compositionLabels[composition]}`);
-    }
-  }
-  
-  // Camera Angle
-  if (cameraAngle !== 'eye_level') {
-    const cameraLabels: Record<string, string> = {
-      bird_eye: 'Bird eye view (aerial, from above)',
-      low_angle: 'Low angle looking up (heroic, powerful)',
-      dutch_angle: 'Dutch angle (tilted, dynamic)',
-      over_shoulder: 'Over the shoulder shot',
-      close_up: 'Close-up detailed shot'
-    };
-    if (cameraLabels[cameraAngle]) {
-      advancedSettings.push(`Camera: ${cameraLabels[cameraAngle]}`);
-    }
-  }
-  
-  // Mood
-  if (mood !== 'auto') {
-    const moodLabels: Record<string, string> = {
-      energetic: 'Energetic and dynamic atmosphere',
-      calm: 'Calm and serene atmosphere',
-      mysterious: 'Mysterious and intriguing atmosphere',
-      joyful: 'Joyful and festive atmosphere',
-      melancholic: 'Melancholic and contemplative atmosphere',
-      powerful: 'Powerful and impactful atmosphere'
-    };
-    if (moodLabels[mood]) {
-      advancedSettings.push(`Mood: ${moodLabels[mood]}`);
-    }
-  }
-  
-  // Detail Level
-  advancedSettings.push(`Detail Level: ${detailLevel}/10`);
-  
-  if (advancedSettings.length > 0) {
-    promptSections.push(`[STYLE SETTINGS]
-${advancedSettings.join('\n')}`);
-  }
-
-  // =====================================
-  // [13] TEXT IN IMAGE
-  // =====================================
-  const includeText = formData.includeText ?? false;
-  const textContent = cleanInput(formData.textContent);
-  const textPosition = formData.textPosition || 'center';
-
-  if (!includeText) {
-    promptSections.push(`[NO TEXT]
-CRITICAL: Do NOT include ANY text, words, letters, numbers, symbols, or written characters visible in the image.
-The image must be purely visual, without any overlaid text elements.`);
-  } else if (textContent?.trim()) {
-    const positionLabels: Record<string, string> = {
-      'top': 'at the top of the image',
-      'center': 'centered in the image',
-      'bottom': 'at the bottom of the image',
-      'top-left': 'in the top-left corner',
-      'top-right': 'in the top-right corner',
-      'bottom-left': 'in the bottom-left corner',
-      'bottom-right': 'in the bottom-right corner'
-    };
-    promptSections.push(`[TEXT OVERLAY]
-Include the following text ${positionLabels[textPosition] || 'centered'}: "${textContent}"
-The text must be:
-- Legible and clearly visible
-- With appropriate typography
-- With adequate contrast against the background
-- In Portuguese (pt-BR), correctly spelled`);
-  }
-
-  // =====================================
-  // [14] NEGATIVE PROMPT
-  // =====================================
-  const finalNegativePrompt = [
-    styleSettings.negativePrompt,
-    negativePrompt
-  ].filter(Boolean).join(', ');
-  
-  promptSections.push(`[AVOID]
-${finalNegativePrompt}`);
-
-  return promptSections.join('\n\n');
-}
