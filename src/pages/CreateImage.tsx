@@ -557,6 +557,18 @@ export default function CreateImage() {
               {/* Expandable settings panel */}
               {showSettings && (
                 <div className="px-4 md:px-5 pb-3 pt-3 space-y-4 border-t border-border/20 bg-muted/5">
+                  {/* Platform */}
+                  <PlatformSelector
+                    value={formData.platform}
+                    onChange={(value, aspectRatio) => {
+                      handleSelectChange("platform", value);
+                      if (aspectRatio) setFormData(prev => ({ ...prev, aspectRatio }));
+                    }}
+                  />
+                  {missingFields.includes('platform') && !formData.platform && (
+                    <p className="text-xs text-destructive font-medium -mt-3">Selecione uma plataforma</p>
+                  )}
+
                   {/* Content Type */}
                   <div className="space-y-2">
                     <Label className="text-xs font-medium text-muted-foreground">Tipo de Conteúdo</Label>
@@ -591,6 +603,50 @@ export default function CreateImage() {
                     </div>
                     {missingFields.includes('tone') && formData.tone.length === 0 && (
                       <span className="text-[10px] text-destructive font-medium">Selecione ao menos 1 tom</span>
+                    )}
+                  </div>
+
+                  {/* Brand, Persona, Theme */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-3 border-t border-border/20">
+                    {isLoadingData ? <SelectSkeleton /> : (
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-medium text-muted-foreground">Marca <span className="text-destructive">*</span></Label>
+                        <NativeSelect id="select-brand" value={formData.brand} onValueChange={value => handleSelectChange("brand", value)}
+                          options={brands.map(b => ({ value: b.id, label: b.name }))}
+                          placeholder={brands.length === 0 ? "Nenhuma marca" : "Selecionar marca"}
+                          disabled={brands.length === 0}
+                          triggerClassName={`h-9 rounded-lg border-2 bg-background/50 hover:border-border/70 transition-colors text-xs ${missingFields.includes('brand') ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/50'}`}
+                        />
+                        {!isLoadingData && brands.length === 0 && (
+                          <p className="text-xs text-muted-foreground">
+                            <button onClick={() => navigate("/brands")} className="text-primary hover:underline font-medium">Cadastre uma marca</button>
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    {isLoadingData ? <SelectSkeleton /> : (
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-medium text-muted-foreground">Persona <span className="font-normal">(opcional)</span></Label>
+                        <NativeSelect value={formData.persona} onValueChange={value => handleSelectChange("persona", value)}
+                          options={filteredPersonas.map(p => ({ value: p.id, label: p.name }))}
+                          placeholder={!formData.brand ? "Selecione marca" : filteredPersonas.length === 0 ? "Nenhuma" : "Selecionar"}
+                          disabled={!formData.brand || filteredPersonas.length === 0}
+                          triggerClassName="h-9 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors text-xs"
+                        />
+                      </div>
+                    )}
+
+                    {isLoadingData ? <SelectSkeleton /> : (
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-medium text-muted-foreground">Tema <span className="font-normal">(opcional)</span></Label>
+                        <NativeSelect value={formData.theme} onValueChange={value => handleSelectChange("theme", value)}
+                          options={filteredThemes.map(t => ({ value: t.id, label: t.title }))}
+                          placeholder={!formData.brand ? "Selecione marca" : filteredThemes.length === 0 ? "Nenhum" : "Selecionar"}
+                          disabled={!formData.brand || filteredThemes.length === 0}
+                          triggerClassName="h-9 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors text-xs"
+                        />
+                      </div>
                     )}
                   </div>
                 </div>
@@ -677,7 +733,25 @@ export default function CreateImage() {
               </div>
             </div>
 
-            {/* 4. Informações Adicionais */}
+            {/* Platform guidelines */}
+            {platformGuidelines.length > 0 && (
+              <div className="rounded-2xl shadow-md bg-primary/5 p-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <Info className="h-4 w-4 text-primary flex-shrink-0" />
+                  <p className="text-sm font-semibold text-primary">Diretrizes para {formData.platform} ({contentType === "organic" ? "Orgânico" : "Anúncio"})</p>
+                </div>
+                <ul className="space-y-1 text-xs text-muted-foreground">
+                  {platformGuidelines.map((g, idx) => (
+                    <li key={idx} className="flex items-start gap-2"><span className="text-primary mt-0.5">•</span><span>{g}</span></li>
+                  ))}
+                </ul>
+                {recommendedAspectRatio && (
+                  <p className="text-xs text-primary/80 font-medium mt-2 pt-2 border-t border-primary/20">💡 Proporção recomendada: {recommendedAspectRatio}</p>
+                )}
+              </div>
+            )}
+
+            {/* Informações Adicionais */}
             <div className="rounded-2xl shadow-lg overflow-hidden border-0 bg-card p-4 md:p-5 space-y-2">
               <Label htmlFor="additionalInfo" className="text-sm font-bold text-foreground">
                 Informações Adicionais <span className="text-muted-foreground font-normal text-xs">(opcional)</span>
