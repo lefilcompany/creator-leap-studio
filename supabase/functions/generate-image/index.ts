@@ -388,30 +388,62 @@ serve(async (req) => {
       finalStyleSuffix = "high-end portrait photography, hyper-realistic eyes with catchlight, detailed skin pores, masterpiece, 8k, shot on 85mm lens, f/1.4, cinematic lighting, sharp focus on eyes, natural skin tone, professional studio lighting, detailed iris";
     }
 
-    // If expansion succeeded, use it; otherwise fallback to raw description
+    // =====================================
+    // STAGE 3: Build final CLEAN prompt for image model
+    // NO tags, NO marketing jargon, NO logic blocks.
+    // Only: visual description + text overlay (if any) + style suffix
+    // =====================================
     const visualDescription = briefingResult.expandedPrompt || description;
-    const finalCleanPrompt = `${visualDescription}, ${finalStyleSuffix}`;
+
+    // Build the image reference role instruction (prepended to prompt when images exist)
+    const preserveImages: string[] = (formData.preserveImages || []).slice(0, 2);
+    const styleReferenceImages: string[] = (formData.styleReferenceImages || []).slice(0, 1);
+    const hasAnyImages = preserveImages.length > 0 || styleReferenceImages.length > 0;
+
+    let imageRolePrefix = '';
+    if (hasAnyImages) {
+      const parts: string[] = [];
+      if (preserveImages.length > 0) {
+        parts.push(`The first ${preserveImages.length} image(s) define the mandatory Visual Identity and Color Palette`);
+      }
+      if (styleReferenceImages.length > 0) {
+        parts.push(`the last image serves only as composition and atmosphere inspiration`);
+      }
+      imageRolePrefix = `[Image roles: ${parts.join('. ')}]\n\n`;
+    }
+
+    // Text overlay handling — added directly to the clean prompt
+    let textOverlayBlock = '';
+    if (includeText && textContent) {
+      const textPosition = cleanInput(formData.textPosition) || 'center';
+      const platform = cleanInput(formData.platform) || 'social media';
+      textOverlayBlock = `\n\nDesign and Typography: Render PERFECTLY the text: "${textContent}". The text MUST be the main focus, positioned at "${textPosition}", and be 100% legible. Use strategic negative space, subtle gradient overlays, or clean text boxes to ensure absolute contrast between the font and the background. The text should be part of a professional design composition for ${platform}.`;
+    }
+
+    // Final clean prompt: image role prefix + visual description + text overlay + style suffix
+    const finalCleanPrompt = `${imageRolePrefix}${visualDescription}${textOverlayBlock}, ${finalStyleSuffix}`;
 
     // Build negative prompt
     const userNegativePrompt = cleanInput(formData.negativePrompt);
     const negativeComponents = [styleSettings.negativePrompt];
     if (userNegativePrompt) negativeComponents.push(userNegativePrompt);
-    // When no text requested, add text-related terms to negative prompt
+    // When no text requested, enforce text absence via negative prompt
     if (!includeText) {
-      negativeComponents.push('text, signature, watermark, words, typography, spelling, letters, numbers');
+      negativeComponents.push('text, watermark, typography, letters, signature, words, labels');
     }
     const finalNegativePrompt = negativeComponents.filter(Boolean).join(', ');
 
-    console.log('[Stage 3] Final prompt length:', finalCleanPrompt.length, 'chars');
+    console.log('[Stage 3] Final clean prompt length:', finalCleanPrompt.length, 'chars');
+    console.log('[Stage 3] Final clean prompt preview:', finalCleanPrompt.substring(0, 500));
     console.log('[Stage 3] Negative prompt:', finalNegativePrompt.substring(0, 200));
 
     // =====================================
     // STAGE 4: Prepare reference images (limited to prevent dilution)
     // =====================================
     // IMPORTANT: Sending too many reference images dilutes the prompt's influence.
-    // We limit to max 2 brand images + 1 style image = 3 total.
-    const preserveImages: string[] = (formData.preserveImages || []).slice(0, 2);
-    const styleReferenceImages: string[] = (formData.styleReferenceImages || []).slice(0, 1);
+    // Max 2 brand images + 1 style image = 3 total.
+    // The Gemini image model does NOT support explicit style_reference parameters,
+    // so multiple images cause prompt dilution — keep the count low.
 
     const messageContent: any[] = [
       { type: 'text', text: finalCleanPrompt }
@@ -419,7 +451,7 @@ serve(async (req) => {
 
     if (preserveImages.length > 0) {
       console.log(`✅ Adding ${preserveImages.length} brand reference image(s) (max 2)`);
-      preserveImages.forEach((img: string, index: number) => {
+      preserveImages.forEach((img: string) => {
         messageContent.push({ type: 'image_url', image_url: { url: img } });
       });
     }

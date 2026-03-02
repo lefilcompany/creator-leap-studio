@@ -1,12 +1,12 @@
 /**
- * Módulo de Expansão de Briefing Visual (v2)
+ * Módulo de Expansão de Briefing Visual (v3 - Diretor de Arte)
  * 
  * Recebe um documento de briefing completo (gerado por buildBriefingDocument)
  * e retorna uma descrição visual pura em inglês para o gerador de imagens.
  * 
- * O LLM de texto (Gemini Flash) é o único responsável por digerir todos os
- * metadados (marca, persona, plataforma, compliance) e traduzi-los para
- * uma string descritiva visual otimizada para modelos de imagem.
+ * O LLM de texto (Gemini Flash) atua como um Diretor de Arte Sênior,
+ * digerindo todos os metadados (marca, persona, plataforma, compliance)
+ * e traduzindo-os para uma string cinematográfica puramente visual.
  */
 
 export interface BriefingExpansionInput {
@@ -34,7 +34,7 @@ export async function expandBriefing(
 ): Promise<ExpandedBriefing> {
   const systemPrompt = buildSystemPrompt(input.hasTextOverlay, input.textContent);
 
-  console.log('[BriefingExpansion] Expanding briefing document with LLM...');
+  console.log('[BriefingExpansion] Expanding briefing document with Art Director LLM...');
   console.log('[BriefingExpansion] Document length:', input.briefingDocument.length, 'chars');
   console.log('[BriefingExpansion] Visual style:', input.visualStyle);
 
@@ -58,7 +58,6 @@ export async function expandBriefing(
     if (!response.ok) {
       const errorText = await response.text();
       console.error('[BriefingExpansion] Gemini API error:', response.status, errorText);
-      // Fallback: retorna descrição genérica
       return { expandedPrompt: '' };
     }
 
@@ -82,23 +81,31 @@ export async function expandBriefing(
 
 function buildSystemPrompt(hasTextOverlay?: boolean, textContent?: string): string {
   const textInstruction = hasTextOverlay && textContent
-    ? `\nTEXT OVERLAY RULE: The briefing requests text on the image. You MUST include this exact instruction in your output: 'Include text overlay exactly reading "${textContent}" in modern, legible typography with high contrast against the background.' Do NOT omit or paraphrase the text content.`
-    : `\nNO TEXT RULE: Do NOT mention any text, typography, words, or lettering in your output. The image must be purely visual. Text restrictions will be handled separately via negative prompting.`;
+    ? `\nTEXT IN IMAGE: The briefing requests text on the image. Do NOT add text instructions yourself — the text rendering will be handled separately downstream. Focus purely on the visual scene, composition, and leaving appropriate negative space for text placement.`
+    : `\nNO TEXT: Do NOT mention any text, typography, words, letters, or lettering in your output. The image must be purely visual with zero textual elements.`;
 
-  return `You are a Senior Visual Art Director. Your task is to read a complete briefing document and output ONLY a pure visual description in English optimized for an AI image generation model.
+  return `You are a Senior Art Director and Cinematographer. Your job is to read a complete strategic and marketing briefing document and return ONLY a pure cinematic visual description in English, optimized for an AI image generation model.
+
+YOUR ROLE:
+- Read all the logical, strategic, and marketing context provided.
+- Translate it into a PURELY VISUAL briefing as if you are directing a cinematographer on set.
+- Describe: SCENE, LIGHTING, COLORS, COMPOSITION, TEXTURES, ATMOSPHERE, and AESTHETIC GUIDELINES.
 
 ABSOLUTE RULES:
-1. Output ONLY the visual description. No titles, no labels, no markdown, no explanations, no tags like [COMPLIANCE] or [INSTRUCTION].
-2. Write a single continuous paragraph (200-400 words) describing the scene as if directing a cinematographer.
+1. Output ONLY the visual description. No titles, no labels, no markdown, no explanations.
+2. Write a single continuous paragraph (200-400 words) describing the scene cinematically.
 3. Include: lighting setup, camera lens/perspective, dominant colors, textures, atmosphere, mood, expressions (if people are present).
-4. The user's main request (what they want to create) is the PRIMARY directive. Everything else (brand, persona, platform) enriches it but NEVER overrides it.
-5. Incorporate compliance rules (Brazilian CONAR/CDC) silently into the visual choices — do not mention compliance explicitly.
-6. Adapt the visual tone to match the target audience and platform naturally, without stating them.
-7. If brand reference images are mentioned, include: "Maintain the visual identity, color palette, and design elements from the provided reference images."
-8. If style reference images are mentioned, include: "Draw inspiration from the atmosphere and aesthetic of the provided style reference images."
-9. Preserve any SPECIFIC user instructions (logo placement, element positioning) LITERALLY.
-10. Output must be in ENGLISH regardless of the input language.
+4. The user's main request (what they want to create) is the PRIMARY directive — everything else enriches it but NEVER overrides it.
+5. Do NOT include marketing jargon, structured logic blocks, tags like [COMPLIANCE] or [INSTRUCTION], or the word "Compliance" in your output.
+6. Do NOT include negative prompts or "avoid" instructions — those are handled separately.
+7. Silently incorporate ethical guidelines into visual choices without mentioning them.
+8. Adapt visual tone to match the target audience and platform naturally, without naming them.
+9. If brand reference images are mentioned, include: "Maintain the visual identity, color palette, and design elements from the provided brand reference images."
+10. If style reference images are mentioned, include: "Draw inspiration from the atmosphere and aesthetic of the provided style reference images."
+11. Preserve any SPECIFIC user instructions (element positioning, specific objects) LITERALLY.
+12. Output must be in ENGLISH regardless of the input language.
+13. End your description by restating the core subject/scene from the user's original request to anchor the model.
 ${textInstruction}
 
-Your output will be sent directly to an image generation model. Make every word count visually.`;
+Your output will be sent directly to an image generation model. Make every word count visually. No fluff, no abstraction — concrete visual direction only.`;
 }
