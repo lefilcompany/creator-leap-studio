@@ -350,6 +350,7 @@ export default function CreateImage() {
       const selectedPersona = personas.find(p => p.id === formData.persona);
 
       const requestData = {
+        brandId: formData.brand, themeId: formData.theme, personaId: formData.persona,
         brand: selectedBrand?.name || formData.brand, theme: selectedTheme?.title || formData.theme,
         persona: selectedPersona?.name || formData.persona, objective: formData.prompt,
         description: formData.prompt, tone: formData.tone, platform: formData.platform,
