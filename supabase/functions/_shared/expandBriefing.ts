@@ -1,105 +1,212 @@
 /**
- * Módulo de Expansão de Briefing Visual (v3 - Diretor de Arte)
+ * Módulo LLM Refiner (v4 - Estrategista de Marketing Senior)
  * 
- * Recebe um documento de briefing completo (gerado por buildBriefingDocument)
- * e retorna uma descrição visual pura em inglês para o gerador de imagens.
+ * Recebe um documento de briefing completo e retorna um JSON estruturado
+ * com briefing visual cinematográfico, headline e subtexto.
  * 
- * O LLM de texto (Gemini Flash) atua como um Diretor de Arte Sênior,
- * digerindo todos os metadados (marca, persona, plataforma, compliance)
- * e traduzindo-os para uma string cinematográfica puramente visual.
+ * Usa o Lovable AI Gateway (google/gemini-3-flash-preview).
  */
 
 export interface BriefingExpansionInput {
-  /** Documento de briefing completo gerado por buildBriefingDocument */
+  /** Documento de briefing completo */
   briefingDocument: string;
-  /** Estilo visual selecionado (para referência) */
+  /** Estilo visual selecionado */
   visualStyle: string;
   /** Se há texto para incluir na imagem */
   hasTextOverlay?: boolean;
   /** O texto a incluir (se houver) */
   textContent?: string;
+  /** Tom de voz selecionados */
+  tones?: string[];
+}
+
+export interface RefinerOutput {
+  /** Descrição cinematográfica enriquecida */
+  briefing_visual: string;
+  /** Texto principal sugerido (max 10 palavras) */
+  headline: string;
+  /** CTA ou texto secundário (max 15 palavras) */
+  subtexto: string;
 }
 
 export interface ExpandedBriefing {
-  /** A descrição visual pura em inglês para o modelo de imagem */
+  /** A descrição visual pura para o modelo de imagem */
   expandedPrompt: string;
+  /** Headline sugerida pelo refiner */
+  headline: string;
+  /** Subtexto/CTA sugerido pelo refiner */
+  subtexto: string;
 }
 
+// Mapeamento de tom visual -> parâmetros visuais
+const TONE_VISUAL_MAP: Record<string, { contrast: string; lighting: string; style: string; composition: string; focus: string; description: string }> = {
+  combativo: {
+    contrast: 'Alto — contrastes fortes, sombras intensas',
+    lighting: 'Dramática, low-key, sombras fortes, contra-luz',
+    style: 'Bold, impactante, alto contraste, cores intensas',
+    composition: 'Dinâmica, assimétrica, composição de tensão e urgência',
+    focus: 'Poder, urgência, força, determinação',
+    description: 'Gera urgência e força. Cores intensas, tipografia impactante, contrastes fortes.',
+  },
+  didatico: {
+    contrast: 'Médio — contraste equilibrado e legível',
+    lighting: 'Uniforme, limpa, studio brilhante e neutro',
+    style: 'Clean/Grid, elementos infográficos, dados visuais',
+    composition: 'Organizada, grid-based, hierarquia clara, espaço para dados',
+    focus: 'Compreensão de dados, clareza, confiança, transparência',
+    description: 'Facilita a compreensão de dados. Layout limpo, elementos infográficos, tons neutros.',
+  },
+  emocional: {
+    contrast: 'Baixo-Médio — tons suaves e acolhedores',
+    lighting: 'Quente/Golden Hour, luz natural suave, amanhecer/pôr-do-sol',
+    style: 'Quente, centrado no humano, empático, acolhedor',
+    composition: 'Close-ups, foco humano, enquadramento íntimo, olhar direto',
+    focus: 'Pessoas/Expressões, conexão humana, empatia, pertencimento',
+    description: 'Gera conexão humana e empatia. Iluminação quente, foco em pessoas e expressões.',
+  },
+  institucional: {
+    contrast: 'Baixo — composição estável e formal',
+    lighting: 'Limpa, balanceada, studio profissional',
+    style: 'Minimalista, formal, autoritário',
+    composition: 'Simétrica, centrada, estável',
+    focus: 'Ordem, estabilidade, competência',
+    description: 'Transmite estabilidade e ordem. Estilo minimalista, composição simétrica.',
+  },
+};
+
 /**
- * Expande um documento de briefing em uma descrição visual pura em inglês.
+ * Expande um documento de briefing usando o LLM Refiner via Lovable AI Gateway.
+ * Retorna JSON com briefing_visual, headline e subtexto.
  */
 export async function expandBriefing(
   input: BriefingExpansionInput,
-  geminiApiKey: string
+  _geminiApiKey?: string // kept for backward compat, not used anymore
 ): Promise<ExpandedBriefing> {
-  const systemPrompt = buildSystemPrompt(input.hasTextOverlay, input.textContent);
+  const systemPrompt = buildSystemPrompt(input);
+  const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 
-  console.log('[BriefingExpansion] Expanding briefing document with Art Director LLM...');
-  console.log('[BriefingExpansion] Document length:', input.briefingDocument.length, 'chars');
-  console.log('[BriefingExpansion] Visual style:', input.visualStyle);
+  if (!LOVABLE_API_KEY) {
+    console.error('[LLMRefiner] LOVABLE_API_KEY not configured, falling back to empty');
+    return { expandedPrompt: '', headline: '', subtexto: '' };
+  }
+
+  console.log('[LLMRefiner] Expanding briefing via Lovable AI Gateway...');
+  console.log('[LLMRefiner] Document length:', input.briefingDocument.length, 'chars');
+  console.log('[LLMRefiner] Visual style:', input.visualStyle);
 
   try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          systemInstruction: { parts: [{ text: systemPrompt }] },
-          contents: [{ parts: [{ text: input.briefingDocument }] }],
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 1500,
-          },
-        }),
-      }
-    );
+    const userMessage = `Transforme este Briefing Completo num Briefing Visual cinematográfico:\n\n${input.briefingDocument}`;
+
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-3-flash-preview',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userMessage },
+        ],
+      }),
+    });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('[BriefingExpansion] Gemini API error:', response.status, errorText);
-      return { expandedPrompt: '' };
+      console.error('[LLMRefiner] Gateway error:', response.status, errorText);
+      return { expandedPrompt: '', headline: '', subtexto: '' };
     }
 
     const data = await response.json();
-    const expandedText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    const rawContent = data.choices?.[0]?.message?.content?.trim();
 
-    if (!expandedText) {
-      console.warn('[BriefingExpansion] No text in response');
-      return { expandedPrompt: '' };
+    if (!rawContent) {
+      console.warn('[LLMRefiner] No content in response');
+      return { expandedPrompt: '', headline: '', subtexto: '' };
     }
 
-    console.log('[BriefingExpansion] Expanded prompt length:', expandedText.length, 'chars');
-    console.log('[BriefingExpansion] Preview:', expandedText.substring(0, 300));
+    console.log('[LLMRefiner] Raw response length:', rawContent.length, 'chars');
 
-    return { expandedPrompt: expandedText.trim() };
+    // Try to parse JSON from the response
+    try {
+      const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsed: RefinerOutput = JSON.parse(jsonMatch[0]);
+        console.log('[LLMRefiner] Parsed JSON successfully');
+        console.log('[LLMRefiner] briefing_visual length:', parsed.briefing_visual?.length || 0);
+        console.log('[LLMRefiner] headline:', parsed.headline);
+        console.log('[LLMRefiner] subtexto:', parsed.subtexto);
+        
+        return {
+          expandedPrompt: parsed.briefing_visual || '',
+          headline: parsed.headline || '',
+          subtexto: parsed.subtexto || '',
+        };
+      }
+    } catch (parseError) {
+      console.warn('[LLMRefiner] Failed to parse JSON, using raw text as visual briefing');
+    }
+
+    // Fallback: use raw content as visual description
+    return { expandedPrompt: rawContent, headline: '', subtexto: '' };
+
   } catch (error) {
-    console.error('[BriefingExpansion] Error:', error);
-    return { expandedPrompt: '' };
+    console.error('[LLMRefiner] Error:', error);
+    return { expandedPrompt: '', headline: '', subtexto: '' };
   }
 }
 
-function buildSystemPrompt(hasTextOverlay?: boolean, textContent?: string): string {
-  const textInstruction = hasTextOverlay && textContent
-    ? `\nTEXT IN IMAGE: The briefing requests text overlay on the image. Do NOT add any typography or text rendering instructions — that will be handled separately downstream. Instead, focus purely on composing a visual scene that naturally leaves appropriate negative space where text can be placed without obscuring key visual elements.`
-    : `\nNO TEXT: Do NOT mention any text, typography, words, letters, or lettering in your output. The image must be purely visual with zero textual elements.`;
+function buildSystemPrompt(input: BriefingExpansionInput): string {
+  // Get tone params if any tone matches
+  let toneBlock = '';
+  if (input.tones && input.tones.length > 0) {
+    for (const tone of input.tones) {
+      const toneKey = tone.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      const params = TONE_VISUAL_MAP[toneKey];
+      if (params) {
+        toneBlock = `
+PARÂMETROS VISUAIS DO TOM "${tone.toUpperCase()}":
+- Iluminação: ${params.lighting}
+- Composição: ${params.composition}
+- Contraste: ${params.contrast}
+- Foco visual: ${params.focus}
+- Estilo: ${params.style}
+- ${params.description}`;
+        break;
+      }
+    }
+  }
 
-  return `You are a Senior Art Director. Read all the logical, strategic, and marketing context provided and return ONLY a pure cinematic visual briefing. Describe: SCENE, LIGHTING, COLORS, COMPOSITION, and AESTHETIC GUIDELINES. Do not include marketing jargon, structured logic blocks, or the word "Compliance" in your response.
+  const textInstruction = input.hasTextOverlay && input.textContent
+    ? `\nTEXTO NA IMAGEM: O briefing solicita texto sobreposto. NÃO adicione instruções de tipografia — isso será feito downstream. Foque em compor uma cena visual que naturalmente deixe espaço negativo apropriado onde o texto pode ser colocado sem obscurecer elementos visuais chave.`
+    : `\nSEM TEXTO: NÃO mencione texto, tipografia, palavras ou letras na sua saída. A imagem deve ser puramente visual sem elementos textuais.`;
 
-ABSOLUTE RULES:
-1. Output ONLY the visual description. No titles, no labels, no markdown, no explanations.
-2. Write a single continuous paragraph (200-400 words) describing the scene cinematically.
-3. Include: lighting setup, camera lens/perspective, dominant colors, textures, atmosphere, mood, expressions (if people are present).
-4. The user's main request (what they want to create) is the PRIMARY directive — everything else enriches it but NEVER overrides it.
-5. Do NOT include negative prompts or "avoid" instructions — those are handled separately.
-6. Silently incorporate ethical guidelines into visual choices without mentioning them.
-7. Adapt visual tone to match the target audience and platform naturally, without naming them.
-8. If brand reference images are mentioned, include: "Maintain the visual identity, color palette, and design elements from the provided brand reference images."
-9. If style reference images are mentioned, include: "Draw inspiration from the atmosphere and aesthetic of the provided style reference images."
-10. Preserve any SPECIFIC user instructions (element positioning, specific objects) LITERALLY.
-11. Output must be in ENGLISH regardless of the input language.
-12. End your description by restating the core subject/scene from the user's original request to anchor the model.
+  return `Você é um Diretor de Arte Sênior e Estrategista de Marketing. Leia todo o contexto lógico, estratégico e de marketing fornecido e retorne um briefing cinematográfico puramente visual.
+
+Descreva: CENA, ILUMINAÇÃO, CORES, COMPOSIÇÃO e DIRETRIZES ESTÉTICAS. Não inclua jargões de marketing, blocos lógicos estruturados ou a palavra "Compliance" na sua resposta.
+${toneBlock}
+
+REGRAS ABSOLUTAS:
+1. Responda EXCLUSIVAMENTE em formato JSON com as chaves: briefing_visual, headline, subtexto
+2. briefing_visual: Parágrafo único contínuo (200-400 palavras) descrevendo a cena cinematograficamente EM PORTUGUÊS
+3. Inclua: setup de iluminação, lente/perspectiva da câmera, cores dominantes, texturas, atmosfera, mood, expressões (se houver pessoas)
+4. O pedido principal do usuário (o que ele quer criar) é a diretriz PRIMÁRIA — tudo mais enriquece mas NUNCA sobrepõe
+5. NÃO inclua negative prompts ou instruções "evitar" — são tratados separadamente
+6. Incorpore diretrizes éticas silenciosamente nas escolhas visuais sem mencioná-las
+7. Adapte o tom visual ao público-alvo e plataforma naturalmente, sem nomeá-los
+8. Se imagens de referência da marca forem mencionadas, inclua: "Manter a identidade visual, paleta de cores e elementos de design das imagens de referência da marca fornecidas."
+9. Se imagens de referência de estilo forem mencionadas, inclua: "Inspirar-se na atmosfera e estética das imagens de referência de estilo fornecidas."
+10. Preserve LITERALMENTE instruções ESPECÍFICAS do usuário (posicionamento de elementos, objetos específicos)
+11. headline: Texto principal sugerido (máximo 10 palavras), relevante ao objetivo
+12. subtexto: CTA ou texto secundário (máximo 15 palavras)
+13. Encerre o briefing_visual reafirmando o assunto/cena central do pedido original do usuário
 ${textInstruction}
 
-Your output will be sent directly to an image generation model. Make every word count visually. No fluff, no abstraction — concrete visual direction only.`;
+FORMATO DE RESPOSTA (JSON estrito):
+{
+  "briefing_visual": "Uma fotografia cinematográfica de [CENA DETALHADA]...",
+  "headline": "texto principal sugerido",
+  "subtexto": "CTA ou texto secundário"
+}`;
 }
