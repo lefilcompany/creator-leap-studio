@@ -1,102 +1,52 @@
 
 
-# Refatoracao do Pipeline de Geracao de Imagem
+# Refatoracao Completa do Two-Stage Pipeline
 
-## Problema Atual
+## Contexto
 
-O `generate-image/index.ts` envia um prompt gigante com tags estruturadas (`[COMPLIANCE]`, `[BRAND CONTEXT]`, `[INSTRUCTION]`, etc.) diretamente para o modelo de imagem. Alem disso, concatena o briefing expandido com o prompt original de forma redundante, e envia ate 5+ imagens de referencia que diluem o resultado. O modelo de imagem recebe instrucoes textuais longas em vez de descricoes visuais puras.
+Os dois arquivos (`generate-image/index.ts` e `generate-quick-content/index.ts`) ja possuem a estrutura basica do two-stage pipeline, mas ainda ha inconsistencias. O `expandBriefing.ts` precisa de ajustes no system prompt, e a logica de texto/imagens de referencia precisa ser padronizada conforme as instrucoes exatas do usuario.
 
-## Arquitetura Proposta
+## Mudancas
 
-```text
-Formulario -> buildBriefingDocument() -> expandBriefing (LLM texto) -> Prompt Visual Puro + Style Suffix + Negative Prompt -> Gemini Image API
-```
+### 1. `supabase/functions/_shared/expandBriefing.ts`
 
-O LLM de texto (expandBriefing) sera o unico responsavel por digerir TODOS os metadados e retornar uma descricao visual pura em ingles.
+**System prompt**: Reescrever o system prompt da funcao `buildSystemPrompt` para usar exatamente a diretriz solicitada:
+- "Voce e um Diretor de Arte Senior. Leia todo este contexto logico, estrategico e de marketing fornecido e retorne APENAS um briefing cinematografico puramente visual. Descreva: CENA, ILUMINACAO, CORES, COMPOSICAO e DIRETRIZES ESTETICAS. Nao inclua jargoes de marketing, blocos logicos estruturados ou a palavra Compliance na sua resposta."
+- Manter as regras absolutas existentes (output em ingles, paragrafo unico, sem tags, sem negative prompts)
+- Ajustar a instrucao de texto: quando `hasTextOverlay=true`, instruir o LLM a deixar espaco negativo para texto mas NAO adicionar instrucoes de tipografia (isso sera feito downstream)
+- Quando `hasTextOverlay=false`, instruir a nao mencionar texto/tipografia
 
-## Mudancas Detalhadas
+### 2. `supabase/functions/generate-image/index.ts`
 
-### 1. Renomear `buildDetailedPrompt` para `buildBriefingDocument`
+**Limpeza do prompt final (Stage 3)**:
+- Remover qualquer logica residual de concatenacao tipo `reinforcedBriefing` ou `enhancedPrompt.replace` (verificar se ja foi removida)
+- O prompt final deve ser montado EXCLUSIVAMENTE com: `imageRolePrefix + visualDescription + textOverlayBlock + styleSuffix`
 
-Esta funcao deixa de gerar o prompt final para o modelo de imagem. Passa a gerar um **documento de briefing interno** que sera lido apenas pelo LLM de texto (Gemini Flash). O documento tera formato legivel (sem tags como `[COMPLIANCE]`, `[INSTRUCTION]`), contendo todas as informacoes contextuais: marca, persona, plataforma, tom, tipo de conteudo, configuracoes visuais avancadas, instrucoes de texto, etc. Este documento nunca sera enviado ao modelo de imagem.
+**Texto na imagem**:
+- Quando `includeText=true`: adicionar o bloco exato em portugues no prompt final:
+  `"\n\n- Design e Tipografia: Renderize PERFEITAMENTE o texto: "${textContent}". O texto DEVE ser o foco principal, estar na posicao "${textPosition}" e ser 100% legivel. Utilize espaco negativo estrategico na imagem, sobreposicoes de gradiente sutil ou caixas de texto limpas para garantir contraste absoluto entre a fonte e o fundo. O texto nao deve flutuar sem proposito, deve fazer parte de uma composicao de design profissional em formato para ${platform}."`
+- Quando `includeText=false`: adicionar ao negative prompt: `text, watermark, typography, letters, signature, words, labels`
 
-### 2. Atualizar `expandBriefing.ts`
+**Imagens de referencia**:
+- Manter limite de 2 brand + 1 style
+- Adicionar instrucao no inicio do prompt: "A(s) primeira(s) imagem(ns) definem a Identidade Visual e Paleta de Cores obrigatoria. A(s) ultima(s) servem apenas como inspiracao de composicao."
 
-Ajustar o system prompt para instruir o LLM a:
-- Receber o documento de briefing completo como input
-- Retornar APENAS uma descricao visual pura em ingles (paragrafo hiperdescritivo ou tags separadas por virgula)
-- Nao incluir tags, marcadores, titulos ou instrucoes
-- Incorporar compliance, persona, plataforma diretamente na descricao visual
-- Quando houver texto na imagem, usar sintaxe simples: `Include text overlay exactly reading "TEXTO" in modern typography`
-- Quando nao houver texto, nao mencionar nada sobre texto (a restricao vai no negative prompt)
+### 3. `supabase/functions/generate-quick-content/index.ts`
 
-### 3. Reestruturar o fluxo no `generate-image/index.ts`
+Aplicar exatamente a mesma arquitetura do `generate-image`:
+- O briefing document inline ja existe, manter
+- O `expandBriefing` ja e chamado, manter
+- Ajustar a montagem do prompt final para incluir o `imageRolePrefix` com a instrucao de papeis das imagens
+- O quick content nao tem text overlay, entao o negative prompt ja deve incluir as restricoes de texto (ja inclui)
+- Padronizar a logica de imagens de referencia com o mesmo limite (2 brand + 1 style)
 
-**Antes:**
-1. `buildDetailedPrompt()` gera prompt estruturado com tags
-2. `expandBriefing()` recebe campos individuais separadamente
-3. Resultado expandido e concatenado com o prompt original e injetado no prompt estruturado
-4. Tudo enviado ao modelo de imagem
+### 4. Deploy
 
-**Depois:**
-1. `buildBriefingDocument()` gera documento de briefing legivel (so para o LLM)
-2. `expandBriefing()` recebe o documento completo e retorna descricao visual pura
-3. Prompt final = `expandedVisualPrompt + ", " + styleSuffix`
-4. Negative prompt = `styleNegativePrompt + ", text, signature, watermark, words, typography, spelling"` (quando sem texto)
-5. Apenas este prompt limpo + negative prompt + imagens limitadas sao enviados ao modelo de imagem
-
-### 4. Limitar imagens de referencia
-
-- `preserveImages` (marca): maximo 2 imagens (as primeiras)
-- `styleReferenceImages`: maximo 1 imagem
-- Comentario no codigo explicando que multiplas imagens causam diluicao do prompt
-- Total maximo: 3 imagens de referencia
-
-### 5. Tratamento de texto na imagem
-
-- Remover o bloco `[NO TEXT]` com instrucoes longas do prompt
-- Quando `includeText = false`: adicionar `text, signature, watermark, words, typography, spelling` ao negative prompt
-- Quando `includeText = true`: o LLM de texto incluira na descricao visual: `Include text overlay exactly reading "TEXTO" in modern typography`
+Redeployar as edge functions `generate-image` e `generate-quick-content` apos as alteracoes.
 
 ## Arquivos Modificados
 
-1. **`supabase/functions/generate-image/index.ts`** - Refatoracao completa do fluxo: nova funcao `buildBriefingDocument`, simplificacao do pipeline, limitacao de imagens, prompt limpo para o modelo
-2. **`supabase/functions/_shared/expandBriefing.ts`** - Atualizar system prompt para aceitar documento de briefing completo e retornar apenas descricao visual pura; atualizar interface para receber o briefing document como string unica em vez de campos individuais
-
-## Detalhes Tecnicos
-
-### Nova interface do expandBriefing
-
-```typescript
-interface BriefingExpansionInput {
-  briefingDocument: string;  // Documento completo gerado por buildBriefingDocument
-  visualStyle: string;       // Para referencia do estilo
-}
-```
-
-### Formato do prompt final enviado ao Gemini Image
-
-```text
-[descricao visual pura do LLM em ingles, ~200-400 palavras], [style suffix do estilo selecionado]
-```
-
-### Formato do negative prompt
-
-```text
-[negative prompt do estilo] + text, signature, watermark, words, typography, spelling (quando sem texto)
-```
-
-### Payload final para Gemini Image API
-
-```typescript
-contents: [{
-  parts: [
-    { text: finalCleanPrompt },       // Descricao visual + style suffix
-    ...limitedReferenceImages          // Max 3 imagens
-  ]
-}],
-generationConfig: {
-  responseModalities: ["IMAGE", "TEXT"]
-}
-```
+1. `supabase/functions/_shared/expandBriefing.ts` - System prompt do Art Director
+2. `supabase/functions/generate-image/index.ts` - Bloco de texto exato, imageRolePrefix
+3. `supabase/functions/generate-quick-content/index.ts` - Padronizar com imageRolePrefix
 
