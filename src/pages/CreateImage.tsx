@@ -552,6 +552,19 @@ export default function CreateImage() {
                     ))}
                   </div>
                 )}
+
+                {/* Settings hint */}
+                {!showSettings && (
+                  <button
+                    type="button"
+                    onClick={() => { setShowSettings(true); setShowStyles(false); }}
+                    className="flex items-center gap-1.5 mt-3 pt-3 border-t border-border/20 text-xs text-muted-foreground hover:text-primary transition-colors group w-full"
+                  >
+                    <Settings2 className="h-3.5 w-3.5 group-hover:text-primary transition-colors" />
+                    <span>Configure <span className="font-medium text-foreground/70 group-hover:text-primary">plataforma, marca, tom de voz</span> e mais nas configurações avançadas</span>
+                    <ChevronDown className="h-3 w-3 ml-auto" />
+                  </button>
+                )}
               </div>
 
               {/* Expandable settings panel */}
