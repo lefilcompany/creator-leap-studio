@@ -19,14 +19,6 @@ const statItem = {
 export const DashboardStats = ({ actionsCount, brandsCount, personasCount = 0, themesCount = 0, hasTeam = false }: DashboardStatsProps) => {
   const stats = [
     {
-      label: hasTeam ? "Conteúdos da Equipe" : "Conteúdos Criados",
-      value: actionsCount,
-      icon: Sparkles,
-      color: "text-primary",
-      bg: "bg-primary/10",
-      link: "/history",
-    },
-    {
       label: "Marcas Ativas",
       value: brandsCount,
       icon: Tags,
@@ -49,6 +41,14 @@ export const DashboardStats = ({ actionsCount, brandsCount, personasCount = 0, t
       color: "text-success",
       bg: "bg-success/10",
       link: "/themes",
+    },
+    {
+      label: hasTeam ? "Conteúdos da Equipe" : "Conteúdos Criados",
+      value: actionsCount,
+      icon: Sparkles,
+      color: "text-primary",
+      bg: "bg-primary/10",
+      link: "/history",
     },
   ];
 
