@@ -96,10 +96,10 @@ export function PlatformSelector({ value, onChange }: PlatformSelectorProps) {
               key={platform.value}
               type="button"
               onClick={() => handleSelect(platform.value)}
-              className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium transition-all active:scale-[0.97] border ${
+              className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium transition-all active:scale-[0.97] border-0 ${
                 isSelected
-                  ? "bg-primary/10 border-primary/40 text-foreground shadow-sm ring-1 ring-primary/20"
-                  : "bg-card border-border/50 text-muted-foreground hover:bg-primary/5 hover:border-primary/30 hover:text-foreground"
+                  ? "bg-primary/10 text-foreground shadow-lg ring-2 ring-primary/20"
+                  : "bg-card text-muted-foreground shadow-sm hover:shadow-md hover:text-foreground"
               }`}
             >
               <Icon />
