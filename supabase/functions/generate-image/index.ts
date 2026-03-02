@@ -404,12 +404,12 @@ serve(async (req) => {
     if (hasAnyImages) {
       const parts: string[] = [];
       if (preserveImages.length > 0) {
-        parts.push(`The first ${preserveImages.length} image(s) define the mandatory Visual Identity and Color Palette`);
+        parts.push(`A(s) primeira(s) ${preserveImages.length} imagem(ns) definem a Identidade Visual e Paleta de Cores obrigatória`);
       }
       if (styleReferenceImages.length > 0) {
-        parts.push(`the last image serves only as composition and atmosphere inspiration`);
+        parts.push(`A(s) última(s) servem apenas como inspiração de composição`);
       }
-      imageRolePrefix = `[Image roles: ${parts.join('. ')}]\n\n`;
+      imageRolePrefix = `${parts.join('. ')}.\n\n`;
     }
 
     // Text overlay handling — added directly to the clean prompt
@@ -417,7 +417,7 @@ serve(async (req) => {
     if (includeText && textContent) {
       const textPosition = cleanInput(formData.textPosition) || 'center';
       const platform = cleanInput(formData.platform) || 'social media';
-      textOverlayBlock = `\n\nDesign and Typography: Render PERFECTLY the text: "${textContent}". The text MUST be the main focus, positioned at "${textPosition}", and be 100% legible. Use strategic negative space, subtle gradient overlays, or clean text boxes to ensure absolute contrast between the font and the background. The text should be part of a professional design composition for ${platform}.`;
+      textOverlayBlock = `\n\n- Design e Tipografia: Renderize PERFEITAMENTE o texto: "${textContent}". O texto DEVE ser o foco principal, estar na posição "${textPosition}" e ser 100% legível. Utilize espaço negativo estratégico na imagem, sobreposições de gradiente sutil ou caixas de texto limpas para garantir contraste absoluto entre a fonte e o fundo. O texto não deve flutuar sem propósito, deve fazer parte de uma composição de design profissional em formato para ${platform}.`;
     }
 
     // Final clean prompt: image role prefix + visual description + text overlay + style suffix

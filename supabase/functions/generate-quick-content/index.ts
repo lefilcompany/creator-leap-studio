@@ -348,7 +348,25 @@ serve(async (req) => {
 
     // Build final clean prompt: expanded visual description + style suffix
     const visualDescription = briefingResult.expandedPrompt || prompt;
-    let userPrompt = `${visualDescription}, ${promptSuffix}`;
+    
+    // Build image role prefix when reference images exist
+    const limitedPreserve = preserveImages ? preserveImages.slice(0, 2) : [];
+    const limitedStyle = styleReferenceImages ? styleReferenceImages.slice(0, 1) : [];
+    const hasAnyRefImages = limitedPreserve.length > 0 || limitedStyle.length > 0;
+    
+    let imageRolePrefix = '';
+    if (hasAnyRefImages) {
+      const roleParts: string[] = [];
+      if (limitedPreserve.length > 0) {
+        roleParts.push(`A(s) primeira(s) ${limitedPreserve.length} imagem(ns) definem a Identidade Visual e Paleta de Cores obrigatória`);
+      }
+      if (limitedStyle.length > 0) {
+        roleParts.push(`A(s) última(s) servem apenas como inspiração de composição`);
+      }
+      imageRolePrefix = `${roleParts.join('. ')}.\n\n`;
+    }
+    
+    let userPrompt = `${imageRolePrefix}${visualDescription}, ${promptSuffix}`;
     
     // Build negative prompt
     let negativePromptFinal = negativePromptBase;
@@ -356,7 +374,7 @@ serve(async (req) => {
       negativePromptFinal = `${negativePrompt.trim()}, ${negativePromptBase}`;
     }
     // Add text restrictions to negative prompt (quick content never has text overlay)
-    negativePromptFinal += ', text, signature, watermark, words, typography, spelling, letters, numbers';
+    negativePromptFinal += ', text, watermark, typography, letters, signature, words, labels';
     
     console.log('=== FINAL PROMPT ===');
     console.log('Prompt length:', userPrompt.length, 'chars');
@@ -368,7 +386,6 @@ serve(async (req) => {
     
     // Add preserve images (max 2)
     if (hasPreserveImages) {
-      const limitedPreserve = preserveImages.slice(0, 2);
       for (const img of limitedPreserve) {
         if (img) {
           const isBase64 = typeof img === 'string' && (img.startsWith('data:') || !img.startsWith('http'));
@@ -380,8 +397,8 @@ serve(async (req) => {
       }
     }
 
-    // Add reference images (max 1)
-    if (hasReferenceImages) {
+    // Add reference images (max 1, only if no style reference)
+    if (hasReferenceImages && !hasStyleReferenceImages) {
       const limitedRef = referenceImages.slice(0, 1);
       for (const img of limitedRef) {
         if (img) {
@@ -394,9 +411,8 @@ serve(async (req) => {
       }
     }
 
-    // Add style reference images (max 1, only if no reference images)
-    if (hasStyleReferenceImages && !hasReferenceImages) {
-      const limitedStyle = styleReferenceImages.slice(0, 1);
+    // Add style reference images (max 1)
+    if (hasStyleReferenceImages) {
       for (const img of limitedStyle) {
         if (img) {
           const isBase64 = typeof img === 'string' && (img.startsWith('data:') || !img.startsWith('http'));
