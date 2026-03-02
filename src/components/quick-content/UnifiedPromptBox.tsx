@@ -1,28 +1,22 @@
 import { useState, useRef } from "react";
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { Plus, ImageIcon, X, Info } from "lucide-react";
+import { Plus, ImageIcon, X, Paintbrush, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 
 const VISUAL_STYLES = [
-  { value: "realistic", label: "Fotorealístico", emoji: "📷" },
-  { value: "animated", label: "Animado / 3D", emoji: "🎮" },
-  { value: "cartoon", label: "Cartoon", emoji: "🎨" },
-  { value: "anime", label: "Anime", emoji: "🌸" },
-  { value: "watercolor", label: "Aquarela", emoji: "💧" },
-  { value: "oil_painting", label: "Óleo", emoji: "🖼️" },
-  { value: "digital_art", label: "Arte Digital", emoji: "✨" },
-  { value: "sketch", label: "Esboço", emoji: "✏️" },
-  { value: "minimalist", label: "Minimalista", emoji: "◻️" },
-  { value: "vintage", label: "Vintage", emoji: "📻" },
+  { value: "realistic", label: "Fotorealístico" },
+  { value: "animated", label: "Animado / 3D" },
+  { value: "cartoon", label: "Cartoon" },
+  { value: "anime", label: "Anime" },
+  { value: "watercolor", label: "Aquarela" },
+  { value: "oil_painting", label: "Pintura a Óleo" },
+  { value: "digital_art", label: "Arte Digital" },
+  { value: "sketch", label: "Esboço" },
+  { value: "minimalist", label: "Minimalista" },
+  { value: "vintage", label: "Vintage" },
 ] as const;
-
-interface ReferenceFile {
-  file: File;
-  preserveTraits: boolean;
-}
 
 interface UnifiedPromptBoxProps {
   prompt: string;
@@ -84,35 +78,35 @@ export function UnifiedPromptBox({
   const selectedStyleLabel = VISUAL_STYLES.find(s => s.value === visualStyle);
 
   return (
-    <div className="bg-card rounded-2xl shadow-lg overflow-hidden border border-border/50">
+    <div className="rounded-2xl shadow-lg overflow-hidden border border-border/50 bg-card transition-shadow focus-within:shadow-xl focus-within:border-primary/30">
       {/* Main textarea area */}
-      <div className="p-4 md:p-5" onPaste={handlePaste}>
+      <div className="p-4 md:p-5 pb-2" onPaste={handlePaste}>
         <Textarea
           id="quick-description"
           placeholder="Descreva o que você quer criar... Ex: Uma imagem de um café sendo servido numa manhã ensolarada, com estética minimalista e cores quentes"
           value={prompt}
           onChange={e => onPromptChange(e.target.value)}
           rows={4}
-          className="resize-none border-0 bg-transparent p-0 text-base placeholder:text-muted-foreground/60 focus-visible:ring-0 focus-visible:ring-offset-0 min-h-[100px]"
+          className="resize-none border-0 bg-transparent p-0 text-base placeholder:text-muted-foreground/50 focus-visible:ring-0 focus-visible:ring-offset-0 min-h-[100px]"
         />
 
         {/* Reference images preview inline */}
         {referenceFiles.length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-border/30">
+          <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-border/20">
             {referenceFiles.map((file, idx) => (
               <div
                 key={idx}
-                className="relative group flex items-center gap-2 bg-muted/50 rounded-lg px-3 py-2 text-xs border border-border/30"
+                className="relative group flex items-center gap-2 bg-muted/40 rounded-lg px-2.5 py-1.5 text-xs border border-border/30 hover:border-border/50 transition-colors"
               >
                 <ImageIcon className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
                 <span className="truncate max-w-[120px] text-foreground">{file.name}</span>
                 <button
                   type="button"
                   onClick={() => handleTogglePreserve(idx)}
-                  className={`text-[10px] px-1.5 py-0.5 rounded-full border transition-colors ${
+                  className={`text-[10px] px-1.5 py-0.5 rounded-full border transition-all ${
                     preserveImageIndices.includes(idx)
                       ? "bg-primary/15 border-primary/30 text-primary"
-                      : "bg-muted border-border/50 text-muted-foreground hover:border-primary/30"
+                      : "bg-muted border-border/50 text-muted-foreground hover:border-primary/30 hover:text-primary"
                   }`}
                   title="Preservar traços desta imagem"
                 >
@@ -131,10 +125,10 @@ export function UnifiedPromptBox({
         )}
       </div>
 
-      {/* Visual style tags */}
+      {/* Visual style picker dropdown */}
       {showStyles && (
-        <div className="px-4 md:px-5 pb-3 border-t border-border/30 pt-3">
-          <Label className="text-xs font-medium text-muted-foreground mb-2 block">Estilo Visual</Label>
+        <div className="px-4 md:px-5 pb-3 pt-2">
+          <Label className="text-xs font-medium text-muted-foreground mb-2.5 block">Estilo Visual</Label>
           <div className="flex flex-wrap gap-1.5">
             {VISUAL_STYLES.map(style => (
               <button
@@ -144,14 +138,13 @@ export function UnifiedPromptBox({
                   onVisualStyleChange(style.value);
                   setShowStyles(false);
                 }}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all active:scale-[0.97] ${
                   visualStyle === style.value
                     ? "bg-primary text-primary-foreground shadow-sm"
-                    : "bg-muted/60 text-foreground hover:bg-muted border border-border/40"
+                    : "bg-muted/50 text-foreground border border-border/40 hover:bg-primary/10 hover:border-primary/30 hover:text-primary"
                 }`}
               >
-                <span>{style.emoji}</span>
-                <span>{style.label}</span>
+                {style.label}
               </button>
             ))}
           </div>
@@ -159,18 +152,16 @@ export function UnifiedPromptBox({
       )}
 
       {/* Bottom toolbar */}
-      <div className="flex items-center gap-2 px-4 md:px-5 py-3 border-t border-border/30 bg-muted/20">
+      <div className="flex items-center gap-1.5 px-4 md:px-5 py-2.5 border-t border-border/20 bg-muted/10">
         {/* Add image button */}
-        <Button
+        <button
           type="button"
-          variant="ghost"
-          size="sm"
-          className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+          className="h-8 w-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all active:scale-[0.95]"
           onClick={() => fileInputRef.current?.click()}
           title="Adicionar imagens de referência"
         >
           <Plus className="h-4 w-4" />
-        </Button>
+        </button>
         <input
           ref={fileInputRef}
           type="file"
@@ -184,20 +175,23 @@ export function UnifiedPromptBox({
         />
 
         {/* Visual style toggle */}
-        <Button
+        <button
           type="button"
-          variant="ghost"
-          size="sm"
-          className="h-8 gap-1.5 text-muted-foreground hover:text-foreground px-2"
+          className={`h-8 inline-flex items-center gap-1.5 rounded-lg px-3 text-xs font-medium transition-all active:scale-[0.97] ${
+            showStyles
+              ? "bg-primary/10 text-primary border border-primary/30"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+          }`}
           onClick={() => setShowStyles(!showStyles)}
         >
-          <span className="text-sm">{selectedStyleLabel?.emoji || "🎨"}</span>
-          <span className="text-xs font-medium">{selectedStyleLabel?.label || "Estilo"}</span>
-        </Button>
+          <Paintbrush className="h-3.5 w-3.5" />
+          <span>{selectedStyleLabel?.label || "Estilo"}</span>
+          <ChevronDown className={`h-3 w-3 transition-transform ${showStyles ? "rotate-180" : ""}`} />
+        </button>
 
         {/* Reference count */}
         {referenceFiles.length > 0 && (
-          <Badge variant="secondary" className="text-[10px] h-5 px-1.5 gap-1">
+          <Badge variant="secondary" className="text-[10px] h-5 px-1.5 gap-1 ml-1">
             <ImageIcon className="h-3 w-3" />
             {referenceFiles.length}
           </Badge>
