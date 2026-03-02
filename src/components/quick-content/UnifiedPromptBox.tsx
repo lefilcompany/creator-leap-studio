@@ -78,7 +78,7 @@ export function UnifiedPromptBox({
   const selectedStyleLabel = VISUAL_STYLES.find(s => s.value === visualStyle);
 
   return (
-    <div className="rounded-2xl shadow-lg overflow-hidden border border-border/50 bg-card transition-shadow focus-within:shadow-xl focus-within:border-primary/30">
+    <div className="rounded-2xl shadow-lg overflow-hidden border-0 bg-card transition-shadow focus-within:shadow-xl">
       {/* Main textarea area */}
       <div className="p-4 md:p-5 pb-2" onPaste={handlePaste}>
         <Textarea
