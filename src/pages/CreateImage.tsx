@@ -13,7 +13,7 @@ import { NativeSelect } from "@/components/ui/native-select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Sparkles, Zap, X, Info, ImagePlus, Coins, Image as ImageIcon, HelpCircle, Paintbrush, ChevronDown, Plus } from "lucide-react";
+import { Loader2, Sparkles, Zap, X, Info, ImagePlus, Coins, Image as ImageIcon, HelpCircle, Paintbrush, ChevronDown, Plus, Settings2, Mic } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CREDIT_COSTS } from "@/lib/creditCosts";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -44,9 +44,8 @@ interface FormData {
   brand: string;
   theme: string;
   persona: string;
-  objective: string;
+  prompt: string;
   platform: string;
-  description: string;
   tone: string[];
   additionalInfo: string;
   contentType: 'organic' | 'ads';
@@ -87,8 +86,8 @@ export default function CreateImage() {
   const { user, session, refreshUserCredits } = useAuth();
   const navigate = useNavigate();
   const [formData, setFormData] = useState<FormData>({
-    brand: "", theme: "", persona: "", objective: "", platform: "",
-    description: "", tone: [], additionalInfo: "", contentType: "organic",
+    brand: "", theme: "", persona: "", prompt: "", platform: "",
+    tone: [], additionalInfo: "", contentType: "organic",
     visualStyle: "realistic", negativePrompt: "", colorPalette: "auto",
     lighting: "natural", composition: "auto", cameraAngle: "eye_level",
     detailLevel: 7, mood: "auto", imageIncludeText: false,
@@ -108,6 +107,7 @@ export default function CreateImage() {
   const [recommendedAspectRatio, setRecommendedAspectRatio] = useState("");
   const [preserveImageIndices, setPreserveImageIndices] = useState<number[]>([]);
   const [showStyles, setShowStyles] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
   const teamId = user?.teamId;
   const userId = user?.id;
@@ -275,15 +275,14 @@ export default function CreateImage() {
   };
 
   const isFormValid = useMemo(() => {
-    return formData.brand && formData.objective && formData.platform && formData.description && formData.tone.length > 0 && referenceFiles.length > 0;
-  }, [formData.brand, formData.objective, formData.platform, formData.description, formData.tone.length, referenceFiles.length]);
+    return formData.brand && formData.prompt && formData.platform && formData.tone.length > 0 && referenceFiles.length > 0;
+  }, [formData.brand, formData.prompt, formData.platform, formData.tone.length, referenceFiles.length]);
 
   const validateForm = () => {
     const missing: string[] = [];
     if (!formData.brand) missing.push('brand');
-    if (!formData.objective) missing.push('objective');
+    if (!formData.prompt) missing.push('prompt');
     if (!formData.platform) missing.push('platform');
-    if (!formData.description) missing.push('description');
     if (formData.tone.length === 0) missing.push('tone');
     if (referenceFiles.length === 0) missing.push('referenceFiles');
     setMissingFields(missing);
@@ -352,8 +351,8 @@ export default function CreateImage() {
 
       const requestData = {
         brand: selectedBrand?.name || formData.brand, theme: selectedTheme?.title || formData.theme,
-        persona: selectedPersona?.name || formData.persona, objective: formData.objective,
-        description: formData.description, tone: formData.tone, platform: formData.platform,
+        persona: selectedPersona?.name || formData.persona, objective: formData.prompt,
+        description: formData.prompt, tone: formData.tone, platform: formData.platform,
         contentType, visualStyle: formData.visualStyle || 'realistic', additionalInfo: formData.additionalInfo,
         preserveImages: finalBrandImages, styleReferenceImages: finalUserImages,
         brandImagesCount: finalBrandImages.length, userImagesCount: finalUserImages.length,
@@ -404,7 +403,7 @@ export default function CreateImage() {
         const specs = { Instagram: { maxLength: 2200, recommendedHashtags: 10 }, Facebook: { maxLength: 250, recommendedHashtags: 3 }, LinkedIn: { maxLength: 600, recommendedHashtags: 5 }, TikTok: { maxLength: 150, recommendedHashtags: 5 }, Twitter: { maxLength: 280, recommendedHashtags: 2 } }[formData.platform] || { maxLength: 500, recommendedHashtags: 5 };
         captionData = {
           title: `${brandName} | ${themeName} 🚀`,
-          body: `🌟 ${brandName} apresenta: ${themeName}\n\n${formData.description}\n\n💡 ${formData.objective}\n\n🎯 Tom: ${formData.tone.join(", ")}\n\n💬 Comente!`.substring(0, specs.maxLength - 100),
+          body: `🌟 ${brandName} apresenta: ${themeName}\n\n${formData.prompt}\n\n🎯 Tom: ${formData.tone.join(", ")}\n\n💬 Comente!`.substring(0, specs.maxLength - 100),
           hashtags: [brandName.toLowerCase().replace(/\s+/g, ""), themeName.toLowerCase().replace(/\s+/g, ""), formData.platform.toLowerCase(), "marketingdigital", "conteudocriativo", ...formData.tone.map(t => t.toLowerCase())].filter((tag, i, self) => tag && tag.length > 2 && self.indexOf(tag) === i).slice(0, specs.recommendedHashtags)
         };
       }
@@ -519,58 +518,26 @@ export default function CreateImage() {
           <CreationProgressBar currentStep={loading ? "generating" : "config"} className="max-w-xs mx-auto" />
 
           <div className="space-y-4">
-            {/* 1. Unified Prompt Box */}
+            {/* 1. Unified Prompt Box with Settings */}
             <div className="rounded-2xl shadow-lg overflow-hidden border-0 bg-card transition-shadow focus-within:shadow-xl">
-              <div className="p-4 md:p-5 space-y-4" onPaste={handlePaste}>
-                {/* Objective */}
-                <div className="space-y-2">
-                  <Label htmlFor="objective" className="text-sm font-bold text-foreground">
-                    Objetivo do Post <span className="text-destructive">*</span>
-                  </Label>
-                  <Textarea
-                    id="objective"
-                    placeholder="Qual a principal meta? (ex: gerar engajamento, anunciar um produto)"
-                    value={formData.objective}
-                    onChange={handleInputChange}
-                    rows={2}
-                    className={`resize-none border-0 bg-muted/30 rounded-xl p-3 text-sm placeholder:text-muted-foreground/50 focus-visible:ring-1 focus-visible:ring-primary/30 ${
-                      missingFields.includes('objective') ? 'ring-2 ring-destructive/30 bg-destructive/5' : ''
-                    }`}
-                  />
-                </div>
-
-                {/* Description */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="description" className="text-sm font-bold text-foreground">
-                      Descrição Visual da Imagem <span className="text-destructive">*</span>
-                    </Label>
-                    <span className={`text-xs font-medium ${formData.description.length > 5000 ? 'text-destructive' : formData.description.length > 4500 ? 'text-orange-500' : 'text-muted-foreground'}`}>
-                      {formData.description.length}/5000
-                    </span>
-                  </div>
-                  <Textarea
-                    id="description"
-                    placeholder="Descreva a cena, iluminação e emoção desejada..."
-                    value={formData.description}
-                    onChange={handleInputChange}
-                    maxLength={5000}
-                    rows={4}
-                    className={`resize-none border-0 bg-muted/30 rounded-xl p-3 text-sm placeholder:text-muted-foreground/50 focus-visible:ring-1 focus-visible:ring-primary/30 ${
-                      missingFields.includes('description') ? 'ring-2 ring-destructive/30 bg-destructive/5' : ''
-                    }`}
-                  />
-                  <p className="text-xs text-muted-foreground flex items-start gap-1.5">
-                    <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
-                    <span>Seja específico sobre cena, iluminação, cores e estilo desejado</span>
-                  </p>
-                </div>
+              <div className="p-4 md:p-5 pb-2" onPaste={handlePaste}>
+                <Textarea
+                  id="prompt"
+                  placeholder="Descreva o que você quer criar... Ex: Uma imagem de um café sendo servido numa manhã ensolarada, com estética minimalista e cores quentes. Objetivo: gerar engajamento no Instagram."
+                  value={formData.prompt}
+                  onChange={handleInputChange}
+                  maxLength={5000}
+                  rows={5}
+                  className={`resize-none border-0 bg-transparent p-0 text-base placeholder:text-muted-foreground/50 focus-visible:ring-0 focus-visible:ring-offset-0 min-h-[120px] ${
+                    missingFields.includes('prompt') ? 'ring-2 ring-destructive/30 bg-destructive/5 rounded-lg p-2' : ''
+                  }`}
+                />
 
                 {/* Reference images inline */}
                 {referenceFiles.length > 0 && (
-                  <div className="flex flex-wrap gap-2 pt-3 border-t border-border/20">
+                  <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-border/20">
                     {referenceFiles.map((file, idx) => (
-                      <div key={idx} className="relative group flex items-center gap-2 bg-muted/40 rounded-lg px-2.5 py-1.5 text-xs border-0 shadow-sm">
+                      <div key={idx} className="relative group flex items-center gap-2 bg-muted/40 rounded-lg px-2.5 py-1.5 text-xs shadow-sm">
                         <ImagePlus className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
                         <span className="truncate max-w-[120px] text-foreground">{file.name}</span>
                         <button type="button" onClick={() => handleTogglePreserve(idx)}
@@ -587,9 +554,51 @@ export default function CreateImage() {
                 )}
               </div>
 
+              {/* Expandable settings panel */}
+              {showSettings && (
+                <div className="px-4 md:px-5 pb-3 pt-3 space-y-4 border-t border-border/20 bg-muted/5">
+                  {/* Content Type */}
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium text-muted-foreground">Tipo de Conteúdo</Label>
+                    <div className="flex items-center space-x-1 rounded-lg bg-muted p-1 h-9">
+                      <Button type="button" variant={contentType === "organic" ? "default" : "ghost"}
+                        onClick={() => { setContentType("organic"); if (formData.platform) setPlatformGuidelines(getCaptionGuidelines(formData.platform, "organic")); }}
+                        className="flex-1 rounded-md font-semibold h-7 text-xs">Orgânico</Button>
+                      <Button type="button" variant={contentType === "ads" ? "default" : "ghost"}
+                        onClick={() => { setContentType("ads"); if (formData.platform) setPlatformGuidelines(getCaptionGuidelines(formData.platform, "ads")); }}
+                        className="flex-1 rounded-md font-semibold h-7 text-xs">Anúncio</Button>
+                    </div>
+                  </div>
+
+                  {/* Tone of Voice */}
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium text-muted-foreground">
+                      Tom de Voz <span className="text-destructive">*</span> <span className="font-normal">(máx. 4)</span>
+                    </Label>
+                    <div className="flex flex-wrap gap-1.5">
+                      {toneOptions.map(t => (
+                        <button key={t} type="button"
+                          onClick={() => formData.tone.includes(t) ? handleToneRemove(t) : handleToneSelect(t)}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all active:scale-[0.97] capitalize ${
+                            formData.tone.includes(t)
+                              ? "bg-primary text-primary-foreground shadow-sm"
+                              : "bg-muted/50 text-foreground shadow-sm hover:shadow-md hover:text-primary"
+                          }`}
+                        >
+                          {t}
+                        </button>
+                      ))}
+                    </div>
+                    {missingFields.includes('tone') && formData.tone.length === 0 && (
+                      <span className="text-[10px] text-destructive font-medium">Selecione ao menos 1 tom</span>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Visual style picker */}
               {showStyles && (
-                <div className="px-4 md:px-5 pb-3 pt-2">
+                <div className="px-4 md:px-5 pb-3 pt-2 border-t border-border/20 bg-muted/5">
                   <Label className="text-xs font-medium text-muted-foreground mb-2.5 block">Estilo Visual</Label>
                   <div className="flex flex-wrap gap-1.5">
                     {VISUAL_STYLES.map(style => (
@@ -598,7 +607,7 @@ export default function CreateImage() {
                         className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all active:scale-[0.97] ${
                           formData.visualStyle === style.value
                             ? "bg-primary text-primary-foreground shadow-sm"
-                            : "bg-muted/50 text-foreground border-0 shadow-sm hover:shadow-md hover:text-primary"
+                            : "bg-muted/50 text-foreground shadow-sm hover:shadow-md hover:text-primary"
                         }`}
                       >
                         {style.label}
@@ -630,11 +639,25 @@ export default function CreateImage() {
                   className={`h-8 inline-flex items-center gap-1.5 rounded-lg px-3 text-xs font-medium transition-all active:scale-[0.97] ${
                     showStyles ? "bg-primary/10 text-primary shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
                   }`}
-                  onClick={() => setShowStyles(!showStyles)}
+                  onClick={() => { setShowStyles(!showStyles); if (!showStyles) setShowSettings(false); }}
                 >
                   <Paintbrush className="h-3.5 w-3.5" />
                   <span>{selectedStyleLabel?.label || "Estilo"}</span>
                   <ChevronDown className={`h-3 w-3 transition-transform ${showStyles ? "rotate-180" : ""}`} />
+                </button>
+
+                <button type="button"
+                  className={`h-8 inline-flex items-center gap-1.5 rounded-lg px-3 text-xs font-medium transition-all active:scale-[0.97] ${
+                    showSettings ? "bg-primary/10 text-primary shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                  }`}
+                  onClick={() => { setShowSettings(!showSettings); if (!showSettings) setShowStyles(false); }}
+                >
+                  <Settings2 className="h-3.5 w-3.5" />
+                  <span>Configurações</span>
+                  {formData.tone.length > 0 && (
+                    <Badge variant="secondary" className="text-[10px] h-4 px-1 ml-0.5">{formData.tone.length}</Badge>
+                  )}
+                  <ChevronDown className={`h-3 w-3 transition-transform ${showSettings ? "rotate-180" : ""}`} />
                 </button>
 
                 {referenceFiles.length > 0 && (
@@ -648,125 +671,10 @@ export default function CreateImage() {
                 )}
 
                 <div className="flex-1" />
-                <p className="text-[10px] text-muted-foreground hidden sm:block">Cole imagens com Ctrl+V</p>
+                <span className="text-[10px] text-muted-foreground hidden sm:block">
+                  {formData.prompt.length}/5000 · Cole imagens com Ctrl+V
+                </span>
               </div>
-            </div>
-
-            {/* 2. Context & Platform */}
-            <div className="rounded-2xl shadow-lg overflow-hidden border-0 bg-card p-4 md:p-5 space-y-5">
-              {/* Platform with icons */}
-              <PlatformSelector
-                value={formData.platform}
-                onChange={(value, aspectRatio) => {
-                  handleSelectChange("platform", value);
-                  if (aspectRatio) setFormData(prev => ({ ...prev, aspectRatio }));
-                }}
-              />
-              {missingFields.includes('platform') && !formData.platform && (
-                <p className="text-xs text-destructive font-medium -mt-3">Selecione uma plataforma</p>
-              )}
-
-              {/* Content Type */}
-              <div className="space-y-2">
-                <Label className="text-sm font-bold text-foreground">Tipo de Conteúdo</Label>
-                <div className="flex items-center space-x-1 rounded-lg bg-muted p-1 h-10">
-                  <Button type="button" variant={contentType === "organic" ? "default" : "ghost"}
-                    onClick={() => { setContentType("organic"); if (formData.platform) setPlatformGuidelines(getCaptionGuidelines(formData.platform, "organic")); toast.info("📢 Conteúdo Orgânico", { description: "Foco em engajamento natural.", duration: 3000 }); }}
-                    className="flex-1 rounded-md font-semibold h-7 text-xs">Orgânico</Button>
-                  <Button type="button" variant={contentType === "ads" ? "default" : "ghost"}
-                    onClick={() => { setContentType("ads"); if (formData.platform) setPlatformGuidelines(getCaptionGuidelines(formData.platform, "ads")); toast.info("💰 Conteúdo de Anúncio", { description: "Foco em conversão e CTAs.", duration: 3000 }); }}
-                    className="flex-1 rounded-md font-semibold h-7 text-xs">Anúncio</Button>
-                </div>
-              </div>
-
-              {/* Brand, Persona, Theme */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 border-t border-border/30">
-                {isLoadingData ? <SelectSkeleton /> : (
-                  <div className="space-y-1.5">
-                    <Label className="text-sm font-bold text-foreground">Marca <span className="text-destructive">*</span></Label>
-                    <NativeSelect id="select-brand" value={formData.brand} onValueChange={value => handleSelectChange("brand", value)}
-                      options={brands.map(b => ({ value: b.id, label: b.name }))}
-                      placeholder={brands.length === 0 ? "Nenhuma marca" : "Selecionar marca"}
-                      disabled={brands.length === 0}
-                      triggerClassName={`h-10 rounded-lg border-2 bg-background/50 hover:border-border/70 transition-colors ${missingFields.includes('brand') ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/50'}`}
-                    />
-                    {!isLoadingData && brands.length === 0 && (
-                      <p className="text-xs text-muted-foreground">
-                        <button onClick={() => navigate("/brands")} className="text-primary hover:underline font-medium">Cadastre uma marca</button>
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                {isLoadingData ? <SelectSkeleton /> : (
-                  <div className="space-y-1.5">
-                    <Label className="text-sm font-bold text-foreground">Persona <span className="text-muted-foreground font-normal text-xs">(opcional)</span></Label>
-                    <NativeSelect value={formData.persona} onValueChange={value => handleSelectChange("persona", value)}
-                      options={filteredPersonas.map(p => ({ value: p.id, label: p.name }))}
-                      placeholder={!formData.brand ? "Selecione marca" : filteredPersonas.length === 0 ? "Nenhuma" : "Selecionar"}
-                      disabled={!formData.brand || filteredPersonas.length === 0}
-                      triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
-                    />
-                  </div>
-                )}
-
-                {isLoadingData ? <SelectSkeleton /> : (
-                  <div className="space-y-1.5">
-                    <Label className="text-sm font-bold text-foreground">Tema <span className="text-muted-foreground font-normal text-xs">(opcional)</span></Label>
-                    <NativeSelect value={formData.theme} onValueChange={value => handleSelectChange("theme", value)}
-                      options={filteredThemes.map(t => ({ value: t.id, label: t.title }))}
-                      placeholder={!formData.brand ? "Selecione marca" : filteredThemes.length === 0 ? "Nenhum" : "Selecionar"}
-                      disabled={!formData.brand || filteredThemes.length === 0}
-                      triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Platform guidelines */}
-            {platformGuidelines.length > 0 && (
-              <div className="rounded-2xl shadow-md bg-primary/5 p-4 space-y-2">
-                <div className="flex items-center gap-2">
-                  <Info className="h-4 w-4 text-primary flex-shrink-0" />
-                  <p className="text-sm font-semibold text-primary">Diretrizes para {formData.platform} ({contentType === "organic" ? "Orgânico" : "Anúncio"})</p>
-                </div>
-                <ul className="space-y-1 text-xs text-muted-foreground">
-                  {platformGuidelines.map((g, idx) => (
-                    <li key={idx} className="flex items-start gap-2"><span className="text-primary mt-0.5">•</span><span>{g}</span></li>
-                  ))}
-                </ul>
-                {recommendedAspectRatio && (
-                  <p className="text-xs text-primary/80 font-medium mt-2 pt-2 border-t border-primary/20">💡 Proporção recomendada: {recommendedAspectRatio}</p>
-                )}
-              </div>
-            )}
-
-            {/* 3. Tom de Voz */}
-            <div className="rounded-2xl shadow-lg overflow-hidden border-0 bg-card p-4 md:p-5 space-y-2">
-              <Label className="text-sm font-bold text-foreground">
-                Tom de Voz <span className="text-destructive">*</span> <span className="text-muted-foreground font-normal text-xs">(máximo 4)</span>
-              </Label>
-              <Select onValueChange={handleToneSelect} value="">
-                <SelectTrigger className={`h-10 rounded-lg border-2 bg-background/50 text-sm transition-colors ${missingFields.includes('tone') ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/50 hover:border-border/70'}`}>
-                  <SelectValue placeholder="Selecione um tom de voz" />
-                </SelectTrigger>
-                <SelectContent className="rounded-xl border-border/20">
-                  {toneOptions.map(t => (<SelectItem key={t} value={t} className="rounded-lg capitalize">{t}</SelectItem>))}
-                </SelectContent>
-              </Select>
-              {formData.tone.length > 0 && (
-                <div className="flex flex-wrap gap-2 p-3 bg-primary/5 rounded-xl">
-                  {formData.tone.map(t => (
-                    <Badge key={t} variant="secondary" className="bg-primary/10 text-primary border-0 shadow-sm pr-1 text-xs font-medium gap-2 hover:bg-primary/20 transition-colors">
-                      {t}
-                      <Button variant="ghost" size="sm" onClick={() => handleToneRemove(t)} className="h-4 w-4 p-0 hover:bg-destructive/20 rounded-full">
-                        <X className="h-3 w-3 text-destructive" />
-                      </Button>
-                    </Badge>
-                  ))}
-                </div>
-              )}
             </div>
 
             {/* 4. Informações Adicionais */}
