@@ -22,12 +22,12 @@ export function useHistoryBrands() {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ['history-brands', user?.teamId],
+    queryKey: ['history-brands', user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('brands')
         .select('id, name, responsible, created_at, updated_at')
-        .eq('team_id', user!.teamId!)
+        .eq('user_id', user!.id)
         .order('name');
       if (error) throw error;
       return (data || []).map(brand => ({
@@ -40,7 +40,7 @@ export function useHistoryBrands() {
         updatedAt: brand.updated_at
       })) as BrandSummary[];
     },
-    enabled: !!user?.teamId,
+    enabled: !!user?.id,
   });
 }
 
@@ -48,7 +48,7 @@ export function useHistoryActions(filters: HistoryFilters) {
   const { user } = useAuth();
 
   return useInfiniteQuery<HistoryPage>({
-    queryKey: ['history-actions', user?.teamId, filters.brandFilter, filters.typeFilter],
+    queryKey: ['history-actions', user?.id, filters.brandFilter, filters.typeFilter],
     queryFn: async ({ pageParam }) => {
       const cursor = pageParam as { createdAt: string; id: string } | undefined;
       
@@ -62,7 +62,8 @@ export function useHistoryActions(filters: HistoryFilters) {
       }
 
       const { data, error } = await supabase.rpc('get_action_summaries', {
-        p_team_id: user!.teamId!,
+        p_user_id: user!.id,
+        p_team_id: user?.teamId || null,
         p_brand_filter: filters.brandFilter !== 'all' ? filters.brandFilter : null,
         p_type_filter: typeDbValue,
         p_limit: ITEMS_PER_PAGE,
@@ -81,7 +82,6 @@ export function useHistoryActions(filters: HistoryFilters) {
         : '';
 
       const actions: ActionSummary[] = rows.map((row: any) => {
-        // Build thumbnail URL: prefer thumb_path, then image_url from function
         let imageUrl: string | undefined;
         if (row.thumb_path && storageBase) {
           imageUrl = `${storageBase}${row.thumb_path}`;
@@ -111,6 +111,6 @@ export function useHistoryActions(filters: HistoryFilters) {
     },
     initialPageParam: undefined,
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
-    enabled: !!user?.teamId,
+    enabled: !!user?.id,
   });
 }

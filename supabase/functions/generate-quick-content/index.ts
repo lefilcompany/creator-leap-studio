@@ -358,7 +358,7 @@ serve(async (req) => {
     // Save action
     const { data: actionData, error: actionError } = await supabase.from('actions').insert({
       user_id: authenticatedUserId,
-      team_id: authenticatedTeamId || '00000000-0000-0000-0000-000000000000',
+      team_id: authenticatedTeamId || null,
       type: 'CRIAR_CONTEUDO_RAPIDO',
       status: 'completed',
       brand_id: brandId || null,

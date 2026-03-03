@@ -176,25 +176,9 @@ export function CreateTeamDialog({ open, onClose, onSuccess, context = 'login' }
       }
       
       // 4. Fechar dialog e redirecionar
-      if (context === 'register') {
-        // Cenário de REGISTRO: fazer logout e redirecionar para login
-        toast.success("Equipe criada com sucesso! Faça login para acessar o sistema.");
-        
-        await supabase.auth.signOut();
-        
-        onSuccess();
-        navigate("/");
-      } else if (context === 'onboarding') {
-        // Cenário de ONBOARDING: não redirecionar, deixar o componente pai controlar
-        toast.success("Equipe criada com sucesso!");
-        onSuccess();
-      } else {
-        // Cenário de LOGIN: ir direto ao dashboard
-        toast.success("Equipe criada com sucesso!");
-        
-        onSuccess();
-        navigate("/dashboard");
-      }
+      toast.success("Equipe criada com sucesso!");
+      onSuccess();
+      navigate("/dashboard");
     } catch (error: any) {
       console.error('Erro ao criar equipe:', error);
       toast.error(error.message || "Erro ao criar equipe. Tente novamente.");

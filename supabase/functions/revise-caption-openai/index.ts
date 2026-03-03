@@ -161,7 +161,7 @@ Responda ESTRITAMENTE em formato JSON com as chaves "title", "body" (legenda com
       .from('actions')
       .insert({
         type: 'revisar_legenda',
-        team_id: teamId || '00000000-0000-0000-0000-000000000000',
+        team_id: teamId || null,
         brand_id: brandId,
         user_id: user.id,
         details: {

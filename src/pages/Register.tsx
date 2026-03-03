@@ -60,8 +60,6 @@ const Register = () => {
   const [privacyModalOpen, setPrivacyModalOpen] = useState(false);
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
 
-  // Team selection
-  const [showTeamSelection, setShowTeamSelection] = useState(false);
   
   const isMobile = useIsMobile();
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -223,7 +221,7 @@ const Register = () => {
         if (returnUrl && safeReturnUrl !== '/dashboard') {
           navigate(safeReturnUrl);
         } else {
-          setShowTeamSelection(true);
+          navigate('/dashboard');
         }
       }
     } catch (err) {
@@ -705,15 +703,6 @@ const Register = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Team Selection Dialog */}
-      <TeamSelectionDialog
-        open={showTeamSelection}
-        onClose={() => {
-          setShowTeamSelection(false);
-          navigate("/");
-        }}
-        context="register"
-      />
     </>
   );
 };

@@ -11,7 +11,6 @@ import { Eye, EyeOff, Mail, Lock, Sun, Moon, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 import { toast } from "sonner";
-import { TeamSelectionDialog } from "@/components/auth/TeamSelectionDialog";
 import ChangePasswordDialog from "@/components/perfil/ChangePasswordDialog";
 
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -31,7 +30,6 @@ const Login = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   
-  const [showTeamSelection, setShowTeamSelection] = useState(false);
   const [failedAttempts, setFailedAttempts] = useState(0);
   const [showPasswordResetSuggestion, setShowPasswordResetSuggestion] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
@@ -40,24 +38,23 @@ const Login = () => {
   const [searchParams] = useSearchParams();
   const { theme, setTheme } = useTheme();
   const { language } = useLanguage();
-  const { user, team, isLoading: authLoading } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   
   
 
   // Redireciona automaticamente quando autenticado
   useEffect(() => {
-    if (waitingForAuth && !authLoading && user && !showChangePassword && !showTeamSelection) {
-      // Admin users go to /admin, regular users need team and go to dashboard
+    if (waitingForAuth && !authLoading && user && !showChangePassword) {
       if (user.isAdmin) {
         console.log('[Login] Admin user detected, redirecting to /admin');
         navigate('/admin', { replace: true });
-      } else if (team) {
+      } else {
         const returnUrl = validateReturnUrl(searchParams.get('returnUrl'));
         console.log('[Login] Auth complete, redirecting to:', returnUrl);
         navigate(returnUrl, { replace: true });
       }
     }
-  }, [waitingForAuth, authLoading, user, team, showChangePassword, showTeamSelection, navigate, searchParams]);
+  }, [waitingForAuth, authLoading, user, showChangePassword, navigate, searchParams]);
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -120,26 +117,8 @@ const Login = () => {
           return;
         }
 
-        // Se não tem equipe, verificar se há solicitação pendente
-        if (!profileData.team_id) {
-          const { data: pendingRequest } = await supabase
-            .from("team_join_requests")
-            .select("id, status")
-            .eq("user_id", data.user.id)
-            .eq("status", "pending")
-            .maybeSingle();
-            
-          if (pendingRequest) {
-            toast.info("Sua solicitação está pendente. Aguarde a aprovação do administrador da equipe.");
-            await supabase.auth.signOut();
-            return;
-          }
-          
-          setShowTeamSelection(true);
-        } else {
-          // Tem equipe - aguardar AuthContext carregar
-          setWaitingForAuth(true);
-        }
+        // Redirect to dashboard regardless of team status
+        setWaitingForAuth(true);
       }
     } catch (error) {
       console.error("Erro no login:", error);
@@ -435,13 +414,6 @@ const Login = () => {
         </div>
       </div>
 
-      <TeamSelectionDialog 
-        open={showTeamSelection} 
-        onClose={() => {
-          setShowTeamSelection(false);
-          setWaitingForAuth(true);
-        }}
-      />
 
 
       <ChangePasswordDialog

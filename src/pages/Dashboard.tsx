@@ -99,13 +99,14 @@ const Dashboard = () => {
   });
 
   const { data: recentActivities = [], isLoading: isLoadingActivities } = useQuery({
-    queryKey: ['dashboard-recent-activities', user?.teamId],
+    queryKey: ['dashboard-recent-activities', user?.id],
     queryFn: async () => {
-      if (!user?.teamId) return [];
+      if (!user?.id) return [];
       try {
         const { data, error } = await supabase
           .rpc('get_action_summaries', {
-            p_team_id: user.teamId,
+            p_user_id: user.id,
+            p_team_id: user.teamId || null,
             p_limit: 6,
           });
         if (!error && data && data.length > 0) return data;
@@ -114,7 +115,7 @@ const Dashboard = () => {
       const { data: fallbackData } = await supabase
         .from('actions')
         .select('id, type, created_at, approved, brand_id, brands(name), result, details, thumb_path')
-        .eq('team_id', user.teamId)
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(5);
       return (fallbackData || []).map((a: any) => ({

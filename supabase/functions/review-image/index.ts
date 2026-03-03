@@ -298,7 +298,7 @@ Analise a imagem e retorne uma revisão completa em markdown seguindo EXATAMENTE
       .insert({
         type: 'REVISAR_CONTEUDO',
         user_id: authenticatedUserId,
-        team_id: authenticatedTeamId || '00000000-0000-0000-0000-000000000000',
+        team_id: authenticatedTeamId || null,
         brand_id: brandId || null,
         details: { 
           reviewType: 'image',

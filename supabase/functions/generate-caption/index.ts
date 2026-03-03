@@ -511,7 +511,7 @@ serve(async (req) => {
       .from('actions')
       .insert({
         user_id: user.id,
-        team_id: authenticatedTeamId || '00000000-0000-0000-0000-000000000000',
+        team_id: authenticatedTeamId || null,
         type: 'CRIAR_CONTEUDO',
         status: 'completed',
         details: {

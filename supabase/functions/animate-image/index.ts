@@ -137,7 +137,7 @@ serve(async (req) => {
     // Save action to history
     await supabase.from('actions').insert({
       user_id: userId,
-      team_id: teamId || '00000000-0000-0000-0000-000000000000',
+      team_id: teamId || null,
       type: 'ANIMAR_IMAGEM',
       status: 'completed',
       details: {

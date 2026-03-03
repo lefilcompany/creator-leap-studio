@@ -292,7 +292,7 @@ Tema ${index + 1}:
       .insert({
         type: 'PLANEJAR_CONTEUDO',
         user_id: userId,
-        team_id: teamId || '00000000-0000-0000-0000-000000000000',
+        team_id: teamId || null,
         brand_id: brand,
         status: 'Aguardando revisão',
         result: { plan: generatedPlan },
