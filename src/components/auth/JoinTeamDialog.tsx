@@ -93,13 +93,9 @@ export function JoinTeamDialog({ open, onClose, onBack, onSuccess }: JoinTeamDia
         throw new Error(`Não foi possível enviar a solicitação: ${requestError.message}`);
       }
 
-      toast.success("Solicitação enviada com sucesso! Faça login para acessar o sistema.");
-      
-      // Fazer logout
-      await supabase.auth.signOut();
+      toast.success("Solicitação enviada com sucesso! O administrador da equipe irá avaliar seu pedido.");
       
       onSuccess();
-      navigate("/");
     } catch (error: any) {
       console.error('Erro ao solicitar entrada:', error);
       toast.error(error.message || "Erro ao solicitar entrada na equipe. Tente novamente.");

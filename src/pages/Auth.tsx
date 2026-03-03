@@ -1054,13 +1054,6 @@ const Auth = () => {
         </DialogContent>
       </Dialog>
 
-      <TeamSelectionDialog
-        open={showTeamSelection}
-        onClose={() => {
-          setShowTeamSelection(false);
-          setWaitingForAuth(true);
-        }}
-      />
 
 
       <ChangePasswordDialog
