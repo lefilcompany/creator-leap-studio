@@ -1,13 +1,12 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
 import { checkUserCredits, deductUserCredits, recordUserCreditUsage } from '../_shared/userCredits.ts';
+import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
-
-const ANIMATION_CREDIT_COST = 15; // Credit cost for animation
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -52,13 +51,13 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Check user credits (individual)
-    const creditCheck = await checkUserCredits(supabase, userId, ANIMATION_CREDIT_COST);
+    const creditCheck = await checkUserCredits(supabase, userId, CREDIT_COSTS.IMAGE_ANIMATION);
 
     if (!creditCheck.hasCredits) {
       return new Response(
         JSON.stringify({ 
           error: 'Créditos insuficientes',
-          required: ANIMATION_CREDIT_COST,
+          required: CREDIT_COSTS.IMAGE_ANIMATION,
           available: creditCheck.currentCredits
         }),
         { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -66,13 +65,8 @@ serve(async (req) => {
     }
 
     // TODO: When the agent is trained, implement animation logic here
-    // Structure prepared for future AI model integration
-    
     console.log('Preparing animation with prompt:', animationPrompt.substring(0, 100));
 
-    // Placeholder: return message indicating it's in development
-    // When the model is ready, replace this section with AI model call
-    
     /*
     FUTURE IMPLEMENTATION:
     
@@ -87,7 +81,7 @@ serve(async (req) => {
       body: JSON.stringify({
         image: imageData,
         prompt: animationPrompt,
-        duration: 3, // seconds
+        duration: 3,
         fps: 30,
       }),
     });
@@ -114,7 +108,7 @@ serve(async (req) => {
     const videoUrl = animationData.videoUrl;
 
     // Deduct credits
-    const deductResult = await deductUserCredits(supabase, userId, ANIMATION_CREDIT_COST);
+    const deductResult = await deductUserCredits(supabase, userId, CREDIT_COSTS.IMAGE_ANIMATION);
 
     if (!deductResult.success) {
       console.error('Error deducting credits:', deductResult.error);
@@ -124,8 +118,8 @@ serve(async (req) => {
     await recordUserCreditUsage(supabase, {
       userId: userId,
       teamId: teamId || null,
-      actionType: 'ANIMAR_IMAGEM',
-      creditsUsed: ANIMATION_CREDIT_COST,
+      actionType: 'IMAGE_ANIMATION',
+      creditsUsed: CREDIT_COSTS.IMAGE_ANIMATION,
       creditsBefore: creditCheck.currentCredits,
       creditsAfter: deductResult.newCredits,
       description: 'Animação de imagem com IA',
@@ -151,7 +145,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         videoUrl,
-        creditsUsed: ANIMATION_CREDIT_COST,
+        creditsUsed: CREDIT_COSTS.IMAGE_ANIMATION,
         creditsRemaining: deductResult.newCredits
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -159,7 +153,6 @@ serve(async (req) => {
     */
 
     // For now, return development message
-    // Using status 200 to avoid error in client, but with development flag
     return new Response(
       JSON.stringify({ 
         status: 'training',
