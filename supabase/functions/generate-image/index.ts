@@ -328,10 +328,16 @@ function buildDirectorPrompt(params: {
   if (params.includeText && params.textContent) {
     const fontDesc = FONT_STYLES[params.fontStyle] || FONT_STYLES['modern'];
     sections.push(`### 4. TEXTO E DESIGN
-- Headline: Renderize PERFEITAMENTE o texto: "${params.textContent}"
+- IDIOMA OBRIGATÓRIO: Português Brasileiro (pt-BR). Todo texto DEVE seguir ortografia, acentuação e gramática do Português do Brasil. Use acentos corretamente (é, ã, ç, ô, etc.). NUNCA use português de Portugal ou espanhol.
+- Headline: Renderize PERFEITAMENTE o texto EXATO: "${params.textContent}"
+  - CADA LETRA deve ser renderizada com precisão absoluta. Verifique caractere por caractere.
+  - Acentos e cedilhas (á, é, í, ó, ú, â, ê, ô, ã, õ, ç) DEVEM estar corretos e visíveis.
+  - NÃO altere, omita ou substitua nenhuma letra ou acento do texto fornecido.
+  - NÃO invente texto adicional além do fornecido.
 - Tipografia: ${fontDesc}
 - Posição: ${params.textPosition || 'center'}. O texto NÃO deve obstruir o rosto.
-- Legibilidade: O texto DEVE ser o foco principal e 100% legível. Utilize espaço negativo estratégico na imagem, sobreposições de gradiente sutil ou caixas de texto limpas para garantir contraste absoluto entre a fonte e o fundo. O texto não deve flutuar sem propósito, deve fazer parte de uma composição de design profissional em formato para ${params.platform || 'redes sociais'}.`);
+- Legibilidade: O texto DEVE ser o foco principal e 100% legível. Utilize espaço negativo estratégico na imagem, sobreposições de gradiente sutil ou caixas de texto limpas para garantir contraste absoluto entre a fonte e o fundo. O texto não deve flutuar sem propósito, deve fazer parte de uma composição de design profissional em formato para ${params.platform || 'redes sociais'}.
+- VERIFICAÇÃO FINAL: Antes de finalizar, releia o texto renderizado e confirme que está IDÊNTICO ao texto fornecido, letra por letra, acento por acento.`);
   } else {
     sections.push(`### 4. SEM TEXTO\n- SEM TEXTO: CRÍTICO: NÃO inclua NENHUM texto, palavras, letras, números ou símbolos visíveis na imagem. A imagem deve ser puramente visual.`);
     // If refiner suggested headline/subtexto, note it for reference but don't render
