@@ -100,24 +100,21 @@ function buildRevisionPrompt(
   return finalPrompt;
 }
 
-// Extract image from Gateway response (3 formats)
+// Extract image from Gemini direct API response
 function extractImageFromResponse(data: any): { imageUrl: string | null; textResponse: string | null } {
   let imageUrl: string | null = null;
   let textResponse: string | null = null;
-  const message = data.choices?.[0]?.message;
-
-  if (message?.images?.length > 0) imageUrl = message.images[0].image_url?.url;
-  if (!imageUrl && Array.isArray(message?.content)) {
-    for (const part of message.content) {
-      if (part.type === 'image_url' && part.image_url?.url) { imageUrl = part.image_url.url; break; }
+  const parts = data.candidates?.[0]?.content?.parts;
+  if (parts) {
+    for (const part of parts) {
+      if (part.inlineData?.data && !imageUrl) {
+        imageUrl = `data:${part.inlineData.mimeType || 'image/png'};base64,${part.inlineData.data}`;
+      }
+      if (part.text && !textResponse) {
+        textResponse = part.text;
+      }
     }
   }
-  if (!imageUrl && data.candidates?.[0]?.content?.parts) {
-    for (const part of data.candidates[0].content.parts) {
-      if (part.inlineData?.data) { imageUrl = `data:${part.inlineData.mimeType || 'image/png'};base64,${part.inlineData.data}`; break; }
-    }
-  }
-  if (typeof message?.content === 'string') textResponse = message.content;
   return { imageUrl, textResponse };
 }
 
