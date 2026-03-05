@@ -565,7 +565,7 @@ serve(async (req) => {
             return new Response(JSON.stringify({ error: 'Créditos de IA esgotados. Tente novamente mais tarde.' }), { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
           }
 
-          lastError = new Error(`Gateway error: ${response.status}`);
+          lastError = new Error(`Gemini error: ${response.status}`);
           if (attempt < MAX_RETRIES) { await new Promise(r => setTimeout(r, 2000)); continue; }
           throw lastError;
         }
