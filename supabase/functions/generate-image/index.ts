@@ -315,8 +315,10 @@ function buildDirectorPrompt(params: {
 
   // SECTION 4: TEXTO E DESIGN
   if (params.includeText && params.textContent) {
+    const fontDesc = FONT_STYLES[params.fontStyle] || FONT_STYLES['modern'];
     sections.push(`### 4. TEXTO E DESIGN
 - Headline: Renderize PERFEITAMENTE o texto: "${params.textContent}"
+- Tipografia: ${fontDesc}
 - Posição: ${params.textPosition || 'center'}. O texto NÃO deve obstruir o rosto.
 - Legibilidade: O texto DEVE ser o foco principal e 100% legível. Utilize espaço negativo estratégico na imagem, sobreposições de gradiente sutil ou caixas de texto limpas para garantir contraste absoluto entre a fonte e o fundo. O texto não deve flutuar sem propósito, deve fazer parte de uma composição de design profissional em formato para ${params.platform || 'redes sociais'}.`);
   } else {
