@@ -234,6 +234,7 @@ function buildBriefingDocument(formData: any, brandData: any, themeData: any, pe
 // BUILD DIRECTOR PROMPT (6 sections for image model)
 // =====================================
 function buildDirectorPrompt(params: {
+  originalDescription: string;
   enrichedDescription: string;
   brandData: any;
   themeData: any;
@@ -247,6 +248,7 @@ function buildDirectorPrompt(params: {
   includeText: boolean;
   textContent: string;
   textPosition: string;
+  fontStyle: string;
   preserveImagesCount: number;
   styleReferenceImagesCount: number;
   headline: string;
