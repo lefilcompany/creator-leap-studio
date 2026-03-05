@@ -15,11 +15,11 @@ serve(async (req) => {
   }
 
   try {
-    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
-    if (!openAIApiKey) {
-      console.error('OPENAI_API_KEY não configurada');
+    const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
+    if (!geminiApiKey) {
+      console.error('GEMINI_API_KEY não configurada');
       return new Response(
-        JSON.stringify({ error: 'Chave da API OpenAI não configurada.' }),
+        JSON.stringify({ error: 'Chave da API Gemini não configurada.' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
