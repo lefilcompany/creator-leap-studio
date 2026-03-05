@@ -379,7 +379,7 @@ export default function CreateImage() {
         body: JSON.stringify({ ...requestData, teamId: user?.teamId }),
       });
       if (!imageResponse.ok) throw new Error(`Erro ao gerar imagem: ${await imageResponse.text()}`);
-      const { imageUrl, attempt } = await imageResponse.json();
+      const { imageUrl, attempt, legenda } = await imageResponse.json();
 
       setGenerationStep(GenerationStep.GENERATING_CAPTION);
       setGenerationProgress(60);

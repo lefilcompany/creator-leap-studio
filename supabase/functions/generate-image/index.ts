@@ -480,6 +480,7 @@ serve(async (req) => {
       brandData,
       themeData,
       personaData,
+      platform: cleanInput(formData.platform),
     });
 
     console.log('[Step 2] Refiner result:', {
