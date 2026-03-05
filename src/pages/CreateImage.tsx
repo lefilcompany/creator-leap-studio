@@ -418,6 +418,7 @@ export default function CreateImage() {
         textPosition: formData.imageTextPosition || "center",
         fontStyle: formData.fontStyle || "modern",
         textDesignStyle: formData.textDesignStyle || "clean",
+        ctaText: formData.ctaText?.trim() || "",
       };
 
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
