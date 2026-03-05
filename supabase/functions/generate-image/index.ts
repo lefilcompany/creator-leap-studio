@@ -17,6 +17,17 @@ function cleanInput(text: string | string[] | undefined | null): string {
   return textStr.replace(/[<>{}[\]"'`]/g, "").replace(/\s+/g, " ").trim();
 }
 
+function normalizeImageArray(input: unknown, max = 5): string[] {
+  if (!Array.isArray(input)) return [];
+
+  const normalized = input
+    .filter((value): value is string => typeof value === 'string')
+    .map(value => value.trim())
+    .filter(value => /^data:image\/[a-zA-Z0-9.+-]+;base64,/.test(value));
+
+  return [...new Set(normalized)].slice(0, max);
+}
+
 // =====================================
 // FONT STYLES & PLATFORM ASPECT RATIOS
 // =====================================
