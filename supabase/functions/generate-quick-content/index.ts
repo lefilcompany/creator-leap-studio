@@ -223,7 +223,7 @@ serve(async (req) => {
       imageRolePrefix = `${roleParts.join('. ')}.\n\n`;
     }
 
-    let userPrompt = `${imageRolePrefix}${visualDescription}, ${promptSuffix}`;
+    let userPrompt = `${imageRolePrefix}INSTRUÇÃO PRINCIPAL: ${prompt.trim()}\n\nDETALHES VISUAIS: ${visualDescription}, ${promptSuffix}`;
 
     // Build negative prompt - quick content NEVER has text overlay
     let negativePromptFinal = styleSettings.negativePrompt;
