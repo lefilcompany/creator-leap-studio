@@ -148,7 +148,7 @@ export default function ContentCreationSelector() {
           onValueChange={(value) => setCreationType(value as CreationType)}
           className="h-full"
         >
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-full">
             {/* Criar Imagem */}
             <label htmlFor="image" className="cursor-pointer h-full" onClick={() => setCreationType("image")}>
               <Card className="border-0 shadow-lg hover:shadow-xl hover:bg-primary/10 hover:border-primary/30 transition-all duration-300 h-full active:scale-[0.98] touch-manipulation rounded-2xl">
