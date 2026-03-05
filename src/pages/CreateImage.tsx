@@ -607,6 +607,32 @@ export default function CreateImage() {
                 </div>
               </div>
 
+              {/* Persona + Tema */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {isLoadingData ? <SelectSkeleton /> : (
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-medium text-muted-foreground">Persona <span className="font-normal">(opcional)</span></Label>
+                    <NativeSelect value={formData.persona} onValueChange={value => handleSelectChange("persona", value)}
+                      options={filteredPersonas.map(p => ({ value: p.id, label: p.name }))}
+                      placeholder={!formData.brand ? "Selecione marca" : filteredPersonas.length === 0 ? "Nenhuma" : "Selecionar"}
+                      disabled={!formData.brand || filteredPersonas.length === 0}
+                      triggerClassName="h-9 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors text-xs"
+                    />
+                  </div>
+                )}
+
+                {isLoadingData ? <SelectSkeleton /> : (
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-medium text-muted-foreground">Tema <span className="font-normal">(opcional)</span></Label>
+                    <NativeSelect value={formData.theme} onValueChange={value => handleSelectChange("theme", value)}
+                      options={filteredThemes.map(t => ({ value: t.id, label: t.title }))}
+                      placeholder={!formData.brand ? "Selecione marca" : filteredThemes.length === 0 ? "Nenhum" : "Selecionar"}
+                      disabled={!formData.brand || filteredThemes.length === 0}
+                      triggerClassName="h-9 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors text-xs"
+                    />
+                  </div>
+                )}
+
               {/* Plataforma */}
               <div>
                 <PlatformSelector
