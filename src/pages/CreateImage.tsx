@@ -638,70 +638,16 @@ export default function CreateImage() {
               </div>
             )}
 
-            {/* ── SEÇÃO 2: IMAGENS DE REFERÊNCIA ── */}
-            <div className="rounded-2xl shadow-lg border-0 bg-card p-4 md:p-5 space-y-3" onPaste={handlePaste}>
-              <div className="flex items-center justify-between">
-                <Label className="text-sm font-bold text-foreground">
-                  Imagens de Referência <span className="text-destructive">*</span>
-                </Label>
-                <span className="text-[10px] text-muted-foreground">{referenceFiles.length}/5 · Cole com Ctrl+V</span>
+            {/* ── SEÇÃO 2: PROMPT DO AGENTE (descrição + imagens) ── */}
+            <div className="rounded-2xl shadow-lg border-0 bg-card p-4 md:p-5 space-y-4" onPaste={handlePaste}>
+              <div className="flex items-center gap-2 pb-1 border-b border-border/30">
+                <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                <p className="text-sm font-bold text-foreground">Prompt do agente</p>
               </div>
 
-              {/* Upload area */}
-              <div
-                onClick={() => fileInputRef.current?.click()}
-                className={`border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all hover:border-primary/40 hover:bg-primary/5 ${
-                  missingFields.includes('referenceFiles') && referenceFiles.length === 0
-                    ? 'border-destructive/40 bg-destructive/5'
-                    : 'border-border/50 bg-muted/10'
-                }`}
-              >
-                <ImagePlus className="h-8 w-8 text-muted-foreground" />
-                <p className="text-xs text-muted-foreground text-center">
-                  Clique para adicionar ou <span className="text-primary font-medium">cole (Ctrl+V)</span> imagens
-                </p>
-                <p className="text-[10px] text-muted-foreground/60">Máximo 5 imagens · JPG, PNG, WebP</p>
-              </div>
-              <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden"
-                disabled={referenceFiles.length >= 5}
-                onChange={e => {
-                  const files = Array.from(e.target.files || []);
-                  const remaining = 5 - referenceFiles.length;
-                  const toAdd = files.slice(0, remaining);
-                  if (files.length > remaining) toast.error(`Máximo 5 imagens. ${toAdd.length} adicionada(s).`);
-                  setReferenceFiles(prev => [...prev, ...toAdd]);
-                }}
-              />
-
-              {/* Uploaded files list */}
-              {referenceFiles.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {referenceFiles.map((file, idx) => (
-                    <div key={idx} className="relative group flex items-center gap-2 bg-muted/40 rounded-lg px-2.5 py-1.5 text-xs shadow-sm">
-                      <ImagePlus className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
-                      <span className="truncate max-w-[120px] text-foreground">{file.name}</span>
-                      <button type="button" onClick={(e) => { e.stopPropagation(); handleTogglePreserve(idx); }}
-                        className={`text-[10px] px-1.5 py-0.5 rounded-full border transition-all ${preserveImageIndices.includes(idx) ? "bg-primary/15 border-primary/30 text-primary" : "bg-muted border-border/50 text-muted-foreground hover:border-primary/30 hover:text-primary"}`}
-                      >
-                        {preserveImageIndices.includes(idx) ? "Preservando" : "Preservar"}
-                      </button>
-                      <button type="button" onClick={(e) => { e.stopPropagation(); handleRemoveFile(idx); }} className="text-muted-foreground hover:text-destructive transition-colors">
-                        <X className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {missingFields.includes('referenceFiles') && referenceFiles.length === 0 && (
-                <p className="text-xs text-destructive font-medium">Adicione ao menos 1 imagem de referência</p>
-              )}
-            </div>
-
-            {/* ── SEÇÃO 3: PROMPT ── */}
-            <div className="rounded-2xl shadow-lg overflow-hidden border-0 bg-card transition-shadow focus-within:shadow-xl">
-              <div className="p-4 md:p-5 pb-2">
-                <Label className="text-sm font-bold text-foreground mb-2 block">
+              {/* Descrição */}
+              <div className="space-y-2">
+                <Label className="text-xs font-medium text-muted-foreground">
                   Descrição da imagem <span className="text-destructive">*</span>
                 </Label>
                 <Textarea
@@ -711,50 +657,71 @@ export default function CreateImage() {
                   onChange={handleInputChange}
                   maxLength={5000}
                   rows={5}
-                  className={`resize-none border-0 bg-transparent p-0 text-base placeholder:text-muted-foreground/50 focus-visible:ring-0 focus-visible:ring-offset-0 min-h-[120px] ${
-                    missingFields.includes('prompt') ? 'ring-2 ring-destructive/30 bg-destructive/5 rounded-lg p-2' : ''
+                  className={`resize-none rounded-xl border-2 bg-background/50 text-base placeholder:text-muted-foreground/50 focus-visible:ring-1 focus-visible:ring-primary/30 min-h-[120px] ${
+                    missingFields.includes('prompt') ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/50'
                   }`}
                 />
+                <div className="flex justify-end">
+                  <span className="text-[10px] text-muted-foreground">{formData.prompt.length}/5000</span>
+                </div>
               </div>
 
-              {/* Visual style picker */}
-              {showStyles && (
-                <div className="px-4 md:px-5 pb-3 pt-2 border-t border-border/20 bg-muted/5">
-                  <Label className="text-xs font-medium text-muted-foreground mb-2.5 block">Estilo Visual</Label>
-                  <div className="flex flex-wrap gap-1.5">
-                    {VISUAL_STYLES.map(style => (
-                      <button key={style.value} type="button"
-                        onClick={() => { handleSelectChange("visualStyle" as any, style.value); setShowStyles(false); }}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all active:scale-[0.97] ${
-                          formData.visualStyle === style.value
-                            ? "bg-primary text-primary-foreground shadow-sm"
-                            : "bg-muted/50 text-foreground shadow-sm hover:shadow-md hover:text-primary"
-                        }`}
-                      >
-                        {style.label}
-                      </button>
+              {/* Imagens de Referência */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-medium text-muted-foreground">
+                    Imagens de Referência <span className="text-destructive">*</span>
+                  </Label>
+                  <span className="text-[10px] text-muted-foreground">{referenceFiles.length}/5 · Cole com Ctrl+V</span>
+                </div>
+
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className={`border-2 border-dashed rounded-xl p-5 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all hover:border-primary/40 hover:bg-primary/5 ${
+                    missingFields.includes('referenceFiles') && referenceFiles.length === 0
+                      ? 'border-destructive/40 bg-destructive/5'
+                      : 'border-border/50 bg-muted/10'
+                  }`}
+                >
+                  <ImagePlus className="h-7 w-7 text-muted-foreground" />
+                  <p className="text-xs text-muted-foreground text-center">
+                    Clique para adicionar ou <span className="text-primary font-medium">cole (Ctrl+V)</span> imagens
+                  </p>
+                  <p className="text-[10px] text-muted-foreground/60">Máximo 5 imagens · JPG, PNG, WebP</p>
+                </div>
+                <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden"
+                  disabled={referenceFiles.length >= 5}
+                  onChange={e => {
+                    const files = Array.from(e.target.files || []);
+                    const remaining = 5 - referenceFiles.length;
+                    const toAdd = files.slice(0, remaining);
+                    if (files.length > remaining) toast.error(`Máximo 5 imagens. ${toAdd.length} adicionada(s).`);
+                    setReferenceFiles(prev => [...prev, ...toAdd]);
+                  }}
+                />
+
+                {referenceFiles.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {referenceFiles.map((file, idx) => (
+                      <div key={idx} className="relative group flex items-center gap-2 bg-muted/40 rounded-lg px-2.5 py-1.5 text-xs shadow-sm">
+                        <ImagePlus className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                        <span className="truncate max-w-[120px] text-foreground">{file.name}</span>
+                        <button type="button" onClick={(e) => { e.stopPropagation(); handleTogglePreserve(idx); }}
+                          className={`text-[10px] px-1.5 py-0.5 rounded-full border transition-all ${preserveImageIndices.includes(idx) ? "bg-primary/15 border-primary/30 text-primary" : "bg-muted border-border/50 text-muted-foreground hover:border-primary/30 hover:text-primary"}`}
+                        >
+                          {preserveImageIndices.includes(idx) ? "Preservando" : "Preservar"}
+                        </button>
+                        <button type="button" onClick={(e) => { e.stopPropagation(); handleRemoveFile(idx); }} className="text-muted-foreground hover:text-destructive transition-colors">
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
                     ))}
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Bottom toolbar */}
-              <div className="flex items-center gap-1.5 px-4 md:px-5 py-2.5 border-t border-border/20 bg-muted/10">
-                <button type="button"
-                  className={`h-8 inline-flex items-center gap-1.5 rounded-lg px-3 text-xs font-medium transition-all active:scale-[0.97] ${
-                    showStyles ? "bg-primary/10 text-primary shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
-                  }`}
-                  onClick={() => setShowStyles(!showStyles)}
-                >
-                  <Paintbrush className="h-3.5 w-3.5" />
-                  <span>{selectedStyleLabel?.label || "Estilo"}</span>
-                  <ChevronDown className={`h-3 w-3 transition-transform ${showStyles ? "rotate-180" : ""}`} />
-                </button>
-
-                <div className="flex-1" />
-                <span className="text-[10px] text-muted-foreground hidden sm:block">
-                  {formData.prompt.length}/5000
-                </span>
+                {missingFields.includes('referenceFiles') && referenceFiles.length === 0 && (
+                  <p className="text-xs text-destructive font-medium">Adicione ao menos 1 imagem de referência</p>
+                )}
               </div>
             </div>
 
@@ -772,6 +739,25 @@ export default function CreateImage() {
 
             {showSettings && (
               <div className="rounded-2xl shadow-lg overflow-hidden border-0 bg-card p-4 md:p-5 space-y-4">
+                {/* Estilo Visual */}
+                <div className="space-y-2">
+                  <Label className="text-xs font-medium text-muted-foreground">Estilo Visual <span className="font-normal">(opcional)</span></Label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {VISUAL_STYLES.map(style => (
+                      <button key={style.value} type="button"
+                        onClick={() => handleSelectChange("visualStyle" as any, style.value)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all active:scale-[0.97] ${
+                          formData.visualStyle === style.value
+                            ? "bg-primary text-primary-foreground shadow-sm"
+                            : "bg-muted/50 text-foreground shadow-sm hover:shadow-md hover:text-primary"
+                        }`}
+                      >
+                        {style.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {isLoadingData ? <SelectSkeleton /> : (
                     <div className="space-y-1.5">
