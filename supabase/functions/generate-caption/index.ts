@@ -412,8 +412,7 @@ serve(async (req) => {
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
         generationConfig: {
           temperature: 0.7,
-          maxOutputTokens: 1500,
-          responseMimeType: 'application/json',
+          maxOutputTokens: 4096,
         },
       }),
     });
