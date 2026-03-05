@@ -983,8 +983,7 @@ export default function CreateImage() {
               className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors group w-full"
             >
               <Settings2 className="h-3.5 w-3.5 group-hover:text-primary transition-colors" />
-              <span className="font-medium text-foreground/70 group-hover:text-primary">Configurações avançadas</span>
-              <span className="text-muted-foreground">(info adicional)</span>
+              <span className="font-medium text-foreground/70 group-hover:text-primary">Informações adicionais</span>
               <ChevronDown className={`h-3 w-3 transition-transform ml-1 ${showSettings ? "rotate-180" : ""}`} />
             </button>
 
