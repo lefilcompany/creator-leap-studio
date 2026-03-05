@@ -113,12 +113,12 @@ export async function expandBriefing(
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('[LLMRefiner] Gateway error:', response.status, errorText);
+      console.error('[LLMRefiner] Gemini error:', response.status, errorText);
       return { expandedPrompt: '', headline: '', subtexto: '' };
     }
 
     const data = await response.json();
-    const rawContent = data.choices?.[0]?.message?.content?.trim();
+    const rawContent = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
 
     if (!rawContent) {
       console.warn('[LLMRefiner] No content in response');
