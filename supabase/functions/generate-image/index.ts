@@ -568,7 +568,7 @@ serve(async (req) => {
     // =====================================
     const MAX_RETRIES = 3;
     const REQUEST_TIMEOUT_MS = 45000;
-    const PRIMARY_IMAGE_MODEL = 'gemini-3-flash-image-pro';
+    const PRIMARY_IMAGE_MODEL = 'gemini-2.5-flash-image';
     const FALLBACK_IMAGE_MODEL = 'gemini-2.5-flash-image';
 
     let lastError: any = null;
