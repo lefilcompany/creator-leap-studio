@@ -99,6 +99,7 @@ const App = () => (
                 <Toaster />
                 <Sonner />
                 <BrowserRouter>
+                  <ScrollToTop />
                   <EventTrackingProvider>
                     <Routes>
                       {/* Public routes */}
