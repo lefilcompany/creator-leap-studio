@@ -691,11 +691,11 @@ export default function ContentResult() {
         </Card>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5 md:gap-6">
-          {/* Media Preview */}
-          <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-xl sm:rounded-2xl overflow-hidden animate-fade-in hover:shadow-xl transition-shadow duration-300" style={{
-          animationDelay: "100ms"
+          {/* Caption - Left on desktop, second on mobile */}
+          <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-xl sm:rounded-2xl animate-fade-in hover:shadow-xl transition-shadow duration-300 order-2 lg:order-1" style={{
+          animationDelay: "200ms"
         }}>
-            <CardContent className="p-0">
+            <CardContent className="p-4 sm:p-5 md:p-6 space-y-3 sm:space-y-4">
               <div className="aspect-square max-h-[500px] sm:max-h-[600px] md:max-h-[700px] bg-muted/30 relative overflow-hidden group mx-auto">
                 {contentData.isProcessing ? <div className="flex items-center justify-center h-full">
                     <div className="text-center space-y-4">
