@@ -244,19 +244,23 @@ SISTEMA DE PLANOS E PREÇOS:
 
 Responda em português brasileiro de forma clara, objetiva e amigável. Seja prestativo e ajude o usuário a aproveitar ao máximo a plataforma. Quando perguntado sobre planos, forneça informações detalhadas e ajude o usuário a escolher o plano ideal para suas necessidades.`;
 
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    // Convert messages to Gemini format
+    const geminiContents = messages.map((m: any) => ({
+      role: m.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: m.content }],
+    }));
+
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse&key=${GEMINI_API_KEY}`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: systemPrompt },
-          ...messages,
-        ],
-        stream: true,
+        contents: geminiContents,
+        systemInstruction: { parts: [{ text: systemPrompt }] },
+        generationConfig: {
+          temperature: 0.7,
+        },
       }),
     });
 
@@ -267,22 +271,59 @@ Responda em português brasileiro de forma clara, objetiva e amigável. Seja pre
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "Créditos insuficientes." }), 
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
       
       const errorText = await response.text();
-      console.error("Erro na API:", response.status, errorText);
+      console.error("Erro na API Gemini:", response.status, errorText);
       return new Response(
         JSON.stringify({ error: "Erro ao processar requisição" }), 
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    return new Response(response.body, {
+    // Transform Gemini SSE stream to OpenAI-compatible SSE stream
+    const reader = response.body!.getReader();
+    const encoder = new TextEncoder();
+    const decoder = new TextDecoder();
+
+    const stream = new ReadableStream({
+      async start(controller) {
+        let buffer = '';
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) {
+              controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+              controller.close();
+              break;
+            }
+            buffer += decoder.decode(value, { stream: true });
+            let newlineIdx;
+            while ((newlineIdx = buffer.indexOf('\n')) !== -1) {
+              const line = buffer.slice(0, newlineIdx).trim();
+              buffer = buffer.slice(newlineIdx + 1);
+              if (!line.startsWith('data: ')) continue;
+              const jsonStr = line.slice(6);
+              try {
+                const parsed = JSON.parse(jsonStr);
+                const text = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (text) {
+                  // Emit in OpenAI-compatible format
+                  const openaiChunk = JSON.stringify({
+                    choices: [{ delta: { content: text } }]
+                  });
+                  controller.enqueue(encoder.encode(`data: ${openaiChunk}\n\n`));
+                }
+              } catch { /* skip partial JSON */ }
+            }
+          }
+        } catch (e) {
+          console.error('Stream error:', e);
+          controller.close();
+        }
+      }
+    });
+
+    return new Response(stream, {
       headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
     });
   } catch (error) {
