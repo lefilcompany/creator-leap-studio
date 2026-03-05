@@ -335,14 +335,29 @@ export default function CreateImage() {
       toast.loading("🎨 Preparando geração...", { id: toastId, description: "Analisando referências (10%)" });
 
       const maxTotalImages = 5;
-      let finalBrandImages = brandImages;
-      let finalUserImages = referenceImagesBase64;
-      if (brandImages.length + referenceImagesBase64.length > maxTotalImages) {
-        const availableSlots = Math.max(0, maxTotalImages - brandImages.length);
-        finalUserImages = referenceImagesBase64.slice(0, availableSlots);
-        if (availableSlots < referenceImagesBase64.length) {
-          toast.warning(`Limite de imagens atingido. Usando ${brandImages.length} da marca + ${availableSlots} suas.`, { duration: 5000 });
-        }
+      const safePreserveIndices = preserveImageIndices
+        .filter((idx) => Number.isInteger(idx) && idx >= 0 && idx < referenceImagesBase64.length);
+
+      const userImageEntries = referenceImagesBase64.map((image, index) => ({
+        image,
+        index,
+        preserve: safePreserveIndices.includes(index),
+      }));
+
+      const finalBrandImages = brandImages.slice(0, 3);
+      const availableUserSlots = Math.max(0, maxTotalImages - finalBrandImages.length);
+      const prioritizedUserEntries = [...userImageEntries].sort((a, b) => Number(b.preserve) - Number(a.preserve));
+      const limitedUserEntries = prioritizedUserEntries.slice(0, availableUserSlots);
+
+      const finalPreservedUserImages = limitedUserEntries.filter(entry => entry.preserve).map(entry => entry.image);
+      const finalStyleUserImages = limitedUserEntries.filter(entry => !entry.preserve).map(entry => entry.image);
+      const finalUserImages = [...finalPreservedUserImages, ...finalStyleUserImages];
+
+      if (userImageEntries.length > availableUserSlots) {
+        toast.warning(
+          `Limite de imagens atingido. Priorizei ${finalPreservedUserImages.length} imagem(ns) marcada(s) para preservar.`,
+          { duration: 5000 }
+        );
       }
 
       const selectedBrand = brands.find(b => b.id === formData.brand);
@@ -355,8 +370,15 @@ export default function CreateImage() {
         persona: selectedPersona?.name || formData.persona, objective: formData.prompt,
         description: formData.prompt, tone: formData.tone, platform: formData.platform,
         contentType, visualStyle: formData.visualStyle || 'realistic', additionalInfo: formData.additionalInfo,
-        preserveImages: finalBrandImages, styleReferenceImages: finalUserImages,
-        brandImagesCount: finalBrandImages.length, userImagesCount: finalUserImages.length,
+        preserveImages: [...finalBrandImages, ...finalPreservedUserImages],
+        styleReferenceImages: finalStyleUserImages,
+        brandReferenceImages: finalBrandImages,
+        userReferenceImages: finalUserImages,
+        preserveImageIndices: safePreserveIndices,
+        brandImagesCount: finalBrandImages.length,
+        userImagesCount: finalUserImages.length,
+        preservedUserImagesCount: finalPreservedUserImages.length,
+        styleUserImagesCount: finalStyleUserImages.length,
         negativePrompt: formData.negativePrompt, colorPalette: formData.colorPalette,
         lighting: formData.lighting, composition: formData.composition, cameraAngle: formData.cameraAngle,
         detailLevel: formData.detailLevel, mood: formData.mood,
