@@ -152,6 +152,11 @@ export default function ContentResult() {
               parsed.mediaUrl = imageUrl;
             }
             setContentData(parsed);
+            // Restore version history
+            if (parsed.versions && parsed.versions.length > 0) {
+              setVersionHistory(parsed.versions);
+              setCurrentVersionIndex(parsed.currentVersion || parsed.versions.length - 1);
+            }
             const revisionsKey = `revisions_${parsed.id}`;
             const savedRevisions = localStorage.getItem(revisionsKey);
             if (savedRevisions) {
