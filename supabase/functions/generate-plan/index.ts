@@ -218,7 +218,7 @@ Tema ${index + 1}:
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('OpenAI API error:', response.status, errorText);
+      console.error('Gemini API error:', response.status, errorText);
       
       if (response.status === 429) {
         return new Response(
@@ -227,18 +227,11 @@ Tema ${index + 1}:
         );
       }
       
-      if (response.status === 401) {
-        console.error('OpenAI API authentication failed');
+      if (response.status === 401 || response.status === 403) {
+        console.error('Gemini API authentication failed');
         return new Response(
           JSON.stringify({ error: 'Erro de autenticação com o serviço de IA. Entre em contato com o suporte.' }),
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      
-      if (response.status === 402 || response.status === 403) {
-        return new Response(
-          JSON.stringify({ error: 'Créditos de IA esgotados. Entre em contato com o suporte.' }),
-          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
       
@@ -248,19 +241,19 @@ Tema ${index + 1}:
       );
     }
     
-    console.log('OpenAI API response received successfully');
+    console.log('Gemini API response received successfully');
 
     const data = await response.json();
     
-    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-      console.error('Invalid OpenAI response format:', JSON.stringify(data));
+    if (!data.candidates || !data.candidates[0]?.content?.parts?.[0]?.text) {
+      console.error('Invalid Gemini response format:', JSON.stringify(data));
       return new Response(
         JSON.stringify({ error: 'Resposta inválida do serviço de IA' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
     
-    const generatedPlan = data.choices[0].message.content;
+    const generatedPlan = data.candidates[0].content.parts[0].text;
 
     // Deduct credits (individual)
     const deductResult = await deductUserCredits(supabase, userId, CREDIT_COSTS.CONTENT_PLAN);

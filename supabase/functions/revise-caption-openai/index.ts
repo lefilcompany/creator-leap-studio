@@ -112,15 +112,15 @@ Responda ESTRITAMENTE em formato JSON com as chaves "title", "body" (legenda com
 
         if (!response.ok) {
           const errorText = await response.text();
-          console.error('Erro da API OpenAI:', response.status, errorText);
-          throw new Error(`OpenAI API error: ${response.status}`);
+          console.error('Erro da API Gemini:', response.status, errorText);
+          throw new Error(`Gemini API error: ${response.status}`);
         }
 
         const data = await response.json();
-        const rawContent = data.choices?.[0]?.message?.content;
+        const rawContent = data.candidates?.[0]?.content?.parts?.[0]?.text;
         
         if (!rawContent) {
-          throw new Error('Resposta vazia da API OpenAI');
+          throw new Error('Resposta vazia da API Gemini');
         }
 
         revisedContent = JSON.parse(rawContent);
