@@ -175,7 +175,7 @@ Analise a legenda e retorne uma revisão completa em markdown seguindo EXATAMENT
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'google/gemini-3.1-flash-image-preview',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: contextPrompt }

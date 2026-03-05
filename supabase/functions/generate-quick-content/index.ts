@@ -352,7 +352,7 @@ serve(async (req) => {
       creditsBefore: creditCheck.currentCredits,
       creditsAfter: deductResult.newCredits,
       description: 'Criação rápida de imagem (Pipeline v4)',
-      metadata: { platform, aspectRatio: normalizedAspectRatio, style, brandId, model: 'gemini-3-pro-image-preview' }
+      metadata: { platform, aspectRatio: normalizedAspectRatio, style, brandId, model: 'gemini-3.1-flash-image-preview' }
     });
 
     // Save action
