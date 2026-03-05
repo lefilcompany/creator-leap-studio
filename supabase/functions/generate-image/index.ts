@@ -354,15 +354,34 @@ function buildDirectorPrompt(params: {
 }
 
 // =====================================
-// EXTRACT IMAGE FROM GEMINI DIRECT API RESPONSE
+// EXTRACT IMAGE FROM LOVABLE AI GATEWAY RESPONSE
 // =====================================
-function extractImageFromResponse(data: any): { imageUrl: string | null; textResponse: string | null } {
+function extractImageFromGatewayResponse(data: any): { imageUrl: string | null; textResponse: string | null } {
   let imageUrl: string | null = null;
   let textResponse: string | null = null;
 
-  const parts = data.candidates?.[0]?.content?.parts;
-  if (parts) {
-    for (const part of parts) {
+  const message = data.choices?.[0]?.message;
+
+  // Format 1: message.images[] (Gateway primary format)
+  if (message?.images?.length > 0) {
+    imageUrl = message.images[0].image_url?.url || null;
+  }
+
+  // Format 2: message.content[] (array with image_url parts)
+  if (!imageUrl && Array.isArray(message?.content)) {
+    for (const part of message.content) {
+      if (part.type === 'image_url' && !imageUrl) {
+        imageUrl = part.image_url?.url || null;
+      }
+      if (part.type === 'text' && !textResponse) {
+        textResponse = typeof part.text === 'string' ? part.text : null;
+      }
+    }
+  }
+
+  // Format 3: candidates[].content.parts[].inlineData (Gemini native fallback)
+  if (!imageUrl && data.candidates?.[0]?.content?.parts) {
+    for (const part of data.candidates[0].content.parts) {
       if (part.inlineData?.data && !imageUrl) {
         imageUrl = `data:${part.inlineData.mimeType || 'image/png'};base64,${part.inlineData.data}`;
       }
@@ -371,26 +390,13 @@ function extractImageFromResponse(data: any): { imageUrl: string | null; textRes
       }
     }
   }
-  return { imageUrl, textResponse };
-}
 
-// Convert OpenAI-style message content to Gemini parts format
-function convertToGeminiParts(messageContent: any[]): any[] {
-  const parts: any[] = [];
-  for (const item of messageContent) {
-    if (item.type === 'text') {
-      parts.push({ text: item.text });
-    } else if (item.type === 'image_url' && item.image_url?.url) {
-      const url = item.image_url.url;
-      if (url.startsWith('data:')) {
-        const match = url.match(/^data:([^;]+);base64,(.+)$/);
-        if (match) {
-          parts.push({ inlineData: { mimeType: match[1], data: match[2] } });
-        }
-      }
-    }
+  // Extract text from message.content if string
+  if (!textResponse && typeof message?.content === 'string') {
+    textResponse = message.content;
   }
-  return parts;
+
+  return { imageUrl, textResponse };
 }
 
 serve(async (req) => {
@@ -566,12 +572,17 @@ serve(async (req) => {
     console.log(`[Step 4] Message parts: ${messageContent.length} (1 text + ${messageContent.length - 1} images)`);
 
     // =====================================
-    // STEP 5: Generate image via Gateway with retry
+    // STEP 5: Generate image via Lovable AI Gateway (gemini-3-pro-image-preview)
     // =====================================
     const MAX_RETRIES = 3;
-    const REQUEST_TIMEOUT_MS = 45000;
-    const PRIMARY_IMAGE_MODEL = 'gemini-2.5-flash-image';
-    const FALLBACK_IMAGE_MODEL = 'gemini-2.5-flash-image';
+    const REQUEST_TIMEOUT_MS = 90000; // 90s for higher-quality model
+    const PRIMARY_IMAGE_MODEL = 'google/gemini-3-pro-image-preview';
+    const FALLBACK_IMAGE_MODEL = 'google/gemini-2.5-flash-image';
+
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) {
+      throw new Error('LOVABLE_API_KEY not configured');
+    }
 
     let lastError: any = null;
     let imageUrl: string | null = null;
@@ -580,32 +591,31 @@ serve(async (req) => {
 
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       try {
-        const modelForAttempt = attempt === 1 ? PRIMARY_IMAGE_MODEL : FALLBACK_IMAGE_MODEL;
+        const modelForAttempt = attempt <= 2 ? PRIMARY_IMAGE_MODEL : FALLBACK_IMAGE_MODEL;
         usedImageModel = modelForAttempt;
 
-        console.log(`[Step 5] Image generation attempt ${attempt}/${MAX_RETRIES} with model ${modelForAttempt}...`);
+        console.log(`[Step 5] Image generation attempt ${attempt}/${MAX_RETRIES} with model ${modelForAttempt} via Lovable AI Gateway...`);
 
-        const geminiParts = convertToGeminiParts(messageContent);
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelForAttempt}:generateContent?key=${GEMINI_API_KEY}`, {
+        const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
           method: 'POST',
           headers: {
+            'Authorization': `Bearer ${LOVABLE_API_KEY}`,
             'Content-Type': 'application/json',
           },
           signal: controller.signal,
           body: JSON.stringify({
-            contents: [{ role: 'user', parts: geminiParts }],
-            generationConfig: {
-              responseModalities: ['IMAGE', 'TEXT'],
-            },
+            model: modelForAttempt,
+            messages: [{ role: 'user', content: messageContent }],
+            modalities: ['image', 'text'],
           }),
         }).finally(() => clearTimeout(timeoutId));
 
         if (!response.ok) {
           const errorText = await response.text();
-          console.error(`Gemini error (attempt ${attempt}, model ${modelForAttempt}):`, response.status, errorText);
+          console.error(`Gateway error (attempt ${attempt}, model ${modelForAttempt}):`, response.status, errorText);
 
           if (response.status === 400) {
             return new Response(JSON.stringify({
@@ -622,13 +632,13 @@ serve(async (req) => {
             return new Response(JSON.stringify({ error: 'Créditos de IA esgotados. Tente novamente mais tarde.' }), { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
           }
 
-          lastError = new Error(`Gemini error (${modelForAttempt}): ${response.status}`);
+          lastError = new Error(`Gateway error (${modelForAttempt}): ${response.status}`);
           if (attempt < MAX_RETRIES) { await new Promise(r => setTimeout(r, 2000)); continue; }
           throw lastError;
         }
 
         const data = await response.json();
-        const extracted = extractImageFromResponse(data);
+        const extracted = extractImageFromGatewayResponse(data);
         imageUrl = extracted.imageUrl;
         if (extracted.textResponse) resultDescription = extracted.textResponse;
 
