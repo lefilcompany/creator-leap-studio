@@ -65,6 +65,9 @@ interface FormData {
   fontStyle?: string;
   textDesignStyle?: string;
   ctaText?: string;
+  adMode?: 'standard' | 'professional';
+  priceText?: string;
+  includeBrandLogo?: boolean;
 }
 
 const TEXT_POSITIONS = [
@@ -92,6 +95,9 @@ const TEXT_DESIGN_OPTIONS = [
   { value: 'shadow_drop', label: 'Sombra', desc: 'Texto com sombra projetada forte' },
   { value: 'neon_glow', label: 'Neon', desc: 'Texto com brilho neon luminoso' },
   { value: 'boxed', label: 'Emoldurado', desc: 'Texto dentro de caixa com borda e fundo sólido' },
+  { value: 'badge', label: 'Badge/Selo', desc: 'Texto dentro de selo/etiqueta colorida com destaque' },
+  { value: 'plaquinha', label: 'Plaquinha', desc: 'Texto em placa de madeira/metal com textura' },
+  { value: 'card_overlay', label: 'Card Overlay', desc: 'Painel com informações sobrepostas na foto' },
 ] as const;
 
 const toneOptions = [
@@ -123,6 +129,7 @@ export default function CreateImage() {
     detailLevel: 7, mood: "auto", imageIncludeText: false,
     imageTextContent: "", imageTextPosition: "center",
     fontStyle: "modern", textDesignStyle: "clean", ctaText: "",
+    adMode: "standard", priceText: "", includeBrandLogo: false,
   });
 
   const [loading, setLoading] = useState(false);
@@ -419,6 +426,9 @@ export default function CreateImage() {
         fontStyle: formData.fontStyle || "modern",
         textDesignStyle: formData.textDesignStyle || "clean",
         ctaText: formData.ctaText?.trim() || "",
+        adMode: contentType === 'ads' ? (formData.adMode || 'standard') : undefined,
+        priceText: formData.priceText?.trim() || "",
+        includeBrandLogo: formData.includeBrandLogo || false,
       };
 
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -638,6 +648,49 @@ export default function CreateImage() {
                       }}
                       className="flex-1 rounded-md font-semibold h-7 text-xs">Anúncio</Button>
                   </div>
+
+                  {/* Modo Anúncio Profissional - aparece apenas quando tipo = Anúncio */}
+                  {contentType === "ads" && (
+                    <div className="mt-2 space-y-3">
+                      <div className="flex items-center space-x-1 rounded-lg bg-accent/20 p-1">
+                        <Button type="button" variant={formData.adMode === "standard" ? "default" : "ghost"}
+                          onClick={() => setFormData(prev => ({ ...prev, adMode: "standard" }))}
+                          className="flex-1 rounded-md font-semibold h-7 text-xs">Padrão</Button>
+                        <Button type="button" variant={formData.adMode === "professional" ? "default" : "ghost"}
+                          onClick={() => setFormData(prev => ({
+                            ...prev, adMode: "professional",
+                            imageIncludeText: true, fontStyle: "impactful", textDesignStyle: "badge",
+                          }))}
+                          className="flex-1 rounded-md font-semibold h-7 text-xs">🎯 Profissional</Button>
+                      </div>
+
+                      {formData.adMode === "professional" && (
+                        <div className="space-y-3 p-3 rounded-xl bg-accent/10 border border-accent/20 animate-in slide-in-from-top-2 duration-200">
+                          <p className="text-[10px] text-muted-foreground">Modo otimizado para peças publicitárias profissionais com hierarquia visual, badges e CTAs destacados.</p>
+                          
+                          <div className="space-y-1.5">
+                            <Label className="text-xs font-medium text-muted-foreground">Preço / Oferta <span className="font-normal">(opcional)</span></Label>
+                            <Input
+                              placeholder="Ex: R$ 29,90 · 50% OFF · A partir de R$ 19"
+                              value={formData.priceText || ""}
+                              onChange={e => setFormData(prev => ({ ...prev, priceText: e.target.value }))}
+                              className="h-9 rounded-lg border-2 border-border/50 bg-background/50 text-sm"
+                              maxLength={30}
+                            />
+                            <p className="text-[10px] text-muted-foreground">{formData.priceText?.length || 0}/30 · Será exibido em destaque com badge</p>
+                          </div>
+
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <Checkbox
+                              checked={formData.includeBrandLogo || false}
+                              onCheckedChange={(checked) => setFormData(prev => ({ ...prev, includeBrandLogo: !!checked }))}
+                            />
+                            <span className="text-xs text-foreground">Incluir logo da marca no canto</span>
+                          </label>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
 

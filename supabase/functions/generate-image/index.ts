@@ -46,6 +46,9 @@ const TEXT_DESIGN_PROMPTS: Record<string, string> = {
   shadow_drop: `DESIGN SOMBRA PROJETADA: Aplique sombra forte e dramática no texto (drop shadow). Sombra preta com 60-80% opacidade, offset de 4-8px, blur de 12-20px. O texto pode ser branco, cor da marca ou cor clara. A sombra deve ser suficiente para garantir legibilidade sobre qualquer fundo. NÃO use overlays adicionais — apenas a sombra projetada no texto.`,
   neon_glow: `DESIGN NEON/GLOW: O texto deve ter efeito de brilho luminoso estilo neon. Aplique glow externo colorido (rosa, azul, verde ou cor da marca) ao redor de cada letra. O texto pode ser branco com glow colorido, ou colorido com glow matching. Intensidade do glow: forte e visível, como uma placa de neon real. O fundo ao redor do texto deve ser mais escuro para realçar o brilho. Adicione leve reflexo do neon nas superfícies próximas.`,
   boxed: `DESIGN EMOLDURADO: Coloque o texto dentro de uma caixa/moldura retangular. A caixa deve ter: fundo sólido (branco, preto ou cor da marca), borda visível (2-3px, cor contrastante), padding interno generoso (16-24px). O texto deve estar centralizado dentro da caixa. A caixa deve ter cantos arredondados (8-16px radius). A caixa deve parecer um elemento gráfico intencional do design, não um patch improvisado.`,
+  badge: `DESIGN BADGE/SELO: O texto deve estar DENTRO de um selo, etiqueta ou badge colorido com formato dinâmico (circular, estrela, losango, fita, banner ou etiqueta de preço). Use cores vibrantes e contrastantes (vermelho, amarelo, laranja ou cor da marca). O badge deve ter: borda definida, sombra sutil para profundidade 3D, formato que remeta a promoção/destaque comercial. Ideal para preços, descontos e ofertas. O texto dentro deve ser BOLD e centralizado. Adicione elementos decorativos como raios, estrelas ou pontos de exclamação ao redor do badge.`,
+  plaquinha: `DESIGN PLAQUINHA: O texto deve estar renderizado DENTRO de uma placa realista de madeira, metal, lousa ou acrílico. A placa deve ter: textura realista visível (grãos de madeira, reflexos metálicos ou textura de quadro negro), bordas definidas com profundidade/sombra, suportes ou parafusos decorativos nos cantos. O texto deve parecer gravado, pintado ou escrito a giz na placa. A placa deve estar posicionada na cena como um elemento fotográfico real, com perspectiva e iluminação coerentes com o ambiente.`,
+  card_overlay: `DESIGN CARD OVERLAY: Crie um painel/card semitransparente ou sólido sobreposto à imagem, estilo material design ou glassmorphism. O card deve ter: fundo com blur (frosted glass) ou cor sólida com opacidade 80-90%, cantos arredondados (16-24px radius), sombra suave para elevar o card da imagem. Dentro do card, organize as informações em hierarquia clara: título em bold no topo, ícones pequenos ao lado de cada informação (📍 localização, 📞 telefone, 💰 preço), texto secundário menor. O card deve cobrir apenas parte da imagem (30-50%), mantendo o visual principal visível. Estilo profissional de anúncio imobiliário, gastronômico ou de serviços.`,
 };
 
 const PLATFORM_ASPECT_RATIO: Record<string, string> = {
@@ -276,6 +279,9 @@ function buildDirectorPrompt(params: {
   headline: string;
   subtexto: string;
   ctaText: string;
+  adProfessionalMode: boolean;
+  priceText: string;
+  includeBrandLogo: boolean;
 }): string {
   const sections: string[] = [];
 
@@ -419,8 +425,37 @@ function buildDirectorPrompt(params: {
     sections.push(`### 5. USO DE REFERÊNCIAS VISUAIS\n${refParts.join('\n')}`);
   }
 
-  // SECTION 6: ESPECIFICAÇÕES TÉCNICAS
-  sections.push(`### 6. ESPECIFICAÇÕES TÉCNICAS E COMPLIANCE
+  // SECTION 6: MODO ANÚNCIO PROFISSIONAL (condicional)
+  if (params.adProfessionalMode) {
+    const brandColor = params.brandData?.brand_color || 'cor vibrante';
+    const priceSection = params.priceText ? `\n2. PREÇO/OFERTA: "${params.priceText}" em destaque absoluto com badge/selo colorido contrastante (vermelho, amarelo ou laranja). O preço deve estar em um badge/etiqueta com formato dinâmico (estrela, fita, selo circular) e ser o segundo elemento mais visível da peça.` : '';
+    const ctaSection = params.ctaText ? `\n3. CTA: "${params.ctaText}" em botão arredondado com cor contrastante, posicionado na parte inferior. Deve parecer um botão clicável com sombra sutil.` : '';
+    const logoSection = params.includeBrandLogo ? `\n- LOGO DA MARCA: Posicione o logo da marca (se disponível nas referências) no canto superior direito ou inferior esquerdo, com tamanho discreto mas visível.` : '';
+
+    sections.push(`### 6. MODO ANÚNCIO PROFISSIONAL
+Esta imagem DEVE parecer uma PEÇA PUBLICITÁRIA PROFISSIONAL de design gráfico brasileiro. Siga RIGOROSAMENTE estes padrões:
+
+LAYOUT:
+- Fundo de cor sólida vibrante (usar ${brandColor} ou cor complementar forte e impactante)
+- Elementos decorativos 3D ao redor do sujeito principal (raios de luz, formas geométricas, megafones estilizados, setas dinâmicas, splashes de cor)
+- Produto/sujeito principal em destaque absoluto no centro ou terço áureo da composição
+- Composição assimétrica e dinâmica, com energia visual alta${logoSection}
+
+HIERARQUIA DE TEXTO (ordem de importância visual):
+1. HEADLINE: Texto principal em tipografia BOLD GIGANTE (hero text), ocupando 30-40% da área visual. Deve ser o elemento mais chamativo da peça.${priceSection}${ctaSection}
+4. DETALHES: Informações secundárias em texto menor e discreto
+
+DESIGN GRÁFICO OBRIGATÓRIO:
+- Use badges/selos coloridos para destacar preços e ofertas (estilo promoção brasileira)
+- Cards sobrepostos com informações quando apropriado (estilo material design)
+- Elementos 3D decorativos para dinamismo e energia visual
+- Contraste FORTE entre texto e fundo (legibilidade é prioridade máxima)
+- Visual IMPACTANTE, chamativo, vibrante — estilo design gráfico profissional brasileiro de agência
+- Referência visual: peças de social media de grandes marcas brasileiras (McDonald's, iFood, Magazine Luiza)`);
+  }
+
+  // SECTION 7: ESPECIFICAÇÕES TÉCNICAS
+  sections.push(`### ${params.adProfessionalMode ? '7' : '6'}. ESPECIFICAÇÕES TÉCNICAS E COMPLIANCE
 - Formato: Otimizado para ${params.platform || 'redes sociais'}
 - Resolução: 4K, PNG para nitidez
 - COMPLIANCE ÉTICO (CONAR/CDC):
@@ -641,6 +676,9 @@ serve(async (req) => {
       headline: briefingResult.headline,
       subtexto: briefingResult.subtexto,
       ctaText: cleanInput(formData.ctaText) || '',
+      adProfessionalMode: formData.adMode === 'professional',
+      priceText: cleanInput(formData.priceText) || '',
+      includeBrandLogo: formData.includeBrandLogo || false,
     });
 
     // Build image role prefix
