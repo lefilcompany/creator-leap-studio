@@ -541,9 +541,109 @@ export default function CreateImage() {
           <CreationProgressBar currentStep={loading ? "generating" : "config"} className="max-w-xs mx-auto" />
 
           <div className="space-y-4">
-            {/* 1. Prompt Box */}
+
+            {/* ── SEÇÃO 1: CAMPOS OBRIGATÓRIOS ── */}
+            <div className="rounded-2xl shadow-lg border-0 bg-card p-4 md:p-5 space-y-5">
+              <div className="flex items-center gap-2 pb-1 border-b border-border/30">
+                <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                <p className="text-sm font-bold text-foreground">Configuração obrigatória</p>
+              </div>
+
+              {/* Marca + Tipo de conteúdo */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {isLoadingData ? <SelectSkeleton /> : (
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-medium text-muted-foreground">Marca <span className="text-destructive">*</span></Label>
+                    <NativeSelect id="select-brand" value={formData.brand} onValueChange={value => handleSelectChange("brand", value)}
+                      options={brands.map(b => ({ value: b.id, label: b.name }))}
+                      placeholder={brands.length === 0 ? "Nenhuma marca" : "Selecionar marca"}
+                      disabled={brands.length === 0}
+                      triggerClassName={`h-9 rounded-lg border-2 bg-background/50 hover:border-border/70 transition-colors text-xs ${missingFields.includes('brand') ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/50'}`}
+                    />
+                    {!isLoadingData && brands.length === 0 && (
+                      <p className="text-xs text-muted-foreground">
+                        <button onClick={() => navigate("/brands")} className="text-primary hover:underline font-medium">Cadastre uma marca</button>
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium text-muted-foreground">Tipo de Conteúdo</Label>
+                  <div className="flex items-center space-x-1 rounded-lg bg-muted p-1 h-9">
+                    <Button type="button" variant={contentType === "organic" ? "default" : "ghost"}
+                      onClick={() => { setContentType("organic"); if (formData.platform) setPlatformGuidelines(getCaptionGuidelines(formData.platform, "organic")); }}
+                      className="flex-1 rounded-md font-semibold h-7 text-xs">Orgânico</Button>
+                    <Button type="button" variant={contentType === "ads" ? "default" : "ghost"}
+                      onClick={() => { setContentType("ads"); if (formData.platform) setPlatformGuidelines(getCaptionGuidelines(formData.platform, "ads")); }}
+                      className="flex-1 rounded-md font-semibold h-7 text-xs">Anúncio</Button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Plataforma */}
+              <div>
+                <PlatformSelector
+                  value={formData.platform}
+                  onChange={(value, aspectRatio) => {
+                    handleSelectChange("platform", value);
+                    if (aspectRatio) setFormData(prev => ({ ...prev, aspectRatio }));
+                  }}
+                />
+                {missingFields.includes('platform') && !formData.platform && (
+                  <p className="text-xs text-destructive font-medium mt-1">Selecione uma plataforma</p>
+                )}
+              </div>
+
+              {/* Tom de Voz */}
+              <div className="space-y-2">
+                <Label className="text-xs font-medium text-muted-foreground">
+                  Tom de Voz <span className="text-destructive">*</span> <span className="font-normal">(máx. 4)</span>
+                </Label>
+                <div className="flex flex-wrap gap-1.5">
+                  {toneOptions.map(t => (
+                    <button key={t} type="button"
+                      onClick={() => formData.tone.includes(t) ? handleToneRemove(t) : handleToneSelect(t)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all active:scale-[0.97] capitalize ${
+                        formData.tone.includes(t)
+                          ? "bg-primary text-primary-foreground shadow-sm"
+                          : "bg-muted/50 text-foreground shadow-sm hover:shadow-md hover:text-primary"
+                      }`}
+                    >
+                      {t}
+                    </button>
+                  ))}
+                </div>
+                {missingFields.includes('tone') && formData.tone.length === 0 && (
+                  <span className="text-[10px] text-destructive font-medium">Selecione ao menos 1 tom</span>
+                )}
+              </div>
+            </div>
+
+            {/* Platform guidelines */}
+            {platformGuidelines.length > 0 && (
+              <div className="rounded-2xl shadow-md bg-primary/5 p-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <Info className="h-4 w-4 text-primary flex-shrink-0" />
+                  <p className="text-sm font-semibold text-primary">Diretrizes para {formData.platform} ({contentType === "organic" ? "Orgânico" : "Anúncio"})</p>
+                </div>
+                <ul className="space-y-1 text-xs text-muted-foreground">
+                  {platformGuidelines.map((g, idx) => (
+                    <li key={idx} className="flex items-start gap-2"><span className="text-primary mt-0.5">•</span><span>{g}</span></li>
+                  ))}
+                </ul>
+                {recommendedAspectRatio && (
+                  <p className="text-xs text-primary/80 font-medium mt-2 pt-2 border-t border-primary/20">💡 Proporção recomendada: {recommendedAspectRatio}</p>
+                )}
+              </div>
+            )}
+
+            {/* ── SEÇÃO 2: PROMPT + REFERÊNCIAS ── */}
             <div className="rounded-2xl shadow-lg overflow-hidden border-0 bg-card transition-shadow focus-within:shadow-xl">
               <div className="p-4 md:p-5 pb-2" onPaste={handlePaste}>
+                <Label className="text-sm font-bold text-foreground mb-2 block">
+                  Descrição da imagem <span className="text-destructive">*</span>
+                </Label>
                 <Textarea
                   id="prompt"
                   placeholder="Descreva o que você quer criar... Ex: Uma imagem de um café sendo servido numa manhã ensolarada, com estética minimalista e cores quentes. Objetivo: gerar engajamento no Instagram."
@@ -644,87 +744,15 @@ export default function CreateImage() {
               </div>
             </div>
 
-            {/* 2. Required fields: Platform, Brand, Tone */}
-            <div className="rounded-2xl shadow-lg overflow-hidden border-0 bg-card p-4 md:p-5 space-y-4">
-              {/* Platform */}
-              <PlatformSelector
-                value={formData.platform}
-                onChange={(value, aspectRatio) => {
-                  handleSelectChange("platform", value);
-                  if (aspectRatio) setFormData(prev => ({ ...prev, aspectRatio }));
-                }}
-              />
-              {missingFields.includes('platform') && !formData.platform && (
-                <p className="text-xs text-destructive font-medium -mt-3">Selecione uma plataforma</p>
-              )}
-
-              {/* Brand */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {isLoadingData ? <SelectSkeleton /> : (
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-medium text-muted-foreground">Marca <span className="text-destructive">*</span></Label>
-                    <NativeSelect id="select-brand" value={formData.brand} onValueChange={value => handleSelectChange("brand", value)}
-                      options={brands.map(b => ({ value: b.id, label: b.name }))}
-                      placeholder={brands.length === 0 ? "Nenhuma marca" : "Selecionar marca"}
-                      disabled={brands.length === 0}
-                      triggerClassName={`h-9 rounded-lg border-2 bg-background/50 hover:border-border/70 transition-colors text-xs ${missingFields.includes('brand') ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/50'}`}
-                    />
-                    {!isLoadingData && brands.length === 0 && (
-                      <p className="text-xs text-muted-foreground">
-                        <button onClick={() => navigate("/brands")} className="text-primary hover:underline font-medium">Cadastre uma marca</button>
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                {/* Content Type */}
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-medium text-muted-foreground">Tipo de Conteúdo</Label>
-                  <div className="flex items-center space-x-1 rounded-lg bg-muted p-1 h-9">
-                    <Button type="button" variant={contentType === "organic" ? "default" : "ghost"}
-                      onClick={() => { setContentType("organic"); if (formData.platform) setPlatformGuidelines(getCaptionGuidelines(formData.platform, "organic")); }}
-                      className="flex-1 rounded-md font-semibold h-7 text-xs">Orgânico</Button>
-                    <Button type="button" variant={contentType === "ads" ? "default" : "ghost"}
-                      onClick={() => { setContentType("ads"); if (formData.platform) setPlatformGuidelines(getCaptionGuidelines(formData.platform, "ads")); }}
-                      className="flex-1 rounded-md font-semibold h-7 text-xs">Anúncio</Button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Tone of Voice */}
-              <div className="space-y-2">
-                <Label className="text-xs font-medium text-muted-foreground">
-                  Tom de Voz <span className="text-destructive">*</span> <span className="font-normal">(máx. 4)</span>
-                </Label>
-                <div className="flex flex-wrap gap-1.5">
-                  {toneOptions.map(t => (
-                    <button key={t} type="button"
-                      onClick={() => formData.tone.includes(t) ? handleToneRemove(t) : handleToneSelect(t)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all active:scale-[0.97] capitalize ${
-                        formData.tone.includes(t)
-                          ? "bg-primary text-primary-foreground shadow-sm"
-                          : "bg-muted/50 text-foreground shadow-sm hover:shadow-md hover:text-primary"
-                      }`}
-                    >
-                      {t}
-                    </button>
-                  ))}
-                </div>
-                {missingFields.includes('tone') && formData.tone.length === 0 && (
-                  <span className="text-[10px] text-destructive font-medium">Selecione ao menos 1 tom</span>
-                )}
-              </div>
-            </div>
-
-            {/* 3. Optional fields (collapsible) */}
+            {/* ── SEÇÃO 3: CAMPOS OPCIONAIS (colapsável) ── */}
             <button
               type="button"
-              onClick={() => { setShowSettings(!showSettings); }}
+              onClick={() => setShowSettings(!showSettings)}
               className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors group w-full"
             >
               <Settings2 className="h-3.5 w-3.5 group-hover:text-primary transition-colors" />
               <span className="font-medium text-foreground/70 group-hover:text-primary">Configurações avançadas</span>
-              <span className="text-muted-foreground">(persona, tema)</span>
+              <span className="text-muted-foreground">(persona, tema, info adicional)</span>
               <ChevronDown className={`h-3 w-3 transition-transform ml-1 ${showSettings ? "rotate-180" : ""}`} />
             </button>
 
@@ -755,41 +783,23 @@ export default function CreateImage() {
                     </div>
                   )}
                 </div>
-              </div>
-            )}
 
-            {/* Platform guidelines */}
-            {platformGuidelines.length > 0 && (
-              <div className="rounded-2xl shadow-md bg-primary/5 p-4 space-y-2">
-                <div className="flex items-center gap-2">
-                  <Info className="h-4 w-4 text-primary flex-shrink-0" />
-                  <p className="text-sm font-semibold text-primary">Diretrizes para {formData.platform} ({contentType === "organic" ? "Orgânico" : "Anúncio"})</p>
+                {/* Informações Adicionais */}
+                <div className="space-y-2">
+                  <Label htmlFor="additionalInfo" className="text-sm font-bold text-foreground">
+                    Informações Adicionais <span className="text-muted-foreground font-normal text-xs">(opcional)</span>
+                  </Label>
+                  <Textarea
+                    id="additionalInfo"
+                    placeholder="Outras instruções ou contexto relevante..."
+                    value={formData.additionalInfo}
+                    onChange={handleInputChange}
+                    rows={3}
+                    className="resize-none rounded-xl border-0 bg-muted/30 text-sm p-3 focus-visible:ring-1 focus-visible:ring-primary/30 transition-colors"
+                  />
                 </div>
-                <ul className="space-y-1 text-xs text-muted-foreground">
-                  {platformGuidelines.map((g, idx) => (
-                    <li key={idx} className="flex items-start gap-2"><span className="text-primary mt-0.5">•</span><span>{g}</span></li>
-                  ))}
-                </ul>
-                {recommendedAspectRatio && (
-                  <p className="text-xs text-primary/80 font-medium mt-2 pt-2 border-t border-primary/20">💡 Proporção recomendada: {recommendedAspectRatio}</p>
-                )}
               </div>
             )}
-
-            {/* Informações Adicionais */}
-            <div className="rounded-2xl shadow-lg overflow-hidden border-0 bg-card p-4 md:p-5 space-y-2">
-              <Label htmlFor="additionalInfo" className="text-sm font-bold text-foreground">
-                Informações Adicionais <span className="text-muted-foreground font-normal text-xs">(opcional)</span>
-              </Label>
-              <Textarea
-                id="additionalInfo"
-                placeholder="Outras instruções ou contexto relevante..."
-                value={formData.additionalInfo}
-                onChange={handleInputChange}
-                rows={3}
-                className="resize-none rounded-xl border-0 bg-muted/30 text-sm p-3 focus-visible:ring-1 focus-visible:ring-primary/30 transition-colors"
-              />
-            </div>
           </div>
 
           {/* Generate Button */}
