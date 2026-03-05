@@ -156,11 +156,12 @@ export function UnifiedPromptBox({
         {/* Add image button */}
         <button
           type="button"
-          className="h-8 w-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all active:scale-[0.95]"
+          className="h-8 inline-flex items-center gap-1.5 rounded-lg px-3 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all active:scale-[0.97]"
           onClick={() => fileInputRef.current?.click()}
-          title="Adicionar imagens de referência"
+          title="Selecionar imagens de referência"
         >
-          <Plus className="h-4 w-4" />
+          <ImageIcon className="h-3.5 w-3.5" />
+          <span>Selecionar imagem</span>
         </button>
         <input
           ref={fileInputRef}
@@ -173,6 +174,30 @@ export function UnifiedPromptBox({
             onReferenceFilesChange([...referenceFiles, ...files].slice(0, 5));
           }}
         />
+
+        {/* Paste image button */}
+        <button
+          type="button"
+          className="h-8 inline-flex items-center gap-1.5 rounded-lg px-3 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all active:scale-[0.97]"
+          onClick={async () => {
+            try {
+              const clipboardItems = await navigator.clipboard.read();
+              for (const item of clipboardItems) {
+                const imageType = item.types.find(t => t.startsWith('image/'));
+                if (imageType) {
+                  const blob = await item.getType(imageType);
+                  const file = new File([blob], `pasted-image-${Date.now()}.png`, { type: imageType });
+                  onReferenceFilesChange([...referenceFiles, file].slice(0, 5));
+                  return;
+                }
+              }
+            } catch {}
+          }}
+          title="Colar imagem da área de transferência"
+        >
+          <ClipboardPaste className="h-3.5 w-3.5" />
+          <span>Colar imagem</span>
+        </button>
 
         {/* Visual style toggle */}
         <button
@@ -198,10 +223,6 @@ export function UnifiedPromptBox({
         )}
 
         <div className="flex-1" />
-
-        <p className="text-[10px] text-muted-foreground hidden sm:block">
-          Cole imagens com Ctrl+V
-        </p>
       </div>
     </div>
   );
