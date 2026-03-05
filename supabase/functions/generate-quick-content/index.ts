@@ -264,16 +264,17 @@ serve(async (req) => {
       try {
         console.log(`[Step 4] Image generation attempt ${attempt}/${MAX_RETRIES}...`);
 
-        const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        const geminiParts = convertToGeminiParts(messageContent);
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${LOVABLE_API_KEY}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'google/gemini-3-pro-image-preview',
-            messages: [{ role: 'user', content: messageContent }],
-            modalities: ['image', 'text'],
+            contents: [{ role: 'user', parts: geminiParts }],
+            generationConfig: {
+              responseModalities: ['IMAGE', 'TEXT'],
+            },
           }),
         });
 
