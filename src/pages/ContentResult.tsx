@@ -690,7 +690,7 @@ export default function ContentResult() {
           </CardContent>
         </Card>
 
-        <div className="flex flex-col gap-4 sm:gap-5 md:gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5 md:gap-6">
           {/* Media Preview */}
           <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-xl sm:rounded-2xl overflow-hidden animate-fade-in hover:shadow-xl transition-shadow duration-300" style={{
           animationDelay: "100ms"
