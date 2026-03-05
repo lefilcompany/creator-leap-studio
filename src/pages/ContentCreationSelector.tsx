@@ -98,7 +98,8 @@ export default function ContentCreationSelector() {
                       </p>
                       <h4 className="font-semibold text-foreground mt-3">Opções disponíveis</h4>
                       <ul className="text-muted-foreground space-y-1 list-disc list-inside">
-                        <li>Criar Imagem — imagens profissionais com IA</li>
+                        <li>Criar Imagem — imagens profissionais com controle completo</li>
+                        <li>Criar Imagem Rápida — imagens de forma simplificada</li>
                         <li>Criação de Vídeo — vídeos com IA</li>
                       </ul>
                     </div>
