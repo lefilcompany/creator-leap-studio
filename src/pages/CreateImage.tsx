@@ -122,7 +122,7 @@ export default function CreateImage() {
     lighting: "natural", composition: "auto", cameraAngle: "eye_level",
     detailLevel: 7, mood: "auto", imageIncludeText: false,
     imageTextContent: "", imageTextPosition: "center",
-    fontStyle: "modern", textDesignStyle: "clean",
+    fontStyle: "modern", textDesignStyle: "clean", ctaText: "",
   });
 
   const [loading, setLoading] = useState(false);
