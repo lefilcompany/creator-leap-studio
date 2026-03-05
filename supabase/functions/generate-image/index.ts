@@ -652,7 +652,11 @@ serve(async (req) => {
     }
 
     if (!imageUrl) {
-      return new Response(JSON.stringify({ error: 'Falha ao gerar imagem após múltiplas tentativas' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      return new Response(JSON.stringify({
+        error: 'Falha ao gerar imagem após múltiplas tentativas',
+        details: lastError instanceof Error ? lastError.message : String(lastError),
+        model: usedImageModel,
+      }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     // =====================================
