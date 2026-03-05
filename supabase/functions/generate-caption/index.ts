@@ -417,11 +417,11 @@ serve(async (req) => {
       }),
     });
 
-    console.log(`📡 OpenAI Response Status: ${response.status}`);
+    console.log(`📡 Gemini Response Status: ${response.status}`);
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("❌ [CAPTION] Erro OpenAI:", {
+      console.error("❌ [CAPTION] Erro Gemini:", {
         status: response.status,
         error: errorText
       });
@@ -429,16 +429,16 @@ serve(async (req) => {
       if (response.status === 429) {
         return new Response(
           JSON.stringify({ 
-            error: 'OpenAI rate limit exceeded. Try again in a moment.',
+            error: 'Gemini rate limit exceeded. Try again in a moment.',
             fallback: true 
           }),
           { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
-      if (response.status === 401) {
+      if (response.status === 401 || response.status === 403) {
         return new Response(
           JSON.stringify({ 
-            error: 'Invalid OpenAI API key',
+            error: 'Invalid Gemini API key',
             fallback: true 
           }),
           { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -446,7 +446,7 @@ serve(async (req) => {
       }
       return new Response(
         JSON.stringify({ 
-          error: 'OpenAI API error',
+          error: 'Gemini API error',
           fallback: true 
         }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -454,8 +454,8 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    console.log("✅ OpenAI Response received");
-    const content = data.choices?.[0]?.message?.content;
+    console.log("✅ Gemini Response received");
+    const content = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
     console.log("🤖 [CAPTION] Resposta da AI recebida:", {
       contentLength: content?.length || 0,
