@@ -366,9 +366,12 @@ function buildDirectorPrompt(params: {
   - O CTA deve ser menor que a headline mas igualmente legível.`);
     }
     
+    // Text design style
+    const designPrompt = TEXT_DESIGN_PROMPTS[params.textDesignStyle] || TEXT_DESIGN_PROMPTS['clean'];
     textParts.push(`- Tipografia: ${fontDesc}
 - Posição: ${params.textPosition || 'center'}. O texto NÃO deve obstruir o rosto.
-- Legibilidade: O texto DEVE ser o foco principal e 100% legível. Utilize espaço negativo estratégico na imagem, sobreposições de gradiente sutil ou caixas de texto limpas para garantir contraste absoluto entre a fonte e o fundo. O texto não deve flutuar sem propósito, deve fazer parte de uma composição de design profissional em formato para ${params.platform || 'redes sociais'}.
+- ${designPrompt}
+- Legibilidade: O texto DEVE ser 100% legível. O design do texto deve fazer parte de uma composição profissional em formato para ${params.platform || 'redes sociais'}.
 - VERIFICAÇÃO FINAL: Antes de finalizar, releia o texto renderizado e confirme que está IDÊNTICO ao texto fornecido, letra por letra, acento por acento.`);
     
     sections.push(textParts.join('\n'));
