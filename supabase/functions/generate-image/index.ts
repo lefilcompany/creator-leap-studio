@@ -585,8 +585,6 @@ serve(async (req) => {
             contents: [{ role: 'user', parts: geminiParts }],
             generationConfig: {
               responseModalities: ['IMAGE', 'TEXT'],
-              safetyFilterLevel: 'BLOCK_ONLY_HIGH',
-              personGeneration: 'ALLOW_ALL',
             },
           }),
         });
@@ -595,12 +593,17 @@ serve(async (req) => {
           const errorText = await response.text();
           console.error(`Gemini error (attempt ${attempt}):`, response.status, errorText);
 
+          if (response.status === 400) {
+            return new Response(JSON.stringify({
+              error: 'Requisição inválida para o modelo de imagem',
+              details: errorText,
+            }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+          }
+
           if (response.status === 429) {
             return new Response(JSON.stringify({ error: 'Limite de requisições excedido. Tente novamente mais tarde.' }), { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
           }
           if (response.status === 402) {
-            return new Response(JSON.stringify({ error: 'Créditos de IA esgotados. Tente novamente mais tarde.' }), { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-          }
 
           lastError = new Error(`Gemini error: ${response.status}`);
           if (attempt < MAX_RETRIES) { await new Promise(r => setTimeout(r, 2000)); continue; }
