@@ -100,24 +100,21 @@ function buildRevisionPrompt(
   return finalPrompt;
 }
 
-// Extract image from Gateway response (3 formats)
+// Extract image from Gemini direct API response
 function extractImageFromResponse(data: any): { imageUrl: string | null; textResponse: string | null } {
   let imageUrl: string | null = null;
   let textResponse: string | null = null;
-  const message = data.choices?.[0]?.message;
-
-  if (message?.images?.length > 0) imageUrl = message.images[0].image_url?.url;
-  if (!imageUrl && Array.isArray(message?.content)) {
-    for (const part of message.content) {
-      if (part.type === 'image_url' && part.image_url?.url) { imageUrl = part.image_url.url; break; }
+  const parts = data.candidates?.[0]?.content?.parts;
+  if (parts) {
+    for (const part of parts) {
+      if (part.inlineData?.data && !imageUrl) {
+        imageUrl = `data:${part.inlineData.mimeType || 'image/png'};base64,${part.inlineData.data}`;
+      }
+      if (part.text && !textResponse) {
+        textResponse = part.text;
+      }
     }
   }
-  if (!imageUrl && data.candidates?.[0]?.content?.parts) {
-    for (const part of data.candidates[0].content.parts) {
-      if (part.inlineData?.data) { imageUrl = `data:${part.inlineData.mimeType || 'image/png'};base64,${part.inlineData.data}`; break; }
-    }
-  }
-  if (typeof message?.content === 'string') textResponse = message.content;
   return { imageUrl, textResponse };
 }
 
@@ -167,8 +164,8 @@ serve(async (req) => {
 
     console.log('📝 [EDIT-IMAGE] Prompt:', detailedPrompt.length, 'chars, brand:', !!brandData, 'theme:', !!themeData);
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) return new Response(JSON.stringify({ error: 'API key não configurada' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+    if (!GEMINI_API_KEY) return new Response(JSON.stringify({ error: 'GEMINI_API_KEY não configurada' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
     // Prepare image data URL
     let imageDataUrl: string;
@@ -203,33 +200,39 @@ serve(async (req) => {
       try {
         console.log(`🤖 Edit attempt ${attempt}/${MAX_RETRIES}...`);
 
-        const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        // Convert image to inline data for Gemini
+        let imageInlineData: any = null;
+        if (imageDataUrl.startsWith('data:')) {
+          const match = imageDataUrl.match(/^data:([^;]+);base64,(.+)$/);
+          if (match) {
+            imageInlineData = { inlineData: { mimeType: match[1], data: match[2] } };
+          }
+        }
+
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${LOVABLE_API_KEY}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'google/gemini-3-pro-image-preview',
-            messages: [{
-              role: 'user',
-              content: [
-                { type: 'text', text: detailedPrompt },
-                { type: 'image_url', image_url: { url: imageDataUrl } }
-              ]
-            }],
-            modalities: ['image', 'text'],
+            contents: [{ role: 'user', parts: [
+              { text: detailedPrompt },
+              ...(imageInlineData ? [imageInlineData] : []),
+            ] }],
+            generationConfig: {
+              responseModalities: ['IMAGE', 'TEXT'],
+            },
           }),
         });
 
         if (!response.ok) {
           const errorText = await response.text();
-          console.error(`Gateway error (attempt ${attempt}):`, response.status, errorText);
+          console.error(`Gemini error (attempt ${attempt}):`, response.status, errorText);
 
           if (response.status === 429) return new Response(JSON.stringify({ error: 'Limite de requisições excedido. Tente novamente em alguns minutos.' }), { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
           if (response.status === 402) return new Response(JSON.stringify({ error: 'Créditos de IA esgotados.' }), { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
-          lastError = new Error(`Gateway error: ${response.status}`);
+          lastError = new Error(`Gemini error: ${response.status}`);
           if (attempt < MAX_RETRIES) { await new Promise(r => setTimeout(r, 2000)); continue; }
           throw lastError;
         }

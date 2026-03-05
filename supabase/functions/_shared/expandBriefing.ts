@@ -4,7 +4,7 @@
  * Recebe um documento de briefing completo e retorna um JSON estruturado
  * com briefing visual cinematográfico, headline e subtexto.
  * 
- * Usa o Lovable AI Gateway (google/gemini-3-flash-preview).
+ * Usa Google Gemini API direta (gemini-2.5-flash).
  */
 
 export interface BriefingExpansionInput {
@@ -83,43 +83,42 @@ export async function expandBriefing(
   _geminiApiKey?: string // kept for backward compat, not used anymore
 ): Promise<ExpandedBriefing> {
   const systemPrompt = buildSystemPrompt(input);
-  const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+  const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
 
-  if (!LOVABLE_API_KEY) {
-    console.error('[LLMRefiner] LOVABLE_API_KEY not configured, falling back to empty');
+  if (!GEMINI_API_KEY) {
+    console.error('[LLMRefiner] GEMINI_API_KEY not configured, falling back to empty');
     return { expandedPrompt: '', headline: '', subtexto: '' };
   }
 
-  console.log('[LLMRefiner] Expanding briefing via Lovable AI Gateway...');
+  console.log('[LLMRefiner] Expanding briefing via Gemini API...');
   console.log('[LLMRefiner] Document length:', input.briefingDocument.length, 'chars');
   console.log('[LLMRefiner] Visual style:', input.visualStyle);
 
   try {
     const userMessage = `Transforme este Briefing Completo num Briefing Visual cinematográfico:\n\n${input.briefingDocument}`;
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-3-flash-preview',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userMessage },
-        ],
+        contents: [{ role: 'user', parts: [{ text: userMessage }] }],
+        systemInstruction: { parts: [{ text: systemPrompt }] },
+        generationConfig: {
+          temperature: 0.7,
+        },
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('[LLMRefiner] Gateway error:', response.status, errorText);
+      console.error('[LLMRefiner] Gemini error:', response.status, errorText);
       return { expandedPrompt: '', headline: '', subtexto: '' };
     }
 
     const data = await response.json();
-    const rawContent = data.choices?.[0]?.message?.content?.trim();
+    const rawContent = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
 
     if (!rawContent) {
       console.warn('[LLMRefiner] No content in response');

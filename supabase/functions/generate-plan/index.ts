@@ -112,9 +112,9 @@ serve(async (req) => {
       .select('*')
       .in('id', themes);
 
-    const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
-    if (!openaiApiKey) {
-      console.error('OpenAI API key not configured');
+    const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
+    if (!geminiApiKey) {
+      console.error('Gemini API key not configured');
       return new Response(
         JSON.stringify({ error: 'Service configuration error' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -200,27 +200,25 @@ Tema ${index + 1}:
 
     const userPrompt = `${brandContext}\n${themesContext}\n\nPlataforma: ${platform}\nQuantidade de Posts: ${quantity}\nObjetivo: ${objective}\n${additionalInfo ? `Informações Adicionais: ${additionalInfo}` : ''}\n\nPor favor, gere um plano estratégico completo com EXATAMENTE ${quantity} post(s) seguindo a estrutura fornecida.`;
 
-    console.log('Calling OpenAI API with gpt-4o model...');
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    console.log('Calling Gemini API with gemini-2.5-flash model...');
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openaiApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-3-flash-preview',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ],
-        temperature: 0.7,
-        max_tokens: 4000,
+        contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
+        systemInstruction: { parts: [{ text: systemPrompt }] },
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 4000,
+        },
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('OpenAI API error:', response.status, errorText);
+      console.error('Gemini API error:', response.status, errorText);
       
       if (response.status === 429) {
         return new Response(
@@ -229,18 +227,11 @@ Tema ${index + 1}:
         );
       }
       
-      if (response.status === 401) {
-        console.error('OpenAI API authentication failed');
+      if (response.status === 401 || response.status === 403) {
+        console.error('Gemini API authentication failed');
         return new Response(
           JSON.stringify({ error: 'Erro de autenticação com o serviço de IA. Entre em contato com o suporte.' }),
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      
-      if (response.status === 402 || response.status === 403) {
-        return new Response(
-          JSON.stringify({ error: 'Créditos de IA esgotados. Entre em contato com o suporte.' }),
-          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
       
@@ -250,19 +241,19 @@ Tema ${index + 1}:
       );
     }
     
-    console.log('OpenAI API response received successfully');
+    console.log('Gemini API response received successfully');
 
     const data = await response.json();
     
-    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-      console.error('Invalid OpenAI response format:', JSON.stringify(data));
+    if (!data.candidates || !data.candidates[0]?.content?.parts?.[0]?.text) {
+      console.error('Invalid Gemini response format:', JSON.stringify(data));
       return new Response(
         JSON.stringify({ error: 'Resposta inválida do serviço de IA' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
     
-    const generatedPlan = data.choices[0].message.content;
+    const generatedPlan = data.candidates[0].content.parts[0].text;
 
     // Deduct credits (individual)
     const deductResult = await deductUserCredits(supabase, userId, CREDIT_COSTS.CONTENT_PLAN);

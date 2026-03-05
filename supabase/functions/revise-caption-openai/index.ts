@@ -15,11 +15,11 @@ serve(async (req) => {
   }
 
   try {
-    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
-    if (!openAIApiKey) {
-      console.error('OPENAI_API_KEY não configurada');
+    const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
+    if (!geminiApiKey) {
+      console.error('GEMINI_API_KEY não configurada');
       return new Response(
-        JSON.stringify({ error: 'Chave da API OpenAI não configurada.' }),
+        JSON.stringify({ error: 'Chave da API Gemini não configurada.' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -96,31 +96,31 @@ Responda ESTRITAMENTE em formato JSON com as chaves "title", "body" (legenda com
       try {
         console.log(`Tentativa ${retryCount + 1} de ${maxRetries} para revisar legenda`);
         
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${openAIApiKey}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'google/gemini-3-flash-preview',
-            messages: [{ role: 'user', content: textPrompt }],
-            response_format: { type: "json_object" },
-            temperature: 0.7,
+            contents: [{ role: 'user', parts: [{ text: textPrompt }] }],
+            generationConfig: {
+              temperature: 0.7,
+              responseMimeType: 'application/json',
+            },
           }),
         });
 
         if (!response.ok) {
           const errorText = await response.text();
-          console.error('Erro da API OpenAI:', response.status, errorText);
-          throw new Error(`OpenAI API error: ${response.status}`);
+          console.error('Erro da API Gemini:', response.status, errorText);
+          throw new Error(`Gemini API error: ${response.status}`);
         }
 
         const data = await response.json();
-        const rawContent = data.choices?.[0]?.message?.content;
+        const rawContent = data.candidates?.[0]?.content?.parts?.[0]?.text;
         
         if (!rawContent) {
-          throw new Error('Resposta vazia da API OpenAI');
+          throw new Error('Resposta vazia da API Gemini');
         }
 
         revisedContent = JSON.parse(rawContent);

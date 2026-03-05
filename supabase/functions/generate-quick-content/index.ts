@@ -42,31 +42,43 @@ const isPortraitRequest = (promptText: string): boolean => {
   return portraitKeywords.some(keyword => promptText.toLowerCase().includes(keyword));
 };
 
-// Extract image from Gateway response (3 formats)
+// Extract image from Gemini direct API response
 function extractImageFromResponse(data: any): { imageUrl: string | null; textResponse: string | null } {
   let imageUrl: string | null = null;
   let textResponse: string | null = null;
-  const message = data.choices?.[0]?.message;
 
-  if (message?.images?.length > 0) imageUrl = message.images[0].image_url?.url;
-  if (!imageUrl && Array.isArray(message?.content)) {
-    for (const part of message.content) {
-      if (part.type === 'image_url' && part.image_url?.url) { imageUrl = part.image_url.url; break; }
-    }
-    for (const part of message.content) {
-      if (part.type === 'text' && part.text) { textResponse = part.text; break; }
-    }
-  }
-  if (!imageUrl && data.candidates?.[0]?.content?.parts) {
-    for (const part of data.candidates[0].content.parts) {
-      if (part.inlineData?.data) { imageUrl = `data:${part.inlineData.mimeType || 'image/png'};base64,${part.inlineData.data}`; break; }
-    }
-    for (const part of data.candidates[0].content.parts) {
-      if (part.text) { textResponse = part.text; break; }
+  // Gemini direct API format: candidates[].content.parts[]
+  const parts = data.candidates?.[0]?.content?.parts;
+  if (parts) {
+    for (const part of parts) {
+      if (part.inlineData?.data && !imageUrl) {
+        imageUrl = `data:${part.inlineData.mimeType || 'image/png'};base64,${part.inlineData.data}`;
+      }
+      if (part.text && !textResponse) {
+        textResponse = part.text;
+      }
     }
   }
-  if (!textResponse && typeof message?.content === 'string') textResponse = message.content;
   return { imageUrl, textResponse };
+}
+
+// Convert OpenAI-style message content to Gemini parts format
+function convertToGeminiParts(messageContent: any[]): any[] {
+  const parts: any[] = [];
+  for (const item of messageContent) {
+    if (item.type === 'text') {
+      parts.push({ text: item.text });
+    } else if (item.type === 'image_url' && item.image_url?.url) {
+      const url = item.image_url.url;
+      if (url.startsWith('data:')) {
+        const match = url.match(/^data:([^;]+);base64,(.+)$/);
+        if (match) {
+          parts.push({ inlineData: { mimeType: match[1], data: match[2] } });
+        }
+      }
+    }
+  }
+  return parts;
 }
 
 serve(async (req) => {
@@ -117,8 +129,8 @@ serve(async (req) => {
     const creditCheck = await checkUserCredits(supabase, authenticatedUserId, CREDIT_COSTS.QUICK_IMAGE);
     if (!creditCheck.hasCredits) return new Response(JSON.stringify({ error: `Créditos insuficientes. Necessário: ${CREDIT_COSTS.QUICK_IMAGE} créditos` }), { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) return new Response(JSON.stringify({ error: 'LOVABLE_API_KEY não configurada.' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+    if (!GEMINI_API_KEY) return new Response(JSON.stringify({ error: 'GEMINI_API_KEY não configurada.' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
     // =====================================
     // STEP 1: Fetch COMPLETE data from DB in parallel
@@ -252,22 +264,23 @@ serve(async (req) => {
       try {
         console.log(`[Step 4] Image generation attempt ${attempt}/${MAX_RETRIES}...`);
 
-        const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        const geminiParts = convertToGeminiParts(messageContent);
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${LOVABLE_API_KEY}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'google/gemini-3-pro-image-preview',
-            messages: [{ role: 'user', content: messageContent }],
-            modalities: ['image', 'text'],
+            contents: [{ role: 'user', parts: geminiParts }],
+            generationConfig: {
+              responseModalities: ['IMAGE', 'TEXT'],
+            },
           }),
         });
 
         if (!response.ok) {
           const errorText = await response.text();
-          console.error(`Gateway error (attempt ${attempt}):`, response.status, errorText);
+          console.error(`Gemini error (attempt ${attempt}):`, response.status, errorText);
 
           if (response.status === 429) return new Response(JSON.stringify({ error: 'Limite de requisições excedido. Tente novamente em alguns instantes.' }), { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
           if (response.status === 402) return new Response(JSON.stringify({ error: 'Créditos de IA esgotados.' }), { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
@@ -278,7 +291,7 @@ serve(async (req) => {
             }
           }
 
-          lastError = new Error(`Gateway error: ${response.status}`);
+          lastError = new Error(`Gemini error: ${response.status}`);
           if (attempt < MAX_RETRIES) { await new Promise(r => setTimeout(r, 2000)); continue; }
           throw lastError;
         }
@@ -352,7 +365,7 @@ serve(async (req) => {
       creditsBefore: creditCheck.currentCredits,
       creditsAfter: deductResult.newCredits,
       description: 'Criação rápida de imagem (Pipeline v4)',
-      metadata: { platform, aspectRatio: normalizedAspectRatio, style, brandId, model: 'gemini-3-pro-image-preview' }
+      metadata: { platform, aspectRatio: normalizedAspectRatio, style, brandId, model: 'gemini-2.0-flash-exp' }
     });
 
     // Save action
