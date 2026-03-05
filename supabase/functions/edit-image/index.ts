@@ -200,22 +200,28 @@ serve(async (req) => {
       try {
         console.log(`🤖 Edit attempt ${attempt}/${MAX_RETRIES}...`);
 
-        const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        // Convert image to inline data for Gemini
+        let imageInlineData: any = null;
+        if (imageDataUrl.startsWith('data:')) {
+          const match = imageDataUrl.match(/^data:([^;]+);base64,(.+)$/);
+          if (match) {
+            imageInlineData = { inlineData: { mimeType: match[1], data: match[2] } };
+          }
+        }
+
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${LOVABLE_API_KEY}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'google/gemini-3-pro-image-preview',
-            messages: [{
-              role: 'user',
-              content: [
-                { type: 'text', text: detailedPrompt },
-                { type: 'image_url', image_url: { url: imageDataUrl } }
-              ]
-            }],
-            modalities: ['image', 'text'],
+            contents: [{ role: 'user', parts: [
+              { text: detailedPrompt },
+              ...(imageInlineData ? [imageInlineData] : []),
+            ] }],
+            generationConfig: {
+              responseModalities: ['IMAGE', 'TEXT'],
+            },
           }),
         });
 
