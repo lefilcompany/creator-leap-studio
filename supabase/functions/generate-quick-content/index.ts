@@ -291,7 +291,7 @@ serve(async (req) => {
             }
           }
 
-          lastError = new Error(`Gateway error: ${response.status}`);
+          lastError = new Error(`Gemini error: ${response.status}`);
           if (attempt < MAX_RETRIES) { await new Promise(r => setTimeout(r, 2000)); continue; }
           throw lastError;
         }
