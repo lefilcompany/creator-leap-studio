@@ -18,6 +18,28 @@ function cleanInput(text: string | string[] | undefined | null): string {
 }
 
 // =====================================
+// FONT STYLES & PLATFORM ASPECT RATIOS
+// =====================================
+const FONT_STYLES: Record<string, string> = {
+  elegant: "serifa clássica, refinada, com elegância tipográfica",
+  modern: "sans-serif limpa, geométrica, moderna e minimalista",
+  fun: "script casual ou display arrojada, divertida e expressiva",
+  impactful: "bold condensada, display forte, grande impacto visual",
+};
+
+const PLATFORM_ASPECT_RATIO: Record<string, string> = {
+  'instagram_feed': '4:5',
+  'instagram_stories': '9:16',
+  'instagram_reels': '9:16',
+  'facebook_post': '4:5',
+  'linkedin_post': '1.91:1',
+  'twitter': '1.91:1',
+  'tiktok': '9:16',
+  'youtube_thumbnail': '16:9',
+  'pinterest': '2:3',
+};
+
+// =====================================
 // STYLE SETTINGS
 // =====================================
 const getStyleSettings = (styleType: string) => {
