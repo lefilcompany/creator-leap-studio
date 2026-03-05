@@ -567,35 +567,48 @@ serve(async (req) => {
     // STEP 5: Generate image via Gateway with retry
     // =====================================
     const MAX_RETRIES = 3;
+    const REQUEST_TIMEOUT_MS = 45000;
+    const PRIMARY_IMAGE_MODEL = 'gemini-2.5-flash-image';
+    const FALLBACK_IMAGE_MODEL = 'gemini-2.5-flash-image';
+
     let lastError: any = null;
     let imageUrl: string | null = null;
     let resultDescription = 'Imagem gerada com sucesso';
+    let usedImageModel = PRIMARY_IMAGE_MODEL;
 
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       try {
-        console.log(`[Step 5] Image generation attempt ${attempt}/${MAX_RETRIES}...`);
+        const modelForAttempt = attempt === 1 ? PRIMARY_IMAGE_MODEL : FALLBACK_IMAGE_MODEL;
+        usedImageModel = modelForAttempt;
+
+        console.log(`[Step 5] Image generation attempt ${attempt}/${MAX_RETRIES} with model ${modelForAttempt}...`);
 
         const geminiParts = convertToGeminiParts(messageContent);
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-image-pro:generateContent?key=${GEMINI_API_KEY}`, {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelForAttempt}:generateContent?key=${GEMINI_API_KEY}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
+          signal: controller.signal,
           body: JSON.stringify({
             contents: [{ role: 'user', parts: geminiParts }],
             generationConfig: {
               responseModalities: ['IMAGE', 'TEXT'],
             },
           }),
-        });
+        }).finally(() => clearTimeout(timeoutId));
 
         if (!response.ok) {
           const errorText = await response.text();
-          console.error(`Gemini error (attempt ${attempt}):`, response.status, errorText);
+          console.error(`Gemini error (attempt ${attempt}, model ${modelForAttempt}):`, response.status, errorText);
 
           if (response.status === 400) {
             return new Response(JSON.stringify({
               error: 'Requisição inválida para o modelo de imagem',
+              model: modelForAttempt,
               details: errorText,
             }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
           }
@@ -606,7 +619,8 @@ serve(async (req) => {
           if (response.status === 402) {
             return new Response(JSON.stringify({ error: 'Créditos de IA esgotados. Tente novamente mais tarde.' }), { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
           }
-          lastError = new Error(`Gemini error: ${response.status}`);
+
+          lastError = new Error(`Gemini error (${modelForAttempt}): ${response.status}`);
           if (attempt < MAX_RETRIES) { await new Promise(r => setTimeout(r, 2000)); continue; }
           throw lastError;
         }
@@ -617,21 +631,32 @@ serve(async (req) => {
         if (extracted.textResponse) resultDescription = extracted.textResponse;
 
         if (!imageUrl) {
-          throw new Error('No image found in response');
+          console.error(`[Step 5] No image in response (model ${modelForAttempt}).`);
+          throw new Error(`No image found in response for model ${modelForAttempt}`);
         }
 
-        console.log(`[Step 5] Image generated successfully on attempt ${attempt}`);
+        console.log(`[Step 5] Image generated successfully on attempt ${attempt} with model ${modelForAttempt}`);
         break;
 
       } catch (error) {
         console.error(`Attempt ${attempt} failed:`, error);
         lastError = error;
+
+        const isAbort = error instanceof Error && error.name === 'AbortError';
+        if (isAbort) {
+          console.error(`[Step 5] Timeout after ${REQUEST_TIMEOUT_MS}ms (attempt ${attempt}, model ${usedImageModel})`);
+        }
+
         if (attempt < MAX_RETRIES) await new Promise(r => setTimeout(r, 2000));
       }
     }
 
     if (!imageUrl) {
-      return new Response(JSON.stringify({ error: 'Falha ao gerar imagem após múltiplas tentativas' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      return new Response(JSON.stringify({
+        error: 'Falha ao gerar imagem após múltiplas tentativas',
+        details: lastError instanceof Error ? lastError.message : String(lastError),
+        model: usedImageModel,
+      }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     // =====================================
@@ -672,7 +697,7 @@ serve(async (req) => {
       creditsBefore,
       creditsAfter,
       description: 'Geração de imagem completa (Pipeline v4)',
-      metadata: { platform: formData.platform, visualStyle, model: 'gemini-3-flash-image-pro', hasHeadline: !!briefingResult.headline }
+      metadata: { platform: formData.platform, visualStyle, model: usedImageModel, hasHeadline: !!briefingResult.headline }
     });
 
     // Save to history
