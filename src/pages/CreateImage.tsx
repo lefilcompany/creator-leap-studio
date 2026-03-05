@@ -723,7 +723,7 @@ export default function CreateImage() {
                         : 'border-border/50 bg-muted/10'
                     }`}
                   >
-                    <Clipboard className="h-6 w-6 text-muted-foreground" />
+                    <ClipboardPaste className="h-6 w-6 text-muted-foreground" />
                     <p className="text-[10px] text-muted-foreground text-center font-medium">Colar imagem</p>
                   </button>
                 </div>
