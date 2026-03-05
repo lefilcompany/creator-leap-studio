@@ -39,6 +39,7 @@ export default function ContentCreationSelector() {
     if (creationType) {
       const routes: Record<CreationType, string> = {
         image: "/create/image",
+        "quick-image": "/create/quick",
         video: "/create/video",
       };
       navigate(routes[creationType]);
