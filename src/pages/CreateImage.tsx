@@ -415,6 +415,8 @@ export default function CreateImage() {
         includeText: formData.imageIncludeText || false,
         textContent: formData.imageTextContent?.trim() || "",
         textPosition: formData.imageTextPosition || "center",
+        fontStyle: formData.fontStyle || "modern",
+        textDesignStyle: formData.textDesignStyle || "clean",
       };
 
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
