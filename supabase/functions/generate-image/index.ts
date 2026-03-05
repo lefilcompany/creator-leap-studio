@@ -17,6 +17,17 @@ function cleanInput(text: string | string[] | undefined | null): string {
   return textStr.replace(/[<>{}[\]"'`]/g, "").replace(/\s+/g, " ").trim();
 }
 
+function normalizeImageArray(input: unknown, max = 5): string[] {
+  if (!Array.isArray(input)) return [];
+
+  const normalized = input
+    .filter((value): value is string => typeof value === 'string')
+    .map(value => value.trim())
+    .filter(value => /^data:image\/[a-zA-Z0-9.+-]+;base64,/.test(value));
+
+  return [...new Set(normalized)].slice(0, max);
+}
+
 // =====================================
 // FONT STYLES & PLATFORM ASPECT RATIOS
 // =====================================
@@ -331,13 +342,17 @@ function buildDirectorPrompt(params: {
 
   // SECTION 5: USO DE REFERÊNCIAS VISUAIS
   if (params.preserveImagesCount > 0 || params.styleReferenceImagesCount > 0) {
-    const refParts: string[] = [];
+    const refParts: string[] = [
+      'As referências visuais anexadas são mandatórias para estética final. Mantenha coerência real de paleta, iluminação, textura e direção de arte.'
+    ];
+
     if (params.preserveImagesCount > 0) {
-      refParts.push(`${params.preserveImagesCount} imagem(ns) da IDENTIDADE DA MARCA foram fornecidas. Use como REFERÊNCIA DE ESTILO: extraia a atmosfera, iluminação, paleta de cores e sentimento geral. A nova imagem DEVE parecer parte do mesmo conjunto visual.`);
+      refParts.push(`${params.preserveImagesCount} imagem(ns) de IDENTIDADE VISUAL foram fornecidas. Replique fielmente cores, mood e linguagem visual.`);
     }
     if (params.styleReferenceImagesCount > 0) {
-      refParts.push(`${params.styleReferenceImagesCount} imagem(ns) de REFERÊNCIA DO USUÁRIO foram fornecidas. Use como inspiração adicional de composição e estética.`);
+      refParts.push(`${params.styleReferenceImagesCount} imagem(ns) de REFERÊNCIA DO USUÁRIO foram fornecidas. Reaplique composição, enquadramento e tratamento visual com alta aderência.`);
     }
+
     sections.push(`### 5. USO DE REFERÊNCIAS VISUAIS\n${refParts.join('\n')}`);
   }
 
@@ -504,8 +519,42 @@ serve(async (req) => {
     }
 
     const enrichedDescription = briefingResult.expandedPrompt || description;
-    const preserveImages: string[] = (formData.preserveImages || []).slice(0, 2);
-    const styleReferenceImages: string[] = (formData.styleReferenceImages || []).slice(0, 1);
+
+    const brandReferenceImages = normalizeImageArray(formData.brandReferenceImages, 3);
+    const userReferenceImages = normalizeImageArray(
+      Array.isArray(formData.userReferenceImages) && formData.userReferenceImages.length > 0
+        ? formData.userReferenceImages
+        : formData.styleReferenceImages,
+      5,
+    );
+
+    const preserveIndexSet = new Set<number>(
+      Array.isArray(formData.preserveImageIndices)
+        ? formData.preserveImageIndices
+            .filter((idx: unknown): idx is number => Number.isInteger(idx) && Number(idx) >= 0 && Number(idx) < userReferenceImages.length)
+        : []
+    );
+
+    const explicitUserPreserveImages = userReferenceImages.filter((_, idx) => preserveIndexSet.has(idx));
+    const explicitUserStyleImages = userReferenceImages.filter((_, idx) => !preserveIndexSet.has(idx));
+
+    const legacyPreserveImages = normalizeImageArray(formData.preserveImages, 5);
+    const mergedPreservePool = [...new Set([...brandReferenceImages, ...legacyPreserveImages, ...explicitUserPreserveImages])];
+
+    const maxReferenceImages = 5;
+    const maxPreserveImages = 3;
+    const preserveImages = mergedPreservePool.slice(0, maxPreserveImages);
+    const remainingSlots = Math.max(0, maxReferenceImages - preserveImages.length);
+
+    const mergedStylePool = [...new Set([...explicitUserStyleImages, ...normalizeImageArray(formData.styleReferenceImages, 5)])]
+      .filter((img) => !preserveImages.includes(img));
+    const styleReferenceImages = mergedStylePool.slice(0, remainingSlots);
+
+    console.log('[Step 3] Reference images normalized:', {
+      preserveImages: preserveImages.length,
+      styleReferenceImages: styleReferenceImages.length,
+      total: preserveImages.length + styleReferenceImages.length,
+    });
 
     const masterPrompt = buildDirectorPrompt({
       originalDescription: description,
@@ -533,9 +582,9 @@ serve(async (req) => {
     const hasAnyImages = preserveImages.length > 0 || styleReferenceImages.length > 0;
     let imageRolePrefix = '';
     if (hasAnyImages) {
-      const parts: string[] = [];
-      if (preserveImages.length > 0) parts.push(`A(s) primeira(s) ${preserveImages.length} imagem(ns) definem a Identidade Visual e Paleta de Cores obrigatória`);
-      if (styleReferenceImages.length > 0) parts.push(`A(s) última(s) servem apenas como inspiração de composição`);
+      const parts: string[] = ['As referências anexadas são vinculantes e devem ser seguidas com alta aderência visual'];
+      if (preserveImages.length > 0) parts.push(`As primeiras ${preserveImages.length} imagem(ns) são prioridade máxima para identidade visual, cor e iluminação`);
+      if (styleReferenceImages.length > 0) parts.push(`As ${styleReferenceImages.length} imagem(ns) seguintes devem orientar composição, enquadramento e acabamento estético`);
       imageRolePrefix = `${parts.join('. ')}.\n\n`;
     }
 
