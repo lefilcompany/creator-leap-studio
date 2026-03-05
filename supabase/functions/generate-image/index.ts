@@ -585,9 +585,9 @@ serve(async (req) => {
             contents: [{ role: 'user', parts: geminiParts }],
             generationConfig: {
               responseModalities: ['IMAGE', 'TEXT'],
+              safetyFilterLevel: 'BLOCK_ONLY_HIGH',
+              personGeneration: 'ALLOW_ALL',
             },
-            safetyFilterLevel: 'BLOCK_ONLY_HIGH',
-            personGeneration: 'ALLOW_ALL',
           }),
         });
 
