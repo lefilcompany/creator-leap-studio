@@ -477,6 +477,9 @@ serve(async (req) => {
       hasTextOverlay: includeText,
       textContent: textContent || undefined,
       tones,
+      brandData,
+      themeData,
+      personaData,
     });
 
     console.log('[Step 2] Refiner result:', {
