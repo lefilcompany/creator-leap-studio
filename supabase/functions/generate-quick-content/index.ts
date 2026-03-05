@@ -365,7 +365,7 @@ serve(async (req) => {
       creditsBefore: creditCheck.currentCredits,
       creditsAfter: deductResult.newCredits,
       description: 'Criação rápida de imagem (Pipeline v4)',
-      metadata: { platform, aspectRatio: normalizedAspectRatio, style, brandId, model: 'gemini-2.0-flash-exp' }
+      metadata: { platform, aspectRatio: normalizedAspectRatio, style, brandId, model: 'gemini-2.5-flash-image' }
     });
 
     // Save action
