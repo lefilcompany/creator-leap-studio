@@ -712,7 +712,7 @@ export default function ContentResult() {
           </Card>
 
           {/* Media Preview - Right on desktop, first on mobile */}
-          <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-xl sm:rounded-2xl overflow-hidden animate-fade-in hover:shadow-xl transition-shadow duration-300 order-1 lg:order-2 lg:sticky lg:top-4 lg:self-start" style={{ animationDelay: "100ms" }}>
+          <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-xl sm:rounded-2xl overflow-hidden animate-fade-in hover:shadow-xl transition-shadow duration-300 order-1 lg:order-1 lg:sticky lg:top-4 lg:self-start" style={{ animationDelay: "100ms" }}>
             <CardContent className="p-0">
               <div className="aspect-square bg-muted/30 relative overflow-hidden group mx-auto">
                 {contentData.isProcessing ? (
