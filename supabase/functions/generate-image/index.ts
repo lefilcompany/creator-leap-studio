@@ -270,6 +270,7 @@ function buildDirectorPrompt(params: {
   textContent: string;
   textPosition: string;
   fontStyle: string;
+  textDesignStyle: string;
   preserveImagesCount: number;
   styleReferenceImagesCount: number;
   headline: string;
