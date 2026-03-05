@@ -129,6 +129,7 @@ export default function CreateImage() {
     detailLevel: 7, mood: "auto", imageIncludeText: false,
     imageTextContent: "", imageTextPosition: "center",
     fontStyle: "modern", textDesignStyle: "clean", ctaText: "",
+    adMode: "standard", priceText: "", includeBrandLogo: false,
   });
 
   const [loading, setLoading] = useState(false);
