@@ -556,7 +556,7 @@ serve(async (req) => {
 
         if (!response.ok) {
           const errorText = await response.text();
-          console.error(`Gateway error (attempt ${attempt}):`, response.status, errorText);
+          console.error(`Gemini error (attempt ${attempt}):`, response.status, errorText);
 
           if (response.status === 429) {
             return new Response(JSON.stringify({ error: 'Limite de requisições excedido. Tente novamente mais tarde.' }), { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
