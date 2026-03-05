@@ -14,20 +14,22 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { ContentResultSkeleton } from "@/components/ContentResultSkeleton";
 import { CREDIT_COSTS } from "@/lib/creditCosts";
+
 interface ContentResultData {
   type: "image" | "video";
   mediaUrl: string;
-  caption?: string; // Opcional, para compatibilidade com formato antigo
+  caption?: string;
   platform: string;
   brand: string;
   title?: string;
-  body?: string; // Novo campo estruturado
+  body?: string;
   hashtags?: string[];
   originalFormData?: any;
   actionId?: string;
-  isLocalFallback?: boolean; // Indica se usou fallback local
-  isProcessing?: boolean; // Flag para indicar que o vídeo está sendo processado
+  isLocalFallback?: boolean;
+  isProcessing?: boolean;
 }
+
 export default function ContentResult() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -45,9 +47,9 @@ export default function ContentResult() {
   const [totalRevisions, setTotalRevisions] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const [isSavedToHistory, setIsSavedToHistory] = useState(false);
+
   useEffect(() => {
     const loadContent = async () => {
-      // Limpar imagens antigas do sessionStorage (mais de 1 hora)
       try {
         Object.keys(sessionStorage).forEach(key => {
           if (key.startsWith("image_")) {
@@ -61,30 +63,22 @@ export default function ContentResult() {
         console.error("Erro ao limpar sessionStorage:", error);
       }
 
-      // Get data from navigation state
       if (location.state?.contentData) {
         const data = location.state.contentData;
         const contentId = `content_${Date.now()}`;
 
-        // ✅ ETAPA 1: Definir contentData IMEDIATAMENTE (antes de qualquer validação)
         setContentData(data);
         setIsLoading(false);
-
-        // Verificar se já foi salvo no histórico
         setIsSavedToHistory(!!data.actionId);
 
-        // Não processar vídeos nesta página (usar VideoResult)
         if (data.type === "video") {
           navigate("/video-result", {
-            state: {
-              contentData: data
-            },
+            state: { contentData: data },
             replace: true
           });
           return;
         }
 
-        // ✅ ETAPA 2: Salvar imagem no sessionStorage (não no localStorage)
         if (data.mediaUrl) {
           try {
             sessionStorage.setItem(`image_${contentId}`, data.mediaUrl);
@@ -97,8 +91,6 @@ export default function ContentResult() {
           }
         }
 
-        // ✅ ETAPA 3: Validar dados DEPOIS de definir o estado
-        // Verificar se tem dados no formato antigo OU no novo formato
         const hasOldFormat = !!data.caption;
         const hasNewFormat = !!(data.title && data.body && data.hashtags);
         const hasValidContent = hasOldFormat || hasNewFormat;
@@ -106,7 +98,6 @@ export default function ContentResult() {
           toast.error("Dados incompletos, mas exibindo o que foi gerado");
         }
 
-        // ✅ ETAPA 4: Criar sistema de versionamento
         const versionData = {
           version: 0,
           timestamp: new Date().toISOString(),
@@ -116,7 +107,6 @@ export default function ContentResult() {
           type: data.type
         };
 
-        // ✅ ETAPA 5: Salvar metadados no localStorage (SEM base64)
         const savedContent = {
           id: contentId,
           type: data.type,
@@ -134,30 +124,23 @@ export default function ContentResult() {
         };
         try {
           localStorage.setItem("currentContent", JSON.stringify(savedContent));
-          // Também salvar versões separadamente para facilitar recuperação
           localStorage.setItem(`versions_${contentId}`, JSON.stringify([versionData]));
         } catch (error) {
           console.error("Erro ao salvar no localStorage:", error);
         }
 
-        // Load revision count
         const revisionsKey = `revisions_${contentId}`;
-          const savedRevisions = localStorage.getItem(revisionsKey);
-          if (savedRevisions) {
-            const count = parseInt(savedRevisions);
-            setTotalRevisions(count);
-          }
+        const savedRevisions = localStorage.getItem(revisionsKey);
+        if (savedRevisions) {
+          const count = parseInt(savedRevisions);
+          setTotalRevisions(count);
+        }
       } else {
-        // Try to load from localStorage
         const saved = localStorage.getItem("currentContent");
         if (saved) {
           try {
             const parsed = JSON.parse(saved);
-
-            // Verificar se já foi salvo no histórico
             setIsSavedToHistory(!!parsed.savedToHistory);
-
-            // Tentar recuperar imagem do sessionStorage
             const imageUrl = sessionStorage.getItem(`image_${parsed.id}`);
             if (imageUrl) {
               parsed.mediaUrl = imageUrl;
@@ -183,11 +166,13 @@ export default function ContentResult() {
     };
     loadContent();
   }, [location.state, navigate]);
+
   const handleCopyCaption = async () => {
     if (!contentData) return;
     try {
-      // Verificar se os dados estão estruturados (novo formato)
-      const captionText = contentData.title && contentData.body && contentData.hashtags ? `${contentData.title}\n\n${contentData.body}\n\n${contentData.hashtags.map((tag: string) => `#${tag}`).join(" ")}` : contentData.caption || ""; // Fallback para formato antigo
+      const captionText = contentData.title && contentData.body && contentData.hashtags
+        ? `${contentData.title}\n\n${contentData.body}\n\n${contentData.hashtags.map((tag: string) => `#${tag}`).join(" ")}`
+        : contentData.caption || "";
 
       await navigator.clipboard.writeText(captionText);
       setCopied(true);
@@ -199,50 +184,37 @@ export default function ContentResult() {
       toast.error("Erro ao copiar legenda");
     }
   };
+
   const handleDownload = async () => {
     if (!contentData) return;
     try {
       toast.info("Preparando download em alta qualidade...");
       
-      // Check if it's a base64 image or URL
       if (contentData.mediaUrl.startsWith('data:')) {
-        // Handle base64 images - download direto para preservar qualidade máxima
         const link = document.createElement("a");
         link.href = contentData.mediaUrl;
-        
-        // Generate filename with fallbacks
         const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, -5);
         const brandName = contentData.brand ? contentData.brand.replace(/\s+/g, "_") : "conteudo";
         const platformName = contentData.platform || "creator";
         link.download = `${brandName}_${platformName}_${timestamp}.png`;
-        
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        
         toast.success("Download concluído em qualidade máxima!");
       } else {
-        // Handle URL images (fetch preservando qualidade original)
         const response = await fetch(contentData.mediaUrl, { mode: 'cors' });
         const blob = await response.blob();
-        
-        // Create download link
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
-
-        // Generate filename with fallbacks
         const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, -5);
         const brandName = contentData.brand ? contentData.brand.replace(/\s+/g, "_") : "conteudo";
         const platformName = contentData.platform || "creator";
         link.download = `${brandName}_${platformName}_${timestamp}.png`;
-
-        // Trigger download
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
-        
         toast.success("Download concluído em qualidade máxima!");
       }
     } catch (error) {
@@ -250,15 +222,16 @@ export default function ContentResult() {
       toast.error("Erro ao fazer download da imagem");
     }
   };
+
   const handleOpenReview = () => {
     setReviewType(null);
     setShowReviewDialog(true);
     setReviewPrompt("");
   };
+
   const handleSubmitReview = async () => {
     if (!reviewPrompt.trim() || !contentData || !reviewType) return;
 
-    // Sempre verificar créditos (custo: 2 créditos para revisões)
     if (!user?.credits || user.credits < CREDIT_COSTS.IMAGE_REVIEW) {
       toast.error(`Você não tem créditos disponíveis. Cada revisão custa ${CREDIT_COSTS.IMAGE_REVIEW} créditos.`);
       return;
@@ -266,22 +239,14 @@ export default function ContentResult() {
     setIsReviewing(true);
     try {
       const newRevisionCount = totalRevisions + 1;
-
-      // Get original form data from localStorage
       const saved = JSON.parse(localStorage.getItem("currentContent") || "{}");
       const originalFormData = saved.originalFormData || {};
 
-      // Update content based on review type
-      const updatedContent = {
-        ...contentData
-      };
+      const updatedContent = { ...contentData };
+
       if (reviewType === "caption") {
-        // Revise caption using OpenAI gpt-4o-mini
         toast.info("Revisando legenda com base no seu feedback...");
-        const {
-          data,
-          error
-        } = await supabase.functions.invoke("revise-caption-openai", {
+        const { data, error } = await supabase.functions.invoke("revise-caption-openai", {
           body: {
             prompt: reviewPrompt,
             originalTitle: contentData.title || "",
@@ -302,14 +267,12 @@ export default function ContentResult() {
           throw new Error("Resposta inválida da revisão de legenda");
         }
 
-        // Format caption with hashtags
         const formattedCaption = `${data.title}\n\n${data.body}\n\n${data.hashtags.map((tag: string) => `#${tag}`).join(" ")}`;
         updatedContent.caption = formattedCaption;
         updatedContent.title = data.title;
         updatedContent.body = data.body;
         updatedContent.hashtags = data.hashtags;
       } else {
-        // Edit existing image with AI-powered editing
         toast.info("Editando imagem com base no seu feedback...");
         try {
           console.log("🤖 Enviando requisição para edit-image:", {
@@ -318,10 +281,7 @@ export default function ContentResult() {
             hasBrandId: !!originalFormData.brandId,
             hasThemeId: !!originalFormData.themeId
           });
-          const {
-            data,
-            error
-          } = await supabase.functions.invoke("edit-image", {
+          const { data, error } = await supabase.functions.invoke("edit-image", {
             body: {
               reviewPrompt,
               imageUrl: contentData.mediaUrl,
@@ -340,39 +300,28 @@ export default function ContentResult() {
           if (error) {
             console.error("❌ Erro ao editar imagem:", error);
             
-            // Mensagens de erro mais específicas
             let errorMessage = "Erro ao processar a edição da imagem";
             
             if (error.message?.includes('rate limit') || error.message?.includes('429')) {
               errorMessage = "Limite de requisições atingido. Aguarde alguns segundos e tente novamente.";
-              toast.error("Erro na Edição", {
-                description: errorMessage,
-                duration: 6000
-              });
+              toast.error("Erro na Edição", { description: errorMessage, duration: 6000 });
               setShowReviewDialog(false);
               setIsReviewing(false);
               return;
             } else if (error.message?.includes('API key')) {
               errorMessage = "Erro de configuração do servidor. Contacte o suporte.";
-              toast.error("Erro na Edição", {
-                description: errorMessage,
-                duration: 6000
-              });
+              toast.error("Erro na Edição", { description: errorMessage, duration: 6000 });
               setShowReviewDialog(false);
               setIsReviewing(false);
               return;
             } else if (error.message?.includes('timeout')) {
               errorMessage = "A edição está demorando mais que o esperado. Tente novamente com um ajuste mais simples.";
-              toast.error("Erro na Edição", {
-                description: errorMessage,
-                duration: 6000
-              });
+              toast.error("Erro na Edição", { description: errorMessage, duration: 6000 });
               setShowReviewDialog(false);
               setIsReviewing(false);
               return;
             }
 
-            // Tratar erro de violação de compliance de forma amigável
             if (error.message?.includes('compliance_violation')) {
               try {
                 const errorMatch = error.message.match(/\{.*\}/);
@@ -382,14 +331,9 @@ export default function ContentResult() {
                     description: errorData.message || "A solicitação viola regulamentações publicitárias brasileiras",
                     duration: 8000
                   });
-
-                  // Mostrar recomendação separadamente se houver
                   if (errorData.recommendation) {
                     setTimeout(() => {
-                      toast.info("Sugestão", {
-                        description: errorData.recommendation,
-                        duration: 10000
-                      });
+                      toast.info("Sugestão", { description: errorData.recommendation, duration: 10000 });
                     }, 500);
                   }
                   setShowReviewDialog(false);
@@ -412,14 +356,11 @@ export default function ContentResult() {
             console.error("❌ URL da imagem editada não foi retornada");
             throw new Error("Imagem editada não foi retornada");
           }
-
-          // Validate URL format
           if (!data.editedImageUrl.startsWith("http")) {
             console.error("❌ URL da imagem inválida:", data.editedImageUrl);
             throw new Error("URL da imagem editada é inválida");
           }
 
-          // Add timestamp to prevent caching
           const timestamp = Date.now();
           const imageUrlWithTimestamp = `${data.editedImageUrl}?t=${timestamp}`;
           updatedContent.mediaUrl = imageUrlWithTimestamp;
@@ -430,16 +371,13 @@ export default function ContentResult() {
         }
       }
 
-      // Force update by creating a completely new object
       const newContentData = {
         ...updatedContent,
         mediaUrl: updatedContent.mediaUrl,
-        // Ensure the new URL is used
-        _updateKey: Date.now() // Add unique key to force re-render
+        _updateKey: Date.now()
       };
       setContentData(newContentData);
 
-      // Update sessionStorage with new image (se foi editada)
       if (reviewType === "image" && updatedContent.mediaUrl) {
         try {
           sessionStorage.setItem(`image_${saved.id}`, updatedContent.mediaUrl);
@@ -450,7 +388,6 @@ export default function ContentResult() {
         }
       }
 
-      // Criar nova versão
       const newVersion = {
         version: newRevisionCount,
         timestamp: new Date().toISOString(),
@@ -462,11 +399,9 @@ export default function ContentResult() {
         usedCredit: true
       };
 
-      // Atualizar versões
       const currentVersions = saved.versions || [];
       const updatedVersions = [...currentVersions, newVersion];
 
-      // Update localStorage (sem base64)
       const updatedSaved = {
         ...saved,
         type: updatedContent.type,
@@ -491,23 +426,18 @@ export default function ContentResult() {
         console.error("Erro ao atualizar localStorage:", error);
       }
 
-      // Update revision count
       const revisionsKey = `revisions_${saved.id}`;
       localStorage.setItem(revisionsKey, newRevisionCount.toString());
       setTotalRevisions(newRevisionCount);
 
-      // Atualizar créditos do usuário (dedução já feita no backend)
       try {
         await refreshUserCredits();
       } catch (error) {
         console.error("Error refreshing user credits:", error);
       }
 
-      // Atualizar registro no histórico (tabela actions) se já estiver salvo
       if (saved.actionId && saved.savedToHistory) {
-        const {
-          error: updateError
-        } = await supabase.from("actions").update({
+        const { error: updateError } = await supabase.from("actions").update({
           revisions: newRevisionCount,
           result: {
             imageUrl: updatedContent.mediaUrl,
@@ -532,6 +462,7 @@ export default function ContentResult() {
       setIsReviewing(false);
     }
   };
+
   const handleSaveToHistory = async () => {
     if (!contentData || !user) return;
     if (isSavedToHistory) {
@@ -540,33 +471,22 @@ export default function ContentResult() {
     }
     setIsSaving(true);
     try {
-      // Get saved content metadata
       const saved = JSON.parse(localStorage.getItem("currentContent") || "{}");
 
-      // Get brand_id from originalFormData if it exists, otherwise set to null
       let brandId = null;
       if (saved.originalFormData?.brandId) {
         brandId = saved.originalFormData.brandId;
       }
 
-      // Determinar o tipo de ação baseado na origem do conteúdo
       let actionType: "CRIAR_CONTEUDO" | "CRIAR_CONTEUDO_RAPIDO" | "GERAR_VIDEO" = "CRIAR_CONTEUDO_RAPIDO";
 
-      // Se for vídeo
       if (contentData.type === "video") {
         actionType = "GERAR_VIDEO";
-      }
-      // Se tem dados completos de criação (brand, objective, etc) = CRIAR_CONTEUDO
-      else if (saved.originalFormData?.objective && saved.originalFormData?.description && saved.originalFormData?.tone) {
+      } else if (saved.originalFormData?.objective && saved.originalFormData?.description && saved.originalFormData?.tone) {
         actionType = "CRIAR_CONTEUDO";
       }
-      // Caso contrário (apenas prompt simples) = CRIAR_CONTEUDO_RAPIDO
 
-      // Criar registro no histórico
-      const {
-        data: actionData,
-        error: actionError
-      } = await supabase.from("actions").insert({
+      const { data: actionData, error: actionError } = await supabase.from("actions").insert({
         type: actionType,
         brand_id: brandId,
         team_id: user.teamId,
@@ -592,12 +512,12 @@ export default function ContentResult() {
           hashtags: contentData.hashtags
         }
       }).select().single();
+
       if (actionError) {
         console.error("Erro ao salvar no histórico:", actionError);
         throw new Error("Erro ao salvar no histórico");
       }
 
-      // Atualizar localStorage com actionId
       const updatedSaved = {
         ...saved,
         actionId: actionData.id,
@@ -605,11 +525,7 @@ export default function ContentResult() {
       };
       localStorage.setItem("currentContent", JSON.stringify(updatedSaved));
 
-      // Atualizar estado
-      setContentData({
-        ...contentData,
-        actionId: actionData.id
-      });
+      setContentData({ ...contentData, actionId: actionData.id });
       setIsSavedToHistory(true);
       toast.success("Conteúdo salvo no histórico com sucesso!");
     } catch (error) {
@@ -619,17 +535,19 @@ export default function ContentResult() {
       setIsSaving(false);
     }
   };
+
   if (isLoading || !contentData) {
     return <ContentResultSkeleton />;
   }
-  return <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-3 md:p-4 lg:p-6">
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-3 md:p-4 lg:p-6">
       <div className="max-w-7xl mx-auto space-y-4 sm:space-y-5 md:space-y-6 animate-fade-in">
         {/* Header */}
         <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5 animate-scale-in">
           <CardContent className="p-3 sm:p-4 md:p-5 lg:p-6">
             {/* Mobile Layout */}
             <div className="flex sm:hidden flex-col gap-3">
-              {/* Top row: Back button, icon, title, badges */}
               <div className="flex items-center gap-2.5">
                 <Button variant="ghost" size="icon" onClick={() => navigate("/create")} className="rounded-xl hover:bg-primary/10 hover:border-primary/20 border border-transparent hover-scale transition-all duration-200 h-9 w-9 flex-shrink-0 hover:shadow-md hover:text-primary">
                   <ArrowLeft className="h-4 w-4" />
@@ -690,63 +608,10 @@ export default function ContentResult() {
           </CardContent>
         </Card>
 
+        {/* Two-column layout: Caption left, Image right */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5 md:gap-6">
           {/* Caption - Left on desktop, second on mobile */}
-          <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-xl sm:rounded-2xl animate-fade-in hover:shadow-xl transition-shadow duration-300 order-2 lg:order-1" style={{
-          animationDelay: "200ms"
-        }}>
-            <CardContent className="p-4 sm:p-5 md:p-6 space-y-3 sm:space-y-4">
-              <div className="aspect-square max-h-[500px] sm:max-h-[600px] md:max-h-[700px] bg-muted/30 relative overflow-hidden group mx-auto">
-                {contentData.isProcessing ? <div className="flex items-center justify-center h-full">
-                    <div className="text-center space-y-4">
-                      <Loader className="h-12 w-12 mx-auto text-primary animate-spin" />
-                      <div className="space-y-2">
-                        <p className="text-lg font-semibold text-foreground">Gerando vídeo...</p>
-                        <p className="text-sm text-muted-foreground">Isso pode levar alguns minutos</p>
-                      </div>
-                    </div>
-                  </div> : contentData.mediaUrl ? contentData.type === "video" ? <video src={contentData.mediaUrl} controls className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" autoPlay loop muted>
-                      Seu navegador não suporta vídeos.
-                    </video> : <img key={contentData.mediaUrl} // Force re-render when URL changes
-              src={contentData.mediaUrl} alt="Conteúdo gerado" className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105" /> : <div className="flex items-center justify-center h-full">
-                    <div className="text-center space-y-2">
-                      <ImageIcon className="h-10 w-10 sm:h-12 sm:w-12 mx-auto text-muted-foreground/50" />
-                      <p className="text-sm sm:text-base text-muted-foreground">Mídia não disponível</p>
-                    </div>
-                  </div>}
-
-                {/* Overlay gradient */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
-              </div>
-
-              {/* Action buttons */}
-              <div className="p-3 sm:p-4 bg-gradient-to-r from-muted/30 to-muted/10 border-t border-border/20 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                <Button onClick={handleDownload} size="lg" className="flex-1 gap-2 hover-scale transition-all duration-200 hover:shadow-md my-0 mx-0 px-[8px] py-[8px] rounded-sm">
-                  <Download className="h-4 w-4" />
-                  <span className="hidden xs:inline">Download</span>
-                </Button>
-                <div className="relative group">
-                  <Button onClick={handleOpenReview} variant="secondary" className="w-full flex-1 sm:flex-initial rounded-xl gap-2 hover-scale transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 group" size="lg" disabled={!user?.credits || user.credits < CREDIT_COSTS.IMAGE_REVIEW}>
-                    <RefreshCw className="h-4 w-4 group-hover:rotate-180 transition-transform duration-500" />
-                    <span className="sm:hidden">Revisar</span>
-                    <span className="hidden sm:inline">Revisar</span>
-                    <Badge variant="outline" className="ml-1 gap-1 border-secondary-foreground/30">
-                      <Coins className="h-3 w-3" />
-                      {CREDIT_COSTS.IMAGE_REVIEW}
-                    </Badge>
-                  </Button>
-                  {(!user?.credits || user.credits < CREDIT_COSTS.IMAGE_REVIEW) && <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-destructive text-destructive-foreground px-3 py-1.5 rounded-lg text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 shadow-lg">
-                      Créditos insuficientes ({CREDIT_COSTS.IMAGE_REVIEW} necessários)
-                    </div>}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Caption */}
-          <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-xl sm:rounded-2xl animate-fade-in hover:shadow-xl transition-shadow duration-300" style={{
-          animationDelay: "200ms"
-        }}>
+          <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-xl sm:rounded-2xl animate-fade-in hover:shadow-xl transition-shadow duration-300 order-2 lg:order-1" style={{ animationDelay: "200ms" }}>
             <CardContent className="p-4 sm:p-5 md:p-6 space-y-3 sm:space-y-4">
               <div className="flex items-center justify-between pb-3 border-b border-border/20">
                 <h2 className="text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">
@@ -754,80 +619,86 @@ export default function ContentResult() {
                   Legenda
                 </h2>
                 <Button onClick={handleCopyCaption} variant="outline" size="sm" className="rounded-xl gap-2 hover-scale transition-all duration-200 hover:bg-accent/20 hover:text-accent hover:border-accent">
-                  {copied ? <>
-                      <Check className="h-4 w-4 text-green-500 animate-scale-in" />
+                  {copied ? (
+                    <>
+                      <Check className="h-4 w-4 text-success animate-scale-in" />
                       <span className="hidden sm:inline">Copiado</span>
-                    </> : <>
+                    </>
+                  ) : (
+                    <>
                       <Copy className="h-4 w-4" />
                       <span className="hidden sm:inline">Copiar</span>
-                    </>}
+                    </>
+                  )}
                 </Button>
               </div>
 
               <div className="space-y-3 sm:space-y-4">
                 <div className="bg-muted/30 rounded-xl p-4 sm:p-5 min-h-[250px] max-h-[500px] overflow-y-auto backdrop-blur-sm">
-                  {contentData.title && contentData.body && contentData.hashtags ?
-                // Novo formato estruturado
-                <>
-                      {/* Título da Legenda */}
+                  {contentData.title && contentData.body && contentData.hashtags ? (
+                    <>
                       <h3 className="text-base sm:text-lg md:text-xl font-bold text-foreground mb-3">
                         {contentData.title}
-                        {contentData.isLocalFallback && <Badge variant="outline" className="ml-2 text-xs">
-                            Padrão
-                          </Badge>}
+                        {contentData.isLocalFallback && (
+                          <Badge variant="outline" className="ml-2 text-xs">Padrão</Badge>
+                        )}
                       </h3>
-
-                      {/* Corpo da Legenda */}
                       <p className="text-sm sm:text-base text-foreground leading-relaxed whitespace-pre-wrap">
                         {contentData.body}
                       </p>
-
-                      {/* Hashtags */}
                       <div className="mt-4 pt-4 border-t border-border/20">
                         <div className="flex flex-wrap gap-2">
-                          {contentData.hashtags.map((tag, index) => <span key={index} className="text-xs sm:text-sm text-primary font-medium bg-primary/10 px-2 py-1 rounded-md">
+                          {contentData.hashtags.map((tag, index) => (
+                            <span key={index} className="text-xs sm:text-sm text-primary font-medium bg-primary/10 px-2 py-1 rounded-md">
                               #{tag}
-                            </span>)}
+                            </span>
+                          ))}
                         </div>
                       </div>
-                    </> :
-                // Formato antigo (compatibilidade)
-                <>
-                      {contentData.title && <h3 className="text-base sm:text-lg md:text-xl font-bold text-foreground mb-3">
+                    </>
+                  ) : (
+                    <>
+                      {contentData.title && (
+                        <h3 className="text-base sm:text-lg md:text-xl font-bold text-foreground mb-3">
                           {contentData.title}
-                        </h3>}
-
+                        </h3>
+                      )}
                       <p className="text-sm sm:text-base text-foreground leading-relaxed whitespace-pre-wrap">
                         {contentData.caption}
                       </p>
-
-                      {contentData.hashtags && contentData.hashtags.length > 0 && <div className="mt-4 pt-4 border-t border-border/20">
+                      {contentData.hashtags && contentData.hashtags.length > 0 && (
+                        <div className="mt-4 pt-4 border-t border-border/20">
                           <div className="flex flex-wrap gap-2">
-                            {contentData.hashtags.map((tag, index) => <span key={index} className="text-xs sm:text-sm text-primary font-medium bg-primary/10 px-2 py-1 rounded-md">
+                            {contentData.hashtags.map((tag, index) => (
+                              <span key={index} className="text-xs sm:text-sm text-primary font-medium bg-primary/10 px-2 py-1 rounded-md">
                                 #{tag}
-                              </span>)}
+                              </span>
+                            ))}
                           </div>
-                        </div>}
-                    </>}
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
 
                 <div className="pt-3 sm:pt-4 border-t border-border/20 space-y-2 sm:space-y-3">
-                  {!isSavedToHistory && <Button onClick={handleSaveToHistory} disabled={isSaving} className="w-full rounded-xl hover-scale transition-all duration-200 hover:shadow-lg gap-2 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-sm sm:text-base" size="lg">
-                      {isSaving ? <>
-                          <Loader className="h-4 w-4 animate-spin" />
-                          <span className="hidden xs:inline">Salvando...</span>
-                        </> : <>
-                          <Check className="h-4 w-4" />
-                          <span className="hidden xs:inline">Salvar no Histórico</span>
-                          <span className="xs:hidden">Salvar</span>
-                        </>}
-                    </Button>}
+                  {!isSavedToHistory && (
+                    <Button onClick={handleSaveToHistory} disabled={isSaving} className="w-full rounded-xl hover-scale transition-all duration-200 hover:shadow-lg gap-2 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-sm sm:text-base" size="lg">
+                      {isSaving ? (
+                        <><Loader className="h-4 w-4 animate-spin" />Salvando...</>
+                      ) : (
+                        <><Check className="h-4 w-4" />Salvar no Histórico</>
+                      )}
+                    </Button>
+                  )}
 
-                  {isSavedToHistory && contentData.actionId && <Button onClick={() => navigate(`/action/${contentData.actionId}`)} variant="default" className="w-full rounded-xl hover-scale transition-all duration-200 gap-2 text-sm sm:text-base" size="lg">
-                      <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
+                  {isSavedToHistory && contentData.actionId && (
+                    <Button onClick={() => navigate(`/action/${contentData.actionId}`)} variant="default" className="w-full rounded-xl hover-scale transition-all duration-200 gap-2 text-sm sm:text-base" size="lg">
+                      <Check className="h-4 w-4 text-success flex-shrink-0" />
                       <span className="hidden sm:inline">Salvo no Histórico - Ver Detalhes</span>
                       <span className="sm:hidden">Ver no Histórico</span>
-                    </Button>}
+                    </Button>
+                  )}
 
                   <Button onClick={() => navigate("/create")} variant="outline" className="w-full rounded-xl hover-scale transition-all duration-200 hover:shadow-md hover:bg-accent/20 hover:text-accent hover:border-accent text-sm sm:text-base" size="lg">
                     Criar Novo Conteúdo
@@ -835,6 +706,69 @@ export default function ContentResult() {
                   <Button onClick={() => navigate("/history")} variant="ghost" className="w-full rounded-xl hover-scale transition-all duration-200 text-sm sm:text-base" size="lg">
                     Ver Histórico
                   </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Media Preview - Right on desktop, first on mobile */}
+          <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-xl sm:rounded-2xl overflow-hidden animate-fade-in hover:shadow-xl transition-shadow duration-300 order-1 lg:order-2 lg:sticky lg:top-4 lg:self-start" style={{ animationDelay: "100ms" }}>
+            <CardContent className="p-0">
+              <div className="aspect-square bg-muted/30 relative overflow-hidden group mx-auto">
+                {contentData.isProcessing ? (
+                  <div className="flex items-center justify-center h-full">
+                    <div className="text-center space-y-4">
+                      <Loader className="h-12 w-12 mx-auto text-primary animate-spin" />
+                      <div className="space-y-2">
+                        <p className="text-lg font-semibold text-foreground">Gerando vídeo...</p>
+                        <p className="text-sm text-muted-foreground">Isso pode levar alguns minutos</p>
+                      </div>
+                    </div>
+                  </div>
+                ) : contentData.mediaUrl ? (
+                  contentData.type === "video" ? (
+                    <video src={contentData.mediaUrl} controls className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" autoPlay loop muted>
+                      Seu navegador não suporta vídeos.
+                    </video>
+                  ) : (
+                    <img
+                      key={contentData.mediaUrl}
+                      src={contentData.mediaUrl}
+                      alt="Conteúdo gerado"
+                      className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
+                    />
+                  )
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <div className="text-center space-y-2">
+                      <ImageIcon className="h-10 w-10 sm:h-12 sm:w-12 mx-auto text-muted-foreground/50" />
+                      <p className="text-sm sm:text-base text-muted-foreground">Mídia não disponível</p>
+                    </div>
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-foreground/10 to-transparent pointer-events-none" />
+              </div>
+
+              {/* Action buttons */}
+              <div className="p-3 sm:p-4 bg-gradient-to-r from-muted/30 to-muted/10 border-t border-border/20 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                <Button onClick={handleDownload} size="lg" className="flex-1 gap-2 hover-scale transition-all duration-200 hover:shadow-md rounded-xl">
+                  <Download className="h-4 w-4" />
+                  <span>Download</span>
+                </Button>
+                <div className="relative group">
+                  <Button onClick={handleOpenReview} variant="secondary" className="w-full flex-1 sm:flex-initial rounded-xl gap-2 hover-scale transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 group" size="lg" disabled={!user?.credits || user.credits < CREDIT_COSTS.IMAGE_REVIEW}>
+                    <RefreshCw className="h-4 w-4 group-hover:rotate-180 transition-transform duration-500" />
+                    <span>Revisar</span>
+                    <Badge variant="outline" className="ml-1 gap-1 border-secondary-foreground/30">
+                      <Coins className="h-3 w-3" />
+                      {CREDIT_COSTS.IMAGE_REVIEW}
+                    </Badge>
+                  </Button>
+                  {(!user?.credits || user.credits < CREDIT_COSTS.IMAGE_REVIEW) && (
+                    <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-destructive text-destructive-foreground px-3 py-1.5 rounded-lg text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 shadow-lg">
+                      Créditos insuficientes ({CREDIT_COSTS.IMAGE_REVIEW} necessários)
+                    </div>
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -853,18 +787,21 @@ export default function ContentResult() {
               </span>
             </DialogTitle>
             <DialogDescription>
-              {reviewType ? <>
+              {reviewType ? (
+                <>
                   Descreva as alterações que deseja fazer.
                   <span className="text-orange-600 font-medium flex items-center gap-1 mt-1">
                     <Coins className="h-3.5 w-3.5" />
                     Esta revisão consumirá {CREDIT_COSTS.IMAGE_REVIEW} créditos. Você tem {user?.credits || 0} crédito(s).
                   </span>
-                </> : "Selecione o que você deseja revisar neste conteúdo."}
+                </>
+              ) : "Selecione o que você deseja revisar neste conteúdo."}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
-            {!reviewType ? <RadioGroup onValueChange={value => setReviewType(value as "image" | "caption")} className="space-y-3">
+            {!reviewType ? (
+              <RadioGroup onValueChange={value => setReviewType(value as "image" | "caption")} className="space-y-3">
                 <div className="flex items-center space-x-3 rounded-lg border-2 border-border p-4 hover:border-primary hover:bg-primary/10 transition-all cursor-pointer group">
                   <RadioGroupItem value="image" id="image" />
                   <Label htmlFor="image" className="flex-1 cursor-pointer flex items-center gap-3">
@@ -888,7 +825,9 @@ export default function ContentResult() {
                     </div>
                   </Label>
                 </div>
-              </RadioGroup> : <>
+              </RadioGroup>
+            ) : (
+              <>
                 <Alert className="border-orange-500/50 bg-orange-500/10">
                   <RefreshCw className="h-4 w-4 text-orange-600" />
                   <AlertDescription className="text-sm">
@@ -896,9 +835,7 @@ export default function ContentResult() {
                     {user?.credits !== undefined && (
                       <span className="block mt-1 text-muted-foreground">
                         {user.credits > 0 ? (
-                          <>
-                            Você tem {user.credits} crédito{user.credits !== 1 ? "s" : ""} disponível{user.credits !== 1 ? "eis" : ""}.
-                          </>
+                          <>Você tem {user.credits} crédito{user.credits !== 1 ? "s" : ""} disponível{user.credits !== 1 ? "eis" : ""}.</>
                         ) : (
                           <span className="text-destructive font-medium">
                             Você não tem créditos disponíveis. Faça upgrade do seu plano.
@@ -911,29 +848,32 @@ export default function ContentResult() {
 
                 <div className="space-y-2">
                   <Label htmlFor="review-prompt">O que você quer melhorar?</Label>
-                  <Textarea id="review-prompt" placeholder={reviewType === "image" ? "Ex: Deixar a imagem mais clara, mudar o fundo para azul..." : "Ex: Tornar o texto mais persuasivo, adicionar emojis..."} value={reviewPrompt} onChange={e => setReviewPrompt(e.target.value)} className="min-h-[120px] resize-none" />
+                  <Textarea
+                    id="review-prompt"
+                    placeholder={reviewType === "image" ? "Ex: Deixar a imagem mais clara, mudar o fundo para azul..." : "Ex: Tornar o texto mais persuasivo, adicionar emojis..."}
+                    value={reviewPrompt}
+                    onChange={e => setReviewPrompt(e.target.value)}
+                    className="min-h-[120px] resize-none"
+                  />
                 </div>
 
                 <div className="flex gap-2 pt-2">
-                  <Button variant="outline" onClick={() => {
-                setReviewType(null);
-                setReviewPrompt("");
-              }} className="flex-1" disabled={isReviewing}>
+                  <Button variant="outline" onClick={() => { setReviewType(null); setReviewPrompt(""); }} className="flex-1" disabled={isReviewing}>
                     Voltar
                   </Button>
                   <Button onClick={handleSubmitReview} className="flex-1 gap-2" disabled={!reviewPrompt.trim() || isReviewing || !user?.credits || user.credits <= 0}>
-                    {isReviewing ? <>
-                        <RefreshCw className="h-4 w-4 animate-spin" />
-                        Revisando...
-                      </> : <>
-                        <Check className="h-4 w-4" />
-                        Confirmar e Usar 1 Crédito
-                      </>}
+                    {isReviewing ? (
+                      <><RefreshCw className="h-4 w-4 animate-spin" />Revisando...</>
+                    ) : (
+                      <><Check className="h-4 w-4" />Confirmar e Usar 1 Crédito</>
+                    )}
                   </Button>
                 </div>
-              </>}
+              </>
+            )}
           </div>
         </DialogContent>
       </Dialog>
-    </div>;
+    </div>
+  );
 }
