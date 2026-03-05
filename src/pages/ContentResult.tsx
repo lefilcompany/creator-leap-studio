@@ -802,6 +802,42 @@ export default function ContentResult() {
                   )}
                 </div>
               </div>
+              {/* Version Navigation */}
+              {versionHistory.length > 1 && (
+                <div className="p-3 sm:p-4 bg-muted/20 border-t border-border/20">
+                  <div className="flex items-center justify-between gap-2">
+                    <Button
+                      onClick={() => handleNavigateVersion("prev")}
+                      variant="outline"
+                      size="sm"
+                      disabled={currentVersionIndex === 0}
+                      className="rounded-xl gap-1.5 text-xs sm:text-sm"
+                    >
+                      <Undo2 className="h-3.5 w-3.5" />
+                      <span className="hidden sm:inline">Versão Anterior</span>
+                      <span className="sm:hidden">Anterior</span>
+                    </Button>
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <History className="h-3.5 w-3.5" />
+                      <span className="font-medium">
+                        {currentVersionIndex === 0 ? "Original" : `Revisão ${currentVersionIndex}`}
+                      </span>
+                      <span>({currentVersionIndex + 1}/{versionHistory.length})</span>
+                    </div>
+                    <Button
+                      onClick={() => handleNavigateVersion("next")}
+                      variant="outline"
+                      size="sm"
+                      disabled={currentVersionIndex === versionHistory.length - 1}
+                      className="rounded-xl gap-1.5 text-xs sm:text-sm"
+                    >
+                      <span className="hidden sm:inline">Versão Revisada</span>
+                      <span className="sm:hidden">Próxima</span>
+                      <Redo2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
