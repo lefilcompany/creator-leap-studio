@@ -1,8 +1,8 @@
 /**
- * Módulo LLM Refiner (v5 - Estrategista de Marketing e Diretor de Arte)
+ * Módulo LLM Refiner (v6 - Diretor de Arte Cinematográfico + Legenda)
  * 
- * Recebe um documento de briefing completo e retorna um JSON estruturado
- * com briefing visual cinematográfico, headline e subtexto.
+ * Transforma prompts curtos e leigos em briefings visuais técnicos
+ * e gera legendas otimizadas para a plataforma.
  * 
  * Usa Google Gemini API direta (gemini-2.5-flash).
  */
@@ -26,6 +26,8 @@ export interface BriefingExpansionInput {
   themeData?: any;
   /** Dados da persona (opcional) */
   personaData?: any;
+  /** Plataforma alvo */
+  platform?: string;
 }
 
 export interface RefinerOutput {
@@ -35,6 +37,8 @@ export interface RefinerOutput {
   headline: string;
   /** CTA ou texto secundário (max 15 palavras) */
   subtexto: string;
+  /** Legenda completa para a plataforma (título + corpo + hashtags) */
+  legenda: string;
 }
 
 export interface ExpandedBriefing {
@@ -44,9 +48,11 @@ export interface ExpandedBriefing {
   headline: string;
   /** Subtexto/CTA sugerido pelo refiner */
   subtexto: string;
+  /** Legenda gerada pelo refiner */
+  legenda: string;
 }
 
-// Mapeamento de tom visual -> parâmetros visuais (com dicas de tipografia e cor)
+// Mapeamento de tom visual -> parâmetros visuais
 const TONE_VISUAL_MAP: Record<string, {
   contrast: string; lighting: string; style: string; composition: string;
   focus: string; description: string; fontHint: string; colorHint: string;
@@ -95,18 +101,18 @@ const TONE_VISUAL_MAP: Record<string, {
 
 /**
  * Expande um documento de briefing usando o LLM Refiner via Gemini API.
- * Retorna JSON com briefing_visual, headline e subtexto.
+ * Retorna JSON com briefing_visual, headline, subtexto e legenda.
  */
 export async function expandBriefing(
   input: BriefingExpansionInput,
-  _geminiApiKey?: string // kept for backward compat, not used anymore
+  _geminiApiKey?: string
 ): Promise<ExpandedBriefing> {
   const systemPrompt = buildSystemPrompt(input);
   const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
 
   if (!GEMINI_API_KEY) {
     console.error('[LLMRefiner] GEMINI_API_KEY not configured, falling back to empty');
-    return { expandedPrompt: '', headline: '', subtexto: '' };
+    return { expandedPrompt: '', headline: '', subtexto: '', legenda: '' };
   }
 
   console.log('[LLMRefiner] Expanding briefing via Gemini API...');
@@ -114,7 +120,7 @@ export async function expandBriefing(
   console.log('[LLMRefiner] Visual style:', input.visualStyle);
 
   try {
-    const userMessage = `Transforme este Briefing Completo num Briefing Visual cinematográfico:\n\n${input.briefingDocument}`;
+    const userMessage = `Transforme este Briefing Completo num Briefing Visual cinematográfico e gere a legenda:\n\n${input.briefingDocument}`;
 
     const result = await callGemini(GEMINI_API_KEY, {
       model: 'gemini-2.5-flash',
@@ -129,33 +135,32 @@ export async function expandBriefing(
 
     if (!rawContent) {
       console.warn('[LLMRefiner] No content in response');
-      return { expandedPrompt: '', headline: '', subtexto: '' };
+      return { expandedPrompt: '', headline: '', subtexto: '', legenda: '' };
     }
 
     console.log('[LLMRefiner] Raw response length:', rawContent.length, 'chars');
 
-    // Try to parse JSON from the response
     const parsed = extractJSON<RefinerOutput>(rawContent);
     if (parsed && parsed.briefing_visual) {
       console.log('[LLMRefiner] Parsed JSON successfully');
       console.log('[LLMRefiner] briefing_visual length:', parsed.briefing_visual?.length || 0);
       console.log('[LLMRefiner] headline:', parsed.headline);
-      console.log('[LLMRefiner] subtexto:', parsed.subtexto);
+      console.log('[LLMRefiner] legenda length:', parsed.legenda?.length || 0);
       
       return {
         expandedPrompt: parsed.briefing_visual || '',
         headline: parsed.headline || '',
         subtexto: parsed.subtexto || '',
+        legenda: parsed.legenda || '',
       };
     }
 
     console.warn('[LLMRefiner] Failed to parse JSON, using raw text as visual briefing');
-    // Fallback: use raw content as visual description
-    return { expandedPrompt: rawContent, headline: '', subtexto: '' };
+    return { expandedPrompt: rawContent, headline: '', subtexto: '', legenda: '' };
 
   } catch (error) {
     console.error('[LLMRefiner] Error:', error);
-    return { expandedPrompt: '', headline: '', subtexto: '' };
+    return { expandedPrompt: '', headline: '', subtexto: '', legenda: '' };
   }
 }
 
@@ -233,49 +238,145 @@ PARÂMETROS VISUAIS DO TOM "${tone.toUpperCase()}":
     ? `\nTEXTO NA IMAGEM: O briefing solicita texto sobreposto. NÃO adicione instruções de tipografia — isso será feito downstream. Foque em compor uma cena visual que naturalmente deixe espaço negativo apropriado onde o texto pode ser colocado sem obscurecer elementos visuais chave.`
     : `\nSEM TEXTO: NÃO mencione texto, tipografia, palavras ou letras na sua saída. A imagem deve ser puramente visual sem elementos textuais.`;
 
-  return `Você é um Estrategista de Marketing Sênior e Diretor de Arte. Leia todo o contexto lógico, estratégico e de marketing fornecido e retorne um briefing cinematográfico puramente visual.
+  // Platform-specific guidelines for caption
+  const platformCaptionGuide = getPlatformCaptionGuide(input.platform);
 
-Descreva: CENA, ILUMINAÇÃO, CORES, COMPOSIÇÃO e DIRETRIZES ESTÉTICAS. Não inclua jargões de marketing ou blocos lógicos estruturados na sua resposta.
+  // Hashtags from theme
+  let hashtagHint = '';
+  if (input.themeData?.hashtags) {
+    hashtagHint = `\nHASHTAGS DO TEMA (incluir na legenda): ${input.themeData.hashtags}`;
+  }
+
+  return `Você é um Diretor de Arte Cinematográfico e Estrategista de Marketing Digital de elite. Sua missão é dupla:
+
+**PARTE 1 — TRANSFORMAR LINGUAGEM LEIGA EM DIREÇÃO DE ARTE TÉCNICA**
+Receba descrições curtas e simples do usuário e transforme em briefings visuais cinematográficos com linguagem técnica profissional.
+
+**PARTE 2 — GERAR LEGENDA PROFISSIONAL PARA A PLATAFORMA**
+Crie uma legenda completa e envolvente para a publicação, adequada à plataforma e ao público.
 ${toneBlock}${contextBlock}
 
-SUA MISSÃO (3 etapas obrigatórias):
+EXEMPLOS DE TRANSFORMAÇÃO (few-shot):
 
-1. **EXPANDIR A CENA**: Transforme a descrição bruta numa cena cinematográfica. Descreva:
-   - Lente da câmera (ex: 35mm para contexto ambiental, 85mm para retrato)
-   - Iluminação específica alinhada ao tom visual
-   - Cores dominantes alinhadas à paleta da marca (se fornecida)
-   - Expressões faciais e linguagem corporal (se houver pessoas)
-   - Profundidade de campo, texturas e materiais
-   - Elementos contextuais que reforcem a mensagem
+EXEMPLO 1:
+- Input: "foto de uma mulher tomando café"
+- briefing_visual: "Uma fotografia cinematográfica em close-up médio, capturada com lente 85mm f/1.4, de uma mulher jovem segurando delicadamente uma xícara de café artesanal de cerâmica. Iluminação golden hour lateral suave entrando por uma janela à esquerda, criando rim light dourado nos cabelos e catchlights nos olhos. Profundidade de campo rasa com bokeh cremoso ao fundo mostrando texturas desfocadas de madeira e plantas. Paleta warm tones dominante: âmbar, marrom café, bege creme e tons de pele naturais. Expressão serena de contemplação com leve sorriso, olhar direcionado para a xícara. Vapor subindo do café criando atmosfera acolhedora. Composição seguindo regra dos terços com o rosto no terço superior direito. Textura visível na cerâmica da xícara e nos fios de cabelo. Ambiente de cafeteria artesanal com acabamentos em madeira natural."
 
-2. **DEFINIR O LAYOUT**: Se houver texto a incluir, defina:
+EXEMPLO 2:
+- Input: "post sobre promoção de verão"
+- briefing_visual: "Uma composição vibrante e energética em estilo flat lay cinematográfico, capturada com lente 35mm em ângulo overhead (90°). Elementos de verão organizados geometricamente: óculos de sol espelhados, chinelo colorido, protetor solar, frutas tropicais cortadas (melancia, abacaxi), sobre fundo de azulejos brancos com textura. Iluminação studio difusa e uniforme simulando luz solar direta do meio-dia, sem sombras duras. Paleta vibrante: coral, turquesa, amarelo solar, branco clean. Composição centrada com simetria proposital e espaço negativo no centro para posicionamento de texto. Aspersões de água cristalina sobre os objetos criando frescor e reflexos especulares. Micro-texturas visíveis: gotas de água, grãos de areia dourada, superfícies brilhantes."
+
+SUA MISSÃO (4 etapas obrigatórias):
+
+1. **EXPANDIR A CENA**: Transforme a descrição bruta numa cena cinematográfica com termos técnicos:
+   - Lente da câmera específica (ex: 35mm, 50mm, 85mm, 135mm) e abertura (f/1.4, f/2.8, f/8)
+   - Iluminação técnica: key light, fill light, rim light, backlight, bounce light, Rembrandt lighting, butterfly lighting, split lighting
+   - Cores com nomenclatura técnica: warm tones, cool tones, complementary palette, analogous colors
+   - Composição: regra dos terços, golden ratio, leading lines, framing, negative space, rule of odds
+   - Profundidade de campo: shallow DOF, deep focus, bokeh, tilt-shift
+   - Texturas e materiais: especular, difuso, matte, glossy, translúcido
+   - Expressões e linguagem corporal detalhadas (se houver pessoas)
+   - Atmosfera e mood: cinematográfico, editorial, lifestyle, high-fashion, documentary
+
+2. **DEFINIR O LAYOUT**: Se houver texto a incluir:
    - Áreas de espaço negativo para posicionamento de texto
-   - Composição que garanta legibilidade
+   - Composição que garante legibilidade
    - Hierarquia visual adequada ao público-alvo
 
 3. **AJUSTAR O CLIMA**: Adapte a atmosfera ao tom visual solicitado.
 
+4. **CRIAR LEGENDA PROFISSIONAL**: Escreva uma legenda completa para a plataforma:
+   - Gancho inicial forte que capture atenção nos primeiros 125 caracteres
+   - Corpo com storytelling ou informação de valor
+   - CTA (call-to-action) claro
+   - Hashtags relevantes (mistura de alto volume e nicho)
+   - Tom alinhado com a marca e persona
+${platformCaptionGuide}${hashtagHint}
+
 REGRAS ABSOLUTAS:
-1. Responda EXCLUSIVAMENTE em formato JSON com as chaves: briefing_visual, headline, subtexto
-2. briefing_visual: Parágrafo único contínuo (200-400 palavras) descrevendo a cena cinematograficamente EM PORTUGUÊS
-3. Inclua: setup de iluminação, lente/perspectiva da câmera, cores dominantes, texturas, atmosfera, mood, expressões (se houver pessoas)
-4. O pedido principal do usuário (o que ele quer criar) é a diretriz PRIMÁRIA — tudo mais enriquece mas NUNCA sobrepõe
-5. NÃO inclua negative prompts ou instruções "evitar" — são tratados separadamente
-6. Incorpore diretrizes éticas silenciosamente nas escolhas visuais sem mencioná-las
-7. Adapte o tom visual ao público-alvo e plataforma naturalmente, sem nomeá-los
+1. Responda EXCLUSIVAMENTE em formato JSON com as chaves: briefing_visual, headline, subtexto, legenda
+2. briefing_visual: Parágrafo único contínuo (200-400 palavras) descrevendo a cena cinematograficamente EM PORTUGUÊS, usando TERMOS TÉCNICOS de fotografia e direção de arte
+3. Inclua obrigatoriamente: setup de iluminação técnico, lente/perspectiva com abertura, cores com nomenclatura técnica, texturas específicas, atmosfera e mood cinematográfico
+4. O pedido principal do usuário é a diretriz PRIMÁRIA — tudo mais enriquece mas NUNCA sobrepõe
+5. NÃO inclua negative prompts ou instruções "evitar"
+6. Incorpore diretrizes éticas silenciosamente nas escolhas visuais
+7. Adapte o tom visual ao público-alvo e plataforma naturalmente
 8. Se imagens de referência da marca forem mencionadas, inclua: "Manter a identidade visual, paleta de cores e elementos de design das imagens de referência da marca fornecidas."
 9. Se imagens de referência de estilo forem mencionadas, inclua: "Inspirar-se na atmosfera e estética das imagens de referência de estilo fornecidas."
 10. Preserve LITERALMENTE instruções ESPECÍFICAS do usuário (posicionamento de elementos, objetos específicos)
 11. headline: Texto principal sugerido (máximo 10 palavras), relevante ao objetivo
 12. subtexto: CTA ou texto secundário (máximo 15 palavras)
-13. Encerre o briefing_visual reafirmando o assunto/cena central do pedido original do usuário
-14. Seja EXTREMAMENTE específico e visual, nunca genérico
+13. legenda: Legenda COMPLETA para a plataforma (título + corpo + hashtags), pronta para copiar e colar. Use emojis com moderação. Inclua quebras de linha naturais. Termine com 5-15 hashtags relevantes precedidas de #.
+14. Encerre o briefing_visual reafirmando o assunto/cena central do pedido original do usuário
+15. Seja EXTREMAMENTE específico e visual, nunca genérico — cada briefing deve ser único
 ${textInstruction}
 
 FORMATO DE RESPOSTA (JSON estrito):
 {
-  "briefing_visual": "Uma fotografia cinematográfica de [CENA DETALHADA]...",
+  "briefing_visual": "Uma fotografia cinematográfica de [CENA DETALHADA com termos técnicos]...",
   "headline": "texto principal sugerido",
-  "subtexto": "CTA ou texto secundário"
+  "subtexto": "CTA ou texto secundário",
+  "legenda": "🔥 Gancho inicial forte\\n\\nCorpo da legenda com storytelling...\\n\\n👉 CTA claro\\n\\n#hashtag1 #hashtag2 #hashtag3"
 }`;
+}
+
+function getPlatformCaptionGuide(platform?: string): string {
+  if (!platform) return '';
+  
+  const guides: Record<string, string> = {
+    'instagram_feed': `
+GUIA DE LEGENDA (Instagram Feed):
+- Máximo 2200 caracteres (ideal: 300-500)
+- Gancho nos primeiros 125 caracteres (antes do "ver mais")
+- 5-15 hashtags (mistura de alto volume e nicho)
+- Emojis estratégicos para quebrar texto
+- CTA no final (comente, salve, compartilhe)`,
+    'instagram_stories': `
+GUIA DE LEGENDA (Instagram Stories):
+- Texto curto e direto (máximo 100 palavras)
+- CTA interativo (enquete, pergunta, link)
+- 3-5 hashtags relevantes`,
+    'instagram_reels': `
+GUIA DE LEGENDA (Instagram Reels):
+- Gancho forte (primeiras palavras)
+- Máximo 300 caracteres ideal
+- 5-10 hashtags trending
+- CTA para seguir ou compartilhar`,
+    'facebook_post': `
+GUIA DE LEGENDA (Facebook):
+- Ideal: 100-250 caracteres
+- Tom conversacional
+- 1-3 hashtags (menos é mais)
+- Pergunta para gerar comentários`,
+    'linkedin_post': `
+GUIA DE LEGENDA (LinkedIn):
+- Tom profissional e informativo
+- Gancho nos primeiros 210 caracteres
+- 3-5 hashtags profissionais
+- Storytelling ou insight de mercado`,
+    'tiktok': `
+GUIA DE LEGENDA (TikTok):
+- Máximo 150 caracteres
+- Direto e criativo
+- 3-5 hashtags trending
+- Tom jovem e descontraído`,
+    'twitter': `
+GUIA DE LEGENDA (Twitter/X):
+- Máximo 280 caracteres
+- Conciso e impactante
+- 1-2 hashtags
+- Opinião ou dado forte`,
+    'youtube_thumbnail': `
+GUIA DE LEGENDA (YouTube):
+- Título SEO-otimizado
+- Descrição com keywords
+- 3-5 hashtags relevantes`,
+    'pinterest': `
+GUIA DE LEGENDA (Pinterest):
+- Título descritivo com keywords
+- 2-5 hashtags
+- CTA para salvar o pin`,
+  };
+  
+  return guides[platform] || '';
 }
