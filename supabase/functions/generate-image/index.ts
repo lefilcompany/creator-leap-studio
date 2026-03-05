@@ -486,6 +486,7 @@ serve(async (req) => {
       hasVisual: !!briefingResult.expandedPrompt,
       headline: briefingResult.headline,
       subtexto: briefingResult.subtexto,
+      legendaLength: briefingResult.legenda?.length || 0,
     });
 
     // =====================================
