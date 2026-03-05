@@ -96,17 +96,17 @@ Responda ESTRITAMENTE em formato JSON com as chaves "title", "body" (legenda com
       try {
         console.log(`Tentativa ${retryCount + 1} de ${maxRetries} para revisar legenda`);
         
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${openAIApiKey}`, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${openAIApiKey}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'google/gemini-3-flash-preview',
-            messages: [{ role: 'user', content: textPrompt }],
-            response_format: { type: "json_object" },
-            temperature: 0.7,
+            contents: [{ role: 'user', parts: [{ text: textPrompt }] }],
+            generationConfig: {
+              temperature: 0.7,
+              responseMimeType: 'application/json',
+            },
           }),
         });
 
