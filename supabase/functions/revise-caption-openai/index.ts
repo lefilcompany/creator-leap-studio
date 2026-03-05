@@ -103,7 +103,7 @@ Responda ESTRITAMENTE em formato JSON com as chaves "title", "body" (legenda com
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'google/gemini-3.1-flash-image-preview',
+            model: 'google/gemini-3-flash-preview',
             messages: [{ role: 'user', content: textPrompt }],
             response_format: { type: "json_object" },
             temperature: 0.7,

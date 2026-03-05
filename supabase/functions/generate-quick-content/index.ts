@@ -259,7 +259,7 @@ serve(async (req) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'google/gemini-3.1-flash-image-preview',
+            model: 'google/gemini-3-pro-image-preview',
             messages: [{ role: 'user', content: messageContent }],
             modalities: ['image', 'text'],
           }),
@@ -352,7 +352,7 @@ serve(async (req) => {
       creditsBefore: creditCheck.currentCredits,
       creditsAfter: deductResult.newCredits,
       description: 'Criação rápida de imagem (Pipeline v4)',
-      metadata: { platform, aspectRatio: normalizedAspectRatio, style, brandId, model: 'gemini-3.1-flash-image-preview' }
+      metadata: { platform, aspectRatio: normalizedAspectRatio, style, brandId, model: 'gemini-3-pro-image-preview' }
     });
 
     // Save action

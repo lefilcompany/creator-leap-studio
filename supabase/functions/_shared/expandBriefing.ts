@@ -4,7 +4,7 @@
  * Recebe um documento de briefing completo e retorna um JSON estruturado
  * com briefing visual cinematográfico, headline e subtexto.
  * 
- * Usa o Lovable AI Gateway (google/gemini-3.1-flash-image-preview).
+ * Usa o Lovable AI Gateway (google/gemini-3-flash-preview).
  */
 
 export interface BriefingExpansionInput {
@@ -104,7 +104,7 @@ export async function expandBriefing(
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-3.1-flash-image-preview',
+        model: 'google/gemini-3-flash-preview',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userMessage },

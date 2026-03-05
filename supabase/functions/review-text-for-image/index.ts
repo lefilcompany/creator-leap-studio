@@ -194,7 +194,7 @@ Analise o texto que será colocado NA IMAGEM do post e retorne uma revisão comp
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-3.1-flash-image-preview',
+        model: 'google/gemini-3-flash-preview',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: contextPrompt }
