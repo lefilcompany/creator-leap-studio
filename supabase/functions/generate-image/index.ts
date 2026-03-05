@@ -519,8 +519,42 @@ serve(async (req) => {
     }
 
     const enrichedDescription = briefingResult.expandedPrompt || description;
-    const preserveImages: string[] = (formData.preserveImages || []).slice(0, 2);
-    const styleReferenceImages: string[] = (formData.styleReferenceImages || []).slice(0, 1);
+
+    const brandReferenceImages = normalizeImageArray(formData.brandReferenceImages, 3);
+    const userReferenceImages = normalizeImageArray(
+      Array.isArray(formData.userReferenceImages) && formData.userReferenceImages.length > 0
+        ? formData.userReferenceImages
+        : formData.styleReferenceImages,
+      5,
+    );
+
+    const preserveIndexSet = new Set<number>(
+      Array.isArray(formData.preserveImageIndices)
+        ? formData.preserveImageIndices
+            .filter((idx: unknown): idx is number => Number.isInteger(idx) && Number(idx) >= 0 && Number(idx) < userReferenceImages.length)
+        : []
+    );
+
+    const explicitUserPreserveImages = userReferenceImages.filter((_, idx) => preserveIndexSet.has(idx));
+    const explicitUserStyleImages = userReferenceImages.filter((_, idx) => !preserveIndexSet.has(idx));
+
+    const legacyPreserveImages = normalizeImageArray(formData.preserveImages, 5);
+    const mergedPreservePool = [...new Set([...brandReferenceImages, ...legacyPreserveImages, ...explicitUserPreserveImages])];
+
+    const maxReferenceImages = 5;
+    const maxPreserveImages = 3;
+    const preserveImages = mergedPreservePool.slice(0, maxPreserveImages);
+    const remainingSlots = Math.max(0, maxReferenceImages - preserveImages.length);
+
+    const mergedStylePool = [...new Set([...explicitUserStyleImages, ...normalizeImageArray(formData.styleReferenceImages, 5)])]
+      .filter((img) => !preserveImages.includes(img));
+    const styleReferenceImages = mergedStylePool.slice(0, remainingSlots);
+
+    console.log('[Step 3] Reference images normalized:', {
+      preserveImages: preserveImages.length,
+      styleReferenceImages: styleReferenceImages.length,
+      total: preserveImages.length + styleReferenceImages.length,
+    });
 
     const masterPrompt = buildDirectorPrompt({
       originalDescription: description,
@@ -548,9 +582,9 @@ serve(async (req) => {
     const hasAnyImages = preserveImages.length > 0 || styleReferenceImages.length > 0;
     let imageRolePrefix = '';
     if (hasAnyImages) {
-      const parts: string[] = [];
-      if (preserveImages.length > 0) parts.push(`A(s) primeira(s) ${preserveImages.length} imagem(ns) definem a Identidade Visual e Paleta de Cores obrigatória`);
-      if (styleReferenceImages.length > 0) parts.push(`A(s) última(s) servem apenas como inspiração de composição`);
+      const parts: string[] = ['As referências anexadas são vinculantes e devem ser seguidas com alta aderência visual'];
+      if (preserveImages.length > 0) parts.push(`As primeiras ${preserveImages.length} imagem(ns) são prioridade máxima para identidade visual, cor e iluminação`);
+      if (styleReferenceImages.length > 0) parts.push(`As ${styleReferenceImages.length} imagem(ns) seguintes devem orientar composição, enquadramento e acabamento estético`);
       imageRolePrefix = `${parts.join('. ')}.\n\n`;
     }
 
