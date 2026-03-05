@@ -391,34 +391,29 @@ serve(async (req) => {
       );
     }
     
-    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
-    if (!openAIApiKey) {
+    const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
+    if (!geminiApiKey) {
       return new Response(
-        JSON.stringify({ error: 'OpenAI API key not configured', fallback: true }),
+        JSON.stringify({ error: 'Gemini API key not configured', fallback: true }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     const prompt = buildCaptionPrompt(formData);
 
-    console.log("🔄 Chamando OpenAI API...");
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    console.log("🔄 Chamando Gemini API...");
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${openAIApiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-        response_format: { type: "json_object" },
-        temperature: 0.7,
-        max_tokens: 1500,
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 1500,
+          responseMimeType: 'application/json',
+        },
       }),
     });
 
