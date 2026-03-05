@@ -340,7 +340,6 @@ export default function CreateImage() {
 
       const userImageEntries = referenceImagesBase64.map((image, index) => ({
         image,
-        index,
         preserve: safePreserveIndices.includes(index),
       }));
 
