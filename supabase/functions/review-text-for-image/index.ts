@@ -187,7 +187,7 @@ Analise o texto que será colocado NA IMAGEM do post e retorne uma revisão comp
 ### 🎯 Recomendações Finais
 [Resumo das principais melhorias e próximos passos para otimizar o texto]`;
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${openAIApiKey}`, {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
