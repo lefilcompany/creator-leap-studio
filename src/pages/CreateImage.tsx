@@ -426,6 +426,9 @@ export default function CreateImage() {
         fontStyle: formData.fontStyle || "modern",
         textDesignStyle: formData.textDesignStyle || "clean",
         ctaText: formData.ctaText?.trim() || "",
+        adMode: contentType === 'ads' ? (formData.adMode || 'standard') : undefined,
+        priceText: formData.priceText?.trim() || "",
+        includeBrandLogo: formData.includeBrandLogo || false,
       };
 
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
