@@ -208,26 +208,30 @@ Analise a imagem e retorne uma revisão completa em markdown seguindo EXATAMENTE
       try {
         console.log(`Review attempt ${attempt}/${MAX_RETRIES}...`);
 
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        // Convert image to Gemini inline data
+        let imagePart: any = null;
+        if (image.startsWith('data:')) {
+          const match = image.match(/^data:([^;]+);base64,(.+)$/);
+          if (match) {
+            imagePart = { inlineData: { mimeType: match[1], data: match[2] } };
+          }
+        }
+
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${openAIApiKey}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'google/gemini-3-pro-image-preview',
-            messages: [
-              { role: 'system', content: systemPrompt },
-              { 
-                role: 'user', 
-                content: [
-                  { type: 'text', text: contextPrompt },
-                  { type: 'image_url', image_url: { url: image } }
-                ]
-              }
-            ],
-            temperature: 0.7,
-            max_tokens: 2000,
+            contents: [{ role: 'user', parts: [
+              { text: contextPrompt },
+              ...(imagePart ? [imagePart] : []),
+            ] }],
+            systemInstruction: { parts: [{ text: systemPrompt }] },
+            generationConfig: {
+              temperature: 0.7,
+              maxOutputTokens: 2000,
+            },
           }),
         });
 
