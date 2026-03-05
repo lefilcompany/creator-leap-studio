@@ -275,6 +275,7 @@ function buildDirectorPrompt(params: {
   styleReferenceImagesCount: number;
   headline: string;
   subtexto: string;
+  ctaText: string;
 }): string {
   const sections: string[] = [];
 
