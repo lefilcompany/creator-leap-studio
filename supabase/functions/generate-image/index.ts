@@ -697,7 +697,7 @@ serve(async (req) => {
       creditsBefore,
       creditsAfter,
       description: 'Geração de imagem completa (Pipeline v4)',
-      metadata: { platform: formData.platform, visualStyle, model: 'gemini-3-flash-image-pro', hasHeadline: !!briefingResult.headline }
+      metadata: { platform: formData.platform, visualStyle, model: usedImageModel, hasHeadline: !!briefingResult.headline }
     });
 
     // Save to history
