@@ -384,7 +384,7 @@ serve(async (req) => {
       );
     }
     
-    const validPlatforms = ['Instagram', 'LinkedIn', 'TikTok', 'Twitter', 'Facebook'];
+    const validPlatforms = ['Instagram', 'LinkedIn', 'TikTok', 'Twitter', 'Twitter/X', 'Facebook', 'Comunidades'];
     if (formData.platform && !validPlatforms.includes(formData.platform)) {
       return new Response(
         JSON.stringify({ error: 'Invalid platform' }),
