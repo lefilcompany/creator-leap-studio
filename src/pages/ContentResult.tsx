@@ -105,9 +105,13 @@ export default function ContentResult() {
           timestamp: new Date().toISOString(),
           caption: data.caption,
           title: data.title,
+          body: data.body,
           hashtags: data.hashtags,
-          type: data.type
+          type: data.type,
+          mediaUrl: data.mediaUrl
         };
+        setVersionHistory([versionData]);
+        setCurrentVersionIndex(0);
 
         const savedContent = {
           id: contentId,
