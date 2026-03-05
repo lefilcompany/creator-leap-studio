@@ -632,6 +632,7 @@ serve(async (req) => {
       styleReferenceImagesCount: styleReferenceImages.length,
       headline: briefingResult.headline,
       subtexto: briefingResult.subtexto,
+      ctaText: cleanInput(formData.ctaText) || '',
     });
 
     // Build image role prefix
