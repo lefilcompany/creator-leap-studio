@@ -164,8 +164,8 @@ serve(async (req) => {
 
     console.log('📝 [EDIT-IMAGE] Prompt:', detailedPrompt.length, 'chars, brand:', !!brandData, 'theme:', !!themeData);
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) return new Response(JSON.stringify({ error: 'API key não configurada' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+    if (!GEMINI_API_KEY) return new Response(JSON.stringify({ error: 'GEMINI_API_KEY não configurada' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
     // Prepare image data URL
     let imageDataUrl: string;
