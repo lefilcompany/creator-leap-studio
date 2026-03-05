@@ -38,6 +38,16 @@ const FONT_STYLES: Record<string, string> = {
   impactful: "bold condensada, display forte, grande impacto visual",
 };
 
+const TEXT_DESIGN_PROMPTS: Record<string, string> = {
+  clean: `DESIGN CLEAN: O texto deve flutuar sobre espaço negativo natural da imagem. NÃO use overlays, barras ou caixas. Posicione o texto em áreas da imagem com cores sólidas ou desfocadas para garantir legibilidade natural. O fundo atrás do texto deve ser limpo e uniforme. Crie áreas de respiro visual estratégicas na composição para acomodar o texto.`,
+  overlay: `DESIGN OVERLAY: Aplique uma faixa semitransparente (opacidade 40-60%) atrás do texto. A faixa deve cobrir toda a largura da imagem na posição do texto. Cor da faixa: preto com transparência OU cor primária da marca com transparência. O texto deve ser branco ou cor clara contrastante sobre a faixa. A faixa deve ter bordas suaves (sem bordas duras).`,
+  gradient_bar: `DESIGN BARRA GRADIENTE: Crie uma barra horizontal com gradiente suave usando as cores da marca (ou gradiente escuro se não houver cores definidas). A barra deve ter altura suficiente para o texto + padding generoso. O gradiente deve fluir da esquerda para direita ou de cima para baixo. Texto branco ou claro sobre a barra. Bordas da barra com leve arredondamento (8-12px radius).`,
+  cutout: `DESIGN RECORTE (KNOCKOUT): O texto deve ser RECORTADO/VAZADO, revelando a imagem de fundo através das letras. Use uma camada sólida (branca, preta ou cor da marca) com o texto recortado. O efeito de máscara deve mostrar a fotografia/imagem através da tipografia. As letras devem ser GRANDES e BOLD para o efeito funcionar. Use tipografia display grossa para máximo impacto visual.`,
+  shadow_drop: `DESIGN SOMBRA PROJETADA: Aplique sombra forte e dramática no texto (drop shadow). Sombra preta com 60-80% opacidade, offset de 4-8px, blur de 12-20px. O texto pode ser branco, cor da marca ou cor clara. A sombra deve ser suficiente para garantir legibilidade sobre qualquer fundo. NÃO use overlays adicionais — apenas a sombra projetada no texto.`,
+  neon_glow: `DESIGN NEON/GLOW: O texto deve ter efeito de brilho luminoso estilo neon. Aplique glow externo colorido (rosa, azul, verde ou cor da marca) ao redor de cada letra. O texto pode ser branco com glow colorido, ou colorido com glow matching. Intensidade do glow: forte e visível, como uma placa de neon real. O fundo ao redor do texto deve ser mais escuro para realçar o brilho. Adicione leve reflexo do neon nas superfícies próximas.`,
+  boxed: `DESIGN EMOLDURADO: Coloque o texto dentro de uma caixa/moldura retangular. A caixa deve ter: fundo sólido (branco, preto ou cor da marca), borda visível (2-3px, cor contrastante), padding interno generoso (16-24px). O texto deve estar centralizado dentro da caixa. A caixa deve ter cantos arredondados (8-16px radius). A caixa deve parecer um elemento gráfico intencional do design, não um patch improvisado.`,
+};
+
 const PLATFORM_ASPECT_RATIO: Record<string, string> = {
   'instagram_feed': '4:5',
   'instagram_stories': '9:16',
@@ -260,6 +270,7 @@ function buildDirectorPrompt(params: {
   textContent: string;
   textPosition: string;
   fontStyle: string;
+  textDesignStyle: string;
   preserveImagesCount: number;
   styleReferenceImagesCount: number;
   headline: string;
@@ -355,9 +366,12 @@ function buildDirectorPrompt(params: {
   - O CTA deve ser menor que a headline mas igualmente legível.`);
     }
     
+    // Text design style
+    const designPrompt = TEXT_DESIGN_PROMPTS[params.textDesignStyle] || TEXT_DESIGN_PROMPTS['clean'];
     textParts.push(`- Tipografia: ${fontDesc}
 - Posição: ${params.textPosition || 'center'}. O texto NÃO deve obstruir o rosto.
-- Legibilidade: O texto DEVE ser o foco principal e 100% legível. Utilize espaço negativo estratégico na imagem, sobreposições de gradiente sutil ou caixas de texto limpas para garantir contraste absoluto entre a fonte e o fundo. O texto não deve flutuar sem propósito, deve fazer parte de uma composição de design profissional em formato para ${params.platform || 'redes sociais'}.
+- ${designPrompt}
+- Legibilidade: O texto DEVE ser 100% legível. O design do texto deve fazer parte de uma composição profissional em formato para ${params.platform || 'redes sociais'}.
 - VERIFICAÇÃO FINAL: Antes de finalizar, releia o texto renderizado e confirme que está IDÊNTICO ao texto fornecido, letra por letra, acento por acento.`);
     
     sections.push(textParts.join('\n'));
@@ -612,6 +626,7 @@ serve(async (req) => {
       textContent: textContent || '',
       textPosition: cleanInput(formData.textPosition) || 'center',
       fontStyle: formData.fontStyle || 'modern',
+      textDesignStyle: formData.textDesignStyle || 'clean',
       preserveImagesCount: preserveImages.length,
       styleReferenceImagesCount: styleReferenceImages.length,
       headline: briefingResult.headline,

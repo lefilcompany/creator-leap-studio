@@ -13,7 +13,7 @@ import { NativeSelect } from "@/components/ui/native-select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Sparkles, Zap, X, Info, ImagePlus, Coins, Image as ImageIcon, HelpCircle, Paintbrush, ChevronDown, Plus, Settings2, Mic, ClipboardPaste } from "lucide-react";
+import { Loader2, Sparkles, Zap, X, Info, ImagePlus, Coins, Image as ImageIcon, HelpCircle, Paintbrush, ChevronDown, Plus, Settings2, Mic, ClipboardPaste, Type } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CREDIT_COSTS } from "@/lib/creditCosts";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -62,7 +62,36 @@ interface FormData {
   imageIncludeText?: boolean;
   imageTextContent?: string;
   imageTextPosition?: 'top' | 'center' | 'bottom' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+  fontStyle?: string;
+  textDesignStyle?: string;
 }
+
+const TEXT_POSITIONS = [
+  { value: 'top-left', label: 'Topo Esq.', icon: '↖' },
+  { value: 'top', label: 'Topo', icon: '↑' },
+  { value: 'top-right', label: 'Topo Dir.', icon: '↗' },
+  { value: 'center', label: 'Centro', icon: '⊕' },
+  { value: 'bottom-left', label: 'Inferior Esq.', icon: '↙' },
+  { value: 'bottom', label: 'Inferior', icon: '↓' },
+  { value: 'bottom-right', label: 'Inferior Dir.', icon: '↘' },
+] as const;
+
+const FONT_STYLE_OPTIONS = [
+  { value: 'modern', label: 'Moderno', desc: 'Sans-serif limpa e minimalista' },
+  { value: 'elegant', label: 'Elegante', desc: 'Serifa clássica e refinada' },
+  { value: 'fun', label: 'Divertido', desc: 'Script casual e expressiva' },
+  { value: 'impactful', label: 'Impactante', desc: 'Bold condensada, alto impacto' },
+] as const;
+
+const TEXT_DESIGN_OPTIONS = [
+  { value: 'clean', label: 'Clean', desc: 'Texto sobre espaço negativo, sem overlay' },
+  { value: 'overlay', label: 'Overlay', desc: 'Texto sobre faixa semitransparente' },
+  { value: 'gradient_bar', label: 'Barra Gradiente', desc: 'Texto sobre barra com gradiente da marca' },
+  { value: 'cutout', label: 'Recorte', desc: 'Texto recortado revelando a imagem por dentro' },
+  { value: 'shadow_drop', label: 'Sombra', desc: 'Texto com sombra projetada forte' },
+  { value: 'neon_glow', label: 'Neon', desc: 'Texto com brilho neon luminoso' },
+  { value: 'boxed', label: 'Emoldurado', desc: 'Texto dentro de caixa com borda e fundo sólido' },
+] as const;
 
 const toneOptions = [
   "inspirador", "motivacional", "profissional", "casual",
@@ -92,6 +121,7 @@ export default function CreateImage() {
     lighting: "natural", composition: "auto", cameraAngle: "eye_level",
     detailLevel: 7, mood: "auto", imageIncludeText: false,
     imageTextContent: "", imageTextPosition: "center",
+    fontStyle: "modern", textDesignStyle: "clean",
   });
 
   const [loading, setLoading] = useState(false);
@@ -385,6 +415,8 @@ export default function CreateImage() {
         includeText: formData.imageIncludeText || false,
         textContent: formData.imageTextContent?.trim() || "",
         textPosition: formData.imageTextPosition || "center",
+        fontStyle: formData.fontStyle || "modern",
+        textDesignStyle: formData.textDesignStyle || "clean",
       };
 
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -835,7 +867,116 @@ export default function CreateImage() {
               </div>
             </div>
 
-            {/* ── SEÇÃO 3: CAMPOS OPCIONAIS (colapsável) ── */}
+            {/* ── SEÇÃO 3: TEXTO NA IMAGEM ── */}
+            <div className="rounded-2xl shadow-lg border-0 bg-card p-4 md:p-5 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Type className="h-4 w-4 text-primary" />
+                  <p className="text-sm font-bold text-foreground">Texto na Imagem</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, imageIncludeText: !prev.imageIncludeText }))}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                    formData.imageIncludeText ? 'bg-primary' : 'bg-muted'
+                  }`}
+                >
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-sm ${
+                    formData.imageIncludeText ? 'translate-x-6' : 'translate-x-1'
+                  }`} />
+                </button>
+              </div>
+
+              {formData.imageIncludeText && (
+                <div className="space-y-4 animate-in slide-in-from-top-2 duration-200">
+                  {/* Text content */}
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-medium text-muted-foreground">
+                      Texto para renderizar <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      placeholder="Ex: Descubra o sabor da tradição"
+                      value={formData.imageTextContent}
+                      onChange={e => setFormData(prev => ({ ...prev, imageTextContent: e.target.value }))}
+                      className="h-9 rounded-lg border-2 border-border/50 bg-background/50 text-sm"
+                      maxLength={80}
+                    />
+                    <p className="text-[10px] text-muted-foreground">{formData.imageTextContent?.length || 0}/80 caracteres · Português Brasileiro</p>
+                  </div>
+
+                  {/* Position selector - icon grid */}
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium text-muted-foreground">Posição do Texto</Label>
+                    <div className="grid grid-cols-4 gap-1.5 max-w-[220px]">
+                      {TEXT_POSITIONS.map(pos => (
+                        <button
+                          key={pos.value}
+                          type="button"
+                          onClick={() => setFormData(prev => ({ ...prev, imageTextPosition: pos.value as any }))}
+                          className={`h-10 rounded-lg text-sm font-medium transition-all active:scale-[0.95] flex flex-col items-center justify-center gap-0.5 ${
+                            formData.imageTextPosition === pos.value
+                              ? 'bg-primary text-primary-foreground shadow-sm'
+                              : 'bg-muted/50 text-foreground hover:bg-primary/10 hover:text-primary'
+                          }`}
+                          title={pos.label}
+                        >
+                          <span className="text-base leading-none">{pos.icon}</span>
+                          <span className="text-[8px] leading-none opacity-70">{pos.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Font style */}
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium text-muted-foreground">Tipografia</Label>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                      {FONT_STYLE_OPTIONS.map(font => (
+                        <button
+                          key={font.value}
+                          type="button"
+                          onClick={() => setFormData(prev => ({ ...prev, fontStyle: font.value }))}
+                          className={`px-3 py-2 rounded-lg text-xs font-medium transition-all active:scale-[0.97] text-center ${
+                            formData.fontStyle === font.value
+                              ? 'bg-primary text-primary-foreground shadow-sm'
+                              : 'bg-muted/50 text-foreground shadow-sm hover:shadow-md hover:text-primary'
+                          }`}
+                          title={font.desc}
+                        >
+                          {font.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Text design/layout style */}
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium text-muted-foreground">Design do Texto</Label>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-1.5">
+                      {TEXT_DESIGN_OPTIONS.map(design => (
+                        <button
+                          key={design.value}
+                          type="button"
+                          onClick={() => setFormData(prev => ({ ...prev, textDesignStyle: design.value }))}
+                          className={`px-3 py-2.5 rounded-lg text-xs transition-all active:scale-[0.97] text-left space-y-0.5 ${
+                            formData.textDesignStyle === design.value
+                              ? 'bg-primary text-primary-foreground shadow-sm'
+                              : 'bg-muted/50 text-foreground shadow-sm hover:shadow-md hover:text-primary'
+                          }`}
+                        >
+                          <span className="font-semibold block">{design.label}</span>
+                          <span className={`text-[10px] block leading-tight ${
+                            formData.textDesignStyle === design.value ? 'text-primary-foreground/70' : 'text-muted-foreground'
+                          }`}>{design.desc}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* ── SEÇÃO 4: CAMPOS OPCIONAIS (colapsável) ── */}
             <button
               type="button"
               onClick={() => setShowSettings(!showSettings)}
