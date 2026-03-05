@@ -38,10 +38,10 @@ serve(async (req) => {
     }
 
     const { messages } = await req.json();
-    const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
     
-    if (!OPENAI_API_KEY) {
-      throw new Error("OPENAI_API_KEY não configurada");
+    if (!GEMINI_API_KEY) {
+      throw new Error("GEMINI_API_KEY não configurada");
     }
 
     const systemPrompt = `Você é um assistente especialista na plataforma Creator, uma plataforma de inteligência artificial para planejamento e criação estratégica de conteúdo.
