@@ -551,6 +551,22 @@ export default function ContentResult() {
     }
   };
 
+  const handleNavigateVersion = (direction: "prev" | "next") => {
+    const newIndex = direction === "prev" ? currentVersionIndex - 1 : currentVersionIndex + 1;
+    if (newIndex < 0 || newIndex >= versionHistory.length) return;
+
+    const version = versionHistory[newIndex];
+    setCurrentVersionIndex(newIndex);
+    setContentData(prev => prev ? {
+      ...prev,
+      caption: version.caption || prev.caption,
+      title: version.title || prev.title,
+      body: version.body || prev.body,
+      hashtags: version.hashtags || prev.hashtags,
+      mediaUrl: version.mediaUrl || prev.mediaUrl,
+    } : prev);
+  };
+
   if (isLoading || !contentData) {
     return <ContentResultSkeleton />;
   }
