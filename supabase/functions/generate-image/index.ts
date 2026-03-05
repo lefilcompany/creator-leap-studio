@@ -576,7 +576,7 @@ serve(async (req) => {
         console.log(`[Step 5] Image generation attempt ${attempt}/${MAX_RETRIES}...`);
 
         const geminiParts = convertToGeminiParts(messageContent);
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${GEMINI_API_KEY}`, {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-image-pro:generateContent?key=${GEMINI_API_KEY}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -586,6 +586,8 @@ serve(async (req) => {
             generationConfig: {
               responseModalities: ['IMAGE', 'TEXT'],
             },
+            safetyFilterLevel: 'BLOCK_ONLY_HIGH',
+            personGeneration: 'ALLOW_ALL',
           }),
         });
 
