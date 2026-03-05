@@ -675,19 +675,57 @@ export default function CreateImage() {
                   <span className="text-[10px] text-muted-foreground">{referenceFiles.length}/5 · Cole com Ctrl+V</span>
                 </div>
 
-                <div
-                  onClick={() => fileInputRef.current?.click()}
-                  className={`border-2 border-dashed rounded-xl p-5 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all hover:border-primary/40 hover:bg-primary/5 ${
-                    missingFields.includes('referenceFiles') && referenceFiles.length === 0
-                      ? 'border-destructive/40 bg-destructive/5'
-                      : 'border-border/50 bg-muted/10'
-                  }`}
-                >
-                  <ImagePlus className="h-7 w-7 text-muted-foreground" />
-                  <p className="text-xs text-muted-foreground text-center">
-                    Clique para adicionar ou <span className="text-primary font-medium">cole (Ctrl+V)</span> imagens
-                  </p>
-                  <p className="text-[10px] text-muted-foreground/60">Máximo 5 imagens · JPG, PNG, WebP</p>
+                <div className="flex gap-2">
+                  <div
+                    onClick={() => fileInputRef.current?.click()}
+                    className={`flex-1 border-2 border-dashed rounded-xl p-5 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all hover:border-primary/40 hover:bg-primary/5 ${
+                      missingFields.includes('referenceFiles') && referenceFiles.length === 0
+                        ? 'border-destructive/40 bg-destructive/5'
+                        : 'border-border/50 bg-muted/10'
+                    }`}
+                  >
+                    <ImagePlus className="h-7 w-7 text-muted-foreground" />
+                    <p className="text-xs text-muted-foreground text-center">
+                      Clique para adicionar imagens
+                    </p>
+                    <p className="text-[10px] text-muted-foreground/60">Máximo 5 · JPG, PNG, WebP</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        const clipboardItems = await navigator.clipboard.read();
+                        const files: File[] = [];
+                        for (const item of clipboardItems) {
+                          const imageType = item.types.find(t => t.startsWith('image/'));
+                          if (imageType) {
+                            const blob = await item.getType(imageType);
+                            const ext = imageType.split('/')[1] || 'png';
+                            const file = new File([blob], `colado-${Date.now()}.${ext}`, { type: imageType });
+                            files.push(file);
+                          }
+                        }
+                        if (files.length > 0) {
+                          const remaining = 5 - referenceFiles.length;
+                          const toAdd = files.slice(0, remaining);
+                          setReferenceFiles(prev => [...prev, ...toAdd]);
+                          toast.success(`${toAdd.length} imagem(ns) colada(s)`);
+                        } else {
+                          toast.error('Nenhuma imagem encontrada na área de transferência');
+                        }
+                      } catch {
+                        toast.error('Não foi possível acessar a área de transferência. Use Ctrl+V no campo.');
+                      }
+                    }}
+                    className={`border-2 border-dashed rounded-xl p-4 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all hover:border-primary/40 hover:bg-primary/5 min-w-[100px] ${
+                      missingFields.includes('referenceFiles') && referenceFiles.length === 0
+                        ? 'border-destructive/40 bg-destructive/5'
+                        : 'border-border/50 bg-muted/10'
+                    }`}
+                  >
+                    <Clipboard className="h-6 w-6 text-muted-foreground" />
+                    <p className="text-[10px] text-muted-foreground text-center font-medium">Colar imagem</p>
+                  </button>
                 </div>
                 <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden"
                   disabled={referenceFiles.length >= 5}
