@@ -65,6 +65,9 @@ interface FormData {
   fontStyle?: string;
   textDesignStyle?: string;
   ctaText?: string;
+  adMode?: 'standard' | 'professional';
+  priceText?: string;
+  includeBrandLogo?: boolean;
 }
 
 const TEXT_POSITIONS = [
