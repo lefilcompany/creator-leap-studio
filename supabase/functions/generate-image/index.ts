@@ -676,6 +676,9 @@ serve(async (req) => {
       headline: briefingResult.headline,
       subtexto: briefingResult.subtexto,
       ctaText: cleanInput(formData.ctaText) || '',
+      adProfessionalMode: formData.adMode === 'professional',
+      priceText: cleanInput(formData.priceText) || '',
+      includeBrandLogo: formData.includeBrandLogo || false,
     });
 
     // Build image role prefix
