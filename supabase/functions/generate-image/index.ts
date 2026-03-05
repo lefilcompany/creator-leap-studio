@@ -425,8 +425,37 @@ function buildDirectorPrompt(params: {
     sections.push(`### 5. USO DE REFERÊNCIAS VISUAIS\n${refParts.join('\n')}`);
   }
 
-  // SECTION 6: ESPECIFICAÇÕES TÉCNICAS
-  sections.push(`### 6. ESPECIFICAÇÕES TÉCNICAS E COMPLIANCE
+  // SECTION 6: MODO ANÚNCIO PROFISSIONAL (condicional)
+  if (params.adProfessionalMode) {
+    const brandColor = params.brandData?.brand_color || 'cor vibrante';
+    const priceSection = params.priceText ? `\n2. PREÇO/OFERTA: "${params.priceText}" em destaque absoluto com badge/selo colorido contrastante (vermelho, amarelo ou laranja). O preço deve estar em um badge/etiqueta com formato dinâmico (estrela, fita, selo circular) e ser o segundo elemento mais visível da peça.` : '';
+    const ctaSection = params.ctaText ? `\n3. CTA: "${params.ctaText}" em botão arredondado com cor contrastante, posicionado na parte inferior. Deve parecer um botão clicável com sombra sutil.` : '';
+    const logoSection = params.includeBrandLogo ? `\n- LOGO DA MARCA: Posicione o logo da marca (se disponível nas referências) no canto superior direito ou inferior esquerdo, com tamanho discreto mas visível.` : '';
+
+    sections.push(`### 6. MODO ANÚNCIO PROFISSIONAL
+Esta imagem DEVE parecer uma PEÇA PUBLICITÁRIA PROFISSIONAL de design gráfico brasileiro. Siga RIGOROSAMENTE estes padrões:
+
+LAYOUT:
+- Fundo de cor sólida vibrante (usar ${brandColor} ou cor complementar forte e impactante)
+- Elementos decorativos 3D ao redor do sujeito principal (raios de luz, formas geométricas, megafones estilizados, setas dinâmicas, splashes de cor)
+- Produto/sujeito principal em destaque absoluto no centro ou terço áureo da composição
+- Composição assimétrica e dinâmica, com energia visual alta${logoSection}
+
+HIERARQUIA DE TEXTO (ordem de importância visual):
+1. HEADLINE: Texto principal em tipografia BOLD GIGANTE (hero text), ocupando 30-40% da área visual. Deve ser o elemento mais chamativo da peça.${priceSection}${ctaSection}
+4. DETALHES: Informações secundárias em texto menor e discreto
+
+DESIGN GRÁFICO OBRIGATÓRIO:
+- Use badges/selos coloridos para destacar preços e ofertas (estilo promoção brasileira)
+- Cards sobrepostos com informações quando apropriado (estilo material design)
+- Elementos 3D decorativos para dinamismo e energia visual
+- Contraste FORTE entre texto e fundo (legibilidade é prioridade máxima)
+- Visual IMPACTANTE, chamativo, vibrante — estilo design gráfico profissional brasileiro de agência
+- Referência visual: peças de social media de grandes marcas brasileiras (McDonald's, iFood, Magazine Luiza)`);
+  }
+
+  // SECTION 7: ESPECIFICAÇÕES TÉCNICAS
+  sections.push(`### ${params.adProfessionalMode ? '7' : '6'}. ESPECIFICAÇÕES TÉCNICAS E COMPLIANCE
 - Formato: Otimizado para ${params.platform || 'redes sociais'}
 - Resolução: 4K, PNG para nitidez
 - COMPLIANCE ÉTICO (CONAR/CDC):
