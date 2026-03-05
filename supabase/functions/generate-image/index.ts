@@ -728,6 +728,7 @@ serve(async (req) => {
         description: resultDescription,
         headline: briefingResult.headline || null,
         subtexto: briefingResult.subtexto || null,
+        legenda: briefingResult.legenda || null,
       }
     }).select().single();
 
