@@ -506,6 +506,7 @@ serve(async (req) => {
     const styleReferenceImages: string[] = (formData.styleReferenceImages || []).slice(0, 1);
 
     const masterPrompt = buildDirectorPrompt({
+      originalDescription: description,
       enrichedDescription,
       brandData,
       themeData,
@@ -519,6 +520,7 @@ serve(async (req) => {
       includeText,
       textContent: textContent || '',
       textPosition: cleanInput(formData.textPosition) || 'center',
+      fontStyle: formData.fontStyle || 'modern',
       preserveImagesCount: preserveImages.length,
       styleReferenceImagesCount: styleReferenceImages.length,
       headline: briefingResult.headline,
