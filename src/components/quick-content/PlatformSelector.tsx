@@ -85,7 +85,7 @@ export function PlatformSelector({ value, onChange }: PlatformSelectorProps) {
   return (
     <div className="space-y-2.5">
       <p className="text-sm font-bold text-foreground">
-        Plataforma <span className="text-destructive">*</span>
+        Plataforma <span className="text-muted-foreground font-normal text-xs">(opcional)</span>
       </p>
       <div className="flex flex-wrap gap-2">
         {PLATFORMS.map(platform => {
