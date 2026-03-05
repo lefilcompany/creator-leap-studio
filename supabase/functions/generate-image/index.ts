@@ -480,12 +480,14 @@ serve(async (req) => {
       brandData,
       themeData,
       personaData,
+      platform: cleanInput(formData.platform),
     });
 
     console.log('[Step 2] Refiner result:', {
       hasVisual: !!briefingResult.expandedPrompt,
       headline: briefingResult.headline,
       subtexto: briefingResult.subtexto,
+      legendaLength: briefingResult.legenda?.length || 0,
     });
 
     // =====================================
@@ -727,6 +729,7 @@ serve(async (req) => {
         description: resultDescription,
         headline: briefingResult.headline || null,
         subtexto: briefingResult.subtexto || null,
+        legenda: briefingResult.legenda || null,
       }
     }).select().single();
 
@@ -737,6 +740,7 @@ serve(async (req) => {
       description: resultDescription,
       headline: briefingResult.headline || null,
       subtexto: briefingResult.subtexto || null,
+      legenda: briefingResult.legenda || null,
       actionId: actionData?.id,
       success: true
     }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });

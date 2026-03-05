@@ -379,24 +379,46 @@ export default function CreateImage() {
         body: JSON.stringify({ ...requestData, teamId: user?.teamId }),
       });
       if (!imageResponse.ok) throw new Error(`Erro ao gerar imagem: ${await imageResponse.text()}`);
-      const { imageUrl, attempt } = await imageResponse.json();
+      const { imageUrl, attempt, legenda } = await imageResponse.json();
 
-      setGenerationStep(GenerationStep.GENERATING_CAPTION);
-      setGenerationProgress(60);
-      toast.loading("✍️ Gerando legenda profissional...", { id: toastId, description: `Imagem criada em ${attempt} tentativa(s) | Escrevendo copy (60%)` });
+      let captionData: any = null;
+      let isLocalFallback = false;
 
-      const captionResponse = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-caption`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token}` },
-        body: JSON.stringify({ formData: { ...requestData, imageDescription: requestData.description, audience: selectedPersona?.name || "" } }),
-      });
+      // Se o agente gerou legenda, usar diretamente (sem chamar generate-caption)
+      if (legenda && typeof legenda === 'string' && legenda.trim().length > 20) {
+        console.log('[CreateImage] Usando legenda gerada pelo agente:', legenda.length, 'chars');
+        // Parse da legenda: extrair hashtags do final
+        const hashtagRegex = /#[\wÀ-ÿ]+/g;
+        const allHashtags = legenda.match(hashtagRegex) || [];
+        const hashtags = allHashtags.map((h: string) => h.replace('#', ''));
+        
+        // Separar corpo da legenda das hashtags
+        const legendaBody = legenda.replace(/\n*(?:#[\wÀ-ÿ]+\s*)+$/g, '').trim();
+        const lines = legendaBody.split('\n').filter((l: string) => l.trim());
+        const title = lines[0] || '';
+        const body = lines.slice(1).join('\n').trim() || legendaBody;
 
-      let captionData; let isLocalFallback = false;
-      if (captionResponse.ok) {
-        const responseData = await captionResponse.json();
-        if (responseData.fallback) { isLocalFallback = true; toast.warning("Legenda gerada localmente", { duration: 4000 }); }
-        captionData = responseData.fallback ? null : responseData;
-      } else { isLocalFallback = true; toast.error("Erro ao gerar legenda", { description: "Usando legenda padrão.", duration: 4000 }); }
+        captionData = { title, body, hashtags };
+        setGenerationProgress(70);
+        toast.loading("✍️ Legenda gerada pelo agente de IA...", { id: toastId, description: `Imagem criada | Finalizando (70%)` });
+      } else {
+        // Fallback: gerar legenda separadamente
+        setGenerationStep(GenerationStep.GENERATING_CAPTION);
+        setGenerationProgress(60);
+        toast.loading("✍️ Gerando legenda profissional...", { id: toastId, description: `Imagem criada em ${attempt} tentativa(s) | Escrevendo copy (60%)` });
+
+        const captionResponse = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-caption`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token}` },
+          body: JSON.stringify({ formData: { ...requestData, imageDescription: requestData.description, audience: selectedPersona?.name || "" } }),
+        });
+
+        if (captionResponse.ok) {
+          const responseData = await captionResponse.json();
+          if (responseData.fallback) { isLocalFallback = true; toast.warning("Legenda gerada localmente", { duration: 4000 }); }
+          captionData = responseData.fallback ? null : responseData;
+        } else { isLocalFallback = true; toast.error("Erro ao gerar legenda", { description: "Usando legenda padrão.", duration: 4000 }); }
+      }
 
       if (!captionData || isLocalFallback) {
         const brandName = selectedBrand?.name || formData.brand;
