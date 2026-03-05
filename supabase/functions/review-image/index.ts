@@ -237,18 +237,17 @@ Analise a imagem e retorne uma revisão completa em markdown seguindo EXATAMENTE
 
         if (!response.ok) {
           const errorText = await response.text();
-          console.error(`OpenAI error (attempt ${attempt}):`, response.status, errorText);
+          console.error(`Gemini error (attempt ${attempt}):`, response.status, errorText);
           
-          // Don't retry on rate limit or auth errors
           if (response.status === 429) {
             return new Response(
-              JSON.stringify({ error: 'OpenAI rate limit exceeded. Try again in a moment.' }),
+              JSON.stringify({ error: 'Rate limit exceeded. Try again in a moment.' }),
               { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             );
           }
-          if (response.status === 401) {
+          if (response.status === 401 || response.status === 403) {
             return new Response(
-              JSON.stringify({ error: 'Invalid OpenAI API key' }),
+              JSON.stringify({ error: 'Invalid Gemini API key' }),
               { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             );
           }
@@ -262,13 +261,13 @@ Analise a imagem e retorne uma revisão completa em markdown seguindo EXATAMENTE
           }
           
           return new Response(
-            JSON.stringify({ error: 'OpenAI API error' }),
+            JSON.stringify({ error: 'Gemini API error' }),
             { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
 
         const data = await response.json();
-        review = data.choices?.[0]?.message?.content || 'Unable to generate review';
+        review = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Unable to generate review';
 
         if (review === 'Unable to generate review') {
           lastError = new Error('No review content returned');
