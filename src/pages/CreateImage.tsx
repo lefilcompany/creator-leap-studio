@@ -632,6 +632,7 @@ export default function CreateImage() {
                     />
                   </div>
                 )}
+              </div>
 
               {/* Plataforma */}
               <div>
