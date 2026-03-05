@@ -342,13 +342,17 @@ function buildDirectorPrompt(params: {
 
   // SECTION 5: USO DE REFERÊNCIAS VISUAIS
   if (params.preserveImagesCount > 0 || params.styleReferenceImagesCount > 0) {
-    const refParts: string[] = [];
+    const refParts: string[] = [
+      'As referências visuais anexadas são mandatórias para estética final. Mantenha coerência real de paleta, iluminação, textura e direção de arte.'
+    ];
+
     if (params.preserveImagesCount > 0) {
-      refParts.push(`${params.preserveImagesCount} imagem(ns) da IDENTIDADE DA MARCA foram fornecidas. Use como REFERÊNCIA DE ESTILO: extraia a atmosfera, iluminação, paleta de cores e sentimento geral. A nova imagem DEVE parecer parte do mesmo conjunto visual.`);
+      refParts.push(`${params.preserveImagesCount} imagem(ns) de IDENTIDADE VISUAL foram fornecidas. Replique fielmente cores, mood e linguagem visual.`);
     }
     if (params.styleReferenceImagesCount > 0) {
-      refParts.push(`${params.styleReferenceImagesCount} imagem(ns) de REFERÊNCIA DO USUÁRIO foram fornecidas. Use como inspiração adicional de composição e estética.`);
+      refParts.push(`${params.styleReferenceImagesCount} imagem(ns) de REFERÊNCIA DO USUÁRIO foram fornecidas. Reaplique composição, enquadramento e tratamento visual com alta aderência.`);
     }
+
     sections.push(`### 5. USO DE REFERÊNCIAS VISUAIS\n${refParts.join('\n')}`);
   }
 
