@@ -596,7 +596,12 @@ export default function CreateImage() {
                       onClick={() => { setContentType("organic"); if (formData.platform) setPlatformGuidelines(getCaptionGuidelines(formData.platform, "organic")); }}
                       className="flex-1 rounded-md font-semibold h-7 text-xs">Orgânico</Button>
                     <Button type="button" variant={contentType === "ads" ? "default" : "ghost"}
-                      onClick={() => { setContentType("ads"); if (formData.platform) setPlatformGuidelines(getCaptionGuidelines(formData.platform, "ads")); }}
+                      onClick={() => { 
+                        setContentType("ads"); 
+                        if (formData.platform) setPlatformGuidelines(getCaptionGuidelines(formData.platform, "ads")); 
+                        // Anúncios sempre incluem texto/CTA na imagem
+                        setFormData(prev => ({ ...prev, imageIncludeText: true }));
+                      }}
                       className="flex-1 rounded-md font-semibold h-7 text-xs">Anúncio</Button>
                   </div>
                 </div>
