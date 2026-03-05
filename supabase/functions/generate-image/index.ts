@@ -302,9 +302,13 @@ function buildDirectorPrompt(params: {
 
   // SECTION 3: COMPOSIÇÃO DA IMAGEM
   const compParts: string[] = [];
-  compParts.push(`Cena: ${params.enrichedDescription}`);
+  compParts.push(`INSTRUÇÃO PRINCIPAL DO USUÁRIO: ${params.originalDescription}`);
+  compParts.push(`Cena Expandida: ${params.enrichedDescription}`);
   compParts.push(`Estilo Visual: ${params.styleSuffix}`);
-  if (params.platform) compParts.push(`Plataforma: ${params.platform}`);
+  if (params.platform) {
+    const aspectRatio = PLATFORM_ASPECT_RATIO[params.platform];
+    compParts.push(`Plataforma: ${params.platform}${aspectRatio ? ` (Aspect Ratio: ${aspectRatio})` : ''}`);
+  }
   compParts.push(`Tipo: ${params.contentType === 'ads' ? 'ANÚNCIO PAGO — foco em conversão' : 'ORGÂNICO — foco em engajamento'}`);
   compParts.push(`Qualidade: 4K, profundidade de campo profissional`);
   sections.push(`### 3. COMPOSIÇÃO DA IMAGEM\n${compParts.join('\n')}`);
