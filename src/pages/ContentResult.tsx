@@ -399,11 +399,20 @@ export default function ContentResult() {
         timestamp: new Date().toISOString(),
         caption: updatedContent.caption,
         title: updatedContent.title,
+        body: updatedContent.body,
         hashtags: updatedContent.hashtags,
         type: reviewType,
         reviewPrompt,
-        usedCredit: true
+        usedCredit: true,
+        mediaUrl: updatedContent.mediaUrl
       };
+
+      // Update version history state
+      setVersionHistory(prev => {
+        const newHistory = [...prev, newVersion];
+        setCurrentVersionIndex(newHistory.length - 1);
+        return newHistory;
+      });
 
       const currentVersions = saved.versions || [];
       const updatedVersions = [...currentVersions, newVersion];
