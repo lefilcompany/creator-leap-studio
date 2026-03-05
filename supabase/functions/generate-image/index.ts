@@ -275,6 +275,7 @@ function buildDirectorPrompt(params: {
   styleReferenceImagesCount: number;
   headline: string;
   subtexto: string;
+  ctaText: string;
 }): string {
   const sections: string[] = [];
 
@@ -346,7 +347,7 @@ function buildDirectorPrompt(params: {
     
     // Determine which text to render
     const primaryText = params.textContent || params.headline || '';
-    const ctaText = isAd && params.subtexto ? params.subtexto : '';
+    const ctaText = params.ctaText || (isAd ? params.subtexto : '') || '';
     
     const textParts = [`### 4. TEXTO E DESIGN
 - IDIOMA OBRIGATÓRIO: Português Brasileiro (pt-BR). Todo texto DEVE seguir ortografia, acentuação e gramática do Português do Brasil. Use acentos corretamente (é, ã, ç, ô, etc.). NUNCA use português de Portugal ou espanhol.`];
@@ -631,6 +632,7 @@ serve(async (req) => {
       styleReferenceImagesCount: styleReferenceImages.length,
       headline: briefingResult.headline,
       subtexto: briefingResult.subtexto,
+      ctaText: cleanInput(formData.ctaText) || '',
     });
 
     // Build image role prefix

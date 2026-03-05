@@ -64,6 +64,7 @@ interface FormData {
   imageTextPosition?: 'top' | 'center' | 'bottom' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
   fontStyle?: string;
   textDesignStyle?: string;
+  ctaText?: string;
 }
 
 const TEXT_POSITIONS = [
@@ -121,7 +122,7 @@ export default function CreateImage() {
     lighting: "natural", composition: "auto", cameraAngle: "eye_level",
     detailLevel: 7, mood: "auto", imageIncludeText: false,
     imageTextContent: "", imageTextPosition: "center",
-    fontStyle: "modern", textDesignStyle: "clean",
+    fontStyle: "modern", textDesignStyle: "clean", ctaText: "",
   });
 
   const [loading, setLoading] = useState(false);
@@ -417,6 +418,7 @@ export default function CreateImage() {
         textPosition: formData.imageTextPosition || "center",
         fontStyle: formData.fontStyle || "modern",
         textDesignStyle: formData.textDesignStyle || "clean",
+        ctaText: formData.ctaText?.trim() || "",
       };
 
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -902,6 +904,21 @@ export default function CreateImage() {
                       maxLength={80}
                     />
                     <p className="text-[10px] text-muted-foreground">{formData.imageTextContent?.length || 0}/80 caracteres · Português Brasileiro</p>
+                  </div>
+
+                  {/* CTA Text */}
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-medium text-muted-foreground">
+                      CTA (Call-to-Action) <span className="text-muted-foreground/70 font-normal">(opcional)</span>
+                    </Label>
+                    <Input
+                      placeholder="Ex: Saiba mais · Compre agora · Garanta o seu"
+                      value={formData.ctaText}
+                      onChange={e => setFormData(prev => ({ ...prev, ctaText: e.target.value }))}
+                      className="h-9 rounded-lg border-2 border-border/50 bg-background/50 text-sm"
+                      maxLength={40}
+                    />
+                    <p className="text-[10px] text-muted-foreground">{formData.ctaText?.length || 0}/40 caracteres · Texto do botão ou chamada para ação</p>
                   </div>
 
                   {/* Position selector - icon grid */}
