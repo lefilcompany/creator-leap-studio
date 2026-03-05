@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { Plus, ImageIcon, X, Paintbrush, ChevronDown } from "lucide-react";
+import { ImageIcon, X, Paintbrush, ChevronDown, ClipboardPaste } from "lucide-react";
 import { toast } from "sonner";
 
 const VISUAL_STYLES = [
