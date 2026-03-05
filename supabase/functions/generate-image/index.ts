@@ -648,11 +648,11 @@ serve(async (req) => {
     let imageRolePrefix = '';
     if (hasAnyImages) {
       const parts: string[] = [
-        'INSTRUÇÃO OBRIGATÓRIA SOBRE IMAGENS ANEXADAS: As imagens fornecidas são o CONTEÚDO REAL que deve aparecer na imagem gerada, NÃO apenas referências de estilo',
-        'Se a imagem contém um produto, esse produto DEVE estar presente na imagem final. Se contém um ambiente, use-o como cenário. Se contém uma pessoa, preserve sua aparência',
+        '⚠️ INSTRUÇÃO CRÍTICA SOBRE IMAGENS ANEXADAS: As imagens fornecidas contêm o CONTEÚDO REAL (produto, pessoa, objeto) que DEVE aparecer na imagem gerada EXATAMENTE como é, sem NENHUMA alteração visual',
+        'NUNCA redesenhe, reinterprete ou modifique o sujeito principal das imagens. Use-o TAL QUAL ELE É. Você pode remover o fundo e posicionar em novo cenário, mas o sujeito é INTOCÁVEL',
       ];
-      if (preserveImages.length > 0) parts.push(`As primeiras ${preserveImages.length} imagem(ns) marcadas como PRESERVAR são o SUJEITO PRINCIPAL — reproduza com máxima fidelidade`);
-      if (styleReferenceImages.length > 0) parts.push(`As ${styleReferenceImages.length} imagem(ns) de referência também devem ter seu conteúdo integrado na composição final`);
+      if (preserveImages.length > 0) parts.push(`As primeiras ${preserveImages.length} imagem(ns) marcadas como PRESERVAR são INTOCÁVEIS — reproduza com fidelidade PIXEL-PERFECT, sem alterar forma, cor, textura ou proporção`);
+      if (styleReferenceImages.length > 0) parts.push(`As ${styleReferenceImages.length} imagem(ns) de referência também devem ter seu conteúdo integrado SEM ALTERAÇÃO na composição final`);
       imageRolePrefix = `${parts.join('. ')}.\n\n`;
     }
 
