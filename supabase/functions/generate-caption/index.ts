@@ -467,10 +467,14 @@ serve(async (req) => {
       throw new Error("Empty content returned");
     }
 
-    // Parse JSON response
+    // Parse JSON response using robust extraction
     let parsedContent;
     try {
-      parsedContent = JSON.parse(content);
+      parsedContent = extractJSON(content);
+      if (!parsedContent) {
+        console.error("❌ [CAPTION] extractJSON returned null from:", content?.substring(0, 200));
+        throw new Error("Could not extract JSON from AI response");
+      }
     } catch (parseError) {
       console.error("❌ [CAPTION] Erro ao fazer parse do JSON:", parseError);
       throw new Error("Invalid JSON response from AI");
