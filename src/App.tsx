@@ -15,6 +15,7 @@ import { PageLoader } from "./components/PageLoader";
 import { DashboardLayout } from "./components/DashboardLayout";
 import { SystemRoute } from "./components/system/SystemRoute";
 import { SystemLayout } from "./components/system/SystemLayout";
+import ScrollToTop from "./components/ScrollToTop";
 
 // Lazy loaded pages - Public
 const Auth = lazy(() => import("./pages/Auth"));
