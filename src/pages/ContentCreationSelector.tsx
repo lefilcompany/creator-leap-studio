@@ -175,6 +175,32 @@ export default function ContentCreationSelector() {
               </Card>
             </label>
 
+            {/* Criar Imagem Rápida */}
+            <label htmlFor="quick-image" className="cursor-pointer h-full" onClick={() => setCreationType("quick-image")}>
+              <Card className="border-0 shadow-lg hover:shadow-xl hover:bg-amber-500/10 hover:border-amber-500/30 transition-all duration-300 h-full active:scale-[0.98] touch-manipulation rounded-2xl">
+                <CardContent className="p-6 flex flex-col items-center text-center gap-4 h-full justify-between">
+                  <RadioGroupItem value="quick-image" id="quick-image" className="sr-only" />
+                  <div className="flex flex-col items-center gap-4 flex-1 justify-center">
+                    <div className="w-16 h-16 rounded-full bg-amber-500/10 flex items-center justify-center flex-shrink-0">
+                      <Zap className="h-8 w-8 text-amber-500" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <h3 className="font-semibold text-lg">Criar Imagem Rápida</h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        Crie imagens rapidamente com IA de forma simplificada
+                      </p>
+                    </div>
+                  </div>
+                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/15 border border-amber-500/30">
+                    <Zap className="h-4 w-4 text-amber-500" />
+                    <span className="text-sm font-bold text-amber-500">
+                      {CREDIT_COSTS.QUICK_IMAGE} créditos
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+            </label>
+
             {/* Criação de Vídeo */}
             <label htmlFor="video" className="cursor-pointer h-full" onClick={() => setCreationType("video")}>
               <Card className="border-0 shadow-lg hover:shadow-xl hover:bg-secondary/10 hover:border-secondary/30 transition-all duration-300 h-full active:scale-[0.98] touch-manipulation rounded-2xl">
