@@ -343,14 +343,20 @@ function buildDirectorPrompt(params: {
   // SECTION 5: USO DE REFERÊNCIAS VISUAIS
   if (params.preserveImagesCount > 0 || params.styleReferenceImagesCount > 0) {
     const refParts: string[] = [
-      'As referências visuais anexadas são mandatórias para estética final. Mantenha coerência real de paleta, iluminação, textura e direção de arte.'
+      'REGRA CRÍTICA: As imagens de referência anexadas NÃO são apenas inspiração estética. Elas são o CONTEÚDO PRINCIPAL da imagem a ser gerada.',
+      'O modelo DEVE incorporar os elementos visuais das referências DIRETAMENTE na composição final:',
+      '- Se a referência contém um PRODUTO: o produto DEVE aparecer na imagem gerada, posicionado de forma destacada na cena descrita.',
+      '- Se a referência contém um AMBIENTE/LOCAL: o ambiente DEVE ser usado como cenário/locação da imagem gerada.',
+      '- Se a referência contém uma PESSOA: a aparência, estilo e características visuais DEVEM ser preservadas na imagem.',
+      '- Se a referência contém um LOGO ou ELEMENTO GRÁFICO: esse elemento DEVE ser integrado na composição.',
+      'A imagem gerada deve parecer uma versão aprimorada/estilizada que CONTÉM os elementos das referências, não apenas imita o estilo delas.'
     ];
 
     if (params.preserveImagesCount > 0) {
-      refParts.push(`${params.preserveImagesCount} imagem(ns) de IDENTIDADE VISUAL foram fornecidas. Replique fielmente cores, mood e linguagem visual.`);
+      refParts.push(`\n${params.preserveImagesCount} imagem(ns) marcadas como PRESERVAR: Esses elementos são a BASE da composição. Reproduza-os com máxima fidelidade visual (forma, cor, proporção, detalhes). A imagem final DEVE conter esses elementos como sujeito principal.`);
     }
     if (params.styleReferenceImagesCount > 0) {
-      refParts.push(`${params.styleReferenceImagesCount} imagem(ns) de REFERÊNCIA DO USUÁRIO foram fornecidas. Reaplique composição, enquadramento e tratamento visual com alta aderência.`);
+      refParts.push(`${params.styleReferenceImagesCount} imagem(ns) de REFERÊNCIA: Integre o conteúdo dessas imagens na composição. Se for um produto, coloque-o na cena. Se for um ambiente, use-o como cenário. Mantenha fidelidade ao que aparece na referência.`);
     }
 
     sections.push(`### 5. USO DE REFERÊNCIAS VISUAIS\n${refParts.join('\n')}`);
