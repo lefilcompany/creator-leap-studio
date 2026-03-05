@@ -95,6 +95,9 @@ const TEXT_DESIGN_OPTIONS = [
   { value: 'shadow_drop', label: 'Sombra', desc: 'Texto com sombra projetada forte' },
   { value: 'neon_glow', label: 'Neon', desc: 'Texto com brilho neon luminoso' },
   { value: 'boxed', label: 'Emoldurado', desc: 'Texto dentro de caixa com borda e fundo sólido' },
+  { value: 'badge', label: 'Badge/Selo', desc: 'Texto dentro de selo/etiqueta colorida com destaque' },
+  { value: 'plaquinha', label: 'Plaquinha', desc: 'Texto em placa de madeira/metal com textura' },
+  { value: 'card_overlay', label: 'Card Overlay', desc: 'Painel com informações sobrepostas na foto' },
 ] as const;
 
 const toneOptions = [
