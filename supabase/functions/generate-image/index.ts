@@ -324,59 +324,43 @@ function buildDirectorPrompt(params: {
 }
 
 // =====================================
-// EXTRACT IMAGE FROM GATEWAY RESPONSE (3 formats)
+// EXTRACT IMAGE FROM GEMINI DIRECT API RESPONSE
 // =====================================
 function extractImageFromResponse(data: any): { imageUrl: string | null; textResponse: string | null } {
   let imageUrl: string | null = null;
   let textResponse: string | null = null;
 
-  const message = data.choices?.[0]?.message;
-
-  // Format 1: message.images[]
-  if (message?.images?.length > 0) {
-    imageUrl = message.images[0].image_url?.url;
-  }
-
-  // Format 2: message.content[] (array)
-  if (!imageUrl && Array.isArray(message?.content)) {
-    for (const part of message.content) {
-      if (part.type === 'image_url' && part.image_url?.url) {
-        imageUrl = part.image_url.url;
-        break;
+  const parts = data.candidates?.[0]?.content?.parts;
+  if (parts) {
+    for (const part of parts) {
+      if (part.inlineData?.data && !imageUrl) {
+        imageUrl = `data:${part.inlineData.mimeType || 'image/png'};base64,${part.inlineData.data}`;
       }
-    }
-    // Extract text from content array
-    for (const part of message.content) {
-      if (part.type === 'text' && part.text) {
+      if (part.text && !textResponse) {
         textResponse = part.text;
-        break;
       }
     }
   }
-
-  // Format 3: candidates[].content.parts[].inlineData (Gemini native)
-  if (!imageUrl && data.candidates?.[0]?.content?.parts) {
-    for (const part of data.candidates[0].content.parts) {
-      if (part.inlineData?.data) {
-        const mimeType = part.inlineData.mimeType || 'image/png';
-        imageUrl = `data:${mimeType};base64,${part.inlineData.data}`;
-        break;
-      }
-    }
-    for (const part of data.candidates[0].content.parts) {
-      if (part.text) {
-        textResponse = part.text;
-        break;
-      }
-    }
-  }
-
-  // Text from message.content string
-  if (!textResponse && typeof message?.content === 'string') {
-    textResponse = message.content;
-  }
-
   return { imageUrl, textResponse };
+}
+
+// Convert OpenAI-style message content to Gemini parts format
+function convertToGeminiParts(messageContent: any[]): any[] {
+  const parts: any[] = [];
+  for (const item of messageContent) {
+    if (item.type === 'text') {
+      parts.push({ text: item.text });
+    } else if (item.type === 'image_url' && item.image_url?.url) {
+      const url = item.image_url.url;
+      if (url.startsWith('data:')) {
+        const match = url.match(/^data:([^;]+);base64,(.+)$/);
+        if (match) {
+          parts.push({ inlineData: { mimeType: match[1], data: match[2] } });
+        }
+      }
+    }
+  }
+  return parts;
 }
 
 serve(async (req) => {
