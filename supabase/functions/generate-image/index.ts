@@ -626,6 +626,7 @@ serve(async (req) => {
       textContent: textContent || '',
       textPosition: cleanInput(formData.textPosition) || 'center',
       fontStyle: formData.fontStyle || 'modern',
+      textDesignStyle: formData.textDesignStyle || 'clean',
       preserveImagesCount: preserveImages.length,
       styleReferenceImagesCount: styleReferenceImages.length,
       headline: briefingResult.headline,
