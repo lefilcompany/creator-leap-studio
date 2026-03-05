@@ -739,6 +739,25 @@ export default function CreateImage() {
 
             {showSettings && (
               <div className="rounded-2xl shadow-lg overflow-hidden border-0 bg-card p-4 md:p-5 space-y-4">
+                {/* Estilo Visual */}
+                <div className="space-y-2">
+                  <Label className="text-xs font-medium text-muted-foreground">Estilo Visual <span className="font-normal">(opcional)</span></Label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {VISUAL_STYLES.map(style => (
+                      <button key={style.value} type="button"
+                        onClick={() => handleSelectChange("visualStyle" as any, style.value)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all active:scale-[0.97] ${
+                          formData.visualStyle === style.value
+                            ? "bg-primary text-primary-foreground shadow-sm"
+                            : "bg-muted/50 text-foreground shadow-sm hover:shadow-md hover:text-primary"
+                        }`}
+                      >
+                        {style.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {isLoadingData ? <SelectSkeleton /> : (
                     <div className="space-y-1.5">
