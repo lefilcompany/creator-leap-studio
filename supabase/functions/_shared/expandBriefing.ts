@@ -4,7 +4,7 @@
  * Recebe um documento de briefing completo e retorna um JSON estruturado
  * com briefing visual cinematográfico, headline e subtexto.
  * 
- * Usa o Lovable AI Gateway (google/gemini-3-flash-preview).
+ * Usa Google Gemini API direta (gemini-2.5-flash).
  */
 
 export interface BriefingExpansionInput {
