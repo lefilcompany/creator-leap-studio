@@ -83,32 +83,31 @@ export async function expandBriefing(
   _geminiApiKey?: string // kept for backward compat, not used anymore
 ): Promise<ExpandedBriefing> {
   const systemPrompt = buildSystemPrompt(input);
-  const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+  const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
 
-  if (!LOVABLE_API_KEY) {
-    console.error('[LLMRefiner] LOVABLE_API_KEY not configured, falling back to empty');
+  if (!GEMINI_API_KEY) {
+    console.error('[LLMRefiner] GEMINI_API_KEY not configured, falling back to empty');
     return { expandedPrompt: '', headline: '', subtexto: '' };
   }
 
-  console.log('[LLMRefiner] Expanding briefing via Lovable AI Gateway...');
+  console.log('[LLMRefiner] Expanding briefing via Gemini API...');
   console.log('[LLMRefiner] Document length:', input.briefingDocument.length, 'chars');
   console.log('[LLMRefiner] Visual style:', input.visualStyle);
 
   try {
     const userMessage = `Transforme este Briefing Completo num Briefing Visual cinematográfico:\n\n${input.briefingDocument}`;
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-3-flash-preview',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userMessage },
-        ],
+        contents: [{ role: 'user', parts: [{ text: userMessage }] }],
+        systemInstruction: { parts: [{ text: systemPrompt }] },
+        generationConfig: {
+          temperature: 0.7,
+        },
       }),
     });
 
