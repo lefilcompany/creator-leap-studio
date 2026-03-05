@@ -64,6 +64,7 @@ interface FormData {
   imageTextPosition?: 'top' | 'center' | 'bottom' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
   fontStyle?: string;
   textDesignStyle?: string;
+  ctaText?: string;
 }
 
 const TEXT_POSITIONS = [
