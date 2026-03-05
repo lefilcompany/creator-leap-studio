@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Download, Copy, Sparkles, ArrowLeft, Check, ImageIcon, Video, RefreshCw, FileText, Loader, Coins } from "lucide-react";
+import { Download, Copy, Sparkles, ArrowLeft, Check, ImageIcon, Video, RefreshCw, FileText, Loader, Coins, Undo2, Redo2, History } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -47,6 +47,8 @@ export default function ContentResult() {
   const [totalRevisions, setTotalRevisions] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const [isSavedToHistory, setIsSavedToHistory] = useState(false);
+  const [versionHistory, setVersionHistory] = useState<any[]>([]);
+  const [currentVersionIndex, setCurrentVersionIndex] = useState(0);
 
   useEffect(() => {
     const loadContent = async () => {
@@ -103,9 +105,13 @@ export default function ContentResult() {
           timestamp: new Date().toISOString(),
           caption: data.caption,
           title: data.title,
+          body: data.body,
           hashtags: data.hashtags,
-          type: data.type
+          type: data.type,
+          mediaUrl: data.mediaUrl
         };
+        setVersionHistory([versionData]);
+        setCurrentVersionIndex(0);
 
         const savedContent = {
           id: contentId,
@@ -146,6 +152,11 @@ export default function ContentResult() {
               parsed.mediaUrl = imageUrl;
             }
             setContentData(parsed);
+            // Restore version history
+            if (parsed.versions && parsed.versions.length > 0) {
+              setVersionHistory(parsed.versions);
+              setCurrentVersionIndex(parsed.currentVersion || parsed.versions.length - 1);
+            }
             const revisionsKey = `revisions_${parsed.id}`;
             const savedRevisions = localStorage.getItem(revisionsKey);
             if (savedRevisions) {
@@ -393,11 +404,20 @@ export default function ContentResult() {
         timestamp: new Date().toISOString(),
         caption: updatedContent.caption,
         title: updatedContent.title,
+        body: updatedContent.body,
         hashtags: updatedContent.hashtags,
         type: reviewType,
         reviewPrompt,
-        usedCredit: true
+        usedCredit: true,
+        mediaUrl: updatedContent.mediaUrl
       };
+
+      // Update version history state
+      setVersionHistory(prev => {
+        const newHistory = [...prev, newVersion];
+        setCurrentVersionIndex(newHistory.length - 1);
+        return newHistory;
+      });
 
       const currentVersions = saved.versions || [];
       const updatedVersions = [...currentVersions, newVersion];
@@ -534,6 +554,22 @@ export default function ContentResult() {
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleNavigateVersion = (direction: "prev" | "next") => {
+    const newIndex = direction === "prev" ? currentVersionIndex - 1 : currentVersionIndex + 1;
+    if (newIndex < 0 || newIndex >= versionHistory.length) return;
+
+    const version = versionHistory[newIndex];
+    setCurrentVersionIndex(newIndex);
+    setContentData(prev => prev ? {
+      ...prev,
+      caption: version.caption || prev.caption,
+      title: version.title || prev.title,
+      body: version.body || prev.body,
+      hashtags: version.hashtags || prev.hashtags,
+      mediaUrl: version.mediaUrl || prev.mediaUrl,
+    } : prev);
   };
 
   if (isLoading || !contentData) {
@@ -771,6 +807,42 @@ export default function ContentResult() {
                   )}
                 </div>
               </div>
+              {/* Version Navigation */}
+              {versionHistory.length > 1 && (
+                <div className="p-3 sm:p-4 bg-muted/20 border-t border-border/20">
+                  <div className="flex items-center justify-between gap-2">
+                    <Button
+                      onClick={() => handleNavigateVersion("prev")}
+                      variant="outline"
+                      size="sm"
+                      disabled={currentVersionIndex === 0}
+                      className="rounded-xl gap-1.5 text-xs sm:text-sm"
+                    >
+                      <Undo2 className="h-3.5 w-3.5" />
+                      <span className="hidden sm:inline">Versão Anterior</span>
+                      <span className="sm:hidden">Anterior</span>
+                    </Button>
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <History className="h-3.5 w-3.5" />
+                      <span className="font-medium">
+                        {currentVersionIndex === 0 ? "Original" : `Revisão ${currentVersionIndex}`}
+                      </span>
+                      <span>({currentVersionIndex + 1}/{versionHistory.length})</span>
+                    </div>
+                    <Button
+                      onClick={() => handleNavigateVersion("next")}
+                      variant="outline"
+                      size="sm"
+                      disabled={currentVersionIndex === versionHistory.length - 1}
+                      className="rounded-xl gap-1.5 text-xs sm:text-sm"
+                    >
+                      <span className="hidden sm:inline">Versão Revisada</span>
+                      <span className="sm:hidden">Próxima</span>
+                      <Redo2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
