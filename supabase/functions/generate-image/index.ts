@@ -18,6 +18,28 @@ function cleanInput(text: string | string[] | undefined | null): string {
 }
 
 // =====================================
+// FONT STYLES & PLATFORM ASPECT RATIOS
+// =====================================
+const FONT_STYLES: Record<string, string> = {
+  elegant: "serifa clássica, refinada, com elegância tipográfica",
+  modern: "sans-serif limpa, geométrica, moderna e minimalista",
+  fun: "script casual ou display arrojada, divertida e expressiva",
+  impactful: "bold condensada, display forte, grande impacto visual",
+};
+
+const PLATFORM_ASPECT_RATIO: Record<string, string> = {
+  'instagram_feed': '4:5',
+  'instagram_stories': '9:16',
+  'instagram_reels': '9:16',
+  'facebook_post': '4:5',
+  'linkedin_post': '1.91:1',
+  'twitter': '1.91:1',
+  'tiktok': '9:16',
+  'youtube_thumbnail': '16:9',
+  'pinterest': '2:3',
+};
+
+// =====================================
 // STYLE SETTINGS
 // =====================================
 const getStyleSettings = (styleType: string) => {
@@ -212,6 +234,7 @@ function buildBriefingDocument(formData: any, brandData: any, themeData: any, pe
 // BUILD DIRECTOR PROMPT (6 sections for image model)
 // =====================================
 function buildDirectorPrompt(params: {
+  originalDescription: string;
   enrichedDescription: string;
   brandData: any;
   themeData: any;
@@ -225,6 +248,7 @@ function buildDirectorPrompt(params: {
   includeText: boolean;
   textContent: string;
   textPosition: string;
+  fontStyle: string;
   preserveImagesCount: number;
   styleReferenceImagesCount: number;
   headline: string;
@@ -278,17 +302,23 @@ function buildDirectorPrompt(params: {
 
   // SECTION 3: COMPOSIÇÃO DA IMAGEM
   const compParts: string[] = [];
-  compParts.push(`Cena: ${params.enrichedDescription}`);
+  compParts.push(`INSTRUÇÃO PRINCIPAL DO USUÁRIO: ${params.originalDescription}`);
+  compParts.push(`Cena Expandida: ${params.enrichedDescription}`);
   compParts.push(`Estilo Visual: ${params.styleSuffix}`);
-  if (params.platform) compParts.push(`Plataforma: ${params.platform}`);
+  if (params.platform) {
+    const aspectRatio = PLATFORM_ASPECT_RATIO[params.platform];
+    compParts.push(`Plataforma: ${params.platform}${aspectRatio ? ` (Aspect Ratio: ${aspectRatio})` : ''}`);
+  }
   compParts.push(`Tipo: ${params.contentType === 'ads' ? 'ANÚNCIO PAGO — foco em conversão' : 'ORGÂNICO — foco em engajamento'}`);
   compParts.push(`Qualidade: 4K, profundidade de campo profissional`);
   sections.push(`### 3. COMPOSIÇÃO DA IMAGEM\n${compParts.join('\n')}`);
 
   // SECTION 4: TEXTO E DESIGN
   if (params.includeText && params.textContent) {
+    const fontDesc = FONT_STYLES[params.fontStyle] || FONT_STYLES['modern'];
     sections.push(`### 4. TEXTO E DESIGN
 - Headline: Renderize PERFEITAMENTE o texto: "${params.textContent}"
+- Tipografia: ${fontDesc}
 - Posição: ${params.textPosition || 'center'}. O texto NÃO deve obstruir o rosto.
 - Legibilidade: O texto DEVE ser o foco principal e 100% legível. Utilize espaço negativo estratégico na imagem, sobreposições de gradiente sutil ou caixas de texto limpas para garantir contraste absoluto entre a fonte e o fundo. O texto não deve flutuar sem propósito, deve fazer parte de uma composição de design profissional em formato para ${params.platform || 'redes sociais'}.`);
   } else {
@@ -447,6 +477,9 @@ serve(async (req) => {
       hasTextOverlay: includeText,
       textContent: textContent || undefined,
       tones,
+      brandData,
+      themeData,
+      personaData,
     });
 
     console.log('[Step 2] Refiner result:', {
@@ -473,6 +506,7 @@ serve(async (req) => {
     const styleReferenceImages: string[] = (formData.styleReferenceImages || []).slice(0, 1);
 
     const masterPrompt = buildDirectorPrompt({
+      originalDescription: description,
       enrichedDescription,
       brandData,
       themeData,
@@ -486,6 +520,7 @@ serve(async (req) => {
       includeText,
       textContent: textContent || '',
       textPosition: cleanInput(formData.textPosition) || 'center',
+      fontStyle: formData.fontStyle || 'modern',
       preserveImagesCount: preserveImages.length,
       styleReferenceImagesCount: styleReferenceImages.length,
       headline: briefingResult.headline,
