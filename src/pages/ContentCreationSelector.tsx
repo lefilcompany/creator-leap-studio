@@ -38,7 +38,6 @@ export default function ContentCreationSelector() {
   useEffect(() => {
     if (creationType) {
       const routes: Record<CreationType, string> = {
-        quick: "/quick-content",
         image: "/create/image",
         video: "/create/video",
       };
