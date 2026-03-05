@@ -62,7 +62,36 @@ interface FormData {
   imageIncludeText?: boolean;
   imageTextContent?: string;
   imageTextPosition?: 'top' | 'center' | 'bottom' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+  fontStyle?: string;
+  textDesignStyle?: string;
 }
+
+const TEXT_POSITIONS = [
+  { value: 'top-left', label: 'Topo Esq.', icon: '↖' },
+  { value: 'top', label: 'Topo', icon: '↑' },
+  { value: 'top-right', label: 'Topo Dir.', icon: '↗' },
+  { value: 'center', label: 'Centro', icon: '⊕' },
+  { value: 'bottom-left', label: 'Inferior Esq.', icon: '↙' },
+  { value: 'bottom', label: 'Inferior', icon: '↓' },
+  { value: 'bottom-right', label: 'Inferior Dir.', icon: '↘' },
+] as const;
+
+const FONT_STYLE_OPTIONS = [
+  { value: 'modern', label: 'Moderno', desc: 'Sans-serif limpa e minimalista' },
+  { value: 'elegant', label: 'Elegante', desc: 'Serifa clássica e refinada' },
+  { value: 'fun', label: 'Divertido', desc: 'Script casual e expressiva' },
+  { value: 'impactful', label: 'Impactante', desc: 'Bold condensada, alto impacto' },
+] as const;
+
+const TEXT_DESIGN_OPTIONS = [
+  { value: 'clean', label: 'Clean', desc: 'Texto sobre espaço negativo, sem overlay' },
+  { value: 'overlay', label: 'Overlay', desc: 'Texto sobre faixa semitransparente' },
+  { value: 'gradient_bar', label: 'Barra Gradiente', desc: 'Texto sobre barra com gradiente da marca' },
+  { value: 'cutout', label: 'Recorte', desc: 'Texto recortado revelando a imagem por dentro' },
+  { value: 'shadow_drop', label: 'Sombra', desc: 'Texto com sombra projetada forte' },
+  { value: 'neon_glow', label: 'Neon', desc: 'Texto com brilho neon luminoso' },
+  { value: 'boxed', label: 'Emoldurado', desc: 'Texto dentro de caixa com borda e fundo sólido' },
+] as const;
 
 const toneOptions = [
   "inspirador", "motivacional", "profissional", "casual",
