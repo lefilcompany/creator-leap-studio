@@ -13,7 +13,7 @@ import { NativeSelect } from "@/components/ui/native-select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Sparkles, Zap, X, Info, ImagePlus, Coins, Image as ImageIcon, HelpCircle, Paintbrush, ChevronDown, Plus, Settings2, Mic, ClipboardPaste } from "lucide-react";
+import { Loader2, Sparkles, Zap, X, Info, ImagePlus, Coins, Image as ImageIcon, HelpCircle, Paintbrush, ChevronDown, Plus, Settings2, Mic, ClipboardPaste, Type } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CREDIT_COSTS } from "@/lib/creditCosts";
 import { Checkbox } from "@/components/ui/checkbox";
