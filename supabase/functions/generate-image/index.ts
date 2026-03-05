@@ -588,9 +588,12 @@ serve(async (req) => {
     const hasAnyImages = preserveImages.length > 0 || styleReferenceImages.length > 0;
     let imageRolePrefix = '';
     if (hasAnyImages) {
-      const parts: string[] = ['As referências anexadas são vinculantes e devem ser seguidas com alta aderência visual'];
-      if (preserveImages.length > 0) parts.push(`As primeiras ${preserveImages.length} imagem(ns) são prioridade máxima para identidade visual, cor e iluminação`);
-      if (styleReferenceImages.length > 0) parts.push(`As ${styleReferenceImages.length} imagem(ns) seguintes devem orientar composição, enquadramento e acabamento estético`);
+      const parts: string[] = [
+        'INSTRUÇÃO OBRIGATÓRIA SOBRE IMAGENS ANEXADAS: As imagens fornecidas são o CONTEÚDO REAL que deve aparecer na imagem gerada, NÃO apenas referências de estilo',
+        'Se a imagem contém um produto, esse produto DEVE estar presente na imagem final. Se contém um ambiente, use-o como cenário. Se contém uma pessoa, preserve sua aparência',
+      ];
+      if (preserveImages.length > 0) parts.push(`As primeiras ${preserveImages.length} imagem(ns) marcadas como PRESERVAR são o SUJEITO PRINCIPAL — reproduza com máxima fidelidade`);
+      if (styleReferenceImages.length > 0) parts.push(`As ${styleReferenceImages.length} imagem(ns) de referência também devem ter seu conteúdo integrado na composição final`);
       imageRolePrefix = `${parts.join('. ')}.\n\n`;
     }
 
