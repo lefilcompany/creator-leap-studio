@@ -393,7 +393,7 @@ export default function CreateImage() {
       if (formData.theme && !uuidRegex.test(formData.theme)) { toast.error("Tema inválido", { id: toastId }); return; }
       if (formData.persona && !uuidRegex.test(formData.persona)) { toast.error("Persona inválida", { id: toastId }); return; }
 
-      toast.loading("Gerando imagem com IA...", { id: toastId, description: `Usando ${finalBrandImages.length} da marca + ${finalUserImages.length} suas referências.` });
+      toast.loading("Gerando imagem com IA...", { id: toastId, description: `Usando ${finalBrandImages.length} refs da marca + ${finalPreservedUserImages.length} preservadas + ${finalStyleUserImages.length} de estilo.` });
 
       const imageResponse = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-image`, {
         method: "POST",
