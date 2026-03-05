@@ -392,20 +392,28 @@ function buildDirectorPrompt(params: {
   // SECTION 5: USO DE REFERÊNCIAS VISUAIS
   if (params.preserveImagesCount > 0 || params.styleReferenceImagesCount > 0) {
     const refParts: string[] = [
-      'REGRA CRÍTICA: As imagens de referência anexadas NÃO são apenas inspiração estética. Elas são o CONTEÚDO PRINCIPAL da imagem a ser gerada.',
-      'O modelo DEVE incorporar os elementos visuais das referências DIRETAMENTE na composição final:',
-      '- Se a referência contém um PRODUTO: o produto DEVE aparecer na imagem gerada, posicionado de forma destacada na cena descrita.',
-      '- Se a referência contém um AMBIENTE/LOCAL: o ambiente DEVE ser usado como cenário/locação da imagem gerada.',
-      '- Se a referência contém uma PESSOA: a aparência, estilo e características visuais DEVEM ser preservadas na imagem.',
-      '- Se a referência contém um LOGO ou ELEMENTO GRÁFICO: esse elemento DEVE ser integrado na composição.',
-      'A imagem gerada deve parecer uma versão aprimorada/estilizada que CONTÉM os elementos das referências, não apenas imita o estilo delas.'
+      'REGRA CRÍTICA ABSOLUTA: As imagens de referência anexadas são o CONTEÚDO REAL e PRINCIPAL da imagem a ser gerada. NÃO são inspiração — são o SUJEITO.',
+      '',
+      '⚠️ PROIBIÇÃO ABSOLUTA: NUNCA altere, modifique, redesenhe, reinterprete ou recrie os elementos principais das imagens de referência.',
+      '- O produto/objeto/pessoa da referência DEVE aparecer EXATAMENTE como é na foto original.',
+      '- Mantenha TODAS as características visuais originais: forma, cor, textura, proporção, detalhes, perspectiva.',
+      '- NÃO mude o design do produto. NÃO mude as cores do produto. NÃO mude o formato do produto.',
+      '- NÃO gere uma versão "artística" ou "estilizada" do produto — use-o TAL QUAL ELE É.',
+      '',
+      'O QUE VOCÊ PODE FAZER:',
+      '- Remover o fundo original e posicionar o elemento em um novo cenário/composição.',
+      '- Ajustar iluminação e sombras para integrar o elemento ao novo cenário.',
+      '- Adicionar elementos complementares ao redor (cenário, props, decoração).',
+      '- Aplicar o estilo visual (fotorealístico, etc.) APENAS ao cenário/fundo, NUNCA ao produto/sujeito principal.',
+      '',
+      'RESULTADO ESPERADO: A imagem final deve parecer uma FOTO PROFISSIONAL onde o produto/sujeito REAL foi fotografado em um novo cenário, como em um estúdio de fotografia profissional.'
     ];
 
     if (params.preserveImagesCount > 0) {
-      refParts.push(`\n${params.preserveImagesCount} imagem(ns) marcadas como PRESERVAR: Esses elementos são a BASE da composição. Reproduza-os com máxima fidelidade visual (forma, cor, proporção, detalhes). A imagem final DEVE conter esses elementos como sujeito principal.`);
+      refParts.push(`\n${params.preserveImagesCount} imagem(ns) marcadas como PRESERVAR: Esses elementos são INTOCÁVEIS. Reproduza-os com fidelidade PIXEL-PERFECT. NÃO altere NADA do sujeito principal — forma, cor, proporção, textura, detalhes devem ser idênticos ao original. A imagem final DEVE conter esses elementos como sujeito principal.`);
     }
     if (params.styleReferenceImagesCount > 0) {
-      refParts.push(`${params.styleReferenceImagesCount} imagem(ns) de REFERÊNCIA: Integre o conteúdo dessas imagens na composição. Se for um produto, coloque-o na cena. Se for um ambiente, use-o como cenário. Mantenha fidelidade ao que aparece na referência.`);
+      refParts.push(`${params.styleReferenceImagesCount} imagem(ns) de REFERÊNCIA: O conteúdo dessas imagens (produto, pessoa, ambiente) DEVE ser integrado na composição EXATAMENTE como aparece na referência. NÃO redesenhe ou reinterprete — use o elemento REAL.`);
     }
 
     sections.push(`### 5. USO DE REFERÊNCIAS VISUAIS\n${refParts.join('\n')}`);
@@ -640,11 +648,11 @@ serve(async (req) => {
     let imageRolePrefix = '';
     if (hasAnyImages) {
       const parts: string[] = [
-        'INSTRUÇÃO OBRIGATÓRIA SOBRE IMAGENS ANEXADAS: As imagens fornecidas são o CONTEÚDO REAL que deve aparecer na imagem gerada, NÃO apenas referências de estilo',
-        'Se a imagem contém um produto, esse produto DEVE estar presente na imagem final. Se contém um ambiente, use-o como cenário. Se contém uma pessoa, preserve sua aparência',
+        '⚠️ INSTRUÇÃO CRÍTICA SOBRE IMAGENS ANEXADAS: As imagens fornecidas contêm o CONTEÚDO REAL (produto, pessoa, objeto) que DEVE aparecer na imagem gerada EXATAMENTE como é, sem NENHUMA alteração visual',
+        'NUNCA redesenhe, reinterprete ou modifique o sujeito principal das imagens. Use-o TAL QUAL ELE É. Você pode remover o fundo e posicionar em novo cenário, mas o sujeito é INTOCÁVEL',
       ];
-      if (preserveImages.length > 0) parts.push(`As primeiras ${preserveImages.length} imagem(ns) marcadas como PRESERVAR são o SUJEITO PRINCIPAL — reproduza com máxima fidelidade`);
-      if (styleReferenceImages.length > 0) parts.push(`As ${styleReferenceImages.length} imagem(ns) de referência também devem ter seu conteúdo integrado na composição final`);
+      if (preserveImages.length > 0) parts.push(`As primeiras ${preserveImages.length} imagem(ns) marcadas como PRESERVAR são INTOCÁVEIS — reproduza com fidelidade PIXEL-PERFECT, sem alterar forma, cor, textura ou proporção`);
+      if (styleReferenceImages.length > 0) parts.push(`As ${styleReferenceImages.length} imagem(ns) de referência também devem ter seu conteúdo integrado SEM ALTERAÇÃO na composição final`);
       imageRolePrefix = `${parts.join('. ')}.\n\n`;
     }
 
