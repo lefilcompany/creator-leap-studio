@@ -906,6 +906,21 @@ export default function CreateImage() {
                     <p className="text-[10px] text-muted-foreground">{formData.imageTextContent?.length || 0}/80 caracteres · Português Brasileiro</p>
                   </div>
 
+                  {/* CTA Text */}
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-medium text-muted-foreground">
+                      CTA (Call-to-Action) <span className="text-muted-foreground/70 font-normal">(opcional)</span>
+                    </Label>
+                    <Input
+                      placeholder="Ex: Saiba mais · Compre agora · Garanta o seu"
+                      value={formData.ctaText}
+                      onChange={e => setFormData(prev => ({ ...prev, ctaText: e.target.value }))}
+                      className="h-9 rounded-lg border-2 border-border/50 bg-background/50 text-sm"
+                      maxLength={40}
+                    />
+                    <p className="text-[10px] text-muted-foreground">{formData.ctaText?.length || 0}/40 caracteres · Texto do botão ou chamada para ação</p>
+                  </div>
+
                   {/* Position selector - icon grid */}
                   <div className="space-y-2">
                     <Label className="text-xs font-medium text-muted-foreground">Posição do Texto</Label>
