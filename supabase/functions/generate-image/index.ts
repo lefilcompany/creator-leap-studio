@@ -566,12 +566,17 @@ serve(async (req) => {
     console.log(`[Step 4] Message parts: ${messageContent.length} (1 text + ${messageContent.length - 1} images)`);
 
     // =====================================
-    // STEP 5: Generate image via Gateway with retry
+    // STEP 5: Generate image via Lovable AI Gateway (gemini-3-pro-image-preview)
     // =====================================
     const MAX_RETRIES = 3;
-    const REQUEST_TIMEOUT_MS = 45000;
-    const PRIMARY_IMAGE_MODEL = 'gemini-2.5-flash-image';
-    const FALLBACK_IMAGE_MODEL = 'gemini-2.5-flash-image';
+    const REQUEST_TIMEOUT_MS = 90000; // 90s for higher-quality model
+    const PRIMARY_IMAGE_MODEL = 'google/gemini-3-pro-image-preview';
+    const FALLBACK_IMAGE_MODEL = 'google/gemini-2.5-flash-image';
+
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) {
+      throw new Error('LOVABLE_API_KEY not configured');
+    }
 
     let lastError: any = null;
     let imageUrl: string | null = null;
@@ -580,32 +585,31 @@ serve(async (req) => {
 
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       try {
-        const modelForAttempt = attempt === 1 ? PRIMARY_IMAGE_MODEL : FALLBACK_IMAGE_MODEL;
+        const modelForAttempt = attempt <= 2 ? PRIMARY_IMAGE_MODEL : FALLBACK_IMAGE_MODEL;
         usedImageModel = modelForAttempt;
 
-        console.log(`[Step 5] Image generation attempt ${attempt}/${MAX_RETRIES} with model ${modelForAttempt}...`);
+        console.log(`[Step 5] Image generation attempt ${attempt}/${MAX_RETRIES} with model ${modelForAttempt} via Lovable AI Gateway...`);
 
-        const geminiParts = convertToGeminiParts(messageContent);
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelForAttempt}:generateContent?key=${GEMINI_API_KEY}`, {
+        const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
           method: 'POST',
           headers: {
+            'Authorization': `Bearer ${LOVABLE_API_KEY}`,
             'Content-Type': 'application/json',
           },
           signal: controller.signal,
           body: JSON.stringify({
-            contents: [{ role: 'user', parts: geminiParts }],
-            generationConfig: {
-              responseModalities: ['IMAGE', 'TEXT'],
-            },
+            model: modelForAttempt,
+            messages: [{ role: 'user', content: messageContent }],
+            modalities: ['image', 'text'],
           }),
         }).finally(() => clearTimeout(timeoutId));
 
         if (!response.ok) {
           const errorText = await response.text();
-          console.error(`Gemini error (attempt ${attempt}, model ${modelForAttempt}):`, response.status, errorText);
+          console.error(`Gateway error (attempt ${attempt}, model ${modelForAttempt}):`, response.status, errorText);
 
           if (response.status === 400) {
             return new Response(JSON.stringify({
@@ -622,13 +626,13 @@ serve(async (req) => {
             return new Response(JSON.stringify({ error: 'Créditos de IA esgotados. Tente novamente mais tarde.' }), { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
           }
 
-          lastError = new Error(`Gemini error (${modelForAttempt}): ${response.status}`);
+          lastError = new Error(`Gateway error (${modelForAttempt}): ${response.status}`);
           if (attempt < MAX_RETRIES) { await new Promise(r => setTimeout(r, 2000)); continue; }
           throw lastError;
         }
 
         const data = await response.json();
-        const extracted = extractImageFromResponse(data);
+        const extracted = extractImageFromGatewayResponse(data);
         imageUrl = extracted.imageUrl;
         if (extracted.textResponse) resultDescription = extracted.textResponse;
 
