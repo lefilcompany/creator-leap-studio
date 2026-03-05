@@ -279,6 +279,9 @@ function buildDirectorPrompt(params: {
   headline: string;
   subtexto: string;
   ctaText: string;
+  adProfessionalMode: boolean;
+  priceText: string;
+  includeBrandLogo: boolean;
 }): string {
   const sections: string[] = [];
 
