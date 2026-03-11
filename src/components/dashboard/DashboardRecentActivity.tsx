@@ -208,6 +208,15 @@ export const DashboardRecentActivity = ({ activities, isLoading }: DashboardRece
                               loading="lazy"
                               draggable={false}
                             />
+                          ) : activity.type === 'GERAR_VIDEO' && (activity as any).video_url ? (
+                            <video
+                              src={(activity as any).video_url}
+                              className="w-full h-full object-cover pointer-events-none"
+                              muted
+                              playsInline
+                              preload="metadata"
+                              onLoadedData={(e) => { e.currentTarget.currentTime = 1; }}
+                            />
                           ) : (
                             <Icon className={`h-8 w-8 ${config.color} opacity-40`} />
                           )}
