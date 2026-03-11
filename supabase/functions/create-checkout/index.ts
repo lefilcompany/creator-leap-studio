@@ -69,7 +69,7 @@ serve(async (req) => {
     if (!type || !['plan', 'custom', 'credits'].includes(type)) {
       throw new Error("type is required and must be 'plan', 'custom', or 'credits'");
     }
-    logStep("Request data received", { type, price_id, plan_id, package_id, credits });
+    logStep("Request data received", { type, price_id, plan_id, package_id, credits, payment_mode });
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2024-12-18.acacia" });
     
