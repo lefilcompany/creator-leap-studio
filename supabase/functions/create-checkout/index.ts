@@ -92,9 +92,13 @@ serve(async (req) => {
     let session;
 
     if (type === 'plan' || type === 'credits') {
-      // Compra de pacote de créditos (pagamento único)
+      // Compra de pacote de créditos
       const packageId = package_id || plan_id;
       if (!price_id || !packageId) throw new Error("price_id and package_id are required for credits purchase");
+      
+      // Determinar modo: payment (avulso) ou subscription (recorrente)
+      const checkoutMode = payment_mode === 'payment' ? 'payment' : 'subscription';
+      logStep("Checkout mode", { checkoutMode, payment_mode });
       
       session = await stripe.checkout.sessions.create({
         customer: customerId,
@@ -105,18 +109,18 @@ serve(async (req) => {
             quantity: 1,
           },
         ],
-        mode: "subscription",
+        mode: checkoutMode,
         success_url: successUrl,
         cancel_url: `${origin}/credits?canceled=true`,
         metadata: {
           user_id: user.id,
           team_id: teamId || '',
-          purchase_type: 'credits',
+          purchase_type: checkoutMode === 'subscription' ? 'subscription' : 'credits',
           package_id: packageId,
           return_url: return_url || '/credits',
         }
       });
-      logStep("Credits checkout session created", { sessionId: session.id, packageId });
+      logStep("Credits checkout session created", { sessionId: session.id, packageId, mode: checkoutMode });
     } else {
       // Compra avulsa dinâmica
       if (!credits || credits < 5) throw new Error("credits is required and must be at least 5");
