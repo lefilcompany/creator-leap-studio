@@ -128,6 +128,16 @@ const Auth = () => {
   const isMobile = useIsMobile();
   const [sheetOpen, setSheetOpen] = useState(false);
 
+  // Captura parâmetros UTM da URL
+  const utmParams = useMemo(() => {
+    const params: Record<string, string> = {};
+    ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'].forEach(key => {
+      const value = searchParams.get(key);
+      if (value) params[key] = value;
+    });
+    return params;
+  }, [searchParams]);
+
   // Se a URL tiver ?mode=register, abre direto no cadastro
   useEffect(() => {
     if (searchParams.get('mode') === 'register') {
