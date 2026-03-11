@@ -13,6 +13,7 @@ interface User {
   // Créditos individuais do usuário
   credits: number;
   maxCredits: number;
+  creditsExpireAt?: string | null;
   planId: string;
   subscriptionStatus?: string;
   subscriptionPeriodEnd?: string;
