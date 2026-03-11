@@ -232,14 +232,19 @@ export function PostRegistrationPurchaseModal({ open, onComplete }: Props) {
               className="text-center"
             >
               <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-                {step === "select-package" ? "Escolha seu pacote de créditos" : "Como deseja pagar?"}
+                {step === "select-package" ? "Escolha seu pacote de créditos" 
+                  : step === "awaiting-payment" ? "Finalizando sua compra"
+                  : "Como deseja pagar?"}
               </h2>
               <p className="text-sm sm:text-base text-muted-foreground mt-1.5 max-w-lg mx-auto">
                 {step === "select-package"
                   ? "Selecione o pacote ideal para começar a criar conteúdo com IA"
-                  : isCustomMode
-                    ? `${customCredits} créditos avulsos — R$ ${(customCredits * CREDIT_PRICE).toFixed(2)}`
-                    : `${selectedPackage?.name} — ${selectedPackage?.credits} créditos por R$ ${selectedPackage?.price.toLocaleString('pt-BR')}`
+                  : step === "awaiting-payment"
+                    ? "Estamos aguardando a confirmação do seu pagamento"
+                    : isCustomMode
+                      ? `${customCredits} créditos avulsos — R$ ${(customCredits * CREDIT_PRICE).toFixed(2)}`
+                      : `${selectedPackage?.name} — ${selectedPackage?.credits} créditos por R$ ${selectedPackage?.price.toLocaleString('pt-BR')}`
+                }
                 }
               </p>
             </motion.div>
