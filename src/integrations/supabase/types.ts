@@ -534,6 +534,7 @@ export type Database = {
           city: string | null
           created_at: string | null
           credits: number | null
+          credits_expire_at: string | null
           email: string
           force_password_change: boolean | null
           id: string
@@ -572,6 +573,7 @@ export type Database = {
           city?: string | null
           created_at?: string | null
           credits?: number | null
+          credits_expire_at?: string | null
           email: string
           force_password_change?: boolean | null
           id: string
@@ -610,6 +612,7 @@ export type Database = {
           city?: string | null
           created_at?: string | null
           credits?: number | null
+          credits_expire_at?: string | null
           email?: string
           force_password_change?: boolean | null
           id?: string
