@@ -41,7 +41,7 @@ const packagePriceColor: Record<string, string> = {
   pack_enterprise: "text-amber-600 dark:text-amber-400",
 };
 
-type Step = "select-package" | "select-mode";
+type Step = "select-package" | "select-mode" | "awaiting-payment";
 
 interface Props {
   open: boolean;
