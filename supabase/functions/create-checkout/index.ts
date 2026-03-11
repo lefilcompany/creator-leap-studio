@@ -65,11 +65,11 @@ serve(async (req) => {
     // REMOVIDO: Verificação de equipe e admin de equipe
     // Agora qualquer usuário autenticado pode comprar para si mesmo
 
-    const { type, price_id, plan_id, package_id, credits, return_url } = await req.json();
+    const { type, price_id, plan_id, package_id, credits, return_url, payment_mode } = await req.json();
     if (!type || !['plan', 'custom', 'credits'].includes(type)) {
       throw new Error("type is required and must be 'plan', 'custom', or 'credits'");
     }
-    logStep("Request data received", { type, price_id, plan_id, package_id, credits });
+    logStep("Request data received", { type, price_id, plan_id, package_id, credits, payment_mode });
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2024-12-18.acacia" });
     
@@ -92,31 +92,53 @@ serve(async (req) => {
     let session;
 
     if (type === 'plan' || type === 'credits') {
-      // Compra de pacote de créditos (pagamento único)
+      // Compra de pacote de créditos
       const packageId = package_id || plan_id;
       if (!price_id || !packageId) throw new Error("price_id and package_id are required for credits purchase");
+      
+      // Determinar modo: payment (avulso) ou subscription (recorrente)
+      const checkoutMode = payment_mode === 'payment' ? 'payment' : 'subscription';
+      logStep("Checkout mode", { checkoutMode, payment_mode });
+      
+      let lineItems;
+      
+      if (checkoutMode === 'payment') {
+        // Para pagamento avulso, buscar dados do preço no Stripe e criar price_data one-time
+        const stripePrice = await stripe.prices.retrieve(price_id);
+        logStep("Retrieved stripe price for one-time", { amount: stripePrice.unit_amount, currency: stripePrice.currency });
+        
+        lineItems = [{
+          price_data: {
+            currency: stripePrice.currency || 'brl',
+            product: stripePrice.product as string,
+            unit_amount: stripePrice.unit_amount!,
+          },
+          quantity: 1,
+        }];
+      } else {
+        // Para assinatura, usar o price_id recorrente diretamente
+        lineItems = [{
+          price: price_id,
+          quantity: 1,
+        }];
+      }
       
       session = await stripe.checkout.sessions.create({
         customer: customerId,
         customer_email: customerId ? undefined : user.email,
-        line_items: [
-          {
-            price: price_id,
-            quantity: 1,
-          },
-        ],
-        mode: "subscription",
+        line_items: lineItems,
+        mode: checkoutMode,
         success_url: successUrl,
         cancel_url: `${origin}/credits?canceled=true`,
         metadata: {
           user_id: user.id,
           team_id: teamId || '',
-          purchase_type: 'credits',
+          purchase_type: checkoutMode === 'subscription' ? 'subscription' : 'credits',
           package_id: packageId,
           return_url: return_url || '/credits',
         }
       });
-      logStep("Credits checkout session created", { sessionId: session.id, packageId });
+      logStep("Credits checkout session created", { sessionId: session.id, packageId, mode: checkoutMode });
     } else {
       // Compra avulsa dinâmica
       if (!credits || credits < 5) throw new Error("credits is required and must be at least 5");
