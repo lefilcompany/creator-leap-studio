@@ -1,18 +1,15 @@
 import { useState, useEffect, useCallback } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
-  Zap, Crown, Sparkles, Star, Loader2, ArrowRight, ArrowLeft,
-  MessageCircle, ShoppingCart, Plus, Minus, RefreshCw, CreditCard,
-  Coins, Gift, Check
+  Loader2, ArrowRight, ArrowLeft, Plus, Minus, RefreshCw, CreditCard, Check, MessageCircle
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
+import { CreatorLogo } from "@/components/CreatorLogo";
 
 interface CreditPackage {
   id: string;
@@ -24,25 +21,25 @@ interface CreditPackage {
   isEnterprise?: boolean;
 }
 
-const packageIcons: Record<string, any> = {
-  pack_basic: Zap,
-  pack_pro: Crown,
-  pack_premium: Sparkles,
-  pack_enterprise: Star,
-};
-
-const packageColors: Record<string, string> = {
-  pack_basic: "from-blue-500 to-blue-600",
-  pack_pro: "from-purple-500 to-purple-600",
-  pack_premium: "from-pink-500 to-pink-600",
-  pack_enterprise: "from-amber-500 to-orange-600",
-};
-
 const ENTERPRISE_WHATSAPP = "5581996600072";
 const CREDIT_PRICE = 2.5;
 const CREDIT_STEP = 5;
 const MIN_CREDITS = 5;
 const MAX_CREDITS = 500;
+
+const packageAccent: Record<string, string> = {
+  pack_basic: "border-blue-500/40 hover:border-blue-500",
+  pack_pro: "border-primary/40 hover:border-primary ring-2 ring-primary/20",
+  pack_premium: "border-pink-500/40 hover:border-pink-500",
+  pack_enterprise: "border-amber-500/40 hover:border-amber-500",
+};
+
+const packagePriceColor: Record<string, string> = {
+  pack_basic: "text-blue-600 dark:text-blue-400",
+  pack_pro: "text-primary",
+  pack_premium: "text-pink-600 dark:text-pink-400",
+  pack_enterprise: "text-amber-600 dark:text-amber-400",
+};
 
 type Step = "select-package" | "select-mode";
 
@@ -58,8 +55,6 @@ export function PostRegistrationPurchaseModal({ open, onComplete }: Props) {
   const [isLoading, setIsLoading] = useState(true);
   const [loadingCheckout, setLoadingCheckout] = useState<string | null>(null);
   const [selectedPackage, setSelectedPackage] = useState<CreditPackage | null>(null);
-  
-  // Custom purchase state
   const [isCustomMode, setIsCustomMode] = useState(false);
   const [customCredits, setCustomCredits] = useState(20);
   const [creditInputValue, setCreditInputValue] = useState("20");
@@ -119,16 +114,11 @@ export function PostRegistrationPurchaseModal({ open, onComplete }: Props) {
   const handleCheckout = async (mode: "payment" | "subscription") => {
     if (!user) return;
 
-    // Custom purchase is always one-time
     if (isCustomMode) {
       setLoadingCheckout("custom");
       try {
         const { data, error } = await supabase.functions.invoke('create-checkout', {
-          body: {
-            type: 'custom',
-            credits: customCredits,
-            return_url: '/dashboard',
-          },
+          body: { type: 'custom', credits: customCredits, return_url: '/dashboard' },
         });
         if (error) throw error;
         if (data?.url) {
@@ -190,149 +180,194 @@ export function PostRegistrationPurchaseModal({ open, onComplete }: Props) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={() => {/* Cannot close */}}>
+    <Dialog open={open} onOpenChange={() => {}}>
       <DialogContent
-        className="max-w-6xl min-h-[70vh] max-h-[92vh] overflow-y-auto [&>button]:hidden"
+        className="max-w-5xl min-h-[75vh] max-h-[94vh] overflow-y-auto [&>button]:hidden p-0 gap-0 border-0 shadow-2xl rounded-2xl"
         onPointerDownOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
         onInteractOutside={(e) => e.preventDefault()}
       >
-        <DialogHeader className="text-center pb-2">
-          <div className="mx-auto mb-3 bg-primary/10 text-primary rounded-2xl p-3 w-fit">
-            <Gift className="h-8 w-8" />
-          </div>
-          <DialogTitle className="text-2xl font-bold">
-            {step === "select-package" ? "Bem-vindo ao Creator! 🎉" : "Como deseja pagar?"}
-          </DialogTitle>
-          <DialogDescription className="text-base">
-            {step === "select-package"
-              ? "Escolha um pacote de créditos para começar a criar conteúdo com IA"
-              : isCustomMode
-                ? `${customCredits} créditos avulsos — R$ ${(customCredits * CREDIT_PRICE).toFixed(2)}`
-                : `${selectedPackage?.name} — ${selectedPackage?.credits} créditos por R$ ${selectedPackage?.price.toLocaleString('pt-BR')}`
-            }
-          </DialogDescription>
-        </DialogHeader>
+        {/* Visually hidden description for accessibility */}
+        <DialogDescription className="sr-only">
+          Modal de compra de créditos pós-cadastro
+        </DialogDescription>
 
-        <AnimatePresence mode="wait">
-          {step === "select-package" && (
+        {/* Header with logo */}
+        <div className="flex flex-col items-center pt-8 pb-4 px-6 bg-gradient-to-b from-muted/40 to-transparent">
+          <CreatorLogo className="mb-4" />
+          <AnimatePresence mode="wait">
             <motion.div
-              key="select-package"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="space-y-4"
+              key={step}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              className="text-center"
             >
-              {isLoading ? (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                </div>
-              ) : (
-                <>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                    {packages.map((pkg) => {
-                      const Icon = packageIcons[pkg.id] || Zap;
-                      const colorClass = packageColors[pkg.id] || "from-blue-500 to-blue-600";
-                      const isPopular = pkg.id === 'pack_pro';
-
-                      return (
-                        <Card
-                          key={pkg.id}
-                          className={cn(
-                            "relative cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-1",
-                            "border-2 hover:border-primary/30",
-                            isPopular && "ring-2 ring-primary/30",
-                            pkg.isEnterprise && "border-amber-500/30"
-                          )}
-                          onClick={() => handleSelectPackage(pkg)}
-                        >
-                          {isPopular && (
-                            <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-[10px]">
-                              Popular
-                            </Badge>
-                          )}
-                          <CardHeader className="pb-2 pt-4 px-3">
-                            <div className={cn(
-                              "w-10 h-10 rounded-lg flex items-center justify-center mb-2",
-                              "bg-gradient-to-br shadow",
-                              colorClass
-                            )}>
-                              <Icon className="h-5 w-5 text-white" />
-                            </div>
-                            <CardTitle className="text-base">{pkg.name}</CardTitle>
-                            <CardDescription className="text-xs line-clamp-2">{pkg.description}</CardDescription>
-                          </CardHeader>
-                          <CardContent className="px-3 pb-3 space-y-2">
-                            <div className="text-center p-2 rounded-lg bg-primary/5">
-                              <span className="text-lg font-bold text-primary">
-                                {pkg.isEnterprise ? '∞' : pkg.credits}
-                              </span>
-                              <span className="text-xs text-muted-foreground ml-1">créditos</span>
-                            </div>
-                            <div className="text-center">
-                              {pkg.isEnterprise ? (
-                                <span className="text-sm font-semibold text-amber-600">Sob consulta</span>
-                              ) : (
-                                <span className="text-xl font-bold">R$ {pkg.price.toLocaleString('pt-BR')}</span>
-                              )}
-                            </div>
-                          </CardContent>
-                        </Card>
-                      );
-                    })}
-                  </div>
-
-                  {/* Custom purchase option */}
-                  <Card
-                    className="cursor-pointer transition-all duration-200 hover:shadow-md border-2 border-dashed hover:border-primary/30"
-                    onClick={handleSelectCustom}
-                  >
-                    <CardContent className="flex items-center justify-between p-4">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-primary/10">
-                          <ShoppingCart className="h-5 w-5 text-primary" />
-                        </div>
-                        <div>
-                          <p className="font-semibold text-sm">Compra Avulsa</p>
-                          <p className="text-xs text-muted-foreground">
-                            Escolha a quantidade • R$ {CREDIT_PRICE.toFixed(2)} por crédito
-                          </p>
-                        </div>
-                      </div>
-                      <ArrowRight className="h-5 w-5 text-muted-foreground" />
-                    </CardContent>
-                  </Card>
-                </>
-              )}
+              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+                {step === "select-package" ? "Escolha seu pacote de créditos" : "Como deseja pagar?"}
+              </h2>
+              <p className="text-sm sm:text-base text-muted-foreground mt-1.5 max-w-lg mx-auto">
+                {step === "select-package"
+                  ? "Selecione o pacote ideal para começar a criar conteúdo com IA"
+                  : isCustomMode
+                    ? `${customCredits} créditos avulsos — R$ ${(customCredits * CREDIT_PRICE).toFixed(2)}`
+                    : `${selectedPackage?.name} — ${selectedPackage?.credits} créditos por R$ ${selectedPackage?.price.toLocaleString('pt-BR')}`
+                }
+              </p>
             </motion.div>
-          )}
+          </AnimatePresence>
+        </div>
 
-          {step === "select-mode" && (
-            <motion.div
-              key="select-mode"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              className="space-y-4"
-            >
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setStep("select-package")}
-                className="mb-2"
+        {/* Content */}
+        <div className="px-6 sm:px-8 pb-8 pt-2">
+          <AnimatePresence mode="wait">
+            {step === "select-package" && (
+              <motion.div
+                key="select-package"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="space-y-5"
               >
-                <ArrowLeft className="h-4 w-4 mr-1" />
-                Voltar
-              </Button>
+                {isLoading ? (
+                  <div className="flex items-center justify-center py-16">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                ) : (
+                  <>
+                    {/* Plan cards */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                      {packages.map((pkg, i) => {
+                        const isPopular = pkg.id === 'pack_pro';
+                        const accentClass = packageAccent[pkg.id] || "border-border hover:border-primary/30";
+                        const priceColor = packagePriceColor[pkg.id] || "text-foreground";
 
-              {isCustomMode && (
-                <Card className="border-0 shadow-sm bg-muted/30">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-center gap-4">
+                        return (
+                          <motion.div
+                            key={pkg.id}
+                            initial={{ opacity: 0, y: 16 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: i * 0.08, duration: 0.35 }}
+                          >
+                            <button
+                              type="button"
+                              onClick={() => handleSelectPackage(pkg)}
+                              className={cn(
+                                "relative w-full text-left rounded-xl border-2 p-5 transition-all duration-200",
+                                "bg-card hover:shadow-lg hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+                                accentClass,
+                                isPopular && "shadow-md"
+                              )}
+                            >
+                              {isPopular && (
+                                <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-[11px] font-semibold px-3 py-0.5 rounded-full shadow-sm">
+                                  Mais popular
+                                </span>
+                              )}
+
+                              {/* Plan name */}
+                              <p className="text-lg font-bold text-foreground mb-1">{pkg.name}</p>
+
+                              {/* Credits highlight */}
+                              <div className="mb-3">
+                                <span className={cn("text-4xl font-extrabold tracking-tight", priceColor)}>
+                                  {pkg.isEnterprise ? '∞' : pkg.credits}
+                                </span>
+                                <span className="text-sm font-medium text-muted-foreground ml-1.5">créditos</span>
+                              </div>
+
+                              {/* Price */}
+                              <div className="mb-3">
+                                {pkg.isEnterprise ? (
+                                  <p className="text-base font-semibold text-amber-600 dark:text-amber-400">Sob consulta</p>
+                                ) : (
+                                  <p className="text-2xl font-bold text-foreground">
+                                    R$ {pkg.price.toLocaleString('pt-BR')}
+                                  </p>
+                                )}
+                                {!pkg.isEnterprise && pkg.credits > 0 && (
+                                  <p className="text-xs text-muted-foreground mt-0.5">
+                                    R$ {(pkg.price / pkg.credits).toFixed(2)} por crédito
+                                  </p>
+                                )}
+                              </div>
+
+                              {/* Description */}
+                              <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
+                                {pkg.description}
+                              </p>
+
+                              {/* CTA hint */}
+                              <div className="mt-4 flex items-center justify-center gap-1.5 text-sm font-medium text-primary">
+                                {pkg.isEnterprise ? (
+                                  <>
+                                    <MessageCircle className="h-3.5 w-3.5" />
+                                    <span>WhatsApp</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <span>Selecionar</span>
+                                    <ArrowRight className="h-3.5 w-3.5" />
+                                  </>
+                                )}
+                              </div>
+                            </button>
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Custom purchase */}
+                    <motion.button
+                      type="button"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.35 }}
+                      onClick={handleSelectCustom}
+                      className="w-full flex items-center justify-between rounded-xl border-2 border-dashed border-border hover:border-primary/40 p-4 transition-all duration-200 hover:shadow-sm bg-card text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    >
+                      <div>
+                        <p className="font-semibold text-sm text-foreground">Compra Avulsa</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          Escolha a quantidade exata • R$ {CREDIT_PRICE.toFixed(2)} por crédito
+                        </p>
+                      </div>
+                      <ArrowRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    </motion.button>
+                  </>
+                )}
+              </motion.div>
+            )}
+
+            {step === "select-mode" && (
+              <motion.div
+                key="select-mode"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-5"
+              >
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setStep("select-package")}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  <ArrowLeft className="h-4 w-4 mr-1" />
+                  Voltar aos pacotes
+                </Button>
+
+                {/* Custom credits selector */}
+                {isCustomMode && (
+                  <div className="rounded-xl bg-muted/30 border border-border p-5">
+                    <p className="text-sm font-medium text-center text-muted-foreground mb-3">
+                      Quantos créditos deseja comprar?
+                    </p>
+                    <div className="flex items-center justify-center gap-5">
                       <Button
                         variant="outline"
                         size="icon"
-                        className="h-10 w-10 rounded-full"
+                        className="h-11 w-11 rounded-full"
                         onClick={decrementCredits}
                         disabled={customCredits <= MIN_CREDITS}
                       >
@@ -356,106 +391,105 @@ export function PostRegistrationPurchaseModal({ open, onComplete }: Props) {
                               setCreditInputValue(String(rounded));
                             }
                           }}
-                          className="w-20 text-center text-4xl font-bold text-primary bg-transparent border-none outline-none"
+                          className="w-24 text-center text-5xl font-extrabold text-primary bg-transparent border-none outline-none"
                         />
-                        <p className="text-xs text-muted-foreground">créditos</p>
+                        <p className="text-xs text-muted-foreground -mt-1">créditos</p>
                       </div>
                       <Button
                         variant="outline"
                         size="icon"
-                        className="h-10 w-10 rounded-full"
+                        className="h-11 w-11 rounded-full"
                         onClick={incrementCredits}
                         disabled={customCredits >= MAX_CREDITS}
                       >
                         <Plus className="h-4 w-4" />
                       </Button>
                     </div>
-                    <p className="text-center mt-2 text-lg font-bold text-primary">
+                    <p className="text-center mt-3 text-xl font-bold text-primary">
                       R$ {(customCredits * CREDIT_PRICE).toFixed(2)}
                     </p>
-                  </CardContent>
-                </Card>
-              )}
+                  </div>
+                )}
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* One-time payment */}
-                <Card
-                  className={cn(
-                    "cursor-pointer transition-all duration-200 hover:shadow-lg border-2 hover:border-primary/30",
-                    loadingCheckout === "payment" && "opacity-70 pointer-events-none"
-                  )}
-                  onClick={() => handleCheckout("payment")}
-                >
-                  <CardContent className="flex flex-col items-center text-center p-6 gap-3">
-                    <div className="p-3 rounded-xl bg-primary/10">
-                      <CreditCard className="h-8 w-8 text-primary" />
+                {/* Payment mode options */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto">
+                  {/* One-time */}
+                  <button
+                    type="button"
+                    onClick={() => handleCheckout("payment")}
+                    disabled={!!loadingCheckout}
+                    className={cn(
+                      "relative rounded-xl border-2 border-border hover:border-primary/40 p-6 text-center transition-all duration-200",
+                      "bg-card hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+                      loadingCheckout === "payment" && "opacity-70 pointer-events-none"
+                    )}
+                  >
+                    <div className="mx-auto w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                      <CreditCard className="h-6 w-6 text-primary" />
                     </div>
-                    <h3 className="text-lg font-bold">Compra Avulsa</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Pagamento único. Sem compromisso recorrente.
+                    <h3 className="text-lg font-bold text-foreground mb-1">Pagamento Único</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      Pague uma vez, sem compromisso recorrente.
                     </p>
-                    <div className="flex items-center gap-2 mt-2">
-                      {loadingCheckout === "payment" ? (
-                        <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                    <div className="mt-4">
+                      {loadingCheckout === "payment" || loadingCheckout === "custom" ? (
+                        <Loader2 className="h-5 w-5 animate-spin text-primary mx-auto" />
                       ) : (
-                        <>
-                          <Check className="h-4 w-4 text-primary" />
-                          <span className="text-sm font-medium">Pagar agora</span>
-                        </>
+                        <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary">
+                          <Check className="h-4 w-4" />
+                          Pagar agora
+                        </span>
                       )}
                     </div>
-                  </CardContent>
-                </Card>
+                  </button>
 
-                {/* Recurring subscription - only for packages, not custom */}
-                {!isCustomMode && (
-                  <Card
+                  {/* Recurring */}
+                  <button
+                    type="button"
+                    onClick={() => !isCustomMode && handleCheckout("subscription")}
+                    disabled={isCustomMode || !!loadingCheckout}
                     className={cn(
-                      "cursor-pointer transition-all duration-200 hover:shadow-lg border-2 hover:border-primary/30",
+                      "relative rounded-xl border-2 p-6 text-center transition-all duration-200",
+                      "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+                      isCustomMode
+                        ? "border-dashed border-border opacity-50 cursor-not-allowed bg-muted/20"
+                        : "border-border hover:border-primary/40 bg-card hover:shadow-lg",
                       loadingCheckout === "subscription" && "opacity-70 pointer-events-none"
                     )}
-                    onClick={() => handleCheckout("subscription")}
                   >
-                    <CardContent className="flex flex-col items-center text-center p-6 gap-3">
-                      <div className="p-3 rounded-xl bg-green-500/10">
-                        <RefreshCw className="h-8 w-8 text-green-600" />
-                      </div>
-                      <h3 className="text-lg font-bold">Compra Recorrente</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Renovação automática mensal. Cancele quando quiser.
-                      </p>
-                      <div className="flex items-center gap-2 mt-2">
+                    <div className={cn(
+                      "mx-auto w-14 h-14 rounded-full flex items-center justify-center mb-4",
+                      isCustomMode ? "bg-muted" : "bg-emerald-500/10"
+                    )}>
+                      <RefreshCw className={cn("h-6 w-6", isCustomMode ? "text-muted-foreground" : "text-emerald-600 dark:text-emerald-400")} />
+                    </div>
+                    <h3 className={cn("text-lg font-bold mb-1", isCustomMode ? "text-muted-foreground" : "text-foreground")}>
+                      Assinatura Mensal
+                    </h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {isCustomMode
+                        ? "Disponível apenas para pacotes pré-definidos."
+                        : "Renovação automática. Cancele quando quiser."
+                      }
+                    </p>
+                    {!isCustomMode && (
+                      <div className="mt-4">
                         {loadingCheckout === "subscription" ? (
-                          <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                          <Loader2 className="h-5 w-5 animate-spin text-emerald-600 mx-auto" />
                         ) : (
-                          <>
-                            <Check className="h-4 w-4 text-green-600" />
-                            <span className="text-sm font-medium">Assinar mensal</span>
-                          </>
+                          <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+                            <Check className="h-4 w-4" />
+                            Assinar mensal
+                          </span>
                         )}
                       </div>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {/* Custom mode: only one-time */}
-                {isCustomMode && (
-                  <Card className="border-2 border-dashed opacity-50 pointer-events-none">
-                    <CardContent className="flex flex-col items-center text-center p-6 gap-3">
-                      <div className="p-3 rounded-xl bg-muted">
-                        <RefreshCw className="h-8 w-8 text-muted-foreground" />
-                      </div>
-                      <h3 className="text-lg font-bold text-muted-foreground">Compra Recorrente</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Disponível apenas para pacotes pré-definidos
-                      </p>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                    )}
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </DialogContent>
     </Dialog>
   );
