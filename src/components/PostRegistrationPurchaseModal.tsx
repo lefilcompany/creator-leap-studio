@@ -192,7 +192,7 @@ export function PostRegistrationPurchaseModal({ open, onComplete }: Props) {
   return (
     <Dialog open={open} onOpenChange={() => {/* Cannot close */}}>
       <DialogContent
-        className="max-w-6xl max-h-[92vh] overflow-y-auto [&>button]:hidden"
+        className="max-w-6xl min-h-[70vh] max-h-[92vh] overflow-y-auto [&>button]:hidden"
         onPointerDownOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
         onInteractOutside={(e) => e.preventDefault()}
