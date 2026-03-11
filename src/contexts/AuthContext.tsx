@@ -174,7 +174,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         avatarUrl: profile.avatar_url,
         // Créditos individuais com expiração
         credits: profile.credits || 0,
-        maxCredits: profile.max_credits || profile.credits || 0,
+        maxCredits: profile.max_credits ?? 0,
         creditsExpireAt: profile.credits_expire_at || null,
         planId: profile.plan_id || 'free',
         subscriptionStatus: profile.subscription_status,
