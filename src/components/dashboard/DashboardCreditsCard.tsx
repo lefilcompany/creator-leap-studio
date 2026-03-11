@@ -11,6 +11,7 @@ interface DashboardCreditsCardProps {
   remainingCredits: number;
   totalCredits: number;
   progressPercentage: number;
+  creditsExpireAt?: string | null;
 }
 
 export const DashboardCreditsCard = ({
