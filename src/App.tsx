@@ -88,6 +88,14 @@ const SuspenseRoute = ({ children }: { children: React.ReactNode }) => (
   <Suspense fallback={<PageLoader />}>{children}</Suspense>
 );
 
+// Redirect to register preserving UTM params
+const RegisterRedirect = () => {
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  params.set('mode', 'register');
+  return <Navigate to={`/?${params.toString()}`} replace />;
+};
+
 const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
