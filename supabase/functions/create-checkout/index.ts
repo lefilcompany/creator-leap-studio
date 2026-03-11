@@ -100,15 +100,33 @@ serve(async (req) => {
       const checkoutMode = payment_mode === 'payment' ? 'payment' : 'subscription';
       logStep("Checkout mode", { checkoutMode, payment_mode });
       
+      let lineItems;
+      
+      if (checkoutMode === 'payment') {
+        // Para pagamento avulso, buscar dados do preço no Stripe e criar price_data one-time
+        const stripePrice = await stripe.prices.retrieve(price_id);
+        logStep("Retrieved stripe price for one-time", { amount: stripePrice.unit_amount, currency: stripePrice.currency });
+        
+        lineItems = [{
+          price_data: {
+            currency: stripePrice.currency || 'brl',
+            product: stripePrice.product as string,
+            unit_amount: stripePrice.unit_amount!,
+          },
+          quantity: 1,
+        }];
+      } else {
+        // Para assinatura, usar o price_id recorrente diretamente
+        lineItems = [{
+          price: price_id,
+          quantity: 1,
+        }];
+      }
+      
       session = await stripe.checkout.sessions.create({
         customer: customerId,
         customer_email: customerId ? undefined : user.email,
-        line_items: [
-          {
-            price: price_id,
-            quantity: 1,
-          },
-        ],
+        line_items: lineItems,
         mode: checkoutMode,
         success_url: successUrl,
         cancel_url: `${origin}/credits?canceled=true`,
