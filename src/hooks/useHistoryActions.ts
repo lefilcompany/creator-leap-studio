@@ -78,7 +78,7 @@ export function useHistoryActions(filters: HistoryFilters) {
 
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
       const storageBase = supabaseUrl
-        ? `${supabaseUrl}/storage/v1/object/public/creations/`
+        ? `${supabaseUrl}/storage/v1/object/public/content-images/`
         : '';
 
       const actions: ActionSummary[] = rows.map((row: any) => {
