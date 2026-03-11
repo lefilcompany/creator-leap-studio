@@ -17,6 +17,7 @@ import { DashboardQuickActions } from "@/components/dashboard/DashboardQuickActi
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { DashboardRecentActivity } from "@/components/dashboard/DashboardRecentActivity";
 import { IncompleteProfileBanner } from "@/components/dashboard/IncompleteProfileBanner";
+import { PostRegistrationPurchaseModal } from "@/components/PostRegistrationPurchaseModal";
 
 const Dashboard = () => {
   const { user, isLoading } = useAuth();
