@@ -55,12 +55,12 @@ export const DashboardCreditsCard = ({
                 <p className="text-xs sm:text-sm font-medium text-muted-foreground">Créditos Disponíveis</p>
                 <div className="flex items-baseline gap-2">
                   <motion.span
-                    key={remainingCredits}
+                    key={effectiveCredits}
                     initial={{ scale: 1.2, color: "hsl(var(--primary))" }}
-                    animate={{ scale: 1, color: "hsl(var(--foreground))" }}
+                    animate={{ scale: 1, color: isExpired ? "hsl(var(--destructive))" : "hsl(var(--foreground))" }}
                     className="text-2xl sm:text-3xl font-bold tracking-tight"
                   >
-                    {remainingCredits.toLocaleString()}
+                    {effectiveCredits.toLocaleString()}
                   </motion.span>
                   <span className="text-xs sm:text-sm text-muted-foreground">
                     / {totalCredits.toLocaleString()}
@@ -74,7 +74,7 @@ export const DashboardCreditsCard = ({
               className="self-end sm:self-auto"
             >
               <Link to="/credits">
-                <Button size="sm" className={`rounded-full gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90 shadow-md text-xs sm:text-sm font-semibold px-5 ${isLow ? 'animate-[pulse_2s_cubic-bezier(0.4,0,0.6,1)_infinite]' : ''}`}>
+                <Button size="sm" className={`rounded-full gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90 shadow-md text-xs sm:text-sm font-semibold px-5 ${(isLow || isExpired) ? 'animate-[pulse_2s_cubic-bezier(0.4,0,0.6,1)_infinite]' : ''}`}>
                   <Zap className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                   Comprar Créditos
                   <ArrowRight className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
@@ -85,14 +85,24 @@ export const DashboardCreditsCard = ({
 
           <div className="space-y-2">
             <Progress
-              value={progressPercentage}
-              className={`h-2.5 ${isLow ? 'bg-destructive/20' : isMedium ? 'bg-chart-1/20' : 'bg-primary/15'}`}
+              value={effectiveProgress}
+              className={`h-2.5 ${(isLow || isExpired) ? 'bg-destructive/20' : isMedium ? 'bg-chart-1/20' : 'bg-primary/15'}`}
             />
-            <p className="text-xs text-muted-foreground">
-              {isLow
-                ? "⚠️ Créditos baixos — considere recarregar"
-                : `${Math.round(progressPercentage)}% do seu saldo disponível`}
-            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-muted-foreground">
+                {isExpired
+                  ? "⚠️ Créditos expirados — adquira um novo pacote"
+                  : isLow
+                    ? "⚠️ Créditos baixos — considere recarregar"
+                    : `${Math.round(effectiveProgress)}% do seu saldo disponível`}
+              </p>
+              {expirationLabel && !isExpired && effectiveCredits > 0 && (
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <CalendarClock className="h-3 w-3" />
+                  Válidos até {expirationLabel}
+                </p>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
