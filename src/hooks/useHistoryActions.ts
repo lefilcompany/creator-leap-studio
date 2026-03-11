@@ -81,12 +81,27 @@ export function useHistoryActions(filters: HistoryFilters) {
         ? `${supabaseUrl}/storage/v1/object/public/content-images/`
         : '';
 
+      const normalizeContentImagePath = (value?: string | null) => {
+        if (!value) return null;
+
+        return value
+          .replace(/^https?:\/\/[^/]+\/storage\/v1\/object\/public\/content-images\//, '')
+          .replace(/^content-images\//, '');
+      };
+
       const actions: ActionSummary[] = rows.map((row: any) => {
         let imageUrl: string | undefined;
+
         if (row.thumb_path && storageBase) {
-          imageUrl = `${storageBase}${row.thumb_path}`;
+          const normalizedThumbPath = normalizeContentImagePath(row.thumb_path);
+          imageUrl = normalizedThumbPath ? `${storageBase}${normalizedThumbPath}` : undefined;
         } else if (row.image_url) {
-          imageUrl = row.image_url;
+          const normalizedImagePath = normalizeContentImagePath(row.image_url);
+          imageUrl = row.image_url.startsWith('http')
+            ? row.image_url.replace('/storage/v1/object/public/content-images/content-images/', '/storage/v1/object/public/content-images/')
+            : normalizedImagePath && storageBase
+              ? `${storageBase}${normalizedImagePath}`
+              : undefined;
         }
 
         return {
