@@ -414,13 +414,21 @@ const Credits = () => {
             </div>
             
             {user && (
-              <div className="flex items-center gap-3 bg-card/80 backdrop-blur-sm px-4 py-3 rounded-xl shadow-sm">
-                <p className="text-sm text-muted-foreground whitespace-nowrap">Seu saldo atual</p>
-                <div className="flex items-center gap-1.5">
-                  <Zap className="h-5 w-5 text-primary" />
-                  <span className="text-2xl font-bold text-primary">{user.credits || 0}</span>
-                  <span className="text-sm text-muted-foreground">créditos</span>
+              <div className="flex flex-col items-end gap-1 bg-card/80 backdrop-blur-sm px-4 py-3 rounded-xl shadow-sm">
+                <div className="flex items-center gap-3">
+                  <p className="text-sm text-muted-foreground whitespace-nowrap">Seu saldo atual</p>
+                  <div className="flex items-center gap-1.5">
+                    <Zap className="h-5 w-5 text-primary" />
+                    <span className="text-2xl font-bold text-primary">{user.credits || 0}</span>
+                    <span className="text-sm text-muted-foreground">créditos</span>
+                  </div>
                 </div>
+                {user.creditsExpireAt && user.credits > 0 && (
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    Válidos até {new Date(user.creditsExpireAt).toLocaleDateString('pt-BR')}
+                  </p>
+                )}
               </div>
             )}
           </div>
