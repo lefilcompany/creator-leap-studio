@@ -104,6 +104,8 @@ const App = () => (
                     <Routes>
                       {/* Public routes */}
                       <Route path="/" element={<SuspenseRoute><Auth /></SuspenseRoute>} />
+                      <Route path="/cadastro" element={<Navigate to="/?mode=register" replace />} />
+                      <Route path="/register" element={<Navigate to="/?mode=register" replace />} />
                       <Route path="/forgot-password" element={<SuspenseRoute><ForgotPassword /></SuspenseRoute>} />
                       <Route path="/reset-password" element={<SuspenseRoute><ResetPassword /></SuspenseRoute>} />
                       <Route path="/privacy" element={<SuspenseRoute><Privacy /></SuspenseRoute>} />
