@@ -27,10 +27,10 @@ const Dashboard = () => {
   
   useEffect(() => {
     if (user && !isLoading) {
-      const hasNoCredits = (user.credits || 0) === 0;
-      const neverPurchased = !user.creditsExpireAt;
+      // Novo usuário: nunca comprou créditos (maxCredits === 0 e sem data de expiração)
+      const neverPurchased = (user.maxCredits || 0) === 0 && !user.creditsExpireAt;
       const dismissed = sessionStorage.getItem('purchase_modal_dismissed');
-      if (hasNoCredits && neverPurchased && !dismissed) {
+      if (neverPurchased && !dismissed) {
         setShowPurchaseModal(true);
       }
     }
