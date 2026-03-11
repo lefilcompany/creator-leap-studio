@@ -608,8 +608,8 @@ const Credits = () => {
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground text-justify">
                   Os créditos são consumidos ao usar as ferramentas de criação de conteúdo com IA. 
-                  Cada tipo de criação tem um custo diferente. Os créditos comprados nunca expiram 
-                  e você pode comprar mais a qualquer momento.
+                  Cada tipo de criação tem um custo diferente. Os créditos comprados têm validade de 30 dias 
+                  a partir da data da compra e não acumulam com pacotes anteriores.
                 </p>
                 <Button 
                   variant="link" 
