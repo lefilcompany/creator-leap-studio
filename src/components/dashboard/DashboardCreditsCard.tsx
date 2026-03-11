@@ -30,7 +30,6 @@ export const DashboardCreditsCard = ({
   const expirationLabel = creditsExpireAt 
     ? format(new Date(creditsExpireAt), "dd 'de' MMMM", { locale: ptBR })
     : null;
-  const isMedium = progressPercentage >= 20 && progressPercentage < 50;
 
   return (
     <motion.div
