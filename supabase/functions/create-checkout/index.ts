@@ -65,7 +65,7 @@ serve(async (req) => {
     // REMOVIDO: Verificação de equipe e admin de equipe
     // Agora qualquer usuário autenticado pode comprar para si mesmo
 
-    const { type, price_id, plan_id, package_id, credits, return_url } = await req.json();
+    const { type, price_id, plan_id, package_id, credits, return_url, payment_mode } = await req.json();
     if (!type || !['plan', 'custom', 'credits'].includes(type)) {
       throw new Error("type is required and must be 'plan', 'custom', or 'credits'");
     }
