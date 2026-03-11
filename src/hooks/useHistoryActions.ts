@@ -81,27 +81,34 @@ export function useHistoryActions(filters: HistoryFilters) {
         ? `${supabaseUrl}/storage/v1/object/public/content-images/`
         : '';
 
-      const normalizeContentImagePath = (value?: string | null) => {
+      const toStorageObjectPath = (value?: string | null) => {
         if (!value) return null;
 
-        return value
-          .replace(/^https?:\/\/[^/]+\/storage\/v1\/object\/public\/content-images\//, '')
-          .replace(/^content-images\//, '');
+        if (value.startsWith('http')) {
+          const marker = '/storage/v1/object/public/content-images/';
+          const markerIndex = value.indexOf(marker);
+          if (markerIndex >= 0) {
+            const objectPathWithQuery = value.slice(markerIndex + marker.length);
+            return objectPathWithQuery.split('?')[0] || null;
+          }
+        }
+
+        return value.replace(/^\/+/, '');
       };
 
       const actions: ActionSummary[] = rows.map((row: any) => {
         let imageUrl: string | undefined;
 
         if (row.thumb_path && storageBase) {
-          const normalizedThumbPath = normalizeContentImagePath(row.thumb_path);
-          imageUrl = normalizedThumbPath ? `${storageBase}${normalizedThumbPath}` : undefined;
+          const objectPath = toStorageObjectPath(row.thumb_path);
+          imageUrl = objectPath ? `${storageBase}${objectPath}` : undefined;
         } else if (row.image_url) {
-          const normalizedImagePath = normalizeContentImagePath(row.image_url);
-          imageUrl = row.image_url.startsWith('http')
-            ? row.image_url.replace('/storage/v1/object/public/content-images/content-images/', '/storage/v1/object/public/content-images/')
-            : normalizedImagePath && storageBase
-              ? `${storageBase}${normalizedImagePath}`
-              : undefined;
+          if (row.image_url.startsWith('http') || row.image_url.startsWith('data:')) {
+            imageUrl = row.image_url;
+          } else if (storageBase) {
+            const objectPath = toStorageObjectPath(row.image_url);
+            imageUrl = objectPath ? `${storageBase}${objectPath}` : undefined;
+          }
         }
 
         return {
