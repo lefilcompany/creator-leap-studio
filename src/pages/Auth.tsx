@@ -58,6 +58,12 @@ const Auth = () => {
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [waitingForAuth, setWaitingForAuth] = useState(false);
 
+  // Se a URL tiver ?mode=register, abre direto no cadastro
+  useEffect(() => {
+    if (searchParams.get('mode') === 'register') {
+      setIsLoginMode(false);
+    }
+  }, [searchParams]);
 
   // Login states
   const [loginEmail, setLoginEmail] = useState("");
