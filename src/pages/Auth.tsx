@@ -57,7 +57,6 @@ const Auth = () => {
   const [showTeamSelection, setShowTeamSelection] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [waitingForAuth, setWaitingForAuth] = useState(false);
-  
 
   // Login states
   const [loginEmail, setLoginEmail] = useState("");
@@ -129,7 +128,13 @@ const Auth = () => {
   const isMobile = useIsMobile();
   const [sheetOpen, setSheetOpen] = useState(false);
 
-  // Handle OAuth callback (Google sign-in return)
+  // Se a URL tiver ?mode=register, abre direto no cadastro
+  useEffect(() => {
+    if (searchParams.get('mode') === 'register') {
+      setIsLoginMode(false);
+    }
+  }, [searchParams]);
+
   const { showTeamDialog: showOAuthTeamDialog, handleTeamDialogClose: handleOAuthTeamDialogClose } = useOAuthCallback();
 
   // Validações de senha para registro

@@ -7,7 +7,7 @@ import { LanguageProvider } from "./contexts/LanguageContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import { OnboardingProvider } from "./components/onboarding/OnboardingProvider";
 import { EventTrackingProvider } from "./components/EventTrackingProvider";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { lazy, Suspense } from "react";
@@ -104,6 +104,8 @@ const App = () => (
                     <Routes>
                       {/* Public routes */}
                       <Route path="/" element={<SuspenseRoute><Auth /></SuspenseRoute>} />
+                      <Route path="/cadastro" element={<Navigate to="/?mode=register" replace />} />
+                      <Route path="/register" element={<Navigate to="/?mode=register" replace />} />
                       <Route path="/forgot-password" element={<SuspenseRoute><ForgotPassword /></SuspenseRoute>} />
                       <Route path="/reset-password" element={<SuspenseRoute><ResetPassword /></SuspenseRoute>} />
                       <Route path="/privacy" element={<SuspenseRoute><Privacy /></SuspenseRoute>} />
