@@ -516,6 +516,35 @@ export function PostRegistrationPurchaseModal({ open, onComplete }: Props) {
                 </div>
               </motion.div>
             )}
+
+            {step === "awaiting-payment" && (
+              <motion.div
+                key="awaiting-payment"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex flex-col items-center justify-center py-16 space-y-6"
+              >
+                <div className="relative">
+                  <div className="w-20 h-20 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+                </div>
+                <div className="text-center space-y-2">
+                  <h3 className="text-xl font-bold text-foreground">Aguardando confirmação do pagamento...</h3>
+                  <p className="text-sm text-muted-foreground max-w-md">
+                    Complete o pagamento na aba que foi aberta. Esta tela será atualizada automaticamente assim que o pagamento for confirmado.
+                  </p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setStep("select-package")}
+                  className="text-muted-foreground hover:text-foreground mt-4"
+                >
+                  <ArrowLeft className="h-4 w-4 mr-1" />
+                  Voltar e escolher outro pacote
+                </Button>
+              </motion.div>
+            )}
           </AnimatePresence>
         </div>
       </DialogContent>
