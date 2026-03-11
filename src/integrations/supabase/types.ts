@@ -1063,6 +1063,7 @@ export type Database = {
               title: string
               total_count: number
               type: string
+              video_url: string
             }[]
           }
         | {
@@ -1088,6 +1089,7 @@ export type Database = {
               title: string
               total_count: number
               type: string
+              video_url: string
             }[]
           }
       get_all_teams_admin: {
