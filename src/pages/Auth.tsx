@@ -128,6 +128,16 @@ const Auth = () => {
   const isMobile = useIsMobile();
   const [sheetOpen, setSheetOpen] = useState(false);
 
+  // Captura parâmetros UTM da URL
+  const utmParams = useMemo(() => {
+    const params: Record<string, string> = {};
+    ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'].forEach(key => {
+      const value = searchParams.get(key);
+      if (value) params[key] = value;
+    });
+    return params;
+  }, [searchParams]);
+
   // Se a URL tiver ?mode=register, abre direto no cadastro
   useEffect(() => {
     if (searchParams.get('mode') === 'register') {
@@ -327,6 +337,7 @@ const Auth = () => {
             phone: formData.phone,
             state: formData.state,
             city: formData.city,
+            ...(Object.keys(utmParams).length > 0 && { utm: utmParams }),
           },
           emailRedirectTo: getEmailRedirectUrl('/dashboard'),
         },
@@ -350,7 +361,13 @@ const Auth = () => {
                 phone: formData.phone,
                 city: formData.city,
                 state: formData.state,
-                tags: ["novo_usuario", "criador_conta"],
+                tags: [
+                  "novo_usuario",
+                  "criador_conta",
+                  ...(utmParams.utm_source ? [`utm_source_${utmParams.utm_source}`] : []),
+                  ...(utmParams.utm_campaign ? [`utm_campaign_${utmParams.utm_campaign}`] : []),
+                ],
+                ...(Object.keys(utmParams).length > 0 && { utm: utmParams }),
               },
             },
           });
