@@ -51,9 +51,7 @@ const Auth = () => {
   useFormProtection(loginFormRef);
   useFormProtection(registerFormRef);
   
-  const [searchParams] = useSearchParams();
-  const initialMode = searchParams.get('mode') !== 'register';
-  const [isLoginMode, setIsLoginMode] = useState(initialMode);
+  const [isLoginMode, setIsLoginMode] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showTeamSelection, setShowTeamSelection] = useState(false);
