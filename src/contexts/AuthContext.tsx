@@ -409,14 +409,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     const { data, error } = await supabase
       .from('profiles')
-      .select('credits, max_credits')
+      .select('credits, max_credits, credits_expire_at')
       .eq('id', user.id)
       .single();
       
     if (error) return;
       
     if (data) {
-      setUser(prev => prev ? { ...prev, credits: data.credits || 0, maxCredits: data.max_credits || data.credits || 0 } : null);
+      setUser(prev => prev ? { 
+        ...prev, 
+        credits: data.credits || 0, 
+        maxCredits: data.max_credits || data.credits || 0,
+        creditsExpireAt: (data as any).credits_expire_at || null,
+      } : null);
     }
   }, [user?.id]);
 
