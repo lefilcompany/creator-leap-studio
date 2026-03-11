@@ -26,7 +26,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useExtensionProtection, useFormProtection } from "@/hooks/useExtensionProtection";
 import { getEmailRedirectUrl } from "@/lib/auth-urls";
 import { useOAuthCallback } from "@/hooks/useOAuthCallback";
-import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
+
 import decorativeElement from "@/assets/decorative-element.png";
 
 // Interfaces para os dados do IBGE
