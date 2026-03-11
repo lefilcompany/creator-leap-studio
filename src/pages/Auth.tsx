@@ -26,7 +26,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useExtensionProtection, useFormProtection } from "@/hooks/useExtensionProtection";
 import { getEmailRedirectUrl } from "@/lib/auth-urls";
 import { useOAuthCallback } from "@/hooks/useOAuthCallback";
-import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
+
 import decorativeElement from "@/assets/decorative-element.png";
 
 // Interfaces para os dados do IBGE
@@ -706,12 +706,7 @@ const Auth = () => {
           <div className="absolute inset-0 flex items-center">
             <span className="w-full border-t border-border" />
           </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-card/80 px-2 text-muted-foreground">ou</span>
-          </div>
         </div>
-
-        <GoogleSignInButton label="Cadastrar com Google" />
       </div>
     </form>
   );
