@@ -41,7 +41,7 @@ const packagePriceColor: Record<string, string> = {
   pack_enterprise: "text-amber-600 dark:text-amber-400",
 };
 
-type Step = "select-package" | "select-mode";
+type Step = "select-package" | "select-mode" | "awaiting-payment";
 
 interface Props {
   open: boolean;
@@ -111,6 +111,36 @@ export function PostRegistrationPurchaseModal({ open, onComplete }: Props) {
     setStep("select-mode");
   };
 
+  // Poll for payment success
+  useEffect(() => {
+    if (step !== "awaiting-payment" || !user) return;
+
+    const checkPayment = async () => {
+      // Check URL for success param
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('success') === 'true') {
+        onComplete();
+        return;
+      }
+
+      // Check if team credits increased
+      if (user.teamId) {
+        const { data } = await supabase
+          .from('teams')
+          .select('credits')
+          .eq('id', user.teamId)
+          .single();
+        if (data && (data.credits || 0) > 0) {
+          onComplete();
+          return;
+        }
+      }
+    };
+
+    const interval = setInterval(checkPayment, 3000);
+    return () => clearInterval(interval);
+  }, [step, user, onComplete]);
+
   const handleCheckout = async (mode: "payment" | "subscription") => {
     if (!user) return;
 
@@ -123,8 +153,7 @@ export function PostRegistrationPurchaseModal({ open, onComplete }: Props) {
         if (error) throw error;
         if (data?.url) {
           window.open(data.url, '_blank');
-          toast.info("Complete o pagamento na aba que foi aberta.", { duration: 10000 });
-          onComplete();
+          setStep("awaiting-payment");
         }
       } catch (error: any) {
         toast.error("Erro ao criar checkout: " + error.message);
@@ -153,8 +182,7 @@ export function PostRegistrationPurchaseModal({ open, onComplete }: Props) {
       if (error) throw error;
       if (data?.url) {
         window.open(data.url, '_blank');
-        toast.info("Complete o pagamento na aba que foi aberta.", { duration: 10000 });
-        onComplete();
+        setStep("awaiting-payment");
       }
     } catch (error: any) {
       toast.error("Erro ao criar checkout: " + error.message);
@@ -204,14 +232,18 @@ export function PostRegistrationPurchaseModal({ open, onComplete }: Props) {
               className="text-center"
             >
               <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-                {step === "select-package" ? "Escolha seu pacote de créditos" : "Como deseja pagar?"}
+                {step === "select-package" ? "Escolha seu pacote de créditos" 
+                  : step === "awaiting-payment" ? "Finalizando sua compra"
+                  : "Como deseja pagar?"}
               </h2>
               <p className="text-sm sm:text-base text-muted-foreground mt-1.5 max-w-lg mx-auto">
                 {step === "select-package"
                   ? "Selecione o pacote ideal para começar a criar conteúdo com IA"
-                  : isCustomMode
-                    ? `${customCredits} créditos avulsos — R$ ${(customCredits * CREDIT_PRICE).toFixed(2)}`
-                    : `${selectedPackage?.name} — ${selectedPackage?.credits} créditos por R$ ${selectedPackage?.price.toLocaleString('pt-BR')}`
+                  : step === "awaiting-payment"
+                    ? "Estamos aguardando a confirmação do seu pagamento"
+                    : isCustomMode
+                      ? `${customCredits} créditos avulsos — R$ ${(customCredits * CREDIT_PRICE).toFixed(2)}`
+                      : `${selectedPackage?.name} — ${selectedPackage?.credits} créditos por R$ ${selectedPackage?.price.toLocaleString('pt-BR')}`
                 }
               </p>
             </motion.div>
@@ -486,6 +518,35 @@ export function PostRegistrationPurchaseModal({ open, onComplete }: Props) {
                     )}
                   </button>
                 </div>
+              </motion.div>
+            )}
+
+            {step === "awaiting-payment" && (
+              <motion.div
+                key="awaiting-payment"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex flex-col items-center justify-center py-16 space-y-6"
+              >
+                <div className="relative">
+                  <div className="w-20 h-20 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+                </div>
+                <div className="text-center space-y-2">
+                  <h3 className="text-xl font-bold text-foreground">Aguardando confirmação do pagamento...</h3>
+                  <p className="text-sm text-muted-foreground max-w-md">
+                    Complete o pagamento na aba que foi aberta. Esta tela será atualizada automaticamente assim que o pagamento for confirmado.
+                  </p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setStep("select-package")}
+                  className="text-muted-foreground hover:text-foreground mt-4"
+                >
+                  <ArrowLeft className="h-4 w-4 mr-1" />
+                  Voltar e escolher outro pacote
+                </Button>
               </motion.div>
             )}
           </AnimatePresence>
