@@ -94,6 +94,7 @@ export type ActionSummary = {
   approved: boolean;
   brand: { id: string; name: string } | null;
   imageUrl?: string;
+  videoUrl?: string;
   title?: string;
   platform?: string;
   objective?: string;
