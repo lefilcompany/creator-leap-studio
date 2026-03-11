@@ -20,7 +20,7 @@ import { IncompleteProfileBanner } from "@/components/dashboard/IncompleteProfil
 import { PostRegistrationPurchaseModal } from "@/components/PostRegistrationPurchaseModal";
 
 const Dashboard = () => {
-  const { user, isLoading, refreshUserCredits } = useAuth();
+  const { user, isLoading } = useAuth();
   
   // Detectar novo usuário sem créditos (pós-cadastro)
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
