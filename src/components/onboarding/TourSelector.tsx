@@ -29,26 +29,7 @@ export function TourSelector({ tours, startDelay = 500 }: TourSelectorProps) {
 
   const pendingTours = tours.filter(tour => shouldShowTour(tour.tourType));
 
-  useEffect(() => {
-    if (pendingTours.length === 0 || dismissed || isMobile) {
-      return;
-    }
-
-    // Se houver apenas 1 tour pendente, iniciar automaticamente
-    if (pendingTours.length === 1) {
-      const timer = setTimeout(() => {
-        setActiveTourIndex(0);
-      }, startDelay);
-      return () => clearTimeout(timer);
-    }
-
-    // Se houver múltiplos tours, mostrar seletor após delay
-    const timer = setTimeout(() => {
-      setShowSelector(true);
-    }, startDelay);
-
-    return () => clearTimeout(timer);
-  }, [pendingTours.length, startDelay, dismissed, isMobile]);
+  // Tours não abrem automaticamente - usuário deve iniciar manualmente nas Configurações
 
   const handleTourSelect = (index: number) => {
     setShowSelector(false);
