@@ -162,7 +162,7 @@ function ActionCard({ action, isSelected, onNavigate }: {
         isSelected && "ring-2 ring-primary/40 shadow-lg"
       )}
     >
-      {/* Image area */}
+      {/* Image/Video area */}
       <div className="aspect-video w-full relative overflow-hidden bg-muted">
         {action.imageUrl ? (
           <img
@@ -170,6 +170,18 @@ function ActionCard({ action, isSelected, onNavigate }: {
             alt={action.title || displayType}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             loading="lazy"
+          />
+        ) : action.videoUrl ? (
+          <video
+            src={action.videoUrl}
+            className="w-full h-full object-cover"
+            muted
+            playsInline
+            preload="metadata"
+            onLoadedData={(e) => {
+              const video = e.currentTarget;
+              video.currentTime = 1;
+            }}
           />
         ) : (
           <div className={cn("w-full h-full flex items-center justify-center bg-gradient-to-br", gradient)}>
