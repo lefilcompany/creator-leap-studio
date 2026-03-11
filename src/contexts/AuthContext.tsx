@@ -13,6 +13,7 @@ interface User {
   // Créditos individuais do usuário
   credits: number;
   maxCredits: number;
+  creditsExpireAt?: string | null;
   planId: string;
   subscriptionStatus?: string;
   subscriptionPeriodEnd?: string;
@@ -171,9 +172,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         teamId: profile.team_id,
         isAdmin: isSystemAdmin,
         avatarUrl: profile.avatar_url,
-        // Créditos individuais
+        // Créditos individuais com expiração
         credits: profile.credits || 0,
         maxCredits: profile.max_credits || profile.credits || 0,
+        creditsExpireAt: profile.credits_expire_at || null,
         planId: profile.plan_id || 'free',
         subscriptionStatus: profile.subscription_status,
         subscriptionPeriodEnd: profile.subscription_period_end,
@@ -279,6 +281,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           avatarUrl: profile.avatar_url,
           credits: profile.credits || 0,
           maxCredits: profile.max_credits || profile.credits || 0,
+          creditsExpireAt: profile.credits_expire_at || null,
           planId: profile.plan_id || 'free',
           subscriptionStatus: profile.subscription_status,
           subscriptionPeriodEnd: profile.subscription_period_end,
@@ -406,14 +409,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     const { data, error } = await supabase
       .from('profiles')
-      .select('credits, max_credits')
+      .select('credits, max_credits, credits_expire_at')
       .eq('id', user.id)
       .single();
       
     if (error) return;
       
     if (data) {
-      setUser(prev => prev ? { ...prev, credits: data.credits || 0, maxCredits: data.max_credits || data.credits || 0 } : null);
+      setUser(prev => prev ? { 
+        ...prev, 
+        credits: data.credits || 0, 
+        maxCredits: data.max_credits || data.credits || 0,
+        creditsExpireAt: (data as any).credits_expire_at || null,
+      } : null);
     }
   }, [user?.id]);
 

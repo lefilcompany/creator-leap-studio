@@ -201,6 +201,7 @@ const Dashboard = () => {
         remainingCredits={remainingCredits}
         totalCredits={totalCredits}
         progressPercentage={progressPercentage}
+        creditsExpireAt={user.creditsExpireAt}
       />
 
       {/* Stats */}

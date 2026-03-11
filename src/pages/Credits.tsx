@@ -414,13 +414,21 @@ const Credits = () => {
             </div>
             
             {user && (
-              <div className="flex items-center gap-3 bg-card/80 backdrop-blur-sm px-4 py-3 rounded-xl shadow-sm">
-                <p className="text-sm text-muted-foreground whitespace-nowrap">Seu saldo atual</p>
-                <div className="flex items-center gap-1.5">
-                  <Zap className="h-5 w-5 text-primary" />
-                  <span className="text-2xl font-bold text-primary">{user.credits || 0}</span>
-                  <span className="text-sm text-muted-foreground">créditos</span>
+              <div className="flex flex-col items-end gap-1 bg-card/80 backdrop-blur-sm px-4 py-3 rounded-xl shadow-sm">
+                <div className="flex items-center gap-3">
+                  <p className="text-sm text-muted-foreground whitespace-nowrap">Seu saldo atual</p>
+                  <div className="flex items-center gap-1.5">
+                    <Zap className="h-5 w-5 text-primary" />
+                    <span className="text-2xl font-bold text-primary">{user.credits || 0}</span>
+                    <span className="text-sm text-muted-foreground">créditos</span>
+                  </div>
                 </div>
+                {user.creditsExpireAt && user.credits > 0 && (
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    Válidos até {new Date(user.creditsExpireAt).toLocaleDateString('pt-BR')}
+                  </p>
+                )}
               </div>
             )}
           </div>
@@ -435,7 +443,7 @@ const Credits = () => {
         </div>
         <div className="flex items-center gap-2">
           <Clock className="h-4 w-4 text-primary" />
-          <span>Créditos não expiram</span>
+          <span>Créditos válidos por 30 dias</span>
         </div>
         <div className="flex items-center gap-2">
           <Zap className="h-4 w-4 text-primary" />
@@ -600,8 +608,8 @@ const Credits = () => {
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground text-justify">
                   Os créditos são consumidos ao usar as ferramentas de criação de conteúdo com IA. 
-                  Cada tipo de criação tem um custo diferente. Os créditos comprados nunca expiram 
-                  e você pode comprar mais a qualquer momento.
+                  Cada tipo de criação tem um custo diferente. Os créditos comprados têm validade de 30 dias 
+                  a partir da data da compra e não acumulam com pacotes anteriores.
                 </p>
                 <Button 
                   variant="link" 

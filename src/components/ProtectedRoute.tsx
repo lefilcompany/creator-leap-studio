@@ -42,14 +42,19 @@ export default function ProtectedRoute({ children, requireTeam = false }: Protec
       return;
     }
 
-    // Verificar créditos expirados apenas se exigir verificação
-    if (isTrialExpired && user?.credits <= 0) {
+    // Verificar créditos expirados ou zerados
+    const creditsExpired = user?.creditsExpireAt ? new Date(user.creditsExpireAt) < new Date() : false;
+    const effectiveCredits = creditsExpired ? 0 : (user?.credits || 0);
+    
+    if ((isTrialExpired || creditsExpired) && effectiveCredits <= 0) {
       const currentPath = window.location.pathname;
       const allowedPaths = ['/credits', '/history', '/profile', '/credit-history'];
       const isAllowedPath = allowedPaths.some(path => currentPath.startsWith(path));
       
       if (!isAllowedPath) {
-        toast.error('Seus créditos acabaram. Adquira mais créditos para continuar.');
+        toast.error(creditsExpired 
+          ? 'Seus créditos expiraram. Adquira um novo pacote para continuar.'
+          : 'Seus créditos acabaram. Adquira mais créditos para continuar.');
         navigate('/credits?expired=true');
         return;
       }
