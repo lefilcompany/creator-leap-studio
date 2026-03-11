@@ -245,7 +245,6 @@ export function PostRegistrationPurchaseModal({ open, onComplete }: Props) {
                       ? `${customCredits} créditos avulsos — R$ ${(customCredits * CREDIT_PRICE).toFixed(2)}`
                       : `${selectedPackage?.name} — ${selectedPackage?.credits} créditos por R$ ${selectedPackage?.price.toLocaleString('pt-BR')}`
                 }
-                }
               </p>
             </motion.div>
           </AnimatePresence>
