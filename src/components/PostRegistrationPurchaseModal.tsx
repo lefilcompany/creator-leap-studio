@@ -111,6 +111,36 @@ export function PostRegistrationPurchaseModal({ open, onComplete }: Props) {
     setStep("select-mode");
   };
 
+  // Poll for payment success
+  useEffect(() => {
+    if (step !== "awaiting-payment" || !user) return;
+
+    const checkPayment = async () => {
+      // Check URL for success param
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('success') === 'true') {
+        onComplete();
+        return;
+      }
+
+      // Check if team credits increased
+      if (user.teamId) {
+        const { data } = await supabase
+          .from('teams')
+          .select('credits')
+          .eq('id', user.teamId)
+          .single();
+        if (data && (data.credits || 0) > 0) {
+          onComplete();
+          return;
+        }
+      }
+    };
+
+    const interval = setInterval(checkPayment, 3000);
+    return () => clearInterval(interval);
+  }, [step, user, onComplete]);
+
   const handleCheckout = async (mode: "payment" | "subscription") => {
     if (!user) return;
 
@@ -123,8 +153,7 @@ export function PostRegistrationPurchaseModal({ open, onComplete }: Props) {
         if (error) throw error;
         if (data?.url) {
           window.open(data.url, '_blank');
-          toast.info("Complete o pagamento na aba que foi aberta.", { duration: 10000 });
-          onComplete();
+          setStep("awaiting-payment");
         }
       } catch (error: any) {
         toast.error("Erro ao criar checkout: " + error.message);
@@ -153,8 +182,7 @@ export function PostRegistrationPurchaseModal({ open, onComplete }: Props) {
       if (error) throw error;
       if (data?.url) {
         window.open(data.url, '_blank');
-        toast.info("Complete o pagamento na aba que foi aberta.", { duration: 10000 });
-        onComplete();
+        setStep("awaiting-payment");
       }
     } catch (error: any) {
       toast.error("Erro ao criar checkout: " + error.message);
