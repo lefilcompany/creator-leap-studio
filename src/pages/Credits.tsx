@@ -435,7 +435,7 @@ const Credits = () => {
         </div>
         <div className="flex items-center gap-2">
           <Clock className="h-4 w-4 text-primary" />
-          <span>Créditos não expiram</span>
+          <span>Créditos válidos por 30 dias</span>
         </div>
         <div className="flex items-center gap-2">
           <Zap className="h-4 w-4 text-primary" />

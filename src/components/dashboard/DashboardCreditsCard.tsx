@@ -18,8 +18,18 @@ export const DashboardCreditsCard = ({
   remainingCredits,
   totalCredits,
   progressPercentage,
+  creditsExpireAt,
 }: DashboardCreditsCardProps) => {
   const isLow = progressPercentage < 20;
+  const isMedium = progressPercentage >= 20 && progressPercentage < 50;
+  
+  const isExpired = creditsExpireAt ? new Date(creditsExpireAt) < new Date() : false;
+  const effectiveCredits = isExpired ? 0 : remainingCredits;
+  const effectiveProgress = isExpired ? 0 : progressPercentage;
+  
+  const expirationLabel = creditsExpireAt 
+    ? format(new Date(creditsExpireAt), "dd 'de' MMMM", { locale: ptBR })
+    : null;
   const isMedium = progressPercentage >= 20 && progressPercentage < 50;
 
   return (

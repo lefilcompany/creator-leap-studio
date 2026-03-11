@@ -122,17 +122,19 @@ serve(async (req) => {
 
       logStep("Plan identified", { planId: planInfo.planId, credits: planInfo.credits });
 
-      // Usar créditos do PROFILE do usuário (não mais teams)
+      // Créditos NÃO acumulam - novos créditos substituem os antigos
       const creditsBefore = profile.credits || 0;
-      const creditsAfter = creditsBefore + planInfo.credits;
+      const creditsAfter = planInfo.credits; // Substitui, não soma
 
-      // Atualizar PROFILE com novos créditos e dados da assinatura
+      // Atualizar PROFILE com novos créditos, expiração e dados da assinatura
       const subscriptionPeriodEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+      const creditsExpireAt = subscriptionPeriodEnd; // Créditos expiram junto com o período
       
       const { error: updateError } = await supabaseClient
         .from('profiles')
         .update({
           credits: creditsAfter,
+          credits_expire_at: creditsExpireAt,
           plan_id: planInfo.planId,
           subscription_status: 'active',
           subscription_period_end: subscriptionPeriodEnd,
