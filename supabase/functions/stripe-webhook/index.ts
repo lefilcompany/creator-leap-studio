@@ -204,7 +204,7 @@ serve(async (req) => {
           team_id: profile.team_id,
           type: 'payment_success',
           title: 'Pagamento confirmado!',
-          message: `Seu pagamento foi processado e ${planInfo.credits} créditos foram adicionados à sua conta.`,
+          message: `Seu pagamento foi processado e ${planInfo.credits} créditos foram adicionados à sua conta. Válidos por 30 dias.`,
           metadata: {
             credits: planInfo.credits,
             plan_id: planInfo.planId,
