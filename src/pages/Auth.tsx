@@ -364,21 +364,7 @@ const Auth = () => {
           }
         }
 
-        // Redirect to Stripe to save credit card
-        try {
-          const { data: cardData, error: cardError } = await supabase.functions.invoke("setup-card", {
-            body: { return_url: "/dashboard" },
-          });
-
-          if (!cardError && cardData?.url) {
-            window.location.href = cardData.url;
-            return;
-          }
-        } catch (cardErr) {
-          console.error("Erro ao configurar cartão:", cardErr);
-        }
-
-        // Fallback: redirect to dashboard if card setup fails
+        // Redirecionar direto para o dashboard (cartão pode ser cadastrado depois)
         setWaitingForAuth(true);
       }
     } catch (err) {
