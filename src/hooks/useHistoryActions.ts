@@ -118,6 +118,7 @@ export function useHistoryActions(filters: HistoryFilters) {
           approved: row.approved,
           brand: row.brand_name ? { id: row.brand_id, name: row.brand_name } : null,
           imageUrl,
+          videoUrl: row.video_url || undefined,
           title: row.title || undefined,
           platform: row.platform || undefined,
           objective: row.objective || undefined,
