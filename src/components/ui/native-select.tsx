@@ -54,7 +54,7 @@ const NativeSelect = React.forwardRef<HTMLButtonElement, NativeSelectProps>(
           onOpenChange={setOpen}
           value={value && value.length > 0 ? value : undefined}
           onValueChange={(v) => {
-            if (v === "__placeholder__" || v === "__clear__") {
+            if (v === "__placeholder__" || v === "__clear__" || v === "__none__") {
               onValueChange?.("");
               return;
             }
