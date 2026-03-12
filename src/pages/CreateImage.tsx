@@ -707,6 +707,7 @@ export default function CreateImage() {
                       ]}
                       placeholder={!formData.brand ? "Selecione marca" : filteredPersonas.length === 0 ? "Nenhuma" : "Selecionar"}
                       disabled={!formData.brand || filteredPersonas.length === 0}
+                      allowReselectToClear
                       triggerClassName="h-9 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors text-xs"
                     />
                   </div>
