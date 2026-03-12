@@ -16,36 +16,36 @@ const actions = [
     description: "Textos e imagens com IA",
     icon: Sparkles,
     link: "/create",
-    gradient: "from-primary/30 via-primary/15 to-primary/5",
+    bg: "bg-primary/10",
     iconColor: "text-primary",
-    iconBg: "bg-primary/15",
+    iconBg: "bg-primary/20",
   },
   {
     title: "Revisar Conteúdo",
     description: "Feedback inteligente",
     icon: CheckCircle,
     link: "/review",
-    gradient: "from-success/30 via-success/15 to-success/5",
+    bg: "bg-success/10",
     iconColor: "text-success",
-    iconBg: "bg-success/15",
+    iconBg: "bg-success/20",
   },
   {
     title: "Planejar Calendário",
     description: "Organize suas postagens",
     icon: CalendarDays,
     link: "/plan",
-    gradient: "from-accent/30 via-accent/15 to-accent/5",
+    bg: "bg-accent/10",
     iconColor: "text-accent",
-    iconBg: "bg-accent/15",
+    iconBg: "bg-accent/20",
   },
   {
     title: "Gerar Vídeo",
     description: "Vídeos criativos com IA",
     icon: Video,
     link: "/create-video",
-    gradient: "from-secondary/30 via-secondary/15 to-secondary/5",
+    bg: "bg-secondary/10",
     iconColor: "text-secondary",
-    iconBg: "bg-secondary/15",
+    iconBg: "bg-secondary/20",
   },
 ];
 
@@ -70,7 +70,7 @@ export const DashboardQuickActions = () => (
       <motion.div key={action.title} variants={item}>
         <Link to={action.link} className="block h-full">
           <Card className="group h-full border-0 shadow-md hover:shadow-xl hover:scale-[1.03] transition-all duration-300 cursor-pointer overflow-hidden">
-            <CardContent className={`p-4 h-full bg-gradient-to-br ${action.gradient} flex flex-col justify-between gap-3`}>
+            <CardContent className={`p-4 h-full ${action.bg} flex flex-col justify-between gap-3`}>
               <div className="flex items-center justify-between">
                 <div className={`p-2.5 rounded-xl ${action.iconBg} backdrop-blur-sm shadow-sm ${action.iconColor}`}>
                   <action.icon className="h-5 w-5" />
