@@ -7,8 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from
+"@/components/ui/select";
 import { NativeSelect } from "@/components/ui/native-select";
 import { TagSelect } from "@/components/ui/tag-select";
 import { Card, CardContent } from "@/components/ui/card";
@@ -38,7 +38,7 @@ enum GenerationStep {
   GENERATING_IMAGE = "GENERATING_IMAGE",
   GENERATING_CAPTION = "GENERATING_CAPTION",
   SAVING = "SAVING",
-  COMPLETE = "COMPLETE"
+  COMPLETE = "COMPLETE",
 }
 
 interface FormData {
@@ -72,52 +72,52 @@ interface FormData {
 }
 
 const TEXT_POSITIONS = [
-  { value: 'top-left', label: 'Topo Esq.', icon: '↖' },
-  { value: 'top', label: 'Topo', icon: '↑' },
-  { value: 'top-right', label: 'Topo Dir.', icon: '↗' },
-  { value: 'center', label: 'Centro', icon: '⊕' },
-  { value: 'bottom-left', label: 'Inferior Esq.', icon: '↙' },
-  { value: 'bottom', label: 'Inferior', icon: '↓' },
-  { value: 'bottom-right', label: 'Inferior Dir.', icon: '↘' },
-] as const;
+{ value: 'top-left', label: 'Topo Esq.', icon: '↖' },
+{ value: 'top', label: 'Topo', icon: '↑' },
+{ value: 'top-right', label: 'Topo Dir.', icon: '↗' },
+{ value: 'center', label: 'Centro', icon: '⊕' },
+{ value: 'bottom-left', label: 'Inferior Esq.', icon: '↙' },
+{ value: 'bottom', label: 'Inferior', icon: '↓' },
+{ value: 'bottom-right', label: 'Inferior Dir.', icon: '↘' }] as
+const;
 
 const FONT_STYLE_OPTIONS = [
-  { value: 'modern', label: 'Moderno', desc: 'Sans-serif limpa e minimalista' },
-  { value: 'elegant', label: 'Elegante', desc: 'Serifa clássica e refinada' },
-  { value: 'fun', label: 'Divertido', desc: 'Script casual e expressiva' },
-  { value: 'impactful', label: 'Impactante', desc: 'Bold condensada, alto impacto' },
-] as const;
+{ value: 'modern', label: 'Moderno', desc: 'Sans-serif limpa e minimalista' },
+{ value: 'elegant', label: 'Elegante', desc: 'Serifa clássica e refinada' },
+{ value: 'fun', label: 'Divertido', desc: 'Script casual e expressiva' },
+{ value: 'impactful', label: 'Impactante', desc: 'Bold condensada, alto impacto' }] as
+const;
 
 const TEXT_DESIGN_OPTIONS = [
-  { value: 'clean', label: 'Clean', desc: 'Texto sobre espaço negativo, sem overlay' },
-  { value: 'overlay', label: 'Overlay', desc: 'Texto sobre faixa semitransparente' },
-  { value: 'gradient_bar', label: 'Barra Gradiente', desc: 'Texto sobre barra com gradiente da marca' },
-  { value: 'cutout', label: 'Recorte', desc: 'Texto recortado revelando a imagem por dentro' },
-  { value: 'shadow_drop', label: 'Sombra', desc: 'Texto com sombra projetada forte' },
-  { value: 'neon_glow', label: 'Neon', desc: 'Texto com brilho neon luminoso' },
-  { value: 'boxed', label: 'Emoldurado', desc: 'Texto dentro de caixa com borda e fundo sólido' },
-  { value: 'badge', label: 'Badge/Selo', desc: 'Texto dentro de selo/etiqueta colorida com destaque' },
-  { value: 'plaquinha', label: 'Plaquinha', desc: 'Texto em placa de madeira/metal com textura' },
-  { value: 'card_overlay', label: 'Card Overlay', desc: 'Painel com informações sobrepostas na foto' },
-] as const;
+{ value: 'clean', label: 'Clean', desc: 'Texto sobre espaço negativo, sem overlay' },
+{ value: 'overlay', label: 'Overlay', desc: 'Texto sobre faixa semitransparente' },
+{ value: 'gradient_bar', label: 'Barra Gradiente', desc: 'Texto sobre barra com gradiente da marca' },
+{ value: 'cutout', label: 'Recorte', desc: 'Texto recortado revelando a imagem por dentro' },
+{ value: 'shadow_drop', label: 'Sombra', desc: 'Texto com sombra projetada forte' },
+{ value: 'neon_glow', label: 'Neon', desc: 'Texto com brilho neon luminoso' },
+{ value: 'boxed', label: 'Emoldurado', desc: 'Texto dentro de caixa com borda e fundo sólido' },
+{ value: 'badge', label: 'Badge/Selo', desc: 'Texto dentro de selo/etiqueta colorida com destaque' },
+{ value: 'plaquinha', label: 'Plaquinha', desc: 'Texto em placa de madeira/metal com textura' },
+{ value: 'card_overlay', label: 'Card Overlay', desc: 'Painel com informações sobrepostas na foto' }] as
+const;
 
 const toneOptions = [
-  "inspirador", "motivacional", "profissional", "casual",
-  "elegante", "moderno", "tradicional", "divertido", "sério",
-];
+"inspirador", "motivacional", "profissional", "casual",
+"elegante", "moderno", "tradicional", "divertido", "sério"];
+
 
 const VISUAL_STYLES = [
-  { value: "realistic", label: "Fotorealístico" },
-  { value: "animated", label: "Animado / 3D" },
-  { value: "cartoon", label: "Cartoon" },
-  { value: "anime", label: "Anime" },
-  { value: "watercolor", label: "Aquarela" },
-  { value: "oil_painting", label: "Pintura a Óleo" },
-  { value: "digital_art", label: "Arte Digital" },
-  { value: "sketch", label: "Esboço" },
-  { value: "minimalist", label: "Minimalista" },
-  { value: "vintage", label: "Vintage" },
-] as const;
+{ value: "realistic", label: "Fotorealístico" },
+{ value: "animated", label: "Animado / 3D" },
+{ value: "cartoon", label: "Cartoon" },
+{ value: "anime", label: "Anime" },
+{ value: "watercolor", label: "Aquarela" },
+{ value: "oil_painting", label: "Pintura a Óleo" },
+{ value: "digital_art", label: "Arte Digital" },
+{ value: "sketch", label: "Esboço" },
+{ value: "minimalist", label: "Minimalista" },
+{ value: "vintage", label: "Vintage" }] as
+const;
 
 export default function CreateImage() {
   const { user, session, refreshUserCredits } = useAuth();
@@ -130,7 +130,7 @@ export default function CreateImage() {
     detailLevel: 7, mood: "auto", imageIncludeText: false,
     imageTextContent: "", imageTextPosition: "center",
     fontStyle: "modern", textDesignStyle: "clean", ctaText: "",
-    adMode: "standard", priceText: "", includeBrandLogo: false,
+    adMode: "standard", priceText: "", includeBrandLogo: false
   });
 
   const [loading, setLoading] = useState(false);
@@ -160,7 +160,7 @@ export default function CreateImage() {
       return (data || []).map((brand: any) => ({ id: brand.id, name: brand.name, responsible: brand.responsible, brandColor: null, avatarUrl: null, createdAt: brand.created_at, updatedAt: brand.updated_at })) as BrandSummary[];
     },
     enabled: !!teamId,
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60 * 5
   });
 
   const { data: themes = [], isLoading: loadingThemes } = useQuery({
@@ -172,7 +172,7 @@ export default function CreateImage() {
       return (data || []).map((theme: any) => ({ id: theme.id, brandId: theme.brand_id, title: theme.title, createdAt: theme.created_at })) as StrategicThemeSummary[];
     },
     enabled: !!teamId,
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60 * 5
   });
 
   const { data: personas = [], isLoading: loadingPersonas } = useQuery({
@@ -184,7 +184,7 @@ export default function CreateImage() {
       return (data || []).map((persona: any) => ({ id: persona.id, brandId: persona.brand_id, name: persona.name, createdAt: persona.created_at })) as PersonaSummary[];
     },
     enabled: !!teamId,
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60 * 5
   });
 
   const { data: team = null } = useQuery({
@@ -202,16 +202,16 @@ export default function CreateImage() {
           maxMembers: teamData.plan.max_members, maxBrands: teamData.plan.max_brands,
           maxStrategicThemes: teamData.plan.max_strategic_themes, maxPersonas: teamData.plan.max_personas,
           trialDays: teamData.plan.trial_days || 0, isActive: teamData.plan.is_active,
-          stripePriceId: teamData.plan.stripe_price_id_monthly,
+          stripePriceId: teamData.plan.stripe_price_id_monthly
         } : null,
         credits: (teamData as any).credits || 0,
         free_brands_used: (teamData as any).free_brands_used || 0,
         free_personas_used: (teamData as any).free_personas_used || 0,
-        free_themes_used: (teamData as any).free_themes_used || 0,
+        free_themes_used: (teamData as any).free_themes_used || 0
       } as Team;
     },
     enabled: !!teamId,
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60 * 5
   });
 
   const isLoadingData = loadingBrands || loadingThemes || loadingPersonas;
@@ -222,7 +222,7 @@ export default function CreateImage() {
 
   useEffect(() => {
     const persisted = loadPersistedData();
-    if (persisted) setFormData(prev => ({ ...prev, ...persisted }));
+    if (persisted) setFormData((prev) => ({ ...prev, ...persisted }));
   }, []);
 
   const handlePaste = (e: React.ClipboardEvent) => {
@@ -234,57 +234,57 @@ export default function CreateImage() {
         if (file) files.push(file);
       }
     }
-    if (files.length > 0) setReferenceFiles(prev => [...prev, ...files].slice(0, 5));
+    if (files.length > 0) setReferenceFiles((prev) => [...prev, ...files].slice(0, 5));
   };
 
   const handleTogglePreserve = (index: number) => {
-    setPreserveImageIndices(prev => prev.includes(index) ? prev.filter(idx => idx !== index) : [...prev, index]);
+    setPreserveImageIndices((prev) => prev.includes(index) ? prev.filter((idx) => idx !== index) : [...prev, index]);
   };
 
   const handleRemoveFile = (indexToRemove: number) => {
     const updatedFiles = referenceFiles.filter((_, index) => index !== indexToRemove);
     setReferenceFiles(updatedFiles);
-    setPreserveImageIndices(prev => prev.filter(idx => idx !== indexToRemove).map(idx => idx > indexToRemove ? idx - 1 : idx));
+    setPreserveImageIndices((prev) => prev.filter((idx) => idx !== indexToRemove).map((idx) => idx > indexToRemove ? idx - 1 : idx));
     if (updatedFiles.length === 0 && fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  const filteredThemes = useMemo(() => formData.brand ? themes.filter(t => t.brandId === formData.brand) : [], [themes, formData.brand]);
-  const filteredPersonas = useMemo(() => formData.brand ? personas.filter(p => p.brandId === formData.brand) : [], [personas, formData.brand]);
+  const filteredThemes = useMemo(() => formData.brand ? themes.filter((t) => t.brandId === formData.brand) : [], [themes, formData.brand]);
+  const filteredPersonas = useMemo(() => formData.brand ? personas.filter((p) => p.brandId === formData.brand) : [], [personas, formData.brand]);
 
   useEffect(() => {
-    const selectedBrand = brands.find(b => b.id === formData.brand);
+    const selectedBrand = brands.find((b) => b.id === formData.brand);
     if (selectedBrand) {
       setBrandImages([]);
-      supabase.from('brands').select('logo, moodboard, reference_image').eq('id', selectedBrand.id).single()
-        .then(({ data: fullBrand, error }) => {
-          if (!error && fullBrand) {
-            const images: string[] = [];
-            const logo = fullBrand.logo as any;
-            const moodboard = fullBrand.moodboard as any;
-            const referenceImage = fullBrand.reference_image as any;
-            if (logo?.content) images.push(logo.content);
-            if (moodboard?.content) images.push(moodboard.content);
-            if (referenceImage?.content) images.push(referenceImage.content);
-            setBrandImages(images);
-          }
-        });
+      supabase.from('brands').select('logo, moodboard, reference_image').eq('id', selectedBrand.id).single().
+      then(({ data: fullBrand, error }) => {
+        if (!error && fullBrand) {
+          const images: string[] = [];
+          const logo = fullBrand.logo as any;
+          const moodboard = fullBrand.moodboard as any;
+          const referenceImage = fullBrand.reference_image as any;
+          if (logo?.content) images.push(logo.content);
+          if (moodboard?.content) images.push(moodboard.content);
+          if (referenceImage?.content) images.push(referenceImage.content);
+          setBrandImages(images);
+        }
+      });
     } else {
       setBrandImages([]);
     }
   }, [brands, formData.brand]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData(prev => ({ ...prev, [e.target.id]: e.target.value }));
+    setFormData((prev) => ({ ...prev, [e.target.id]: e.target.value }));
   };
 
   const handleSelectChange = (field: keyof Omit<FormData, "tone">, value: string) => {
     try {
       if (!field || value === undefined) {
-        toast.error("Erro ao atualizar campo"); return;
+        toast.error("Erro ao atualizar campo");return;
       }
-      setFormData(prev => ({ ...prev, [field]: value }));
+      setFormData((prev) => ({ ...prev, [field]: value }));
       if (field === "brand") {
-        setFormData(prev => ({ ...prev, brand: value, theme: "", persona: "" }));
+        setFormData((prev) => ({ ...prev, brand: value, theme: "", persona: "" }));
       }
       if (field === "platform") {
         const guidelines = getCaptionGuidelines(value, contentType);
@@ -304,13 +304,13 @@ export default function CreateImage() {
 
   const handleToneSelect = (tone: string) => {
     if (!formData.tone.includes(tone)) {
-      if (formData.tone.length >= 4) { toast.error("Limite atingido", { description: "Máximo 4 tons de voz." }); return; }
-      setFormData(prev => ({ ...prev, tone: [...prev.tone, tone] }));
+      if (formData.tone.length >= 4) {toast.error("Limite atingido", { description: "Máximo 4 tons de voz." });return;}
+      setFormData((prev) => ({ ...prev, tone: [...prev.tone, tone] }));
     }
   };
 
   const handleToneRemove = (toneToRemove: string) => {
-    setFormData(prev => ({ ...prev, tone: prev.tone.filter(t => t !== toneToRemove) }));
+    setFormData((prev) => ({ ...prev, tone: prev.tone.filter((t) => t !== toneToRemove) }));
   };
 
   const isFormValid = useMemo(() => {
@@ -348,11 +348,11 @@ export default function CreateImage() {
             img.onload = () => {
               const canvas = document.createElement('canvas');
               const ctx = canvas.getContext('2d')!;
-              const MAX_WIDTH = 1024; const MAX_HEIGHT = 1024;
-              let width = img.width; let height = img.height;
-              if (width > height) { if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; } }
-              else { if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; } }
-              canvas.width = width; canvas.height = height;
+              const MAX_WIDTH = 1024;const MAX_HEIGHT = 1024;
+              let width = img.width;let height = img.height;
+              if (width > height) {if (width > MAX_WIDTH) {height *= MAX_WIDTH / width;width = MAX_WIDTH;}} else
+              {if (height > MAX_HEIGHT) {width *= MAX_HEIGHT / height;height = MAX_HEIGHT;}}
+              canvas.width = width;canvas.height = height;
               ctx.drawImage(img, 0, 0, width, height);
               resolve(canvas.toDataURL('image/jpeg', 0.8));
             };
@@ -374,12 +374,12 @@ export default function CreateImage() {
       toast.loading("🎨 Preparando geração...", { id: toastId, description: "Analisando referências (10%)" });
 
       const maxTotalImages = 5;
-      const safePreserveIndices = preserveImageIndices
-        .filter((idx) => Number.isInteger(idx) && idx >= 0 && idx < referenceImagesBase64.length);
+      const safePreserveIndices = preserveImageIndices.
+      filter((idx) => Number.isInteger(idx) && idx >= 0 && idx < referenceImagesBase64.length);
 
       const userImageEntries = referenceImagesBase64.map((image, index) => ({
         image,
-        preserve: safePreserveIndices.includes(index),
+        preserve: safePreserveIndices.includes(index)
       }));
 
       const finalBrandImages = brandImages.slice(0, 3);
@@ -387,8 +387,8 @@ export default function CreateImage() {
       const prioritizedUserEntries = [...userImageEntries].sort((a, b) => Number(b.preserve) - Number(a.preserve));
       const limitedUserEntries = prioritizedUserEntries.slice(0, availableUserSlots);
 
-      const finalPreservedUserImages = limitedUserEntries.filter(entry => entry.preserve).map(entry => entry.image);
-      const finalStyleUserImages = limitedUserEntries.filter(entry => !entry.preserve).map(entry => entry.image);
+      const finalPreservedUserImages = limitedUserEntries.filter((entry) => entry.preserve).map((entry) => entry.image);
+      const finalStyleUserImages = limitedUserEntries.filter((entry) => !entry.preserve).map((entry) => entry.image);
       const finalUserImages = [...finalPreservedUserImages, ...finalStyleUserImages];
 
       if (userImageEntries.length > availableUserSlots) {
@@ -398,9 +398,9 @@ export default function CreateImage() {
         );
       }
 
-      const selectedBrand = brands.find(b => b.id === formData.brand);
-      const selectedTheme = themes.find(t => t.id === formData.theme);
-      const selectedPersona = personas.find(p => p.id === formData.persona);
+      const selectedBrand = brands.find((b) => b.id === formData.brand);
+      const selectedTheme = themes.find((t) => t.id === formData.theme);
+      const selectedPersona = personas.find((p) => p.id === formData.persona);
 
       const requestData = {
         brandId: formData.brand, themeId: formData.theme, personaId: formData.persona,
@@ -427,22 +427,22 @@ export default function CreateImage() {
         fontStyle: formData.fontStyle || "modern",
         textDesignStyle: formData.textDesignStyle || "clean",
         ctaText: formData.ctaText?.trim() || "",
-        adMode: contentType === 'ads' ? (formData.adMode || 'standard') : undefined,
+        adMode: contentType === 'ads' ? formData.adMode || 'standard' : undefined,
         priceText: formData.priceText?.trim() || "",
-        includeBrandLogo: formData.includeBrandLogo || false,
+        includeBrandLogo: formData.includeBrandLogo || false
       };
 
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-      if (!formData.brand || !uuidRegex.test(formData.brand)) { toast.error("Selecione uma marca válida", { id: toastId }); return; }
-      if (formData.theme && !uuidRegex.test(formData.theme)) { toast.error("Tema inválido", { id: toastId }); return; }
-      if (formData.persona && !uuidRegex.test(formData.persona)) { toast.error("Persona inválida", { id: toastId }); return; }
+      if (!formData.brand || !uuidRegex.test(formData.brand)) {toast.error("Selecione uma marca válida", { id: toastId });return;}
+      if (formData.theme && !uuidRegex.test(formData.theme)) {toast.error("Tema inválido", { id: toastId });return;}
+      if (formData.persona && !uuidRegex.test(formData.persona)) {toast.error("Persona inválida", { id: toastId });return;}
 
       toast.loading("Gerando imagem com IA...", { id: toastId, description: `Usando ${finalBrandImages.length} refs da marca + ${finalPreservedUserImages.length} preservadas + ${finalStyleUserImages.length} de estilo.` });
 
       const imageResponse = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-image`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token}` },
-        body: JSON.stringify({ ...requestData, teamId: user?.teamId }),
+        body: JSON.stringify({ ...requestData, teamId: user?.teamId })
       });
       if (!imageResponse.ok) throw new Error(`Erro ao gerar imagem: ${await imageResponse.text()}`);
       const { imageUrl, attempt, legenda } = await imageResponse.json();
@@ -457,7 +457,7 @@ export default function CreateImage() {
         const hashtagRegex = /#[\wÀ-ÿ]+/g;
         const allHashtags = legenda.match(hashtagRegex) || [];
         const hashtags = allHashtags.map((h: string) => h.replace('#', ''));
-        
+
         // Separar corpo da legenda das hashtags
         const legendaBody = legenda.replace(/\n*(?:#[\wÀ-ÿ]+\s*)+$/g, '').trim();
         const lines = legendaBody.split('\n').filter((l: string) => l.trim());
@@ -476,14 +476,14 @@ export default function CreateImage() {
         const captionResponse = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-caption`, {
           method: "POST",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token}` },
-          body: JSON.stringify({ formData: { ...requestData, imageDescription: requestData.description, audience: selectedPersona?.name || "" } }),
+          body: JSON.stringify({ formData: { ...requestData, imageDescription: requestData.description, audience: selectedPersona?.name || "" } })
         });
 
         if (captionResponse.ok) {
           const responseData = await captionResponse.json();
-          if (responseData.fallback) { isLocalFallback = true; toast.warning("Legenda gerada localmente", { duration: 4000 }); }
+          if (responseData.fallback) {isLocalFallback = true;toast.warning("Legenda gerada localmente", { duration: 4000 });}
           captionData = responseData.fallback ? null : responseData;
-        } else { isLocalFallback = true; toast.error("Erro ao gerar legenda", { description: "Usando legenda padrão.", duration: 4000 }); }
+        } else {isLocalFallback = true;toast.error("Erro ao gerar legenda", { description: "Usando legenda padrão.", duration: 4000 });}
       }
 
       if (!captionData || isLocalFallback) {
@@ -493,16 +493,16 @@ export default function CreateImage() {
         captionData = {
           title: `${brandName} | ${themeName} 🚀`,
           body: `🌟 ${brandName} apresenta: ${themeName}\n\n${formData.prompt}\n\n🎯 Tom: ${formData.tone.join(", ")}\n\n💬 Comente!`.substring(0, specs.maxLength - 100),
-          hashtags: [brandName.toLowerCase().replace(/\s+/g, ""), themeName.toLowerCase().replace(/\s+/g, ""), formData.platform.toLowerCase(), "marketingdigital", "conteudocriativo", ...formData.tone.map(t => t.toLowerCase())].filter((tag, i, self) => tag && tag.length > 2 && self.indexOf(tag) === i).slice(0, specs.recommendedHashtags)
+          hashtags: [brandName.toLowerCase().replace(/\s+/g, ""), themeName.toLowerCase().replace(/\s+/g, ""), formData.platform.toLowerCase(), "marketingdigital", "conteudocriativo", ...formData.tone.map((t) => t.toLowerCase())].filter((tag, i, self) => tag && tag.length > 2 && self.indexOf(tag) === i).slice(0, specs.recommendedHashtags)
         };
       }
 
-      setGenerationStep(GenerationStep.SAVING); setGenerationProgress(80);
+      setGenerationStep(GenerationStep.SAVING);setGenerationProgress(80);
       toast.loading("💾 Preparando resultado...", { id: toastId, description: "Finalizando (80%)" });
       if (!imageUrl || !captionData?.title || !captionData?.body) throw new Error("Dados incompletos");
 
       if (refreshUserCredits) await refreshUserCredits();
-      setGenerationStep(GenerationStep.COMPLETE); setGenerationProgress(100);
+      setGenerationStep(GenerationStep.COMPLETE);setGenerationProgress(100);
       toast.success("✅ Conteúdo gerado com sucesso!", { id: toastId, description: "Imagem e legenda criados 🚀", duration: 1500 });
       clearPersistedData();
       navigate("/result", { state: { contentData: { type: "image", mediaUrl: imageUrl, platform: formData.platform, brand: selectedBrand?.name || formData.brand, title: captionData.title, body: captionData.body, hashtags: captionData.hashtags, originalFormData: { ...requestData, brandId: formData.brand }, actionId: undefined, isLocalFallback } }, replace: false });
@@ -517,33 +517,33 @@ export default function CreateImage() {
             if (errorData.recommendation) setTimeout(() => toast.info("Sugestão", { description: errorData.recommendation, duration: 10000 }), 500);
             return;
           }
-        } catch { }
+        } catch {}
       }
-      let errorMessage = "Erro ao gerar o conteúdo."; let errorDescription = "Tente novamente.";
-      if (err.message?.includes("Network")) { errorMessage = "Erro de conexão"; errorDescription = "Verifique sua internet."; }
-      else if (err.message?.includes("timeout")) { errorMessage = "Tempo esgotado"; }
-      else if (err.message) errorDescription = err.message;
+      let errorMessage = "Erro ao gerar o conteúdo.";let errorDescription = "Tente novamente.";
+      if (err.message?.includes("Network")) {errorMessage = "Erro de conexão";errorDescription = "Verifique sua internet.";} else
+      if (err.message?.includes("timeout")) {errorMessage = "Tempo esgotado";} else
+      if (err.message) errorDescription = err.message;
       toast.error(errorMessage, { id: toastId, description: errorDescription, duration: 5000 });
     } finally {
-      setLoading(false); setGenerationStep(GenerationStep.IDLE); setGenerationProgress(0);
+      setLoading(false);setGenerationStep(GenerationStep.IDLE);setGenerationProgress(0);
     }
   };
 
-  const SelectSkeleton = () => (
-    <div className="space-y-1.5">
+  const SelectSkeleton = () =>
+  <div className="space-y-1.5">
       <Skeleton className="h-4 w-24" />
       <Skeleton className="h-10 w-full rounded-lg" />
-    </div>
-  );
+    </div>;
 
-  const selectedStyleLabel = VISUAL_STYLES.find(s => s.value === formData.visualStyle);
+
+  const selectedStyleLabel = VISUAL_STYLES.find((s) => s.value === formData.visualStyle);
 
   return (
     <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8 min-h-full">
       <TourSelector tours={[
-        { tourType: 'navbar', steps: navbarSteps, label: 'Tour da Navegação', targetElement: '#sidebar-logo' },
-        { tourType: 'create_content', steps: createContentSteps, label: 'Tour de Criar Conteúdo', targetElement: '#select-brand' }
-      ]} startDelay={500} />
+      { tourType: 'navbar', steps: navbarSteps, label: 'Tour da Navegação', targetElement: '#sidebar-logo' },
+      { tourType: 'create_content', steps: createContentSteps, label: 'Tour de Criar Conteúdo', targetElement: '#select-brand' }]
+      } startDelay={500} />
 
       {/* Banner */}
       <div className="relative h-48 md:h-64 lg:h-72 overflow-hidden">
@@ -577,8 +577,8 @@ export default function CreateImage() {
                   <p className="text-muted-foreground text-xs md:text-sm">Gere imagens profissionais com IA</p>
                 </div>
               </div>
-              {user && (
-                <Card className="bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/20 flex-shrink-0">
+              {user &&
+              <Card className="bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/20 flex-shrink-0">
                   <CardContent className="p-2.5 md:p-3">
                     <div className="flex items-center justify-center gap-3">
                       <div className="relative flex-shrink-0">
@@ -595,7 +595,7 @@ export default function CreateImage() {
                     </div>
                   </CardContent>
                 </Card>
-              )}
+              }
             </div>
           </div>
         </div>
@@ -617,109 +617,109 @@ export default function CreateImage() {
 
               {/* Marca + Tipo de conteúdo */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {isLoadingData ? <SelectSkeleton /> : (
-                  <div className="space-y-1.5">
+                {isLoadingData ? <SelectSkeleton /> :
+                <div className="space-y-1.5">
                     <Label className="text-xs font-medium text-muted-foreground">Marca <span className="text-destructive">*</span></Label>
-                    <TagSelect id="select-brand" value={formData.brand} onValueChange={value => handleSelectChange("brand", value)}
-                      options={brands.map(b => ({ value: b.id, label: b.name }))}
-                      placeholder={brands.length === 0 ? "Nenhuma marca" : "Selecionar marca"}
-                      disabled={brands.length === 0}
-                      triggerClassName={`h-9 rounded-lg border-2 bg-background/50 hover:border-border/70 transition-colors text-xs ${missingFields.includes('brand') ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/50'}`}
-                    />
-                    {!isLoadingData && brands.length === 0 && (
-                      <p className="text-xs text-muted-foreground">
+                    <TagSelect id="select-brand" value={formData.brand} onValueChange={(value) => handleSelectChange("brand", value)}
+                  options={brands.map((b) => ({ value: b.id, label: b.name }))}
+                  placeholder={brands.length === 0 ? "Nenhuma marca" : "Selecionar marca"}
+                  disabled={brands.length === 0}
+                  triggerClassName={`h-9 rounded-lg border-2 bg-background/50 hover:border-border/70 transition-colors text-xs ${missingFields.includes('brand') ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/50'}`} />
+                  
+                    {!isLoadingData && brands.length === 0 &&
+                  <p className="text-xs text-muted-foreground">
                         <button onClick={() => navigate("/brands")} className="text-primary hover:underline font-medium">Cadastre uma marca</button>
                       </p>
-                    )}
+                  }
                   </div>
-                )}
+                }
 
                 <div className="space-y-1.5">
                   <Label className="text-xs font-medium text-muted-foreground">Tipo de Conteúdo</Label>
                   <div className="flex items-center space-x-1 rounded-lg bg-muted p-1 h-9">
                     <Button type="button" variant={contentType === "organic" ? "default" : "ghost"}
-                      onClick={() => { setContentType("organic"); if (formData.platform) setPlatformGuidelines(getCaptionGuidelines(formData.platform, "organic")); }}
-                      className="flex-1 rounded-md font-semibold h-7 text-xs">Orgânico</Button>
+                    onClick={() => {setContentType("organic");if (formData.platform) setPlatformGuidelines(getCaptionGuidelines(formData.platform, "organic"));}}
+                    className="flex-1 rounded-md font-semibold h-7 text-xs">Orgânico</Button>
                     <Button type="button" variant={contentType === "ads" ? "default" : "ghost"}
-                      onClick={() => { 
-                        setContentType("ads"); 
-                        if (formData.platform) setPlatformGuidelines(getCaptionGuidelines(formData.platform, "ads")); 
-                        // Anúncios sempre incluem texto/CTA na imagem
-                        setFormData(prev => ({ ...prev, imageIncludeText: true }));
-                      }}
-                      className="flex-1 rounded-md font-semibold h-7 text-xs">Anúncio</Button>
+                    onClick={() => {
+                      setContentType("ads");
+                      if (formData.platform) setPlatformGuidelines(getCaptionGuidelines(formData.platform, "ads"));
+                      // Anúncios sempre incluem texto/CTA na imagem
+                      setFormData((prev) => ({ ...prev, imageIncludeText: true }));
+                    }}
+                    className="flex-1 rounded-md font-semibold h-7 text-xs">Anúncio</Button>
                   </div>
 
                   {/* Modo Anúncio Profissional - aparece apenas quando tipo = Anúncio */}
-                  {contentType === "ads" && (
-                    <div className="mt-2 space-y-3">
+                  {contentType === "ads" &&
+                  <div className="mt-2 space-y-3">
                       <div className="flex items-center space-x-1 rounded-lg bg-accent/20 p-1">
                         <Button type="button" variant={formData.adMode === "standard" ? "default" : "ghost"}
-                          onClick={() => setFormData(prev => ({ ...prev, adMode: "standard" }))}
-                          className="flex-1 rounded-md font-semibold h-7 text-xs">Padrão</Button>
+                      onClick={() => setFormData((prev) => ({ ...prev, adMode: "standard" }))}
+                      className="flex-1 rounded-md font-semibold h-7 text-xs">Padrão</Button>
                         <Button type="button" variant={formData.adMode === "professional" ? "default" : "ghost"}
-                          onClick={() => setFormData(prev => ({
-                            ...prev, adMode: "professional",
-                            imageIncludeText: true, fontStyle: "impactful", textDesignStyle: "badge",
-                          }))}
-                          className="flex-1 rounded-md font-semibold h-7 text-xs">🎯 Profissional</Button>
+                      onClick={() => setFormData((prev) => ({
+                        ...prev, adMode: "professional",
+                        imageIncludeText: true, fontStyle: "impactful", textDesignStyle: "badge"
+                      }))}
+                      className="flex-1 rounded-md font-semibold h-7 text-xs">🎯 Profissional</Button>
                       </div>
 
-                      {formData.adMode === "professional" && (
-                        <div className="space-y-3 p-3 rounded-xl bg-accent/10 border border-accent/20 animate-in slide-in-from-top-2 duration-200">
+                      {formData.adMode === "professional" &&
+                    <div className="space-y-3 p-3 rounded-xl bg-accent/10 border border-accent/20 animate-in slide-in-from-top-2 duration-200">
                           <p className="text-[10px] text-muted-foreground">Modo otimizado para peças publicitárias profissionais com hierarquia visual, badges e CTAs destacados.</p>
                           
                           <div className="space-y-1.5">
                             <Label className="text-xs font-medium text-muted-foreground">Preço / Oferta <span className="font-normal">(opcional)</span></Label>
                             <Input
-                              placeholder="Ex: R$ 29,90 · 50% OFF · A partir de R$ 19"
-                              value={formData.priceText || ""}
-                              onChange={e => setFormData(prev => ({ ...prev, priceText: e.target.value }))}
-                              className="h-9 rounded-lg border-2 border-border/50 bg-background/50 text-sm"
-                              maxLength={30}
-                            />
+                          placeholder="Ex: R$ 29,90 · 50% OFF · A partir de R$ 19"
+                          value={formData.priceText || ""}
+                          onChange={(e) => setFormData((prev) => ({ ...prev, priceText: e.target.value }))}
+                          className="h-9 rounded-lg border-2 border-border/50 bg-background/50 text-sm"
+                          maxLength={30} />
+                        
                             <p className="text-[10px] text-muted-foreground">{formData.priceText?.length || 0}/30 · Será exibido em destaque com badge</p>
                           </div>
 
                           <label className="flex items-center gap-2 cursor-pointer">
                             <Checkbox
-                              checked={formData.includeBrandLogo || false}
-                              onCheckedChange={(checked) => setFormData(prev => ({ ...prev, includeBrandLogo: !!checked }))}
-                            />
+                          checked={formData.includeBrandLogo || false}
+                          onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, includeBrandLogo: !!checked }))} />
+                        
                             <span className="text-xs text-foreground">Incluir logo da marca no canto</span>
                           </label>
                         </div>
-                      )}
+                    }
                     </div>
-                  )}
+                  }
                 </div>
               </div>
 
               {/* Persona + Tema */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {isLoadingData ? <SelectSkeleton /> : (
-                  <div className="space-y-1.5">
+                {isLoadingData ? <SelectSkeleton /> :
+                <div className="space-y-1.5">
                     <Label className="text-xs font-medium text-muted-foreground">Persona <span className="font-normal">(opcional)</span></Label>
-                    <TagSelect value={formData.persona} onValueChange={value => handleSelectChange("persona", value)}
-                      options={filteredPersonas.map(p => ({ value: p.id, label: p.name }))}
-                      placeholder={!formData.brand ? "Selecione marca" : filteredPersonas.length === 0 ? "Nenhuma" : "Selecionar"}
-                      disabled={!formData.brand || filteredPersonas.length === 0}
-                      triggerClassName="h-9 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors text-xs"
-                    />
+                    <TagSelect value={formData.persona} onValueChange={(value) => handleSelectChange("persona", value)}
+                  options={filteredPersonas.map((p) => ({ value: p.id, label: p.name }))}
+                  placeholder={!formData.brand ? "Selecione marca" : filteredPersonas.length === 0 ? "Nenhuma" : "Selecionar"}
+                  disabled={!formData.brand || filteredPersonas.length === 0}
+                  triggerClassName="h-9 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors text-xs" />
+                  
                   </div>
-                )}
+                }
 
-                {isLoadingData ? <SelectSkeleton /> : (
-                  <div className="space-y-1.5">
+                {isLoadingData ? <SelectSkeleton /> :
+                <div className="space-y-1.5">
                     <Label className="text-xs font-medium text-muted-foreground">Tema <span className="font-normal">(opcional)</span></Label>
-                    <TagSelect value={formData.theme} onValueChange={value => handleSelectChange("theme", value)}
-                      options={filteredThemes.map(t => ({ value: t.id, label: t.title }))}
-                      placeholder={!formData.brand ? "Selecione marca" : filteredThemes.length === 0 ? "Nenhum" : "Selecionar"}
-                      disabled={!formData.brand || filteredThemes.length === 0}
-                      triggerClassName="h-9 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors text-xs"
-                    />
+                    <TagSelect value={formData.theme} onValueChange={(value) => handleSelectChange("theme", value)}
+                  options={filteredThemes.map((t) => ({ value: t.id, label: t.title }))}
+                  placeholder={!formData.brand ? "Selecione marca" : filteredThemes.length === 0 ? "Nenhum" : "Selecionar"}
+                  disabled={!formData.brand || filteredThemes.length === 0}
+                  triggerClassName="h-9 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors text-xs" />
+                  
                   </div>
-                )}
+                }
               </div>
 
               {/* Plataforma */}
@@ -728,12 +728,12 @@ export default function CreateImage() {
                   value={formData.platform}
                   onChange={(value, aspectRatio) => {
                     handleSelectChange("platform", value);
-                    if (aspectRatio) setFormData(prev => ({ ...prev, aspectRatio }));
-                  }}
-                />
-                {missingFields.includes('platform') && !formData.platform && (
-                  <p className="text-xs text-destructive font-medium mt-1">Selecione uma plataforma</p>
-                )}
+                    if (aspectRatio) setFormData((prev) => ({ ...prev, aspectRatio }));
+                  }} />
+                
+                {missingFields.includes('platform') && !formData.platform &&
+                <p className="text-xs text-destructive font-medium mt-1">Selecione uma plataforma</p>
+                }
               </div>
 
               {/* Tom de Voz */}
@@ -742,61 +742,61 @@ export default function CreateImage() {
                   Tom de Voz <span className="text-destructive">*</span> <span className="font-normal">(máx. 4)</span>
                 </Label>
                 <div className="flex flex-wrap gap-1.5">
-                  {toneOptions.map(t => (
-                    <button key={t} type="button"
-                      onClick={() => formData.tone.includes(t) ? handleToneRemove(t) : handleToneSelect(t)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all active:scale-[0.97] capitalize ${
-                        formData.tone.includes(t)
-                          ? "bg-primary text-primary-foreground shadow-sm"
-                          : "bg-muted/50 text-foreground shadow-sm hover:shadow-md hover:text-primary"
-                      }`}
-                    >
+                  {toneOptions.map((t) =>
+                  <button key={t} type="button"
+                  onClick={() => formData.tone.includes(t) ? handleToneRemove(t) : handleToneSelect(t)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all active:scale-[0.97] capitalize ${
+                  formData.tone.includes(t) ?
+                  "bg-primary text-primary-foreground shadow-sm" :
+                  "bg-muted/50 text-foreground shadow-sm hover:shadow-md hover:text-primary"}`
+                  }>
+                    
                       {t}
                     </button>
-                  ))}
+                  )}
                 </div>
-                {missingFields.includes('tone') && formData.tone.length === 0 && (
-                  <span className="text-[10px] text-destructive font-medium">Selecione ao menos 1 tom</span>
-                )}
+                {missingFields.includes('tone') && formData.tone.length === 0 &&
+                <span className="text-[10px] text-destructive font-medium">Selecione ao menos 1 tom</span>
+                }
               </div>
 
               {/* Estilo Visual */}
               <div className="space-y-2">
-                <Label className="text-xs font-medium text-muted-foreground">Estilo Visual <span className="font-normal">(opcional)</span></Label>
+                
                 <div className="flex flex-wrap gap-1.5">
-                  {VISUAL_STYLES.map(style => (
-                    <button key={style.value} type="button"
-                      onClick={() => handleSelectChange("visualStyle" as any, style.value)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all active:scale-[0.97] ${
-                        formData.visualStyle === style.value
-                          ? "bg-primary text-primary-foreground shadow-sm"
-                          : "bg-muted/50 text-foreground shadow-sm hover:shadow-md hover:text-primary"
-                      }`}
-                    >
+                  {VISUAL_STYLES.map((style) =>
+                  <button key={style.value} type="button"
+                  onClick={() => handleSelectChange("visualStyle" as any, style.value)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all active:scale-[0.97] ${
+                  formData.visualStyle === style.value ?
+                  "bg-primary text-primary-foreground shadow-sm" :
+                  "bg-muted/50 text-foreground shadow-sm hover:shadow-md hover:text-primary"}`
+                  }>
+                    
                       {style.label}
                     </button>
-                  ))}
+                  )}
                 </div>
               </div>
             </div>
 
             {/* Platform guidelines */}
-            {platformGuidelines.length > 0 && (
-              <div className="rounded-2xl shadow-md bg-primary/5 p-4 space-y-2">
+            {platformGuidelines.length > 0 &&
+            <div className="rounded-2xl shadow-md bg-primary/5 p-4 space-y-2">
                 <div className="flex items-center gap-2">
                   <Info className="h-4 w-4 text-primary flex-shrink-0" />
                   <p className="text-sm font-semibold text-primary">Diretrizes para {formData.platform} ({contentType === "organic" ? "Orgânico" : "Anúncio"})</p>
                 </div>
                 <ul className="space-y-1 text-xs text-muted-foreground">
-                  {platformGuidelines.map((g, idx) => (
-                    <li key={idx} className="flex items-start gap-2"><span className="text-primary mt-0.5">•</span><span>{g}</span></li>
-                  ))}
-                </ul>
-                {recommendedAspectRatio && (
-                  <p className="text-xs text-primary/80 font-medium mt-2 pt-2 border-t border-primary/20">💡 Proporção recomendada: {recommendedAspectRatio}</p>
+                  {platformGuidelines.map((g, idx) =>
+                <li key={idx} className="flex items-start gap-2"><span className="text-primary mt-0.5">•</span><span>{g}</span></li>
                 )}
+                </ul>
+                {recommendedAspectRatio &&
+              <p className="text-xs text-primary/80 font-medium mt-2 pt-2 border-t border-primary/20">💡 Proporção recomendada: {recommendedAspectRatio}</p>
+              }
               </div>
-            )}
+            }
 
             {/* ── SEÇÃO 2: PROMPT DO AGENTE (descrição + imagens) ── */}
             <div className="rounded-2xl shadow-lg border-0 bg-card p-4 md:p-5 space-y-4" onPaste={handlePaste}>
@@ -818,9 +818,9 @@ export default function CreateImage() {
                   maxLength={5000}
                   rows={5}
                   className={`resize-none rounded-xl border-2 bg-background/50 text-base placeholder:text-muted-foreground/50 focus-visible:ring-1 focus-visible:ring-primary/30 min-h-[120px] ${
-                    missingFields.includes('prompt') ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/50'
-                  }`}
-                />
+                  missingFields.includes('prompt') ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/50'}`
+                  } />
+                
                 <div className="flex justify-end">
                   <span className="text-[10px] text-muted-foreground">{formData.prompt.length}/5000</span>
                 </div>
@@ -839,11 +839,11 @@ export default function CreateImage() {
                   <div
                     onClick={() => fileInputRef.current?.click()}
                     className={`flex-1 border-2 border-dashed rounded-xl p-5 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all hover:border-primary/40 hover:bg-primary/5 ${
-                      missingFields.includes('referenceFiles') && referenceFiles.length === 0
-                        ? 'border-destructive/40 bg-destructive/5'
-                        : 'border-border/50 bg-muted/10'
-                    }`}
-                  >
+                    missingFields.includes('referenceFiles') && referenceFiles.length === 0 ?
+                    'border-destructive/40 bg-destructive/5' :
+                    'border-border/50 bg-muted/10'}`
+                    }>
+                    
                     <ImagePlus className="h-7 w-7 text-muted-foreground" />
                     <p className="text-xs text-muted-foreground text-center">
                       Clique para adicionar imagens
@@ -857,7 +857,7 @@ export default function CreateImage() {
                         const clipboardItems = await navigator.clipboard.read();
                         const files: File[] = [];
                         for (const item of clipboardItems) {
-                          const imageType = item.types.find(t => t.startsWith('image/'));
+                          const imageType = item.types.find((t) => t.startsWith('image/'));
                           if (imageType) {
                             const blob = await item.getType(imageType);
                             const ext = imageType.split('/')[1] || 'png';
@@ -868,7 +868,7 @@ export default function CreateImage() {
                         if (files.length > 0) {
                           const remaining = 5 - referenceFiles.length;
                           const toAdd = files.slice(0, remaining);
-                          setReferenceFiles(prev => [...prev, ...toAdd]);
+                          setReferenceFiles((prev) => [...prev, ...toAdd]);
                           toast.success(`${toAdd.length} imagem(ns) colada(s)`);
                         } else {
                           toast.error('Nenhuma imagem encontrada na área de transferência');
@@ -878,48 +878,48 @@ export default function CreateImage() {
                       }
                     }}
                     className={`border-2 border-dashed rounded-xl p-4 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all hover:border-primary/40 hover:bg-primary/5 min-w-[100px] ${
-                      missingFields.includes('referenceFiles') && referenceFiles.length === 0
-                        ? 'border-destructive/40 bg-destructive/5'
-                        : 'border-border/50 bg-muted/10'
-                    }`}
-                  >
+                    missingFields.includes('referenceFiles') && referenceFiles.length === 0 ?
+                    'border-destructive/40 bg-destructive/5' :
+                    'border-border/50 bg-muted/10'}`
+                    }>
+                    
                     <ClipboardPaste className="h-6 w-6 text-muted-foreground" />
                     <p className="text-[10px] text-muted-foreground text-center font-medium">Colar imagem</p>
                   </button>
                 </div>
                 <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden"
-                  disabled={referenceFiles.length >= 5}
-                  onChange={e => {
-                    const files = Array.from(e.target.files || []);
-                    const remaining = 5 - referenceFiles.length;
-                    const toAdd = files.slice(0, remaining);
-                    if (files.length > remaining) toast.error(`Máximo 5 imagens. ${toAdd.length} adicionada(s).`);
-                    setReferenceFiles(prev => [...prev, ...toAdd]);
-                  }}
-                />
+                disabled={referenceFiles.length >= 5}
+                onChange={(e) => {
+                  const files = Array.from(e.target.files || []);
+                  const remaining = 5 - referenceFiles.length;
+                  const toAdd = files.slice(0, remaining);
+                  if (files.length > remaining) toast.error(`Máximo 5 imagens. ${toAdd.length} adicionada(s).`);
+                  setReferenceFiles((prev) => [...prev, ...toAdd]);
+                }} />
+                
 
-                {referenceFiles.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {referenceFiles.map((file, idx) => (
-                      <div key={idx} className="relative group flex items-center gap-2 bg-muted/40 rounded-lg px-2.5 py-1.5 text-xs shadow-sm">
+                {referenceFiles.length > 0 &&
+                <div className="flex flex-wrap gap-2">
+                    {referenceFiles.map((file, idx) =>
+                  <div key={idx} className="relative group flex items-center gap-2 bg-muted/40 rounded-lg px-2.5 py-1.5 text-xs shadow-sm">
                         <ImagePlus className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
                         <span className="truncate max-w-[120px] text-foreground">{file.name}</span>
-                        <button type="button" onClick={(e) => { e.stopPropagation(); handleTogglePreserve(idx); }}
-                          className={`text-[10px] px-1.5 py-0.5 rounded-full border transition-all ${preserveImageIndices.includes(idx) ? "bg-primary/15 border-primary/30 text-primary" : "bg-muted border-border/50 text-muted-foreground hover:border-primary/30 hover:text-primary"}`}
-                        >
+                        <button type="button" onClick={(e) => {e.stopPropagation();handleTogglePreserve(idx);}}
+                    className={`text-[10px] px-1.5 py-0.5 rounded-full border transition-all ${preserveImageIndices.includes(idx) ? "bg-primary/15 border-primary/30 text-primary" : "bg-muted border-border/50 text-muted-foreground hover:border-primary/30 hover:text-primary"}`}>
+                      
                           {preserveImageIndices.includes(idx) ? "Preservando" : "Preservar"}
                         </button>
-                        <button type="button" onClick={(e) => { e.stopPropagation(); handleRemoveFile(idx); }} className="text-muted-foreground hover:text-destructive transition-colors">
+                        <button type="button" onClick={(e) => {e.stopPropagation();handleRemoveFile(idx);}} className="text-muted-foreground hover:text-destructive transition-colors">
                           <X className="h-3.5 w-3.5" />
                         </button>
                       </div>
-                    ))}
+                  )}
                   </div>
-                )}
+                }
 
-                {missingFields.includes('referenceFiles') && referenceFiles.length === 0 && (
-                  <p className="text-xs text-destructive font-medium">Adicione ao menos 1 imagem de referência</p>
-                )}
+                {missingFields.includes('referenceFiles') && referenceFiles.length === 0 &&
+                <p className="text-xs text-destructive font-medium">Adicione ao menos 1 imagem de referência</p>
+                }
               </div>
             </div>
 
@@ -932,31 +932,31 @@ export default function CreateImage() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => setFormData(prev => ({ ...prev, imageIncludeText: !prev.imageIncludeText }))}
+                  onClick={() => setFormData((prev) => ({ ...prev, imageIncludeText: !prev.imageIncludeText }))}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    formData.imageIncludeText ? 'bg-primary' : 'bg-muted'
-                  }`}
-                >
+                  formData.imageIncludeText ? 'bg-primary' : 'bg-muted'}`
+                  }>
+                  
                   <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-sm ${
-                    formData.imageIncludeText ? 'translate-x-6' : 'translate-x-1'
-                  }`} />
+                  formData.imageIncludeText ? 'translate-x-6' : 'translate-x-1'}`
+                  } />
                 </button>
               </div>
 
-              {formData.imageIncludeText && (
-                <div className="space-y-4 animate-in slide-in-from-top-2 duration-200">
+              {formData.imageIncludeText &&
+              <div className="space-y-4 animate-in slide-in-from-top-2 duration-200">
                   {/* Text content */}
                   <div className="space-y-1.5">
                     <Label className="text-xs font-medium text-muted-foreground">
                       Texto para renderizar <span className="text-destructive">*</span>
                     </Label>
                     <Input
-                      placeholder="Ex: Descubra o sabor da tradição"
-                      value={formData.imageTextContent}
-                      onChange={e => setFormData(prev => ({ ...prev, imageTextContent: e.target.value }))}
-                      className="h-9 rounded-lg border-2 border-border/50 bg-background/50 text-sm"
-                      maxLength={80}
-                    />
+                    placeholder="Ex: Descubra o sabor da tradição"
+                    value={formData.imageTextContent}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, imageTextContent: e.target.value }))}
+                    className="h-9 rounded-lg border-2 border-border/50 bg-background/50 text-sm"
+                    maxLength={80} />
+                  
                     <p className="text-[10px] text-muted-foreground">{formData.imageTextContent?.length || 0}/80 caracteres · Português Brasileiro</p>
                   </div>
 
@@ -966,12 +966,12 @@ export default function CreateImage() {
                       CTA (Call-to-Action) <span className="text-muted-foreground/70 font-normal">(opcional)</span>
                     </Label>
                     <Input
-                      placeholder="Ex: Saiba mais · Compre agora · Garanta o seu"
-                      value={formData.ctaText}
-                      onChange={e => setFormData(prev => ({ ...prev, ctaText: e.target.value }))}
-                      className="h-9 rounded-lg border-2 border-border/50 bg-background/50 text-sm"
-                      maxLength={40}
-                    />
+                    placeholder="Ex: Saiba mais · Compre agora · Garanta o seu"
+                    value={formData.ctaText}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, ctaText: e.target.value }))}
+                    className="h-9 rounded-lg border-2 border-border/50 bg-background/50 text-sm"
+                    maxLength={40} />
+                  
                     <p className="text-[10px] text-muted-foreground">{formData.ctaText?.length || 0}/40 caracteres · Texto do botão ou chamada para ação</p>
                   </div>
 
@@ -979,22 +979,22 @@ export default function CreateImage() {
                   <div className="space-y-2">
                     <Label className="text-xs font-medium text-muted-foreground">Posição do Texto</Label>
                     <div className="grid grid-cols-4 gap-1.5 max-w-[220px]">
-                      {TEXT_POSITIONS.map(pos => (
-                        <button
-                          key={pos.value}
-                          type="button"
-                          onClick={() => setFormData(prev => ({ ...prev, imageTextPosition: pos.value as any }))}
-                          className={`h-10 rounded-lg text-sm font-medium transition-all active:scale-[0.95] flex flex-col items-center justify-center gap-0.5 ${
-                            formData.imageTextPosition === pos.value
-                              ? 'bg-primary text-primary-foreground shadow-sm'
-                              : 'bg-muted/50 text-foreground hover:bg-primary/10 hover:text-primary'
-                          }`}
-                          title={pos.label}
-                        >
+                      {TEXT_POSITIONS.map((pos) =>
+                    <button
+                      key={pos.value}
+                      type="button"
+                      onClick={() => setFormData((prev) => ({ ...prev, imageTextPosition: pos.value as any }))}
+                      className={`h-10 rounded-lg text-sm font-medium transition-all active:scale-[0.95] flex flex-col items-center justify-center gap-0.5 ${
+                      formData.imageTextPosition === pos.value ?
+                      'bg-primary text-primary-foreground shadow-sm' :
+                      'bg-muted/50 text-foreground hover:bg-primary/10 hover:text-primary'}`
+                      }
+                      title={pos.label}>
+                      
                           <span className="text-base leading-none">{pos.icon}</span>
                           <span className="text-[8px] leading-none opacity-70">{pos.label}</span>
                         </button>
-                      ))}
+                    )}
                     </div>
                   </div>
 
@@ -1002,21 +1002,21 @@ export default function CreateImage() {
                   <div className="space-y-2">
                     <Label className="text-xs font-medium text-muted-foreground">Tipografia</Label>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
-                      {FONT_STYLE_OPTIONS.map(font => (
-                        <button
-                          key={font.value}
-                          type="button"
-                          onClick={() => setFormData(prev => ({ ...prev, fontStyle: font.value }))}
-                          className={`px-3 py-2 rounded-lg text-xs font-medium transition-all active:scale-[0.97] text-center ${
-                            formData.fontStyle === font.value
-                              ? 'bg-primary text-primary-foreground shadow-sm'
-                              : 'bg-muted/50 text-foreground shadow-sm hover:shadow-md hover:text-primary'
-                          }`}
-                          title={font.desc}
-                        >
+                      {FONT_STYLE_OPTIONS.map((font) =>
+                    <button
+                      key={font.value}
+                      type="button"
+                      onClick={() => setFormData((prev) => ({ ...prev, fontStyle: font.value }))}
+                      className={`px-3 py-2 rounded-lg text-xs font-medium transition-all active:scale-[0.97] text-center ${
+                      formData.fontStyle === font.value ?
+                      'bg-primary text-primary-foreground shadow-sm' :
+                      'bg-muted/50 text-foreground shadow-sm hover:shadow-md hover:text-primary'}`
+                      }
+                      title={font.desc}>
+                      
                           {font.label}
                         </button>
-                      ))}
+                    )}
                     </div>
                   </div>
 
@@ -1024,76 +1024,76 @@ export default function CreateImage() {
                   <div className="space-y-2">
                     <Label className="text-xs font-medium text-muted-foreground">Design do Texto</Label>
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-1.5">
-                      {TEXT_DESIGN_OPTIONS.map(design => (
-                        <button
-                          key={design.value}
-                          type="button"
-                          onClick={() => setFormData(prev => ({ ...prev, textDesignStyle: design.value }))}
-                          className={`px-3 py-2.5 rounded-lg text-xs transition-all active:scale-[0.97] text-left space-y-0.5 ${
-                            formData.textDesignStyle === design.value
-                              ? 'bg-primary text-primary-foreground shadow-sm'
-                              : 'bg-muted/50 text-foreground shadow-sm hover:shadow-md hover:text-primary'
-                          }`}
-                        >
+                      {TEXT_DESIGN_OPTIONS.map((design) =>
+                    <button
+                      key={design.value}
+                      type="button"
+                      onClick={() => setFormData((prev) => ({ ...prev, textDesignStyle: design.value }))}
+                      className={`px-3 py-2.5 rounded-lg text-xs transition-all active:scale-[0.97] text-left space-y-0.5 ${
+                      formData.textDesignStyle === design.value ?
+                      'bg-primary text-primary-foreground shadow-sm' :
+                      'bg-muted/50 text-foreground shadow-sm hover:shadow-md hover:text-primary'}`
+                      }>
+                      
                           <span className="font-semibold block">{design.label}</span>
                           <span className={`text-[10px] block leading-tight ${
-                            formData.textDesignStyle === design.value ? 'text-primary-foreground/70' : 'text-muted-foreground'
-                          }`}>{design.desc}</span>
+                      formData.textDesignStyle === design.value ? 'text-primary-foreground/70' : 'text-muted-foreground'}`
+                      }>{design.desc}</span>
                         </button>
-                      ))}
+                    )}
                     </div>
                   </div>
                 </div>
-              )}
+              }
             </div>
 
             {/* ── SEÇÃO 4: CAMPOS OPCIONAIS (colapsável) ── */}
             <button
               type="button"
               onClick={() => setShowSettings(!showSettings)}
-              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors group w-full"
-            >
+              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors group w-full">
+              
               <Settings2 className="h-3.5 w-3.5 group-hover:text-primary transition-colors" />
               <span className="font-medium text-foreground/70 group-hover:text-primary">Informações adicionais</span>
               <ChevronDown className={`h-3 w-3 transition-transform ml-1 ${showSettings ? "rotate-180" : ""}`} />
             </button>
 
-            {showSettings && (
-              <div className="rounded-2xl shadow-lg overflow-hidden border-0 bg-card p-4 md:p-5 space-y-4">
+            {showSettings &&
+            <div className="rounded-2xl shadow-lg overflow-hidden border-0 bg-card p-4 md:p-5 space-y-4">
                 {/* Informações Adicionais */}
                 <div className="space-y-2">
                   <Label htmlFor="additionalInfo" className="text-sm font-bold text-foreground">
                     Informações Adicionais <span className="text-muted-foreground font-normal text-xs">(opcional)</span>
                   </Label>
                   <Textarea
-                    id="additionalInfo"
-                    placeholder="Outras instruções ou contexto relevante..."
-                    value={formData.additionalInfo}
-                    onChange={handleInputChange}
-                    rows={3}
-                    className="resize-none rounded-xl border-0 bg-muted/30 text-sm p-3 focus-visible:ring-1 focus-visible:ring-primary/30 transition-colors"
-                  />
+                  id="additionalInfo"
+                  placeholder="Outras instruções ou contexto relevante..."
+                  value={formData.additionalInfo}
+                  onChange={handleInputChange}
+                  rows={3}
+                  className="resize-none rounded-xl border-0 bg-muted/30 text-sm p-3 focus-visible:ring-1 focus-visible:ring-primary/30 transition-colors" />
+                
                 </div>
               </div>
-            )}
+            }
           </div>
 
           {/* Generate Button */}
           <div className="flex justify-end pb-6">
             <Button id="generate-button" onClick={handleGenerateContent} disabled={loading || !isFormValid} size="lg"
-              className="bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_100%] animate-gradient text-primary-foreground hover:opacity-90 transition-opacity shadow-lg gap-2">
-              {loading ? (<><Loader2 className="animate-spin h-5 w-5" /><span>Gerando imagem...</span></>) : (
-                <>
+            className="bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_100%] animate-gradient text-primary-foreground hover:opacity-90 transition-opacity shadow-lg gap-2">
+              {loading ? <><Loader2 className="animate-spin h-5 w-5" /><span>Gerando imagem...</span></> :
+              <>
                   <Sparkles className="h-5 w-5" /><span>Gerar Imagem</span>
                   <Badge variant="secondary" className="ml-2 bg-primary-foreground/20 text-primary-foreground border-primary-foreground/30">
                     <Coins className="h-3 w-3 mr-1" />{CREDIT_COSTS.COMPLETE_IMAGE}
                   </Badge>
                 </>
-              )}
+              }
             </Button>
           </div>
         </div>
       </main>
-    </div>
-  );
+    </div>);
+
 }
