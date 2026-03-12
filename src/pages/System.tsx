@@ -16,7 +16,7 @@ import { TeamGrowthChart } from "@/components/admin/TeamGrowthChart";
 import { ActionTypeDistributionChart } from "@/components/admin/ActionTypeDistributionChart";
 import { SystemLogsTable } from "@/components/admin/SystemLogsTable";
 import { GeminiQuotaCard } from "@/components/admin/GeminiQuotaCard";
-import { Users, Building2, Coins, TrendingUp, ScrollText } from "lucide-react";
+import { Users, Building2, Coins, TrendingUp, ScrollText, Percent, Clock, Zap } from "lucide-react";
 import { toast } from "sonner";
 
 interface Team {
@@ -319,7 +319,25 @@ const Admin = () => {
     const totalCredits = teams.reduce((sum, team) => sum + team.credits, 0);
     const avgCreditsPerTeam = totalTeams > 0 ? Math.round(totalCredits / totalTeams) : 0;
 
-    return { totalTeams, totalUsers, totalCredits, avgCreditsPerTeam };
+    // % ativos semanais - usuários com last_online_at nos últimos 7 dias
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const weeklyActiveCount = users.filter(u => 
+      u.last_online_at && new Date(u.last_online_at) >= sevenDaysAgo
+    ).length;
+    const weeklyActivePercent = totalUsers > 0 ? Math.round((weeklyActiveCount / totalUsers) * 100) : 0;
+
+    // Tempo médio de uso (em minutos) - média entre usuários com sessões
+    const usersWithSessions = users.filter(u => u.total_session_seconds > 0);
+    const totalSeconds = usersWithSessions.reduce((sum, u) => sum + u.total_session_seconds, 0);
+    const avgSessionMinutes = usersWithSessions.length > 0 ? Math.round(totalSeconds / usersWithSessions.length / 60) : 0;
+
+    // Consumo médio de créditos - média entre usuários que já usaram
+    const usersWithCredits = users.filter(u => u.total_credits_used > 0);
+    const totalCreditsUsed = usersWithCredits.reduce((sum, u) => sum + u.total_credits_used, 0);
+    const avgCreditsUsed = usersWithCredits.length > 0 ? Math.round(totalCreditsUsed / usersWithCredits.length) : 0;
+
+    return { totalTeams, totalUsers, totalCredits, avgCreditsPerTeam, weeklyActivePercent, weeklyActiveCount, avgSessionMinutes, avgCreditsUsed };
   }, [teams, users]);
 
   if (loading) {
@@ -342,7 +360,7 @@ const Admin = () => {
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
         <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 bg-gradient-to-br from-background to-muted/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium truncate">Total de Equipes</CardTitle>
@@ -376,6 +394,45 @@ const Admin = () => {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-amber-500">{stats.totalCredits}</div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 bg-gradient-to-br from-background to-muted/20">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium truncate">% Ativos Semanais</CardTitle>
+            <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
+              <Percent className="h-5 w-5 text-primary" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-primary">{stats.weeklyActivePercent}%</div>
+            <p className="text-xs text-muted-foreground mt-1">{stats.weeklyActiveCount} de {stats.totalUsers} usuários</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 bg-gradient-to-br from-background to-muted/20">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium truncate">Tempo Médio de Uso</CardTitle>
+            <div className="p-2 rounded-lg bg-purple-500/10 flex-shrink-0">
+              <Clock className="h-5 w-5 text-purple-500" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-purple-500">{stats.avgSessionMinutes} min</div>
+            <p className="text-xs text-muted-foreground mt-1">por usuário ativo</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 bg-gradient-to-br from-background to-muted/20">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium truncate">Consumo Médio</CardTitle>
+            <div className="p-2 rounded-lg bg-orange-500/10 flex-shrink-0">
+              <Zap className="h-5 w-5 text-orange-500" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-orange-500">{stats.avgCreditsUsed}</div>
+            <p className="text-xs text-muted-foreground mt-1">créditos por usuário</p>
           </CardContent>
         </Card>
 
