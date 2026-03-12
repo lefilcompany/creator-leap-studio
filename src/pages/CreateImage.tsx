@@ -623,6 +623,7 @@ export default function CreateImage() {
                       options={brands.map(b => ({ value: b.id, label: b.name }))}
                       placeholder={brands.length === 0 ? "Nenhuma marca" : "Selecionar marca"}
                       disabled={brands.length === 0}
+                      allowReselectToClear
                       triggerClassName={`h-9 rounded-lg border-2 bg-background/50 hover:border-border/70 transition-colors text-xs ${missingFields.includes('brand') ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/50'}`}
                     />
                     {!isLoadingData && brands.length === 0 && (
@@ -706,6 +707,7 @@ export default function CreateImage() {
                       ]}
                       placeholder={!formData.brand ? "Selecione marca" : filteredPersonas.length === 0 ? "Nenhuma" : "Selecionar"}
                       disabled={!formData.brand || filteredPersonas.length === 0}
+                      allowReselectToClear
                       triggerClassName="h-9 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors text-xs"
                     />
                   </div>
@@ -721,6 +723,7 @@ export default function CreateImage() {
                       ]}
                       placeholder={!formData.brand ? "Selecione marca" : filteredThemes.length === 0 ? "Nenhum" : "Selecionar"}
                       disabled={!formData.brand || filteredThemes.length === 0}
+                      allowReselectToClear
                       triggerClassName="h-9 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors text-xs"
                     />
                   </div>
