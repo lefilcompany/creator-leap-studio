@@ -337,6 +337,16 @@ export function PostRegistrationPurchaseModal({ open, onComplete }: Props) {
                                 {pkg.description}
                               </p>
 
+                              {/* PIX badge */}
+                              {!pkg.isEnterprise && (
+                                <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-1">
+                                  <svg viewBox="0 0 512 512" className="h-3 w-3 text-emerald-600 dark:text-emerald-400" fill="currentColor">
+                                    <path d="M242.4 292.5C247.8 287.1 257.1 287.1 262.5 292.5L339.5 369.5C353.7 383.7 372.5 391.5 392.6 391.5H407.7L293.6 505.6C269.1 530.1 228.9 530.1 204.4 505.6L90.3 391.5H126.4C146.5 391.5 165.3 383.7 179.5 369.5L242.4 292.5ZM262.5 219.5C257.1 224.9 247.8 224.9 242.4 219.5L179.5 156.6C165.3 142.4 146.5 134.6 126.4 134.6H90.3L204.4 20.5C228.9-4 269.1-4 293.6 20.5L407.7 134.6H392.6C372.5 134.6 353.7 142.4 339.5 156.6L262.5 219.5ZM476.6 203.5C501.1 228 501.1 268.2 476.6 292.7L407.7 361.6H394.6C381.4 361.6 368.9 356.3 359.5 346.9L296.5 284C286.9 274.3 273.8 269 260.5 269C247.1 269 234.1 274.3 224.4 284L161.5 346.9C152.1 356.3 139.5 361.6 126.4 361.6H90.3L21.4 292.7C-3.1 268.2-3.1 228 21.4 203.5L90.3 134.6H126.4C139.5 134.6 152.1 139.8 161.5 149.2L224.4 212.1C234.1 221.8 247.1 227.1 260.5 227.1C273.8 227.1 286.9 221.8 296.5 212.1L359.5 149.2C368.9 139.8 381.4 134.6 394.6 134.6H407.7L476.6 203.5Z" />
+                                  </svg>
+                                  <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">PIX disponível</span>
+                                </div>
+                              )}
+
                               {/* CTA hint */}
                               <div className="mt-4 flex items-center justify-center gap-1.5 text-sm font-medium text-primary">
                                 {pkg.isEnterprise ? (
@@ -368,9 +378,17 @@ export function PostRegistrationPurchaseModal({ open, onComplete }: Props) {
                     >
                       <div>
                         <p className="font-semibold text-sm text-foreground">Compra Avulsa</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          Escolha a quantidade exata • R$ {CREDIT_PRICE.toFixed(2)} por crédito
-                        </p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <p className="text-xs text-muted-foreground">
+                            Escolha a quantidade exata • R$ {CREDIT_PRICE.toFixed(2)} por crédito
+                          </p>
+                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5">
+                            <svg viewBox="0 0 512 512" className="h-2.5 w-2.5 text-emerald-600 dark:text-emerald-400" fill="currentColor">
+                              <path d="M242.4 292.5C247.8 287.1 257.1 287.1 262.5 292.5L339.5 369.5C353.7 383.7 372.5 391.5 392.6 391.5H407.7L293.6 505.6C269.1 530.1 228.9 530.1 204.4 505.6L90.3 391.5H126.4C146.5 391.5 165.3 383.7 179.5 369.5L242.4 292.5ZM262.5 219.5C257.1 224.9 247.8 224.9 242.4 219.5L179.5 156.6C165.3 142.4 146.5 134.6 126.4 134.6H90.3L204.4 20.5C228.9-4 269.1-4 293.6 20.5L407.7 134.6H392.6C372.5 134.6 353.7 142.4 339.5 156.6L262.5 219.5ZM476.6 203.5C501.1 228 501.1 268.2 476.6 292.7L407.7 361.6H394.6C381.4 361.6 368.9 356.3 359.5 346.9L296.5 284C286.9 274.3 273.8 269 260.5 269C247.1 269 234.1 274.3 224.4 284L161.5 346.9C152.1 356.3 139.5 361.6 126.4 361.6H90.3L21.4 292.7C-3.1 268.2-3.1 228 21.4 203.5L90.3 134.6H126.4C139.5 134.6 152.1 139.8 161.5 149.2L224.4 212.1C234.1 221.8 247.1 227.1 260.5 227.1C273.8 227.1 286.9 221.8 296.5 212.1L359.5 149.2C368.9 139.8 381.4 134.6 394.6 134.6H407.7L476.6 203.5Z" />
+                            </svg>
+                            <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">PIX</span>
+                          </span>
+                        </div>
                       </div>
                       <ArrowRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                     </motion.button>
