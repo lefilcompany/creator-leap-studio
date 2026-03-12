@@ -637,25 +637,22 @@ const Auth = () => {
         </Select>
 
         <div className={`transition-all duration-300 ${formData.state ? 'opacity-100 max-h-20' : 'opacity-0 max-h-0 overflow-hidden'}`}>
-          <div className="relative">
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-            <select
-              value={formData.city}
-              onChange={(e) => handleSelectChange("city", e.target.value)}
-              disabled={loadingCities || !formData.state}
-              className="w-full h-11 text-sm px-3 pr-10 rounded-md border border-input bg-background text-foreground appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              data-lpignore="true"
-              data-1p-ignore="true"
-              autoComplete="off"
-            >
-              <option value="" disabled>Cidade</option>
+          <Select
+            value={formData.city}
+            onValueChange={(value) => handleSelectChange("city", value)}
+            disabled={loadingCities || !formData.state}
+          >
+            <SelectTrigger className="h-11 text-sm">
+              <SelectValue placeholder="Cidade" />
+            </SelectTrigger>
+            <SelectContent className="max-h-60">
               {cities.map((city) => (
-                <option key={city.id} value={city.nome}>
+                <SelectItem key={city.id} value={city.nome}>
                   {city.nome}
-                </option>
+                </SelectItem>
               ))}
-            </select>
-          </div>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
