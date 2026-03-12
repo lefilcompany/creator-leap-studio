@@ -716,13 +716,11 @@ export default function CreateImage() {
                   <div className="space-y-1.5">
                     <Label className="text-xs font-medium text-muted-foreground">Tema <span className="font-normal">(opcional)</span></Label>
                     <NativeSelect value={formData.theme} onValueChange={value => handleSelectChange("theme", value)}
-                      options={[
-                        { value: "", label: "Nenhum" },
-                        ...filteredThemes.map(t => ({ value: t.id, label: t.title }))
-                      ]}
+                      options={filteredThemes.map(t => ({ value: t.id, label: t.title }))}
                       placeholder={!formData.brand ? "Selecione marca" : filteredThemes.length === 0 ? "Nenhum" : "Selecionar"}
                       disabled={!formData.brand || filteredThemes.length === 0}
-                      allowReselectToClear
+                      showClearOption
+                      clearLabel="Nenhum"
                       triggerClassName="h-9 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors text-xs"
                     />
                   </div>

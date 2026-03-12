@@ -369,6 +369,8 @@ export default function QuickContent() {
                         options={filteredThemes.map(t => ({ value: t.id, label: t.title }))}
                         placeholder={!formData.brandId ? "Selecione marca" : filteredThemes.length === 0 ? "Nenhum" : "Selecionar"}
                         disabled={!formData.brandId || filteredThemes.length === 0}
+                        showClearOption
+                        clearLabel="Nenhum"
                         triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
                       />
                     </div>
