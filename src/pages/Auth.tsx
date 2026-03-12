@@ -515,7 +515,7 @@ const Auth = () => {
       {/* Grupo 2: Segurança */}
       <div className="space-y-3 p-4 rounded-xl bg-muted/20 border border-border/30">
         <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Segurança</Label>
-        <div className="flex flex-col sm:grid sm:grid-cols-2 gap-2">
+        <div className="flex flex-col gap-2">
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
