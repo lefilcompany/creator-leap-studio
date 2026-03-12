@@ -23,7 +23,8 @@ export interface NativeSelectProps {
   disabled?: boolean;
   className?: string;
   id?: string;
-  allowReselectToClear?: boolean;
+  showClearOption?: boolean;
+  clearLabel?: string;
 }
 
 const NativeSelect = React.forwardRef<HTMLButtonElement, NativeSelectProps>(
@@ -37,7 +38,8 @@ const NativeSelect = React.forwardRef<HTMLButtonElement, NativeSelectProps>(
       triggerClassName,
       disabled,
       id,
-      allowReselectToClear = false,
+      showClearOption = false,
+      clearLabel = "Nenhum",
     },
     ref,
   ) => {
@@ -52,7 +54,7 @@ const NativeSelect = React.forwardRef<HTMLButtonElement, NativeSelectProps>(
           onOpenChange={setOpen}
           value={value && value.length > 0 ? value : undefined}
           onValueChange={(v) => {
-            if (v === "__placeholder__" || v === "__clear__") {
+            if (v === "__placeholder__" || v === "__clear__" || v === "__none__") {
               onValueChange?.("");
               return;
             }
@@ -69,13 +71,19 @@ const NativeSelect = React.forwardRef<HTMLButtonElement, NativeSelectProps>(
           </SelectTrigger>
 
           <SelectContent className="max-h-60">
-            {placeholder && !clearOption && (
+            {placeholder && !clearOption && !showClearOption && (
               <SelectItem value="__placeholder__" disabled className="text-muted-foreground">
                 {placeholder}
               </SelectItem>
             )}
 
-            {clearOption && (
+            {showClearOption && (
+              <SelectItem value="__none__" className="text-muted-foreground">
+                {clearLabel}
+              </SelectItem>
+            )}
+
+            {!showClearOption && clearOption && (
               <SelectItem value="__clear__" className="text-muted-foreground">
                 {clearOption.label}
               </SelectItem>
@@ -86,14 +94,6 @@ const NativeSelect = React.forwardRef<HTMLButtonElement, NativeSelectProps>(
                 key={option.value}
                 value={option.value}
                 disabled={option.disabled}
-                onPointerDown={(event) => {
-                  if (allowReselectToClear && option.value === value) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    onValueChange?.("");
-                    setOpen(false);
-                  }
-                }}
               >
                 {option.label}
               </SelectItem>
