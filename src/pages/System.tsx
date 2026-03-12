@@ -327,6 +327,14 @@ const Admin = () => {
     ).length;
     const weeklyActivePercent = totalUsers > 0 ? Math.round((weeklyActiveCount / totalUsers) * 100) : 0;
 
+    // % ativos mensais - usuários com last_online_at nos últimos 30 dias
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const monthlyActiveCount = users.filter(u => 
+      u.last_online_at && new Date(u.last_online_at) >= thirtyDaysAgo
+    ).length;
+    const monthlyActivePercent = totalUsers > 0 ? Math.round((monthlyActiveCount / totalUsers) * 100) : 0;
+
     // Tempo médio de uso (em minutos) - média entre usuários com sessões
     const usersWithSessions = users.filter(u => u.total_session_seconds > 0);
     const totalSeconds = usersWithSessions.reduce((sum, u) => sum + u.total_session_seconds, 0);
