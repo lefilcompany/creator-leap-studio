@@ -23,7 +23,8 @@ export interface NativeSelectProps {
   disabled?: boolean;
   className?: string;
   id?: string;
-  allowReselectToClear?: boolean;
+  showClearOption?: boolean;
+  clearLabel?: string;
 }
 
 const NativeSelect = React.forwardRef<HTMLButtonElement, NativeSelectProps>(
