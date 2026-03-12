@@ -139,8 +139,10 @@ serve(async (req) => {
         }
       };
 
-      // Stripe auto-detects available payment methods (card, pix, boleto)
-      // based on what's enabled in the Stripe dashboard
+      // Para pagamentos únicos, forçar PIX e Boleto como opções
+      if (checkoutMode === 'payment') {
+        sessionConfig.payment_method_types = ['card', 'pix', 'boleto'];
+      }
 
       session = await stripe.checkout.sessions.create(sessionConfig);
       logStep("Credits checkout session created", { sessionId: session.id, packageId, mode: checkoutMode });
