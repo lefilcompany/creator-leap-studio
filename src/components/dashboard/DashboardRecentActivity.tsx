@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link, useNavigate } from "react-router-dom";
-import { History, FileText, ArrowRight, ChevronLeft, ChevronRight, Sparkles, CheckCircle, CalendarDays, Video } from "lucide-react";
+import { History, FileText, ArrowRight, ChevronLeft, ChevronRight, Sparkles, CheckCircle, CalendarDays, Video, ImageOff } from "lucide-react";
 import { useState, useCallback, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import useEmblaCarousel from "embla-carousel-react";
@@ -62,12 +62,25 @@ const actionConfig: Record<string, { icon: typeof Sparkles; color: string; gradi
 };
 
 const getImageUrl = (activity: ActionSummary): string | null => {
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  
   if (activity.thumb_path) {
-    const { data } = supabase.storage.from('creations').getPublicUrl(activity.thumb_path);
+    // Normalizar path removendo prefixos redundantes
+    let path = activity.thumb_path;
+    path = path.replace(/^content-images\//, '');
+    const { data } = supabase.storage.from('content-images').getPublicUrl(path);
     return data?.publicUrl || null;
   }
-  if (activity.image_url && (activity.image_url.startsWith('http') || activity.image_url.startsWith('data:'))) {
-    return activity.image_url;
+  if (activity.image_url) {
+    let url = activity.image_url;
+    // Se já é uma URL completa ou data URI, retornar direto
+    if (url.startsWith('http') || url.startsWith('data:')) {
+      return url;
+    }
+    // Se é um path relativo, construir URL do storage
+    url = url.replace(/^content-images\//, '');
+    const { data } = supabase.storage.from('content-images').getPublicUrl(url);
+    return data?.publicUrl || null;
   }
   return null;
 };
@@ -87,6 +100,30 @@ const ActivitySkeleton = () => (
     ))}
   </div>
 );
+
+const ActivityImage = ({ src, config, Icon }: { src: string; config: { icon: typeof Sparkles; color: string }; Icon: typeof Sparkles }) => {
+  const [error, setError] = useState(false);
+  
+  if (error) {
+    return (
+      <div className="w-full h-full flex flex-col items-center justify-center gap-1.5 bg-muted/30">
+        <ImageOff className="h-6 w-6 text-muted-foreground/50" />
+        <span className="text-[10px] text-muted-foreground/60">Imagem indisponível</span>
+      </div>
+    );
+  }
+  
+  return (
+    <img
+      src={src}
+      alt=""
+      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 pointer-events-none"
+      loading="lazy"
+      draggable={false}
+      onError={() => setError(true)}
+    />
+  );
+};
 
 export const DashboardRecentActivity = ({ activities, isLoading }: DashboardRecentActivityProps) => {
   const navigate = useNavigate();
@@ -201,13 +238,7 @@ export const DashboardRecentActivity = ({ activities, isLoading }: DashboardRece
                       >
                         <div className={`relative h-28 bg-gradient-to-br ${config.gradient} flex items-center justify-center overflow-hidden`}>
                           {imageUrl ? (
-                            <img
-                              src={imageUrl}
-                              alt=""
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 pointer-events-none"
-                              loading="lazy"
-                              draggable={false}
-                            />
+                            <ActivityImage src={imageUrl} config={config} Icon={Icon} />
                           ) : activity.type === 'GERAR_VIDEO' && (activity as any).video_url ? (
                             <video
                               src={(activity as any).video_url}
