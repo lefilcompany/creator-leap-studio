@@ -351,6 +351,8 @@ export default function QuickContent() {
                         options={filteredPersonas.map(p => ({ value: p.id, label: p.name }))}
                         placeholder={!formData.brandId ? "Selecione marca" : filteredPersonas.length === 0 ? "Nenhuma" : "Selecionar"}
                         disabled={!formData.brandId || filteredPersonas.length === 0}
+                        showClearOption
+                        clearLabel="Nenhuma"
                         triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
                       />
                     </div>
