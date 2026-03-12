@@ -72,8 +72,8 @@ export const DashboardQuickActions = () => (
           <Card className="group h-full border-0 shadow-md hover:shadow-xl hover:scale-[1.03] transition-all duration-300 cursor-pointer overflow-hidden">
             <CardContent className={`p-4 h-full ${action.bg} flex flex-col justify-between gap-3`}>
               <div className="flex items-center justify-between">
-                <div className={`p-2.5 rounded-full ${action.iconBg} ${action.iconColor} shadow-sm`}>
-                  <action.icon className="h-5 w-5" strokeWidth={2.5} />
+                <div className={`p-2.5 rounded-xl ${action.iconBg} backdrop-blur-sm shadow-sm ${action.iconColor}`}>
+                  <action.icon className="h-5 w-5" />
                 </div>
                 <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300" />
               </div>
