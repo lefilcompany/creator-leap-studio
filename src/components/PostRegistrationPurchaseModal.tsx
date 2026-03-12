@@ -112,19 +112,19 @@ export function PostRegistrationPurchaseModal({ open, onComplete }: Props) {
     setStep("select-mode");
   };
 
-  // Poll for payment success
+  // Poll for payment success + 5min timeout
   useEffect(() => {
     if (step !== "awaiting-payment" || !user) return;
 
+    setPaymentTimedOut(false);
+
     const checkPayment = async () => {
-      // Check URL for success param
       const params = new URLSearchParams(window.location.search);
       if (params.get('success') === 'true') {
         onComplete();
         return;
       }
 
-      // Check if team credits increased
       if (user.teamId) {
         const { data } = await supabase
           .from('teams')
@@ -139,7 +139,14 @@ export function PostRegistrationPurchaseModal({ open, onComplete }: Props) {
     };
 
     const interval = setInterval(checkPayment, 3000);
-    return () => clearInterval(interval);
+    const timeout = setTimeout(() => {
+      setPaymentTimedOut(true);
+    }, 5 * 60 * 1000); // 5 minutes
+
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timeout);
+    };
   }, [step, user, onComplete]);
 
   const handleCheckout = async (mode: "payment" | "subscription") => {
