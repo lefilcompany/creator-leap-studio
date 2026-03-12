@@ -328,14 +328,12 @@ export default function QuickContent() {
                       <Label className="text-sm font-bold text-foreground">
                         Marca <span className="text-muted-foreground font-normal text-xs">(opcional)</span>
                       </Label>
-                      <NativeSelect
+                      <TagSelect
                         value={formData.brandId}
                         onValueChange={value => setFormData(prev => ({ ...prev, brandId: value }))}
                         options={brands.map(brand => ({ value: brand.id, label: brand.name }))}
                         placeholder={brands.length === 0 ? "Nenhuma marca" : "Selecionar marca"}
                         disabled={brands.length === 0}
-                        showClearOption
-                        clearLabel="Nenhuma"
                         triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
                       />
                     </div>
