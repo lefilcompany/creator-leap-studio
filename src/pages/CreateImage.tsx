@@ -623,7 +623,8 @@ export default function CreateImage() {
                       options={brands.map(b => ({ value: b.id, label: b.name }))}
                       placeholder={brands.length === 0 ? "Nenhuma marca" : "Selecionar marca"}
                       disabled={brands.length === 0}
-                      allowReselectToClear
+                      showClearOption
+                      clearLabel="Nenhuma"
                       triggerClassName={`h-9 rounded-lg border-2 bg-background/50 hover:border-border/70 transition-colors text-xs ${missingFields.includes('brand') ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/50'}`}
                     />
                     {!isLoadingData && brands.length === 0 && (
