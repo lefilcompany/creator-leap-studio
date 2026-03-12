@@ -101,6 +101,30 @@ const ActivitySkeleton = () => (
   </div>
 );
 
+const ActivityImage = ({ src, config, Icon }: { src: string; config: { icon: typeof Sparkles; color: string }; Icon: typeof Sparkles }) => {
+  const [error, setError] = useState(false);
+  
+  if (error) {
+    return (
+      <div className="w-full h-full flex flex-col items-center justify-center gap-1.5 bg-muted/30">
+        <ImageOff className="h-6 w-6 text-muted-foreground/50" />
+        <span className="text-[10px] text-muted-foreground/60">Imagem indisponível</span>
+      </div>
+    );
+  }
+  
+  return (
+    <img
+      src={src}
+      alt=""
+      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 pointer-events-none"
+      loading="lazy"
+      draggable={false}
+      onError={() => setError(true)}
+    />
+  );
+};
+
 export const DashboardRecentActivity = ({ activities, isLoading }: DashboardRecentActivityProps) => {
   const navigate = useNavigate();
   const [canScrollLeft, setCanScrollLeft] = useState(false);
