@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link, useNavigate } from "react-router-dom";
-import { History, FileText, ArrowRight, ChevronLeft, ChevronRight, Sparkles, CheckCircle, CalendarDays, Video } from "lucide-react";
+import { History, FileText, ArrowRight, ChevronLeft, ChevronRight, Sparkles, CheckCircle, CalendarDays, Video, ImageOff } from "lucide-react";
 import { useState, useCallback, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import useEmblaCarousel from "embla-carousel-react";
