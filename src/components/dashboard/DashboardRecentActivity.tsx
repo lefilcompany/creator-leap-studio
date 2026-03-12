@@ -62,12 +62,25 @@ const actionConfig: Record<string, { icon: typeof Sparkles; color: string; gradi
 };
 
 const getImageUrl = (activity: ActionSummary): string | null => {
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  
   if (activity.thumb_path) {
-    const { data } = supabase.storage.from('creations').getPublicUrl(activity.thumb_path);
+    // Normalizar path removendo prefixos redundantes
+    let path = activity.thumb_path;
+    path = path.replace(/^content-images\//, '');
+    const { data } = supabase.storage.from('content-images').getPublicUrl(path);
     return data?.publicUrl || null;
   }
-  if (activity.image_url && (activity.image_url.startsWith('http') || activity.image_url.startsWith('data:'))) {
-    return activity.image_url;
+  if (activity.image_url) {
+    let url = activity.image_url;
+    // Se já é uma URL completa ou data URI, retornar direto
+    if (url.startsWith('http') || url.startsWith('data:')) {
+      return url;
+    }
+    // Se é um path relativo, construir URL do storage
+    url = url.replace(/^content-images\//, '');
+    const { data } = supabase.storage.from('content-images').getPublicUrl(url);
+    return data?.publicUrl || null;
   }
   return null;
 };
