@@ -700,12 +700,10 @@ export default function CreateImage() {
                 {isLoadingData ? <SelectSkeleton /> : (
                   <div className="space-y-1.5">
                     <Label className="text-xs font-medium text-muted-foreground">Persona <span className="font-normal">(opcional)</span></Label>
-                    <NativeSelect value={formData.persona} onValueChange={value => handleSelectChange("persona", value)}
+                    <TagSelect value={formData.persona} onValueChange={value => handleSelectChange("persona", value)}
                       options={filteredPersonas.map(p => ({ value: p.id, label: p.name }))}
                       placeholder={!formData.brand ? "Selecione marca" : filteredPersonas.length === 0 ? "Nenhuma" : "Selecionar"}
                       disabled={!formData.brand || filteredPersonas.length === 0}
-                      showClearOption
-                      clearLabel="Nenhuma"
                       triggerClassName="h-9 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors text-xs"
                     />
                   </div>
