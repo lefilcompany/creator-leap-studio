@@ -399,6 +399,45 @@ const Admin = () => {
 
         <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 bg-gradient-to-br from-background to-muted/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium truncate">% Ativos Semanais</CardTitle>
+            <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
+              <Percent className="h-5 w-5 text-primary" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-primary">{stats.weeklyActivePercent}%</div>
+            <p className="text-xs text-muted-foreground mt-1">{stats.weeklyActiveCount} de {stats.totalUsers} usuários</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 bg-gradient-to-br from-background to-muted/20">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium truncate">Tempo Médio de Uso</CardTitle>
+            <div className="p-2 rounded-lg bg-purple-500/10 flex-shrink-0">
+              <Clock className="h-5 w-5 text-purple-500" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-purple-500">{stats.avgSessionMinutes} min</div>
+            <p className="text-xs text-muted-foreground mt-1">por usuário ativo</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 bg-gradient-to-br from-background to-muted/20">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium truncate">Consumo Médio</CardTitle>
+            <div className="p-2 rounded-lg bg-orange-500/10 flex-shrink-0">
+              <Zap className="h-5 w-5 text-orange-500" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-orange-500">{stats.avgCreditsUsed}</div>
+            <p className="text-xs text-muted-foreground mt-1">créditos por usuário</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 bg-gradient-to-br from-background to-muted/20">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium truncate">Média por Equipe</CardTitle>
             <div className="p-2 rounded-lg bg-green-500/10 flex-shrink-0">
               <TrendingUp className="h-5 w-5 text-green-500" />
