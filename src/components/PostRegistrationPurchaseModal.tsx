@@ -58,6 +58,7 @@ export function PostRegistrationPurchaseModal({ open, onComplete }: Props) {
   const [isCustomMode, setIsCustomMode] = useState(false);
   const [customCredits, setCustomCredits] = useState(20);
   const [creditInputValue, setCreditInputValue] = useState("20");
+  const [paymentTimedOut, setPaymentTimedOut] = useState(false);
 
   const loadPackages = useCallback(async () => {
     try {
