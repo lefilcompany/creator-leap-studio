@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { TagSelect } from "@/components/ui/tag-select";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Slider } from "@/components/ui/slider";
@@ -327,14 +328,12 @@ export default function QuickContent() {
                       <Label className="text-sm font-bold text-foreground">
                         Marca <span className="text-muted-foreground font-normal text-xs">(opcional)</span>
                       </Label>
-                      <NativeSelect
+                      <TagSelect
                         value={formData.brandId}
                         onValueChange={value => setFormData(prev => ({ ...prev, brandId: value }))}
                         options={brands.map(brand => ({ value: brand.id, label: brand.name }))}
                         placeholder={brands.length === 0 ? "Nenhuma marca" : "Selecionar marca"}
                         disabled={brands.length === 0}
-                        showClearOption
-                        clearLabel="Nenhuma"
                         triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
                       />
                     </div>
@@ -345,14 +344,12 @@ export default function QuickContent() {
                       <Label className="text-sm font-bold text-foreground">
                         Persona <span className="text-muted-foreground font-normal text-xs">(opcional)</span>
                       </Label>
-                      <NativeSelect
+                      <TagSelect
                         value={formData.personaId}
                         onValueChange={value => setFormData(prev => ({ ...prev, personaId: value }))}
                         options={filteredPersonas.map(p => ({ value: p.id, label: p.name }))}
                         placeholder={!formData.brandId ? "Selecione marca" : filteredPersonas.length === 0 ? "Nenhuma" : "Selecionar"}
                         disabled={!formData.brandId || filteredPersonas.length === 0}
-                        showClearOption
-                        clearLabel="Nenhuma"
                         triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
                       />
                     </div>
@@ -363,14 +360,12 @@ export default function QuickContent() {
                       <Label className="text-sm font-bold text-foreground">
                         Tema <span className="text-muted-foreground font-normal text-xs">(opcional)</span>
                       </Label>
-                      <NativeSelect
+                      <TagSelect
                         value={formData.themeId}
                         onValueChange={value => setFormData(prev => ({ ...prev, themeId: value }))}
                         options={filteredThemes.map(t => ({ value: t.id, label: t.title }))}
                         placeholder={!formData.brandId ? "Selecione marca" : filteredThemes.length === 0 ? "Nenhum" : "Selecionar"}
                         disabled={!formData.brandId || filteredThemes.length === 0}
-                        showClearOption
-                        clearLabel="Nenhum"
                         triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
                       />
                     </div>
