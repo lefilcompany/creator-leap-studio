@@ -28,9 +28,23 @@ export interface NativeSelectProps {
 
 const NativeSelect = React.forwardRef<HTMLButtonElement, NativeSelectProps>(
   ({ className, options, placeholder, value, onValueChange, triggerClassName, disabled, id, ...props }, ref) => {
+    // Separate clear options (value === "") from regular options
+    const clearOption = options.find(o => o.value === "");
+    const regularOptions = options.filter(o => o.value !== "");
+
     return (
       <div className={cn("relative", className)}>
-        <Select value={value || undefined} onValueChange={(v) => onValueChange?.(v === "__placeholder__" ? "" : v)} disabled={disabled}>
+        <Select
+          value={value || undefined}
+          onValueChange={(v) => {
+            if (v === "__placeholder__" || v === "__clear__") {
+              onValueChange?.("");
+            } else {
+              onValueChange?.(v);
+            }
+          }}
+          disabled={disabled}
+        >
           <SelectTrigger
             ref={ref}
             id={id}
@@ -42,12 +56,17 @@ const NativeSelect = React.forwardRef<HTMLButtonElement, NativeSelectProps>(
             <SelectValue placeholder={placeholder} />
           </SelectTrigger>
           <SelectContent className="max-h-60">
-            {placeholder && (
+            {placeholder && !clearOption && (
               <SelectItem value="__placeholder__" disabled className="text-muted-foreground">
                 {placeholder}
               </SelectItem>
             )}
-            {options.map((option) => (
+            {clearOption && (
+              <SelectItem value="__clear__" className="text-muted-foreground">
+                {clearOption.label}
+              </SelectItem>
+            )}
+            {regularOptions.map((option) => (
               <SelectItem
                 key={option.value}
                 value={option.value}
