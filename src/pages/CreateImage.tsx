@@ -620,12 +620,10 @@ export default function CreateImage() {
                 {isLoadingData ? <SelectSkeleton /> : (
                   <div className="space-y-1.5">
                     <Label className="text-xs font-medium text-muted-foreground">Marca <span className="text-destructive">*</span></Label>
-                    <NativeSelect id="select-brand" value={formData.brand} onValueChange={value => handleSelectChange("brand", value)}
+                    <TagSelect id="select-brand" value={formData.brand} onValueChange={value => handleSelectChange("brand", value)}
                       options={brands.map(b => ({ value: b.id, label: b.name }))}
                       placeholder={brands.length === 0 ? "Nenhuma marca" : "Selecionar marca"}
                       disabled={brands.length === 0}
-                      showClearOption
-                      clearLabel="Nenhuma"
                       triggerClassName={`h-9 rounded-lg border-2 bg-background/50 hover:border-border/70 transition-colors text-xs ${missingFields.includes('brand') ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/50'}`}
                     />
                     {!isLoadingData && brands.length === 0 && (
