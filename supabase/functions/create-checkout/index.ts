@@ -139,11 +139,8 @@ serve(async (req) => {
         }
       };
 
-      // Let Stripe auto-detect available payment methods (card, pix, boleto)
+      // Stripe auto-detects available payment methods (card, pix, boleto)
       // based on what's enabled in the Stripe dashboard
-      if (checkoutMode === 'payment') {
-        sessionConfig.payment_method_types = undefined; // use automatic payment methods
-      }
 
       session = await stripe.checkout.sessions.create(sessionConfig);
       logStep("Credits checkout session created", { sessionId: session.id, packageId, mode: checkoutMode });
