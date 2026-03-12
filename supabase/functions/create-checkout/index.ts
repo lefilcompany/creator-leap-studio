@@ -139,9 +139,10 @@ serve(async (req) => {
         }
       };
 
-      // PIX only works with one-time payments, not subscriptions
+      // Let Stripe auto-detect available payment methods (card, pix, boleto)
+      // based on what's enabled in the Stripe dashboard
       if (checkoutMode === 'payment') {
-        sessionConfig.payment_method_types = ['card', 'boleto', 'pix'];
+        sessionConfig.payment_method_types = undefined; // use automatic payment methods
       }
 
       session = await stripe.checkout.sessions.create(sessionConfig);
