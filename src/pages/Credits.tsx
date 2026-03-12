@@ -186,6 +186,7 @@ const Credits = () => {
           type: 'credits',
           price_id: pkg.stripePriceId,
           package_id: pkg.id,
+          payment_mode: 'payment',
           return_url: '/credits'
         },
       });
