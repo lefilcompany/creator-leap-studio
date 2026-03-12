@@ -360,14 +360,12 @@ export default function QuickContent() {
                       <Label className="text-sm font-bold text-foreground">
                         Tema <span className="text-muted-foreground font-normal text-xs">(opcional)</span>
                       </Label>
-                      <NativeSelect
+                      <TagSelect
                         value={formData.themeId}
                         onValueChange={value => setFormData(prev => ({ ...prev, themeId: value }))}
                         options={filteredThemes.map(t => ({ value: t.id, label: t.title }))}
                         placeholder={!formData.brandId ? "Selecione marca" : filteredThemes.length === 0 ? "Nenhum" : "Selecionar"}
                         disabled={!formData.brandId || filteredThemes.length === 0}
-                        showClearOption
-                        clearLabel="Nenhum"
                         triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
                       />
                     </div>
