@@ -123,7 +123,7 @@ serve(async (req) => {
         }];
       }
       
-      session = await stripe.checkout.sessions.create({
+      const sessionConfig: any = {
         customer: customerId,
         customer_email: customerId ? undefined : user.email,
         line_items: lineItems,
@@ -137,7 +137,14 @@ serve(async (req) => {
           package_id: packageId,
           return_url: return_url || '/credits',
         }
-      });
+      };
+
+      // PIX only works with one-time payments, not subscriptions
+      if (checkoutMode === 'payment') {
+        sessionConfig.payment_method_types = ['card', 'boleto', 'pix'];
+      }
+
+      session = await stripe.checkout.sessions.create(sessionConfig);
       logStep("Credits checkout session created", { sessionId: session.id, packageId, mode: checkoutMode });
     } else {
       // Compra avulsa dinâmica
@@ -149,6 +156,7 @@ serve(async (req) => {
       session = await stripe.checkout.sessions.create({
         customer: customerId,
         customer_email: customerId ? undefined : user.email,
+        payment_method_types: ['card', 'boleto', 'pix'],
         line_items: [
           {
             price_data: {
