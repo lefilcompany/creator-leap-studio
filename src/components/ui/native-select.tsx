@@ -38,7 +38,8 @@ const NativeSelect = React.forwardRef<HTMLButtonElement, NativeSelectProps>(
       triggerClassName,
       disabled,
       id,
-      allowReselectToClear = false,
+      showClearOption = false,
+      clearLabel = "Nenhum",
     },
     ref,
   ) => {
