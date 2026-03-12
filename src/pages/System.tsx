@@ -16,7 +16,7 @@ import { TeamGrowthChart } from "@/components/admin/TeamGrowthChart";
 import { ActionTypeDistributionChart } from "@/components/admin/ActionTypeDistributionChart";
 import { SystemLogsTable } from "@/components/admin/SystemLogsTable";
 import { GeminiQuotaCard } from "@/components/admin/GeminiQuotaCard";
-import { Users, Building2, Coins, TrendingUp, ScrollText } from "lucide-react";
+import { Users, Building2, Coins, TrendingUp, ScrollText, Percent, Clock, Zap } from "lucide-react";
 import { toast } from "sonner";
 
 interface Team {
