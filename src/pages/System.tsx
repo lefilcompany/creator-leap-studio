@@ -345,7 +345,7 @@ const Admin = () => {
     const totalCreditsUsed = usersWithCredits.reduce((sum, u) => sum + u.total_credits_used, 0);
     const avgCreditsUsed = usersWithCredits.length > 0 ? Math.round(totalCreditsUsed / usersWithCredits.length) : 0;
 
-    return { totalTeams, totalUsers, totalCredits, avgCreditsPerTeam, weeklyActivePercent, weeklyActiveCount, avgSessionMinutes, avgCreditsUsed };
+    return { totalTeams, totalUsers, totalCredits, avgCreditsPerTeam, weeklyActivePercent, weeklyActiveCount, monthlyActivePercent, monthlyActiveCount, avgSessionMinutes, avgCreditsUsed };
   }, [teams, users]);
 
   if (loading) {
