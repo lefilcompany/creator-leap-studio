@@ -4,6 +4,7 @@ import { useTheme } from "next-themes";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -11,7 +12,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { CreatorLogo } from "@/components/CreatorLogo";
-import { Eye, EyeOff, Mail, Lock, Sun, Moon, Loader2, User, Phone, ChevronDown, Ticket } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, Sun, Moon, Loader2, User, Phone, Ticket } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 
@@ -618,46 +619,40 @@ const Auth = () => {
           />
         </div>
 
-        <div className="relative">
-          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-          <select
-            value={formData.state}
-            onChange={(e) => handleSelectChange("state", e.target.value)}
-            disabled={loadingStates}
-            className="w-full h-11 text-sm px-3 pr-10 rounded-md border border-input bg-background text-foreground appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            data-lpignore="true"
-            data-1p-ignore="true"
-            autoComplete="off"
-          >
-            <option value="" disabled>Estado</option>
+        <Select
+          value={formData.state}
+          onValueChange={(value) => handleSelectChange("state", value)}
+          disabled={loadingStates}
+        >
+          <SelectTrigger className="h-11 text-sm">
+            <SelectValue placeholder="Estado" />
+          </SelectTrigger>
+          <SelectContent className="max-h-60">
             {states.map((state) => (
-              <option key={state.id} value={state.sigla}>
+              <SelectItem key={state.id} value={state.sigla}>
                 {state.nome}
-              </option>
+              </SelectItem>
             ))}
-          </select>
-        </div>
+          </SelectContent>
+        </Select>
 
         <div className={`transition-all duration-300 ${formData.state ? 'opacity-100 max-h-20' : 'opacity-0 max-h-0 overflow-hidden'}`}>
-          <div className="relative">
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-            <select
-              value={formData.city}
-              onChange={(e) => handleSelectChange("city", e.target.value)}
-              disabled={loadingCities || !formData.state}
-              className="w-full h-11 text-sm px-3 pr-10 rounded-md border border-input bg-background text-foreground appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              data-lpignore="true"
-              data-1p-ignore="true"
-              autoComplete="off"
-            >
-              <option value="" disabled>Cidade</option>
+          <Select
+            value={formData.city}
+            onValueChange={(value) => handleSelectChange("city", value)}
+            disabled={loadingCities || !formData.state}
+          >
+            <SelectTrigger className="h-11 text-sm">
+              <SelectValue placeholder="Cidade" />
+            </SelectTrigger>
+            <SelectContent className="max-h-60">
               {cities.map((city) => (
-                <option key={city.id} value={city.nome}>
+                <SelectItem key={city.id} value={city.nome}>
                   {city.nome}
-                </option>
+                </SelectItem>
               ))}
-            </select>
-          </div>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
