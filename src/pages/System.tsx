@@ -420,6 +420,19 @@ const Admin = () => {
 
         <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 bg-gradient-to-br from-background to-muted/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium truncate">% Ativos Mensais</CardTitle>
+            <div className="p-2 rounded-lg bg-emerald-500/10 flex-shrink-0">
+              <Percent className="h-5 w-5 text-emerald-500" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-emerald-500">{stats.monthlyActivePercent}%</div>
+            <p className="text-xs text-muted-foreground mt-1">{stats.monthlyActiveCount} de {stats.totalUsers} usuários</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 bg-gradient-to-br from-background to-muted/20">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium truncate">Tempo Médio de Uso</CardTitle>
             <div className="p-2 rounded-lg bg-purple-500/10 flex-shrink-0">
               <Clock className="h-5 w-5 text-purple-500" />
