@@ -70,7 +70,7 @@ export const DashboardQuickActions = () => (
       <motion.div key={action.title} variants={item}>
         <Link to={action.link} className="block h-full">
           <Card className="group h-full border-0 shadow-md hover:shadow-xl hover:scale-[1.03] transition-all duration-300 cursor-pointer overflow-hidden">
-            <CardContent className={`p-4 h-full bg-gradient-to-br ${action.gradient} flex flex-col justify-between gap-3`}>
+            <CardContent className={`p-4 h-full ${action.bg} flex flex-col justify-between gap-3`}>
               <div className="flex items-center justify-between">
                 <div className={`p-2.5 rounded-xl ${action.iconBg} backdrop-blur-sm shadow-sm ${action.iconColor}`}>
                   <action.icon className="h-5 w-5" />
