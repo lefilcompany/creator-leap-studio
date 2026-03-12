@@ -327,6 +327,14 @@ const Admin = () => {
     ).length;
     const weeklyActivePercent = totalUsers > 0 ? Math.round((weeklyActiveCount / totalUsers) * 100) : 0;
 
+    // % ativos mensais - usuários com last_online_at nos últimos 30 dias
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const monthlyActiveCount = users.filter(u => 
+      u.last_online_at && new Date(u.last_online_at) >= thirtyDaysAgo
+    ).length;
+    const monthlyActivePercent = totalUsers > 0 ? Math.round((monthlyActiveCount / totalUsers) * 100) : 0;
+
     // Tempo médio de uso (em minutos) - média entre usuários com sessões
     const usersWithSessions = users.filter(u => u.total_session_seconds > 0);
     const totalSeconds = usersWithSessions.reduce((sum, u) => sum + u.total_session_seconds, 0);
@@ -337,7 +345,7 @@ const Admin = () => {
     const totalCreditsUsed = usersWithCredits.reduce((sum, u) => sum + u.total_credits_used, 0);
     const avgCreditsUsed = usersWithCredits.length > 0 ? Math.round(totalCreditsUsed / usersWithCredits.length) : 0;
 
-    return { totalTeams, totalUsers, totalCredits, avgCreditsPerTeam, weeklyActivePercent, weeklyActiveCount, avgSessionMinutes, avgCreditsUsed };
+    return { totalTeams, totalUsers, totalCredits, avgCreditsPerTeam, weeklyActivePercent, weeklyActiveCount, monthlyActivePercent, monthlyActiveCount, avgSessionMinutes, avgCreditsUsed };
   }, [teams, users]);
 
   if (loading) {
@@ -360,7 +368,7 @@ const Admin = () => {
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8">
         <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 bg-gradient-to-br from-background to-muted/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium truncate">Total de Equipes</CardTitle>
@@ -407,6 +415,19 @@ const Admin = () => {
           <CardContent>
             <div className="text-3xl font-bold text-primary">{stats.weeklyActivePercent}%</div>
             <p className="text-xs text-muted-foreground mt-1">{stats.weeklyActiveCount} de {stats.totalUsers} usuários</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 bg-gradient-to-br from-background to-muted/20">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium truncate">% Ativos Mensais</CardTitle>
+            <div className="p-2 rounded-lg bg-emerald-500/10 flex-shrink-0">
+              <Percent className="h-5 w-5 text-emerald-500" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-emerald-500">{stats.monthlyActivePercent}%</div>
+            <p className="text-xs text-muted-foreground mt-1">{stats.monthlyActiveCount} de {stats.totalUsers} usuários</p>
           </CardContent>
         </Card>
 
