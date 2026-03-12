@@ -17,8 +17,8 @@ const actions = [
     icon: Sparkles,
     link: "/create",
     bg: "bg-primary/35",
-    iconColor: "text-primary",
-    iconBg: "bg-primary/25",
+    iconColor: "text-primary-foreground",
+    iconBg: "bg-primary/60",
   },
   {
     title: "Revisar Conteúdo",
@@ -26,8 +26,8 @@ const actions = [
     icon: CheckCircle,
     link: "/review",
     bg: "bg-success/35",
-    iconColor: "text-success",
-    iconBg: "bg-success/25",
+    iconColor: "text-success-foreground",
+    iconBg: "bg-success/60",
   },
   {
     title: "Planejar Calendário",
@@ -35,8 +35,8 @@ const actions = [
     icon: CalendarDays,
     link: "/plan",
     bg: "bg-accent/35",
-    iconColor: "text-accent",
-    iconBg: "bg-accent/25",
+    iconColor: "text-accent-foreground",
+    iconBg: "bg-accent/60",
   },
   {
     title: "Gerar Vídeo",
@@ -44,8 +44,8 @@ const actions = [
     icon: Video,
     link: "/create-video",
     bg: "bg-secondary/35",
-    iconColor: "text-secondary",
-    iconBg: "bg-secondary/25",
+    iconColor: "text-secondary-foreground",
+    iconBg: "bg-secondary/60",
   },
 ];
 
