@@ -762,7 +762,7 @@ export default function CreateImage() {
 
               {/* Estilo Visual */}
               <div className="space-y-2">
-                <Label className="text-xs font-medium text-muted-foreground">Estilo Visual <span className="font-normal">(opcional)</span></Label>
+                <Label className="text-xs font-medium text-muted-foreground">Estilo Visual</Label>
                 <div className="flex flex-wrap gap-1.5">
                   {VISUAL_STYLES.map(style => (
                     <button key={style.value} type="button"
