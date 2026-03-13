@@ -56,7 +56,6 @@ const AdminUsers = () => {
     try {
       setLoading(true);
 
-      // Fetch plans
       const { data: plansData, error: plansError } = await supabase
         .from("plans")
         .select("id, name")
@@ -66,7 +65,7 @@ const AdminUsers = () => {
       if (plansError) throw plansError;
       setPlans(plansData || []);
 
-      // Fetch all profiles
+      // Fetch all profiles - individual credits model
       const { data: usersData, error: usersError } = await supabase
         .from("profiles")
         .select("*")
@@ -74,37 +73,31 @@ const AdminUsers = () => {
 
       if (usersError) throw usersError;
 
-      // Fetch all teams
+      // Fetch teams for secondary info
       const { data: teamsData } = await supabase
         .from("teams")
-        .select("id, name, credits, plan_id, subscription_status, admin_id");
+        .select("id, name, plan_id, subscription_status, admin_id");
 
-      // Fetch all user roles
       const { data: rolesData } = await supabase
         .from("user_roles")
         .select("user_id, role");
 
-      // Fetch actions count per user
       const { data: actionsData } = await supabase
         .from("actions")
         .select("user_id, created_at");
 
-      // Fetch credit history per user
       const { data: creditHistoryData } = await supabase
         .from("credit_history")
         .select("user_id, credits_used");
 
-      // Fetch presence history per user
       const { data: presenceData } = await supabase
         .from("user_presence_history")
         .select("user_id, started_at, ended_at, duration_seconds");
 
-      // Create lookup maps for efficient access
       const teamsMap = new Map(teamsData?.map(t => [t.id, t]) || []);
       const rolesMap = new Map(rolesData?.map(r => [r.user_id, r.role]) || []);
       const plansMap = new Map(plansData?.map(p => [p.id, p.name]) || []);
 
-      // Calculate actions per user
       const actionsCountMap = new Map<string, { count: number; lastAction: string | null }>();
       actionsData?.forEach(action => {
         const existing = actionsCountMap.get(action.user_id);
@@ -118,14 +111,12 @@ const AdminUsers = () => {
         }
       });
 
-      // Calculate total credits used per user
       const creditsUsedMap = new Map<string, number>();
       creditHistoryData?.forEach(ch => {
         const existing = creditsUsedMap.get(ch.user_id) || 0;
         creditsUsedMap.set(ch.user_id, existing + (ch.credits_used || 0));
       });
 
-      // Calculate presence data per user
       const presenceMap = new Map<string, { lastOnline: string | null; totalSeconds: number }>();
       presenceData?.forEach(p => {
         const existing = presenceMap.get(p.user_id) || { lastOnline: null, totalSeconds: 0 };
@@ -137,7 +128,6 @@ const AdminUsers = () => {
         presenceMap.set(p.user_id, existing);
       });
 
-      // Enrich users with all data
       const enrichedUsers = (usersData || []).map((user: any) => {
         const teamData = user.team_id ? teamsMap.get(user.team_id) : null;
         const actionsInfo = actionsCountMap.get(user.id);
@@ -147,10 +137,11 @@ const AdminUsers = () => {
           ...user,
           team_name: teamData?.name || null,
           team_admin_id: teamData?.admin_id || null,
-          credits: teamData?.credits || null,
-          plan_id: teamData?.plan_id || null,
-          plan_name: teamData?.plan_id ? plansMap.get(teamData.plan_id) || null : null,
-          subscription_status: teamData?.subscription_status || null,
+          // Individual credits from profile
+          credits: user.credits ?? 0,
+          plan_id: user.plan_id || teamData?.plan_id || null,
+          plan_name: user.plan_id ? plansMap.get(user.plan_id) || null : teamData?.plan_id ? plansMap.get(teamData.plan_id) || null : null,
+          subscription_status: user.subscription_status || teamData?.subscription_status || null,
           role: rolesMap.get(user.id) || null,
           actions_count: actionsInfo?.count || 0,
           total_credits_used: creditsUsedMap.get(user.id) || 0,
@@ -174,8 +165,7 @@ const AdminUsers = () => {
       const matchesSearch =
         searchQuery === "" ||
         user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (user.team_name?.toLowerCase().includes(searchQuery.toLowerCase()) || false);
+        user.email.toLowerCase().includes(searchQuery.toLowerCase());
 
       const matchesPlan = planFilter === "all" || user.plan_id === planFilter;
 
@@ -206,7 +196,7 @@ const AdminUsers = () => {
       <div>
         <h1 className="text-3xl font-bold">Usuários</h1>
         <p className="text-muted-foreground">
-          Gerencie todos os usuários da plataforma
+          Gerencie todos os usuários da plataforma — créditos individuais
         </p>
       </div>
 

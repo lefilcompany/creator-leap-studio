@@ -12,7 +12,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { UserLogsDialog } from "./UserLogsDialog";
 import { format } from "date-fns";
 
-// Format seconds to human readable duration
 const formatDuration = (seconds: number): string => {
   if (seconds < 60) return `${seconds}s`;
   const minutes = Math.floor(seconds / 60);
@@ -63,6 +62,7 @@ export const UsersTable = ({ users }: UsersTableProps) => {
     setSelectedUser(user);
     setDialogOpen(true);
   };
+
   return (
     <>
     <div className="rounded-lg overflow-hidden shadow-md">
@@ -71,11 +71,9 @@ export const UsersTable = ({ users }: UsersTableProps) => {
           <TableRow className="bg-muted/50 hover:bg-muted/50">
             <TableHead className="font-semibold">Usuário</TableHead>
             <TableHead className="font-semibold">Contato</TableHead>
-            <TableHead className="font-semibold">Equipe</TableHead>
-            <TableHead className="font-semibold">Plano</TableHead>
             <TableHead className="font-semibold">Role</TableHead>
             <TableHead className="text-right font-semibold">Créditos</TableHead>
-            <TableHead className="text-right font-semibold">Ações</TableHead>
+            <TableHead className="text-right font-semibold">Conteúdos</TableHead>
             <TableHead className="text-right font-semibold">Créditos Usados</TableHead>
             <TableHead className="font-semibold">Último Online</TableHead>
             <TableHead className="text-right font-semibold">Tempo Total</TableHead>
@@ -85,7 +83,7 @@ export const UsersTable = ({ users }: UsersTableProps) => {
         <TableBody>
           {users.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={11} className="text-center text-muted-foreground py-12">
+              <TableCell colSpan={9} className="text-center text-muted-foreground py-12">
                 Nenhum usuário encontrado
               </TableCell>
             </TableRow>
@@ -123,75 +121,32 @@ export const UsersTable = ({ users }: UsersTableProps) => {
                   </div>
                 </TableCell>
                 <TableCell>
-                  {user.team_name ? (
-                    <span className="text-sm font-medium">{user.team_name}</span>
-                  ) : (
-                    <Badge variant="outline" className="bg-muted">
-                      Sem equipe
-                    </Badge>
-                  )}
-                </TableCell>
-                <TableCell>
-                  {user.plan_name ? (
-                    <div className="flex flex-col gap-1">
-                      <Badge variant="outline" className="w-fit">{user.plan_name}</Badge>
-                      {user.subscription_status && (
-                        <span className={`text-xs ${
-                          user.subscription_status === 'active' ? 'text-green-600' : 
-                          user.subscription_status === 'trialing' ? 'text-blue-600' : 
-                          'text-muted-foreground'
-                        }`}>
-                          {user.subscription_status === 'active' ? 'Ativo' :
-                           user.subscription_status === 'trialing' ? 'Trial' :
-                           user.subscription_status === 'canceled' ? 'Cancelado' :
-                           user.subscription_status}
-                        </span>
-                      )}
-                    </div>
-                  ) : (
-                    <span className="text-muted-foreground text-sm">-</span>
-                  )}
-                </TableCell>
-                <TableCell>
                   <div className="flex flex-col gap-1">
-                    {/* System Admin Badge */}
+                    {user.role === "system" && (
+                      <Badge className="bg-primary/10 text-primary border-primary/20 font-medium w-fit">
+                        🛡️ System
+                      </Badge>
+                    )}
                     {user.role === "admin" && (
-                      <Badge className="bg-red-500/10 text-red-600 border-red-500/20 font-medium w-fit">
-                        🛡️ System Admin
+                      <Badge className="bg-destructive/10 text-destructive border-destructive/20 font-medium w-fit">
+                        🛡️ Admin
                       </Badge>
                     )}
-                    {/* Team Admin Badge */}
-                    {user.team_admin_id === user.id && (
-                      <Badge className="bg-amber-500/10 text-amber-600 border-amber-500/20 font-medium w-fit">
-                        👑 Admin Equipe
-                      </Badge>
-                    )}
-                    {/* Member Badge - only if not team admin */}
-                    {user.team_id && user.team_admin_id !== user.id && user.role !== "admin" && (
-                      <Badge variant="outline" className="font-medium w-fit">
-                        Membro
-                      </Badge>
-                    )}
-                    {/* No team */}
-                    {!user.team_id && user.role !== "admin" && (
+                    {!user.role && (
                       <Badge variant="outline" className="bg-muted w-fit">
-                        Sem equipe
+                        Usuário
                       </Badge>
                     )}
                   </div>
                 </TableCell>
                 <TableCell className="text-right">
-                  {user.credits !== null ? (
-                    <span className="font-bold text-primary">{user.credits.toLocaleString('pt-BR')}</span>
-                  ) : (
-                    <span className="text-muted-foreground">-</span>
-                  )}
+                  <span className="font-bold text-primary">{(user.credits ?? 0).toLocaleString('pt-BR')}</span>
                 </TableCell>
                 <TableCell className="text-right">
                   <span className="font-medium">{user.actions_count.toLocaleString('pt-BR')}</span>
                 </TableCell>
                 <TableCell className="text-right">
-                  <span className="font-medium text-amber-600">{user.total_credits_used.toLocaleString('pt-BR')}</span>
+                  <span className="font-medium text-chart-1">{user.total_credits_used.toLocaleString('pt-BR')}</span>
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground">
                   {user.last_online_at ? (
@@ -202,7 +157,7 @@ export const UsersTable = ({ users }: UsersTableProps) => {
                 </TableCell>
                 <TableCell className="text-right text-sm">
                   {user.total_session_seconds > 0 ? (
-                    <span className="font-medium text-blue-600">
+                    <span className="font-medium text-chart-2">
                       {formatDuration(user.total_session_seconds)}
                     </span>
                   ) : (
