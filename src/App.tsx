@@ -66,6 +66,7 @@ const SystemTeams = lazy(() => import("./pages/system/SystemTeams"));
 const SystemUsers = lazy(() => import("./pages/system/SystemUsers"));
 const SystemLogs = lazy(() => import("./pages/system/SystemLogs"));
 const SystemPlans = lazy(() => import("./pages/system/SystemPlans"));
+const SystemSettings = lazy(() => import("./pages/system/SystemSettings"));
 
 // Optimized QueryClient configuration
 const queryClient = new QueryClient({
