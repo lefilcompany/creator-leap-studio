@@ -161,10 +161,11 @@ const App = () => (
                       {/* System admin routes with separate layout */}
                       <Route path="/system" element={<SystemRoute><SystemLayout /></SystemRoute>}>
                         <Route index element={<SuspenseRoute><System /></SuspenseRoute>} />
+                        <Route path="users" element={<SuspenseRoute><SystemUsers /></SuspenseRoute>} />
                         <Route path="plans" element={<SuspenseRoute><SystemPlans /></SuspenseRoute>} />
                         <Route path="teams" element={<SuspenseRoute><SystemTeams /></SuspenseRoute>} />
-                        <Route path="users" element={<SuspenseRoute><SystemUsers /></SuspenseRoute>} />
                         <Route path="logs" element={<SuspenseRoute><SystemLogs /></SuspenseRoute>} />
+                        <Route path="settings" element={<SuspenseRoute><SystemSettings /></SuspenseRoute>} />
                       </Route>
                       
                       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
