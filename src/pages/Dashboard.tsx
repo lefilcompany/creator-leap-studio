@@ -17,24 +17,13 @@ import { DashboardQuickActions } from "@/components/dashboard/DashboardQuickActi
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { DashboardRecentActivity } from "@/components/dashboard/DashboardRecentActivity";
 import { IncompleteProfileBanner } from "@/components/dashboard/IncompleteProfileBanner";
-import { PostRegistrationPurchaseModal } from "@/components/PostRegistrationPurchaseModal";
+
 
 const Dashboard = () => {
   const { user, isLoading } = useAuth();
   
-  // Detectar novo usuário sem créditos (pós-cadastro)
-  const [showPurchaseModal, setShowPurchaseModal] = useState(false);
-  
-  useEffect(() => {
-    if (user && !isLoading) {
-      // Novo usuário: nunca comprou créditos (maxCredits === 0 e sem data de expiração)
-      const neverPurchased = (user.maxCredits || 0) === 0 && !user.creditsExpireAt;
-      const dismissed = sessionStorage.getItem('purchase_modal_dismissed');
-      if (neverPurchased && !dismissed) {
-        setShowPurchaseModal(true);
-      }
-    }
-  }, [user, isLoading]);
+
+
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
@@ -191,22 +180,13 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-5 pb-8">
-      <PostRegistrationPurchaseModal
-        open={showPurchaseModal}
-        onComplete={() => {
-          setShowPurchaseModal(false);
-          sessionStorage.setItem('purchase_modal_dismissed', 'true');
-        }}
+      <TourSelector 
+        tours={[
+          { tourType: 'navbar', steps: navbarSteps, label: 'Tour da Navegação', targetElement: '#sidebar-logo' },
+          { tourType: 'dashboard', steps: dashboardSteps, label: 'Tour do Dashboard', targetElement: '#dashboard-credits-card' }
+        ]}
+        startDelay={1000}
       />
-      {!showPurchaseModal && (
-        <TourSelector 
-          tours={[
-            { tourType: 'navbar', steps: navbarSteps, label: 'Tour da Navegação', targetElement: '#sidebar-logo' },
-            { tourType: 'dashboard', steps: dashboardSteps, label: 'Tour do Dashboard', targetElement: '#dashboard-credits-card' }
-          ]}
-          startDelay={1000}
-        />
-      )}
       
       <ExpiredTrialBlocker />
       <TrialBanner />
