@@ -180,22 +180,13 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-5 pb-8">
-      <PostRegistrationPurchaseModal
-        open={showPurchaseModal}
-        onComplete={() => {
-          setShowPurchaseModal(false);
-          sessionStorage.setItem('purchase_modal_dismissed', 'true');
-        }}
+      <TourSelector 
+        tours={[
+          { tourType: 'navbar', steps: navbarSteps, label: 'Tour da Navegação', targetElement: '#sidebar-logo' },
+          { tourType: 'dashboard', steps: dashboardSteps, label: 'Tour do Dashboard', targetElement: '#dashboard-credits-card' }
+        ]}
+        startDelay={1000}
       />
-      {!showPurchaseModal && (
-        <TourSelector 
-          tours={[
-            { tourType: 'navbar', steps: navbarSteps, label: 'Tour da Navegação', targetElement: '#sidebar-logo' },
-            { tourType: 'dashboard', steps: dashboardSteps, label: 'Tour do Dashboard', targetElement: '#dashboard-credits-card' }
-          ]}
-          startDelay={1000}
-        />
-      )}
       
       <ExpiredTrialBlocker />
       <TrialBanner />
