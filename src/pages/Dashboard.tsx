@@ -194,6 +194,10 @@ const Dashboard = () => {
         startDelay={1000}
       />
       
+      <PostRegistrationPurchaseModal 
+        open={showPurchaseModal} 
+        onComplete={() => setShowPurchaseModal(false)} 
+      />
       <ExpiredTrialBlocker />
       <TrialBanner />
       <IncompleteProfileBanner />
