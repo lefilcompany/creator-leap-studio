@@ -7,7 +7,8 @@ import {
   ScrollText, 
   Shield,
   LogOut,
-  CreditCard
+  CreditCard,
+  Settings
 } from "lucide-react";
 import { 
   Sidebar, 
@@ -79,10 +80,11 @@ export function SystemSidebar() {
 
   const navLinks = [
     { href: "/system", icon: LayoutDashboard, label: "Dashboard" },
+    { href: "/system/users", icon: Users, label: "Usuários" },
     { href: "/system/plans", icon: CreditCard, label: "Planos" },
     { href: "/system/teams", icon: Building2, label: "Equipes" },
-    { href: "/system/users", icon: Users, label: "Usuários" },
-    { href: "/system/logs", icon: ScrollText, label: "Logs do Sistema" },
+    { href: "/system/logs", icon: ScrollText, label: "Logs" },
+    { href: "/system/settings", icon: Settings, label: "Configurações" },
   ];
 
   const handleLogout = async () => {
@@ -97,7 +99,6 @@ export function SystemSidebar() {
 
   const sidebarContent = () => (
     <TooltipProvider>
-      {/* Logo */}
       <div className="pt-4 pb-2 mb-2 px-2 flex items-center justify-center">
         <NavLink
           to="/system"
@@ -112,7 +113,6 @@ export function SystemSidebar() {
         </NavLink>
       </div>
 
-      {/* System Admin Badge */}
       {!collapsed && (
         <div className="px-4 mb-4">
           <div className="flex items-center gap-2 p-2 rounded-lg bg-primary/10 border border-primary/20">
@@ -122,7 +122,6 @@ export function SystemSidebar() {
         </div>
       )}
 
-      {/* Navigation */}
       <nav className={cn(
         "flex-1 flex flex-col overflow-y-auto overflow-x-hidden",
         collapsed ? "gap-3 px-2" : "gap-2 px-4"
@@ -138,7 +137,6 @@ export function SystemSidebar() {
           ))}
         </div>
 
-        {/* Logout */}
         <div className="mt-auto mb-4">
           {collapsed ? (
             <Tooltip>
