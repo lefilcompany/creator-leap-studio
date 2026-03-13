@@ -216,12 +216,9 @@ export function PostRegistrationPurchaseModal({ open, onComplete }: Props) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={() => {}}>
+    <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) onComplete(); }}>
       <DialogContent
-        className="max-w-5xl min-h-[75vh] max-h-[94vh] overflow-y-auto [&>button]:hidden p-0 gap-0 border-0 shadow-2xl rounded-2xl"
-        onPointerDownOutside={(e) => e.preventDefault()}
-        onEscapeKeyDown={(e) => e.preventDefault()}
-        onInteractOutside={(e) => e.preventDefault()}
+        className="max-w-5xl min-h-[75vh] max-h-[94vh] overflow-y-auto p-0 gap-0 border-0 shadow-2xl rounded-2xl"
       >
         {/* Visually hidden description for accessibility */}
         <DialogDescription className="sr-only">

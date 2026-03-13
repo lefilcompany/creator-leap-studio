@@ -7,7 +7,6 @@ import { TrialBanner } from "@/components/TrialBanner";
 import { ExpiredTrialBlocker } from "@/components/ExpiredTrialBlocker";
 import { useQuery } from "@tanstack/react-query";
 
-
 import { dashboardSteps, navbarSteps } from '@/components/onboarding/tourSteps';
 import { TourSelector } from '@/components/onboarding/TourSelector';
 
@@ -17,10 +16,17 @@ import { DashboardQuickActions } from "@/components/dashboard/DashboardQuickActi
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { DashboardRecentActivity } from "@/components/dashboard/DashboardRecentActivity";
 import { IncompleteProfileBanner } from "@/components/dashboard/IncompleteProfileBanner";
-
+import { PostRegistrationPurchaseModal } from "@/components/PostRegistrationPurchaseModal";
 
 const Dashboard = () => {
   const { user, isLoading } = useAuth();
+  const [showPurchaseModal, setShowPurchaseModal] = useState(false);
+
+  useEffect(() => {
+    if (user && (user.credits === 0 || user.credits === null) && !user.creditsExpireAt) {
+      setShowPurchaseModal(true);
+    }
+  }, [user]);
   
 
 
@@ -188,6 +194,10 @@ const Dashboard = () => {
         startDelay={1000}
       />
       
+      <PostRegistrationPurchaseModal 
+        open={showPurchaseModal} 
+        onComplete={() => setShowPurchaseModal(false)} 
+      />
       <ExpiredTrialBlocker />
       <TrialBanner />
       <IncompleteProfileBanner />
