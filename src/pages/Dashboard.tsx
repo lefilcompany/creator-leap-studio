@@ -22,19 +22,8 @@ import { IncompleteProfileBanner } from "@/components/dashboard/IncompleteProfil
 const Dashboard = () => {
   const { user, isLoading } = useAuth();
   
-  // Detectar novo usuário sem créditos (pós-cadastro)
-  const [showPurchaseModal, setShowPurchaseModal] = useState(false);
-  
-  useEffect(() => {
-    if (user && !isLoading) {
-      // Novo usuário: nunca comprou créditos (maxCredits === 0 e sem data de expiração)
-      const neverPurchased = (user.maxCredits || 0) === 0 && !user.creditsExpireAt;
-      const dismissed = sessionStorage.getItem('purchase_modal_dismissed');
-      if (neverPurchased && !dismissed) {
-        setShowPurchaseModal(true);
-      }
-    }
-  }, [user, isLoading]);
+
+
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
