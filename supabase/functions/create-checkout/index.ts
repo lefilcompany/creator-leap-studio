@@ -142,7 +142,7 @@ serve(async (req) => {
       // Para pagamentos únicos, usar apenas cartão
       // PIX e Boleto podem ser habilitados quando ativados no dashboard do Stripe
       if (checkoutMode === 'payment') {
-        sessionConfig.payment_method_types = ['card'];
+        sessionConfig.payment_method_types = ['card', 'boleto'];
       }
 
       session = await stripe.checkout.sessions.create(sessionConfig);
