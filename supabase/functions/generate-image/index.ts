@@ -471,8 +471,11 @@ DESIGN GRÁFICO OBRIGATÓRIO:
   }
 
   // SECTION 7: ESPECIFICAÇÕES TÉCNICAS
+  const dimInstruction = params.aspectRatio && ASPECT_RATIO_DIMENSIONS[params.aspectRatio]
+    ? `\n- ⚠️ PROPORÇÃO OBRIGATÓRIA: ${params.aspectRatio} (${ASPECT_RATIO_DIMENSIONS[params.aspectRatio].width}x${ASPECT_RATIO_DIMENSIONS[params.aspectRatio].height}px). IGNORE proporções das imagens de referência.`
+    : '';
   sections.push(`### ${params.adProfessionalMode ? '7' : '6'}. ESPECIFICAÇÕES TÉCNICAS E COMPLIANCE
-- Formato: Otimizado para ${params.platform || 'redes sociais'}
+- Formato: Otimizado para ${params.platform || 'redes sociais'}${dimInstruction}
 - Resolução: 4K, PNG para nitidez
 - COMPLIANCE ÉTICO (CONAR/CDC):
   - HONESTIDADE: A imagem NÃO pode induzir ao erro
