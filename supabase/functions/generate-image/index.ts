@@ -66,12 +66,27 @@ const PLATFORM_ASPECT_RATIO: Record<string, string> = {
 const ASPECT_RATIO_DIMENSIONS: Record<string, { width: number; height: number }> = {
   '1:1': { width: 1080, height: 1080 },
   '4:5': { width: 1080, height: 1350 },
+  '5:4': { width: 1080, height: 864 },
   '9:16': { width: 1080, height: 1920 },
   '16:9': { width: 1920, height: 1080 },
-  '1.91:1': { width: 1200, height: 630 },
   '3:4': { width: 1080, height: 1440 },
+  '4:3': { width: 1080, height: 810 },
   '2:3': { width: 1080, height: 1620 },
+  '3:2': { width: 1080, height: 720 },
+  '21:9': { width: 1920, height: 823 },
+  '1.91:1': { width: 1200, height: 630 },
 };
+
+// Gemini only supports these aspect ratios natively
+const GEMINI_SUPPORTED_RATIOS = ['1:1', '2:3', '3:2', '3:4', '4:3', '4:5', '5:4', '9:16', '16:9', '21:9'];
+
+function normalizeAspectRatioForGemini(ratio: string | undefined): string | undefined {
+  if (!ratio) return undefined;
+  if (GEMINI_SUPPORTED_RATIOS.includes(ratio)) return ratio;
+  // Map unsupported ratios to closest supported
+  if (ratio === '1.91:1') return '16:9';
+  return undefined;
+}
 
 // =====================================
 // STYLE SETTINGS
