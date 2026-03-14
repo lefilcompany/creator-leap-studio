@@ -762,7 +762,7 @@ serve(async (req) => {
     const finalPrompt = `${dimensionPrefix}${imageRolePrefix}${masterPrompt}\n\n[AVOID] ${finalNegativePrompt}`;
 
     console.log('[Step 3] Final prompt length:', finalPrompt.length, 'chars');
-    console.log('[Step 3] Aspect ratio:', aspectRatio, '-> Gemini:', geminiAspectRatio);
+    console.log('[Step 3] Aspect ratio:', aspectRatio, '-> Gemini:', geminiAspectRatio, '| source:', aspectRatioSource);
 
     // =====================================
     // STEP 4: Build message content with images

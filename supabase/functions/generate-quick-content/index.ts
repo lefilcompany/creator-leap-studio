@@ -111,11 +111,18 @@ serve(async (req) => {
     const {
       prompt, brandId, themeId, personaId, platform,
       referenceImages = [], preserveImages = [], styleReferenceImages = [],
-      aspectRatio = '1:1', visualStyle = 'realistic', style = 'auto',
+      aspectRatio: rawAspectRatio, visualStyle = 'realistic', style = 'auto',
       quality = 'standard', negativePrompt = '', colorPalette = 'auto',
       lighting = 'natural', composition = 'auto', cameraAngle = 'eye_level',
       detailLevel = 7, mood = 'auto',
     } = body;
+
+    // Resolve aspect ratio: request > platform fallback > default 1:1
+    const PLATFORM_ASPECT_RATIO_FALLBACK: Record<string, string> = {
+      'Instagram': '4:5', 'Facebook': '1:1', 'TikTok': '9:16',
+      'LinkedIn': '1:1', 'Twitter/X': '16:9', 'Comunidades': '1:1',
+    };
+    const aspectRatio = rawAspectRatio || (platform ? PLATFORM_ASPECT_RATIO_FALLBACK[platform] : undefined) || '1:1';
 
     // Normalize aspect ratio
     const validAspectRatios = ['1:1', '4:5', '9:16', '16:9', '3:4'];

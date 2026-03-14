@@ -402,12 +402,17 @@ export default function CreateImage() {
       const selectedTheme = themes.find(t => t.id === formData.theme);
       const selectedPersona = personas.find(p => p.id === formData.persona);
 
+      // Compute aspectRatio from platform
+      const platformImageSpec = formData.platform ? getPlatformImageSpec(formData.platform, "feed", contentType) : null;
+      const effectiveAspectRatio = platformImageSpec?.aspectRatio || '1:1';
+
       const requestData = {
         brandId: formData.brand, themeId: formData.theme, personaId: formData.persona,
         brand: selectedBrand?.name || formData.brand, theme: selectedTheme?.title || formData.theme,
         persona: selectedPersona?.name || formData.persona, objective: formData.prompt,
         description: formData.prompt, tone: formData.tone, platform: formData.platform,
         contentType, visualStyle: formData.visualStyle || 'realistic', additionalInfo: formData.additionalInfo,
+        aspectRatio: effectiveAspectRatio,
         preserveImages: [...finalBrandImages, ...finalPreservedUserImages],
         styleReferenceImages: finalStyleUserImages,
         brandReferenceImages: finalBrandImages,
