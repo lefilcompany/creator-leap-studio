@@ -737,9 +737,25 @@ serve(async (req) => {
     const finalNegativePrompt = negativeComponents.filter(Boolean).join(', ');
 
     // Final prompt with dimension enforcement at the very top
-    const aspectRatio = formData.aspectRatio;
+    // Resolve aspect ratio: request > platform fallback > default 1:1
+    const PLATFORM_ASPECT_RATIO_FALLBACK: Record<string, string> = {
+      'Instagram': '4:5',
+      'Facebook': '1:1',
+      'TikTok': '9:16',
+      'LinkedIn': '1:1',
+      'Twitter/X': '16:9',
+      'Comunidades': '1:1',
+    };
+    let aspectRatio = formData.aspectRatio;
+    let aspectRatioSource = 'request';
+    if (!aspectRatio) {
+      const platform = cleanInput(formData.platform);
+      aspectRatio = PLATFORM_ASPECT_RATIO_FALLBACK[platform] || undefined;
+      aspectRatioSource = aspectRatio ? 'platform_fallback' : 'default';
+    }
+    if (!aspectRatio) aspectRatio = '1:1';
     const geminiAspectRatio = normalizeAspectRatioForGemini(aspectRatio);
-    const targetDims = aspectRatio ? ASPECT_RATIO_DIMENSIONS[aspectRatio] : null;
+    const targetDims = ASPECT_RATIO_DIMENSIONS[aspectRatio] || null;
     const dimensionPrefix = targetDims
       ? `⚠️ DIMENSÃO OBRIGATÓRIA: A imagem DEVE ser gerada com proporção EXATA de ${aspectRatio} (${targetDims.width}x${targetDims.height}px). IGNORE as proporções de qualquer imagem de referência. O OUTPUT deve ter EXATAMENTE esta proporção.\n\n`
       : '';
