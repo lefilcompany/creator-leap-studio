@@ -345,9 +345,14 @@ function buildDirectorPrompt(params: {
   compParts.push(`INSTRUÇÃO PRINCIPAL DO USUÁRIO: ${params.originalDescription}`);
   compParts.push(`Cena Expandida: ${params.enrichedDescription}`);
   compParts.push(`Estilo Visual: ${params.styleSuffix}`);
+  if (params.aspectRatio) {
+    const dims = ASPECT_RATIO_DIMENSIONS[params.aspectRatio];
+    if (dims) {
+      compParts.push(`⚠️ DIMENSÃO OBRIGATÓRIA: A imagem DEVE ser gerada com proporção EXATA de ${params.aspectRatio} (${dims.width}x${dims.height}px). IGNORE as proporções de qualquer imagem de referência. O OUTPUT deve ter EXATAMENTE esta proporção.`);
+    }
+  }
   if (params.platform) {
-    const aspectRatio = PLATFORM_ASPECT_RATIO[params.platform];
-    compParts.push(`Plataforma: ${params.platform}${aspectRatio ? ` (Aspect Ratio: ${aspectRatio})` : ''}`);
+    compParts.push(`Plataforma: ${params.platform}`);
   }
   compParts.push(`Tipo: ${params.contentType === 'ads' ? 'ANÚNCIO PAGO — foco em conversão' : 'ORGÂNICO — foco em engajamento'}`);
   compParts.push(`Qualidade: 4K, profundidade de campo profissional`);
