@@ -63,6 +63,16 @@ const PLATFORM_ASPECT_RATIO: Record<string, string> = {
   'pinterest': '2:3',
 };
 
+const ASPECT_RATIO_DIMENSIONS: Record<string, { width: number; height: number }> = {
+  '1:1': { width: 1080, height: 1080 },
+  '4:5': { width: 1080, height: 1350 },
+  '9:16': { width: 1080, height: 1920 },
+  '16:9': { width: 1920, height: 1080 },
+  '1.91:1': { width: 1200, height: 630 },
+  '3:4': { width: 1080, height: 1440 },
+  '2:3': { width: 1080, height: 1620 },
+};
+
 // =====================================
 // STYLE SETTINGS
 // =====================================
@@ -282,6 +292,7 @@ function buildDirectorPrompt(params: {
   adProfessionalMode: boolean;
   priceText: string;
   includeBrandLogo: boolean;
+  aspectRatio?: string;
 }): string {
   const sections: string[] = [];
 
@@ -334,9 +345,14 @@ function buildDirectorPrompt(params: {
   compParts.push(`INSTRUÇÃO PRINCIPAL DO USUÁRIO: ${params.originalDescription}`);
   compParts.push(`Cena Expandida: ${params.enrichedDescription}`);
   compParts.push(`Estilo Visual: ${params.styleSuffix}`);
+  if (params.aspectRatio) {
+    const dims = ASPECT_RATIO_DIMENSIONS[params.aspectRatio];
+    if (dims) {
+      compParts.push(`⚠️ DIMENSÃO OBRIGATÓRIA: A imagem DEVE ser gerada com proporção EXATA de ${params.aspectRatio} (${dims.width}x${dims.height}px). IGNORE as proporções de qualquer imagem de referência. O OUTPUT deve ter EXATAMENTE esta proporção.`);
+    }
+  }
   if (params.platform) {
-    const aspectRatio = PLATFORM_ASPECT_RATIO[params.platform];
-    compParts.push(`Plataforma: ${params.platform}${aspectRatio ? ` (Aspect Ratio: ${aspectRatio})` : ''}`);
+    compParts.push(`Plataforma: ${params.platform}`);
   }
   compParts.push(`Tipo: ${params.contentType === 'ads' ? 'ANÚNCIO PAGO — foco em conversão' : 'ORGÂNICO — foco em engajamento'}`);
   compParts.push(`Qualidade: 4K, profundidade de campo profissional`);
@@ -455,8 +471,11 @@ DESIGN GRÁFICO OBRIGATÓRIO:
   }
 
   // SECTION 7: ESPECIFICAÇÕES TÉCNICAS
+  const dimInstruction = params.aspectRatio && ASPECT_RATIO_DIMENSIONS[params.aspectRatio]
+    ? `\n- ⚠️ PROPORÇÃO OBRIGATÓRIA: ${params.aspectRatio} (${ASPECT_RATIO_DIMENSIONS[params.aspectRatio].width}x${ASPECT_RATIO_DIMENSIONS[params.aspectRatio].height}px). IGNORE proporções das imagens de referência.`
+    : '';
   sections.push(`### ${params.adProfessionalMode ? '7' : '6'}. ESPECIFICAÇÕES TÉCNICAS E COMPLIANCE
-- Formato: Otimizado para ${params.platform || 'redes sociais'}
+- Formato: Otimizado para ${params.platform || 'redes sociais'}${dimInstruction}
 - Resolução: 4K, PNG para nitidez
 - COMPLIANCE ÉTICO (CONAR/CDC):
   - HONESTIDADE: A imagem NÃO pode induzir ao erro
@@ -679,6 +698,7 @@ serve(async (req) => {
       adProfessionalMode: formData.adMode === 'professional',
       priceText: cleanInput(formData.priceText) || '',
       includeBrandLogo: formData.includeBrandLogo || false,
+      aspectRatio: formData.aspectRatio || undefined,
     });
 
     // Build image role prefix
@@ -701,8 +721,13 @@ serve(async (req) => {
     if (!includeText) negativeComponents.push('text, watermark, typography, letters, signature, words, labels');
     const finalNegativePrompt = negativeComponents.filter(Boolean).join(', ');
 
-    // Final prompt
-    const finalPrompt = `${imageRolePrefix}${masterPrompt}\n\n[AVOID] ${finalNegativePrompt}`;
+    // Final prompt with dimension enforcement at the very top
+    const aspectRatio = formData.aspectRatio;
+    const targetDims = aspectRatio ? ASPECT_RATIO_DIMENSIONS[aspectRatio] : null;
+    const dimensionPrefix = targetDims
+      ? `⚠️ DIMENSÃO OBRIGATÓRIA: A imagem DEVE ser gerada com proporção EXATA de ${aspectRatio} (${targetDims.width}x${targetDims.height}px). IGNORE as proporções de qualquer imagem de referência. O OUTPUT deve ter EXATAMENTE esta proporção.\n\n`
+      : '';
+    const finalPrompt = `${dimensionPrefix}${imageRolePrefix}${masterPrompt}\n\n[AVOID] ${finalNegativePrompt}`;
 
     console.log('[Step 3] Final prompt length:', finalPrompt.length, 'chars');
 

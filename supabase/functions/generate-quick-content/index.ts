@@ -223,12 +223,27 @@ serve(async (req) => {
       imageRolePrefix = `${roleParts.join('. ')}.\n\n`;
     }
 
-    let userPrompt = `${imageRolePrefix}INSTRUÇÃO PRINCIPAL: ${prompt.trim()}\n\nDETALHES VISUAIS: ${visualDescription}, ${promptSuffix}`;
+    // Add dimension enforcement instruction
+    const ASPECT_RATIO_DIMENSIONS: Record<string, { width: number; height: number }> = {
+      '1:1': { width: 1080, height: 1080 },
+      '4:5': { width: 1080, height: 1350 },
+      '9:16': { width: 1080, height: 1920 },
+      '16:9': { width: 1920, height: 1080 },
+      '1.91:1': { width: 1200, height: 630 },
+      '3:4': { width: 1080, height: 1440 },
+      '2:3': { width: 1080, height: 1620 },
+    };
+    const dims = ASPECT_RATIO_DIMENSIONS[normalizedAspectRatio];
+    const dimensionPrefix = dims
+      ? `⚠️ DIMENSÃO OBRIGATÓRIA: A imagem DEVE ser gerada com proporção EXATA de ${normalizedAspectRatio} (${dims.width}x${dims.height}px). IGNORE as proporções de qualquer imagem de referência. O OUTPUT deve ter EXATAMENTE esta proporção.\n\n`
+      : '';
+
+    let userPrompt = `${dimensionPrefix}${imageRolePrefix}INSTRUÇÃO PRINCIPAL: ${prompt.trim()}\n\nDETALHES VISUAIS: ${visualDescription}, ${promptSuffix}`;
 
     // Build negative prompt - quick content NEVER has text overlay
     let negativePromptFinal = styleSettings.negativePrompt;
     if (negativePrompt && negativePrompt.trim()) negativePromptFinal = `${negativePrompt.trim()}, ${negativePromptFinal}`;
-    negativePromptFinal += ', text, watermark, typography, letters, signature, words, labels';
+    negativePromptFinal += ', text, watermark, typography, letters, signature, words, labels, do not follow reference image dimensions or aspect ratio';
 
     userPrompt += `\n\n[AVOID] ${negativePromptFinal}`;
     console.log('[Step 3] Final prompt length:', userPrompt.length, 'chars');
