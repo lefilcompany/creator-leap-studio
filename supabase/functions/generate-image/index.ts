@@ -779,7 +779,7 @@ serve(async (req) => {
             contents: [{ role: 'user', parts: geminiParts }],
             generationConfig: {
               responseModalities: ['IMAGE', 'TEXT'],
-              ...(aspectRatio ? { aspectRatio: aspectRatio.replace(':', ':') } : {}),
+              ...(aspectRatio ? { imageConfig: { aspectRatio } } : {}),
             },
           }),
         }).finally(() => clearTimeout(timeoutId));
