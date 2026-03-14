@@ -63,6 +63,16 @@ const PLATFORM_ASPECT_RATIO: Record<string, string> = {
   'pinterest': '2:3',
 };
 
+const ASPECT_RATIO_DIMENSIONS: Record<string, { width: number; height: number }> = {
+  '1:1': { width: 1080, height: 1080 },
+  '4:5': { width: 1080, height: 1350 },
+  '9:16': { width: 1080, height: 1920 },
+  '16:9': { width: 1920, height: 1080 },
+  '1.91:1': { width: 1200, height: 630 },
+  '3:4': { width: 1080, height: 1440 },
+  '2:3': { width: 1080, height: 1620 },
+};
+
 // =====================================
 // STYLE SETTINGS
 // =====================================
