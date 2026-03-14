@@ -754,6 +754,10 @@ export default function CreateContent() {
       const selectedTheme = themes.find(t => t.id === formData.theme);
       const selectedPersona = personas.find(p => p.id === formData.persona);
 
+      // Compute aspectRatio from platform
+      const platformImageSpec = formData.platform ? getPlatformImageSpec(formData.platform, "feed", contentType) : null;
+      const effectiveAspectRatio = platformImageSpec?.aspectRatio || '1:1';
+
       const requestData = {
         brand: selectedBrand?.name || formData.brand,
         theme: selectedTheme?.title || formData.theme,
@@ -764,6 +768,7 @@ export default function CreateContent() {
         platform: formData.platform,
         contentType: contentType,
         additionalInfo: formData.additionalInfo,
+        aspectRatio: effectiveAspectRatio,
         preserveImages: finalBrandImages, // Imagens da marca para manter identidade visual
         styleReferenceImages: finalUserImages, // Imagens do usuário como referência de estilo
         brandImagesCount: finalBrandImages.length,
