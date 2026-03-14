@@ -298,7 +298,7 @@ serve(async (req) => {
             contents: [{ role: 'user', parts: geminiParts }],
             generationConfig: {
               responseModalities: ['IMAGE', 'TEXT'],
-              ...(normalizedAspectRatio ? { imageConfig: { aspectRatio: normalizedAspectRatio } } : {}),
+              ...(geminiAspectRatio ? { imageConfig: { aspectRatio: geminiAspectRatio } } : {}),
             },
           }),
         });
