@@ -292,6 +292,7 @@ function buildDirectorPrompt(params: {
   adProfessionalMode: boolean;
   priceText: string;
   includeBrandLogo: boolean;
+  aspectRatio?: string;
 }): string {
   const sections: string[] = [];
 
