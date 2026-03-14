@@ -721,8 +721,13 @@ serve(async (req) => {
     if (!includeText) negativeComponents.push('text, watermark, typography, letters, signature, words, labels');
     const finalNegativePrompt = negativeComponents.filter(Boolean).join(', ');
 
-    // Final prompt
-    const finalPrompt = `${imageRolePrefix}${masterPrompt}\n\n[AVOID] ${finalNegativePrompt}`;
+    // Final prompt with dimension enforcement at the very top
+    const aspectRatio = formData.aspectRatio;
+    const targetDims = aspectRatio ? ASPECT_RATIO_DIMENSIONS[aspectRatio] : null;
+    const dimensionPrefix = targetDims
+      ? `⚠️ DIMENSÃO OBRIGATÓRIA: A imagem DEVE ser gerada com proporção EXATA de ${aspectRatio} (${targetDims.width}x${targetDims.height}px). IGNORE as proporções de qualquer imagem de referência. O OUTPUT deve ter EXATAMENTE esta proporção.\n\n`
+      : '';
+    const finalPrompt = `${dimensionPrefix}${imageRolePrefix}${masterPrompt}\n\n[AVOID] ${finalNegativePrompt}`;
 
     console.log('[Step 3] Final prompt length:', finalPrompt.length, 'chars');
 

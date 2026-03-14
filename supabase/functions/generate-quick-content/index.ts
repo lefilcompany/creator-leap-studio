@@ -243,7 +243,7 @@ serve(async (req) => {
     // Build negative prompt - quick content NEVER has text overlay
     let negativePromptFinal = styleSettings.negativePrompt;
     if (negativePrompt && negativePrompt.trim()) negativePromptFinal = `${negativePrompt.trim()}, ${negativePromptFinal}`;
-    negativePromptFinal += ', text, watermark, typography, letters, signature, words, labels';
+    negativePromptFinal += ', text, watermark, typography, letters, signature, words, labels, do not follow reference image dimensions or aspect ratio';
 
     userPrompt += `\n\n[AVOID] ${negativePromptFinal}`;
     console.log('[Step 3] Final prompt length:', userPrompt.length, 'chars');
