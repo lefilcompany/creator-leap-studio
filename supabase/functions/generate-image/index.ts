@@ -698,6 +698,7 @@ serve(async (req) => {
       adProfessionalMode: formData.adMode === 'professional',
       priceText: cleanInput(formData.priceText) || '',
       includeBrandLogo: formData.includeBrandLogo || false,
+      aspectRatio: formData.aspectRatio || undefined,
     });
 
     // Build image role prefix
