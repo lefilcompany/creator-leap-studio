@@ -138,6 +138,7 @@ const VISUAL_STYLES = [
 
 export default function CreateImage() {
   const { user, session, refreshUserCredits } = useAuth();
+  const { addTask } = useBackgroundTasks();
   const navigate = useNavigate();
   const [formData, setFormData] = useState<FormData>({
     brand: "", theme: "", persona: "", prompt: "", platform: "",
