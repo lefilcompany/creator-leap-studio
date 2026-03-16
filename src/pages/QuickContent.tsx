@@ -306,61 +306,6 @@ export default function QuickContent() {
               onPreserveImageIndicesChange={setPreserveImageIndices}
             />
 
-            {/* 2. Creative Context & Platform */}
-            <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
-              <CardContent className="p-4 md:p-5 space-y-5">
-                {/* Brand, Persona, Theme */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  {loadingData ? <SelectSkeleton /> : (
-                    <div className="space-y-1.5">
-                      <Label className="text-sm font-bold text-foreground">
-                        Marca <span className="text-muted-foreground font-normal text-xs">(opcional)</span>
-                      </Label>
-                      <TagSelect
-                        value={formData.brandId}
-                        onValueChange={value => setFormData(prev => ({ ...prev, brandId: value }))}
-                        options={brands.map(brand => ({ value: brand.id, label: brand.name }))}
-                        placeholder={brands.length === 0 ? "Nenhuma marca" : "Selecionar marca"}
-                        disabled={brands.length === 0}
-                        triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
-                      />
-                    </div>
-                  )}
-
-                  {loadingData ? <SelectSkeleton /> : (
-                    <div className="space-y-1.5">
-                      <Label className="text-sm font-bold text-foreground">
-                        Persona <span className="text-muted-foreground font-normal text-xs">(opcional)</span>
-                      </Label>
-                      <TagSelect
-                        value={formData.personaId}
-                        onValueChange={value => setFormData(prev => ({ ...prev, personaId: value }))}
-                        options={filteredPersonas.map(p => ({ value: p.id, label: p.name }))}
-                        placeholder={!formData.brandId ? "Selecione marca" : filteredPersonas.length === 0 ? "Nenhuma" : "Selecionar"}
-                        disabled={!formData.brandId || filteredPersonas.length === 0}
-                        triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
-                      />
-                    </div>
-                  )}
-
-                  {loadingData ? <SelectSkeleton /> : (
-                    <div className="space-y-1.5">
-                      <Label className="text-sm font-bold text-foreground">
-                        Tema <span className="text-muted-foreground font-normal text-xs">(opcional)</span>
-                      </Label>
-                      <TagSelect
-                        value={formData.themeId}
-                        onValueChange={value => setFormData(prev => ({ ...prev, themeId: value }))}
-                        options={filteredThemes.map(t => ({ value: t.id, label: t.title }))}
-                        placeholder={!formData.brandId ? "Selecione marca" : filteredThemes.length === 0 ? "Nenhum" : "Selecionar"}
-                        disabled={!formData.brandId || filteredThemes.length === 0}
-                        triggerClassName="h-10 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors"
-                      />
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
 
           </div>
 
