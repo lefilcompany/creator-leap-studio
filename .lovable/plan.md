@@ -1,126 +1,222 @@
 
+# Refatoracao Completa do Pipeline de Geracao e Revisao de Imagens
 
-# Plano: Processamento em segundo plano para todas as gerações
+## Resumo
 
-## Problema
-O usuário fica preso na tela de geração até o processo completar. Não pode navegar pelo sistema durante a geração.
+Adaptar os 4 edge functions (`generate-image`, `generate-quick-content`, `edit-image`, `expandBriefing`) para seguir a arquitetura documentada no `IMAGE_PIPELINE_DOCUMENTATION.md`, implementando um pipeline de 3 etapas que garante que o modelo de imagem respeite as instrucoes do usuario.
 
-## Solução
-Criar um sistema de **background tasks** via React Context que:
-1. Captura o trabalho assíncrono (API call) e permite o usuário navegar livremente
-2. Mostra indicador de progresso na sidebar (acima do card de créditos)
-3. Exibe toast com link ao resultado quando finalizado
-4. Suporta todos os fluxos: CreateImage, CreateContent, QuickContent, ReviewContent, PlanContent
+**Nota importante:** O documento referencia campos politicos (`political_role`, `political_party`, etc.) e uma shared `politicalProfile.ts` que NAO existem no projeto atual. A tabela `profiles` nao possui esses campos. O plano adapta a arquitetura documentada ao sistema existente, sem criar campos/tabelas politicas que nao existem.
 
 ---
 
-## Arquitetura
+## Arquitetura Proposta (3 Etapas)
 
 ```text
-┌─────────────────────────────────────────┐
-│           BackgroundTaskProvider         │
-│  (Context global no App.tsx)            │
-│                                         │
-│  tasks: Map<id, {                       │
-│    type, label, status,                 │
-│    progress, resultRoute, resultState   │
-│  }>                                     │
-│                                         │
-│  addTask(config) → id                   │
-│  Runs async work in background          │
-│  On complete → toast + store result     │
-│  On error → toast error                 │
-└─────────────────────────────────────────┘
-         │                    │
-         ▼                    ▼
-  ┌─────────────┐    ┌──────────────┐
-  │  Sidebar     │    │  Pages       │
-  │  indicator   │    │  dispatch &  │
-  │  (above      │    │  navigate    │
-  │   credits)   │    │  away        │
-  └─────────────┘    └──────────────┘
+Frontend Form Data
+       |
+       v
+STEP 1: LLM Refiner (Gemini Flash via Lovable AI Gateway)
+  - Recebe briefing estruturado + descricao bruta do usuario
+  - Retorna JSON: { briefing_visual, headline, subtexto }
+       |
+       v
+STEP 2: Master Prompt Builder (buildDirectorPrompt)
+  - 6 secoes estruturadas com TODOS os dados contextuais
+  - Gerado APENAS para consumo do modelo de imagem
+       |
+       v
+STEP 3: Image Generation (Gemini 3 Pro Image Preview via Lovable AI Gateway)
+  - Recebe master prompt + imagens de referencia (max 3)
+  - Retry logic: 3 tentativas com 2s delay
+  - Extracao de imagem em 3 formatos (images[], content[], inlineData)
 ```
 
-## Arquivos
+---
 
-### 1. **CRIAR** `src/contexts/BackgroundTaskContext.tsx`
+## Mudancas por Arquivo
 
-- Context com `tasks` state (Map ou array)
-- Task interface: `{ id, type, label, status: 'running'|'complete'|'error', progress, resultRoute, resultState, createdAt }`
-- `addTask(label, type, asyncFn, resultRoute)` — executa `asyncFn` em background, ao completar salva resultado
-- `removeTask(id)` — limpa task concluída
-- `getActiveTasks()` — retorna tasks em andamento
-- Ao completar: mostra toast com botão "Ver resultado" que navega para `resultRoute` com `resultState`
-- Ao falhar: mostra toast de erro
+### 1. `supabase/functions/_shared/expandBriefing.ts` -> Refatorar como "LLM Refiner" (Step 1)
 
-### 2. **EDITAR** `src/App.tsx`
+**O que muda:**
+- Trocar de chamada direta ao Gemini API para chamada via **Lovable AI Gateway** (`https://ai.gateway.lovable.dev/v1/chat/completions`)
+- Usar modelo `google/gemini-3-flash-preview` em vez de `gemini-2.5-flash`
+- Autenticacao via `LOVABLE_API_KEY` (ja existe como secret)
+- System prompt reescrito como "Estrategista de Marketing Senior" que transforma dados brutos em briefing visual cinematografico
+- Input: recebe descricao bruta + contexto consolidado do formulario (marca, tema, persona, plataforma, tom, tipo de conteudo)
+- Output: JSON com `{ briefing_visual, headline, subtexto }` em vez de texto puro
+- Adicionar mapeamento de tom visual (combativo, didatico, emocional, institucional) -> parametros visuais (lighting, composition, contrast, focus)
+- Temperatura: 0.7, formato de resposta JSON estrito
 
-- Envolver com `<BackgroundTaskProvider>` (dentro do BrowserRouter para ter acesso ao navigate)
+### 2. `supabase/functions/generate-image/index.ts` -> Pipeline de 3 Etapas Completo
 
-### 3. **CRIAR** `src/components/SidebarTaskIndicator.tsx`
+**O que muda:**
 
-- Componente que lê tasks do context
-- Mostra acima do card de créditos na sidebar
-- Task em andamento: ícone animado (Loader2) + label truncado + barra de progresso mini
-- Task concluída: ícone check verde + "Ver resultado" clicável
-- Collapsed sidebar: apenas ícone com tooltip
-- Auto-remove tasks concluídas após 30s
+**Step 1 - Busca de dados completos no banco:**
+- Buscar dados COMPLETOS da marca (incluindo `goals`, `promise`, `restrictions`, `logo`, `moodboard`, `reference_image`, `brand_color`)
+- Buscar dados completos do tema (`macro_themes`, `expected_action`, `best_formats`, `hashtags`)
+- Buscar dados completos da persona (`location`, `challenges`, `interest_triggers`, `purchase_journey_stage`, `beliefs_and_interests`)
+- Buscar em paralelo usando `Promise.all`
 
-### 4. **EDITAR** `src/components/AppSidebar.tsx`
+**Step 2 - Chamar o LLM Refiner (expandBriefing atualizado):**
+- Passar todos os dados contextuais consolidados
+- Receber `{ briefing_visual, headline, subtexto }`
 
-- Importar e renderizar `<SidebarTaskIndicator />` acima do card de créditos (dentro da seção `mt-auto mb-5`)
+**Step 3 - Construir Master Prompt (`buildDirectorPrompt`):**
+Nova funcao com 6 secoes baseada na documentacao:
+1. ROLE: "Consultor de Marketing e Designer de Campanha de Alto Nivel"
+2. CONTEXTO DO UTILIZADOR E MARCA: dados completos da marca + persona + cores
+3. DIRETRIZES ESTRATEGICAS: fase, objetivo, publico, tom, tema estrategico
+4. COMPOSICAO DA IMAGEM: descricao enriquecida do Step 1 + estilo visual + iluminacao + composicao + plataforma + tipo conteudo
+5. TEXTO E DESIGN: se includeText=true, bloco com instrucao de tipografia perfeita; se false, instrucao "SEM TEXTO"
+6. ESPECIFICACOES TECNICAS: formato, resolucao, compliance etico (CONAR/CDC)
 
-### 5. **EDITAR** `src/pages/CreateImage.tsx`
+**Step 4 - Geracao da imagem:**
+- Trocar de chamada direta Gemini API para **Lovable AI Gateway**
+- Usar modelo `google/gemini-3-pro-image-preview` (melhor qualidade que `gemini-2.5-flash-image`)
+- Montar `messageContent` com texto + imagens de referencia (max 2 marca + 1 estilo)
+- Adicionar instrucao de papeis das imagens no inicio do prompt
+- Extracao de imagem com suporte a 3 formatos de resposta (gateway retorna diferente do Gemini direto)
+- Retry logic: 3 tentativas, 2s delay, sem retry em 429/402
+- Upload para Storage + deducao de creditos
 
-- Refatorar `handleGenerateContent`:
-  - Validar form e preparar payload (compressão de imagens, base64) **antes** de dispatch
-  - Chamar `addTask()` passando uma async function que faz a chamada API + caption + retorna resultState
-  - Navegar imediatamente para `/dashboard` ou `/history` após dispatch
-  - Remover o `loading` state que bloqueia a UI (ou mantê-lo apenas durante a preparação do payload)
+**Step 5 - Resposta enriquecida:**
+- Retornar `{ imageUrl, description, headline, subtexto, actionId, success }`
+- Salvar headline e subtexto no campo `result` da action
 
-### 6. **EDITAR** `src/pages/CreateContent.tsx`
+### 3. `supabase/functions/generate-quick-content/index.ts` -> Mesma Arquitetura Simplificada
 
-- Mesmo padrão: preparar payload → dispatch background task → navegar
-- Suportar tanto modo imagem quanto modo vídeo
+**O que muda:**
+- Aplicar o mesmo pipeline de 3 etapas mas de forma simplificada (quick content nao tem texto na imagem, tipografia, etc.)
+- Trocar para Lovable AI Gateway para geracao de imagem
+- Usar `google/gemini-3-pro-image-preview` para melhor qualidade
+- Buscar dados completos de marca/tema/persona do banco (atualmente busca parcial)
+- Limitar imagens: max 2 marca + 1 estilo
+- Adicionar `imageRolePrefix` com instrucao de papeis
+- Negative prompt sempre inclui `text, watermark, typography, letters, signature, words, labels`
+- Extracao de imagem com suporte a 3 formatos
+- Retry logic igual ao generate-image
+- Upload para Storage (atualmente retorna base64 direto — mudar para upload e retornar publicUrl)
 
-### 7. **EDITAR** `src/pages/QuickContent.tsx`
+### 4. `supabase/functions/edit-image/index.ts` -> Migrar para Lovable AI Gateway
 
-- Mesmo padrão para `generateQuickContent`
+**O que muda:**
+- Trocar de chamada direta Gemini API para **Lovable AI Gateway**
+- Usar modelo `google/gemini-2.5-flash-image` (via gateway)
+- O prompt `buildRevisionPrompt` ja esta bom, manter a estrutura atual
+- Adicionar retry logic (3 tentativas, 2s delay)
+- Extracao de imagem com suporte a 3 formatos do gateway
 
-### 8. **EDITAR** `src/pages/ReviewContent.tsx`
+### 5. Frontend: `src/pages/CreateImage.tsx`
 
-- Mesmo padrão para `handleReview`
+**O que muda:**
+- Adicionar campos `brandId`, `themeId`, `personaId` ao request (enviar IDs para busca completa no backend, nao apenas nomes)
+- Processar novos campos na resposta: `headline`, `subtexto`
+- Passar esses dados para a pagina de resultado
 
-### 9. **EDITAR** `src/pages/PlanContent.tsx`
+### 6. Deploy de Edge Functions
 
-- Mesmo padrão para geração de plano
+Redeployar: `generate-image`, `generate-quick-content`, `edit-image`
 
-### 10. **EDITAR** result pages (ContentResult, QuickContentResult, ReviewResult, PlanResult)
+---
 
-- Manter suporte a `location.state` (para compatibilidade)
-- Quando receber dados via location.state, funcionar normalmente (sem mudanças)
+## Detalhes Tecnicos
 
-## Fluxo do usuário
+### Formato de chamada ao Lovable AI Gateway
 
-1. Usuário preenche form e clica "Gerar"
-2. Sistema prepara payload (comprime imagens etc.) — loading breve de 1-3s
-3. Task é adicionada ao background context → toast "Geração iniciada"
-4. Usuário é redirecionado para onde estava (dashboard) ou pode navegar livremente
-5. Sidebar mostra indicador pulsante com label "Gerando imagem..."
-6. Ao completar: toast "Conteúdo gerado!" com botão "Ver resultado"
-7. Sidebar atualiza indicador para "Concluído" com link clicável
-8. Clicando, navega para a result page com os dados
+```typescript
+const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 
-## Detalhes técnicos
+const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+  method: 'POST',
+  headers: {
+    'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    model: 'google/gemini-3-pro-image-preview',
+    messages: [{ role: 'user', content: messageContent }],
+    modalities: ['image', 'text'],
+  }),
+});
+```
 
-- Background tasks vivem apenas em memória (não persistem em refresh) — aceitável pois geração leva 30-90s
-- Limite de 1 task simultânea por tipo (evitar spam)
-- A preparação do payload (compressão de imagens base64) ainda acontece na página de form, antes do dispatch
-- O `asyncFn` passado ao context é autossuficiente — contém toda a lógica de API call e retorna `{ route, state }`
+### Extracao de imagem (3 formatos)
 
-## Riscos mitigados
+```typescript
+const data = await response.json();
+const message = data.choices?.[0]?.message;
+let imageUrl: string | null = null;
 
-- **Refresh da página**: task é perdida, mas a action já foi salva no banco pelo backend — acessível via Histórico
-- **Erro durante geração**: toast de erro informativo, task marcada como 'error' na sidebar
-- **Múltiplas gerações**: suportado — sidebar mostra lista de tasks ativas
+// Formato 1: message.images[]
+if (message?.images?.length > 0) {
+  imageUrl = message.images[0].image_url?.url;
+}
+// Formato 2: message.content[] (array)
+if (!imageUrl && Array.isArray(message?.content)) {
+  for (const part of message.content) {
+    if (part.type === 'image_url') {
+      imageUrl = part.image_url?.url;
+      break;
+    }
+  }
+}
+// Formato 3: candidates[].content.parts[].inlineData
+if (!imageUrl && data.candidates?.[0]?.content?.parts) {
+  for (const part of data.candidates[0].content.parts) {
+    if (part.inlineData?.data) {
+      imageUrl = `data:${part.inlineData.mimeType || 'image/png'};base64,${part.inlineData.data}`;
+      break;
+    }
+  }
+}
+```
 
+### Resposta JSON do Step 1 (Refiner)
+
+```typescript
+interface RefinerOutput {
+  briefing_visual: string;  // Descricao cinematografica enriquecida
+  headline: string;         // Texto principal sugerido (max 10 palavras)
+  subtexto: string;         // CTA ou texto secundario (max 15 palavras)
+}
+```
+
+### Secao de Texto na Imagem (Step 2 Master Prompt)
+
+Se `includeText = true`:
+```text
+### 4. TEXTO E DESIGN
+- Headline: Renderize PERFEITAMENTE o texto: "${textContent}"
+- Tipografia: ${fontStyle}
+- Posicao: ${textPosition}. O texto NAO deve obstruir o rosto.
+- Legibilidade: O texto DEVE ser o foco principal e 100% legivel.
+  Utilize espaco negativo, sobreposicoes de gradiente sutil ou caixas de texto limpas.
+```
+
+Se `includeText = false`:
+```text
+- SEM TEXTO: NAO inclua NENHUM texto, palavras, letras, numeros ou simbolos.
+```
+
+### Campos adicionais enviados ao backend (CreateImage.tsx)
+
+```typescript
+const requestData = {
+  // IDs para busca completa (JA existem no request atual)
+  brandId: formData.brand,  // UUID
+  themeId: formData.theme,  // UUID  
+  personaId: formData.persona, // UUID
+  // ... demais campos ja existentes
+};
+```
+
+---
+
+## Arquivos Modificados
+
+1. `supabase/functions/_shared/expandBriefing.ts` — Reescrever como LLM Refiner via Lovable AI Gateway
+2. `supabase/functions/generate-image/index.ts` — Pipeline 3 etapas completo via Gateway
+3. `supabase/functions/generate-quick-content/index.ts` — Pipeline 3 etapas simplificado via Gateway + upload Storage
+4. `supabase/functions/edit-image/index.ts` — Migrar para Lovable AI Gateway
+5. `src/pages/CreateImage.tsx` — Processar headline/subtexto na resposta
+6. Deploy das 3 edge functions

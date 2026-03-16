@@ -16,6 +16,7 @@ import { DashboardLayout } from "./components/DashboardLayout";
 import { SystemRoute } from "./components/system/SystemRoute";
 import { SystemLayout } from "./components/system/SystemLayout";
 import ScrollToTop from "./components/ScrollToTop";
+import { BackgroundTaskProvider } from "./contexts/BackgroundTaskContext";
 
 // Lazy loaded pages - Public
 const Auth = lazy(() => import("./pages/Auth"));
@@ -109,6 +110,7 @@ const App = () => (
                 <Sonner />
                 <BrowserRouter>
                   <ScrollToTop />
+                  <BackgroundTaskProvider>
                   <EventTrackingProvider>
                     <Routes>
                       {/* Public routes */}
@@ -172,6 +174,7 @@ const App = () => (
                       <Route path="*" element={<SuspenseRoute><NotFound /></SuspenseRoute>} />
                     </Routes>
                   </EventTrackingProvider>
+                  </BackgroundTaskProvider>
                 </BrowserRouter>
               </TooltipProvider>
             </OnboardingProvider>

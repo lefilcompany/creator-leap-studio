@@ -12,6 +12,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import logoCreatorPreta from "@/assets/logoCreatorPreta.png";
 import logoCreatorBranca from "@/assets/logoCreatorBranca.png";
 import creatorSymbol from "@/assets/creator-symbol.png";
+import { SidebarTaskIndicator } from "@/components/SidebarTaskIndicator";
 
 function NavItem({
   id,
@@ -240,9 +241,10 @@ export function AppSidebar() {
           ))}
         </div>
 
-        {/* Credits */}
+        {/* Background Tasks + Credits */}
         {user && (
           <div className="mt-auto mb-5 flex flex-col gap-2.5">
+            <SidebarTaskIndicator collapsed={collapsed} />
             {collapsed ? (
               <Tooltip>
                 <TooltipTrigger asChild>

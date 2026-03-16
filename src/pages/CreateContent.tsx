@@ -29,6 +29,7 @@ import type { StrategicTheme, StrategicThemeSummary } from "@/types/theme";
 import type { Persona, PersonaSummary } from "@/types/persona";
 import type { Team } from "@/types/theme";
 import { useAuth } from "@/hooks/useAuth";
+import { useBackgroundTasks } from "@/contexts/BackgroundTaskContext";
 import { getPlatformImageSpec, getCaptionGuidelines, platformSpecs } from "@/lib/platformSpecs";
 import { useFormPersistence } from '@/hooks/useFormPersistence';
 import { TourSelector } from '@/components/onboarding/TourSelector';
@@ -97,6 +98,7 @@ const toneOptions = [
 export default function CreateContent() {
   const { user, session, reloadUserData } = useAuth();
   const navigate = useNavigate();
+  const { addTask } = useBackgroundTasks();
   const [formData, setFormData] = useState<FormData>({
     brand: "",
     theme: "",
@@ -1061,212 +1063,146 @@ export default function CreateContent() {
         return;
       }
 
-      // Modo imagem (código existente)
-      toast.loading("Gerando imagem com IA...", {
-        id: toastId,
-        description: `Usando ${finalBrandImages.length} imagem(ns) da marca + ${finalUserImages.length} sua(s) imagem(ns) de referência.`,
-      });
+      // Modo imagem - dispatch to background
+      const capturedSession = session;
+      const capturedRequestData = { ...requestData };
+      const capturedFormData = { ...formData };
+      const capturedFinalBrandImages = [...finalBrandImages];
+      const capturedFinalUserImages = [...finalUserImages];
 
-      // 1. Gerar imagem com Gemini 2.5
-      const imageResponse = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-image`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session?.access_token}`,
-          },
-          body: JSON.stringify({
-            ...requestData,
-            teamId: user?.teamId, // Enviar teamId para controle de créditos
-          }),
-        }
-      );
+      clearPersistedData();
 
-      if (!imageResponse.ok) {
-        const errorText = await imageResponse.text();
-        throw new Error(`Erro ao gerar imagem: ${errorText}`);
-      }
-
-      const { imageUrl, attempt } = await imageResponse.json();
-      
-      setGenerationStep(GenerationStep.GENERATING_CAPTION);
-      setGenerationProgress(60);
-      
-      toast.loading("✍️ Gerando legenda profissional...", {
-        id: toastId,
-        description: `Imagem criada em ${attempt} tentativa(s) | Escrevendo copy criativa (60%)`,
-      });
-
-      // 2. Gerar legenda com Gemini 2.5
-      const captionResponse = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-caption`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session?.access_token}`,
-          },
-          body: JSON.stringify({
-            formData: {
-              ...requestData,
-              imageDescription: requestData.description,
-              audience: selectedPersona?.name || "",
+      addTask(
+        "Criando Conteúdo",
+        "create_content",
+        async () => {
+          // 1. Generate image
+          const imageResponse = await fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-image`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${capturedSession?.access_token}`,
+              },
+              body: JSON.stringify({
+                ...capturedRequestData,
+                teamId: user?.teamId,
+              }),
             }
-          }),
-        }
+          );
+
+          if (!imageResponse.ok) {
+            throw new Error(`Erro ao gerar imagem: ${await imageResponse.text()}`);
+          }
+
+          const { imageUrl, attempt } = await imageResponse.json();
+
+          // 2. Generate caption
+          const captionResponse = await fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-caption`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${capturedSession?.access_token}`,
+              },
+              body: JSON.stringify({
+                formData: {
+                  ...capturedRequestData,
+                  imageDescription: capturedRequestData.description,
+                  audience: selectedPersona?.name || "",
+                }
+              }),
+            }
+          );
+
+          let captionData;
+          let isLocalFallback = false;
+
+          if (captionResponse.ok) {
+            const responseData = await captionResponse.json();
+            if (responseData.fallback) isLocalFallback = true;
+            captionData = responseData.fallback ? null : responseData;
+          } else {
+            isLocalFallback = true;
+          }
+
+          // Fallback
+          if (!captionData || isLocalFallback) {
+            const brandName = selectedBrand?.name || capturedFormData.brand;
+            const themeName = selectedTheme?.title || capturedFormData.theme || "Nossa proposta";
+            const specs = {
+              Instagram: { maxLength: 2200, recommendedHashtags: 10 },
+              Facebook: { maxLength: 250, recommendedHashtags: 3 },
+              LinkedIn: { maxLength: 600, recommendedHashtags: 5 },
+              TikTok: { maxLength: 150, recommendedHashtags: 5 },
+              Twitter: { maxLength: 280, recommendedHashtags: 2 },
+            }[capturedFormData.platform] || { maxLength: 500, recommendedHashtags: 5 };
+
+            captionData = {
+              title: `${brandName} | ${themeName} 🚀`,
+              body: `🌟 ${brandName} apresenta: ${themeName}\n\n${capturedFormData.description}\n\n💡 ${capturedFormData.objective}\n\n🎯 Tom: ${capturedFormData.tone.join(", ")}\n\n💬 Comente o que achou!`.substring(0, specs.maxLength - 100),
+              hashtags: [
+                brandName.toLowerCase().replace(/\s+/g, ""),
+                themeName.toLowerCase().replace(/\s+/g, ""),
+                capturedFormData.platform.toLowerCase(),
+                "marketingdigital", "conteudocriativo",
+                ...capturedFormData.tone.map(t => t.toLowerCase())
+              ].filter((tag, index, self) => tag && tag.length > 2 && self.indexOf(tag) === index).slice(0, specs.recommendedHashtags)
+            };
+          }
+
+          if (!imageUrl || !captionData?.title || !captionData?.body) {
+            throw new Error("Dados incompletos na geração");
+          }
+
+          if (reloadUserData) await reloadUserData();
+
+          return {
+            route: "/result",
+            state: {
+              contentData: {
+                type: "image" as const,
+                mediaUrl: imageUrl,
+                platform: capturedFormData.platform,
+                brand: selectedBrand?.name || capturedFormData.brand,
+                title: captionData.title,
+                body: captionData.body,
+                hashtags: captionData.hashtags,
+                originalFormData: { ...capturedRequestData, brandId: capturedFormData.brand },
+                actionId: undefined,
+                isLocalFallback,
+              }
+            }
+          };
+        },
+        () => reloadUserData?.()
       );
 
-      let captionData;
-      let isLocalFallback = false;
-      
-      if (captionResponse.ok) {
-        const responseData = await captionResponse.json();
-        // Verificar se é um fallback da API
-        if (responseData.fallback) {
-          console.warn("⚠️ API retornou fallback:", responseData.error);
-          isLocalFallback = true;
-          toast.warning("Legenda gerada localmente", {
-            description: "Usando fallback local devido a erro na API de legenda.",
-            duration: 4000,
-          });
-        }
-        captionData = responseData.fallback ? null : responseData;
-      } else {
-        const errorText = await captionResponse.text();
-        console.error("❌ Erro na geração de legenda:", errorText);
-        isLocalFallback = true;
-        
-        toast.error("Erro ao gerar legenda", {
-          description: "Usando legenda padrão. Você pode editá-la depois.",
-          duration: 4000,
-        });
-      }
-
-      // Fallback local robusto e estruturado
-      if (!captionData || isLocalFallback) {
-        const brandName = selectedBrand?.name || formData.brand;
-        const themeName = selectedTheme?.title || formData.theme || "Nossa proposta";
-        const platform = formData.platform;
-        
-        const platformSpecs = {
-          Instagram: { maxLength: 2200, recommendedHashtags: 10 },
-          Facebook: { maxLength: 250, recommendedHashtags: 3 },
-          LinkedIn: { maxLength: 600, recommendedHashtags: 5 },
-          TikTok: { maxLength: 150, recommendedHashtags: 5 },
-          Twitter: { maxLength: 280, recommendedHashtags: 2 },
-        }[platform] || { maxLength: 500, recommendedHashtags: 5 };
-
-        const fallbackBody = `🌟 ${brandName} apresenta: ${themeName}
-
-${formData.description}
-
-💡 ${formData.objective}
-
-🎯 Tom: ${formData.tone.join(", ")}
-
-💬 Comente o que achou!`;
-
-        captionData = {
-          title: `${brandName} | ${themeName} 🚀`,
-          body: fallbackBody.substring(0, platformSpecs.maxLength - 100),
-          hashtags: [
-            brandName.toLowerCase().replace(/\s+/g, ""),
-            themeName.toLowerCase().replace(/\s+/g, ""),
-            platform.toLowerCase(),
-            "marketingdigital",
-            "conteudocriativo",
-            ...formData.tone.map(t => t.toLowerCase())
-          ].filter((tag, index, self) => 
-            tag && tag.length > 2 && self.indexOf(tag) === index
-          ).slice(0, platformSpecs.recommendedHashtags)
-        };
-      }
-
-      setGenerationStep(GenerationStep.SAVING);
-      setGenerationProgress(80);
-      
-      toast.loading("💾 Preparando resultado...", {
-        id: toastId,
-        description: "Finalizando geração (80%)",
-      });
-
-      // Validar dados completos antes de criar o objeto
-      if (!imageUrl || !captionData?.title || !captionData?.body) {
-        throw new Error("Dados incompletos na geração");
-      }
-
-      // Manter dados ESTRUTURADOS - não concatenar
-      const generatedContent = {
-        type: "image" as const,
-        mediaUrl: imageUrl,
-        platform: formData.platform,
-        brand: selectedBrand?.name || formData.brand,
-        // Dados estruturados da legenda
-        title: captionData.title,
-        body: captionData.body,
-        hashtags: captionData.hashtags,
-        originalFormData: {
-          ...requestData,
-          brandId: formData.brand,
-        },
-        actionId: undefined,
-        isLocalFallback, // Informar se usou fallback
-      };
-      
-      // Recarregar dados do usuário para atualizar créditos no header
-      if (reloadUserData) {
-        await reloadUserData();
-      }
-      
-      setGenerationStep(GenerationStep.COMPLETE);
-      setGenerationProgress(100);
-      
-      toast.success("✅ Conteúdo gerado com sucesso!", {
-        id: toastId,
-        description: "Imagem e legenda criados com Gemini 2.5 🚀",
-        duration: 1500,
-      });
-      
-      clearPersistedData(); // Limpar rascunho após sucesso
-      
-      // Navegação imediata para melhor performance
-      navigate("/result", { 
-        state: { contentData: generatedContent },
-        replace: false 
-      });
+      navigate("/dashboard");
     } catch (err: any) {
       console.error("Erro ao gerar conteúdo:", err);
       
-      // Tratar erro de violação de compliance de forma amigável
       if (err.message?.includes('compliance_violation')) {
         try {
           const errorMatch = err.message.match(/\{.*\}/);
           if (errorMatch) {
             const errorData = JSON.parse(errorMatch[0]);
             toast.error("Solicitação não permitida", {
-              id: toastId,
               description: errorData.message || "A solicitação viola regulamentações publicitárias brasileiras",
               duration: 8000,
             });
-            
-            // Mostrar recomendação separadamente se houver
             if (errorData.recommendation) {
               setTimeout(() => {
-                toast.info("Sugestão", {
-                  description: errorData.recommendation,
-                  duration: 10000,
-                });
+                toast.info("Sugestão", { description: errorData.recommendation, duration: 10000 });
               }, 500);
             }
             return;
           }
-        } catch (parseError) {
-          console.error("Erro ao parsear erro de compliance:", parseError);
-        }
+        } catch (parseError) {}
       }
       
-      // Mensagens de erro mais específicas
       let errorMessage = "Erro ao gerar o conteúdo.";
       let errorDescription = "Por favor, tente novamente.";
       
@@ -1275,19 +1211,11 @@ ${formData.description}
         errorDescription = "Verifique sua internet e tente novamente.";
       } else if (err.message?.includes("timeout")) {
         errorMessage = "Tempo esgotado";
-        errorDescription = "A geração demorou muito. Tente novamente.";
-      } else if (err.message?.includes("API")) {
-        errorMessage = "Erro na API";
-        errorDescription = "Serviço temporariamente indisponível.";
       } else if (err.message) {
         errorDescription = err.message;
       }
       
-      toast.error(errorMessage, { 
-        id: toastId,
-        description: errorDescription,
-        duration: 5000
-      });
+      toast.error(errorMessage, { description: errorDescription, duration: 5000 });
     } finally {
       setLoading(false);
       setGenerationStep(GenerationStep.IDLE);

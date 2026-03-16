@@ -13,6 +13,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { CREDIT_COSTS } from "@/lib/creditCosts";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useBackgroundTasks } from "@/contexts/BackgroundTaskContext";
 import { useFormPersistence } from "@/hooks/useFormPersistence";
 import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
 import { useOnboarding } from "@/hooks/useOnboarding";
@@ -31,6 +32,7 @@ const ReviewContent = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, refreshUserCredits } = useAuth();
+  const { addTask } = useBackgroundTasks();
   const { shouldShowTour } = useOnboarding();
   const [reviewType, setReviewType] = useState<ReviewType | null>(null);
   const [brand, setBrand] = useState("");
@@ -157,9 +159,13 @@ const ReviewContent = () => {
     setError(null);
 
     try {
-      let result;
       const selectedBrand = brands.find((b) => b.id === brand);
       const selectedTheme = theme ? themes.find((t) => t.id === theme) : null;
+
+      // Prepare payload before background dispatch
+      let payload: any = {};
+      let functionName = "";
+      let taskLabel = "";
 
       if (reviewType === "image") {
         if (!imageFile || !adjustmentsPrompt) {
@@ -167,82 +173,82 @@ const ReviewContent = () => {
           setLoading(false);
           return;
         }
-
         const base64Image = await convertImageToBase64(imageFile);
-
-        const { data, error: functionError } = await supabase.functions.invoke("review-image", {
-          body: {
-            image: base64Image,
-            prompt: adjustmentsPrompt,
-            brandId: selectedBrand?.id,
-            brandName: selectedBrand?.name,
-            themeName: selectedTheme?.title,
-          },
-        });
-
-        if (functionError) throw functionError;
-        result = data;
+        payload = {
+          image: base64Image,
+          prompt: adjustmentsPrompt,
+          brandId: selectedBrand?.id,
+          brandName: selectedBrand?.name,
+          themeName: selectedTheme?.title,
+        };
+        functionName = "review-image";
+        taskLabel = "Revisão de Imagem";
       } else if (reviewType === "caption") {
         if (!captionText || !adjustmentsPrompt) {
           setError("Por favor, insira a legenda e descreva o que deseja melhorar");
           setLoading(false);
           return;
         }
-
-        const { data, error: functionError } = await supabase.functions.invoke("review-caption", {
-          body: {
-            caption: captionText,
-            prompt: adjustmentsPrompt,
-            brandId: selectedBrand?.id,
-            brandName: selectedBrand?.name,
-            themeName: selectedTheme?.title,
-          },
-        });
-
-        if (functionError) throw functionError;
-        result = data;
+        payload = {
+          caption: captionText,
+          prompt: adjustmentsPrompt,
+          brandId: selectedBrand?.id,
+          brandName: selectedBrand?.name,
+          themeName: selectedTheme?.title,
+        };
+        functionName = "review-caption";
+        taskLabel = "Revisão de Legenda";
       } else if (reviewType === "text-for-image") {
         if (!textForImage || !adjustmentsPrompt) {
           setError("Por favor, insira o texto e descreva o contexto desejado");
           setLoading(false);
           return;
         }
-
-        const { data, error: functionError } = await supabase.functions.invoke("review-text-for-image", {
-          body: {
-            text: textForImage,
-            prompt: adjustmentsPrompt,
-            brandId: selectedBrand?.id,
-            brandName: selectedBrand?.name,
-            themeName: selectedTheme?.title,
-          },
-        });
-
-        if (functionError) throw functionError;
-        result = data;
+        payload = {
+          text: textForImage,
+          prompt: adjustmentsPrompt,
+          brandId: selectedBrand?.id,
+          brandName: selectedBrand?.name,
+          themeName: selectedTheme?.title,
+        };
+        functionName = "review-text-for-image";
+        taskLabel = "Revisão de Texto";
       }
 
-      if (result?.review) {
-        clearPersistedData();
+      const capturedReviewType = reviewType;
+      const capturedPreviewUrl = previewUrl;
+      const capturedCaptionText = captionText;
+      const capturedTextForImage = textForImage;
 
-        try {
-          await refreshUserCredits();
-        } catch (error) {
-          // Silent error
-        }
+      clearPersistedData();
 
-        navigate("/review-result", {
-          state: {
-            reviewType,
-            review: result.review,
-            originalContent:
-              reviewType === "image" ? previewUrl : reviewType === "caption" ? captionText : textForImage,
-            brandName: selectedBrand?.name,
-            themeName: selectedTheme?.title,
-            actionId: result.actionId,
-          },
-        });
-      }
+      addTask(
+        taskLabel,
+        `review_${capturedReviewType}`,
+        async () => {
+          const { data, error: functionError } = await supabase.functions.invoke(functionName, { body: payload });
+          if (functionError) throw functionError;
+          if (!data?.review) throw new Error("Revisão não retornada");
+
+          try { await refreshUserCredits(); } catch {}
+
+          return {
+            route: "/review-result",
+            state: {
+              reviewType: capturedReviewType,
+              review: data.review,
+              originalContent:
+                capturedReviewType === "image" ? capturedPreviewUrl : capturedReviewType === "caption" ? capturedCaptionText : capturedTextForImage,
+              brandName: selectedBrand?.name,
+              themeName: selectedTheme?.title,
+              actionId: data.actionId,
+            }
+          };
+        },
+        () => refreshUserCredits?.()
+      );
+
+      navigate("/dashboard");
     } catch (err: any) {
       console.error("Error during review:", err);
       toast.error("Erro ao processar revisão");

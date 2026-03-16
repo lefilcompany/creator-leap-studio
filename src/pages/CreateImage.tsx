@@ -24,6 +24,7 @@ import type { StrategicThemeSummary } from "@/types/theme";
 import type { PersonaSummary } from "@/types/persona";
 import type { Team } from "@/types/theme";
 import { useAuth } from "@/hooks/useAuth";
+import { useBackgroundTasks } from "@/contexts/BackgroundTaskContext";
 import { getPlatformImageSpec, getCaptionGuidelines, platformSpecs } from "@/lib/platformSpecs";
 import { useFormPersistence } from '@/hooks/useFormPersistence';
 import { TourSelector } from '@/components/onboarding/TourSelector';
@@ -137,6 +138,7 @@ const VISUAL_STYLES = [
 
 export default function CreateImage() {
   const { user, session, refreshUserCredits } = useAuth();
+  const { addTask } = useBackgroundTasks();
   const navigate = useNavigate();
   const [formData, setFormData] = useState<FormData>({
     brand: "", theme: "", persona: "", prompt: "", platform: "",
@@ -351,11 +353,9 @@ export default function CreateImage() {
     if (!validateForm()) return toast.error("Por favor, preencha todos os campos obrigatórios (*).");
 
     setLoading(true);
-    setGenerationStep(GenerationStep.GENERATING_IMAGE);
-    setGenerationProgress(0);
-    const toastId = toast.loading("🎨 Processando imagens de referência...", { description: "Convertendo arquivos para análise (0%)" });
 
     try {
+      // Compress images (this is the only blocking step)
       const compressImage = async (file: File): Promise<string> => {
         return new Promise((resolve, reject) => {
           const reader = new FileReader();
@@ -382,12 +382,8 @@ export default function CreateImage() {
 
       const referenceImagesBase64: string[] = [];
       for (let i = 0; i < referenceFiles.length; i++) {
-        toast.loading("🎨 Processando imagens de referência...", { id: toastId, description: `Comprimindo imagem ${i + 1}/${referenceFiles.length}...` });
         referenceImagesBase64.push(await compressImage(referenceFiles[i]));
       }
-
-      setGenerationProgress(10);
-      toast.loading("🎨 Preparando geração...", { id: toastId, description: "Analisando referências (10%)" });
 
       const maxTotalImages = 5;
       const safePreserveIndices = preserveImageIndices
@@ -407,41 +403,25 @@ export default function CreateImage() {
       const finalStyleUserImages = limitedUserEntries.filter(entry => !entry.preserve).map(entry => entry.image);
       const finalUserImages = [...finalPreservedUserImages, ...finalStyleUserImages];
 
-      if (userImageEntries.length > availableUserSlots) {
-        toast.warning(
-          `Limite de imagens atingido. Priorizei ${finalPreservedUserImages.length} imagem(ns) marcada(s) para preservar.`,
-          { duration: 5000 }
-        );
-      }
-
       const selectedBrand = brands.find(b => b.id === formData.brand);
       const selectedTheme = themes.find(t => t.id === formData.theme);
       const selectedPersona = personas.find(p => p.id === formData.persona);
 
-      // Compute aspectRatio with priority: explicit > width/height > platform > default
       let effectiveAspectRatio = formData.aspectRatio || '';
-      let arSource = 'request';
-      
       if (!effectiveAspectRatio && formData.width && formData.height) {
-        const w = Number(formData.width);
-        const h = Number(formData.height);
+        const w = Number(formData.width); const h = Number(formData.height);
         if (w > 0 && h > 0) {
-          const targetRatio = w / h;
-          let bestMatch = '1:1';
-          let bestDiff = Infinity;
+          const targetRatio = w / h; let bestMatch = '1:1'; let bestDiff = Infinity;
           for (const [ar, dims] of Object.entries(ASPECT_RATIO_DIMENSIONS)) {
             const diff = Math.abs((dims.width / dims.height) - targetRatio);
             if (diff < bestDiff) { bestDiff = diff; bestMatch = ar; }
           }
           effectiveAspectRatio = bestMatch;
-          arSource = 'width_height';
         }
       }
-      
       if (!effectiveAspectRatio) {
         const platformImageSpec = formData.platform ? getPlatformImageSpec(formData.platform, "feed", contentType) : null;
         effectiveAspectRatio = platformImageSpec?.aspectRatio || '1:1';
-        arSource = platformImageSpec?.aspectRatio ? 'platform' : 'default';
       }
 
       const targetDims = ASPECT_RATIO_DIMENSIONS[effectiveAspectRatio] || ASPECT_RATIO_DIMENSIONS['1:1'];
@@ -452,9 +432,7 @@ export default function CreateImage() {
         persona: selectedPersona?.name || formData.persona, objective: formData.prompt,
         description: formData.prompt, tone: formData.tone, platform: formData.platform,
         contentType, visualStyle: formData.visualStyle || 'realistic', additionalInfo: formData.additionalInfo,
-        aspectRatio: effectiveAspectRatio,
-        width: targetDims.width,
-        height: targetDims.height,
+        aspectRatio: effectiveAspectRatio, width: targetDims.width, height: targetDims.height,
         referenceRole: 'style',
         preserveImages: [...finalBrandImages, ...finalPreservedUserImages],
         styleReferenceImages: finalStyleUserImages,
@@ -477,102 +455,91 @@ export default function CreateImage() {
         adMode: contentType === 'ads' ? (formData.adMode || 'standard') : undefined,
         priceText: formData.priceText?.trim() || "",
         includeBrandLogo: formData.includeBrandLogo || false,
+        teamId: user?.teamId,
       };
 
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-      if (!formData.brand || !uuidRegex.test(formData.brand)) { toast.error("Selecione uma marca válida", { id: toastId }); return; }
-      if (formData.theme && !uuidRegex.test(formData.theme)) { toast.error("Tema inválido", { id: toastId }); return; }
-      if (formData.persona && !uuidRegex.test(formData.persona)) { toast.error("Persona inválida", { id: toastId }); return; }
+      if (!formData.brand || !uuidRegex.test(formData.brand)) { toast.error("Selecione uma marca válida"); return; }
+      if (formData.theme && !uuidRegex.test(formData.theme)) { toast.error("Tema inválido"); return; }
+      if (formData.persona && !uuidRegex.test(formData.persona)) { toast.error("Persona inválida"); return; }
 
-      toast.loading("Gerando imagem com IA...", { id: toastId, description: `Usando ${finalBrandImages.length} refs da marca + ${finalPreservedUserImages.length} preservadas + ${finalStyleUserImages.length} de estilo.` });
-
-      const imageResponse = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-image`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token}` },
-        body: JSON.stringify({ ...requestData, teamId: user?.teamId }),
-      });
-      if (!imageResponse.ok) throw new Error(`Erro ao gerar imagem: ${await imageResponse.text()}`);
-      const { imageUrl, attempt, legenda } = await imageResponse.json();
-
-      let captionData: any = null;
-      let isLocalFallback = false;
-
-      // Se o agente gerou legenda, usar diretamente (sem chamar generate-caption)
-      if (legenda && typeof legenda === 'string' && legenda.trim().length > 20) {
-        console.log('[CreateImage] Usando legenda gerada pelo agente:', legenda.length, 'chars');
-        // Parse da legenda: extrair hashtags do final
-        const hashtagRegex = /#[\wÀ-ÿ]+/g;
-        const allHashtags = legenda.match(hashtagRegex) || [];
-        const hashtags = allHashtags.map((h: string) => h.replace('#', ''));
-        
-        // Separar corpo da legenda das hashtags
-        const legendaBody = legenda.replace(/\n*(?:#[\wÀ-ÿ]+\s*)+$/g, '').trim();
-        const lines = legendaBody.split('\n').filter((l: string) => l.trim());
-        const title = lines[0] || '';
-        const body = lines.slice(1).join('\n').trim() || legendaBody;
-
-        captionData = { title, body, hashtags };
-        setGenerationProgress(70);
-        toast.loading("✍️ Legenda gerada pelo agente de IA...", { id: toastId, description: `Imagem criada | Finalizando (70%)` });
-      } else {
-        // Fallback: gerar legenda separadamente
-        setGenerationStep(GenerationStep.GENERATING_CAPTION);
-        setGenerationProgress(60);
-        toast.loading("✍️ Gerando legenda profissional...", { id: toastId, description: `Imagem criada em ${attempt} tentativa(s) | Escrevendo copy (60%)` });
-
-        const captionResponse = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-caption`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token}` },
-          body: JSON.stringify({ formData: { ...requestData, imageDescription: requestData.description, audience: selectedPersona?.name || "" } }),
-        });
-
-        if (captionResponse.ok) {
-          const responseData = await captionResponse.json();
-          if (responseData.fallback) { isLocalFallback = true; toast.warning("Legenda gerada localmente", { duration: 4000 }); }
-          captionData = responseData.fallback ? null : responseData;
-        } else { isLocalFallback = true; toast.error("Erro ao gerar legenda", { description: "Usando legenda padrão.", duration: 4000 }); }
-      }
-
-      if (!captionData || isLocalFallback) {
-        const brandName = selectedBrand?.name || formData.brand;
-        const themeName = selectedTheme?.title || formData.theme || "Nossa proposta";
-        const specs = { Instagram: { maxLength: 2200, recommendedHashtags: 10 }, Facebook: { maxLength: 250, recommendedHashtags: 3 }, LinkedIn: { maxLength: 600, recommendedHashtags: 5 }, TikTok: { maxLength: 150, recommendedHashtags: 5 }, Twitter: { maxLength: 280, recommendedHashtags: 2 } }[formData.platform] || { maxLength: 500, recommendedHashtags: 5 };
-        captionData = {
-          title: `${brandName} | ${themeName} 🚀`,
-          body: `🌟 ${brandName} apresenta: ${themeName}\n\n${formData.prompt}\n\n🎯 Tom: ${formData.tone.join(", ")}\n\n💬 Comente!`.substring(0, specs.maxLength - 100),
-          hashtags: [brandName.toLowerCase().replace(/\s+/g, ""), themeName.toLowerCase().replace(/\s+/g, ""), formData.platform.toLowerCase(), "marketingdigital", "conteudocriativo", ...formData.tone.map(t => t.toLowerCase())].filter((tag, i, self) => tag && tag.length > 2 && self.indexOf(tag) === i).slice(0, specs.recommendedHashtags)
-        };
-      }
-
-      setGenerationStep(GenerationStep.SAVING); setGenerationProgress(80);
-      toast.loading("💾 Preparando resultado...", { id: toastId, description: "Finalizando (80%)" });
-      if (!imageUrl || !captionData?.title || !captionData?.body) throw new Error("Dados incompletos");
-
-      if (refreshUserCredits) await refreshUserCredits();
-      setGenerationStep(GenerationStep.COMPLETE); setGenerationProgress(100);
-      toast.success("✅ Conteúdo gerado com sucesso!", { id: toastId, description: "Imagem e legenda criados 🚀", duration: 1500 });
+      const capturedSession = session;
       clearPersistedData();
-      navigate("/result", { state: { contentData: { type: "image", mediaUrl: imageUrl, platform: formData.platform, brand: selectedBrand?.name || formData.brand, title: captionData.title, body: captionData.body, hashtags: captionData.hashtags, originalFormData: { ...requestData, brandId: formData.brand }, actionId: undefined, isLocalFallback } }, replace: false });
+
+      addTask(
+        "Criando Imagem",
+        "create_image",
+        async () => {
+          // Generate image
+          const imageResponse = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-image`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${capturedSession?.access_token}` },
+            body: JSON.stringify(requestData),
+          });
+          if (!imageResponse.ok) throw new Error(`Erro ao gerar imagem: ${await imageResponse.text()}`);
+          const { imageUrl, attempt, legenda } = await imageResponse.json();
+
+          // Handle caption
+          let captionData: any = null;
+          let isLocalFallback = false;
+
+          if (legenda && typeof legenda === 'string' && legenda.trim().length > 20) {
+            const hashtagRegex = /#[\wÀ-ÿ]+/g;
+            const allHashtags = legenda.match(hashtagRegex) || [];
+            const hashtags = allHashtags.map((h: string) => h.replace('#', ''));
+            const legendaBody = legenda.replace(/\n*(?:#[\wÀ-ÿ]+\s*)+$/g, '').trim();
+            const lines = legendaBody.split('\n').filter((l: string) => l.trim());
+            captionData = { title: lines[0] || '', body: lines.slice(1).join('\n').trim() || legendaBody, hashtags };
+          } else {
+            const captionResponse = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-caption`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json", Authorization: `Bearer ${capturedSession?.access_token}` },
+              body: JSON.stringify({ formData: { ...requestData, imageDescription: requestData.description, audience: selectedPersona?.name || "" } }),
+            });
+            if (captionResponse.ok) {
+              const responseData = await captionResponse.json();
+              if (responseData.fallback) isLocalFallback = true;
+              captionData = responseData.fallback ? null : responseData;
+            } else { isLocalFallback = true; }
+          }
+
+          if (!captionData || isLocalFallback) {
+            const brandName = selectedBrand?.name || formData.brand;
+            const themeName = selectedTheme?.title || formData.theme || "Nossa proposta";
+            const specs = { Instagram: { maxLength: 2200, recommendedHashtags: 10 }, Facebook: { maxLength: 250, recommendedHashtags: 3 }, LinkedIn: { maxLength: 600, recommendedHashtags: 5 }, TikTok: { maxLength: 150, recommendedHashtags: 5 }, Twitter: { maxLength: 280, recommendedHashtags: 2 } }[formData.platform] || { maxLength: 500, recommendedHashtags: 5 };
+            captionData = {
+              title: `${brandName} | ${themeName} 🚀`,
+              body: `🌟 ${brandName} apresenta: ${themeName}\n\n${formData.prompt}\n\n🎯 Tom: ${formData.tone.join(", ")}\n\n💬 Comente!`.substring(0, specs.maxLength - 100),
+              hashtags: [brandName.toLowerCase().replace(/\s+/g, ""), themeName.toLowerCase().replace(/\s+/g, ""), formData.platform.toLowerCase(), "marketingdigital", "conteudocriativo", ...formData.tone.map(t => t.toLowerCase())].filter((tag, i, self) => tag && tag.length > 2 && self.indexOf(tag) === i).slice(0, specs.recommendedHashtags)
+            };
+          }
+
+          if (!imageUrl || !captionData?.title || !captionData?.body) throw new Error("Dados incompletos");
+
+          if (refreshUserCredits) await refreshUserCredits();
+
+          return {
+            route: "/result",
+            state: {
+              contentData: {
+                type: "image", mediaUrl: imageUrl, platform: formData.platform,
+                brand: selectedBrand?.name || formData.brand,
+                title: captionData.title, body: captionData.body, hashtags: captionData.hashtags,
+                originalFormData: { ...requestData, brandId: formData.brand },
+                actionId: undefined, isLocalFallback
+              }
+            }
+          };
+        },
+        () => refreshUserCredits?.()
+      );
+
+      navigate("/dashboard");
     } catch (err: any) {
       console.error("Erro:", err);
-      if (err.message?.includes('compliance_violation')) {
-        try {
-          const errorMatch = err.message.match(/\{.*\}/);
-          if (errorMatch) {
-            const errorData = JSON.parse(errorMatch[0]);
-            toast.error("Solicitação não permitida", { id: toastId, description: errorData.message, duration: 8000 });
-            if (errorData.recommendation) setTimeout(() => toast.info("Sugestão", { description: errorData.recommendation, duration: 10000 }), 500);
-            return;
-          }
-        } catch { }
-      }
-      let errorMessage = "Erro ao gerar o conteúdo."; let errorDescription = "Tente novamente.";
-      if (err.message?.includes("Network")) { errorMessage = "Erro de conexão"; errorDescription = "Verifique sua internet."; }
-      else if (err.message?.includes("timeout")) { errorMessage = "Tempo esgotado"; }
-      else if (err.message) errorDescription = err.message;
-      toast.error(errorMessage, { id: toastId, description: errorDescription, duration: 5000 });
+      toast.error("Erro ao preparar geração", { description: err.message || "Tente novamente." });
     } finally {
-      setLoading(false); setGenerationStep(GenerationStep.IDLE); setGenerationProgress(0);
+      setLoading(false);
     }
   };
 

@@ -176,3 +176,13 @@
 .react-joyride__tooltip {
   animation: fade-in 0.3s ease-out, scale-in 0.2s ease-out !important;
 }
+
+@keyframes progress-indeterminate {
+  0% { transform: translateX(-100%); width: 40%; }
+  50% { width: 60%; }
+  100% { transform: translateX(250%); width: 40%; }
+}
+
+.animate-progress-indeterminate {
+  animation: progress-indeterminate 1.5s ease-in-out infinite;
+}
