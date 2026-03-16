@@ -18,6 +18,7 @@ import { CREDIT_COSTS } from "@/lib/creditCosts";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useBackgroundTasks } from "@/contexts/BackgroundTaskContext";
 import type { Brand } from "@/types/brand";
 import type { Persona } from "@/types/persona";
 import type { StrategicTheme } from "@/types/theme";
