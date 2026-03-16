@@ -41,7 +41,7 @@ export function UnifiedPromptBox({
   onPreserveImageIndicesChange,
 }: UnifiedPromptBoxProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [showStyles, setShowStyles] = useState(false);
+  const [styleOpen, setStyleOpen] = useState(false);
 
   const handlePaste = (e: React.ClipboardEvent) => {
     const items = e.clipboardData.items;
