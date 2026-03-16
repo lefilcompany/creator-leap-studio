@@ -118,18 +118,21 @@ serve(async (req) => {
       detailLevel = 7, mood = 'auto',
     } = body;
 
-    // Resolve aspect ratio: request > platform fallback > default 1:1
-    const PLATFORM_ASPECT_RATIO_FALLBACK: Record<string, string> = {
-      'Instagram': '4:5', 'Facebook': '1:1', 'TikTok': '9:16',
-      'LinkedIn': '1:1', 'Twitter/X': '16:9', 'Comunidades': '1:1',
-    };
-    const aspectRatio = rawAspectRatio || (platform ? PLATFORM_ASPECT_RATIO_FALLBACK[platform] : undefined) || '1:1';
+    // Resolve aspect ratio using shared utility
+    const resolved = resolveAspectRatio({
+      aspectRatio: rawAspectRatio,
+      width: body.width,
+      height: body.height,
+      platform,
+    });
+    const normalizedAspectRatio = resolved.aspectRatio;
+    const aspectRatioSource = resolved.source;
 
-    // Normalize aspect ratio
-    const validAspectRatios = ['1:1', '4:5', '9:16', '16:9', '3:4'];
-    const aspectRatioMap: Record<string, string> = { '1.91:1': '16:9', '3:4': '4:5' };
-    let normalizedAspectRatio = aspectRatioMap[aspectRatio] || aspectRatio;
-    if (!validAspectRatios.includes(normalizedAspectRatio)) normalizedAspectRatio = '1:1';
+    console.log('[Quick] Aspect ratio resolution:', {
+      rawAspectRatio: rawAspectRatio || 'not set',
+      resolvedAspectRatio: normalizedAspectRatio,
+      source: aspectRatioSource,
+    });
 
     console.log('Generate Quick Content Request:', { promptLength: prompt.length, brandId, platform, visualStyle, userId: authenticatedUserId });
 
