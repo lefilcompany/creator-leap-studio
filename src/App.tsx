@@ -110,6 +110,7 @@ const App = () => (
                 <Sonner />
                 <BrowserRouter>
                   <ScrollToTop />
+                  <BackgroundTaskProvider>
                   <EventTrackingProvider>
                     <Routes>
                       {/* Public routes */}
