@@ -754,9 +754,19 @@ export default function CreateContent() {
       const selectedTheme = themes.find(t => t.id === formData.theme);
       const selectedPersona = personas.find(p => p.id === formData.persona);
 
-      // Compute aspectRatio from platform
+      // Compute aspectRatio with priority: explicit > width/height > platform > default
+      const ASPECT_RATIO_DIMS: Record<string, { width: number; height: number }> = {
+        '1:1': { width: 1080, height: 1080 }, '4:5': { width: 1080, height: 1350 },
+        '9:16': { width: 1080, height: 1920 }, '16:9': { width: 1920, height: 1080 },
+        '3:4': { width: 1080, height: 1440 }, '4:3': { width: 1080, height: 810 },
+        '2:3': { width: 1080, height: 1620 }, '3:2': { width: 1080, height: 720 },
+        '5:4': { width: 1080, height: 864 }, '21:9': { width: 1920, height: 823 },
+        '1.91:1': { width: 1200, height: 630 },
+      };
+
       const platformImageSpec = formData.platform ? getPlatformImageSpec(formData.platform, "feed", contentType) : null;
       const effectiveAspectRatio = platformImageSpec?.aspectRatio || '1:1';
+      const targetDims = ASPECT_RATIO_DIMS[effectiveAspectRatio] || ASPECT_RATIO_DIMS['1:1'];
 
       const requestData = {
         brand: selectedBrand?.name || formData.brand,
@@ -769,8 +779,11 @@ export default function CreateContent() {
         contentType: contentType,
         additionalInfo: formData.additionalInfo,
         aspectRatio: effectiveAspectRatio,
-        preserveImages: finalBrandImages, // Imagens da marca para manter identidade visual
-        styleReferenceImages: finalUserImages, // Imagens do usuário como referência de estilo
+        width: targetDims.width,
+        height: targetDims.height,
+        referenceRole: 'style',
+        preserveImages: finalBrandImages,
+        styleReferenceImages: finalUserImages,
         brandImagesCount: finalBrandImages.length,
         userImagesCount: finalUserImages.length,
         negativePrompt: formData.negativePrompt,
@@ -780,8 +793,6 @@ export default function CreateContent() {
         cameraAngle: formData.cameraAngle,
         detailLevel: formData.detailLevel,
         mood: formData.mood,
-        width: formData.width,
-        height: formData.height,
         // Image text configurations
         includeText: formData.imageIncludeText || false,
         textContent: formData.imageTextContent?.trim() || "",

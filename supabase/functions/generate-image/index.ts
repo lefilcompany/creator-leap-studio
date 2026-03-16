@@ -4,6 +4,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
 import { checkUserCredits, deductUserCredits, recordUserCreditUsage } from '../_shared/userCredits.ts';
 import { expandBriefing } from '../_shared/expandBriefing.ts';
+import { postProcessImage, resolveAspectRatio, normalizeAspectRatioForGemini, ASPECT_RATIO_DIMENSIONS, decodeBase64Image } from '../_shared/imagePostProcess.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -63,30 +64,9 @@ const PLATFORM_ASPECT_RATIO: Record<string, string> = {
   'pinterest': '2:3',
 };
 
-const ASPECT_RATIO_DIMENSIONS: Record<string, { width: number; height: number }> = {
-  '1:1': { width: 1080, height: 1080 },
-  '4:5': { width: 1080, height: 1350 },
-  '5:4': { width: 1080, height: 864 },
-  '9:16': { width: 1080, height: 1920 },
-  '16:9': { width: 1920, height: 1080 },
-  '3:4': { width: 1080, height: 1440 },
-  '4:3': { width: 1080, height: 810 },
-  '2:3': { width: 1080, height: 1620 },
-  '3:2': { width: 1080, height: 720 },
-  '21:9': { width: 1920, height: 823 },
-  '1.91:1': { width: 1200, height: 630 },
-};
+// ASPECT_RATIO_DIMENSIONS, normalizeAspectRatioForGemini, resolveAspectRatio
+// are now imported from '../_shared/imagePostProcess.ts'
 
-// Gemini only supports these aspect ratios natively
-const GEMINI_SUPPORTED_RATIOS = ['1:1', '2:3', '3:2', '3:4', '4:3', '4:5', '5:4', '9:16', '16:9', '21:9'];
-
-function normalizeAspectRatioForGemini(ratio: string | undefined): string | undefined {
-  if (!ratio) return undefined;
-  if (GEMINI_SUPPORTED_RATIOS.includes(ratio)) return ratio;
-  // Map unsupported ratios to closest supported
-  if (ratio === '1.91:1') return '16:9';
-  return undefined;
-}
 
 // =====================================
 // STYLE SETTINGS
@@ -723,6 +703,7 @@ serve(async (req) => {
       const parts: string[] = [
         '⚠️ INSTRUÇÃO CRÍTICA SOBRE IMAGENS ANEXADAS: As imagens fornecidas contêm o CONTEÚDO REAL (produto, pessoa, objeto) que DEVE aparecer na imagem gerada EXATAMENTE como é, sem NENHUMA alteração visual',
         'NUNCA redesenhe, reinterprete ou modifique o sujeito principal das imagens. Use-o TAL QUAL ELE É. Você pode remover o fundo e posicionar em novo cenário, mas o sujeito é INTOCÁVEL',
+        '⚠️ PROPORÇÕES DAS REFERÊNCIAS: As imagens de referência servem APENAS para paleta, identidade visual, estilo e conteúdo. IGNORE COMPLETAMENTE as proporções e dimensões das imagens de referência. O formato de saída é definido EXCLUSIVAMENTE pelo aspect ratio solicitado',
       ];
       if (preserveImages.length > 0) parts.push(`As primeiras ${preserveImages.length} imagem(ns) marcadas como PRESERVAR são INTOCÁVEIS — reproduza com fidelidade PIXEL-PERFECT, sem alterar forma, cor, textura ou proporção`);
       if (styleReferenceImages.length > 0) parts.push(`As ${styleReferenceImages.length} imagem(ns) de referência também devem ter seu conteúdo integrado SEM ALTERAÇÃO na composição final`);
@@ -736,29 +717,28 @@ serve(async (req) => {
     if (!includeText) negativeComponents.push('text, watermark, typography, letters, signature, words, labels');
     const finalNegativePrompt = negativeComponents.filter(Boolean).join(', ');
 
-    // Final prompt with dimension enforcement at the very top
-    // Resolve aspect ratio: request > platform fallback > default 1:1
-    const PLATFORM_ASPECT_RATIO_FALLBACK: Record<string, string> = {
-      'Instagram': '4:5',
-      'Facebook': '1:1',
-      'TikTok': '9:16',
-      'LinkedIn': '1:1',
-      'Twitter/X': '16:9',
-      'Comunidades': '1:1',
-    };
-    let aspectRatio = formData.aspectRatio;
-    let aspectRatioSource = 'request';
-    if (!aspectRatio) {
-      const platform = cleanInput(formData.platform);
-      aspectRatio = PLATFORM_ASPECT_RATIO_FALLBACK[platform] || undefined;
-      aspectRatioSource = aspectRatio ? 'platform_fallback' : 'default';
-    }
-    if (!aspectRatio) aspectRatio = '1:1';
+    // Resolve aspect ratio using shared utility
+    const resolved = resolveAspectRatio({
+      aspectRatio: formData.aspectRatio,
+      width: formData.width,
+      height: formData.height,
+      platform: cleanInput(formData.platform),
+    });
+    const aspectRatio = resolved.aspectRatio;
+    const aspectRatioSource = resolved.source;
     const geminiAspectRatio = normalizeAspectRatioForGemini(aspectRatio);
-    const targetDims = ASPECT_RATIO_DIMENSIONS[aspectRatio] || null;
-    const dimensionPrefix = targetDims
-      ? `⚠️ DIMENSÃO OBRIGATÓRIA: A imagem DEVE ser gerada com proporção EXATA de ${aspectRatio} (${targetDims.width}x${targetDims.height}px). IGNORE as proporções de qualquer imagem de referência. O OUTPUT deve ter EXATAMENTE esta proporção.\n\n`
-      : '';
+    const targetDims = ASPECT_RATIO_DIMENSIONS[aspectRatio] || ASPECT_RATIO_DIMENSIONS['1:1'];
+    
+    console.log('[Step 3] Aspect ratio resolution:', {
+      rawAspectRatio: formData.aspectRatio || 'not set',
+      resolvedAspectRatio: aspectRatio,
+      normalizedForGemini: geminiAspectRatio || 'none',
+      source: aspectRatioSource,
+      targetWidth: targetDims.width,
+      targetHeight: targetDims.height,
+    });
+
+    const dimensionPrefix = `⚠️ DIMENSÃO OBRIGATÓRIA: A imagem DEVE ser gerada com proporção EXATA de ${aspectRatio} (${targetDims.width}x${targetDims.height}px). IGNORE as proporções de qualquer imagem de referência. O OUTPUT deve ter EXATAMENTE esta proporção.\n\n`;
     const finalPrompt = `${dimensionPrefix}${imageRolePrefix}${masterPrompt}\n\n[AVOID] ${finalNegativePrompt}`;
 
     console.log('[Step 3] Final prompt length:', finalPrompt.length, 'chars');
@@ -876,29 +856,55 @@ serve(async (req) => {
     }
 
     // =====================================
-    // STEP 6: Upload to Storage
+    // STEP 6: Post-process image (center-crop + resize)
     // =====================================
-    console.log('[Step 6] Uploading image to storage...');
-    const timestamp = Date.now();
-    const fileName = `content-images/${authenticatedTeamId || authenticatedUserId}/${timestamp}.png`;
-
+    console.log('[Step 6] Post-processing image to exact dimensions...');
+    
     let binaryData: Uint8Array;
     if (imageUrl.startsWith('data:')) {
-      const base64Data = imageUrl.split(',')[1];
-      binaryData = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+      binaryData = decodeBase64Image(imageUrl);
     } else {
       const imgResp = await fetch(imageUrl);
       binaryData = new Uint8Array(await imgResp.arrayBuffer());
     }
 
-    const { error: uploadError } = await supabase.storage.from('content-images').upload(fileName, binaryData, { contentType: 'image/png', upsert: false });
+    const postProcessResult = await postProcessImage(
+      binaryData,
+      aspectRatio,
+      targetDims.width,
+      targetDims.height,
+    );
+
+    console.log('[Step 6] Post-process result:', {
+      finalWidth: postProcessResult.finalWidth,
+      finalHeight: postProcessResult.finalHeight,
+      finalAspectRatio: postProcessResult.finalAspectRatio,
+      wasCropped: postProcessResult.wasCropped,
+      wasResized: postProcessResult.wasResized,
+      outputSize: postProcessResult.processedData.length,
+    });
+
+    // =====================================
+    // STEP 7: Upload to Storage
+    // =====================================
+    console.log('[Step 7] Uploading post-processed image to storage...');
+    const timestamp = Date.now();
+    const fileName = `content-images/${authenticatedTeamId || authenticatedUserId}/${timestamp}.png`;
+
+    const { error: uploadError } = await supabase.storage.from('content-images').upload(fileName, postProcessResult.processedData, { contentType: 'image/png', upsert: false });
+    
+    let publicUrl: string;
     if (uploadError) {
       console.error('Storage upload error:', uploadError);
-      return new Response(JSON.stringify({ error: 'Erro ao fazer upload da imagem' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      // Fallback: return base64 of post-processed image
+      const base64Fallback = btoa(String.fromCharCode(...postProcessResult.processedData));
+      publicUrl = `data:image/png;base64,${base64Fallback}`;
+      console.warn('[Step 7] Upload failed, returning post-processed base64 fallback');
+    } else {
+      const { data: urlData } = supabase.storage.from('content-images').getPublicUrl(fileName);
+      publicUrl = urlData.publicUrl;
+      console.log('[Step 7] Image uploaded:', publicUrl);
     }
-
-    const { data: { publicUrl } } = supabase.storage.from('content-images').getPublicUrl(fileName);
-    console.log('[Step 6] Image uploaded:', publicUrl);
 
     // Deduct credits
     const deductResult = await deductUserCredits(supabase, authenticatedUserId, CREDIT_COSTS.COMPLETE_IMAGE);
@@ -924,8 +930,8 @@ serve(async (req) => {
       brand_id: formData.brandId || null,
       status: 'Aprovado',
       approved: true,
-      asset_path: fileName,
-      thumb_path: fileName,
+      asset_path: !uploadError ? fileName : null,
+      thumb_path: !uploadError ? fileName : null,
       details: {
         description: formData.description,
         brandId: formData.brandId,
@@ -936,7 +942,9 @@ serve(async (req) => {
         contentType: formData.contentType,
         preserveImagesCount: preserveImages.length,
         styleReferenceImagesCount: styleReferenceImages.length,
-        pipeline: 'premium_v4',
+        pipeline: 'premium_v5',
+        requestedAspectRatio: aspectRatio,
+        aspectRatioSource,
       },
       result: {
         imageUrl: publicUrl,
@@ -944,6 +952,12 @@ serve(async (req) => {
         headline: briefingResult.headline || null,
         subtexto: briefingResult.subtexto || null,
         legenda: briefingResult.legenda || null,
+        finalWidth: postProcessResult.finalWidth,
+        finalHeight: postProcessResult.finalHeight,
+        finalAspectRatio: postProcessResult.finalAspectRatio,
+        requestedAspectRatio: postProcessResult.requestedAspectRatio,
+        wasCropped: postProcessResult.wasCropped,
+        wasResized: postProcessResult.wasResized,
       }
     }).select().single();
 
@@ -956,7 +970,11 @@ serve(async (req) => {
       subtexto: briefingResult.subtexto || null,
       legenda: briefingResult.legenda || null,
       actionId: actionData?.id,
-      success: true
+      success: true,
+      finalWidth: postProcessResult.finalWidth,
+      finalHeight: postProcessResult.finalHeight,
+      finalAspectRatio: postProcessResult.finalAspectRatio,
+      requestedAspectRatio: postProcessResult.requestedAspectRatio,
     }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
   } catch (error) {
