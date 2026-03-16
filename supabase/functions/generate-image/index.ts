@@ -738,29 +738,28 @@ serve(async (req) => {
     if (!includeText) negativeComponents.push('text, watermark, typography, letters, signature, words, labels');
     const finalNegativePrompt = negativeComponents.filter(Boolean).join(', ');
 
-    // Final prompt with dimension enforcement at the very top
-    // Resolve aspect ratio: request > platform fallback > default 1:1
-    const PLATFORM_ASPECT_RATIO_FALLBACK: Record<string, string> = {
-      'Instagram': '4:5',
-      'Facebook': '1:1',
-      'TikTok': '9:16',
-      'LinkedIn': '1:1',
-      'Twitter/X': '16:9',
-      'Comunidades': '1:1',
-    };
-    let aspectRatio = formData.aspectRatio;
-    let aspectRatioSource = 'request';
-    if (!aspectRatio) {
-      const platform = cleanInput(formData.platform);
-      aspectRatio = PLATFORM_ASPECT_RATIO_FALLBACK[platform] || undefined;
-      aspectRatioSource = aspectRatio ? 'platform_fallback' : 'default';
-    }
-    if (!aspectRatio) aspectRatio = '1:1';
+    // Resolve aspect ratio using shared utility
+    const resolved = resolveAspectRatio({
+      aspectRatio: formData.aspectRatio,
+      width: formData.width,
+      height: formData.height,
+      platform: cleanInput(formData.platform),
+    });
+    const aspectRatio = resolved.aspectRatio;
+    const aspectRatioSource = resolved.source;
     const geminiAspectRatio = normalizeAspectRatioForGemini(aspectRatio);
-    const targetDims = ASPECT_RATIO_DIMENSIONS[aspectRatio] || null;
-    const dimensionPrefix = targetDims
-      ? `⚠️ DIMENSÃO OBRIGATÓRIA: A imagem DEVE ser gerada com proporção EXATA de ${aspectRatio} (${targetDims.width}x${targetDims.height}px). IGNORE as proporções de qualquer imagem de referência. O OUTPUT deve ter EXATAMENTE esta proporção.\n\n`
-      : '';
+    const targetDims = ASPECT_RATIO_DIMENSIONS[aspectRatio] || ASPECT_RATIO_DIMENSIONS['1:1'];
+    
+    console.log('[Step 3] Aspect ratio resolution:', {
+      rawAspectRatio: formData.aspectRatio || 'not set',
+      resolvedAspectRatio: aspectRatio,
+      normalizedForGemini: geminiAspectRatio || 'none',
+      source: aspectRatioSource,
+      targetWidth: targetDims.width,
+      targetHeight: targetDims.height,
+    });
+
+    const dimensionPrefix = `⚠️ DIMENSÃO OBRIGATÓRIA: A imagem DEVE ser gerada com proporção EXATA de ${aspectRatio} (${targetDims.width}x${targetDims.height}px). IGNORE as proporções de qualquer imagem de referência. O OUTPUT deve ter EXATAMENTE esta proporção.\n\n`;
     const finalPrompt = `${dimensionPrefix}${imageRolePrefix}${masterPrompt}\n\n[AVOID] ${finalNegativePrompt}`;
 
     console.log('[Step 3] Final prompt length:', finalPrompt.length, 'chars');
