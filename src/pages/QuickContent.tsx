@@ -136,15 +136,14 @@ export default function QuickContent() {
       toast.error("Você não possui créditos suficientes para criação rápida");
       return;
     }
-    try {
-      setLoading(true);
-      const toastId = toast.loading("Preparando criação...", { description: "Processando suas configurações." });
 
+    // Prepare payload (image compression) before dispatching background task
+    setLoading(true);
+    try {
       const referenceImagesBase64: string[] = [];
       const preserveImages: string[] = [];
       const styleReferenceImages: string[] = [];
       if (referenceFiles.length > 0) {
-        toast.loading("Processando imagens de referência...", { id: toastId, description: `${referenceFiles.length} imagem(ns) sendo processadas.` });
         for (let i = 0; i < referenceFiles.length; i++) {
           const file = referenceFiles[i];
           const base64 = await new Promise<string>((resolve, reject) => {
@@ -157,60 +156,60 @@ export default function QuickContent() {
           if (preserveImageIndices.includes(i)) { preserveImages.push(base64); } else { styleReferenceImages.push(base64); }
         }
       }
-      toast.loading("Gerando conteúdo com IA...", { id: toastId, description: "Criando sua imagem personalizada." });
-      const { data, error } = await supabase.functions.invoke("generate-quick-content", {
-        body: {
-          prompt: formData.prompt,
-          brandId: formData.brandId || null,
-          themeId: formData.themeId || null,
-          personaId: formData.personaId || null,
-          platform: formData.platform || null,
-          referenceImages: referenceImagesBase64,
-          preserveImages,
-          styleReferenceImages,
-          aspectRatio: formData.aspectRatio,
-          visualStyle: formData.visualStyle,
-          style: formData.style,
-          quality: formData.quality,
-          negativePrompt: formData.negativePrompt,
-          colorPalette: formData.colorPalette,
-          lighting: formData.lighting,
-          composition: formData.composition,
-          cameraAngle: formData.cameraAngle,
-          detailLevel: formData.detailLevel,
-          mood: formData.mood,
-          width: formData.width,
-          height: formData.height
-        }
-      });
-      if (error) throw error;
-      toast.success("Conteúdo gerado com sucesso!", { id: toastId });
-      clearPersistedData();
-      try { await refreshUserCredits(); } catch {}
 
-      navigate("/quick-content-result", {
-        state: {
-          imageUrl: data.imageUrl, description: data.description, actionId: data.actionId,
-          prompt: formData.prompt, brandName: data.brandName, themeName: data.themeName,
-          personaName: data.personaName, platform: formData.platform
-        }
-      });
-    } catch (error: any) {
-      console.error("Error:", error);
-      if (error.message?.includes('compliance_violation')) {
-        try {
-          const errorMatch = error.message.match(/\{.*\}/);
-          if (errorMatch) {
-            const errorData = JSON.parse(errorMatch[0]);
-            toast.error("Solicitação não permitida", { description: errorData.message || "A solicitação viola regulamentações publicitárias brasileiras", duration: 8000 });
-            if (errorData.recommendation) {
-              setTimeout(() => { toast.info("Sugestão", { description: errorData.recommendation, duration: 10000 }); }, 500);
+      const payload = {
+        prompt: formData.prompt,
+        brandId: formData.brandId || null,
+        themeId: formData.themeId || null,
+        personaId: formData.personaId || null,
+        platform: formData.platform || null,
+        referenceImages: referenceImagesBase64,
+        preserveImages,
+        styleReferenceImages,
+        aspectRatio: formData.aspectRatio,
+        visualStyle: formData.visualStyle,
+        style: formData.style,
+        quality: formData.quality,
+        negativePrompt: formData.negativePrompt,
+        colorPalette: formData.colorPalette,
+        lighting: formData.lighting,
+        composition: formData.composition,
+        cameraAngle: formData.cameraAngle,
+        detailLevel: formData.detailLevel,
+        mood: formData.mood,
+        width: formData.width,
+        height: formData.height
+      };
+
+      clearPersistedData();
+
+      // Dispatch to background
+      addTask(
+        "Criação Rápida",
+        "quick_content",
+        async () => {
+          const { data, error } = await supabase.functions.invoke("generate-quick-content", { body: payload });
+          if (error) throw error;
+
+          try { await refreshUserCredits(); } catch {}
+
+          return {
+            route: "/quick-content-result",
+            state: {
+              imageUrl: data.imageUrl, description: data.description, actionId: data.actionId,
+              prompt: formData.prompt, brandName: data.brandName, themeName: data.themeName,
+              personaName: data.personaName, platform: formData.platform
             }
-            return;
-          }
-        } catch {}
-      }
-      toast.error(error.message || "Erro ao gerar conteúdo");
+          };
+        },
+        () => refreshUserCredits?.()
+      );
+
+      // Navigate away immediately
+      navigate("/dashboard");
+    } catch (error: any) {
+      console.error("Error preparing payload:", error);
+      toast.error(error.message || "Erro ao preparar criação");
     } finally {
       setLoading(false);
     }
