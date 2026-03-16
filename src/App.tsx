@@ -174,6 +174,7 @@ const App = () => (
                       <Route path="*" element={<SuspenseRoute><NotFound /></SuspenseRoute>} />
                     </Routes>
                   </EventTrackingProvider>
+                  </BackgroundTaskProvider>
                 </BrowserRouter>
               </TooltipProvider>
             </OnboardingProvider>

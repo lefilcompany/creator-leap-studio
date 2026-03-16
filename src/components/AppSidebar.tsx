@@ -241,9 +241,10 @@ export function AppSidebar() {
           ))}
         </div>
 
-        {/* Credits */}
+        {/* Background Tasks + Credits */}
         {user && (
           <div className="mt-auto mb-5 flex flex-col gap-2.5">
+            <SidebarTaskIndicator collapsed={collapsed} />
             {collapsed ? (
               <Tooltip>
                 <TooltipTrigger asChild>
