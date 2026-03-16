@@ -98,6 +98,7 @@ const toneOptions = [
 export default function CreateContent() {
   const { user, session, reloadUserData } = useAuth();
   const navigate = useNavigate();
+  const { addTask } = useBackgroundTasks();
   const [formData, setFormData] = useState<FormData>({
     brand: "",
     theme: "",
