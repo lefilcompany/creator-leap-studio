@@ -951,8 +951,8 @@ serve(async (req) => {
       brand_id: formData.brandId || null,
       status: 'Aprovado',
       approved: true,
-      asset_path: fileName,
-      thumb_path: fileName,
+      asset_path: !uploadError ? fileName : null,
+      thumb_path: !uploadError ? fileName : null,
       details: {
         description: formData.description,
         brandId: formData.brandId,
@@ -963,7 +963,9 @@ serve(async (req) => {
         contentType: formData.contentType,
         preserveImagesCount: preserveImages.length,
         styleReferenceImagesCount: styleReferenceImages.length,
-        pipeline: 'premium_v4',
+        pipeline: 'premium_v5',
+        requestedAspectRatio: aspectRatio,
+        aspectRatioSource,
       },
       result: {
         imageUrl: publicUrl,
@@ -971,6 +973,12 @@ serve(async (req) => {
         headline: briefingResult.headline || null,
         subtexto: briefingResult.subtexto || null,
         legenda: briefingResult.legenda || null,
+        finalWidth: postProcessResult.finalWidth,
+        finalHeight: postProcessResult.finalHeight,
+        finalAspectRatio: postProcessResult.finalAspectRatio,
+        requestedAspectRatio: postProcessResult.requestedAspectRatio,
+        wasCropped: postProcessResult.wasCropped,
+        wasResized: postProcessResult.wasResized,
       }
     }).select().single();
 
@@ -983,7 +991,11 @@ serve(async (req) => {
       subtexto: briefingResult.subtexto || null,
       legenda: briefingResult.legenda || null,
       actionId: actionData?.id,
-      success: true
+      success: true,
+      finalWidth: postProcessResult.finalWidth,
+      finalHeight: postProcessResult.finalHeight,
+      finalAspectRatio: postProcessResult.finalAspectRatio,
+      requestedAspectRatio: postProcessResult.requestedAspectRatio,
     }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
   } catch (error) {
