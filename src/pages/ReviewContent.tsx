@@ -32,6 +32,7 @@ const ReviewContent = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, refreshUserCredits } = useAuth();
+  const { addTask } = useBackgroundTasks();
   const { shouldShowTour } = useOnboarding();
   const [reviewType, setReviewType] = useState<ReviewType | null>(null);
   const [brand, setBrand] = useState("");
