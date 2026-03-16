@@ -166,73 +166,57 @@ const PlanContent = () => {
       } = await supabase.auth.getSession();
 
       if (sessionError || !session) {
-        console.error("Session error:", sessionError);
         toast.error("Sessão expirada. Faça login novamente.");
         setLoading(false);
         navigate("/");
         return;
       }
 
-      const { data, error } = await supabase.functions.invoke("generate-plan", {
-        body: {
-          brand: formData.brand,
-          themes: formData.theme,
-          platform: formData.platform,
-          quantity: formData.quantity,
-          objective: formData.objective,
-          additionalInfo: formData.additionalInfo,
-          userId: user?.id,
-          teamId: user?.teamId,
-        },
-      });
-
-      if (error) {
-        console.error("Function invocation error:", error);
-        if (error.message?.includes("JWT")) {
-          toast.error("Sessão inválida. Fazendo login novamente...");
-          await supabase.auth.signOut();
-          navigate("/");
-          return;
-        }
-        throw error;
-      }
-
-      if (data.error) {
-        console.error("Business logic error:", data.error);
-        if (data.error.includes("Créditos insuficientes")) {
-          toast.error("Créditos insuficientes para planejamento");
-        } else if (data.error.includes("Rate limit")) {
-          toast.error("Muitas requisições. Aguarde um momento.");
-        } else {
-          toast.error("Erro ao gerar planejamento: " + data.error);
-        }
-        return;
-      }
+      const payload = {
+        brand: formData.brand,
+        themes: formData.theme,
+        platform: formData.platform,
+        quantity: formData.quantity,
+        objective: formData.objective,
+        additionalInfo: formData.additionalInfo,
+        userId: user?.id,
+        teamId: user?.teamId,
+      };
 
       clearPersistedData();
-      
-      try {
-        await refreshTeamCredits();
-      } catch (error) {
-        console.error('Erro ao atualizar créditos:', error);
-      }
-      
-      navigate("/plan-result", {
-        state: {
-          plan: data.plan,
-          actionId: data.actionId,
+
+      addTask(
+        "Planejamento de Conteúdo",
+        "plan_content",
+        async () => {
+          const { data, error } = await supabase.functions.invoke("generate-plan", { body: payload });
+
+          if (error) {
+            if (error.message?.includes("JWT")) {
+              await supabase.auth.signOut();
+              throw new Error("Sessão inválida. Faça login novamente.");
+            }
+            throw error;
+          }
+
+          if (data.error) {
+            throw new Error(data.error);
+          }
+
+          try { await refreshTeamCredits(); } catch {}
+
+          return {
+            route: "/plan-result",
+            state: { plan: data.plan, actionId: data.actionId }
+          };
         },
-      });
-      toast.success("Planejamento gerado com sucesso!");
+        () => refreshTeamCredits?.()
+      );
+
+      navigate("/dashboard");
     } catch (err: any) {
       console.error("Error generating plan:", err);
-      if (err.message?.includes("network")) {
-        toast.error("Erro de conexão. Verifique sua internet.");
-      } else if (err.message?.includes("timeout")) {
-        toast.error("Tempo esgotado. Tente novamente.");
-      } else {
-        toast.error("Erro ao gerar planejamento. Tente novamente.");
-      }
+      toast.error(err.message || "Erro ao gerar planejamento. Tente novamente.");
     } finally {
       setLoading(false);
     }
