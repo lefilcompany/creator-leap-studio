@@ -877,29 +877,55 @@ serve(async (req) => {
     }
 
     // =====================================
-    // STEP 6: Upload to Storage
+    // STEP 6: Post-process image (center-crop + resize)
     // =====================================
-    console.log('[Step 6] Uploading image to storage...');
-    const timestamp = Date.now();
-    const fileName = `content-images/${authenticatedTeamId || authenticatedUserId}/${timestamp}.png`;
-
+    console.log('[Step 6] Post-processing image to exact dimensions...');
+    
     let binaryData: Uint8Array;
     if (imageUrl.startsWith('data:')) {
-      const base64Data = imageUrl.split(',')[1];
-      binaryData = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+      binaryData = decodeBase64Image(imageUrl);
     } else {
       const imgResp = await fetch(imageUrl);
       binaryData = new Uint8Array(await imgResp.arrayBuffer());
     }
 
-    const { error: uploadError } = await supabase.storage.from('content-images').upload(fileName, binaryData, { contentType: 'image/png', upsert: false });
+    const postProcessResult = await postProcessImage(
+      binaryData,
+      aspectRatio,
+      targetDims.width,
+      targetDims.height,
+    );
+
+    console.log('[Step 6] Post-process result:', {
+      finalWidth: postProcessResult.finalWidth,
+      finalHeight: postProcessResult.finalHeight,
+      finalAspectRatio: postProcessResult.finalAspectRatio,
+      wasCropped: postProcessResult.wasCropped,
+      wasResized: postProcessResult.wasResized,
+      outputSize: postProcessResult.processedData.length,
+    });
+
+    // =====================================
+    // STEP 7: Upload to Storage
+    // =====================================
+    console.log('[Step 7] Uploading post-processed image to storage...');
+    const timestamp = Date.now();
+    const fileName = `content-images/${authenticatedTeamId || authenticatedUserId}/${timestamp}.png`;
+
+    const { error: uploadError } = await supabase.storage.from('content-images').upload(fileName, postProcessResult.processedData, { contentType: 'image/png', upsert: false });
+    
+    let publicUrl: string;
     if (uploadError) {
       console.error('Storage upload error:', uploadError);
-      return new Response(JSON.stringify({ error: 'Erro ao fazer upload da imagem' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      // Fallback: return base64 of post-processed image
+      const base64Fallback = btoa(String.fromCharCode(...postProcessResult.processedData));
+      publicUrl = `data:image/png;base64,${base64Fallback}`;
+      console.warn('[Step 7] Upload failed, returning post-processed base64 fallback');
+    } else {
+      const { data: urlData } = supabase.storage.from('content-images').getPublicUrl(fileName);
+      publicUrl = urlData.publicUrl;
+      console.log('[Step 7] Image uploaded:', publicUrl);
     }
-
-    const { data: { publicUrl } } = supabase.storage.from('content-images').getPublicUrl(fileName);
-    console.log('[Step 6] Image uploaded:', publicUrl);
 
     // Deduct credits
     const deductResult = await deductUserCredits(supabase, authenticatedUserId, CREDIT_COSTS.COMPLETE_IMAGE);
