@@ -2,20 +2,21 @@ import { useState, useRef } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { ImageIcon, X, Paintbrush, ChevronDown, ClipboardPaste, ImagePlus } from "lucide-react";
+import { ImageIcon, X, Paintbrush, Check, ChevronDown, ClipboardPaste, ImagePlus, Camera, Palette, PenTool, Sparkles, Brush, Layers, Eye, Flower2 } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "sonner";
 
 const VISUAL_STYLES = [
-  { value: "realistic", label: "Fotorealístico" },
-  { value: "animated", label: "Animado / 3D" },
-  { value: "cartoon", label: "Cartoon" },
-  { value: "anime", label: "Anime" },
-  { value: "watercolor", label: "Aquarela" },
-  { value: "oil_painting", label: "Pintura a Óleo" },
-  { value: "digital_art", label: "Arte Digital" },
-  { value: "sketch", label: "Esboço" },
-  { value: "minimalist", label: "Minimalista" },
-  { value: "vintage", label: "Vintage" },
+  { value: "realistic", label: "Fotorealístico", desc: "Fotos realistas e naturais", icon: Camera },
+  { value: "animated", label: "Animado / 3D", desc: "Animação e renderização 3D", icon: Layers },
+  { value: "cartoon", label: "Cartoon", desc: "Ilustrações divertidas e coloridas", icon: Sparkles },
+  { value: "anime", label: "Anime", desc: "Estilo mangá japonês", icon: Eye },
+  { value: "watercolor", label: "Aquarela", desc: "Pinceladas suaves e orgânicas", icon: Flower2 },
+  { value: "oil_painting", label: "Pintura a Óleo", desc: "Texturas ricas e clássicas", icon: Brush },
+  { value: "digital_art", label: "Arte Digital", desc: "Ilustração digital moderna", icon: Palette },
+  { value: "sketch", label: "Esboço", desc: "Traços a lápis e rascunho", icon: PenTool },
+  { value: "minimalist", label: "Minimalista", desc: "Limpo, simples e elegante", icon: Sparkles },
+  { value: "vintage", label: "Vintage", desc: "Retrô com tons envelhecidos", icon: ImageIcon },
 ] as const;
 
 interface UnifiedPromptBoxProps {
