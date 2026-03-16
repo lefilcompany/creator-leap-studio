@@ -24,6 +24,7 @@ import type { StrategicThemeSummary } from "@/types/theme";
 import type { PersonaSummary } from "@/types/persona";
 import type { Team } from "@/types/theme";
 import { useAuth } from "@/hooks/useAuth";
+import { useBackgroundTasks } from "@/contexts/BackgroundTaskContext";
 import { getPlatformImageSpec, getCaptionGuidelines, platformSpecs } from "@/lib/platformSpecs";
 import { useFormPersistence } from '@/hooks/useFormPersistence';
 import { TourSelector } from '@/components/onboarding/TourSelector';
