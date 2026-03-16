@@ -781,6 +781,18 @@ export default function CreateImage() {
                 {missingFields.includes('platform') && !formData.platform && (
                   <p className="text-xs text-destructive font-medium mt-1">Selecione uma plataforma</p>
                 )}
+                {/* Format badge */}
+                {(() => {
+                  const ar = formData.aspectRatio || (formData.platform ? getPlatformImageSpec(formData.platform, "feed", contentType)?.aspectRatio : null) || '1:1';
+                  const dims = ASPECT_RATIO_DIMENSIONS[ar] || ASPECT_RATIO_DIMENSIONS['1:1'];
+                  return (
+                    <div className="mt-2">
+                      <Badge variant="secondary" className="text-[10px] font-medium gap-1">
+                        📐 Formato final: {dims.width}×{dims.height} ({ar})
+                      </Badge>
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* Tom de Voz */}
