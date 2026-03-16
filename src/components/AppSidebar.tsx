@@ -12,6 +12,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import logoCreatorPreta from "@/assets/logoCreatorPreta.png";
 import logoCreatorBranca from "@/assets/logoCreatorBranca.png";
 import creatorSymbol from "@/assets/creator-symbol.png";
+import { SidebarTaskIndicator } from "@/components/SidebarTaskIndicator";
 
 function NavItem({
   id,
