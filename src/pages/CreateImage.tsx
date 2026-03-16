@@ -418,9 +418,33 @@ export default function CreateImage() {
       const selectedTheme = themes.find(t => t.id === formData.theme);
       const selectedPersona = personas.find(p => p.id === formData.persona);
 
-      // Compute aspectRatio from platform
-      const platformImageSpec = formData.platform ? getPlatformImageSpec(formData.platform, "feed", contentType) : null;
-      const effectiveAspectRatio = platformImageSpec?.aspectRatio || '1:1';
+      // Compute aspectRatio with priority: explicit > width/height > platform > default
+      let effectiveAspectRatio = formData.aspectRatio || '';
+      let arSource = 'request';
+      
+      if (!effectiveAspectRatio && formData.width && formData.height) {
+        const w = Number(formData.width);
+        const h = Number(formData.height);
+        if (w > 0 && h > 0) {
+          const targetRatio = w / h;
+          let bestMatch = '1:1';
+          let bestDiff = Infinity;
+          for (const [ar, dims] of Object.entries(ASPECT_RATIO_DIMENSIONS)) {
+            const diff = Math.abs((dims.width / dims.height) - targetRatio);
+            if (diff < bestDiff) { bestDiff = diff; bestMatch = ar; }
+          }
+          effectiveAspectRatio = bestMatch;
+          arSource = 'width_height';
+        }
+      }
+      
+      if (!effectiveAspectRatio) {
+        const platformImageSpec = formData.platform ? getPlatformImageSpec(formData.platform, "feed", contentType) : null;
+        effectiveAspectRatio = platformImageSpec?.aspectRatio || '1:1';
+        arSource = platformImageSpec?.aspectRatio ? 'platform' : 'default';
+      }
+
+      const targetDims = ASPECT_RATIO_DIMENSIONS[effectiveAspectRatio] || ASPECT_RATIO_DIMENSIONS['1:1'];
 
       const requestData = {
         brandId: formData.brand, themeId: formData.theme, personaId: formData.persona,
@@ -429,6 +453,9 @@ export default function CreateImage() {
         description: formData.prompt, tone: formData.tone, platform: formData.platform,
         contentType, visualStyle: formData.visualStyle || 'realistic', additionalInfo: formData.additionalInfo,
         aspectRatio: effectiveAspectRatio,
+        width: targetDims.width,
+        height: targetDims.height,
+        referenceRole: 'style',
         preserveImages: [...finalBrandImages, ...finalPreservedUserImages],
         styleReferenceImages: finalStyleUserImages,
         brandReferenceImages: finalBrandImages,
@@ -441,7 +468,6 @@ export default function CreateImage() {
         negativePrompt: formData.negativePrompt, colorPalette: formData.colorPalette,
         lighting: formData.lighting, composition: formData.composition, cameraAngle: formData.cameraAngle,
         detailLevel: formData.detailLevel, mood: formData.mood,
-        width: formData.width, height: formData.height,
         includeText: formData.imageIncludeText || false,
         textContent: formData.imageTextContent?.trim() || "",
         textPosition: formData.imageTextPosition || "center",
