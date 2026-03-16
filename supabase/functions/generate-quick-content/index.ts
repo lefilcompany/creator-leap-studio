@@ -344,34 +344,55 @@ serve(async (req) => {
     }
 
     // =====================================
-    // STEP 5: Upload to Storage
+    // STEP 5: Post-process image (center-crop + resize)
     // =====================================
-    console.log('[Step 5] Uploading image to storage...');
+    console.log('[Step 5] Post-processing image to exact dimensions...');
+
+    let rawBinaryData: Uint8Array;
+    if (imageUrl.startsWith('data:')) {
+      rawBinaryData = decodeBase64Image(imageUrl);
+    } else {
+      const imgResp = await fetch(imageUrl);
+      rawBinaryData = new Uint8Array(await imgResp.arrayBuffer());
+    }
+
+    const postProcessResult = await postProcessImage(
+      rawBinaryData,
+      normalizedAspectRatio,
+      dims.width,
+      dims.height,
+    );
+
+    console.log('[Step 5] Post-process result:', {
+      finalWidth: postProcessResult.finalWidth,
+      finalHeight: postProcessResult.finalHeight,
+      finalAspectRatio: postProcessResult.finalAspectRatio,
+      wasCropped: postProcessResult.wasCropped,
+      wasResized: postProcessResult.wasResized,
+      outputSize: postProcessResult.processedData.length,
+    });
+
+    // =====================================
+    // STEP 6: Upload to Storage
+    // =====================================
+    console.log('[Step 6] Uploading post-processed image to storage...');
     const timestamp = Date.now();
     const randomId = crypto.randomUUID();
     const fileName = `quick-content/${authenticatedTeamId || authenticatedUserId}/${timestamp}-${randomId}.png`;
 
-    let binaryData: Uint8Array;
-    if (imageUrl.startsWith('data:')) {
-      const base64Data = imageUrl.split(',')[1];
-      binaryData = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
-    } else {
-      const imgResp = await fetch(imageUrl);
-      binaryData = new Uint8Array(await imgResp.arrayBuffer());
-    }
-
-    const { error: uploadError } = await supabase.storage.from('content-images').upload(fileName, binaryData, { contentType: 'image/png', upsert: false });
+    const { error: uploadError } = await supabase.storage.from('content-images').upload(fileName, postProcessResult.processedData, { contentType: 'image/png', upsert: false });
+    
+    let finalImageUrl: string;
     if (uploadError) {
       console.error('Storage upload error:', uploadError);
-      // Fallback: return base64 directly
-      console.warn('Falling back to base64 response');
-    }
-
-    let finalImageUrl = imageUrl;
-    if (!uploadError) {
+      // Fallback: return base64 of post-processed image
+      const base64Fallback = btoa(String.fromCharCode(...postProcessResult.processedData));
+      finalImageUrl = `data:image/png;base64,${base64Fallback}`;
+      console.warn('[Step 6] Upload failed, returning post-processed base64 fallback');
+    } else {
       const { data: { publicUrl } } = supabase.storage.from('content-images').getPublicUrl(fileName);
       finalImageUrl = publicUrl;
-      console.log('[Step 5] Image uploaded:', publicUrl);
+      console.log('[Step 6] Image uploaded:', publicUrl);
     }
 
     // Deduct credits
@@ -385,8 +406,8 @@ serve(async (req) => {
       creditsUsed: CREDIT_COSTS.QUICK_IMAGE,
       creditsBefore: creditCheck.currentCredits,
       creditsAfter: deductResult.newCredits,
-      description: 'Criação rápida de imagem (Pipeline v4)',
-      metadata: { platform, aspectRatio: normalizedAspectRatio, style, brandId, model: 'gemini-2.5-flash-image' }
+      description: 'Criação rápida de imagem (Pipeline v5)',
+      metadata: { platform, aspectRatio: normalizedAspectRatio, style, brandId, model: 'gemini-2.5-flash-image', aspectRatioSource }
     });
 
     // Save action
@@ -398,8 +419,18 @@ serve(async (req) => {
       brand_id: brandId || null,
       asset_path: !uploadError ? fileName : null,
       thumb_path: !uploadError ? fileName : null,
-      details: { prompt, platform, aspectRatio: normalizedAspectRatio, style, quality, colorPalette, lighting, composition, cameraAngle, detailLevel, mood, negativePrompt: !!negativePrompt, hasReferenceImages: referenceImages?.length > 0, hasPreserveImages: preserveImages?.length > 0, hasStyleReferenceImages: styleReferenceImages?.length > 0, themeId, personaId, pipeline: 'quick_v4' },
-      result: { imageUrl: finalImageUrl, textResponse, generatedAt: new Date().toISOString() }
+      details: { prompt, platform, aspectRatio: normalizedAspectRatio, style, quality, colorPalette, lighting, composition, cameraAngle, detailLevel, mood, negativePrompt: !!negativePrompt, hasReferenceImages: referenceImages?.length > 0, hasPreserveImages: preserveImages?.length > 0, hasStyleReferenceImages: styleReferenceImages?.length > 0, themeId, personaId, pipeline: 'quick_v5', requestedAspectRatio: normalizedAspectRatio, aspectRatioSource },
+      result: {
+        imageUrl: finalImageUrl,
+        textResponse,
+        generatedAt: new Date().toISOString(),
+        finalWidth: postProcessResult.finalWidth,
+        finalHeight: postProcessResult.finalHeight,
+        finalAspectRatio: postProcessResult.finalAspectRatio,
+        requestedAspectRatio: postProcessResult.requestedAspectRatio,
+        wasCropped: postProcessResult.wasCropped,
+        wasResized: postProcessResult.wasResized,
+      }
     }).select().single();
 
     if (actionError) console.error('Error saving action:', actionError);
@@ -411,7 +442,11 @@ serve(async (req) => {
       actionId: actionData?.id,
       creditsUsed: CREDIT_COSTS.QUICK_IMAGE,
       creditsRemaining: deductResult.newCredits,
-      brandName, themeName, personaName, platform
+      brandName, themeName, personaName, platform,
+      finalWidth: postProcessResult.finalWidth,
+      finalHeight: postProcessResult.finalHeight,
+      finalAspectRatio: postProcessResult.finalAspectRatio,
+      requestedAspectRatio: postProcessResult.requestedAspectRatio,
     }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
   } catch (error) {
