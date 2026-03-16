@@ -13,6 +13,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { CREDIT_COSTS } from "@/lib/creditCosts";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useBackgroundTasks } from "@/contexts/BackgroundTaskContext";
 import { useFormPersistence } from "@/hooks/useFormPersistence";
 import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
 import { useOnboarding } from "@/hooks/useOnboarding";
