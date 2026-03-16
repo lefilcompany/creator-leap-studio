@@ -35,6 +35,7 @@ import createBanner from "@/assets/create-banner.jpg";
 export default function QuickContent() {
   const navigate = useNavigate();
   const { user, refreshUserCredits } = useAuth();
+  const { addTask } = useBackgroundTasks();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     prompt: "",
