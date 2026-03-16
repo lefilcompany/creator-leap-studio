@@ -309,20 +309,8 @@ export default function QuickContent() {
             {/* 2. Creative Context & Platform */}
             <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
               <CardContent className="p-4 md:p-5 space-y-5">
-                {/* Platform with icons */}
-                <PlatformSelector
-                  value={formData.platform}
-                  onChange={(value, aspectRatio) => {
-                    setFormData(prev => ({
-                      ...prev,
-                      platform: value,
-                      ...(aspectRatio ? { aspectRatio } : {})
-                    }));
-                  }}
-                />
-
                 {/* Brand, Persona, Theme */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 border-t border-border/30">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   {loadingData ? <SelectSkeleton /> : (
                     <div className="space-y-1.5">
                       <Label className="text-sm font-bold text-foreground">
