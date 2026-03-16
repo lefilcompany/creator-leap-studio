@@ -32,6 +32,7 @@ interface FormData {
 const PlanContent = () => {
   const { user, refreshTeamCredits } = useAuth();
   const navigate = useNavigate();
+  const { addTask } = useBackgroundTasks();
   const [formData, setFormData] = useState<FormData>({
     brand: "",
     theme: [],
