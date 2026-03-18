@@ -8,7 +8,8 @@ import {
   Shield,
   LogOut,
   CreditCard,
-  Settings
+  Settings,
+  Ticket
 } from "lucide-react";
 import { 
   Sidebar, 
@@ -84,6 +85,7 @@ export function SystemSidebar() {
     { href: "/system/plans", icon: CreditCard, label: "Planos" },
     { href: "/system/teams", icon: Building2, label: "Equipes" },
     { href: "/system/logs", icon: ScrollText, label: "Logs" },
+    { href: "/system/coupons", icon: Ticket, label: "Cupons" },
     { href: "/system/settings", icon: Settings, label: "Configurações" },
   ];
 

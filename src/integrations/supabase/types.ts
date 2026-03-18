@@ -182,6 +182,51 @@ export type Database = {
           },
         ]
       }
+      coupons: {
+        Row: {
+          code: string
+          created_at: string
+          created_by: string
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          max_uses: number | null
+          prefix: string
+          prize_type: string
+          prize_value: number
+          updated_at: string
+          uses_count: number
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          created_by: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          prefix: string
+          prize_type?: string
+          prize_value: number
+          updated_at?: string
+          uses_count?: number
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          created_by?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          prefix?: string
+          prize_type?: string
+          prize_value?: number
+          updated_at?: string
+          uses_count?: number
+        }
+        Relationships: []
+      }
       coupons_used: {
         Row: {
           coupon_code: string
