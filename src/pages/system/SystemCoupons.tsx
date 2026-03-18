@@ -17,7 +17,6 @@ import { ptBR } from "date-fns/locale";
 import { CalendarIcon, Plus, Ticket, Copy, Trash2, ToggleLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
-import { SystemHeader } from "@/components/system/SystemHeader";
 
 const PRIZE_OPTIONS = [
   { value: "credits_40", label: "40 créditos", prefix: "C4", prizeValue: 40 },
