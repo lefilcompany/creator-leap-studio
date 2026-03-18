@@ -305,6 +305,104 @@ serve(async (req) => {
       );
     }
 
+    // ============= CUPOM DO BANCO DE DADOS (criado por admin) =============
+    const { data: dbCoupon, error: dbCouponError } = await supabaseAdmin
+      .from('coupons')
+      .select('*')
+      .eq('code', normalizedCode.toUpperCase())
+      .eq('is_active', true)
+      .maybeSingle();
+
+    if (dbCouponError) {
+      console.error('[redeem-coupon] Error checking DB coupon:', dbCouponError);
+    }
+
+    if (dbCoupon) {
+      console.log(`[redeem-coupon] DB coupon found: ${dbCoupon.code}`);
+
+      // Check expiration
+      if (dbCoupon.expires_at && new Date(dbCoupon.expires_at) < new Date()) {
+        return new Response(
+          JSON.stringify({ valid: false, error: 'Este cupom expirou.' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+        );
+      }
+
+      // Check max uses
+      if (dbCoupon.max_uses !== null && dbCoupon.uses_count >= dbCoupon.max_uses) {
+        return new Response(
+          JSON.stringify({ valid: false, error: 'Este cupom atingiu o limite de usos.' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+        );
+      }
+
+      const creditsToAdd = dbCoupon.prize_value;
+      const creditsBefore = profile.credits || 0;
+
+      // Register in coupons_used
+      const { error: insertError } = await supabaseAdmin
+        .from('coupons_used')
+        .insert({
+          team_id: profile.team_id || user.id,
+          coupon_code: dbCoupon.code,
+          coupon_prefix: dbCoupon.prefix,
+          prize_type: dbCoupon.prize_type,
+          prize_value: creditsToAdd,
+          redeemed_by: user.id
+        });
+
+      if (insertError) {
+        if (insertError.code === '23505') {
+          return new Response(
+            JSON.stringify({ valid: false, error: 'Você já utilizou este cupom.' }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+          );
+        }
+        throw new Error('Erro ao registrar cupom.');
+      }
+
+      // Add credits
+      const addResult = await addUserCredits(supabaseAdmin, user.id, creditsToAdd);
+      if (!addResult.success) {
+        return new Response(
+          JSON.stringify({ valid: false, error: 'Erro ao aplicar créditos. Contate o suporte.' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+        );
+      }
+
+      // Increment uses_count
+      await supabaseAdmin
+        .from('coupons')
+        .update({ uses_count: dbCoupon.uses_count + 1 })
+        .eq('id', dbCoupon.id);
+
+      // Record credit history
+      await recordUserCreditUsage(supabaseAdmin, {
+        userId: user.id,
+        teamId: profile.team_id || undefined,
+        actionType: 'COUPON_REDEMPTION',
+        creditsUsed: -creditsToAdd,
+        creditsBefore: creditsBefore,
+        creditsAfter: addResult.newCredits,
+        description: `Cupom ${dbCoupon.code} (${creditsToAdd} créditos)`,
+        metadata: { coupon_code: dbCoupon.code, coupon_type: 'admin_created' }
+      });
+
+      console.log(`[redeem-coupon] ✅ DB coupon redeemed: ${dbCoupon.code} (+${creditsToAdd} credits)`);
+
+      return new Response(
+        JSON.stringify({
+          valid: true,
+          prize: {
+            type: 'credits',
+            value: creditsToAdd,
+            description: `${creditsToAdd} créditos`
+          }
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // ============= CUPOM COM CHECKSUM =============
     const upperCode = normalizedCode.toUpperCase();
     
