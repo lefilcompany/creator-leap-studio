@@ -149,7 +149,7 @@ export default function RedeemCouponDialog({ open, onOpenChange, onSuccess, curr
                 {isValidFormat ? (
                   <span className="text-green-600 font-medium">✓ Formato válido</span>
                 ) : (
-                  <span className="text-amber-600">Ex: nome200 ou XX-YYYYYY-CC</span>
+                  <span className="text-amber-600">Digite pelo menos 3 caracteres</span>
                 )}
               </p>
             )}
