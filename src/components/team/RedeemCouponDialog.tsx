@@ -41,19 +41,7 @@ export default function RedeemCouponDialog({ open, onOpenChange, onSuccess, curr
     }
   };
 
-  const validatePlanCompatibility = (code: string): string | null => {
-    // Cupons promocionais não têm restrição de plano
-    if (isPromoCoupon(code)) {
-      return null;
-    }
-    
-    const prefix = code.split('-')[0];
-    if (prefix === 'B4' && currentPlanId !== 'free') {
-      return 'Este cupom só pode ser usado por equipes no plano Free.';
-    }
-    if (prefix === 'P7' && currentPlanId !== 'free' && currentPlanId !== 'basic') {
-      return 'Este cupom só pode ser usado por equipes nos planos Free ou Basic.';
-    }
+  const validatePlanCompatibility = (_code: string): string | null => {
     return null;
   };
 
