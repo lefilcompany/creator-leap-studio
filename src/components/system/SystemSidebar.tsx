@@ -8,7 +8,8 @@ import {
   Shield,
   LogOut,
   CreditCard,
-  Settings
+  Settings,
+  Ticket
 } from "lucide-react";
 import { 
   Sidebar, 
