@@ -87,38 +87,10 @@ const Auth = () => {
   const [couponCode, setCouponCode] = useState("");
   const [isValidCouponFormat, setIsValidCouponFormat] = useState(false);
 
-  // Detectar se é cupom promocional (formato: nome200)
-  const isPromoCoupon = (code: string): boolean => {
-    return /^[a-z]+200$/i.test(code.replace(/\s/g, ''));
-  };
-
-  // Detectar se é cupom checksum (formato: XX-YYYYYY-CC)
-  const isChecksumFormat = (code: string): boolean => {
-    return /^(B4|P7|C2|C1|C4)-[A-Z0-9]{6}-[A-Z0-9]{2}$/.test(code);
-  };
-
   const handleCouponInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value;
-    
-    if (/[a-z]/.test(value) || value.toLowerCase().endsWith('200')) {
-      value = value.replace(/\s/g, '').toLowerCase();
-      setCouponCode(value);
-      setIsValidCouponFormat(isPromoCoupon(value));
-    } else {
-      value = value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-      value = value.slice(0, 10);
-      
-      let formatted = value;
-      if (value.length > 2) {
-        formatted = value.slice(0, 2) + '-' + value.slice(2);
-      }
-      if (value.length > 8) {
-        formatted = value.slice(0, 2) + '-' + value.slice(2, 8) + '-' + value.slice(8);
-      }
-      
-      setCouponCode(formatted);
-      setIsValidCouponFormat(isChecksumFormat(formatted));
-    }
+    const value = e.target.value.replace(/\s/g, '').trim();
+    setCouponCode(value);
+    setIsValidCouponFormat(value.length >= 3);
   };
 
   const navigate = useNavigate();
@@ -676,7 +648,7 @@ const Auth = () => {
           {isValidCouponFormat ? (
             <span className="text-green-600 font-medium">✓ Formato válido</span>
           ) : (
-            <span className="text-amber-600">Ex: nome200 ou XX-YYYYYY-CC</span>
+            <span className="text-amber-600">Digite pelo menos 3 caracteres</span>
           )}
         </p>
       </div>

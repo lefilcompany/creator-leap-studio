@@ -31,61 +31,17 @@ export default function RedeemCouponDialog({ open, onOpenChange, onSuccess, curr
   const [successMessage, setSuccessMessage] = useState('');
   const [isValidFormat, setIsValidFormat] = useState(false);
 
-  // Detectar se é cupom promocional (formato: nome200)
-  const isPromoCoupon = (code: string): boolean => {
-    return /^[a-z]+200$/i.test(code.replace(/\s/g, ''));
-  };
-
-  // Detectar se é cupom checksum (formato: XX-YYYYYY-CC)
-  const isChecksumFormat = (code: string): boolean => {
-    return /^(B4|P7|C2|C1|C4)-[A-Z0-9]{6}-[A-Z0-9]{2}$/.test(code);
-  };
-
   const handleCouponInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value;
-    
-    // Se parece com cupom promocional (contém letras minúsculas ou termina com 200)
-    if (/[a-z]/.test(value) || value.toLowerCase().endsWith('200')) {
-      // Manter como está, apenas remover espaços
-      value = value.replace(/\s/g, '').toLowerCase();
-      setCouponCode(value);
-      setIsValidFormat(isPromoCoupon(value));
-    } else {
-      // Formato checksum - aplicar formatação automática
-      value = value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-      
-      // Adicionar hífens automaticamente
-      if (value.length > 2) {
-        value = value.slice(0, 2) + '-' + value.slice(2);
-      }
-      if (value.length > 9) {
-        value = value.slice(0, 9) + '-' + value.slice(9);
-      }
-      
-      setCouponCode(value.slice(0, 12)); // XX-YYYYYY-CC = 12 chars
-      setIsValidFormat(isChecksumFormat(value));
-    }
-    
-    // Limpar mensagens ao alterar input
+    const value = e.target.value.replace(/\s/g, '').trim();
+    setCouponCode(value);
+    setIsValidFormat(value.length >= 3);
     if (validationError || successMessage) {
       setValidationError('');
       setSuccessMessage('');
     }
   };
 
-  const validatePlanCompatibility = (code: string): string | null => {
-    // Cupons promocionais não têm restrição de plano
-    if (isPromoCoupon(code)) {
-      return null;
-    }
-    
-    const prefix = code.split('-')[0];
-    if (prefix === 'B4' && currentPlanId !== 'free') {
-      return 'Este cupom só pode ser usado por equipes no plano Free.';
-    }
-    if (prefix === 'P7' && currentPlanId !== 'free' && currentPlanId !== 'basic') {
-      return 'Este cupom só pode ser usado por equipes nos planos Free ou Basic.';
-    }
+  const validatePlanCompatibility = (_code: string): string | null => {
     return null;
   };
 
@@ -193,7 +149,7 @@ export default function RedeemCouponDialog({ open, onOpenChange, onSuccess, curr
                 {isValidFormat ? (
                   <span className="text-green-600 font-medium">✓ Formato válido</span>
                 ) : (
-                  <span className="text-amber-600">Ex: nome200 ou XX-YYYYYY-CC</span>
+                  <span className="text-amber-600">Digite pelo menos 3 caracteres</span>
                 )}
               </p>
             )}
