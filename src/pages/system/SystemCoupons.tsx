@@ -134,10 +134,10 @@ export default function SystemCoupons() {
 
   return (
     <div className="space-y-6">
-      <SystemHeader
-        title="Cupons de Desconto"
-        description="Crie e gerencie cupons de créditos para seus usuários"
-      />
+      <div>
+        <h1 className="text-2xl font-bold">Cupons de Desconto</h1>
+        <p className="text-muted-foreground text-sm">Crie e gerencie cupons de créditos para seus usuários</p>
+      </div>
 
       {/* Create Coupon Form */}
       <Card>
