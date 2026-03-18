@@ -317,7 +317,7 @@ export default function SystemCoupons() {
                         ) : coupon.max_uses && coupon.uses_count >= coupon.max_uses ? (
                           <Badge variant="secondary">Esgotado</Badge>
                         ) : (
-                          <Badge className="bg-green-600">Ativo</Badge>
+                          <Badge className="bg-primary text-primary-foreground">Ativo</Badge>
                         )}
                       </TableCell>
                       <TableCell className="text-right">
