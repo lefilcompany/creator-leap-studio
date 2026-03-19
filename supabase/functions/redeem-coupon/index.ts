@@ -244,7 +244,7 @@ serve(async (req) => {
       const { error: insertError } = await supabaseAdmin
         .from('coupons_used')
         .insert({
-          team_id: profile.team_id || user.id,
+          team_id: profile.team_id || null,
           coupon_code: lowerCode,
           coupon_prefix: 'PROMO',
           prize_type: 'credits',
@@ -263,9 +263,16 @@ serve(async (req) => {
         throw new Error('Erro ao registrar cupom. Tente novamente.');
       }
 
-      // Adicionar créditos ao USUÁRIO (não mais team)
+      // Adicionar créditos ao USUÁRIO (somar, não substituir)
       const creditsBefore = profile.credits || 0;
-      const addResult = await addUserCredits(supabaseAdmin, user.id, PROMO_CREDITS);
+      const newCredits = creditsBefore + PROMO_CREDITS;
+      const newMaxCredits = Math.max(profile.credits || 0, newCredits);
+      const expireAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+      const { error: creditUpdateError } = await supabaseAdmin
+        .from('profiles')
+        .update({ credits: newCredits, max_credits: newMaxCredits, credits_expire_at: expireAt })
+        .eq('id', user.id);
+      const addResult = { success: !creditUpdateError, newCredits, error: creditUpdateError?.message };
 
       if (!addResult.success) {
         console.error('[redeem-coupon] Error updating user credits:', addResult.error);
@@ -343,7 +350,7 @@ serve(async (req) => {
       const { error: insertError } = await supabaseAdmin
         .from('coupons_used')
         .insert({
-          team_id: profile.team_id || user.id,
+          team_id: profile.team_id || null,
           coupon_code: dbCoupon.code,
           coupon_prefix: dbCoupon.prefix,
           prize_type: dbCoupon.prize_type,
@@ -361,14 +368,22 @@ serve(async (req) => {
         throw new Error('Erro ao registrar cupom.');
       }
 
-      // Add credits
-      const addResult = await addUserCredits(supabaseAdmin, user.id, creditsToAdd);
-      if (!addResult.success) {
+      // Add credits directly to profile (addUserCredits replaces, we need to SUM)
+      const newCredits = creditsBefore + creditsToAdd;
+      const newMaxCredits = Math.max(profile.credits || 0, newCredits);
+      const expireAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+      const { error: creditError } = await supabaseAdmin
+        .from('profiles')
+        .update({ credits: newCredits, max_credits: newMaxCredits, credits_expire_at: expireAt })
+        .eq('id', user.id);
+      
+      if (creditError) {
         return new Response(
           JSON.stringify({ valid: false, error: 'Erro ao aplicar créditos. Contate o suporte.' }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
         );
       }
+      const addResult = { success: true, newCredits };
 
       // Increment uses_count
       await supabaseAdmin
@@ -501,7 +516,7 @@ serve(async (req) => {
     const { error: insertError } = await supabaseAdmin
       .from('coupons_used')
       .insert({
-        team_id: profile.team_id || user.id,
+        team_id: profile.team_id || null,
         coupon_code: upperCode,
         coupon_prefix: prefix,
         prize_type: prizeInfo.type,
