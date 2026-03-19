@@ -343,7 +343,7 @@ serve(async (req) => {
       const { error: insertError } = await supabaseAdmin
         .from('coupons_used')
         .insert({
-          team_id: profile.team_id || user.id,
+          team_id: profile.team_id || null,
           coupon_code: dbCoupon.code,
           coupon_prefix: dbCoupon.prefix,
           prize_type: dbCoupon.prize_type,
