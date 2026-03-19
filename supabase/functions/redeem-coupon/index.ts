@@ -263,9 +263,16 @@ serve(async (req) => {
         throw new Error('Erro ao registrar cupom. Tente novamente.');
       }
 
-      // Adicionar créditos ao USUÁRIO (não mais team)
+      // Adicionar créditos ao USUÁRIO (somar, não substituir)
       const creditsBefore = profile.credits || 0;
-      const addResult = await addUserCredits(supabaseAdmin, user.id, PROMO_CREDITS);
+      const newCredits = creditsBefore + PROMO_CREDITS;
+      const newMaxCredits = Math.max(profile.credits || 0, newCredits);
+      const expireAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+      const { error: creditUpdateError } = await supabaseAdmin
+        .from('profiles')
+        .update({ credits: newCredits, max_credits: newMaxCredits, credits_expire_at: expireAt })
+        .eq('id', user.id);
+      const addResult = { success: !creditUpdateError, newCredits, error: creditUpdateError?.message };
 
       if (!addResult.success) {
         console.error('[redeem-coupon] Error updating user credits:', addResult.error);
