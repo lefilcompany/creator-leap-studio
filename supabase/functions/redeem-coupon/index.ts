@@ -361,14 +361,22 @@ serve(async (req) => {
         throw new Error('Erro ao registrar cupom.');
       }
 
-      // Add credits
-      const addResult = await addUserCredits(supabaseAdmin, user.id, creditsToAdd);
-      if (!addResult.success) {
+      // Add credits directly to profile (addUserCredits replaces, we need to SUM)
+      const newCredits = creditsBefore + creditsToAdd;
+      const newMaxCredits = Math.max(profile.credits || 0, newCredits);
+      const expireAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+      const { error: creditError } = await supabaseAdmin
+        .from('profiles')
+        .update({ credits: newCredits, max_credits: newMaxCredits, credits_expire_at: expireAt })
+        .eq('id', user.id);
+      
+      if (creditError) {
         return new Response(
           JSON.stringify({ valid: false, error: 'Erro ao aplicar créditos. Contate o suporte.' }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
         );
       }
+      const addResult = { success: true, newCredits };
 
       // Increment uses_count
       await supabaseAdmin
