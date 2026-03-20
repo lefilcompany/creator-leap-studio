@@ -470,9 +470,9 @@ export default function Team() {
   if (showSkeleton) {
     return (
       <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8 animate-fade-in">
-        <div className="relative h-32 sm:h-36 md:h-44 lg:h-52 overflow-hidden bg-muted" />
-        <div className="relative px-4 sm:px-6 lg:px-8 -mt-12 z-10">
-          <div className="bg-card rounded-2xl shadow-lg p-4 lg:p-5">
+        <div className="relative h-28 sm:h-28 md:h-36 overflow-hidden bg-muted" />
+        <div className="relative px-4 sm:px-6 lg:px-8 -mt-10 z-10">
+          <div className="bg-card rounded-2xl shadow-lg p-3 lg:p-4">
             <div className="flex items-center gap-3">
               <Skeleton className="h-14 w-14 rounded-2xl" />
               <div className="space-y-2 flex-1">

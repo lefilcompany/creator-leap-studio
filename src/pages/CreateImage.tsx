@@ -563,24 +563,24 @@ export default function CreateImage() {
       ]} startDelay={500} />
 
       {/* Banner */}
-      <div className="relative h-36 md:h-44 lg:h-52 overflow-hidden">
+      <div className="relative h-28 md:h-36 overflow-hidden">
         <PageBreadcrumb items={[{ label: "Criar Conteúdo", href: "/create" }, { label: "Criar Imagem" }]} variant="overlay" />
         <img src={createBanner} alt="Criar Imagem" className="w-full h-full object-cover object-center" loading="eager" />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
       </div>
 
       {/* Header Card */}
-      <div className="relative px-4 sm:px-6 lg:px-8 -mt-12 z-10">
+      <div className="relative px-4 sm:px-6 lg:px-8 -mt-10 z-10">
         <div className="max-w-4xl mx-auto">
-          <div className="bg-card rounded-2xl shadow-lg p-4 md:p-6">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4">
+          <div className="bg-card rounded-2xl shadow-lg p-3 lg:p-4">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
               <div className="flex items-center gap-3 flex-1 min-w-0">
-                <div className="flex-shrink-0 bg-primary/10 text-primary rounded-xl p-2.5 md:p-3">
-                  <ImageIcon className="h-5 w-5 md:h-6 md:w-6 lg:h-8 lg:w-8" />
+                <div className="flex-shrink-0 bg-primary/10 text-primary rounded-xl p-2.5 lg:p-3">
+                  <ImageIcon className="h-6 w-6 lg:h-7 lg:w-7" />
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-foreground">Criar Imagem</h1>
+                    <h1 className="text-xl lg:text-2xl font-bold text-foreground">Criar Imagem</h1>
                     <Popover>
                       <PopoverTrigger asChild>
                         <button className="text-muted-foreground hover:text-foreground transition-colors"><HelpCircle className="h-4 w-4" /></button>
@@ -591,7 +591,7 @@ export default function CreateImage() {
                       </PopoverContent>
                     </Popover>
                   </div>
-                  <p className="text-muted-foreground text-xs md:text-sm">Gere imagens profissionais com IA</p>
+                  <p className="text-muted-foreground text-xs lg:text-sm">Gere imagens profissionais com IA</p>
                 </div>
               </div>
               {user && (
