@@ -1,129 +1,66 @@
 
 
-# Sistema de Categorias para Ações
+# Visibilidade com Membros e Sidebar com Dropdown de Categorias
 
 ## Visão Geral
-Criar um sistema de categorias (collections/pastas) onde usuários organizam suas criações. Categorias são criadas pelo usuário, com controle de visibilidade (pessoal ou equipe) e permissões (leitor/editor).
+Duas mudanças principais:
+1. **CategoryDialog**: Substituir o select de visibilidade por um sistema de membros com painel lateral (Sheet), onde o criador é sempre incluído por padrão e pode adicionar membros da equipe como "Leitor" ou "Editor"
+2. **Sidebar**: Transformar o item "Categorias" em um dropdown colapsável com duas seções: "Minhas Categorias" e "Compartilhadas Comigo"
 
-## Banco de Dados
+## 1. CategoryDialog — Painel de Membros
 
-### Tabela `action_categories`
-```sql
-CREATE TABLE action_categories (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  name text NOT NULL,
-  description text,
-  color text DEFAULT '#6366f1',
-  icon text DEFAULT 'folder',
-  user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  team_id uuid,
-  visibility text NOT NULL DEFAULT 'personal', -- 'personal' | 'team'
-  created_at timestamptz DEFAULT now(),
-  updated_at timestamptz DEFAULT now()
-);
-```
+### Comportamento
+- O campo "Visibilidade" atual será substituído por uma seção "Acesso"
+- Mostra por padrão o criador (usuário logado) como "Dono" — sempre fixo, não removível
+- Botão "Adicionar membro" abre um `Sheet` lateral (como na imagem de referência do Kanban)
+- No Sheet: lista membros da equipe (via `useTeamMembers`) com avatar, nome e um select de papel (Leitor/Editor)
+- Membros adicionados aparecem como chips/lista no dialog principal com papel e botão de remover
+- Se o usuário não tem equipe, a seção mostra apenas o dono sem opção de adicionar
 
-### Tabela `action_category_members` (permissões)
-```sql
-CREATE TABLE action_category_members (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  category_id uuid NOT NULL REFERENCES action_categories(id) ON DELETE CASCADE,
-  user_id uuid NOT NULL,
-  role text NOT NULL DEFAULT 'viewer', -- 'viewer' | 'editor'
-  created_at timestamptz DEFAULT now(),
-  UNIQUE(category_id, user_id)
-);
-```
+### Dados
+- Ao salvar, além dos dados da categoria, enviar array de membros `{ userId, role }[]`
+- Mutation `createCategory` e `updateCategory` no hook devem também inserir/atualizar `action_category_members`
+- Ao criar: inserir membros no `action_category_members` após criar a categoria
+- Ao editar: diff dos membros (adicionar novos, remover removidos, atualizar roles)
+- Quando há membros além do dono, `visibility` automaticamente muda para `'team'`
 
-### Tabela `action_category_items` (relação ação↔categoria)
-```sql
-CREATE TABLE action_category_items (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  category_id uuid NOT NULL REFERENCES action_categories(id) ON DELETE CASCADE,
-  action_id uuid NOT NULL,
-  added_by uuid NOT NULL,
-  created_at timestamptz DEFAULT now(),
-  UNIQUE(category_id, action_id)
-);
-```
+### Arquivos
+- **Editar**: `src/components/categorias/CategoryDialog.tsx` — redesign da seção de visibilidade + Sheet de membros
+- **Editar**: `src/hooks/useCategories.ts` — mutations para gerenciar membros junto com a categoria
+- **Editar**: `src/types/category.ts` — adicionar tipo `CategoryMember` com perfil
 
-### RLS Policies
-- Dono da categoria + membros da equipe (se `visibility=team`) podem ver
-- Apenas dono e `editors` podem adicionar/remover itens
-- Apenas dono pode editar/deletar a categoria
-- Função `SECURITY DEFINER` para checar permissão de categoria
+## 2. Sidebar — Dropdown Colapsável de Categorias
 
-## Sidebar — Novo Item de Navegação
+### Comportamento
+- O item "Categorias" na sidebar vira um `Collapsible` com chevron
+- Ao expandir, mostra duas seções:
+  - **Minhas Categorias**: categorias onde `user_id === auth.uid()`
+  - **Compartilhadas Comigo**: categorias onde o usuário é membro (via `action_category_members`) mas não é dono
+- Cada categoria mostra um dot de cor + nome truncado, clicável para `/categories/:id`
+- Link "Ver todas" no final leva para `/categories`
+- No estado colapsado da sidebar (icon mode): mantém apenas o ícone `FolderOpen` como tooltip
 
-Adicionar **"Categorias"** na sidebar (`AppSidebar.tsx`) entre "Histórico" e "Equipe", usando o ícone `FolderOpen` do Lucide. Rota: `/categories`.
+### Dados
+- Reutilizar `useCategories` mas separar em `myCategories` e `sharedCategories`
+- Para "compartilhadas comigo": query adicional em `action_category_members` onde `user_id = auth.uid()` e join com `action_categories` onde `user_id != auth.uid()`
 
-```text
-Home
-Marcas
-Temas Estratégicos
-Personas
-Histórico
-📁 Categorias    ← NOVO
-Equipe
-```
+### Arquivos
+- **Editar**: `src/components/AppSidebar.tsx` — substituir NavItem simples por componente colapsável com lista de categorias
+- **Editar**: `src/hooks/useCategories.ts` — adicionar query `useSharedCategories` ou retornar categorias separadas
 
-## Página de Categorias (`/categories`)
+## 3. Hook useCategories — Ajustes
 
-Nova página seguindo o padrão visual do sistema (banner + header card):
-- Lista de categorias em grid (cards) com nome, cor, ícone, contagem de ações, badge de visibilidade (Pessoal/Equipe)
-- Dialog para criar/editar categoria com campos: nome, descrição, cor, visibilidade, membros e permissões
-- Clicar numa categoria abre uma sub-página (`/categories/:id`) mostrando as ações agrupadas (reutilizando `ActionList`)
+### Novas funcionalidades
+- `createCategory` aceita `members: { userId: string; role: 'viewer' | 'editor' }[]` e insere em `action_category_members` após criar
+- `updateCategory` aceita `members` e faz sync (delete all + insert)
+- Nova query `useCategoryMembers(categoryId)` para carregar membros de uma categoria com perfil
+- Separar retorno em `myCategories` e `sharedCategories` baseado em `user_id === auth.uid()` vs membro
 
-## Integração no Histórico
+## Detalhes Técnicos
 
-### Filtro na Sidebar de Filtros
-Adicionar nova seção colapsável **"Categoria"** no `HistoryFilterSidebar.tsx` com:
-- "Todas as categorias" (default)
-- "Sem categoria" — filtra ações que não pertencem a nenhuma categoria
-- Lista das categorias do usuário com dot de cor
-
-### Badge nos Cards/Lista
-No `ActionList.tsx`, exibir um badge de categoria nos action cards e nas linhas da tabela:
-- Badge pequeno com a cor da categoria e nome truncado
-- Se não tiver categoria: texto "Sem categoria" em tom muted/italic
-
-## Integração nos Formulários de Criação
-
-Nos formulários de criação (`CreateImage.tsx`, `CreateContent.tsx`, `ReviewContent.tsx`, `PlanContent.tsx`):
-- Adicionar campo opcional **"Categoria"** (Select) ao final do formulário, antes do botão de gerar
-- Listar categorias onde o usuário é dono ou editor
-- Ao salvar a ação, criar o registro em `action_category_items` automaticamente
-
-## Adicionar Ações Existentes a Categorias
-
-Na página de detalhes da ação (`ActionView.tsx`) e no card do histórico:
-- Botão/menu para "Adicionar à categoria" que abre um popover com lista de categorias
-- Permitir mover entre categorias ou remover de categoria
-
-## Arquivos a Criar/Editar
-
-### Novos
-- `src/pages/Categories.tsx` — página de listagem
-- `src/pages/CategoryView.tsx` — página de detalhes da categoria
-- `src/components/categorias/CategoryDialog.tsx` — criar/editar
-- `src/components/categorias/CategoryList.tsx` — grid de cards
-- `src/components/categorias/CategoryBadge.tsx` — badge reutilizável
-- `src/components/categorias/AddToCategoryPopover.tsx` — popover para adicionar ação
-- `src/hooks/useCategories.ts` — hook com queries/mutations
-- `src/types/category.ts` — tipos TypeScript
-- Migration SQL para as 3 tabelas + RLS
-
-### Editados
-- `src/components/AppSidebar.tsx` — novo nav item
-- `src/App.tsx` — novas rotas `/categories` e `/categories/:id`
-- `src/components/historico/HistoryFilterSidebar.tsx` — seção de filtro por categoria
-- `src/components/historico/ActionList.tsx` — badge de categoria nos cards/lista
-- `src/pages/History.tsx` — estado do filtro de categoria
-- `src/types/action.ts` — campo `category` no `ActionSummary`
-- `src/pages/CreateImage.tsx` — campo de categoria no form
-- `src/pages/CreateContent.tsx` — campo de categoria no form
-- `src/pages/ReviewContent.tsx` — campo de categoria no form
-- `src/pages/PlanContent.tsx` — campo de categoria no form
-- `src/lib/translations.ts` — traduções pt/en
-- `src/hooks/useHistoryActions.ts` — filtro de categoria na query
+- Sheet de membros usa `side="right"` para parecer painel apêndice lateral
+- Lista de membros da equipe vem de `useTeamMembers(user.teamId)`
+- Cada membro tem toggle entre Leitor/Editor usando `NativeSelect` ou botões segmentados
+- Sidebar colapsável usa `Collapsible`/`CollapsibleTrigger`/`CollapsibleContent` do Radix (já instalado)
+- Limitar exibição na sidebar a ~5 categorias por seção + "Ver mais"
 
