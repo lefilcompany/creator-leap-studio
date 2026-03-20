@@ -15,6 +15,8 @@ import { useFavorites } from '@/hooks/useFavorites';
 import { HistoryFilterSidebar, MobileFilterTrigger } from '@/components/historico/HistoryFilterSidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useCategories } from '@/hooks/useCategories';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 type SortField = 'date' | 'type';
 type SortDirection = 'asc' | 'desc';
