@@ -72,7 +72,20 @@ export function CategoryDialog({ open, onOpenChange, category, onSave, isSaving,
 
   // Load existing members when editing
   useEffect(() => {
-    if (category && existingMembers && existingMembers.length > 0) {
+    if (category && existingMembers && existingMembers.length > 0 && teamMembers) {
+      const nonOwnerTeamMembers = (teamMembers || []).filter(tm => tm.id !== user?.id);
+      const allTeamAdded = nonOwnerTeamMembers.length > 0 && nonOwnerTeamMembers.every(
+        tm => existingMembers.some(m => m.user_id === tm.id)
+      );
+      const allSameRole = existingMembers.length > 0 && existingMembers.every(m => m.role === existingMembers[0].role);
+      
+      if (allTeamAdded && allSameRole) {
+        setWholeTeam(true);
+        setWholeTeamRole(existingMembers[0].role as 'viewer' | 'editor');
+      } else {
+        setWholeTeam(false);
+      }
+
       setMembers(existingMembers.map(m => ({
         userId: m.user_id,
         name: m.name,
@@ -81,7 +94,7 @@ export function CategoryDialog({ open, onOpenChange, category, onSave, isSaving,
         role: m.role as 'viewer' | 'editor',
       })));
     }
-  }, [existingMembers, category]);
+  }, [existingMembers, category, teamMembers, user?.id]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
