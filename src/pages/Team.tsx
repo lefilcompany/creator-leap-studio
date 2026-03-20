@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
   Rocket, Users, ClipboardCopy, Check, X, Crown, Loader2, UserPlus, UserMinus, 
-  UsersRound, Plus, ChevronDown, ChevronUp, LayoutGrid, List, Mail, Star
+  UsersRound, Plus, ChevronDown, ChevronUp, LayoutGrid, List, Mail, Star, LogOut, ArrowRightLeft
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { CreateTeamDialog } from '@/components/auth/CreateTeamDialog';
@@ -28,6 +28,8 @@ import teamBanner from '@/assets/team-banner.jpg';
 import { PageBreadcrumb } from '@/components/PageBreadcrumb';
 import { useAccessibleTeams, useTeamMembers, usePendingRequests, useInvalidateTeamData } from '@/hooks/useTeamData';
 import { TeamFavoritesLibrary } from '@/components/team/TeamFavoritesLibrary';
+import LeaveTeamDialog from '@/components/perfil/LeaveTeamDialog';
+import { TransferOwnershipDialog } from '@/components/team/TransferOwnershipDialog';
 
 interface TeamMember {
   id: string;
@@ -43,22 +45,34 @@ const getDisplayName = (fullName: string) => {
 
 interface TeamHeaderBannerProps {
   teamCount: number;
+  hasTeam: boolean;
+  isTeamAdmin: boolean;
+  hasOtherMembers: boolean;
+  teamName?: string;
   createLabel: string;
   joinLabel: string;
   createVariant?: 'default' | 'outline';
   joinVariant?: 'default' | 'outline';
   onCreateClick: () => void;
   onJoinClick: () => void;
+  onLeaveClick: () => void;
+  onTransferClick: () => void;
 }
 
 const TeamHeaderBanner = memo(({
   teamCount,
+  hasTeam,
+  isTeamAdmin,
+  hasOtherMembers,
+  teamName,
   createLabel,
   joinLabel,
   createVariant = 'outline',
   joinVariant = 'outline',
   onCreateClick,
   onJoinClick,
+  onLeaveClick,
+  onTransferClick,
 }: TeamHeaderBannerProps) => (
   <>
     <div className="relative h-32 sm:h-36 md:h-44 lg:h-52 overflow-hidden">
@@ -94,14 +108,40 @@ const TeamHeaderBanner = memo(({
           </div>
 
           <div className="flex gap-2">
-            <Button onClick={onCreateClick} variant={createVariant} size="sm">
-              <Plus className="h-4 w-4 mr-2" />
-              {createLabel}
-            </Button>
-            <Button onClick={onJoinClick} variant={joinVariant} size="sm">
-              <UserPlus className="h-4 w-4 mr-2" />
-              {joinLabel}
-            </Button>
+            {!hasTeam && (
+              <>
+                <Button onClick={onCreateClick} variant={createVariant} size="sm">
+                  <Plus className="h-4 w-4 mr-2" />
+                  {createLabel}
+                </Button>
+                <Button onClick={onJoinClick} variant={joinVariant} size="sm">
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  {joinLabel}
+                </Button>
+              </>
+            )}
+            {hasTeam && !isTeamAdmin && (
+              <Button onClick={onLeaveClick} variant="outline" size="sm" className="text-destructive hover:bg-destructive hover:text-destructive-foreground">
+                <LogOut className="h-4 w-4 mr-2" />
+                Sair da Equipe
+              </Button>
+            )}
+            {hasTeam && isTeamAdmin && (
+              <>
+                {hasOtherMembers && (
+                  <Button onClick={onTransferClick} variant="outline" size="sm">
+                    <ArrowRightLeft className="h-4 w-4 mr-2" />
+                    Transferir Administração
+                  </Button>
+                )}
+                {!hasOtherMembers && (
+                  <Button onClick={onLeaveClick} variant="outline" size="sm" className="text-destructive hover:bg-destructive hover:text-destructive-foreground">
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sair da Equipe
+                  </Button>
+                )}
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -314,6 +354,8 @@ export default function Team() {
   const [requestsExpanded, setRequestsExpanded] = useState(false);
   const [favoritesExpanded, setFavoritesExpanded] = useState(true);
   const [memberToRemove, setMemberToRemove] = useState<TeamMember | null>(null);
+  const [showLeaveDialog, setShowLeaveDialog] = useState(false);
+  const [showTransferDialog, setShowTransferDialog] = useState(false);
 
   const isTeamAdmin = team?.admin_id === user?.id;
 
@@ -327,9 +369,12 @@ export default function Team() {
   const { invalidateMembers, invalidateRequests, invalidateTeams, invalidateAll } = useInvalidateTeamData();
 
   const showSkeleton = isAuthLoading || isTeamsLoading;
+  const hasOtherMembers = members.filter(m => m.id !== user?.id).length > 0;
 
   const handleOpenCreateDialog = useCallback(() => setShowCreateDialog(true), []);
   const handleOpenJoinDialog = useCallback(() => setShowJoinDialog(true), []);
+  const handleOpenLeaveDialog = useCallback(() => setShowLeaveDialog(true), []);
+  const handleOpenTransferDialog = useCallback(() => setShowTransferDialog(true), []);
   const handleSelectMemberToRemove = useCallback((member: TeamMember) => {
     setMemberToRemove(member);
   }, []);
@@ -470,12 +515,17 @@ export default function Team() {
       <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8 animate-fade-in">
         <TeamHeaderBanner
           teamCount={accessibleTeams.length}
+          hasTeam={false}
+          isTeamAdmin={false}
+          hasOtherMembers={false}
           createLabel="Criar Equipe"
           joinLabel="Entrar em Equipe"
           createVariant="default"
           joinVariant="outline"
           onCreateClick={handleOpenCreateDialog}
           onJoinClick={handleOpenJoinDialog}
+          onLeaveClick={handleOpenLeaveDialog}
+          onTransferClick={handleOpenTransferDialog}
         />
 
         <main className="px-4 sm:px-6 lg:px-8 pt-4 pb-4 sm:pb-6 lg:pb-8">
@@ -525,10 +575,16 @@ export default function Team() {
     <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8 animate-fade-in">
       <TeamHeaderBanner
         teamCount={accessibleTeams.length}
+        hasTeam={!!team}
+        isTeamAdmin={isTeamAdmin}
+        hasOtherMembers={hasOtherMembers}
+        teamName={team?.name}
         createLabel="Nova Equipe"
         joinLabel="Entrar em Equipe"
         onCreateClick={handleOpenCreateDialog}
         onJoinClick={handleOpenJoinDialog}
+        onLeaveClick={handleOpenLeaveDialog}
+        onTransferClick={handleOpenTransferDialog}
       />
 
       <main className="px-4 sm:px-6 lg:px-8 pt-4 pb-4 sm:pb-6 lg:pb-8">
@@ -748,6 +804,26 @@ export default function Team() {
           memberId={memberToRemove.id}
           memberAvatarUrl={memberToRemove.avatar_url}
           onConfirm={handleRemoveMember}
+        />
+      )}
+
+      <LeaveTeamDialog
+        open={showLeaveDialog}
+        onOpenChange={setShowLeaveDialog}
+        teamName={team?.name || ''}
+      />
+
+      {team && (
+        <TransferOwnershipDialog
+          open={showTransferDialog}
+          onOpenChange={setShowTransferDialog}
+          teamId={team.id}
+          teamName={team.name}
+          members={members}
+          onSuccess={() => {
+            reloadUserData();
+            invalidateAll(team.id);
+          }}
         />
       )}
     </div>
