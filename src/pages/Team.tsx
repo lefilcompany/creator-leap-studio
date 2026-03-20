@@ -137,20 +137,12 @@ export default function Team() {
     }
 
     try {
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({ team_id: null })
-        .eq('id', memberId);
+      const { error } = await supabase.rpc('remove_team_member', {
+        p_member_id: memberId,
+        p_team_id: selectedTeam?.id,
+      });
 
-      if (profileError) throw profileError;
-
-      if (selectedTeam) {
-        await supabase
-          .from('team_members')
-          .delete()
-          .eq('user_id', memberId)
-          .eq('team_id', selectedTeam.id);
-      }
+      if (error) throw error;
 
       toast.success(`${memberName} foi removido da equipe!`);
       invalidateMembers(selectedTeam?.id);
