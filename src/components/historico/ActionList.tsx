@@ -147,8 +147,9 @@ const LoadingRows = () => (
 );
 
 // Grid card
-function ActionCard({ action, isSelected, onNavigate }: {
+function ActionCard({ action, isSelected, onNavigate, isFavorite, onToggleFavorite }: {
   action: ActionSummary; isSelected: boolean; onNavigate: () => void;
+  isFavorite?: boolean; onToggleFavorite?: () => void;
 }) {
   const displayType = ACTION_TYPE_DISPLAY[action.type];
   const style = ACTION_STYLE_MAP[displayType];
