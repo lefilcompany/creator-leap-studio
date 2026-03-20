@@ -1,71 +1,129 @@
 
 
-# Reorganizar o Histórico com Sidebar de Filtros Retrátil
+# Sistema de Categorias para Ações
 
-## Problema
-A página de histórico concentra muita informação na toolbar (busca, filtro de marca, filtro de tipo, ordenação, toggle de visualização), tornando a experiência visual pesada.
+## Visão Geral
+Criar um sistema de categorias (collections/pastas) onde usuários organizam suas criações. Categorias são criadas pelo usuário, com controle de visibilidade (pessoal ou equipe) e permissões (leitor/editor).
 
-## Solução
-Criar um layout com **sidebar de filtros lateral** na página de histórico, inspirado na imagem de referência. A sidebar terá seções colapsáveis (accordion) para organizar os filtros por categoria, mantendo a área principal limpa apenas com busca + cards/lista.
+## Banco de Dados
 
-```text
-┌─────────────────────────────────────────────────┐
-│  Banner + Header (mantém como está)             │
-├──────────┬──────────────────────────────────────┤
-│ Sidebar  │  Busca + View Toggle (simplificado) │
-│ Filtros  │──────────────────────────────────────│
-│          │                                      │
-│ ▼ Tipo   │  Grid/List de ações                  │
-│   • Criar│                                      │
-│   • Revis│                                      │
-│   • Plane│                                      │
-│          │                                      │
-│ ▼ Marca  │                                      │
-│   • Marc1│                                      │
-│   • Marc2│                                      │
-│          │                                      │
-│ ▼ Ordenar│                                      │
-│   • Data │                                      │
-│   • Tipo │                                      │
-└──────────┴──────────────────────────────────────┘
+### Tabela `action_categories`
+```sql
+CREATE TABLE action_categories (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name text NOT NULL,
+  description text,
+  color text DEFAULT '#6366f1',
+  icon text DEFAULT 'folder',
+  user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  team_id uuid,
+  visibility text NOT NULL DEFAULT 'personal', -- 'personal' | 'team'
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
 ```
 
-## Implementação
+### Tabela `action_category_members` (permissões)
+```sql
+CREATE TABLE action_category_members (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  category_id uuid NOT NULL REFERENCES action_categories(id) ON DELETE CASCADE,
+  user_id uuid NOT NULL,
+  role text NOT NULL DEFAULT 'viewer', -- 'viewer' | 'editor'
+  created_at timestamptz DEFAULT now(),
+  UNIQUE(category_id, user_id)
+);
+```
 
-### 1. Criar componente `HistoryFilterSidebar`
-**Arquivo:** `src/components/historico/HistoryFilterSidebar.tsx`
+### Tabela `action_category_items` (relação ação↔categoria)
+```sql
+CREATE TABLE action_category_items (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  category_id uuid NOT NULL REFERENCES action_categories(id) ON DELETE CASCADE,
+  action_id uuid NOT NULL,
+  added_by uuid NOT NULL,
+  created_at timestamptz DEFAULT now(),
+  UNIQUE(category_id, action_id)
+);
+```
 
-- Sidebar interna à página (não global), com largura fixa (~240px) em desktop
-- Usa `Collapsible` do Radix para seções retráteis com animação de chevron
-- Três seções colapsáveis:
-  - **Tipo de Ação**: lista de botões (Criar conteúdo, Criar rápido, Revisar, Planejar, Gerar vídeo) com ícones e cores do `ACTION_STYLE_MAP`
-  - **Marca**: lista de marcas do usuário com dot de cor
-  - **Ordenação**: opções Data (mais recente/antigo) e Tipo (A-Z/Z-A)
-- Cada item é clicável, com highlight visual quando ativo (similar ao `isActive` da sidebar principal)
-- Botão "Limpar filtros" no rodapé quando há filtros ativos
-- No mobile: colapsa em um sheet/drawer acionado por botão de filtro
+### RLS Policies
+- Dono da categoria + membros da equipe (se `visibility=team`) podem ver
+- Apenas dono e `editors` podem adicionar/remover itens
+- Apenas dono pode editar/deletar a categoria
+- Função `SECURITY DEFINER` para checar permissão de categoria
 
-### 2. Simplificar a toolbar do `ActionList`
-**Arquivo:** `src/components/historico/ActionList.tsx`
+## Sidebar — Novo Item de Navegação
 
-- Remover os `Select` de marca e tipo da toolbar (agora ficam na sidebar)
-- Manter apenas: campo de busca + toggle grid/list + tab Todas/Favoritas
-- Toolbar fica mais limpa e focada
+Adicionar **"Categorias"** na sidebar (`AppSidebar.tsx`) entre "Histórico" e "Equipe", usando o ícone `FolderOpen` do Lucide. Rota: `/categories`.
 
-### 3. Atualizar layout da página `History`
-**Arquivo:** `src/pages/History.tsx`
+```text
+Home
+Marcas
+Temas Estratégicos
+Personas
+Histórico
+📁 Categorias    ← NOVO
+Equipe
+```
 
-- Após o header card, usar `flex` row com sidebar à esquerda e conteúdo à direita
-- No mobile: sidebar vira um botão "Filtros" que abre Sheet lateral
-- Estado de filtros continua gerenciado no `History.tsx` e passado como props
+## Página de Categorias (`/categories`)
 
-### Detalhes Técnicos
+Nova página seguindo o padrão visual do sistema (banner + header card):
+- Lista de categorias em grid (cards) com nome, cor, ícone, contagem de ações, badge de visibilidade (Pessoal/Equipe)
+- Dialog para criar/editar categoria com campos: nome, descrição, cor, visibilidade, membros e permissões
+- Clicar numa categoria abre uma sub-página (`/categories/:id`) mostrando as ações agrupadas (reutilizando `ActionList`)
 
-- Usa `Collapsible`, `CollapsibleTrigger`, `CollapsibleContent` do Radix (já instalado)
-- Seções começam abertas por padrão (`defaultOpen={true}`)
-- Chevron rotaciona com CSS transition no estado aberto/fechado
-- Itens de filtro são botões com estilo pill/highlight ao selecionar
-- Contadores de resultados por categoria (opcional, se performance permitir)
-- Animações com `transition-all duration-200` para manter consistência
-- Mobile: `Sheet` lateral com `side="left"` contendo o mesmo conteúdo da sidebar
+## Integração no Histórico
+
+### Filtro na Sidebar de Filtros
+Adicionar nova seção colapsável **"Categoria"** no `HistoryFilterSidebar.tsx` com:
+- "Todas as categorias" (default)
+- "Sem categoria" — filtra ações que não pertencem a nenhuma categoria
+- Lista das categorias do usuário com dot de cor
+
+### Badge nos Cards/Lista
+No `ActionList.tsx`, exibir um badge de categoria nos action cards e nas linhas da tabela:
+- Badge pequeno com a cor da categoria e nome truncado
+- Se não tiver categoria: texto "Sem categoria" em tom muted/italic
+
+## Integração nos Formulários de Criação
+
+Nos formulários de criação (`CreateImage.tsx`, `CreateContent.tsx`, `ReviewContent.tsx`, `PlanContent.tsx`):
+- Adicionar campo opcional **"Categoria"** (Select) ao final do formulário, antes do botão de gerar
+- Listar categorias onde o usuário é dono ou editor
+- Ao salvar a ação, criar o registro em `action_category_items` automaticamente
+
+## Adicionar Ações Existentes a Categorias
+
+Na página de detalhes da ação (`ActionView.tsx`) e no card do histórico:
+- Botão/menu para "Adicionar à categoria" que abre um popover com lista de categorias
+- Permitir mover entre categorias ou remover de categoria
+
+## Arquivos a Criar/Editar
+
+### Novos
+- `src/pages/Categories.tsx` — página de listagem
+- `src/pages/CategoryView.tsx` — página de detalhes da categoria
+- `src/components/categorias/CategoryDialog.tsx` — criar/editar
+- `src/components/categorias/CategoryList.tsx` — grid de cards
+- `src/components/categorias/CategoryBadge.tsx` — badge reutilizável
+- `src/components/categorias/AddToCategoryPopover.tsx` — popover para adicionar ação
+- `src/hooks/useCategories.ts` — hook com queries/mutations
+- `src/types/category.ts` — tipos TypeScript
+- Migration SQL para as 3 tabelas + RLS
+
+### Editados
+- `src/components/AppSidebar.tsx` — novo nav item
+- `src/App.tsx` — novas rotas `/categories` e `/categories/:id`
+- `src/components/historico/HistoryFilterSidebar.tsx` — seção de filtro por categoria
+- `src/components/historico/ActionList.tsx` — badge de categoria nos cards/lista
+- `src/pages/History.tsx` — estado do filtro de categoria
+- `src/types/action.ts` — campo `category` no `ActionSummary`
+- `src/pages/CreateImage.tsx` — campo de categoria no form
+- `src/pages/CreateContent.tsx` — campo de categoria no form
+- `src/pages/ReviewContent.tsx` — campo de categoria no form
+- `src/pages/PlanContent.tsx` — campo de categoria no form
+- `src/lib/translations.ts` — traduções pt/en
+- `src/hooks/useHistoryActions.ts` — filtro de categoria na query
 
