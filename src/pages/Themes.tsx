@@ -284,7 +284,7 @@ export default function Themes() {
   return (
     <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8">
       {/* Banner */}
-      <div className="relative w-full h-36 md:h-44 flex-shrink-0 overflow-hidden">
+      <div className="relative w-full h-28 md:h-36 flex-shrink-0 overflow-hidden">
         <PageBreadcrumb
           variant="overlay"
           items={[{ label: 'Temas Estratégicos' }]}
@@ -300,19 +300,19 @@ export default function Themes() {
       </div>
 
       {/* Header section overlapping the banner */}
-      <div className="relative px-4 sm:px-6 lg:px-8 -mt-12 flex-shrink-0">
-        <div className="bg-card rounded-2xl shadow-lg p-4 lg:p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="bg-secondary/10 border border-secondary/20 shadow-sm rounded-2xl p-3 lg:p-4">
-              <Palette className="h-8 w-8 lg:h-10 lg:w-10 text-secondary" />
+      <div className="relative px-4 sm:px-6 lg:px-8 -mt-10 flex-shrink-0">
+        <div className="bg-card rounded-2xl shadow-lg p-3 lg:p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="bg-secondary/10 border border-secondary/20 shadow-sm rounded-xl p-2.5 lg:p-3">
+              <Palette className="h-6 w-6 lg:h-7 lg:w-7 text-secondary" />
             </div>
             <div>
-              <h1 className="text-2xl lg:text-3xl font-bold text-foreground flex items-center gap-2">
+              <h1 className="text-xl lg:text-2xl font-bold text-foreground flex items-center gap-2">
                 Seus Temas Estratégicos
                 <Popover>
                   <PopoverTrigger asChild>
                     <button className="text-muted-foreground hover:text-foreground transition-colors">
-                      <HelpCircle className="h-5 w-5" />
+                      <HelpCircle className="h-4 w-4" />
                     </button>
                   </PopoverTrigger>
                   <PopoverContent className="w-80 text-sm" side="bottom" align="start">
@@ -334,7 +334,7 @@ export default function Themes() {
                   </PopoverContent>
                 </Popover>
               </h1>
-              <p className="text-sm lg:text-base text-muted-foreground">
+              <p className="text-xs lg:text-sm text-muted-foreground">
                 Gerencie, edite ou crie novos temas para seus projetos.
               </p>
             </div>
@@ -344,10 +344,10 @@ export default function Themes() {
             id="themes-create-button"
             onClick={() => handleOpenDialog()}
             disabled={isButtonDisabled}
-            className="rounded-lg bg-gradient-to-r from-primary to-secondary px-5 py-3 text-sm lg:text-base disabled:opacity-50 disabled:cursor-not-allowed shrink-0 shadow-md"
+            className="rounded-lg bg-gradient-to-r from-primary to-secondary px-4 py-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed shrink-0 shadow-md"
             title={!user ? 'Carregando...' : ((user.credits || 0) < 1 ? 'Créditos insuficientes' : undefined)}
           >
-            <Plus className="mr-2 h-4 w-4 lg:h-5 lg:w-5" />
+            <Plus className="mr-2 h-4 w-4" />
             Novo tema
             <span className="ml-2 flex items-center gap-1 text-xs opacity-90">
               <Coins className="h-3 w-3" />
