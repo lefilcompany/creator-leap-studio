@@ -28,6 +28,8 @@ import teamBanner from '@/assets/team-banner.jpg';
 import { PageBreadcrumb } from '@/components/PageBreadcrumb';
 import { useAccessibleTeams, useTeamMembers, usePendingRequests, useInvalidateTeamData } from '@/hooks/useTeamData';
 import { TeamFavoritesLibrary } from '@/components/team/TeamFavoritesLibrary';
+import LeaveTeamDialog from '@/components/perfil/LeaveTeamDialog';
+import { TransferOwnershipDialog } from '@/components/team/TransferOwnershipDialog';
 
 interface TeamMember {
   id: string;
