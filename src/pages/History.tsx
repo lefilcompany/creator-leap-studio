@@ -198,6 +198,18 @@ export default function History() {
               sortField={sortField}
               sortDirection={sortDirection}
               onSortChange={handleSortChange}
+              mobileFilterSlot={isMobile ? (
+                <MobileFilterTrigger
+                  brandFilter={brandFilter}
+                  onBrandFilterChange={setBrandFilter}
+                  typeFilter={typeFilter}
+                  onTypeFilterChange={setTypeFilter}
+                  brands={brands}
+                  sortField={sortField}
+                  sortDirection={sortDirection}
+                  onSortChange={handleSortChange}
+                />
+              ) : undefined}
             />
           </div>
         </div>
