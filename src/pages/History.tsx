@@ -75,7 +75,7 @@ export default function History() {
   return (
     <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8">
       {/* Banner */}
-      <div className="relative w-full h-56 md:h-72 flex-shrink-0 overflow-hidden">
+      <div className="relative w-full h-36 md:h-44 flex-shrink-0 overflow-hidden">
         <PageBreadcrumb
           variant="overlay"
           items={[{ label: 'Histórico' }]}
@@ -85,7 +85,7 @@ export default function History() {
       </div>
 
       {/* Header card */}
-      <div className="relative px-4 sm:px-6 lg:px-8 -mt-12 flex-shrink-0">
+      <div className="relative px-4 sm:px-6 lg:px-8 -mt-10 flex-shrink-0">
         <div className="bg-card rounded-2xl shadow-lg p-4 lg:p-5">
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div className="flex items-center gap-4">
