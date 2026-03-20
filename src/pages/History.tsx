@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
-import { History as HistoryIcon, HelpCircle } from 'lucide-react';
+import { History as HistoryIcon, HelpCircle, Star } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ActionList from '@/components/historico/ActionList';
 import type { ActionSummary } from '@/types/action';
 import { ACTION_TYPE_DISPLAY } from '@/types/action';
@@ -11,6 +12,7 @@ import { historySteps, navbarSteps } from '@/components/onboarding/tourSteps';
 import historyBanner from '@/assets/history-banner.jpg';
 import { PageBreadcrumb } from '@/components/PageBreadcrumb';
 import { useHistoryBrands, useHistoryActions } from '@/hooks/useHistoryActions';
+import { useFavorites } from '@/hooks/useFavorites';
 
 export default function History() {
   const { user } = useAuth();
