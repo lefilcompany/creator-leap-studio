@@ -45,6 +45,7 @@ const ReviewContent = () => {
   const [textForImage, setTextForImage] = useState("");
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [categoryId, setCategoryId] = useState("");
 
   // React Query for brands
   const { data: brands = [], isLoading: isLoadingBrands } = useQuery({
