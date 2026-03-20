@@ -45,7 +45,6 @@ export function FavoriteButton({
   const handleToggle = (scope: FavoriteScope, e: React.MouseEvent) => {
     e.stopPropagation();
     onToggle(actionId, scope);
-    setOpen(false);
   };
 
   if (!hasTeam) {
