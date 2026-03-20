@@ -37,6 +37,8 @@ export function CategorySelector({ value, onChange, className, disabled }: Categ
                 ? "Nenhuma categoria criada"
                 : "Sem categoria"
           }
+          showClearOption={!isLoading && categories.length > 0}
+          clearLabel="Sem categoria"
           disabled={disabled || isLoading || categories.length === 0}
           triggerClassName={cn(
             "h-10 rounded-xl border-0 bg-muted/30 shadow-sm hover:bg-muted/50 transition-colors text-sm",
