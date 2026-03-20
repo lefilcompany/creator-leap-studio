@@ -833,6 +833,7 @@ export default function CreateImage() {
                 onChange={setSelectedCategoryId}
                 disabled={loading}
               />
+            </div>
 
             {/* ── SEÇÃO 2: PROMPT DO AGENTE (descrição + imagens) ── */}
             <div className="rounded-2xl shadow-lg border-0 bg-card p-4 md:p-5 space-y-4" onPaste={handlePaste}>
