@@ -158,6 +158,7 @@ export default function CreateContent() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [missingFields, setMissingFields] = useState<string[]>([]);
   const [contentType, setContentType] = useState<"organic" | "ads">("organic");
+  const [categoryId, setCategoryId] = useState("");
   const [platformGuidelines, setPlatformGuidelines] = useState<string[]>([]);
   const [recommendedAspectRatio, setRecommendedAspectRatio] = useState<string>("");
   const [preserveImageIndices, setPreserveImageIndices] = useState<number[]>([]);
