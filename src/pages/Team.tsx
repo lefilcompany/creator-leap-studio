@@ -46,6 +46,8 @@ export default function Team() {
   const [selectedTeam, setSelectedTeam] = useState<any>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [requestsExpanded, setRequestsExpanded] = useState(false);
+  const [membersExpanded, setMembersExpanded] = useState(true);
+  const [favoritesExpanded, setFavoritesExpanded] = useState(true);
   const [memberToRemove, setMemberToRemove] = useState<TeamMember | null>(null);
 
   const isTeamAdmin = team?.admin_id === user?.id;
