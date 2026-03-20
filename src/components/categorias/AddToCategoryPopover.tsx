@@ -40,7 +40,7 @@ export function AddToCategoryPopover({ actionId, children }: AddToCategoryPopove
           Categorias
         </p>
         {categories.length === 0 ? (
-          <p className="text-sm text-muted-foreground px-2 py-3 text-center">Nenhuma categoria criada</p>
+          <p className="text-sm text-muted-foreground px-2 py-3 text-center">Nenhum nicho criado</p>
         ) : (
           <div className="space-y-0.5 max-h-48 overflow-y-auto">
             {categories.map(cat => {

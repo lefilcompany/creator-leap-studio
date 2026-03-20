@@ -37,8 +37,8 @@ export function CategoryList({ categories, onSelect, onEdit, onDelete, isLoading
     return (
       <div className="text-center py-16 text-muted-foreground">
         <FolderOpen className="h-12 w-12 mx-auto mb-3 opacity-50" />
-        <p className="text-base">Nenhuma categoria criada.</p>
-        <p className="text-sm mt-1 opacity-75">Crie categorias para organizar suas ações.</p>
+        <p className="text-base">Nenhum nicho criado.</p>
+        <p className="text-sm mt-1 opacity-75">Crie nichos para organizar suas ações.</p>
       </div>
     );
   }

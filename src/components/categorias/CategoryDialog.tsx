@@ -156,7 +156,7 @@ export function CategoryDialog({ open, onOpenChange, category, onSave, isSaving,
             membersOpen ? "w-full sm:w-[28rem] flex-shrink-0" : "w-full"
           )}>
             <DialogHeader className="px-6 pt-6 pb-0">
-              <DialogTitle>{category ? 'Editar Categoria' : 'Nova Categoria'}</DialogTitle>
+              <DialogTitle>{category ? 'Editar Nicho' : 'Novo Nicho'}</DialogTitle>
             </DialogHeader>
 
             <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
@@ -168,7 +168,7 @@ export function CategoryDialog({ open, onOpenChange, category, onSave, isSaving,
 
                 <div className="space-y-2">
                   <Label className="font-bold">Descrição <span className="font-normal text-muted-foreground">(opcional)</span></Label>
-                  <Textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Descreva o propósito desta categoria..." rows={2} />
+                  <Textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Descreva o propósito deste nicho..." rows={2} />
                 </div>
 
                 <div className="space-y-2">

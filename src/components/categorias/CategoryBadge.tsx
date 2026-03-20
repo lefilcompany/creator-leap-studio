@@ -26,7 +26,7 @@ export function CategoryBadge({ name, color, className }: CategoryBadgeProps) {
 export function NoCategoryBadge({ className }: { className?: string }) {
   return (
     <span className={cn("text-[10px] text-muted-foreground/60 italic", className)}>
-      Sem categoria
+      Sem nicho
     </span>
   );
 }

@@ -103,7 +103,7 @@ export function ActionCardMenu({
             >
               <FolderOpen className="h-4 w-4 flex-shrink-0" />
               <span className="flex-1 text-left">
-                {actionCategories.length > 0 ? 'Mudar categoria' : 'Adicionar à categoria'}
+                {actionCategories.length > 0 ? 'Mudar nicho' : 'Adicionar ao nicho'}
               </span>
               <ChevronRight className="h-3.5 w-3.5 ml-auto text-muted-foreground group-hover/cat:text-accent-foreground transition-colors" />
             </button>
@@ -136,7 +136,7 @@ export function ActionCardMenu({
                       <button
                         onClick={(e) => { e.stopPropagation(); removeActionFromCategory.mutate({ categoryId: cat.id, actionId }); }}
                         className="p-0.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors active:scale-95"
-                        title="Remover desta categoria"
+                        title="Remover deste nicho"
                       >
                         <X className="h-3.5 w-3.5" />
                       </button>
@@ -149,14 +149,14 @@ export function ActionCardMenu({
 
             {/* All categories to add */}
             <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-2 pt-1 pb-1">
-              {actionCategories.length > 0 ? 'Mover para' : 'Categorias'}
+              {actionCategories.length > 0 ? 'Mover para' : 'Nichos'}
             </p>
             {categories.length === 0 ? (
-              <p className="text-sm text-muted-foreground px-2 py-3 text-center">Nenhuma categoria criada</p>
+              <p className="text-sm text-muted-foreground px-2 py-3 text-center">Nenhum nicho criado</p>
             ) : (
               <div className="space-y-0.5 max-h-48 overflow-y-auto">
                 {categories.filter(c => !actionCategoryIds.has(c.id)).length === 0 ? (
-                  <p className="text-xs text-muted-foreground px-2 py-2 text-center">Já está em todas as categorias</p>
+                  <p className="text-xs text-muted-foreground px-2 py-2 text-center">Já está em todos os nichos</p>
                 ) : (
                   categories.filter(c => !actionCategoryIds.has(c.id)).map(cat => (
                     <button
