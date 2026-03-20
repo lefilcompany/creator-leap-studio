@@ -12,7 +12,8 @@ import historyBanner from '@/assets/history-banner.jpg';
 import { PageBreadcrumb } from '@/components/PageBreadcrumb';
 import { useHistoryBrands, useHistoryActions } from '@/hooks/useHistoryActions';
 import { useFavorites } from '@/hooks/useFavorites';
-import { HistoryFilterSidebar } from '@/components/historico/HistoryFilterSidebar';
+import { HistoryFilterSidebar, MobileFilterTrigger } from '@/components/historico/HistoryFilterSidebar';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 type SortField = 'date' | 'type';
 type SortDirection = 'asc' | 'desc';
