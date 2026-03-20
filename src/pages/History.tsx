@@ -147,6 +147,10 @@ export default function History() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Action list */}
+      <main id="history-list" className="px-4 sm:px-6 lg:px-8 pt-4 pb-4 sm:pb-6 lg:pb-8 space-y-4">
         <ActionList
           actions={actions}
           selectedAction={selectedActionSummary}
