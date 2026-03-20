@@ -224,6 +224,8 @@ const ReviewContent = () => {
 
       clearPersistedData();
 
+      const capturedCategoryId = categoryId;
+
       addTask(
         taskLabel,
         `review_${capturedReviewType}`,
@@ -231,6 +233,20 @@ const ReviewContent = () => {
           const { data, error: functionError } = await supabase.functions.invoke(functionName, { body: payload });
           if (functionError) throw functionError;
           if (!data?.review) throw new Error("Revisão não retornada");
+
+          // Auto-assign to category if selected
+          if (capturedCategoryId && data.actionId) {
+            try {
+              const { data: { user: authUser } } = await supabase.auth.getUser();
+              await supabase.from('action_category_items').insert({
+                category_id: capturedCategoryId,
+                action_id: data.actionId,
+                added_by: authUser!.id,
+              });
+            } catch (e) {
+              console.error("Erro ao atribuir categoria:", e);
+            }
+          }
 
           try { await refreshUserCredits(); } catch {}
 
