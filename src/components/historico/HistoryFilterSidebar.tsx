@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { ChevronDown, X, Image, Sparkles, CheckCircle, Calendar, Video, ArrowDown, ArrowUp, Filter } from 'lucide-react';
+import { ChevronDown, X, Image, Sparkles, CheckCircle, Calendar, Video, ArrowDown, ArrowUp, Filter, FolderOpen } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ACTION_TYPE_DISPLAY } from '@/types/action';
 import type { BrandSummary } from '@/types/brand';
+import type { CategoryWithCount } from '@/types/category';
 
 type SortField = 'date' | 'type';
 type SortDirection = 'asc' | 'desc';
@@ -20,6 +21,9 @@ interface HistoryFilterSidebarProps {
   sortField: SortField;
   sortDirection: SortDirection;
   onSortChange: (field: SortField, direction: SortDirection) => void;
+  categoryFilter: string;
+  onCategoryFilterChange: (value: string) => void;
+  categories: CategoryWithCount[];
 }
 
 const ACTION_TYPES = [
