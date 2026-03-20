@@ -806,6 +806,26 @@ export default function Team() {
           onConfirm={handleRemoveMember}
         />
       )}
+
+      <LeaveTeamDialog
+        open={showLeaveDialog}
+        onOpenChange={setShowLeaveDialog}
+        teamName={team?.name || ''}
+      />
+
+      {team && (
+        <TransferOwnershipDialog
+          open={showTransferDialog}
+          onOpenChange={setShowTransferDialog}
+          teamId={team.id}
+          teamName={team.name}
+          members={members}
+          onSuccess={() => {
+            reloadUserData();
+            invalidateAll(team.id);
+          }}
+        />
+      )}
     </div>
   );
 }
