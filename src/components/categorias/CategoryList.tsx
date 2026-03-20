@@ -51,7 +51,7 @@ export function CategoryList({ categories, onSelect, onEdit, onDelete, isLoading
           <div
             key={cat.id}
             onClick={() => onSelect(cat)}
-            className="cursor-pointer bg-card rounded-2xl p-5 border border-border/30 shadow-sm hover:shadow-md transition-all duration-200 group relative"
+            className="cursor-pointer bg-card rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 group relative"
           >
             {/* Menu */}
             {isOwner && (
