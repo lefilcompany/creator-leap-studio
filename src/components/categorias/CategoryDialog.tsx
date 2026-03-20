@@ -120,7 +120,7 @@ export function CategoryDialog({ open, onOpenChange, category, onSave, isSaving,
           membersOpen ? "sm:max-w-[52rem]" : "sm:max-w-md"
         )}
       >
-        <div className="flex items-start gap-3">
+        <div className="flex items-stretch gap-3">
           {/* Main Form Panel */}
           <div className={cn(
             "flex flex-col bg-background rounded-xl shadow-lg border border-border overflow-hidden transition-all duration-300 ease-in-out max-h-[85vh]",
