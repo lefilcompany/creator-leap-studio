@@ -369,9 +369,12 @@ export default function Team() {
   const { invalidateMembers, invalidateRequests, invalidateTeams, invalidateAll } = useInvalidateTeamData();
 
   const showSkeleton = isAuthLoading || isTeamsLoading;
+  const hasOtherMembers = members.filter(m => m.id !== user?.id).length > 0;
 
   const handleOpenCreateDialog = useCallback(() => setShowCreateDialog(true), []);
   const handleOpenJoinDialog = useCallback(() => setShowJoinDialog(true), []);
+  const handleOpenLeaveDialog = useCallback(() => setShowLeaveDialog(true), []);
+  const handleOpenTransferDialog = useCallback(() => setShowTransferDialog(true), []);
   const handleSelectMemberToRemove = useCallback((member: TeamMember) => {
     setMemberToRemove(member);
   }, []);
