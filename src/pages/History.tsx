@@ -27,6 +27,7 @@ export default function History() {
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [sortField, setSortField] = useState<SortField>('date');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const isMobile = useIsMobile();
 
   const { data: brands = [], isLoading: isLoadingBrands } = useHistoryBrands();
 
