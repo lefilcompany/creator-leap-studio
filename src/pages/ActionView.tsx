@@ -34,6 +34,15 @@ interface SectionCardProps {
   headerRight?: React.ReactNode;
 }
 
+function getContrastColor(hex: string): string {
+  const c = hex.replace('#', '');
+  const r = parseInt(c.substring(0, 2), 16);
+  const g = parseInt(c.substring(2, 4), 16);
+  const b = parseInt(c.substring(4, 6), 16);
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return luminance > 0.6 ? '#1a1a1a' : '#ffffff';
+}
+
 const SectionCard = ({ title, icon, accentColor, children, className = '', headerRight }: SectionCardProps) => (
   <div className={`bg-card/80 backdrop-blur-sm rounded-2xl border border-border/10 overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 ${className}`}>
     <div
@@ -466,12 +475,10 @@ export default function ActionView() {
                 <Popover>
                   <PopoverTrigger asChild>
                     {actionCats.length > 0 ? (
-                      <button className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border transition-colors hover:opacity-90 active:scale-[0.97]"
+                      <button className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold shadow-sm transition-colors hover:opacity-90 active:scale-[0.97]"
                         style={{
-                          backgroundColor: `${actionCats[0].color}22`,
-                          color: actionCats[0].color,
-                          borderColor: `${actionCats[0].color}40`,
-                          textShadow: '0 0 0 currentColor',
+                          backgroundColor: actionCats[0].color,
+                          color: getContrastColor(actionCats[0].color),
                         }}
                       >
                         <FolderOpen className="h-3.5 w-3.5" />
