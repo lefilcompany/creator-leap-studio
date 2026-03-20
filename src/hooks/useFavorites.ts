@@ -2,61 +2,101 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
+export type FavoriteScope = 'personal' | 'team';
+
+interface FavoriteEntry {
+  action_id: string;
+  scope: string;
+  team_id: string | null;
+  user_id: string;
+}
+
 export function useFavorites() {
-  const { user } = useAuth();
+  const { user, team } = useAuth();
   const queryClient = useQueryClient();
 
-  const { data: favoriteIds = [], isLoading } = useQuery({
-    queryKey: ['action-favorites', user?.id],
+  const { data: favorites = [], isLoading } = useQuery({
+    queryKey: ['action-favorites', user?.id, team?.id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('action_favorites')
-        .select('action_id')
-        .eq('user_id', user!.id);
+        .select('action_id, scope, team_id, user_id');
       if (error) throw error;
-      return (data || []).map((r: any) => r.action_id as string);
+      return (data || []) as FavoriteEntry[];
     },
     enabled: !!user?.id,
   });
 
+  const personalFavoriteIds = favorites
+    .filter(f => f.scope === 'personal' && f.user_id === user?.id)
+    .map(f => f.action_id);
+
+  const teamFavoriteIds = favorites
+    .filter(f => f.scope === 'team' && f.team_id === team?.id)
+    .map(f => f.action_id);
+
+  const allFavoriteIds = [...new Set([...personalFavoriteIds, ...teamFavoriteIds])];
+
   const toggleFavorite = useMutation({
-    mutationFn: async (actionId: string) => {
-      const isFav = favoriteIds.includes(actionId);
-      if (isFav) {
+    mutationFn: async ({ actionId, scope }: { actionId: string; scope: FavoriteScope }) => {
+      const existing = favorites.find(
+        f => f.action_id === actionId && f.scope === scope && f.user_id === user!.id
+      );
+      if (existing) {
         const { error } = await supabase
           .from('action_favorites')
           .delete()
           .eq('user_id', user!.id)
-          .eq('action_id', actionId);
+          .eq('action_id', actionId)
+          .eq('scope', scope);
         if (error) throw error;
       } else {
+        const insert: any = {
+          user_id: user!.id,
+          action_id: actionId,
+          scope,
+        };
+        if (scope === 'team' && team?.id) {
+          insert.team_id = team.id;
+        }
         const { error } = await supabase
           .from('action_favorites')
-          .insert({ user_id: user!.id, action_id: actionId });
+          .insert(insert);
         if (error) throw error;
-      }
-    },
-    onMutate: async (actionId: string) => {
-      await queryClient.cancelQueries({ queryKey: ['action-favorites', user?.id] });
-      const prev = queryClient.getQueryData<string[]>(['action-favorites', user?.id]) || [];
-      const next = prev.includes(actionId) ? prev.filter(id => id !== actionId) : [...prev, actionId];
-      queryClient.setQueryData(['action-favorites', user?.id], next);
-      return { prev };
-    },
-    onError: (_err, _actionId, context) => {
-      if (context?.prev) {
-        queryClient.setQueryData(['action-favorites', user?.id], context.prev);
       }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['action-favorites', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['action-favorites'] });
     },
   });
 
   return {
-    favoriteIds,
+    favorites,
+    personalFavoriteIds,
+    teamFavoriteIds,
+    allFavoriteIds,
     isLoading,
-    isFavorite: (actionId: string) => favoriteIds.includes(actionId),
-    toggleFavorite: (actionId: string) => toggleFavorite.mutate(actionId),
+    isFavorite: (actionId: string) => allFavoriteIds.includes(actionId),
+    isPersonalFavorite: (actionId: string) => personalFavoriteIds.includes(actionId),
+    isTeamFavorite: (actionId: string) => teamFavoriteIds.includes(actionId),
+    toggleFavorite: (actionId: string, scope: FavoriteScope = 'personal') =>
+      toggleFavorite.mutate({ actionId, scope }),
+    hasTeam: !!team?.id,
   };
+}
+
+export function useTeamFavorites(teamId: string | undefined) {
+  return useQuery({
+    queryKey: ['action-favorites', 'team', teamId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('action_favorites')
+        .select('action_id, user_id, created_at')
+        .eq('scope', 'team')
+        .eq('team_id', teamId!);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!teamId,
+  });
 }
