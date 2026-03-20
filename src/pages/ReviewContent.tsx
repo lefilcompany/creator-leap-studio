@@ -525,6 +525,12 @@ const ReviewContent = () => {
                         />
                       )}
                     </div>
+                    <div className="md:col-span-2">
+                      <CategorySelector
+                        value={categoryId}
+                        onChange={setCategoryId}
+                      />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
