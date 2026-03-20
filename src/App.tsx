@@ -60,6 +60,8 @@ const CreditHistory = lazy(() => import("./pages/CreditHistory"));
 const About = lazy(() => import("./pages/About"));
 const Contact = lazy(() => import("./pages/Contact"));
 const ActionView = lazy(() => import("./pages/ActionView"));
+const Categories = lazy(() => import("./pages/Categories"));
+const CategoryView = lazy(() => import("./pages/CategoryView"));
 
 // Lazy loaded pages - System
 const System = lazy(() => import("./pages/System"));
@@ -159,6 +161,8 @@ const App = () => (
                         <Route path="credit-history" element={<SuspenseRoute><CreditHistory /></SuspenseRoute>} />
                         <Route path="about" element={<SuspenseRoute><About /></SuspenseRoute>} />
                         <Route path="action/:actionId" element={<SuspenseRoute><ActionView /></SuspenseRoute>} />
+                        <Route path="categories" element={<SuspenseRoute><Categories /></SuspenseRoute>} />
+                        <Route path="categories/:categoryId" element={<SuspenseRoute><CategoryView /></SuspenseRoute>} />
                       </Route>
                       
                       {/* System admin routes with separate layout */}

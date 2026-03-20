@@ -14,6 +14,121 @@ export type Database = {
   }
   public: {
     Tables: {
+      action_categories: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          team_id: string | null
+          updated_at: string | null
+          user_id: string
+          visibility: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          team_id?: string | null
+          updated_at?: string | null
+          user_id: string
+          visibility?: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          team_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+          visibility?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "action_categories_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      action_category_items: {
+        Row: {
+          action_id: string
+          added_by: string
+          category_id: string
+          created_at: string | null
+          id: string
+        }
+        Insert: {
+          action_id: string
+          added_by: string
+          category_id: string
+          created_at?: string | null
+          id?: string
+        }
+        Update: {
+          action_id?: string
+          added_by?: string
+          category_id?: string
+          created_at?: string | null
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "action_category_items_action_id_fkey"
+            columns: ["action_id"]
+            isOneToOne: false
+            referencedRelation: "actions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "action_category_items_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "action_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      action_category_members: {
+        Row: {
+          category_id: string
+          created_at: string | null
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string | null
+          id?: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string | null
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "action_category_members_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "action_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       action_favorites: {
         Row: {
           action_id: string
@@ -1110,10 +1225,12 @@ export type Database = {
           team_name: string
         }[]
       }
+      can_access_category: { Args: { p_category_id: string }; Returns: boolean }
       can_access_resource: {
         Args: { resource_team_id: string; resource_user_id: string }
         Returns: boolean
       }
+      can_edit_category: { Args: { p_category_id: string }; Returns: boolean }
       check_team_access: { Args: { p_team_id: string }; Returns: boolean }
       create_team_for_user: {
         Args: {

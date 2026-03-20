@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Star, Search, ArrowUpDown, ArrowUp, ArrowDown, List, LayoutGrid, X, Clock, Sparkles, CheckCircle, Calendar, Video, Image, Globe, Users, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { CategoryBadge, NoCategoryBadge } from '@/components/categorias/CategoryBadge';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
@@ -42,6 +43,8 @@ interface ActionListProps {
   sortDirection?: SortDirection;
   onSortChange?: (field: SortField, direction: SortDirection) => void;
   mobileFilterSlot?: React.ReactNode;
+  actionCategoryMap?: Map<string, string[]>;
+  categories?: Array<{ id: string; name: string; color: string }>;
 }
 
 const formatDate = (dateString: string) => {
@@ -154,10 +157,11 @@ const LoadingRows = () => (
 );
 
 // Grid card
-function ActionCard({ action, isSelected, onNavigate, isPersonalFavorite, isTeamFavorite, hasTeam, onToggleFavorite }: {
+function ActionCard({ action, isSelected, onNavigate, isPersonalFavorite, isTeamFavorite, hasTeam, onToggleFavorite, actionCategories }: {
   action: ActionSummary; isSelected: boolean; onNavigate: () => void;
   isPersonalFavorite?: boolean; isTeamFavorite?: boolean; hasTeam?: boolean;
   onToggleFavorite?: (actionId: string, scope: FavoriteScope) => void;
+  actionCategories?: Array<{ id: string; name: string; color: string }>;
 }) {
   const displayType = ACTION_TYPE_DISPLAY[action.type];
   const style = ACTION_STYLE_MAP[displayType];
@@ -232,6 +236,11 @@ function ActionCard({ action, isSelected, onNavigate, isPersonalFavorite, isTeam
               {action.objective}
             </Badge>
           )}
+          {actionCategories && actionCategories.length > 0 ? (
+            <CategoryBadge name={actionCategories[0].name} color={actionCategories[0].color} />
+          ) : (
+            <NoCategoryBadge />
+          )}
         </div>
 
         <div className="mt-auto pt-2 border-t border-border/20 flex flex-col gap-1">
@@ -265,6 +274,8 @@ export default function ActionList({
   isFavorite, isPersonalFavorite, isTeamFavorite, onToggleFavorite, hasTeam,
   sortField: externalSortField, sortDirection: externalSortDirection, onSortChange,
   mobileFilterSlot,
+  actionCategoryMap,
+  categories: categoriesList,
 }: ActionListProps) {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
@@ -448,18 +459,23 @@ export default function ActionList({
       ) : (
         /* Grid view */
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-          {filteredAndSortedActions.map((action) => (
-            <ActionCard
-              key={action.id}
-              action={action}
-              isSelected={selectedAction?.id === action.id}
-              onNavigate={() => navigate(`/action/${action.id}`, { state: { viewMode } })}
-              isPersonalFavorite={isPersonalFavorite?.(action.id)}
-              isTeamFavorite={isTeamFavorite?.(action.id)}
-              hasTeam={hasTeam}
-              onToggleFavorite={onToggleFavorite}
-            />
-          ))}
+          {filteredAndSortedActions.map((action) => {
+            const catIds = actionCategoryMap?.get(action.id) || [];
+            const actionCats = catIds.map(cid => categoriesList?.find(c => c.id === cid)).filter(Boolean) as Array<{ id: string; name: string; color: string }>;
+            return (
+              <ActionCard
+                key={action.id}
+                action={action}
+                isSelected={selectedAction?.id === action.id}
+                onNavigate={() => navigate(`/action/${action.id}`, { state: { viewMode } })}
+                isPersonalFavorite={isPersonalFavorite?.(action.id)}
+                isTeamFavorite={isTeamFavorite?.(action.id)}
+                hasTeam={hasTeam}
+                onToggleFavorite={onToggleFavorite}
+                actionCategories={actionCats}
+              />
+            );
+          })}
         </div>
       )}
 

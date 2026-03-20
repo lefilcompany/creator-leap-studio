@@ -14,6 +14,9 @@ import { useHistoryBrands, useHistoryActions } from '@/hooks/useHistoryActions';
 import { useFavorites } from '@/hooks/useFavorites';
 import { HistoryFilterSidebar, MobileFilterTrigger } from '@/components/historico/HistoryFilterSidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useCategories } from '@/hooks/useCategories';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 type SortField = 'date' | 'type';
 type SortDirection = 'asc' | 'desc';
@@ -25,9 +28,34 @@ export default function History() {
   const { allFavoriteIds, isFavorite, isPersonalFavorite, isTeamFavorite, toggleFavorite, hasTeam } = useFavorites();
   const [brandFilter, setBrandFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [sortField, setSortField] = useState<SortField>('date');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const isMobile = useIsMobile();
+  const { categories } = useCategories();
+
+  // Get all category items for filtering
+  const { data: categoryItems = [] } = useQuery({
+    queryKey: ['all-category-items'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('action_category_items')
+        .select('action_id, category_id');
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user?.id,
+  });
+
+  const actionCategoryMap = useMemo(() => {
+    const map = new Map<string, string[]>();
+    categoryItems.forEach((item: any) => {
+      const existing = map.get(item.action_id) || [];
+      existing.push(item.category_id);
+      map.set(item.action_id, existing);
+    });
+    return map;
+  }, [categoryItems]);
 
   const { data: brands = [], isLoading: isLoadingBrands } = useHistoryBrands();
 
@@ -47,15 +75,27 @@ export default function History() {
   );
 
   const actions = useMemo(() => {
-    if (activeTab === 'favorites') {
-      return allActions.filter(a => allFavoriteIds.includes(a.id));
+    let result = allActions;
+
+    // Category filter
+    if (categoryFilter === 'none') {
+      result = result.filter(a => !actionCategoryMap.has(a.id));
+    } else if (categoryFilter !== 'all') {
+      result = result.filter(a => {
+        const cats = actionCategoryMap.get(a.id);
+        return cats && cats.includes(categoryFilter);
+      });
     }
-    if (allFavoriteIds.length === 0) return allActions;
+
+    if (activeTab === 'favorites') {
+      return result.filter(a => allFavoriteIds.includes(a.id));
+    }
+    if (allFavoriteIds.length === 0) return result;
     const favSet = new Set(allFavoriteIds);
-    const favs = allActions.filter(a => favSet.has(a.id));
-    const rest = allActions.filter(a => !favSet.has(a.id));
+    const favs = result.filter(a => favSet.has(a.id));
+    const rest = result.filter(a => !favSet.has(a.id));
     return [...favs, ...rest];
-  }, [allActions, activeTab, allFavoriteIds]);
+  }, [allActions, activeTab, allFavoriteIds, categoryFilter, actionCategoryMap]);
 
   const brandOptions = useMemo(() => [
     { value: 'all', label: 'Todas as Marcas' },
@@ -172,6 +212,9 @@ export default function History() {
             sortField={sortField}
             sortDirection={sortDirection}
             onSortChange={handleSortChange}
+            categoryFilter={categoryFilter}
+            onCategoryFilterChange={setCategoryFilter}
+            categories={categories}
           />
 
           <div className="flex-1 min-w-0 space-y-4">
@@ -198,6 +241,8 @@ export default function History() {
               sortField={sortField}
               sortDirection={sortDirection}
               onSortChange={handleSortChange}
+              actionCategoryMap={actionCategoryMap}
+              categories={categories}
               mobileFilterSlot={isMobile ? (
                 <MobileFilterTrigger
                   brandFilter={brandFilter}
@@ -208,6 +253,9 @@ export default function History() {
                   sortField={sortField}
                   sortDirection={sortDirection}
                   onSortChange={handleSortChange}
+                  categoryFilter={categoryFilter}
+                  onCategoryFilterChange={setCategoryFilter}
+                  categories={categories}
                 />
               ) : undefined}
             />
