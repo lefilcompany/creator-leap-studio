@@ -236,7 +236,8 @@ export default function AdminPlans() {
     
     const matchesPlan = planFilter === "all" || sub.plan_id === planFilter;
     
-    const matchesStatus = statusFilter === "all" || sub.subscription_status === statusFilter;
+    const realStatus = getRealStatus(sub).status;
+    const matchesStatus = statusFilter === "all" || realStatus === statusFilter;
     
     return matchesSearch && matchesPlan && matchesStatus;
   });
@@ -245,15 +246,18 @@ export default function AdminPlans() {
   const totalPlans = plans.length;
   const activePlans = plans.filter(p => p.is_active).length;
   
+  // Count truly active (not expired) subscriptions
+  const realActiveCount = subscriptions.filter(s => getRealStatus(s).status === "active").length;
+  const realTrialingCount = subscriptions.filter(s => getRealStatus(s).status === "trialing").length;
+  const expiredButMarkedActiveCount = subscriptions.filter(s => getRealStatus(s).isExpiredButMarkedActive).length;
+  
   // Use Stripe data if available, fallback to local calculation
-  const activeSubscriptionsCount = stripeData?.activeSubscriptions ?? 
-    subscriptions.filter(s => s.subscription_status === "active").length;
-  const trialingCount = stripeData?.trialingSubscriptions ?? 
-    subscriptions.filter(s => s.subscription_status === "trialing").length;
+  const activeSubscriptionsCount = stripeData?.activeSubscriptions ?? realActiveCount;
+  const trialingCount = stripeData?.trialingSubscriptions ?? realTrialingCount;
   const totalActiveAndTrialing = activeSubscriptionsCount + trialingCount;
   
   const totalRevenue = stripeData?.mrr ?? subscriptions
-    .filter(s => s.subscription_status === "active")
+    .filter(s => getRealStatus(s).status === "active")
     .reduce((acc, sub) => {
       const plan = plans.find(p => p.id === sub.plan_id);
       return acc + (plan?.price_monthly || 0);
