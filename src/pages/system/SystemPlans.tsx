@@ -312,6 +312,12 @@ export default function AdminPlans() {
               {activeSubscriptionsCount} ativas, {trialingCount} trial
               {stripeData && <span className="text-green-600 ml-1">• Stripe</span>}
             </p>
+            {expiredButMarkedActiveCount > 0 && (
+              <p className="text-xs text-orange-600 flex items-center gap-1 mt-1">
+                <AlertTriangle className="h-3 w-3" />
+                {expiredButMarkedActiveCount} com status desatualizado
+              </p>
+            )}
           </CardContent>
         </Card>
         <Card>
