@@ -175,6 +175,9 @@ export default function History() {
             sortField={sortField}
             sortDirection={sortDirection}
             onSortChange={handleSortChange}
+            categoryFilter={categoryFilter}
+            onCategoryFilterChange={setCategoryFilter}
+            categories={categories}
           />
 
           <div className="flex-1 min-w-0 space-y-4">
