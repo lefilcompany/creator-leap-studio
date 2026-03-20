@@ -459,18 +459,23 @@ export default function ActionList({
       ) : (
         /* Grid view */
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-          {filteredAndSortedActions.map((action) => (
-            <ActionCard
-              key={action.id}
-              action={action}
-              isSelected={selectedAction?.id === action.id}
-              onNavigate={() => navigate(`/action/${action.id}`, { state: { viewMode } })}
-              isPersonalFavorite={isPersonalFavorite?.(action.id)}
-              isTeamFavorite={isTeamFavorite?.(action.id)}
-              hasTeam={hasTeam}
-              onToggleFavorite={onToggleFavorite}
-            />
-          ))}
+          {filteredAndSortedActions.map((action) => {
+            const catIds = actionCategoryMap?.get(action.id) || [];
+            const actionCats = catIds.map(cid => categoriesList?.find(c => c.id === cid)).filter(Boolean) as Array<{ id: string; name: string; color: string }>;
+            return (
+              <ActionCard
+                key={action.id}
+                action={action}
+                isSelected={selectedAction?.id === action.id}
+                onNavigate={() => navigate(`/action/${action.id}`, { state: { viewMode } })}
+                isPersonalFavorite={isPersonalFavorite?.(action.id)}
+                isTeamFavorite={isTeamFavorite?.(action.id)}
+                hasTeam={hasTeam}
+                onToggleFavorite={onToggleFavorite}
+                actionCategories={actionCats}
+              />
+            );
+          })}
         </div>
       )}
 
