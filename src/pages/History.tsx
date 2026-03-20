@@ -135,9 +135,11 @@ export default function History() {
           onTypeFilterChange={setTypeFilter}
           brandOptions={brandOptions}
           typeOptions={typeOptions}
-          hasNextPage={!!hasNextPage}
+          hasNextPage={activeTab === 'all' ? !!hasNextPage : false}
           isFetchingNextPage={isFetchingNextPage}
           onLoadMore={() => fetchNextPage()}
+          isFavorite={isFavorite}
+          onToggleFavorite={toggleFavorite}
         />
       </main>
 
@@ -147,9 +149,7 @@ export default function History() {
           { tourType: 'history', steps: historySteps, label: 'Tour de Histórico', targetElement: '#history-list' }
         ]}
         startDelay={500}
-          isFavorite={isFavorite}
-          onToggleFavorite={toggleFavorite}
-        />
+      />
     </div>
   );
 }
