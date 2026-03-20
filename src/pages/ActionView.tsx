@@ -462,9 +462,9 @@ export default function ActionView() {
               <div className="flex flex-wrap items-center gap-2 mt-3">
                 <Badge className={cn(
                   action.approved
-                    ? 'bg-green-500/10 text-green-600 border-green-500/20'
-                    : 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20',
-                  "hover:bg-inherit"
+                    ? 'bg-green-500/10 text-green-600 border-green-500/20 hover:bg-green-500/10'
+                    : 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20 hover:bg-yellow-500/10',
+                  "cursor-default"
                 )}>
                   {action.approved ? 'Aprovado' : 'Pendente'}
                 </Badge>
