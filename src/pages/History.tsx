@@ -43,7 +43,12 @@ export default function History() {
     if (activeTab === 'favorites') {
       return allActions.filter(a => allFavoriteIds.includes(a.id));
     }
-    return allActions;
+    // In "all" tab, favorites float to top for priority visibility
+    if (allFavoriteIds.length === 0) return allActions;
+    const favSet = new Set(allFavoriteIds);
+    const favs = allActions.filter(a => favSet.has(a.id));
+    const rest = allActions.filter(a => !favSet.has(a.id));
+    return [...favs, ...rest];
   }, [allActions, activeTab, allFavoriteIds]);
 
   const brandOptions = useMemo(() => [

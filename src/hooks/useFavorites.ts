@@ -25,6 +25,8 @@ export function useFavorites() {
       return (data || []) as FavoriteEntry[];
     },
     enabled: !!user?.id,
+    staleTime: 1000 * 60 * 5, // 5 min — favorites change rarely
+    gcTime: 1000 * 60 * 30,   // keep in cache 30 min
   });
 
   const personalFavoriteIds = favorites
