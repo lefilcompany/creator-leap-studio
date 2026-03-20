@@ -41,6 +41,7 @@ interface ActionListProps {
   sortField?: SortField;
   sortDirection?: SortDirection;
   onSortChange?: (field: SortField, direction: SortDirection) => void;
+  mobileFilterSlot?: React.ReactNode;
 }
 
 const formatDate = (dateString: string) => {
