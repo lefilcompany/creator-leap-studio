@@ -59,7 +59,7 @@ export default function ContentCreationSelector() {
       <OnboardingTour tourType="create_content" steps={contentCreationSelectorSteps} />
 
       {/* Banner */}
-      <div className="relative w-full h-36 md:h-44 lg:h-52 flex-shrink-0 overflow-hidden">
+      <div className="relative w-full h-28 md:h-36 flex-shrink-0 overflow-hidden">
         <PageBreadcrumb items={[{ label: "Criar Conteúdo" }]} variant="overlay" />
         <img
           src={createBanner}
@@ -71,22 +71,22 @@ export default function ContentCreationSelector() {
       </div>
 
       {/* Header Card */}
-      <div className="relative px-4 sm:px-6 lg:px-8 -mt-12 flex-shrink-0">
+      <div className="relative px-4 sm:px-6 lg:px-8 -mt-10 flex-shrink-0">
         <div
           id="content-creation-header"
-          className="bg-card rounded-2xl shadow-lg p-4 lg:p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
+          className="bg-card rounded-2xl shadow-lg p-3 lg:p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-3"
         >
-          <div className="flex items-center gap-4">
-            <div className="bg-primary/10 border border-primary/20 shadow-sm rounded-2xl p-3 lg:p-4">
-              <ImageIcon className="h-8 w-8 lg:h-10 lg:w-10 text-primary" />
+          <div className="flex items-center gap-3">
+            <div className="bg-primary/10 border border-primary/20 shadow-sm rounded-xl p-2.5 lg:p-3">
+              <ImageIcon className="h-6 w-6 lg:h-7 lg:w-7 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl lg:text-3xl font-bold text-foreground flex items-center gap-2">
+              <h1 className="text-xl lg:text-2xl font-bold text-foreground flex items-center gap-2">
                 Criar Conteúdo
                 <Popover>
                   <PopoverTrigger asChild>
                     <button className="text-muted-foreground hover:text-foreground transition-colors">
-                      <HelpCircle className="h-5 w-5" />
+                      <HelpCircle className="h-4 w-4" />
                     </button>
                   </PopoverTrigger>
                   <PopoverContent className="w-80 text-sm" side="bottom" align="start">
@@ -106,7 +106,7 @@ export default function ContentCreationSelector() {
                   </PopoverContent>
                 </Popover>
               </h1>
-              <p className="text-sm lg:text-base text-muted-foreground">
+              <p className="text-xs lg:text-sm text-muted-foreground">
                 Escolha o tipo de criação que deseja fazer
               </p>
             </div>
