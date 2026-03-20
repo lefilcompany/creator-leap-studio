@@ -19,18 +19,24 @@ export type Database = {
           action_id: string
           created_at: string
           id: string
+          scope: string
+          team_id: string | null
           user_id: string
         }
         Insert: {
           action_id: string
           created_at?: string
           id?: string
+          scope?: string
+          team_id?: string | null
           user_id: string
         }
         Update: {
           action_id?: string
           created_at?: string
           id?: string
+          scope?: string
+          team_id?: string | null
           user_id?: string
         }
         Relationships: [
@@ -39,6 +45,13 @@ export type Database = {
             columns: ["action_id"]
             isOneToOne: false
             referencedRelation: "actions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "action_favorites_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
             referencedColumns: ["id"]
           },
         ]
