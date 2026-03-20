@@ -103,7 +103,7 @@ export function ActionCardMenu({
             >
               <FolderOpen className="h-4 w-4 flex-shrink-0" />
               <span className="flex-1 text-left">Adicionar à categoria</span>
-              <svg width="10" height="10" viewBox="0 0 15 15" className="h-3.5 w-3.5 ml-auto text-muted-foreground"><path d="M6.1584 3.13508C6.35985 2.94621 6.67627 2.95642 6.86514 3.15788L10.6151 7.15788C10.7954 7.3502 10.7954 7.6498 10.6151 7.84212L6.86514 11.8421C6.67627 12.0436 6.35985 12.0538 6.1584 11.8649C5.95694 11.676 5.94673 11.3596 6.1356 11.1582L9.565 7.49999L6.1356 3.84182C5.94673 3.64036 5.95694 3.32394 6.1584 3.13508Z" fill="currentColor" /></svg>
+              <ChevronRight className="h-3.5 w-3.5 ml-auto text-muted-foreground" />
             </button>
           </PopoverTrigger>
           <PopoverContent
