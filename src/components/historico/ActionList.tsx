@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { Star, Search, ArrowUpDown, ArrowUp, ArrowDown, List, LayoutGrid, X, Clock, Sparkles, CheckCircle, Calendar, Video, Image, Globe, Users, Loader2 } from 'lucide-react';
+import { Star, Search, ArrowUpDown, ArrowUp, ArrowDown, List, LayoutGrid, X, Clock, Sparkles, CheckCircle, Calendar, Video, Image, Globe, Users, Loader2, MoreHorizontal } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { CategoryBadge, NoCategoryBadge } from '@/components/categorias/CategoryBadge';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,7 @@ import type { ActionSummary } from '@/types/action';
 import { ACTION_TYPE_DISPLAY, ACTION_STYLE_MAP } from '@/types/action';
 import type { BrandSummary } from '@/types/brand';
 import { FavoriteButton } from '@/components/historico/FavoriteButton';
+import { ActionCardMenu } from '@/components/historico/ActionCardMenu';
 import type { FavoriteScope } from '@/hooks/useFavorites';
 
 type SortField = 'type' | 'date';
@@ -203,17 +204,17 @@ function ActionCard({ action, isSelected, onNavigate, isPersonalFavorite, isTeam
             <FallbackIcon className={cn("h-12 w-12 opacity-40", iconColor)} />
           </div>
         )}
-        {/* Favorite button overlay */}
+        {/* Action menu overlay */}
         <div className={cn(
           "absolute top-2 right-2 bg-background/80 backdrop-blur-sm rounded-lg transition-all shadow-sm",
           (isPersonalFavorite || isTeamFavorite) ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-        )}>
-          <FavoriteButton
+        )} onClick={(e) => e.stopPropagation()}>
+          <ActionCardMenu
             actionId={action.id}
             isPersonalFavorite={!!isPersonalFavorite}
             isTeamFavorite={!!isTeamFavorite}
             hasTeam={!!hasTeam}
-            onToggle={(id, scope) => onToggleFavorite?.(id, scope)}
+            onToggleFavorite={(id, scope) => onToggleFavorite?.(id, scope)}
           />
         </div>
       </div>
@@ -441,12 +442,12 @@ export default function ActionList({
                       {formatDateShort(action.createdAt)}
                     </TableCell>
                     <TableCell className="py-2" onClick={(e) => e.stopPropagation()}>
-                      <FavoriteButton
+                      <ActionCardMenu
                         actionId={action.id}
                         isPersonalFavorite={!!isPersonalFavorite?.(action.id)}
                         isTeamFavorite={!!isTeamFavorite?.(action.id)}
                         hasTeam={!!hasTeam}
-                        onToggle={(id, scope) => onToggleFavorite?.(id, scope)}
+                        onToggleFavorite={(id, scope) => onToggleFavorite?.(id, scope)}
                         size="sm"
                       />
                     </TableCell>
