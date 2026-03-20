@@ -61,12 +61,18 @@ interface TeamHeaderBannerProps {
 
 const TeamHeaderBanner = memo(({
   teamCount,
+  hasTeam,
+  isTeamAdmin,
+  hasOtherMembers,
+  teamName,
   createLabel,
   joinLabel,
   createVariant = 'outline',
   joinVariant = 'outline',
   onCreateClick,
   onJoinClick,
+  onLeaveClick,
+  onTransferClick,
 }: TeamHeaderBannerProps) => (
   <>
     <div className="relative h-32 sm:h-36 md:h-44 lg:h-52 overflow-hidden">
@@ -102,14 +108,40 @@ const TeamHeaderBanner = memo(({
           </div>
 
           <div className="flex gap-2">
-            <Button onClick={onCreateClick} variant={createVariant} size="sm">
-              <Plus className="h-4 w-4 mr-2" />
-              {createLabel}
-            </Button>
-            <Button onClick={onJoinClick} variant={joinVariant} size="sm">
-              <UserPlus className="h-4 w-4 mr-2" />
-              {joinLabel}
-            </Button>
+            {!hasTeam && (
+              <>
+                <Button onClick={onCreateClick} variant={createVariant} size="sm">
+                  <Plus className="h-4 w-4 mr-2" />
+                  {createLabel}
+                </Button>
+                <Button onClick={onJoinClick} variant={joinVariant} size="sm">
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  {joinLabel}
+                </Button>
+              </>
+            )}
+            {hasTeam && !isTeamAdmin && (
+              <Button onClick={onLeaveClick} variant="outline" size="sm" className="text-destructive hover:bg-destructive hover:text-destructive-foreground">
+                <LogOut className="h-4 w-4 mr-2" />
+                Sair da Equipe
+              </Button>
+            )}
+            {hasTeam && isTeamAdmin && (
+              <>
+                {hasOtherMembers && (
+                  <Button onClick={onTransferClick} variant="outline" size="sm">
+                    <ArrowRightLeft className="h-4 w-4 mr-2" />
+                    Transferir Administração
+                  </Button>
+                )}
+                {!hasOtherMembers && (
+                  <Button onClick={onLeaveClick} variant="outline" size="sm" className="text-destructive hover:bg-destructive hover:text-destructive-foreground">
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sair da Equipe
+                  </Button>
+                )}
+              </>
+            )}
           </div>
         </div>
       </div>
