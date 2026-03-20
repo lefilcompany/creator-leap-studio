@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Download, Copy, CheckCircle, Sparkles, Calendar, Loader2, Clock, User, Tag, Check, FileText, File, FileCode, LayoutGrid, List, ArrowLeft, Info, Image, Video, ClipboardList, FileOutput, Users, Globe, X, ZoomIn } from 'lucide-react';
+import { Download, Copy, CheckCircle, Sparkles, Calendar, Loader2, Clock, User, Tag, Check, FileText, File, FileCode, LayoutGrid, List, ArrowLeft, Info, Image, Video, ClipboardList, FileOutput, Users, Globe, X, ZoomIn, FolderOpen } from 'lucide-react';
 import type { Action } from '@/types/action';
 import { ACTION_TYPE_DISPLAY } from '@/types/action';
 import ReactMarkdown from 'react-markdown';
@@ -21,6 +21,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { PageBreadcrumb } from "@/components/PageBreadcrumb";
 import { cn } from '@/lib/utils';
+import { useActionCategories, useCategories } from '@/hooks/useCategories';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 // ── SectionCard ──────────────────────────────────────────────
 interface SectionCardProps {
@@ -168,6 +170,8 @@ export default function ActionView() {
   const [copying, setCopying] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  const { data: actionCats = [] } = useActionCategories(actionId);
+  const { categories, addActionToCategory, removeActionFromCategory } = useCategories();
 
   // ── Data fetching ────────────────────────────────────────
   useEffect(() => {
@@ -445,15 +449,75 @@ export default function ActionView() {
               <p className="text-sm text-muted-foreground mt-0.5">
                 {formatDate(action.createdAt)} · {action.brand?.name || 'Sem marca'}
               </p>
-              {/* Status badges */}
+              {/* Status + Category badges */}
               <div className="flex flex-wrap items-center gap-2 mt-3">
-                <Badge className={cn(getStatusColor(action.status), "hover:bg-inherit")}>{action.status}</Badge>
-                <Badge variant={action.approved ? 'default' : 'secondary'} className="hover:bg-inherit">
+                <Badge className={cn(
+                  action.approved
+                    ? 'bg-green-500/10 text-green-600 border-green-500/20'
+                    : 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20',
+                  "hover:bg-inherit"
+                )}>
                   {action.approved ? 'Aprovado' : 'Pendente'}
                 </Badge>
                 {(action.revisions ?? 0) > 0 && (
                   <Badge variant="outline">{action.revisions} {action.revisions === 1 ? 'revisão' : 'revisões'}</Badge>
                 )}
+                {/* Category badge — clickable popover */}
+                <Popover>
+                  <PopoverTrigger asChild>
+                    {actionCats.length > 0 ? (
+                      <button className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border transition-colors hover:opacity-80 active:scale-[0.97]"
+                        style={{
+                          backgroundColor: `${actionCats[0].color}15`,
+                          color: actionCats[0].color,
+                          borderColor: `${actionCats[0].color}30`,
+                        }}
+                      >
+                        <FolderOpen className="h-3 w-3" />
+                        {actionCats[0].name}
+                      </button>
+                    ) : (
+                      <button className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border border-dashed border-muted-foreground/30 text-muted-foreground hover:border-muted-foreground/50 hover:text-foreground transition-colors active:scale-[0.97]">
+                        <FolderOpen className="h-3 w-3" />
+                        Sem categoria
+                      </button>
+                    )}
+                  </PopoverTrigger>
+                  <PopoverContent className="w-56 p-2" align="start">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 py-1.5">
+                      Categorias
+                    </p>
+                    {categories.length === 0 ? (
+                      <p className="text-sm text-muted-foreground px-2 py-3 text-center">Nenhuma categoria criada</p>
+                    ) : (
+                      <div className="space-y-0.5 max-h-48 overflow-y-auto">
+                        {categories.map(cat => {
+                          const isIn = actionCats.some(ac => ac.id === cat.id);
+                          return (
+                            <button
+                              key={cat.id}
+                              onClick={() => {
+                                if (isIn) {
+                                  removeActionFromCategory.mutate({ categoryId: cat.id, actionId: actionId! });
+                                } else {
+                                  addActionToCategory.mutate({ categoryId: cat.id, actionId: actionId! });
+                                }
+                              }}
+                              className={cn(
+                                "w-full flex items-center gap-2.5 px-2 py-1.5 rounded-md text-sm transition-colors active:scale-[0.97]",
+                                isIn ? "bg-primary/10 text-primary font-medium" : "text-foreground hover:bg-muted/50"
+                              )}
+                            >
+                              <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: cat.color }} />
+                              <span className="truncate flex-1 text-left">{cat.name}</span>
+                              {isIn && <Check className="h-3.5 w-3.5 flex-shrink-0" />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </PopoverContent>
+                </Popover>
               </div>
             </div>
           </div>
