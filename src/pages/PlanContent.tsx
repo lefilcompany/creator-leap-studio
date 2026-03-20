@@ -268,7 +268,7 @@ const PlanContent = () => {
       />
 
       {/* Banner */}
-      <div className="relative w-full h-36 md:h-44 lg:h-52 flex-shrink-0 overflow-hidden">
+      <div className="relative w-full h-28 md:h-36 flex-shrink-0 overflow-hidden">
         <PageBreadcrumb
           items={[{ label: "Planejar Conteúdo" }]}
           variant="overlay"
@@ -282,19 +282,19 @@ const PlanContent = () => {
       </div>
 
       {/* Header Card */}
-      <div className="relative px-4 sm:px-6 lg:px-8 -mt-12 flex-shrink-0 z-10">
+      <div className="relative px-4 sm:px-6 lg:px-8 -mt-10 flex-shrink-0 z-10">
         <div className="max-w-7xl mx-auto">
           <div
             id="plan-header"
-            className="bg-card rounded-2xl shadow-lg p-4 lg:p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
+            className="bg-card rounded-2xl shadow-lg p-3 lg:p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-3"
           >
           <div className="flex items-center gap-3">
-            <div className="flex-shrink-0 bg-primary/10 border border-primary/20 text-primary shadow-sm rounded-2xl p-3 lg:p-4">
-              <Calendar className="h-8 w-8 lg:h-10 lg:w-10" />
+            <div className="flex-shrink-0 bg-primary/10 border border-primary/20 text-primary shadow-sm rounded-xl p-2.5 lg:p-3">
+              <Calendar className="h-6 w-6 lg:h-7 lg:w-7" />
             </div>
             <div>
-              <h1 className="text-2xl lg:text-3xl font-bold text-foreground">Planejar Conteúdo</h1>
-              <p className="text-sm lg:text-base text-muted-foreground">
+              <h1 className="text-xl lg:text-2xl font-bold text-foreground">Planejar Conteúdo</h1>
+              <p className="text-xs lg:text-sm text-muted-foreground">
                 Preencha os campos para gerar seu planejamento de posts
               </p>
             </div>
