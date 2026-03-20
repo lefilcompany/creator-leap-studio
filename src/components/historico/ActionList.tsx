@@ -191,12 +191,17 @@ function ActionCard({ action, isSelected, onNavigate, isFavorite, onToggleFavori
             <FallbackIcon className={cn("h-12 w-12 opacity-40", iconColor)} />
           </div>
         )}
-        {/* View button overlay */}
-        <div
-          className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm rounded-lg p-1.5 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+        {/* Favorite button overlay */}
+        <button
+          onClick={(e) => { e.stopPropagation(); onToggleFavorite?.(); }}
+          className={cn(
+            "absolute top-2 right-2 bg-background/80 backdrop-blur-sm rounded-lg p-1.5 transition-all shadow-sm active:scale-95",
+            isFavorite ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+          )}
+          aria-label={isFavorite ? "Remover dos favoritos" : "Adicionar aos favoritos"}
         >
-          <Eye className="h-4 w-4 text-foreground" />
-        </div>
+          <Star className={cn("h-4 w-4 transition-colors", isFavorite ? "fill-amber-400 text-amber-400" : "text-foreground")} />
+        </button>
       </div>
 
       {/* Content */}
