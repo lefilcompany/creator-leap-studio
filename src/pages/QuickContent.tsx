@@ -185,6 +185,9 @@ export default function QuickContent() {
 
       clearPersistedData();
 
+      // Capture categoryId before dispatching
+      const selectedCategoryId = categoryId;
+
       // Dispatch to background
       addTask(
         "Criação Rápida",
@@ -192,6 +195,19 @@ export default function QuickContent() {
         async () => {
           const { data, error } = await supabase.functions.invoke("generate-quick-content", { body: payload });
           if (error) throw error;
+
+          // Auto-assign to category if selected
+          if (selectedCategoryId && data.actionId) {
+            try {
+              await supabase.from('action_category_items').insert({
+                category_id: selectedCategoryId,
+                action_id: data.actionId,
+                added_by: user!.id,
+              });
+            } catch (e) {
+              console.error("Erro ao atribuir categoria:", e);
+            }
+          }
 
           try { await refreshUserCredits(); } catch {}
 
