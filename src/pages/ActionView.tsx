@@ -21,6 +21,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { PageBreadcrumb } from "@/components/PageBreadcrumb";
 import { cn } from '@/lib/utils';
+import { useActionCategories, useCategories } from '@/hooks/useCategories';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 // ── SectionCard ──────────────────────────────────────────────
 interface SectionCardProps {
