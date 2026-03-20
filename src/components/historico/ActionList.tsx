@@ -29,6 +29,8 @@ interface ActionListProps {
   hasNextPage: boolean;
   isFetchingNextPage: boolean;
   onLoadMore: () => void;
+  isFavorite?: (actionId: string) => boolean;
+  onToggleFavorite?: (actionId: string) => void;
 }
 
 type SortField = 'type' | 'date';
