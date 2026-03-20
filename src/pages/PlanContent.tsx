@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { CategorySelector } from "@/components/CategorySelector";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -45,6 +46,7 @@ const PlanContent = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [brands, setBrands] = useState<any[]>([]);
   const [themes, setThemes] = useState<any[]>([]);
+  const [categoryId, setCategoryId] = useState("");
   const creditsRemaining = user?.credits ?? 0;
   const [isLoadingData, setIsLoadingData] = useState(true);
 
@@ -185,6 +187,8 @@ const PlanContent = () => {
 
       clearPersistedData();
 
+      const capturedCategoryId = categoryId;
+
       addTask(
         "Planejamento de Conteúdo",
         "plan_content",
@@ -201,6 +205,19 @@ const PlanContent = () => {
 
           if (data.error) {
             throw new Error(data.error);
+          }
+
+          // Auto-assign to category if selected
+          if (capturedCategoryId && data.actionId) {
+            try {
+              await supabase.from('action_category_items').insert({
+                category_id: capturedCategoryId,
+                action_id: data.actionId,
+                added_by: user!.id,
+              });
+            } catch (e) {
+              console.error("Erro ao atribuir categoria:", e);
+            }
           }
 
           try { await refreshTeamCredits(); } catch {}
@@ -492,6 +509,16 @@ const PlanContent = () => {
                   </p>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Category Selector */}
+          <Card className="bg-card border-0 shadow-md rounded-2xl overflow-hidden">
+            <CardContent className="p-5 sm:p-7">
+              <CategorySelector
+                value={categoryId}
+                onChange={setCategoryId}
+              />
             </CardContent>
           </Card>
 

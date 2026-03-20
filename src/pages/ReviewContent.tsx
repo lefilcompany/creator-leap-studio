@@ -1,4 +1,5 @@
 import { useState, ChangeEvent, useEffect, useMemo } from "react";
+import { CategorySelector } from "@/components/CategorySelector";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -44,6 +45,7 @@ const ReviewContent = () => {
   const [textForImage, setTextForImage] = useState("");
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [categoryId, setCategoryId] = useState("");
 
   // React Query for brands
   const { data: brands = [], isLoading: isLoadingBrands } = useQuery({
@@ -222,6 +224,8 @@ const ReviewContent = () => {
 
       clearPersistedData();
 
+      const capturedCategoryId = categoryId;
+
       addTask(
         taskLabel,
         `review_${capturedReviewType}`,
@@ -229,6 +233,20 @@ const ReviewContent = () => {
           const { data, error: functionError } = await supabase.functions.invoke(functionName, { body: payload });
           if (functionError) throw functionError;
           if (!data?.review) throw new Error("Revisão não retornada");
+
+          // Auto-assign to category if selected
+          if (capturedCategoryId && data.actionId) {
+            try {
+              const { data: { user: authUser } } = await supabase.auth.getUser();
+              await supabase.from('action_category_items').insert({
+                category_id: capturedCategoryId,
+                action_id: data.actionId,
+                added_by: authUser!.id,
+              });
+            } catch (e) {
+              console.error("Erro ao atribuir categoria:", e);
+            }
+          }
 
           try { await refreshUserCredits(); } catch {}
 
@@ -506,6 +524,12 @@ const ReviewContent = () => {
                           triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50 disabled:opacity-50"
                         />
                       )}
+                    </div>
+                    <div className="md:col-span-2">
+                      <CategorySelector
+                        value={categoryId}
+                        onChange={setCategoryId}
+                      />
                     </div>
                   </div>
                 </CardContent>

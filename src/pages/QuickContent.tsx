@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { CategorySelector } from "@/components/CategorySelector";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,7 @@ export default function QuickContent() {
   const { user, refreshUserCredits } = useAuth();
   const { addTask } = useBackgroundTasks();
   const [loading, setLoading] = useState(false);
+  const [categoryId, setCategoryId] = useState("");
   const [formData, setFormData] = useState({
     prompt: "",
     brandId: "",
@@ -183,6 +185,9 @@ export default function QuickContent() {
 
       clearPersistedData();
 
+      // Capture categoryId before dispatching
+      const selectedCategoryId = categoryId;
+
       // Dispatch to background
       addTask(
         "Criação Rápida",
@@ -190,6 +195,19 @@ export default function QuickContent() {
         async () => {
           const { data, error } = await supabase.functions.invoke("generate-quick-content", { body: payload });
           if (error) throw error;
+
+          // Auto-assign to category if selected
+          if (selectedCategoryId && data.actionId) {
+            try {
+              await supabase.from('action_category_items').insert({
+                category_id: selectedCategoryId,
+                action_id: data.actionId,
+                added_by: user!.id,
+              });
+            } catch (e) {
+              console.error("Erro ao atribuir categoria:", e);
+            }
+          }
 
           try { await refreshUserCredits(); } catch {}
 
@@ -307,7 +325,12 @@ export default function QuickContent() {
               onPreserveImageIndicesChange={setPreserveImageIndices}
             />
 
-
+            {/* Category Selector */}
+            <CategorySelector
+              value={categoryId}
+              onChange={setCategoryId}
+              className="mt-2"
+            />
           </div>
 
           {/* Generate Button */}

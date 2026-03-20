@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
+import { CategorySelector } from "@/components/CategorySelector";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -157,6 +158,7 @@ export default function CreateContent() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [missingFields, setMissingFields] = useState<string[]>([]);
   const [contentType, setContentType] = useState<"organic" | "ads">("organic");
+  const [categoryId, setCategoryId] = useState("");
   const [platformGuidelines, setPlatformGuidelines] = useState<string[]>([]);
   const [recommendedAspectRatio, setRecommendedAspectRatio] = useState<string>("");
   const [preserveImageIndices, setPreserveImageIndices] = useState<number[]>([]);
@@ -1069,6 +1071,7 @@ export default function CreateContent() {
       const capturedFormData = { ...formData };
       const capturedFinalBrandImages = [...finalBrandImages];
       const capturedFinalUserImages = [...finalUserImages];
+      const capturedCategoryId = categoryId;
 
       clearPersistedData();
 
@@ -1173,6 +1176,7 @@ export default function CreateContent() {
                 originalFormData: { ...capturedRequestData, brandId: capturedFormData.brand },
                 actionId: undefined,
                 isLocalFallback,
+                categoryId: capturedCategoryId || undefined,
               }
             }
           };
@@ -1417,6 +1421,11 @@ export default function CreateContent() {
                     />
                   )}
                 </div>
+
+                <CategorySelector
+                  value={categoryId}
+                  onChange={setCategoryId}
+                />
 
                 <div className="space-y-2 md:space-y-3">
                   <Label
