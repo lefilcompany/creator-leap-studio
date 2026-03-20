@@ -28,6 +28,7 @@ interface ContentResultData {
   actionId?: string;
   isLocalFallback?: boolean;
   isProcessing?: boolean;
+  categoryId?: string;
 }
 
 export default function ContentResult() {
