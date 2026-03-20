@@ -14,6 +14,7 @@ import { useHistoryBrands, useHistoryActions } from '@/hooks/useHistoryActions';
 import { useFavorites } from '@/hooks/useFavorites';
 import { HistoryFilterSidebar, MobileFilterTrigger } from '@/components/historico/HistoryFilterSidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useCategories } from '@/hooks/useCategories';
 
 type SortField = 'date' | 'type';
 type SortDirection = 'asc' | 'desc';
@@ -25,9 +26,11 @@ export default function History() {
   const { allFavoriteIds, isFavorite, isPersonalFavorite, isTeamFavorite, toggleFavorite, hasTeam } = useFavorites();
   const [brandFilter, setBrandFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [sortField, setSortField] = useState<SortField>('date');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const isMobile = useIsMobile();
+  const { categories } = useCategories();
 
   const { data: brands = [], isLoading: isLoadingBrands } = useHistoryBrands();
 
