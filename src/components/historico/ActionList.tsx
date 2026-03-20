@@ -442,12 +442,12 @@ export default function ActionList({
                       {formatDateShort(action.createdAt)}
                     </TableCell>
                     <TableCell className="py-2" onClick={(e) => e.stopPropagation()}>
-                      <FavoriteButton
+                      <ActionCardMenu
                         actionId={action.id}
                         isPersonalFavorite={!!isPersonalFavorite?.(action.id)}
                         isTeamFavorite={!!isTeamFavorite?.(action.id)}
                         hasTeam={!!hasTeam}
-                        onToggle={(id, scope) => onToggleFavorite?.(id, scope)}
+                        onToggleFavorite={(id, scope) => onToggleFavorite?.(id, scope)}
                         size="sm"
                       />
                     </TableCell>
