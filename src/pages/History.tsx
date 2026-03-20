@@ -34,10 +34,17 @@ export default function History() {
     isFetchingNextPage,
   } = useHistoryActions(filters);
 
-  const actions = useMemo(
+  const allActions = useMemo(
     () => actionsData?.pages.flatMap(page => page.actions) || [],
     [actionsData]
   );
+
+  const actions = useMemo(() => {
+    if (activeTab === 'favorites') {
+      return allActions.filter(a => favoriteIds.includes(a.id));
+    }
+    return allActions;
+  }, [allActions, activeTab, favoriteIds]);
 
   const brandOptions = useMemo(() => [
     { value: 'all', label: 'Todas as Marcas' },
