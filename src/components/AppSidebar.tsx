@@ -1,14 +1,16 @@
-import React from "react";
+import React, { useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
-import { Home, Tag, Users, Calendar, History, Sparkles, CheckCircle, Palette, Coins, UsersRound, FolderOpen } from "lucide-react";
+import { Home, Tag, Users, Calendar, History, Sparkles, CheckCircle, Palette, Coins, UsersRound, FolderOpen, ChevronRight } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarRail, useSidebar } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useCategories } from "@/hooks/useCategories";
 import logoCreatorPreta from "@/assets/logoCreatorPreta.png";
 import logoCreatorBranca from "@/assets/logoCreatorBranca.png";
 import creatorSymbol from "@/assets/creator-symbol.png";
@@ -164,6 +166,128 @@ function ActionButton({
   return linkContent;
 }
 
+function CategoriesDropdown({ collapsed, onNavigate, disabled }: { collapsed: boolean; onNavigate?: () => void; disabled?: boolean }) {
+  const location = useLocation();
+  const { myCategories, sharedCategories } = useCategories();
+  const [isOpen, setIsOpen] = useState(false);
+  const isActive = location.pathname.startsWith('/categories');
+
+  const MAX_SHOWN = 5;
+
+  if (disabled) {
+    return (
+      <div className={cn(
+        "flex items-center gap-4 p-2.5 rounded-lg cursor-not-allowed opacity-50",
+        collapsed ? "justify-center" : "",
+        "text-muted-foreground bg-white/20 dark:bg-white/5"
+      )}>
+        <FolderOpen className="h-5 w-5 flex-shrink-0" />
+        {!collapsed && <span className="font-medium text-sm">Categorias</span>}
+      </div>
+    );
+  }
+
+  if (collapsed) {
+    const linkContent = (
+      <NavLink
+        id="nav-categories"
+        to="/categories"
+        onClick={onNavigate}
+        className={cn(
+          "flex items-center justify-center p-2.5 rounded-lg transition-colors duration-300 ease-in-out",
+          isActive
+            ? "bg-white/70 dark:bg-white/10 text-primary shadow-sm"
+            : "text-foreground/70 hover:bg-white/40 dark:hover:bg-white/10 hover:text-foreground"
+        )}
+      >
+        <FolderOpen className="h-5 w-5 flex-shrink-0" />
+      </NavLink>
+    );
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>{linkContent}</TooltipTrigger>
+        <TooltipContent side="right"><p>Categorias</p></TooltipContent>
+      </Tooltip>
+    );
+  }
+
+  return (
+    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+      <CollapsibleTrigger className={cn(
+        "w-full flex items-center gap-4 p-2.5 rounded-lg transition-colors duration-300 ease-in-out",
+        isActive
+          ? "bg-white/70 dark:bg-white/10 text-primary shadow-sm"
+          : "text-foreground/70 hover:bg-white/40 dark:hover:bg-white/10 hover:text-foreground"
+      )}>
+        <FolderOpen className="h-5 w-5 flex-shrink-0" />
+        <span className="font-medium text-sm flex-1 text-left">Categorias</span>
+        <ChevronRight className={cn("h-4 w-4 transition-transform duration-200", isOpen && "rotate-90")} />
+      </CollapsibleTrigger>
+
+      <CollapsibleContent className="pl-4 mt-1 space-y-0.5">
+        {/* My Categories */}
+        {myCategories.length > 0 && (
+          <>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 px-2.5 pt-2 pb-1">Minhas</p>
+            {myCategories.slice(0, MAX_SHOWN).map(cat => (
+              <NavLink
+                key={cat.id}
+                to={`/categories/${cat.id}`}
+                onClick={onNavigate}
+                className={cn(
+                  "flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-sm transition-colors",
+                  location.pathname === `/categories/${cat.id}`
+                    ? "bg-white/60 dark:bg-white/10 text-foreground font-medium"
+                    : "text-foreground/60 hover:text-foreground hover:bg-white/30 dark:hover:bg-white/5"
+                )}
+              >
+                <span className="h-2.5 w-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: cat.color }} />
+                <span className="truncate">{cat.name}</span>
+              </NavLink>
+            ))}
+          </>
+        )}
+
+        {/* Shared Categories */}
+        {sharedCategories.length > 0 && (
+          <>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 px-2.5 pt-2 pb-1">Compartilhadas</p>
+            {sharedCategories.slice(0, MAX_SHOWN).map(cat => (
+              <NavLink
+                key={cat.id}
+                to={`/categories/${cat.id}`}
+                onClick={onNavigate}
+                className={cn(
+                  "flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-sm transition-colors",
+                  location.pathname === `/categories/${cat.id}`
+                    ? "bg-white/60 dark:bg-white/10 text-foreground font-medium"
+                    : "text-foreground/60 hover:text-foreground hover:bg-white/30 dark:hover:bg-white/5"
+                )}
+              >
+                <span className="h-2.5 w-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: cat.color }} />
+                <span className="truncate">{cat.name}</span>
+              </NavLink>
+            ))}
+          </>
+        )}
+
+        {myCategories.length === 0 && sharedCategories.length === 0 && (
+          <p className="text-xs text-muted-foreground/50 px-2.5 py-2">Nenhuma categoria</p>
+        )}
+
+        {/* View All link */}
+        <NavLink
+          to="/categories"
+          onClick={onNavigate}
+          className="flex items-center px-2.5 py-1.5 text-xs text-primary hover:underline font-medium"
+        >
+          Ver todas
+        </NavLink>
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
+
 export function AppSidebar() {
   const { state, open, setOpen } = useSidebar();
   const isMobile = useIsMobile();
@@ -181,7 +305,9 @@ export function AppSidebar() {
     { id: "nav-themes", href: "/themes", icon: Palette, label: t.sidebar.themes },
     { id: "nav-personas", href: "/personas", icon: Users, label: t.sidebar.personas },
     { id: "nav-history", href: "/history", icon: History, label: t.sidebar.history },
-    { id: "nav-categories", href: "/categories", icon: FolderOpen, label: t.sidebar.categories || "Categorias" },
+  ];
+
+  const postCategoryLinks = [
     { id: "nav-team", href: "/team", icon: UsersRound, label: t.sidebar.team },
   ];
 
@@ -226,6 +352,23 @@ export function AppSidebar() {
               collapsed={collapsed}
               onNavigate={handleMobileNavigate}
               disabled={isNavigationDisabled && link.id !== "nav-history"}
+            />
+          ))}
+
+          {/* Categories Dropdown */}
+          <CategoriesDropdown
+            collapsed={collapsed}
+            onNavigate={handleMobileNavigate}
+            disabled={isNavigationDisabled}
+          />
+
+          {postCategoryLinks.map(link => (
+            <NavItem
+              key={link.href}
+              {...link}
+              collapsed={collapsed}
+              onNavigate={handleMobileNavigate}
+              disabled={isNavigationDisabled}
             />
           ))}
         </div>

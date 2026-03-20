@@ -26,7 +26,7 @@ export default function Categories() {
 
   const hasTeam = !!user?.teamId;
 
-  const handleSave = (data: { name: string; description?: string; color: string; visibility: 'personal' | 'team' }) => {
+  const handleSave = (data: { name: string; description?: string; color: string; members?: { userId: string; role: 'viewer' | 'editor' }[] }) => {
     if (editingCategory) {
       updateCategory.mutate({ id: editingCategory.id, ...data }, {
         onSuccess: () => { setDialogOpen(false); setEditingCategory(null); },
