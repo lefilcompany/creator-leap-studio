@@ -442,6 +442,7 @@ export default function ActionList({
                 <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-semibold hidden md:table-cell">Marca</TableHead>
                 <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-semibold hidden lg:table-cell">Plataforma</TableHead>
                 <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-semibold text-right">Data</TableHead>
+                <TableHead className="w-10"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
