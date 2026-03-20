@@ -32,6 +32,7 @@ import { createContentSteps, navbarSteps } from '@/components/onboarding/tourSte
 import { PageBreadcrumb } from "@/components/PageBreadcrumb";
 import { CreationProgressBar } from "@/components/CreationProgressBar";
 import { PlatformSelector } from "@/components/quick-content/PlatformSelector";
+import { CategorySelector } from "@/components/CategorySelector";
 import createBanner from "@/assets/create-banner.jpg";
 
 enum GenerationStep {
