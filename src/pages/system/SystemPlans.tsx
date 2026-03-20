@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Package, Users, CreditCard, Building2, RefreshCw, TrendingUp } from "lucide-react";
+import { Loader2, Package, Users, CreditCard, Building2, RefreshCw, TrendingUp, AlertTriangle } from "lucide-react";
 import { AdminFilters } from "@/components/admin/AdminFilters";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
@@ -174,6 +174,18 @@ export default function AdminPlans() {
     }
   };
 
+  // Compute real status considering subscription_period_end
+  const getRealStatus = (sub: TeamSubscription): { status: string; isExpiredButMarkedActive: boolean } => {
+    const now = new Date();
+    if (sub.subscription_period_end && new Date(sub.subscription_period_end) < now) {
+      if (sub.subscription_status === "active" || sub.subscription_status === "trialing") {
+        return { status: "expired", isExpiredButMarkedActive: true };
+      }
+      return { status: "expired", isExpiredButMarkedActive: false };
+    }
+    return { status: sub.subscription_status || "unknown", isExpiredButMarkedActive: false };
+  };
+
   const getStatusColor = (status: string | null) => {
     switch (status) {
       case "active":
@@ -182,6 +194,8 @@ export default function AdminPlans() {
         return "bg-blue-500/10 text-blue-600 border-blue-500/20";
       case "canceled":
         return "bg-red-500/10 text-red-600 border-red-500/20";
+      case "expired":
+        return "bg-orange-500/10 text-orange-600 border-orange-500/20";
       case "past_due":
         return "bg-yellow-500/10 text-yellow-600 border-yellow-500/20";
       default:
@@ -197,6 +211,8 @@ export default function AdminPlans() {
         return "Trial";
       case "canceled":
         return "Cancelado";
+      case "expired":
+        return "Expirado";
       case "past_due":
         return "Atrasado";
       default:
@@ -220,7 +236,8 @@ export default function AdminPlans() {
     
     const matchesPlan = planFilter === "all" || sub.plan_id === planFilter;
     
-    const matchesStatus = statusFilter === "all" || sub.subscription_status === statusFilter;
+    const realStatus = getRealStatus(sub).status;
+    const matchesStatus = statusFilter === "all" || realStatus === statusFilter;
     
     return matchesSearch && matchesPlan && matchesStatus;
   });
@@ -229,15 +246,18 @@ export default function AdminPlans() {
   const totalPlans = plans.length;
   const activePlans = plans.filter(p => p.is_active).length;
   
+  // Count truly active (not expired) subscriptions
+  const realActiveCount = subscriptions.filter(s => getRealStatus(s).status === "active").length;
+  const realTrialingCount = subscriptions.filter(s => getRealStatus(s).status === "trialing").length;
+  const expiredButMarkedActiveCount = subscriptions.filter(s => getRealStatus(s).isExpiredButMarkedActive).length;
+  
   // Use Stripe data if available, fallback to local calculation
-  const activeSubscriptionsCount = stripeData?.activeSubscriptions ?? 
-    subscriptions.filter(s => s.subscription_status === "active").length;
-  const trialingCount = stripeData?.trialingSubscriptions ?? 
-    subscriptions.filter(s => s.subscription_status === "trialing").length;
+  const activeSubscriptionsCount = stripeData?.activeSubscriptions ?? realActiveCount;
+  const trialingCount = stripeData?.trialingSubscriptions ?? realTrialingCount;
   const totalActiveAndTrialing = activeSubscriptionsCount + trialingCount;
   
   const totalRevenue = stripeData?.mrr ?? subscriptions
-    .filter(s => s.subscription_status === "active")
+    .filter(s => getRealStatus(s).status === "active")
     .reduce((acc, sub) => {
       const plan = plans.find(p => p.id === sub.plan_id);
       return acc + (plan?.price_monthly || 0);
@@ -292,6 +312,12 @@ export default function AdminPlans() {
               {activeSubscriptionsCount} ativas, {trialingCount} trial
               {stripeData && <span className="text-green-600 ml-1">• Stripe</span>}
             </p>
+            {expiredButMarkedActiveCount > 0 && (
+              <p className="text-xs text-orange-600 flex items-center gap-1 mt-1">
+                <AlertTriangle className="h-3 w-3" />
+                {expiredButMarkedActiveCount} com status desatualizado
+              </p>
+            )}
           </CardContent>
         </Card>
         <Card>
@@ -511,8 +537,10 @@ export default function AdminPlans() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredSubscriptions.map((sub) => (
-                    <TableRow key={sub.id}>
+                  {filteredSubscriptions.map((sub) => {
+                    const { status: realStatus, isExpiredButMarkedActive } = getRealStatus(sub);
+                    return (
+                    <TableRow key={sub.id} className={isExpiredButMarkedActive ? "bg-orange-500/5" : ""}>
                       <TableCell className="font-medium">{sub.name}</TableCell>
                       <TableCell>
                         <div>
@@ -525,13 +553,21 @@ export default function AdminPlans() {
                       </TableCell>
                       <TableCell>{sub.credits}</TableCell>
                       <TableCell>
-                        <Badge className={getStatusColor(sub.subscription_status)}>
-                          {getStatusLabel(sub.subscription_status)}
-                        </Badge>
+                        <div className="flex flex-col gap-1">
+                          <Badge className={getStatusColor(realStatus)}>
+                            {getStatusLabel(realStatus)}
+                          </Badge>
+                          {isExpiredButMarkedActive && (
+                            <span className="text-[10px] text-orange-600 flex items-center gap-0.5">
+                              <AlertTriangle className="h-3 w-3" />
+                              DB marca "{sub.subscription_status}"
+                            </span>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell>
                         {sub.subscription_period_end ? (
-                          <span className="text-sm">
+                          <span className={`text-sm ${new Date(sub.subscription_period_end) < new Date() ? "text-destructive font-medium" : ""}`}>
                             {format(new Date(sub.subscription_period_end), "dd/MM/yyyy", { locale: ptBR })}
                           </span>
                         ) : (
@@ -539,7 +575,8 @@ export default function AdminPlans() {
                         )}
                       </TableCell>
                     </TableRow>
-                  ))}
+                    );
+                  })}
                 </TableBody>
               </Table>
             </CardContent>
