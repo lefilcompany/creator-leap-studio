@@ -537,8 +537,10 @@ export default function AdminPlans() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredSubscriptions.map((sub) => (
-                    <TableRow key={sub.id}>
+                  {filteredSubscriptions.map((sub) => {
+                    const { status: realStatus, isExpiredButMarkedActive } = getRealStatus(sub);
+                    return (
+                    <TableRow key={sub.id} className={isExpiredButMarkedActive ? "bg-orange-500/5" : ""}>
                       <TableCell className="font-medium">{sub.name}</TableCell>
                       <TableCell>
                         <div>
@@ -551,13 +553,21 @@ export default function AdminPlans() {
                       </TableCell>
                       <TableCell>{sub.credits}</TableCell>
                       <TableCell>
-                        <Badge className={getStatusColor(sub.subscription_status)}>
-                          {getStatusLabel(sub.subscription_status)}
-                        </Badge>
+                        <div className="flex flex-col gap-1">
+                          <Badge className={getStatusColor(realStatus)}>
+                            {getStatusLabel(realStatus)}
+                          </Badge>
+                          {isExpiredButMarkedActive && (
+                            <span className="text-[10px] text-orange-600 flex items-center gap-0.5">
+                              <AlertTriangle className="h-3 w-3" />
+                              DB marca "{sub.subscription_status}"
+                            </span>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell>
                         {sub.subscription_period_end ? (
-                          <span className="text-sm">
+                          <span className={`text-sm ${new Date(sub.subscription_period_end) < new Date() ? "text-destructive font-medium" : ""}`}>
                             {format(new Date(sub.subscription_period_end), "dd/MM/yyyy", { locale: ptBR })}
                           </span>
                         ) : (
@@ -565,7 +575,8 @@ export default function AdminPlans() {
                         )}
                       </TableCell>
                     </TableRow>
-                  ))}
+                    );
+                  })}
                 </TableBody>
               </Table>
             </CardContent>
