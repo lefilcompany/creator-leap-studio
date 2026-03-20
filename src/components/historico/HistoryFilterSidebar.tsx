@@ -149,6 +149,56 @@ function SidebarContent({
 
         <div className="mx-3 border-t border-border/20" />
 
+        {/* Category */}
+        <FilterSection title="Categoria">
+          <div className="space-y-0.5 max-h-48 overflow-y-auto">
+            <button
+              onClick={() => onCategoryFilterChange('all')}
+              className={cn(
+                "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors active:scale-[0.97]",
+                categoryFilter === 'all'
+                  ? "bg-primary/10 text-primary font-medium"
+                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+              )}
+            >
+              Todas as categorias
+            </button>
+            <button
+              onClick={() => onCategoryFilterChange('none')}
+              className={cn(
+                "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors active:scale-[0.97]",
+                categoryFilter === 'none'
+                  ? "bg-primary/10 text-primary font-medium"
+                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+              )}
+            >
+              <span className="italic">Sem categoria</span>
+            </button>
+            {categories.map((cat) => {
+              const isActive = categoryFilter === cat.id;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => onCategoryFilterChange(isActive ? 'all' : cat.id)}
+                  className={cn(
+                    "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors active:scale-[0.97]",
+                    isActive
+                      ? "bg-primary/10 text-primary font-medium"
+                      : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                  )}
+                >
+                  <div
+                    className="w-2.5 h-2.5 rounded-full flex-shrink-0 border border-border/30"
+                    style={{ backgroundColor: cat.color }}
+                  />
+                  <span className="truncate">{cat.name}</span>
+                  <span className="text-[10px] text-muted-foreground ml-auto tabular-nums">{cat.action_count}</span>
+                </button>
+              );
+            })}
+          </div>
+        </FilterSection>
+
         {/* Sort */}
         <FilterSection title="Ordenar por">
           <div className="space-y-0.5">
