@@ -32,6 +32,7 @@ import { createContentSteps, navbarSteps } from '@/components/onboarding/tourSte
 import { PageBreadcrumb } from "@/components/PageBreadcrumb";
 import { CreationProgressBar } from "@/components/CreationProgressBar";
 import { PlatformSelector } from "@/components/quick-content/PlatformSelector";
+import { CategorySelector } from "@/components/CategorySelector";
 import createBanner from "@/assets/create-banner.jpg";
 
 enum GenerationStep {
@@ -151,6 +152,7 @@ export default function CreateImage() {
     adMode: "standard", priceText: "", includeBrandLogo: false,
   });
 
+  const [selectedCategoryId, setSelectedCategoryId] = useState("");
   const [loading, setLoading] = useState(false);
   const [generationStep, setGenerationStep] = useState(GenerationStep.IDLE);
   const [generationProgress, setGenerationProgress] = useState(0);
@@ -526,7 +528,8 @@ export default function CreateImage() {
                 brand: selectedBrand?.name || formData.brand,
                 title: captionData.title, body: captionData.body, hashtags: captionData.hashtags,
                 originalFormData: { ...requestData, brandId: formData.brand },
-                actionId: undefined, isLocalFallback
+                actionId: undefined, isLocalFallback,
+                categoryId: selectedCategoryId || undefined,
               }
             }
           };
@@ -1072,6 +1075,13 @@ export default function CreateImage() {
                 </div>
               )}
             </div>
+
+            {/* ── CATEGORIA (opcional) ── */}
+            <CategorySelector
+              value={selectedCategoryId}
+              onChange={setSelectedCategoryId}
+              disabled={loading}
+            />
 
             {/* ── SEÇÃO 4: CAMPOS OPCIONAIS (colapsável) ── */}
             <button
