@@ -181,6 +181,7 @@ export function AppSidebar() {
     { id: "nav-themes", href: "/themes", icon: Palette, label: t.sidebar.themes },
     { id: "nav-personas", href: "/personas", icon: Users, label: t.sidebar.personas },
     { id: "nav-history", href: "/history", icon: History, label: t.sidebar.history },
+    { id: "nav-categories", href: "/categories", icon: FolderOpen, label: t.sidebar.categories || "Categorias" },
     { id: "nav-team", href: "/team", icon: UsersRound, label: t.sidebar.team },
   ];
 
