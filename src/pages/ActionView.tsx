@@ -139,10 +139,10 @@ const getHeroGradientVar = (type: string) => {
 };
 
 const getStatusColor = (status: string) => {
-  if (status === 'Concluído' || status === 'Aprovado') return 'bg-green-500/10 text-green-600 border-green-500/20';
-  if (status === 'Em revisão') return 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20';
-  if (status === 'Rejeitado') return 'bg-red-500/10 text-red-600 border-red-500/20';
-  return 'bg-muted text-muted-foreground border-border';
+  if (status === 'Concluído' || status === 'Aprovado') return 'bg-green-500/10 text-green-600 border-green-500/20 hover:bg-green-500/10 cursor-default';
+  if (status === 'Em revisão') return 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20 hover:bg-yellow-500/10 cursor-default';
+  if (status === 'Rejeitado') return 'bg-red-500/10 text-red-600 border-red-500/20 hover:bg-red-500/10 cursor-default';
+  return 'bg-muted text-muted-foreground border-border hover:bg-muted cursor-default';
 };
 
 // ── Markdown components (reused) ─────────────────────────────
