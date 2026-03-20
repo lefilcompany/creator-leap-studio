@@ -150,7 +150,7 @@ function SidebarContent({
         <div className="mx-3 border-t border-border/20" />
 
         {/* Category */}
-        <FilterSection title="Nicho">
+        <FilterSection title="Categoria">
           <div className="space-y-0.5 max-h-48 overflow-y-auto">
             <button
               onClick={() => onCategoryFilterChange('all')}
@@ -161,7 +161,7 @@ function SidebarContent({
                   : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
               )}
             >
-              Todos os nichos
+              Todas as categorias
             </button>
             <button
               onClick={() => onCategoryFilterChange('none')}
@@ -172,7 +172,7 @@ function SidebarContent({
                   : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
               )}
             >
-              <span className="italic">Sem nicho</span>
+              <span className="italic">Sem categoria</span>
             </button>
             {categories.map((cat) => {
               const isActive = categoryFilter === cat.id;

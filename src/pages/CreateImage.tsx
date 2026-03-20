@@ -808,7 +808,7 @@ export default function CreateImage() {
                 </div>
               </div>
 
-              {/* Nicho (opcional) */}
+              {/* Categoria (opcional) */}
               <CategorySelector
                 value={selectedCategoryId}
                 onChange={setSelectedCategoryId}

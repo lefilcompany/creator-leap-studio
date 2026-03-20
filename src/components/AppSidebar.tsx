@@ -182,7 +182,7 @@ function CategoriesDropdown({ collapsed, onNavigate, disabled }: { collapsed: bo
         "text-muted-foreground bg-white/20 dark:bg-white/5"
       )}>
         <FolderOpen className="h-5 w-5 flex-shrink-0" />
-        {!collapsed && <span className="font-medium text-sm">Nichos</span>}
+        {!collapsed && <span className="font-medium text-sm">Categorias</span>}
       </div>
     );
   }
@@ -206,7 +206,7 @@ function CategoriesDropdown({ collapsed, onNavigate, disabled }: { collapsed: bo
     return (
       <Tooltip>
         <TooltipTrigger asChild>{linkContent}</TooltipTrigger>
-        <TooltipContent side="right"><p>Nichos</p></TooltipContent>
+        <TooltipContent side="right"><p>Categorias</p></TooltipContent>
       </Tooltip>
     );
   }
@@ -220,7 +220,7 @@ function CategoriesDropdown({ collapsed, onNavigate, disabled }: { collapsed: bo
           : "text-foreground/70 hover:bg-white/40 dark:hover:bg-white/10 hover:text-foreground"
       )}>
         <FolderOpen className="h-5 w-5 flex-shrink-0" />
-        <span className="font-medium text-sm flex-1 text-left">Nichos</span>
+        <span className="font-medium text-sm flex-1 text-left">Categorias</span>
         <ChevronRight className={cn("h-4 w-4 transition-transform duration-200", isOpen && "rotate-90")} />
       </CollapsibleTrigger>
 
@@ -272,7 +272,7 @@ function CategoriesDropdown({ collapsed, onNavigate, disabled }: { collapsed: bo
         )}
 
         {myCategories.length === 0 && sharedCategories.length === 0 && (
-          <p className="text-xs text-muted-foreground/50 px-2.5 py-2">Nenhum nicho</p>
+          <p className="text-xs text-muted-foreground/50 px-2.5 py-2">Nenhuma categoria</p>
         )}
 
         {/* View All link */}

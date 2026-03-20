@@ -19,7 +19,7 @@ export function CategorySelector({ value, onChange, className, disabled }: Categ
     <div className={cn("space-y-2", className)}>
       <Label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
         <FolderOpen className="h-3 w-3" />
-        Nicho
+        Categoria
       </Label>
       <div className="flex flex-wrap gap-1.5">
         {categories.map(cat => {

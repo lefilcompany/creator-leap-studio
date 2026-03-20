@@ -58,7 +58,7 @@ export default function Categories() {
     <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8">
       {/* Banner */}
       <div className="relative w-full h-36 md:h-44 flex-shrink-0 overflow-hidden">
-        <PageBreadcrumb variant="overlay" items={[{ label: 'Nichos' }]} />
+        <PageBreadcrumb variant="overlay" items={[{ label: 'Categorias' }]} />
         <img src={historyBanner} alt="" className="w-full h-full object-cover" style={{ objectPosition: 'center 30%' }} loading="lazy" />
         <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
       </div>
@@ -73,7 +73,7 @@ export default function Categories() {
               </div>
               <div>
                 <h1 className="text-xl lg:text-2xl font-bold text-foreground flex items-center gap-2">
-                  Nichos
+                  Categorias
                   <Popover>
                     <PopoverTrigger asChild>
                       <button className="text-muted-foreground hover:text-foreground transition-colors">
@@ -82,19 +82,19 @@ export default function Categories() {
                     </PopoverTrigger>
                     <PopoverContent className="w-80 text-sm" side="bottom" align="start">
                       <div className="space-y-2">
-                        <h4 className="font-semibold text-foreground">O que são Nichos?</h4>
-                        <p className="text-muted-foreground">Nichos permitem organizar suas criações em grupos temáticos por setor de atuação. Você pode definir a visibilidade e controlar quem tem acesso.</p>
+                        <h4 className="font-semibold text-foreground">O que são Categorias?</h4>
+                        <p className="text-muted-foreground">Categorias permitem organizar suas criações em grupos temáticos. Você pode definir a visibilidade e controlar quem tem acesso.</p>
                       </div>
                     </PopoverContent>
                   </Popover>
                 </h1>
-                <p className="text-sm lg:text-base text-muted-foreground">Organize suas criações em nichos personalizados.</p>
+                <p className="text-sm lg:text-base text-muted-foreground">Organize suas criações em categorias personalizadas.</p>
               </div>
             </div>
 
             <Button onClick={() => { setEditingCategory(null); setDialogOpen(true); }} className="gap-2">
               <Plus className="h-4 w-4" />
-              Novo Nicho
+              Nova Categoria
             </Button>
           </div>
         </div>
@@ -123,9 +123,9 @@ export default function Categories() {
       <AlertDialog open={!!deletingCategory} onOpenChange={(o) => !o && setDeletingCategory(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Excluir nicho</AlertDialogTitle>
+            <AlertDialogTitle>Excluir categoria</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir o nicho "{deletingCategory?.name}"? As ações dentro dela não serão afetadas.
+              Tem certeza que deseja excluir a categoria "{deletingCategory?.name}"? As ações dentro dela não serão afetadas.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
