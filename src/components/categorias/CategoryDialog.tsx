@@ -7,7 +7,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { NativeSelect } from '@/components/ui/native-select';
-import { Loader2, X, Crown, UserPlus, Palette } from 'lucide-react';
+import { Loader2, X, Crown, UserPlus, Palette, Users } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 import { HexColorPicker } from 'react-colorful';
 import { useAuth } from '@/hooks/useAuth';
 import { useTeamMembers } from '@/hooks/useTeamData';
@@ -51,6 +52,8 @@ export function CategoryDialog({ open, onOpenChange, category, onSave, isSaving,
   const [color, setColor] = useState(COLORS[0]);
   const [members, setMembers] = useState<MemberEntry[]>([]);
   const [membersOpen, setMembersOpen] = useState(false);
+  const [wholeTeam, setWholeTeam] = useState(false);
+  const [wholeTeamRole, setWholeTeamRole] = useState<'viewer' | 'editor'>('viewer');
 
   useEffect(() => {
     if (category) {
@@ -62,13 +65,28 @@ export function CategoryDialog({ open, onOpenChange, category, onSave, isSaving,
       setDescription('');
       setColor(COLORS[0]);
       setMembers([]);
+      setWholeTeam(false);
+      setWholeTeamRole('viewer');
     }
     setMembersOpen(false);
   }, [category, open]);
 
   // Load existing members when editing
   useEffect(() => {
-    if (category && existingMembers && existingMembers.length > 0) {
+    if (category && existingMembers && existingMembers.length > 0 && teamMembers) {
+      const nonOwnerTeamMembers = (teamMembers || []).filter(tm => tm.id !== user?.id);
+      const allTeamAdded = nonOwnerTeamMembers.length > 0 && nonOwnerTeamMembers.every(
+        tm => existingMembers.some(m => m.user_id === tm.id)
+      );
+      const allSameRole = existingMembers.length > 0 && existingMembers.every(m => m.role === existingMembers[0].role);
+      
+      if (allTeamAdded && allSameRole) {
+        setWholeTeam(true);
+        setWholeTeamRole(existingMembers[0].role as 'viewer' | 'editor');
+      } else {
+        setWholeTeam(false);
+      }
+
       setMembers(existingMembers.map(m => ({
         userId: m.user_id,
         name: m.name,
@@ -77,16 +95,25 @@ export function CategoryDialog({ open, onOpenChange, category, onSave, isSaving,
         role: m.role as 'viewer' | 'editor',
       })));
     }
-  }, [existingMembers, category]);
+  }, [existingMembers, category, teamMembers, user?.id]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
+
+    let finalMembers: CategoryMemberInput[];
+    if (wholeTeam) {
+      const nonOwnerTeamMembers = (teamMembers || []).filter(tm => tm.id !== user?.id);
+      finalMembers = nonOwnerTeamMembers.map(tm => ({ userId: tm.id, role: wholeTeamRole }));
+    } else {
+      finalMembers = members.map(m => ({ userId: m.userId, role: m.role }));
+    }
+
     onSave({
       name: name.trim(),
       description: description.trim() || undefined,
       color,
-      members: members.map(m => ({ userId: m.userId, role: m.role })),
+      members: finalMembers,
     });
   };
 
@@ -222,8 +249,48 @@ export function CategoryDialog({ open, onOpenChange, category, onSave, isSaving,
                     </span>
                   </div>
 
-                  {/* Added Members */}
-                  {members.map(member => (
+                  {/* Whole Team Toggle */}
+                  {hasTeam && (
+                    <div className="flex items-center justify-between p-2.5 rounded-lg border border-border/50 bg-muted/30">
+                      <div className="flex items-center gap-2">
+                        <Users className="h-4 w-4 text-muted-foreground" />
+                        <div>
+                          <p className="text-sm font-medium">Toda a equipe</p>
+                          <p className="text-xs text-muted-foreground">Liberar para todos os membros</p>
+                        </div>
+                      </div>
+                      <Switch
+                        checked={wholeTeam}
+                        onCheckedChange={(checked) => {
+                          setWholeTeam(checked);
+                          if (checked) {
+                            setMembersOpen(false);
+                            setMembers([]);
+                          }
+                        }}
+                      />
+                    </div>
+                  )}
+
+                  {/* Whole Team Role Selector */}
+                  {hasTeam && wholeTeam && (
+                    <div className="flex items-center gap-3 p-2.5 rounded-lg border border-primary/20 bg-primary/5">
+                      <Users className="h-4 w-4 text-primary" />
+                      <p className="text-sm flex-1">Permissão da equipe:</p>
+                      <NativeSelect
+                        value={wholeTeamRole}
+                        onValueChange={(v) => setWholeTeamRole(v as 'viewer' | 'editor')}
+                        options={[
+                          { value: 'viewer', label: 'Leitor' },
+                          { value: 'editor', label: 'Editor' },
+                        ]}
+                        triggerClassName="w-24 h-8 text-xs"
+                      />
+                    </div>
+                  )}
+
+                  {/* Added Members (only when not whole team) */}
+                  {!wholeTeam && members.map(member => (
                     <div key={member.userId} className="flex items-center gap-3 p-2.5 rounded-lg border border-border/50">
                       <Avatar className="h-8 w-8">
                         <AvatarImage src={member.avatarUrl || ''} />
@@ -254,8 +321,8 @@ export function CategoryDialog({ open, onOpenChange, category, onSave, isSaving,
                     </div>
                   ))}
 
-                  {/* Add Member Button */}
-                  {hasTeam && (
+                  {/* Add Member Button (only when not whole team) */}
+                  {hasTeam && !wholeTeam && (
                     <Button
                       type="button"
                       variant="outline"
