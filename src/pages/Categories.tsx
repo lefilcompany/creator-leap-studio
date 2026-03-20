@@ -57,19 +57,19 @@ export default function Categories() {
   return (
     <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8">
       {/* Banner */}
-      <div className="relative w-full h-36 md:h-44 flex-shrink-0 overflow-hidden">
+      <div className="relative w-full h-28 md:h-36 flex-shrink-0 overflow-hidden">
         <PageBreadcrumb variant="overlay" items={[{ label: 'Categorias' }]} />
         <img src={historyBanner} alt="" className="w-full h-full object-cover" style={{ objectPosition: 'center 30%' }} loading="lazy" />
         <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
       </div>
 
       {/* Header card */}
-      <div className="relative px-4 sm:px-6 lg:px-8 -mt-14 flex-shrink-0">
+      <div className="relative px-4 sm:px-6 lg:px-8 -mt-10 flex-shrink-0">
         <div className="bg-card rounded-2xl shadow-lg p-3 lg:p-4">
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <div className="flex items-center gap-3">
               <div className="bg-primary/10 border border-primary/20 shadow-sm rounded-xl p-2.5 lg:p-3">
-                <FolderOpen className="h-6 w-6 lg:h-8 lg:w-8 text-primary" />
+                <FolderOpen className="h-6 w-6 lg:h-7 lg:w-7 text-primary" />
               </div>
               <div>
                 <h1 className="text-xl lg:text-2xl font-bold text-foreground flex items-center gap-2">
@@ -77,7 +77,7 @@ export default function Categories() {
                   <Popover>
                     <PopoverTrigger asChild>
                       <button className="text-muted-foreground hover:text-foreground transition-colors">
-                        <HelpCircle className="h-5 w-5" />
+                        <HelpCircle className="h-4 w-4" />
                       </button>
                     </PopoverTrigger>
                     <PopoverContent className="w-80 text-sm" side="bottom" align="start">
@@ -88,7 +88,7 @@ export default function Categories() {
                     </PopoverContent>
                   </Popover>
                 </h1>
-                <p className="text-sm lg:text-base text-muted-foreground">Organize suas criações em categorias personalizadas.</p>
+                <p className="text-xs lg:text-sm text-muted-foreground">Organize suas criações em categorias personalizadas.</p>
               </div>
             </div>
 
