@@ -249,8 +249,48 @@ export function CategoryDialog({ open, onOpenChange, category, onSave, isSaving,
                     </span>
                   </div>
 
-                  {/* Added Members */}
-                  {members.map(member => (
+                  {/* Whole Team Toggle */}
+                  {hasTeam && (
+                    <div className="flex items-center justify-between p-2.5 rounded-lg border border-border/50 bg-muted/30">
+                      <div className="flex items-center gap-2">
+                        <Users className="h-4 w-4 text-muted-foreground" />
+                        <div>
+                          <p className="text-sm font-medium">Toda a equipe</p>
+                          <p className="text-xs text-muted-foreground">Liberar para todos os membros</p>
+                        </div>
+                      </div>
+                      <Switch
+                        checked={wholeTeam}
+                        onCheckedChange={(checked) => {
+                          setWholeTeam(checked);
+                          if (checked) {
+                            setMembersOpen(false);
+                            setMembers([]);
+                          }
+                        }}
+                      />
+                    </div>
+                  )}
+
+                  {/* Whole Team Role Selector */}
+                  {hasTeam && wholeTeam && (
+                    <div className="flex items-center gap-3 p-2.5 rounded-lg border border-primary/20 bg-primary/5">
+                      <Users className="h-4 w-4 text-primary" />
+                      <p className="text-sm flex-1">Permissão da equipe:</p>
+                      <NativeSelect
+                        value={wholeTeamRole}
+                        onValueChange={(v) => setWholeTeamRole(v as 'viewer' | 'editor')}
+                        options={[
+                          { value: 'viewer', label: 'Leitor' },
+                          { value: 'editor', label: 'Editor' },
+                        ]}
+                        triggerClassName="w-24 h-8 text-xs"
+                      />
+                    </div>
+                  )}
+
+                  {/* Added Members (only when not whole team) */}
+                  {!wholeTeam && members.map(member => (
                     <div key={member.userId} className="flex items-center gap-3 p-2.5 rounded-lg border border-border/50">
                       <Avatar className="h-8 w-8">
                         <AvatarImage src={member.avatarUrl || ''} />
@@ -281,8 +321,8 @@ export function CategoryDialog({ open, onOpenChange, category, onSave, isSaving,
                     </div>
                   ))}
 
-                  {/* Add Member Button */}
-                  {hasTeam && (
+                  {/* Add Member Button (only when not whole team) */}
+                  {hasTeam && !wholeTeam && (
                     <Button
                       type="button"
                       variant="outline"
