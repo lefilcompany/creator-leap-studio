@@ -152,6 +152,7 @@ export default function CreateImage() {
     adMode: "standard", priceText: "", includeBrandLogo: false,
   });
 
+  const [selectedCategoryId, setSelectedCategoryId] = useState("");
   const [loading, setLoading] = useState(false);
   const [generationStep, setGenerationStep] = useState(GenerationStep.IDLE);
   const [generationProgress, setGenerationProgress] = useState(0);
