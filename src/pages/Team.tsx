@@ -27,6 +27,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import teamBanner from '@/assets/team-banner.jpg';
 import { PageBreadcrumb } from '@/components/PageBreadcrumb';
 import { useAccessibleTeams, useTeamMembers, usePendingRequests, useInvalidateTeamData } from '@/hooks/useTeamData';
+import { TeamFavoritesLibrary } from '@/components/team/TeamFavoritesLibrary';
 
 interface TeamMember {
   id: string;
