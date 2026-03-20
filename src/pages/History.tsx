@@ -214,6 +214,9 @@ export default function History() {
                   sortField={sortField}
                   sortDirection={sortDirection}
                   onSortChange={handleSortChange}
+                  categoryFilter={categoryFilter}
+                  onCategoryFilterChange={setCategoryFilter}
+                  categories={categories}
                 />
               ) : undefined}
             />
