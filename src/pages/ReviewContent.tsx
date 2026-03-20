@@ -311,7 +311,7 @@ const ReviewContent = () => {
       )}
 
       {/* Banner */}
-      <div className="relative w-full h-36 md:h-44 flex-shrink-0 overflow-hidden">
+      <div className="relative w-full h-28 md:h-36 flex-shrink-0 overflow-hidden">
         <PageBreadcrumb
           items={
             !reviewType
@@ -339,30 +339,30 @@ const ReviewContent = () => {
       </div>
 
       {/* Header Card */}
-      <div className="relative px-4 sm:px-6 lg:px-8 -mt-12 flex-shrink-0 z-10">
+      <div className="relative px-4 sm:px-6 lg:px-8 -mt-10 flex-shrink-0 z-10">
         <div
           id="review-content-header"
-          className="bg-card rounded-2xl shadow-lg p-4 lg:p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
+          className="bg-card rounded-2xl shadow-lg p-3 lg:p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-3"
         >
           <div className="flex items-center gap-3">
             <div className={`flex-shrink-0 ${
               reviewType === 'caption' ? 'bg-secondary/10 border-secondary/20 text-secondary' :
               reviewType === 'text-for-image' ? 'bg-accent/10 border-accent/20 text-accent' :
               'bg-primary/10 border-primary/20 text-primary'
-            } border shadow-sm rounded-2xl p-3 lg:p-4`}>
-              {reviewType === 'image' ? <ImageIcon className="h-8 w-8 lg:h-10 lg:w-10" /> :
-               reviewType === 'caption' ? <FileText className="h-8 w-8 lg:h-10 lg:w-10" /> :
-               reviewType === 'text-for-image' ? <Type className="h-8 w-8 lg:h-10 lg:w-10" /> :
-               <CheckCircle className="h-8 w-8 lg:h-10 lg:w-10" />}
+            } border shadow-sm rounded-xl p-2.5 lg:p-3`}>
+              {reviewType === 'image' ? <ImageIcon className="h-6 w-6 lg:h-7 lg:w-7" /> :
+               reviewType === 'caption' ? <FileText className="h-6 w-6 lg:h-7 lg:w-7" /> :
+               reviewType === 'text-for-image' ? <Type className="h-6 w-6 lg:h-7 lg:w-7" /> :
+               <CheckCircle className="h-6 w-6 lg:h-7 lg:w-7" />}
             </div>
             <div>
-              <h1 className="text-2xl lg:text-3xl font-bold text-foreground">
+              <h1 className="text-xl lg:text-2xl font-bold text-foreground">
                 {!reviewType ? 'Revisar Conteúdo' :
                  reviewType === 'image' ? 'Revisar Imagem' :
                  reviewType === 'caption' ? 'Revisar Legenda' :
                  'Revisar Texto para Imagem'}
               </h1>
-              <p className="text-sm lg:text-base text-muted-foreground">{dynamicDescription}</p>
+              <p className="text-xs lg:text-sm text-muted-foreground">{dynamicDescription}</p>
             </div>
           </div>
           {isLoadingData ? (
