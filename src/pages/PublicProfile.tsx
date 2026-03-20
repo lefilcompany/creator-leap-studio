@@ -106,7 +106,7 @@ export default function PublicProfile() {
   if (loading) {
     return (
       <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8 animate-fade-in">
-        <div className="relative w-full h-48 md:h-56 lg:h-64 xl:h-72 bg-muted" />
+        <div className="relative w-full h-36 md:h-44 lg:h-52 xl:h-56 bg-muted" />
         <div className="relative px-4 sm:px-6 lg:px-8 -mt-12">
           <div className="bg-card rounded-2xl shadow-lg p-4 lg:p-5 flex items-center gap-4">
             <Skeleton className="h-16 w-16 lg:h-20 lg:w-20 rounded-full" />
