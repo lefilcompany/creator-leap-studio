@@ -354,6 +354,8 @@ export default function Team() {
   const [requestsExpanded, setRequestsExpanded] = useState(false);
   const [favoritesExpanded, setFavoritesExpanded] = useState(true);
   const [memberToRemove, setMemberToRemove] = useState<TeamMember | null>(null);
+  const [showLeaveDialog, setShowLeaveDialog] = useState(false);
+  const [showTransferDialog, setShowTransferDialog] = useState(false);
 
   const isTeamAdmin = team?.admin_id === user?.id;
 
