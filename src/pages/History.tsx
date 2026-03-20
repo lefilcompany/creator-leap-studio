@@ -147,7 +147,9 @@ export default function History() {
           { tourType: 'history', steps: historySteps, label: 'Tour de Histórico', targetElement: '#history-list' }
         ]}
         startDelay={500}
-      />
+          isFavorite={isFavorite}
+          onToggleFavorite={toggleFavorite}
+        />
     </div>
   );
 }
