@@ -45,12 +45,18 @@ const getDisplayName = (fullName: string) => {
 
 interface TeamHeaderBannerProps {
   teamCount: number;
+  hasTeam: boolean;
+  isTeamAdmin: boolean;
+  hasOtherMembers: boolean;
+  teamName?: string;
   createLabel: string;
   joinLabel: string;
   createVariant?: 'default' | 'outline';
   joinVariant?: 'default' | 'outline';
   onCreateClick: () => void;
   onJoinClick: () => void;
+  onLeaveClick: () => void;
+  onTransferClick: () => void;
 }
 
 const TeamHeaderBanner = memo(({
