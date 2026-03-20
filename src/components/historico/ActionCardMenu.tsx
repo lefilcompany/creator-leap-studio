@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MoreHorizontal, Star, FolderOpen, Check, User, Users, ChevronRight } from 'lucide-react';
+import { MoreHorizontal, Star, FolderOpen, Check, User, Users, ChevronRight, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
@@ -94,7 +94,7 @@ export function ActionCardMenu({
 
         <DropdownMenuSeparator />
 
-        {/* Category — opens a popover instead of sub-menu */}
+        {/* Category — opens a popover */}
         <Popover open={catPopoverOpen} onOpenChange={setCatPopoverOpen}>
           <PopoverTrigger asChild>
             <button
@@ -102,46 +102,73 @@ export function ActionCardMenu({
               className="group/cat relative flex cursor-pointer items-center gap-2.5 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground w-full"
             >
               <FolderOpen className="h-4 w-4 flex-shrink-0" />
-              <span className="flex-1 text-left">Adicionar à categoria</span>
+              <span className="flex-1 text-left">
+                {actionCategories.length > 0 ? 'Mudar categoria' : 'Adicionar à categoria'}
+              </span>
               <ChevronRight className="h-3.5 w-3.5 ml-auto text-muted-foreground group-hover/cat:text-accent-foreground transition-colors" />
             </button>
           </PopoverTrigger>
           <PopoverContent
-            className="w-52 p-2"
+            className="w-56 p-2"
             side="right"
             align="start"
             sideOffset={8}
             onClick={(e) => e.stopPropagation()}
             onInteractOutside={(e) => {
-              // Don't close the dropdown when clicking inside the popover
               e.preventDefault();
               setCatPopoverOpen(false);
             }}
           >
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 py-1.5">
-              Categorias
+            {/* Current categories — show with remove button */}
+            {actionCategories.length > 0 && (
+              <>
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-2 pt-1 pb-1">
+                  Atual
+                </p>
+                <div className="space-y-0.5 mb-1">
+                  {actionCategories.map(cat => (
+                    <div
+                      key={cat.id}
+                      className="flex items-center gap-2 px-2 py-1.5 rounded-md bg-primary/8"
+                    >
+                      <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: cat.color }} />
+                      <span className="truncate flex-1 text-sm font-medium text-primary">{cat.name}</span>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); removeActionFromCategory.mutate({ categoryId: cat.id, actionId }); }}
+                        className="p-0.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors active:scale-95"
+                        title="Remover desta categoria"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <DropdownMenuSeparator className="my-1" />
+              </>
+            )}
+
+            {/* All categories to add */}
+            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-2 pt-1 pb-1">
+              {actionCategories.length > 0 ? 'Mover para' : 'Categorias'}
             </p>
             {categories.length === 0 ? (
               <p className="text-sm text-muted-foreground px-2 py-3 text-center">Nenhuma categoria criada</p>
             ) : (
               <div className="space-y-0.5 max-h-48 overflow-y-auto">
-                {categories.map(cat => {
-                  const isInCategory = actionCategoryIds.has(cat.id);
-                  return (
+                {categories.filter(c => !actionCategoryIds.has(c.id)).length === 0 ? (
+                  <p className="text-xs text-muted-foreground px-2 py-2 text-center">Já está em todas as categorias</p>
+                ) : (
+                  categories.filter(c => !actionCategoryIds.has(c.id)).map(cat => (
                     <button
                       key={cat.id}
-                      onClick={(e) => { e.stopPropagation(); handleToggleCategory(cat.id); }}
-                      className={cn(
-                        "w-full flex items-center gap-2.5 px-2 py-1.5 rounded-md text-sm transition-colors active:scale-[0.97]",
-                        isInCategory ? "bg-primary/10 text-primary font-medium" : "text-foreground hover:bg-muted/50"
-                      )}
+                      onClick={(e) => { e.stopPropagation(); addActionToCategory.mutate({ categoryId: cat.id, actionId }); }}
+                      className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-md text-sm transition-colors active:scale-[0.97] text-foreground hover:bg-muted/50"
                     >
                       <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: cat.color }} />
                       <span className="truncate flex-1 text-left">{cat.name}</span>
-                      {isInCategory && <Check className="h-3.5 w-3.5 flex-shrink-0" />}
                     </button>
-                  );
-                })}
+                  ))
+                )}
               </div>
             )}
           </PopoverContent>
