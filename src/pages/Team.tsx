@@ -61,7 +61,7 @@ const TeamHeaderBanner = memo(({
   onJoinClick,
 }: TeamHeaderBannerProps) => (
   <>
-    <div className="relative h-40 sm:h-48 md:h-56 lg:h-64 overflow-hidden">
+    <div className="relative h-32 sm:h-36 md:h-44 lg:h-52 overflow-hidden">
       <PageBreadcrumb
         variant="overlay"
         items={[{ label: 'Equipe' }]}
