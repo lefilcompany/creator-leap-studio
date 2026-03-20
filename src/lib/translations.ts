@@ -39,6 +39,7 @@ export const translations = {
       reviewContent: "Revisar Conteúdo",
       planContent: "Planejar Conteúdo",
       team: "Equipe",
+      categories: "Categorias",
       plan: "Plano",
     },
     
