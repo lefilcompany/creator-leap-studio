@@ -54,11 +54,12 @@ export function FavoriteButton({
         onClick={handleClick}
         className={cn(
           "p-1.5 rounded-lg transition-all active:scale-95",
+          isFavorited ? "bg-amber-500/20 shadow-sm" : "hover:bg-muted",
           className
         )}
         aria-label={isFavorited ? "Remover dos favoritos" : "Adicionar aos favoritos"}
       >
-        <Star className={cn(iconSize, "transition-colors", isFavorited ? "fill-amber-400 text-amber-400" : "text-foreground")} />
+        <Star className={cn(iconSize, "transition-colors", isFavorited ? "fill-amber-500 text-amber-600 drop-shadow-sm" : "text-muted-foreground")} />
       </button>
     );
   }
@@ -70,11 +71,12 @@ export function FavoriteButton({
           onClick={handleClick}
           className={cn(
             "p-1.5 rounded-lg transition-all active:scale-95",
+            isFavorited ? "bg-amber-500/20 shadow-sm" : "hover:bg-muted",
             className
           )}
           aria-label="Favoritar"
         >
-          <Star className={cn(iconSize, "transition-colors", isFavorited ? "fill-amber-400 text-amber-400" : "text-foreground")} />
+          <Star className={cn(iconSize, "transition-colors", isFavorited ? "fill-amber-500 text-amber-600 drop-shadow-sm" : "text-muted-foreground")} />
         </button>
       </PopoverTrigger>
       <PopoverContent
