@@ -563,48 +563,56 @@ export default function Team() {
                               ))}
                             </motion.div>
                           ) : (
-                      {!isMembersLoading && viewMode === 'list' && (
-                        <div className="space-y-2">
-                          {displayedMembers.map((member) => (
-                            <div key={member.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-all">
-                              <div className="flex items-center gap-3">
-                                <Avatar className="h-10 w-10">
-                                  <AvatarImage src={member.avatar_url} />
-                                  <AvatarFallback className="bg-primary/10 text-primary">{getDisplayName(member.name).charAt(0)}</AvatarFallback>
-                                </Avatar>
-                                <div>
-                                  <p className="font-medium text-sm flex items-center gap-2">
-                                    <UserNameLink userId={member.id} userName={getDisplayName(member.name)} className="font-medium text-sm" />
-                                    {member.id === team?.admin_id && <Crown className="h-3.5 w-3.5 text-amber-500" />}
-                                  </p>
-                                  <p className="text-xs text-muted-foreground flex items-center gap-1"><Mail className="h-3 w-3" />{member.email}</p>
+                            <motion.div
+                              key="list"
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              transition={{ duration: 0.15 }}
+                              className="space-y-2"
+                            >
+                              {displayedMembers.map((member) => (
+                                <div key={member.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-all">
+                                  <div className="flex items-center gap-3">
+                                    <Avatar className="h-10 w-10">
+                                      <AvatarImage src={member.avatar_url} />
+                                      <AvatarFallback className="bg-primary/10 text-primary">{getDisplayName(member.name).charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                      <p className="font-medium text-sm flex items-center gap-2">
+                                        <UserNameLink userId={member.id} userName={getDisplayName(member.name)} className="font-medium text-sm" />
+                                        {member.id === team?.admin_id && <Crown className="h-3.5 w-3.5 text-amber-500" />}
+                                      </p>
+                                      <p className="text-xs text-muted-foreground flex items-center gap-1"><Mail className="h-3 w-3" />{member.email}</p>
+                                    </div>
+                                  </div>
+                                  {isTeamAdmin && member.id !== team?.admin_id && (
+                                    <Button size="sm" variant="outline" className="text-destructive hover:bg-destructive hover:text-destructive-foreground" onClick={() => setMemberToRemove(member)}>
+                                      <UserMinus className="h-4 w-4" />
+                                    </Button>
+                                  )}
                                 </div>
-                              </div>
-                              {isTeamAdmin && member.id !== team?.admin_id && (
-                                <Button size="sm" variant="outline" className="text-destructive hover:bg-destructive hover:text-destructive-foreground" onClick={() => setMemberToRemove(member)}>
-                                  <UserMinus className="h-4 w-4" />
-                                </Button>
+                              ))}
+                              {totalPages > 1 && (
+                                <Pagination className="mt-4">
+                                  <PaginationContent>
+                                    <PaginationItem>
+                                      <PaginationPrevious onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))} className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
+                                    </PaginationItem>
+                                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                                      <PaginationItem key={page}>
+                                        <PaginationLink onClick={() => setCurrentPage(page)} isActive={currentPage === page} className="cursor-pointer">{page}</PaginationLink>
+                                      </PaginationItem>
+                                    ))}
+                                    <PaginationItem>
+                                      <PaginationNext onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))} className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
+                                    </PaginationItem>
+                                  </PaginationContent>
+                                </Pagination>
                               )}
-                            </div>
-                          ))}
-                          {totalPages > 1 && (
-                            <Pagination className="mt-4">
-                              <PaginationContent>
-                                <PaginationItem>
-                                  <PaginationPrevious onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))} className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
-                                </PaginationItem>
-                                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                                  <PaginationItem key={page}>
-                                    <PaginationLink onClick={() => setCurrentPage(page)} isActive={currentPage === page} className="cursor-pointer">{page}</PaginationLink>
-                                  </PaginationItem>
-                                ))}
-                                <PaginationItem>
-                                  <PaginationNext onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))} className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
-                                </PaginationItem>
-                              </PaginationContent>
-                            </Pagination>
+                            </motion.div>
                           )}
-                        </div>
+                        </AnimatePresence>
                       )}
                       {!isMembersLoading && members.length === 0 && (
                         <div className="text-center py-8 text-muted-foreground">
