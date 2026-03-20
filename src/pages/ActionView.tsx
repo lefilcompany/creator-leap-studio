@@ -448,7 +448,7 @@ export default function ActionView() {
               {/* Status badges */}
               <div className="flex flex-wrap items-center gap-2 mt-3">
                 <Badge className={cn(getStatusColor(action.status), "hover:bg-inherit")}>{action.status}</Badge>
-                <Badge variant={action.approved ? 'default' : 'secondary'}>
+                <Badge variant={action.approved ? 'default' : 'secondary'} className="hover:bg-inherit">
                   {action.approved ? 'Aprovado' : 'Pendente'}
                 </Badge>
                 {(action.revisions ?? 0) > 0 && (
