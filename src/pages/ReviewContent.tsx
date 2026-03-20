@@ -1,4 +1,5 @@
 import { useState, ChangeEvent, useEffect, useMemo } from "react";
+import { CategorySelector } from "@/components/CategorySelector";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
