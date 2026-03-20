@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
   Rocket, Users, ClipboardCopy, Check, X, Crown, Loader2, UserPlus, UserMinus, 
-  UsersRound, Plus, ChevronDown, ChevronUp, LayoutGrid, List, Mail, Star
+  UsersRound, Plus, ChevronDown, ChevronUp, LayoutGrid, List, Mail, Star, LogOut, ArrowRightLeft
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { CreateTeamDialog } from '@/components/auth/CreateTeamDialog';
