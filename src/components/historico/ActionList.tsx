@@ -505,6 +505,8 @@ export default function ActionList({
               action={action}
               isSelected={selectedAction?.id === action.id}
               onNavigate={() => navigate(`/action/${action.id}`, { state: { viewMode } })}
+              isFavorite={isFavorite?.(action.id)}
+              onToggleFavorite={() => onToggleFavorite?.(action.id)}
             />
           ))}
         </div>
