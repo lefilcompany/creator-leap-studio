@@ -325,7 +325,12 @@ export default function QuickContent() {
               onPreserveImageIndicesChange={setPreserveImageIndices}
             />
 
-
+            {/* Category Selector */}
+            <CategorySelector
+              value={categoryId}
+              onChange={setCategoryId}
+              className="mt-2"
+            />
           </div>
 
           {/* Generate Button */}
