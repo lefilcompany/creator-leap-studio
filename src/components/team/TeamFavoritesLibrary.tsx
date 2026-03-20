@@ -31,7 +31,7 @@ interface TeamFavoritesLibraryProps {
   inline?: boolean;
 }
 
-export function TeamFavoritesLibrary({ teamId }: TeamFavoritesLibraryProps) {
+export function TeamFavoritesLibrary({ teamId, inline = false }: TeamFavoritesLibraryProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const queryClient = useQueryClient();
