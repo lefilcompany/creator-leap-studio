@@ -571,6 +571,7 @@ export const translations = {
       reviewContent: "Review Content",
       planContent: "Plan Content",
       team: "Team",
+      categories: "Categories",
       plan: "Plan",
     },
     
