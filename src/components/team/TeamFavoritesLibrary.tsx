@@ -95,26 +95,17 @@ export function TeamFavoritesLibrary({ teamId, inline = false }: TeamFavoritesLi
           </div>
         ))}
       </div>
-      </div>
     );
   }
 
   if (favoriteActions.length === 0) {
     return (
-      <div className="space-y-3">
-        <h2 className="text-lg font-semibold flex items-center gap-2">
-          <Star className="h-5 w-5 text-amber-500" />
-          Biblioteca de Favoritos
-        </h2>
-        <div className="text-center py-10 bg-card rounded-xl border border-border/30 shadow-sm">
-          <Star className="h-10 w-10 mx-auto text-muted-foreground/40 mb-3" />
-          <p className="text-muted-foreground text-sm">
-            Nenhuma criação favoritada para a equipe ainda.
-          </p>
-          <p className="text-muted-foreground/60 text-xs mt-1">
-            Favorite criações no histórico escolhendo "Para a equipe" para que apareçam aqui.
-          </p>
-        </div>
+      <div className="text-center py-8 text-muted-foreground">
+        <Star className="h-10 w-10 mx-auto mb-2 opacity-40" />
+        <p className="text-sm">Nenhuma criação favoritada para a equipe ainda.</p>
+        <p className="text-xs text-muted-foreground/60 mt-1">
+          Favorite criações no histórico escolhendo "Para a equipe" para que apareçam aqui.
+        </p>
       </div>
     );
   }
