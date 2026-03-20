@@ -111,23 +111,42 @@ export default function History() {
 
       {/* Action list */}
       <main id="history-list" className="px-4 sm:px-6 lg:px-8 pt-4 pb-4 sm:pb-6 lg:pb-8 space-y-4">
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'all' | 'favorites')}>
-          <TabsList className="bg-muted/50 border border-border/30">
-            <TabsTrigger value="all" className="data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1.5">
-              <HistoryIcon className="h-4 w-4" />
-              Todas
-            </TabsTrigger>
-            <TabsTrigger value="favorites" className="data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1.5">
-              <Star className="h-4 w-4" />
-              Favoritas
-              {allFavoriteIds.length > 0 && (
-                <span className="ml-1 text-[10px] bg-amber-400/20 text-amber-600 rounded-full px-1.5 py-0.5 font-semibold tabular-nums">
-                  {allFavoriteIds.length}
-                </span>
-              )}
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <div className="flex items-center gap-1 bg-card rounded-xl shadow-md p-1">
+          <button
+            onClick={() => setActiveTab('all')}
+            className={cn(
+              "flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all active:scale-[0.97]",
+              activeTab === 'all'
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+            )}
+          >
+            <HistoryIcon className="h-4 w-4" />
+            Todas
+          </button>
+          <button
+            onClick={() => setActiveTab('favorites')}
+            className={cn(
+              "flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all active:scale-[0.97]",
+              activeTab === 'favorites'
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+            )}
+          >
+            <Star className="h-4 w-4" />
+            Favoritas
+            {allFavoriteIds.length > 0 && (
+              <span className={cn(
+                "ml-0.5 text-[10px] rounded-full px-1.5 py-0.5 font-semibold tabular-nums",
+                activeTab === 'favorites'
+                  ? "bg-primary-foreground/20 text-primary-foreground"
+                  : "bg-amber-400/20 text-amber-600 dark:text-amber-400"
+              )}>
+                {allFavoriteIds.length}
+              </span>
+            )}
+          </button>
+        </div>
         <ActionList
           actions={actions}
           selectedAction={selectedActionSummary}
