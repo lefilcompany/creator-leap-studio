@@ -84,22 +84,17 @@ export function TeamFavoritesLibrary({ teamId, inline = false }: TeamFavoritesLi
 
   if (isLoading) {
     return (
-      <div className="space-y-3">
-        <h2 className="text-lg font-semibold flex items-center gap-2">
-          <Star className="h-5 w-5 text-amber-500" />
-          Biblioteca de Favoritos
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map(i => (
-            <div key={i} className="bg-card rounded-xl overflow-hidden shadow-sm border border-border/30">
-              <Skeleton className="aspect-video w-full" />
-              <div className="p-3 space-y-2">
-                <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-3 w-1/2" />
-              </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {[1, 2, 3, 4].map(i => (
+          <div key={i} className="bg-muted/50 rounded-xl overflow-hidden">
+            <Skeleton className="aspect-video w-full" />
+            <div className="p-3 space-y-2">
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-3 w-1/2" />
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
+      </div>
       </div>
     );
   }
