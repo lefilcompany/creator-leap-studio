@@ -135,7 +135,7 @@ export default function PublicProfile() {
   return (
     <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8 animate-fade-in">
       {/* Banner */}
-      <div className="relative w-full h-48 md:h-56 lg:h-64 xl:h-72 flex-shrink-0 overflow-hidden">
+      <div className="relative w-full h-36 md:h-44 lg:h-52 xl:h-56 flex-shrink-0 overflow-hidden">
         <PageBreadcrumb
           variant="overlay"
           items={[
