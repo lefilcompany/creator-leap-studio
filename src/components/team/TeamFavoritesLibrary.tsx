@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Star, Sparkles, Image, CheckCircle, Calendar, Video, ExternalLink, X } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { useTeamFavorites } from '@/hooks/useFavorites';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
