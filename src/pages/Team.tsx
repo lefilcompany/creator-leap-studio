@@ -75,7 +75,7 @@ const TeamHeaderBanner = memo(({
   onTransferClick,
 }: TeamHeaderBannerProps) => (
   <>
-    <div className="relative h-32 sm:h-36 md:h-44 lg:h-52 overflow-hidden">
+    <div className="relative h-28 sm:h-28 md:h-36 overflow-hidden">
       <PageBreadcrumb
         variant="overlay"
         items={[{ label: 'Equipe' }]}
@@ -88,18 +88,18 @@ const TeamHeaderBanner = memo(({
       <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/40 to-transparent" />
     </div>
 
-    <div className="relative px-4 sm:px-6 lg:px-8 -mt-12 z-10">
-      <div className="bg-card rounded-2xl shadow-lg p-4 lg:p-5">
-        <div className="flex items-center justify-between flex-wrap gap-4">
+    <div className="relative px-4 sm:px-6 lg:px-8 -mt-10 z-10">
+      <div className="bg-card rounded-2xl shadow-lg p-3 lg:p-4">
+        <div className="flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-3">
-            <div className="flex-shrink-0 bg-primary/10 border border-primary/20 text-primary rounded-2xl p-3">
-              <UsersRound className="h-7 w-7" />
+            <div className="flex-shrink-0 bg-primary/10 border border-primary/20 text-primary rounded-xl p-2.5">
+              <UsersRound className="h-6 w-6" />
             </div>
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground">
                 Equipes
               </h1>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs lg:text-sm text-muted-foreground">
                 {teamCount > 1
                   ? `Você tem acesso a ${teamCount} equipes`
                   : 'Colabore com outros usuários compartilhando marcas, personas e temas'}
