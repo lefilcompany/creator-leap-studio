@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   AlertDialog,
   AlertDialogContent,
@@ -8,11 +8,12 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { Crown } from 'lucide-react';
+import { Crown, Search } from 'lucide-react';
 
 interface TeamMember {
   id: string;
@@ -41,8 +42,17 @@ export function TransferOwnershipDialog({
   const { user } = useAuth();
   const [selectedMember, setSelectedMember] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [search, setSearch] = useState('');
 
   const otherMembers = members.filter(m => m.id !== user?.id);
+
+  const filteredMembers = useMemo(() => {
+    if (!search.trim()) return otherMembers;
+    const q = search.toLowerCase().trim();
+    return otherMembers.filter(
+      m => m.name.toLowerCase().includes(q) || m.email.toLowerCase().includes(q)
+    );
+  }, [otherMembers, search]);
 
   const handleTransfer = async () => {
     if (!selectedMember || !user) return;
@@ -69,8 +79,8 @@ export function TransferOwnershipDialog({
   };
 
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="max-w-md">
+    <AlertDialog open={open} onOpenChange={(v) => { onOpenChange(v); if (!v) setSearch(''); }}>
+      <AlertDialogContent className="max-w-lg max-h-[85vh] flex flex-col">
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2">
             <Crown className="h-5 w-5 text-amber-500" />
@@ -82,29 +92,43 @@ export function TransferOwnershipDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
 
-        <div className="space-y-2 max-h-60 overflow-y-auto py-2">
-          {otherMembers.map((member) => (
-            <button
-              key={member.id}
-              onClick={() => setSelectedMember(member.id)}
-              className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all ${
-                selectedMember === member.id
-                  ? 'bg-primary/10 border border-primary/30 ring-1 ring-primary/20'
-                  : 'bg-muted/30 hover:bg-muted/50 border border-transparent'
-              }`}
-            >
-              <Avatar className="h-9 w-9">
-                <AvatarImage src={member.avatar_url} />
-                <AvatarFallback className="bg-primary/10 text-primary text-sm">
-                  {member.name?.charAt(0)}
-                </AvatarFallback>
-              </Avatar>
-              <div className="text-left">
-                <p className="font-medium text-sm">{member.name}</p>
-                <p className="text-xs text-muted-foreground">{member.email}</p>
-              </div>
-            </button>
-          ))}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por nome ou email..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+
+        <div className="space-y-1.5 flex-1 overflow-y-auto min-h-0 max-h-80 py-1 -mx-1 px-1">
+          {filteredMembers.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-6">Nenhum membro encontrado</p>
+          ) : (
+            filteredMembers.map((member) => (
+              <button
+                key={member.id}
+                onClick={() => setSelectedMember(member.id)}
+                className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all ${
+                  selectedMember === member.id
+                    ? 'bg-primary/10 border border-primary/30 ring-1 ring-primary/20'
+                    : 'bg-muted/30 hover:bg-muted/50 border border-transparent'
+                }`}
+              >
+                <Avatar className="h-9 w-9 flex-shrink-0">
+                  <AvatarImage src={member.avatar_url} />
+                  <AvatarFallback className="bg-primary/10 text-primary text-sm">
+                    {member.name?.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="text-left min-w-0">
+                  <p className="font-medium text-sm truncate">{member.name}</p>
+                  <p className="text-xs text-muted-foreground truncate">{member.email}</p>
+                </div>
+              </button>
+            ))
+          )}
         </div>
 
         <AlertDialogFooter>
