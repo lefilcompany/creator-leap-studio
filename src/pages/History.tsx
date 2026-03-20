@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { History as HistoryIcon, HelpCircle, Star } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { cn } from '@/lib/utils';
 import ActionList from '@/components/historico/ActionList';
 import type { ActionSummary } from '@/types/action';
 import { ACTION_TYPE_DISPLAY } from '@/types/action';
