@@ -28,6 +28,7 @@ const ACTION_GRADIENT_MAP: Record<string, string> = {
 
 interface TeamFavoritesLibraryProps {
   teamId: string;
+  inline?: boolean;
 }
 
 export function TeamFavoritesLibrary({ teamId }: TeamFavoritesLibraryProps) {
