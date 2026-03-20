@@ -493,7 +493,7 @@ export default function ActionView() {
                   </PopoverTrigger>
                   <PopoverContent className="w-56 p-2" align="start">
                     <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 py-1.5">
-                      Categorias
+                      Nichos
                     </p>
                     {categories.length === 0 ? (
                       <p className="text-sm text-muted-foreground px-2 py-3 text-center">Nenhum nicho criado</p>
