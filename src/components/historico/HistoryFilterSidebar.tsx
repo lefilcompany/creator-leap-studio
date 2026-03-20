@@ -262,6 +262,7 @@ export function HistoryFilterSidebar(props: HistoryFilterSidebarProps) {
   const activeCount = [
     props.brandFilter !== 'all',
     props.typeFilter !== 'all',
+    props.categoryFilter !== 'all',
     props.sortField !== 'date' || props.sortDirection !== 'desc',
   ].filter(Boolean).length;
 
