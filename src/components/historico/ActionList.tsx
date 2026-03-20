@@ -6,7 +6,6 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
@@ -15,6 +14,9 @@ import { ACTION_TYPE_DISPLAY, ACTION_STYLE_MAP } from '@/types/action';
 import type { BrandSummary } from '@/types/brand';
 import { FavoriteButton } from '@/components/historico/FavoriteButton';
 import type { FavoriteScope } from '@/hooks/useFavorites';
+
+type SortField = 'type' | 'date';
+type SortDirection = 'asc' | 'desc';
 
 interface ActionListProps {
   actions: ActionSummary[];
@@ -36,11 +38,10 @@ interface ActionListProps {
   isFavorite?: (actionId: string) => boolean;
   onToggleFavorite?: (actionId: string, scope: FavoriteScope) => void;
   hasTeam?: boolean;
+  sortField?: SortField;
+  sortDirection?: SortDirection;
+  onSortChange?: (field: SortField, direction: SortDirection) => void;
 }
-
-type SortField = 'type' | 'date';
-type SortDirection = 'asc' | 'desc';
-type ViewMode = 'grid' | 'list';
 
 const formatDate = (dateString: string) => {
   if (!dateString) return '';
