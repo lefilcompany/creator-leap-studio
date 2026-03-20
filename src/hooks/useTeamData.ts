@@ -77,6 +77,35 @@ export const useAccessibleTeams = () => {
 };
 
 export const useTeamMembers = (teamId: string | undefined) => {
+  const queryClient = useQueryClient();
+
+  // Subscribe to profile changes for realtime updates
+  useEffect(() => {
+    if (!teamId) return;
+
+    const channel = supabase
+      .channel(`team-members-profiles-${teamId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+        },
+        (payload) => {
+          // Only invalidate if the updated profile belongs to this team
+          if (payload.new && (payload.new as any).team_id === teamId) {
+            queryClient.invalidateQueries({ queryKey: ['team-members', teamId] });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [teamId, queryClient]);
+
   return useQuery({
     queryKey: ['team-members', teamId],
     queryFn: async (): Promise<TeamMember[]> => {
