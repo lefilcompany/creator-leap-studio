@@ -51,6 +51,8 @@ export function CategoryDialog({ open, onOpenChange, category, onSave, isSaving,
   const [color, setColor] = useState(COLORS[0]);
   const [members, setMembers] = useState<MemberEntry[]>([]);
   const [membersOpen, setMembersOpen] = useState(false);
+  const [wholeTeam, setWholeTeam] = useState(false);
+  const [wholeTeamRole, setWholeTeamRole] = useState<'viewer' | 'editor'>('viewer');
 
   useEffect(() => {
     if (category) {
@@ -62,6 +64,8 @@ export function CategoryDialog({ open, onOpenChange, category, onSave, isSaving,
       setDescription('');
       setColor(COLORS[0]);
       setMembers([]);
+      setWholeTeam(false);
+      setWholeTeamRole('viewer');
     }
     setMembersOpen(false);
   }, [category, open]);
