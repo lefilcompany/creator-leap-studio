@@ -13,6 +13,8 @@ import {
 import type { ActionSummary } from '@/types/action';
 import { ACTION_TYPE_DISPLAY, ACTION_STYLE_MAP } from '@/types/action';
 import type { BrandSummary } from '@/types/brand';
+import { FavoriteButton } from '@/components/historico/FavoriteButton';
+import type { FavoriteScope } from '@/hooks/useFavorites';
 
 interface ActionListProps {
   actions: ActionSummary[];
@@ -29,8 +31,11 @@ interface ActionListProps {
   hasNextPage: boolean;
   isFetchingNextPage: boolean;
   onLoadMore: () => void;
+  isPersonalFavorite?: (actionId: string) => boolean;
+  isTeamFavorite?: (actionId: string) => boolean;
   isFavorite?: (actionId: string) => boolean;
-  onToggleFavorite?: (actionId: string) => void;
+  onToggleFavorite?: (actionId: string, scope: FavoriteScope) => void;
+  hasTeam?: boolean;
 }
 
 type SortField = 'type' | 'date';
