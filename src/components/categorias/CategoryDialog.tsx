@@ -234,7 +234,7 @@ export function CategoryDialog({ open, onOpenChange, category, onSave, isSaving,
                 </div>
               </div>
 
-              <DialogFooter className="px-6 py-4 border-t border-border">
+              <DialogFooter className="px-6 py-4">
                 <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
                 <Button type="submit" disabled={!name.trim() || isSaving}>
                   {isSaving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
