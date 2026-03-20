@@ -119,7 +119,7 @@ export function CategoryDialog({ open, onOpenChange, category, onSave, isSaving,
       <DialogContent
         className={cn(
           "p-0 gap-0 overflow-visible bg-transparent border-none shadow-none transition-all duration-300 ease-in-out",
-          membersOpen ? "sm:max-w-[52rem]" : "sm:max-w-md"
+          membersOpen ? "sm:max-w-[56rem]" : "sm:max-w-lg"
         )}
       >
         <div className="flex items-stretch gap-3">
