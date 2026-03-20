@@ -51,7 +51,7 @@ const ReviewResult = () => {
   return (
     <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8 min-h-full">
       {/* Banner */}
-      <div className="relative w-full h-36 md:h-44 flex-shrink-0 overflow-hidden">
+      <div className="relative w-full h-28 md:h-36 flex-shrink-0 overflow-hidden">
         <PageBreadcrumb
           items={[
             { label: "Revisar Conteúdo", href: "/review" },
@@ -68,15 +68,15 @@ const ReviewResult = () => {
       </div>
 
       {/* Header Card */}
-      <div className="relative px-4 sm:px-6 lg:px-8 -mt-12 flex-shrink-0 z-10">
-        <div className="bg-card rounded-2xl shadow-lg p-4 lg:p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="relative px-4 sm:px-6 lg:px-8 -mt-10 flex-shrink-0 z-10">
+        <div className="bg-card rounded-2xl shadow-lg p-3 lg:p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="flex-shrink-0 bg-primary/10 border border-primary/20 shadow-sm text-primary rounded-2xl p-3 lg:p-4">
-              <CheckCircle className="h-8 w-8 lg:h-10 lg:w-10" />
+            <div className="flex-shrink-0 bg-primary/10 border border-primary/20 shadow-sm text-primary rounded-xl p-2.5 lg:p-3">
+              <CheckCircle className="h-6 w-6 lg:h-7 lg:w-7" />
             </div>
             <div>
-              <h1 className="text-2xl lg:text-3xl font-bold text-foreground">Revisão Completa</h1>
-              <p className="text-sm lg:text-base text-muted-foreground">
+              <h1 className="text-xl lg:text-2xl font-bold text-foreground">Revisão Completa</h1>
+              <p className="text-xs lg:text-sm text-muted-foreground">
                 {reviewType === 'image' && 'Sugestões para sua imagem'}
                 {reviewType === 'caption' && 'Sugestões para sua legenda'}
                 {reviewType === 'text-for-image' && 'Texto otimizado para geração de imagem'}
