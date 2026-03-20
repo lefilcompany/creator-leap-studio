@@ -31,16 +31,16 @@ export function AddToCategoryPopover({ actionId, children }: AddToCategoryPopove
         {children || (
           <Button variant="outline" size="sm" className="gap-2">
             <FolderOpen className="h-4 w-4" />
-            Categoria
+            Nicho
           </Button>
         )}
       </PopoverTrigger>
       <PopoverContent className="w-56 p-2" align="end">
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 py-1.5">
-          Categorias
+          Nichos
         </p>
         {categories.length === 0 ? (
-          <p className="text-sm text-muted-foreground px-2 py-3 text-center">Nenhuma categoria criada</p>
+          <p className="text-sm text-muted-foreground px-2 py-3 text-center">Nenhum nicho criado</p>
         ) : (
           <div className="space-y-0.5 max-h-48 overflow-y-auto">
             {categories.map(cat => {

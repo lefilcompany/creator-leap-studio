@@ -89,7 +89,7 @@ export default function CategoryView() {
     <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8">
       {/* Banner */}
       <div className="relative w-full h-28 md:h-36 flex-shrink-0 overflow-hidden" style={{ backgroundColor: category?.color || 'hsl(var(--primary))' }}>
-        <PageBreadcrumb variant="overlay" items={[{ label: 'Categorias', href: '/categories' }, { label: category?.name || '' }]} />
+        <PageBreadcrumb variant="overlay" items={[{ label: 'Nichos', href: '/categories' }, { label: category?.name || '' }]} />
         <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
       </div>
 

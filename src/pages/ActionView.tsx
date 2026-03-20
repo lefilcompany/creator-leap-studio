@@ -487,16 +487,16 @@ export default function ActionView() {
                     ) : (
                       <button className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border border-dashed border-muted-foreground/30 text-muted-foreground hover:border-muted-foreground/50 hover:text-foreground transition-colors active:scale-[0.97]">
                         <FolderOpen className="h-3 w-3" />
-                        Sem categoria
+                        Sem nicho
                       </button>
                     )}
                   </PopoverTrigger>
                   <PopoverContent className="w-56 p-2" align="start">
                     <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 py-1.5">
-                      Categorias
+                      Nichos
                     </p>
                     {categories.length === 0 ? (
-                      <p className="text-sm text-muted-foreground px-2 py-3 text-center">Nenhuma categoria criada</p>
+                      <p className="text-sm text-muted-foreground px-2 py-3 text-center">Nenhum nicho criado</p>
                     ) : (
                       <div className="space-y-0.5 max-h-48 overflow-y-auto">
                         {categories.map(cat => {
