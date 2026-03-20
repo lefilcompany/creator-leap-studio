@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Package, Users, CreditCard, Building2, RefreshCw, TrendingUp } from "lucide-react";
+import { Loader2, Package, Users, CreditCard, Building2, RefreshCw, TrendingUp, AlertTriangle } from "lucide-react";
 import { AdminFilters } from "@/components/admin/AdminFilters";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
