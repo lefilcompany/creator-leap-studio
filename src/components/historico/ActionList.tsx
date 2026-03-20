@@ -260,7 +260,7 @@ export default function ActionList({
   brands, brandFilter, onBrandFilterChange, typeFilter, onTypeFilterChange,
   brandOptions, typeOptions,
   hasNextPage, isFetchingNextPage, onLoadMore,
-  isFavorite, onToggleFavorite,
+  isFavorite, isPersonalFavorite, isTeamFavorite, onToggleFavorite, hasTeam,
 }: ActionListProps) {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
