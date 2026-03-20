@@ -14,6 +14,7 @@ import type { ActionSummary } from '@/types/action';
 import { ACTION_TYPE_DISPLAY, ACTION_STYLE_MAP } from '@/types/action';
 import type { BrandSummary } from '@/types/brand';
 import { FavoriteButton } from '@/components/historico/FavoriteButton';
+import { ActionCardMenu } from '@/components/historico/ActionCardMenu';
 import type { FavoriteScope } from '@/hooks/useFavorites';
 
 type SortField = 'type' | 'date';
