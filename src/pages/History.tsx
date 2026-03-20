@@ -76,34 +76,74 @@ export default function History() {
       {/* Header card */}
       <div className="relative px-4 sm:px-6 lg:px-8 -mt-12 flex-shrink-0">
         <div className="bg-card rounded-2xl shadow-lg p-4 lg:p-5">
-          <div className="flex items-center gap-4">
-            <div className="bg-secondary/10 border border-secondary/20 shadow-sm rounded-2xl p-3 lg:p-4">
-              <HistoryIcon className="h-8 w-8 lg:h-10 lg:w-10 text-secondary" />
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div className="flex items-center gap-4">
+              <div className="bg-secondary/10 border border-secondary/20 shadow-sm rounded-2xl p-3 lg:p-4">
+                <HistoryIcon className="h-8 w-8 lg:h-10 lg:w-10 text-secondary" />
+              </div>
+              <div>
+                <h1 className="text-2xl lg:text-3xl font-bold text-foreground flex items-center gap-2">
+                  Histórico de Ações
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button className="text-muted-foreground hover:text-foreground transition-colors">
+                        <HelpCircle className="h-5 w-5" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-80 text-sm" side="bottom" align="start">
+                      <div className="space-y-2">
+                        <h4 className="font-semibold text-foreground">O que é o Histórico?</h4>
+                        <p className="text-muted-foreground">O histórico reúne todas as ações realizadas pela sua equipe.</p>
+                        <h4 className="font-semibold text-foreground mt-3">Como usar?</h4>
+                        <ul className="text-muted-foreground space-y-1 list-disc list-inside">
+                          <li>Use os filtros para encontrar ações específicas</li>
+                          <li>Busque por nome da marca ou tipo de ação</li>
+                          <li>Clique em uma ação para ver os detalhes completos</li>
+                        </ul>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </h1>
+                <p className="text-sm lg:text-base text-muted-foreground">Visualize e filtre todas as ações realizadas no sistema.</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-2xl lg:text-3xl font-bold text-foreground flex items-center gap-2">
-                Histórico de Ações
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <button className="text-muted-foreground hover:text-foreground transition-colors">
-                      <HelpCircle className="h-5 w-5" />
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-80 text-sm" side="bottom" align="start">
-                    <div className="space-y-2">
-                      <h4 className="font-semibold text-foreground">O que é o Histórico?</h4>
-                      <p className="text-muted-foreground">O histórico reúne todas as ações realizadas pela sua equipe.</p>
-                      <h4 className="font-semibold text-foreground mt-3">Como usar?</h4>
-                      <ul className="text-muted-foreground space-y-1 list-disc list-inside">
-                        <li>Use os filtros para encontrar ações específicas</li>
-                        <li>Busque por nome da marca ou tipo de ação</li>
-                        <li>Clique em uma ação para ver os detalhes completos</li>
-                      </ul>
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              </h1>
-              <p className="text-sm lg:text-base text-muted-foreground">Visualize e filtre todas as ações realizadas no sistema.</p>
+
+            {/* Tab switcher inline */}
+            <div className="flex items-center gap-0.5 bg-muted/40 rounded-lg p-0.5">
+              <button
+                onClick={() => setActiveTab('all')}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all active:scale-[0.97]",
+                  activeTab === 'all'
+                    ? "bg-card text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <HistoryIcon className="h-3.5 w-3.5" />
+                Todas
+              </button>
+              <button
+                onClick={() => setActiveTab('favorites')}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all active:scale-[0.97]",
+                  activeTab === 'favorites'
+                    ? "bg-card text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <Star className="h-3.5 w-3.5" />
+                Favoritas
+                {allFavoriteIds.length > 0 && (
+                  <span className={cn(
+                    "ml-0.5 text-[10px] rounded-full px-1.5 py-0.5 font-semibold tabular-nums",
+                    activeTab === 'favorites'
+                      ? "bg-primary/15 text-primary"
+                      : "bg-amber-400/20 text-amber-600 dark:text-amber-400"
+                  )}>
+                    {allFavoriteIds.length}
+                  </span>
+                )}
+              </button>
             </div>
           </div>
         </div>
@@ -111,42 +151,6 @@ export default function History() {
 
       {/* Action list */}
       <main id="history-list" className="px-4 sm:px-6 lg:px-8 pt-4 pb-4 sm:pb-6 lg:pb-8 space-y-4">
-        <div className="flex items-center gap-1 bg-card rounded-xl shadow-md p-1">
-          <button
-            onClick={() => setActiveTab('all')}
-            className={cn(
-              "flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all active:scale-[0.97]",
-              activeTab === 'all'
-                ? "bg-primary text-primary-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-            )}
-          >
-            <HistoryIcon className="h-4 w-4" />
-            Todas
-          </button>
-          <button
-            onClick={() => setActiveTab('favorites')}
-            className={cn(
-              "flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all active:scale-[0.97]",
-              activeTab === 'favorites'
-                ? "bg-primary text-primary-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-            )}
-          >
-            <Star className="h-4 w-4" />
-            Favoritas
-            {allFavoriteIds.length > 0 && (
-              <span className={cn(
-                "ml-0.5 text-[10px] rounded-full px-1.5 py-0.5 font-semibold tabular-nums",
-                activeTab === 'favorites'
-                  ? "bg-primary-foreground/20 text-primary-foreground"
-                  : "bg-amber-400/20 text-amber-600 dark:text-amber-400"
-              )}>
-                {allFavoriteIds.length}
-              </span>
-            )}
-          </button>
-        </div>
         <ActionList
           actions={actions}
           selectedAction={selectedActionSummary}
