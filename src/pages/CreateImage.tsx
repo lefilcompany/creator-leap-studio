@@ -1076,6 +1076,13 @@ export default function CreateImage() {
               )}
             </div>
 
+            {/* ── CATEGORIA (opcional) ── */}
+            <CategorySelector
+              value={selectedCategoryId}
+              onChange={setSelectedCategoryId}
+              disabled={loading}
+            />
+
             {/* ── SEÇÃO 4: CAMPOS OPCIONAIS (colapsável) ── */}
             <button
               type="button"
