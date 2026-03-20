@@ -232,11 +232,6 @@ function ActionCard({ action, isSelected, onNavigate, isPersonalFavorite, isTeam
           {action.platform && (
             <PlatformIcon platform={action.platform} className="h-4 w-4" />
           )}
-          {action.objective && (
-            <Badge variant="outline" className="text-[10px] px-2 py-0.5 h-5 font-normal truncate max-w-[120px]">
-              {action.objective}
-            </Badge>
-          )}
           {actionCategories && actionCategories.length > 0 ? (
             <CategoryBadge name={actionCategories[0].name} color={actionCategories[0].color} />
           ) : (
