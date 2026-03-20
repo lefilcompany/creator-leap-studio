@@ -170,6 +170,8 @@ export default function ActionView() {
   const [copying, setCopying] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  const { data: actionCats = [] } = useActionCategories(actionId);
+  const { categories, addActionToCategory, removeActionFromCategory } = useCategories();
 
   // ── Data fetching ────────────────────────────────────────
   useEffect(() => {
