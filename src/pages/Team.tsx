@@ -65,7 +65,7 @@ export default function Team() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [members.length, viewMode]);
+  }, [members.length]);
 
   useEffect(() => {
     if (team && accessibleTeams.length > 0) {
@@ -527,75 +527,92 @@ export default function Team() {
                           ))}
                         </div>
                       )}
-                      {!isMembersLoading && viewMode === 'grid' && (
-                        <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-                          {members.map((member) => (
-                            <Card key={member.id} className="group relative border-0 shadow-md hover:shadow-lg transition-all">
-                              <CardContent className="p-4 flex flex-col items-center text-center">
-                                <Avatar className="h-16 w-16 mb-3">
-                                  <AvatarImage src={member.avatar_url} />
-                                  <AvatarFallback className="bg-primary/10 text-primary text-lg">{getDisplayName(member.name).charAt(0)}</AvatarFallback>
-                                </Avatar>
-                                <p className="font-semibold text-sm flex items-center gap-1.5 truncate max-w-full">
-                                  <UserNameLink userId={member.id} userName={getDisplayName(member.name)} className="font-semibold text-sm" />
-                                  {member.id === team?.admin_id && <Crown className="h-3.5 w-3.5 text-amber-500 flex-shrink-0" />}
-                                </p>
-                                <p className="text-xs text-muted-foreground truncate max-w-full mt-0.5">{member.email}</p>
-                                {member.id === team?.admin_id && (
-                                  <span className="text-[10px] bg-amber-500/10 text-amber-600 dark:text-amber-400 px-2 py-0.5 rounded-full mt-2 font-medium">Administrador</span>
-                                )}
-                                {isTeamAdmin && member.id !== team?.admin_id && (
-                                  <Button size="sm" variant="ghost" className="mt-2 text-destructive hover:bg-destructive hover:text-destructive-foreground opacity-0 group-hover:opacity-100 transition-opacity h-7 text-xs" onClick={() => setMemberToRemove(member)}>
-                                    <UserMinus className="h-3 w-3 mr-1" />Remover
-                                  </Button>
-                                )}
-                              </CardContent>
-                            </Card>
-                          ))}
-                        </div>
-                      )}
-                      {!isMembersLoading && viewMode === 'list' && (
-                        <div className="space-y-2">
-                          {displayedMembers.map((member) => (
-                            <div key={member.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-all">
-                              <div className="flex items-center gap-3">
-                                <Avatar className="h-10 w-10">
-                                  <AvatarImage src={member.avatar_url} />
-                                  <AvatarFallback className="bg-primary/10 text-primary">{getDisplayName(member.name).charAt(0)}</AvatarFallback>
-                                </Avatar>
-                                <div>
-                                  <p className="font-medium text-sm flex items-center gap-2">
-                                    <UserNameLink userId={member.id} userName={getDisplayName(member.name)} className="font-medium text-sm" />
-                                    {member.id === team?.admin_id && <Crown className="h-3.5 w-3.5 text-amber-500" />}
-                                  </p>
-                                  <p className="text-xs text-muted-foreground flex items-center gap-1"><Mail className="h-3 w-3" />{member.email}</p>
+                      {!isMembersLoading && (
+                        <AnimatePresence mode="wait">
+                          {viewMode === 'grid' ? (
+                            <motion.div
+                              key="grid"
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              transition={{ duration: 0.15 }}
+                              className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
+                            >
+                              {members.map((member) => (
+                                <Card key={member.id} className="group relative border-0 shadow-md hover:shadow-lg transition-all">
+                                  <CardContent className="p-4 flex flex-col items-center text-center">
+                                    <Avatar className="h-16 w-16 mb-3">
+                                      <AvatarImage src={member.avatar_url} />
+                                      <AvatarFallback className="bg-primary/10 text-primary text-lg">{getDisplayName(member.name).charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <p className="font-semibold text-sm flex items-center gap-1.5 truncate max-w-full">
+                                      <UserNameLink userId={member.id} userName={getDisplayName(member.name)} className="font-semibold text-sm" />
+                                      {member.id === team?.admin_id && <Crown className="h-3.5 w-3.5 text-amber-500 flex-shrink-0" />}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground truncate max-w-full mt-0.5">{member.email}</p>
+                                    {member.id === team?.admin_id && (
+                                      <span className="text-[10px] bg-amber-500/10 text-amber-600 dark:text-amber-400 px-2 py-0.5 rounded-full mt-2 font-medium">Administrador</span>
+                                    )}
+                                    {isTeamAdmin && member.id !== team?.admin_id && (
+                                      <Button size="sm" variant="ghost" className="mt-2 text-destructive hover:bg-destructive hover:text-destructive-foreground opacity-0 group-hover:opacity-100 transition-opacity h-7 text-xs" onClick={() => setMemberToRemove(member)}>
+                                        <UserMinus className="h-3 w-3 mr-1" />Remover
+                                      </Button>
+                                    )}
+                                  </CardContent>
+                                </Card>
+                              ))}
+                            </motion.div>
+                          ) : (
+                            <motion.div
+                              key="list"
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              transition={{ duration: 0.15 }}
+                              className="space-y-2"
+                            >
+                              {displayedMembers.map((member) => (
+                                <div key={member.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-all">
+                                  <div className="flex items-center gap-3">
+                                    <Avatar className="h-10 w-10">
+                                      <AvatarImage src={member.avatar_url} />
+                                      <AvatarFallback className="bg-primary/10 text-primary">{getDisplayName(member.name).charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                      <p className="font-medium text-sm flex items-center gap-2">
+                                        <UserNameLink userId={member.id} userName={getDisplayName(member.name)} className="font-medium text-sm" />
+                                        {member.id === team?.admin_id && <Crown className="h-3.5 w-3.5 text-amber-500" />}
+                                      </p>
+                                      <p className="text-xs text-muted-foreground flex items-center gap-1"><Mail className="h-3 w-3" />{member.email}</p>
+                                    </div>
+                                  </div>
+                                  {isTeamAdmin && member.id !== team?.admin_id && (
+                                    <Button size="sm" variant="outline" className="text-destructive hover:bg-destructive hover:text-destructive-foreground" onClick={() => setMemberToRemove(member)}>
+                                      <UserMinus className="h-4 w-4" />
+                                    </Button>
+                                  )}
                                 </div>
-                              </div>
-                              {isTeamAdmin && member.id !== team?.admin_id && (
-                                <Button size="sm" variant="outline" className="text-destructive hover:bg-destructive hover:text-destructive-foreground" onClick={() => setMemberToRemove(member)}>
-                                  <UserMinus className="h-4 w-4" />
-                                </Button>
+                              ))}
+                              {totalPages > 1 && (
+                                <Pagination className="mt-4">
+                                  <PaginationContent>
+                                    <PaginationItem>
+                                      <PaginationPrevious onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))} className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
+                                    </PaginationItem>
+                                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                                      <PaginationItem key={page}>
+                                        <PaginationLink onClick={() => setCurrentPage(page)} isActive={currentPage === page} className="cursor-pointer">{page}</PaginationLink>
+                                      </PaginationItem>
+                                    ))}
+                                    <PaginationItem>
+                                      <PaginationNext onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))} className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
+                                    </PaginationItem>
+                                  </PaginationContent>
+                                </Pagination>
                               )}
-                            </div>
-                          ))}
-                          {totalPages > 1 && (
-                            <Pagination className="mt-4">
-                              <PaginationContent>
-                                <PaginationItem>
-                                  <PaginationPrevious onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))} className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
-                                </PaginationItem>
-                                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                                  <PaginationItem key={page}>
-                                    <PaginationLink onClick={() => setCurrentPage(page)} isActive={currentPage === page} className="cursor-pointer">{page}</PaginationLink>
-                                  </PaginationItem>
-                                ))}
-                                <PaginationItem>
-                                  <PaginationNext onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))} className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
-                                </PaginationItem>
-                              </PaginationContent>
-                            </Pagination>
+                            </motion.div>
                           )}
-                        </div>
+                        </AnimatePresence>
                       )}
                       {!isMembersLoading && members.length === 0 && (
                         <div className="text-center py-8 text-muted-foreground">
