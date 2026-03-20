@@ -1071,6 +1071,7 @@ export default function CreateContent() {
       const capturedFormData = { ...formData };
       const capturedFinalBrandImages = [...finalBrandImages];
       const capturedFinalUserImages = [...finalUserImages];
+      const capturedCategoryId = categoryId;
 
       clearPersistedData();
 
