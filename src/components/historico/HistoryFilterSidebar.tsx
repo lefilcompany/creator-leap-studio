@@ -52,12 +52,14 @@ function FilterSection({ title, defaultOpen = true, children }: { title: string;
 function SidebarContent({
   brandFilter, onBrandFilterChange, typeFilter, onTypeFilterChange,
   brands, sortField, sortDirection, onSortChange,
+  categoryFilter, onCategoryFilterChange, categories,
 }: HistoryFilterSidebarProps) {
-  const hasActiveFilters = brandFilter !== 'all' || typeFilter !== 'all' || sortField !== 'date' || sortDirection !== 'desc';
+  const hasActiveFilters = brandFilter !== 'all' || typeFilter !== 'all' || sortField !== 'date' || sortDirection !== 'desc' || categoryFilter !== 'all';
 
   const clearFilters = () => {
     onBrandFilterChange('all');
     onTypeFilterChange('all');
+    onCategoryFilterChange('all');
     onSortChange('date', 'desc');
   };
 
