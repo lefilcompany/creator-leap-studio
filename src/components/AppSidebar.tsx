@@ -385,46 +385,52 @@ export function AppSidebar() {
           ))}
         </div>
 
-        {/* Background Tasks + Credits */}
+        {/* Background Tasks */}
         {user && (
-          <div className="mt-auto mb-5 flex flex-col gap-2.5">
+          <div className="mt-auto mb-2 flex flex-col gap-2.5">
             <SidebarTaskIndicator collapsed={collapsed} />
-            {collapsed ? (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <NavLink
-                    id="nav-credits"
-                    to="/credits"
-                    onClick={handleMobileNavigate}
-                    className="flex items-center justify-center gap-3 p-3 rounded-lg transition-all duration-300 ease-in-out hover:scale-105 bg-gradient-to-r from-primary to-secondary text-primary-foreground shadow-lg"
-                  >
-                    <Coins className="h-5 w-5 flex-shrink-0" />
-                  </NavLink>
-                </TooltipTrigger>
-                <TooltipContent side="right">
-                  <div className="flex flex-col items-start">
-                    <span className="font-bold text-sm">{user.credits || 0} créditos</span>
-                    <span className="text-xs opacity-80">Clique para comprar</span>
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            ) : (
-              <NavLink
-                id="nav-credits"
-                to="/credits"
-                onClick={handleMobileNavigate}
-                className="flex items-center gap-3 p-3 rounded-lg transition-all duration-300 ease-in-out hover:scale-105 bg-gradient-to-r from-primary to-secondary text-primary-foreground shadow-lg"
-              >
-                <Coins className="h-5 w-5 flex-shrink-0" />
-                <div className="flex flex-col">
-                  <span className="font-bold text-sm">{user.credits || 0} créditos</span>
-                  <span className="text-xs opacity-80">Comprar mais</span>
-                </div>
-              </NavLink>
-            )}
           </div>
         )}
       </nav>
+
+      {/* Credits - fixed at bottom */}
+      {user && (
+        <div className={cn("flex-shrink-0 pb-5", collapsed ? "px-2" : "px-4")}>
+          {collapsed ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <NavLink
+                  id="nav-credits"
+                  to="/credits"
+                  onClick={handleMobileNavigate}
+                  className="flex items-center justify-center gap-3 p-3 rounded-lg transition-all duration-300 ease-in-out hover:scale-105 bg-gradient-to-r from-primary to-secondary text-primary-foreground shadow-lg"
+                >
+                  <Coins className="h-5 w-5 flex-shrink-0" />
+                </NavLink>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                <div className="flex flex-col items-start">
+                  <span className="font-bold text-sm">{user.credits || 0} créditos</span>
+                  <span className="text-xs opacity-80">Clique para comprar</span>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          ) : (
+            <NavLink
+              id="nav-credits"
+              to="/credits"
+              onClick={handleMobileNavigate}
+              className="flex items-center gap-3 p-3 rounded-lg transition-all duration-300 ease-in-out hover:scale-105 bg-gradient-to-r from-primary to-secondary text-primary-foreground shadow-lg"
+            >
+              <Coins className="h-5 w-5 flex-shrink-0" />
+              <div className="flex flex-col">
+                <span className="font-bold text-sm">{user.credits || 0} créditos</span>
+                <span className="text-xs opacity-80">Comprar mais</span>
+              </div>
+            </NavLink>
+          )}
+        </div>
+      )}
     </TooltipProvider>
   );
 
