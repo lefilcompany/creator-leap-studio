@@ -99,7 +99,7 @@ export function ActionCardMenu({
           <PopoverTrigger asChild>
             <button
               onClick={(e) => { e.stopPropagation(); e.preventDefault(); setCatPopoverOpen(true); }}
-              className="relative flex cursor-pointer items-center gap-2.5 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground w-full"
+              className="group/cat relative flex cursor-pointer items-center gap-2.5 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground w-full"
             >
               <FolderOpen className="h-4 w-4 flex-shrink-0" />
               <span className="flex-1 text-left">Adicionar à categoria</span>
