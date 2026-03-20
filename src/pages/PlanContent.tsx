@@ -46,6 +46,7 @@ const PlanContent = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [brands, setBrands] = useState<any[]>([]);
   const [themes, setThemes] = useState<any[]>([]);
+  const [categoryId, setCategoryId] = useState("");
   const creditsRemaining = user?.credits ?? 0;
   const [isLoadingData, setIsLoadingData] = useState(true);
 
