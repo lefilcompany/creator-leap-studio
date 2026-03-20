@@ -53,6 +53,10 @@ export function CategoryList({ categories, onSelect, onEdit, onDelete, isLoading
             onClick={() => onSelect(cat)}
             className="cursor-pointer bg-card rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 group relative"
           >
+            {/* Color strip */}
+            <div className="h-1.5 w-full" style={{ backgroundColor: cat.color }} />
+
+            <div className="p-5">
             {/* Menu */}
             {isOwner && (
               <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
