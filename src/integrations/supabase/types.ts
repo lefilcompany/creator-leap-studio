@@ -1219,6 +1219,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      remove_team_member: {
+        Args: { p_member_id: string; p_team_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       action_type:
