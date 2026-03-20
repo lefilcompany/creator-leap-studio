@@ -187,6 +187,8 @@ const PlanContent = () => {
 
       clearPersistedData();
 
+      const capturedCategoryId = categoryId;
+
       addTask(
         "Planejamento de Conteúdo",
         "plan_content",
@@ -203,6 +205,19 @@ const PlanContent = () => {
 
           if (data.error) {
             throw new Error(data.error);
+          }
+
+          // Auto-assign to category if selected
+          if (capturedCategoryId && data.actionId) {
+            try {
+              await supabase.from('action_category_items').insert({
+                category_id: capturedCategoryId,
+                action_id: data.actionId,
+                added_by: user!.id,
+              });
+            } catch (e) {
+              console.error("Erro ao atribuir categoria:", e);
+            }
           }
 
           try { await refreshTeamCredits(); } catch {}
