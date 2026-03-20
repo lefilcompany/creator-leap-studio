@@ -116,21 +116,21 @@ export function CategoryDialog({ open, onOpenChange, category, onSave, isSaving,
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className={cn(
-          "p-0 gap-0 overflow-hidden transition-all duration-300 ease-in-out",
-          membersOpen ? "sm:max-w-3xl" : "sm:max-w-md"
+          "p-0 gap-0 overflow-visible bg-transparent border-none shadow-none transition-all duration-300 ease-in-out",
+          membersOpen ? "sm:max-w-[52rem]" : "sm:max-w-md"
         )}
       >
-        <div className="flex min-h-0">
+        <div className="flex items-start gap-3">
           {/* Main Form Panel */}
           <div className={cn(
-            "flex flex-col flex-shrink-0 transition-all duration-300 ease-in-out",
-            membersOpen ? "w-full sm:w-[26rem] border-r border-border" : "w-full"
+            "flex flex-col bg-background rounded-xl shadow-lg border border-border overflow-hidden transition-all duration-300 ease-in-out max-h-[85vh]",
+            membersOpen ? "w-full sm:w-[26rem] flex-shrink-0" : "w-full"
           )}>
             <DialogHeader className="px-6 pt-6 pb-0">
               <DialogTitle>{category ? 'Editar Categoria' : 'Nova Categoria'}</DialogTitle>
             </DialogHeader>
 
-            <form onSubmit={handleSubmit} className="flex flex-col flex-1">
+            <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
               <div className="px-6 py-4 space-y-4 overflow-y-auto flex-1">
                 <div className="space-y-2">
                   <Label className="font-bold">Nome</Label>
@@ -244,11 +244,11 @@ export function CategoryDialog({ open, onOpenChange, category, onSave, isSaving,
             </form>
           </div>
 
-          {/* Members Side Panel (appendix) */}
+          {/* Members Side Panel — visually separate card */}
           {membersOpen && (
-            <div className="hidden sm:flex flex-col w-72 flex-shrink-0 animate-in slide-in-from-right-4 duration-200">
-              <div className="flex items-center justify-between px-4 pt-6 pb-3">
-                <h3 className="font-semibold text-sm">Membros da equipe</h3>
+            <div className="hidden sm:flex flex-col w-80 flex-shrink-0 bg-background rounded-xl shadow-lg border border-border max-h-[85vh] animate-in fade-in-0 slide-in-from-right-4 duration-200">
+              <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-border">
+                <h3 className="font-semibold text-base">Membros da equipe</h3>
                 <button
                   type="button"
                   onClick={() => setMembersOpen(false)}
@@ -257,7 +257,7 @@ export function CategoryDialog({ open, onOpenChange, category, onSave, isSaving,
                   <X className="h-4 w-4" />
                 </button>
               </div>
-              <div className="flex-1 overflow-y-auto px-2 pb-4 space-y-0.5">
+              <div className="flex-1 overflow-y-auto px-2 py-2 space-y-0.5">
                 {availableMembers.length === 0 && (
                   <p className="text-sm text-muted-foreground text-center py-8 px-2">
                     Todos os membros já foram adicionados.
@@ -280,7 +280,7 @@ export function CategoryDialog({ open, onOpenChange, category, onSave, isSaving,
                       <p className="text-sm font-medium truncate">{tm.name}</p>
                       <p className="text-xs text-muted-foreground truncate">{tm.email}</p>
                     </div>
-                    <span className="text-muted-foreground text-lg leading-none">+</span>
+                    <span className="text-muted-foreground text-lg leading-none flex-shrink-0">+</span>
                   </button>
                 ))}
               </div>
