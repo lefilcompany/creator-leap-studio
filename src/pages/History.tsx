@@ -41,10 +41,10 @@ export default function History() {
 
   const actions = useMemo(() => {
     if (activeTab === 'favorites') {
-      return allActions.filter(a => favoriteIds.includes(a.id));
+      return allActions.filter(a => allFavoriteIds.includes(a.id));
     }
     return allActions;
-  }, [allActions, activeTab, favoriteIds]);
+  }, [allActions, activeTab, allFavoriteIds]);
 
   const brandOptions = useMemo(() => [
     { value: 'all', label: 'Todas as Marcas' },
