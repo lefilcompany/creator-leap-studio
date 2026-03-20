@@ -1,7 +1,7 @@
 import React from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
-import { Home, Tag, Users, Calendar, History, Sparkles, CheckCircle, Palette, Coins, UsersRound } from "lucide-react";
+import { Home, Tag, Users, Calendar, History, Sparkles, CheckCircle, Palette, Coins, UsersRound, FolderOpen } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarRail, useSidebar } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
