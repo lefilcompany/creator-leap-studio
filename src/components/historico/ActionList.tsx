@@ -5,7 +5,7 @@ import { Star, Search, ArrowUpDown, ArrowUp, ArrowDown, List, LayoutGrid, X, Clo
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
