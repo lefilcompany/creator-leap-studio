@@ -174,6 +174,18 @@ export default function AdminPlans() {
     }
   };
 
+  // Compute real status considering subscription_period_end
+  const getRealStatus = (sub: TeamSubscription): { status: string; isExpiredButMarkedActive: boolean } => {
+    const now = new Date();
+    if (sub.subscription_period_end && new Date(sub.subscription_period_end) < now) {
+      if (sub.subscription_status === "active" || sub.subscription_status === "trialing") {
+        return { status: "expired", isExpiredButMarkedActive: true };
+      }
+      return { status: "expired", isExpiredButMarkedActive: false };
+    }
+    return { status: sub.subscription_status || "unknown", isExpiredButMarkedActive: false };
+  };
+
   const getStatusColor = (status: string | null) => {
     switch (status) {
       case "active":
@@ -182,6 +194,8 @@ export default function AdminPlans() {
         return "bg-blue-500/10 text-blue-600 border-blue-500/20";
       case "canceled":
         return "bg-red-500/10 text-red-600 border-red-500/20";
+      case "expired":
+        return "bg-orange-500/10 text-orange-600 border-orange-500/20";
       case "past_due":
         return "bg-yellow-500/10 text-yellow-600 border-yellow-500/20";
       default:
@@ -197,6 +211,8 @@ export default function AdminPlans() {
         return "Trial";
       case "canceled":
         return "Cancelado";
+      case "expired":
+        return "Expirado";
       case "past_due":
         return "Atrasado";
       default:
