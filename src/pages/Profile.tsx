@@ -163,7 +163,7 @@ export default function Profile() {
     <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8">
       {/* Banner - Editável */}
       <div 
-        className="relative w-full h-48 md:h-56 lg:h-64 xl:h-72 flex-shrink-0 overflow-hidden group/banner cursor-pointer"
+        className="relative w-full h-36 md:h-44 lg:h-52 xl:h-56 flex-shrink-0 overflow-hidden group/banner cursor-pointer"
         onClick={() => !uploadingBanner && bannerInputRef.current?.click()}
       >
         <PageBreadcrumb

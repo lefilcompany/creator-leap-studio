@@ -284,7 +284,7 @@ export default function Themes() {
   return (
     <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8">
       {/* Banner */}
-      <div className="relative w-full h-48 md:h-56 flex-shrink-0 overflow-hidden">
+      <div className="relative w-full h-36 md:h-44 flex-shrink-0 overflow-hidden">
         <PageBreadcrumb
           variant="overlay"
           items={[{ label: 'Temas Estratégicos' }]}

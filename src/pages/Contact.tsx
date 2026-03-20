@@ -21,7 +21,7 @@ export default function Contact() {
   return (
     <div className="min-h-screen bg-background">
       {/* Banner */}
-      <div className="relative h-56 lg:h-72">
+      <div className="relative h-36 lg:h-52">
         <img
           src={profileBanner}
           alt="Contato"
