@@ -204,17 +204,17 @@ function ActionCard({ action, isSelected, onNavigate, isPersonalFavorite, isTeam
             <FallbackIcon className={cn("h-12 w-12 opacity-40", iconColor)} />
           </div>
         )}
-        {/* Favorite button overlay */}
+        {/* Action menu overlay */}
         <div className={cn(
           "absolute top-2 right-2 bg-background/80 backdrop-blur-sm rounded-lg transition-all shadow-sm",
           (isPersonalFavorite || isTeamFavorite) ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-        )}>
-          <FavoriteButton
+        )} onClick={(e) => e.stopPropagation()}>
+          <ActionCardMenu
             actionId={action.id}
             isPersonalFavorite={!!isPersonalFavorite}
             isTeamFavorite={!!isTeamFavorite}
             hasTeam={!!hasTeam}
-            onToggle={(id, scope) => onToggleFavorite?.(id, scope)}
+            onToggleFavorite={(id, scope) => onToggleFavorite?.(id, scope)}
           />
         </div>
       </div>
