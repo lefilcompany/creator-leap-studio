@@ -182,6 +182,7 @@ export function useCategories() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });
       queryClient.invalidateQueries({ queryKey: ['action-categories'] });
+      queryClient.invalidateQueries({ queryKey: ['category-actions'] });
       toast.success('Ação adicionada à categoria!');
     },
     onError: () => toast.error('Erro ao adicionar à categoria'),
