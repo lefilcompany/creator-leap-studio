@@ -491,6 +491,15 @@ export default function ActionList({
                     <TableCell className="text-muted-foreground text-sm text-right">
                       {formatDateShort(action.createdAt)}
                     </TableCell>
+                    <TableCell className="py-2">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); onToggleFavorite?.(action.id); }}
+                        className="p-1 rounded-md hover:bg-muted transition-colors active:scale-95"
+                        aria-label={isFavorite?.(action.id) ? "Remover dos favoritos" : "Adicionar aos favoritos"}
+                      >
+                        <Star className={cn("h-4 w-4 transition-colors", isFavorite?.(action.id) ? "fill-amber-400 text-amber-400" : "text-muted-foreground")} />
+                      </button>
+                    </TableCell>
                   </TableRow>
                 );
               })}
