@@ -515,12 +515,17 @@ export default function Team() {
       <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8 animate-fade-in">
         <TeamHeaderBanner
           teamCount={accessibleTeams.length}
+          hasTeam={false}
+          isTeamAdmin={false}
+          hasOtherMembers={false}
           createLabel="Criar Equipe"
           joinLabel="Entrar em Equipe"
           createVariant="default"
           joinVariant="outline"
           onCreateClick={handleOpenCreateDialog}
           onJoinClick={handleOpenJoinDialog}
+          onLeaveClick={handleOpenLeaveDialog}
+          onTransferClick={handleOpenTransferDialog}
         />
 
         <main className="px-4 sm:px-6 lg:px-8 pt-4 pb-4 sm:pb-6 lg:pb-8">
