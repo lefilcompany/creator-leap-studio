@@ -400,15 +400,15 @@ const Credits = () => {
 
       {/* Header */}
       <Card className="border-0 shadow-md bg-gradient-to-br from-primary/10 via-primary/5 to-card rounded-2xl overflow-hidden">
-        <CardContent className="p-5 sm:p-6 md:p-8">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="flex-shrink-0 bg-primary/10 text-primary rounded-2xl p-3 sm:p-4">
-                <Coins className="h-7 w-7 sm:h-8 sm:w-8 md:h-10 md:w-10" />
+        <CardContent className="p-3 sm:p-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="flex-shrink-0 bg-primary/10 text-primary rounded-xl p-2.5 lg:p-3">
+                <Coins className="h-6 w-6 lg:h-7 lg:w-7" />
               </div>
               <div>
-                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-1">Pacotes de Créditos</h1>
-                <p className="text-xs sm:text-sm md:text-base text-muted-foreground">
+                <h1 className="text-xl lg:text-2xl font-bold text-foreground mb-0.5">Pacotes de Créditos</h1>
+                <p className="text-xs lg:text-sm text-muted-foreground">
                   Compre créditos para usar nas ferramentas de criação com IA
                 </p>
               </div>
