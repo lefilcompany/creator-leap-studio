@@ -18,7 +18,7 @@ export default function History() {
   const { user } = useAuth();
   const [selectedActionSummary, setSelectedActionSummary] = useState<ActionSummary | null>(null);
   const [activeTab, setActiveTab] = useState<'all' | 'favorites'>('all');
-  const { favoriteIds, isFavorite, toggleFavorite } = useFavorites();
+  const { allFavoriteIds, isFavorite, isPersonalFavorite, isTeamFavorite, toggleFavorite, hasTeam } = useFavorites();
   const [brandFilter, setBrandFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
 
@@ -41,10 +41,10 @@ export default function History() {
 
   const actions = useMemo(() => {
     if (activeTab === 'favorites') {
-      return allActions.filter(a => favoriteIds.includes(a.id));
+      return allActions.filter(a => allFavoriteIds.includes(a.id));
     }
     return allActions;
-  }, [allActions, activeTab, favoriteIds]);
+  }, [allActions, activeTab, allFavoriteIds]);
 
   const brandOptions = useMemo(() => [
     { value: 'all', label: 'Todas as Marcas' },
@@ -115,9 +115,9 @@ export default function History() {
             <TabsTrigger value="favorites" className="data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1.5">
               <Star className="h-4 w-4" />
               Favoritas
-              {favoriteIds.length > 0 && (
+              {allFavoriteIds.length > 0 && (
                 <span className="ml-1 text-[10px] bg-amber-400/20 text-amber-600 rounded-full px-1.5 py-0.5 font-semibold tabular-nums">
-                  {favoriteIds.length}
+                  {allFavoriteIds.length}
                 </span>
               )}
             </TabsTrigger>
@@ -139,7 +139,10 @@ export default function History() {
           isFetchingNextPage={isFetchingNextPage}
           onLoadMore={() => fetchNextPage()}
           isFavorite={isFavorite}
+          isPersonalFavorite={isPersonalFavorite}
+          isTeamFavorite={isTeamFavorite}
           onToggleFavorite={toggleFavorite}
+          hasTeam={hasTeam}
         />
       </main>
 

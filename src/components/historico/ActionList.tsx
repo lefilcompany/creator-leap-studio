@@ -13,6 +13,8 @@ import {
 import type { ActionSummary } from '@/types/action';
 import { ACTION_TYPE_DISPLAY, ACTION_STYLE_MAP } from '@/types/action';
 import type { BrandSummary } from '@/types/brand';
+import { FavoriteButton } from '@/components/historico/FavoriteButton';
+import type { FavoriteScope } from '@/hooks/useFavorites';
 
 interface ActionListProps {
   actions: ActionSummary[];
@@ -29,8 +31,11 @@ interface ActionListProps {
   hasNextPage: boolean;
   isFetchingNextPage: boolean;
   onLoadMore: () => void;
+  isPersonalFavorite?: (actionId: string) => boolean;
+  isTeamFavorite?: (actionId: string) => boolean;
   isFavorite?: (actionId: string) => boolean;
-  onToggleFavorite?: (actionId: string) => void;
+  onToggleFavorite?: (actionId: string, scope: FavoriteScope) => void;
+  hasTeam?: boolean;
 }
 
 type SortField = 'type' | 'date';
@@ -147,9 +152,10 @@ const LoadingRows = () => (
 );
 
 // Grid card
-function ActionCard({ action, isSelected, onNavigate, isFavorite, onToggleFavorite }: {
+function ActionCard({ action, isSelected, onNavigate, isPersonalFavorite, isTeamFavorite, hasTeam, onToggleFavorite }: {
   action: ActionSummary; isSelected: boolean; onNavigate: () => void;
-  isFavorite?: boolean; onToggleFavorite?: () => void;
+  isPersonalFavorite?: boolean; isTeamFavorite?: boolean; hasTeam?: boolean;
+  onToggleFavorite?: (actionId: string, scope: FavoriteScope) => void;
 }) {
   const displayType = ACTION_TYPE_DISPLAY[action.type];
   const style = ACTION_STYLE_MAP[displayType];
@@ -192,16 +198,18 @@ function ActionCard({ action, isSelected, onNavigate, isFavorite, onToggleFavori
           </div>
         )}
         {/* Favorite button overlay */}
-        <button
-          onClick={(e) => { e.stopPropagation(); onToggleFavorite?.(); }}
-          className={cn(
-            "absolute top-2 right-2 bg-background/80 backdrop-blur-sm rounded-lg p-1.5 transition-all shadow-sm active:scale-95",
-            isFavorite ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-          )}
-          aria-label={isFavorite ? "Remover dos favoritos" : "Adicionar aos favoritos"}
-        >
-          <Star className={cn("h-4 w-4 transition-colors", isFavorite ? "fill-amber-400 text-amber-400" : "text-foreground")} />
-        </button>
+        <div className={cn(
+          "absolute top-2 right-2 bg-background/80 backdrop-blur-sm rounded-lg transition-all shadow-sm",
+          (isPersonalFavorite || isTeamFavorite) ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+        )}>
+          <FavoriteButton
+            actionId={action.id}
+            isPersonalFavorite={!!isPersonalFavorite}
+            isTeamFavorite={!!isTeamFavorite}
+            hasTeam={!!hasTeam}
+            onToggle={(id, scope) => onToggleFavorite?.(id, scope)}
+          />
+        </div>
       </div>
 
       {/* Content */}
@@ -252,7 +260,7 @@ export default function ActionList({
   brands, brandFilter, onBrandFilterChange, typeFilter, onTypeFilterChange,
   brandOptions, typeOptions,
   hasNextPage, isFetchingNextPage, onLoadMore,
-  isFavorite, onToggleFavorite,
+  isFavorite, isPersonalFavorite, isTeamFavorite, onToggleFavorite, hasTeam,
 }: ActionListProps) {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
@@ -491,14 +499,15 @@ export default function ActionList({
                     <TableCell className="text-muted-foreground text-sm text-right">
                       {formatDateShort(action.createdAt)}
                     </TableCell>
-                    <TableCell className="py-2">
-                      <button
-                        onClick={(e) => { e.stopPropagation(); onToggleFavorite?.(action.id); }}
-                        className="p-1 rounded-md hover:bg-muted transition-colors active:scale-95"
-                        aria-label={isFavorite?.(action.id) ? "Remover dos favoritos" : "Adicionar aos favoritos"}
-                      >
-                        <Star className={cn("h-4 w-4 transition-colors", isFavorite?.(action.id) ? "fill-amber-400 text-amber-400" : "text-muted-foreground")} />
-                      </button>
+                    <TableCell className="py-2" onClick={(e) => e.stopPropagation()}>
+                      <FavoriteButton
+                        actionId={action.id}
+                        isPersonalFavorite={!!isPersonalFavorite?.(action.id)}
+                        isTeamFavorite={!!isTeamFavorite?.(action.id)}
+                        hasTeam={!!hasTeam}
+                        onToggle={(id, scope) => onToggleFavorite?.(id, scope)}
+                        size="sm"
+                      />
                     </TableCell>
                   </TableRow>
                 );
@@ -515,8 +524,10 @@ export default function ActionList({
               action={action}
               isSelected={selectedAction?.id === action.id}
               onNavigate={() => navigate(`/action/${action.id}`, { state: { viewMode } })}
-              isFavorite={isFavorite?.(action.id)}
-              onToggleFavorite={() => onToggleFavorite?.(action.id)}
+              isPersonalFavorite={isPersonalFavorite?.(action.id)}
+              isTeamFavorite={isTeamFavorite?.(action.id)}
+              hasTeam={hasTeam}
+              onToggleFavorite={onToggleFavorite}
             />
           ))}
         </div>
