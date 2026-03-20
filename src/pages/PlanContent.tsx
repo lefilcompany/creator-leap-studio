@@ -512,6 +512,16 @@ const PlanContent = () => {
             </CardContent>
           </Card>
 
+          {/* Category Selector */}
+          <Card className="bg-card border-0 shadow-md rounded-2xl overflow-hidden">
+            <CardContent className="p-5 sm:p-7">
+              <CategorySelector
+                value={categoryId}
+                onChange={setCategoryId}
+              />
+            </CardContent>
+          </Card>
+
           {/* Action Button */}
           <Card className="bg-gradient-to-r from-primary/5 via-secondary/5 to-accent/5 border border-border/20 rounded-2xl shadow-lg">
             <CardContent className="p-4 sm:p-5">
