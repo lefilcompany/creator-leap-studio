@@ -99,11 +99,20 @@ export function CategoryDialog({ open, onOpenChange, category, onSave, isSaving,
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
+
+    let finalMembers: CategoryMemberInput[];
+    if (wholeTeam) {
+      const nonOwnerTeamMembers = (teamMembers || []).filter(tm => tm.id !== user?.id);
+      finalMembers = nonOwnerTeamMembers.map(tm => ({ userId: tm.id, role: wholeTeamRole }));
+    } else {
+      finalMembers = members.map(m => ({ userId: m.userId, role: m.role }));
+    }
+
     onSave({
       name: name.trim(),
       description: description.trim() || undefined,
       color,
-      members: members.map(m => ({ userId: m.userId, role: m.role })),
+      members: finalMembers,
     });
   };
 
