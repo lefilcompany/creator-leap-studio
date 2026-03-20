@@ -1,13 +1,11 @@
 import { useState } from 'react';
 import { MoreHorizontal, Star, FolderOpen, Check, User, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSub,
-  DropdownMenuSubTrigger,
-  DropdownMenuSubContent,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
@@ -34,6 +32,8 @@ export function ActionCardMenu({
   const { categories, addActionToCategory, removeActionFromCategory } = useCategories();
   const { data: actionCategories = [] } = useActionCategories(actionId);
   const actionCategoryIds = new Set(actionCategories.map(c => c.id));
+  const [catPopoverOpen, setCatPopoverOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const isFavorited = isPersonalFavorite || isTeamFavorite;
 
@@ -48,12 +48,12 @@ export function ActionCardMenu({
   const iconSize = size === 'sm' ? 'h-3.5 w-3.5' : 'h-4 w-4';
 
   return (
-    <DropdownMenu>
+    <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
       <DropdownMenuTrigger asChild>
         <button
           onClick={(e) => e.stopPropagation()}
           className={cn(
-            "p-1.5 rounded-lg transition-all active:scale-95 hover:bg-muted/80",
+            "rounded-lg transition-all active:scale-95 hover:bg-muted/80",
             size === 'sm' ? 'p-1' : 'p-1.5'
           )}
           aria-label="Opções"
@@ -94,38 +94,58 @@ export function ActionCardMenu({
 
         <DropdownMenuSeparator />
 
-        {/* Category sub-menu */}
-        <DropdownMenuSub>
-          <DropdownMenuSubTrigger className="gap-2.5">
-            <FolderOpen className="h-4 w-4 flex-shrink-0" />
-            <span>Adicionar à categoria</span>
-          </DropdownMenuSubTrigger>
-          <DropdownMenuSubContent className="w-48">
+        {/* Category — opens a popover instead of sub-menu */}
+        <Popover open={catPopoverOpen} onOpenChange={setCatPopoverOpen}>
+          <PopoverTrigger asChild>
+            <button
+              onClick={(e) => { e.stopPropagation(); e.preventDefault(); setCatPopoverOpen(true); }}
+              className="relative flex cursor-pointer items-center gap-2.5 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground w-full"
+            >
+              <FolderOpen className="h-4 w-4 flex-shrink-0" />
+              <span className="flex-1 text-left">Adicionar à categoria</span>
+              <svg width="10" height="10" viewBox="0 0 15 15" className="h-3.5 w-3.5 ml-auto text-muted-foreground"><path d="M6.1584 3.13508C6.35985 2.94621 6.67627 2.95642 6.86514 3.15788L10.6151 7.15788C10.7954 7.3502 10.7954 7.6498 10.6151 7.84212L6.86514 11.8421C6.67627 12.0436 6.35985 12.0538 6.1584 11.8649C5.95694 11.676 5.94673 11.3596 6.1356 11.1582L9.565 7.49999L6.1356 3.84182C5.94673 3.64036 5.95694 3.32394 6.1584 3.13508Z" fill="currentColor" /></svg>
+            </button>
+          </PopoverTrigger>
+          <PopoverContent
+            className="w-52 p-2"
+            side="right"
+            align="start"
+            sideOffset={8}
+            onClick={(e) => e.stopPropagation()}
+            onInteractOutside={(e) => {
+              // Don't close the dropdown when clicking inside the popover
+              e.preventDefault();
+              setCatPopoverOpen(false);
+            }}
+          >
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 py-1.5">
+              Categorias
+            </p>
             {categories.length === 0 ? (
-              <div className="text-sm text-muted-foreground px-3 py-3 text-center">
-                Nenhuma categoria criada
-              </div>
+              <p className="text-sm text-muted-foreground px-2 py-3 text-center">Nenhuma categoria criada</p>
             ) : (
-              categories.map(cat => {
-                const isInCategory = actionCategoryIds.has(cat.id);
-                return (
-                  <DropdownMenuItem
-                    key={cat.id}
-                    onClick={(e) => { e.stopPropagation(); handleToggleCategory(cat.id); }}
-                    className={cn(
-                      "gap-2.5",
-                      isInCategory && "bg-primary/10 text-primary font-medium"
-                    )}
-                  >
-                    <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: cat.color }} />
-                    <span className="truncate flex-1">{cat.name}</span>
-                    {isInCategory && <Check className="h-3.5 w-3.5 flex-shrink-0" />}
-                  </DropdownMenuItem>
-                );
-              })
+              <div className="space-y-0.5 max-h-48 overflow-y-auto">
+                {categories.map(cat => {
+                  const isInCategory = actionCategoryIds.has(cat.id);
+                  return (
+                    <button
+                      key={cat.id}
+                      onClick={(e) => { e.stopPropagation(); handleToggleCategory(cat.id); }}
+                      className={cn(
+                        "w-full flex items-center gap-2.5 px-2 py-1.5 rounded-md text-sm transition-colors active:scale-[0.97]",
+                        isInCategory ? "bg-primary/10 text-primary font-medium" : "text-foreground hover:bg-muted/50"
+                      )}
+                    >
+                      <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: cat.color }} />
+                      <span className="truncate flex-1 text-left">{cat.name}</span>
+                      {isInCategory && <Check className="h-3.5 w-3.5 flex-shrink-0" />}
+                    </button>
+                  );
+                })}
+              </div>
             )}
-          </DropdownMenuSubContent>
-        </DropdownMenuSub>
+          </PopoverContent>
+        </Popover>
       </DropdownMenuContent>
     </DropdownMenu>
   );
