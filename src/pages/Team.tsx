@@ -648,6 +648,9 @@ export default function Team() {
                 </div>
               )}
             </div>
+
+            {/* Team Favorites Library */}
+            <TeamFavoritesLibrary teamId={selectedTeam.id} />
           </div>
         )}
       </main>
