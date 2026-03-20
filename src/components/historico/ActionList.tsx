@@ -236,6 +236,11 @@ function ActionCard({ action, isSelected, onNavigate, isPersonalFavorite, isTeam
               {action.objective}
             </Badge>
           )}
+          {actionCategories && actionCategories.length > 0 ? (
+            <CategoryBadge name={actionCategories[0].name} color={actionCategories[0].color} />
+          ) : (
+            <NoCategoryBadge />
+          )}
         </div>
 
         <div className="mt-auto pt-2 border-t border-border/20 flex flex-col gap-1">
