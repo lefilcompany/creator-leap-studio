@@ -268,7 +268,7 @@ const PlanContent = () => {
       />
 
       {/* Banner */}
-      <div className="relative w-full h-48 md:h-64 lg:h-72 flex-shrink-0 overflow-hidden">
+      <div className="relative w-full h-36 md:h-44 lg:h-52 flex-shrink-0 overflow-hidden">
         <PageBreadcrumb
           items={[{ label: "Planejar Conteúdo" }]}
           variant="overlay"

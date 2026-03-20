@@ -259,7 +259,7 @@ export default function CreateVideo() {
       />
 
       {/* Banner */}
-      <div className="relative h-48 md:h-64 lg:h-72 overflow-hidden">
+      <div className="relative h-36 md:h-44 lg:h-52 overflow-hidden">
         <PageBreadcrumb
           items={[{ label: "Criar Conteúdo", href: "/create" }, { label: "Criar Vídeo" }]}
           variant="overlay"

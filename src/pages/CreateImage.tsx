@@ -563,7 +563,7 @@ export default function CreateImage() {
       ]} startDelay={500} />
 
       {/* Banner */}
-      <div className="relative h-48 md:h-64 lg:h-72 overflow-hidden">
+      <div className="relative h-36 md:h-44 lg:h-52 overflow-hidden">
         <PageBreadcrumb items={[{ label: "Criar Conteúdo", href: "/create" }, { label: "Criar Imagem" }]} variant="overlay" />
         <img src={createBanner} alt="Criar Imagem" className="w-full h-full object-cover object-center" loading="eager" />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
