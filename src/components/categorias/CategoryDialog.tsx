@@ -126,7 +126,7 @@ export function CategoryDialog({ open, onOpenChange, category, onSave, isSaving,
           {/* Main Form Panel */}
           <div className={cn(
             "flex flex-col bg-background rounded-xl shadow-lg border border-border overflow-hidden transition-all duration-300 ease-in-out max-h-[85vh]",
-            membersOpen ? "w-full sm:w-[26rem] flex-shrink-0" : "w-full"
+            membersOpen ? "w-full sm:w-[28rem] flex-shrink-0" : "w-full"
           )}>
             <DialogHeader className="px-6 pt-6 pb-0">
               <DialogTitle>{category ? 'Editar Categoria' : 'Nova Categoria'}</DialogTitle>
