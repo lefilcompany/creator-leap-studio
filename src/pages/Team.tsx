@@ -65,7 +65,7 @@ export default function Team() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [members.length, viewMode]);
+  }, [members.length]);
 
   useEffect(() => {
     if (team && accessibleTeams.length > 0) {
