@@ -25,7 +25,7 @@ export function CategorySelector({ value, onChange, className, disabled, compact
         {!compact && (
           <Label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
             <FolderOpen className="h-3 w-3" />
-            Categoria <span className="font-normal text-[10px]">(opcional)</span>
+            Categoria
           </Label>
         )}
         <div
@@ -54,7 +54,7 @@ export function CategorySelector({ value, onChange, className, disabled, compact
       {!compact && (
         <Label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
           <FolderOpen className="h-3 w-3" />
-          Categoria <span className="font-normal text-[10px]">(opcional)</span>
+          Categoria
         </Label>
       )}
       <NativeSelect
