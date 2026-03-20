@@ -108,6 +108,7 @@ export function CategoryList({ categories, onSelect, onEdit, onDelete, isLoading
                 {cat.visibility === 'team' ? 'Equipe' : 'Pessoal'}
               </Badge>
             </div>
+            </div>
           </div>
         );
       })}
