@@ -28,9 +28,10 @@ const ACTION_GRADIENT_MAP: Record<string, string> = {
 
 interface TeamFavoritesLibraryProps {
   teamId: string;
+  inline?: boolean;
 }
 
-export function TeamFavoritesLibrary({ teamId }: TeamFavoritesLibraryProps) {
+export function TeamFavoritesLibrary({ teamId, inline = false }: TeamFavoritesLibraryProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -83,42 +84,28 @@ export function TeamFavoritesLibrary({ teamId }: TeamFavoritesLibraryProps) {
 
   if (isLoading) {
     return (
-      <div className="space-y-3">
-        <h2 className="text-lg font-semibold flex items-center gap-2">
-          <Star className="h-5 w-5 text-amber-500" />
-          Biblioteca de Favoritos
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map(i => (
-            <div key={i} className="bg-card rounded-xl overflow-hidden shadow-sm border border-border/30">
-              <Skeleton className="aspect-video w-full" />
-              <div className="p-3 space-y-2">
-                <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-3 w-1/2" />
-              </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {[1, 2, 3, 4].map(i => (
+          <div key={i} className="bg-muted/50 rounded-xl overflow-hidden">
+            <Skeleton className="aspect-video w-full" />
+            <div className="p-3 space-y-2">
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-3 w-1/2" />
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
     );
   }
 
   if (favoriteActions.length === 0) {
     return (
-      <div className="space-y-3">
-        <h2 className="text-lg font-semibold flex items-center gap-2">
-          <Star className="h-5 w-5 text-amber-500" />
-          Biblioteca de Favoritos
-        </h2>
-        <div className="text-center py-10 bg-card rounded-xl border border-border/30 shadow-sm">
-          <Star className="h-10 w-10 mx-auto text-muted-foreground/40 mb-3" />
-          <p className="text-muted-foreground text-sm">
-            Nenhuma criação favoritada para a equipe ainda.
-          </p>
-          <p className="text-muted-foreground/60 text-xs mt-1">
-            Favorite criações no histórico escolhendo "Para a equipe" para que apareçam aqui.
-          </p>
-        </div>
+      <div className="text-center py-8 text-muted-foreground">
+        <Star className="h-10 w-10 mx-auto mb-2 opacity-40" />
+        <p className="text-sm">Nenhuma criação favoritada para a equipe ainda.</p>
+        <p className="text-xs text-muted-foreground/60 mt-1">
+          Favorite criações no histórico escolhendo "Para a equipe" para que apareçam aqui.
+        </p>
       </div>
     );
   }
@@ -138,15 +125,7 @@ export function TeamFavoritesLibrary({ teamId }: TeamFavoritesLibraryProps) {
   };
 
   return (
-    <div className="space-y-3">
-      <h2 className="text-lg font-semibold flex items-center gap-2">
-        <Star className="h-5 w-5 text-amber-500" />
-        Biblioteca de Favoritos
-        <span className="text-xs bg-amber-400/20 text-amber-600 rounded-full px-2 py-0.5 font-semibold tabular-nums">
-          {favoriteActions.length}
-        </span>
-      </h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {favoriteActions.map((action) => {
           const displayType = ACTION_TYPE_DISPLAY[action.type] || action.type;
           const FallbackIcon = ACTION_ICON_MAP[action.type] || Sparkles;
@@ -205,6 +184,5 @@ export function TeamFavoritesLibrary({ teamId }: TeamFavoritesLibraryProps) {
           );
         })}
       </div>
-    </div>
   );
 }
