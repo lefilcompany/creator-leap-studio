@@ -40,7 +40,8 @@ export function useCategories() {
         .eq('user_id', user!.id);
       if (memberError) throw memberError;
 
-      const sharedCategoryIds = (memberEntries || [])
+      const editorEntries = (memberEntries || []).filter((m: any) => m.role === 'editor');
+      const sharedCategoryIds = editorEntries
         .map((m: any) => m.category_id)
         .filter((id: string) => !(ownCategories || []).some((c: any) => c.id === id));
 
