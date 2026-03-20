@@ -17,7 +17,8 @@ import { useFavorites } from '@/hooks/useFavorites';
 export default function History() {
   const { user } = useAuth();
   const [selectedActionSummary, setSelectedActionSummary] = useState<ActionSummary | null>(null);
-
+  const [activeTab, setActiveTab] = useState<'all' | 'favorites'>('all');
+  const { favoriteIds, isFavorite, toggleFavorite } = useFavorites();
   const [brandFilter, setBrandFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
 
