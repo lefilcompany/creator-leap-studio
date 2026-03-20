@@ -125,15 +125,7 @@ export function TeamFavoritesLibrary({ teamId, inline = false }: TeamFavoritesLi
   };
 
   return (
-    <div className="space-y-3">
-      <h2 className="text-lg font-semibold flex items-center gap-2">
-        <Star className="h-5 w-5 text-amber-500" />
-        Biblioteca de Favoritos
-        <span className="text-xs bg-amber-400/20 text-amber-600 rounded-full px-2 py-0.5 font-semibold tabular-nums">
-          {favoriteActions.length}
-        </span>
-      </h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {favoriteActions.map((action) => {
           const displayType = ACTION_TYPE_DISPLAY[action.type] || action.type;
           const FallbackIcon = ACTION_ICON_MAP[action.type] || Sparkles;
