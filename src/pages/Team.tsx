@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { memo, useCallback, useEffect, useState, useMemo, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserNameLink } from '@/components/UserNameLink';
 import { useAuth } from '@/hooks/useAuth';
@@ -36,17 +36,282 @@ interface TeamMember {
   avatar_url?: string;
 }
 
+const getDisplayName = (fullName: string) => {
+  const parts = (fullName || '').replace(/^["']|["']$/g, '').trim().split(/\s+/);
+  return parts.slice(0, 2).join(' ');
+};
+
+interface TeamHeaderBannerProps {
+  teamCount: number;
+  createLabel: string;
+  joinLabel: string;
+  createVariant?: 'default' | 'outline';
+  joinVariant?: 'default' | 'outline';
+  onCreateClick: () => void;
+  onJoinClick: () => void;
+}
+
+const TeamHeaderBanner = memo(({
+  teamCount,
+  createLabel,
+  joinLabel,
+  createVariant = 'outline',
+  joinVariant = 'outline',
+  onCreateClick,
+  onJoinClick,
+}: TeamHeaderBannerProps) => (
+  <>
+    <div className="relative h-40 sm:h-48 md:h-56 lg:h-64 overflow-hidden">
+      <PageBreadcrumb
+        variant="overlay"
+        items={[{ label: 'Equipe' }]}
+      />
+      <img
+        src={teamBanner}
+        alt=""
+        className="absolute inset-0 w-full h-full object-cover object-center"
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/40 to-transparent" />
+    </div>
+
+    <div className="relative px-4 sm:px-6 lg:px-8 -mt-12 z-10">
+      <div className="bg-card rounded-2xl shadow-lg p-4 lg:p-5">
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div className="flex items-center gap-3">
+            <div className="flex-shrink-0 bg-primary/10 border border-primary/20 text-primary rounded-2xl p-3">
+              <UsersRound className="h-7 w-7" />
+            </div>
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
+                Equipes
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                {teamCount > 1
+                  ? `Você tem acesso a ${teamCount} equipes`
+                  : 'Colabore com outros usuários compartilhando marcas, personas e temas'}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex gap-2">
+            <Button onClick={onCreateClick} variant={createVariant} size="sm">
+              <Plus className="h-4 w-4 mr-2" />
+              {createLabel}
+            </Button>
+            <Button onClick={onJoinClick} variant={joinVariant} size="sm">
+              <UserPlus className="h-4 w-4 mr-2" />
+              {joinLabel}
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </>
+));
+
+TeamHeaderBanner.displayName = 'TeamHeaderBanner';
+
+interface TeamMembersSectionProps {
+  members: TeamMember[];
+  isMembersLoading: boolean;
+  isTeamAdmin: boolean;
+  teamAdminId?: string;
+  onRemoveMember: (member: TeamMember) => void;
+}
+
+const TeamMembersSection = memo(({
+  members,
+  isMembersLoading,
+  isTeamAdmin,
+  teamAdminId,
+  onRemoveMember,
+}: TeamMembersSectionProps) => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [membersExpanded, setMembersExpanded] = useState(true);
+  const membersPerPage = 12;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [members.length]);
+
+  const displayedMembers = useMemo(() => {
+    const sorted = [...members].sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+
+    if (viewMode === 'grid') {
+      return sorted;
+    }
+
+    const start = (currentPage - 1) * membersPerPage;
+    return sorted.slice(start, start + membersPerPage);
+  }, [members, viewMode, currentPage]);
+
+  const totalPages = Math.ceil(members.length / membersPerPage);
+
+  return (
+    <div className="bg-card rounded-xl shadow-md overflow-hidden">
+      <button
+        onClick={() => setMembersExpanded(!membersExpanded)}
+        className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-colors"
+      >
+        <div className="flex items-center gap-3">
+          <div className="flex-shrink-0 bg-primary/10 border border-primary/20 text-primary rounded-xl p-2">
+            <UsersRound className="h-5 w-5" />
+          </div>
+          <div className="text-left">
+            <h3 className="font-semibold text-foreground">Membros da Equipe</h3>
+            <p className="text-sm text-muted-foreground">
+              {members.length} membro{members.length !== 1 ? 's' : ''}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="bg-primary/10 text-primary text-xs font-bold px-2.5 py-1 rounded-full">
+            {members.length}
+          </span>
+
+          <div className="flex items-center gap-1 bg-muted rounded-lg p-0.5" onClick={(e) => e.stopPropagation()}>
+            <Button variant={viewMode === 'grid' ? 'secondary' : 'ghost'} size="sm" className="h-7 w-7 p-0" onClick={(e) => { e.stopPropagation(); setViewMode('grid'); }}>
+              <LayoutGrid className="h-3.5 w-3.5" />
+            </Button>
+            <Button variant={viewMode === 'list' ? 'secondary' : 'ghost'} size="sm" className="h-7 w-7 p-0" onClick={(e) => { e.stopPropagation(); setViewMode('list'); }}>
+              <List className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+
+          {membersExpanded ? <ChevronUp className="h-5 w-5 text-muted-foreground" /> : <ChevronDown className="h-5 w-5 text-muted-foreground" />}
+        </div>
+      </button>
+
+      <AnimatePresence>
+        {membersExpanded && (
+          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
+            <div className="border-t px-4 pb-4 pt-3">
+              {isMembersLoading && (
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                  {[1, 2, 3, 4].map(i => (
+                    <div key={i} className="bg-muted/50 rounded-xl p-5 space-y-3">
+                      <Skeleton className="h-16 w-16 rounded-full mx-auto" />
+                      <Skeleton className="h-4 w-28 mx-auto" />
+                      <Skeleton className="h-3 w-36 mx-auto" />
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {!isMembersLoading && (
+                <AnimatePresence mode="wait">
+                  {viewMode === 'grid' ? (
+                    <motion.div
+                      key="grid"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.15 }}
+                      className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
+                    >
+                      {members.map((member) => (
+                        <Card key={member.id} className="group relative border-0 shadow-md hover:shadow-lg transition-all">
+                          <CardContent className="p-4 flex flex-col items-center text-center">
+                            <Avatar className="h-16 w-16 mb-3">
+                              <AvatarImage src={member.avatar_url} />
+                              <AvatarFallback className="bg-primary/10 text-primary text-lg">{getDisplayName(member.name).charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <p className="font-semibold text-sm flex items-center gap-1.5 truncate max-w-full">
+                              <UserNameLink userId={member.id} userName={getDisplayName(member.name)} className="font-semibold text-sm" />
+                              {member.id === teamAdminId && <Crown className="h-3.5 w-3.5 text-amber-500 flex-shrink-0" />}
+                            </p>
+                            <p className="text-xs text-muted-foreground truncate max-w-full mt-0.5">{member.email}</p>
+                            {member.id === teamAdminId && (
+                              <span className="text-[10px] bg-amber-500/10 text-amber-600 dark:text-amber-400 px-2 py-0.5 rounded-full mt-2 font-medium">Administrador</span>
+                            )}
+                            {isTeamAdmin && member.id !== teamAdminId && (
+                              <Button size="sm" variant="ghost" className="mt-2 text-destructive hover:bg-destructive hover:text-destructive-foreground opacity-0 group-hover:opacity-100 transition-opacity h-7 text-xs" onClick={() => onRemoveMember(member)}>
+                                <UserMinus className="h-3 w-3 mr-1" />Remover
+                              </Button>
+                            )}
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="list"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.15 }}
+                      className="space-y-2"
+                    >
+                      {displayedMembers.map((member) => (
+                        <div key={member.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-all">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-10 w-10">
+                              <AvatarImage src={member.avatar_url} />
+                              <AvatarFallback className="bg-primary/10 text-primary">{getDisplayName(member.name).charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="font-medium text-sm flex items-center gap-2">
+                                <UserNameLink userId={member.id} userName={getDisplayName(member.name)} className="font-medium text-sm" />
+                                {member.id === teamAdminId && <Crown className="h-3.5 w-3.5 text-amber-500" />}
+                              </p>
+                              <p className="text-xs text-muted-foreground flex items-center gap-1"><Mail className="h-3 w-3" />{member.email}</p>
+                            </div>
+                          </div>
+                          {isTeamAdmin && member.id !== teamAdminId && (
+                            <Button size="sm" variant="outline" className="text-destructive hover:bg-destructive hover:text-destructive-foreground" onClick={() => onRemoveMember(member)}>
+                              <UserMinus className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+
+                      {totalPages > 1 && (
+                        <Pagination className="mt-4">
+                          <PaginationContent>
+                            <PaginationItem>
+                              <PaginationPrevious onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))} className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
+                            </PaginationItem>
+                            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                              <PaginationItem key={page}>
+                                <PaginationLink onClick={() => setCurrentPage(page)} isActive={currentPage === page} className="cursor-pointer">{page}</PaginationLink>
+                              </PaginationItem>
+                            ))}
+                            <PaginationItem>
+                              <PaginationNext onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))} className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
+                            </PaginationItem>
+                          </PaginationContent>
+                        </Pagination>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              )}
+
+              {!isMembersLoading && members.length === 0 && (
+                <div className="text-center py-8 text-muted-foreground">
+                  <UsersRound className="h-10 w-10 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">Nenhum membro na equipe</p>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+});
+
+TeamMembersSection.displayName = 'TeamMembersSection';
+
 export default function Team() {
   const { user, team, isLoading: isAuthLoading, reloadUserData } = useAuth();
   const navigate = useNavigate();
-  const [currentPage, setCurrentPage] = useState(1);
-  const membersPerPage = 12;
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showJoinDialog, setShowJoinDialog] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState<any>(null);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [requestsExpanded, setRequestsExpanded] = useState(false);
-  const [membersExpanded, setMembersExpanded] = useState(true);
   const [favoritesExpanded, setFavoritesExpanded] = useState(true);
   const [memberToRemove, setMemberToRemove] = useState<TeamMember | null>(null);
 
@@ -63,9 +328,11 @@ export default function Team() {
 
   const showSkeleton = isAuthLoading || isTeamsLoading;
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [members.length]);
+  const handleOpenCreateDialog = useCallback(() => setShowCreateDialog(true), []);
+  const handleOpenJoinDialog = useCallback(() => setShowJoinDialog(true), []);
+  const handleSelectMemberToRemove = useCallback((member: TeamMember) => {
+    setMemberToRemove(member);
+  }, []);
 
   useEffect(() => {
     if (team && accessibleTeams.length > 0) {
@@ -154,63 +421,6 @@ export default function Team() {
     }
   };
 
-  // Get first and second name only
-  const getDisplayName = (fullName: string) => {
-    const parts = (fullName || '').replace(/^["']|["']$/g, '').trim().split(/\s+/);
-    return parts.slice(0, 2).join(' ');
-  };
-
-  // Sort members alphabetically, then apply view mode
-  const displayedMembers = useMemo(() => {
-    const sorted = [...members].sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-    if (viewMode === 'grid') return sorted;
-    const start = (currentPage - 1) * membersPerPage;
-    return sorted.slice(start, start + membersPerPage);
-  }, [members, viewMode, currentPage, membersPerPage]);
-
-  const totalPages = Math.ceil(members.length / membersPerPage);
-
-  // --- Banner + Header Card shared component ---
-  const BannerWithHeader = ({ actions }: { actions?: React.ReactNode }) => (
-    <>
-      <div className="relative h-40 sm:h-48 md:h-56 lg:h-64 overflow-hidden">
-        <PageBreadcrumb
-          variant="overlay"
-          items={[{ label: 'Equipe' }]}
-        />
-        <img
-          src={teamBanner}
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover object-center"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/40 to-transparent" />
-      </div>
-
-      <div className="relative px-4 sm:px-6 lg:px-8 -mt-12 z-10">
-        <div className="bg-card rounded-2xl shadow-lg p-4 lg:p-5">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div className="flex items-center gap-3">
-              <div className="flex-shrink-0 bg-primary/10 border border-primary/20 text-primary rounded-2xl p-3">
-                <UsersRound className="h-7 w-7" />
-              </div>
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-                  Equipes
-                </h1>
-                <p className="text-sm text-muted-foreground">
-                  {accessibleTeams.length > 1
-                    ? `Você tem acesso a ${accessibleTeams.length} equipes`
-                    : 'Colabore com outros usuários compartilhando marcas, personas e temas'}
-                </p>
-              </div>
-            </div>
-            {actions && <div className="flex gap-2">{actions}</div>}
-          </div>
-        </div>
-      </div>
-    </>
-  );
-
   // --- Skeleton state ---
   if (showSkeleton) {
     return (
@@ -258,19 +468,14 @@ export default function Team() {
   if (!team && accessibleTeams.length === 0) {
     return (
       <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8 animate-fade-in">
-        <BannerWithHeader
-          actions={
-            <>
-              <Button onClick={() => setShowCreateDialog(true)} size="sm">
-                <Plus className="h-4 w-4 mr-2" />
-                Criar Equipe
-              </Button>
-              <Button onClick={() => setShowJoinDialog(true)} variant="outline" size="sm">
-                <UserPlus className="h-4 w-4 mr-2" />
-                Entrar em Equipe
-              </Button>
-            </>
-          }
+        <TeamHeaderBanner
+          teamCount={accessibleTeams.length}
+          createLabel="Criar Equipe"
+          joinLabel="Entrar em Equipe"
+          createVariant="default"
+          joinVariant="outline"
+          onCreateClick={handleOpenCreateDialog}
+          onJoinClick={handleOpenJoinDialog}
         />
 
         <main className="px-4 sm:px-6 lg:px-8 pt-4 pb-4 sm:pb-6 lg:pb-8">
@@ -318,19 +523,12 @@ export default function Team() {
   // --- Main state with team ---
   return (
     <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8 animate-fade-in">
-      <BannerWithHeader
-        actions={
-          <>
-            <Button onClick={() => setShowCreateDialog(true)} variant="outline" size="sm">
-              <Plus className="h-4 w-4 mr-2" />
-              Nova Equipe
-            </Button>
-            <Button onClick={() => setShowJoinDialog(true)} variant="outline" size="sm">
-              <UserPlus className="h-4 w-4 mr-2" />
-              Entrar em Equipe
-            </Button>
-          </>
-        }
+      <TeamHeaderBanner
+        teamCount={accessibleTeams.length}
+        createLabel="Nova Equipe"
+        joinLabel="Entrar em Equipe"
+        onCreateClick={handleOpenCreateDialog}
+        onJoinClick={handleOpenJoinDialog}
       />
 
       <main className="px-4 sm:px-6 lg:px-8 pt-4 pb-4 sm:pb-6 lg:pb-8">
@@ -480,151 +678,13 @@ export default function Team() {
               </div>
             )}
 
-            {/* Members Dropdown */}
-            <div className="bg-card rounded-xl shadow-md overflow-hidden">
-              <button
-                onClick={() => setMembersExpanded(!membersExpanded)}
-                className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="flex-shrink-0 bg-primary/10 border border-primary/20 text-primary rounded-xl p-2">
-                    <UsersRound className="h-5 w-5" />
-                  </div>
-                  <div className="text-left">
-                    <h3 className="font-semibold text-foreground">Membros da Equipe</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {members.length} membro{members.length !== 1 ? 's' : ''}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="bg-primary/10 text-primary text-xs font-bold px-2.5 py-1 rounded-full">
-                    {members.length}
-                  </span>
-                  <div className="flex items-center gap-1 bg-muted rounded-lg p-0.5" onClick={(e) => e.stopPropagation()}>
-                    <Button variant={viewMode === 'grid' ? 'secondary' : 'ghost'} size="sm" className="h-7 w-7 p-0" onClick={(e) => { e.stopPropagation(); setViewMode('grid'); }}>
-                      <LayoutGrid className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button variant={viewMode === 'list' ? 'secondary' : 'ghost'} size="sm" className="h-7 w-7 p-0" onClick={(e) => { e.stopPropagation(); setViewMode('list'); }}>
-                      <List className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
-                  {membersExpanded ? <ChevronUp className="h-5 w-5 text-muted-foreground" /> : <ChevronDown className="h-5 w-5 text-muted-foreground" />}
-                </div>
-              </button>
-              <AnimatePresence>
-                {membersExpanded && (
-                  <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
-                    <div className="border-t px-4 pb-4 pt-3">
-                      {isMembersLoading && (
-                        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                          {[1, 2, 3, 4].map(i => (
-                            <div key={i} className="bg-muted/50 rounded-xl p-5 space-y-3">
-                              <Skeleton className="h-16 w-16 rounded-full mx-auto" />
-                              <Skeleton className="h-4 w-28 mx-auto" />
-                              <Skeleton className="h-3 w-36 mx-auto" />
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                      {!isMembersLoading && (
-                        <AnimatePresence mode="wait">
-                          {viewMode === 'grid' ? (
-                            <motion.div
-                              key="grid"
-                              initial={{ opacity: 0 }}
-                              animate={{ opacity: 1 }}
-                              exit={{ opacity: 0 }}
-                              transition={{ duration: 0.15 }}
-                              className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
-                            >
-                              {members.map((member) => (
-                                <Card key={member.id} className="group relative border-0 shadow-md hover:shadow-lg transition-all">
-                                  <CardContent className="p-4 flex flex-col items-center text-center">
-                                    <Avatar className="h-16 w-16 mb-3">
-                                      <AvatarImage src={member.avatar_url} />
-                                      <AvatarFallback className="bg-primary/10 text-primary text-lg">{getDisplayName(member.name).charAt(0)}</AvatarFallback>
-                                    </Avatar>
-                                    <p className="font-semibold text-sm flex items-center gap-1.5 truncate max-w-full">
-                                      <UserNameLink userId={member.id} userName={getDisplayName(member.name)} className="font-semibold text-sm" />
-                                      {member.id === team?.admin_id && <Crown className="h-3.5 w-3.5 text-amber-500 flex-shrink-0" />}
-                                    </p>
-                                    <p className="text-xs text-muted-foreground truncate max-w-full mt-0.5">{member.email}</p>
-                                    {member.id === team?.admin_id && (
-                                      <span className="text-[10px] bg-amber-500/10 text-amber-600 dark:text-amber-400 px-2 py-0.5 rounded-full mt-2 font-medium">Administrador</span>
-                                    )}
-                                    {isTeamAdmin && member.id !== team?.admin_id && (
-                                      <Button size="sm" variant="ghost" className="mt-2 text-destructive hover:bg-destructive hover:text-destructive-foreground opacity-0 group-hover:opacity-100 transition-opacity h-7 text-xs" onClick={() => setMemberToRemove(member)}>
-                                        <UserMinus className="h-3 w-3 mr-1" />Remover
-                                      </Button>
-                                    )}
-                                  </CardContent>
-                                </Card>
-                              ))}
-                            </motion.div>
-                          ) : (
-                            <motion.div
-                              key="list"
-                              initial={{ opacity: 0 }}
-                              animate={{ opacity: 1 }}
-                              exit={{ opacity: 0 }}
-                              transition={{ duration: 0.15 }}
-                              className="space-y-2"
-                            >
-                              {displayedMembers.map((member) => (
-                                <div key={member.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-all">
-                                  <div className="flex items-center gap-3">
-                                    <Avatar className="h-10 w-10">
-                                      <AvatarImage src={member.avatar_url} />
-                                      <AvatarFallback className="bg-primary/10 text-primary">{getDisplayName(member.name).charAt(0)}</AvatarFallback>
-                                    </Avatar>
-                                    <div>
-                                      <p className="font-medium text-sm flex items-center gap-2">
-                                        <UserNameLink userId={member.id} userName={getDisplayName(member.name)} className="font-medium text-sm" />
-                                        {member.id === team?.admin_id && <Crown className="h-3.5 w-3.5 text-amber-500" />}
-                                      </p>
-                                      <p className="text-xs text-muted-foreground flex items-center gap-1"><Mail className="h-3 w-3" />{member.email}</p>
-                                    </div>
-                                  </div>
-                                  {isTeamAdmin && member.id !== team?.admin_id && (
-                                    <Button size="sm" variant="outline" className="text-destructive hover:bg-destructive hover:text-destructive-foreground" onClick={() => setMemberToRemove(member)}>
-                                      <UserMinus className="h-4 w-4" />
-                                    </Button>
-                                  )}
-                                </div>
-                              ))}
-                              {totalPages > 1 && (
-                                <Pagination className="mt-4">
-                                  <PaginationContent>
-                                    <PaginationItem>
-                                      <PaginationPrevious onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))} className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
-                                    </PaginationItem>
-                                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                                      <PaginationItem key={page}>
-                                        <PaginationLink onClick={() => setCurrentPage(page)} isActive={currentPage === page} className="cursor-pointer">{page}</PaginationLink>
-                                      </PaginationItem>
-                                    ))}
-                                    <PaginationItem>
-                                      <PaginationNext onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))} className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
-                                    </PaginationItem>
-                                  </PaginationContent>
-                                </Pagination>
-                              )}
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      )}
-                      {!isMembersLoading && members.length === 0 && (
-                        <div className="text-center py-8 text-muted-foreground">
-                          <UsersRound className="h-10 w-10 mx-auto mb-2 opacity-50" />
-                          <p className="text-sm">Nenhum membro na equipe</p>
-                        </div>
-                      )}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+            <TeamMembersSection
+              members={members}
+              isMembersLoading={isMembersLoading}
+              isTeamAdmin={isTeamAdmin}
+              teamAdminId={team?.admin_id}
+              onRemoveMember={handleSelectMemberToRemove}
+            />
 
             {/* Favorites Dropdown */}
             <div className="bg-card rounded-xl shadow-md overflow-hidden">
