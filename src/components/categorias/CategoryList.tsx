@@ -51,8 +51,12 @@ export function CategoryList({ categories, onSelect, onEdit, onDelete, isLoading
           <div
             key={cat.id}
             onClick={() => onSelect(cat)}
-            className="cursor-pointer bg-card rounded-2xl p-5 border border-border/30 shadow-sm hover:shadow-md transition-all duration-200 group relative"
+            className="cursor-pointer bg-card rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 group relative"
           >
+            {/* Color strip */}
+            <div className="h-1.5 w-full" style={{ backgroundColor: cat.color }} />
+
+            <div className="p-5">
             {/* Menu */}
             {isOwner && (
               <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
@@ -103,6 +107,7 @@ export function CategoryList({ categories, onSelect, onEdit, onDelete, isLoading
                 {cat.visibility === 'team' ? <Users className="h-2.5 w-2.5" /> : <User className="h-2.5 w-2.5" />}
                 {cat.visibility === 'team' ? 'Equipe' : 'Pessoal'}
               </Badge>
+            </div>
             </div>
           </div>
         );
