@@ -264,6 +264,7 @@ export default function ActionList({
   hasNextPage, isFetchingNextPage, onLoadMore,
   isFavorite, isPersonalFavorite, isTeamFavorite, onToggleFavorite, hasTeam,
   sortField: externalSortField, sortDirection: externalSortDirection, onSortChange,
+  mobileFilterSlot,
 }: ActionListProps) {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
