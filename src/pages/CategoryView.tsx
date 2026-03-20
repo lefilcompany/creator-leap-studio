@@ -97,9 +97,6 @@ export default function CategoryView() {
       <div className="relative px-4 sm:px-6 lg:px-8 -mt-10 flex-shrink-0">
         <div className="bg-card rounded-2xl shadow-lg p-3 lg:p-4">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/categories')} className="flex-shrink-0">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
             <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${category?.color}20` }}>
               <FolderOpen className="h-5 w-5" style={{ color: category?.color }} />
             </div>
