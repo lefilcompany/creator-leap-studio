@@ -1422,6 +1422,11 @@ export default function CreateContent() {
                   )}
                 </div>
 
+                <CategorySelector
+                  value={categoryId}
+                  onChange={setCategoryId}
+                />
+
                 <div className="space-y-2 md:space-y-3">
                   <Label
                     htmlFor="platform"
