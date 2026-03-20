@@ -547,6 +547,21 @@ export default function ContentResult() {
 
       setContentData({ ...contentData, actionId: actionData.id });
       setIsSavedToHistory(true);
+
+      // Auto-assign to category if categoryId was passed from creation form
+      const categoryIdFromForm = contentData.categoryId || saved.categoryId;
+      if (categoryIdFromForm && actionData.id) {
+        try {
+          await supabase.from('action_category_items').insert({
+            category_id: categoryIdFromForm,
+            action_id: actionData.id,
+            added_by: user.id,
+          });
+        } catch (e) {
+          console.error("Erro ao atribuir categoria:", e);
+        }
+      }
+
       toast.success("Conteúdo salvo no histórico com sucesso!");
     } catch (error) {
       console.error("Erro ao salvar:", error);
