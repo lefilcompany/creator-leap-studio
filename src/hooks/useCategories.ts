@@ -200,6 +200,7 @@ export function useCategories() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });
       queryClient.invalidateQueries({ queryKey: ['action-categories'] });
+      queryClient.invalidateQueries({ queryKey: ['category-actions'] });
       toast.success('Ação removida da categoria!');
     },
     onError: () => toast.error('Erro ao remover da categoria'),
