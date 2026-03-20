@@ -2,7 +2,8 @@ import { useNavigate } from 'react-router-dom';
 import { Star, Sparkles, Image, CheckCircle, Calendar, Video, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTeamFavorites } from '@/hooks/useFavorites';
-import { useActions } from '@/hooks/useActions';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { ACTION_TYPE_DISPLAY } from '@/types/action';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -30,11 +31,26 @@ interface TeamFavoritesLibraryProps {
 export function TeamFavoritesLibrary({ teamId }: TeamFavoritesLibraryProps) {
   const navigate = useNavigate();
   const { data: teamFavorites = [], isLoading: isLoadingFavs } = useTeamFavorites(teamId);
-  const { data: allActions = [], isLoading: isLoadingActions } = useActions({ limit: 500 });
 
-  const isLoading = isLoadingFavs || isLoadingActions;
   const favoriteActionIds = teamFavorites.map(f => f.action_id);
-  const favoriteActions = allActions.filter(a => favoriteActionIds.includes(a.id));
+
+  const { data: favoriteActions = [], isLoading: isLoadingActions } = useQuery({
+    queryKey: ['team-favorite-actions', favoriteActionIds],
+    queryFn: async () => {
+      if (favoriteActionIds.length === 0) return [];
+      const { data, error } = await supabase
+        .from('actions')
+        .select('*, brands(name)')
+        .in('id', favoriteActionIds)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: favoriteActionIds.length > 0,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const isLoading = isLoadingFavs || (favoriteActionIds.length > 0 && isLoadingActions);
 
   if (isLoading) {
     return (
@@ -81,7 +97,7 @@ export function TeamFavoritesLibrary({ teamId }: TeamFavoritesLibraryProps) {
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
   const storageBase = supabaseUrl ? `${supabaseUrl}/storage/v1/object/public/content-images/` : '';
 
-  const getImageUrl = (action: typeof allActions[0]) => {
+  const getImageUrl = (action: typeof favoriteActions[0]) => {
     if (action.thumb_path && storageBase) {
       const path = action.thumb_path.replace(/^\/+/, '');
       return `${storageBase}${path}`;
@@ -109,6 +125,7 @@ export function TeamFavoritesLibrary({ teamId }: TeamFavoritesLibraryProps) {
           const imageUrl = getImageUrl(action);
           const result = action.result as any;
           const title = result?.title || result?.description || displayType;
+          const brandName = (action as any).brands?.name;
 
           return (
             <div
@@ -144,9 +161,9 @@ export function TeamFavoritesLibrary({ teamId }: TeamFavoritesLibraryProps) {
                   <Badge className="text-[10px] px-2 py-0.5 h-5 font-medium border-0 bg-primary/20 text-primary hover:bg-primary/20">
                     {displayType}
                   </Badge>
-                  {action.brands?.name && (
+                  {brandName && (
                     <span className="text-[11px] text-muted-foreground truncate">
-                      {action.brands.name}
+                      {brandName}
                     </span>
                   )}
                 </div>
