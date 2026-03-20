@@ -103,7 +103,7 @@ export function ActionCardMenu({
             >
               <FolderOpen className="h-4 w-4 flex-shrink-0" />
               <span className="flex-1 text-left">Adicionar à categoria</span>
-              <ChevronRight className="h-3.5 w-3.5 ml-auto text-muted-foreground" />
+              <ChevronRight className="h-3.5 w-3.5 ml-auto text-muted-foreground group-hover/cat:text-accent-foreground transition-colors" />
             </button>
           </PopoverTrigger>
           <PopoverContent
