@@ -155,13 +155,21 @@ export function TeamFavoritesLibrary({ teamId, inline = false }: TeamFavoritesLi
                     <FallbackIcon className="h-10 w-10 opacity-40 text-primary" />
                   </div>
                 )}
-                <button
-                  onClick={(e) => handleRemove(e, action.id)}
-                  className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm rounded-lg p-1.5 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive hover:text-destructive-foreground active:scale-95"
-                  title="Remover da equipe"
-                >
-                  <X className="h-3.5 w-3.5" />
-                </button>
+                <TooltipProvider delayDuration={200}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={(e) => handleRemove(e, action.id)}
+                        className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm rounded-lg p-1.5 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive hover:text-destructive-foreground active:scale-95"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="text-xs max-w-[180px] text-center">
+                      Remover da biblioteca de favoritos da equipe
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
                 <div className="absolute top-2 left-2">
                   <Star className="h-4 w-4 fill-amber-400 text-amber-400 drop-shadow-sm" />
                 </div>
