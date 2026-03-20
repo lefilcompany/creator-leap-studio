@@ -209,36 +209,9 @@ export function HistoryFilterSidebar(props: HistoryFilterSidebarProps) {
     props.sortField !== 'date' || props.sortDirection !== 'desc',
   ].filter(Boolean).length;
 
+  // On mobile, render nothing here — use MobileFilterButton inline in toolbar
   if (isMobile) {
-    return (
-      <>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setMobileOpen(true)}
-          className="h-10 gap-2 shadow-sm border-muted/50"
-        >
-          <Filter className="h-4 w-4" />
-          Filtros
-          {activeCount > 0 && (
-            <span className="bg-primary/15 text-primary text-[10px] font-semibold rounded-full px-1.5 py-0.5 tabular-nums">
-              {activeCount}
-            </span>
-          )}
-        </Button>
-
-        <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-          <SheetContent side="left" className="w-[280px] p-0 pt-12">
-            <SheetHeader className="px-4 pb-3 border-b border-border/20">
-              <SheetTitle className="text-base">Filtros</SheetTitle>
-            </SheetHeader>
-            <div className="pt-2">
-              <SidebarContent {...props} />
-            </div>
-          </SheetContent>
-        </Sheet>
-      </>
-    );
+    return null;
   }
 
   return (
@@ -256,5 +229,46 @@ export function HistoryFilterSidebar(props: HistoryFilterSidebarProps) {
       </div>
       <SidebarContent {...props} />
     </aside>
+  );
+}
+
+/** Mobile filter button + sheet — rendered inline in ActionList toolbar */
+export function MobileFilterTrigger(props: HistoryFilterSidebarProps) {
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const activeCount = [
+    props.brandFilter !== 'all',
+    props.typeFilter !== 'all',
+    props.sortField !== 'date' || props.sortDirection !== 'desc',
+  ].filter(Boolean).length;
+
+  return (
+    <>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => setMobileOpen(true)}
+        className="h-10 gap-2 shadow-sm border-muted/50 flex-shrink-0"
+      >
+        <Filter className="h-4 w-4" />
+        <span className="hidden sm:inline">Filtros</span>
+        {activeCount > 0 && (
+          <span className="bg-primary/15 text-primary text-[10px] font-semibold rounded-full px-1.5 py-0.5 tabular-nums">
+            {activeCount}
+          </span>
+        )}
+      </Button>
+
+      <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+        <SheetContent side="left" className="w-[280px] p-0 pt-12">
+          <SheetHeader className="px-4 pb-3 border-b border-border/20">
+            <SheetTitle className="text-base">Filtros</SheetTitle>
+          </SheetHeader>
+          <div className="pt-2">
+            <SidebarContent {...props} />
+          </div>
+        </SheetContent>
+      </Sheet>
+    </>
   );
 }

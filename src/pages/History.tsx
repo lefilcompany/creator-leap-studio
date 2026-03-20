@@ -12,7 +12,8 @@ import historyBanner from '@/assets/history-banner.jpg';
 import { PageBreadcrumb } from '@/components/PageBreadcrumb';
 import { useHistoryBrands, useHistoryActions } from '@/hooks/useHistoryActions';
 import { useFavorites } from '@/hooks/useFavorites';
-import { HistoryFilterSidebar } from '@/components/historico/HistoryFilterSidebar';
+import { HistoryFilterSidebar, MobileFilterTrigger } from '@/components/historico/HistoryFilterSidebar';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 type SortField = 'date' | 'type';
 type SortDirection = 'asc' | 'desc';
@@ -26,6 +27,7 @@ export default function History() {
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [sortField, setSortField] = useState<SortField>('date');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const isMobile = useIsMobile();
 
   const { data: brands = [], isLoading: isLoadingBrands } = useHistoryBrands();
 
@@ -196,6 +198,18 @@ export default function History() {
               sortField={sortField}
               sortDirection={sortDirection}
               onSortChange={handleSortChange}
+              mobileFilterSlot={isMobile ? (
+                <MobileFilterTrigger
+                  brandFilter={brandFilter}
+                  onBrandFilterChange={setBrandFilter}
+                  typeFilter={typeFilter}
+                  onTypeFilterChange={setTypeFilter}
+                  brands={brands}
+                  sortField={sortField}
+                  sortDirection={sortDirection}
+                  onSortChange={handleSortChange}
+                />
+              ) : undefined}
             />
           </div>
         </div>

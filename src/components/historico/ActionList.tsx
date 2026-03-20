@@ -41,6 +41,7 @@ interface ActionListProps {
   sortField?: SortField;
   sortDirection?: SortDirection;
   onSortChange?: (field: SortField, direction: SortDirection) => void;
+  mobileFilterSlot?: React.ReactNode;
 }
 
 const formatDate = (dateString: string) => {
@@ -263,6 +264,7 @@ export default function ActionList({
   hasNextPage, isFetchingNextPage, onLoadMore,
   isFavorite, isPersonalFavorite, isTeamFavorite, onToggleFavorite, hasTeam,
   sortField: externalSortField, sortDirection: externalSortDirection, onSortChange,
+  mobileFilterSlot,
 }: ActionListProps) {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
@@ -302,7 +304,8 @@ export default function ActionList({
   return (
     <div className="space-y-4">
       {/* Simplified Toolbar: search + view toggle */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3">
+        {mobileFilterSlot}
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
