@@ -241,6 +241,8 @@ export default function History() {
               sortField={sortField}
               sortDirection={sortDirection}
               onSortChange={handleSortChange}
+              actionCategoryMap={actionCategoryMap}
+              categories={categories}
               mobileFilterSlot={isMobile ? (
                 <MobileFilterTrigger
                   brandFilter={brandFilter}
