@@ -5,8 +5,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { NativeSelect } from '@/components/ui/native-select';
-import { Loader2, X, Crown, UserPlus } from 'lucide-react';
+import { Loader2, X, Crown, UserPlus, Palette } from 'lucide-react';
+import { HexColorPicker } from 'react-colorful';
 import { useAuth } from '@/hooks/useAuth';
 import { useTeamMembers } from '@/hooks/useTeamData';
 import { useCategoryMembers, type CategoryMemberInput } from '@/hooks/useCategories';
@@ -117,14 +119,14 @@ export function CategoryDialog({ open, onOpenChange, category, onSave, isSaving,
       <DialogContent
         className={cn(
           "p-0 gap-0 overflow-visible bg-transparent border-none shadow-none transition-all duration-300 ease-in-out",
-          membersOpen ? "sm:max-w-[52rem]" : "sm:max-w-md"
+          membersOpen ? "sm:max-w-[56rem]" : "sm:max-w-lg"
         )}
       >
         <div className="flex items-stretch gap-3">
           {/* Main Form Panel */}
           <div className={cn(
             "flex flex-col bg-background rounded-xl shadow-lg border border-border overflow-hidden transition-all duration-300 ease-in-out max-h-[85vh]",
-            membersOpen ? "w-full sm:w-[26rem] flex-shrink-0" : "w-full"
+            membersOpen ? "w-full sm:w-[28rem] flex-shrink-0" : "w-full"
           )}>
             <DialogHeader className="px-6 pt-6 pb-0">
               <DialogTitle>{category ? 'Editar Categoria' : 'Nova Categoria'}</DialogTitle>
@@ -144,7 +146,7 @@ export function CategoryDialog({ open, onOpenChange, category, onSave, isSaving,
 
                 <div className="space-y-2">
                   <Label className="font-bold">Cor</Label>
-                  <div className="flex gap-2 flex-wrap">
+                  <div className="flex items-center gap-2 flex-wrap">
                     {COLORS.map(c => (
                       <button
                         key={c}
@@ -157,6 +159,44 @@ export function CategoryDialog({ open, onOpenChange, category, onSave, isSaving,
                         }}
                       />
                     ))}
+                    {/* Custom color picker */}
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button
+                          type="button"
+                          className={cn(
+                            "w-7 h-7 rounded-full border-2 transition-transform active:scale-90 hover:scale-110 flex items-center justify-center",
+                            !COLORS.includes(color) ? "border-foreground" : "border-border"
+                          )}
+                          style={{
+                            backgroundColor: !COLORS.includes(color) ? color : 'transparent',
+                          }}
+                        >
+                          <Palette className="h-3.5 w-3.5 text-muted-foreground" style={{
+                            color: !COLORS.includes(color) ? 'white' : undefined,
+                            mixBlendMode: !COLORS.includes(color) ? 'difference' : undefined,
+                          }} />
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-3" side="bottom" align="start">
+                        <div className="space-y-3">
+                          <HexColorPicker color={color} onChange={setColor} />
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-muted-foreground font-mono select-none">#</span>
+                            <Input
+                              value={color.replace('#', '')}
+                              onChange={e => {
+                                const v = e.target.value.replace(/[^0-9A-Fa-f]/g, '').slice(0, 6);
+                                if (v.length === 6) setColor('#' + v);
+                              }}
+                              className="h-8 text-xs font-mono"
+                              maxLength={6}
+                            />
+                            <div className="w-8 h-8 rounded-md border border-border flex-shrink-0" style={{ backgroundColor: color }} />
+                          </div>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
                   </div>
                 </div>
 
