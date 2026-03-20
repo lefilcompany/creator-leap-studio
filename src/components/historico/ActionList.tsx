@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { Eye, Search, ArrowUpDown, ArrowUp, ArrowDown, List, LayoutGrid, X, Clock, Sparkles, CheckCircle, Calendar, Video, Image, Globe, Users, Loader2 } from 'lucide-react';
+import { Star, Search, ArrowUpDown, ArrowUp, ArrowDown, List, LayoutGrid, X, Clock, Sparkles, CheckCircle, Calendar, Video, Image, Globe, Users, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -29,6 +29,8 @@ interface ActionListProps {
   hasNextPage: boolean;
   isFetchingNextPage: boolean;
   onLoadMore: () => void;
+  isFavorite?: (actionId: string) => boolean;
+  onToggleFavorite?: (actionId: string) => void;
 }
 
 type SortField = 'type' | 'date';
@@ -145,8 +147,9 @@ const LoadingRows = () => (
 );
 
 // Grid card
-function ActionCard({ action, isSelected, onNavigate }: {
+function ActionCard({ action, isSelected, onNavigate, isFavorite, onToggleFavorite }: {
   action: ActionSummary; isSelected: boolean; onNavigate: () => void;
+  isFavorite?: boolean; onToggleFavorite?: () => void;
 }) {
   const displayType = ACTION_TYPE_DISPLAY[action.type];
   const style = ACTION_STYLE_MAP[displayType];
@@ -188,12 +191,17 @@ function ActionCard({ action, isSelected, onNavigate }: {
             <FallbackIcon className={cn("h-12 w-12 opacity-40", iconColor)} />
           </div>
         )}
-        {/* View button overlay */}
-        <div
-          className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm rounded-lg p-1.5 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+        {/* Favorite button overlay */}
+        <button
+          onClick={(e) => { e.stopPropagation(); onToggleFavorite?.(); }}
+          className={cn(
+            "absolute top-2 right-2 bg-background/80 backdrop-blur-sm rounded-lg p-1.5 transition-all shadow-sm active:scale-95",
+            isFavorite ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+          )}
+          aria-label={isFavorite ? "Remover dos favoritos" : "Adicionar aos favoritos"}
         >
-          <Eye className="h-4 w-4 text-foreground" />
-        </div>
+          <Star className={cn("h-4 w-4 transition-colors", isFavorite ? "fill-amber-400 text-amber-400" : "text-foreground")} />
+        </button>
       </div>
 
       {/* Content */}
@@ -244,6 +252,7 @@ export default function ActionList({
   brands, brandFilter, onBrandFilterChange, typeFilter, onTypeFilterChange,
   brandOptions, typeOptions,
   hasNextPage, isFetchingNextPage, onLoadMore,
+  isFavorite, onToggleFavorite,
 }: ActionListProps) {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
@@ -433,6 +442,7 @@ export default function ActionList({
                 <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-semibold hidden md:table-cell">Marca</TableHead>
                 <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-semibold hidden lg:table-cell">Plataforma</TableHead>
                 <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-semibold text-right">Data</TableHead>
+                <TableHead className="w-10"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -481,6 +491,15 @@ export default function ActionList({
                     <TableCell className="text-muted-foreground text-sm text-right">
                       {formatDateShort(action.createdAt)}
                     </TableCell>
+                    <TableCell className="py-2">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); onToggleFavorite?.(action.id); }}
+                        className="p-1 rounded-md hover:bg-muted transition-colors active:scale-95"
+                        aria-label={isFavorite?.(action.id) ? "Remover dos favoritos" : "Adicionar aos favoritos"}
+                      >
+                        <Star className={cn("h-4 w-4 transition-colors", isFavorite?.(action.id) ? "fill-amber-400 text-amber-400" : "text-muted-foreground")} />
+                      </button>
+                    </TableCell>
                   </TableRow>
                 );
               })}
@@ -496,6 +515,8 @@ export default function ActionList({
               action={action}
               isSelected={selectedAction?.id === action.id}
               onNavigate={() => navigate(`/action/${action.id}`, { state: { viewMode } })}
+              isFavorite={isFavorite?.(action.id)}
+              onToggleFavorite={() => onToggleFavorite?.(action.id)}
             />
           ))}
         </div>

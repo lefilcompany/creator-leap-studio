@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
-import { History as HistoryIcon, HelpCircle } from 'lucide-react';
+import { History as HistoryIcon, HelpCircle, Star } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ActionList from '@/components/historico/ActionList';
 import type { ActionSummary } from '@/types/action';
 import { ACTION_TYPE_DISPLAY } from '@/types/action';
@@ -11,11 +12,13 @@ import { historySteps, navbarSteps } from '@/components/onboarding/tourSteps';
 import historyBanner from '@/assets/history-banner.jpg';
 import { PageBreadcrumb } from '@/components/PageBreadcrumb';
 import { useHistoryBrands, useHistoryActions } from '@/hooks/useHistoryActions';
+import { useFavorites } from '@/hooks/useFavorites';
 
 export default function History() {
   const { user } = useAuth();
   const [selectedActionSummary, setSelectedActionSummary] = useState<ActionSummary | null>(null);
-
+  const [activeTab, setActiveTab] = useState<'all' | 'favorites'>('all');
+  const { favoriteIds, isFavorite, toggleFavorite } = useFavorites();
   const [brandFilter, setBrandFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
 
@@ -31,10 +34,17 @@ export default function History() {
     isFetchingNextPage,
   } = useHistoryActions(filters);
 
-  const actions = useMemo(
+  const allActions = useMemo(
     () => actionsData?.pages.flatMap(page => page.actions) || [],
     [actionsData]
   );
+
+  const actions = useMemo(() => {
+    if (activeTab === 'favorites') {
+      return allActions.filter(a => favoriteIds.includes(a.id));
+    }
+    return allActions;
+  }, [allActions, activeTab, favoriteIds]);
 
   const brandOptions = useMemo(() => [
     { value: 'all', label: 'Todas as Marcas' },
@@ -95,7 +105,24 @@ export default function History() {
       </div>
 
       {/* Action list */}
-      <main id="history-list" className="px-4 sm:px-6 lg:px-8 pt-4 pb-4 sm:pb-6 lg:pb-8">
+      <main id="history-list" className="px-4 sm:px-6 lg:px-8 pt-4 pb-4 sm:pb-6 lg:pb-8 space-y-4">
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'all' | 'favorites')}>
+          <TabsList className="bg-muted/50 border border-border/30">
+            <TabsTrigger value="all" className="data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1.5">
+              <HistoryIcon className="h-4 w-4" />
+              Todas
+            </TabsTrigger>
+            <TabsTrigger value="favorites" className="data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1.5">
+              <Star className="h-4 w-4" />
+              Favoritas
+              {favoriteIds.length > 0 && (
+                <span className="ml-1 text-[10px] bg-amber-400/20 text-amber-600 rounded-full px-1.5 py-0.5 font-semibold tabular-nums">
+                  {favoriteIds.length}
+                </span>
+              )}
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
         <ActionList
           actions={actions}
           selectedAction={selectedActionSummary}
@@ -108,9 +135,11 @@ export default function History() {
           onTypeFilterChange={setTypeFilter}
           brandOptions={brandOptions}
           typeOptions={typeOptions}
-          hasNextPage={!!hasNextPage}
+          hasNextPage={activeTab === 'all' ? !!hasNextPage : false}
           isFetchingNextPage={isFetchingNextPage}
           onLoadMore={() => fetchNextPage()}
+          isFavorite={isFavorite}
+          onToggleFavorite={toggleFavorite}
         />
       </main>
 

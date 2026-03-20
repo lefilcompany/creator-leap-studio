@@ -14,6 +14,35 @@ export type Database = {
   }
   public: {
     Tables: {
+      action_favorites: {
+        Row: {
+          action_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          action_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          action_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "action_favorites_action_id_fkey"
+            columns: ["action_id"]
+            isOneToOne: false
+            referencedRelation: "actions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       actions: {
         Row: {
           approved: boolean | null
