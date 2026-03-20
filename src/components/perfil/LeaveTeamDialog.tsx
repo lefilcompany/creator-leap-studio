@@ -21,8 +21,7 @@ interface LeaveTeamDialogProps {
 
 export default function LeaveTeamDialog({ open, onOpenChange, teamName }: LeaveTeamDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
+  const { user, reloadUserData } = useAuth();
 
   const handleLeaveTeam = async () => {
     if (!user) {
@@ -32,7 +31,6 @@ export default function LeaveTeamDialog({ open, onOpenChange, teamName }: LeaveT
 
     setIsLoading(true);
     try {
-      // Verificar se o usuário é admin da equipe
       const { data: profile } = await supabase
         .from('profiles')
         .select('team_id')
@@ -52,7 +50,6 @@ export default function LeaveTeamDialog({ open, onOpenChange, teamName }: LeaveT
         .single();
 
       if (team?.admin_id === user.id) {
-        // Verificar se há outros membros
         const { count } = await supabase
           .from('profiles')
           .select('id', { count: 'exact', head: true })
@@ -60,28 +57,30 @@ export default function LeaveTeamDialog({ open, onOpenChange, teamName }: LeaveT
           .neq('id', user.id);
 
         if (count && count > 0) {
-          toast.error('Você precisa transferir a administração da equipe antes de sair. Vá até as configurações da equipe.');
+          toast.error('Você precisa transferir a administração da equipe antes de sair.');
           setIsLoading(false);
           return;
         }
       }
 
-      // Remover usuário da equipe (definir team_id como null)
+      // Remove from team_members
+      await supabase
+        .from('team_members')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('team_id', profile.team_id);
+
+      // Set team_id to null
       const { error } = await supabase
         .from('profiles')
         .update({ team_id: null })
         .eq('id', user.id);
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
       toast.success('Você saiu da equipe com sucesso!');
       onOpenChange(false);
-      
-      // Fazer logout e redirecionar para home
-      await logout();
-      navigate('/');
+      await reloadUserData();
     } catch (error: any) {
       console.error('Erro ao sair da equipe:', error);
       toast.error(error.message || 'Erro ao sair da equipe. Tente novamente.');
