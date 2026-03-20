@@ -5,7 +5,6 @@ import { Star, Search, ArrowUpDown, ArrowUp, ArrowDown, List, LayoutGrid, X, Clo
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -15,6 +14,9 @@ import { ACTION_TYPE_DISPLAY, ACTION_STYLE_MAP } from '@/types/action';
 import type { BrandSummary } from '@/types/brand';
 import { FavoriteButton } from '@/components/historico/FavoriteButton';
 import type { FavoriteScope } from '@/hooks/useFavorites';
+
+type SortField = 'type' | 'date';
+type SortDirection = 'asc' | 'desc';
 
 interface ActionListProps {
   actions: ActionSummary[];
@@ -36,11 +38,10 @@ interface ActionListProps {
   isFavorite?: (actionId: string) => boolean;
   onToggleFavorite?: (actionId: string, scope: FavoriteScope) => void;
   hasTeam?: boolean;
+  sortField?: SortField;
+  sortDirection?: SortDirection;
+  onSortChange?: (field: SortField, direction: SortDirection) => void;
 }
-
-type SortField = 'type' | 'date';
-type SortDirection = 'asc' | 'desc';
-type ViewMode = 'grid' | 'list';
 
 const formatDate = (dateString: string) => {
   if (!dateString) return '';
@@ -261,12 +262,16 @@ export default function ActionList({
   brandOptions, typeOptions,
   hasNextPage, isFetchingNextPage, onLoadMore,
   isFavorite, isPersonalFavorite, isTeamFavorite, onToggleFavorite, hasTeam,
+  sortField: externalSortField, sortDirection: externalSortDirection, onSortChange,
 }: ActionListProps) {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortField, setSortField] = useState<SortField>('date');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
-  const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [internalSortField, setInternalSortField] = useState<SortField>('date');
+  const [internalSortDirection, setInternalSortDirection] = useState<SortDirection>('desc');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+
+  const sortField = externalSortField ?? internalSortField;
+  const sortDirection = externalSortDirection ?? internalSortDirection;
 
   const filteredAndSortedActions = useMemo(() => {
     let result = [...actions];
@@ -294,40 +299,10 @@ export default function ActionList({
     return result;
   }, [actions, searchQuery, sortField, sortDirection]);
 
-  const toggleSort = (field: SortField) => {
-    if (sortField === field) {
-      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortDirection(field === 'date' ? 'desc' : 'asc');
-    }
-  };
-
-  const handleViewAction = (actionId: string, event: React.MouseEvent) => {
-    event.stopPropagation();
-    navigate(`/action/${actionId}`, { state: { viewMode } });
-  };
-
-  const hasActiveFilters = searchQuery.trim() || brandFilter !== 'all' || typeFilter !== 'all' || sortField !== 'date' || sortDirection !== 'desc';
-
-  const clearFilters = () => {
-    setSearchQuery('');
-    onBrandFilterChange('all');
-    onTypeFilterChange('all');
-    setSortField('date');
-    setSortDirection('desc');
-  };
-
-  const SortIcon = ({ field }: { field: SortField }) => {
-    if (sortField !== field) return <ArrowUpDown className="h-3.5 w-3.5 opacity-40" />;
-    return sortDirection === 'asc' ? <ArrowUp className="h-3.5 w-3.5" /> : <ArrowDown className="h-3.5 w-3.5" />;
-  };
-
   return (
     <div className="space-y-4">
-      {/* Toolbar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-        {/* Search */}
+      {/* Simplified Toolbar: search + view toggle */}
+      <div className="flex items-center gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -343,75 +318,27 @@ export default function ActionList({
           )}
         </div>
 
-        {/* Filters */}
-        <Select value={brandFilter} onValueChange={onBrandFilterChange}>
-          <SelectTrigger className="w-full sm:w-[160px] h-10 rounded-lg shadow-sm border-muted/50 bg-card">
-            <SelectValue placeholder="Marca" />
-          </SelectTrigger>
-          <SelectContent>
-            {brandOptions.map((opt) => (
-              <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select value={typeFilter} onValueChange={onTypeFilterChange}>
-          <SelectTrigger className="w-full sm:w-[160px] h-10 rounded-lg shadow-sm border-muted/50 bg-card">
-            <SelectValue placeholder="Ação" />
-          </SelectTrigger>
-          <SelectContent>
-            {typeOptions.map((opt) => (
-              <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        {/* Sort + Clear + View Toggle */}
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => toggleSort('date')}
-            className={cn(
-              "h-10 px-3 gap-1.5 shadow-sm border border-muted/50",
-              sortField === 'date' && "bg-primary/10 border-primary/30 text-primary"
-            )}
+        <ToggleGroup
+          type="single"
+          value={viewMode}
+          onValueChange={(v) => { if (v) setViewMode(v as 'grid' | 'list'); }}
+          className="bg-muted/50 shadow-sm rounded-lg p-0.5 gap-0 border border-muted/50"
+        >
+          <ToggleGroupItem
+            value="grid"
+            aria-label="Visualização em blocos"
+            className="rounded-l-md rounded-r-none border-0 px-3 py-1.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm data-[state=off]:bg-transparent data-[state=off]:hover:bg-muted"
           >
-            Data <SortIcon field="date" />
-          </Button>
-
-          {hasActiveFilters && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={clearFilters}
-              className="h-10 px-3 text-muted-foreground shadow-sm border border-muted/50 hover:border-accent hover:bg-accent/20 hover:text-accent"
-            >
-              <X className="h-4 w-4 mr-1" /> Limpar
-            </Button>
-          )}
-
-          <ToggleGroup
-            type="single"
-            value={viewMode}
-            onValueChange={(v) => { if (v) setViewMode(v as ViewMode); }}
-            className="bg-muted/50 shadow-sm rounded-lg p-0.5 gap-0 border border-muted/50 ml-auto"
+            <LayoutGrid className="h-4 w-4" />
+          </ToggleGroupItem>
+          <ToggleGroupItem
+            value="list"
+            aria-label="Visualização em lista"
+            className="rounded-r-md rounded-l-none border-0 px-3 py-1.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm data-[state=off]:bg-transparent data-[state=off]:hover:bg-muted"
           >
-            <ToggleGroupItem
-              value="grid"
-              aria-label="Visualização em blocos"
-              className="rounded-l-md rounded-r-none border-0 px-3 py-1.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm data-[state=off]:bg-transparent data-[state=off]:hover:bg-muted"
-            >
-              <LayoutGrid className="h-4 w-4" />
-            </ToggleGroupItem>
-            <ToggleGroupItem
-              value="list"
-              aria-label="Visualização em lista"
-              className="rounded-r-md rounded-l-none border-0 px-3 py-1.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm data-[state=off]:bg-transparent data-[state=off]:hover:bg-muted"
-            >
-              <List className="h-4 w-4" />
-            </ToggleGroupItem>
-          </ToggleGroup>
-        </div>
+            <List className="h-4 w-4" />
+          </ToggleGroupItem>
+        </ToggleGroup>
       </div>
 
       {/* Content */}

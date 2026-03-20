@@ -6,13 +6,16 @@ import ActionList from '@/components/historico/ActionList';
 import type { ActionSummary } from '@/types/action';
 import { ACTION_TYPE_DISPLAY } from '@/types/action';
 import { useAuth } from '@/hooks/useAuth';
-import { toast } from 'sonner';
 import { TourSelector } from '@/components/onboarding/TourSelector';
 import { historySteps, navbarSteps } from '@/components/onboarding/tourSteps';
 import historyBanner from '@/assets/history-banner.jpg';
 import { PageBreadcrumb } from '@/components/PageBreadcrumb';
 import { useHistoryBrands, useHistoryActions } from '@/hooks/useHistoryActions';
 import { useFavorites } from '@/hooks/useFavorites';
+import { HistoryFilterSidebar } from '@/components/historico/HistoryFilterSidebar';
+
+type SortField = 'date' | 'type';
+type SortDirection = 'asc' | 'desc';
 
 export default function History() {
   const { user } = useAuth();
@@ -21,6 +24,8 @@ export default function History() {
   const { allFavoriteIds, isFavorite, isPersonalFavorite, isTeamFavorite, toggleFavorite, hasTeam } = useFavorites();
   const [brandFilter, setBrandFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [sortField, setSortField] = useState<SortField>('date');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
   const { data: brands = [], isLoading: isLoadingBrands } = useHistoryBrands();
 
@@ -43,7 +48,6 @@ export default function History() {
     if (activeTab === 'favorites') {
       return allActions.filter(a => allFavoriteIds.includes(a.id));
     }
-    // In "all" tab, favorites float to top for priority visibility
     if (allFavoriteIds.length === 0) return allActions;
     const favSet = new Set(allFavoriteIds);
     const favs = allActions.filter(a => favSet.has(a.id));
@@ -60,6 +64,11 @@ export default function History() {
     { value: 'all', label: 'Todas as Ações' },
     ...Object.values(ACTION_TYPE_DISPLAY).map(displayType => ({ value: displayType, label: displayType }))
   ], []);
+
+  const handleSortChange = (field: SortField, direction: SortDirection) => {
+    setSortField(field);
+    setSortDirection(direction);
+  };
 
   return (
     <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8">
@@ -108,7 +117,7 @@ export default function History() {
               </div>
             </div>
 
-            {/* Tab switcher inline */}
+            {/* Tab switcher */}
             <div className="flex items-center gap-0.5 bg-muted/40 rounded-lg p-0.5">
               <button
                 onClick={() => setActiveTab('all')}
@@ -149,29 +158,47 @@ export default function History() {
         </div>
       </div>
 
-      {/* Action list */}
-      <main id="history-list" className="px-4 sm:px-6 lg:px-8 pt-4 pb-4 sm:pb-6 lg:pb-8 space-y-4">
-        <ActionList
-          actions={actions}
-          selectedAction={selectedActionSummary}
-          onSelectAction={setSelectedActionSummary}
-          isLoading={isLoadingActions}
-          brands={brands}
-          brandFilter={brandFilter}
-          onBrandFilterChange={setBrandFilter}
-          typeFilter={typeFilter}
-          onTypeFilterChange={setTypeFilter}
-          brandOptions={brandOptions}
-          typeOptions={typeOptions}
-          hasNextPage={activeTab === 'all' ? !!hasNextPage : false}
-          isFetchingNextPage={isFetchingNextPage}
-          onLoadMore={() => fetchNextPage()}
-          isFavorite={isFavorite}
-          isPersonalFavorite={isPersonalFavorite}
-          isTeamFavorite={isTeamFavorite}
-          onToggleFavorite={toggleFavorite}
-          hasTeam={hasTeam}
-        />
+      {/* Content area: sidebar + action list */}
+      <main id="history-list" className="px-4 sm:px-6 lg:px-8 pt-4 pb-4 sm:pb-6 lg:pb-8">
+        <div className="flex gap-4 items-start">
+          <HistoryFilterSidebar
+            brandFilter={brandFilter}
+            onBrandFilterChange={setBrandFilter}
+            typeFilter={typeFilter}
+            onTypeFilterChange={setTypeFilter}
+            brands={brands}
+            sortField={sortField}
+            sortDirection={sortDirection}
+            onSortChange={handleSortChange}
+          />
+
+          <div className="flex-1 min-w-0 space-y-4">
+            <ActionList
+              actions={actions}
+              selectedAction={selectedActionSummary}
+              onSelectAction={setSelectedActionSummary}
+              isLoading={isLoadingActions}
+              brands={brands}
+              brandFilter={brandFilter}
+              onBrandFilterChange={setBrandFilter}
+              typeFilter={typeFilter}
+              onTypeFilterChange={setTypeFilter}
+              brandOptions={brandOptions}
+              typeOptions={typeOptions}
+              hasNextPage={activeTab === 'all' ? !!hasNextPage : false}
+              isFetchingNextPage={isFetchingNextPage}
+              onLoadMore={() => fetchNextPage()}
+              isFavorite={isFavorite}
+              isPersonalFavorite={isPersonalFavorite}
+              isTeamFavorite={isTeamFavorite}
+              onToggleFavorite={toggleFavorite}
+              hasTeam={hasTeam}
+              sortField={sortField}
+              sortDirection={sortDirection}
+              onSortChange={handleSortChange}
+            />
+          </div>
+        </div>
       </main>
 
       <TourSelector 
