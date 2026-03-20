@@ -85,15 +85,15 @@ export default function History() {
       </div>
 
       {/* Header card */}
-      <div className="relative px-4 sm:px-6 lg:px-8 -mt-10 flex-shrink-0">
-        <div className="bg-card rounded-2xl shadow-lg p-4 lg:p-5">
-          <div className="flex items-center justify-between gap-4 flex-wrap">
-            <div className="flex items-center gap-4">
-              <div className="bg-secondary/10 border border-secondary/20 shadow-sm rounded-2xl p-3 lg:p-4">
-                <HistoryIcon className="h-8 w-8 lg:h-10 lg:w-10 text-secondary" />
+      <div className="relative px-4 sm:px-6 lg:px-8 -mt-14 flex-shrink-0">
+        <div className="bg-card rounded-2xl shadow-lg p-3 lg:p-4">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-3">
+              <div className="bg-secondary/10 border border-secondary/20 shadow-sm rounded-xl p-2.5 lg:p-3">
+                <HistoryIcon className="h-6 w-6 lg:h-8 lg:w-8 text-secondary" />
               </div>
               <div>
-                <h1 className="text-2xl lg:text-3xl font-bold text-foreground flex items-center gap-2">
+                <h1 className="text-xl lg:text-2xl font-bold text-foreground flex items-center gap-2">
                   Histórico de Ações
                   <Popover>
                     <PopoverTrigger asChild>
