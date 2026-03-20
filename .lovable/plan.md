@@ -1,66 +1,30 @@
 
 
-# Visibilidade com Membros e Sidebar com Dropdown de Categorias
+## Renomear "Categorias" → "Nichos" em toda a aplicação
 
-## Visão Geral
-Duas mudanças principais:
-1. **CategoryDialog**: Substituir o select de visibilidade por um sistema de membros com painel lateral (Sheet), onde o criador é sempre incluído por padrão e pode adicionar membros da equipe como "Leitor" ou "Editor"
-2. **Sidebar**: Transformar o item "Categorias" em um dropdown colapsável com duas seções: "Minhas Categorias" e "Compartilhadas Comigo"
+Substituição de todas as ocorrências de texto visível ao usuário de "Categoria/Categorias" por "Nicho/Nichos". Nenhuma alteração em nomes de tabelas, tipos, variáveis ou rotas — apenas os textos exibidos na UI.
 
-## 1. CategoryDialog — Painel de Membros
+### Arquivos a editar (≈12 arquivos)
 
-### Comportamento
-- O campo "Visibilidade" atual será substituído por uma seção "Acesso"
-- Mostra por padrão o criador (usuário logado) como "Dono" — sempre fixo, não removível
-- Botão "Adicionar membro" abre um `Sheet` lateral (como na imagem de referência do Kanban)
-- No Sheet: lista membros da equipe (via `useTeamMembers`) com avatar, nome e um select de papel (Leitor/Editor)
-- Membros adicionados aparecem como chips/lista no dialog principal com papel e botão de remover
-- Se o usuário não tem equipe, a seção mostra apenas o dono sem opção de adicionar
+| Arquivo | Alterações de texto |
+|---------|-------------------|
+| `src/pages/Categories.tsx` | Breadcrumb, título, subtítulo, popover de ajuda, botão "Nova Categoria" → "Novo Nicho", dialog de exclusão |
+| `src/pages/CategoryView.tsx` | Breadcrumb "Categorias" → "Nichos" |
+| `src/components/AppSidebar.tsx` | Label "Categorias" → "Nichos", tooltip, texto vazio "Nenhuma categoria" → "Nenhum nicho" |
+| `src/components/CategorySelector.tsx` | Label "Categoria" → "Nicho" |
+| `src/components/categorias/CategoryList.tsx` | Textos vazios "Nenhuma categoria criada" → "Nenhum nicho criado", "Crie categorias para organizar..." → "Crie nichos para organizar..." |
+| `src/components/categorias/CategoryDialog.tsx` | Título "Nova Categoria"/"Editar Categoria" → "Novo Nicho"/"Editar Nicho", placeholder da descrição |
+| `src/components/categorias/CategoryBadge.tsx` | "Sem categoria" → "Sem nicho" |
+| `src/components/categorias/AddToCategoryPopover.tsx` | Botão "Categoria" → "Nicho", título "Categorias" → "Nichos", texto vazio |
+| `src/components/historico/ActionCardMenu.tsx` | "Mudar categoria"/"Adicionar à categoria" → "Mudar nicho"/"Adicionar ao nicho", "Categorias" → "Nichos", textos vazios |
+| `src/components/historico/HistoryFilterSidebar.tsx` | Título do filtro "Categoria" → "Nicho", "Todas as categorias" → "Todos os nichos", "Sem categoria" → "Sem nicho" |
+| `src/pages/ActionView.tsx` | "Sem categoria" → "Sem nicho", "Categorias" → "Nichos", "Nenhuma categoria criada" → "Nenhum nicho criado" |
+| `src/pages/CreateImage.tsx` | Comentário "Categoria (opcional)" → "Nicho (opcional)" (se visível) |
 
-### Dados
-- Ao salvar, além dos dados da categoria, enviar array de membros `{ userId, role }[]`
-- Mutation `createCategory` e `updateCategory` no hook devem também inserir/atualizar `action_category_members`
-- Ao criar: inserir membros no `action_category_members` após criar a categoria
-- Ao editar: diff dos membros (adicionar novos, remover removidos, atualizar roles)
-- Quando há membros além do dono, `visibility` automaticamente muda para `'team'`
-
-### Arquivos
-- **Editar**: `src/components/categorias/CategoryDialog.tsx` — redesign da seção de visibilidade + Sheet de membros
-- **Editar**: `src/hooks/useCategories.ts` — mutations para gerenciar membros junto com a categoria
-- **Editar**: `src/types/category.ts` — adicionar tipo `CategoryMember` com perfil
-
-## 2. Sidebar — Dropdown Colapsável de Categorias
-
-### Comportamento
-- O item "Categorias" na sidebar vira um `Collapsible` com chevron
-- Ao expandir, mostra duas seções:
-  - **Minhas Categorias**: categorias onde `user_id === auth.uid()`
-  - **Compartilhadas Comigo**: categorias onde o usuário é membro (via `action_category_members`) mas não é dono
-- Cada categoria mostra um dot de cor + nome truncado, clicável para `/categories/:id`
-- Link "Ver todas" no final leva para `/categories`
-- No estado colapsado da sidebar (icon mode): mantém apenas o ícone `FolderOpen` como tooltip
-
-### Dados
-- Reutilizar `useCategories` mas separar em `myCategories` e `sharedCategories`
-- Para "compartilhadas comigo": query adicional em `action_category_members` onde `user_id = auth.uid()` e join com `action_categories` onde `user_id != auth.uid()`
-
-### Arquivos
-- **Editar**: `src/components/AppSidebar.tsx` — substituir NavItem simples por componente colapsável com lista de categorias
-- **Editar**: `src/hooks/useCategories.ts` — adicionar query `useSharedCategories` ou retornar categorias separadas
-
-## 3. Hook useCategories — Ajustes
-
-### Novas funcionalidades
-- `createCategory` aceita `members: { userId: string; role: 'viewer' | 'editor' }[]` e insere em `action_category_members` após criar
-- `updateCategory` aceita `members` e faz sync (delete all + insert)
-- Nova query `useCategoryMembers(categoryId)` para carregar membros de uma categoria com perfil
-- Separar retorno em `myCategories` e `sharedCategories` baseado em `user_id === auth.uid()` vs membro
-
-## Detalhes Técnicos
-
-- Sheet de membros usa `side="right"` para parecer painel apêndice lateral
-- Lista de membros da equipe vem de `useTeamMembers(user.teamId)`
-- Cada membro tem toggle entre Leitor/Editor usando `NativeSelect` ou botões segmentados
-- Sidebar colapsável usa `Collapsible`/`CollapsibleTrigger`/`CollapsibleContent` do Radix (já instalado)
-- Limitar exibição na sidebar a ~5 categorias por seção + "Ver mais"
+### O que NÃO muda
+- Nomes de tabelas no banco (`action_categories`, etc.)
+- Nomes de tipos TypeScript (`ActionCategory`, `CategoryWithCount`, etc.)
+- Nomes de arquivos/pastas (`categorias/`, `useCategories.ts`, etc.)
+- Rotas URL (`/categories`, `/categories/:id`)
+- Query keys (`['categories']`, etc.)
 
