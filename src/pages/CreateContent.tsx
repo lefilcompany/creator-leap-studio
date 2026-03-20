@@ -1176,6 +1176,7 @@ export default function CreateContent() {
                 originalFormData: { ...capturedRequestData, brandId: capturedFormData.brand },
                 actionId: undefined,
                 isLocalFallback,
+                categoryId: capturedCategoryId || undefined,
               }
             }
           };
