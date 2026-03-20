@@ -184,6 +184,5 @@ export function TeamFavoritesLibrary({ teamId, inline = false }: TeamFavoritesLi
           );
         })}
       </div>
-    </div>
   );
 }
