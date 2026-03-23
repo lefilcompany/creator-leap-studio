@@ -63,14 +63,68 @@ export default function History() {
     setSelectionMode(false);
   }, [bulkSelectedIds, toggleFavorite]);
 
-  const handleBulkAddToCategory = useCallback((categoryId: string) => {
-    bulkSelectedIds.forEach(id => {
-      addActionToCategory.mutate({ categoryId, actionId: id });
-    });
-    toast.success(`${bulkSelectedIds.size} ${bulkSelectedIds.size === 1 ? 'ação adicionada' : 'ações adicionadas'} à categoria!`);
+  const handleBulkAddToCategory = useCallback(async (categoryId: string) => {
+    const ids = Array.from(bulkSelectedIds);
+    try {
+      // First check which actions are already in this category to avoid duplicates
+      const { data: existing } = await supabase
+        .from('action_category_items')
+        .select('action_id')
+        .eq('category_id', categoryId)
+        .in('action_id', ids);
+      
+      const existingSet = new Set((existing || []).map((e: any) => e.action_id));
+      const newIds = ids.filter(id => !existingSet.has(id));
+      
+      if (newIds.length === 0) {
+        toast.info('Todas as ações selecionadas já estão nesta categoria.');
+        return;
+      }
+
+      const { error } = await supabase
+        .from('action_category_items')
+        .insert(newIds.map(actionId => ({
+          category_id: categoryId,
+          action_id: actionId,
+          added_by: user!.id,
+        })));
+      
+      if (error) throw error;
+
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      queryClient.invalidateQueries({ queryKey: ['action-categories'] });
+      queryClient.invalidateQueries({ queryKey: ['category-actions'] });
+      queryClient.invalidateQueries({ queryKey: ['all-category-items'] });
+      toast.success(`${newIds.length} ${newIds.length === 1 ? 'ação adicionada' : 'ações adicionadas'} à categoria!`);
+    } catch {
+      toast.error('Erro ao adicionar à categoria');
+    }
     setBulkSelectedIds(new Set());
     setSelectionMode(false);
-  }, [bulkSelectedIds, addActionToCategory]);
+  }, [bulkSelectedIds, user, queryClient]);
+
+  const handleBulkRemoveFromCategory = useCallback(async (categoryId: string) => {
+    const ids = Array.from(bulkSelectedIds);
+    try {
+      const { error } = await supabase
+        .from('action_category_items')
+        .delete()
+        .eq('category_id', categoryId)
+        .in('action_id', ids);
+      
+      if (error) throw error;
+
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      queryClient.invalidateQueries({ queryKey: ['action-categories'] });
+      queryClient.invalidateQueries({ queryKey: ['category-actions'] });
+      queryClient.invalidateQueries({ queryKey: ['all-category-items'] });
+      toast.success(`Ações removidas da categoria!`);
+    } catch {
+      toast.error('Erro ao remover da categoria');
+    }
+    setBulkSelectedIds(new Set());
+    setSelectionMode(false);
+  }, [bulkSelectedIds, queryClient]);
 
   // Get all category items for filtering
   const { data: categoryItems = [] } = useQuery({
