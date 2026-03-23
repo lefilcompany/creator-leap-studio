@@ -231,7 +231,7 @@ export default function CategoryView() {
         <Dialog open={manageOpen} onOpenChange={(open) => { setManageOpen(open); if (!open) { setAddPanelOpen(false); setMemberSearch(''); } }}>
           <DialogContent
             className={cn(
-              "p-0 gap-0 overflow-visible bg-transparent border-none shadow-none transition-all duration-300 ease-in-out",
+              "p-0 gap-0 overflow-visible bg-transparent border-none shadow-none transition-all duration-300 ease-in-out [&>button.group]:hidden",
               addPanelOpen ? "sm:max-w-[56rem]" : "sm:max-w-lg"
             )}
           >
