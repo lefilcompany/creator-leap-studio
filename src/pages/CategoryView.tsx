@@ -2,10 +2,12 @@ import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { FolderOpen, Users, User, Settings, UsersRound, ChevronDown } from 'lucide-react';
+import { FolderOpen, Users, User, Settings, UsersRound } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { PageBreadcrumb } from '@/components/PageBreadcrumb';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ActionList from '@/components/historico/ActionList';
 import { CategoryMembersPanel } from '@/components/categorias/CategoryMembersPanel';
 import { CategorySettingsPanel } from '@/components/categorias/CategorySettingsPanel';
@@ -22,6 +24,7 @@ export default function CategoryView() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [selectedAction, setSelectedAction] = useState<ActionSummary | null>(null);
+  const [manageOpen, setManageOpen] = useState(false);
   const { allFavoriteIds, isFavorite, isPersonalFavorite, isTeamFavorite, toggleFavorite, hasTeam } = useFavorites();
   const { data: brands = [] } = useHistoryBrands();
   const { updateCategory } = useCategories();
@@ -121,93 +124,87 @@ export default function CategoryView() {
               {category?.visibility === 'team' ? <Users className="h-3 w-3" /> : <User className="h-3 w-3" />}
               {category?.visibility === 'team' ? 'Equipe' : 'Pessoal'}
             </Badge>
+            <Button variant="outline" size="sm" className="gap-2" onClick={() => setManageOpen(true)}>
+              <Settings className="h-4 w-4" />
+              <span className="hidden sm:inline">Gerenciar</span>
+            </Button>
           </div>
         </div>
       </div>
 
-      {/* Content area with sidebar */}
-      <div className="px-4 sm:px-6 lg:px-8 pt-4 pb-4 sm:pb-6 lg:pb-8">
-        <div className="flex flex-col lg:flex-row gap-4">
-          {/* Main content */}
-          <main className="flex-1 min-w-0">
-            <ActionList
-              actions={categoryActions}
-              selectedAction={selectedAction}
-              onSelectAction={setSelectedAction}
-              isLoading={loadingActions}
-              brands={brands}
-              brandFilter="all"
-              onBrandFilterChange={() => {}}
-              typeFilter="all"
-              onTypeFilterChange={() => {}}
-              brandOptions={brandOptions}
-              typeOptions={typeOptions}
-              hasNextPage={false}
-              isFetchingNextPage={false}
-              onLoadMore={() => {}}
-              isFavorite={isFavorite}
-              isPersonalFavorite={isPersonalFavorite}
-              isTeamFavorite={isTeamFavorite}
-              onToggleFavorite={toggleFavorite}
-              hasTeam={hasTeam}
-            />
-          </main>
+      {/* Actions */}
+      <main className="px-4 sm:px-6 lg:px-8 pt-4 pb-4 sm:pb-6 lg:pb-8">
+        <ActionList
+          actions={categoryActions}
+          selectedAction={selectedAction}
+          onSelectAction={setSelectedAction}
+          isLoading={loadingActions}
+          brands={brands}
+          brandFilter="all"
+          onBrandFilterChange={() => {}}
+          typeFilter="all"
+          onTypeFilterChange={() => {}}
+          brandOptions={brandOptions}
+          typeOptions={typeOptions}
+          hasNextPage={false}
+          isFetchingNextPage={false}
+          onLoadMore={() => {}}
+          isFavorite={isFavorite}
+          isPersonalFavorite={isPersonalFavorite}
+          isTeamFavorite={isTeamFavorite}
+          onToggleFavorite={toggleFavorite}
+          hasTeam={hasTeam}
+        />
+      </main>
 
-          {/* Right sidebar — Members & Settings */}
-          <aside className="w-full lg:w-80 flex-shrink-0 space-y-3">
-            {/* Members section */}
-            <Collapsible defaultOpen>
-              <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
-                <CollapsibleTrigger className="w-full flex items-center justify-between px-4 py-3 hover:bg-muted/30 transition-colors">
-                  <div className="flex items-center gap-2">
-                    <UsersRound className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-semibold">Acesso</span>
-                  </div>
-                  <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 [[data-state=open]>&]:rotate-180" />
-                </CollapsibleTrigger>
-                <CollapsibleContent>
-                  <div className="px-4 pb-4">
-                    {category && (
-                      <CategoryMembersPanel
-                        categoryId={category.id}
-                        ownerId={category.user_id}
-                        visibility={category.visibility}
-                        isOwner={isOwner}
-                      />
-                    )}
-                  </div>
-                </CollapsibleContent>
+      {/* Manage Modal */}
+      {category && (
+        <Dialog open={manageOpen} onOpenChange={setManageOpen}>
+          <DialogContent className="sm:max-w-lg max-h-[85vh] flex flex-col p-0 gap-0">
+            <DialogHeader className="px-6 pt-6 pb-0">
+              <DialogTitle>Gerenciar Categoria</DialogTitle>
+            </DialogHeader>
+
+            <Tabs defaultValue="access" className="flex flex-col flex-1 min-h-0">
+              <TabsList className="mx-6 mt-4 w-auto self-start">
+                <TabsTrigger value="access" className="gap-1.5">
+                  <UsersRound className="h-3.5 w-3.5" />
+                  Acesso
+                </TabsTrigger>
+                {isOwner && (
+                  <TabsTrigger value="settings" className="gap-1.5">
+                    <Settings className="h-3.5 w-3.5" />
+                    Configurações
+                  </TabsTrigger>
+                )}
+              </TabsList>
+
+              <div className="flex-1 overflow-y-auto px-6 py-4">
+                <TabsContent value="access" className="mt-0">
+                  <CategoryMembersPanel
+                    categoryId={category.id}
+                    ownerId={category.user_id}
+                    visibility={category.visibility}
+                    isOwner={isOwner}
+                  />
+                </TabsContent>
+
+                {isOwner && (
+                  <TabsContent value="settings" className="mt-0">
+                    <CategorySettingsPanel
+                      name={category.name}
+                      description={category.description}
+                      color={category.color || '#6366f1'}
+                      onSave={handleSettingsSave}
+                      isSaving={updateCategory.isPending}
+                    />
+                  </TabsContent>
+                )}
               </div>
-            </Collapsible>
-
-            {/* Settings section — only for owner */}
-            {isOwner && category && (
-              <Collapsible>
-                <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
-                  <CollapsibleTrigger className="w-full flex items-center justify-between px-4 py-3 hover:bg-muted/30 transition-colors">
-                    <div className="flex items-center gap-2">
-                      <Settings className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm font-semibold">Configurações</span>
-                    </div>
-                    <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 [[data-state=open]>&]:rotate-180" />
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <div className="px-4 pb-4">
-                      <CategorySettingsPanel
-                        name={category.name}
-                        description={category.description}
-                        color={category.color || '#6366f1'}
-                        onSave={handleSettingsSave}
-                        isSaving={updateCategory.isPending}
-                      />
-                    </div>
-                  </CollapsibleContent>
-                </div>
-              </Collapsible>
-            )}
-          </aside>
-        </div>
-      </div>
+            </Tabs>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
