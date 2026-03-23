@@ -212,22 +212,30 @@ function ActionCard({ action, isSelected, onNavigate, isPersonalFavorite, isTeam
             <FallbackIcon className={cn("h-12 w-12 opacity-40", iconColor)} />
           </div>
         )}
-        {/* Selection checkbox overlay */}
-        {selectionMode && (
-          <div className="absolute top-2 left-2 z-10" onClick={(e) => e.stopPropagation()}>
-            <button
-              onClick={(e) => { e.stopPropagation(); onToggleBulkSelect?.(); }}
-              className={cn(
-                "w-6 h-6 rounded-md flex items-center justify-center transition-all shadow-sm",
-                isBulkSelected
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-background/80 backdrop-blur-sm text-muted-foreground hover:bg-background"
-              )}
-            >
-              {isBulkSelected ? <Check className="h-4 w-4" /> : <Square className="h-4 w-4" />}
-            </button>
-          </div>
-        )}
+        {/* Selection checkbox overlay — always visible on hover or when in selection mode */}
+        <div
+          className={cn(
+            "absolute top-2 left-2 z-10 transition-all",
+            (selectionMode || isBulkSelected) ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+          )}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!selectionMode) onToggleSelectionMode?.();
+              onToggleBulkSelect?.();
+            }}
+            className={cn(
+              "w-6 h-6 rounded-md flex items-center justify-center transition-all shadow-sm",
+              isBulkSelected
+                ? "bg-primary text-primary-foreground"
+                : "bg-background/80 backdrop-blur-sm text-muted-foreground hover:bg-background"
+            )}
+          >
+            {isBulkSelected ? <Check className="h-4 w-4" /> : <Square className="h-4 w-4" />}
+          </button>
+        </div>
         {/* Action menu overlay */}
         <div className={cn(
           "absolute top-2 right-2 bg-background/80 backdrop-blur-sm rounded-lg transition-all shadow-sm",
