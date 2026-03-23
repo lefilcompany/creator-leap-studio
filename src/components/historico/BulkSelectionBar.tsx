@@ -28,29 +28,29 @@ export function BulkSelectionBar({
   if (count === 0) return null;
 
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-4 fade-in duration-300">
-      <div className="flex items-center gap-3 bg-card border border-border shadow-2xl rounded-2xl px-5 py-3">
+    <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-4 fade-in duration-300">
+      <div className="flex items-center gap-1 bg-foreground/90 backdrop-blur-md shadow-2xl rounded-full px-2 py-1">
         {/* Count */}
-        <div className="flex items-center gap-2">
-          <span className="bg-primary text-primary-foreground text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center tabular-nums">
+        <div className="flex items-center gap-1.5 pl-2 pr-1">
+          <span className="bg-primary text-primary-foreground text-[11px] font-bold rounded-full w-5 h-5 flex items-center justify-center tabular-nums">
             {count}
           </span>
-          <span className="text-sm font-medium text-foreground whitespace-nowrap">
+          <span className="text-xs font-medium text-background whitespace-nowrap">
             {count === 1 ? 'selecionado' : 'selecionados'}
           </span>
         </div>
 
-        <div className="w-px h-6 bg-border" />
+        <div className="w-px h-4 bg-background/20" />
 
         {/* Favorite */}
         {hasTeam ? (
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="ghost" size="sm" className="gap-2 text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-400/10">
-                <Star className="h-4 w-4" />
+              <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-amber-300 hover:bg-background/10 transition-colors active:scale-95">
+                <Star className="h-3.5 w-3.5" />
                 Favoritar
-                <ChevronDown className="h-3 w-3" />
-              </Button>
+                <ChevronDown className="h-3 w-3 opacity-60" />
+              </button>
             </PopoverTrigger>
             <PopoverContent className="w-44 p-1.5" side="top" align="center">
               <button
@@ -68,25 +68,23 @@ export function BulkSelectionBar({
             </PopoverContent>
           </Popover>
         ) : (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="gap-2 text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-400/10"
+          <button
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-amber-300 hover:bg-background/10 transition-colors active:scale-95"
             onClick={() => onBulkFavorite('personal')}
           >
-            <Star className="h-4 w-4" />
+            <Star className="h-3.5 w-3.5" />
             Favoritar
-          </Button>
+          </button>
         )}
 
         {/* Category */}
         <Popover open={catOpen} onOpenChange={setCatOpen}>
           <PopoverTrigger asChild>
-            <Button variant="ghost" size="sm" className="gap-2">
-              <FolderOpen className="h-4 w-4" />
+            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-background/80 hover:bg-background/10 transition-colors active:scale-95">
+              <FolderOpen className="h-3.5 w-3.5" />
               Categoria
-              <ChevronDown className="h-3 w-3" />
-            </Button>
+              <ChevronDown className="h-3 w-3 opacity-60" />
+            </button>
           </PopoverTrigger>
           <PopoverContent className="w-56 p-2" side="top" align="center">
             <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-2 pt-1 pb-1.5">
@@ -114,18 +112,16 @@ export function BulkSelectionBar({
           </PopoverContent>
         </Popover>
 
-        <div className="w-px h-6 bg-border" />
+        <div className="w-px h-4 bg-background/20" />
 
         {/* Clear */}
-        <Button
-          variant="ghost"
-          size="sm"
+        <button
           onClick={onClearSelection}
-          className="gap-1.5 text-muted-foreground hover:text-foreground"
+          className="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-medium text-background/60 hover:text-background hover:bg-background/10 transition-colors active:scale-95"
         >
-          <X className="h-4 w-4" />
+          <X className="h-3.5 w-3.5" />
           Limpar
-        </Button>
+        </button>
       </div>
     </div>
   );
