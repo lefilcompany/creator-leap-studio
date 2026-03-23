@@ -125,12 +125,12 @@ export default function CategoryView() {
               {category?.visibility === 'team' ? 'Equipe' : 'Pessoal'}
             </Badge>
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
-              className="gap-2 rounded-xl border-border/60 bg-card/80 backdrop-blur-sm shadow-sm hover:shadow-md hover:bg-accent/50 transition-all"
+              className="gap-2 rounded-xl border-0 hover:bg-accent/20 hover:text-accent transition-all"
               onClick={() => setManageOpen(true)}
             >
-              <Settings className="h-4 w-4 text-muted-foreground" />
+              <Settings className="h-4 w-4" />
               <span className="hidden sm:inline text-sm font-medium">Gerenciar</span>
             </Button>
           </div>
