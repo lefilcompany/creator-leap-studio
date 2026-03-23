@@ -330,6 +330,8 @@ export default function ActionList({
           )}
         </div>
 
+        {toolbarEndSlot}
+
         <ToggleGroup
           type="single"
           value={viewMode}
