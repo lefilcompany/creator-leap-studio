@@ -293,7 +293,7 @@ const PlanContent = () => {
               <Calendar className="h-6 w-6 lg:h-7 lg:w-7" />
             </div>
             <div>
-              <h1 className="text-xl lg:text-2xl font-bold text-foreground">Planejar Conteúdo</h1>
+              <h1 className="text-xl lg:text-2xl font-bold text-foreground">Calendário de Conteúdo</h1>
               <p className="text-xs lg:text-sm text-muted-foreground">
                 Preencha os campos para gerar seu planejamento de posts
               </p>
