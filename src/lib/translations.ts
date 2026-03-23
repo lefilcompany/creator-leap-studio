@@ -37,7 +37,7 @@ export const translations = {
       history: "Histórico",
       createContent: "Criar Conteúdo",
       reviewContent: "Revisar Conteúdo",
-      planContent: "Planejar Conteúdo",
+      planContent: "Calendário de Conteúdo",
       team: "Equipe",
       categories: "Categorias",
       plan: "Plano",
