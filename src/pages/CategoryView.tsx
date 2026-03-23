@@ -171,6 +171,17 @@ export default function CategoryView() {
           isTeamFavorite={isTeamFavorite}
           onToggleFavorite={toggleFavorite}
           hasTeam={hasTeam}
+          toolbarEndSlot={
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-2 rounded-xl hover:bg-accent/20 hover:text-accent transition-all h-10"
+              onClick={() => setManageOpen(true)}
+            >
+              <Settings className="h-4 w-4" />
+              <span className="hidden sm:inline text-sm font-medium">Gerenciar</span>
+            </Button>
+          }
         />
       </main>
 
