@@ -190,7 +190,7 @@ const PlanContent = () => {
       const capturedCategoryId = categoryId;
 
       addTask(
-        "Planejamento de Conteúdo",
+        "Calendário de Conteúdo",
         "plan_content",
         async () => {
           const { data, error } = await supabase.functions.invoke("generate-plan", { body: payload });
