@@ -424,6 +424,7 @@ export default function ActionList({
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent border-b border-border/20">
+                {selectionMode && <TableHead className="w-10"></TableHead>}
                 <TableHead className="w-16 text-xs uppercase tracking-wider text-muted-foreground font-semibold">Img</TableHead>
                 <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Tipo / Título</TableHead>
                 <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-semibold hidden md:table-cell">Marca</TableHead>
