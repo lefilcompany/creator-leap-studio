@@ -2,8 +2,9 @@ import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { FolderOpen, Users, User, Settings, UsersRound } from 'lucide-react';
+import { FolderOpen, Settings, UsersRound, Lock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
 import { PageBreadcrumb } from '@/components/PageBreadcrumb';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -11,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ActionList from '@/components/historico/ActionList';
 import { CategoryMembersPanel } from '@/components/categorias/CategoryMembersPanel';
 import { CategorySettingsPanel } from '@/components/categorias/CategorySettingsPanel';
-import { useCategories } from '@/hooks/useCategories';
+import { useCategories, useCategoryMembers } from '@/hooks/useCategories';
 import { useAuth } from '@/hooks/useAuth';
 import type { ActionSummary } from '@/types/action';
 import { ACTION_TYPE_DISPLAY } from '@/types/action';
@@ -28,6 +29,7 @@ export default function CategoryView() {
   const { allFavoriteIds, isFavorite, isPersonalFavorite, isTeamFavorite, toggleFavorite, hasTeam } = useFavorites();
   const { data: brands = [] } = useHistoryBrands();
   const { updateCategory } = useCategories();
+  const { data: categoryMembers = [] } = useCategoryMembers(categoryId);
 
   const { data: category, isLoading: loadingCategory } = useQuery({
     queryKey: ['category', categoryId],
@@ -120,10 +122,29 @@ export default function CategoryView() {
               <h1 className="text-xl lg:text-2xl font-bold text-foreground truncate">{category?.name}</h1>
               {category?.description && <p className="text-sm text-muted-foreground truncate">{category.description}</p>}
             </div>
-            <Badge variant="outline" className={cn("gap-1 text-xs flex-shrink-0", category?.visibility === 'team' ? "border-secondary/40 text-secondary" : "")}>
-              {category?.visibility === 'team' ? <Users className="h-3 w-3" /> : <User className="h-3 w-3" />}
-              {category?.visibility === 'team' ? 'Equipe' : 'Pessoal'}
-            </Badge>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => setManageOpen(true)}
+                  className="cursor-pointer"
+                >
+                  <Badge variant="outline" className="gap-1 text-xs flex-shrink-0 hover:bg-accent/10 transition-colors">
+                    {categoryMembers.length > 0 ? (
+                      <>
+                        <UsersRound className="h-3 w-3" />
+                        {categoryMembers.length + 1} {categoryMembers.length + 1 === 1 ? 'pessoa' : 'pessoas'}
+                      </>
+                    ) : (
+                      <>
+                        <Lock className="h-3 w-3" />
+                        Só você
+                      </>
+                    )}
+                  </Badge>
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>Gerenciar acesso</TooltipContent>
+            </Tooltip>
             <Button
               variant="ghost"
               size="sm"
