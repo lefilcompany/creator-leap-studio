@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Star, FolderOpen, X, ChevronDown, User, Users } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { Star, FolderOpen, X, ChevronDown, User, Users, Plus, Minus } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useCategories } from '@/hooks/useCategories';
 import type { FavoriteScope } from '@/hooks/useFavorites';
@@ -9,7 +9,9 @@ interface BulkSelectionBarProps {
   onClearSelection: () => void;
   onBulkFavorite: (scope: FavoriteScope) => void;
   onBulkAddToCategory: (categoryId: string) => void;
+  onBulkRemoveFromCategory: (categoryId: string) => void;
   hasTeam: boolean;
+  actionCategoryMap: Map<string, string[]>;
 }
 
 export function BulkSelectionBar({
@@ -17,11 +19,36 @@ export function BulkSelectionBar({
   onClearSelection,
   onBulkFavorite,
   onBulkAddToCategory,
+  onBulkRemoveFromCategory,
   hasTeam,
+  actionCategoryMap,
 }: BulkSelectionBarProps) {
   const { categories } = useCategories();
   const [catOpen, setCatOpen] = useState(false);
   const count = selectedIds.size;
+
+  // Find categories that at least one selected action belongs to (for removal)
+  const categoriesWithSelected = useMemo(() => {
+    const catCountMap = new Map<string, number>();
+    selectedIds.forEach(actionId => {
+      const cats = actionCategoryMap.get(actionId) || [];
+      cats.forEach(catId => {
+        catCountMap.set(catId, (catCountMap.get(catId) || 0) + 1);
+      });
+    });
+    return catCountMap;
+  }, [selectedIds, actionCategoryMap]);
+
+  // Categories available to add (not all selected are already in them)
+  const addableCategories = categories.filter(cat => {
+    const inCount = categoriesWithSelected.get(cat.id) || 0;
+    return inCount < count; // At least one selected action is NOT in this category
+  });
+
+  // Categories available to remove (at least one selected action is in them)
+  const removableCategories = categories.filter(cat => {
+    return (categoriesWithSelected.get(cat.id) || 0) > 0;
+  });
 
   if (count === 0) return null;
 
@@ -89,27 +116,65 @@ export function BulkSelectionBar({
               <ChevronDown className="h-3 w-3 opacity-60" />
             </button>
           </PopoverTrigger>
-          <PopoverContent className="w-56 p-2" side="top" align="center">
-            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-2 pt-1 pb-1.5">
-              Enviar para categoria
-            </p>
+          <PopoverContent className="w-56 p-1.5" side="top" align="center" sideOffset={8}>
             {categories.length === 0 ? (
               <p className="text-sm text-muted-foreground px-2 py-3 text-center">Nenhuma categoria criada</p>
             ) : (
-              <div className="space-y-0.5 max-h-48 overflow-y-auto">
-                {categories.map(cat => (
-                  <button
-                    key={cat.id}
-                    onClick={() => {
-                      onBulkAddToCategory(cat.id);
-                      setCatOpen(false);
-                    }}
-                    className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-md text-sm transition-colors active:scale-[0.97] text-foreground hover:bg-muted/50"
-                  >
-                    <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: cat.color }} />
-                    <span className="truncate flex-1 text-left">{cat.name}</span>
-                  </button>
-                ))}
+              <div className="space-y-1">
+                {/* Add to category */}
+                {addableCategories.length > 0 && (
+                  <>
+                    <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-2 pt-1 pb-0.5">
+                      Adicionar à
+                    </p>
+                    <div className="space-y-0.5 max-h-32 overflow-y-auto">
+                      {addableCategories.map(cat => (
+                        <button
+                          key={cat.id}
+                          onClick={() => {
+                            onBulkAddToCategory(cat.id);
+                            setCatOpen(false);
+                          }}
+                          className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-sm transition-colors active:scale-[0.97] text-foreground hover:bg-muted/50"
+                        >
+                          <Plus className="h-3.5 w-3.5 text-emerald-500 flex-shrink-0" />
+                          <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: cat.color }} />
+                          <span className="truncate flex-1 text-left">{cat.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+
+                {/* Remove from category */}
+                {removableCategories.length > 0 && (
+                  <>
+                    {addableCategories.length > 0 && <div className="border-t border-border/40 my-1" />}
+                    <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-2 pt-1 pb-0.5">
+                      Remover de
+                    </p>
+                    <div className="space-y-0.5 max-h-32 overflow-y-auto">
+                      {removableCategories.map(cat => {
+                        const inCount = categoriesWithSelected.get(cat.id) || 0;
+                        return (
+                          <button
+                            key={cat.id}
+                            onClick={() => {
+                              onBulkRemoveFromCategory(cat.id);
+                              setCatOpen(false);
+                            }}
+                            className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-sm transition-colors active:scale-[0.97] text-foreground hover:bg-destructive/10"
+                          >
+                            <Minus className="h-3.5 w-3.5 text-destructive flex-shrink-0" />
+                            <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: cat.color }} />
+                            <span className="truncate flex-1 text-left">{cat.name}</span>
+                            <span className="text-[10px] text-muted-foreground tabular-nums">{inCount}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
               </div>
             )}
           </PopoverContent>
