@@ -277,9 +277,7 @@ const Auth = () => {
       !formData.name ||
       !formData.email ||
       !formData.password ||
-      !formData.phone ||
-      !formData.state ||
-      !formData.city
+      !formData.phone
     ) {
       toast.error("Por favor, preencha todos os campos obrigatórios");
       return;
