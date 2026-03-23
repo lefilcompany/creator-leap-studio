@@ -29,6 +29,7 @@ export default function CategoryView() {
   const { allFavoriteIds, isFavorite, isPersonalFavorite, isTeamFavorite, toggleFavorite, hasTeam } = useFavorites();
   const { data: brands = [] } = useHistoryBrands();
   const { updateCategory } = useCategories();
+  const { data: categoryMembers = [] } = useCategoryMembers(categoryId);
 
   const { data: category, isLoading: loadingCategory } = useQuery({
     queryKey: ['category', categoryId],
