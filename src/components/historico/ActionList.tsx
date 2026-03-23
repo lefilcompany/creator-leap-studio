@@ -271,6 +271,7 @@ export default function ActionList({
   isFavorite, isPersonalFavorite, isTeamFavorite, onToggleFavorite, hasTeam,
   sortField: externalSortField, sortDirection: externalSortDirection, onSortChange,
   mobileFilterSlot,
+  toolbarEndSlot,
   actionCategoryMap,
   categories: categoriesList,
 }: ActionListProps) {
