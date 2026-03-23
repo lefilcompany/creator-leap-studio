@@ -44,6 +44,7 @@ interface ActionListProps {
   sortDirection?: SortDirection;
   onSortChange?: (field: SortField, direction: SortDirection) => void;
   mobileFilterSlot?: React.ReactNode;
+  toolbarEndSlot?: React.ReactNode;
   actionCategoryMap?: Map<string, string[]>;
   categories?: Array<{ id: string; name: string; color: string }>;
 }
