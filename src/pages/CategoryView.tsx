@@ -128,7 +128,7 @@ export default function CategoryView() {
                   onClick={() => setManageOpen(true)}
                   className="cursor-pointer"
                 >
-                  <Badge variant="outline" className="gap-1 text-xs flex-shrink-0 hover:bg-accent/10 transition-colors">
+                  <Badge variant="secondary" className="gap-1.5 text-xs flex-shrink-0 border-0 bg-muted/60 text-muted-foreground hover:bg-accent/20 hover:text-accent transition-colors">
                     {categoryMembers.length > 0 ? (
                       <>
                         <UsersRound className="h-3 w-3" />
