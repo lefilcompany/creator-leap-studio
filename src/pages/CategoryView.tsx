@@ -1,11 +1,13 @@
 import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { FolderOpen, Settings, UsersRound, Lock } from 'lucide-react';
+import { FolderOpen, Settings, UsersRound, Lock, X, Search, UserPlus } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PageBreadcrumb } from '@/components/PageBreadcrumb';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -14,22 +16,37 @@ import { CategoryMembersPanel } from '@/components/categorias/CategoryMembersPan
 import { CategorySettingsPanel } from '@/components/categorias/CategorySettingsPanel';
 import { useCategories, useCategoryMembers } from '@/hooks/useCategories';
 import { useAuth } from '@/hooks/useAuth';
+import { useTeamMembers } from '@/hooks/useTeamData';
 import type { ActionSummary } from '@/types/action';
 import { ACTION_TYPE_DISPLAY } from '@/types/action';
 import { useHistoryBrands } from '@/hooks/useHistoryActions';
 import { useFavorites } from '@/hooks/useFavorites';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
+
+function getInitials(name: string) {
+  return name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase();
+}
+
+function getDisplayName(name: string) {
+  const parts = name.trim().split(/\s+/);
+  return parts.length > 2 ? `${parts[0]} ${parts[1]}` : name;
+}
 
 export default function CategoryView() {
   const { categoryId } = useParams<{ categoryId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [selectedAction, setSelectedAction] = useState<ActionSummary | null>(null);
   const [manageOpen, setManageOpen] = useState(false);
+  const [addPanelOpen, setAddPanelOpen] = useState(false);
+  const [memberSearch, setMemberSearch] = useState('');
   const { allFavoriteIds, isFavorite, isPersonalFavorite, isTeamFavorite, toggleFavorite, hasTeam } = useFavorites();
   const { data: brands = [] } = useHistoryBrands();
   const { updateCategory } = useCategories();
   const { data: categoryMembers = [] } = useCategoryMembers(categoryId);
+  const { data: teamMembers = [] } = useTeamMembers(user?.teamId);
 
   const { data: category, isLoading: loadingCategory } = useQuery({
     queryKey: ['category', categoryId],
@@ -46,6 +63,21 @@ export default function CategoryView() {
   });
 
   const isOwner = category?.user_id === user?.id;
+
+  const addMember = useMutation({
+    mutationFn: async ({ userId, role }: { userId: string; role: string }) => {
+      const { error } = await supabase
+        .from('action_category_members')
+        .insert({ category_id: categoryId!, user_id: userId, role });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['category-members', categoryId] });
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      toast.success('Membro adicionado!');
+    },
+    onError: () => toast.error('Erro ao adicionar membro'),
+  });
 
   const { data: categoryActions = [], isLoading: loadingActions } = useQuery({
     queryKey: ['category-actions', categoryId],
@@ -98,6 +130,15 @@ export default function CategoryView() {
     if (!categoryId) return;
     updateCategory.mutate({ id: categoryId, ...data });
   };
+
+  // Available members for the side panel
+  const availableToAdd = teamMembers.filter(
+    tm => tm.id !== category?.user_id && !categoryMembers.some(m => m.user_id === tm.id)
+  );
+
+  const filteredAvailable = availableToAdd.filter(tm =>
+    !memberSearch || tm.name.toLowerCase().includes(memberSearch.toLowerCase()) || tm.email.toLowerCase().includes(memberSearch.toLowerCase())
+  );
 
   if (loadingCategory) {
     return <div className="flex items-center justify-center h-64"><div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full" /></div>;
@@ -185,61 +226,139 @@ export default function CategoryView() {
         />
       </main>
 
-      {/* Manage Modal */}
+      {/* Manage Modal — dual panel like CategoryDialog */}
       {category && (
-        <Dialog open={manageOpen} onOpenChange={setManageOpen}>
-          <DialogContent className="sm:max-w-lg max-h-[85vh] flex flex-col p-0 gap-0 rounded-2xl">
-            <DialogHeader className="px-6 pt-6 pb-2 flex-shrink-0">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${category.color || 'hsl(var(--primary))'}15` }}>
-                  <FolderOpen className="h-4.5 w-4.5" style={{ color: category.color || 'hsl(var(--primary))' }} />
-                </div>
-                <div>
-                  <DialogTitle className="text-lg">Gerenciar Categoria</DialogTitle>
-                  <p className="text-xs text-muted-foreground mt-0.5">{category.name}</p>
-                </div>
-              </div>
-            </DialogHeader>
+        <Dialog open={manageOpen} onOpenChange={(open) => { setManageOpen(open); if (!open) { setAddPanelOpen(false); setMemberSearch(''); } }}>
+          <DialogContent
+            className={cn(
+              "p-0 gap-0 overflow-visible bg-transparent border-none shadow-none transition-all duration-300 ease-in-out",
+              addPanelOpen ? "sm:max-w-[56rem]" : "sm:max-w-lg"
+            )}
+          >
+            <div className="flex items-stretch gap-3">
+              {/* Main Panel */}
+              <div className={cn(
+                "flex flex-col bg-background rounded-2xl shadow-lg border border-border overflow-hidden transition-all duration-300 ease-in-out max-h-[85vh]",
+                addPanelOpen ? "w-full sm:w-[28rem] flex-shrink-0" : "w-full"
+              )}>
+                <DialogHeader className="px-6 pt-6 pb-2 flex-shrink-0">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${category.color || 'hsl(var(--primary))'}15` }}>
+                      <FolderOpen className="h-4.5 w-4.5" style={{ color: category.color || 'hsl(var(--primary))' }} />
+                    </div>
+                    <div>
+                      <DialogTitle className="text-lg">Gerenciar Categoria</DialogTitle>
+                      <p className="text-xs text-muted-foreground mt-0.5">{category.name}</p>
+                    </div>
+                  </div>
+                </DialogHeader>
 
-            <Tabs defaultValue="access" className="flex flex-col flex-1 min-h-0">
-              <div className="px-6 flex-shrink-0">
-                <TabsList className="w-full h-10 bg-muted/50 rounded-xl p-1">
-                  <TabsTrigger value="access" className="gap-1.5 flex-1 rounded-lg text-xs font-semibold data-[state=active]:shadow-sm">
-                    <UsersRound className="h-3.5 w-3.5" />
-                    Acesso
-                  </TabsTrigger>
-                  {isOwner && (
-                    <TabsTrigger value="settings" className="gap-1.5 flex-1 rounded-lg text-xs font-semibold data-[state=active]:shadow-sm">
-                      <Settings className="h-3.5 w-3.5" />
-                      Configurações
-                    </TabsTrigger>
+                <Tabs defaultValue="access" className="flex flex-col flex-1 min-h-0">
+                  <div className="px-6 flex-shrink-0">
+                    <TabsList className="w-full h-10 bg-muted/50 rounded-xl p-1">
+                      <TabsTrigger value="access" className="gap-1.5 flex-1 rounded-lg text-xs font-semibold data-[state=active]:shadow-sm">
+                        <UsersRound className="h-3.5 w-3.5" />
+                        Acesso
+                      </TabsTrigger>
+                      {isOwner && (
+                        <TabsTrigger
+                          value="settings"
+                          className="gap-1.5 flex-1 rounded-lg text-xs font-semibold data-[state=active]:shadow-sm"
+                          onClick={() => { setAddPanelOpen(false); setMemberSearch(''); }}
+                        >
+                          <Settings className="h-3.5 w-3.5" />
+                          Configurações
+                        </TabsTrigger>
+                      )}
+                    </TabsList>
+                  </div>
+
+                  <div className="flex-1 overflow-y-auto px-6 py-4">
+                    <TabsContent value="access" className="mt-0">
+                      <CategoryMembersPanel
+                        categoryId={category.id}
+                        ownerId={category.user_id}
+                        visibility={category.visibility}
+                        isOwner={isOwner}
+                        onOpenAddPanel={() => setAddPanelOpen(!addPanelOpen)}
+                      />
+                    </TabsContent>
+
+                    {isOwner && (
+                      <TabsContent value="settings" className="mt-0">
+                        <CategorySettingsPanel
+                          name={category.name}
+                          description={category.description}
+                          color={category.color || '#6366f1'}
+                          onSave={handleSettingsSave}
+                          isSaving={updateCategory.isPending}
+                        />
+                      </TabsContent>
+                    )}
+                  </div>
+                </Tabs>
+              </div>
+
+              {/* Side Panel — team members to add */}
+              {addPanelOpen && (
+                <div className="hidden sm:flex flex-col w-80 flex-shrink-0 bg-background rounded-2xl shadow-lg border border-border max-h-[85vh] animate-in fade-in-0 slide-in-from-right-4 duration-200">
+                  <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-border">
+                    <h3 className="font-semibold text-base">Membros da equipe</h3>
+                    <button
+                      type="button"
+                      onClick={() => { setAddPanelOpen(false); setMemberSearch(''); }}
+                      className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded-md hover:bg-muted"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  {availableToAdd.length > 3 && (
+                    <div className="px-4 pt-3">
+                      <div className="relative">
+                        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                        <Input
+                          value={memberSearch}
+                          onChange={e => setMemberSearch(e.target.value)}
+                          placeholder="Buscar por nome ou e-mail..."
+                          className="pl-8 h-8 text-xs rounded-lg"
+                        />
+                      </div>
+                    </div>
                   )}
-                </TabsList>
-              </div>
 
-              <div className="flex-1 overflow-y-auto px-6 py-4">
-                <TabsContent value="access" className="mt-0">
-                  <CategoryMembersPanel
-                    categoryId={category.id}
-                    ownerId={category.user_id}
-                    visibility={category.visibility}
-                    isOwner={isOwner}
-                  />
-                </TabsContent>
-
-                {isOwner && (
-                  <TabsContent value="settings" className="mt-0">
-                    <CategorySettingsPanel
-                      name={category.name}
-                      description={category.description}
-                      color={category.color || '#6366f1'}
-                      onSave={handleSettingsSave}
-                      isSaving={updateCategory.isPending}
-                    />
-                  </TabsContent>
-                )}
-              </div>
-            </Tabs>
+                  <div className="flex-1 overflow-y-auto px-2 py-2 space-y-0.5">
+                    {filteredAvailable.length === 0 ? (
+                      <p className="text-sm text-muted-foreground text-center py-8 px-2">
+                        {memberSearch ? 'Nenhum membro encontrado.' : 'Todos os membros já foram adicionados.'}
+                      </p>
+                    ) : (
+                      filteredAvailable.map(tm => (
+                        <button
+                          key={tm.id}
+                          type="button"
+                          onClick={() => addMember.mutate({ userId: tm.id, role: 'viewer' })}
+                          disabled={addMember.isPending}
+                          className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/60 transition-colors text-left active:scale-[0.98]"
+                        >
+                          <Avatar className="h-9 w-9 flex-shrink-0">
+                            <AvatarImage src={tm.avatar_url || ''} />
+                            <AvatarFallback className="text-xs bg-muted font-semibold">
+                              {getInitials(tm.name)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{getDisplayName(tm.name)}</p>
+                            <p className="text-xs text-muted-foreground truncate">{tm.email}</p>
+                          </div>
+                          <span className="text-muted-foreground text-lg leading-none flex-shrink-0">+</span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </DialogContent>
         </Dialog>
       )}
