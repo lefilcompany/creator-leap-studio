@@ -33,8 +33,8 @@ export function useHistoryBrands() {
         id: brand.id,
         name: brand.name,
         responsible: brand.responsible,
-        brandColor: null,
-        avatarUrl: null,
+        brandColor: brand.brand_color ?? null,
+        avatarUrl: brand.avatar_url ?? null,
         createdAt: brand.created_at,
         updatedAt: brand.updated_at
       })) as BrandSummary[];
