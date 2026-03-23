@@ -1,6 +1,8 @@
+import { useState, useEffect, useMemo } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { NativeSelect } from '@/components/ui/native-select';
+import { Switch } from '@/components/ui/switch';
 import { Crown, UserPlus, Users, X, Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useTeamMembers } from '@/hooks/useTeamData';
@@ -32,6 +34,31 @@ export function CategoryMembersPanel({ categoryId, ownerId, visibility, isOwner,
   const { data: members = [], isLoading } = useCategoryMembers(categoryId);
   const { data: teamMembers = [] } = useTeamMembers(user?.teamId);
 
+  // Detect if whole team is active
+  const nonOwnerTeamMembers = useMemo(
+    () => teamMembers.filter(tm => tm.id !== ownerId),
+    [teamMembers, ownerId]
+  );
+
+  const isWholeTeam = useMemo(() => {
+    if (nonOwnerTeamMembers.length === 0 || members.length === 0) return false;
+    const allAdded = nonOwnerTeamMembers.every(tm => members.some(m => m.user_id === tm.id));
+    const allSameRole = members.every(m => m.role === members[0].role);
+    return allAdded && allSameRole;
+  }, [nonOwnerTeamMembers, members]);
+
+  const [wholeTeam, setWholeTeam] = useState(false);
+  const [wholeTeamRole, setWholeTeamRole] = useState<'viewer' | 'editor'>('viewer');
+
+  useEffect(() => {
+    if (isWholeTeam) {
+      setWholeTeam(true);
+      setWholeTeamRole(members[0]?.role as 'viewer' | 'editor' || 'viewer');
+    } else if (members.length === 0) {
+      setWholeTeam(false);
+    }
+  }, [isWholeTeam, members]);
+
   const updateRole = useMutation({
     mutationFn: async ({ memberId, role }: { memberId: string; role: string }) => {
       const { error } = await supabase
@@ -61,6 +88,59 @@ export function CategoryMembersPanel({ categoryId, ownerId, visibility, isOwner,
       toast.success('Membro removido!');
     },
     onError: () => toast.error('Erro ao remover membro'),
+  });
+
+  // Toggle whole team: add all or remove all
+  const toggleWholeTeam = useMutation({
+    mutationFn: async ({ enable, role }: { enable: boolean; role: string }) => {
+      // Delete all current members first
+      const { error: deleteError } = await supabase
+        .from('action_category_members')
+        .delete()
+        .eq('category_id', categoryId);
+      if (deleteError) throw deleteError;
+
+      if (enable && nonOwnerTeamMembers.length > 0) {
+        const { error: insertError } = await supabase
+          .from('action_category_members')
+          .insert(nonOwnerTeamMembers.map(tm => ({
+            category_id: categoryId,
+            user_id: tm.id,
+            role,
+          })));
+        if (insertError) throw insertError;
+      }
+
+      // Update visibility
+      const { error: visError } = await supabase
+        .from('action_categories')
+        .update({ visibility: enable ? 'team' : 'personal' })
+        .eq('id', categoryId);
+      if (visError) throw visError;
+    },
+    onSuccess: (_, vars) => {
+      queryClient.invalidateQueries({ queryKey: ['category-members', categoryId] });
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      queryClient.invalidateQueries({ queryKey: ['category', categoryId] });
+      toast.success(vars.enable ? 'Equipe adicionada!' : 'Acesso restrito ao dono.');
+    },
+    onError: () => toast.error('Erro ao atualizar acesso'),
+  });
+
+  // Change whole team role
+  const changeWholeTeamRole = useMutation({
+    mutationFn: async (role: string) => {
+      const { error } = await supabase
+        .from('action_category_members')
+        .update({ role })
+        .eq('category_id', categoryId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['category-members', categoryId] });
+      toast.success('Permissão da equipe atualizada!');
+    },
+    onError: () => toast.error('Erro ao atualizar permissão'),
   });
 
   const ownerProfile = teamMembers.find(tm => tm.id === ownerId);
@@ -105,16 +185,51 @@ export function CategoryMembersPanel({ categoryId, ownerId, visibility, isOwner,
         </div>
       </div>
 
-      {/* Team access indicator */}
-      {visibility === 'team' && members.length === 0 && (
-        <div className="flex items-center gap-2.5 p-3 rounded-xl border border-accent/20 bg-accent/5 text-sm text-muted-foreground">
-          <Users className="h-4 w-4 text-accent" />
-          Toda a equipe tem acesso
+      {/* Whole Team Toggle — only for owner with team */}
+      {isOwner && user?.teamId && (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between p-3 rounded-xl border border-border/50 bg-muted/30">
+            <div className="flex items-center gap-2.5">
+              <Users className="h-4 w-4 text-muted-foreground" />
+              <div>
+                <p className="text-sm font-medium">Toda a equipe</p>
+                <p className="text-xs text-muted-foreground">Liberar para todos os membros</p>
+              </div>
+            </div>
+            <Switch
+              checked={wholeTeam}
+              disabled={toggleWholeTeam.isPending}
+              onCheckedChange={(checked) => {
+                setWholeTeam(checked);
+                toggleWholeTeam.mutate({ enable: checked, role: wholeTeamRole });
+              }}
+            />
+          </div>
+
+          {/* Team role selector */}
+          {wholeTeam && (
+            <div className="flex items-center gap-3 p-3 rounded-xl border border-primary/20 bg-primary/5 animate-in fade-in-0 slide-in-from-top-1 duration-200">
+              <Users className="h-4 w-4 text-primary" />
+              <p className="text-sm flex-1 font-medium">Permissão da equipe:</p>
+              <NativeSelect
+                value={wholeTeamRole}
+                onValueChange={(v) => {
+                  setWholeTeamRole(v as 'viewer' | 'editor');
+                  changeWholeTeamRole.mutate(v);
+                }}
+                options={[
+                  { value: 'viewer', label: 'Leitor' },
+                  { value: 'editor', label: 'Editor' },
+                ]}
+                triggerClassName="w-24 h-8 text-xs rounded-lg"
+              />
+            </div>
+          )}
         </div>
       )}
 
-      {/* Members list */}
-      {members.length > 0 && (
+      {/* Members list — only show individual members when NOT whole team */}
+      {!wholeTeam && members.length > 0 && (
         <div>
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
             Membros ({members.length})
@@ -163,8 +278,8 @@ export function CategoryMembersPanel({ categoryId, ownerId, visibility, isOwner,
         </div>
       )}
 
-      {/* Add member button — triggers side panel */}
-      {isOwner && user?.teamId && (
+      {/* Add member button — only when not whole team */}
+      {isOwner && user?.teamId && !wholeTeam && (
         <Button
           variant="outline"
           size="sm"
