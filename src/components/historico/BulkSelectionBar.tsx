@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Star, FolderOpen, X, ChevronDown } from 'lucide-react';
+import { Star, FolderOpen, X, ChevronDown, User, Users } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useCategories } from '@/hooks/useCategories';
 import type { FavoriteScope } from '@/hooks/useFavorites';
