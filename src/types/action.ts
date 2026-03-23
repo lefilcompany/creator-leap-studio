@@ -11,7 +11,7 @@ export const ACTION_TYPE_DISPLAY: { [key in ActionType]: ActionDisplayType } = {
   'CRIAR_CONTEUDO': 'Criar conteúdo',
   'CRIAR_CONTEUDO_RAPIDO': 'Criar conteúdo rápido',
   'REVISAR_CONTEUDO': 'Revisar conteúdo',
-  'PLANEJAR_CONTEUDO': 'Planejar conteúdo',
+  'PLANEJAR_CONTEUDO': 'Calendário de conteúdo',
   'GERAR_VIDEO': 'Gerar vídeo',
 };
 
