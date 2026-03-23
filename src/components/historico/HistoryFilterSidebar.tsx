@@ -34,7 +34,7 @@ const ACTION_TYPES = [
   { key: 'GERAR_VIDEO', icon: Video, color: 'text-primary', bg: 'bg-primary/10' },
 ] as const;
 
-function FilterSection({ title, defaultOpen = true, children }: { title: string; defaultOpen?: boolean; children: React.ReactNode }) {
+function FilterSection({ title, defaultOpen = false, children }: { title: string; defaultOpen?: boolean; children: React.ReactNode }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
