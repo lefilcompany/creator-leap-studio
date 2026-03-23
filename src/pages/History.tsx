@@ -365,7 +365,9 @@ export default function History() {
         onClearSelection={() => { setBulkSelectedIds(new Set()); setSelectionMode(false); }}
         onBulkFavorite={handleBulkFavorite}
         onBulkAddToCategory={handleBulkAddToCategory}
+        onBulkRemoveFromCategory={handleBulkRemoveFromCategory}
         hasTeam={hasTeam}
+        actionCategoryMap={actionCategoryMap}
       />
 
       <TourSelector 
