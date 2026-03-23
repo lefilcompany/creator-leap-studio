@@ -122,10 +122,29 @@ export default function CategoryView() {
               <h1 className="text-xl lg:text-2xl font-bold text-foreground truncate">{category?.name}</h1>
               {category?.description && <p className="text-sm text-muted-foreground truncate">{category.description}</p>}
             </div>
-            <Badge variant="outline" className={cn("gap-1 text-xs flex-shrink-0", category?.visibility === 'team' ? "border-secondary/40 text-secondary" : "")}>
-              {category?.visibility === 'team' ? <Users className="h-3 w-3" /> : <User className="h-3 w-3" />}
-              {category?.visibility === 'team' ? 'Equipe' : 'Pessoal'}
-            </Badge>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => setManageOpen(true)}
+                  className="cursor-pointer"
+                >
+                  <Badge variant="outline" className="gap-1 text-xs flex-shrink-0 hover:bg-accent/10 transition-colors">
+                    {categoryMembers.length > 0 ? (
+                      <>
+                        <UsersRound className="h-3 w-3" />
+                        {categoryMembers.length + 1} {categoryMembers.length + 1 === 1 ? 'pessoa' : 'pessoas'}
+                      </>
+                    ) : (
+                      <>
+                        <Lock className="h-3 w-3" />
+                        Só você
+                      </>
+                    )}
+                  </Badge>
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>Gerenciar acesso</TooltipContent>
+            </Tooltip>
             <Button
               variant="ghost"
               size="sm"
