@@ -188,24 +188,34 @@ export default function CategoryView() {
       {/* Manage Modal */}
       {category && (
         <Dialog open={manageOpen} onOpenChange={setManageOpen}>
-          <DialogContent className="sm:max-w-lg max-h-[85vh] flex flex-col p-0 gap-0">
-            <DialogHeader className="px-6 pt-6 pb-0">
-              <DialogTitle>Gerenciar Categoria</DialogTitle>
+          <DialogContent className="sm:max-w-lg max-h-[85vh] flex flex-col p-0 gap-0 rounded-2xl">
+            <DialogHeader className="px-6 pt-6 pb-2 flex-shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${category.color || 'hsl(var(--primary))'}15` }}>
+                  <FolderOpen className="h-4.5 w-4.5" style={{ color: category.color || 'hsl(var(--primary))' }} />
+                </div>
+                <div>
+                  <DialogTitle className="text-lg">Gerenciar Categoria</DialogTitle>
+                  <p className="text-xs text-muted-foreground mt-0.5">{category.name}</p>
+                </div>
+              </div>
             </DialogHeader>
 
             <Tabs defaultValue="access" className="flex flex-col flex-1 min-h-0">
-              <TabsList className="mx-6 mt-4 w-auto self-start">
-                <TabsTrigger value="access" className="gap-1.5">
-                  <UsersRound className="h-3.5 w-3.5" />
-                  Acesso
-                </TabsTrigger>
-                {isOwner && (
-                  <TabsTrigger value="settings" className="gap-1.5">
-                    <Settings className="h-3.5 w-3.5" />
-                    Configurações
+              <div className="px-6 flex-shrink-0">
+                <TabsList className="w-full h-10 bg-muted/50 rounded-xl p-1">
+                  <TabsTrigger value="access" className="gap-1.5 flex-1 rounded-lg text-xs font-semibold data-[state=active]:shadow-sm">
+                    <UsersRound className="h-3.5 w-3.5" />
+                    Acesso
                   </TabsTrigger>
-                )}
-              </TabsList>
+                  {isOwner && (
+                    <TabsTrigger value="settings" className="gap-1.5 flex-1 rounded-lg text-xs font-semibold data-[state=active]:shadow-sm">
+                      <Settings className="h-3.5 w-3.5" />
+                      Configurações
+                    </TabsTrigger>
+                  )}
+                </TabsList>
+              </div>
 
               <div className="flex-1 overflow-y-auto px-6 py-4">
                 <TabsContent value="access" className="mt-0">

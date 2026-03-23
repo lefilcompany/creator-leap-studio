@@ -5,7 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { HexColorPicker } from 'react-colorful';
-import { Palette, Loader2 } from 'lucide-react';
+import { Palette, Loader2, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const COLORS = [
@@ -34,51 +34,66 @@ export function CategorySettingsPanel({ name: initialName, description: initialD
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <div className="space-y-2">
-        <Label className="font-bold">Nome</Label>
-        <Input value={name} onChange={e => setName(e.target.value)} />
+        <Label className="font-bold text-sm">Nome</Label>
+        <Input
+          value={name}
+          onChange={e => setName(e.target.value)}
+          placeholder="Nome da categoria"
+          className="rounded-lg"
+        />
       </div>
 
       <div className="space-y-2">
-        <Label className="font-bold">Descrição <span className="font-normal text-muted-foreground">(opcional)</span></Label>
-        <Textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} placeholder="Descreva o propósito desta categoria..." />
+        <Label className="font-bold text-sm">
+          Descrição <span className="font-normal text-muted-foreground">(opcional)</span>
+        </Label>
+        <Textarea
+          value={description}
+          onChange={e => setDescription(e.target.value)}
+          rows={3}
+          placeholder="Descreva o propósito desta categoria..."
+          className="rounded-lg resize-none"
+        />
       </div>
 
-      <div className="space-y-2">
-        <Label className="font-bold">Cor</Label>
+      <div className="space-y-2.5">
+        <Label className="font-bold text-sm">Cor</Label>
         <div className="flex items-center gap-2 flex-wrap">
           {COLORS.map(c => (
             <button
               key={c}
               type="button"
               onClick={() => setColor(c)}
-              className="w-7 h-7 rounded-full border-2 transition-transform active:scale-90 hover:scale-110"
+              className="w-8 h-8 rounded-lg border-2 transition-all active:scale-90 hover:scale-105 flex items-center justify-center"
               style={{
                 backgroundColor: c,
                 borderColor: color === c ? 'hsl(var(--foreground))' : 'transparent',
               }}
-            />
+            >
+              {color === c && <Check className="h-3.5 w-3.5 text-white drop-shadow-sm" />}
+            </button>
           ))}
           <Popover>
             <PopoverTrigger asChild>
               <button
                 type="button"
                 className={cn(
-                  "w-7 h-7 rounded-full border-2 transition-transform active:scale-90 hover:scale-110 flex items-center justify-center",
+                  "w-8 h-8 rounded-lg border-2 transition-all active:scale-90 hover:scale-105 flex items-center justify-center",
                   !COLORS.includes(color) ? "border-foreground" : "border-border"
                 )}
                 style={{
                   backgroundColor: !COLORS.includes(color) ? color : 'transparent',
                 }}
               >
-                <Palette className="h-3.5 w-3.5 text-muted-foreground" style={{
-                  color: !COLORS.includes(color) ? 'white' : undefined,
+                <Palette className="h-3.5 w-3.5" style={{
+                  color: !COLORS.includes(color) ? 'white' : 'hsl(var(--muted-foreground))',
                   mixBlendMode: !COLORS.includes(color) ? 'difference' : undefined,
                 }} />
               </button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-3" side="bottom" align="start">
+            <PopoverContent className="w-auto p-3 rounded-xl" side="bottom" align="start">
               <div className="space-y-3">
                 <HexColorPicker color={color} onChange={setColor} />
                 <div className="flex items-center gap-2">
@@ -89,19 +104,29 @@ export function CategorySettingsPanel({ name: initialName, description: initialD
                       const v = e.target.value.replace(/[^0-9A-Fa-f]/g, '').slice(0, 6);
                       if (v.length === 6) setColor('#' + v);
                     }}
-                    className="h-8 text-xs font-mono"
+                    className="h-8 text-xs font-mono rounded-lg"
                     maxLength={6}
                   />
-                  <div className="w-8 h-8 rounded-md border border-border flex-shrink-0" style={{ backgroundColor: color }} />
+                  <div className="w-8 h-8 rounded-lg border border-border flex-shrink-0" style={{ backgroundColor: color }} />
                 </div>
               </div>
             </PopoverContent>
           </Popover>
         </div>
+
+        {/* Preview */}
+        <div className="flex items-center gap-2 pt-1">
+          <div className="w-5 h-5 rounded-md" style={{ backgroundColor: color }} />
+          <span className="text-xs text-muted-foreground font-mono">{color}</span>
+        </div>
       </div>
 
       {hasChanges && (
-        <Button onClick={handleSave} disabled={!name.trim() || isSaving} className="w-full">
+        <Button
+          onClick={handleSave}
+          disabled={!name.trim() || isSaving}
+          className="w-full rounded-xl h-10 font-semibold transition-all active:scale-[0.98]"
+        >
           {isSaving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
           Salvar alterações
         </Button>
