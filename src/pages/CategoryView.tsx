@@ -231,7 +231,7 @@ export default function CategoryView() {
         <Dialog open={manageOpen} onOpenChange={(open) => { setManageOpen(open); if (!open) { setAddPanelOpen(false); setMemberSearch(''); } }}>
           <DialogContent
             className={cn(
-              "p-0 gap-0 overflow-visible bg-transparent border-none shadow-none transition-all duration-300 ease-in-out",
+              "p-0 gap-0 overflow-visible bg-transparent border-none shadow-none transition-all duration-300 ease-in-out [&>button.group]:hidden",
               addPanelOpen ? "sm:max-w-[56rem]" : "sm:max-w-lg"
             )}
           >
@@ -246,10 +246,17 @@ export default function CategoryView() {
                     <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${category.color || 'hsl(var(--primary))'}15` }}>
                       <FolderOpen className="h-4.5 w-4.5" style={{ color: category.color || 'hsl(var(--primary))' }} />
                     </div>
-                    <div>
+                    <div className="flex-1 min-w-0">
                       <DialogTitle className="text-lg">Gerenciar Categoria</DialogTitle>
                       <p className="text-xs text-muted-foreground mt-0.5">{category.name}</p>
                     </div>
+                    <button
+                      type="button"
+                      onClick={() => setManageOpen(false)}
+                      className="text-muted-foreground hover:text-foreground transition-colors p-1.5 rounded-lg hover:bg-muted -mr-1.5"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
                   </div>
                 </DialogHeader>
 
