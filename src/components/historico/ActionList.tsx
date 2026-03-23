@@ -47,6 +47,11 @@ interface ActionListProps {
   toolbarEndSlot?: React.ReactNode;
   actionCategoryMap?: Map<string, string[]>;
   categories?: Array<{ id: string; name: string; color: string }>;
+  // Bulk selection
+  bulkSelectedIds?: Set<string>;
+  onToggleBulkSelect?: (actionId: string) => void;
+  selectionMode?: boolean;
+  onToggleSelectionMode?: () => void;
 }
 
 const formatDate = (dateString: string) => {
