@@ -297,6 +297,10 @@ export default function ActionList({
   toolbarEndSlot,
   actionCategoryMap,
   categories: categoriesList,
+  bulkSelectedIds,
+  onToggleBulkSelect,
+  selectionMode,
+  onToggleSelectionMode,
 }: ActionListProps) {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
