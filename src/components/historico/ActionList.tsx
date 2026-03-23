@@ -44,6 +44,7 @@ interface ActionListProps {
   sortDirection?: SortDirection;
   onSortChange?: (field: SortField, direction: SortDirection) => void;
   mobileFilterSlot?: React.ReactNode;
+  toolbarEndSlot?: React.ReactNode;
   actionCategoryMap?: Map<string, string[]>;
   categories?: Array<{ id: string; name: string; color: string }>;
 }
@@ -270,6 +271,7 @@ export default function ActionList({
   isFavorite, isPersonalFavorite, isTeamFavorite, onToggleFavorite, hasTeam,
   sortField: externalSortField, sortDirection: externalSortDirection, onSortChange,
   mobileFilterSlot,
+  toolbarEndSlot,
   actionCategoryMap,
   categories: categoriesList,
 }: ActionListProps) {
@@ -327,6 +329,8 @@ export default function ActionList({
             </button>
           )}
         </div>
+
+        {toolbarEndSlot}
 
         <ToggleGroup
           type="single"
