@@ -15,7 +15,7 @@ import { useFavorites } from '@/hooks/useFavorites';
 import { HistoryFilterSidebar, MobileFilterTrigger } from '@/components/historico/HistoryFilterSidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useCategories } from '@/hooks/useCategories';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { BulkSelectionBar } from '@/components/historico/BulkSelectionBar';
 import { toast } from 'sonner';
