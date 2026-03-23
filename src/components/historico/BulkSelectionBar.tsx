@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Star, FolderOpen, X, ChevronDown } from 'lucide-react';
+import { Star, FolderOpen, X, ChevronDown, User, Users } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useCategories } from '@/hooks/useCategories';
 import type { FavoriteScope } from '@/hooks/useFavorites';
@@ -50,18 +50,23 @@ export function BulkSelectionBar({
                 <ChevronDown className="h-3 w-3 opacity-60" />
               </button>
             </PopoverTrigger>
-            <PopoverContent className="w-44 p-1.5" side="top" align="center">
+            <PopoverContent className="w-48 p-1" side="top" align="center" sideOffset={8}>
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-3 pt-1.5 pb-1">
+                Favoritar como
+              </p>
               <button
                 onClick={() => onBulkFavorite('personal')}
-                className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm hover:bg-muted/50 transition-colors"
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm hover:bg-muted/60 transition-colors active:scale-[0.97]"
               >
-                Para mim
+                <User className="h-4 w-4 text-muted-foreground" />
+                <span className="font-medium">Para mim</span>
               </button>
               <button
                 onClick={() => onBulkFavorite('team')}
-                className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm hover:bg-muted/50 transition-colors"
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm hover:bg-muted/60 transition-colors active:scale-[0.97]"
               >
-                Para a equipe
+                <Users className="h-4 w-4 text-muted-foreground" />
+                <span className="font-medium">Para a equipe</span>
               </button>
             </PopoverContent>
           </Popover>
