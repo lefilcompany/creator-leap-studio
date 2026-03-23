@@ -124,9 +124,14 @@ export default function CategoryView() {
               {category?.visibility === 'team' ? <Users className="h-3 w-3" /> : <User className="h-3 w-3" />}
               {category?.visibility === 'team' ? 'Equipe' : 'Pessoal'}
             </Badge>
-            <Button variant="outline" size="sm" className="gap-2" onClick={() => setManageOpen(true)}>
-              <Settings className="h-4 w-4" />
-              <span className="hidden sm:inline">Gerenciar</span>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2 rounded-xl border-border/60 bg-card/80 backdrop-blur-sm shadow-sm hover:shadow-md hover:bg-accent/50 transition-all"
+              onClick={() => setManageOpen(true)}
+            >
+              <Settings className="h-4 w-4 text-muted-foreground" />
+              <span className="hidden sm:inline text-sm font-medium">Gerenciar</span>
             </Button>
           </div>
         </div>
