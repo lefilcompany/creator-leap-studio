@@ -23,7 +23,7 @@ export const getCreditCostLabel = (action: keyof typeof CREDIT_COSTS): string =>
     IMAGE_REVIEW: "Revisão de imagem",
     CAPTION_REVIEW: "Revisão de legenda",
     TEXT_REVIEW: "Revisão de texto",
-    CONTENT_PLAN: "Planejamento de conteúdo",
+    CONTENT_PLAN: "Calendário de conteúdo",
     VIDEO_GENERATION: "Geração de vídeo",
     IMAGE_ANIMATION: "Animação de imagem",
     CREATE_BRAND: "Criar marca",

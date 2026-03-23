@@ -551,7 +551,7 @@ const Onboarding = () => {
           transition={{ delay: 0.3 }}
           className="text-lg text-muted-foreground max-w-2xl mx-auto"
         >
-          Compre créditos para usar nas ferramentas de criação, revisão e planejamento de conteúdo com IA.
+          Compre créditos para usar nas ferramentas de criação, revisão e calendário de conteúdo com IA.
         </motion.p>
       </div>
 

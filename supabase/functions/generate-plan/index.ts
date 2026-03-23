@@ -273,7 +273,7 @@ Tema ${index + 1}:
       creditsUsed: CREDIT_COSTS.CONTENT_PLAN,
       creditsBefore: creditCheck.currentCredits,
       creditsAfter: deductResult.newCredits,
-      description: 'Planejamento de conteúdo',
+      description: 'Calendário de conteúdo',
       metadata: { platform, quantity, themes }
     });
 

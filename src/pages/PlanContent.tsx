@@ -353,7 +353,7 @@ const PlanContent = () => {
                       <p className="text-xs text-muted-foreground flex items-start gap-1.5">
                         <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
                          {brands.length === 0 
-                          ? <span>Cadastre uma marca antes de planejar conteúdo</span>
+                          ? <span>Cadastre uma marca antes de criar o calendário de conteúdo</span>
                           : <span>O planejamento será baseado na identidade e diretrizes dessa marca</span>
                         }
                       </p>

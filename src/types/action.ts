@@ -34,7 +34,7 @@ export const ACTION_STYLE_MAP: {
     color: 'text-accent',
     background: 'bg-accent/10',
   },
-  'Planejar conteúdo': {
+  'Calendário de conteúdo': {
     icon: Calendar,
     color: 'text-secondary',
     background: 'bg-secondary/10',
