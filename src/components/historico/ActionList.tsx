@@ -519,7 +519,7 @@ export default function ActionList({
             const catIds = actionCategoryMap?.get(action.id) || [];
             const actionCats = catIds.map(cid => categoriesList?.find(c => c.id === cid)).filter(Boolean) as Array<{ id: string; name: string; color: string }>;
             return (
-              <ActionCard
+               <ActionCard
                 key={action.id}
                 action={action}
                 isSelected={selectedAction?.id === action.id}
@@ -529,6 +529,9 @@ export default function ActionList({
                 hasTeam={hasTeam}
                 onToggleFavorite={onToggleFavorite}
                 actionCategories={actionCats}
+                selectionMode={selectionMode}
+                isBulkSelected={bulkSelectedIds?.has(action.id)}
+                onToggleBulkSelect={() => onToggleBulkSelect?.(action.id)}
               />
             );
           })}
