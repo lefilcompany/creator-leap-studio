@@ -108,7 +108,7 @@ function SidebarContent({
 
         {/* Brand */}
         <FilterSection title="Marca">
-          <div className="space-y-0.5 max-h-48 overflow-y-auto">
+          <div className="space-y-0.5 max-h-[200px] overflow-y-auto pr-1">
             <button
               onClick={() => onBrandFilterChange('all')}
               className={cn(

@@ -26,16 +26,15 @@ export function useHistoryBrands() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('brands')
-        .select('id, name, responsible, created_at, updated_at')
-        .eq('user_id', user!.id)
+        .select('id, name, responsible, brand_color, avatar_url, created_at, updated_at')
         .order('name');
       if (error) throw error;
       return (data || []).map(brand => ({
         id: brand.id,
         name: brand.name,
         responsible: brand.responsible,
-        brandColor: null,
-        avatarUrl: null,
+        brandColor: brand.brand_color ?? null,
+        avatarUrl: brand.avatar_url ?? null,
         createdAt: brand.created_at,
         updatedAt: brand.updated_at
       })) as BrandSummary[];
