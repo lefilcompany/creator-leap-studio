@@ -59,7 +59,7 @@ export default function Categories() {
       {/* Banner */}
       <div className="relative w-full h-28 md:h-36 flex-shrink-0 overflow-hidden">
         <PageBreadcrumb variant="overlay" items={[{ label: 'Categorias' }]} />
-        <img src={historyBanner} alt="" className="w-full h-full object-cover" style={{ objectPosition: 'center 30%' }} loading="lazy" />
+        <img src={categoriesBanner} alt="" className="w-full h-full object-cover" style={{ objectPosition: 'center 55%' }} loading="lazy" />
         <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
       </div>
 
