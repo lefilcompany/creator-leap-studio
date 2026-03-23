@@ -1,7 +1,5 @@
 import { useState } from 'react';
-import { Star, FolderOpen, X, Check, ChevronDown } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
+import { Star, FolderOpen, X, ChevronDown } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useCategories } from '@/hooks/useCategories';
 import type { FavoriteScope } from '@/hooks/useFavorites';
@@ -29,24 +27,24 @@ export function BulkSelectionBar({
 
   return (
     <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-4 fade-in duration-300">
-      <div className="flex items-center gap-1 bg-foreground/90 backdrop-blur-md shadow-2xl rounded-full px-2 py-1">
+      <div className="flex items-center gap-0.5 bg-card border border-border/60 shadow-xl rounded-full px-1.5 py-1 dark:bg-card dark:border-border/40">
         {/* Count */}
         <div className="flex items-center gap-1.5 pl-2 pr-1">
-          <span className="bg-primary text-primary-foreground text-[11px] font-bold rounded-full w-5 h-5 flex items-center justify-center tabular-nums">
+          <span className="bg-primary text-primary-foreground text-[11px] font-bold rounded-full w-5 h-5 flex items-center justify-center tabular-nums shadow-sm">
             {count}
           </span>
-          <span className="text-xs font-medium text-background whitespace-nowrap">
+          <span className="text-xs font-medium text-foreground/80 whitespace-nowrap">
             {count === 1 ? 'selecionado' : 'selecionados'}
           </span>
         </div>
 
-        <div className="w-px h-4 bg-background/20" />
+        <div className="w-px h-4 bg-border/50" />
 
         {/* Favorite */}
         {hasTeam ? (
           <Popover>
             <PopoverTrigger asChild>
-              <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-amber-300 hover:bg-background/10 transition-colors active:scale-95">
+              <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 transition-colors active:scale-95">
                 <Star className="h-3.5 w-3.5" />
                 Favoritar
                 <ChevronDown className="h-3 w-3 opacity-60" />
@@ -69,7 +67,7 @@ export function BulkSelectionBar({
           </Popover>
         ) : (
           <button
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-amber-300 hover:bg-background/10 transition-colors active:scale-95"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 transition-colors active:scale-95"
             onClick={() => onBulkFavorite('personal')}
           >
             <Star className="h-3.5 w-3.5" />
@@ -80,7 +78,7 @@ export function BulkSelectionBar({
         {/* Category */}
         <Popover open={catOpen} onOpenChange={setCatOpen}>
           <PopoverTrigger asChild>
-            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-background/80 hover:bg-background/10 transition-colors active:scale-95">
+            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-foreground/70 hover:bg-muted/60 transition-colors active:scale-95">
               <FolderOpen className="h-3.5 w-3.5" />
               Categoria
               <ChevronDown className="h-3 w-3 opacity-60" />
@@ -112,12 +110,12 @@ export function BulkSelectionBar({
           </PopoverContent>
         </Popover>
 
-        <div className="w-px h-4 bg-background/20" />
+        <div className="w-px h-4 bg-border/50" />
 
         {/* Clear */}
         <button
           onClick={onClearSelection}
-          className="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-medium text-background/60 hover:text-background hover:bg-background/10 transition-colors active:scale-95"
+          className="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors active:scale-95"
         >
           <X className="h-3.5 w-3.5" />
           Limpar
