@@ -44,7 +44,7 @@ export const navbarSteps: Step[] = [
   },
   {
     target: '#nav-plan-content',
-    content: 'Planejar Conteúdo: organize seu calendário editorial e planeje suas publicações estrategicamente.',
+    content: 'Calendário de Conteúdo: organize seu calendário editorial e planeje suas publicações estrategicamente.',
     placement: 'right',
   },
   {
