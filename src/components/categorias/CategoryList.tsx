@@ -105,7 +105,9 @@ export function CategoryList({ categories, onSelect, onEdit, onDelete, isLoading
                 )}
               >
                 {cat.visibility === 'team' ? <Users className="h-2.5 w-2.5" /> : <User className="h-2.5 w-2.5" />}
-                {cat.visibility === 'team' ? 'Equipe' : 'Pessoal'}
+                {cat.visibility === 'team'
+                  ? `${cat.member_count + 1} ${cat.member_count + 1 === 1 ? 'pessoa' : 'pessoas'}`
+                  : 'Só você'}
               </Badge>
             </div>
             </div>

@@ -62,6 +62,7 @@ export function useCategories() {
       // Get item counts
       const categoryIds = allCategories.map(c => c.id);
       let countMap: Record<string, number> = {};
+      let memberCountMap: Record<string, number> = {};
       if (categoryIds.length > 0) {
         const { data: items, error: itemsError } = await supabase
           .from('action_category_items')
@@ -71,11 +72,22 @@ export function useCategories() {
         (items || []).forEach((item: any) => {
           countMap[item.category_id] = (countMap[item.category_id] || 0) + 1;
         });
+
+        // Get member counts
+        const { data: memberItems, error: membersError } = await supabase
+          .from('action_category_members')
+          .select('category_id')
+          .in('category_id', categoryIds);
+        if (membersError) throw membersError;
+        (memberItems || []).forEach((item: any) => {
+          memberCountMap[item.category_id] = (memberCountMap[item.category_id] || 0) + 1;
+        });
       }
 
       return allCategories.map((c: any) => ({
         ...c,
         action_count: countMap[c.id] || 0,
+        member_count: memberCountMap[c.id] || 0,
       })) as CategoryWithCount[];
     },
     enabled: !!user?.id,
