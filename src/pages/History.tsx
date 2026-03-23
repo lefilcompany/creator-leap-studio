@@ -296,10 +296,22 @@ export default function History() {
                   categories={categories}
                 />
               ) : undefined}
+              bulkSelectedIds={bulkSelectedIds}
+              onToggleBulkSelect={handleToggleBulkSelect}
+              selectionMode={selectionMode}
+              onToggleSelectionMode={handleToggleSelectionMode}
             />
           </div>
         </div>
       </main>
+
+      <BulkSelectionBar
+        selectedIds={bulkSelectedIds}
+        onClearSelection={() => { setBulkSelectedIds(new Set()); setSelectionMode(false); }}
+        onBulkFavorite={handleBulkFavorite}
+        onBulkAddToCategory={handleBulkAddToCategory}
+        hasTeam={hasTeam}
+      />
 
       <TourSelector 
         tours={[
