@@ -6,7 +6,7 @@ export const CREDIT_COSTS = {
   IMAGE_REVIEW: 2,          // Revisão de imagem
   CAPTION_REVIEW: 2,        // Revisão de legenda
   TEXT_REVIEW: 2,           // Revisão de copy/texto
-  CONTENT_PLAN: 3,          // Planejamento de conteúdo
+  CONTENT_PLAN: 3,          // Calendário de conteúdo
   VIDEO_GENERATION: 20,     // Geração de vídeo
   IMAGE_ANIMATION: 15,      // Animação de imagem
   CREATE_BRAND: 1,          // Criar marca (após 3 gratuitas)
