@@ -175,7 +175,7 @@ export default function CategoryView() {
             <Button
               variant="outline"
               size="sm"
-              className="gap-2 rounded-xl h-10 bg-card shadow-sm border border-muted/50 hover:shadow-md hover:bg-accent/20 hover:text-accent hover:border-accent/30 transition-all"
+              className="gap-2 rounded-md h-10 bg-card shadow-sm border border-muted/50 hover:shadow-md hover:bg-accent/20 hover:text-accent hover:border-accent/30 transition-all"
               onClick={() => setManageOpen(true)}
             >
               <Settings className="h-4 w-4" />
