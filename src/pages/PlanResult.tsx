@@ -23,7 +23,7 @@ const PlanResult = () => {
 
   useEffect(() => {
     if (!planContent) {
-      toast.error("Nenhum planejamento encontrado");
+      toast.error("Nenhum calendário de conteúdo encontrado");
       navigate("/plan");
     }
   }, [planContent, navigate]);
