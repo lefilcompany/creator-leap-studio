@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { FolderOpen, Users, User, Settings, UsersRound } from 'lucide-react';
+import { FolderOpen, Settings, UsersRound, Lock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { PageBreadcrumb } from '@/components/PageBreadcrumb';
