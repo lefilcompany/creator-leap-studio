@@ -28,4 +28,5 @@ export interface ActionCategoryItem {
 
 export interface CategoryWithCount extends ActionCategory {
   action_count: number;
+  member_count: number;
 }
