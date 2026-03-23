@@ -569,7 +569,7 @@ export const translations = {
       history: "History",
       createContent: "Create Content",
       reviewContent: "Review Content",
-      planContent: "Plan Content",
+      planContent: "Content Calendar",
       team: "Team",
       categories: "Categories",
       plan: "Plan",
