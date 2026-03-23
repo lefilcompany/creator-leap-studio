@@ -184,10 +184,13 @@ export function useCategories() {
           })));
         if (insertError) throw insertError;
       }
+
+      return id;
     },
-    onSuccess: () => {
+    onSuccess: (id) => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });
       queryClient.invalidateQueries({ queryKey: ['category-members'] });
+      queryClient.invalidateQueries({ queryKey: ['category', id] });
       toast.success('Categoria atualizada!');
     },
     onError: () => toast.error('Erro ao atualizar categoria'),
