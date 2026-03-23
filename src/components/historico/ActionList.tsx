@@ -359,6 +359,17 @@ export default function ActionList({
 
         {toolbarEndSlot}
 
+        {/* Selection mode toggle */}
+        <Button
+          variant={selectionMode ? "default" : "outline"}
+          size="icon"
+          onClick={onToggleSelectionMode}
+          className={cn("h-10 w-10 flex-shrink-0", selectionMode && "bg-primary text-primary-foreground")}
+          title={selectionMode ? "Sair do modo seleção" : "Selecionar múltiplos"}
+        >
+          <Check className="h-4 w-4" />
+        </Button>
+
         <ToggleGroup
           type="single"
           value={viewMode}
