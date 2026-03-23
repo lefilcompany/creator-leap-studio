@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { History as HistoryIcon, HelpCircle, Star } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
@@ -17,6 +17,8 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useCategories } from '@/hooks/useCategories';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { BulkSelectionBar } from '@/components/historico/BulkSelectionBar';
+import { toast } from 'sonner';
 
 type SortField = 'date' | 'type';
 type SortDirection = 'asc' | 'desc';
@@ -32,7 +34,43 @@ export default function History() {
   const [sortField, setSortField] = useState<SortField>('date');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const isMobile = useIsMobile();
-  const { categories } = useCategories();
+  const { categories, addActionToCategory } = useCategories();
+
+  // Bulk selection
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [bulkSelectedIds, setBulkSelectedIds] = useState<Set<string>>(new Set());
+
+  const handleToggleBulkSelect = useCallback((actionId: string) => {
+    setBulkSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(actionId)) next.delete(actionId);
+      else next.add(actionId);
+      return next;
+    });
+  }, []);
+
+  const handleToggleSelectionMode = useCallback(() => {
+    setSelectionMode(prev => {
+      if (prev) setBulkSelectedIds(new Set());
+      return !prev;
+    });
+  }, []);
+
+  const handleBulkFavorite = useCallback((scope: import('@/hooks/useFavorites').FavoriteScope) => {
+    bulkSelectedIds.forEach(id => toggleFavorite(id, scope));
+    toast.success(`${bulkSelectedIds.size} ${bulkSelectedIds.size === 1 ? 'ação favoritada' : 'ações favoritadas'}!`);
+    setBulkSelectedIds(new Set());
+    setSelectionMode(false);
+  }, [bulkSelectedIds, toggleFavorite]);
+
+  const handleBulkAddToCategory = useCallback((categoryId: string) => {
+    bulkSelectedIds.forEach(id => {
+      addActionToCategory.mutate({ categoryId, actionId: id });
+    });
+    toast.success(`${bulkSelectedIds.size} ${bulkSelectedIds.size === 1 ? 'ação adicionada' : 'ações adicionadas'} à categoria!`);
+    setBulkSelectedIds(new Set());
+    setSelectionMode(false);
+  }, [bulkSelectedIds, addActionToCategory]);
 
   // Get all category items for filtering
   const { data: categoryItems = [] } = useQuery({
@@ -258,10 +296,22 @@ export default function History() {
                   categories={categories}
                 />
               ) : undefined}
+              bulkSelectedIds={bulkSelectedIds}
+              onToggleBulkSelect={handleToggleBulkSelect}
+              selectionMode={selectionMode}
+              onToggleSelectionMode={handleToggleSelectionMode}
             />
           </div>
         </div>
       </main>
+
+      <BulkSelectionBar
+        selectedIds={bulkSelectedIds}
+        onClearSelection={() => { setBulkSelectedIds(new Set()); setSelectionMode(false); }}
+        onBulkFavorite={handleBulkFavorite}
+        onBulkAddToCategory={handleBulkAddToCategory}
+        hasTeam={hasTeam}
+      />
 
       <TourSelector 
         tours={[

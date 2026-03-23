@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { Star, Search, ArrowUpDown, ArrowUp, ArrowDown, List, LayoutGrid, X, Clock, Sparkles, CheckCircle, Calendar, Video, Image, Globe, Users, Loader2, MoreHorizontal } from 'lucide-react';
+import { Star, Search, ArrowUpDown, ArrowUp, ArrowDown, List, LayoutGrid, X, Clock, Sparkles, CheckCircle, Calendar, Video, Image, Globe, Users, Loader2, MoreHorizontal, Check, Square } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { CategoryBadge, NoCategoryBadge } from '@/components/categorias/CategoryBadge';
 import { Button } from '@/components/ui/button';
@@ -47,6 +47,11 @@ interface ActionListProps {
   toolbarEndSlot?: React.ReactNode;
   actionCategoryMap?: Map<string, string[]>;
   categories?: Array<{ id: string; name: string; color: string }>;
+  // Bulk selection
+  bulkSelectedIds?: Set<string>;
+  onToggleBulkSelect?: (actionId: string) => void;
+  selectionMode?: boolean;
+  onToggleSelectionMode?: () => void;
 }
 
 const formatDate = (dateString: string) => {
@@ -159,11 +164,12 @@ const LoadingRows = () => (
 );
 
 // Grid card
-function ActionCard({ action, isSelected, onNavigate, isPersonalFavorite, isTeamFavorite, hasTeam, onToggleFavorite, actionCategories }: {
+function ActionCard({ action, isSelected, onNavigate, isPersonalFavorite, isTeamFavorite, hasTeam, onToggleFavorite, actionCategories, selectionMode, isBulkSelected, onToggleBulkSelect }: {
   action: ActionSummary; isSelected: boolean; onNavigate: () => void;
   isPersonalFavorite?: boolean; isTeamFavorite?: boolean; hasTeam?: boolean;
   onToggleFavorite?: (actionId: string, scope: FavoriteScope) => void;
   actionCategories?: Array<{ id: string; name: string; color: string }>;
+  selectionMode?: boolean; isBulkSelected?: boolean; onToggleBulkSelect?: () => void;
 }) {
   const displayType = ACTION_TYPE_DISPLAY[action.type];
   const style = ACTION_STYLE_MAP[displayType];
@@ -173,10 +179,11 @@ function ActionCard({ action, isSelected, onNavigate, isPersonalFavorite, isTeam
 
   return (
     <div
-      onClick={onNavigate}
+      onClick={selectionMode ? (e) => { e.stopPropagation(); onToggleBulkSelect?.(); } : onNavigate}
       className={cn(
-        "cursor-pointer bg-card rounded-2xl overflow-hidden transition-shadow duration-200 group border border-border/30 flex flex-col shadow-sm",
-        isSelected && "ring-2 ring-primary/40 shadow-lg"
+        "cursor-pointer bg-card rounded-2xl overflow-hidden transition-shadow duration-200 group border flex flex-col shadow-sm",
+        isBulkSelected ? "ring-2 ring-primary border-primary/40 shadow-md" : "border-border/30",
+        isSelected && !selectionMode && "ring-2 ring-primary/40 shadow-lg"
       )}
     >
       {/* Image/Video area */}
@@ -203,6 +210,22 @@ function ActionCard({ action, isSelected, onNavigate, isPersonalFavorite, isTeam
         ) : (
           <div className={cn("w-full h-full flex items-center justify-center bg-gradient-to-br", gradient)}>
             <FallbackIcon className={cn("h-12 w-12 opacity-40", iconColor)} />
+          </div>
+        )}
+        {/* Selection checkbox overlay */}
+        {selectionMode && (
+          <div className="absolute top-2 left-2 z-10" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={(e) => { e.stopPropagation(); onToggleBulkSelect?.(); }}
+              className={cn(
+                "w-6 h-6 rounded-md flex items-center justify-center transition-all shadow-sm",
+                isBulkSelected
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-background/80 backdrop-blur-sm text-muted-foreground hover:bg-background"
+              )}
+            >
+              {isBulkSelected ? <Check className="h-4 w-4" /> : <Square className="h-4 w-4" />}
+            </button>
           </div>
         )}
         {/* Action menu overlay */}
@@ -274,6 +297,10 @@ export default function ActionList({
   toolbarEndSlot,
   actionCategoryMap,
   categories: categoriesList,
+  bulkSelectedIds,
+  onToggleBulkSelect,
+  selectionMode,
+  onToggleSelectionMode,
 }: ActionListProps) {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
@@ -332,6 +359,17 @@ export default function ActionList({
 
         {toolbarEndSlot}
 
+        {/* Selection mode toggle */}
+        <Button
+          variant={selectionMode ? "default" : "outline"}
+          size="icon"
+          onClick={onToggleSelectionMode}
+          className={cn("h-10 w-10 flex-shrink-0", selectionMode && "bg-primary text-primary-foreground")}
+          title={selectionMode ? "Sair do modo seleção" : "Selecionar múltiplos"}
+        >
+          <Check className="h-4 w-4" />
+        </Button>
+
         <ToggleGroup
           type="single"
           value={viewMode}
@@ -386,6 +424,7 @@ export default function ActionList({
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent border-b border-border/20">
+                {selectionMode && <TableHead className="w-10"></TableHead>}
                 <TableHead className="w-16 text-xs uppercase tracking-wider text-muted-foreground font-semibold">Img</TableHead>
                 <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Tipo / Título</TableHead>
                 <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-semibold hidden md:table-cell">Marca</TableHead>
@@ -401,15 +440,32 @@ export default function ActionList({
                 const gradient = ACTION_GRADIENT_MAP[action.type];
                 const iconColor = ACTION_COLOR_MAP[action.type];
 
+                const isBulkSel = bulkSelectedIds?.has(action.id);
                 return (
                   <TableRow
                     key={action.id}
-                    onClick={() => navigate(`/action/${action.id}`, { state: { viewMode } })}
+                    onClick={() => selectionMode ? onToggleBulkSelect?.(action.id) : navigate(`/action/${action.id}`, { state: { viewMode } })}
                     className={cn(
                       "cursor-pointer transition-colors duration-150 border-b border-border/10",
-                      selectedAction?.id === action.id ? "bg-primary/8 hover:bg-primary/12" : "hover:bg-muted/50"
+                      isBulkSel ? "bg-primary/8 hover:bg-primary/12" : "",
+                      selectedAction?.id === action.id && !selectionMode ? "bg-primary/8 hover:bg-primary/12" : "hover:bg-muted/50"
                     )}
                   >
+                    {selectionMode && (
+                      <TableCell className="py-2" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          onClick={() => onToggleBulkSelect?.(action.id)}
+                          className={cn(
+                            "w-5 h-5 rounded flex items-center justify-center transition-all",
+                            isBulkSel
+                              ? "bg-primary text-primary-foreground"
+                              : "border border-border hover:border-primary/50"
+                          )}
+                        >
+                          {isBulkSel && <Check className="h-3 w-3" />}
+                        </button>
+                      </TableCell>
+                    )}
                     <TableCell className="py-2">
                       <div className="w-14 h-10 rounded-lg overflow-hidden bg-muted flex-shrink-0">
                         {action.imageUrl ? (
@@ -463,7 +519,7 @@ export default function ActionList({
             const catIds = actionCategoryMap?.get(action.id) || [];
             const actionCats = catIds.map(cid => categoriesList?.find(c => c.id === cid)).filter(Boolean) as Array<{ id: string; name: string; color: string }>;
             return (
-              <ActionCard
+               <ActionCard
                 key={action.id}
                 action={action}
                 isSelected={selectedAction?.id === action.id}
@@ -473,6 +529,9 @@ export default function ActionList({
                 hasTeam={hasTeam}
                 onToggleFavorite={onToggleFavorite}
                 actionCategories={actionCats}
+                selectionMode={selectionMode}
+                isBulkSelected={bulkSelectedIds?.has(action.id)}
+                onToggleBulkSelect={() => onToggleBulkSelect?.(action.id)}
               />
             );
           })}
