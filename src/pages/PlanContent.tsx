@@ -275,7 +275,7 @@ const PlanContent = () => {
         />
         <img
           src={planBanner}
-          alt="Planejar Conteúdo"
+          alt="Calendário de Conteúdo"
           className="w-full h-full object-cover object-center"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
