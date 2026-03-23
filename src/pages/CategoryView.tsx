@@ -145,15 +145,6 @@ export default function CategoryView() {
               </TooltipTrigger>
               <TooltipContent>Gerenciar acesso</TooltipContent>
             </Tooltip>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="gap-2 rounded-xl border-0 hover:bg-accent/20 hover:text-accent transition-all"
-              onClick={() => setManageOpen(true)}
-            >
-              <Settings className="h-4 w-4" />
-              <span className="hidden sm:inline text-sm font-medium">Gerenciar</span>
-            </Button>
           </div>
         </div>
       </div>
