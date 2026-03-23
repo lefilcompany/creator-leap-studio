@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ActionList from '@/components/historico/ActionList';
 import { CategoryMembersPanel } from '@/components/categorias/CategoryMembersPanel';
 import { CategorySettingsPanel } from '@/components/categorias/CategorySettingsPanel';
-import { useCategories } from '@/hooks/useCategories';
+import { useCategories, useCategoryMembers } from '@/hooks/useCategories';
 import { useAuth } from '@/hooks/useAuth';
 import type { ActionSummary } from '@/types/action';
 import { ACTION_TYPE_DISPLAY } from '@/types/action';
