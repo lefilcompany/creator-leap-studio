@@ -1,66 +1,43 @@
 
 
-# Visibilidade com Membros e Sidebar com Dropdown de Categorias
+## Renomear "Planejar Conteúdo" → "Calendário de Conteúdo"
 
-## Visão Geral
-Duas mudanças principais:
-1. **CategoryDialog**: Substituir o select de visibilidade por um sistema de membros com painel lateral (Sheet), onde o criador é sempre incluído por padrão e pode adicionar membros da equipe como "Leitor" ou "Editor"
-2. **Sidebar**: Transformar o item "Categorias" em um dropdown colapsável com duas seções: "Minhas Categorias" e "Compartilhadas Comigo"
+Renomear todas as ocorrências de "Planejar Conteúdo" (e variações) para "Calendário de Conteúdo" em toda a aplicação. Não altera nomes internos de variáveis, tipos ou rotas — apenas os textos exibidos ao usuário.
 
-## 1. CategoryDialog — Painel de Membros
+### Arquivos a editar
 
-### Comportamento
-- O campo "Visibilidade" atual será substituído por uma seção "Acesso"
-- Mostra por padrão o criador (usuário logado) como "Dono" — sempre fixo, não removível
-- Botão "Adicionar membro" abre um `Sheet` lateral (como na imagem de referência do Kanban)
-- No Sheet: lista membros da equipe (via `useTeamMembers`) com avatar, nome e um select de papel (Leitor/Editor)
-- Membros adicionados aparecem como chips/lista no dialog principal com papel e botão de remover
-- Se o usuário não tem equipe, a seção mostra apenas o dono sem opção de adicionar
+1. **`src/lib/translations.ts`** — Alterar `planContent` em PT e EN:
+   - PT: `"Planejar Conteúdo"` → `"Calendário de Conteúdo"` (sidebar e título da página)
+   - EN: `"Plan Content"` → `"Content Calendar"`
 
-### Dados
-- Ao salvar, além dos dados da categoria, enviar array de membros `{ userId, role }[]`
-- Mutation `createCategory` e `updateCategory` no hook devem também inserir/atualizar `action_category_members`
-- Ao criar: inserir membros no `action_category_members` após criar a categoria
-- Ao editar: diff dos membros (adicionar novos, remover removidos, atualizar roles)
-- Quando há membros além do dono, `visibility` automaticamente muda para `'team'`
+2. **`src/types/action.ts`** — Display strings:
+   - `ActionDisplayType`: `'Planejar conteúdo'` → `'Calendário de conteúdo'`
+   - `ACTION_TYPE_DISPLAY`: mesmo
+   - `ACTION_STYLE_MAP`: atualizar a chave
 
-### Arquivos
-- **Editar**: `src/components/categorias/CategoryDialog.tsx` — redesign da seção de visibilidade + Sheet de membros
-- **Editar**: `src/hooks/useCategories.ts` — mutations para gerenciar membros junto com a categoria
-- **Editar**: `src/types/category.ts` — adicionar tipo `CategoryMember` com perfil
+3. **`src/pages/PlanContent.tsx`** — Textos no breadcrumb, alt da imagem, h1 e dica contextual
 
-## 2. Sidebar — Dropdown Colapsável de Categorias
+4. **`src/pages/PlanResult.tsx`** — Título `"Planejamento de Conteúdo"` → `"Calendário de Conteúdo"`
 
-### Comportamento
-- O item "Categorias" na sidebar vira um `Collapsible` com chevron
-- Ao expandir, mostra duas seções:
-  - **Minhas Categorias**: categorias onde `user_id === auth.uid()`
-  - **Compartilhadas Comigo**: categorias onde o usuário é membro (via `action_category_members`) mas não é dono
-- Cada categoria mostra um dot de cor + nome truncado, clicável para `/categories/:id`
-- Link "Ver todas" no final leva para `/categories`
-- No estado colapsado da sidebar (icon mode): mantém apenas o ícone `FolderOpen` como tooltip
+5. **`src/components/dashboard/DashboardRecentActivity.tsx`** — `'PLANEJAR_CONTEUDO': 'Planejar Conteúdo'` → `'Calendário de Conteúdo'`
 
-### Dados
-- Reutilizar `useCategories` mas separar em `myCategories` e `sharedCategories`
-- Para "compartilhadas comigo": query adicional em `action_category_members` onde `user_id = auth.uid()` e join com `action_categories` onde `user_id != auth.uid()`
+6. **`src/components/admin/UserLogsDialog.tsx`** — Mesmo mapeamento de display
 
-### Arquivos
-- **Editar**: `src/components/AppSidebar.tsx` — substituir NavItem simples por componente colapsável com lista de categorias
-- **Editar**: `src/hooks/useCategories.ts` — adicionar query `useSharedCategories` ou retornar categorias separadas
+7. **`src/components/onboarding/tourSteps.ts`** — Tour step do nav e do plan content
 
-## 3. Hook useCategories — Ajustes
+8. **`src/lib/creditCosts.ts`** — Label `"Planejamento de conteúdo"` → `"Calendário de conteúdo"`
 
-### Novas funcionalidades
-- `createCategory` aceita `members: { userId: string; role: 'viewer' | 'editor' }[]` e insere em `action_category_members` após criar
-- `updateCategory` aceita `members` e faz sync (delete all + insert)
-- Nova query `useCategoryMembers(categoryId)` para carregar membros de uma categoria com perfil
-- Separar retorno em `myCategories` e `sharedCategories` baseado em `user_id === auth.uid()` vs membro
+9. **`src/pages/CreditHistory.tsx`** — Label `"Planejamento de Conteúdo"` → `"Calendário de Conteúdo"`
 
-## Detalhes Técnicos
+10. **`src/pages/Onboarding.tsx`** — Texto descritivo `"planejamento de conteúdo"` → `"calendário de conteúdo"`
 
-- Sheet de membros usa `side="right"` para parecer painel apêndice lateral
-- Lista de membros da equipe vem de `useTeamMembers(user.teamId)`
-- Cada membro tem toggle entre Leitor/Editor usando `NativeSelect` ou botões segmentados
-- Sidebar colapsável usa `Collapsible`/`CollapsibleTrigger`/`CollapsibleContent` do Radix (já instalado)
-- Limitar exibição na sidebar a ~5 categorias por seção + "Ver mais"
+11. **`supabase/functions/platform-chat/index.ts`** — Texto do prompt do chatbot
+
+12. **`supabase/functions/generate-plan/index.ts`** — Description no credit history log
+
+### O que NÃO muda
+- Enum `PLANEJAR_CONTEUDO` no banco (tipo de ação) — permanece inalterado
+- Nomes de variáveis/funções (`planContent`, `plan_content`) — apenas labels visíveis
+- Rotas (`/plan`, `/plan-result`) — permanecem iguais
+- Arquivo `types.ts` do Supabase — gerado automaticamente
 
