@@ -25,6 +25,7 @@ type SortDirection = 'asc' | 'desc';
 
 export default function History() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [selectedActionSummary, setSelectedActionSummary] = useState<ActionSummary | null>(null);
   const [activeTab, setActiveTab] = useState<'all' | 'favorites'>('all');
   const { allFavoriteIds, isFavorite, isPersonalFavorite, isTeamFavorite, toggleFavorite, hasTeam } = useFavorites();
