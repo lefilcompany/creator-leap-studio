@@ -94,8 +94,15 @@ export function useCategories() {
           schema: 'public',
           table: 'action_categories',
         },
-        () => {
+        (payload) => {
           queryClient.invalidateQueries({ queryKey: ['categories'] });
+          // Also invalidate individual category queries for CategoryView
+          if (payload.new && typeof payload.new === 'object' && 'id' in payload.new) {
+            queryClient.invalidateQueries({ queryKey: ['category', (payload.new as any).id] });
+          }
+          if (payload.old && typeof payload.old === 'object' && 'id' in payload.old) {
+            queryClient.invalidateQueries({ queryKey: ['category', (payload.old as any).id] });
+          }
         }
       )
       .subscribe();
