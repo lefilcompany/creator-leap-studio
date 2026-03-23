@@ -81,6 +81,30 @@ export function useCategories() {
     enabled: !!user?.id,
   });
 
+  // Realtime subscription for action_categories changes
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const channel = supabase
+      .channel('categories-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'action_categories',
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['categories'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, queryClient]);
+
   const myCategories = (categoriesQuery.data || []).filter(c => c.user_id === user?.id);
   const sharedCategories = (categoriesQuery.data || []).filter(c => c.user_id !== user?.id);
 
