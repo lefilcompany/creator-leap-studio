@@ -440,15 +440,32 @@ export default function ActionList({
                 const gradient = ACTION_GRADIENT_MAP[action.type];
                 const iconColor = ACTION_COLOR_MAP[action.type];
 
+                const isBulkSel = bulkSelectedIds?.has(action.id);
                 return (
                   <TableRow
                     key={action.id}
-                    onClick={() => navigate(`/action/${action.id}`, { state: { viewMode } })}
+                    onClick={() => selectionMode ? onToggleBulkSelect?.(action.id) : navigate(`/action/${action.id}`, { state: { viewMode } })}
                     className={cn(
                       "cursor-pointer transition-colors duration-150 border-b border-border/10",
-                      selectedAction?.id === action.id ? "bg-primary/8 hover:bg-primary/12" : "hover:bg-muted/50"
+                      isBulkSel ? "bg-primary/8 hover:bg-primary/12" : "",
+                      selectedAction?.id === action.id && !selectionMode ? "bg-primary/8 hover:bg-primary/12" : "hover:bg-muted/50"
                     )}
                   >
+                    {selectionMode && (
+                      <TableCell className="py-2" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          onClick={() => onToggleBulkSelect?.(action.id)}
+                          className={cn(
+                            "w-5 h-5 rounded flex items-center justify-center transition-all",
+                            isBulkSel
+                              ? "bg-primary text-primary-foreground"
+                              : "border border-border hover:border-primary/50"
+                          )}
+                        >
+                          {isBulkSel && <Check className="h-3 w-3" />}
+                        </button>
+                      </TableCell>
+                    )}
                     <TableCell className="py-2">
                       <div className="w-14 h-10 rounded-lg overflow-hidden bg-muted flex-shrink-0">
                         {action.imageUrl ? (
