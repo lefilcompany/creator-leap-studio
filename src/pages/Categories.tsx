@@ -14,7 +14,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import historyBanner from '@/assets/history-banner.jpg';
+import categoriesBanner from '@/assets/categories-banner.jpg';
 
 export default function Categories() {
   const navigate = useNavigate();
