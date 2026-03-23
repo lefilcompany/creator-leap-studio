@@ -2,11 +2,15 @@ import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { FolderOpen, ArrowLeft, Users, User } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { FolderOpen, Users, User, Settings, UsersRound, ChevronDown } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { PageBreadcrumb } from '@/components/PageBreadcrumb';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import ActionList from '@/components/historico/ActionList';
+import { CategoryMembersPanel } from '@/components/categorias/CategoryMembersPanel';
+import { CategorySettingsPanel } from '@/components/categorias/CategorySettingsPanel';
+import { useCategories } from '@/hooks/useCategories';
+import { useAuth } from '@/hooks/useAuth';
 import type { ActionSummary } from '@/types/action';
 import { ACTION_TYPE_DISPLAY } from '@/types/action';
 import { useHistoryBrands } from '@/hooks/useHistoryActions';
@@ -16,9 +20,11 @@ import { cn } from '@/lib/utils';
 export default function CategoryView() {
   const { categoryId } = useParams<{ categoryId: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [selectedAction, setSelectedAction] = useState<ActionSummary | null>(null);
   const { allFavoriteIds, isFavorite, isPersonalFavorite, isTeamFavorite, toggleFavorite, hasTeam } = useFavorites();
   const { data: brands = [] } = useHistoryBrands();
+  const { updateCategory } = useCategories();
 
   const { data: category, isLoading: loadingCategory } = useQuery({
     queryKey: ['category', categoryId],
@@ -33,6 +39,8 @@ export default function CategoryView() {
     },
     enabled: !!categoryId,
   });
+
+  const isOwner = category?.user_id === user?.id;
 
   const { data: categoryActions = [], isLoading: loadingActions } = useQuery({
     queryKey: ['category-actions', categoryId],
@@ -81,6 +89,11 @@ export default function CategoryView() {
     ...Object.values(ACTION_TYPE_DISPLAY).map(d => ({ value: d, label: d })),
   ], []);
 
+  const handleSettingsSave = (data: { name: string; description?: string; color: string }) => {
+    if (!categoryId) return;
+    updateCategory.mutate({ id: categoryId, ...data });
+  };
+
   if (loadingCategory) {
     return <div className="flex items-center justify-center h-64"><div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full" /></div>;
   }
@@ -112,30 +125,89 @@ export default function CategoryView() {
         </div>
       </div>
 
-      {/* Actions */}
-      <main className="px-4 sm:px-6 lg:px-8 pt-4 pb-4 sm:pb-6 lg:pb-8">
-        <ActionList
-          actions={categoryActions}
-          selectedAction={selectedAction}
-          onSelectAction={setSelectedAction}
-          isLoading={loadingActions}
-          brands={brands}
-          brandFilter="all"
-          onBrandFilterChange={() => {}}
-          typeFilter="all"
-          onTypeFilterChange={() => {}}
-          brandOptions={brandOptions}
-          typeOptions={typeOptions}
-          hasNextPage={false}
-          isFetchingNextPage={false}
-          onLoadMore={() => {}}
-          isFavorite={isFavorite}
-          isPersonalFavorite={isPersonalFavorite}
-          isTeamFavorite={isTeamFavorite}
-          onToggleFavorite={toggleFavorite}
-          hasTeam={hasTeam}
-        />
-      </main>
+      {/* Content area with sidebar */}
+      <div className="px-4 sm:px-6 lg:px-8 pt-4 pb-4 sm:pb-6 lg:pb-8">
+        <div className="flex flex-col lg:flex-row gap-4">
+          {/* Main content */}
+          <main className="flex-1 min-w-0">
+            <ActionList
+              actions={categoryActions}
+              selectedAction={selectedAction}
+              onSelectAction={setSelectedAction}
+              isLoading={loadingActions}
+              brands={brands}
+              brandFilter="all"
+              onBrandFilterChange={() => {}}
+              typeFilter="all"
+              onTypeFilterChange={() => {}}
+              brandOptions={brandOptions}
+              typeOptions={typeOptions}
+              hasNextPage={false}
+              isFetchingNextPage={false}
+              onLoadMore={() => {}}
+              isFavorite={isFavorite}
+              isPersonalFavorite={isPersonalFavorite}
+              isTeamFavorite={isTeamFavorite}
+              onToggleFavorite={toggleFavorite}
+              hasTeam={hasTeam}
+            />
+          </main>
+
+          {/* Right sidebar — Members & Settings */}
+          <aside className="w-full lg:w-80 flex-shrink-0 space-y-3">
+            {/* Members section */}
+            <Collapsible defaultOpen>
+              <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
+                <CollapsibleTrigger className="w-full flex items-center justify-between px-4 py-3 hover:bg-muted/30 transition-colors">
+                  <div className="flex items-center gap-2">
+                    <UsersRound className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-semibold">Acesso</span>
+                  </div>
+                  <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 [[data-state=open]>&]:rotate-180" />
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="px-4 pb-4">
+                    {category && (
+                      <CategoryMembersPanel
+                        categoryId={category.id}
+                        ownerId={category.user_id}
+                        visibility={category.visibility}
+                        isOwner={isOwner}
+                      />
+                    )}
+                  </div>
+                </CollapsibleContent>
+              </div>
+            </Collapsible>
+
+            {/* Settings section — only for owner */}
+            {isOwner && category && (
+              <Collapsible>
+                <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
+                  <CollapsibleTrigger className="w-full flex items-center justify-between px-4 py-3 hover:bg-muted/30 transition-colors">
+                    <div className="flex items-center gap-2">
+                      <Settings className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-semibold">Configurações</span>
+                    </div>
+                    <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 [[data-state=open]>&]:rotate-180" />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="px-4 pb-4">
+                      <CategorySettingsPanel
+                        name={category.name}
+                        description={category.description}
+                        color={category.color || '#6366f1'}
+                        onSave={handleSettingsSave}
+                        isSaving={updateCategory.isPending}
+                      />
+                    </div>
+                  </CollapsibleContent>
+                </div>
+              </Collapsible>
+            )}
+          </aside>
+        </div>
+      </div>
     </div>
   );
 }
