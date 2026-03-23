@@ -471,7 +471,7 @@ export const translations = {
     
     // Plan Content
     planContent: {
-      title: "Planejar Conteúdo",
+      title: "Calendário de Conteúdo",
       selectBrand: "Selecione uma Marca",
       selectTheme: "Selecione um Tema",
       selectPersonas: "Selecione Personas",
