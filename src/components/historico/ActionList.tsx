@@ -179,10 +179,11 @@ function ActionCard({ action, isSelected, onNavigate, isPersonalFavorite, isTeam
 
   return (
     <div
-      onClick={onNavigate}
+      onClick={selectionMode ? (e) => { e.stopPropagation(); onToggleBulkSelect?.(); } : onNavigate}
       className={cn(
-        "cursor-pointer bg-card rounded-2xl overflow-hidden transition-shadow duration-200 group border border-border/30 flex flex-col shadow-sm",
-        isSelected && "ring-2 ring-primary/40 shadow-lg"
+        "cursor-pointer bg-card rounded-2xl overflow-hidden transition-shadow duration-200 group border flex flex-col shadow-sm",
+        isBulkSelected ? "ring-2 ring-primary border-primary/40 shadow-md" : "border-border/30",
+        isSelected && !selectionMode && "ring-2 ring-primary/40 shadow-lg"
       )}
     >
       {/* Image/Video area */}
