@@ -190,7 +190,7 @@ const PlanContent = () => {
       const capturedCategoryId = categoryId;
 
       addTask(
-        "Planejamento de Conteúdo",
+        "Calendário de Conteúdo",
         "plan_content",
         async () => {
           const { data, error } = await supabase.functions.invoke("generate-plan", { body: payload });
@@ -260,7 +260,7 @@ const PlanContent = () => {
           {
             tourType: 'plan_content',
             steps: planContentSteps,
-            label: 'Tour de Planejar Conteúdo',
+            label: 'Tour do Calendário de Conteúdo',
             targetElement: '#plan-header'
           }
         ]}
@@ -270,12 +270,12 @@ const PlanContent = () => {
       {/* Banner */}
       <div className="relative w-full h-28 md:h-36 flex-shrink-0 overflow-hidden">
         <PageBreadcrumb
-          items={[{ label: "Planejar Conteúdo" }]}
+          items={[{ label: "Calendário de Conteúdo" }]}
           variant="overlay"
         />
         <img
           src={planBanner}
-          alt="Planejar Conteúdo"
+          alt="Calendário de Conteúdo"
           className="w-full h-full object-cover object-center"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
@@ -293,7 +293,7 @@ const PlanContent = () => {
               <Calendar className="h-6 w-6 lg:h-7 lg:w-7" />
             </div>
             <div>
-              <h1 className="text-xl lg:text-2xl font-bold text-foreground">Planejar Conteúdo</h1>
+              <h1 className="text-xl lg:text-2xl font-bold text-foreground">Calendário de Conteúdo</h1>
               <p className="text-xs lg:text-sm text-muted-foreground">
                 Preencha os campos para gerar seu planejamento de posts
               </p>
@@ -353,7 +353,7 @@ const PlanContent = () => {
                       <p className="text-xs text-muted-foreground flex items-start gap-1.5">
                         <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
                          {brands.length === 0 
-                          ? <span>Cadastre uma marca antes de planejar conteúdo</span>
+                          ? <span>Cadastre uma marca antes de criar o calendário de conteúdo</span>
                           : <span>O planejamento será baseado na identidade e diretrizes dessa marca</span>
                         }
                       </p>

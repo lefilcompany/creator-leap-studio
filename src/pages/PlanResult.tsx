@@ -23,7 +23,7 @@ const PlanResult = () => {
 
   useEffect(() => {
     if (!planContent) {
-      toast.error("Nenhum planejamento encontrado");
+      toast.error("Nenhum calendário de conteúdo encontrado");
       navigate("/plan");
     }
   }, [planContent, navigate]);
@@ -338,7 +338,7 @@ const PlanResult = () => {
               </div>
               <div>
                 <CardTitle className="text-2xl sm:text-3xl">
-                  Planejamento de Conteúdo
+                  Calendário de Conteúdo
                 </CardTitle>
                 <p className="text-sm text-muted-foreground mt-1">
                   Gerado em {new Date().toLocaleDateString('pt-BR', { 

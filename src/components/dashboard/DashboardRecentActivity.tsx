@@ -30,7 +30,7 @@ interface DashboardRecentActivityProps {
 
 const formatActionType = (type: string) => {
   const types: Record<string, string> = {
-    'PLANEJAR_CONTEUDO': 'Planejar Conteúdo',
+    'PLANEJAR_CONTEUDO': 'Calendário de Conteúdo',
     'CRIAR_CONTEUDO': 'Criar Conteúdo',
     'CRIAR_CONTEUDO_RAPIDO': 'Conteúdo Rápido',
     'REVISAR_CONTEUDO': 'Revisar Conteúdo',

@@ -136,7 +136,7 @@ FUNCIONALIDADES PRINCIPAIS:
    - Dashboard: Visão geral e acesso rápido
    - Criar Conteúdo: Geração completa de posts (imagem + legenda)
    - Conteúdo Rápido: Geração rápida de legendas
-   - Planejar Conteúdo: Planejamento mensal estratégico
+   - Calendário de Conteúdo: Planejamento mensal estratégico
    - Revisar Conteúdo: Revisão de textos para imagens
    - Marcas: Gestão de marcas com identidade visual
    - Personas: Gestão de personas de audiência

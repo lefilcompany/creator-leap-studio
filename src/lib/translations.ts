@@ -37,7 +37,7 @@ export const translations = {
       history: "Histórico",
       createContent: "Criar Conteúdo",
       reviewContent: "Revisar Conteúdo",
-      planContent: "Planejar Conteúdo",
+      planContent: "Calendário de Conteúdo",
       team: "Equipe",
       categories: "Categorias",
       plan: "Plano",
@@ -471,7 +471,7 @@ export const translations = {
     
     // Plan Content
     planContent: {
-      title: "Planejar Conteúdo",
+      title: "Calendário de Conteúdo",
       selectBrand: "Selecione uma Marca",
       selectTheme: "Selecione um Tema",
       selectPersonas: "Selecione Personas",
@@ -569,7 +569,7 @@ export const translations = {
       history: "History",
       createContent: "Create Content",
       reviewContent: "Review Content",
-      planContent: "Plan Content",
+      planContent: "Content Calendar",
       team: "Team",
       categories: "Categories",
       plan: "Plan",
@@ -981,7 +981,7 @@ export const translations = {
     
     // Plan Content
     planContent: {
-      title: "Plan Content",
+      title: "Content Calendar",
       selectBrand: "Select a Brand",
       selectTheme: "Select a Theme",
       selectPersonas: "Select Personas",

@@ -44,7 +44,7 @@ export const navbarSteps: Step[] = [
   },
   {
     target: '#nav-plan-content',
-    content: 'Planejar Conteúdo: organize seu calendário editorial e planeje suas publicações estrategicamente.',
+    content: 'Calendário de Conteúdo: organize seu calendário editorial e planeje suas publicações estrategicamente.',
     placement: 'right',
   },
   {
@@ -256,7 +256,7 @@ export const contentCreationSelectorSteps: Step[] = [
 export const planContentSteps: Step[] = [
   {
     target: '#plan-header',
-    content: 'Bem-vindo ao Planejamento de Conteúdo! 📅 Esta funcionalidade usa IA para gerar um calendário editorial estratégico com ideias de posts alinhados à sua marca, tema e plataforma escolhida.',
+    content: 'Bem-vindo ao Calendário de Conteúdo! 📅 Esta funcionalidade usa IA para gerar um calendário editorial estratégico com ideias de posts alinhados à sua marca, tema e plataforma escolhida.',
     disableBeacon: true,
     placement: 'bottom',
   },

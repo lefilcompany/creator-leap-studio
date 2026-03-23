@@ -4,14 +4,14 @@ import { Sparkles, CheckCircle, Calendar } from 'lucide-react';
 export type ActionType = 'CRIAR_CONTEUDO' | 'CRIAR_CONTEUDO_RAPIDO' | 'REVISAR_CONTEUDO' | 'PLANEJAR_CONTEUDO' | 'GERAR_VIDEO';
 
 // Tipos de ação para exibição
-export type ActionDisplayType = 'Criar conteúdo' | 'Criar conteúdo rápido' | 'Revisar conteúdo' | 'Planejar conteúdo' | 'Gerar vídeo';
+export type ActionDisplayType = 'Criar conteúdo' | 'Criar conteúdo rápido' | 'Revisar conteúdo' | 'Calendário de conteúdo' | 'Gerar vídeo';
 
 // Mapeamento de tipos para exibição
 export const ACTION_TYPE_DISPLAY: { [key in ActionType]: ActionDisplayType } = {
   'CRIAR_CONTEUDO': 'Criar conteúdo',
   'CRIAR_CONTEUDO_RAPIDO': 'Criar conteúdo rápido',
   'REVISAR_CONTEUDO': 'Revisar conteúdo',
-  'PLANEJAR_CONTEUDO': 'Planejar conteúdo',
+  'PLANEJAR_CONTEUDO': 'Calendário de conteúdo',
   'GERAR_VIDEO': 'Gerar vídeo',
 };
 
@@ -34,7 +34,7 @@ export const ACTION_STYLE_MAP: {
     color: 'text-accent',
     background: 'bg-accent/10',
   },
-  'Planejar conteúdo': {
+  'Calendário de conteúdo': {
     icon: Calendar,
     color: 'text-secondary',
     background: 'bg-secondary/10',

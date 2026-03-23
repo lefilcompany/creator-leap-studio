@@ -207,7 +207,7 @@ export const UserLogsDialog = ({ user, open, onOpenChange }: UserLogsDialogProps
       CRIAR_CONTEUDO: "Criar Conteúdo",
       CRIAR_CONTEUDO_RAPIDO: "Conteúdo Rápido",
       REVISAR_CONTEUDO: "Revisar Conteúdo",
-      PLANEJAR_CONTEUDO: "Planejar Conteúdo",
+      PLANEJAR_CONTEUDO: "Calendário de Conteúdo",
       GERAR_VIDEO: "Gerar Vídeo",
     };
 
