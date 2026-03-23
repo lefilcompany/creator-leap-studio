@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { Star, Search, ArrowUpDown, ArrowUp, ArrowDown, List, LayoutGrid, X, Clock, Sparkles, CheckCircle, Calendar, Video, Image, Globe, Users, Loader2, MoreHorizontal, CheckSquare, Square } from 'lucide-react';
+import { Star, Search, ArrowUpDown, ArrowUp, ArrowDown, List, LayoutGrid, X, Clock, Sparkles, CheckCircle, Calendar, Video, Image, Globe, Users, Loader2, MoreHorizontal, Check, Square } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { CategoryBadge, NoCategoryBadge } from '@/components/categorias/CategoryBadge';
 import { Button } from '@/components/ui/button';
