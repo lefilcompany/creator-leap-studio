@@ -57,7 +57,7 @@ function CustomizationCard({ icon, title, description, options, value, onChange,
                 <button
                   type="button"
                   onClick={e => { e.stopPropagation(); onChange(""); }}
-                  className="flex-shrink-0 rounded-full p-0.5 hover:bg-primary/20 transition-colors"
+                  className="flex-shrink-0 rounded-full p-0.5 hover:bg-destructive/20 hover:text-destructive transition-colors"
                 >
                   <X className="h-2.5 w-2.5" />
                 </button>
