@@ -6,9 +6,8 @@ import { Button } from "@/components/ui/button";
 import { TagSelect } from "@/components/ui/tag-select";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Loader2, Zap, Coins, HelpCircle, ChevronDown } from "lucide-react";
+import { Loader2, Zap, Coins, HelpCircle } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { CREDIT_COSTS } from "@/lib/creditCosts";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,7 +32,6 @@ export default function QuickContent() {
   const { addTask } = useBackgroundTasks();
   const [loading, setLoading] = useState(false);
   const [categoryId, setCategoryId] = useState("");
-  const [customizationsOpen, setCustomizationsOpen] = useState(false);
   const [formData, setFormData] = useState({
     prompt: "",
     brandId: "",
@@ -281,26 +279,18 @@ export default function QuickContent() {
                 onPreserveImageIndicesChange={setPreserveImageIndices}
               />
 
-              {/* 2. Visual Style Grid */}
-              <VisualStyleGrid
-                value={formData.visualStyle}
-                onChange={value => setFormData(prev => ({ ...prev, visualStyle: value }))}
-              />
+              {/* Visual Style + Customizations side by side */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Visual Style Grid */}
+                <VisualStyleGrid
+                  value={formData.visualStyle}
+                  onChange={value => setFormData(prev => ({ ...prev, visualStyle: value }))}
+                />
 
-              {/* 3. Customizations (optional collapsible) */}
-              <Collapsible open={customizationsOpen} onOpenChange={setCustomizationsOpen}>
-                <CollapsibleTrigger asChild>
-                  <button
-                    type="button"
-                    className="flex items-center gap-2 text-sm font-bold text-foreground hover:text-primary transition-colors"
-                  >
-                    <span>Personalizações</span>
-                    <span className="text-xs font-normal text-muted-foreground">(opcional)</span>
-                    <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${customizationsOpen ? "rotate-180" : ""}`} />
-                  </button>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="mt-3 space-y-3">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {/* Customizations */}
+                <div className="space-y-2.5">
+                  <p className="text-sm font-bold text-foreground">Personalizações <span className="text-xs font-normal text-muted-foreground">(opcional)</span></p>
+                  <div className="space-y-3">
                     {/* Brand */}
                     <div className="space-y-1.5">
                       <label className="text-xs font-bold text-foreground">Marca</label>
@@ -348,8 +338,8 @@ export default function QuickContent() {
                       )}
                     </div>
                   </div>
-                </CollapsibleContent>
-              </Collapsible>
+                </div>
+              </div>
 
               {/* Category Selector */}
               <CategorySelector value={categoryId} onChange={setCategoryId} />
