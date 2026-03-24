@@ -1037,7 +1037,7 @@ export default function CreateImage() {
                       <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                         {formData.ctaText && <span className="text-[10px] text-muted-foreground">CTA: {formData.ctaText}</span>}
                         <span className="text-[10px] text-muted-foreground">
-                          {FONT_STYLE_OPTIONS.find(f => f.value === formData.fontStyle)?.label || 'Moderno'} · {TEXT_DESIGN_OPTIONS.find(d => d.value === formData.textDesignStyle)?.label || 'Clean'}
+                          {formData.fontFamily || 'Montserrat'} · {TEXT_DESIGN_OPTIONS.find(d => d.value === formData.textDesignStyle)?.label || 'Clean'}
                         </span>
                       </div>
                     </div>
@@ -1311,7 +1311,7 @@ export default function CreateImage() {
                             {/* Labels */}
                             <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between">
                               <span className="text-[9px] text-muted-foreground/60 font-medium">
-                                {FONT_STYLE_OPTIONS.find(f => f.value === formData.fontStyle)?.label || 'Moderno'}
+                                {formData.fontFamily || 'Montserrat'}
                               </span>
                               <span className="text-[9px] text-muted-foreground/60 font-medium">
                                 {TEXT_DESIGN_OPTIONS.find(d => d.value === formData.textDesignStyle)?.label || 'Clean'}
@@ -1429,7 +1429,7 @@ export default function CreateImage() {
                       </div>
                       <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between">
                         <span className="text-[9px] text-muted-foreground/60 font-medium">
-                          {FONT_STYLE_OPTIONS.find(f => f.value === formData.fontStyle)?.label || 'Moderno'}
+                          {formData.fontFamily || 'Montserrat'}
                         </span>
                         <span className="text-[9px] text-muted-foreground/60 font-medium">
                           {TEXT_DESIGN_OPTIONS.find(d => d.value === formData.textDesignStyle)?.label || 'Clean'}
