@@ -681,7 +681,7 @@ export default function CreateImage() {
       <main className="px-4 sm:px-6 lg:px-8 pt-4 pb-8 flex-1">
         <div className="max-w-7xl mx-auto space-y-4 mt-4">
 
-          <div id="create-image-form" className="grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-6">
+          <div id="create-image-form" className="grid grid-cols-1 lg:grid-cols-[1fr_320px] xl:grid-cols-[1fr_400px] gap-6">
             {/* ═══ Left Column ═══ */}
             <div className="space-y-5">
 
