@@ -155,6 +155,7 @@ export default function CreateImage() {
 
   const [selectedCategoryId, setSelectedCategoryId] = useState("");
   const [loading, setLoading] = useState(false);
+  const [generatingTaskId, setGeneratingTaskId] = useState<string | null>(null);
   const [generationStep, setGenerationStep] = useState(GenerationStep.IDLE);
   const [generationProgress, setGenerationProgress] = useState(0);
   const [referenceFiles, setReferenceFiles] = useState<File[]>([]);
