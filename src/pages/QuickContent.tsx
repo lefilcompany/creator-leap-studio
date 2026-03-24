@@ -265,9 +265,9 @@ export default function QuickContent() {
 
       {/* Main Form — Two columns on desktop */}
       <main className="px-4 sm:px-6 lg:px-8 pt-4 pb-8 flex-1">
-        <div className="max-w-5xl mx-auto space-y-4 mt-4">
+        <div className="max-w-7xl mx-auto space-y-4 mt-4">
 
-          <div id="quick-content-form" className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6">
+          <div id="quick-content-form" className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6">
             {/* Left column */}
             <div className="space-y-5">
               {/* 1. Prompt + References */}
