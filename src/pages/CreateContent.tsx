@@ -35,6 +35,7 @@ import { getPlatformImageSpec, getCaptionGuidelines, platformSpecs } from "@/lib
 import { useFormPersistence } from '@/hooks/useFormPersistence';
 import { TourSelector } from '@/components/onboarding/TourSelector';
 import { createContentSteps, navbarSteps } from '@/components/onboarding/tourSteps';
+import { GeneratingOverlay } from "@/components/GeneratingOverlay";
 
 enum GenerationStep {
   IDLE = "IDLE",
@@ -1238,6 +1239,7 @@ export default function CreateContent() {
 
   return (
     <div className="min-h-full bg-gradient-to-br from-background via-background to-muted/20">
+      <GeneratingOverlay taskId={generatingTaskId} onReset={() => setGeneratingTaskId(null)} />
       <TourSelector 
         tours={[
           {
