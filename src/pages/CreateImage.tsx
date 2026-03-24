@@ -1075,7 +1075,7 @@ export default function CreateImage() {
               </div>
 
               {/* Visual Style + Camera Angle */}
-              <div className="grid grid-cols-2 gap-3 items-stretch">
+              <div className="flex flex-col gap-3">
                 <VisualStyleGrid
                   value={formData.visualStyle}
                   onChange={value => handleSelectChange("visualStyle" as any, value)}
