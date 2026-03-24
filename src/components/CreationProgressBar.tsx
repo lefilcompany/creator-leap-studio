@@ -40,7 +40,7 @@ export function CreationProgressBar({ currentStep, className }: CreationProgress
                     isActive && step.id === "generating"
                       ? "bg-primary/15 border-primary text-primary shadow-md shadow-primary/20"
                       : isActive && "bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/30",
-                    isPending && "bg-background border-border text-muted-foreground"
+                    isPending && "bg-muted/50 border-border/50 text-muted-foreground/40"
                   )}
                 >
                   {isCompleted ? (
