@@ -1029,23 +1029,6 @@ export default function CreateImage() {
                 </div>
               </div>
 
-              {/* Platform guidelines */}
-              {platformGuidelines.length > 0 && (
-                <div className="rounded-2xl shadow-md bg-primary/5 p-4 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Info className="h-4 w-4 text-primary flex-shrink-0" />
-                    <p className="text-xs font-semibold text-primary">Diretrizes — {formData.platform}</p>
-                  </div>
-                  <ul className="space-y-1 text-[11px] text-muted-foreground">
-                    {platformGuidelines.map((g, idx) => (
-                      <li key={idx} className="flex items-start gap-1.5"><span className="text-primary mt-0.5">•</span><span>{g}</span></li>
-                    ))}
-                  </ul>
-                  {recommendedAspectRatio && (
-                    <p className="text-[11px] text-primary/80 font-medium mt-2 pt-2 border-t border-primary/20">💡 Recomendado: {recommendedAspectRatio}</p>
-                  )}
-                </div>
-              )}
             </div>
           </div>
 
