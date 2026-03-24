@@ -33,7 +33,7 @@ function CustomizationCard({ icon, title, description, options, value, onChange,
         <button
           type="button"
           disabled={disabled}
-          className={`flex-1 min-w-0 flex flex-col rounded-xl p-3 text-left transition-all ${
+          className={`flex-1 min-w-[100px] flex flex-col rounded-xl p-3 text-left transition-all ${
             disabled
               ? "bg-muted/40 opacity-60 cursor-not-allowed"
               : "bg-card shadow-sm cursor-pointer active:scale-[0.98]"
