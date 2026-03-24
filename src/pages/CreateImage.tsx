@@ -1053,10 +1053,10 @@ export default function CreateImage() {
 
               {/* Text on Image Modal — side-by-side cards like CategoryDialog */}
               <Dialog open={textModalOpen} onOpenChange={setTextModalOpen}>
-                <DialogContent className="sm:max-w-[68rem] p-0 gap-0 overflow-visible bg-transparent border-none shadow-none">
-                  <div className="flex items-stretch gap-4">
+                <DialogContent className="sm:max-w-[68rem] max-h-[92vh] p-0 gap-0 overflow-hidden bg-transparent border-none shadow-none [&>button]:hidden">
+                  <div className="flex items-stretch gap-4 max-h-[92vh]">
                     {/* Left: Controls Panel */}
-                    <div className="flex flex-col bg-background rounded-xl shadow-lg border border-border overflow-hidden w-full sm:w-[36rem] flex-shrink-0 max-h-[90vh]">
+                    <div className="flex flex-col bg-background rounded-xl shadow-lg border border-border overflow-hidden w-full sm:w-[36rem] flex-shrink-0 max-h-[92vh]">
                       <DialogHeader className="px-6 pt-6 pb-0">
                         <DialogTitle className="flex items-center gap-2">
                           <Type className="h-5 w-5 text-primary" />
@@ -1277,7 +1277,7 @@ export default function CreateImage() {
                     </div>
 
                     {/* Right: Live Preview — separate card */}
-                    <div className="hidden sm:flex flex-col w-96 flex-shrink-0 bg-background rounded-xl shadow-lg border border-border max-h-[90vh] animate-in fade-in-0 slide-in-from-right-4 duration-200">
+                    <div className="hidden sm:flex flex-col w-96 flex-shrink-0 bg-background rounded-xl shadow-lg border border-border max-h-[92vh] animate-in fade-in-0 slide-in-from-right-4 duration-200">
                       <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-border">
                         <h3 className="font-semibold text-base">Preview</h3>
                         <span className="text-[10px] text-muted-foreground font-medium">
