@@ -163,7 +163,7 @@ serve(async (req) => {
               currency: 'brl',
               product_data: {
                 name: `${credits} Créditos Creator`,
-                description: `Compra avulsa de ${credits} créditos (R$ 2,50 por crédito)`,
+                description: `Compra avulsa de ${credits} créditos (R$ 2,90 por crédito)`,
               },
               unit_amount: amountInCents,
             },
