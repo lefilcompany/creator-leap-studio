@@ -1270,7 +1270,7 @@ export default function CreateImage() {
                           Remover texto
                         </Button>
                         <div className="flex-1" />
-                        <Button type="button" onClick={() => setTextModalOpen(false)}>
+                        <Button type="button" size="sm" onClick={() => setTextModalOpen(false)}>
                           Confirmar
                         </Button>
                       </div>
