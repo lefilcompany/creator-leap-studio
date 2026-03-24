@@ -277,7 +277,6 @@ export default function QuickContent() {
       {/* Main Form — Two columns on desktop */}
       <main className="px-4 sm:px-6 lg:px-8 pt-4 pb-8 flex-1">
         <div className="max-w-5xl mx-auto space-y-4 mt-4">
-          <CreationProgressBar currentStep={loading ? "generating" : "config"} className="max-w-xs mx-auto" />
 
           <div id="quick-content-form" className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6">
             {/* Left column */}
