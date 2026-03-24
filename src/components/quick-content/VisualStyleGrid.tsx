@@ -38,7 +38,7 @@ export function VisualStyleGrid({ value, onChange }: VisualStyleGridProps) {
 
   return (
     <div className="flex flex-col gap-2.5 h-full">
-      <p className="text-sm font-bold text-foreground">Estilo Visual</p>
+      <p className="text-base font-bold text-foreground">Estilo Visual</p>
 
       {/* Selected style card */}
       <button

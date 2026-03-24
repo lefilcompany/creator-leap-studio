@@ -87,7 +87,7 @@ export function UnifiedPromptBox({
   return (
     <div className="space-y-2.5">
       <div>
-        <Label htmlFor="quick-description" className="text-sm font-bold text-foreground">
+        <Label htmlFor="quick-description" className="text-base font-bold text-foreground">
           Descreva sua criação
         </Label>
         <p className="text-xs text-muted-foreground mt-0.5">
