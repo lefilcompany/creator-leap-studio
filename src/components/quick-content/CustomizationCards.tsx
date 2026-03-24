@@ -50,30 +50,7 @@ function CustomizationCard({ icon, title, description, options, value, onChange,
           {/* Footer — selected tag */}
           <div className="mt-2 min-h-[22px]">
             {selected ? (
-              <TooltipProvider delayDuration={300}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div>
-                      <Badge
-                        variant="secondary"
-                        className="gap-1 px-2 py-0.5 text-[10px] font-medium bg-primary/10 text-primary border border-primary/20 max-w-full hover:bg-primary/10 cursor-default"
-                      >
-                        <span className="truncate">{selected.label}</span>
-                        <button
-                          type="button"
-                          onClick={e => { e.stopPropagation(); onChange(""); }}
-                          className="flex-shrink-0 rounded-full p-0.5 hover:bg-destructive/20 hover:text-destructive transition-colors"
-                        >
-                          <X className="h-2.5 w-2.5" />
-                        </button>
-                      </Badge>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent side="top" className="text-xs z-[9999]">
-                    {selected.label}
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <TruncatedBadge label={selected.label} onRemove={() => onChange("")} />
             ) : (
               <span className="text-[10px] text-muted-foreground/50">Nenhum selecionado</span>
             )}
