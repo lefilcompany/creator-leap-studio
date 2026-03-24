@@ -707,8 +707,8 @@ export default function CreateImage() {
       ]} startDelay={500} />
 
       {/* Banner */}
-      <div className="relative h-20 md:h-24 overflow-hidden">
-        <PageBreadcrumb items={[{ label: "Criar Conteúdo", href: "/create" }, { label: "Criação Rápida" }]} variant="overlay" />
+      <div className="relative h-24 md:h-28 overflow-hidden">
+        <PageBreadcrumb items={[{ label: "Criar Conteúdo", href: "/create" }, { label: "Criar Imagem" }]} variant="overlay" />
         <img src={createBanner} alt="Criar Imagem" className="w-full h-full object-cover object-center" loading="eager" />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
       </div>
@@ -717,7 +717,7 @@ export default function CreateImage() {
       <div className="relative px-4 sm:px-6 lg:px-8 -mt-8 z-10">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-stretch gap-3">
           {/* Title card */}
-          <div className="bg-card rounded-2xl shadow-lg p-2.5 lg:p-3 flex items-center gap-2.5 flex-1 min-w-0">
+          <div className="bg-card rounded-2xl shadow-lg p-3 lg:p-4 flex items-center gap-3 flex-1 min-w-0">
             <div className="flex-shrink-0 bg-primary/10 text-primary rounded-xl p-2">
               <ImageIcon className="h-5 w-5 lg:h-6 lg:w-6" />
             </div>
