@@ -44,7 +44,7 @@ export function VisualStyleGrid({ value, onChange }: VisualStyleGridProps) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="w-full flex items-center gap-4 rounded-2xl bg-card shadow-sm hover:shadow-md p-3 transition-all active:scale-[0.99] text-left group"
+        className="w-full flex items-center gap-4 rounded-2xl bg-card shadow-sm hover:shadow-md p-3 transition-all active:scale-[0.99] text-left group flex-1"
       >
         <img
           src={selected.image}
