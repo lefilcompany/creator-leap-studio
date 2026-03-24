@@ -106,9 +106,9 @@ export function CustomizationCards({
   loadingBrands, loadingPersonas, loadingThemes,
 }: CustomizationCardsProps) {
   return (
-    <div className="space-y-2.5">
+    <div className="flex flex-col gap-2.5 h-full">
       <p className="text-sm font-bold text-foreground">Personalizações <span className="text-xs font-normal text-muted-foreground">(opcional)</span></p>
-      <div className="flex gap-2">
+      <div className="flex gap-2 flex-1">
         <CustomizationCard
           icon={<Building2 className="h-4 w-4" />}
           title="Marca"
