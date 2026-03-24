@@ -178,7 +178,7 @@ export default function QuickContent() {
       clearPersistedData();
       const selectedCategoryId = categoryId;
 
-      addTask(
+      const newTaskId = addTask(
         "Criação Rápida",
         "quick_content",
         async () => {
@@ -211,7 +211,7 @@ export default function QuickContent() {
         () => refreshUserCredits?.()
       );
 
-      setGeneratingTaskId(taskId);
+      setGeneratingTaskId(newTaskId);
     } catch (error: any) {
       console.error("Error preparing payload:", error);
       toast.error(error.message || "Erro ao preparar criação");
