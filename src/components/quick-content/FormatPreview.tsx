@@ -87,39 +87,18 @@ export function FormatPreview({ platform, aspectRatio, onPlatformChange }: Forma
   const PlatformIcon = PLATFORM_ICON_MAP[current.platform];
 
   return (
-    <div className="flex flex-col items-center gap-5 w-full">
+    <div className="flex flex-col items-center gap-4 w-full">
       <p className="text-sm font-bold text-foreground">Preview do Formato</p>
 
-      {/* Aspect ratio preview with dimension labels */}
-      <div className="relative flex items-center justify-center px-8">
-        {/* Height label — left side */}
-        <div className="absolute left-0 top-0 bottom-0 flex flex-col items-center justify-center w-6">
-          <div className="w-px flex-1 bg-border/60" />
-          <span className="text-[11px] text-muted-foreground font-semibold py-1.5 whitespace-nowrap bg-card relative z-10">
-            {height}
-          </span>
-          <div className="w-px flex-1 bg-border/60" />
+      {/* Preview rectangle */}
+      <div
+        className="rounded-2xl bg-primary/5 flex items-center justify-center transition-all duration-300"
+        style={{ width: finalW, height: finalH }}
+      >
+        <div className="text-center">
+          <span className="text-xl font-bold text-primary/50">{aspectRatio}</span>
+          <p className="text-xs text-muted-foreground mt-1">{width} × {height}px</p>
         </div>
-
-        {/* The preview rectangle */}
-        <div
-          className="rounded-xl border-2 border-dashed border-primary/40 bg-primary/5 flex items-center justify-center transition-all duration-300"
-          style={{ width: finalW, height: finalH }}
-        >
-          <div className="text-center">
-            <span className="text-lg font-bold text-primary/60">{aspectRatio}</span>
-            <p className="text-[10px] text-muted-foreground mt-0.5">{width} × {height}px</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Width label — below */}
-      <div className="flex items-center gap-0 -mt-3 w-full max-w-[240px]">
-        <div className="h-px flex-1 bg-border/60" />
-        <span className="text-[11px] text-muted-foreground font-semibold px-2 whitespace-nowrap">
-          {width}
-        </span>
-        <div className="h-px flex-1 bg-border/60" />
       </div>
 
       {/* Format selector popover */}
