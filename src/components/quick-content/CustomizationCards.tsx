@@ -41,10 +41,10 @@ function CustomizationCard({ icon, title, description, options, value, onChange,
           {/* Header */}
           <div className="flex items-center gap-2 w-full">
             <div className="flex-shrink-0 text-muted-foreground">{icon}</div>
-            <span className="text-xs font-semibold text-foreground flex-1 truncate">{title}</span>
+            <span className="text-xs font-semibold text-foreground flex-1 min-w-0 break-words">{title}</span>
             <ChevronDown className={`h-3.5 w-3.5 text-muted-foreground flex-shrink-0 transition-transform ${open ? "rotate-180" : ""}`} />
           </div>
-          <p className="text-[10px] text-muted-foreground mt-1 line-clamp-1">{description}</p>
+          <p className="text-[10px] text-muted-foreground mt-1 break-words">{description}</p>
 
           {/* Footer — selected tag */}
           <div className="mt-2 min-h-[22px]">
