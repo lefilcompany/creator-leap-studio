@@ -134,6 +134,71 @@ const VISUAL_STYLES = [
   { value: "vintage", label: "Vintage" },
 ] as const;
 
+function CustomizationCardInline({
+  icon, title, description, options, value, onChange, disabled, error, required, emptyAction, emptyLabel,
+}: {
+  icon: React.ReactNode; title: string; description: string;
+  options: { value: string; label: string }[];
+  value: string; onChange: (v: string) => void;
+  disabled?: boolean; error?: boolean; required?: boolean;
+  emptyAction?: () => void; emptyLabel?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const selected = value ? options.find(o => o.value === value) : null;
+
+  return (
+    <Popover open={open} onOpenChange={disabled ? undefined : setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          disabled={disabled}
+          className={`flex-1 min-w-[140px] flex flex-col rounded-xl p-3 text-left transition-all ${
+            disabled ? "bg-muted/40 opacity-60 cursor-not-allowed" : "bg-card shadow-sm cursor-pointer active:scale-[0.98]"
+          } ${selected ? "ring-1 ring-primary/30" : ""} ${error ? "ring-2 ring-destructive/30" : ""}`}
+        >
+          <div className="flex items-center gap-2 w-full">
+            <div className="flex-shrink-0 text-muted-foreground">{icon}</div>
+            <span className="text-xs font-semibold text-foreground flex-1 min-w-0">{title}{required && <span className="text-destructive ml-0.5">*</span>}</span>
+            <ChevronDown className={`h-3.5 w-3.5 text-muted-foreground flex-shrink-0 transition-transform ${open ? "rotate-180" : ""}`} />
+          </div>
+          <p className="text-[10px] text-muted-foreground mt-1">{description}</p>
+          <div className="mt-2 min-h-[22px]">
+            {selected ? (
+              <Badge variant="secondary" className="gap-1 px-2 py-0.5 text-[10px] font-medium bg-primary/10 text-primary border border-primary/20 max-w-full hover:bg-primary/10 cursor-default">
+                <span className="truncate">{selected.label}</span>
+                <button type="button" onClick={e => { e.stopPropagation(); onChange(""); }}
+                  className="flex-shrink-0 rounded-full p-0.5 hover:bg-destructive/20 hover:text-destructive transition-colors">
+                  <X className="h-2.5 w-2.5" />
+                </button>
+              </Badge>
+            ) : (
+              <span className="text-[10px] text-muted-foreground/50">
+                {emptyAction ? <button type="button" onClick={e => { e.stopPropagation(); emptyAction(); }} className="text-primary hover:underline">{emptyLabel}</button> : "Nenhum selecionado"}
+              </span>
+            )}
+          </div>
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="start" sideOffset={6} className="w-56 p-1.5 rounded-xl max-h-60 overflow-y-auto">
+        {options.length === 0 ? (
+          <p className="text-xs text-muted-foreground text-center py-3">Nenhuma opção disponível</p>
+        ) : (
+          options.map(opt => (
+            <button key={opt.value} type="button"
+              onClick={() => { onChange(opt.value); setOpen(false); }}
+              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${
+                value === opt.value ? "bg-primary/10 text-primary font-medium" : "text-foreground hover:bg-muted/60"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))
+        )}
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 export default function CreateImage() {
   const { user, session, refreshUserCredits } = useAuth();
   const { addTask } = useBackgroundTasks();
