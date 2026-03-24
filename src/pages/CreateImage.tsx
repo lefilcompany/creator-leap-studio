@@ -1101,28 +1101,33 @@ export default function CreateImage() {
 
                     {/* Right: Live Preview — separate card */}
                     <div className="hidden sm:flex flex-col w-80 flex-shrink-0 bg-background rounded-xl shadow-lg border border-border max-h-[85vh] animate-in fade-in-0 slide-in-from-right-4 duration-200">
-                      <div className="px-5 pt-5 pb-3 border-b border-border space-y-3">
-                        <div className="flex items-center justify-between">
-                          <h3 className="font-semibold text-base">Preview</h3>
-                          <span className="text-[10px] text-muted-foreground font-medium">
-                            {formData.width || '1080'}×{formData.height || '1080'}px
-                          </span>
-                        </div>
-                        <FormatPreview
-                          platform={formData.platform}
-                          aspectRatio={formData.aspectRatio || (formData.platform ? getPlatformImageSpec(formData.platform, "feed", contentType)?.aspectRatio : undefined) || "1:1"}
-                          onPlatformChange={(platform, aspectRatio, width, height) => {
-                            handleSelectChange("platform", platform);
-                            setFormData(prev => ({
-                              ...prev,
-                              aspectRatio,
-                              width: String(width),
-                              height: String(height),
-                            }));
-                          }}
-                        />
+                      <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-border">
+                        <h3 className="font-semibold text-base">Preview</h3>
+                        <span className="text-[10px] text-muted-foreground font-medium">
+                          {formData.width || '1080'}×{formData.height || '1080'}px
+                        </span>
                       </div>
-                      <div className="flex-1 flex items-center justify-center p-5">
+                      <div className="flex-1 overflow-y-auto">
+                        {/* Format selector inside modal */}
+                        <div className="px-5 pt-4 pb-2">
+                          <FormatPreview
+                            platform={formData.platform}
+                            aspectRatio={formData.aspectRatio || (formData.platform ? getPlatformImageSpec(formData.platform, "feed", contentType)?.aspectRatio : undefined) || "1:1"}
+                            onPlatformChange={(platform, aspectRatio, width, height) => {
+                              handleSelectChange("platform", platform);
+                              setFormData(prev => ({
+                                ...prev,
+                                aspectRatio,
+                                width: String(width),
+                                height: String(height),
+                              }));
+                            }}
+                          />
+                        </div>
+
+                        {/* Text overlay preview */}
+                        <div className="px-5 pb-3">
+                          <p className="text-xs font-bold text-foreground mb-3">Texto no formato</p>
                         {(() => {
                           const w = Number(formData.width) || 1080;
                           const h = Number(formData.height) || 1080;
