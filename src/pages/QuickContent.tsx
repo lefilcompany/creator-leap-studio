@@ -4,17 +4,12 @@ import { CategorySelector } from "@/components/CategorySelector";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TagSelect } from "@/components/ui/tag-select";
-import { NativeSelect } from "@/components/ui/native-select";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Loader2, Zap, Info, Coins, HelpCircle, Settings2 } from "lucide-react";
+import { Loader2, Zap, Coins, HelpCircle, ChevronDown } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { CREDIT_COSTS } from "@/lib/creditCosts";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,14 +18,14 @@ import { useBackgroundTasks } from "@/contexts/BackgroundTaskContext";
 import type { Brand } from "@/types/brand";
 import type { Persona } from "@/types/persona";
 import type { StrategicTheme } from "@/types/theme";
-import { platformSpecs } from "@/lib/platformSpecs";
-import { useFormPersistence } from '@/hooks/useFormPersistence';
+import { useFormPersistence } from "@/hooks/useFormPersistence";
 import { TourSelector } from "@/components/onboarding/TourSelector";
 import { quickContentSteps, navbarSteps } from "@/components/onboarding/tourSteps";
 import { PageBreadcrumb } from "@/components/PageBreadcrumb";
 import { CreationProgressBar } from "@/components/CreationProgressBar";
 import { UnifiedPromptBox } from "@/components/quick-content/UnifiedPromptBox";
-import { PlatformSelector } from "@/components/quick-content/PlatformSelector";
+import { VisualStyleGrid } from "@/components/quick-content/VisualStyleGrid";
+import { FormatPreview } from "@/components/quick-content/FormatPreview";
 import createBanner from "@/assets/create-banner.jpg";
 
 export default function QuickContent() {
@@ -39,6 +34,7 @@ export default function QuickContent() {
   const { addTask } = useBackgroundTasks();
   const [loading, setLoading] = useState(false);
   const [categoryId, setCategoryId] = useState("");
+  const [customizationsOpen, setCustomizationsOpen] = useState(false);
   const [formData, setFormData] = useState({
     prompt: "",
     brandId: "",
@@ -56,21 +52,20 @@ export default function QuickContent() {
     cameraAngle: "eye_level",
     detailLevel: 7,
     mood: "auto",
-    width: "",
-    height: ""
+    width: "1080",
+    height: "1080",
   });
   const [referenceFiles, setReferenceFiles] = useState<File[]>([]);
   const [preserveImageIndices, setPreserveImageIndices] = useState<number[]>([]);
 
-  // React Query for brands, themes, personas
   const teamId = user?.teamId;
   const userId = user?.id;
 
   const { data: brands = [], isLoading: loadingBrands } = useQuery({
-    queryKey: ['brands', teamId],
+    queryKey: ["brands", teamId],
     queryFn: async () => {
       const query = supabase.from("brands").select("*").order("name");
-      if (teamId) { query.eq("team_id", teamId); } else { query.eq("user_id", userId!); }
+      if (teamId) query.eq("team_id", teamId); else query.eq("user_id", userId!);
       const { data, error } = await query;
       if (error) throw error;
       return (data || []) as any as Brand[];
@@ -80,10 +75,10 @@ export default function QuickContent() {
   });
 
   const { data: themes = [], isLoading: loadingThemes } = useQuery({
-    queryKey: ['themes', teamId],
+    queryKey: ["themes", teamId],
     queryFn: async () => {
       const query = supabase.from("strategic_themes").select("*").order("title");
-      if (teamId) { query.eq("team_id", teamId); } else { query.eq("user_id", userId!); }
+      if (teamId) query.eq("team_id", teamId); else query.eq("user_id", userId!);
       const { data, error } = await query;
       if (error) throw error;
       return (data || []) as any as StrategicTheme[];
@@ -93,10 +88,10 @@ export default function QuickContent() {
   });
 
   const { data: personas = [], isLoading: loadingPersonas } = useQuery({
-    queryKey: ['personas', teamId],
+    queryKey: ["personas", teamId],
     queryFn: async () => {
       const query = supabase.from("personas").select("*").order("name");
-      if (teamId) { query.eq("team_id", teamId); } else { query.eq("user_id", userId!); }
+      if (teamId) query.eq("team_id", teamId); else query.eq("user_id", userId!);
       const { data, error } = await query;
       if (error) throw error;
       return (data || []) as any as Persona[];
@@ -104,8 +99,6 @@ export default function QuickContent() {
     enabled: !!userId,
     staleTime: 1000 * 60 * 5,
   });
-
-  const loadingData = loadingBrands || loadingThemes || loadingPersonas;
 
   const filteredThemes = formData.brandId
     ? themes.filter((t: any) => t.brand_id === formData.brandId || t.brandId === formData.brandId)
@@ -115,9 +108,9 @@ export default function QuickContent() {
     : [];
 
   const { loadPersistedData, clearPersistedData } = useFormPersistence({
-    key: 'quick-content-form',
+    key: "quick-content-form",
     formData,
-    excludeFields: ['referenceFiles']
+    excludeFields: ["referenceFiles"],
   });
 
   useEffect(() => {
@@ -139,7 +132,6 @@ export default function QuickContent() {
       return;
     }
 
-    // Prepare payload (image compression) before dispatching background task
     setLoading(true);
     try {
       const referenceImagesBase64: string[] = [];
@@ -155,7 +147,8 @@ export default function QuickContent() {
             reader.readAsDataURL(file);
           });
           referenceImagesBase64.push(base64);
-          if (preserveImageIndices.includes(i)) { preserveImages.push(base64); } else { styleReferenceImages.push(base64); }
+          if (preserveImageIndices.includes(i)) preserveImages.push(base64);
+          else styleReferenceImages.push(base64);
         }
       }
 
@@ -180,15 +173,12 @@ export default function QuickContent() {
         detailLevel: formData.detailLevel,
         mood: formData.mood,
         width: formData.width,
-        height: formData.height
+        height: formData.height,
       };
 
       clearPersistedData();
-
-      // Capture categoryId before dispatching
       const selectedCategoryId = categoryId;
 
-      // Dispatch to background
       addTask(
         "Criação Rápida",
         "quick_content",
@@ -196,10 +186,9 @@ export default function QuickContent() {
           const { data, error } = await supabase.functions.invoke("generate-quick-content", { body: payload });
           if (error) throw error;
 
-          // Auto-assign to category if selected
           if (selectedCategoryId && data.actionId) {
             try {
-              await supabase.from('action_category_items').insert({
+              await supabase.from("action_category_items").insert({
                 category_id: selectedCategoryId,
                 action_id: data.actionId,
                 added_by: user!.id,
@@ -216,14 +205,13 @@ export default function QuickContent() {
             state: {
               imageUrl: data.imageUrl, description: data.description, actionId: data.actionId,
               prompt: formData.prompt, brandName: data.brandName, themeName: data.themeName,
-              personaName: data.personaName, platform: formData.platform
-            }
+              personaName: data.personaName, platform: formData.platform,
+            },
           };
         },
         () => refreshUserCredits?.()
       );
 
-      // Navigate away immediately
       navigate("/dashboard");
     } catch (error: any) {
       console.error("Error preparing payload:", error);
@@ -233,18 +221,11 @@ export default function QuickContent() {
     }
   };
 
-  const SelectSkeleton = () => (
-    <div className="space-y-1.5">
-      <Skeleton className="h-4 w-24" />
-      <Skeleton className="h-10 w-full rounded-lg" />
-    </div>
-  );
-
   return (
     <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8 min-h-full">
       <TourSelector tours={[
-        { tourType: 'navbar', steps: navbarSteps, label: 'Tour da Navegação', targetElement: '#sidebar-logo' },
-        { tourType: 'quick_content', steps: quickContentSteps, label: 'Tour da Criação Rápida', targetElement: '#quick-content-form' }
+        { tourType: "navbar", steps: navbarSteps, label: "Tour da Navegação", targetElement: "#sidebar-logo" },
+        { tourType: "quick_content", steps: quickContentSteps, label: "Tour da Criação Rápida", targetElement: "#quick-content-form" },
       ]} startDelay={500} />
 
       {/* Banner */}
@@ -256,7 +237,7 @@ export default function QuickContent() {
 
       {/* Header Card */}
       <div className="relative px-4 sm:px-6 lg:px-8 -mt-10 z-10">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-5xl mx-auto">
           <div className="bg-card rounded-2xl shadow-lg p-3 lg:p-4">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
               <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -307,34 +288,120 @@ export default function QuickContent() {
         </div>
       </div>
 
-      {/* Main Form */}
+      {/* Main Form — Two columns on desktop */}
       <main className="px-4 sm:px-6 lg:px-8 pt-4 pb-8 flex-1">
-        <div className="max-w-4xl mx-auto space-y-4 mt-4">
+        <div className="max-w-5xl mx-auto space-y-4 mt-4">
           <CreationProgressBar currentStep={loading ? "generating" : "config"} className="max-w-xs mx-auto" />
 
-          <div id="quick-content-form" className="space-y-4">
-            {/* 1. Unified Prompt Box (Gemini-style) */}
-            <UnifiedPromptBox
-              prompt={formData.prompt}
-              onPromptChange={value => setFormData(prev => ({ ...prev, prompt: value }))}
-              visualStyle={formData.visualStyle}
-              onVisualStyleChange={value => setFormData(prev => ({ ...prev, visualStyle: value }))}
-              referenceFiles={referenceFiles}
-              onReferenceFilesChange={setReferenceFiles}
-              preserveImageIndices={preserveImageIndices}
-              onPreserveImageIndicesChange={setPreserveImageIndices}
-            />
+          <div id="quick-content-form" className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6">
+            {/* Left column */}
+            <div className="space-y-5">
+              {/* 1. Prompt + References */}
+              <UnifiedPromptBox
+                prompt={formData.prompt}
+                onPromptChange={value => setFormData(prev => ({ ...prev, prompt: value }))}
+                referenceFiles={referenceFiles}
+                onReferenceFilesChange={setReferenceFiles}
+                preserveImageIndices={preserveImageIndices}
+                onPreserveImageIndicesChange={setPreserveImageIndices}
+              />
 
-            {/* Category Selector */}
-            <CategorySelector
-              value={categoryId}
-              onChange={setCategoryId}
-              className="mt-2"
-            />
+              {/* 2. Visual Style Grid */}
+              <VisualStyleGrid
+                value={formData.visualStyle}
+                onChange={value => setFormData(prev => ({ ...prev, visualStyle: value }))}
+              />
+
+              {/* 3. Customizations (optional collapsible) */}
+              <Collapsible open={customizationsOpen} onOpenChange={setCustomizationsOpen}>
+                <CollapsibleTrigger asChild>
+                  <button
+                    type="button"
+                    className="flex items-center gap-2 text-sm font-bold text-foreground hover:text-primary transition-colors"
+                  >
+                    <span>Personalizações</span>
+                    <span className="text-xs font-normal text-muted-foreground">(opcional)</span>
+                    <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${customizationsOpen ? "rotate-180" : ""}`} />
+                  </button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="mt-3 space-y-3">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    {/* Brand */}
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-foreground">Marca</label>
+                      {loadingBrands ? (
+                        <Skeleton className="h-9 w-full rounded-lg" />
+                      ) : (
+                        <TagSelect
+                          options={brands.map(b => ({ value: b.id, label: b.name }))}
+                          placeholder="Selecionar marca"
+                          value={formData.brandId}
+                          onValueChange={v => setFormData(prev => ({ ...prev, brandId: v }))}
+                        />
+                      )}
+                    </div>
+
+                    {/* Persona */}
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-foreground">Persona</label>
+                      {loadingPersonas ? (
+                        <Skeleton className="h-9 w-full rounded-lg" />
+                      ) : (
+                        <TagSelect
+                          options={filteredPersonas.map((p: any) => ({ value: p.id, label: p.name }))}
+                          placeholder={formData.brandId ? "Selecionar persona" : "Selecione uma marca primeiro"}
+                          value={formData.personaId}
+                          onValueChange={v => setFormData(prev => ({ ...prev, personaId: v }))}
+                          disabled={!formData.brandId}
+                        />
+                      )}
+                    </div>
+
+                    {/* Theme */}
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-foreground">Tema Estratégico</label>
+                      {loadingThemes ? (
+                        <Skeleton className="h-9 w-full rounded-lg" />
+                      ) : (
+                        <TagSelect
+                          options={filteredThemes.map((t: any) => ({ value: t.id, label: t.title }))}
+                          placeholder={formData.brandId ? "Selecionar tema" : "Selecione uma marca primeiro"}
+                          value={formData.themeId}
+                          onValueChange={v => setFormData(prev => ({ ...prev, themeId: v }))}
+                          disabled={!formData.brandId}
+                        />
+                      )}
+                    </div>
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+
+              {/* Category Selector */}
+              <CategorySelector value={categoryId} onChange={setCategoryId} />
+            </div>
+
+            {/* Right column — Format Preview */}
+            <div className="lg:sticky lg:top-4 self-start">
+              <div className="bg-card rounded-2xl shadow-lg p-5 flex flex-col items-center">
+                <FormatPreview
+                  platform={formData.platform}
+                  aspectRatio={formData.aspectRatio}
+                  onPlatformChange={(platform, aspectRatio, width, height) =>
+                    setFormData(prev => ({
+                      ...prev,
+                      platform,
+                      aspectRatio,
+                      width: String(width),
+                      height: String(height),
+                    }))
+                  }
+                />
+              </div>
+            </div>
           </div>
 
-          {/* Generate Button */}
-          <div className="flex justify-end pb-6">
+          {/* Generate Button — full width */}
+          <div className="flex justify-center pb-6">
             <Button
               id="quick-generate-button"
               onClick={generateQuickContent}

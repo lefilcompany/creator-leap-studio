@@ -1,29 +1,12 @@
-import { useState, useRef } from "react";
+import { useRef } from "react";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { ImageIcon, X, Paintbrush, Check, ChevronDown, ClipboardPaste, ImagePlus, Camera, Palette, PenTool, Sparkles, Brush, Layers, Eye, Flower2 } from "lucide-react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ImagePlus, X, ClipboardPaste } from "lucide-react";
 import { toast } from "sonner";
-
-const VISUAL_STYLES = [
-  { value: "realistic", label: "Fotorealístico", desc: "Fotos realistas e naturais", icon: Camera },
-  { value: "animated", label: "Animado / 3D", desc: "Animação e renderização 3D", icon: Layers },
-  { value: "cartoon", label: "Cartoon", desc: "Ilustrações divertidas e coloridas", icon: Sparkles },
-  { value: "anime", label: "Anime", desc: "Estilo mangá japonês", icon: Eye },
-  { value: "watercolor", label: "Aquarela", desc: "Pinceladas suaves e orgânicas", icon: Flower2 },
-  { value: "oil_painting", label: "Pintura a Óleo", desc: "Texturas ricas e clássicas", icon: Brush },
-  { value: "digital_art", label: "Arte Digital", desc: "Ilustração digital moderna", icon: Palette },
-  { value: "sketch", label: "Esboço", desc: "Traços a lápis e rascunho", icon: PenTool },
-  { value: "minimalist", label: "Minimalista", desc: "Limpo, simples e elegante", icon: Sparkles },
-  { value: "vintage", label: "Vintage", desc: "Retrô com tons envelhecidos", icon: ImageIcon },
-] as const;
 
 interface UnifiedPromptBoxProps {
   prompt: string;
   onPromptChange: (value: string) => void;
-  visualStyle: string;
-  onVisualStyleChange: (value: string) => void;
   referenceFiles: File[];
   onReferenceFilesChange: (files: File[]) => void;
   preserveImageIndices: number[];
@@ -33,15 +16,12 @@ interface UnifiedPromptBoxProps {
 export function UnifiedPromptBox({
   prompt,
   onPromptChange,
-  visualStyle,
-  onVisualStyleChange,
   referenceFiles,
   onReferenceFilesChange,
   preserveImageIndices,
   onPreserveImageIndicesChange,
 }: UnifiedPromptBoxProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [styleOpen, setStyleOpen] = useState(false);
 
   const handlePaste = (e: React.ClipboardEvent) => {
     const items = e.clipboardData.items;
@@ -53,8 +33,10 @@ export function UnifiedPromptBox({
       }
     }
     if (files.length > 0) {
-      onReferenceFilesChange([...referenceFiles, ...files].slice(0, 5));
-      toast.success(`${files.length} imagem(ns) adicionada(s)`);
+      const remaining = 5 - referenceFiles.length;
+      const toAdd = files.slice(0, remaining);
+      onReferenceFilesChange([...referenceFiles, ...toAdd]);
+      toast.success(`${toAdd.length} imagem(ns) adicionada(s)`);
     }
   };
 
@@ -76,17 +58,50 @@ export function UnifiedPromptBox({
     }
   };
 
-  const selectedStyleLabel = VISUAL_STYLES.find(s => s.value === visualStyle);
+  const handleClipboardPaste = async () => {
+    try {
+      const clipboardItems = await navigator.clipboard.read();
+      const files: File[] = [];
+      for (const item of clipboardItems) {
+        const imageType = item.types.find(t => t.startsWith("image/"));
+        if (imageType) {
+          const blob = await item.getType(imageType);
+          const ext = imageType.split("/")[1] || "png";
+          const file = new File([blob], `colado-${Date.now()}.${ext}`, { type: imageType });
+          files.push(file);
+        }
+      }
+      if (files.length > 0) {
+        const remaining = 5 - referenceFiles.length;
+        const toAdd = files.slice(0, remaining);
+        onReferenceFilesChange([...referenceFiles, ...toAdd]);
+        toast.success(`${toAdd.length} imagem(ns) colada(s)`);
+      } else {
+        toast.error("Nenhuma imagem encontrada na área de transferência");
+      }
+    } catch {
+      toast.error("Não foi possível acessar a área de transferência. Use Ctrl+V no campo.");
+    }
+  };
 
   return (
-    <div className="space-y-4">
-      {/* Prompt textarea card */}
-      <div className="rounded-2xl shadow-lg overflow-hidden border-0 bg-card transition-shadow focus-within:shadow-xl">
-        {/* Main textarea area */}
-        <div className="p-4 md:p-5 pb-2" onPaste={handlePaste}>
+    <div className="space-y-2.5">
+      <div>
+        <Label htmlFor="quick-description" className="text-sm font-bold text-foreground">
+          Descreva sua criação
+        </Label>
+        <p className="text-xs text-muted-foreground mt-0.5">
+          Quanto mais detalhes, melhor o resultado. Inclua cenário, cores, estilo e elementos desejados.
+        </p>
+      </div>
+
+      {/* Unified card: textarea + references */}
+      <div className="rounded-2xl shadow-lg overflow-hidden border-0 bg-card transition-shadow focus-within:shadow-xl" onPaste={handlePaste}>
+        {/* Textarea */}
+        <div className="p-4 md:p-5 pb-2">
           <Textarea
             id="quick-description"
-            placeholder="Descreva o que você quer criar... Ex: Uma imagem de um café sendo servido numa manhã ensolarada, com estética minimalista e cores quentes"
+            placeholder="Ex: Uma imagem de um café sendo servido numa manhã ensolarada, com estética minimalista e cores quentes"
             value={prompt}
             onChange={e => onPromptChange(e.target.value)}
             rows={4}
@@ -94,129 +109,9 @@ export function UnifiedPromptBox({
           />
         </div>
 
-        {/* Bottom toolbar with popover style picker */}
-        <div className="flex items-center gap-1.5 px-4 md:px-5 py-2.5 border-t border-border/20 bg-muted/10">
-          <Popover open={styleOpen} onOpenChange={setStyleOpen}>
-            <PopoverTrigger asChild>
-              <button
-                type="button"
-                className={`h-8 inline-flex items-center gap-1.5 rounded-lg px-3 text-xs font-medium transition-all active:scale-[0.97] ${
-                  styleOpen
-                    ? "bg-primary/10 text-primary border border-primary/30"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
-                }`}
-              >
-                <Paintbrush className="h-3.5 w-3.5" />
-                <span>{selectedStyleLabel?.label || "Estilo"}</span>
-                <ChevronDown className={`h-3 w-3 transition-transform ${styleOpen ? "rotate-180" : ""}`} />
-              </button>
-            </PopoverTrigger>
-            <PopoverContent align="start" sideOffset={8} className="w-72 p-1.5 rounded-xl">
-              <div className="space-y-0.5">
-                {VISUAL_STYLES.map(style => {
-                  const Icon = style.icon;
-                  const isSelected = visualStyle === style.value;
-                  return (
-                    <button
-                      key={style.value}
-                      type="button"
-                      onClick={() => {
-                        onVisualStyleChange(style.value);
-                        setStyleOpen(false);
-                      }}
-                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-all ${
-                        isSelected
-                          ? "bg-primary/10 text-primary"
-                          : "text-foreground hover:bg-muted/60"
-                      }`}
-                    >
-                      <Icon className={`h-4 w-4 flex-shrink-0 ${isSelected ? "text-primary" : "text-muted-foreground"}`} />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium leading-tight">{style.label}</p>
-                        <p className="text-[11px] text-muted-foreground leading-tight">{style.desc}</p>
-                      </div>
-                      {isSelected && <Check className="h-4 w-4 text-primary flex-shrink-0" />}
-                    </button>
-                  );
-                })}
-              </div>
-            </PopoverContent>
-          </Popover>
-          <div className="flex-1" />
-        </div>
-      </div>
-
-      {/* Reference images section - separate card */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <Label className="text-xs font-medium text-muted-foreground">
-            Imagens de Referência <span className="text-muted-foreground/60">(opcional)</span>
-          </Label>
-          <span className="text-[10px] text-muted-foreground">{referenceFiles.length}/5 · Cole com Ctrl+V</span>
-        </div>
-
-        <div className="flex gap-2" onPaste={handlePaste}>
-          <div
-            onClick={() => fileInputRef.current?.click()}
-            className="flex-1 border-2 border-dashed rounded-xl p-5 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all hover:border-primary/40 hover:bg-primary/5 border-border/50 bg-muted/10"
-          >
-            <ImagePlus className="h-7 w-7 text-muted-foreground" />
-            <p className="text-xs text-muted-foreground text-center">
-              Clique para adicionar imagens
-            </p>
-            <p className="text-[10px] text-muted-foreground/60">Máximo 5 · JPG, PNG, WebP</p>
-          </div>
-          <button
-            type="button"
-            onClick={async () => {
-              try {
-                const clipboardItems = await navigator.clipboard.read();
-                const files: File[] = [];
-                for (const item of clipboardItems) {
-                  const imageType = item.types.find(t => t.startsWith('image/'));
-                  if (imageType) {
-                    const blob = await item.getType(imageType);
-                    const ext = imageType.split('/')[1] || 'png';
-                    const file = new File([blob], `colado-${Date.now()}.${ext}`, { type: imageType });
-                    files.push(file);
-                  }
-                }
-                if (files.length > 0) {
-                  const remaining = 5 - referenceFiles.length;
-                  const toAdd = files.slice(0, remaining);
-                  onReferenceFilesChange([...referenceFiles, ...toAdd]);
-                  toast.success(`${toAdd.length} imagem(ns) colada(s)`);
-                } else {
-                  toast.error('Nenhuma imagem encontrada na área de transferência');
-                }
-              } catch {
-                toast.error('Não foi possível acessar a área de transferência. Use Ctrl+V no campo.');
-              }
-            }}
-            className="border-2 border-dashed rounded-xl p-4 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all hover:border-primary/40 hover:bg-primary/5 min-w-[100px] border-border/50 bg-muted/10"
-          >
-            <ClipboardPaste className="h-6 w-6 text-muted-foreground" />
-            <p className="text-[10px] text-muted-foreground text-center font-medium">Colar imagem</p>
-          </button>
-        </div>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          multiple
-          className="hidden"
-          disabled={referenceFiles.length >= 5}
-          onChange={e => {
-            const files = Array.from(e.target.files || []);
-            const remaining = 5 - referenceFiles.length;
-            const toAdd = files.slice(0, remaining);
-            if (files.length > remaining) toast.error(`Máximo 5 imagens. ${toAdd.length} adicionada(s).`);
-            onReferenceFilesChange([...referenceFiles, ...toAdd]);
-          }}
-        />
-
+        {/* Attached files thumbnails inside card */}
         {referenceFiles.length > 0 && (
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 px-4 md:px-5 pb-2">
             {referenceFiles.map((file, idx) => (
               <div key={idx} className="relative group flex items-center gap-2 bg-muted/40 rounded-lg px-2.5 py-1.5 text-xs shadow-sm">
                 <ImagePlus className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
@@ -233,18 +128,53 @@ export function UnifiedPromptBox({
                 >
                   {preserveImageIndices.includes(idx) ? "Preservando" : "Preservar"}
                 </button>
-                <button
-                  type="button"
-                  onClick={() => handleRemoveFile(idx)}
-                  className="text-muted-foreground hover:text-destructive transition-colors"
-                >
+                <button type="button" onClick={() => handleRemoveFile(idx)} className="text-muted-foreground hover:text-destructive transition-colors">
                   <X className="h-3.5 w-3.5" />
                 </button>
               </div>
             ))}
           </div>
         )}
+
+        {/* Bottom toolbar: references actions */}
+        <div className="flex items-center gap-2 px-4 md:px-5 py-2.5 border-t border-border/20 bg-muted/10">
+          <span className="text-[11px] text-muted-foreground font-medium mr-1">Referências</span>
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="h-7 inline-flex items-center gap-1.5 rounded-lg px-2.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all"
+          >
+            <ImagePlus className="h-3.5 w-3.5" />
+            <span>Selecionar imagem</span>
+          </button>
+          <button
+            type="button"
+            onClick={handleClipboardPaste}
+            className="h-7 inline-flex items-center gap-1.5 rounded-lg px-2.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all"
+          >
+            <ClipboardPaste className="h-3.5 w-3.5" />
+            <span>Colar imagem</span>
+          </button>
+          <div className="flex-1" />
+          <span className="text-[10px] text-muted-foreground">{referenceFiles.length}/5</span>
+        </div>
       </div>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        disabled={referenceFiles.length >= 5}
+        onChange={e => {
+          const files = Array.from(e.target.files || []);
+          const remaining = 5 - referenceFiles.length;
+          const toAdd = files.slice(0, remaining);
+          if (files.length > remaining) toast.error(`Máximo 5 imagens. ${toAdd.length} adicionada(s).`);
+          onReferenceFilesChange([...referenceFiles, ...toAdd]);
+        }}
+      />
     </div>
   );
 }
