@@ -850,6 +850,48 @@ export default function CreateImage() {
                     )}
                   </div>
 
+                  {/* Marca */}
+                  {isLoadingData ? <Skeleton className="h-24 flex-1 min-w-[140px] rounded-xl" /> : (
+                    <CustomizationCardInline
+                      icon={<Building2 className="h-4 w-4" />}
+                      title="Marca"
+                      required
+                      description="Vincular a uma marca"
+                      options={brands.map(b => ({ value: b.id, label: b.name }))}
+                      value={formData.brand}
+                      onChange={v => handleSelectChange("brand", v)}
+                      error={missingFields.includes('brand')}
+                      emptyAction={brands.length === 0 ? () => navigate("/brands") : undefined}
+                      emptyLabel="Cadastre uma marca"
+                    />
+                  )}
+
+                  {/* Persona */}
+                  {isLoadingData ? <Skeleton className="h-24 flex-1 min-w-[140px] rounded-xl" /> : (
+                    <CustomizationCardInline
+                      icon={<UserRound className="h-4 w-4" />}
+                      title="Persona"
+                      description="Público-alvo"
+                      options={filteredPersonas.map(p => ({ value: p.id, label: p.name }))}
+                      value={formData.persona}
+                      onChange={v => handleSelectChange("persona", v)}
+                      disabled={!formData.brand}
+                    />
+                  )}
+
+                  {/* Tema */}
+                  {isLoadingData ? <Skeleton className="h-24 flex-1 min-w-[140px] rounded-xl" /> : (
+                    <CustomizationCardInline
+                      icon={<Palette className="h-4 w-4" />}
+                      title="Tema"
+                      description="Tema estratégico"
+                      options={filteredThemes.map(t => ({ value: t.id, label: t.title }))}
+                      value={formData.theme}
+                      onChange={v => handleSelectChange("theme", v)}
+                      disabled={!formData.brand}
+                    />
+                  )}
+                </div>
               </div>
 
               {/* 3. Tom de Voz */}
