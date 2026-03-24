@@ -291,53 +291,39 @@ export default function QuickContent() {
                 {/* Customizations */}
                 <div className="space-y-2.5">
                   <p className="text-sm font-bold text-foreground">Personalizações <span className="text-xs font-normal text-muted-foreground">(opcional)</span></p>
-                  <div className="space-y-3">
-                    {/* Brand */}
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-foreground">Marca</label>
-                      {loadingBrands ? (
-                        <Skeleton className="h-9 w-full rounded-lg" />
-                      ) : (
-                        <TagSelect
-                          options={brands.map(b => ({ value: b.id, label: b.name }))}
-                          placeholder="Selecionar marca"
-                          value={formData.brandId}
-                          onValueChange={v => setFormData(prev => ({ ...prev, brandId: v }))}
-                        />
-                      )}
-                    </div>
-
-                    {/* Persona */}
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-foreground">Persona</label>
-                      {loadingPersonas ? (
-                        <Skeleton className="h-9 w-full rounded-lg" />
-                      ) : (
-                        <TagSelect
-                          options={filteredPersonas.map((p: any) => ({ value: p.id, label: p.name }))}
-                          placeholder={formData.brandId ? "Selecionar persona" : "Selecione uma marca primeiro"}
-                          value={formData.personaId}
-                          onValueChange={v => setFormData(prev => ({ ...prev, personaId: v }))}
-                          disabled={!formData.brandId}
-                        />
-                      )}
-                    </div>
-
-                    {/* Theme */}
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-foreground">Tema Estratégico</label>
-                      {loadingThemes ? (
-                        <Skeleton className="h-9 w-full rounded-lg" />
-                      ) : (
-                        <TagSelect
-                          options={filteredThemes.map((t: any) => ({ value: t.id, label: t.title }))}
-                          placeholder={formData.brandId ? "Selecionar tema" : "Selecione uma marca primeiro"}
-                          value={formData.themeId}
-                          onValueChange={v => setFormData(prev => ({ ...prev, themeId: v }))}
-                          disabled={!formData.brandId}
-                        />
-                      )}
-                    </div>
+                  <div className="space-y-2">
+                    {loadingBrands ? (
+                      <Skeleton className="h-8 w-full rounded-lg" />
+                    ) : (
+                      <TagSelect
+                        options={brands.map(b => ({ value: b.id, label: b.name }))}
+                        placeholder="Marca"
+                        value={formData.brandId}
+                        onValueChange={v => setFormData(prev => ({ ...prev, brandId: v }))}
+                      />
+                    )}
+                    {loadingPersonas ? (
+                      <Skeleton className="h-8 w-full rounded-lg" />
+                    ) : (
+                      <TagSelect
+                        options={filteredPersonas.map((p: any) => ({ value: p.id, label: p.name }))}
+                        placeholder="Persona"
+                        value={formData.personaId}
+                        onValueChange={v => setFormData(prev => ({ ...prev, personaId: v }))}
+                        disabled={!formData.brandId}
+                      />
+                    )}
+                    {loadingThemes ? (
+                      <Skeleton className="h-8 w-full rounded-lg" />
+                    ) : (
+                      <TagSelect
+                        options={filteredThemes.map((t: any) => ({ value: t.id, label: t.title }))}
+                        placeholder="Tema Estratégico"
+                        value={formData.themeId}
+                        onValueChange={v => setFormData(prev => ({ ...prev, themeId: v }))}
+                        disabled={!formData.brandId}
+                      />
+                    )}
                   </div>
                 </div>
               </div>
