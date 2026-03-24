@@ -1289,22 +1289,11 @@ export default function CreateImage() {
                                     }
                                   })()
                                 }`}>
-                                  <p className={`leading-tight transition-all duration-300 ${
-                                    (() => {
-                                      const f = formData.fontStyle || 'modern';
-                                      const base = 'text-sm font-bold';
-                                      switch (f) {
-                                        case 'elegant': return `${base} italic tracking-wide`;
-                                        case 'fun': return `${base} tracking-wider`;
-                                        case 'impactful': return 'text-base font-black uppercase tracking-tight';
-                                        default: return `${base} tracking-normal`;
-                                      }
-                                    })()
-                                  } ${
+                                  <p className={`text-sm leading-tight transition-all duration-300 ${
                                     (['overlay', 'gradient_bar', 'badge', 'plaquinha'].includes(formData.textDesignStyle || ''))
                                       ? 'text-white'
                                       : 'text-foreground'
-                                  }`}>
+                                  }`} style={getFontStyle()}>
                                     {formData.imageTextContent || 'Seu texto aqui'}
                                   </p>
                                   {formData.ctaText && (
@@ -1419,22 +1408,11 @@ export default function CreateImage() {
                               }
                             })()
                           }`}>
-                            <p className={`leading-tight transition-all duration-300 ${
-                              (() => {
-                                const f = formData.fontStyle || 'modern';
-                                const base = 'text-sm font-bold';
-                                switch (f) {
-                                  case 'elegant': return `${base} italic tracking-wide`;
-                                  case 'fun': return `${base} tracking-wider`;
-                                  case 'impactful': return 'text-base font-black uppercase tracking-tight';
-                                  default: return `${base} tracking-normal`;
-                                }
-                              })()
-                            } ${
+                            <p className={`text-sm leading-tight transition-all duration-300 ${
                               (['overlay', 'gradient_bar', 'badge', 'plaquinha'].includes(formData.textDesignStyle || ''))
                                 ? 'text-white'
                                 : 'text-foreground'
-                            }`}>
+                            }`} style={getFontStyle()}>
                               {formData.imageTextContent}
                             </p>
                             {formData.ctaText && (
