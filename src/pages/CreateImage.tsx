@@ -919,109 +919,111 @@ export default function CreateImage() {
                 )}
               </div>
 
-              {/* Text on Image Modal — wide with live preview */}
+              {/* Text on Image Modal — side-by-side cards like CategoryDialog */}
               <Dialog open={textModalOpen} onOpenChange={setTextModalOpen}>
-                <DialogContent className="max-w-4xl p-0">
-                  <div className="flex flex-col md:flex-row max-h-[85vh]">
-                    {/* Left: Controls */}
-                    <div className="flex-1 overflow-y-auto p-6 space-y-5">
-                      <DialogHeader>
+                <DialogContent className="sm:max-w-[56rem] p-0 gap-0 overflow-visible bg-transparent border-none shadow-none">
+                  <div className="flex items-stretch gap-3">
+                    {/* Left: Controls Panel */}
+                    <div className="flex flex-col bg-background rounded-xl shadow-lg border border-border overflow-hidden w-full sm:w-[28rem] flex-shrink-0 max-h-[85vh]">
+                      <DialogHeader className="px-6 pt-6 pb-0">
                         <DialogTitle className="flex items-center gap-2">
                           <Type className="h-5 w-5 text-primary" />
                           Texto na Imagem
                         </DialogTitle>
                         <DialogDescription>
-                          Configure o texto e veja o resultado em tempo real ao lado.
+                          Configure o texto e veja o resultado em tempo real.
                         </DialogDescription>
                       </DialogHeader>
 
-                      <div className="space-y-1.5">
-                        <Label className="text-sm font-semibold text-foreground">
-                          Texto principal <span className="text-destructive">*</span>
-                        </Label>
-                        <Input
-                          placeholder="Ex: Descubra o sabor da tradição"
-                          value={formData.imageTextContent}
-                          onChange={e => setFormData(prev => ({ ...prev, imageTextContent: e.target.value }))}
-                          className="h-10 rounded-lg"
-                          maxLength={80}
-                        />
-                        <p className="text-[10px] text-muted-foreground text-right">{formData.imageTextContent?.length || 0}/80</p>
-                      </div>
+                      <div className="px-6 py-4 space-y-4 overflow-y-auto flex-1">
+                        <div className="space-y-1.5">
+                          <Label className="text-sm font-bold">
+                            Texto principal <span className="text-destructive">*</span>
+                          </Label>
+                          <Input
+                            placeholder="Ex: Descubra o sabor da tradição"
+                            value={formData.imageTextContent}
+                            onChange={e => setFormData(prev => ({ ...prev, imageTextContent: e.target.value }))}
+                            className="h-10 rounded-lg"
+                            maxLength={80}
+                          />
+                          <p className="text-[10px] text-muted-foreground text-right">{formData.imageTextContent?.length || 0}/80</p>
+                        </div>
 
-                      <div className="space-y-1.5">
-                        <Label className="text-sm font-semibold text-foreground">
-                          CTA <span className="font-normal text-muted-foreground">(opcional)</span>
-                        </Label>
-                        <Input
-                          placeholder="Ex: Saiba mais · Compre agora"
-                          value={formData.ctaText}
-                          onChange={e => setFormData(prev => ({ ...prev, ctaText: e.target.value }))}
-                          className="h-10 rounded-lg"
-                          maxLength={40}
-                        />
-                        <p className="text-[10px] text-muted-foreground text-right">{formData.ctaText?.length || 0}/40</p>
-                      </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-sm font-bold">
+                            CTA <span className="font-normal text-muted-foreground">(opcional)</span>
+                          </Label>
+                          <Input
+                            placeholder="Ex: Saiba mais · Compre agora"
+                            value={formData.ctaText}
+                            onChange={e => setFormData(prev => ({ ...prev, ctaText: e.target.value }))}
+                            className="h-10 rounded-lg"
+                            maxLength={40}
+                          />
+                          <p className="text-[10px] text-muted-foreground text-right">{formData.ctaText?.length || 0}/40</p>
+                        </div>
 
-                      <div className="space-y-2">
-                        <Label className="text-sm font-semibold text-foreground">Posição</Label>
-                        <div className="grid grid-cols-4 gap-1.5 max-w-[220px]">
-                          {TEXT_POSITIONS.map(pos => (
-                            <button key={pos.value} type="button"
-                              onClick={() => setFormData(prev => ({ ...prev, imageTextPosition: pos.value as any }))}
-                              className={`h-10 rounded-lg text-xs font-medium transition-all active:scale-[0.95] flex flex-col items-center justify-center gap-0.5 ${
-                                formData.imageTextPosition === pos.value
-                                  ? 'bg-primary text-primary-foreground shadow-sm'
-                                  : 'bg-muted/50 text-foreground hover:bg-primary/10 hover:text-primary'
-                              }`}
-                            >
-                              <span className="text-sm leading-none">{pos.icon}</span>
-                              <span className="text-[7px] leading-none opacity-70">{pos.label}</span>
-                            </button>
-                          ))}
+                        <div className="space-y-2">
+                          <Label className="text-sm font-bold">Posição</Label>
+                          <div className="grid grid-cols-4 gap-1.5 max-w-[220px]">
+                            {TEXT_POSITIONS.map(pos => (
+                              <button key={pos.value} type="button"
+                                onClick={() => setFormData(prev => ({ ...prev, imageTextPosition: pos.value as any }))}
+                                className={`h-10 rounded-lg text-xs font-medium transition-all active:scale-[0.95] flex flex-col items-center justify-center gap-0.5 ${
+                                  formData.imageTextPosition === pos.value
+                                    ? 'bg-primary text-primary-foreground shadow-sm'
+                                    : 'bg-muted/50 text-foreground hover:bg-primary/10 hover:text-primary'
+                                }`}
+                              >
+                                <span className="text-sm leading-none">{pos.icon}</span>
+                                <span className="text-[7px] leading-none opacity-70">{pos.label}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label className="text-sm font-bold">Tipografia</Label>
+                          <div className="grid grid-cols-4 gap-1.5">
+                            {FONT_STYLE_OPTIONS.map(font => (
+                              <button key={font.value} type="button"
+                                onClick={() => setFormData(prev => ({ ...prev, fontStyle: font.value }))}
+                                className={`px-2 py-1.5 rounded-lg text-xs font-medium transition-all active:scale-[0.97] text-center ${
+                                  formData.fontStyle === font.value
+                                    ? 'bg-primary text-primary-foreground shadow-sm'
+                                    : 'bg-muted/50 text-foreground shadow-sm hover:shadow-md hover:text-primary'
+                                }`}
+                              >
+                                {font.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label className="text-sm font-bold">Design</Label>
+                          <div className="grid grid-cols-2 gap-1.5">
+                            {TEXT_DESIGN_OPTIONS.map(design => (
+                              <button key={design.value} type="button"
+                                onClick={() => setFormData(prev => ({ ...prev, textDesignStyle: design.value }))}
+                                className={`px-2.5 py-2 rounded-lg text-xs transition-all active:scale-[0.97] text-left space-y-0.5 ${
+                                  formData.textDesignStyle === design.value
+                                    ? 'bg-primary text-primary-foreground shadow-sm'
+                                    : 'bg-muted/50 text-foreground shadow-sm hover:shadow-md hover:text-primary'
+                                }`}
+                              >
+                                <span className="font-semibold block">{design.label}</span>
+                                <span className={`text-[10px] block leading-tight ${
+                                  formData.textDesignStyle === design.value ? 'text-primary-foreground/70' : 'text-muted-foreground'
+                                }`}>{design.desc}</span>
+                              </button>
+                            ))}
+                          </div>
                         </div>
                       </div>
 
-                      <div className="space-y-2">
-                        <Label className="text-sm font-semibold text-foreground">Tipografia</Label>
-                        <div className="grid grid-cols-4 gap-1.5">
-                          {FONT_STYLE_OPTIONS.map(font => (
-                            <button key={font.value} type="button"
-                              onClick={() => setFormData(prev => ({ ...prev, fontStyle: font.value }))}
-                              className={`px-2 py-1.5 rounded-lg text-xs font-medium transition-all active:scale-[0.97] text-center ${
-                                formData.fontStyle === font.value
-                                  ? 'bg-primary text-primary-foreground shadow-sm'
-                                  : 'bg-muted/50 text-foreground shadow-sm hover:shadow-md hover:text-primary'
-                              }`}
-                            >
-                              {font.label}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label className="text-sm font-semibold text-foreground">Design</Label>
-                        <div className="grid grid-cols-2 gap-1.5">
-                          {TEXT_DESIGN_OPTIONS.map(design => (
-                            <button key={design.value} type="button"
-                              onClick={() => setFormData(prev => ({ ...prev, textDesignStyle: design.value }))}
-                              className={`px-2.5 py-2 rounded-lg text-xs transition-all active:scale-[0.97] text-left space-y-0.5 ${
-                                formData.textDesignStyle === design.value
-                                  ? 'bg-primary text-primary-foreground shadow-sm'
-                                  : 'bg-muted/50 text-foreground shadow-sm hover:shadow-md hover:text-primary'
-                              }`}
-                            >
-                              <span className="font-semibold block">{design.label}</span>
-                              <span className={`text-[10px] block leading-tight ${
-                                formData.textDesignStyle === design.value ? 'text-primary-foreground/70' : 'text-muted-foreground'
-                              }`}>{design.desc}</span>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2 pt-2 border-t border-border/30">
+                      <div className="flex items-center gap-2 px-6 py-4 border-t border-border">
                         <Button
                           type="button"
                           variant="ghost"
@@ -1041,87 +1043,91 @@ export default function CreateImage() {
                       </div>
                     </div>
 
-                    {/* Right: Live Preview */}
-                    <div className="hidden md:flex w-[340px] flex-shrink-0 border-l border-border/30 bg-muted/20 items-center justify-center p-6">
-                      <div className="w-full aspect-square rounded-xl bg-gradient-to-br from-muted/60 to-muted relative overflow-hidden shadow-inner border border-border/20">
-                        {/* Background grid pattern */}
-                        <div className="absolute inset-0 opacity-[0.04]" style={{
-                          backgroundImage: 'linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)',
-                          backgroundSize: '20px 20px'
-                        }} />
+                    {/* Right: Live Preview — separate card */}
+                    <div className="hidden sm:flex flex-col w-80 flex-shrink-0 bg-background rounded-xl shadow-lg border border-border max-h-[85vh] animate-in fade-in-0 slide-in-from-right-4 duration-200">
+                      <div className="flex items-center px-5 pt-5 pb-3 border-b border-border">
+                        <h3 className="font-semibold text-base">Preview</h3>
+                      </div>
+                      <div className="flex-1 flex items-center justify-center p-5">
+                        <div className="w-full aspect-square rounded-xl bg-gradient-to-br from-muted/60 to-muted relative overflow-hidden shadow-inner border border-border/20">
+                          {/* Background grid pattern */}
+                          <div className="absolute inset-0 opacity-[0.04]" style={{
+                            backgroundImage: 'linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)',
+                            backgroundSize: '20px 20px'
+                          }} />
 
-                        {/* Text preview positioned dynamically */}
-                        <div className={`absolute inset-0 flex p-4 ${
-                          (() => {
-                            const p = formData.imageTextPosition || 'center';
-                            const vAlign = p.includes('top') ? 'items-start' : p.includes('bottom') ? 'items-end' : 'items-center';
-                            const hAlign = p.includes('left') ? 'justify-start' : p.includes('right') ? 'justify-end' : 'justify-center';
-                            return `${vAlign} ${hAlign}`;
-                          })()
-                        }`}>
-                          <div className={`max-w-[85%] transition-all duration-300 ${
+                          {/* Text preview positioned dynamically */}
+                          <div className={`absolute inset-0 flex p-4 ${
                             (() => {
                               const p = formData.imageTextPosition || 'center';
-                              return p.includes('left') ? 'text-left' : p.includes('right') ? 'text-right' : 'text-center';
+                              const vAlign = p.includes('top') ? 'items-start' : p.includes('bottom') ? 'items-end' : 'items-center';
+                              const hAlign = p.includes('left') ? 'justify-start' : p.includes('right') ? 'justify-end' : 'justify-center';
+                              return `${vAlign} ${hAlign}`;
                             })()
                           }`}>
-                            {/* Design wrapper */}
-                            <div className={`rounded-lg px-3 py-2 transition-all duration-300 ${
+                            <div className={`max-w-[85%] transition-all duration-300 ${
                               (() => {
-                                const d = formData.textDesignStyle || 'clean';
-                                switch (d) {
-                                  case 'overlay': return 'bg-black/40 backdrop-blur-sm';
-                                  case 'gradient_bar': return 'bg-gradient-to-r from-primary/80 to-primary/40';
-                                  case 'boxed': return 'border-2 border-foreground/60 bg-background/80';
-                                  case 'badge': return 'bg-primary rounded-full px-4';
-                                  case 'neon_glow': return 'drop-shadow-[0_0_8px_hsl(var(--primary))]';
-                                  case 'shadow_drop': return 'drop-shadow-[2px_4px_6px_rgba(0,0,0,0.5)]';
-                                  case 'plaquinha': return 'bg-amber-900/60 border border-amber-700/50 rounded-md';
-                                  case 'card_overlay': return 'bg-background/90 backdrop-blur-md border border-border/50 rounded-xl px-4 py-3';
-                                  case 'cutout': return 'mix-blend-difference';
-                                  default: return '';
-                                }
+                                const p = formData.imageTextPosition || 'center';
+                                return p.includes('left') ? 'text-left' : p.includes('right') ? 'text-right' : 'text-center';
                               })()
                             }`}>
-                              <p className={`leading-tight transition-all duration-300 ${
+                              <div className={`rounded-lg px-3 py-2 transition-all duration-300 ${
                                 (() => {
-                                  const f = formData.fontStyle || 'modern';
-                                  const base = 'text-sm font-bold';
-                                  switch (f) {
-                                    case 'elegant': return `${base} italic tracking-wide`;
-                                    case 'fun': return `${base} tracking-wider`;
-                                    case 'impactful': return 'text-base font-black uppercase tracking-tight';
-                                    default: return `${base} tracking-normal`;
+                                  const d = formData.textDesignStyle || 'clean';
+                                  switch (d) {
+                                    case 'overlay': return 'bg-black/40 backdrop-blur-sm';
+                                    case 'gradient_bar': return 'bg-gradient-to-r from-primary/80 to-primary/40';
+                                    case 'boxed': return 'border-2 border-foreground/60 bg-background/80';
+                                    case 'badge': return 'bg-primary rounded-full px-4';
+                                    case 'neon_glow': return 'drop-shadow-[0_0_8px_hsl(var(--primary))]';
+                                    case 'shadow_drop': return 'drop-shadow-[2px_4px_6px_rgba(0,0,0,0.5)]';
+                                    case 'plaquinha': return 'bg-amber-900/60 border border-amber-700/50 rounded-md';
+                                    case 'card_overlay': return 'bg-background/90 backdrop-blur-md border border-border/50 rounded-xl px-4 py-3';
+                                    case 'cutout': return 'mix-blend-difference';
+                                    default: return '';
                                   }
                                 })()
-                              } ${
-                                (['overlay', 'gradient_bar', 'badge', 'plaquinha'].includes(formData.textDesignStyle || ''))
-                                  ? 'text-white'
-                                  : 'text-foreground'
                               }`}>
-                                {formData.imageTextContent || 'Seu texto aqui'}
-                              </p>
-                              {formData.ctaText && (
-                                <p className={`mt-1.5 text-[10px] font-semibold uppercase tracking-widest transition-all duration-300 ${
+                                <p className={`leading-tight transition-all duration-300 ${
+                                  (() => {
+                                    const f = formData.fontStyle || 'modern';
+                                    const base = 'text-sm font-bold';
+                                    switch (f) {
+                                      case 'elegant': return `${base} italic tracking-wide`;
+                                      case 'fun': return `${base} tracking-wider`;
+                                      case 'impactful': return 'text-base font-black uppercase tracking-tight';
+                                      default: return `${base} tracking-normal`;
+                                    }
+                                  })()
+                                } ${
                                   (['overlay', 'gradient_bar', 'badge', 'plaquinha'].includes(formData.textDesignStyle || ''))
-                                    ? 'text-white/80'
-                                    : 'text-primary'
+                                    ? 'text-white'
+                                    : 'text-foreground'
                                 }`}>
-                                  {formData.ctaText}
+                                  {formData.imageTextContent || 'Seu texto aqui'}
                                 </p>
-                              )}
+                                {formData.ctaText && (
+                                  <p className={`mt-1.5 text-[10px] font-semibold uppercase tracking-widest transition-all duration-300 ${
+                                    (['overlay', 'gradient_bar', 'badge', 'plaquinha'].includes(formData.textDesignStyle || ''))
+                                      ? 'text-white/80'
+                                      : 'text-primary'
+                                  }`}>
+                                    {formData.ctaText}
+                                  </p>
+                                )}
+                              </div>
                             </div>
                           </div>
-                        </div>
 
-                        {/* Labels */}
-                        <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between">
-                          <span className="text-[9px] text-muted-foreground/60 font-medium">
-                            {FONT_STYLE_OPTIONS.find(f => f.value === formData.fontStyle)?.label || 'Moderno'}
-                          </span>
-                          <span className="text-[9px] text-muted-foreground/60 font-medium">
-                            {TEXT_DESIGN_OPTIONS.find(d => d.value === formData.textDesignStyle)?.label || 'Clean'}
-                          </span>
+                          {/* Labels */}
+                          <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between">
+                            <span className="text-[9px] text-muted-foreground/60 font-medium">
+                              {FONT_STYLE_OPTIONS.find(f => f.value === formData.fontStyle)?.label || 'Moderno'}
+                            </span>
+                            <span className="text-[9px] text-muted-foreground/60 font-medium">
+                              {TEXT_DESIGN_OPTIONS.find(d => d.value === formData.textDesignStyle)?.label || 'Clean'}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </div>
