@@ -35,6 +35,7 @@ import { getPlatformImageSpec, getCaptionGuidelines, platformSpecs } from "@/lib
 import { useFormPersistence } from '@/hooks/useFormPersistence';
 import { TourSelector } from '@/components/onboarding/TourSelector';
 import { createContentSteps, navbarSteps } from '@/components/onboarding/tourSteps';
+import { GeneratingOverlay } from "@/components/GeneratingOverlay";
 
 enum GenerationStep {
   IDLE = "IDLE",
@@ -144,6 +145,7 @@ export default function CreateContent() {
   const [filteredThemes, setFilteredThemes] = useState<StrategicThemeSummary[]>([]);
   const [filteredPersonas, setFilteredPersonas] = useState<PersonaSummary[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [generatingTaskId, setGeneratingTaskId] = useState<string | null>(null);
   const [generationStep, setGenerationStep] = useState<GenerationStep>(GenerationStep.IDLE);
   const [generationProgress, setGenerationProgress] = useState<number>(0);
   const [referenceFiles, setReferenceFiles] = useState<File[]>([]);
@@ -1075,7 +1077,7 @@ export default function CreateContent() {
 
       clearPersistedData();
 
-      addTask(
+      const newTaskId = addTask(
         "Criando Conteúdo",
         "create_content",
         async () => {
@@ -1184,7 +1186,7 @@ export default function CreateContent() {
         () => reloadUserData?.()
       );
 
-      navigate("/dashboard");
+      setGeneratingTaskId(newTaskId);
     } catch (err: any) {
       console.error("Erro ao gerar conteúdo:", err);
       
@@ -1237,6 +1239,7 @@ export default function CreateContent() {
 
   return (
     <div className="min-h-full bg-gradient-to-br from-background via-background to-muted/20">
+      <GeneratingOverlay taskId={generatingTaskId} onReset={() => setGeneratingTaskId(null)} />
       <TourSelector 
         tours={[
           {

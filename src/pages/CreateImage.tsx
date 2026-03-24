@@ -31,6 +31,7 @@ import { TourSelector } from '@/components/onboarding/TourSelector';
 import { createContentSteps, navbarSteps } from '@/components/onboarding/tourSteps';
 import { PageBreadcrumb } from "@/components/PageBreadcrumb";
 import { CreationProgressBar } from "@/components/CreationProgressBar";
+import { GeneratingOverlay } from "@/components/GeneratingOverlay";
 import { PlatformSelector } from "@/components/quick-content/PlatformSelector";
 import { CategorySelector } from "@/components/CategorySelector";
 import createBanner from "@/assets/create-banner.jpg";
@@ -154,6 +155,7 @@ export default function CreateImage() {
 
   const [selectedCategoryId, setSelectedCategoryId] = useState("");
   const [loading, setLoading] = useState(false);
+  const [generatingTaskId, setGeneratingTaskId] = useState<string | null>(null);
   const [generationStep, setGenerationStep] = useState(GenerationStep.IDLE);
   const [generationProgress, setGenerationProgress] = useState(0);
   const [referenceFiles, setReferenceFiles] = useState<File[]>([]);
@@ -468,7 +470,7 @@ export default function CreateImage() {
       const capturedSession = session;
       clearPersistedData();
 
-      addTask(
+      const newTaskId = addTask(
         "Criando Imagem",
         "create_image",
         async () => {
@@ -537,7 +539,7 @@ export default function CreateImage() {
         () => refreshUserCredits?.()
       );
 
-      navigate("/dashboard");
+      setGeneratingTaskId(newTaskId);
     } catch (err: any) {
       console.error("Erro:", err);
       toast.error("Erro ao preparar geração", { description: err.message || "Tente novamente." });
@@ -557,6 +559,7 @@ export default function CreateImage() {
 
   return (
     <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8 min-h-full">
+      <GeneratingOverlay taskId={generatingTaskId} onReset={() => setGeneratingTaskId(null)} />
       <TourSelector tours={[
         { tourType: 'navbar', steps: navbarSteps, label: 'Tour da Navegação', targetElement: '#sidebar-logo' },
         { tourType: 'create_content', steps: createContentSteps, label: 'Tour de Criar Conteúdo', targetElement: '#select-brand' }
