@@ -559,6 +559,7 @@ export default function CreateImage() {
 
   return (
     <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8 min-h-full">
+      <GeneratingOverlay taskId={generatingTaskId} onReset={() => setGeneratingTaskId(null)} />
       <TourSelector tours={[
         { tourType: 'navbar', steps: navbarSteps, label: 'Tour da Navegação', targetElement: '#sidebar-logo' },
         { tourType: 'create_content', steps: createContentSteps, label: 'Tour de Criar Conteúdo', targetElement: '#select-brand' }
