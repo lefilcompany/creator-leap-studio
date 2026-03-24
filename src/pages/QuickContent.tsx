@@ -257,8 +257,8 @@ export default function QuickContent() {
           </div>
 
           {/* Progress bar card */}
-          <div className="bg-card rounded-2xl shadow-lg p-2.5 lg:p-3 flex-shrink-0 flex items-center">
-            <CreationProgressBar currentStep={loading ? "generating" : "config"} className="max-w-xs" />
+          <div className="bg-card rounded-2xl shadow-lg p-3 lg:p-4 flex-shrink-0 flex items-center min-w-[320px]">
+            <CreationProgressBar currentStep={loading ? "generating" : "config"} />
           </div>
         </div>
       </div>

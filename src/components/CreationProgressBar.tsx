@@ -20,8 +20,8 @@ export function CreationProgressBar({ currentStep, className }: CreationProgress
   const currentIdx = stepIndex[currentStep];
 
   return (
-    <div className={cn("w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg mx-auto", className)}>
-      <div className="flex items-start">
+    <div className={cn("w-full mx-auto", className)}>
+      <div className="flex items-center">
         {steps.map((step, idx) => {
           const isCompleted = idx < currentIdx;
           const isActive = idx === currentIdx;
@@ -29,23 +29,23 @@ export function CreationProgressBar({ currentStep, className }: CreationProgress
           const isLast = idx === steps.length - 1;
 
           return (
-            <div key={step.id} className="flex items-start flex-1 last:flex-none">
-              {/* Step number + label + underline */}
-              <div className="flex flex-col items-center gap-1.5">
+            <div key={step.id} className={cn("flex items-center", !isLast && "flex-1")}>
+              {/* Step circle + label */}
+              <div className="flex flex-col items-center gap-1.5 min-w-[72px]">
                 <div
                   className={cn(
-                    "w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-all duration-300 text-xs sm:text-sm font-bold",
+                    "w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 text-sm font-bold relative z-10",
                     isCompleted && "bg-primary text-primary-foreground shadow-sm",
                     isActive && step.id === "generating"
                       ? "bg-primary text-primary-foreground shadow-sm"
                       : isActive && "bg-primary text-primary-foreground shadow-md shadow-primary/30",
-                    isPending && "bg-muted text-muted-foreground/50"
+                    isPending && "bg-muted text-muted-foreground/40"
                   )}
                 >
                   {isCompleted ? (
-                    <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4" strokeWidth={3} />
+                    <Check className="h-4 w-4" strokeWidth={3} />
                   ) : isActive && step.id === "generating" ? (
-                    <Loader2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
                     step.number
                   )}
@@ -53,7 +53,7 @@ export function CreationProgressBar({ currentStep, className }: CreationProgress
 
                 <span
                   className={cn(
-                    "text-[10px] sm:text-[11px] md:text-xs font-medium transition-colors duration-300 text-center whitespace-nowrap",
+                    "text-xs font-medium transition-colors duration-300 text-center whitespace-nowrap",
                     isCompleted && "text-primary",
                     isActive && "text-primary font-semibold",
                     isPending && "text-muted-foreground/40"
@@ -65,18 +65,18 @@ export function CreationProgressBar({ currentStep, className }: CreationProgress
                 {/* Underline indicator */}
                 <div
                   className={cn(
-                    "h-[2.5px] w-10 sm:w-12 rounded-full transition-all duration-300",
+                    "h-[2.5px] w-12 rounded-full transition-all duration-300",
                     (isCompleted || isActive) ? "bg-primary" : "bg-border/40"
                   )}
                 />
               </div>
 
-              {/* Connector line */}
+              {/* Connector line — vertically centered with circle */}
               {!isLast && (
-                <div className="flex-1 flex items-center pt-[12.5px] sm:pt-[15px] -mx-1">
+                <div className="flex-1 h-[2px] -mt-8 mx-[-4px]">
                   <div
                     className={cn(
-                      "h-[2px] w-full rounded-full transition-all duration-500",
+                      "h-full w-full rounded-full transition-all duration-500",
                       isCompleted ? "bg-primary" : "bg-border/30"
                     )}
                   />
