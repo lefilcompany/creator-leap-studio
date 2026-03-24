@@ -32,7 +32,6 @@ export default function QuickContent() {
   const { addTask } = useBackgroundTasks();
   const [loading, setLoading] = useState(false);
   const [categoryId, setCategoryId] = useState("");
-  const [customizationsOpen, setCustomizationsOpen] = useState(false);
   const [formData, setFormData] = useState({
     prompt: "",
     brandId: "",
