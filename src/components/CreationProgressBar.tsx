@@ -73,7 +73,7 @@ export function CreationProgressBar({ currentStep, className }: CreationProgress
 
               {/* Connector line */}
               {!isLast && (
-                <div className="flex-1 flex items-center pt-[12.5px] sm:pt-[15px] px-0">"
+                <div className="flex-1 flex items-center pt-[12.5px] sm:pt-[15px] -mx-1">
                   <div
                     className={cn(
                       "h-[2px] w-full rounded-full transition-all duration-500",
