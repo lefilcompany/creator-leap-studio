@@ -234,30 +234,31 @@ export default function QuickContent() {
 
       {/* Header Card */}
       <div className="relative px-4 sm:px-6 lg:px-8 -mt-8 z-10">
-        <div className="max-w-5xl mx-auto">
-          <div className="bg-card rounded-2xl shadow-lg p-2.5 lg:p-3">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-              <div className="flex items-center gap-2.5 flex-shrink-0 min-w-0">
-                <div className="flex-shrink-0 bg-primary/10 text-primary rounded-xl p-2">
-                  <Zap className="h-5 w-5 lg:h-6 lg:w-6" />
-                </div>
-                <div className="min-w-0">
-                  <h1 className="text-lg lg:text-xl font-bold text-foreground leading-tight">Criação Rápida</h1>
-                  <p className="text-muted-foreground text-[11px] lg:text-xs">Gere imagens rapidamente com IA</p>
-                </div>
-              </div>
-              <CreationProgressBar currentStep={loading ? "generating" : "config"} className="flex-1 max-w-xs" />
-              <div className="flex items-center gap-2 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-xl px-3 py-1.5 flex-shrink-0 border border-primary/20">
-                <div className="relative flex-shrink-0">
-                  <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary rounded-full blur-sm opacity-40" />
-                  <div className="relative bg-gradient-to-r from-primary to-secondary text-white rounded-full p-1.5">
-                    <Zap className="h-3.5 w-3.5" />
-                  </div>
-                </div>
-                <span className="text-lg font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">{user?.credits || 0}</span>
-                <span className="text-xs text-muted-foreground font-medium">créditos</span>
-              </div>
+        <div className="max-w-5xl mx-auto flex flex-col md:flex-row md:items-center gap-3">
+          {/* Title card */}
+          <div className="bg-card rounded-2xl shadow-lg p-2.5 lg:p-3 flex items-center gap-2.5 flex-1 min-w-0">
+            <div className="flex-shrink-0 bg-primary/10 text-primary rounded-xl p-2">
+              <Zap className="h-5 w-5 lg:h-6 lg:w-6" />
             </div>
+            <div className="min-w-0">
+              <h1 className="text-lg lg:text-xl font-bold text-foreground leading-tight">Criação Rápida</h1>
+              <p className="text-muted-foreground text-[11px] lg:text-xs">Gere imagens rapidamente com IA</p>
+            </div>
+            <div className="ml-auto flex items-center gap-2 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-xl px-3 py-1.5 flex-shrink-0 border border-primary/20">
+              <div className="relative flex-shrink-0">
+                <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary rounded-full blur-sm opacity-40" />
+                <div className="relative bg-gradient-to-r from-primary to-secondary text-white rounded-full p-1.5">
+                  <Zap className="h-3.5 w-3.5" />
+                </div>
+              </div>
+              <span className="text-lg font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">{user?.credits || 0}</span>
+              <span className="text-xs text-muted-foreground font-medium">créditos</span>
+            </div>
+          </div>
+
+          {/* Progress bar card */}
+          <div className="bg-card rounded-2xl shadow-lg p-2.5 lg:p-3 flex-shrink-0">
+            <CreationProgressBar currentStep={loading ? "generating" : "config"} className="max-w-xs" />
           </div>
         </div>
       </div>
