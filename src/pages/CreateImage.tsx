@@ -782,6 +782,31 @@ export default function CreateImage() {
               <div className="space-y-2.5">
                 <p className="text-base font-bold text-foreground">Personalizações <span className="text-xs font-normal text-muted-foreground">(opcional)</span></p>
                 <div className="flex flex-wrap gap-2">
+                  {/* Tipo de Conteúdo */}
+                  <div className={`flex-1 min-w-[140px] flex flex-col rounded-xl p-3 text-left bg-card shadow-sm ${contentType === "ads" ? "ring-1 ring-primary/30" : ""}`}>
+                    <div className="flex items-center gap-2 w-full">
+                      <Zap className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <span className="text-xs font-semibold text-foreground flex-1 min-w-0">Conteúdo</span>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground mt-1">Tipo de conteúdo</p>
+                    <div className="mt-2 flex gap-1">
+                      <button type="button"
+                        onClick={() => { setContentType("organic"); if (formData.platform) setPlatformGuidelines(getCaptionGuidelines(formData.platform, "organic")); }}
+                        className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold transition-all ${contentType === "organic" ? "bg-primary text-primary-foreground shadow-sm" : "bg-muted/50 text-muted-foreground hover:text-foreground"}`}>
+                        Orgânico
+                      </button>
+                      <button type="button"
+                        onClick={() => {
+                          setContentType("ads");
+                          if (formData.platform) setPlatformGuidelines(getCaptionGuidelines(formData.platform, "ads"));
+                          setFormData(prev => ({ ...prev, imageIncludeText: true }));
+                        }}
+                        className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold transition-all ${contentType === "ads" ? "bg-primary text-primary-foreground shadow-sm" : "bg-muted/50 text-muted-foreground hover:text-foreground"}`}>
+                        Tráfego
+                      </button>
+                    </div>
+                  </div>
+
                   {/* Marca */}
                   {isLoadingData ? <Skeleton className="h-24 flex-1 min-w-[140px] rounded-xl" /> : (
                     <CustomizationCardInline
@@ -824,24 +849,8 @@ export default function CreateImage() {
                     />
                   )}
                 </div>
-              </div>
 
-              {/* 2b. Tipo de Conteúdo */}
-              <div className="space-y-2.5">
-                <p className="text-base font-bold text-foreground">Tipo de Conteúdo</p>
-                <div className="flex items-center space-x-1 rounded-lg bg-muted p-1 h-10 max-w-xs">
-                  <Button type="button" variant={contentType === "organic" ? "default" : "ghost"}
-                    onClick={() => { setContentType("organic"); if (formData.platform) setPlatformGuidelines(getCaptionGuidelines(formData.platform, "organic")); }}
-                    className="flex-1 rounded-md font-semibold h-8 text-xs">Orgânico</Button>
-                  <Button type="button" variant={contentType === "ads" ? "default" : "ghost"}
-                    onClick={() => {
-                      setContentType("ads");
-                      if (formData.platform) setPlatformGuidelines(getCaptionGuidelines(formData.platform, "ads"));
-                      setFormData(prev => ({ ...prev, imageIncludeText: true }));
-                    }}
-                    className="flex-1 rounded-md font-semibold h-8 text-xs">Tráfego</Button>
-                </div>
-
+                {/* Ads sub-options */}
                 {contentType === "ads" && (
                   <div className="mt-2 space-y-3 max-w-md">
                     <div className="flex items-center space-x-1 rounded-lg bg-accent/20 p-1">
@@ -883,7 +892,6 @@ export default function CreateImage() {
                     )}
                   </div>
                 )}
-              </div>
 
               {/* 3. Tom de Voz */}
               <div className="rounded-2xl shadow-lg border-0 bg-card p-4 md:p-5 space-y-2">
