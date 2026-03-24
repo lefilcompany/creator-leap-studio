@@ -291,19 +291,20 @@ export default function QuickContent() {
                 {/* Customizations */}
                 <div className="space-y-2.5">
                   <p className="text-sm font-bold text-foreground">Personalizações <span className="text-xs font-normal text-muted-foreground">(opcional)</span></p>
-                  <div className="space-y-2">
+                  <div className="space-y-1.5">
                     {loadingBrands ? (
-                      <Skeleton className="h-8 w-full rounded-lg" />
+                      <Skeleton className="h-7 w-full rounded-lg" />
                     ) : (
                       <TagSelect
                         options={brands.map(b => ({ value: b.id, label: b.name }))}
                         placeholder="Marca"
                         value={formData.brandId}
                         onValueChange={v => setFormData(prev => ({ ...prev, brandId: v }))}
+                        triggerClassName="h-8 text-xs"
                       />
                     )}
                     {loadingPersonas ? (
-                      <Skeleton className="h-8 w-full rounded-lg" />
+                      <Skeleton className="h-7 w-full rounded-lg" />
                     ) : (
                       <TagSelect
                         options={filteredPersonas.map((p: any) => ({ value: p.id, label: p.name }))}
@@ -311,10 +312,11 @@ export default function QuickContent() {
                         value={formData.personaId}
                         onValueChange={v => setFormData(prev => ({ ...prev, personaId: v }))}
                         disabled={!formData.brandId}
+                        triggerClassName="h-8 text-xs"
                       />
                     )}
                     {loadingThemes ? (
-                      <Skeleton className="h-8 w-full rounded-lg" />
+                      <Skeleton className="h-7 w-full rounded-lg" />
                     ) : (
                       <TagSelect
                         options={filteredThemes.map((t: any) => ({ value: t.id, label: t.title }))}
@@ -322,6 +324,7 @@ export default function QuickContent() {
                         value={formData.themeId}
                         onValueChange={v => setFormData(prev => ({ ...prev, themeId: v }))}
                         disabled={!formData.brandId}
+                        triggerClassName="h-8 text-xs"
                       />
                     )}
                   </div>
