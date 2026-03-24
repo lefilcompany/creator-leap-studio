@@ -1053,10 +1053,10 @@ export default function CreateImage() {
 
               {/* Text on Image Modal — side-by-side cards like CategoryDialog */}
               <Dialog open={textModalOpen} onOpenChange={setTextModalOpen}>
-                <DialogContent className="sm:max-w-[56rem] p-0 gap-0 overflow-visible bg-transparent border-none shadow-none">
-                  <div className="flex items-stretch gap-3">
+                <DialogContent className="sm:max-w-[68rem] p-0 gap-0 overflow-visible bg-transparent border-none shadow-none">
+                  <div className="flex items-stretch gap-4">
                     {/* Left: Controls Panel */}
-                    <div className="flex flex-col bg-background rounded-xl shadow-lg border border-border overflow-hidden w-full sm:w-[28rem] flex-shrink-0 max-h-[85vh]">
+                    <div className="flex flex-col bg-background rounded-xl shadow-lg border border-border overflow-hidden w-full sm:w-[36rem] flex-shrink-0 max-h-[90vh]">
                       <DialogHeader className="px-6 pt-6 pb-0">
                         <DialogTitle className="flex items-center gap-2">
                           <Type className="h-5 w-5 text-primary" />
@@ -1067,7 +1067,7 @@ export default function CreateImage() {
                         </DialogDescription>
                       </DialogHeader>
 
-                      <div className="px-6 py-4 space-y-4 overflow-y-auto flex-1">
+                      <div className="px-6 py-5 space-y-5 overflow-y-auto flex-1">
                         <div className="space-y-1.5">
                           <Label className="text-sm font-bold">
                             Texto principal <span className="text-destructive">*</span>
@@ -1120,12 +1120,12 @@ export default function CreateImage() {
                           
                           {/* Presets rápidos */}
                           <div>
-                            <p className="text-[10px] text-muted-foreground mb-1.5">Presets</p>
-                            <div className="grid grid-cols-3 gap-1.5">
+                            <p className="text-xs text-muted-foreground mb-2">Presets</p>
+                            <div className="grid grid-cols-3 gap-2">
                               {TYPOGRAPHY_PRESETS.map(preset => (
                                 <button key={preset.value} type="button"
                                   onClick={() => applyTypographyPreset(preset.value)}
-                                  className={`px-2 py-2 rounded-lg text-xs transition-all active:scale-[0.97] text-left ${
+                                  className={`px-3 py-2.5 rounded-lg text-sm transition-all active:scale-[0.97] text-left ${
                                     formData.fontStyle === preset.value
                                       ? 'bg-primary text-primary-foreground shadow-sm'
                                       : 'bg-muted/50 text-foreground shadow-sm hover:shadow-md hover:text-primary'
@@ -1144,12 +1144,12 @@ export default function CreateImage() {
 
                           {/* Fonte */}
                           <div>
-                            <p className="text-[10px] text-muted-foreground mb-1.5">Fonte</p>
-                            <div className="grid grid-cols-3 gap-1">
+                            <p className="text-xs text-muted-foreground mb-2">Fonte</p>
+                            <div className="grid grid-cols-4 gap-1.5">
                               {GOOGLE_FONT_PRESETS.map(font => (
                                 <button key={font.value} type="button"
                                   onClick={() => setFormData(prev => ({ ...prev, fontFamily: font.value, fontStyle: '' }))}
-                                  className={`px-2 py-1.5 rounded-lg text-[11px] transition-all active:scale-[0.97] text-center truncate ${
+                                  className={`px-2.5 py-2 rounded-lg text-xs transition-all active:scale-[0.97] text-center truncate ${
                                     formData.fontFamily === font.value
                                       ? 'bg-primary/15 text-primary ring-1 ring-primary/30 font-semibold'
                                       : 'bg-muted/30 text-foreground hover:bg-muted/60'
@@ -1165,12 +1165,12 @@ export default function CreateImage() {
                           {/* Peso e Estilo */}
                           <div className="flex gap-3">
                             <div className="flex-1">
-                              <p className="text-[10px] text-muted-foreground mb-1.5">Peso</p>
-                              <div className="flex gap-1">
+                              <p className="text-xs text-muted-foreground mb-2">Peso</p>
+                              <div className="flex gap-1.5">
                                 {FONT_WEIGHT_OPTIONS.map(w => (
                                   <button key={w.value} type="button"
                                     onClick={() => setFormData(prev => ({ ...prev, fontWeight: w.value, fontStyle: '' }))}
-                                    className={`flex-1 px-1 py-1.5 rounded-lg text-[10px] transition-all active:scale-[0.97] text-center ${
+                                    className={`flex-1 px-1.5 py-2 rounded-lg text-xs transition-all active:scale-[0.97] text-center ${
                                       formData.fontWeight === w.value
                                         ? 'bg-primary/15 text-primary ring-1 ring-primary/30 font-semibold'
                                         : 'bg-muted/30 text-foreground hover:bg-muted/60'
@@ -1182,10 +1182,10 @@ export default function CreateImage() {
                               </div>
                             </div>
                             <div>
-                              <p className="text-[10px] text-muted-foreground mb-1.5">Itálico</p>
+                              <p className="text-xs text-muted-foreground mb-2">Itálico</p>
                               <button type="button"
                                 onClick={() => setFormData(prev => ({ ...prev, fontItalic: !prev.fontItalic, fontStyle: '' }))}
-                                className={`px-3 py-1.5 rounded-lg text-[11px] italic transition-all active:scale-[0.97] ${
+                                className={`px-4 py-2 rounded-lg text-xs italic transition-all active:scale-[0.97] ${
                                   formData.fontItalic
                                     ? 'bg-primary/15 text-primary ring-1 ring-primary/30 font-semibold'
                                     : 'bg-muted/30 text-foreground hover:bg-muted/60'
@@ -1236,11 +1236,11 @@ export default function CreateImage() {
 
                         <div className="space-y-2">
                           <Label className="text-sm font-bold">Design</Label>
-                          <div className="grid grid-cols-2 gap-1.5">
+                          <div className="grid grid-cols-2 gap-2">
                             {TEXT_DESIGN_OPTIONS.map(design => (
                               <button key={design.value} type="button"
                                 onClick={() => setFormData(prev => ({ ...prev, textDesignStyle: design.value }))}
-                                className={`px-2.5 py-2 rounded-lg text-xs transition-all active:scale-[0.97] text-left space-y-0.5 ${
+                                className={`px-3 py-2.5 rounded-lg text-sm transition-all active:scale-[0.97] text-left space-y-0.5 ${
                                   formData.textDesignStyle === design.value
                                     ? 'bg-primary text-primary-foreground shadow-sm'
                                     : 'bg-muted/50 text-foreground shadow-sm hover:shadow-md hover:text-primary'
@@ -1277,7 +1277,7 @@ export default function CreateImage() {
                     </div>
 
                     {/* Right: Live Preview — separate card */}
-                    <div className="hidden sm:flex flex-col w-80 flex-shrink-0 bg-background rounded-xl shadow-lg border border-border max-h-[85vh] animate-in fade-in-0 slide-in-from-right-4 duration-200">
+                    <div className="hidden sm:flex flex-col w-96 flex-shrink-0 bg-background rounded-xl shadow-lg border border-border max-h-[90vh] animate-in fade-in-0 slide-in-from-right-4 duration-200">
                       <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-border">
                         <h3 className="font-semibold text-base">Preview</h3>
                         <span className="text-[10px] text-muted-foreground font-medium">
