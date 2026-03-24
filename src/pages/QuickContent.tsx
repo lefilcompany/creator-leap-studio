@@ -234,7 +234,7 @@ export default function QuickContent() {
 
       {/* Header Card */}
       <div className="relative px-4 sm:px-6 lg:px-8 -mt-8 z-10">
-        <div className="max-w-5xl mx-auto flex flex-col md:flex-row md:items-center gap-3">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center gap-3">
           {/* Title card */}
           <div className="bg-card rounded-2xl shadow-lg p-2.5 lg:p-3 flex items-center gap-2.5 flex-1 min-w-0">
             <div className="flex-shrink-0 bg-primary/10 text-primary rounded-xl p-2">
