@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { CategorySelector } from "@/components/CategorySelector";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { TagSelect } from "@/components/ui/tag-select";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Loader2, Zap, Coins, HelpCircle } from "lucide-react";
@@ -24,6 +23,7 @@ import { CreationProgressBar } from "@/components/CreationProgressBar";
 import { UnifiedPromptBox } from "@/components/quick-content/UnifiedPromptBox";
 import { VisualStyleGrid } from "@/components/quick-content/VisualStyleGrid";
 import { FormatPreview } from "@/components/quick-content/FormatPreview";
+import { CustomizationCards } from "@/components/quick-content/CustomizationCards";
 import createBanner from "@/assets/create-banner.jpg";
 
 export default function QuickContent() {
@@ -289,46 +289,16 @@ export default function QuickContent() {
                 />
 
                 {/* Customizations */}
-                <div className="space-y-2.5">
-                  <p className="text-sm font-bold text-foreground">Personalizações <span className="text-xs font-normal text-muted-foreground">(opcional)</span></p>
-                  <div className="space-y-1.5">
-                    {loadingBrands ? (
-                      <Skeleton className="h-7 w-full rounded-lg" />
-                    ) : (
-                      <TagSelect
-                        options={brands.map(b => ({ value: b.id, label: b.name }))}
-                        placeholder="Marca"
-                        value={formData.brandId}
-                        onValueChange={v => setFormData(prev => ({ ...prev, brandId: v }))}
-                        triggerClassName="h-8 text-xs"
-                      />
-                    )}
-                    {loadingPersonas ? (
-                      <Skeleton className="h-7 w-full rounded-lg" />
-                    ) : (
-                      <TagSelect
-                        options={filteredPersonas.map((p: any) => ({ value: p.id, label: p.name }))}
-                        placeholder="Persona"
-                        value={formData.personaId}
-                        onValueChange={v => setFormData(prev => ({ ...prev, personaId: v }))}
-                        disabled={!formData.brandId}
-                        triggerClassName="h-8 text-xs"
-                      />
-                    )}
-                    {loadingThemes ? (
-                      <Skeleton className="h-7 w-full rounded-lg" />
-                    ) : (
-                      <TagSelect
-                        options={filteredThemes.map((t: any) => ({ value: t.id, label: t.title }))}
-                        placeholder="Tema Estratégico"
-                        value={formData.themeId}
-                        onValueChange={v => setFormData(prev => ({ ...prev, themeId: v }))}
-                        disabled={!formData.brandId}
-                        triggerClassName="h-8 text-xs"
-                      />
-                    )}
-                  </div>
-                </div>
+                <CustomizationCards
+                  brands={brands}
+                  personas={filteredPersonas}
+                  themes={filteredThemes}
+                  formData={formData}
+                  onFormChange={updates => setFormData(prev => ({ ...prev, ...updates }))}
+                  loadingBrands={loadingBrands}
+                  loadingPersonas={loadingPersonas}
+                  loadingThemes={loadingThemes}
+                />
               </div>
 
               {/* Category Selector */}
