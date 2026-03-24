@@ -28,6 +28,7 @@ import { PageBreadcrumb } from "@/components/PageBreadcrumb";
 import { CreationProgressBar } from "@/components/CreationProgressBar";
 import { GeneratingOverlay } from "@/components/GeneratingOverlay";
 import { PlatformSelector } from "@/components/quick-content/PlatformSelector";
+import { VisualStyleGrid } from "@/components/quick-content/VisualStyleGrid";
 import { CategorySelector } from "@/components/CategorySelector";
 import { FormatPreview } from "@/components/quick-content/FormatPreview";
 import createBanner from "@/assets/create-banner.jpg";
@@ -1073,23 +1074,10 @@ export default function CreateImage() {
               </div>
 
               {/* Visual Style */}
-              <div className="bg-card rounded-2xl shadow-lg p-4">
-                <p className="text-sm font-bold text-foreground mb-3">Estilo Visual</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {VISUAL_STYLES.map(style => (
-                    <button key={style.value} type="button"
-                      onClick={() => handleSelectChange("visualStyle" as any, style.value)}
-                      className={`px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all active:scale-[0.97] ${
-                        formData.visualStyle === style.value
-                          ? "bg-primary text-primary-foreground shadow-sm"
-                          : "bg-muted/50 text-foreground shadow-sm hover:shadow-md hover:text-primary"
-                      }`}
-                    >
-                      {style.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              <VisualStyleGrid
+                value={formData.visualStyle}
+                onChange={value => handleSelectChange("visualStyle" as any, value)}
+              />
 
             </div>
           </div>
