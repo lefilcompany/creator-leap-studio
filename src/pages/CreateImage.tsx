@@ -6,12 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
-import { NativeSelect } from "@/components/ui/native-select";
 import { TagSelect } from "@/components/ui/tag-select";
-import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Sparkles, Zap, X, Info, ImagePlus, Coins, Image as ImageIcon, HelpCircle, Paintbrush, ChevronDown, Plus, Settings2, Mic, ClipboardPaste, Type } from "lucide-react";
@@ -34,6 +29,7 @@ import { CreationProgressBar } from "@/components/CreationProgressBar";
 import { GeneratingOverlay } from "@/components/GeneratingOverlay";
 import { PlatformSelector } from "@/components/quick-content/PlatformSelector";
 import { CategorySelector } from "@/components/CategorySelector";
+import { FormatPreview } from "@/components/quick-content/FormatPreview";
 import createBanner from "@/assets/create-banner.jpg";
 
 enum GenerationStep {
@@ -566,212 +562,269 @@ export default function CreateImage() {
       ]} startDelay={500} />
 
       {/* Banner */}
-      <div className="relative h-28 md:h-36 overflow-hidden">
-        <PageBreadcrumb items={[{ label: "Criar Conteúdo", href: "/create" }, { label: "Criar Imagem" }]} variant="overlay" />
+      <div className="relative h-20 md:h-24 overflow-hidden">
+        <PageBreadcrumb items={[{ label: "Criar Conteúdo", href: "/create" }, { label: "Criação Rápida" }]} variant="overlay" />
         <img src={createBanner} alt="Criar Imagem" className="w-full h-full object-cover object-center" loading="eager" />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
       </div>
 
-      {/* Header Card */}
-      <div className="relative px-4 sm:px-6 lg:px-8 -mt-10 z-10">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-card rounded-2xl shadow-lg p-3 lg:p-4">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-              <div className="flex items-center gap-3 flex-1 min-w-0">
-                <div className="flex-shrink-0 bg-primary/10 text-primary rounded-xl p-2.5 lg:p-3">
-                  <ImageIcon className="h-6 w-6 lg:h-7 lg:w-7" />
-                </div>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <h1 className="text-xl lg:text-2xl font-bold text-foreground">Criar Imagem</h1>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <button className="text-muted-foreground hover:text-foreground transition-colors"><HelpCircle className="h-4 w-4" /></button>
-                      </PopoverTrigger>
-                      <PopoverContent className="text-sm w-72" side="bottom">
-                        <p className="font-medium mb-1">Criar Imagem</p>
-                        <p className="text-muted-foreground text-xs">Gere imagens profissionais com IA. Selecione marca, tema e persona para personalizar o resultado.</p>
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                  <p className="text-muted-foreground text-xs lg:text-sm">Gere imagens profissionais com IA</p>
+      {/* Header Cards */}
+      <div className="relative px-4 sm:px-6 lg:px-8 -mt-8 z-10">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-stretch gap-3">
+          {/* Title card */}
+          <div className="bg-card rounded-2xl shadow-lg p-2.5 lg:p-3 flex items-center gap-2.5 flex-1 min-w-0">
+            <div className="flex-shrink-0 bg-primary/10 text-primary rounded-xl p-2">
+              <ImageIcon className="h-5 w-5 lg:h-6 lg:w-6" />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <h1 className="text-lg lg:text-xl font-bold text-foreground leading-tight">Criar Imagem</h1>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button className="text-muted-foreground hover:text-foreground transition-colors"><HelpCircle className="h-3.5 w-3.5" /></button>
+                  </PopoverTrigger>
+                  <PopoverContent className="text-sm w-72" side="bottom">
+                    <p className="font-medium mb-1">Criar Imagem</p>
+                    <p className="text-muted-foreground text-xs">Gere imagens profissionais com IA. Selecione marca, tema e persona para personalizar o resultado.</p>
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <p className="text-muted-foreground text-[11px] lg:text-xs">Gere imagens profissionais com IA</p>
+            </div>
+            <div className="ml-auto flex items-center gap-2 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-xl px-3 py-1.5 flex-shrink-0 border border-primary/20">
+              <div className="relative flex-shrink-0">
+                <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary rounded-full blur-sm opacity-40" />
+                <div className="relative bg-gradient-to-r from-primary to-secondary text-white rounded-full p-1.5">
+                  <Zap className="h-3.5 w-3.5" />
                 </div>
               </div>
-              {user && (
-                <Card className="bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/20 flex-shrink-0">
-                  <CardContent className="p-2.5 md:p-3">
-                    <div className="flex items-center justify-center gap-3">
-                      <div className="relative flex-shrink-0">
-                        <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary rounded-full blur-sm opacity-40" />
-                        <div className="relative bg-gradient-to-r from-primary to-secondary text-white rounded-full p-2"><Zap className="h-4 w-4" /></div>
-                      </div>
-                      <div className="flex flex-col">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent whitespace-nowrap">{user?.credits || 0}</span>
-                          <p className="text-sm text-muted-foreground font-medium leading-tight whitespace-nowrap">Créditos</p>
-                        </div>
-                        <p className="text-xs text-muted-foreground">Disponíveis</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+              <span className="text-lg font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">{user?.credits || 0}</span>
+              <span className="text-xs text-muted-foreground font-medium">créditos</span>
             </div>
+          </div>
+
+          {/* Progress bar card */}
+          <div className="bg-card rounded-2xl shadow-lg p-3 lg:p-4 flex-shrink-0 flex items-center min-w-[320px]">
+            <CreationProgressBar currentStep={loading ? "generating" : "config"} />
           </div>
         </div>
       </div>
 
-      {/* Main Form */}
+      {/* Main Form — Two columns on desktop */}
       <main className="px-4 sm:px-6 lg:px-8 pt-4 pb-8 flex-1">
-        <div className="max-w-4xl mx-auto space-y-4 mt-4">
-          <CreationProgressBar currentStep={loading ? "generating" : "config"} className="max-w-xs mx-auto" />
+        <div className="max-w-7xl mx-auto space-y-4 mt-4">
 
-          <div className="space-y-4">
+          <div id="create-image-form" className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6">
+            {/* ═══ Left Column ═══ */}
+            <div className="space-y-5">
 
-            {/* ── SEÇÃO 1: CAMPOS OBRIGATÓRIOS ── */}
-            <div className="rounded-2xl shadow-lg border-0 bg-card p-4 md:p-5 space-y-5">
-              <div className="flex items-center gap-2 pb-1 border-b border-border/30">
-                <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-                <p className="text-sm font-bold text-foreground">Configuração obrigatória</p>
+              {/* 1. Prompt + References (unified card) */}
+              <div className="space-y-2.5">
+                <div>
+                  <Label htmlFor="prompt" className="text-base font-bold text-foreground">
+                    Prompt <span className="text-destructive">*</span>
+                  </Label>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Descreva a imagem que deseja criar. Quanto mais detalhes, melhor o resultado.
+                  </p>
+                </div>
+
+                <div className={`rounded-2xl shadow-lg overflow-hidden border-0 bg-card transition-shadow focus-within:shadow-xl ${missingFields.includes('prompt') ? 'ring-2 ring-destructive/30' : ''}`} onPaste={handlePaste}>
+                  <div className="p-4 md:p-5 pb-2">
+                    <Textarea
+                      id="prompt"
+                      placeholder="Ex: Uma imagem de um café sendo servido numa manhã ensolarada, com estética minimalista e cores quentes"
+                      value={formData.prompt}
+                      onChange={handleInputChange}
+                      maxLength={5000}
+                      rows={4}
+                      className="resize-none border-0 bg-transparent p-0 text-base placeholder:text-sm placeholder:text-muted-foreground/50 focus-visible:ring-0 focus-visible:ring-offset-0 min-h-[100px]"
+                    />
+                  </div>
+
+                  {/* Attached files thumbnails */}
+                  {referenceFiles.length > 0 && (
+                    <div className="flex flex-wrap gap-2 px-4 md:px-5 pb-2">
+                      {referenceFiles.map((file, idx) => (
+                        <div key={idx} className="relative group flex items-center gap-2 bg-muted/40 rounded-lg px-2.5 py-1.5 text-xs shadow-sm">
+                          <ImagePlus className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                          <span className="truncate max-w-[120px] text-foreground">{file.name}</span>
+                          <button type="button" onClick={() => handleTogglePreserve(idx)}
+                            className={`text-[10px] px-1.5 py-0.5 rounded-full border transition-all ${preserveImageIndices.includes(idx) ? "bg-primary/15 border-primary/30 text-primary" : "bg-muted border-border/50 text-muted-foreground hover:border-primary/30 hover:text-primary"}`}
+                          >
+                            {preserveImageIndices.includes(idx) ? "Preservando" : "Preservar"}
+                          </button>
+                          <button type="button" onClick={() => handleRemoveFile(idx)} className="text-muted-foreground hover:text-destructive transition-colors">
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Bottom toolbar */}
+                  <div className="flex items-center gap-2 px-4 md:px-5 py-2.5 border-t border-border/20 bg-muted/10">
+                    <span className="text-[11px] text-muted-foreground font-medium mr-1">Referências <span className="text-destructive">*</span></span>
+                    <button type="button" onClick={() => fileInputRef.current?.click()}
+                      className="h-7 inline-flex items-center gap-1.5 rounded-lg px-2.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all">
+                      <ImagePlus className="h-3.5 w-3.5" /><span>Selecionar imagem</span>
+                    </button>
+                    <button type="button" onClick={async () => {
+                      try {
+                        const clipboardItems = await navigator.clipboard.read();
+                        const files: File[] = [];
+                        for (const item of clipboardItems) {
+                          const imageType = item.types.find(t => t.startsWith('image/'));
+                          if (imageType) {
+                            const blob = await item.getType(imageType);
+                            const ext = imageType.split('/')[1] || 'png';
+                            files.push(new File([blob], `colado-${Date.now()}.${ext}`, { type: imageType }));
+                          }
+                        }
+                        if (files.length > 0) {
+                          const remaining = 5 - referenceFiles.length;
+                          const toAdd = files.slice(0, remaining);
+                          setReferenceFiles(prev => [...prev, ...toAdd]);
+                          toast.success(`${toAdd.length} imagem(ns) colada(s)`);
+                        } else { toast.error('Nenhuma imagem encontrada na área de transferência'); }
+                      } catch { toast.error('Não foi possível acessar a área de transferência. Use Ctrl+V no campo.'); }
+                    }}
+                      className="h-7 inline-flex items-center gap-1.5 rounded-lg px-2.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all">
+                      <ClipboardPaste className="h-3.5 w-3.5" /><span>Colar imagem</span>
+                    </button>
+                    <div className="flex-1" />
+                    <span className="text-[10px] text-muted-foreground">{referenceFiles.length}/5</span>
+                  </div>
+                </div>
+                <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden"
+                  disabled={referenceFiles.length >= 5}
+                  onChange={e => {
+                    const files = Array.from(e.target.files || []);
+                    const remaining = 5 - referenceFiles.length;
+                    const toAdd = files.slice(0, remaining);
+                    if (files.length > remaining) toast.error(`Máximo 5 imagens. ${toAdd.length} adicionada(s).`);
+                    setReferenceFiles(prev => [...prev, ...toAdd]);
+                  }}
+                />
+                {missingFields.includes('referenceFiles') && referenceFiles.length === 0 && (
+                  <p className="text-xs text-destructive font-medium">Adicione ao menos 1 imagem de referência</p>
+                )}
               </div>
 
-              {/* Marca + Tipo de conteúdo */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {isLoadingData ? <SelectSkeleton /> : (
+              {/* 2. Personalizações + Tipo de Conteúdo */}
+              <div className="rounded-2xl shadow-lg border-0 bg-card p-4 md:p-5 space-y-4">
+                <p className="text-base font-bold text-foreground">Personalizações</p>
+
+                {/* Marca + Tipo de conteúdo */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {isLoadingData ? <SelectSkeleton /> : (
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-medium text-muted-foreground">Marca <span className="text-destructive">*</span></Label>
+                      <TagSelect id="select-brand" value={formData.brand} onValueChange={value => handleSelectChange("brand", value)}
+                        options={brands.map(b => ({ value: b.id, label: b.name }))}
+                        placeholder={brands.length === 0 ? "Nenhuma marca" : "Selecionar marca"}
+                        disabled={brands.length === 0}
+                        triggerClassName={`h-9 rounded-lg border-2 bg-background/50 hover:border-border/70 transition-colors text-xs ${missingFields.includes('brand') ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/50'}`}
+                      />
+                      {!isLoadingData && brands.length === 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          <button onClick={() => navigate("/brands")} className="text-primary hover:underline font-medium">Cadastre uma marca</button>
+                        </p>
+                      )}
+                    </div>
+                  )}
+
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium text-muted-foreground">Marca <span className="text-destructive">*</span></Label>
-                    <TagSelect id="select-brand" value={formData.brand} onValueChange={value => handleSelectChange("brand", value)}
-                      options={brands.map(b => ({ value: b.id, label: b.name }))}
-                      placeholder={brands.length === 0 ? "Nenhuma marca" : "Selecionar marca"}
-                      disabled={brands.length === 0}
-                      triggerClassName={`h-9 rounded-lg border-2 bg-background/50 hover:border-border/70 transition-colors text-xs ${missingFields.includes('brand') ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/50'}`}
-                    />
-                    {!isLoadingData && brands.length === 0 && (
-                      <p className="text-xs text-muted-foreground">
-                        <button onClick={() => navigate("/brands")} className="text-primary hover:underline font-medium">Cadastre uma marca</button>
-                      </p>
+                    <Label className="text-xs font-medium text-muted-foreground">Tipo de Conteúdo</Label>
+                    <div className="flex items-center space-x-1 rounded-lg bg-muted p-1 h-9">
+                      <Button type="button" variant={contentType === "organic" ? "default" : "ghost"}
+                        onClick={() => { setContentType("organic"); if (formData.platform) setPlatformGuidelines(getCaptionGuidelines(formData.platform, "organic")); }}
+                        className="flex-1 rounded-md font-semibold h-7 text-xs">Orgânico</Button>
+                      <Button type="button" variant={contentType === "ads" ? "default" : "ghost"}
+                        onClick={() => {
+                          setContentType("ads");
+                          if (formData.platform) setPlatformGuidelines(getCaptionGuidelines(formData.platform, "ads"));
+                          setFormData(prev => ({ ...prev, imageIncludeText: true }));
+                        }}
+                        className="flex-1 rounded-md font-semibold h-7 text-xs">Tráfego</Button>
+                    </div>
+
+                    {contentType === "ads" && (
+                      <div className="mt-2 space-y-3">
+                        <div className="flex items-center space-x-1 rounded-lg bg-accent/20 p-1">
+                          <Button type="button" variant={formData.adMode === "standard" ? "default" : "ghost"}
+                            onClick={() => setFormData(prev => ({ ...prev, adMode: "standard" }))}
+                            className="flex-1 rounded-md font-semibold h-7 text-xs">Padrão</Button>
+                          <Button type="button" variant={formData.adMode === "professional" ? "default" : "ghost"}
+                            onClick={() => setFormData(prev => ({
+                              ...prev, adMode: "professional",
+                              imageIncludeText: true, fontStyle: "impactful", textDesignStyle: "badge",
+                            }))}
+                            className="flex-1 rounded-md font-semibold h-7 text-xs">🎯 Profissional</Button>
+                        </div>
+
+                        {formData.adMode === "professional" && (
+                          <div className="space-y-3 p-3 rounded-xl bg-accent/10 border border-accent/20 animate-in slide-in-from-top-2 duration-200">
+                            <p className="text-[10px] text-muted-foreground">Modo otimizado para peças publicitárias profissionais com hierarquia visual, badges e CTAs destacados.</p>
+
+                            <div className="space-y-1.5">
+                              <Label className="text-xs font-medium text-muted-foreground">Preço / Oferta <span className="font-normal">(opcional)</span></Label>
+                              <Input
+                                placeholder="Ex: R$ 29,90 · 50% OFF · A partir de R$ 19"
+                                value={formData.priceText || ""}
+                                onChange={e => setFormData(prev => ({ ...prev, priceText: e.target.value }))}
+                                className="h-9 rounded-lg border-2 border-border/50 bg-background/50 text-sm"
+                                maxLength={30}
+                              />
+                              <p className="text-[10px] text-muted-foreground">{formData.priceText?.length || 0}/30 · Será exibido em destaque com badge</p>
+                            </div>
+
+                            <label className="flex items-center gap-2 cursor-pointer">
+                              <Checkbox
+                                checked={formData.includeBrandLogo || false}
+                                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, includeBrandLogo: !!checked }))}
+                              />
+                              <span className="text-xs text-foreground">Incluir logo da marca no canto</span>
+                            </label>
+                          </div>
+                        )}
+                      </div>
                     )}
                   </div>
-                )}
+                </div>
 
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-medium text-muted-foreground">Tipo de Conteúdo</Label>
-                  <div className="flex items-center space-x-1 rounded-lg bg-muted p-1 h-9">
-                    <Button type="button" variant={contentType === "organic" ? "default" : "ghost"}
-                      onClick={() => { setContentType("organic"); if (formData.platform) setPlatformGuidelines(getCaptionGuidelines(formData.platform, "organic")); }}
-                      className="flex-1 rounded-md font-semibold h-7 text-xs">Orgânico</Button>
-                    <Button type="button" variant={contentType === "ads" ? "default" : "ghost"}
-                      onClick={() => { 
-                        setContentType("ads"); 
-                        if (formData.platform) setPlatformGuidelines(getCaptionGuidelines(formData.platform, "ads")); 
-                        // Anúncios sempre incluem texto/CTA na imagem
-                        setFormData(prev => ({ ...prev, imageIncludeText: true }));
-                      }}
-                      className="flex-1 rounded-md font-semibold h-7 text-xs">Anúncio</Button>
-                  </div>
+                {/* Persona + Tema */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {isLoadingData ? <SelectSkeleton /> : (
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-medium text-muted-foreground">Persona <span className="font-normal">(opcional)</span></Label>
+                      <TagSelect value={formData.persona} onValueChange={value => handleSelectChange("persona", value)}
+                        options={filteredPersonas.map(p => ({ value: p.id, label: p.name }))}
+                        placeholder={!formData.brand ? "Selecione marca" : filteredPersonas.length === 0 ? "Nenhuma" : "Selecionar"}
+                        disabled={!formData.brand || filteredPersonas.length === 0}
+                        triggerClassName="h-9 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors text-xs"
+                      />
+                    </div>
+                  )}
 
-                  {/* Modo Anúncio Profissional - aparece apenas quando tipo = Anúncio */}
-                  {contentType === "ads" && (
-                    <div className="mt-2 space-y-3">
-                      <div className="flex items-center space-x-1 rounded-lg bg-accent/20 p-1">
-                        <Button type="button" variant={formData.adMode === "standard" ? "default" : "ghost"}
-                          onClick={() => setFormData(prev => ({ ...prev, adMode: "standard" }))}
-                          className="flex-1 rounded-md font-semibold h-7 text-xs">Padrão</Button>
-                        <Button type="button" variant={formData.adMode === "professional" ? "default" : "ghost"}
-                          onClick={() => setFormData(prev => ({
-                            ...prev, adMode: "professional",
-                            imageIncludeText: true, fontStyle: "impactful", textDesignStyle: "badge",
-                          }))}
-                          className="flex-1 rounded-md font-semibold h-7 text-xs">🎯 Profissional</Button>
-                      </div>
-
-                      {formData.adMode === "professional" && (
-                        <div className="space-y-3 p-3 rounded-xl bg-accent/10 border border-accent/20 animate-in slide-in-from-top-2 duration-200">
-                          <p className="text-[10px] text-muted-foreground">Modo otimizado para peças publicitárias profissionais com hierarquia visual, badges e CTAs destacados.</p>
-                          
-                          <div className="space-y-1.5">
-                            <Label className="text-xs font-medium text-muted-foreground">Preço / Oferta <span className="font-normal">(opcional)</span></Label>
-                            <Input
-                              placeholder="Ex: R$ 29,90 · 50% OFF · A partir de R$ 19"
-                              value={formData.priceText || ""}
-                              onChange={e => setFormData(prev => ({ ...prev, priceText: e.target.value }))}
-                              className="h-9 rounded-lg border-2 border-border/50 bg-background/50 text-sm"
-                              maxLength={30}
-                            />
-                            <p className="text-[10px] text-muted-foreground">{formData.priceText?.length || 0}/30 · Será exibido em destaque com badge</p>
-                          </div>
-
-                          <label className="flex items-center gap-2 cursor-pointer">
-                            <Checkbox
-                              checked={formData.includeBrandLogo || false}
-                              onCheckedChange={(checked) => setFormData(prev => ({ ...prev, includeBrandLogo: !!checked }))}
-                            />
-                            <span className="text-xs text-foreground">Incluir logo da marca no canto</span>
-                          </label>
-                        </div>
-                      )}
+                  {isLoadingData ? <SelectSkeleton /> : (
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-medium text-muted-foreground">Tema <span className="font-normal">(opcional)</span></Label>
+                      <TagSelect value={formData.theme} onValueChange={value => handleSelectChange("theme", value)}
+                        options={filteredThemes.map(t => ({ value: t.id, label: t.title }))}
+                        placeholder={!formData.brand ? "Selecione marca" : filteredThemes.length === 0 ? "Nenhum" : "Selecionar"}
+                        disabled={!formData.brand || filteredThemes.length === 0}
+                        triggerClassName="h-9 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors text-xs"
+                      />
                     </div>
                   )}
                 </div>
               </div>
 
-              {/* Persona + Tema */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {isLoadingData ? <SelectSkeleton /> : (
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-medium text-muted-foreground">Persona <span className="font-normal">(opcional)</span></Label>
-                    <TagSelect value={formData.persona} onValueChange={value => handleSelectChange("persona", value)}
-                      options={filteredPersonas.map(p => ({ value: p.id, label: p.name }))}
-                      placeholder={!formData.brand ? "Selecione marca" : filteredPersonas.length === 0 ? "Nenhuma" : "Selecionar"}
-                      disabled={!formData.brand || filteredPersonas.length === 0}
-                      triggerClassName="h-9 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors text-xs"
-                    />
-                  </div>
-                )}
-
-                {isLoadingData ? <SelectSkeleton /> : (
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-medium text-muted-foreground">Tema <span className="font-normal">(opcional)</span></Label>
-                    <TagSelect value={formData.theme} onValueChange={value => handleSelectChange("theme", value)}
-                      options={filteredThemes.map(t => ({ value: t.id, label: t.title }))}
-                      placeholder={!formData.brand ? "Selecione marca" : filteredThemes.length === 0 ? "Nenhum" : "Selecionar"}
-                      disabled={!formData.brand || filteredThemes.length === 0}
-                      triggerClassName="h-9 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors text-xs"
-                    />
-                  </div>
-                )}
-              </div>
-
-              {/* Plataforma */}
-              <div>
-                <PlatformSelector
-                  value={formData.platform}
-                  onChange={(value, aspectRatio) => {
-                    handleSelectChange("platform", value);
-                    if (aspectRatio) setFormData(prev => ({ ...prev, aspectRatio }));
-                  }}
-                />
-                {missingFields.includes('platform') && !formData.platform && (
-                  <p className="text-xs text-destructive font-medium mt-1">Selecione uma plataforma</p>
-                )}
-                {/* Format badge */}
-                {(() => {
-                  const ar = formData.aspectRatio || (formData.platform ? getPlatformImageSpec(formData.platform, "feed", contentType)?.aspectRatio : null) || '1:1';
-                  const dims = ASPECT_RATIO_DIMENSIONS[ar] || ASPECT_RATIO_DIMENSIONS['1:1'];
-                  return (
-                    <div className="mt-2">
-                      <Badge variant="secondary" className="text-[10px] font-medium gap-1">
-                        📐 Formato final: {dims.width}×{dims.height} ({ar})
-                      </Badge>
-                    </div>
-                  );
-                })()}
-              </div>
-
-              {/* Tom de Voz */}
-              <div className="space-y-2">
-                <Label className="text-xs font-medium text-muted-foreground">
-                  Tom de Voz <span className="text-destructive">*</span> <span className="font-normal">(máx. 4)</span>
+              {/* 3. Tom de Voz */}
+              <div className="rounded-2xl shadow-lg border-0 bg-card p-4 md:p-5 space-y-2">
+                <Label className="text-base font-bold text-foreground">
+                  Tom de voz <span className="text-destructive">*</span> <span className="text-xs font-normal text-muted-foreground">(máx. 4)</span>
                 </Label>
                 <div className="flex flex-wrap gap-1.5">
                   {toneOptions.map(t => (
@@ -792,14 +845,179 @@ export default function CreateImage() {
                 )}
               </div>
 
-              {/* Estilo Visual */}
-              <div className="space-y-2">
-                <Label className="text-xs font-medium text-muted-foreground">Estilo Visual</Label>
+              {/* 4. Texto na Imagem */}
+              <div className="rounded-2xl shadow-lg border-0 bg-card p-4 md:p-5 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Type className="h-4 w-4 text-primary" />
+                    <p className="text-sm font-bold text-foreground">Texto na Imagem</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, imageIncludeText: !prev.imageIncludeText }))}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      formData.imageIncludeText ? 'bg-primary' : 'bg-muted'
+                    }`}
+                  >
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-sm ${
+                      formData.imageIncludeText ? 'translate-x-6' : 'translate-x-1'
+                    }`} />
+                  </button>
+                </div>
+
+                {formData.imageIncludeText && (
+                  <div className="space-y-4 animate-in slide-in-from-top-2 duration-200">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-medium text-muted-foreground">
+                        Texto para renderizar <span className="text-destructive">*</span>
+                      </Label>
+                      <Input
+                        placeholder="Ex: Descubra o sabor da tradição"
+                        value={formData.imageTextContent}
+                        onChange={e => setFormData(prev => ({ ...prev, imageTextContent: e.target.value }))}
+                        className="h-9 rounded-lg border-2 border-border/50 bg-background/50 text-sm"
+                        maxLength={80}
+                      />
+                      <p className="text-[10px] text-muted-foreground">{formData.imageTextContent?.length || 0}/80 caracteres</p>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-medium text-muted-foreground">
+                        CTA (Call-to-Action) <span className="font-normal">(opcional)</span>
+                      </Label>
+                      <Input
+                        placeholder="Ex: Saiba mais · Compre agora · Garanta o seu"
+                        value={formData.ctaText}
+                        onChange={e => setFormData(prev => ({ ...prev, ctaText: e.target.value }))}
+                        className="h-9 rounded-lg border-2 border-border/50 bg-background/50 text-sm"
+                        maxLength={40}
+                      />
+                      <p className="text-[10px] text-muted-foreground">{formData.ctaText?.length || 0}/40 caracteres</p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium text-muted-foreground">Posição do Texto</Label>
+                      <div className="grid grid-cols-4 gap-1.5 max-w-[220px]">
+                        {TEXT_POSITIONS.map(pos => (
+                          <button key={pos.value} type="button"
+                            onClick={() => setFormData(prev => ({ ...prev, imageTextPosition: pos.value as any }))}
+                            className={`h-10 rounded-lg text-sm font-medium transition-all active:scale-[0.95] flex flex-col items-center justify-center gap-0.5 ${
+                              formData.imageTextPosition === pos.value
+                                ? 'bg-primary text-primary-foreground shadow-sm'
+                                : 'bg-muted/50 text-foreground hover:bg-primary/10 hover:text-primary'
+                            }`}
+                            title={pos.label}
+                          >
+                            <span className="text-base leading-none">{pos.icon}</span>
+                            <span className="text-[8px] leading-none opacity-70">{pos.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium text-muted-foreground">Tipografia</Label>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                        {FONT_STYLE_OPTIONS.map(font => (
+                          <button key={font.value} type="button"
+                            onClick={() => setFormData(prev => ({ ...prev, fontStyle: font.value }))}
+                            className={`px-3 py-2 rounded-lg text-xs font-medium transition-all active:scale-[0.97] text-center ${
+                              formData.fontStyle === font.value
+                                ? 'bg-primary text-primary-foreground shadow-sm'
+                                : 'bg-muted/50 text-foreground shadow-sm hover:shadow-md hover:text-primary'
+                            }`}
+                            title={font.desc}
+                          >
+                            {font.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium text-muted-foreground">Design do Texto</Label>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-1.5">
+                        {TEXT_DESIGN_OPTIONS.map(design => (
+                          <button key={design.value} type="button"
+                            onClick={() => setFormData(prev => ({ ...prev, textDesignStyle: design.value }))}
+                            className={`px-3 py-2.5 rounded-lg text-xs transition-all active:scale-[0.97] text-left space-y-0.5 ${
+                              formData.textDesignStyle === design.value
+                                ? 'bg-primary text-primary-foreground shadow-sm'
+                                : 'bg-muted/50 text-foreground shadow-sm hover:shadow-md hover:text-primary'
+                            }`}
+                          >
+                            <span className="font-semibold block">{design.label}</span>
+                            <span className={`text-[10px] block leading-tight ${
+                              formData.textDesignStyle === design.value ? 'text-primary-foreground/70' : 'text-muted-foreground'
+                            }`}>{design.desc}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Category Selector */}
+              <CategorySelector value={selectedCategoryId} onChange={setSelectedCategoryId} disabled={loading} />
+
+              {/* Additional Info (collapsible) */}
+              <button
+                type="button"
+                onClick={() => setShowSettings(!showSettings)}
+                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors group w-full"
+              >
+                <Settings2 className="h-3.5 w-3.5 group-hover:text-primary transition-colors" />
+                <span className="font-medium text-foreground/70 group-hover:text-primary">Informações adicionais</span>
+                <ChevronDown className={`h-3 w-3 transition-transform ml-1 ${showSettings ? "rotate-180" : ""}`} />
+              </button>
+
+              {showSettings && (
+                <div className="rounded-2xl shadow-lg overflow-hidden border-0 bg-card p-4 md:p-5 space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="additionalInfo" className="text-sm font-bold text-foreground">
+                      Informações Adicionais <span className="text-muted-foreground font-normal text-xs">(opcional)</span>
+                    </Label>
+                    <Textarea
+                      id="additionalInfo"
+                      placeholder="Outras instruções ou contexto relevante..."
+                      value={formData.additionalInfo}
+                      onChange={handleInputChange}
+                      rows={3}
+                      className="resize-none rounded-xl border-0 bg-muted/30 text-sm p-3 focus-visible:ring-1 focus-visible:ring-primary/30 transition-colors"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* ═══ Right Column — Sticky Preview ═══ */}
+            <div className="lg:sticky lg:top-4 self-start space-y-4">
+              {/* Format Preview */}
+              <div className="bg-card rounded-2xl shadow-lg p-5 flex flex-col items-center">
+                <FormatPreview
+                  platform={formData.platform}
+                  aspectRatio={formData.aspectRatio || (formData.platform ? getPlatformImageSpec(formData.platform, "feed", contentType)?.aspectRatio : undefined) || "1:1"}
+                  onPlatformChange={(platform, aspectRatio, width, height) => {
+                    handleSelectChange("platform", platform);
+                    setFormData(prev => ({
+                      ...prev,
+                      aspectRatio,
+                      width: String(width),
+                      height: String(height),
+                    }));
+                  }}
+                />
+              </div>
+
+              {/* Visual Style */}
+              <div className="bg-card rounded-2xl shadow-lg p-4">
+                <p className="text-sm font-bold text-foreground mb-3">Estilo Visual</p>
                 <div className="flex flex-wrap gap-1.5">
                   {VISUAL_STYLES.map(style => (
                     <button key={style.value} type="button"
                       onClick={() => handleSelectChange("visualStyle" as any, style.value)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all active:scale-[0.97] ${
+                      className={`px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all active:scale-[0.97] ${
                         formData.visualStyle === style.value
                           ? "bg-primary text-primary-foreground shadow-sm"
                           : "bg-muted/50 text-foreground shadow-sm hover:shadow-md hover:text-primary"
@@ -811,322 +1029,35 @@ export default function CreateImage() {
                 </div>
               </div>
 
-              {/* Categoria (opcional) */}
-              <CategorySelector
-                value={selectedCategoryId}
-                onChange={setSelectedCategoryId}
-                disabled={loading}
-              />
-            </div>
-
-            {/* Platform guidelines */}
-            {platformGuidelines.length > 0 && (
-              <div className="rounded-2xl shadow-md bg-primary/5 p-4 space-y-2">
-                <div className="flex items-center gap-2">
-                  <Info className="h-4 w-4 text-primary flex-shrink-0" />
-                  <p className="text-sm font-semibold text-primary">Diretrizes para {formData.platform} ({contentType === "organic" ? "Orgânico" : "Anúncio"})</p>
-                </div>
-                <ul className="space-y-1 text-xs text-muted-foreground">
-                  {platformGuidelines.map((g, idx) => (
-                    <li key={idx} className="flex items-start gap-2"><span className="text-primary mt-0.5">•</span><span>{g}</span></li>
-                  ))}
-                </ul>
-                {recommendedAspectRatio && (
-                  <p className="text-xs text-primary/80 font-medium mt-2 pt-2 border-t border-primary/20">💡 Proporção recomendada: {recommendedAspectRatio}</p>
-                )}
-              </div>
-            )}
-
-            {/* ── SEÇÃO 2: PROMPT DO AGENTE (descrição + imagens) ── */}
-            <div className="rounded-2xl shadow-lg border-0 bg-card p-4 md:p-5 space-y-4" onPaste={handlePaste}>
-              <div className="flex items-center gap-2 pb-1 border-b border-border/30">
-                <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-                <p className="text-sm font-bold text-foreground">Prompt do agente</p>
-              </div>
-
-              {/* Descrição */}
-              <div className="space-y-2">
-                <Label className="text-xs font-medium text-muted-foreground">
-                  Descrição da imagem <span className="text-destructive">*</span>
-                </Label>
-                <Textarea
-                  id="prompt"
-                  placeholder="Descreva o que você quer criar... Ex: Uma imagem de um café sendo servido numa manhã ensolarada, com estética minimalista e cores quentes. Objetivo: gerar engajamento no Instagram."
-                  value={formData.prompt}
-                  onChange={handleInputChange}
-                  maxLength={5000}
-                  rows={5}
-                  className={`resize-none rounded-xl border-2 bg-background/50 text-base placeholder:text-muted-foreground/50 focus-visible:ring-1 focus-visible:ring-primary/30 min-h-[120px] ${
-                    missingFields.includes('prompt') ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/50'
-                  }`}
-                />
-                <div className="flex justify-end">
-                  <span className="text-[10px] text-muted-foreground">{formData.prompt.length}/5000</span>
-                </div>
-              </div>
-
-              {/* Imagens de Referência */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label className="text-xs font-medium text-muted-foreground">
-                    Imagens de Referência <span className="text-destructive">*</span>
-                  </Label>
-                  <span className="text-[10px] text-muted-foreground">{referenceFiles.length}/5 · Cole com Ctrl+V</span>
-                </div>
-
-                <div className="flex gap-2">
-                  <div
-                    onClick={() => fileInputRef.current?.click()}
-                    className={`flex-1 border-2 border-dashed rounded-xl p-5 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all hover:border-primary/40 hover:bg-primary/5 ${
-                      missingFields.includes('referenceFiles') && referenceFiles.length === 0
-                        ? 'border-destructive/40 bg-destructive/5'
-                        : 'border-border/50 bg-muted/10'
-                    }`}
-                  >
-                    <ImagePlus className="h-7 w-7 text-muted-foreground" />
-                    <p className="text-xs text-muted-foreground text-center">
-                      Clique para adicionar imagens
-                    </p>
-                    <p className="text-[10px] text-muted-foreground/60">Máximo 5 · JPG, PNG, WebP</p>
+              {/* Platform guidelines */}
+              {platformGuidelines.length > 0 && (
+                <div className="rounded-2xl shadow-md bg-primary/5 p-4 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Info className="h-4 w-4 text-primary flex-shrink-0" />
+                    <p className="text-xs font-semibold text-primary">Diretrizes — {formData.platform}</p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      try {
-                        const clipboardItems = await navigator.clipboard.read();
-                        const files: File[] = [];
-                        for (const item of clipboardItems) {
-                          const imageType = item.types.find(t => t.startsWith('image/'));
-                          if (imageType) {
-                            const blob = await item.getType(imageType);
-                            const ext = imageType.split('/')[1] || 'png';
-                            const file = new File([blob], `colado-${Date.now()}.${ext}`, { type: imageType });
-                            files.push(file);
-                          }
-                        }
-                        if (files.length > 0) {
-                          const remaining = 5 - referenceFiles.length;
-                          const toAdd = files.slice(0, remaining);
-                          setReferenceFiles(prev => [...prev, ...toAdd]);
-                          toast.success(`${toAdd.length} imagem(ns) colada(s)`);
-                        } else {
-                          toast.error('Nenhuma imagem encontrada na área de transferência');
-                        }
-                      } catch {
-                        toast.error('Não foi possível acessar a área de transferência. Use Ctrl+V no campo.');
-                      }
-                    }}
-                    className={`border-2 border-dashed rounded-xl p-4 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all hover:border-primary/40 hover:bg-primary/5 min-w-[100px] ${
-                      missingFields.includes('referenceFiles') && referenceFiles.length === 0
-                        ? 'border-destructive/40 bg-destructive/5'
-                        : 'border-border/50 bg-muted/10'
-                    }`}
-                  >
-                    <ClipboardPaste className="h-6 w-6 text-muted-foreground" />
-                    <p className="text-[10px] text-muted-foreground text-center font-medium">Colar imagem</p>
-                  </button>
-                </div>
-                <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden"
-                  disabled={referenceFiles.length >= 5}
-                  onChange={e => {
-                    const files = Array.from(e.target.files || []);
-                    const remaining = 5 - referenceFiles.length;
-                    const toAdd = files.slice(0, remaining);
-                    if (files.length > remaining) toast.error(`Máximo 5 imagens. ${toAdd.length} adicionada(s).`);
-                    setReferenceFiles(prev => [...prev, ...toAdd]);
-                  }}
-                />
-
-                {referenceFiles.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {referenceFiles.map((file, idx) => (
-                      <div key={idx} className="relative group flex items-center gap-2 bg-muted/40 rounded-lg px-2.5 py-1.5 text-xs shadow-sm">
-                        <ImagePlus className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
-                        <span className="truncate max-w-[120px] text-foreground">{file.name}</span>
-                        <button type="button" onClick={(e) => { e.stopPropagation(); handleTogglePreserve(idx); }}
-                          className={`text-[10px] px-1.5 py-0.5 rounded-full border transition-all ${preserveImageIndices.includes(idx) ? "bg-primary/15 border-primary/30 text-primary" : "bg-muted border-border/50 text-muted-foreground hover:border-primary/30 hover:text-primary"}`}
-                        >
-                          {preserveImageIndices.includes(idx) ? "Preservando" : "Preservar"}
-                        </button>
-                        <button type="button" onClick={(e) => { e.stopPropagation(); handleRemoveFile(idx); }} className="text-muted-foreground hover:text-destructive transition-colors">
-                          <X className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
+                  <ul className="space-y-1 text-[11px] text-muted-foreground">
+                    {platformGuidelines.map((g, idx) => (
+                      <li key={idx} className="flex items-start gap-1.5"><span className="text-primary mt-0.5">•</span><span>{g}</span></li>
                     ))}
-                  </div>
-                )}
-
-                {missingFields.includes('referenceFiles') && referenceFiles.length === 0 && (
-                  <p className="text-xs text-destructive font-medium">Adicione ao menos 1 imagem de referência</p>
-                )}
-              </div>
-            </div>
-
-            {/* ── SEÇÃO 3: TEXTO NA IMAGEM ── */}
-            <div className="rounded-2xl shadow-lg border-0 bg-card p-4 md:p-5 space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Type className="h-4 w-4 text-primary" />
-                  <p className="text-sm font-bold text-foreground">Texto na Imagem</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setFormData(prev => ({ ...prev, imageIncludeText: !prev.imageIncludeText }))}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    formData.imageIncludeText ? 'bg-primary' : 'bg-muted'
-                  }`}
-                >
-                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-sm ${
-                    formData.imageIncludeText ? 'translate-x-6' : 'translate-x-1'
-                  }`} />
-                </button>
-              </div>
-
-              {formData.imageIncludeText && (
-                <div className="space-y-4 animate-in slide-in-from-top-2 duration-200">
-                  {/* Text content */}
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-medium text-muted-foreground">
-                      Texto para renderizar <span className="text-destructive">*</span>
-                    </Label>
-                    <Input
-                      placeholder="Ex: Descubra o sabor da tradição"
-                      value={formData.imageTextContent}
-                      onChange={e => setFormData(prev => ({ ...prev, imageTextContent: e.target.value }))}
-                      className="h-9 rounded-lg border-2 border-border/50 bg-background/50 text-sm"
-                      maxLength={80}
-                    />
-                    <p className="text-[10px] text-muted-foreground">{formData.imageTextContent?.length || 0}/80 caracteres · Português Brasileiro</p>
-                  </div>
-
-                  {/* CTA Text */}
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-medium text-muted-foreground">
-                      CTA (Call-to-Action) <span className="text-muted-foreground/70 font-normal">(opcional)</span>
-                    </Label>
-                    <Input
-                      placeholder="Ex: Saiba mais · Compre agora · Garanta o seu"
-                      value={formData.ctaText}
-                      onChange={e => setFormData(prev => ({ ...prev, ctaText: e.target.value }))}
-                      className="h-9 rounded-lg border-2 border-border/50 bg-background/50 text-sm"
-                      maxLength={40}
-                    />
-                    <p className="text-[10px] text-muted-foreground">{formData.ctaText?.length || 0}/40 caracteres · Texto do botão ou chamada para ação</p>
-                  </div>
-
-                  {/* Position selector - icon grid */}
-                  <div className="space-y-2">
-                    <Label className="text-xs font-medium text-muted-foreground">Posição do Texto</Label>
-                    <div className="grid grid-cols-4 gap-1.5 max-w-[220px]">
-                      {TEXT_POSITIONS.map(pos => (
-                        <button
-                          key={pos.value}
-                          type="button"
-                          onClick={() => setFormData(prev => ({ ...prev, imageTextPosition: pos.value as any }))}
-                          className={`h-10 rounded-lg text-sm font-medium transition-all active:scale-[0.95] flex flex-col items-center justify-center gap-0.5 ${
-                            formData.imageTextPosition === pos.value
-                              ? 'bg-primary text-primary-foreground shadow-sm'
-                              : 'bg-muted/50 text-foreground hover:bg-primary/10 hover:text-primary'
-                          }`}
-                          title={pos.label}
-                        >
-                          <span className="text-base leading-none">{pos.icon}</span>
-                          <span className="text-[8px] leading-none opacity-70">{pos.label}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Font style */}
-                  <div className="space-y-2">
-                    <Label className="text-xs font-medium text-muted-foreground">Tipografia</Label>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
-                      {FONT_STYLE_OPTIONS.map(font => (
-                        <button
-                          key={font.value}
-                          type="button"
-                          onClick={() => setFormData(prev => ({ ...prev, fontStyle: font.value }))}
-                          className={`px-3 py-2 rounded-lg text-xs font-medium transition-all active:scale-[0.97] text-center ${
-                            formData.fontStyle === font.value
-                              ? 'bg-primary text-primary-foreground shadow-sm'
-                              : 'bg-muted/50 text-foreground shadow-sm hover:shadow-md hover:text-primary'
-                          }`}
-                          title={font.desc}
-                        >
-                          {font.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Text design/layout style */}
-                  <div className="space-y-2">
-                    <Label className="text-xs font-medium text-muted-foreground">Design do Texto</Label>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-1.5">
-                      {TEXT_DESIGN_OPTIONS.map(design => (
-                        <button
-                          key={design.value}
-                          type="button"
-                          onClick={() => setFormData(prev => ({ ...prev, textDesignStyle: design.value }))}
-                          className={`px-3 py-2.5 rounded-lg text-xs transition-all active:scale-[0.97] text-left space-y-0.5 ${
-                            formData.textDesignStyle === design.value
-                              ? 'bg-primary text-primary-foreground shadow-sm'
-                              : 'bg-muted/50 text-foreground shadow-sm hover:shadow-md hover:text-primary'
-                          }`}
-                        >
-                          <span className="font-semibold block">{design.label}</span>
-                          <span className={`text-[10px] block leading-tight ${
-                            formData.textDesignStyle === design.value ? 'text-primary-foreground/70' : 'text-muted-foreground'
-                          }`}>{design.desc}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                  </ul>
+                  {recommendedAspectRatio && (
+                    <p className="text-[11px] text-primary/80 font-medium mt-2 pt-2 border-t border-primary/20">💡 Recomendado: {recommendedAspectRatio}</p>
+                  )}
                 </div>
               )}
             </div>
-
-
-            {/* ── SEÇÃO 4: CAMPOS OPCIONAIS (colapsável) ── */}
-            <button
-              type="button"
-              onClick={() => setShowSettings(!showSettings)}
-              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors group w-full"
-            >
-              <Settings2 className="h-3.5 w-3.5 group-hover:text-primary transition-colors" />
-              <span className="font-medium text-foreground/70 group-hover:text-primary">Informações adicionais</span>
-              <ChevronDown className={`h-3 w-3 transition-transform ml-1 ${showSettings ? "rotate-180" : ""}`} />
-            </button>
-
-            {showSettings && (
-              <div className="rounded-2xl shadow-lg overflow-hidden border-0 bg-card p-4 md:p-5 space-y-4">
-                {/* Informações Adicionais */}
-                <div className="space-y-2">
-                  <Label htmlFor="additionalInfo" className="text-sm font-bold text-foreground">
-                    Informações Adicionais <span className="text-muted-foreground font-normal text-xs">(opcional)</span>
-                  </Label>
-                  <Textarea
-                    id="additionalInfo"
-                    placeholder="Outras instruções ou contexto relevante..."
-                    value={formData.additionalInfo}
-                    onChange={handleInputChange}
-                    rows={3}
-                    className="resize-none rounded-xl border-0 bg-muted/30 text-sm p-3 focus-visible:ring-1 focus-visible:ring-primary/30 transition-colors"
-                  />
-                </div>
-              </div>
-            )}
           </div>
 
-          {/* Generate Button */}
-          <div className="flex justify-end pb-6">
+          {/* Generate Button — full width */}
+          <div className="flex justify-center pb-6">
             <Button id="generate-button" onClick={handleGenerateContent} disabled={loading || !isFormValid} size="lg"
               className="bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_100%] animate-gradient text-primary-foreground hover:opacity-90 transition-opacity shadow-lg gap-2">
               {loading ? (<><Loader2 className="animate-spin h-5 w-5" /><span>Gerando imagem...</span></>) : (
                 <>
                   <Sparkles className="h-5 w-5" /><span>Gerar Imagem</span>
-                  <Badge variant="secondary" className="ml-2 bg-primary-foreground/20 text-primary-foreground border-primary-foreground/30">
-                    <Coins className="h-3 w-3 mr-1" />{CREDIT_COSTS.COMPLETE_IMAGE}
+                  <Badge variant="secondary" className="ml-2 bg-primary-foreground/20 text-primary-foreground border-primary-foreground/30 gap-1">
+                    <Coins className="h-3 w-3" />{CREDIT_COSTS.COMPLETE_IMAGE}
                   </Badge>
                 </>
               )}
