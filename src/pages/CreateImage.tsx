@@ -29,6 +29,7 @@ import { CreationProgressBar } from "@/components/CreationProgressBar";
 import { GeneratingOverlay } from "@/components/GeneratingOverlay";
 import { PlatformSelector } from "@/components/quick-content/PlatformSelector";
 import { VisualStyleGrid } from "@/components/quick-content/VisualStyleGrid";
+import { CameraAngleGrid } from "@/components/quick-content/CameraAngleGrid";
 import { CategorySelector } from "@/components/CategorySelector";
 import { FormatPreview } from "@/components/quick-content/FormatPreview";
 import createBanner from "@/assets/create-banner.jpg";
