@@ -681,7 +681,7 @@ export default function CreateImage() {
       <main className="px-4 sm:px-6 lg:px-8 pt-4 pb-8 flex-1">
         <div className="max-w-7xl mx-auto space-y-4 mt-4">
 
-          <div id="create-image-form" className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6">
+          <div id="create-image-form" className="grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-6">
             {/* ═══ Left Column ═══ */}
             <div className="space-y-5">
 
@@ -1075,7 +1075,7 @@ export default function CreateImage() {
               </div>
 
               {/* Visual Style + Camera Angle */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
+              <div className="grid grid-cols-2 gap-3 items-stretch">
                 <VisualStyleGrid
                   value={formData.visualStyle}
                   onChange={value => handleSelectChange("visualStyle" as any, value)}
