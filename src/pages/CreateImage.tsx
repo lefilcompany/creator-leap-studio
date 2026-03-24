@@ -282,6 +282,32 @@ export default function CreateImage() {
   const teamId = user?.teamId;
   const userId = user?.id;
 
+  // Load Google Fonts
+  useEffect(() => {
+    GOOGLE_FONT_PRESETS.forEach(f => loadGoogleFont(f.value));
+  }, []);
+
+  // Sync preset to fontFamily/weight/italic
+  const applyTypographyPreset = (presetValue: string) => {
+    const preset = TYPOGRAPHY_PRESETS.find(p => p.value === presetValue);
+    if (preset) {
+      setFormData(prev => ({
+        ...prev,
+        fontStyle: preset.value,
+        fontFamily: preset.font,
+        fontWeight: preset.weight,
+        fontItalic: preset.italic,
+      }));
+    }
+  };
+
+  // Get current font CSS
+  const getFontStyle = (family?: string, weight?: string, italic?: boolean) => ({
+    fontFamily: `'${family || formData.fontFamily || 'Montserrat'}', sans-serif`,
+    fontWeight: weight || formData.fontWeight || '700',
+    fontStyle: (italic ?? formData.fontItalic) ? 'italic' as const : 'normal' as const,
+  });
+
   const { data: brands = [], isLoading: loadingBrands } = useQuery({
     queryKey: ['brands', teamId],
     queryFn: async () => {
