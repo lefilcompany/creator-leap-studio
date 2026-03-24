@@ -51,7 +51,7 @@ function CustomizationCard({ icon, title, description, options, value, onChange,
             {selected ? (
               <Badge
                 variant="secondary"
-                className="gap-1 px-2 py-0.5 text-[10px] font-medium bg-primary/10 text-primary border border-primary/20 max-w-full"
+                className="gap-1 px-2 py-0.5 text-[10px] font-medium bg-primary/10 text-primary border border-primary/20 max-w-full hover:bg-primary/10"
               >
                 <span className="truncate">{selected.label}</span>
                 <button
