@@ -63,7 +63,7 @@ const packageColors: Record<string, string> = {
 
 const ENTERPRISE_WHATSAPP = "5581996600072";
 
-const CREDIT_PRICE = 2.5; // R$ 2,50 por crédito
+const CREDIT_PRICE = 2.9; // R$ 2,90 por crédito
 const CREDIT_STEP = 5; // Incremento de 5 em 5
 const MIN_CREDITS = 5;
 const MAX_CREDITS = 500;

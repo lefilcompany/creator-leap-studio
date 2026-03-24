@@ -124,7 +124,11 @@ serve(async (req) => {
   }
 
   try {
-    const { reviewPrompt, imageUrl, brandId, themeId, platform, aspectRatio } = await req.json();
+    const { reviewPrompt, imageUrl, brandId, themeId, platform, aspectRatio, source } = await req.json();
+    
+    // Determine credit cost based on source context
+    const creditCostKey = source === 'complete' ? 'IMAGE_REVIEW_COMPLETE' : 'IMAGE_EDIT';
+    const creditCost = CREDIT_COSTS[creditCostKey];
 
     console.log('📝 [EDIT-IMAGE] Dados recebidos:', { brandId, themeId, hasImageUrl: !!imageUrl, promptLength: reviewPrompt?.length || 0 });
 
@@ -147,8 +151,8 @@ serve(async (req) => {
     const { data: profile } = await supabase.from('profiles').select('team_id, credits').eq('id', user.id).single();
     const teamId = profile?.team_id || null;
 
-    const creditCheck = await checkUserCredits(supabase, user.id, CREDIT_COSTS.IMAGE_EDIT);
-    if (!creditCheck.hasCredits) return new Response(JSON.stringify({ error: 'Créditos insuficientes' }), { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    const creditCheck = await checkUserCredits(supabase, user.id, creditCost);
+    if (!creditCheck.hasCredits) return new Response(JSON.stringify({ error: 'Créditos insuficientes', required: creditCost, available: creditCheck.currentCredits }), { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
     // Fetch brand and theme data
     const [brandResult, themeResult] = await Promise.all([
@@ -281,20 +285,20 @@ serve(async (req) => {
     console.log('✅ Imagem editada armazenada:', publicUrl);
 
     // Deduct credits
-    const deductResult = await deductUserCredits(supabase, user.id, CREDIT_COSTS.IMAGE_EDIT);
+    const deductResult = await deductUserCredits(supabase, user.id, creditCost);
     if (!deductResult.success) {
       console.error('❌ Erro ao deduzir créditos:', deductResult.error);
     } else {
-      console.log(`✅ ${CREDIT_COSTS.IMAGE_EDIT} crédito deduzido`);
+      console.log(`✅ ${creditCost} crédito(s) deduzido(s)`);
       await recordUserCreditUsage(supabase, {
         userId: user.id,
         teamId,
-        actionType: 'IMAGE_EDIT',
-        creditsUsed: CREDIT_COSTS.IMAGE_EDIT,
+        actionType: creditCostKey,
+        creditsUsed: creditCost,
         creditsBefore: creditCheck.currentCredits,
         creditsAfter: deductResult.newCredits,
-        description: 'Edição de imagem (Gateway v4)',
-        metadata: { image_url: publicUrl, brand_id: brandId, theme_id: themeId, platform, aspect_ratio: aspectRatio }
+        description: source === 'complete' ? 'Revisão de imagem completa' : 'Edição de imagem (Gateway v4)',
+        metadata: { image_url: publicUrl, brand_id: brandId, theme_id: themeId, platform, aspect_ratio: aspectRatio, source }
       });
     }
 
