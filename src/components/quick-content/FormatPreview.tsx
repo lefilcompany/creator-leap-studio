@@ -90,16 +90,25 @@ export function FormatPreview({ platform, aspectRatio, onPlatformChange }: Forma
     <div className="flex flex-col items-center gap-4 w-full">
       <p className="text-sm font-bold text-foreground">Preview do Formato</p>
 
-      {/* Preview rectangle */}
-      <div
-        className="rounded-2xl bg-primary/5 flex items-center justify-center transition-all duration-300"
-        style={{ width: finalW, height: finalH }}
-      >
-        <div className="text-center">
-          <span className="text-xl font-bold text-primary/50">{aspectRatio}</span>
-          <p className="text-xs text-muted-foreground mt-1">{width} × {height}px</p>
+      {/* Preview rectangle with side labels */}
+      <div className="relative flex items-center justify-center">
+        {/* Height label */}
+        <span className="absolute -left-8 top-1/2 -translate-y-1/2 text-[11px] text-muted-foreground font-medium -rotate-90 whitespace-nowrap">
+          {height}px
+        </span>
+
+        <div
+          className="rounded-2xl bg-primary/5 flex items-center justify-center transition-all duration-300"
+          style={{ width: finalW, height: finalH }}
+        >
+          <div className="text-center">
+            <span className="text-xl font-bold text-primary/50">{aspectRatio}</span>
+          </div>
         </div>
       </div>
+
+      {/* Width label */}
+      <span className="text-[11px] text-muted-foreground font-medium -mt-2">{width}px</span>
 
       {/* Format selector popover */}
       <Popover open={open} onOpenChange={setOpen}>
