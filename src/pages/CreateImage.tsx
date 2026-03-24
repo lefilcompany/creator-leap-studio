@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -232,6 +233,7 @@ export default function CreateImage() {
   const [preserveImageIndices, setPreserveImageIndices] = useState<number[]>([]);
   const [showStyles, setShowStyles] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [textModalOpen, setTextModalOpen] = useState(false);
 
   const teamId = user?.teamId;
   const userId = user?.id;
