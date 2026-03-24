@@ -1021,10 +1021,10 @@ export default function CreateImage() {
                                 }
                               })()
                             }`}>
-                              <p className={`text-[6px] font-bold leading-tight truncate max-w-[55px] ${
+                              <p className={`text-[6px] leading-tight truncate max-w-[55px] ${
                                 (['overlay', 'gradient_bar', 'badge', 'plaquinha'].includes(formData.textDesignStyle || ''))
                                   ? 'text-white' : 'text-foreground'
-                              }`}>
+                              }`} style={{ fontFamily: `'${formData.fontFamily || 'Montserrat'}', sans-serif`, fontWeight: formData.fontWeight || '700', fontStyle: formData.fontItalic ? 'italic' : 'normal' }}>
                                 {formData.imageTextContent}
                               </p>
                             </div>
