@@ -34,6 +34,7 @@ import { CreationProgressBar } from "@/components/CreationProgressBar";
 import { GeneratingOverlay } from "@/components/GeneratingOverlay";
 import { PlatformSelector } from "@/components/quick-content/PlatformSelector";
 import { CategorySelector } from "@/components/CategorySelector";
+import { FormatPreview } from "@/components/quick-content/FormatPreview";
 import createBanner from "@/assets/create-banner.jpg";
 
 enum GenerationStep {
