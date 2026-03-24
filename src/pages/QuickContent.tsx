@@ -281,7 +281,7 @@ export default function QuickContent() {
               />
 
               {/* Visual Style + Customizations side by side */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
                 {/* Visual Style Grid */}
                 <VisualStyleGrid
                   value={formData.visualStyle}
