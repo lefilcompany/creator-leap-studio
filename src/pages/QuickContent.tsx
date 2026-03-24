@@ -3,8 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { CategorySelector } from "@/components/CategorySelector";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { TagSelect } from "@/components/ui/tag-select";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Loader2, Zap, Coins, HelpCircle } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
