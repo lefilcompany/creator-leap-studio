@@ -56,7 +56,7 @@ export function CreationProgressBar({ currentStep, className }: CreationProgress
                     "text-[10px] sm:text-[11px] md:text-xs lg:text-sm font-medium transition-colors duration-300 text-center whitespace-nowrap",
                     isCompleted && "text-primary",
                     isActive && "text-primary font-semibold",
-                    isPending && "text-muted-foreground"
+                    isPending && "text-muted-foreground/40"
                   )}
                 >
                   {step.label}
