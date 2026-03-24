@@ -5,6 +5,53 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useState, useRef, useEffect, useCallback } from "react";
 
+function TruncatedBadge({ label, onRemove }: { label: string; onRemove: () => void }) {
+  const textRef = useRef<HTMLSpanElement>(null);
+  const [isTruncated, setIsTruncated] = useState(false);
+
+  const checkTruncation = useCallback(() => {
+    const el = textRef.current;
+    if (el) setIsTruncated(el.scrollWidth > el.clientWidth);
+  }, []);
+
+  useEffect(() => {
+    checkTruncation();
+    window.addEventListener("resize", checkTruncation);
+    return () => window.removeEventListener("resize", checkTruncation);
+  }, [label, checkTruncation]);
+
+  const badge = (
+    <Badge
+      variant="secondary"
+      className="gap-1 px-2 py-0.5 text-[10px] font-medium bg-primary/10 text-primary border border-primary/20 max-w-full hover:bg-primary/10 cursor-default"
+    >
+      <span ref={textRef} className="truncate">{label}</span>
+      <button
+        type="button"
+        onClick={e => { e.stopPropagation(); onRemove(); }}
+        className="flex-shrink-0 rounded-full p-0.5 hover:bg-destructive/20 hover:text-destructive transition-colors"
+      >
+        <X className="h-2.5 w-2.5" />
+      </button>
+    </Badge>
+  );
+
+  if (!isTruncated) return badge;
+
+  return (
+    <TooltipProvider delayDuration={300}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div>{badge}</div>
+        </TooltipTrigger>
+        <TooltipContent side="top" className="text-xs z-[9999]">
+          {label}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
+
 interface Option {
   value: string;
   label: string;
