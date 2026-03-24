@@ -31,6 +31,7 @@ import { TourSelector } from '@/components/onboarding/TourSelector';
 import { createContentSteps, navbarSteps } from '@/components/onboarding/tourSteps';
 import { PageBreadcrumb } from "@/components/PageBreadcrumb";
 import { CreationProgressBar } from "@/components/CreationProgressBar";
+import { GeneratingOverlay } from "@/components/GeneratingOverlay";
 import { PlatformSelector } from "@/components/quick-content/PlatformSelector";
 import { CategorySelector } from "@/components/CategorySelector";
 import createBanner from "@/assets/create-banner.jpg";
