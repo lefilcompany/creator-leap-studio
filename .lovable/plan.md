@@ -1,43 +1,67 @@
 
 
-## Renomear "Planejar Conteúdo" → "Calendário de Conteúdo"
+## Redesign da tela /create/quick
 
-Renomear todas as ocorrências de "Planejar Conteúdo" (e variações) para "Calendário de Conteúdo" em toda a aplicação. Não altera nomes internos de variáveis, tipos ou rotas — apenas os textos exibidos ao usuário.
+Reestruturar o layout da Criação Rápida para um design em duas colunas (desktop) com prompt unificado, referências integradas, estilo visual com demonstrações visuais, personalizações opcionais e preview de formato.
 
-### Arquivos a editar
+### Layout Geral (Desktop)
 
-1. **`src/lib/translations.ts`** — Alterar `planContent` em PT e EN:
-   - PT: `"Planejar Conteúdo"` → `"Calendário de Conteúdo"` (sidebar e título da página)
-   - EN: `"Plan Content"` → `"Content Calendar"`
+```text
+┌─────────────────────────────────┬──────────────────────────┐
+│  Prompt: "Sua ideia de criação" │                          │
+│  ┌─────────────────────────┐    │   Preview do Formato     │
+│  │ Textarea                │    │   ┌──────────────┐       │
+│  │                         │    │   │              │       │
+│  │ [file1.jpg] [colar]     │    │   │  1350px      │       │
+│  └─────────────────────────┘    │   │              │       │
+│                                 │   └──────────────┘       │
+│  Referências e anexos (dentro)  │      1080px              │
+│  [+ Selecionar] [Colar CTRL+V] │                          │
+│                                 │   Formato:               │
+│  Estilo visual:                 │   [Instagram ▼] 1080x1350│
+│  [📷 Foto] [🎨 3D] [✏️ ...]   │                          │
+│                                 │                          │
+│  Personalizações (opcional):    │                          │
+│  [Marca ▼] [Persona ▼] [Tema▼] │                          │
+└─────────────────────────────────┴──────────────────────────┘
+│           [⚡ Gerar Imagem Rápida  🪙 5]                   │
+└─────────────────────────────────────────────────────────────┘
+```
 
-2. **`src/types/action.ts`** — Display strings:
-   - `ActionDisplayType`: `'Planejar conteúdo'` → `'Calendário de conteúdo'`
-   - `ACTION_TYPE_DISPLAY`: mesmo
-   - `ACTION_STYLE_MAP`: atualizar a chave
+No mobile, coluna única com preview acima do botão.
 
-3. **`src/pages/PlanContent.tsx`** — Textos no breadcrumb, alt da imagem, h1 e dica contextual
+### Alterações por Arquivo
 
-4. **`src/pages/PlanResult.tsx`** — Título `"Planejamento de Conteúdo"` → `"Calendário de Conteúdo"`
+**1. `src/components/quick-content/UnifiedPromptBox.tsx`** — Reescrita completa:
+- Renomear label de "Prompt" para algo como **"Sua ideia de criação"** com subtítulo explicativo
+- Mover a seção de referências para **dentro do card** do textarea (abaixo do texto, acima da toolbar), com upload e colagem inline
+- Thumbnails de imagens anexadas aparecem como chips com preview inline dentro do card
+- Remover seção separada de referências
+- Manter estilo visual na toolbar inferior do card (como está)
 
-5. **`src/components/dashboard/DashboardRecentActivity.tsx`** — `'PLANEJAR_CONTEUDO': 'Planejar Conteúdo'` → `'Calendário de Conteúdo'`
+**2. `src/components/quick-content/VisualStyleGrid.tsx`** — Novo componente:
+- Grid horizontal scrollável com cards visuais para cada estilo
+- Cada card tem: emoji/ícone representativo + cor de fundo temática + nome + descrição curta
+- Cores e ícones específicos por estilo (ex: Camera com gradiente azul para Fotorealístico, cubos roxos para 3D, etc.)
+- Estado selecionado com ring + scale
 
-6. **`src/components/admin/UserLogsDialog.tsx`** — Mesmo mapeamento de display
+**3. `src/components/quick-content/FormatPreview.tsx`** — Novo componente:
+- Exibe um retângulo proporcional ao aspect ratio selecionado com dimensões anotadas (ex: "1080px" × "1350px")
+- Seletor de plataforma abaixo com ícone da rede social e dimensões
+- Quando nenhuma plataforma selecionada, mostra "1:1 Quadrado" como padrão
+- Seletor dropdown ou chips de plataforma com sub-opções de formato (Feed, Stories, etc.)
 
-7. **`src/components/onboarding/tourSteps.ts`** — Tour step do nav e do plan content
+**4. `src/pages/QuickContent.tsx`** — Reestruturação do layout:
+- Dois columns no desktop: coluna esquerda (prompt + estilo + personalizações), coluna direita (preview de formato)
+- Mover personalizações (Marca, Persona, Tema) para seção colapsável "Personalizações (opcional)" com os selects existentes (TagSelect)
+- Filtrar temas/personas pela marca selecionada (lógica já existe)
+- Integrar FormatPreview na coluna direita
+- Botão de gerar na largura total abaixo das duas colunas
 
-8. **`src/lib/creditCosts.ts`** — Label `"Planejamento de conteúdo"` → `"Calendário de conteúdo"`
+### Detalhes Técnicos
 
-9. **`src/pages/CreditHistory.tsx`** — Label `"Planejamento de Conteúdo"` → `"Calendário de Conteúdo"`
-
-10. **`src/pages/Onboarding.tsx`** — Texto descritivo `"planejamento de conteúdo"` → `"calendário de conteúdo"`
-
-11. **`supabase/functions/platform-chat/index.ts`** — Texto do prompt do chatbot
-
-12. **`supabase/functions/generate-plan/index.ts`** — Description no credit history log
-
-### O que NÃO muda
-- Enum `PLANEJAR_CONTEUDO` no banco (tipo de ação) — permanece inalterado
-- Nomes de variáveis/funções (`planContent`, `plan_content`) — apenas labels visíveis
-- Rotas (`/plan`, `/plan-result`) — permanecem iguais
-- Arquivo `types.ts` do Supabase — gerado automaticamente
+- **Estilo Visual Grid**: Cards com ~80px de largura, overflow-x-auto no mobile, grid no desktop. Cada estilo tem cor de fundo única (realistic=#E3F2FD, animated=#EDE7F6, cartoon=#FFF3E0, etc.) para diferenciação visual imediata
+- **Preview de Formato**: Usa aspect-ratio CSS para manter proporção. Container máximo ~280px de largura com labels de dimensão posicionados nos eixos
+- **Referências dentro do prompt**: Após o textarea, uma barra horizontal com botões "Selecionar imagem" e "Colar imagem" + thumbnails dos arquivos anexados, tudo dentro do mesmo rounded-2xl card
+- **Personalizações**: Seção com título "Personalizações (opcional)" e 3 TagSelects em grid de 3 colunas no desktop
 
