@@ -893,6 +893,8 @@ export default function CreateImage() {
                   </div>
                 )}
 
+              </div>
+
               {/* 3. Tom de Voz */}
               <div className="rounded-2xl shadow-lg border-0 bg-card p-4 md:p-5 space-y-2">
                 <Label className="text-base font-bold text-foreground">
