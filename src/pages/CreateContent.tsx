@@ -144,6 +144,7 @@ export default function CreateContent() {
   const [filteredThemes, setFilteredThemes] = useState<StrategicThemeSummary[]>([]);
   const [filteredPersonas, setFilteredPersonas] = useState<PersonaSummary[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [generatingTaskId, setGeneratingTaskId] = useState<string | null>(null);
   const [generationStep, setGenerationStep] = useState<GenerationStep>(GenerationStep.IDLE);
   const [generationProgress, setGenerationProgress] = useState<number>(0);
   const [referenceFiles, setReferenceFiles] = useState<File[]>([]);
