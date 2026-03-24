@@ -1098,18 +1098,18 @@ export default function CreateImage() {
 
                         <div className="space-y-2">
                           <Label className="text-sm font-bold">Posição</Label>
-                          <div className="grid grid-cols-4 gap-1.5 max-w-[220px]">
+                          <div className="grid grid-cols-4 gap-2 max-w-[280px]">
                             {TEXT_POSITIONS.map(pos => (
                               <button key={pos.value} type="button"
                                 onClick={() => setFormData(prev => ({ ...prev, imageTextPosition: pos.value as any }))}
-                                className={`h-10 rounded-lg text-xs font-medium transition-all active:scale-[0.95] flex flex-col items-center justify-center gap-0.5 ${
+                                className={`h-12 rounded-lg text-sm font-medium transition-all active:scale-[0.95] flex flex-col items-center justify-center gap-1 ${
                                   formData.imageTextPosition === pos.value
                                     ? 'bg-primary text-primary-foreground shadow-sm'
                                     : 'bg-muted/50 text-foreground hover:bg-primary/10 hover:text-primary'
                                 }`}
                               >
-                                <span className="text-sm leading-none">{pos.icon}</span>
-                                <span className="text-[7px] leading-none opacity-70">{pos.label}</span>
+                                <span className="text-base leading-none">{pos.icon}</span>
+                                <span className="text-[8px] leading-none opacity-70">{pos.label}</span>
                               </button>
                             ))}
                           </div>
