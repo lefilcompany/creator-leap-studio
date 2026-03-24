@@ -120,8 +120,7 @@ export function FormatPreview({ platform, aspectRatio, onPlatformChange, childre
             type="button"
             className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl border border-border/50 bg-card shadow-sm hover:shadow-md transition-all text-sm"
           >
-            <Monitor className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-            {PlatformIcon && <PlatformIcon />}
+            {PlatformIcon ? <PlatformIcon /> : <Monitor className="h-4 w-4 text-muted-foreground flex-shrink-0" />}
             <span className="flex-1 text-left truncate text-foreground font-medium">
               {current.platform !== "Personalizado" ? `${current.platform} (${width}×${height})` : `Quadrado (${width}×${height})`}
             </span>
