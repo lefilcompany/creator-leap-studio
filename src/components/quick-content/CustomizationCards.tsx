@@ -120,7 +120,7 @@ export function CustomizationCards({
   return (
     <div className="flex flex-col gap-2.5 h-full">
       <p className="text-base font-bold text-foreground">Personalizações <span className="text-xs font-normal text-muted-foreground">(opcional)</span></p>
-      <div className="flex gap-2 flex-1">
+      <div className="flex flex-wrap gap-2 flex-1">
         <CustomizationCard
           icon={<Building2 className="h-4 w-4" />}
           title="Marca"
