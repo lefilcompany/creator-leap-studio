@@ -1,13 +1,14 @@
 export const CREDIT_COSTS = {
-  QUICK_IMAGE: 5,           // Imagem rápida (QuickContent)
-  COMPLETE_IMAGE: 6,        // Imagem completa (CreateContent)
+  QUICK_IMAGE: 3,           // Imagem rápida (QuickContent)
+  COMPLETE_IMAGE: 8,        // Imagem completa (CreateContent)
   IMAGE_GENERATION: 5,      // Geração de imagem standalone
   IMAGE_EDIT: 1,            // Correção/ajuste de imagem
-  IMAGE_REVIEW: 2,          // Revisão de imagem
+  IMAGE_REVIEW: 2,          // Revisão de imagem (após criação rápida / standalone)
+  IMAGE_REVIEW_COMPLETE: 4, // Revisão de imagem (após imagem completa)
   CAPTION_REVIEW: 2,        // Revisão de legenda
   TEXT_REVIEW: 2,           // Revisão de copy/texto
-  CONTENT_PLAN: 3,          // Calendário de conteúdo
-  VIDEO_GENERATION: 20,     // Geração de vídeo
+  CONTENT_PLAN: 8,          // Calendário de conteúdo
+  VIDEO_GENERATION: 25,     // Geração de vídeo
   IMAGE_ANIMATION: 15,      // Animação de imagem
   CREATE_BRAND: 1,          // Criar marca (após 3 gratuitas)
   CREATE_PERSONA: 1,        // Criar persona (após 3 gratuitas)

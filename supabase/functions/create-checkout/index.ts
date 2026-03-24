@@ -151,7 +151,7 @@ serve(async (req) => {
       if (!credits || credits < 5) throw new Error("credits is required and must be at least 5");
       if (credits % 5 !== 0) throw new Error("credits must be a multiple of 5");
       
-      const amountInCents = credits * 250; // R$ 2,50 por crédito = 250 centavos
+      const amountInCents = credits * 290; // R$ 2,90 por crédito = 290 centavos
       
       session = await stripe.checkout.sessions.create({
         customer: customerId,
