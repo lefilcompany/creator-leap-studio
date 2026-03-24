@@ -622,10 +622,10 @@ export default function CreateImage() {
               <div className="space-y-2.5">
                 <div>
                   <Label htmlFor="prompt" className="text-base font-bold text-foreground">
-                    Prompt <span className="text-destructive">*</span>
+                    Descreva sua imagem <span className="text-destructive">*</span>
                   </Label>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Descreva a imagem que deseja criar. Quanto mais detalhes, melhor o resultado.
+                    Quanto mais detalhes sobre cenário, cores, estilo e elementos, melhor o resultado.
                   </p>
                 </div>
 
