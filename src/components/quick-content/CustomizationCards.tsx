@@ -33,7 +33,7 @@ function CustomizationCard({ icon, title, description, options, value, onChange,
         <button
           type="button"
           disabled={disabled}
-          className={`flex-1 min-w-0 flex flex-col rounded-xl p-3 text-left transition-all ${
+          className={`flex-1 min-w-[100px] flex flex-col rounded-xl p-3 text-left transition-all ${
             disabled
               ? "bg-muted/40 opacity-60 cursor-not-allowed"
               : "bg-card shadow-sm cursor-pointer active:scale-[0.98]"
@@ -120,7 +120,7 @@ export function CustomizationCards({
   return (
     <div className="flex flex-col gap-2.5 h-full">
       <p className="text-base font-bold text-foreground">Personalizações <span className="text-xs font-normal text-muted-foreground">(opcional)</span></p>
-      <div className="flex gap-2 flex-1">
+      <div className="flex flex-wrap gap-2 flex-1">
         <CustomizationCard
           icon={<Building2 className="h-4 w-4" />}
           title="Marca"
