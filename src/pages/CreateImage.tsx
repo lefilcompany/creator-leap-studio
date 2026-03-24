@@ -805,49 +805,6 @@ export default function CreateImage() {
                         Tráfego
                       </button>
                     </div>
-
-                    {/* Ads sub-options inside card */}
-                    {contentType === "ads" && (
-                      <div className="mt-2 space-y-2">
-                        <div className="flex items-center gap-1 rounded-lg bg-accent/20 p-0.5">
-                          <button type="button"
-                            onClick={() => setFormData(prev => ({ ...prev, adMode: "standard" }))}
-                            className={`flex-1 rounded-md font-semibold py-1 text-[10px] transition-all ${formData.adMode === "standard" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
-                            Padrão
-                          </button>
-                          <button type="button"
-                            onClick={() => setFormData(prev => ({
-                              ...prev, adMode: "professional",
-                              imageIncludeText: true, fontStyle: "impactful", textDesignStyle: "badge",
-                            }))}
-                            className={`flex-1 rounded-md font-semibold py-1 text-[10px] transition-all ${formData.adMode === "professional" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
-                            🎯 Pro
-                          </button>
-                        </div>
-
-                        {formData.adMode === "professional" && (
-                          <div className="space-y-2 p-2 rounded-lg bg-accent/10 border border-accent/20 animate-in slide-in-from-top-2 duration-200">
-                            <div className="space-y-1">
-                              <Input
-                                placeholder="R$ 29,90 · 50% OFF"
-                                value={formData.priceText || ""}
-                                onChange={e => setFormData(prev => ({ ...prev, priceText: e.target.value }))}
-                                className="h-7 rounded-md border-0 bg-background/50 text-[10px] px-2"
-                                maxLength={30}
-                              />
-                            </div>
-                            <label className="flex items-center gap-1.5 cursor-pointer">
-                              <Checkbox
-                                checked={formData.includeBrandLogo || false}
-                                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, includeBrandLogo: !!checked }))}
-                                className="h-3 w-3"
-                              />
-                              <span className="text-[10px] text-foreground">Incluir logo</span>
-                            </label>
-                          </div>
-                        )}
-                      </div>
-                    )}
                   </div>
 
                   {/* Marca */}
