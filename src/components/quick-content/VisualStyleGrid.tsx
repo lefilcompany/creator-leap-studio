@@ -37,7 +37,7 @@ export function VisualStyleGrid({ value, onChange }: VisualStyleGridProps) {
   const SelectedIcon = selected.icon;
 
   return (
-    <div className="space-y-2.5">
+    <div className="flex flex-col gap-2.5 h-full">
       <p className="text-sm font-bold text-foreground">Estilo Visual</p>
 
       {/* Selected style card */}
