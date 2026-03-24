@@ -240,30 +240,16 @@ export default function QuickContent() {
         <div className="max-w-5xl mx-auto">
           <div className="bg-card rounded-2xl shadow-lg p-3 lg:p-4">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-              <div className="flex items-center gap-3 flex-1 min-w-0">
+              <div className="flex items-center gap-3 flex-shrink-0 min-w-0">
                 <div className="flex-shrink-0 bg-primary/10 text-primary rounded-xl p-2.5 lg:p-3">
                   <Zap className="h-6 w-6 lg:h-7 lg:w-7" />
                 </div>
                 <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <h1 className="text-xl lg:text-2xl font-bold text-foreground">Criação Rápida</h1>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <button className="text-muted-foreground hover:text-foreground transition-colors">
-                          <HelpCircle className="h-4 w-4" />
-                        </button>
-                      </PopoverTrigger>
-                      <PopoverContent className="text-sm w-72" side="bottom">
-                        <p className="font-medium mb-1">Criação Rápida</p>
-                        <p className="text-muted-foreground text-xs">
-                          Gere imagens rapidamente com IA. Descreva o que deseja criar, selecione opcionalmente uma marca, persona e tema estratégico para personalizar o resultado.
-                        </p>
-                      </PopoverContent>
-                    </Popover>
-                  </div>
+                  <h1 className="text-xl lg:text-2xl font-bold text-foreground">Criação Rápida</h1>
                   <p className="text-muted-foreground text-xs lg:text-sm">Gere imagens rapidamente com IA</p>
                 </div>
               </div>
+              <CreationProgressBar currentStep={loading ? "generating" : "config"} className="flex-1 max-w-xs" />
               <Card className="bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/20 flex-shrink-0">
                 <CardContent className="p-2.5 md:p-3">
                   <div className="flex items-center justify-center gap-3">
@@ -291,7 +277,6 @@ export default function QuickContent() {
       {/* Main Form — Two columns on desktop */}
       <main className="px-4 sm:px-6 lg:px-8 pt-4 pb-8 flex-1">
         <div className="max-w-5xl mx-auto space-y-4 mt-4">
-          <CreationProgressBar currentStep={loading ? "generating" : "config"} className="max-w-xs mx-auto" />
 
           <div id="quick-content-form" className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6">
             {/* Left column */}
