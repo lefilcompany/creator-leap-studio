@@ -711,114 +711,111 @@ export default function CreateImage() {
                 )}
               </div>
 
-              {/* 2. Personalizações + Tipo de Conteúdo */}
-              <div className="rounded-2xl shadow-lg border-0 bg-card p-4 md:p-5 space-y-4">
-                <p className="text-base font-bold text-foreground">Personalizações</p>
-
-                {/* Marca + Tipo de conteúdo */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {isLoadingData ? <SelectSkeleton /> : (
-                    <div className="space-y-1.5">
-                      <Label className="text-xs font-medium text-muted-foreground">Marca <span className="text-destructive">*</span></Label>
-                      <TagSelect id="select-brand" value={formData.brand} onValueChange={value => handleSelectChange("brand", value)}
-                        options={brands.map(b => ({ value: b.id, label: b.name }))}
-                        placeholder={brands.length === 0 ? "Nenhuma marca" : "Selecionar marca"}
-                        disabled={brands.length === 0}
-                        triggerClassName={`h-9 rounded-lg border-2 bg-background/50 hover:border-border/70 transition-colors text-xs ${missingFields.includes('brand') ? 'border-destructive ring-2 ring-destructive/20' : 'border-border/50'}`}
-                      />
-                      {!isLoadingData && brands.length === 0 && (
-                        <p className="text-xs text-muted-foreground">
-                          <button onClick={() => navigate("/brands")} className="text-primary hover:underline font-medium">Cadastre uma marca</button>
-                        </p>
-                      )}
-                    </div>
+              {/* 2. Personalizações (sem card, flex lado a lado) */}
+              <div className="space-y-2.5">
+                <p className="text-base font-bold text-foreground">Personalizações <span className="text-xs font-normal text-muted-foreground">(opcional)</span></p>
+                <div className="flex flex-wrap gap-2">
+                  {/* Marca */}
+                  {isLoadingData ? <Skeleton className="h-24 flex-1 min-w-[140px] rounded-xl" /> : (
+                    <CustomizationCardInline
+                      icon={<Building2 className="h-4 w-4" />}
+                      title="Marca"
+                      required
+                      description="Vincular a uma marca"
+                      options={brands.map(b => ({ value: b.id, label: b.name }))}
+                      value={formData.brand}
+                      onChange={v => handleSelectChange("brand", v)}
+                      error={missingFields.includes('brand')}
+                      emptyAction={brands.length === 0 ? () => navigate("/brands") : undefined}
+                      emptyLabel="Cadastre uma marca"
+                    />
                   )}
 
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-medium text-muted-foreground">Tipo de Conteúdo</Label>
-                    <div className="flex items-center space-x-1 rounded-lg bg-muted p-1 h-9">
-                      <Button type="button" variant={contentType === "organic" ? "default" : "ghost"}
-                        onClick={() => { setContentType("organic"); if (formData.platform) setPlatformGuidelines(getCaptionGuidelines(formData.platform, "organic")); }}
-                        className="flex-1 rounded-md font-semibold h-7 text-xs">Orgânico</Button>
-                      <Button type="button" variant={contentType === "ads" ? "default" : "ghost"}
-                        onClick={() => {
-                          setContentType("ads");
-                          if (formData.platform) setPlatformGuidelines(getCaptionGuidelines(formData.platform, "ads"));
-                          setFormData(prev => ({ ...prev, imageIncludeText: true }));
-                        }}
-                        className="flex-1 rounded-md font-semibold h-7 text-xs">Tráfego</Button>
+                  {/* Persona */}
+                  {isLoadingData ? <Skeleton className="h-24 flex-1 min-w-[140px] rounded-xl" /> : (
+                    <CustomizationCardInline
+                      icon={<UserRound className="h-4 w-4" />}
+                      title="Persona"
+                      description="Público-alvo"
+                      options={filteredPersonas.map(p => ({ value: p.id, label: p.name }))}
+                      value={formData.persona}
+                      onChange={v => handleSelectChange("persona", v)}
+                      disabled={!formData.brand}
+                    />
+                  )}
+
+                  {/* Tema */}
+                  {isLoadingData ? <Skeleton className="h-24 flex-1 min-w-[140px] rounded-xl" /> : (
+                    <CustomizationCardInline
+                      icon={<Palette className="h-4 w-4" />}
+                      title="Tema"
+                      description="Tema estratégico"
+                      options={filteredThemes.map(t => ({ value: t.id, label: t.title }))}
+                      value={formData.theme}
+                      onChange={v => handleSelectChange("theme", v)}
+                      disabled={!formData.brand}
+                    />
+                  )}
+                </div>
+              </div>
+
+              {/* 2b. Tipo de Conteúdo */}
+              <div className="space-y-2.5">
+                <p className="text-base font-bold text-foreground">Tipo de Conteúdo</p>
+                <div className="flex items-center space-x-1 rounded-lg bg-muted p-1 h-10 max-w-xs">
+                  <Button type="button" variant={contentType === "organic" ? "default" : "ghost"}
+                    onClick={() => { setContentType("organic"); if (formData.platform) setPlatformGuidelines(getCaptionGuidelines(formData.platform, "organic")); }}
+                    className="flex-1 rounded-md font-semibold h-8 text-xs">Orgânico</Button>
+                  <Button type="button" variant={contentType === "ads" ? "default" : "ghost"}
+                    onClick={() => {
+                      setContentType("ads");
+                      if (formData.platform) setPlatformGuidelines(getCaptionGuidelines(formData.platform, "ads"));
+                      setFormData(prev => ({ ...prev, imageIncludeText: true }));
+                    }}
+                    className="flex-1 rounded-md font-semibold h-8 text-xs">Tráfego</Button>
+                </div>
+
+                {contentType === "ads" && (
+                  <div className="mt-2 space-y-3 max-w-md">
+                    <div className="flex items-center space-x-1 rounded-lg bg-accent/20 p-1">
+                      <Button type="button" variant={formData.adMode === "standard" ? "default" : "ghost"}
+                        onClick={() => setFormData(prev => ({ ...prev, adMode: "standard" }))}
+                        className="flex-1 rounded-md font-semibold h-7 text-xs">Padrão</Button>
+                      <Button type="button" variant={formData.adMode === "professional" ? "default" : "ghost"}
+                        onClick={() => setFormData(prev => ({
+                          ...prev, adMode: "professional",
+                          imageIncludeText: true, fontStyle: "impactful", textDesignStyle: "badge",
+                        }))}
+                        className="flex-1 rounded-md font-semibold h-7 text-xs">🎯 Profissional</Button>
                     </div>
 
-                    {contentType === "ads" && (
-                      <div className="mt-2 space-y-3">
-                        <div className="flex items-center space-x-1 rounded-lg bg-accent/20 p-1">
-                          <Button type="button" variant={formData.adMode === "standard" ? "default" : "ghost"}
-                            onClick={() => setFormData(prev => ({ ...prev, adMode: "standard" }))}
-                            className="flex-1 rounded-md font-semibold h-7 text-xs">Padrão</Button>
-                          <Button type="button" variant={formData.adMode === "professional" ? "default" : "ghost"}
-                            onClick={() => setFormData(prev => ({
-                              ...prev, adMode: "professional",
-                              imageIncludeText: true, fontStyle: "impactful", textDesignStyle: "badge",
-                            }))}
-                            className="flex-1 rounded-md font-semibold h-7 text-xs">🎯 Profissional</Button>
+                    {formData.adMode === "professional" && (
+                      <div className="space-y-3 p-3 rounded-xl bg-accent/10 border border-accent/20 animate-in slide-in-from-top-2 duration-200">
+                        <p className="text-[10px] text-muted-foreground">Modo otimizado para peças publicitárias profissionais com hierarquia visual, badges e CTAs destacados.</p>
+
+                        <div className="space-y-1.5">
+                          <Label className="text-xs font-medium text-muted-foreground">Preço / Oferta <span className="font-normal">(opcional)</span></Label>
+                          <Input
+                            placeholder="Ex: R$ 29,90 · 50% OFF · A partir de R$ 19"
+                            value={formData.priceText || ""}
+                            onChange={e => setFormData(prev => ({ ...prev, priceText: e.target.value }))}
+                            className="h-9 rounded-lg border-2 border-border/50 bg-background/50 text-sm"
+                            maxLength={30}
+                          />
+                          <p className="text-[10px] text-muted-foreground">{formData.priceText?.length || 0}/30 · Será exibido em destaque com badge</p>
                         </div>
 
-                        {formData.adMode === "professional" && (
-                          <div className="space-y-3 p-3 rounded-xl bg-accent/10 border border-accent/20 animate-in slide-in-from-top-2 duration-200">
-                            <p className="text-[10px] text-muted-foreground">Modo otimizado para peças publicitárias profissionais com hierarquia visual, badges e CTAs destacados.</p>
-
-                            <div className="space-y-1.5">
-                              <Label className="text-xs font-medium text-muted-foreground">Preço / Oferta <span className="font-normal">(opcional)</span></Label>
-                              <Input
-                                placeholder="Ex: R$ 29,90 · 50% OFF · A partir de R$ 19"
-                                value={formData.priceText || ""}
-                                onChange={e => setFormData(prev => ({ ...prev, priceText: e.target.value }))}
-                                className="h-9 rounded-lg border-2 border-border/50 bg-background/50 text-sm"
-                                maxLength={30}
-                              />
-                              <p className="text-[10px] text-muted-foreground">{formData.priceText?.length || 0}/30 · Será exibido em destaque com badge</p>
-                            </div>
-
-                            <label className="flex items-center gap-2 cursor-pointer">
-                              <Checkbox
-                                checked={formData.includeBrandLogo || false}
-                                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, includeBrandLogo: !!checked }))}
-                              />
-                              <span className="text-xs text-foreground">Incluir logo da marca no canto</span>
-                            </label>
-                          </div>
-                        )}
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <Checkbox
+                            checked={formData.includeBrandLogo || false}
+                            onCheckedChange={(checked) => setFormData(prev => ({ ...prev, includeBrandLogo: !!checked }))}
+                          />
+                          <span className="text-xs text-foreground">Incluir logo da marca no canto</span>
+                        </label>
                       </div>
                     )}
                   </div>
-                </div>
-
-                {/* Persona + Tema */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {isLoadingData ? <SelectSkeleton /> : (
-                    <div className="space-y-1.5">
-                      <Label className="text-xs font-medium text-muted-foreground">Persona <span className="font-normal">(opcional)</span></Label>
-                      <TagSelect value={formData.persona} onValueChange={value => handleSelectChange("persona", value)}
-                        options={filteredPersonas.map(p => ({ value: p.id, label: p.name }))}
-                        placeholder={!formData.brand ? "Selecione marca" : filteredPersonas.length === 0 ? "Nenhuma" : "Selecionar"}
-                        disabled={!formData.brand || filteredPersonas.length === 0}
-                        triggerClassName="h-9 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors text-xs"
-                      />
-                    </div>
-                  )}
-
-                  {isLoadingData ? <SelectSkeleton /> : (
-                    <div className="space-y-1.5">
-                      <Label className="text-xs font-medium text-muted-foreground">Tema <span className="font-normal">(opcional)</span></Label>
-                      <TagSelect value={formData.theme} onValueChange={value => handleSelectChange("theme", value)}
-                        options={filteredThemes.map(t => ({ value: t.id, label: t.title }))}
-                        placeholder={!formData.brand ? "Selecione marca" : filteredThemes.length === 0 ? "Nenhum" : "Selecionar"}
-                        disabled={!formData.brand || filteredThemes.length === 0}
-                        triggerClassName="h-9 rounded-lg border-2 border-border/50 bg-background/50 hover:border-border/70 transition-colors text-xs"
-                      />
-                    </div>
-                  )}
-                </div>
+                )}
               </div>
 
               {/* 3. Tom de Voz */}
