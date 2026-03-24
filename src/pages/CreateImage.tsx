@@ -1256,7 +1256,7 @@ export default function CreateImage() {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2 px-6 py-2.5 border-t border-border">
+                      <div className="flex items-center gap-2 px-6 py-1.5 border-t border-border/50">
                         <Button
                           type="button"
                           variant="ghost"
