@@ -57,7 +57,11 @@ serve(async (req) => {
 
     const authenticatedTeamId = profile?.team_id || null;
 
-    const { image, prompt, brandId, brandName, themeName } = await req.json();
+    const { image, prompt, brandId, brandName, themeName, source } = await req.json();
+
+    // Determine credit cost based on source context
+    const creditCostKey = source === 'complete' ? 'IMAGE_REVIEW_COMPLETE' : 'IMAGE_REVIEW';
+    const creditCost = CREDIT_COSTS[creditCostKey];
 
     // Input validation
     if (!image || typeof image !== 'string') {
@@ -75,14 +79,14 @@ serve(async (req) => {
     }
 
     // Check user credits (individual)
-    const creditCheck = await checkUserCredits(supabase, authenticatedUserId, CREDIT_COSTS.IMAGE_REVIEW);
+    const creditCheck = await checkUserCredits(supabase, authenticatedUserId, creditCost);
 
     if (!creditCheck.hasCredits) {
       return new Response(
         JSON.stringify({ 
           error: 'Créditos insuficientes', 
-          required: CREDIT_COSTS.IMAGE_REVIEW,
-          available: creditCheck.currentCredits 
+          required: creditCost,
+          available: creditCheck.currentCredits
         }),
         { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -320,7 +324,7 @@ Analise a imagem e retorne uma revisão completa em markdown seguindo EXATAMENTE
     }
 
     // Deduct credit (individual)
-    const deductResult = await deductUserCredits(supabase, authenticatedUserId, CREDIT_COSTS.IMAGE_REVIEW);
+    const deductResult = await deductUserCredits(supabase, authenticatedUserId, creditCost);
     
     if (!deductResult.success) {
       console.error('Error updating credits:', deductResult.error);
@@ -330,8 +334,8 @@ Analise a imagem e retorne uma revisão completa em markdown seguindo EXATAMENTE
     await recordUserCreditUsage(supabase, {
       userId: authenticatedUserId,
       teamId: authenticatedTeamId,
-      actionType: 'IMAGE_REVIEW',
-      creditsUsed: CREDIT_COSTS.IMAGE_REVIEW,
+      actionType: creditCostKey,
+      creditsUsed: creditCost,
       creditsBefore: creditCheck.currentCredits,
       creditsAfter: deductResult.newCredits,
       description: 'Revisão de imagem',
