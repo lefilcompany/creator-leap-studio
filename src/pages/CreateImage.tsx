@@ -67,6 +67,9 @@ interface FormData {
   imageTextContent?: string;
   imageTextPosition?: 'top' | 'center' | 'bottom' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
   fontStyle?: string;
+  fontFamily?: string;
+  fontWeight?: string;
+  fontItalic?: boolean;
   textDesignStyle?: string;
   ctaText?: string;
   adMode?: 'standard' | 'professional';
@@ -99,12 +102,52 @@ const TEXT_POSITIONS = [
   { value: 'bottom-right', label: 'Inferior Dir.', icon: '↘' },
 ] as const;
 
-const FONT_STYLE_OPTIONS = [
-  { value: 'modern', label: 'Moderno', desc: 'Sans-serif limpa e minimalista' },
-  { value: 'elegant', label: 'Elegante', desc: 'Serifa clássica e refinada' },
-  { value: 'fun', label: 'Divertido', desc: 'Script casual e expressiva' },
-  { value: 'impactful', label: 'Impactante', desc: 'Bold condensada, alto impacto' },
+const GOOGLE_FONT_PRESETS = [
+  { value: 'Montserrat', label: 'Montserrat', category: 'Sans-serif', desc: 'Moderna e versátil' },
+  { value: 'Playfair Display', label: 'Playfair Display', category: 'Serif', desc: 'Elegante e sofisticada' },
+  { value: 'Bebas Neue', label: 'Bebas Neue', category: 'Display', desc: 'Impactante e bold' },
+  { value: 'Poppins', label: 'Poppins', category: 'Sans-serif', desc: 'Clean e geométrica' },
+  { value: 'Lora', label: 'Lora', category: 'Serif', desc: 'Clássica e refinada' },
+  { value: 'Pacifico', label: 'Pacifico', category: 'Script', desc: 'Divertida e casual' },
+  { value: 'Oswald', label: 'Oswald', category: 'Display', desc: 'Condensada e forte' },
+  { value: 'Dancing Script', label: 'Dancing Script', category: 'Script', desc: 'Cursiva elegante' },
+  { value: 'Raleway', label: 'Raleway', category: 'Sans-serif', desc: 'Leve e minimalista' },
+  { value: 'Roboto Slab', label: 'Roboto Slab', category: 'Serif', desc: 'Slab moderna' },
+  { value: 'Archivo Black', label: 'Archivo Black', category: 'Display', desc: 'Ultra bold, alto impacto' },
+  { value: 'Caveat', label: 'Caveat', category: 'Script', desc: 'Manuscrita natural' },
 ] as const;
+
+const TYPOGRAPHY_PRESETS = [
+  { value: 'modern', label: 'Moderno', font: 'Montserrat', weight: '700', italic: false, desc: 'Sans-serif limpa e bold' },
+  { value: 'elegant', label: 'Elegante', font: 'Playfair Display', weight: '600', italic: true, desc: 'Serifa clássica itálica' },
+  { value: 'impactful', label: 'Impactante', font: 'Bebas Neue', weight: '400', italic: false, desc: 'Condensada de alto impacto' },
+  { value: 'fun', label: 'Divertido', font: 'Pacifico', weight: '400', italic: false, desc: 'Script casual e expressiva' },
+  { value: 'minimal', label: 'Minimalista', font: 'Raleway', weight: '300', italic: false, desc: 'Leve e clean' },
+  { value: 'editorial', label: 'Editorial', font: 'Lora', weight: '700', italic: false, desc: 'Serifa forte para títulos' },
+] as const;
+
+const FONT_WEIGHT_OPTIONS = [
+  { value: '300', label: 'Light' },
+  { value: '400', label: 'Regular' },
+  { value: '600', label: 'Semi Bold' },
+  { value: '700', label: 'Bold' },
+  { value: '900', label: 'Black' },
+] as const;
+
+// Load Google Font dynamically
+const loadGoogleFont = (fontFamily: string, weights: string[] = ['300', '400', '600', '700', '900']) => {
+  const id = `gfont-${fontFamily.replace(/\s+/g, '-')}`;
+  if (document.getElementById(id)) return;
+  const link = document.createElement('link');
+  link.id = id;
+  link.rel = 'stylesheet';
+  const wStr = weights.map(w => `0,${w};1,${w}`).join(';');
+  link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontFamily)}:ital,wght@${wStr}&display=swap`;
+  document.head.appendChild(link);
+};
+
+// Keep backward compat
+const FONT_STYLE_OPTIONS = TYPOGRAPHY_PRESETS.map(p => ({ value: p.value, label: p.label, desc: p.desc }));
 
 const TEXT_DESIGN_OPTIONS = [
   { value: 'clean', label: 'Clean', desc: 'Texto sobre espaço negativo, sem overlay' },
@@ -213,7 +256,8 @@ export default function CreateImage() {
     lighting: "natural", composition: "auto", cameraAngle: "eye_level",
     detailLevel: 7, mood: "auto", imageIncludeText: false,
     imageTextContent: "", imageTextPosition: "center",
-    fontStyle: "modern", textDesignStyle: "clean", ctaText: "",
+    fontStyle: "modern", fontFamily: "Montserrat", fontWeight: "700", fontItalic: false,
+    textDesignStyle: "clean", ctaText: "",
     adMode: "standard", priceText: "", includeBrandLogo: false,
   });
 
@@ -237,6 +281,32 @@ export default function CreateImage() {
 
   const teamId = user?.teamId;
   const userId = user?.id;
+
+  // Load Google Fonts
+  useEffect(() => {
+    GOOGLE_FONT_PRESETS.forEach(f => loadGoogleFont(f.value));
+  }, []);
+
+  // Sync preset to fontFamily/weight/italic
+  const applyTypographyPreset = (presetValue: string) => {
+    const preset = TYPOGRAPHY_PRESETS.find(p => p.value === presetValue);
+    if (preset) {
+      setFormData(prev => ({
+        ...prev,
+        fontStyle: preset.value,
+        fontFamily: preset.font,
+        fontWeight: preset.weight,
+        fontItalic: preset.italic,
+      }));
+    }
+  };
+
+  // Get current font CSS
+  const getFontStyle = (family?: string, weight?: string, italic?: boolean) => ({
+    fontFamily: `'${family || formData.fontFamily || 'Montserrat'}', sans-serif`,
+    fontWeight: weight || formData.fontWeight || '700',
+    fontStyle: (italic ?? formData.fontItalic) ? 'italic' as const : 'normal' as const,
+  });
 
   const { data: brands = [], isLoading: loadingBrands } = useQuery({
     queryKey: ['brands', teamId],
@@ -951,10 +1021,10 @@ export default function CreateImage() {
                                 }
                               })()
                             }`}>
-                              <p className={`text-[6px] font-bold leading-tight truncate max-w-[55px] ${
+                              <p className={`text-[6px] leading-tight truncate max-w-[55px] ${
                                 (['overlay', 'gradient_bar', 'badge', 'plaquinha'].includes(formData.textDesignStyle || ''))
                                   ? 'text-white' : 'text-foreground'
-                              }`}>
+                              }`} style={{ fontFamily: `'${formData.fontFamily || 'Montserrat'}', sans-serif`, fontWeight: formData.fontWeight || '700', fontStyle: formData.fontItalic ? 'italic' : 'normal' }}>
                                 {formData.imageTextContent}
                               </p>
                             </div>
@@ -967,7 +1037,7 @@ export default function CreateImage() {
                       <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                         {formData.ctaText && <span className="text-[10px] text-muted-foreground">CTA: {formData.ctaText}</span>}
                         <span className="text-[10px] text-muted-foreground">
-                          {FONT_STYLE_OPTIONS.find(f => f.value === formData.fontStyle)?.label || 'Moderno'} · {TEXT_DESIGN_OPTIONS.find(d => d.value === formData.textDesignStyle)?.label || 'Clean'}
+                          {formData.fontFamily || 'Montserrat'} · {TEXT_DESIGN_OPTIONS.find(d => d.value === formData.textDesignStyle)?.label || 'Clean'}
                         </span>
                       </div>
                     </div>
@@ -1039,21 +1109,85 @@ export default function CreateImage() {
                           </div>
                         </div>
 
-                        <div className="space-y-2">
+                        <div className="space-y-3">
                           <Label className="text-sm font-bold">Tipografia</Label>
-                          <div className="grid grid-cols-4 gap-1.5">
-                            {FONT_STYLE_OPTIONS.map(font => (
-                              <button key={font.value} type="button"
-                                onClick={() => setFormData(prev => ({ ...prev, fontStyle: font.value }))}
-                                className={`px-2 py-1.5 rounded-lg text-xs font-medium transition-all active:scale-[0.97] text-center ${
-                                  formData.fontStyle === font.value
-                                    ? 'bg-primary text-primary-foreground shadow-sm'
-                                    : 'bg-muted/50 text-foreground shadow-sm hover:shadow-md hover:text-primary'
+                          
+                          {/* Presets rápidos */}
+                          <div>
+                            <p className="text-[10px] text-muted-foreground mb-1.5">Presets</p>
+                            <div className="grid grid-cols-3 gap-1.5">
+                              {TYPOGRAPHY_PRESETS.map(preset => (
+                                <button key={preset.value} type="button"
+                                  onClick={() => applyTypographyPreset(preset.value)}
+                                  className={`px-2 py-2 rounded-lg text-xs transition-all active:scale-[0.97] text-left ${
+                                    formData.fontStyle === preset.value
+                                      ? 'bg-primary text-primary-foreground shadow-sm'
+                                      : 'bg-muted/50 text-foreground shadow-sm hover:shadow-md hover:text-primary'
+                                  }`}
+                                >
+                                  <span className="block font-semibold truncate" style={{ fontFamily: `'${preset.font}', sans-serif` }}>
+                                    {preset.label}
+                                  </span>
+                                  <span className={`text-[9px] block leading-tight mt-0.5 ${
+                                    formData.fontStyle === preset.value ? 'text-primary-foreground/70' : 'text-muted-foreground'
+                                  }`}>{preset.desc}</span>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Fonte */}
+                          <div>
+                            <p className="text-[10px] text-muted-foreground mb-1.5">Fonte</p>
+                            <div className="grid grid-cols-3 gap-1">
+                              {GOOGLE_FONT_PRESETS.map(font => (
+                                <button key={font.value} type="button"
+                                  onClick={() => setFormData(prev => ({ ...prev, fontFamily: font.value, fontStyle: '' }))}
+                                  className={`px-2 py-1.5 rounded-lg text-[11px] transition-all active:scale-[0.97] text-center truncate ${
+                                    formData.fontFamily === font.value
+                                      ? 'bg-primary/15 text-primary ring-1 ring-primary/30 font-semibold'
+                                      : 'bg-muted/30 text-foreground hover:bg-muted/60'
+                                  }`}
+                                  style={{ fontFamily: `'${font.value}', sans-serif` }}
+                                >
+                                  {font.label}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Peso e Estilo */}
+                          <div className="flex gap-3">
+                            <div className="flex-1">
+                              <p className="text-[10px] text-muted-foreground mb-1.5">Peso</p>
+                              <div className="flex gap-1">
+                                {FONT_WEIGHT_OPTIONS.map(w => (
+                                  <button key={w.value} type="button"
+                                    onClick={() => setFormData(prev => ({ ...prev, fontWeight: w.value, fontStyle: '' }))}
+                                    className={`flex-1 px-1 py-1.5 rounded-lg text-[10px] transition-all active:scale-[0.97] text-center ${
+                                      formData.fontWeight === w.value
+                                        ? 'bg-primary/15 text-primary ring-1 ring-primary/30 font-semibold'
+                                        : 'bg-muted/30 text-foreground hover:bg-muted/60'
+                                    }`}
+                                  >
+                                    {w.label}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                            <div>
+                              <p className="text-[10px] text-muted-foreground mb-1.5">Itálico</p>
+                              <button type="button"
+                                onClick={() => setFormData(prev => ({ ...prev, fontItalic: !prev.fontItalic, fontStyle: '' }))}
+                                className={`px-3 py-1.5 rounded-lg text-[11px] italic transition-all active:scale-[0.97] ${
+                                  formData.fontItalic
+                                    ? 'bg-primary/15 text-primary ring-1 ring-primary/30 font-semibold'
+                                    : 'bg-muted/30 text-foreground hover:bg-muted/60'
                                 }`}
                               >
-                                {font.label}
+                                Aa
                               </button>
-                            ))}
+                            </div>
                           </div>
                         </div>
 
@@ -1155,22 +1289,11 @@ export default function CreateImage() {
                                     }
                                   })()
                                 }`}>
-                                  <p className={`leading-tight transition-all duration-300 ${
-                                    (() => {
-                                      const f = formData.fontStyle || 'modern';
-                                      const base = 'text-sm font-bold';
-                                      switch (f) {
-                                        case 'elegant': return `${base} italic tracking-wide`;
-                                        case 'fun': return `${base} tracking-wider`;
-                                        case 'impactful': return 'text-base font-black uppercase tracking-tight';
-                                        default: return `${base} tracking-normal`;
-                                      }
-                                    })()
-                                  } ${
+                                  <p className={`text-sm leading-tight transition-all duration-300 ${
                                     (['overlay', 'gradient_bar', 'badge', 'plaquinha'].includes(formData.textDesignStyle || ''))
                                       ? 'text-white'
                                       : 'text-foreground'
-                                  }`}>
+                                  }`} style={getFontStyle()}>
                                     {formData.imageTextContent || 'Seu texto aqui'}
                                   </p>
                                   {formData.ctaText && (
@@ -1188,7 +1311,7 @@ export default function CreateImage() {
                             {/* Labels */}
                             <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between">
                               <span className="text-[9px] text-muted-foreground/60 font-medium">
-                                {FONT_STYLE_OPTIONS.find(f => f.value === formData.fontStyle)?.label || 'Moderno'}
+                                {formData.fontFamily || 'Montserrat'}
                               </span>
                               <span className="text-[9px] text-muted-foreground/60 font-medium">
                                 {TEXT_DESIGN_OPTIONS.find(d => d.value === formData.textDesignStyle)?.label || 'Clean'}
@@ -1285,22 +1408,11 @@ export default function CreateImage() {
                               }
                             })()
                           }`}>
-                            <p className={`leading-tight transition-all duration-300 ${
-                              (() => {
-                                const f = formData.fontStyle || 'modern';
-                                const base = 'text-sm font-bold';
-                                switch (f) {
-                                  case 'elegant': return `${base} italic tracking-wide`;
-                                  case 'fun': return `${base} tracking-wider`;
-                                  case 'impactful': return 'text-base font-black uppercase tracking-tight';
-                                  default: return `${base} tracking-normal`;
-                                }
-                              })()
-                            } ${
+                            <p className={`text-sm leading-tight transition-all duration-300 ${
                               (['overlay', 'gradient_bar', 'badge', 'plaquinha'].includes(formData.textDesignStyle || ''))
                                 ? 'text-white'
                                 : 'text-foreground'
-                            }`}>
+                            }`} style={getFontStyle()}>
                               {formData.imageTextContent}
                             </p>
                             {formData.ctaText && (
@@ -1317,7 +1429,7 @@ export default function CreateImage() {
                       </div>
                       <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between">
                         <span className="text-[9px] text-muted-foreground/60 font-medium">
-                          {FONT_STYLE_OPTIONS.find(f => f.value === formData.fontStyle)?.label || 'Moderno'}
+                          {formData.fontFamily || 'Montserrat'}
                         </span>
                         <span className="text-[9px] text-muted-foreground/60 font-medium">
                           {TEXT_DESIGN_OPTIONS.find(d => d.value === formData.textDesignStyle)?.label || 'Clean'}
