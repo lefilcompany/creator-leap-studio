@@ -1074,11 +1074,17 @@ export default function CreateImage() {
                 />
               </div>
 
-              {/* Visual Style */}
-              <VisualStyleGrid
-                value={formData.visualStyle}
-                onChange={value => handleSelectChange("visualStyle" as any, value)}
-              />
+              {/* Visual Style + Camera Angle */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
+                <VisualStyleGrid
+                  value={formData.visualStyle}
+                  onChange={value => handleSelectChange("visualStyle" as any, value)}
+                />
+                <CameraAngleGrid
+                  value={formData.cameraAngle || "eye_level"}
+                  onChange={value => handleSelectChange("cameraAngle" as any, value)}
+                />
+              </div>
 
             </div>
           </div>
