@@ -1109,21 +1109,85 @@ export default function CreateImage() {
                           </div>
                         </div>
 
-                        <div className="space-y-2">
+                        <div className="space-y-3">
                           <Label className="text-sm font-bold">Tipografia</Label>
-                          <div className="grid grid-cols-4 gap-1.5">
-                            {FONT_STYLE_OPTIONS.map(font => (
-                              <button key={font.value} type="button"
-                                onClick={() => setFormData(prev => ({ ...prev, fontStyle: font.value }))}
-                                className={`px-2 py-1.5 rounded-lg text-xs font-medium transition-all active:scale-[0.97] text-center ${
-                                  formData.fontStyle === font.value
-                                    ? 'bg-primary text-primary-foreground shadow-sm'
-                                    : 'bg-muted/50 text-foreground shadow-sm hover:shadow-md hover:text-primary'
+                          
+                          {/* Presets rápidos */}
+                          <div>
+                            <p className="text-[10px] text-muted-foreground mb-1.5">Presets</p>
+                            <div className="grid grid-cols-3 gap-1.5">
+                              {TYPOGRAPHY_PRESETS.map(preset => (
+                                <button key={preset.value} type="button"
+                                  onClick={() => applyTypographyPreset(preset.value)}
+                                  className={`px-2 py-2 rounded-lg text-xs transition-all active:scale-[0.97] text-left ${
+                                    formData.fontStyle === preset.value
+                                      ? 'bg-primary text-primary-foreground shadow-sm'
+                                      : 'bg-muted/50 text-foreground shadow-sm hover:shadow-md hover:text-primary'
+                                  }`}
+                                >
+                                  <span className="block font-semibold truncate" style={{ fontFamily: `'${preset.font}', sans-serif` }}>
+                                    {preset.label}
+                                  </span>
+                                  <span className={`text-[9px] block leading-tight mt-0.5 ${
+                                    formData.fontStyle === preset.value ? 'text-primary-foreground/70' : 'text-muted-foreground'
+                                  }`}>{preset.desc}</span>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Fonte */}
+                          <div>
+                            <p className="text-[10px] text-muted-foreground mb-1.5">Fonte</p>
+                            <div className="grid grid-cols-3 gap-1">
+                              {GOOGLE_FONT_PRESETS.map(font => (
+                                <button key={font.value} type="button"
+                                  onClick={() => setFormData(prev => ({ ...prev, fontFamily: font.value, fontStyle: '' }))}
+                                  className={`px-2 py-1.5 rounded-lg text-[11px] transition-all active:scale-[0.97] text-center truncate ${
+                                    formData.fontFamily === font.value
+                                      ? 'bg-primary/15 text-primary ring-1 ring-primary/30 font-semibold'
+                                      : 'bg-muted/30 text-foreground hover:bg-muted/60'
+                                  }`}
+                                  style={{ fontFamily: `'${font.value}', sans-serif` }}
+                                >
+                                  {font.label}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Peso e Estilo */}
+                          <div className="flex gap-3">
+                            <div className="flex-1">
+                              <p className="text-[10px] text-muted-foreground mb-1.5">Peso</p>
+                              <div className="flex gap-1">
+                                {FONT_WEIGHT_OPTIONS.map(w => (
+                                  <button key={w.value} type="button"
+                                    onClick={() => setFormData(prev => ({ ...prev, fontWeight: w.value, fontStyle: '' }))}
+                                    className={`flex-1 px-1 py-1.5 rounded-lg text-[10px] transition-all active:scale-[0.97] text-center ${
+                                      formData.fontWeight === w.value
+                                        ? 'bg-primary/15 text-primary ring-1 ring-primary/30 font-semibold'
+                                        : 'bg-muted/30 text-foreground hover:bg-muted/60'
+                                    }`}
+                                  >
+                                    {w.label}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                            <div>
+                              <p className="text-[10px] text-muted-foreground mb-1.5">Itálico</p>
+                              <button type="button"
+                                onClick={() => setFormData(prev => ({ ...prev, fontItalic: !prev.fontItalic, fontStyle: '' }))}
+                                className={`px-3 py-1.5 rounded-lg text-[11px] italic transition-all active:scale-[0.97] ${
+                                  formData.fontItalic
+                                    ? 'bg-primary/15 text-primary ring-1 ring-primary/30 font-semibold'
+                                    : 'bg-muted/30 text-foreground hover:bg-muted/60'
                                 }`}
                               >
-                                {font.label}
+                                Aa
                               </button>
-                            ))}
+                            </div>
                           </div>
                         </div>
 
