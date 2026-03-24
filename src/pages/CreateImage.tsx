@@ -930,7 +930,7 @@ export default function CreateImage() {
               </div>
 
               {/* 3. Tom de Voz */}
-              <div className="rounded-2xl shadow-lg border-0 bg-card p-4 md:p-5 space-y-2">
+              <div className="space-y-2">
                 <Label className="text-base font-bold text-foreground">
                   Tom de voz <span className="text-destructive">*</span> <span className="text-xs font-normal text-muted-foreground">(máx. 4)</span>
                 </Label>
