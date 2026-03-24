@@ -537,7 +537,7 @@ export default function CreateImage() {
         () => refreshUserCredits?.()
       );
 
-      navigate("/dashboard");
+      setGeneratingTaskId(newTaskId);
     } catch (err: any) {
       console.error("Erro:", err);
       toast.error("Erro ao preparar geração", { description: err.message || "Tente novamente." });

@@ -1184,7 +1184,7 @@ export default function CreateContent() {
         () => reloadUserData?.()
       );
 
-      navigate("/dashboard");
+      setGeneratingTaskId(newTaskId);
     } catch (err: any) {
       console.error("Erro ao gerar conteúdo:", err);
       
