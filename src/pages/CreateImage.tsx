@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -232,6 +233,7 @@ export default function CreateImage() {
   const [preserveImageIndices, setPreserveImageIndices] = useState<number[]>([]);
   const [showStyles, setShowStyles] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [textModalOpen, setTextModalOpen] = useState(false);
 
   const teamId = user?.teamId;
   const userId = user?.id;
@@ -876,62 +878,96 @@ export default function CreateImage() {
               </div>
 
               {/* 4. Texto na Imagem */}
-              <div className="rounded-2xl shadow-lg border-0 bg-card p-4 md:p-5 space-y-4">
+              <div className="rounded-2xl shadow-lg border-0 bg-card p-4 md:p-5">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Type className="h-4 w-4 text-primary" />
                     <p className="text-sm font-bold text-foreground">Texto na Imagem</p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setFormData(prev => ({ ...prev, imageIncludeText: !prev.imageIncludeText }))}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                      formData.imageIncludeText ? 'bg-primary' : 'bg-muted'
-                    }`}
-                  >
-                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-sm ${
-                      formData.imageIncludeText ? 'translate-x-6' : 'translate-x-1'
-                    }`} />
-                  </button>
+                  <div className="flex items-center gap-3">
+                    {formData.imageIncludeText && (
+                      <button
+                        type="button"
+                        onClick={() => setTextModalOpen(true)}
+                        className="text-xs font-medium text-primary hover:underline transition-colors"
+                      >
+                        Configurar
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const next = !formData.imageIncludeText;
+                        setFormData(prev => ({ ...prev, imageIncludeText: next }));
+                        if (next) setTextModalOpen(true);
+                      }}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                        formData.imageIncludeText ? 'bg-primary' : 'bg-muted'
+                      }`}
+                    >
+                      <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-sm ${
+                        formData.imageIncludeText ? 'translate-x-6' : 'translate-x-1'
+                      }`} />
+                    </button>
+                  </div>
                 </div>
+                {formData.imageIncludeText && formData.imageTextContent && (
+                  <p className="mt-2 text-xs text-muted-foreground truncate">
+                    "{formData.imageTextContent}"
+                    {formData.ctaText && <span className="ml-1">· CTA: {formData.ctaText}</span>}
+                  </p>
+                )}
+              </div>
 
-                {formData.imageIncludeText && (
-                  <div className="space-y-4 animate-in slide-in-from-top-2 duration-200">
+              {/* Text on Image Modal */}
+              <Dialog open={textModalOpen} onOpenChange={setTextModalOpen}>
+                <DialogContent className="max-w-xl">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                      <Type className="h-5 w-5 text-primary" />
+                      Configurar Texto na Imagem
+                    </DialogTitle>
+                    <DialogDescription>
+                      Configure o texto, posição, tipografia e design que aparecerão na imagem gerada.
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  <div className="space-y-5 mt-2">
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-medium text-muted-foreground">
-                        Texto para renderizar <span className="text-destructive">*</span>
+                      <Label className="text-sm font-semibold text-foreground">
+                        Texto principal <span className="text-destructive">*</span>
                       </Label>
                       <Input
                         placeholder="Ex: Descubra o sabor da tradição"
                         value={formData.imageTextContent}
                         onChange={e => setFormData(prev => ({ ...prev, imageTextContent: e.target.value }))}
-                        className="h-9 rounded-lg border-2 border-border/50 bg-background/50 text-sm"
+                        className="h-10 rounded-lg"
                         maxLength={80}
                       />
-                      <p className="text-[10px] text-muted-foreground">{formData.imageTextContent?.length || 0}/80 caracteres</p>
+                      <p className="text-[10px] text-muted-foreground text-right">{formData.imageTextContent?.length || 0}/80</p>
                     </div>
 
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-medium text-muted-foreground">
-                        CTA (Call-to-Action) <span className="font-normal">(opcional)</span>
+                      <Label className="text-sm font-semibold text-foreground">
+                        CTA (Call-to-Action) <span className="font-normal text-muted-foreground">(opcional)</span>
                       </Label>
                       <Input
                         placeholder="Ex: Saiba mais · Compre agora · Garanta o seu"
                         value={formData.ctaText}
                         onChange={e => setFormData(prev => ({ ...prev, ctaText: e.target.value }))}
-                        className="h-9 rounded-lg border-2 border-border/50 bg-background/50 text-sm"
+                        className="h-10 rounded-lg"
                         maxLength={40}
                       />
-                      <p className="text-[10px] text-muted-foreground">{formData.ctaText?.length || 0}/40 caracteres</p>
+                      <p className="text-[10px] text-muted-foreground text-right">{formData.ctaText?.length || 0}/40</p>
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="text-xs font-medium text-muted-foreground">Posição do Texto</Label>
-                      <div className="grid grid-cols-4 gap-1.5 max-w-[220px]">
+                      <Label className="text-sm font-semibold text-foreground">Posição do Texto</Label>
+                      <div className="grid grid-cols-4 gap-1.5 max-w-[240px]">
                         {TEXT_POSITIONS.map(pos => (
                           <button key={pos.value} type="button"
                             onClick={() => setFormData(prev => ({ ...prev, imageTextPosition: pos.value as any }))}
-                            className={`h-10 rounded-lg text-sm font-medium transition-all active:scale-[0.95] flex flex-col items-center justify-center gap-0.5 ${
+                            className={`h-11 rounded-lg text-sm font-medium transition-all active:scale-[0.95] flex flex-col items-center justify-center gap-0.5 ${
                               formData.imageTextPosition === pos.value
                                 ? 'bg-primary text-primary-foreground shadow-sm'
                                 : 'bg-muted/50 text-foreground hover:bg-primary/10 hover:text-primary'
@@ -946,7 +982,7 @@ export default function CreateImage() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="text-xs font-medium text-muted-foreground">Tipografia</Label>
+                      <Label className="text-sm font-semibold text-foreground">Tipografia</Label>
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
                         {FONT_STYLE_OPTIONS.map(font => (
                           <button key={font.value} type="button"
@@ -965,8 +1001,8 @@ export default function CreateImage() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="text-xs font-medium text-muted-foreground">Design do Texto</Label>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-1.5">
+                      <Label className="text-sm font-semibold text-foreground">Design do Texto</Label>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
                         {TEXT_DESIGN_OPTIONS.map(design => (
                           <button key={design.value} type="button"
                             onClick={() => setFormData(prev => ({ ...prev, textDesignStyle: design.value }))}
@@ -985,8 +1021,24 @@ export default function CreateImage() {
                       </div>
                     </div>
                   </div>
-                )}
-              </div>
+
+                  <DialogFooter className="mt-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        setFormData(prev => ({ ...prev, imageIncludeText: false, imageTextContent: '', ctaText: '' }));
+                        setTextModalOpen(false);
+                      }}
+                    >
+                      Remover texto
+                    </Button>
+                    <Button type="button" onClick={() => setTextModalOpen(false)}>
+                      Confirmar
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
 
               {/* Category Selector */}
               <CategorySelector value={selectedCategoryId} onChange={setSelectedCategoryId} disabled={loading} />
