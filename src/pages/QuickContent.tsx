@@ -229,46 +229,37 @@ export default function QuickContent() {
       ]} startDelay={500} />
 
       {/* Banner */}
-      <div className="relative h-28 md:h-36 overflow-hidden">
+      <div className="relative h-20 md:h-24 overflow-hidden">
         <PageBreadcrumb items={[{ label: "Criar Conteúdo", href: "/create" }, { label: "Criação Rápida" }]} variant="overlay" />
         <img src={createBanner} alt="Criação Rápida" className="w-full h-full object-cover object-center" loading="eager" />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
       </div>
 
       {/* Header Card */}
-      <div className="relative px-4 sm:px-6 lg:px-8 -mt-10 z-10">
+      <div className="relative px-4 sm:px-6 lg:px-8 -mt-8 z-10">
         <div className="max-w-5xl mx-auto">
-          <div className="bg-card rounded-2xl shadow-lg p-3 lg:p-4">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-              <div className="flex items-center gap-3 flex-shrink-0 min-w-0">
-                <div className="flex-shrink-0 bg-primary/10 text-primary rounded-xl p-2.5 lg:p-3">
-                  <Zap className="h-6 w-6 lg:h-7 lg:w-7" />
+          <div className="bg-card rounded-2xl shadow-lg p-2.5 lg:p-3">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+              <div className="flex items-center gap-2.5 flex-shrink-0 min-w-0">
+                <div className="flex-shrink-0 bg-primary/10 text-primary rounded-xl p-2">
+                  <Zap className="h-5 w-5 lg:h-6 lg:w-6" />
                 </div>
                 <div className="min-w-0">
-                  <h1 className="text-xl lg:text-2xl font-bold text-foreground">Criação Rápida</h1>
-                  <p className="text-muted-foreground text-xs lg:text-sm">Gere imagens rapidamente com IA</p>
+                  <h1 className="text-lg lg:text-xl font-bold text-foreground leading-tight">Criação Rápida</h1>
+                  <p className="text-muted-foreground text-[11px] lg:text-xs">Gere imagens rapidamente com IA</p>
                 </div>
               </div>
               <CreationProgressBar currentStep={loading ? "generating" : "config"} className="flex-1 max-w-xs" />
-              <Card className="bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/20 flex-shrink-0">
-                <CardContent className="p-2.5 md:p-3">
-                  <div className="flex items-center justify-center gap-3">
-                    <div className="relative flex-shrink-0">
-                      <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary rounded-full blur-sm opacity-40" />
-                      <div className="relative bg-gradient-to-r from-primary to-secondary text-white rounded-full p-2">
-                        <Zap className="h-4 w-4" />
-                      </div>
-                    </div>
-                    <div className="flex flex-col">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent whitespace-nowrap">{user?.credits || 0}</span>
-                        <p className="text-sm text-muted-foreground font-medium leading-tight whitespace-nowrap">Créditos</p>
-                      </div>
-                      <p className="text-xs text-muted-foreground">Disponíveis</p>
-                    </div>
+              <div className="flex items-center gap-2 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-xl px-3 py-1.5 flex-shrink-0 border border-primary/20">
+                <div className="relative flex-shrink-0">
+                  <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary rounded-full blur-sm opacity-40" />
+                  <div className="relative bg-gradient-to-r from-primary to-secondary text-white rounded-full p-1.5">
+                    <Zap className="h-3.5 w-3.5" />
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+                <span className="text-lg font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">{user?.credits || 0}</span>
+                <span className="text-xs text-muted-foreground font-medium">créditos</span>
+              </div>
             </div>
           </div>
         </div>
