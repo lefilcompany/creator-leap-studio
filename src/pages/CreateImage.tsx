@@ -71,6 +71,7 @@ interface FormData {
   fontWeight?: string;
   fontItalic?: boolean;
   textDesignStyle?: string;
+  fontSize?: number;
   ctaText?: string;
   adMode?: 'standard' | 'professional';
   priceText?: string;
@@ -302,10 +303,11 @@ export default function CreateImage() {
   };
 
   // Get current font CSS
-  const getFontStyle = (family?: string, weight?: string, italic?: boolean) => ({
+  const getFontStyle = (family?: string, weight?: string, italic?: boolean, sizeOverride?: number) => ({
     fontFamily: `'${family || formData.fontFamily || 'Montserrat'}', sans-serif`,
     fontWeight: weight || formData.fontWeight || '700',
     fontStyle: (italic ?? formData.fontItalic) ? 'italic' as const : 'normal' as const,
+    ...(sizeOverride ? { fontSize: `${sizeOverride}px` } : formData.fontSize ? { fontSize: `${formData.fontSize}px` } : {}),
   });
 
   const { data: brands = [], isLoading: loadingBrands } = useQuery({
@@ -589,6 +591,10 @@ export default function CreateImage() {
         textContent: formData.imageTextContent?.trim() || "",
         textPosition: formData.imageTextPosition || "center",
         fontStyle: formData.fontStyle || "modern",
+        fontFamily: formData.fontFamily || "Montserrat",
+        fontWeight: formData.fontWeight || "700",
+        fontItalic: formData.fontItalic || false,
+        fontSize: formData.fontSize || 48,
         textDesignStyle: formData.textDesignStyle || "clean",
         ctaText: formData.ctaText?.trim() || "",
         adMode: contentType === 'ads' ? (formData.adMode || 'standard') : undefined,
@@ -1187,6 +1193,43 @@ export default function CreateImage() {
                               >
                                 Aa
                               </button>
+                            </div>
+                          </div>
+
+                          {/* Tamanho da fonte */}
+                          <div>
+                            <div className="flex items-center justify-between mb-1.5">
+                              <p className="text-[10px] text-muted-foreground">Tamanho</p>
+                              <span className="text-[10px] font-semibold text-foreground bg-muted/60 px-1.5 py-0.5 rounded">
+                                {formData.fontSize || 48}px
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-[9px] text-muted-foreground">12</span>
+                              <input
+                                type="range"
+                                min={12}
+                                max={120}
+                                step={2}
+                                value={formData.fontSize || 48}
+                                onChange={e => setFormData(prev => ({ ...prev, fontSize: Number(e.target.value) }))}
+                                className="flex-1 h-1.5 accent-primary cursor-pointer"
+                              />
+                              <span className="text-[9px] text-muted-foreground">120</span>
+                            </div>
+                            <div className="flex gap-1 mt-1.5">
+                              {[24, 36, 48, 64, 80].map(size => (
+                                <button key={size} type="button"
+                                  onClick={() => setFormData(prev => ({ ...prev, fontSize: size }))}
+                                  className={`flex-1 px-1 py-1 rounded-md text-[9px] transition-all ${
+                                    (formData.fontSize || 48) === size
+                                      ? 'bg-primary/15 text-primary ring-1 ring-primary/30 font-semibold'
+                                      : 'bg-muted/30 text-muted-foreground hover:bg-muted/60'
+                                  }`}
+                                >
+                                  {size}
+                                </button>
+                              ))}
                             </div>
                           </div>
                         </div>
