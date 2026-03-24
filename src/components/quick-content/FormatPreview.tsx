@@ -99,12 +99,14 @@ export function FormatPreview({ platform, aspectRatio, onPlatformChange, childre
         </span>
 
         <div
-          className="rounded-2xl bg-primary/5 flex items-center justify-center transition-all duration-300"
+          className="rounded-2xl bg-primary/5 flex items-center justify-center transition-all duration-300 relative overflow-hidden"
           style={{ width: finalW, height: finalH }}
         >
-          <div className="text-center">
-            <span className="text-xl font-bold text-primary/50">{aspectRatio}</span>
-          </div>
+          {children || (
+            <div className="text-center">
+              <span className="text-xl font-bold text-primary/50">{aspectRatio}</span>
+            </div>
+          )}
         </div>
       </div>
 
