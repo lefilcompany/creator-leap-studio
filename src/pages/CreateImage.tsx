@@ -951,7 +951,7 @@ export default function CreateImage() {
                                 }
                               })()
                             }`}>
-                              <p className={`text-[5px] font-bold leading-tight truncate max-w-[50px] ${
+                              <p className={`text-[6px] font-bold leading-tight truncate max-w-[55px] ${
                                 (['overlay', 'gradient_bar', 'badge', 'plaquinha'].includes(formData.textDesignStyle || ''))
                                   ? 'text-white' : 'text-foreground'
                               }`}>
