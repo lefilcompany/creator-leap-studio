@@ -66,7 +66,7 @@ export function CreationProgressBar({ currentStep, className }: CreationProgress
               {/* Connector line */}
               {!isLast && (
                 <div className="flex-1 flex items-center pt-[15px] sm:pt-[17px] md:pt-[19px] lg:pt-[21px] px-1.5 sm:px-2 md:px-3 lg:px-4">
-                  <div className="h-[2px] w-full rounded-full relative overflow-hidden bg-primary/10">
+                  <div className={cn("h-[2px] w-full rounded-full relative overflow-hidden", idx < currentIdx ? "bg-primary/20" : "bg-border/40")}>
                     <div
                       className={cn(
                         "absolute inset-y-0 left-0 rounded-full bg-primary transition-all duration-700 ease-[cubic-bezier(0.4,0,0.2,1)]",
