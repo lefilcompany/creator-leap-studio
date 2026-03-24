@@ -470,7 +470,7 @@ export default function CreateImage() {
       const capturedSession = session;
       clearPersistedData();
 
-      addTask(
+      const newTaskId = addTask(
         "Criando Imagem",
         "create_image",
         async () => {

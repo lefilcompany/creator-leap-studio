@@ -1075,7 +1075,7 @@ export default function CreateContent() {
 
       clearPersistedData();
 
-      addTask(
+      const newTaskId = addTask(
         "Criando Conteúdo",
         "create_content",
         async () => {
