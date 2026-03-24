@@ -29,6 +29,7 @@ import { CreationProgressBar } from "@/components/CreationProgressBar";
 import { GeneratingOverlay } from "@/components/GeneratingOverlay";
 import { PlatformSelector } from "@/components/quick-content/PlatformSelector";
 import { VisualStyleGrid } from "@/components/quick-content/VisualStyleGrid";
+import { CameraAngleGrid } from "@/components/quick-content/CameraAngleGrid";
 import { CategorySelector } from "@/components/CategorySelector";
 import { FormatPreview } from "@/components/quick-content/FormatPreview";
 import createBanner from "@/assets/create-banner.jpg";
@@ -1073,11 +1074,17 @@ export default function CreateImage() {
                 />
               </div>
 
-              {/* Visual Style */}
-              <VisualStyleGrid
-                value={formData.visualStyle}
-                onChange={value => handleSelectChange("visualStyle" as any, value)}
-              />
+              {/* Visual Style + Camera Angle */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
+                <VisualStyleGrid
+                  value={formData.visualStyle}
+                  onChange={value => handleSelectChange("visualStyle" as any, value)}
+                />
+                <CameraAngleGrid
+                  value={formData.cameraAngle || "eye_level"}
+                  onChange={value => handleSelectChange("cameraAngle" as any, value)}
+                />
+              </div>
 
             </div>
           </div>
