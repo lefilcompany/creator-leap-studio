@@ -67,6 +67,9 @@ interface FormData {
   imageTextContent?: string;
   imageTextPosition?: 'top' | 'center' | 'bottom' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
   fontStyle?: string;
+  fontFamily?: string;
+  fontWeight?: string;
+  fontItalic?: boolean;
   textDesignStyle?: string;
   ctaText?: string;
   adMode?: 'standard' | 'professional';
@@ -99,12 +102,52 @@ const TEXT_POSITIONS = [
   { value: 'bottom-right', label: 'Inferior Dir.', icon: '↘' },
 ] as const;
 
-const FONT_STYLE_OPTIONS = [
-  { value: 'modern', label: 'Moderno', desc: 'Sans-serif limpa e minimalista' },
-  { value: 'elegant', label: 'Elegante', desc: 'Serifa clássica e refinada' },
-  { value: 'fun', label: 'Divertido', desc: 'Script casual e expressiva' },
-  { value: 'impactful', label: 'Impactante', desc: 'Bold condensada, alto impacto' },
+const GOOGLE_FONT_PRESETS = [
+  { value: 'Montserrat', label: 'Montserrat', category: 'Sans-serif', desc: 'Moderna e versátil' },
+  { value: 'Playfair Display', label: 'Playfair Display', category: 'Serif', desc: 'Elegante e sofisticada' },
+  { value: 'Bebas Neue', label: 'Bebas Neue', category: 'Display', desc: 'Impactante e bold' },
+  { value: 'Poppins', label: 'Poppins', category: 'Sans-serif', desc: 'Clean e geométrica' },
+  { value: 'Lora', label: 'Lora', category: 'Serif', desc: 'Clássica e refinada' },
+  { value: 'Pacifico', label: 'Pacifico', category: 'Script', desc: 'Divertida e casual' },
+  { value: 'Oswald', label: 'Oswald', category: 'Display', desc: 'Condensada e forte' },
+  { value: 'Dancing Script', label: 'Dancing Script', category: 'Script', desc: 'Cursiva elegante' },
+  { value: 'Raleway', label: 'Raleway', category: 'Sans-serif', desc: 'Leve e minimalista' },
+  { value: 'Roboto Slab', label: 'Roboto Slab', category: 'Serif', desc: 'Slab moderna' },
+  { value: 'Archivo Black', label: 'Archivo Black', category: 'Display', desc: 'Ultra bold, alto impacto' },
+  { value: 'Caveat', label: 'Caveat', category: 'Script', desc: 'Manuscrita natural' },
 ] as const;
+
+const TYPOGRAPHY_PRESETS = [
+  { value: 'modern', label: 'Moderno', font: 'Montserrat', weight: '700', italic: false, desc: 'Sans-serif limpa e bold' },
+  { value: 'elegant', label: 'Elegante', font: 'Playfair Display', weight: '600', italic: true, desc: 'Serifa clássica itálica' },
+  { value: 'impactful', label: 'Impactante', font: 'Bebas Neue', weight: '400', italic: false, desc: 'Condensada de alto impacto' },
+  { value: 'fun', label: 'Divertido', font: 'Pacifico', weight: '400', italic: false, desc: 'Script casual e expressiva' },
+  { value: 'minimal', label: 'Minimalista', font: 'Raleway', weight: '300', italic: false, desc: 'Leve e clean' },
+  { value: 'editorial', label: 'Editorial', font: 'Lora', weight: '700', italic: false, desc: 'Serifa forte para títulos' },
+] as const;
+
+const FONT_WEIGHT_OPTIONS = [
+  { value: '300', label: 'Light' },
+  { value: '400', label: 'Regular' },
+  { value: '600', label: 'Semi Bold' },
+  { value: '700', label: 'Bold' },
+  { value: '900', label: 'Black' },
+] as const;
+
+// Load Google Font dynamically
+const loadGoogleFont = (fontFamily: string, weights: string[] = ['300', '400', '600', '700', '900']) => {
+  const id = `gfont-${fontFamily.replace(/\s+/g, '-')}`;
+  if (document.getElementById(id)) return;
+  const link = document.createElement('link');
+  link.id = id;
+  link.rel = 'stylesheet';
+  const wStr = weights.map(w => `0,${w};1,${w}`).join(';');
+  link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontFamily)}:ital,wght@${wStr}&display=swap`;
+  document.head.appendChild(link);
+};
+
+// Keep backward compat
+const FONT_STYLE_OPTIONS = TYPOGRAPHY_PRESETS.map(p => ({ value: p.value, label: p.label, desc: p.desc }));
 
 const TEXT_DESIGN_OPTIONS = [
   { value: 'clean', label: 'Clean', desc: 'Texto sobre espaço negativo, sem overlay' },
