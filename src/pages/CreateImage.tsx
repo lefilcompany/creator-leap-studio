@@ -1126,112 +1126,107 @@ export default function CreateImage() {
                         </div>
 
                         {/* Text overlay preview */}
-                        <div className="px-5 pb-3">
-                          <p className="text-xs font-bold text-foreground mb-3">Texto no formato</p>
-                        {(() => {
-                          const w = Number(formData.width) || 1080;
-                          const h = Number(formData.height) || 1080;
-                          const ratio = w / h;
-                          const maxW = 260;
-                          const maxH = 360;
-                          let finalW: number, finalH: number;
-                          if (ratio >= 1) {
-                            finalW = maxW;
-                            finalH = maxW / ratio;
-                          } else {
-                            finalH = maxH;
-                            finalW = maxH * ratio;
-                            if (finalW > maxW) {
+                        <div className="px-5 pb-5 flex items-center justify-center">
+                          {(() => {
+                            const w = Number(formData.width) || 1080;
+                            const h = Number(formData.height) || 1080;
+                            const ratio = w / h;
+                            const maxW = 220;
+                            const maxH = 280;
+                            let finalW: number, finalH: number;
+                            if (ratio >= 1) {
                               finalW = maxW;
                               finalH = maxW / ratio;
+                            } else {
+                              finalH = maxH;
+                              finalW = maxH * ratio;
+                              if (finalW > maxW) {
+                                finalW = maxW;
+                                finalH = maxW / ratio;
+                              }
                             }
-                          }
-                          return (
-                            <div
-                              className="rounded-xl bg-gradient-to-br from-muted/60 to-muted relative overflow-hidden shadow-inner border border-border/20 transition-all duration-300"
-                              style={{ width: finalW, height: finalH }}
-                            >
-                              {/* Background grid pattern */}
-                              <div className="absolute inset-0 opacity-[0.04]" style={{
-                                backgroundImage: 'linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)',
-                                backgroundSize: '20px 20px'
-                              }} />
-
-                              {/* Text preview positioned dynamically */}
-                              <div className={`absolute inset-0 flex p-4 ${
-                                (() => {
-                                  const p = formData.imageTextPosition || 'center';
-                                  const vAlign = p.includes('top') ? 'items-start' : p.includes('bottom') ? 'items-end' : 'items-center';
-                                  const hAlign = p.includes('left') ? 'justify-start' : p.includes('right') ? 'justify-end' : 'justify-center';
-                                  return `${vAlign} ${hAlign}`;
-                                })()
-                              }`}>
-                                <div className={`max-w-[85%] transition-all duration-300 ${
+                            return (
+                              <div
+                                className="rounded-xl bg-gradient-to-br from-muted/60 to-muted relative overflow-hidden shadow-inner border border-border/20 transition-all duration-300"
+                                style={{ width: finalW, height: finalH }}
+                              >
+                                <div className="absolute inset-0 opacity-[0.04]" style={{
+                                  backgroundImage: 'linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)',
+                                  backgroundSize: '20px 20px'
+                                }} />
+                                <div className={`absolute inset-0 flex p-3 ${
                                   (() => {
                                     const p = formData.imageTextPosition || 'center';
-                                    return p.includes('left') ? 'text-left' : p.includes('right') ? 'text-right' : 'text-center';
+                                    const vAlign = p.includes('top') ? 'items-start' : p.includes('bottom') ? 'items-end' : 'items-center';
+                                    const hAlign = p.includes('left') ? 'justify-start' : p.includes('right') ? 'justify-end' : 'justify-center';
+                                    return `${vAlign} ${hAlign}`;
                                   })()
                                 }`}>
-                                  <div className={`rounded-lg px-3 py-2 transition-all duration-300 ${
+                                  <div className={`max-w-[85%] transition-all duration-300 ${
                                     (() => {
-                                      const d = formData.textDesignStyle || 'clean';
-                                      switch (d) {
-                                        case 'overlay': return 'bg-black/40 backdrop-blur-sm';
-                                        case 'gradient_bar': return 'bg-gradient-to-r from-primary/80 to-primary/40';
-                                        case 'boxed': return 'border-2 border-foreground/60 bg-background/80';
-                                        case 'badge': return 'bg-primary rounded-full px-4';
-                                        case 'neon_glow': return 'drop-shadow-[0_0_8px_hsl(var(--primary))]';
-                                        case 'shadow_drop': return 'drop-shadow-[2px_4px_6px_rgba(0,0,0,0.5)]';
-                                        case 'plaquinha': return 'bg-amber-900/60 border border-amber-700/50 rounded-md';
-                                        case 'card_overlay': return 'bg-background/90 backdrop-blur-md border border-border/50 rounded-xl px-4 py-3';
-                                        case 'cutout': return 'mix-blend-difference';
-                                        default: return '';
-                                      }
+                                      const p = formData.imageTextPosition || 'center';
+                                      return p.includes('left') ? 'text-left' : p.includes('right') ? 'text-right' : 'text-center';
                                     })()
                                   }`}>
-                                    <p className={`leading-tight transition-all duration-300 ${
+                                    <div className={`rounded-lg px-3 py-2 transition-all duration-300 ${
                                       (() => {
-                                        const f = formData.fontStyle || 'modern';
-                                        const base = 'text-sm font-bold';
-                                        switch (f) {
-                                          case 'elegant': return `${base} italic tracking-wide`;
-                                          case 'fun': return `${base} tracking-wider`;
-                                          case 'impactful': return 'text-base font-black uppercase tracking-tight';
-                                          default: return `${base} tracking-normal`;
+                                        const d = formData.textDesignStyle || 'clean';
+                                        switch (d) {
+                                          case 'overlay': return 'bg-black/40 backdrop-blur-sm';
+                                          case 'gradient_bar': return 'bg-gradient-to-r from-primary/80 to-primary/40';
+                                          case 'boxed': return 'border-2 border-foreground/60 bg-background/80';
+                                          case 'badge': return 'bg-primary rounded-full px-4';
+                                          case 'neon_glow': return 'drop-shadow-[0_0_8px_hsl(var(--primary))]';
+                                          case 'shadow_drop': return 'drop-shadow-[2px_4px_6px_rgba(0,0,0,0.5)]';
+                                          case 'plaquinha': return 'bg-amber-900/60 border border-amber-700/50 rounded-md';
+                                          case 'card_overlay': return 'bg-background/90 backdrop-blur-md border border-border/50 rounded-xl px-4 py-3';
+                                          case 'cutout': return 'mix-blend-difference';
+                                          default: return '';
                                         }
                                       })()
-                                    } ${
-                                      (['overlay', 'gradient_bar', 'badge', 'plaquinha'].includes(formData.textDesignStyle || ''))
-                                        ? 'text-white'
-                                        : 'text-foreground'
                                     }`}>
-                                      {formData.imageTextContent || 'Seu texto aqui'}
-                                    </p>
-                                    {formData.ctaText && (
-                                      <p className={`mt-1.5 text-[10px] font-semibold uppercase tracking-widest transition-all duration-300 ${
+                                      <p className={`leading-tight transition-all duration-300 ${
+                                        (() => {
+                                          const f = formData.fontStyle || 'modern';
+                                          const base = 'text-sm font-bold';
+                                          switch (f) {
+                                            case 'elegant': return `${base} italic tracking-wide`;
+                                            case 'fun': return `${base} tracking-wider`;
+                                            case 'impactful': return 'text-base font-black uppercase tracking-tight';
+                                            default: return `${base} tracking-normal`;
+                                          }
+                                        })()
+                                      } ${
                                         (['overlay', 'gradient_bar', 'badge', 'plaquinha'].includes(formData.textDesignStyle || ''))
-                                          ? 'text-white/80'
-                                          : 'text-primary'
+                                          ? 'text-white'
+                                          : 'text-foreground'
                                       }`}>
-                                        {formData.ctaText}
+                                        {formData.imageTextContent || 'Seu texto aqui'}
                                       </p>
-                                    )}
+                                      {formData.ctaText && (
+                                        <p className={`mt-1.5 text-[10px] font-semibold uppercase tracking-widest transition-all duration-300 ${
+                                          (['overlay', 'gradient_bar', 'badge', 'plaquinha'].includes(formData.textDesignStyle || ''))
+                                            ? 'text-white/80'
+                                            : 'text-primary'
+                                        }`}>
+                                          {formData.ctaText}
+                                        </p>
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
+                                <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between">
+                                  <span className="text-[9px] text-muted-foreground/60 font-medium">
+                                    {FONT_STYLE_OPTIONS.find(f => f.value === formData.fontStyle)?.label || 'Moderno'}
+                                  </span>
+                                  <span className="text-[9px] text-muted-foreground/60 font-medium">
+                                    {TEXT_DESIGN_OPTIONS.find(d => d.value === formData.textDesignStyle)?.label || 'Clean'}
+                                  </span>
+                                </div>
                               </div>
-
-                              {/* Labels */}
-                              <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between">
-                                <span className="text-[9px] text-muted-foreground/60 font-medium">
-                                  {FONT_STYLE_OPTIONS.find(f => f.value === formData.fontStyle)?.label || 'Moderno'}
-                                </span>
-                                <span className="text-[9px] text-muted-foreground/60 font-medium">
-                                  {TEXT_DESIGN_OPTIONS.find(d => d.value === formData.textDesignStyle)?.label || 'Clean'}
-                                </span>
-                              </div>
-                            </div>
-                          );
-                        })()}
+                            );
+                          })()}
+                        </div>
                       </div>
                     </div>
                   </div>
