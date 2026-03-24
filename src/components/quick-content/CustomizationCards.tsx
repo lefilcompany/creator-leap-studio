@@ -35,7 +35,7 @@ function CustomizationCard({ icon, title, description, options, value, onChange,
           className={`flex-1 min-w-0 flex flex-col rounded-xl p-3 text-left transition-all ${
             disabled
               ? "bg-muted/40 opacity-60 cursor-not-allowed"
-              : "bg-card shadow-sm hover:shadow-md cursor-pointer active:scale-[0.98]"
+              : "bg-card shadow-sm cursor-pointer active:scale-[0.98]"
           } ${selected ? "ring-1 ring-primary/30" : ""}`}
         >
           {/* Header */}
@@ -57,7 +57,7 @@ function CustomizationCard({ icon, title, description, options, value, onChange,
                 <button
                   type="button"
                   onClick={e => { e.stopPropagation(); onChange(""); }}
-                  className="flex-shrink-0 rounded-full p-0.5 hover:bg-primary/20 transition-colors"
+                  className="flex-shrink-0 rounded-full p-0.5 hover:bg-destructive/20 hover:text-destructive transition-colors"
                 >
                   <X className="h-2.5 w-2.5" />
                 </button>
