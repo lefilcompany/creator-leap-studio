@@ -912,10 +912,66 @@ export default function CreateImage() {
                   </div>
                 </div>
                 {formData.imageIncludeText && formData.imageTextContent && (
-                  <p className="mt-2 text-xs text-muted-foreground truncate">
-                    "{formData.imageTextContent}"
-                    {formData.ctaText && <span className="ml-1">· CTA: {formData.ctaText}</span>}
-                  </p>
+                  <div className="mt-3 flex items-start gap-3">
+                    {/* Mini preview */}
+                    {(() => {
+                      const w = Number(formData.width) || 1080;
+                      const h = Number(formData.height) || 1080;
+                      const ratio = w / h;
+                      const maxW = 64;
+                      const maxH = 80;
+                      let fW: number, fH: number;
+                      if (ratio >= 1) { fW = maxW; fH = maxW / ratio; }
+                      else { fH = maxH; fW = maxH * ratio; if (fW > maxW) { fW = maxW; fH = maxW / ratio; } }
+                      return (
+                        <div
+                          className="rounded-md bg-gradient-to-br from-muted/60 to-muted relative overflow-hidden border border-border/20 flex-shrink-0 cursor-pointer hover:ring-2 hover:ring-primary/30 transition-all"
+                          style={{ width: fW, height: fH }}
+                          onClick={() => setTextModalOpen(true)}
+                        >
+                          <div className={`absolute inset-0 flex p-1 ${
+                            (() => {
+                              const p = formData.imageTextPosition || 'center';
+                              const vA = p.includes('top') ? 'items-start' : p.includes('bottom') ? 'items-end' : 'items-center';
+                              const hA = p.includes('left') ? 'justify-start' : p.includes('right') ? 'justify-end' : 'justify-center';
+                              return `${vA} ${hA}`;
+                            })()
+                          }`}>
+                            <div className={`rounded px-1 py-0.5 ${
+                              (() => {
+                                const d = formData.textDesignStyle || 'clean';
+                                switch (d) {
+                                  case 'overlay': return 'bg-black/40';
+                                  case 'gradient_bar': return 'bg-gradient-to-r from-primary/80 to-primary/40';
+                                  case 'boxed': return 'border border-foreground/60 bg-background/80';
+                                  case 'badge': return 'bg-primary rounded-full';
+                                  case 'plaquinha': return 'bg-amber-900/60';
+                                  case 'card_overlay': return 'bg-background/90 border border-border/50';
+                                  default: return '';
+                                }
+                              })()
+                            }`}>
+                              <p className={`text-[5px] font-bold leading-tight truncate max-w-[50px] ${
+                                (['overlay', 'gradient_bar', 'badge', 'plaquinha'].includes(formData.textDesignStyle || ''))
+                                  ? 'text-white' : 'text-foreground'
+                              }`}>
+                                {formData.imageTextContent}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-foreground font-medium truncate">"{formData.imageTextContent}"</p>
+                      <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                        {formData.ctaText && <span className="text-[10px] text-muted-foreground">CTA: {formData.ctaText}</span>}
+                        <span className="text-[10px] text-muted-foreground">
+                          {FONT_STYLE_OPTIONS.find(f => f.value === formData.fontStyle)?.label || 'Moderno'} · {TEXT_DESIGN_OPTIONS.find(d => d.value === formData.textDesignStyle)?.label || 'Clean'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 )}
               </div>
 
