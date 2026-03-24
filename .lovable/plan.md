@@ -1,74 +1,48 @@
 
 
-## Plano: Atualização de Custos de Créditos e Preços no Stripe
+# Plano: Componente "Ponto de Vista" (Ângulo de Câmera) para Criação de Imagem
 
-### Resumo das Alterações
+## O que será feito
 
-| Ação | Antes | Depois |
-|------|-------|--------|
-| Imagem rápida (QUICK_IMAGE) | 5 | **3** |
-| Imagem completa (COMPLETE_IMAGE) | 6 | **8** |
-| Vídeo (VIDEO_GENERATION) | 20 | **25** |
-| Revisão de imagem (após completa) | 2 | **4** (novo tipo) |
-| Revisão de imagem (após rápida) | 2 | **2** (mantém) |
-| Revisão de conteúdo (legenda/texto) | 2 | **2** (mantém) |
-| Calendário de conteúdo (CONTENT_PLAN) | 3 | **8** |
-| Preço por crédito avulso | R$ 2,50 | **R$ 2,90** |
+Criar um novo componente `CameraAngleGrid` no mesmo padrão visual do `VisualStyleGrid` — card com imagem de preview do ângulo selecionado que abre modal com todas as opções. Posicionar lado a lado com o Estilo Visual no desktop, empilhados no mobile. Garantir que o valor selecionado seja enviado corretamente ao backend (já suportado).
 
-**Novos preços dos pacotes (R$ 2,90/crédito):**
-- Basic (80 créditos): R$ 197 → **R$ 232,00**
-- Pro (160 créditos): R$ 398 → **R$ 464,00**
-- Premium (320 créditos): R$ 749 → **R$ 928,00**
-- Business (640 créditos): R$ 1.499 → **R$ 1.856,00**
-- Enterprise: mantém sob consulta via WhatsApp
+## Etapas
 
----
+### 1. Gerar imagens de referência para cada ângulo
+Criar 7 imagens ilustrativas (uma por ângulo) usando o AI Gateway e salvar em `src/assets/angles/`:
+- `eye_level.jpg` — Nível dos Olhos
+- `top_down.jpg` — Vista Superior  
+- `low_angle.jpg` — Ângulo Baixo
+- `high_angle.jpg` — Ângulo Alto
+- `close_up.jpg` — Close-up
+- `wide_shot.jpg` — Plano Geral
+- `dutch_angle.jpg` — Ângulo Holandês
 
-### Etapas de Implementação
+### 2. Criar componente `CameraAngleGrid`
+Novo arquivo: `src/components/quick-content/CameraAngleGrid.tsx`
 
-#### 1. Atualizar custos de créditos (frontend)
-**Arquivo:** `src/lib/creditCosts.ts`
-- Alterar `QUICK_IMAGE: 3`, `COMPLETE_IMAGE: 8`, `VIDEO_GENERATION: 25`, `CONTENT_PLAN: 8`
-- Adicionar novo tipo `IMAGE_REVIEW_COMPLETE: 4` (revisão após imagem completa)
-- Manter `IMAGE_REVIEW: 2` (revisão após imagem rápida)
+- Seguir exatamente a mesma estrutura do `VisualStyleGrid`:
+  - Card com imagem de preview, ícone, título e descrição do ângulo selecionado
+  - Botão "Alterar" com chevron
+  - Modal (`Dialog`) com grid de cards visuais para todos os 7 ângulos
+- Props: `value: string`, `onChange: (value: string) => void`
+- Cada ângulo terá ícone, label, descrição breve e imagem de referência
 
-#### 2. Atualizar custos de créditos (backend)
-**Arquivo:** `supabase/functions/_shared/creditCosts.ts`
-- Mesmas alterações do frontend, incluindo `IMAGE_REVIEW_COMPLETE: 4`
+### 3. Atualizar `CreateImage.tsx`
+- Importar `CameraAngleGrid`
+- Envolver `VisualStyleGrid` + `CameraAngleGrid` em um grid responsivo:
+  ```
+  grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch
+  ```
+- Remover a referência ao `cameraAngle` da seção colapsável "Informações adicionais" (se existir lá)
+- O valor já é enviado ao backend via `formData.cameraAngle`, sem mudanças necessárias na lógica de submit
 
-#### 3. Diferenciar revisão por contexto
-**Arquivos afetados:**
-- `src/pages/ContentResult.tsx` — Trocar `IMAGE_REVIEW` por `IMAGE_REVIEW_COMPLETE` (4 créditos)
-- `src/pages/QuickContentResult.tsx` — Mantém `IMAGE_REVIEW` (2 créditos)
-- `src/pages/ReviewContent.tsx` — Manter como está (usa `IMAGE_REVIEW` = 2)
-- `supabase/functions/review-image/index.ts` — Aceitar parâmetro `source` do frontend para usar `IMAGE_REVIEW_COMPLETE` (4) ou `IMAGE_REVIEW` (2)
+### 4. Backend
+Nenhuma alteração necessária — tanto `generate-image` quanto `generate-quick-content` já recebem e processam `cameraAngle` no prompt enviado ao Gemini (linha `Câmera: ${cameraAngle}`).
 
-#### 4. Atualizar preço do crédito avulso
-**Arquivos:**
-- `src/pages/Credits.tsx` — `CREDIT_PRICE = 2.9`
-- `src/pages/Onboarding.tsx` — `CREDIT_PRICE = 2.9`
-- `src/components/PostRegistrationPurchaseModal.tsx` — `CREDIT_PRICE = 2.9`
-- `supabase/functions/create-checkout/index.ts` — `credits * 290` (290 centavos) e atualizar descrição
+## Detalhes técnicos
 
-#### 5. Criar novos preços no Stripe
-Criar novos preços para cada produto com os valores atualizados:
-- Basic: R$ 232,00 (23200 centavos)
-- Pro: R$ 464,00 (46400 centavos)
-- Premium: R$ 928,00 (92800 centavos)
-- Business: R$ 1.856,00 (185600 centavos)
-
-#### 6. Atualizar tabela `plans` no banco de dados
-Atualizar `price_monthly` e `stripe_price_id_monthly` de cada pacote com os novos valores e IDs de preço do Stripe.
-
-#### 7. Atualizar labels e descrições
-- Adicionar label para `IMAGE_REVIEW_COMPLETE` em `getCreditCostLabel`
-- Atualizar texto da descrição nos Stripe products
-
----
-
-### Detalhes Técnicos
-
-- A diferenciação de custo de revisão de imagem será feita enviando um parâmetro `source` ("complete" ou "quick") do frontend para a edge function `review-image`, que usará `CREDIT_COSTS.IMAGE_REVIEW_COMPLETE` ou `CREDIT_COSTS.IMAGE_REVIEW` conforme o caso.
-- Os preços antigos no Stripe serão mantidos (não é possível deletá-los se já tiveram transações), mas os novos serão referenciados no banco.
-- A compra avulsa dinâmica usará `290` centavos por crédito em vez de `250`.
+- Valor default: `eye_level` (já definido no formData inicial)
+- O backend já faz o mapeamento: se `cameraAngle !== 'eye_level'`, inclui `Câmera: {valor}` nas configurações visuais avançadas
+- Responsividade: `grid-cols-1` em telas pequenas, `lg:grid-cols-2` em desktop grande — ambos os cards ocupam metade da largura
 
