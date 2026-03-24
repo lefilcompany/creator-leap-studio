@@ -1145,11 +1145,11 @@ export default function CreateImage() {
                           {/* Fonte */}
                           <div>
                             <p className="text-xs text-muted-foreground mb-2">Fonte</p>
-                            <div className="grid grid-cols-4 gap-1.5">
+                            <div className="grid grid-cols-3 gap-2">
                               {GOOGLE_FONT_PRESETS.map(font => (
                                 <button key={font.value} type="button"
                                   onClick={() => setFormData(prev => ({ ...prev, fontFamily: font.value, fontStyle: '' }))}
-                                  className={`px-2.5 py-2 rounded-lg text-xs transition-all active:scale-[0.97] text-center truncate ${
+                                  className={`px-3 py-2.5 rounded-lg text-sm transition-all active:scale-[0.97] text-center ${
                                     formData.fontFamily === font.value
                                       ? 'bg-primary/15 text-primary ring-1 ring-primary/30 font-semibold'
                                       : 'bg-muted/30 text-foreground hover:bg-muted/60'
