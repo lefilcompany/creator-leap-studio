@@ -3,7 +3,6 @@ import { ChevronDown, Check, Monitor } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { platformSpecs } from "@/lib/platformSpecs";
 
-// Platform icons (reuse from PlatformSelector)
 const InstagramIcon = () => (
   <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none">
     <defs><linearGradient id="ig-fmt" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stopColor="#FFDC80" /><stop offset="25%" stopColor="#F77737" /><stop offset="50%" stopColor="#F56040" /><stop offset="75%" stopColor="#C13584" /><stop offset="100%" stopColor="#833AB4" /></linearGradient></defs>
@@ -62,60 +61,78 @@ interface FormatPreviewProps {
 export function FormatPreview({ platform, aspectRatio, onPlatformChange }: FormatPreviewProps) {
   const [open, setOpen] = useState(false);
 
-  // Find current format dimensions
   const current = FORMAT_OPTIONS.find(o =>
     platform ? (o.platform === platform && o.aspectRatio === aspectRatio) : o.aspectRatio === aspectRatio
   ) || FORMAT_OPTIONS[0];
 
   const { width, height } = current;
 
-  // Compute aspect ratio for CSS (max 240px wide, scale proportionally)
-  const maxW = 220;
-  const scale = maxW / width;
-  const displayH = Math.min(height * scale, 320);
-  const displayW = (width / height) * displayH;
-  const finalW = Math.min(displayW, maxW);
-  const finalH = (height / width) * finalW;
+  // Scale preview to fit container — larger sizes
+  const maxW = 240;
+  const maxH = 300;
+  const ratio = width / height;
+  let finalW: number, finalH: number;
+  if (ratio >= 1) {
+    finalW = maxW;
+    finalH = maxW / ratio;
+  } else {
+    finalH = maxH;
+    finalW = maxH * ratio;
+    if (finalW > maxW) {
+      finalW = maxW;
+      finalH = maxW / ratio;
+    }
+  }
 
   const PlatformIcon = PLATFORM_ICON_MAP[current.platform];
 
   return (
-    <div className="flex flex-col items-center gap-4">
+    <div className="flex flex-col items-center gap-5 w-full">
       <p className="text-sm font-bold text-foreground">Preview do Formato</p>
 
-      {/* Aspect ratio preview box */}
-      <div className="relative flex items-center justify-center">
-        {/* Height label */}
-        <div className="absolute -left-10 top-1/2 -translate-y-1/2 flex flex-col items-center gap-1">
-          <div className="w-px h-full bg-border absolute" />
-          <span className="text-[10px] text-muted-foreground font-medium bg-background px-1 relative z-10">
-            {height}px
+      {/* Aspect ratio preview with dimension labels */}
+      <div className="relative flex items-center justify-center px-8">
+        {/* Height label — left side */}
+        <div className="absolute left-0 top-0 bottom-0 flex flex-col items-center justify-center w-6">
+          <div className="w-px flex-1 bg-border/60" />
+          <span className="text-[11px] text-muted-foreground font-semibold py-1.5 whitespace-nowrap bg-card relative z-10">
+            {height}
           </span>
+          <div className="w-px flex-1 bg-border/60" />
         </div>
 
         {/* The preview rectangle */}
         <div
-          className="rounded-lg border-2 border-dashed border-primary/30 bg-primary/5 flex items-center justify-center transition-all"
+          className="rounded-xl border-2 border-dashed border-primary/40 bg-primary/5 flex items-center justify-center transition-all duration-300"
           style={{ width: finalW, height: finalH }}
         >
-          <span className="text-xs text-muted-foreground font-medium">{aspectRatio}</span>
+          <div className="text-center">
+            <span className="text-lg font-bold text-primary/60">{aspectRatio}</span>
+            <p className="text-[10px] text-muted-foreground mt-0.5">{width} × {height}px</p>
+          </div>
         </div>
       </div>
 
-      {/* Width label */}
-      <span className="text-[10px] text-muted-foreground font-medium -mt-2">{width}px</span>
+      {/* Width label — below */}
+      <div className="flex items-center gap-0 -mt-3 w-full max-w-[240px]">
+        <div className="h-px flex-1 bg-border/60" />
+        <span className="text-[11px] text-muted-foreground font-semibold px-2 whitespace-nowrap">
+          {width}
+        </span>
+        <div className="h-px flex-1 bg-border/60" />
+      </div>
 
       {/* Format selector popover */}
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <button
             type="button"
-            className="w-full max-w-[260px] flex items-center gap-2 px-3 py-2.5 rounded-xl border border-border/50 bg-card shadow-sm hover:shadow-md transition-all text-sm"
+            className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl border border-border/50 bg-card shadow-sm hover:shadow-md transition-all text-sm"
           >
             <Monitor className="h-4 w-4 text-muted-foreground flex-shrink-0" />
             {PlatformIcon && <PlatformIcon />}
             <span className="flex-1 text-left truncate text-foreground font-medium">
-              {current.platform !== "Personalizado" ? `${current.platform} (${width}x${height})` : `Quadrado (${width}x${height})`}
+              {current.platform !== "Personalizado" ? `${current.platform} (${width}×${height})` : `Quadrado (${width}×${height})`}
             </span>
             <ChevronDown className={`h-3.5 w-3.5 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
           </button>
