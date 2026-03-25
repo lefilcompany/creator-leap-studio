@@ -127,7 +127,7 @@ export function FormatPreview({ platform, aspectRatio, onPlatformChange, childre
             <ChevronDown className={`h-3.5 w-3.5 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
           </button>
         </PopoverTrigger>
-        <PopoverContent align="center" sideOffset={8} className="w-72 p-1.5 rounded-xl max-h-80 overflow-y-auto">
+        <PopoverContent align="center" sideOffset={8} className="w-72 p-1.5 rounded-xl max-h-80 overflow-y-auto overscroll-contain" style={{ pointerEvents: 'auto' }}>
           {FORMAT_OPTIONS.map((opt, idx) => {
             const isSelected = opt.platform === current.platform && opt.aspectRatio === current.aspectRatio;
             const Icon = PLATFORM_ICON_MAP[opt.platform];
