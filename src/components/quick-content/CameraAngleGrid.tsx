@@ -146,7 +146,7 @@ export function CameraAngleGrid({ value, onChange }: CameraAngleGridProps) {
       </button>
 
       <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setDetailAngle(null); }}>
-        <DialogContent className="max-w-[68rem] h-[90vh] overflow-hidden p-0">
+        <DialogContent className="max-w-[68rem] max-h-[90vh] overflow-hidden p-0">
           <div className="flex h-full min-h-0">
             {/* Left: Grid panel */}
             <div className={`flex flex-col min-h-0 transition-all duration-300 ease-in-out ${detailAngle ? "hidden sm:flex sm:w-1/2" : "w-full"}`}>
@@ -157,7 +157,7 @@ export function CameraAngleGrid({ value, onChange }: CameraAngleGridProps) {
                 </DialogHeader>
               </div>
               <div className="flex-1 overflow-y-auto px-6 pb-6">
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                   {CAMERA_ANGLES.map(angle => {
                     const Icon = angle.icon;
                     const isSelected = value === angle.value;
@@ -179,7 +179,7 @@ export function CameraAngleGrid({ value, onChange }: CameraAngleGridProps) {
                           <img
                             src={angle.image}
                             alt={angle.label}
-                            className="w-full aspect-square object-cover"
+                            className="w-full aspect-[4/3] object-cover"
                             loading="lazy"
                             width={200}
                             height={200}
