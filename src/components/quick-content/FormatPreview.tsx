@@ -3,7 +3,6 @@ import { ChevronDown, Check, Monitor } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { platformSpecs } from "@/lib/platformSpecs";
-import { platformSpecs } from "@/lib/platformSpecs";
 
 const InstagramIcon = () => (
   <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none">
