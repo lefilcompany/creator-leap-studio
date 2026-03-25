@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Eye, ArrowDown, ArrowUp, Move, ZoomIn, Maximize, RotateCcw, User, ChevronRight, ChevronLeft, Info, Check, X } from "lucide-react";
-import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { Button } from "@/components/ui/button";
 
 import imgEyeLevel from "@/assets/angles/eye_level.jpg";
