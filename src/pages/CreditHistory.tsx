@@ -19,7 +19,7 @@ export default function CreditHistory() {
       COMPLETE_IMAGE: "Imagem Completa",
       IMAGE_GENERATION: "Geração de Imagem",
       IMAGE_REVIEW: "Revisão de Imagem",
-      IMAGE_REVIEW_COMPLETE: "Revisão de Imagem Completa",
+      IMAGE_REVIEW: "Revisão de Imagem Completa",
       CAPTION_REVIEW: "Revisão de Legenda",
       TEXT_REVIEW: "Revisão de Texto",
       CONTENT_PLAN: "Calendário de Conteúdo",

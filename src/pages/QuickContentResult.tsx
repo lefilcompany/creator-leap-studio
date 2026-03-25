@@ -789,7 +789,7 @@ export default function QuickContentResult() {
               <Alert>
                 <AlertDescription className="text-xs sm:text-sm">
                   <span>
-                    Esta revisão consumirá <strong>1 crédito</strong>.
+                    Esta revisão consumirá <strong>{CREDIT_COSTS.IMAGE_REVIEW} créditos</strong>.
                     {user?.credits && user.credits > 0 && (
                       <>
                         {" "}

@@ -3,8 +3,7 @@ export const CREDIT_COSTS = {
   COMPLETE_IMAGE: 8,        // Imagem completa (CreateContent)
   IMAGE_GENERATION: 5,      // Geração de imagem standalone
   IMAGE_EDIT: 1,            // Correção/ajuste de imagem
-  IMAGE_REVIEW: 2,          // Revisão de imagem (após criação rápida / standalone)
-  IMAGE_REVIEW_COMPLETE: 4, // Revisão de imagem (após imagem completa)
+  IMAGE_REVIEW: 4,          // Revisão de imagem
   CAPTION_REVIEW: 2,        // Revisão de legenda
   TEXT_REVIEW: 2,           // Revisão de copy/texto
   CONTENT_PLAN: 8,          // Calendário de conteúdo
