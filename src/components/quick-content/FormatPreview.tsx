@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { ChevronDown, Check, Monitor } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { platformSpecs } from "@/lib/platformSpecs";
 
 const InstagramIcon = () => (
@@ -128,8 +127,13 @@ export function FormatPreview({ platform, aspectRatio, onPlatformChange, childre
             <ChevronDown className={`h-3.5 w-3.5 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
           </button>
         </PopoverTrigger>
-        <PopoverContent align="center" sideOffset={8} className="w-72 p-0 rounded-xl overflow-hidden">
-          <ScrollArea className="max-h-72 p-1.5">
+        <PopoverContent align="center" sideOffset={8} className="w-72 p-1.5 rounded-xl">
+          <div
+            className="max-h-72 overflow-y-auto overscroll-contain pr-1"
+            style={{ WebkitOverflowScrolling: "touch" }}
+            onWheelCapture={(event) => event.stopPropagation()}
+            onTouchMoveCapture={(event) => event.stopPropagation()}
+          >
             {FORMAT_OPTIONS.map((opt, idx) => {
               const isSelected = opt.platform === current.platform && opt.aspectRatio === current.aspectRatio;
               const Icon = PLATFORM_ICON_MAP[opt.platform];
@@ -155,7 +159,7 @@ export function FormatPreview({ platform, aspectRatio, onPlatformChange, childre
                 </button>
               );
             })}
-          </ScrollArea>
+          </div>
         </PopoverContent>
       </Popover>
     </div>
