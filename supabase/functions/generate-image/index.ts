@@ -241,7 +241,17 @@ function buildBriefingDocument(formData: any, brandData: any, themeData: any, pe
   if (colorPalette !== 'auto') advancedParts.push(`Paleta: ${colorPalette}`);
   if (lighting !== 'natural') advancedParts.push(`Iluminação: ${lighting}`);
   if (composition !== 'auto') advancedParts.push(`Composição: ${composition}`);
-  if (cameraAngle !== 'eye_level') advancedParts.push(`Câmera: ${cameraAngle}`);
+  const cameraAngleMap: Record<string, string> = {
+    eye_level: 'Nível dos olhos: perspectiva natural, câmera na altura do sujeito',
+    top_down: 'Vista superior (top-down/flat lay): câmera diretamente acima',
+    low_angle: 'Contra-plongée: câmera de baixo para cima, transmite grandiosidade',
+    high_angle: 'Plongée: câmera de cima para baixo',
+    close_up: 'Close-up: enquadramento muito próximo, foco em detalhes',
+    wide_shot: 'Plano geral (wide shot): enquadramento amplo com contexto',
+    dutch_angle: 'Ângulo holandês (dutch angle): câmera inclinada, cria dinamismo',
+    american_shot: 'Plano americano (cowboy shot): enquadramento dos joelhos/coxas para cima, equilibra expressão facial e ação corporal',
+  };
+  if (cameraAngle !== 'eye_level') advancedParts.push(`Câmera: ${cameraAngleMap[cameraAngle] || cameraAngle}`);
   if (mood !== 'auto') advancedParts.push(`Clima: ${mood}`);
   if (detailLevel !== 7) advancedParts.push(`Nível de detalhe: ${detailLevel}/10`);
   if (advancedParts.length > 0) sections.push(`CONFIGURAÇÕES VISUAIS AVANÇADAS:\n${advancedParts.join('\n')}`);

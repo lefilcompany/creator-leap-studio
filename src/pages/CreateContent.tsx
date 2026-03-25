@@ -2192,6 +2192,7 @@ export default function CreateContent() {
                               <SelectItem value="close_up">Close-up</SelectItem>
                               <SelectItem value="wide_shot">Plano Geral</SelectItem>
                               <SelectItem value="dutch_angle">Ângulo Holandês</SelectItem>
+                              <SelectItem value="american_shot">Plano Americano</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
