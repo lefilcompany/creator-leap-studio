@@ -244,8 +244,8 @@ export default function ContentResult() {
   const handleSubmitReview = async () => {
     if (!reviewPrompt.trim() || !contentData || !reviewType) return;
 
-    if (!user?.credits || user.credits < CREDIT_COSTS.IMAGE_REVIEW_COMPLETE) {
-      toast.error(`Você não tem créditos disponíveis. Cada revisão custa ${CREDIT_COSTS.IMAGE_REVIEW_COMPLETE} créditos.`);
+    if (!user?.credits || user.credits < CREDIT_COSTS.IMAGE_REVIEW) {
+      toast.error(`Você não tem créditos disponíveis. Cada revisão custa ${CREDIT_COSTS.IMAGE_REVIEW} créditos.`);
       return;
     }
     setIsReviewing(true);
@@ -809,17 +809,17 @@ export default function ContentResult() {
                   <span>Download</span>
                 </Button>
                 <div className="relative group">
-                  <Button onClick={handleOpenReview} variant="secondary" className="w-full flex-1 sm:flex-initial rounded-xl gap-2 hover-scale transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 group" size="lg" disabled={!user?.credits || user.credits < CREDIT_COSTS.IMAGE_REVIEW_COMPLETE}>
+                  <Button onClick={handleOpenReview} variant="secondary" className="w-full flex-1 sm:flex-initial rounded-xl gap-2 hover-scale transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 group" size="lg" disabled={!user?.credits || user.credits < CREDIT_COSTS.IMAGE_REVIEW}>
                     <RefreshCw className="h-4 w-4 group-hover:rotate-180 transition-transform duration-500" />
                     <span>Revisar</span>
                     <Badge variant="outline" className="ml-1 gap-1 border-secondary-foreground/30">
                       <Coins className="h-3 w-3" />
-                      {CREDIT_COSTS.IMAGE_REVIEW_COMPLETE}
+                      {CREDIT_COSTS.IMAGE_REVIEW}
                     </Badge>
                   </Button>
-                  {(!user?.credits || user.credits < CREDIT_COSTS.IMAGE_REVIEW_COMPLETE) && (
+                  {(!user?.credits || user.credits < CREDIT_COSTS.IMAGE_REVIEW) && (
                     <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-destructive text-destructive-foreground px-3 py-1.5 rounded-lg text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 shadow-lg">
-                      Créditos insuficientes ({CREDIT_COSTS.IMAGE_REVIEW_COMPLETE} necessários)
+                      Créditos insuficientes ({CREDIT_COSTS.IMAGE_REVIEW} necessários)
                     </div>
                   )}
                 </div>
@@ -881,7 +881,7 @@ export default function ContentResult() {
                   Descreva as alterações que deseja fazer.
                   <span className="text-orange-600 font-medium flex items-center gap-1 mt-1">
                     <Coins className="h-3.5 w-3.5" />
-                    Esta revisão consumirá {CREDIT_COSTS.IMAGE_REVIEW_COMPLETE} créditos. Você tem {user?.credits || 0} crédito(s).
+                    Esta revisão consumirá {CREDIT_COSTS.IMAGE_REVIEW} créditos. Você tem {user?.credits || 0} crédito(s).
                   </span>
                 </>
               ) : "Selecione o que você deseja revisar neste conteúdo."}
