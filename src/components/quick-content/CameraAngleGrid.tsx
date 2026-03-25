@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Eye, ArrowDown, ArrowUp, Move, ZoomIn, Maximize, RotateCcw, User, ChevronRight, ChevronLeft, Info, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Button } from "@/components/ui/button";
 
 import imgEyeLevel from "@/assets/angles/eye_level.jpg";
 import imgTopDown from "@/assets/angles/top_down.jpg";
@@ -156,10 +155,10 @@ export function CameraAngleGrid({ value, onChange }: CameraAngleGridProps) {
           {/* Left: Grid panel — no scroll */}
           <div className={`pointer-events-auto flex flex-col bg-background border rounded-lg shadow-lg overflow-hidden transition-all duration-300 ${detailAngle ? "hidden sm:flex sm:max-w-[42rem]" : "max-w-[52rem]"} w-full max-h-[85vh]`}>
             <div className="p-6 pb-3 flex-shrink-0 relative">
-              <DialogHeader>
-                <DialogTitle>Escolha o Ponto de Vista</DialogTitle>
+              <div className="flex flex-col space-y-1.5 text-left">
+                <h2 className="text-lg font-semibold leading-none tracking-tight">Escolha o Ponto de Vista</h2>
                 <p className="text-sm text-muted-foreground mt-1">Selecione o ângulo da câmera ou clique no ícone de detalhes para saber mais.</p>
-              </DialogHeader>
+              </div>
               <button
                 type="button"
                 onClick={() => { setOpen(false); setDetailAngle(null); }}
