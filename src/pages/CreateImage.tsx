@@ -1224,7 +1224,7 @@ export default function CreateImage() {
                               <span className="text-[9px] text-muted-foreground">120</span>
                             </div>
                             <div className="flex gap-1 mt-1.5">
-                              {[24, 36, 48, 64, 80].map(size => (
+                              {[12, 14, 16, 18, 24].map(size => (
                                 <button key={size} type="button"
                                   onClick={() => setFormData(prev => ({ ...prev, fontSize: size }))}
                                   className={`flex-1 px-1 py-1 rounded-md text-[9px] transition-all ${
