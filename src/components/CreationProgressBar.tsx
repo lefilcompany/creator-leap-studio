@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
-import { Check, Loader2 } from "lucide-react";
+import { Check, Loader2, Settings2, Sparkles, ImageIcon } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 export type CreationStep = "config" | "generating" | "result";
 
@@ -8,10 +9,10 @@ interface CreationProgressBarProps {
   className?: string;
 }
 
-const steps = [
-  { id: "config" as const, label: "Configuração", number: 1 },
-  { id: "generating" as const, label: "Gerando", number: 2 },
-  { id: "result" as const, label: "Resultado", number: 3 },
+const steps: { id: CreationStep; label: string; icon: LucideIcon }[] = [
+  { id: "config", label: "Configuração", icon: Settings2 },
+  { id: "generating", label: "Gerando", icon: Sparkles },
+  { id: "result", label: "Resultado", icon: ImageIcon },
 ];
 
 const stepIndex = { config: 0, generating: 1, result: 2 };
@@ -47,7 +48,7 @@ export function CreationProgressBar({ currentStep, className }: CreationProgress
                   ) : isActive && step.id === "generating" ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
-                    step.number
+                    <step.icon className="h-4 w-4" />
                   )}
                 </div>
 
