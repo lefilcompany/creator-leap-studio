@@ -804,6 +804,19 @@ serve(async (req) => {
       priceText: cleanInput(formData.priceText) || '',
       includeBrandLogo: formData.includeBrandLogo || false,
       aspectRatio: formData.aspectRatio || undefined,
+      // Advanced visual settings
+      colorPalette: formData.colorPalette || 'auto',
+      lighting: formData.lighting || 'natural',
+      composition: formData.composition || 'auto',
+      cameraAngle: formData.cameraAngle || 'eye_level',
+      detailLevel: formData.detailLevel ?? 7,
+      mood: formData.mood || 'auto',
+      negativePrompt: cleanInput(formData.negativePrompt),
+      // Font details
+      fontSize: formData.fontSize,
+      fontFamily: formData.fontFamily,
+      fontWeight: formData.fontWeight,
+      fontItalic: formData.fontItalic,
     });
 
     // Build image role prefix
