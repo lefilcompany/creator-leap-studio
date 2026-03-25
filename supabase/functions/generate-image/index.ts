@@ -488,7 +488,15 @@ function buildDirectorPrompt(params: {
     
     // Text design style
     const designPrompt = TEXT_DESIGN_PROMPTS[params.textDesignStyle] || TEXT_DESIGN_PROMPTS['clean'];
-    textParts.push(`- Tipografia: ${fontDesc}
+    // Build detailed typography instruction
+    const fontFamilyDesc = params.fontFamily ? `Família tipográfica: "${params.fontFamily}"` : '';
+    const fontWeightDesc = params.fontWeight ? `, peso ${params.fontWeight === '900' ? 'extra-bold/black' : params.fontWeight === '700' ? 'bold' : params.fontWeight === '600' ? 'semi-bold' : params.fontWeight === '400' ? 'regular' : params.fontWeight === '300' ? 'light' : `peso ${params.fontWeight}`}` : '';
+    const fontItalicDesc = params.fontItalic ? ', estilo itálico' : '';
+    const fontSizeDesc = params.fontSize ? `. Tamanho visual: ${params.fontSize <= 16 ? 'PEQUENO (discreto, texto de apoio)' : params.fontSize <= 24 ? 'MÉDIO (legível, destaque moderado)' : params.fontSize <= 32 ? 'GRANDE (destaque forte, hero text)' : 'EXTRA GRANDE (impacto máximo, display)'}` : '';
+    
+    const fullTypoDesc = `${fontDesc}${fontFamilyDesc ? `. ${fontFamilyDesc}${fontWeightDesc}${fontItalicDesc}` : ''}${fontSizeDesc}`;
+
+    textParts.push(`- Tipografia: ${fullTypoDesc}
 - Posição: ${params.textPosition || 'center'}. O texto NÃO deve obstruir o rosto.
 - ${designPrompt}
 - Legibilidade: O texto DEVE ser 100% legível. O design do texto deve fazer parte de uma composição profissional em formato para ${params.platform || 'redes sociais'}.
