@@ -59,8 +59,7 @@ serve(async (req) => {
 
     const { image, prompt, brandId, brandName, themeName, source } = await req.json();
 
-    // Determine credit cost based on source context
-    const creditCostKey = source === 'complete' ? 'IMAGE_REVIEW_COMPLETE' : 'IMAGE_REVIEW';
+    const creditCostKey = 'IMAGE_REVIEW';
     const creditCost = CREDIT_COSTS[creditCostKey];
 
     // Input validation
