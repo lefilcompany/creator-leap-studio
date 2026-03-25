@@ -987,6 +987,12 @@ export default function CreateImage() {
                     </button>
                   </div>
                 </div>
+                {contentType === "ads" && (
+                  <div className="mt-2 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                    <Info className="h-3 w-3 text-primary/60 flex-shrink-0" />
+                    <span>Para <strong className="text-foreground">Tráfego</strong>, texto na imagem é recomendável.</span>
+                  </div>
+                )}
                 {formData.imageIncludeText && formData.imageTextContent && (
                   <div className="mt-3 flex items-start gap-3">
                     {/* Mini preview */}
@@ -1418,6 +1424,20 @@ export default function CreateImage() {
                     }));
                   }}
                 >
+                  {contentType === "ads" && (!formData.imageIncludeText || !formData.imageTextContent) && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFormData(prev => ({ ...prev, imageIncludeText: true }));
+                        setTextModalOpen(true);
+                      }}
+                      className="flex flex-col items-center gap-1.5 text-center p-3 rounded-xl border border-dashed border-primary/30 bg-primary/5 hover:bg-primary/10 transition-colors cursor-pointer"
+                    >
+                      <Type className="h-5 w-5 text-primary/60" />
+                      <span className="text-[11px] font-medium text-primary/80">Adicionar texto na imagem</span>
+                      <span className="text-[9px] text-muted-foreground">Recomendado para tráfego</span>
+                    </button>
+                  )}
                   {formData.imageIncludeText && formData.imageTextContent && (
                     <>
                       <div className={`absolute inset-0 flex p-3 ${
