@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Eye, ArrowDown, ArrowUp, Move, ZoomIn, Maximize, RotateCcw, ChevronRight } from "lucide-react";
+import { Eye, ArrowDown, ArrowUp, Move, ZoomIn, Maximize, RotateCcw, User, ChevronRight } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 import imgEyeLevel from "@/assets/angles/eye_level.jpg";
@@ -9,6 +9,7 @@ import imgHighAngle from "@/assets/angles/high_angle.jpg";
 import imgCloseUp from "@/assets/angles/close_up.jpg";
 import imgWideShot from "@/assets/angles/wide_shot.jpg";
 import imgDutchAngle from "@/assets/angles/dutch_angle.jpg";
+import imgAmericanShot from "@/assets/angles/american_shot.jpg";
 
 const CAMERA_ANGLES = [
   { value: "eye_level", label: "Nível dos Olhos", desc: "Câmera na altura dos olhos, perspectiva natural e equilibrada", icon: Eye, image: imgEyeLevel },
@@ -18,6 +19,7 @@ const CAMERA_ANGLES = [
   { value: "close_up", label: "Close-up", desc: "Enquadramento bem próximo que destaca detalhes e texturas", icon: ZoomIn, image: imgCloseUp },
   { value: "wide_shot", label: "Plano Geral", desc: "Enquadramento amplo mostrando o contexto e ambiente completo", icon: Maximize, image: imgWideShot },
   { value: "dutch_angle", label: "Ângulo Holandês", desc: "Câmera inclinada na diagonal, cria tensão e dinamismo", icon: RotateCcw, image: imgDutchAngle },
+  { value: "american_shot", label: "Plano Americano", desc: "Enquadramento dos joelhos para cima, equilibra expressão e ação corporal", icon: User, image: imgAmericanShot },
 ] as const;
 
 interface CameraAngleGridProps {
@@ -65,7 +67,7 @@ export function CameraAngleGrid({ value, onChange }: CameraAngleGridProps) {
           <DialogHeader>
             <DialogTitle>Escolha o Ponto de Vista</DialogTitle>
           </DialogHeader>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
             {CAMERA_ANGLES.map(angle => {
               const Icon = angle.icon;
               const isSelected = value === angle.value;
