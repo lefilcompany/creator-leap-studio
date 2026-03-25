@@ -48,7 +48,7 @@ export function CreationProgressBar({ currentStep, className }: CreationProgress
                   ) : isActive && step.id === "generating" ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
-                    step.number
+                    <step.icon className="h-4 w-4" />
                   )}
                 </div>
 
