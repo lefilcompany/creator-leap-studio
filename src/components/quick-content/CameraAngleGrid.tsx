@@ -166,7 +166,7 @@ export function CameraAngleGrid({ value, onChange }: CameraAngleGridProps) {
                       <button
                         key={angle.value}
                         type="button"
-                        onClick={() => { onChange(angle.value); setOpen(false); setDetailAngle(null); }}
+                        onClick={() => { onChange(angle.value); }}
                         className={`relative flex flex-col rounded-xl overflow-hidden transition-all active:scale-[0.97] border-2 group/card ${
                           isDetailOpen
                             ? "border-primary/50 bg-primary/5 shadow-md"
