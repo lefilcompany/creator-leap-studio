@@ -298,6 +298,19 @@ function buildDirectorPrompt(params: {
   priceText: string;
   includeBrandLogo: boolean;
   aspectRatio?: string;
+  // Advanced visual settings
+  colorPalette?: string;
+  lighting?: string;
+  composition?: string;
+  cameraAngle?: string;
+  detailLevel?: number;
+  mood?: string;
+  negativePrompt?: string;
+  // Font details
+  fontSize?: number;
+  fontFamily?: string;
+  fontWeight?: string;
+  fontItalic?: boolean;
 }): string {
   const sections: string[] = [];
 
@@ -361,6 +374,85 @@ function buildDirectorPrompt(params: {
   }
   compParts.push(`Tipo: ${params.contentType === 'ads' ? 'ANÚNCIO PAGO — foco em conversão' : 'ORGÂNICO — foco em engajamento'}`);
   compParts.push(`Qualidade: 4K, profundidade de campo profissional`);
+
+  // Advanced visual settings — injected directly into the image prompt for maximum fidelity
+  const colorPaletteMap: Record<string, string> = {
+    warm: 'Paleta quente: tons de vermelho, laranja, amarelo, dourado',
+    cool: 'Paleta fria: tons de azul, ciano, turquesa, violeta',
+    pastel: 'Paleta pastel: cores suaves, dessaturadas, tom delicado',
+    vibrant: 'Paleta vibrante: cores saturadas, alto contraste, energia visual',
+    monochrome: 'Paleta monocromática: variações de uma única cor, elegante e coesa',
+    earth: 'Paleta terrosa: marrom, bege, verde oliva, tons naturais orgânicos',
+    neon: 'Paleta neon: cores fluorescentes intensas, brilhantes e impactantes',
+    dark: 'Paleta escura (dark mode): tons profundos, preto, cinza escuro, acentos sutis',
+  };
+  const lightingMap: Record<string, string> = {
+    natural: 'Iluminação natural: luz do sol ou ambiente, sombras suaves e realistas',
+    studio: 'Iluminação de estúdio: flash profissional, controle total de luz e sombra',
+    dramatic: 'Iluminação dramática: alto contraste, sombras profundas, estilo chiaroscuro',
+    soft: 'Iluminação suave (soft light): difusa, sem sombras duras, tom etéreo',
+    golden_hour: 'Golden hour: luz dourada quente, sombras longas, tom romântico',
+    backlit: 'Contraluz (backlit): silhueta ou halo de luz, efeito cinematográfico',
+    neon: 'Iluminação neon: luzes coloridas artificiais, estilo cyberpunk/urbano',
+    flat: 'Iluminação plana: uniforme, sem sombras marcantes, ideal para produtos',
+  };
+  const compositionMap: Record<string, string> = {
+    rule_of_thirds: 'Composição em regra dos terços: sujeito nos pontos de intersecção',
+    centered: 'Composição centralizada: sujeito no centro da imagem, simetria',
+    symmetry: 'Composição simétrica: equilíbrio visual perfeito entre os lados',
+    diagonal: 'Composição diagonal: linhas diagonais criam dinamismo e movimento',
+    framing: 'Enquadramento natural (framing): elementos da cena emolduram o sujeito',
+    negative_space: 'Espaço negativo: grandes áreas vazias, minimalismo e respiro visual',
+    golden_ratio: 'Proporção áurea: composição baseada na espiral de Fibonacci',
+    fill_frame: 'Preencher quadro: sujeito ocupa toda a imagem, impacto máximo',
+  };
+  const cameraAngleMap: Record<string, string> = {
+    eye_level: 'Nível dos olhos: perspectiva natural, câmera na altura do sujeito',
+    top_down: 'Vista superior (top-down/flat lay): câmera diretamente acima',
+    low_angle: 'Contra-plongée: câmera de baixo para cima, transmite grandiosidade',
+    high_angle: 'Plongée: câmera de cima para baixo',
+    close_up: 'Close-up: enquadramento muito próximo, foco em detalhes',
+    wide_shot: 'Plano geral (wide shot): enquadramento amplo com contexto',
+    dutch_angle: 'Ângulo holandês (dutch angle): câmera inclinada, cria dinamismo',
+    american_shot: 'Plano americano (cowboy shot): enquadramento dos joelhos/coxas para cima, equilibra expressão facial e ação corporal',
+  };
+  const moodMap: Record<string, string> = {
+    professional: 'Clima profissional: corporativo, confiável, sério',
+    playful: 'Clima divertido e descontraído: leve, alegre, acessível',
+    luxurious: 'Clima luxuoso: sofisticado, premium, exclusivo',
+    energetic: 'Clima energético: dinâmico, motivacional, vibrante',
+    calm: 'Clima calmo e sereno: zen, relaxante, pacífico',
+    mysterious: 'Clima misterioso: intrigante, sombrio, atmosférico',
+    romantic: 'Clima romântico: suave, acolhedor, intimista',
+    urban: 'Clima urbano: moderno, streetwear, cosmopolita',
+  };
+
+  if (params.colorPalette && params.colorPalette !== 'auto') {
+    compParts.push(`🎨 PALETA DE CORES: ${colorPaletteMap[params.colorPalette] || params.colorPalette}. Aplique esta paleta de forma dominante em toda a imagem.`);
+  }
+  if (params.lighting && params.lighting !== 'natural') {
+    compParts.push(`💡 ILUMINAÇÃO: ${lightingMap[params.lighting] || params.lighting}. Aplique este esquema de iluminação como diretriz principal.`);
+  }
+  if (params.composition && params.composition !== 'auto') {
+    compParts.push(`📐 COMPOSIÇÃO: ${compositionMap[params.composition] || params.composition}. Siga esta regra de composição rigorosamente.`);
+  }
+  if (params.cameraAngle && params.cameraAngle !== 'eye_level') {
+    compParts.push(`📷 ÂNGULO DE CÂMERA: ${cameraAngleMap[params.cameraAngle] || params.cameraAngle}. Posicione a câmera virtual EXATAMENTE neste ângulo.`);
+  }
+  if (params.mood && params.mood !== 'auto') {
+    compParts.push(`🎭 CLIMA/ATMOSFERA: ${moodMap[params.mood] || params.mood}. A imagem inteira deve transmitir esta atmosfera.`);
+  }
+  if (params.detailLevel !== undefined && params.detailLevel !== 7) {
+    const detailDesc = params.detailLevel <= 3 ? 'Baixo detalhe: formas simplificadas, estilo clean e abstrato' :
+                       params.detailLevel <= 5 ? 'Detalhe moderado: equilíbrio entre simplicidade e realismo' :
+                       params.detailLevel >= 9 ? 'Ultra-detalhado: texturas microscópicas, hiper-realismo extremo, cada elemento meticulosamente renderizado' :
+                       `Nível de detalhe: ${params.detailLevel}/10`;
+    compParts.push(`🔍 DETALHAMENTO: ${detailDesc}`);
+  }
+  if (params.negativePrompt) {
+    compParts.push(`🚫 EVITAR ABSOLUTAMENTE: ${params.negativePrompt}`);
+  }
+
   sections.push(`### 3. COMPOSIÇÃO DA IMAGEM\n${compParts.join('\n')}`);
 
   // SECTION 4: TEXTO E DESIGN
@@ -396,7 +488,15 @@ function buildDirectorPrompt(params: {
     
     // Text design style
     const designPrompt = TEXT_DESIGN_PROMPTS[params.textDesignStyle] || TEXT_DESIGN_PROMPTS['clean'];
-    textParts.push(`- Tipografia: ${fontDesc}
+    // Build detailed typography instruction
+    const fontFamilyDesc = params.fontFamily ? `Família tipográfica: "${params.fontFamily}"` : '';
+    const fontWeightDesc = params.fontWeight ? `, peso ${params.fontWeight === '900' ? 'extra-bold/black' : params.fontWeight === '700' ? 'bold' : params.fontWeight === '600' ? 'semi-bold' : params.fontWeight === '400' ? 'regular' : params.fontWeight === '300' ? 'light' : `peso ${params.fontWeight}`}` : '';
+    const fontItalicDesc = params.fontItalic ? ', estilo itálico' : '';
+    const fontSizeDesc = params.fontSize ? `. Tamanho visual: ${params.fontSize <= 16 ? 'PEQUENO (discreto, texto de apoio)' : params.fontSize <= 24 ? 'MÉDIO (legível, destaque moderado)' : params.fontSize <= 32 ? 'GRANDE (destaque forte, hero text)' : 'EXTRA GRANDE (impacto máximo, display)'}` : '';
+    
+    const fullTypoDesc = `${fontDesc}${fontFamilyDesc ? `. ${fontFamilyDesc}${fontWeightDesc}${fontItalicDesc}` : ''}${fontSizeDesc}`;
+
+    textParts.push(`- Tipografia: ${fullTypoDesc}
 - Posição: ${params.textPosition || 'center'}. O texto NÃO deve obstruir o rosto.
 - ${designPrompt}
 - Legibilidade: O texto DEVE ser 100% legível. O design do texto deve fazer parte de uma composição profissional em formato para ${params.platform || 'redes sociais'}.
@@ -704,6 +804,19 @@ serve(async (req) => {
       priceText: cleanInput(formData.priceText) || '',
       includeBrandLogo: formData.includeBrandLogo || false,
       aspectRatio: formData.aspectRatio || undefined,
+      // Advanced visual settings
+      colorPalette: formData.colorPalette || 'auto',
+      lighting: formData.lighting || 'natural',
+      composition: formData.composition || 'auto',
+      cameraAngle: formData.cameraAngle || 'eye_level',
+      detailLevel: formData.detailLevel ?? 7,
+      mood: formData.mood || 'auto',
+      negativePrompt: cleanInput(formData.negativePrompt),
+      // Font details
+      fontSize: formData.fontSize,
+      fontFamily: formData.fontFamily,
+      fontWeight: formData.fontWeight,
+      fontItalic: formData.fontItalic,
     });
 
     // Build image role prefix
