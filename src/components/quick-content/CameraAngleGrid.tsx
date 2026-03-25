@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Eye, ArrowDown, ArrowUp, Move, ZoomIn, Maximize, RotateCcw, User, ChevronRight, ChevronLeft, Info, Check } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Eye, ArrowDown, ArrowUp, Move, ZoomIn, Maximize, RotateCcw, User, ChevronRight, ChevronLeft, Info, Check, X } from "lucide-react";
+import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
 import imgEyeLevel from "@/assets/angles/eye_level.jpg";
@@ -145,153 +145,153 @@ export function CameraAngleGrid({ value, onChange }: CameraAngleGridProps) {
         </div>
       </button>
 
-      <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setDetailAngle(null); }}>
-        <DialogContent className="max-w-[68rem] max-h-[90vh] overflow-hidden p-0">
-          <div className="flex h-full min-h-0">
-            {/* Left: Grid panel */}
-            <div className={`flex flex-col min-h-0 transition-all duration-300 ease-in-out ${detailAngle ? "hidden sm:flex sm:w-1/2" : "w-full"}`}>
-              <div className="p-6 pb-3 flex-shrink-0">
-                <DialogHeader>
-                  <DialogTitle>Escolha o Ponto de Vista</DialogTitle>
-                  <p className="text-sm text-muted-foreground mt-1">Selecione o ângulo da câmera ou clique no ícone de detalhes para saber mais.</p>
-                </DialogHeader>
-              </div>
-              <div className="flex-1 overflow-y-auto px-6 pb-6">
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                  {CAMERA_ANGLES.map(angle => {
-                    const Icon = angle.icon;
-                    const isSelected = value === angle.value;
-                    const isDetailOpen = detailAngle === angle.value;
-                    return (
-                      <button
-                        key={angle.value}
-                        type="button"
-                        onClick={() => { onChange(angle.value); }}
-                        className={`relative flex flex-col rounded-xl overflow-hidden transition-all active:scale-[0.97] border-2 group/card ${
-                          isDetailOpen
-                            ? "border-primary/50 bg-primary/5 shadow-md"
-                            : isSelected
-                              ? "border-primary shadow-lg ring-2 ring-primary/30"
-                              : "border-transparent bg-card shadow-sm hover:shadow-md hover:border-muted-foreground/20"
-                        }`}
-                      >
-                        <div className="relative">
-                          <img
-                            src={angle.image}
-                            alt={angle.label}
-                            className="w-full aspect-[4/3] object-cover"
-                            loading="lazy"
-                            width={200}
-                            height={200}
-                          />
-                          {/* Info button inside the card image */}
-                          <div
-                            role="button"
-                            tabIndex={0}
-                            onClick={(e) => { e.stopPropagation(); setDetailAngle(prev => prev === angle.value ? null : angle.value); }}
-                            onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); setDetailAngle(prev => prev === angle.value ? null : angle.value); }}}
-                            className={`absolute top-1.5 right-1.5 p-1.5 rounded-lg backdrop-blur-sm transition-all ${
-                              isDetailOpen
-                                ? "bg-primary text-primary-foreground shadow-md"
-                                : "bg-black/40 text-white opacity-0 group-hover/card:opacity-100 hover:bg-black/60"
-                            }`}
-                          >
-                            <Info className="h-3.5 w-3.5" />
-                          </div>
+      {/* Overlay backdrop */}
+      {open && (
+        <div className="fixed inset-0 z-50 bg-black/80 animate-in fade-in-0" onClick={() => { setOpen(false); setDetailAngle(null); }} />
+      )}
+
+      {/* Two independent panels side by side */}
+      {open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center gap-4 p-4 pointer-events-none">
+          {/* Left: Grid panel — no scroll */}
+          <div className={`pointer-events-auto flex flex-col bg-background border rounded-lg shadow-lg overflow-hidden transition-all duration-300 ${detailAngle ? "hidden sm:flex sm:max-w-[42rem]" : "max-w-[52rem]"} w-full max-h-[85vh]`}>
+            <div className="p-6 pb-3 flex-shrink-0 relative">
+              <DialogHeader>
+                <DialogTitle>Escolha o Ponto de Vista</DialogTitle>
+                <p className="text-sm text-muted-foreground mt-1">Selecione o ângulo da câmera ou clique no ícone de detalhes para saber mais.</p>
+              </DialogHeader>
+              <button
+                type="button"
+                onClick={() => { setOpen(false); setDetailAngle(null); }}
+                className="group absolute right-2.5 top-2.5 sm:right-3 sm:top-3 rounded-lg p-1 bg-transparent opacity-80 ring-offset-background transition-all duration-200 hover:opacity-100 hover:bg-primary/20 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 z-50"
+              >
+                <X className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors" />
+                <span className="sr-only">Fechar</span>
+              </button>
+            </div>
+            <div className="px-6 pb-6">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                {CAMERA_ANGLES.map(angle => {
+                  const Icon = angle.icon;
+                  const isSelected = value === angle.value;
+                  const isDetailOpen = detailAngle === angle.value;
+                  return (
+                    <button
+                      key={angle.value}
+                      type="button"
+                      onClick={() => { onChange(angle.value); }}
+                      className={`relative flex flex-col rounded-xl overflow-hidden transition-all active:scale-[0.97] border-2 group/card ${
+                        isDetailOpen
+                          ? "border-primary/50 bg-primary/5 shadow-md"
+                          : isSelected
+                            ? "border-primary shadow-lg ring-2 ring-primary/30"
+                            : "border-transparent bg-card shadow-sm hover:shadow-md hover:border-muted-foreground/20"
+                      }`}
+                    >
+                      <div className="relative">
+                        <img
+                          src={angle.image}
+                          alt={angle.label}
+                          className="w-full aspect-[4/3] object-cover"
+                          loading="lazy"
+                          width={200}
+                          height={150}
+                        />
+                        <div
+                          role="button"
+                          tabIndex={0}
+                          onClick={(e) => { e.stopPropagation(); setDetailAngle(prev => prev === angle.value ? null : angle.value); }}
+                          onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); setDetailAngle(prev => prev === angle.value ? null : angle.value); }}}
+                          className={`absolute top-1.5 right-1.5 p-1.5 rounded-lg backdrop-blur-sm transition-all ${
+                            isDetailOpen
+                              ? "bg-primary text-primary-foreground shadow-md"
+                              : "bg-black/40 text-white opacity-0 group-hover/card:opacity-100 hover:bg-black/60"
+                          }`}
+                        >
+                          <Info className="h-3.5 w-3.5" />
                         </div>
-                        <div className="p-2.5 text-left">
-                          <div className="flex items-center gap-1.5">
-                            <Icon className={`h-3.5 w-3.5 flex-shrink-0 ${isSelected ? "text-primary" : "text-muted-foreground"}`} />
-                            <span className={`text-xs font-semibold truncate ${isSelected ? "text-primary" : "text-foreground"}`}>{angle.label}</span>
-                          </div>
+                      </div>
+                      <div className="p-2.5 text-left">
+                        <div className="flex items-center gap-1.5">
+                          <Icon className={`h-3.5 w-3.5 flex-shrink-0 ${isSelected ? "text-primary" : "text-muted-foreground"}`} />
+                          <span className={`text-xs font-semibold truncate ${isSelected ? "text-primary" : "text-foreground"}`}>{angle.label}</span>
                         </div>
-                      </button>
-                    );
-                  })}
-                </div>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
+          </div>
 
-            {/* Right: Detail panel */}
-            {detailData && (() => {
-              const DetailIcon = detailData.icon;
-              return (
-                <div className={`flex flex-col min-h-0 border-l border-border bg-muted/20 ${detailAngle ? "w-full sm:w-1/2" : "w-0 overflow-hidden"}`}>
-                  {/* Header */}
-                  <div className="p-4 border-b border-border flex items-center gap-2 flex-shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => setDetailAngle(null)}
-                      className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground sm:hidden"
-                    >
-                      <ChevronLeft className="h-4 w-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setDetailAngle(null)}
-                      className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground hidden sm:flex"
-                    >
-                      <ChevronLeft className="h-4 w-4" />
-                    </button>
-                    <div className="flex items-center gap-2 flex-1 min-w-0">
-                      <DetailIcon className="h-4 w-4 text-primary flex-shrink-0" />
-                      <span className="font-semibold text-foreground text-sm truncate">{detailData.label}</span>
-                    </div>
-                    {value === detailData.value && (
-                      <span className="flex items-center gap-1 text-[11px] font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full whitespace-nowrap">
-                        <Check className="h-3 w-3" /> Ativo
-                      </span>
-                    )}
+          {/* Right: Detail panel — independent, with scroll */}
+          {detailData && (() => {
+            const DetailIcon = detailData.icon;
+            return (
+              <div className="pointer-events-auto flex flex-col bg-background border rounded-lg shadow-lg overflow-hidden w-full max-w-[22rem] max-h-[85vh] animate-in slide-in-from-right-4 fade-in-0 duration-200">
+                <div className="p-4 border-b border-border flex items-center gap-2 flex-shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setDetailAngle(null)}
+                    className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </button>
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <DetailIcon className="h-4 w-4 text-primary flex-shrink-0" />
+                    <span className="font-semibold text-foreground text-sm truncate">{detailData.label}</span>
                   </div>
+                  {value === detailData.value && (
+                    <span className="flex items-center gap-1 text-[11px] font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full whitespace-nowrap">
+                      <Check className="h-3 w-3" /> Ativo
+                    </span>
+                  )}
+                </div>
 
-                  {/* Scrollable content */}
-                  <div className="flex-1 overflow-y-auto">
-                    <div className="p-5 space-y-5">
-                      <img
-                        src={detailData.image}
-                        alt={detailData.label}
-                        className="w-full aspect-video object-cover rounded-xl shadow-sm"
-                        width={400}
-                        height={225}
-                      />
-
-                      <div className="space-y-4">
-                        <div>
-                          <p className="text-xs font-bold text-foreground uppercase tracking-wider mb-1.5">O que é?</p>
-                          <p className="text-sm text-muted-foreground leading-relaxed">{detailData.detail.what}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs font-bold text-foreground uppercase tracking-wider mb-1.5">Quando usar?</p>
-                          <p className="text-sm text-muted-foreground leading-relaxed">{detailData.detail.when}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs font-bold text-foreground uppercase tracking-wider mb-1.5">Que efeito causa?</p>
-                          <p className="text-sm text-muted-foreground leading-relaxed">{detailData.detail.effect}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs font-bold text-foreground uppercase tracking-wider mb-1.5">Exemplos de uso</p>
-                          <p className="text-sm text-muted-foreground leading-relaxed">{detailData.detail.examples}</p>
-                        </div>
+                <div className="flex-1 overflow-y-auto">
+                  <div className="p-5 space-y-5">
+                    <img
+                      src={detailData.image}
+                      alt={detailData.label}
+                      className="w-full aspect-video object-cover rounded-xl shadow-sm"
+                      width={400}
+                      height={225}
+                    />
+                    <div className="space-y-4">
+                      <div>
+                        <p className="text-xs font-bold text-foreground uppercase tracking-wider mb-1.5">O que é?</p>
+                        <p className="text-sm text-muted-foreground leading-relaxed">{detailData.detail.what}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-foreground uppercase tracking-wider mb-1.5">Quando usar?</p>
+                        <p className="text-sm text-muted-foreground leading-relaxed">{detailData.detail.when}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-foreground uppercase tracking-wider mb-1.5">Que efeito causa?</p>
+                        <p className="text-sm text-muted-foreground leading-relaxed">{detailData.detail.effect}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-foreground uppercase tracking-wider mb-1.5">Exemplos de uso</p>
+                        <p className="text-sm text-muted-foreground leading-relaxed">{detailData.detail.examples}</p>
                       </div>
                     </div>
                   </div>
-
-                  {/* Fixed footer */}
-                  <div className="p-4 border-t border-border flex-shrink-0">
-                    <Button
-                      className="w-full gap-2"
-                      onClick={() => { onChange(detailData.value); setOpen(false); setDetailAngle(null); }}
-                    >
-                      <Check className="h-4 w-4" />
-                      {value === detailData.value ? "Manter seleção" : `Usar ${detailData.label}`}
-                    </Button>
-                  </div>
                 </div>
-              );
-            })()}
-          </div>
-        </DialogContent>
-      </Dialog>
+
+                <div className="p-4 border-t border-border flex-shrink-0">
+                  <Button
+                    className="w-full gap-2"
+                    onClick={() => { onChange(detailData.value); setOpen(false); setDetailAngle(null); }}
+                  >
+                    <Check className="h-4 w-4" />
+                    {value === detailData.value ? "Manter seleção" : `Usar ${detailData.label}`}
+                  </Button>
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+      )}
     </div>
   );
 }
