@@ -27,7 +27,7 @@ import { TourSelector } from '@/components/onboarding/TourSelector';
 import { createContentSteps, navbarSteps } from '@/components/onboarding/tourSteps';
 import { PageBreadcrumb } from "@/components/PageBreadcrumb";
 import { CreationProgressBar } from "@/components/CreationProgressBar";
-import { GeneratingOverlay } from "@/components/GeneratingOverlay";
+
 import { PlatformSelector } from "@/components/quick-content/PlatformSelector";
 import { VisualStyleGrid } from "@/components/quick-content/VisualStyleGrid";
 import { CameraAngleGrid } from "@/components/quick-content/CameraAngleGrid";
@@ -700,7 +700,7 @@ export default function CreateImage() {
 
   return (
     <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8 min-h-full">
-      <GeneratingOverlay taskId={generatingTaskId} onReset={() => setGeneratingTaskId(null)} />
+      
       <TourSelector tours={[
         { tourType: 'navbar', steps: navbarSteps, label: 'Tour da Navegação', targetElement: '#sidebar-logo' },
         { tourType: 'create_content', steps: createContentSteps, label: 'Tour de Criar Conteúdo', targetElement: '#select-brand' }
