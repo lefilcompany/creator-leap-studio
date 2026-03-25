@@ -1424,20 +1424,28 @@ export default function CreateImage() {
                     }));
                   }}
                 >
-                  {contentType === "ads" && (!formData.imageIncludeText || !formData.imageTextContent) && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setFormData(prev => ({ ...prev, imageIncludeText: true }));
-                        setTextModalOpen(true);
-                      }}
-                      className="flex flex-col items-center gap-1.5 text-center p-3 rounded-xl border border-dashed border-primary/30 bg-primary/5 hover:bg-primary/10 transition-colors cursor-pointer"
-                    >
-                      <Type className="h-5 w-5 text-primary/60" />
-                      <span className="text-[11px] font-medium text-primary/80">Adicionar texto na imagem</span>
-                      <span className="text-[9px] text-muted-foreground">Recomendado para tráfego</span>
-                    </button>
-                  )}
+                  {/* Aspect ratio label — always visible */}
+                  {contentType === "ads" && (!formData.imageIncludeText || !formData.imageTextContent) ? (
+                    <>
+                      <span className="absolute top-2 right-2 text-xs font-bold text-primary/40">{formData.aspectRatio || "1:1"}</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFormData(prev => ({ ...prev, imageIncludeText: true }));
+                          setTextModalOpen(true);
+                        }}
+                        className="flex flex-col items-center gap-1.5 text-center p-3 rounded-xl border border-dashed border-primary/30 bg-primary/5 hover:bg-primary/10 transition-colors cursor-pointer"
+                      >
+                        <Type className="h-5 w-5 text-primary/60" />
+                        <span className="text-[11px] font-medium text-primary/80">Adicionar texto na imagem</span>
+                        <span className="text-[9px] text-muted-foreground">Recomendado para tráfego</span>
+                      </button>
+                    </>
+                  ) : !(formData.imageIncludeText && formData.imageTextContent) ? (
+                    <div className="text-center">
+                      <span className="text-xl font-bold text-primary/50">{formData.aspectRatio || "1:1"}</span>
+                    </div>
+                  ) : null}
                   {formData.imageIncludeText && formData.imageTextContent && (
                     <>
                       <div className={`absolute inset-0 flex p-3 ${
