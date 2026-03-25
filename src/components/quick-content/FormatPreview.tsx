@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ChevronDown, Check, Monitor } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { platformSpecs } from "@/lib/platformSpecs";
 
 const InstagramIcon = () => (
@@ -127,32 +128,34 @@ export function FormatPreview({ platform, aspectRatio, onPlatformChange, childre
             <ChevronDown className={`h-3.5 w-3.5 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
           </button>
         </PopoverTrigger>
-        <PopoverContent align="center" sideOffset={8} className="w-72 p-1.5 rounded-xl max-h-80 overflow-y-auto overscroll-contain" style={{ pointerEvents: 'auto' }}>
-          {FORMAT_OPTIONS.map((opt, idx) => {
-            const isSelected = opt.platform === current.platform && opt.aspectRatio === current.aspectRatio;
-            const Icon = PLATFORM_ICON_MAP[opt.platform];
-            return (
-              <button
-                key={idx}
-                type="button"
-                onClick={() => {
-                  onPlatformChange(opt.platform === "Personalizado" ? "" : opt.platform, opt.aspectRatio, opt.width, opt.height);
-                  setOpen(false);
-                }}
-                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left transition-all ${
-                  isSelected ? "bg-primary/10 text-primary" : "text-foreground hover:bg-muted/60"
-                }`}
-              >
-                {Icon && <Icon />}
-                {!Icon && <Monitor className="h-4 w-4 text-muted-foreground" />}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium leading-tight truncate">{opt.label}</p>
-                  <p className="text-[10px] text-muted-foreground">{opt.width}×{opt.height}px</p>
-                </div>
-                {isSelected && <Check className="h-4 w-4 text-primary flex-shrink-0" />}
-              </button>
-            );
-          })}
+        <PopoverContent align="center" sideOffset={8} className="w-72 p-0 rounded-xl overflow-hidden">
+          <ScrollArea className="max-h-72 p-1.5">
+            {FORMAT_OPTIONS.map((opt, idx) => {
+              const isSelected = opt.platform === current.platform && opt.aspectRatio === current.aspectRatio;
+              const Icon = PLATFORM_ICON_MAP[opt.platform];
+              return (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => {
+                    onPlatformChange(opt.platform === "Personalizado" ? "" : opt.platform, opt.aspectRatio, opt.width, opt.height);
+                    setOpen(false);
+                  }}
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left transition-all ${
+                    isSelected ? "bg-primary/10 text-primary" : "text-foreground hover:bg-muted/60"
+                  }`}
+                >
+                  {Icon && <Icon />}
+                  {!Icon && <Monitor className="h-4 w-4 text-muted-foreground" />}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium leading-tight truncate">{opt.label}</p>
+                    <p className="text-[10px] text-muted-foreground">{opt.width}×{opt.height}px</p>
+                  </div>
+                  {isSelected && <Check className="h-4 w-4 text-primary flex-shrink-0" />}
+                </button>
+              );
+            })}
+          </ScrollArea>
         </PopoverContent>
       </Popover>
     </div>
