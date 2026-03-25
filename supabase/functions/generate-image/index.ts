@@ -298,6 +298,19 @@ function buildDirectorPrompt(params: {
   priceText: string;
   includeBrandLogo: boolean;
   aspectRatio?: string;
+  // Advanced visual settings
+  colorPalette?: string;
+  lighting?: string;
+  composition?: string;
+  cameraAngle?: string;
+  detailLevel?: number;
+  mood?: string;
+  negativePrompt?: string;
+  // Font details
+  fontSize?: number;
+  fontFamily?: string;
+  fontWeight?: string;
+  fontItalic?: boolean;
 }): string {
   const sections: string[] = [];
 
