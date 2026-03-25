@@ -1083,9 +1083,14 @@ export default function CreateImage() {
                             value={formData.imageTextContent}
                             onChange={e => setFormData(prev => ({ ...prev, imageTextContent: e.target.value }))}
                             className="h-10 rounded-lg"
-                            maxLength={80}
+                            maxLength={50}
                           />
-                          <p className="text-[10px] text-muted-foreground text-right">{formData.imageTextContent?.length || 0}/80</p>
+                          <div className="flex items-center justify-between">
+                            {(formData.imageTextContent?.length || 0) > 35 && (
+                              <p className="text-[10px] text-amber-500">Textos curtos ficam mais legíveis</p>
+                            )}
+                            <p className={`text-[10px] ml-auto ${(formData.imageTextContent?.length || 0) > 35 ? 'text-amber-500' : 'text-muted-foreground'}`}>{formData.imageTextContent?.length || 0}/50</p>
+                          </div>
                         </div>
 
                         <div className="space-y-1.5">
@@ -1338,7 +1343,7 @@ export default function CreateImage() {
                                     }
                                   })()
                                 }`}>
-                                  <p className={`text-sm leading-tight transition-all duration-300 ${
+                                  <p className={`text-sm leading-tight transition-all duration-300 line-clamp-3 break-words ${
                                     (['overlay', 'gradient_bar', 'badge', 'plaquinha'].includes(formData.textDesignStyle || ''))
                                       ? 'text-white'
                                       : 'text-foreground'
@@ -1479,7 +1484,7 @@ export default function CreateImage() {
                               }
                             })()
                           }`}>
-                            <p className={`text-sm leading-tight transition-all duration-300 ${
+                            <p className={`text-sm leading-tight transition-all duration-300 line-clamp-3 break-words ${
                               (['overlay', 'gradient_bar', 'badge', 'plaquinha'].includes(formData.textDesignStyle || ''))
                                 ? 'text-white'
                                 : 'text-foreground'
