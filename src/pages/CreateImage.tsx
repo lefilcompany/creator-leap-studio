@@ -1220,13 +1220,13 @@ export default function CreateImage() {
                               <input
                                 type="range"
                                 min={12}
-                                max={120}
-                                step={2}
-                                value={formData.fontSize || 48}
+                                max={36}
+                                step={1}
+                                value={formData.fontSize || 18}
                                 onChange={e => setFormData(prev => ({ ...prev, fontSize: Number(e.target.value) }))}
                                 className="flex-1 h-1.5 accent-primary cursor-pointer"
                               />
-                              <span className="text-[9px] text-muted-foreground">120</span>
+                              <span className="text-[9px] text-muted-foreground">36</span>
                             </div>
                             <div className="flex gap-1 mt-1.5">
                               {[12, 14, 16, 18, 24].map(size => (
