@@ -4,46 +4,65 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarIcon, Plus, Ticket, Copy, Trash2, ToggleLeft } from "lucide-react";
+import { Plus, Ticket, Copy, Pencil, Eye, CalendarDays, Infinity, AlertTriangle, Grid3X3, List, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
-
-const PRIZE_OPTIONS = [
-  { value: "credits_40", label: "40 créditos", prefix: "C4", prizeValue: 40 },
-  { value: "credits_100", label: "100 créditos", prefix: "C1", prizeValue: 100 },
-  { value: "credits_200", label: "200 créditos", prefix: "C2", prizeValue: 200 },
-  { value: "credits_custom", label: "Créditos (customizado)", prefix: "CX", prizeValue: 0 },
-];
+import { Skeleton } from "@/components/ui/skeleton";
 
 function generateCouponCode(prefix: string): string {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   let random = "";
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < 6; i++) {
     random += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   return `${prefix}-${random}`;
 }
 
+const isExpired = (date: string | null) => date ? new Date(date) < new Date() : false;
+const isMaxedOut = (coupon: any) => coupon.max_uses && coupon.uses_count >= coupon.max_uses;
+
+function getCouponStatus(coupon: any) {
+  if (!coupon.is_active) return { label: "Inativo", variant: "secondary" as const, color: "text-muted-foreground" };
+  if (isExpired(coupon.expires_at)) return { label: "Expirado", variant: "destructive" as const, color: "text-destructive" };
+  if (isMaxedOut(coupon)) return { label: "Esgotado", variant: "secondary" as const, color: "text-muted-foreground" };
+  return { label: "Ativo", variant: "default" as const, color: "text-primary" };
+}
+
+interface CouponFormData {
+  code: string;
+  customCredits: string;
+  maxUses: string;
+  expiresAt: string;
+  description: string;
+  planId: string;
+  trialDays: string;
+}
+
+const initialFormData: CouponFormData = {
+  code: "",
+  customCredits: "15",
+  maxUses: "1",
+  expiresAt: "",
+  description: "",
+  planId: "",
+  trialDays: "15",
+};
+
 export default function SystemCoupons() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  
-  const [prizeOption, setPrizeOption] = useState("credits_100");
-  const [customCredits, setCustomCredits] = useState("");
-  const [customPrefix, setCustomPrefix] = useState("");
-  const [maxUses, setMaxUses] = useState("");
-  const [expiresAt, setExpiresAt] = useState<Date | undefined>();
-  const [customCode, setCustomCode] = useState("");
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [formData, setFormData] = useState<CouponFormData>(initialFormData);
 
   const { data: coupons = [], isLoading } = useQuery({
     queryKey: ["system-coupons"],
@@ -57,27 +76,33 @@ export default function SystemCoupons() {
     },
   });
 
+  const { data: plans = [] } = useQuery({
+    queryKey: ["system-plans-for-coupons"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("plans")
+        .select("id, name")
+        .eq("is_active", true)
+        .order("name");
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
   const createCoupon = useMutation({
     mutationFn: async () => {
-      const selected = PRIZE_OPTIONS.find((o) => o.value === prizeOption);
-      if (!selected) throw new Error("Selecione um tipo de prêmio");
-
-      const prizeValue = prizeOption === "credits_custom" 
-        ? parseInt(customCredits) 
-        : selected.prizeValue;
-      
+      const prizeValue = parseInt(formData.customCredits);
       if (!prizeValue || prizeValue <= 0) throw new Error("Valor de créditos inválido");
 
-      const prefix = customPrefix.trim().toUpperCase() || selected.prefix;
-      const code = customCode.trim().toUpperCase() || generateCouponCode(prefix);
+      const code = formData.code.trim().toUpperCase() || generateCouponCode("SOMA");
 
       const { error } = await supabase.from("coupons").insert({
         code,
-        prefix,
+        prefix: code.split("-")[0] || "SOMA",
         prize_type: "credits",
         prize_value: prizeValue,
-        max_uses: maxUses ? parseInt(maxUses) : null,
-        expires_at: expiresAt ? expiresAt.toISOString() : null,
+        max_uses: formData.maxUses ? parseInt(formData.maxUses) : null,
+        expires_at: formData.expiresAt ? new Date(formData.expiresAt).toISOString() : null,
         created_by: user!.id,
       });
 
@@ -90,11 +115,8 @@ export default function SystemCoupons() {
     onSuccess: (code) => {
       toast.success(`Cupom ${code} criado com sucesso!`);
       queryClient.invalidateQueries({ queryKey: ["system-coupons"] });
-      setCustomCode("");
-      setCustomPrefix("");
-      setCustomCredits("");
-      setMaxUses("");
-      setExpiresAt(undefined);
+      setFormData(initialFormData);
+      setShowCreateModal(false);
     },
     onError: (err: Error) => toast.error(err.message),
   });
@@ -113,250 +135,352 @@ export default function SystemCoupons() {
     },
   });
 
-  const deleteCoupon = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("coupons").delete().eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["system-coupons"] });
-      toast.success("Cupom removido");
-    },
-  });
-
   const copyCode = (code: string) => {
     navigator.clipboard.writeText(code);
     toast.success("Código copiado!");
   };
 
-  const isExpired = (date: string | null) => date && new Date(date) < new Date();
+  const handleGenerateCode = () => {
+    setFormData(prev => ({ ...prev, code: generateCouponCode("SOMA") }));
+  };
+
+  const handleOpenCreate = () => {
+    setFormData({ ...initialFormData, code: generateCouponCode("SOMA") });
+    setShowCreateModal(true);
+  };
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Cupons de Desconto</h1>
-        <p className="text-muted-foreground text-sm">Crie e gerencie cupons de créditos para seus usuários</p>
+      {/* Header */}
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Cupons</h1>
+          <p className="text-muted-foreground text-sm">Gerencie cupons de teste grátis</p>
+        </div>
+        <div className="flex items-center gap-2">
+          {/* View mode toggle */}
+          <div className="flex items-center border border-border rounded-lg overflow-hidden">
+            <Button
+              variant={viewMode === "grid" ? "default" : "ghost"}
+              size="icon"
+              className="rounded-none h-9 w-9"
+              onClick={() => setViewMode("grid")}
+            >
+              <Grid3X3 className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={viewMode === "list" ? "default" : "ghost"}
+              size="icon"
+              className="rounded-none h-9 w-9"
+              onClick={() => setViewMode("list")}
+            >
+              <List className="h-4 w-4" />
+            </Button>
+          </div>
+          <Button onClick={handleOpenCreate} className="gap-2">
+            <Plus className="h-4 w-4" />
+            Criar Cupom
+          </Button>
+        </div>
       </div>
 
-      {/* Create Coupon Form */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Plus className="h-5 w-5" />
-            Criar Novo Cupom
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Prize type */}
-            <div className="space-y-2">
-              <Label>Tipo de Prêmio</Label>
-              <Select value={prizeOption} onValueChange={setPrizeOption}>
+      {/* Coupons Display */}
+      {isLoading ? (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-52 rounded-xl" />)}
+        </div>
+      ) : coupons.length === 0 ? (
+        <Card className="border-dashed border-2">
+          <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+            <Ticket className="h-12 w-12 text-muted-foreground/40 mb-4" />
+            <p className="text-muted-foreground">Nenhum cupom criado ainda.</p>
+            <Button onClick={handleOpenCreate} variant="outline" className="mt-4 gap-2">
+              <Plus className="h-4 w-4" />
+              Criar primeiro cupom
+            </Button>
+          </CardContent>
+        </Card>
+      ) : viewMode === "grid" ? (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {coupons.map((coupon: any) => (
+            <CouponCard
+              key={coupon.id}
+              coupon={coupon}
+              plans={plans}
+              onCopy={copyCode}
+              onToggle={(id, isActive) => toggleCoupon.mutate({ id, isActive })}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {coupons.map((coupon: any) => (
+            <CouponListItem
+              key={coupon.id}
+              coupon={coupon}
+              plans={plans}
+              onCopy={copyCode}
+              onToggle={(id, isActive) => toggleCoupon.mutate({ id, isActive })}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Create Coupon Modal */}
+      <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-xl">Criar Cupom</DialogTitle>
+            <DialogDescription className="sr-only">Formulário para criar um novo cupom</DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-5 py-2">
+            {/* Code */}
+            <div className="space-y-1.5">
+              <Label className="font-semibold">Código</Label>
+              <div className="flex gap-2">
+                <Input
+                  value={formData.code}
+                  onChange={(e) => setFormData(prev => ({ ...prev, code: e.target.value.toUpperCase() }))}
+                  placeholder="SOMA-XXXXXX"
+                  className="font-mono"
+                />
+                <Button variant="outline" onClick={handleGenerateCode} className="shrink-0">
+                  Gerar
+                </Button>
+              </div>
+            </div>
+
+            {/* Plan selector */}
+            <div className="space-y-1.5">
+              <Label className="font-semibold">Plano</Label>
+              <Select value={formData.planId} onValueChange={(v) => setFormData(prev => ({ ...prev, planId: v }))}>
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder="Selecione o plano" />
                 </SelectTrigger>
                 <SelectContent>
-                  {PRIZE_OPTIONS.map((o) => (
-                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                  {plans.map((plan: any) => (
+                    <SelectItem key={plan.id} value={plan.id}>{plan.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
 
-            {/* Custom credits */}
-            {prizeOption === "credits_custom" && (
-              <div className="space-y-2">
-                <Label>Quantidade de Créditos</Label>
+            {/* Trial days + Max uses - side by side */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label className="font-semibold">Dias de teste</Label>
                 <Input
                   type="number"
                   min="1"
-                  placeholder="Ex: 50"
-                  value={customCredits}
-                  onChange={(e) => setCustomCredits(e.target.value)}
+                  value={formData.trialDays}
+                  onChange={(e) => setFormData(prev => ({ ...prev, trialDays: e.target.value }))}
                 />
               </div>
-            )}
-
-            {/* Custom prefix */}
-            <div className="space-y-2">
-              <Label>Prefixo (opcional)</Label>
-              <Input
-                placeholder="Ex: WELCOME, BLACK"
-                maxLength={10}
-                value={customPrefix}
-                onChange={(e) => setCustomPrefix(e.target.value.toUpperCase())}
-              />
-              <p className="text-xs text-muted-foreground">Deixe vazio para usar o padrão</p>
+              <div className="space-y-1.5">
+                <Label className="font-semibold">Máx. usos</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  placeholder="∞"
+                  value={formData.maxUses}
+                  onChange={(e) => setFormData(prev => ({ ...prev, maxUses: e.target.value }))}
+                />
+              </div>
             </div>
 
-            {/* Custom code */}
-            <div className="space-y-2">
-              <Label>Código (opcional)</Label>
+            {/* Expiration date */}
+            <div className="space-y-1.5">
+              <Label className="font-semibold">Data de expiração <span className="font-normal text-muted-foreground">(opcional)</span></Label>
               <Input
-                placeholder="Deixe vazio para gerar automaticamente"
-                maxLength={30}
-                value={customCode}
-                onChange={(e) => setCustomCode(e.target.value.toUpperCase())}
+                type="date"
+                value={formData.expiresAt}
+                onChange={(e) => setFormData(prev => ({ ...prev, expiresAt: e.target.value }))}
+                min={format(new Date(), "yyyy-MM-dd")}
               />
             </div>
 
-            {/* Max uses */}
-            <div className="space-y-2">
-              <Label>Limite de Usos</Label>
+            {/* Description */}
+            <div className="space-y-1.5">
+              <Label className="font-semibold">Descrição interna <span className="font-normal text-muted-foreground">(opcional)</span></Label>
               <Input
-                type="number"
-                min="1"
-                placeholder="Ilimitado"
-                value={maxUses}
-                onChange={(e) => setMaxUses(e.target.value)}
+                placeholder="Ex: Campanha Black Friday"
+                value={formData.description}
+                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
               />
-              <p className="text-xs text-muted-foreground">Deixe vazio para ilimitado</p>
-            </div>
-
-            {/* Expiration */}
-            <div className="space-y-2">
-              <Label>Data de Expiração</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !expiresAt && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {expiresAt
-                      ? format(expiresAt, "PPP", { locale: ptBR })
-                      : "Sem expiração"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={expiresAt}
-                    onSelect={setExpiresAt}
-                    disabled={(date) => date < new Date()}
-                    initialFocus
-                    className="p-3 pointer-events-auto"
-                  />
-                </PopoverContent>
-              </Popover>
-              {expiresAt && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-xs h-6"
-                  onClick={() => setExpiresAt(undefined)}
-                >
-                  Remover expiração
-                </Button>
-              )}
             </div>
           </div>
 
-          <Button
-            onClick={() => createCoupon.mutate()}
-            disabled={createCoupon.isPending}
-            className="w-full md:w-auto"
-          >
-            <Ticket className="h-4 w-4 mr-2" />
-            {createCoupon.isPending ? "Criando..." : "Criar Cupom"}
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* Coupons List */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">
-            Cupons Criados ({coupons.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <p className="text-muted-foreground text-sm">Carregando...</p>
-          ) : coupons.length === 0 ? (
-            <p className="text-muted-foreground text-sm">Nenhum cupom criado ainda.</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Código</TableHead>
-                    <TableHead>Prêmio</TableHead>
-                    <TableHead>Usos</TableHead>
-                    <TableHead>Expira em</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {coupons.map((coupon: any) => (
-                    <TableRow key={coupon.id}>
-                      <TableCell className="font-mono font-semibold">
-                        {coupon.code}
-                      </TableCell>
-                      <TableCell>
-                        {coupon.prize_value} créditos
-                      </TableCell>
-                      <TableCell>
-                        {coupon.uses_count}
-                        {coupon.max_uses ? ` / ${coupon.max_uses}` : " / ∞"}
-                      </TableCell>
-                      <TableCell>
-                        {coupon.expires_at
-                          ? format(new Date(coupon.expires_at), "dd/MM/yyyy")
-                          : "—"}
-                      </TableCell>
-                      <TableCell>
-                        {!coupon.is_active ? (
-                          <Badge variant="secondary">Inativo</Badge>
-                        ) : isExpired(coupon.expires_at) ? (
-                          <Badge variant="destructive">Expirado</Badge>
-                        ) : coupon.max_uses && coupon.uses_count >= coupon.max_uses ? (
-                          <Badge variant="secondary">Esgotado</Badge>
-                        ) : (
-                          <Badge className="bg-primary text-primary-foreground">Ativo</Badge>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => copyCode(coupon.code)}
-                            title="Copiar código"
-                          >
-                            <Copy className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => toggleCoupon.mutate({ id: coupon.id, isActive: coupon.is_active })}
-                            title={coupon.is_active ? "Desativar" : "Ativar"}
-                          >
-                            <ToggleLeft className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => deleteCoupon.mutate(coupon.id)}
-                            className="text-destructive hover:text-destructive"
-                            title="Excluir"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setShowCreateModal(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={() => createCoupon.mutate()} disabled={createCoupon.isPending}>
+              {createCoupon.isPending ? "Criando..." : "Criar Cupom"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
+  );
+}
+
+// ─── Coupon Card Component ───────────────────────────────────────
+
+function CouponCard({ coupon, plans, onCopy, onToggle }: {
+  coupon: any;
+  plans: any[];
+  onCopy: (code: string) => void;
+  onToggle: (id: string, isActive: boolean) => void;
+}) {
+  const status = getCouponStatus(coupon);
+  const isActive = coupon.is_active && !isExpired(coupon.expires_at) && !isMaxedOut(coupon);
+  const planName = plans.find((p: any) => p.id === coupon.plan_id)?.name;
+
+  return (
+    <Card className={cn(
+      "relative overflow-hidden transition-all duration-200 border-0 shadow-lg hover:shadow-xl",
+      isActive && "ring-2 ring-primary/30"
+    )}>
+      {/* Top accent bar */}
+      <div className={cn(
+        "h-1.5 w-full",
+        isActive ? "bg-primary" : "bg-muted-foreground/20"
+      )} />
+
+      <CardContent className="p-5 space-y-4">
+        {/* Header: code + actions */}
+        <div className="flex items-start justify-between">
+          <div className="space-y-0.5">
+            <div className="flex items-center gap-2">
+              <Ticket className={cn("h-4 w-4", status.color)} />
+              <span className="font-mono font-bold text-base tracking-wide">{coupon.code}</span>
+            </div>
+            {coupon.description && (
+              <p className="text-xs text-muted-foreground">{coupon.description}</p>
+            )}
+          </div>
+          <div className="flex items-center gap-1">
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onCopy(coupon.code)}>
+              <Copy className="h-3.5 w-3.5" />
+            </Button>
+            <Button variant="ghost" size="icon" className="h-8 w-8">
+              <Pencil className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Stats row with dashed separator */}
+        <div className="border-t border-dashed border-border/60 pt-4">
+          <div className="grid grid-cols-3 text-center">
+            <div>
+              <div className="text-2xl font-bold">{coupon.prize_value}</div>
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Créditos</div>
+            </div>
+            <div>
+              <div className="text-2xl font-bold">
+                {coupon.uses_count}
+                <span className="text-sm font-normal text-muted-foreground">/{coupon.max_uses || "∞"}</span>
+              </div>
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Usos</div>
+            </div>
+            <div>
+              <div className="text-lg font-bold">{planName || "—"}</div>
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Plano</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Warning if maxed out or expired */}
+        {(isExpired(coupon.expires_at) || isMaxedOut(coupon)) && coupon.is_active && (
+          <div className="bg-destructive/10 text-destructive text-xs px-3 py-2 rounded-lg flex items-start gap-2">
+            <AlertTriangle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+            <span>
+              {isMaxedOut(coupon)
+                ? "Limite de resgates atingido — cupom inativado automaticamente"
+                : "Cupom expirado"}
+            </span>
+          </div>
+        )}
+
+        {/* Footer: expiry info, toggle, view redemptions */}
+        <div className="flex items-center justify-between pt-1">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <CalendarDays className="h-3.5 w-3.5" />
+            {coupon.expires_at
+              ? format(new Date(coupon.expires_at), "dd/MM/yy")
+              : <Infinity className="h-3.5 w-3.5" />
+            }
+            <Switch
+              checked={coupon.is_active}
+              onCheckedChange={() => onToggle(coupon.id, coupon.is_active)}
+              className="ml-1 scale-90"
+            />
+          </div>
+          <Button variant="ghost" size="sm" className="text-xs gap-1.5 h-7 px-2">
+            <Eye className="h-3.5 w-3.5" />
+            Resgates
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ─── Coupon List Item Component ──────────────────────────────────
+
+function CouponListItem({ coupon, plans, onCopy, onToggle }: {
+  coupon: any;
+  plans: any[];
+  onCopy: (code: string) => void;
+  onToggle: (id: string, isActive: boolean) => void;
+}) {
+  const status = getCouponStatus(coupon);
+  const isActive = coupon.is_active && !isExpired(coupon.expires_at) && !isMaxedOut(coupon);
+  const planName = plans.find((p: any) => p.id === coupon.plan_id)?.name;
+
+  return (
+    <Card className={cn(
+      "border-0 shadow-md transition-all hover:shadow-lg",
+      isActive && "ring-1 ring-primary/20"
+    )}>
+      <CardContent className="flex items-center gap-4 p-4">
+        <div className={cn("w-1 h-12 rounded-full shrink-0", isActive ? "bg-primary" : "bg-muted-foreground/20")} />
+
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <Ticket className={cn("h-4 w-4 shrink-0", status.color)} />
+            <span className="font-mono font-bold tracking-wide truncate">{coupon.code}</span>
+            {coupon.description && (
+              <span className="text-xs text-muted-foreground truncate hidden sm:inline">— {coupon.description}</span>
+            )}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-6 text-sm shrink-0">
+          <div className="text-center hidden md:block">
+            <div className="font-bold">{coupon.prize_value}</div>
+            <div className="text-[10px] text-muted-foreground uppercase">Créditos</div>
+          </div>
+          <div className="text-center hidden md:block">
+            <div className="font-bold">{coupon.uses_count}<span className="text-muted-foreground font-normal">/{coupon.max_uses || "∞"}</span></div>
+            <div className="text-[10px] text-muted-foreground uppercase">Usos</div>
+          </div>
+          <div className="text-center hidden lg:block">
+            <div className="font-bold text-sm">{planName || "—"}</div>
+            <div className="text-[10px] text-muted-foreground uppercase">Plano</div>
+          </div>
+          <Badge variant={status.variant}>{status.label}</Badge>
+          <Switch
+            checked={coupon.is_active}
+            onCheckedChange={() => onToggle(coupon.id, coupon.is_active)}
+            className="scale-90"
+          />
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onCopy(coupon.code)}>
+            <Copy className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
