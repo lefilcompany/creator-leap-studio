@@ -80,12 +80,12 @@ export default function SystemCoupons() {
       const prizeValue = parseInt(formData.customCredits);
       if (!prizeValue || prizeValue <= 0) throw new Error("Valor de créditos inválido");
 
-      const code = formData.code.trim().toUpperCase() || generateCouponCode("SOMA");
+      const code = formData.code.trim().toUpperCase() || generateCouponCode(formData.prefix || "SOMA");
 
       const { error } = await supabase.from("coupons").insert({
         code,
-        prefix: code.split("-")[0] || "SOMA",
-        prize_type: "credits",
+        prefix: formData.prefix || code.split("-")[0] || "SOMA",
+        prize_type: formData.prizeType || "credits",
         prize_value: prizeValue,
         max_uses: formData.maxUses ? parseInt(formData.maxUses) : null,
         expires_at: formData.expiresAt ? new Date(formData.expiresAt).toISOString() : null,
@@ -131,7 +131,7 @@ export default function SystemCoupons() {
   };
 
   const handleOpenCreate = () => {
-    setFormData({ ...initialFormData, code: generateCouponCode("SOMA") });
+    setFormData({ ...initialFormData, code: generateCouponCode(initialFormData.prefix) });
     setShowCreateModal(true);
   };
 
@@ -231,33 +231,58 @@ export default function SystemCoupons() {
                   className="font-mono"
                 />
                 <Button variant="outline" onClick={handleGenerateCode} className="shrink-0">
+                  <RefreshCw className="h-4 w-4 mr-1" />
                   Gerar
                 </Button>
               </div>
+              <p className="text-xs text-muted-foreground">Código único que o usuário digitará para resgatar</p>
             </div>
 
+            {/* Prefix */}
+            <div className="space-y-1.5">
+              <Label className="font-semibold">Prefixo</Label>
+              <Input
+                value={formData.prefix}
+                onChange={(e) => setFormData(prev => ({ ...prev, prefix: e.target.value.toUpperCase() }))}
+                placeholder="SOMA"
+                className="font-mono"
+              />
+              <p className="text-xs text-muted-foreground">Identificador do grupo de cupons (ex: SOMA, BF2025, PROMO)</p>
+            </div>
 
-            {/* Trial days + Max uses - side by side */}
+            {/* Prize type + value */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="font-semibold">Dias de teste</Label>
+                <Label className="font-semibold">Tipo de prêmio</Label>
                 <Input
-                  type="number"
-                  min="1"
-                  value={formData.trialDays}
-                  onChange={(e) => setFormData(prev => ({ ...prev, trialDays: e.target.value }))}
+                  value="Créditos"
+                  disabled
+                  className="bg-muted"
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="font-semibold">Máx. usos</Label>
+                <Label className="font-semibold">Qtd. de créditos</Label>
                 <Input
                   type="number"
                   min="1"
-                  placeholder="∞"
-                  value={formData.maxUses}
-                  onChange={(e) => setFormData(prev => ({ ...prev, maxUses: e.target.value }))}
+                  value={formData.customCredits}
+                  onChange={(e) => setFormData(prev => ({ ...prev, customCredits: e.target.value }))}
+                  placeholder="15"
                 />
               </div>
+            </div>
+
+            {/* Max uses */}
+            <div className="space-y-1.5">
+              <Label className="font-semibold">Máximo de usos <span className="font-normal text-muted-foreground">(opcional)</span></Label>
+              <Input
+                type="number"
+                min="1"
+                placeholder="Ilimitado"
+                value={formData.maxUses}
+                onChange={(e) => setFormData(prev => ({ ...prev, maxUses: e.target.value }))}
+              />
+              <p className="text-xs text-muted-foreground">Deixe vazio para usos ilimitados</p>
             </div>
 
             {/* Expiration date */}
@@ -269,16 +294,7 @@ export default function SystemCoupons() {
                 onChange={(e) => setFormData(prev => ({ ...prev, expiresAt: e.target.value }))}
                 min={format(new Date(), "yyyy-MM-dd")}
               />
-            </div>
-
-            {/* Description */}
-            <div className="space-y-1.5">
-              <Label className="font-semibold">Descrição interna <span className="font-normal text-muted-foreground">(opcional)</span></Label>
-              <Input
-                placeholder="Ex: Campanha Black Friday"
-                value={formData.description}
-                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              />
+              <p className="text-xs text-muted-foreground">Após essa data o cupom não poderá mais ser resgatado</p>
             </div>
           </div>
 
