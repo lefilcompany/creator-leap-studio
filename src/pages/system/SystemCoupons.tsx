@@ -127,7 +127,7 @@ export default function SystemCoupons() {
   };
 
   const handleGenerateCode = () => {
-    setFormData(prev => ({ ...prev, code: generateCouponCode("SOMA") }));
+    setFormData(prev => ({ ...prev, code: generateCouponCode(prev.prefix || "SOMA") }));
   };
 
   const handleOpenCreate = () => {
