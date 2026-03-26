@@ -206,7 +206,6 @@ export default function SystemCoupons() {
             <CouponCard
               key={coupon.id}
               coupon={coupon}
-              plans={plans}
               onCopy={copyCode}
               onToggle={(id, isActive) => toggleCoupon.mutate({ id, isActive })}
             />
@@ -218,7 +217,7 @@ export default function SystemCoupons() {
             <CouponListItem
               key={coupon.id}
               coupon={coupon}
-              plans={plans}
+              
               onCopy={copyCode}
               onToggle={(id, isActive) => toggleCoupon.mutate({ id, isActive })}
             />
@@ -251,20 +250,6 @@ export default function SystemCoupons() {
               </div>
             </div>
 
-            {/* Plan selector */}
-            <div className="space-y-1.5">
-              <Label className="font-semibold">Plano</Label>
-              <Select value={formData.planId} onValueChange={(v) => setFormData(prev => ({ ...prev, planId: v }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o plano" />
-                </SelectTrigger>
-                <SelectContent>
-                  {plans.map((plan: any) => (
-                    <SelectItem key={plan.id} value={plan.id}>{plan.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
 
             {/* Trial days + Max uses - side by side */}
             <div className="grid grid-cols-2 gap-4">
@@ -327,15 +312,13 @@ export default function SystemCoupons() {
 
 // ─── Coupon Card Component ───────────────────────────────────────
 
-function CouponCard({ coupon, plans, onCopy, onToggle }: {
+function CouponCard({ coupon, onCopy, onToggle }: {
   coupon: any;
-  plans: any[];
   onCopy: (code: string) => void;
   onToggle: (id: string, isActive: boolean) => void;
 }) {
   const status = getCouponStatus(coupon);
   const isActive = coupon.is_active && !isExpired(coupon.expires_at) && !isMaxedOut(coupon);
-  const planName = plans.find((p: any) => p.id === coupon.plan_id)?.name;
 
   return (
     <Card className={cn(
@@ -427,13 +410,13 @@ function CouponCard({ coupon, plans, onCopy, onToggle }: {
 
 function CouponListItem({ coupon, plans, onCopy, onToggle }: {
   coupon: any;
-  plans: any[];
+function CouponListItem({ coupon, onCopy, onToggle }: {
+  coupon: any;
   onCopy: (code: string) => void;
   onToggle: (id: string, isActive: boolean) => void;
 }) {
   const status = getCouponStatus(coupon);
   const isActive = coupon.is_active && !isExpired(coupon.expires_at) && !isMaxedOut(coupon);
-  const planName = plans.find((p: any) => p.id === coupon.plan_id)?.name;
 
   return (
     <Card className={cn(
