@@ -408,8 +408,6 @@ function CouponCard({ coupon, onCopy, onToggle }: {
 
 // ─── Coupon List Item Component ──────────────────────────────────
 
-function CouponListItem({ coupon, plans, onCopy, onToggle }: {
-  coupon: any;
 function CouponListItem({ coupon, onCopy, onToggle }: {
   coupon: any;
   onCopy: (code: string) => void;
