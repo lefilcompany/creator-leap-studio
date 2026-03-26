@@ -310,24 +310,39 @@ export default function ContentResult() {
             editedImageUrl: data?.editedImageUrl,
             errorMessage: error?.message
           });
-          if (error) {
-            console.error("❌ Erro ao editar imagem:", error);
+          // Check for error in response body (edge function may return error in data)
+          const actualError = error || (data?.error ? { message: data.error } : null);
+          
+          if (actualError) {
+            console.error("❌ Erro ao editar imagem:", actualError, data);
+            
+            // Handle insufficient credits from response body
+            if (data?.error === 'Créditos insuficientes') {
+              toast.error("Créditos insuficientes", {
+                description: `Necessários: ${data.required}, disponíveis: ${data.available}`,
+                duration: 6000
+              });
+              setShowReviewDialog(false);
+              setIsReviewing(false);
+              return;
+            }
             
             let errorMessage = "Erro ao processar a edição da imagem";
+            const errMsg = actualError.message || '';
             
-            if (error.message?.includes('rate limit') || error.message?.includes('429')) {
+            if (errMsg.includes('rate limit') || errMsg.includes('429')) {
               errorMessage = "Limite de requisições atingido. Aguarde alguns segundos e tente novamente.";
               toast.error("Erro na Edição", { description: errorMessage, duration: 6000 });
               setShowReviewDialog(false);
               setIsReviewing(false);
               return;
-            } else if (error.message?.includes('API key')) {
+            } else if (errMsg.includes('API key')) {
               errorMessage = "Erro de configuração do servidor. Contacte o suporte.";
               toast.error("Erro na Edição", { description: errorMessage, duration: 6000 });
               setShowReviewDialog(false);
               setIsReviewing(false);
               return;
-            } else if (error.message?.includes('timeout')) {
+            } else if (errMsg.includes('timeout')) {
               errorMessage = "A edição está demorando mais que o esperado. Tente novamente com um ajuste mais simples.";
               toast.error("Erro na Edição", { description: errorMessage, duration: 6000 });
               setShowReviewDialog(false);
@@ -335,9 +350,9 @@ export default function ContentResult() {
               return;
             }
 
-            if (error.message?.includes('compliance_violation')) {
+            if (errMsg.includes('compliance_violation')) {
               try {
-                const errorMatch = error.message.match(/\{.*\}/);
+                const errorMatch = errMsg.match(/\{.*\}/);
                 if (errorMatch) {
                   const errorData = JSON.parse(errorMatch[0]);
                   toast.error("Solicitação não permitida", {
@@ -363,10 +378,10 @@ export default function ContentResult() {
               setIsReviewing(false);
               return;
             }
-            throw new Error(error.message || "Falha ao editar imagem");
+            throw new Error(errMsg || "Falha ao editar imagem");
           }
           if (!data?.editedImageUrl) {
-            console.error("❌ URL da imagem editada não foi retornada");
+            console.error("❌ URL da imagem editada não foi retornada, data:", JSON.stringify(data));
             throw new Error("Imagem editada não foi retornada");
           }
           if (!data.editedImageUrl.startsWith("http")) {
