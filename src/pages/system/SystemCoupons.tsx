@@ -372,7 +372,7 @@ function CouponCard({ coupon, plans, onCopy, onToggle }: {
 
         {/* Stats row with dashed separator */}
         <div className="border-t border-dashed border-border/60 pt-4">
-          <div className="grid grid-cols-3 text-center">
+          <div className="grid grid-cols-2 text-center">
             <div>
               <div className="text-2xl font-bold">{coupon.prize_value}</div>
               <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Créditos</div>
@@ -383,10 +383,6 @@ function CouponCard({ coupon, plans, onCopy, onToggle }: {
                 <span className="text-sm font-normal text-muted-foreground">/{coupon.max_uses || "∞"}</span>
               </div>
               <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Usos</div>
-            </div>
-            <div>
-              <div className="text-lg font-bold">{planName || "—"}</div>
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Plano</div>
             </div>
           </div>
         </div>
@@ -465,10 +461,6 @@ function CouponListItem({ coupon, plans, onCopy, onToggle }: {
           <div className="text-center hidden md:block">
             <div className="font-bold">{coupon.uses_count}<span className="text-muted-foreground font-normal">/{coupon.max_uses || "∞"}</span></div>
             <div className="text-[10px] text-muted-foreground uppercase">Usos</div>
-          </div>
-          <div className="text-center hidden lg:block">
-            <div className="font-bold text-sm">{planName || "—"}</div>
-            <div className="text-[10px] text-muted-foreground uppercase">Plano</div>
           </div>
           <Badge variant={status.variant}>{status.label}</Badge>
           <Switch
