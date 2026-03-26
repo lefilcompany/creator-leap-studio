@@ -372,17 +372,24 @@ function CouponCard({ coupon, onCopy, onToggle }: {
 
         {/* Footer: expiry info, toggle, view redemptions */}
         <div className="flex items-center justify-between pt-1">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <CalendarDays className="h-3.5 w-3.5" />
-            {coupon.expires_at
-              ? format(new Date(coupon.expires_at), "dd/MM/yy")
-              : <Infinity className="h-3.5 w-3.5" />
-            }
-            <Switch
-              checked={coupon.is_active}
-              onCheckedChange={() => onToggle(coupon.id, coupon.is_active)}
-              className="ml-1 scale-90"
-            />
+          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1.5">
+              <CalendarDays className="h-3.5 w-3.5" />
+              {coupon.expires_at
+                ? format(new Date(coupon.expires_at), "dd/MM/yy")
+                : <Infinity className="h-3.5 w-3.5" />
+              }
+            </div>
+            <div className="flex items-center gap-2">
+              <Switch
+                checked={coupon.is_active}
+                onCheckedChange={() => onToggle(coupon.id, coupon.is_active)}
+                className="scale-90"
+              />
+              <span className="text-[10px] font-medium uppercase tracking-wider">
+                {coupon.is_active ? "Ativo" : "Inativo"}
+              </span>
+            </div>
           </div>
           <Button variant="ghost" size="sm" className="text-xs gap-1.5 h-7 px-2">
             <Eye className="h-3.5 w-3.5" />
@@ -432,11 +439,16 @@ function CouponListItem({ coupon, onCopy, onToggle }: {
             <div className="text-[10px] text-muted-foreground uppercase">Usos</div>
           </div>
           <Badge variant={status.variant}>{status.label}</Badge>
-          <Switch
-            checked={coupon.is_active}
-            onCheckedChange={() => onToggle(coupon.id, coupon.is_active)}
-            className="scale-90"
-          />
+          <div className="flex items-center gap-2">
+            <Switch
+              checked={coupon.is_active}
+              onCheckedChange={() => onToggle(coupon.id, coupon.is_active)}
+              className="scale-90"
+            />
+            <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+              {coupon.is_active ? "Ativo" : "Inativo"}
+            </span>
+          </div>
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onCopy(coupon.code)}>
             <Copy className="h-3.5 w-3.5" />
           </Button>
