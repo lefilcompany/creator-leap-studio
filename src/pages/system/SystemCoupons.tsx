@@ -39,22 +39,20 @@ function getCouponStatus(coupon: any) {
 
 interface CouponFormData {
   code: string;
+  prefix: string;
+  prizeType: string;
   customCredits: string;
   maxUses: string;
   expiresAt: string;
-  description: string;
-  planId: string;
-  trialDays: string;
 }
 
 const initialFormData: CouponFormData = {
   code: "",
+  prefix: "SOMA",
+  prizeType: "credits",
   customCredits: "15",
   maxUses: "1",
   expiresAt: "",
-  description: "",
-  planId: "",
-  trialDays: "15",
 };
 
 export default function SystemCoupons() {
