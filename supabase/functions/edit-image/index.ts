@@ -127,7 +127,8 @@ serve(async (req) => {
     const { reviewPrompt, imageUrl, brandId, themeId, platform, aspectRatio, source } = await req.json();
     
     // Determine credit cost based on source context
-    const creditCost = source === 'complete' ? CREDIT_COSTS.IMAGE_REVIEW : CREDIT_COSTS.IMAGE_EDIT;
+    const creditCostKey = source === 'complete' ? 'IMAGE_REVIEW' : 'IMAGE_EDIT';
+    const creditCost = CREDIT_COSTS[creditCostKey as keyof typeof CREDIT_COSTS];
 
     console.log('📝 [EDIT-IMAGE] Dados recebidos:', { brandId, themeId, hasImageUrl: !!imageUrl, promptLength: reviewPrompt?.length || 0 });
 
