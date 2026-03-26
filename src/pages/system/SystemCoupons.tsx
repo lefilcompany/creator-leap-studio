@@ -48,7 +48,7 @@ interface CouponFormData {
 
 const initialFormData: CouponFormData = {
   code: "",
-  prefix: "SOMA",
+  prefix: "CREATOR",
   prizeType: "credits",
   customCredits: "15",
   maxUses: "1",
