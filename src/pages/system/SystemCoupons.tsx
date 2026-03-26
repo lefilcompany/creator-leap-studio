@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -76,18 +76,6 @@ export default function SystemCoupons() {
     },
   });
 
-  const { data: plans = [] } = useQuery({
-    queryKey: ["system-plans-for-coupons"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("plans")
-        .select("id, name")
-        .eq("is_active", true)
-        .order("name");
-      if (error) throw error;
-      return data || [];
-    },
-  });
 
   const createCoupon = useMutation({
     mutationFn: async () => {
@@ -206,7 +194,6 @@ export default function SystemCoupons() {
             <CouponCard
               key={coupon.id}
               coupon={coupon}
-              plans={plans}
               onCopy={copyCode}
               onToggle={(id, isActive) => toggleCoupon.mutate({ id, isActive })}
             />
@@ -218,7 +205,7 @@ export default function SystemCoupons() {
             <CouponListItem
               key={coupon.id}
               coupon={coupon}
-              plans={plans}
+              
               onCopy={copyCode}
               onToggle={(id, isActive) => toggleCoupon.mutate({ id, isActive })}
             />
@@ -251,20 +238,6 @@ export default function SystemCoupons() {
               </div>
             </div>
 
-            {/* Plan selector */}
-            <div className="space-y-1.5">
-              <Label className="font-semibold">Plano</Label>
-              <Select value={formData.planId} onValueChange={(v) => setFormData(prev => ({ ...prev, planId: v }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o plano" />
-                </SelectTrigger>
-                <SelectContent>
-                  {plans.map((plan: any) => (
-                    <SelectItem key={plan.id} value={plan.id}>{plan.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
 
             {/* Trial days + Max uses - side by side */}
             <div className="grid grid-cols-2 gap-4">
@@ -327,15 +300,13 @@ export default function SystemCoupons() {
 
 // ─── Coupon Card Component ───────────────────────────────────────
 
-function CouponCard({ coupon, plans, onCopy, onToggle }: {
+function CouponCard({ coupon, onCopy, onToggle }: {
   coupon: any;
-  plans: any[];
   onCopy: (code: string) => void;
   onToggle: (id: string, isActive: boolean) => void;
 }) {
   const status = getCouponStatus(coupon);
   const isActive = coupon.is_active && !isExpired(coupon.expires_at) && !isMaxedOut(coupon);
-  const planName = plans.find((p: any) => p.id === coupon.plan_id)?.name;
 
   return (
     <Card className={cn(
@@ -372,7 +343,7 @@ function CouponCard({ coupon, plans, onCopy, onToggle }: {
 
         {/* Stats row with dashed separator */}
         <div className="border-t border-dashed border-border/60 pt-4">
-          <div className="grid grid-cols-3 text-center">
+          <div className="grid grid-cols-2 text-center">
             <div>
               <div className="text-2xl font-bold">{coupon.prize_value}</div>
               <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Créditos</div>
@@ -383,10 +354,6 @@ function CouponCard({ coupon, plans, onCopy, onToggle }: {
                 <span className="text-sm font-normal text-muted-foreground">/{coupon.max_uses || "∞"}</span>
               </div>
               <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Usos</div>
-            </div>
-            <div>
-              <div className="text-lg font-bold">{planName || "—"}</div>
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Plano</div>
             </div>
           </div>
         </div>
@@ -429,15 +396,13 @@ function CouponCard({ coupon, plans, onCopy, onToggle }: {
 
 // ─── Coupon List Item Component ──────────────────────────────────
 
-function CouponListItem({ coupon, plans, onCopy, onToggle }: {
+function CouponListItem({ coupon, onCopy, onToggle }: {
   coupon: any;
-  plans: any[];
   onCopy: (code: string) => void;
   onToggle: (id: string, isActive: boolean) => void;
 }) {
   const status = getCouponStatus(coupon);
   const isActive = coupon.is_active && !isExpired(coupon.expires_at) && !isMaxedOut(coupon);
-  const planName = plans.find((p: any) => p.id === coupon.plan_id)?.name;
 
   return (
     <Card className={cn(
@@ -465,10 +430,6 @@ function CouponListItem({ coupon, plans, onCopy, onToggle }: {
           <div className="text-center hidden md:block">
             <div className="font-bold">{coupon.uses_count}<span className="text-muted-foreground font-normal">/{coupon.max_uses || "∞"}</span></div>
             <div className="text-[10px] text-muted-foreground uppercase">Usos</div>
-          </div>
-          <div className="text-center hidden lg:block">
-            <div className="font-bold text-sm">{planName || "—"}</div>
-            <div className="text-[10px] text-muted-foreground uppercase">Plano</div>
           </div>
           <Badge variant={status.variant}>{status.label}</Badge>
           <Switch
