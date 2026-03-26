@@ -231,8 +231,22 @@ const ReviewContent = () => {
         `review_${capturedReviewType}`,
         async () => {
           const { data, error: functionError } = await supabase.functions.invoke(functionName, { body: payload });
-          if (functionError) throw functionError;
-          if (!data?.review) throw new Error("Revisão não retornada");
+          
+          if (functionError) {
+            console.error("Edge function error:", functionError);
+            throw new Error(functionError.message || "Erro na função de revisão");
+          }
+          
+          // Check for error in response body (edge function returned error with 4xx/5xx)
+          if (data?.error) {
+            console.error("Edge function returned error:", data.error);
+            if (data.error === 'Créditos insuficientes') {
+              throw new Error(`Créditos insuficientes. Necessários: ${data.required}, disponíveis: ${data.available}`);
+            }
+            throw new Error(data.error);
+          }
+          
+          if (!data?.review) throw new Error("Revisão não retornada pelo servidor");
 
           // Auto-assign to category if selected
           if (capturedCategoryId && data.actionId) {
