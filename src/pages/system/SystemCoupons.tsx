@@ -76,18 +76,6 @@ export default function SystemCoupons() {
     },
   });
 
-  const { data: plans = [] } = useQuery({
-    queryKey: ["system-plans-for-coupons"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("plans")
-        .select("id, name")
-        .eq("is_active", true)
-        .order("name");
-      if (error) throw error;
-      return data || [];
-    },
-  });
 
   const createCoupon = useMutation({
     mutationFn: async () => {
