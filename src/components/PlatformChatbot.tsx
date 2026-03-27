@@ -244,7 +244,7 @@ export const PlatformChatbot = () => {
       )}
 
       {isOpen && (
-        <Card className="fixed bottom-6 right-6 w-[400px] h-[560px] shadow-2xl z-[9999] flex flex-col border border-border/50 bg-background overflow-hidden rounded-2xl">
+        <Card className="fixed bottom-0 right-0 w-full h-full sm:bottom-6 sm:right-6 sm:w-[400px] sm:h-[560px] sm:rounded-2xl rounded-none shadow-2xl z-[9999] flex flex-col border border-border/50 bg-background overflow-hidden">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b bg-primary text-primary-foreground">
             <div className="flex items-center gap-2.5">
