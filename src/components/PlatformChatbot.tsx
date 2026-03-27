@@ -327,7 +327,7 @@ export const PlatformChatbot = () => {
                         className="h-6 w-6 flex items-center justify-center rounded-md hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-colors"
                         title="Copiar"
                       >
-                        {copiedIdx === idx ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
+                        {copiedIdx === idx ? <Check className="h-3 w-3 text-primary" /> : <Copy className="h-3 w-3" />}
                       </button>
                       <button
                         onClick={() => handleReply(idx, msg.content)}
