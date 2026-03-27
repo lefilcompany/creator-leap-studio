@@ -200,13 +200,15 @@ serve(async (req) => {
     const lowerCode = normalizedCode.toLowerCase();
     console.log(`[redeem-coupon] Validating coupon: ${normalizedCode}`);
 
-    // Verificar se cupom já foi usado por ESTE USUÁRIO (normalizado para uppercase)
-    const { data: existingCoupon, error: checkError } = await supabaseAdmin
+    // Verificar se cupom já foi usado por ESTE USUÁRIO (check both cases)
+    const upperCode = normalizedCode.toUpperCase();
+    const { data: existingCoupons, error: checkError } = await supabaseAdmin
       .from('coupons_used')
-      .select('*')
-      .or(`coupon_code.eq.${lowerCode},coupon_code.eq.${normalizedCode.toUpperCase()}`)
+      .select('id')
       .eq('redeemed_by', user.id)
-      .maybeSingle();
+      .in('coupon_code', [lowerCode, upperCode, normalizedCode]);
+    
+    const existingCoupon = existingCoupons && existingCoupons.length > 0 ? existingCoupons[0] : null;
 
     if (checkError) {
       console.error('[redeem-coupon] Error checking coupon:', checkError);
