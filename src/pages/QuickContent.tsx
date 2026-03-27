@@ -131,7 +131,7 @@ export default function QuickContent() {
       return;
     }
 
-    setLoading(true);
+    // Task will be tracked via isGenerating
     try {
       const referenceImagesBase64: string[] = [];
       const preserveImages: string[] = [];
@@ -216,7 +216,7 @@ export default function QuickContent() {
     } catch (error: any) {
       console.error("Error preparing payload:", error);
       toast.error(error.message || "Erro ao preparar criação");
-      setLoading(false);
+      // error already shown via toast
     }
   };
 
@@ -261,7 +261,7 @@ export default function QuickContent() {
 
           {/* Progress bar card */}
           <div className="bg-card rounded-2xl shadow-lg p-3 lg:p-4 flex-shrink-0 flex items-center min-w-[320px]">
-            <CreationProgressBar currentStep={loading ? "generating" : "config"} />
+            <CreationProgressBar currentStep={isGenerating ? "generating" : "config"} />
           </div>
         </div>
       </div>
@@ -333,11 +333,11 @@ export default function QuickContent() {
             <Button
               id="quick-generate-button"
               onClick={generateQuickContent}
-              disabled={loading || !formData.prompt.trim() || (user?.credits || 0) < CREDIT_COSTS.QUICK_IMAGE}
+              disabled={isGenerating || !formData.prompt.trim() || (user?.credits || 0) < CREDIT_COSTS.QUICK_IMAGE}
               size="lg"
               className="bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_100%] animate-gradient text-primary-foreground hover:opacity-90 transition-opacity shadow-lg gap-2"
             >
-              {loading ? (
+              {isGenerating ? (
                 <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Gerando...</>
               ) : (
                 <>
