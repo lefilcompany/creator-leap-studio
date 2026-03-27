@@ -223,31 +223,53 @@ serve(async (req) => {
       );
     }
 
-    // Buscar dados do profile do usuário com retry (profile pode ainda não existir após signup)
-    let profile: any = null;
-    let profileError: any = null;
-    
-    for (let attempt = 0; attempt < 5; attempt++) {
-      const { data, error } = await supabaseAdmin
-        .from('profiles')
-        .select('team_id, credits')
-        .eq('id', user.id)
-        .maybeSingle();
-      
-      if (data) {
-        profile = data;
-        profileError = null;
-        break;
-      }
-      
-      profileError = error;
-      console.log(`[redeem-coupon] Profile not found, attempt ${attempt + 1}/5, retrying in ${500 * (attempt + 1)}ms...`);
-      await new Promise(resolve => setTimeout(resolve, 500 * (attempt + 1)));
+    // Garantir que o profile exista de forma atômica no backend
+    let { data: profile, error: profileError } = await supabaseAdmin
+      .from('profiles')
+      .select('team_id, credits, max_credits')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    if (profileError) {
+      console.error('[redeem-coupon] Error fetching profile:', profileError);
+      throw new Error('Erro ao buscar perfil do usuário');
     }
 
     if (!profile) {
-      console.error('[redeem-coupon] Profile not found after retries:', profileError);
-      throw new Error('Perfil do usuário ainda não foi criado. Tente novamente em alguns segundos.');
+      console.log(`[redeem-coupon] Profile missing for ${user.id}, creating fallback profile...`);
+
+      const { error: createProfileError } = await supabaseAdmin
+        .from('profiles')
+        .upsert(
+          {
+            id: user.id,
+            email: user.email ?? `${user.id}@creator.local`,
+            name: user.user_metadata?.name || user.user_metadata?.full_name || user.email || 'Usuário',
+            credits: 0,
+            max_credits: 0,
+            plan_id: 'free',
+            avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
+          },
+          { onConflict: 'id' }
+        );
+
+      if (createProfileError) {
+        console.error('[redeem-coupon] Error creating fallback profile:', createProfileError);
+        throw new Error('Erro ao preparar perfil do usuário para resgatar o cupom');
+      }
+
+      const { data: createdProfile, error: createdProfileError } = await supabaseAdmin
+        .from('profiles')
+        .select('team_id, credits, max_credits')
+        .eq('id', user.id)
+        .single();
+
+      if (createdProfileError || !createdProfile) {
+        console.error('[redeem-coupon] Error reloading fallback profile:', createdProfileError);
+        throw new Error('Erro ao confirmar perfil do usuário após cadastro');
+      }
+
+      profile = createdProfile;
     }
 
     console.log(`[redeem-coupon] User profile found: ${user.id} (team: ${profile.team_id || 'none'})`);

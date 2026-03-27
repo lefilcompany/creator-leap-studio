@@ -237,6 +237,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         team: teamData
       };
 
+      const pendingCouponCode = typeof window !== 'undefined' ? localStorage.getItem('pending_coupon_code') : null;
+      const pendingCouponUserId = typeof window !== 'undefined' ? localStorage.getItem('pending_coupon_user_id') : null;
+
+      if (pendingCouponCode && pendingCouponUserId === supabaseUser.id) {
+        try {
+          const { data: couponResult, error: couponError } = await supabase.functions.invoke('redeem-coupon', {
+            body: { couponCode: pendingCouponCode },
+          });
+
+          if (!couponError && !couponResult?.error && couponResult?.valid !== false) {
+            const { data: refreshedProfile } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', supabaseUser.id)
+              .maybeSingle();
+
+            if (refreshedProfile) {
+              userData.credits = refreshedProfile.credits || 0;
+              userData.maxCredits = refreshedProfile.max_credits ?? refreshedProfile.credits ?? 0;
+              userData.creditsExpireAt = refreshedProfile.credits_expire_at || null;
+              userData.planId = refreshedProfile.plan_id || userData.planId;
+              userData.subscriptionStatus = refreshedProfile.subscription_status;
+              userData.subscriptionPeriodEnd = refreshedProfile.subscription_period_end;
+            }
+
+            localStorage.removeItem('pending_coupon_code');
+            localStorage.removeItem('pending_coupon_user_id');
+          }
+        } catch (pendingCouponError) {
+          console.error('[AuthContext] Error retrying pending coupon:', pendingCouponError);
+        }
+      }
+
       setUser(userData);
       setTeam(teamData);
       setIsTrialExpired(isExpired || false);
