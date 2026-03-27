@@ -24,12 +24,53 @@ interface RedeemCouponDialogProps {
 }
 
 export default function RedeemCouponDialog({ open, onOpenChange, onSuccess, currentPlanId = 'free' }: RedeemCouponDialogProps) {
-  const { reloadUserData, refreshUserCredits } = useAuth();
+  const { reloadUserData, refreshUserCredits, setUser } = useAuth();
   const [couponCode, setCouponCode] = useState('');
   const [isRedeeming, setIsRedeeming] = useState(false);
   const [validationError, setValidationError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [isValidFormat, setIsValidFormat] = useState(false);
+
+  const syncRedeemedProfile = async (profile?: {
+    currentCredits?: number;
+    maxCredits?: number;
+    creditsExpireAt?: string | null;
+    planId?: string;
+    subscriptionStatus?: string | null;
+    subscriptionPeriodEnd?: string | null;
+  }) => {
+    if (profile) {
+      setUser((prev) => prev ? {
+        ...prev,
+        credits: profile.currentCredits ?? prev.credits,
+        maxCredits: profile.maxCredits ?? prev.maxCredits,
+        creditsExpireAt: profile.creditsExpireAt ?? prev.creditsExpireAt ?? null,
+        planId: profile.planId ?? prev.planId,
+        subscriptionStatus: profile.subscriptionStatus ?? prev.subscriptionStatus,
+        subscriptionPeriodEnd: profile.subscriptionPeriodEnd ?? prev.subscriptionPeriodEnd,
+      } : prev);
+    }
+
+    await Promise.allSettled([
+      refreshUserCredits(),
+      reloadUserData(),
+    ]);
+  };
+
+  const extractRedeemErrorMessage = async (error: any) => {
+    if (typeof error?.context?.json === 'function') {
+      try {
+        const payload = await error.context.json();
+        if (typeof payload?.error === 'string' && payload.error.trim()) {
+          return payload.error;
+        }
+      } catch {
+        // noop
+      }
+    }
+
+    return error?.message || 'Erro ao processar cupom. Tente novamente.';
+  };
 
   const handleCouponInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/\s/g, '').trim();
@@ -71,7 +112,7 @@ export default function RedeemCouponDialog({ open, onOpenChange, onSuccess, curr
 
       if (error) {
         console.error('[RedeemCouponDialog] Error invoking function:', error);
-        throw error;
+        throw new Error(await extractRedeemErrorMessage(error));
       }
 
       console.log('[RedeemCouponDialog] Response:', data);
@@ -80,14 +121,10 @@ export default function RedeemCouponDialog({ open, onOpenChange, onSuccess, curr
         // Sucesso!
         setSuccessMessage(`🎉 ${data.prize.description} aplicado(s) com sucesso!`);
         toast.success('Benefícios aplicados com sucesso!');
-        
-        // Aguardar 2 segundos para mostrar mensagem de sucesso
-        setTimeout(async () => {
-          await refreshUserCredits();
-          await reloadUserData();
-          onSuccess?.();
-          handleClose();
-        }, 2000);
+
+        await syncRedeemedProfile(data.profile);
+        onSuccess?.();
+        handleClose();
       } else {
         // Erro de validação
         setValidationError(data.error || 'Cupom inválido');
