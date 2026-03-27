@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { CategorySelector } from "@/components/CategorySelector";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -173,11 +173,18 @@ export default function CreateContent() {
   });
 
   // Carregar dados persistidos na montagem
+  // Read prompt from query params (from chatbot)
+  const [searchParams] = useSearchParams();
+  
   useEffect(() => {
+    const promptFromChat = searchParams.get('prompt');
+    if (promptFromChat) {
+      setFormData(prev => ({ ...prev, description: promptFromChat }));
+      return; // Skip persisted data when coming from chatbot prompt
+    }
     const persisted = loadPersistedData();
     if (persisted) {
       setFormData(prev => ({ ...prev, ...persisted }));
-      
     }
   }, []);
 

@@ -28,9 +28,9 @@ const MessageContent = ({ content, onUsePrompt }: { content: string; onUsePrompt
     if (match.index > lastIndex) {
       const textBefore = content.slice(lastIndex, match.index);
       parts.push(
-        <ReactMarkdown key={`md-${lastIndex}`} className="prose prose-sm dark:prose-invert max-w-none [&>p]:mb-1 [&>ul]:mb-1 [&>ol]:mb-1 [&>p:last-child]:mb-0">
-          {textBefore}
-        </ReactMarkdown>
+        <div key={`md-${lastIndex}`} className="prose prose-sm dark:prose-invert max-w-none [&>p]:mb-1 [&>ul]:mb-1 [&>ol]:mb-1 [&>p:last-child]:mb-0">
+          <ReactMarkdown>{textBefore}</ReactMarkdown>
+        </div>
       );
     }
     const promptText = match[1].trim();
@@ -49,17 +49,17 @@ const MessageContent = ({ content, onUsePrompt }: { content: string; onUsePrompt
 
   if (lastIndex < content.length) {
     parts.push(
-      <ReactMarkdown key={`md-end`} className="prose prose-sm dark:prose-invert max-w-none [&>p]:mb-1 [&>ul]:mb-1 [&>ol]:mb-1 [&>p:last-child]:mb-0">
-        {content.slice(lastIndex)}
-      </ReactMarkdown>
+      <div key={`md-end`} className="prose prose-sm dark:prose-invert max-w-none [&>p]:mb-1 [&>ul]:mb-1 [&>ol]:mb-1 [&>p:last-child]:mb-0">
+        <ReactMarkdown>{content.slice(lastIndex)}</ReactMarkdown>
+      </div>
     );
   }
 
   if (parts.length === 0) {
     parts.push(
-      <ReactMarkdown key="md-full" className="prose prose-sm dark:prose-invert max-w-none [&>p]:mb-1 [&>ul]:mb-1 [&>ol]:mb-1 [&>p:last-child]:mb-0">
-        {content}
-      </ReactMarkdown>
+      <div key="md-full" className="prose prose-sm dark:prose-invert max-w-none [&>p]:mb-1 [&>ul]:mb-1 [&>ol]:mb-1 [&>p:last-child]:mb-0">
+        <ReactMarkdown>{content}</ReactMarkdown>
+      </div>
     );
   }
 
