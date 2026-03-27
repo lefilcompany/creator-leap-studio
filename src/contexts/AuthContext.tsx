@@ -265,7 +265,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             localStorage.removeItem('pending_coupon_code');
             localStorage.removeItem('pending_coupon_user_id');
-          }
+            toast.success(`Cupom aplicado! +${couponResult?.prize?.value || refreshedProfile?.credits || 0} créditos adicionados.`, { id: 'pending-coupon', duration: 5000 });
         } catch (pendingCouponError) {
           console.error('[AuthContext] Error retrying pending coupon:', pendingCouponError);
         }
