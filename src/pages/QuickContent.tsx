@@ -212,10 +212,10 @@ export default function QuickContent() {
       );
 
       setGeneratingTaskId(newTaskId);
+      toast.info("Sua imagem está sendo gerada em segundo plano...");
     } catch (error: any) {
       console.error("Error preparing payload:", error);
       toast.error(error.message || "Erro ao preparar criação");
-    } finally {
       setLoading(false);
     }
   };
