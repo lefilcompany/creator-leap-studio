@@ -1,15 +1,37 @@
 
 
-## Problem
+## Melhorias no Chatbot - Formatação, Reply, Copiar e Prompts de Criação
 
-The edge function `redeem-coupon` fails to boot due to a **duplicate variable declaration**: `upperCode` is declared on line 222 and again on line 485 within the same function scope. This causes a `SyntaxError` that prevents the function from running at all.
+### O que será feito
 
-## Fix
+1. **Renderização com Markdown** - Usar `react-markdown` (já instalado) para formatar respostas do assistente com negrito, listas, etc.
 
-Rename the second `upperCode` declaration (line 485) to reuse the existing variable instead of re-declaring it. Since `upperCode` is already defined on line 222 as `normalizedCode.toUpperCase()`, line 485 is redundant — just remove it and use the existing `upperCode`.
+2. **Reply a mensagem específica** - Ao clicar/hover em uma mensagem, exibir botão de reply. Ao clicar, mostra um preview da mensagem referenciada acima do input (estilo WhatsApp). O texto do reply é prefixado na mensagem enviada para contexto.
 
-### File: `supabase/functions/redeem-coupon/index.ts`
-- **Line 485**: Remove `const upperCode = normalizedCode.toUpperCase();` — the variable already exists from line 222 with the same value.
+3. **Copiar mensagem** - Botão de copiar no hover de cada mensagem (assistente e usuário), copiando o conteúdo para clipboard com feedback visual.
 
-This single-line fix resolves the boot error and allows coupon redemption to work in both the modal and registration flows.
+4. **Ação "Criar Imagem com Prompt"** - Quando o assistente sugerir um prompt de criação de imagem, incluir um botão de ação que redireciona para `/create/content` com o prompt pré-preenchido no campo `description`. O system prompt será atualizado para instruir o agente a gerar blocos de prompt de imagem quando o usuário pedir, usando um formato especial `[PROMPT_IMAGE: ...]` que o frontend detecta e transforma em botão clicável.
+
+5. **Design alinhado ao sistema** - Melhorar visual com rounded-2xl nos balões, avatar do assistente (ícone Sparkles), espaçamento refinado, hover states com ações, e cores consistentes com o tema rosa/roxo do sistema.
+
+### Detalhes técnicos
+
+**Arquivo: `src/components/PlatformChatbot.tsx`**
+- Adicionar tipo `Message` com campo opcional `replyTo: { idx: number; content: string }`
+- Adicionar estado `replyingTo` para controlar qual mensagem está sendo respondida
+- Renderizar mensagens com `ReactMarkdown` dentro de `prose prose-sm`
+- No hover de cada mensagem, mostrar toolbar com ícones Reply e Copy
+- Detectar padrão `[PROMPT_IMAGE: ...]` no conteúdo e renderizar como botão "Usar este prompt" que navega para `/create/content?prompt=...`
+- Preview do reply acima do input com botão X para cancelar
+
+**Arquivo: `supabase/functions/platform-chat/index.ts`**
+- Adicionar ao system prompt instrução para gerar prompts de imagem no formato `[PROMPT_IMAGE: descrição detalhada do prompt]` quando o usuário pedir sugestões de imagem ou prompts criativos
+- Instruir o agente a ser proativo em sugerir prompts de criação
+
+**Arquivo: `src/pages/CreateContent.tsx`**
+- Ler query param `prompt` da URL e pré-preencher o campo `description` do formulário
+
+### Estimativa
+- 3 arquivos modificados
+- Nenhuma migração de banco necessária
 
