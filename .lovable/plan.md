@@ -1,43 +1,34 @@
 
 
-# Plano: Novas Imagens de Ângulo + Plano Americano
+## Problem Analysis
 
-## Resumo
+The user created a coupon (VENCEDOR-RSUUPZUW, 300 credits) via the admin panel and tried to use it right after registration, but the credits were not applied. The coupon shows `uses_count: 0`, meaning redemption never completed.
 
-1. **Gerar 8 imagens** de um objeto genérico (cubo/esfera geométrica) nas cores do sistema (#C3005E, #B26DC3, #1D80B1, #FFFFFF), sem logo, em cenário clean — uma para cada ângulo incluindo o novo "Plano Americano".
+**Root causes identified:**
+1. There is **no coupon input field** on the Register page — coupons can only be redeemed post-login via the Header dialog
+2. After registration, the user gets redirected to Stripe card setup, potentially losing the flow
+3. If the user tries to redeem immediately after registering, there could be a timing issue where the profile isn't ready yet
 
-2. **Adicionar o ângulo "Plano Americano"** (`american_shot`) ao sistema com ícone `User` do Lucide e descrição: "Enquadramento dos joelhos para cima, equilibra expressão e ação corporal".
+## Plan
 
-3. **Atualizar todos os pontos de uso:**
+### 1. Add coupon field to the Registration form
+- Add an optional "Código do cupom" input field at the bottom of the registration form (before the privacy checkbox)
+- Store the coupon code in `formData` state
+- Visual: small input with a Gift icon, marked as optional
 
-### Arquivos a alterar
+### 2. Process coupon after successful registration
+- After `supabase.auth.signUp` succeeds and the user is authenticated, call `supabase.functions.invoke('redeem-coupon')` with the coupon code
+- Add a small delay (~2 seconds) to ensure the `handle_new_user` trigger has created the profile
+- If redemption fails, show a toast warning but don't block the registration flow — the user can redeem later
+- If successful, show a success toast with the credits received
 
-| Arquivo | Mudança |
-|---------|---------|
-| `src/assets/angles/*.jpg` | Regenerar todas as 7 imagens + criar `american_shot.jpg` |
-| `src/components/quick-content/CameraAngleGrid.tsx` | Adicionar import + entrada para `american_shot`; atualizar grid para `sm:grid-cols-4` (8 itens) |
-| `src/pages/CreateContent.tsx` | Adicionar `<SelectItem value="american_shot">Plano Americano</SelectItem>` no dropdown (~linha 2194) |
-| `supabase/functions/generate-image/index.ts` | Na linha 244, mapear os valores de cameraAngle para descrições em português no prompt (ex: `american_shot` → `Plano Americano (cowboy shot): enquadramento dos joelhos para cima`) |
-| `supabase/functions/generate-quick-content/index.ts` | Mesmo mapeamento na linha 202 |
+### 3. Fix edge function timing resilience
+- In `supabase/functions/redeem-coupon/index.ts`, add a retry mechanism when fetching the profile: if profile is not found, wait 1-2 seconds and retry once (handles race condition with `handle_new_user` trigger)
 
-### Detalhes das imagens
+### 4. Fix coupon code case mismatch in `coupons_used` duplicate check
+- The duplicate check uses `lowerCode` but the insert stores `dbCoupon.code` (uppercase). Normalize both to use the same case (uppercase from DB) to prevent bypass of duplicate detection.
 
-Cada imagem será gerada via AI Gateway com prompt descrevendo o mesmo objeto geométrico abstrato (cubo arredondado com faces nas cores #C3005E, #B26DC3, #1D80B1 e #FFFFFF) em fundo neutro de estúdio, visto do ângulo correspondente. Sem logo, sem texto.
-
-### Mapeamento de ângulos no backend
-
-Atualmente o backend envia o valor bruto (`top_down`, `dutch_angle`, etc.). Será adicionado um mapa de tradução para que o prompt enviado ao Gemini contenha descrições fotográficas claras:
-
-```text
-eye_level → "Nível dos olhos: perspectiva natural, câmera na altura do sujeito"
-top_down → "Vista superior (top-down/flat lay): câmera diretamente acima"
-low_angle → "Contra-plongée: câmera de baixo para cima, transmite grandiosidade"
-high_angle → "Plongée: câmera de cima para baixo"
-close_up → "Close-up: enquadramento muito próximo, foco em detalhes"
-wide_shot → "Plano geral (wide shot): enquadramento amplo com contexto"
-dutch_angle → "Ângulo holandês (dutch angle): câmera inclinada, cria dinamismo"
-american_shot → "Plano americano (cowboy shot): enquadramento dos joelhos/coxas para cima, equilibra expressão facial e ação corporal"
-```
-
-Isso substitui a linha `Câmera: ${cameraAngle}` por `Câmera: ${cameraAngleMap[cameraAngle]}` em ambas as edge functions.
+### Files to modify
+- `src/pages/Register.tsx` — add optional coupon field + post-signup redemption call
+- `supabase/functions/redeem-coupon/index.ts` — add profile fetch retry + fix case mismatch in `coupons_used`
 
