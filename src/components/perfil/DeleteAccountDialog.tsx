@@ -103,7 +103,7 @@ export default function DeleteAccountDialog({ open, onOpenChange, userEmail }: D
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] max-w-lg max-h-[90vh] bg-gradient-to-br from-background to-muted/20 border border-border/50 shadow-xl overflow-hidden flex flex-col pointer-events-auto z-50 [&>button]:pointer-events-auto">
+      <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] bg-gradient-to-br from-background to-muted/20 border border-border/50 shadow-xl overflow-hidden flex flex-col pointer-events-auto z-50 [&>button]:pointer-events-auto">
         <div className="overflow-y-auto flex-1 p-6 space-y-0">
           <DialogHeader className="space-y-4">
             <div className="flex items-center gap-3">
