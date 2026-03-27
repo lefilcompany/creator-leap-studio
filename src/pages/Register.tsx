@@ -428,6 +428,17 @@ const Register = () => {
           </div>
         </div>
 
+        <div className="relative">
+          <Gift className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            id="couponCode"
+            placeholder="Código do cupom (opcional)"
+            value={formData.couponCode}
+            onChange={handleInputChange}
+            className="pl-10 h-10 lg:h-11"
+          />
+        </div>
+
         <div className="flex items-start gap-2 mt-2">
           <Checkbox
             id="privacy"
