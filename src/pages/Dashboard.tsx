@@ -23,7 +23,16 @@ const Dashboard = () => {
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
 
   useEffect(() => {
-    if (user && (user.credits === 0 || user.credits === null) && !user.creditsExpireAt) {
+    if (!user) return;
+    
+    // If there's a pending coupon being processed, don't show purchase modal
+    const hasPendingCoupon = typeof window !== 'undefined' && localStorage.getItem('pending_coupon_code');
+    if (hasPendingCoupon) {
+      toast.info('Aplicando cupom aos seus créditos...', { id: 'pending-coupon', duration: 4000 });
+      return;
+    }
+    
+    if ((user.credits === 0 || user.credits === null) && !user.creditsExpireAt) {
       setShowPurchaseModal(true);
     }
   }, [user]);
