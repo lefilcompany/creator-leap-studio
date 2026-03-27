@@ -482,7 +482,7 @@ serve(async (req) => {
     }
 
     // ============= CUPOM COM CHECKSUM =============
-    const upperCode = normalizedCode.toUpperCase();
+    // upperCode already declared above
     
     // 1. Validar formato
     const formatValidation = validateCouponFormat(upperCode);
