@@ -82,7 +82,9 @@ export default function SystemCoupons() {
 
       const code = formData.code.trim().toUpperCase() || generateCouponCode(formData.prefix || "SOMA");
 
-      const { error } = await supabase.from("coupons").insert({
+      console.log('[SystemCoupons] Creating coupon:', code);
+
+      const { data, error } = await supabase.from("coupons").insert({
         code,
         prefix: formData.prefix || code.split("-")[0] || "SOMA",
         prize_type: formData.prizeType || "credits",
@@ -90,12 +92,19 @@ export default function SystemCoupons() {
         max_uses: formData.maxUses ? parseInt(formData.maxUses) : null,
         expires_at: formData.expiresAt ? new Date(formData.expiresAt).toISOString() : null,
         created_by: user!.id,
-      });
+      }).select().single();
 
       if (error) {
+        console.error('[SystemCoupons] Insert error:', error);
         if (error.code === "23505") throw new Error("Já existe um cupom com esse código");
-        throw error;
+        throw new Error(error.message || "Erro ao salvar cupom no banco de dados");
       }
+
+      if (!data) {
+        throw new Error("Cupom não foi salvo. Verifique suas permissões.");
+      }
+
+      console.log('[SystemCoupons] Coupon saved:', data);
       return code;
     },
     onSuccess: (code) => {
