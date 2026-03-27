@@ -373,19 +373,29 @@ serve(async (req) => {
     }
 
     // ============= CUPOM DO BANCO DE DADOS (criado por admin) =============
-    const { data: dbCoupon, error: dbCouponError } = await supabaseAdmin
+    // First check if coupon exists at all (without is_active filter)
+    const { data: dbCouponAny, error: dbCouponAnyError } = await supabaseAdmin
       .from('coupons')
       .select('*')
       .eq('code', normalizedCode.toUpperCase())
-      .eq('is_active', true)
       .maybeSingle();
 
-    if (dbCouponError) {
-      console.error('[redeem-coupon] Error checking DB coupon:', dbCouponError);
+    if (dbCouponAnyError) {
+      console.error('[redeem-coupon] Error checking DB coupon:', dbCouponAnyError);
     }
 
-    if (dbCoupon) {
-      console.log(`[redeem-coupon] DB coupon found: ${dbCoupon.code}`);
+    if (dbCouponAny) {
+      console.log(`[redeem-coupon] DB coupon found: ${dbCouponAny.code} (active: ${dbCouponAny.is_active})`);
+
+      // Check if coupon is inactive/disabled
+      if (!dbCouponAny.is_active) {
+        return new Response(
+          JSON.stringify({ valid: false, error: 'Cupom indisponível.' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+        );
+      }
+
+      const dbCoupon = dbCouponAny;
 
       // Check expiration
       if (dbCoupon.expires_at && new Date(dbCoupon.expires_at) < new Date()) {
