@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { CreatorLogo } from "@/components/CreatorLogo";
-import { Eye, EyeOff, User, Mail, Phone, Lock, Loader2, ArrowLeft } from "lucide-react";
+import { Eye, EyeOff, User, Mail, Phone, Lock, Loader2, ArrowLeft, Gift } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -42,6 +42,7 @@ const Register = () => {
     phone: "",
     state: "",
     city: "",
+    couponCode: "",
   });
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
@@ -177,6 +178,29 @@ const Register = () => {
       }
       if (data.user) {
         toast.success("Cadastro realizado com sucesso!");
+        
+        // Resgatar cupom se fornecido (aguardar profile ser criado pelo trigger)
+        if (formData.couponCode.trim()) {
+          try {
+            // Aguardar o trigger handle_new_user criar o profile
+            await new Promise(resolve => setTimeout(resolve, 2500));
+            
+            const { data: couponData, error: couponError } = await supabase.functions.invoke('redeem-coupon', {
+              body: { couponCode: formData.couponCode.trim() }
+            });
+            
+            if (couponError || couponData?.error) {
+              const errorMsg = couponData?.error || couponError?.message || 'Erro ao resgatar cupom';
+              console.error('Erro ao resgatar cupom no cadastro:', errorMsg);
+              toast.warning(`Cupom não aplicado: ${errorMsg}. Você pode resgatá-lo depois no menu.`);
+            } else if (couponData?.valid) {
+              toast.success(`🎉 Cupom aplicado! +${couponData.prize?.value} créditos`);
+            }
+          } catch (couponErr) {
+            console.error('Erro ao resgatar cupom:', couponErr);
+            toast.warning('Não foi possível aplicar o cupom agora. Resgate-o depois no menu.');
+          }
+        }
         
         // Enviar evento para RD Station
         try {
@@ -402,6 +426,17 @@ const Register = () => {
               </SelectContent>
             </Select>
           </div>
+        </div>
+
+        <div className="relative">
+          <Gift className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            id="couponCode"
+            placeholder="Código do cupom (opcional)"
+            value={formData.couponCode}
+            onChange={handleInputChange}
+            className="pl-10 h-10 lg:h-11"
+          />
         </div>
 
         <div className="flex items-start gap-2 mt-2">

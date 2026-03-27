@@ -200,11 +200,11 @@ serve(async (req) => {
     const lowerCode = normalizedCode.toLowerCase();
     console.log(`[redeem-coupon] Validating coupon: ${normalizedCode}`);
 
-    // Verificar se cupom já foi usado por ESTE USUÁRIO
+    // Verificar se cupom já foi usado por ESTE USUÁRIO (normalizado para uppercase)
     const { data: existingCoupon, error: checkError } = await supabaseAdmin
       .from('coupons_used')
       .select('*')
-      .eq('coupon_code', lowerCode)
+      .or(`coupon_code.eq.${lowerCode},coupon_code.eq.${normalizedCode.toUpperCase()}`)
       .eq('redeemed_by', user.id)
       .maybeSingle();
 
@@ -221,16 +221,31 @@ serve(async (req) => {
       );
     }
 
-    // Buscar dados do profile do usuário (team_id agora é opcional)
-    const { data: profile, error: profileError } = await supabaseClient
-      .from('profiles')
-      .select('team_id, credits')
-      .eq('id', user.id)
-      .single();
+    // Buscar dados do profile do usuário com retry (profile pode ainda não existir após signup)
+    let profile: any = null;
+    let profileError: any = null;
+    
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const { data, error } = await supabaseAdmin
+        .from('profiles')
+        .select('team_id, credits')
+        .eq('id', user.id)
+        .maybeSingle();
+      
+      if (data) {
+        profile = data;
+        profileError = null;
+        break;
+      }
+      
+      profileError = error;
+      console.log(`[redeem-coupon] Profile not found, attempt ${attempt + 1}/3, retrying...`);
+      await new Promise(resolve => setTimeout(resolve, 1500));
+    }
 
-    if (profileError) {
-      console.error('[redeem-coupon] Error fetching profile:', profileError);
-      throw new Error('Erro ao buscar perfil do usuário');
+    if (!profile) {
+      console.error('[redeem-coupon] Profile not found after retries:', profileError);
+      throw new Error('Perfil do usuário ainda não foi criado. Tente novamente em alguns segundos.');
     }
 
     console.log(`[redeem-coupon] User profile found: ${user.id} (team: ${profile.team_id || 'none'})`);
