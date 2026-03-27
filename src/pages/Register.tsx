@@ -182,9 +182,6 @@ const Register = () => {
         // Resgatar cupom se fornecido (aguardar profile ser criado pelo trigger)
         if (formData.couponCode.trim()) {
           try {
-            // Aguardar o trigger handle_new_user criar o profile
-            await new Promise(resolve => setTimeout(resolve, 2500));
-            
             const { data: couponData, error: couponError } = await supabase.functions.invoke('redeem-coupon', {
               body: { couponCode: formData.couponCode.trim() }
             });
