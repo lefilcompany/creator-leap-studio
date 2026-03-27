@@ -30,8 +30,8 @@ import createBanner from "@/assets/create-banner.jpg";
 export default function QuickContent() {
   const navigate = useNavigate();
   const { user, refreshUserCredits } = useAuth();
-  const { addTask } = useBackgroundTasks();
-  const [loading, setLoading] = useState(false);
+  const { addTask, tasks } = useBackgroundTasks();
+  const isGenerating = tasks.some(t => t.type === "quick_content" && t.status === "running");
   const [generatingTaskId, setGeneratingTaskId] = useState<string | null>(null);
   const [categoryId, setCategoryId] = useState("");
   const [formData, setFormData] = useState({
