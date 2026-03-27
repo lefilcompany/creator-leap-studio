@@ -33,6 +33,16 @@ export default function QuickContent() {
   const { addTask, tasks } = useBackgroundTasks();
   const isGenerating = tasks.some(t => t.type === "quick_content" && t.status === "running");
   const [generatingTaskId, setGeneratingTaskId] = useState<string | null>(null);
+
+  // Auto-navigate to result when generation completes
+  useEffect(() => {
+    if (!generatingTaskId) return;
+    const task = tasks.find(t => t.id === generatingTaskId);
+    if (task?.status === "complete" && task.resultRoute) {
+      navigate(task.resultRoute, { state: task.resultState });
+      setGeneratingTaskId(null);
+    }
+  }, [tasks, generatingTaskId, navigate]);
   const [categoryId, setCategoryId] = useState("");
   const [formData, setFormData] = useState({
     prompt: "",
