@@ -7,6 +7,24 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+function getProfileSyncPayload(profile: {
+  credits?: number | null;
+  max_credits?: number | null;
+  credits_expire_at?: string | null;
+  plan_id?: string | null;
+  subscription_status?: string | null;
+  subscription_period_end?: string | null;
+}) {
+  return {
+    currentCredits: profile.credits ?? 0,
+    maxCredits: profile.max_credits ?? profile.credits ?? 0,
+    creditsExpireAt: profile.credits_expire_at ?? null,
+    planId: profile.plan_id ?? 'free',
+    subscriptionStatus: profile.subscription_status ?? null,
+    subscriptionPeriodEnd: profile.subscription_period_end ?? null,
+  };
+}
+
 // ============= CUPONS PROMOCIONAIS ÚNICOS (200 créditos) =============
 const PROMO_COUPONS: Record<string, string> = {
   'alinearaujo200': 'Aline Araújo',
@@ -305,12 +323,14 @@ serve(async (req) => {
       // Adicionar créditos ao USUÁRIO (somar, não substituir)
       const creditsBefore = profile.credits || 0;
       const newCredits = creditsBefore + PROMO_CREDITS;
-      const newMaxCredits = Math.max(profile.credits || 0, newCredits);
+      const newMaxCredits = Math.max(profile.max_credits ?? 0, newCredits);
       const expireAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-      const { error: creditUpdateError } = await supabaseAdmin
+      const { data: updatedProfile, error: creditUpdateError } = await supabaseAdmin
         .from('profiles')
         .update({ credits: newCredits, max_credits: newMaxCredits, credits_expire_at: expireAt })
-        .eq('id', user.id);
+        .eq('id', user.id)
+        .select('credits, max_credits, credits_expire_at, plan_id, subscription_status, subscription_period_end')
+        .single();
       const addResult = { success: !creditUpdateError, newCredits, error: creditUpdateError?.message };
 
       if (!addResult.success) {
@@ -345,7 +365,8 @@ serve(async (req) => {
             type: 'credits',
             value: PROMO_CREDITS,
             description: `${PROMO_CREDITS} créditos (Cupom ${promoOwner})`
-          }
+          },
+          profile: updatedProfile ? getProfileSyncPayload(updatedProfile) : undefined,
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -409,12 +430,14 @@ serve(async (req) => {
 
       // Add credits directly to profile (addUserCredits replaces, we need to SUM)
       const newCredits = creditsBefore + creditsToAdd;
-      const newMaxCredits = Math.max(profile.credits || 0, newCredits);
+      const newMaxCredits = Math.max(profile.max_credits ?? 0, newCredits);
       const expireAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-      const { error: creditError } = await supabaseAdmin
+      const { data: updatedProfile, error: creditError } = await supabaseAdmin
         .from('profiles')
         .update({ credits: newCredits, max_credits: newMaxCredits, credits_expire_at: expireAt })
-        .eq('id', user.id);
+        .eq('id', user.id)
+        .select('credits, max_credits, credits_expire_at, plan_id, subscription_status, subscription_period_end')
+        .single();
       
       if (creditError) {
         return new Response(
@@ -451,7 +474,8 @@ serve(async (req) => {
             type: 'credits',
             value: creditsToAdd,
             description: `${creditsToAdd} créditos`
-          }
+          },
+          profile: updatedProfile ? getProfileSyncPayload(updatedProfile) : undefined,
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -510,7 +534,8 @@ serve(async (req) => {
         plan_id: 'basic',
         subscription_period_end: newEnd.toISOString(),
         subscription_status: 'active',
-        credits: creditsBefore + creditsToAdd
+        credits: creditsBefore + creditsToAdd,
+        max_credits: Math.max(profile.max_credits ?? 0, creditsBefore + creditsToAdd),
       };
       
       console.log(`[redeem-coupon] Upgrading to Basic until ${newEnd.toISOString()}`);
@@ -533,7 +558,8 @@ serve(async (req) => {
         plan_id: 'pro',
         subscription_period_end: newEnd.toISOString(),
         subscription_status: 'active',
-        credits: creditsBefore + creditsToAdd
+        credits: creditsBefore + creditsToAdd,
+        max_credits: Math.max(profile.max_credits ?? 0, creditsBefore + creditsToAdd),
       };
       
       console.log(`[redeem-coupon] Upgrading to Pro until ${newEnd.toISOString()}`);
@@ -542,7 +568,9 @@ serve(async (req) => {
       // Cupons de créditos: adicionar diretamente ao usuário
       creditsToAdd = prizeInfo.value;
       profileUpdate = {
-        credits: creditsBefore + creditsToAdd
+        credits: creditsBefore + creditsToAdd,
+        max_credits: Math.max(profile.max_credits ?? 0, creditsBefore + creditsToAdd),
+        credits_expire_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
       };
 
       console.log(`[redeem-coupon] Adding ${creditsToAdd} credits to user`);
@@ -580,10 +608,12 @@ serve(async (req) => {
     console.log(`[redeem-coupon] Coupon registered. Applying benefits...`);
 
     // 6. Aplicar benefícios ao PROFILE do usuário (não mais team)
-    const { error: updateError } = await supabaseAdmin
+    const { data: updatedProfile, error: updateError } = await supabaseAdmin
       .from('profiles')
       .update(profileUpdate)
-      .eq('id', user.id);
+      .eq('id', user.id)
+      .select('credits, max_credits, credits_expire_at, plan_id, subscription_status, subscription_period_end')
+      .single();
 
     if (updateError) {
       console.error('[redeem-coupon] Error updating profile:', updateError);
@@ -617,7 +647,8 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         valid: true,
-        prize: prizeInfo
+        prize: prizeInfo,
+        profile: updatedProfile ? getProfileSyncPayload(updatedProfile) : undefined,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
