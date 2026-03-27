@@ -5,7 +5,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { MessageCircle, X, Send, Loader2, RotateCcw, Copy, Reply, Check, Sparkles, ImagePlus } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { toast } from 'sonner';
-import { ChatbotTooltip } from "./ChatbotTooltip";
+
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
@@ -233,8 +233,6 @@ export const PlatformChatbot = () => {
 
   return (
     <>
-      <ChatbotTooltip />
-
       {!isOpen && (
         <Button
           onClick={() => setIsOpen(true)}
