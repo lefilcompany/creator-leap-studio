@@ -97,7 +97,7 @@ const Auth = () => {
   const [searchParams] = useSearchParams();
   const { theme, setTheme } = useTheme();
   const { language } = useLanguage();
-  const { user, team, isLoading: authLoading } = useAuth();
+  const { user, team, isLoading: authLoading, reloadUserData } = useAuth();
   
   const isMobile = useIsMobile();
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -300,6 +300,8 @@ const Auth = () => {
 
     setLoading(true);
     try {
+      const normalizedCouponCode = couponCode.trim().toUpperCase();
+
       const { data, error } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -309,6 +311,7 @@ const Auth = () => {
             phone: formData.phone,
             state: formData.state,
             city: formData.city,
+            ...(normalizedCouponCode ? { coupon_code: normalizedCouponCode } : {}),
             ...(Object.keys(utmParams).length > 0 && { utm: utmParams }),
           },
           emailRedirectTo: getEmailRedirectUrl('/dashboard'),
@@ -349,12 +352,25 @@ const Auth = () => {
 
         if (couponCode && isValidCouponFormat) {
           try {
-            await supabase.functions.invoke("redeem-coupon", {
-              body: { couponCode, userId: data.user.id },
+            localStorage.setItem("pending_coupon_code", normalizedCouponCode);
+            localStorage.setItem("pending_coupon_user_id", data.user.id);
+
+            const { data: couponResult, error: couponError } = await supabase.functions.invoke("redeem-coupon", {
+              body: { couponCode: normalizedCouponCode },
             });
-            toast.success("Cupom resgatado com sucesso!");
+
+            if (couponError || couponResult?.error || couponResult?.valid === false) {
+              console.error("Erro ao resgatar cupom:", couponError || couponResult?.error);
+              toast.warning(couponResult?.error || couponError?.message || "Não foi possível aplicar o cupom agora. Vamos tentar automaticamente ao entrar.");
+            } else {
+              localStorage.removeItem("pending_coupon_code");
+              localStorage.removeItem("pending_coupon_user_id");
+              await reloadUserData();
+              toast.success(`Cupom resgatado com sucesso! +${couponResult?.prize?.value || 0} créditos`);
+            }
           } catch (couponError) {
             console.error("Erro ao resgatar cupom:", couponError);
+            toast.warning("Não foi possível aplicar o cupom agora. Vamos tentar automaticamente ao entrar.");
           }
         }
 
