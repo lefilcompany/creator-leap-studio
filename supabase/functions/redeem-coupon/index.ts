@@ -227,7 +227,7 @@ serve(async (req) => {
     let profile: any = null;
     let profileError: any = null;
     
-    for (let attempt = 0; attempt < 3; attempt++) {
+    for (let attempt = 0; attempt < 5; attempt++) {
       const { data, error } = await supabaseAdmin
         .from('profiles')
         .select('team_id, credits')
@@ -241,8 +241,8 @@ serve(async (req) => {
       }
       
       profileError = error;
-      console.log(`[redeem-coupon] Profile not found, attempt ${attempt + 1}/3, retrying...`);
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      console.log(`[redeem-coupon] Profile not found, attempt ${attempt + 1}/5, retrying in ${500 * (attempt + 1)}ms...`);
+      await new Promise(resolve => setTimeout(resolve, 500 * (attempt + 1)));
     }
 
     if (!profile) {
