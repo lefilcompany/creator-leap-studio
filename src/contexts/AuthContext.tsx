@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import { User as SupabaseUser } from '@supabase/supabase-js';
 import type { Session } from '@supabase/supabase-js';
 
@@ -264,6 +265,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             localStorage.removeItem('pending_coupon_code');
             localStorage.removeItem('pending_coupon_user_id');
+            toast.success(`Cupom aplicado! +${couponResult?.prize?.value || 0} créditos adicionados.`, { id: 'pending-coupon', duration: 5000 });
           }
         } catch (pendingCouponError) {
           console.error('[AuthContext] Error retrying pending coupon:', pendingCouponError);
