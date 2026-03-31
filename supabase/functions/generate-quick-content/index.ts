@@ -444,7 +444,7 @@ serve(async (req) => {
       brand_id: brandId || null,
       asset_path: !uploadError ? fileName : null,
       thumb_path: !uploadError ? fileName : null,
-      details: { prompt, platform, aspectRatio: normalizedAspectRatio, style, quality, colorPalette, lighting, composition, cameraAngle, detailLevel, mood, negativePrompt: !!negativePrompt, hasReferenceImages: referenceImages?.length > 0, hasPreserveImages: preserveImages?.length > 0, hasStyleReferenceImages: styleReferenceImages?.length > 0, themeId, personaId, pipeline: 'quick_v5', requestedAspectRatio: normalizedAspectRatio, aspectRatioSource },
+      details: { prompt, platform, aspectRatio: normalizedAspectRatio, style, quality, colorPalette, lighting, composition, cameraAngle, detailLevel, mood, negativePrompt: !!negativePrompt, hasReferenceImages: referenceImages?.length > 0, hasPreserveImages: preserveImages?.length > 0, hasStyleReferenceImages: styleReferenceImages?.length > 0, themeId, personaId, pipeline: 'quick_v5', requestedAspectRatio: normalizedAspectRatio, aspectRatioSource, mode },
       result: {
         imageUrl: finalImageUrl,
         textResponse,
