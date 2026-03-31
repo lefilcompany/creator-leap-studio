@@ -140,8 +140,8 @@ serve(async (req) => {
     console.log('Generate Quick Content Request:', { promptLength: prompt.length, brandId, platform, visualStyle, userId: authenticatedUserId });
 
     // Check credits
-    const creditCheck = await checkUserCredits(supabase, authenticatedUserId, CREDIT_COSTS.QUICK_IMAGE);
-    if (!creditCheck.hasCredits) return new Response(JSON.stringify({ error: `Créditos insuficientes. Necessário: ${CREDIT_COSTS.QUICK_IMAGE} créditos` }), { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    const creditCheck = await checkUserCredits(supabase, authenticatedUserId, creditCost);
+    if (!creditCheck.hasCredits) return new Response(JSON.stringify({ error: `Créditos insuficientes. Necessário: ${creditCost} créditos` }), { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
     const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
     if (!GEMINI_API_KEY) return new Response(JSON.stringify({ error: 'GEMINI_API_KEY não configurada.' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
