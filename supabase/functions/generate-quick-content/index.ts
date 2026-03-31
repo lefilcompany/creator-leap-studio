@@ -421,18 +421,18 @@ serve(async (req) => {
     }
 
     // Deduct credits
-    const deductResult = await deductUserCredits(supabase, authenticatedUserId, CREDIT_COSTS.QUICK_IMAGE);
+    const deductResult = await deductUserCredits(supabase, authenticatedUserId, creditCost);
     if (!deductResult.success) console.error('Error deducting credits:', deductResult.error);
 
     await recordUserCreditUsage(supabase, {
       userId: authenticatedUserId,
       teamId: authenticatedTeamId,
-      actionType: 'QUICK_IMAGE',
-      creditsUsed: CREDIT_COSTS.QUICK_IMAGE,
+      actionType: isMarketplace ? 'MARKETPLACE_IMAGE' : 'QUICK_IMAGE',
+      creditsUsed: creditCost,
       creditsBefore: creditCheck.currentCredits,
       creditsAfter: deductResult.newCredits,
-      description: 'Criação rápida de imagem (Pipeline v5)',
-      metadata: { platform, aspectRatio: normalizedAspectRatio, style, brandId, model: 'gemini-2.5-flash-image', aspectRatioSource }
+      description: isMarketplace ? 'Imagem de produto para marketplace' : 'Criação rápida de imagem (Pipeline v5)',
+      metadata: { platform, aspectRatio: normalizedAspectRatio, style, brandId, model: 'gemini-2.5-flash-image', aspectRatioSource, mode }
     });
 
     // Save action
