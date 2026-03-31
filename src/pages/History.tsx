@@ -387,6 +387,7 @@ export default function History() {
         onBulkFavorite={handleBulkFavorite}
         onBulkAddToCategory={handleBulkAddToCategory}
         onBulkRemoveFromCategory={handleBulkRemoveFromCategory}
+        onBulkDelete={handleBulkDelete}
         hasTeam={hasTeam}
         actionCategoryMap={actionCategoryMap}
       />
