@@ -166,12 +166,13 @@ const LoadingRows = () => (
 );
 
 // Grid card
-function ActionCard({ action, isSelected, onNavigate, isPersonalFavorite, isTeamFavorite, hasTeam, onToggleFavorite, actionCategories, selectionMode, isBulkSelected, onToggleBulkSelect, onToggleSelectionMode }: {
+function ActionCard({ action, isSelected, onNavigate, isPersonalFavorite, isTeamFavorite, hasTeam, onToggleFavorite, actionCategories, selectionMode, isBulkSelected, onToggleBulkSelect, onToggleSelectionMode, onDelete }: {
   action: ActionSummary; isSelected: boolean; onNavigate: () => void;
   isPersonalFavorite?: boolean; isTeamFavorite?: boolean; hasTeam?: boolean;
   onToggleFavorite?: (actionId: string, scope: FavoriteScope) => void;
   actionCategories?: Array<{ id: string; name: string; color: string }>;
   selectionMode?: boolean; isBulkSelected?: boolean; onToggleBulkSelect?: () => void; onToggleSelectionMode?: () => void;
+  onDelete?: (actionId: string) => void;
 }) {
   const displayType = ACTION_TYPE_DISPLAY[action.type];
   const style = ACTION_STYLE_MAP[displayType];
