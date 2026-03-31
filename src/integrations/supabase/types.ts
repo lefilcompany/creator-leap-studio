@@ -177,6 +177,7 @@ export type Database = {
           asset_path: string | null
           brand_id: string | null
           created_at: string | null
+          deleted_at: string | null
           details: Json | null
           id: string
           result: Json | null
@@ -193,6 +194,7 @@ export type Database = {
           asset_path?: string | null
           brand_id?: string | null
           created_at?: string | null
+          deleted_at?: string | null
           details?: Json | null
           id?: string
           result?: Json | null
@@ -209,6 +211,7 @@ export type Database = {
           asset_path?: string | null
           brand_id?: string | null
           created_at?: string | null
+          deleted_at?: string | null
           details?: Json | null
           id?: string
           result?: Json | null

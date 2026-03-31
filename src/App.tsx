@@ -62,6 +62,7 @@ const Contact = lazy(() => import("./pages/Contact"));
 const ActionView = lazy(() => import("./pages/ActionView"));
 const Categories = lazy(() => import("./pages/Categories"));
 const CategoryView = lazy(() => import("./pages/CategoryView"));
+const Trash = lazy(() => import("./pages/Trash"));
 
 // Lazy loaded pages - System
 const System = lazy(() => import("./pages/System"));
@@ -163,6 +164,7 @@ const App = () => (
                         <Route path="action/:actionId" element={<SuspenseRoute><ActionView /></SuspenseRoute>} />
                         <Route path="categories" element={<SuspenseRoute><Categories /></SuspenseRoute>} />
                         <Route path="categories/:categoryId" element={<SuspenseRoute><CategoryView /></SuspenseRoute>} />
+                        <Route path="trash" element={<SuspenseRoute><Trash /></SuspenseRoute>} />
                       </Route>
                       
                       {/* System admin routes with separate layout */}

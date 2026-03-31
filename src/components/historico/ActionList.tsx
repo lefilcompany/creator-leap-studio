@@ -52,6 +52,8 @@ interface ActionListProps {
   onToggleBulkSelect?: (actionId: string) => void;
   selectionMode?: boolean;
   onToggleSelectionMode?: () => void;
+  // Delete
+  onDelete?: (actionId: string) => void;
 }
 
 const formatDate = (dateString: string) => {
@@ -164,12 +166,13 @@ const LoadingRows = () => (
 );
 
 // Grid card
-function ActionCard({ action, isSelected, onNavigate, isPersonalFavorite, isTeamFavorite, hasTeam, onToggleFavorite, actionCategories, selectionMode, isBulkSelected, onToggleBulkSelect, onToggleSelectionMode }: {
+function ActionCard({ action, isSelected, onNavigate, isPersonalFavorite, isTeamFavorite, hasTeam, onToggleFavorite, actionCategories, selectionMode, isBulkSelected, onToggleBulkSelect, onToggleSelectionMode, onDelete }: {
   action: ActionSummary; isSelected: boolean; onNavigate: () => void;
   isPersonalFavorite?: boolean; isTeamFavorite?: boolean; hasTeam?: boolean;
   onToggleFavorite?: (actionId: string, scope: FavoriteScope) => void;
   actionCategories?: Array<{ id: string; name: string; color: string }>;
   selectionMode?: boolean; isBulkSelected?: boolean; onToggleBulkSelect?: () => void; onToggleSelectionMode?: () => void;
+  onDelete?: (actionId: string) => void;
 }) {
   const displayType = ACTION_TYPE_DISPLAY[action.type];
   const style = ACTION_STYLE_MAP[displayType];
@@ -247,6 +250,7 @@ function ActionCard({ action, isSelected, onNavigate, isPersonalFavorite, isTeam
             isTeamFavorite={!!isTeamFavorite}
             hasTeam={!!hasTeam}
             onToggleFavorite={(id, scope) => onToggleFavorite?.(id, scope)}
+            onDelete={onDelete}
           />
         </div>
       </div>
@@ -309,6 +313,7 @@ export default function ActionList({
   onToggleBulkSelect,
   selectionMode,
   onToggleSelectionMode,
+  onDelete,
 }: ActionListProps) {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
@@ -501,6 +506,7 @@ export default function ActionList({
                         isTeamFavorite={!!isTeamFavorite?.(action.id)}
                         hasTeam={!!hasTeam}
                         onToggleFavorite={(id, scope) => onToggleFavorite?.(id, scope)}
+                        onDelete={onDelete}
                         size="sm"
                       />
                     </TableCell>
@@ -531,6 +537,7 @@ export default function ActionList({
                 isBulkSelected={bulkSelectedIds?.has(action.id)}
                 onToggleBulkSelect={() => onToggleBulkSelect?.(action.id)}
                 onToggleSelectionMode={onToggleSelectionMode}
+                onDelete={onDelete}
               />
             );
           })}

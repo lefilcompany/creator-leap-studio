@@ -17,6 +17,7 @@ import {
   PanelLeft,
   Columns2,
   CreditCard,
+  Trash2,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Input } from "@/components/ui/input";
@@ -357,6 +358,12 @@ export const Header = () => {
                 >
                   <CreditCard className="mr-3 h-4 w-4" />
                   <span>{isLoadingPortal ? "Carregando..." : "Gerenciar Cartão"}</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="p-3 cursor-pointer" asChild>
+                  <Link to="/trash" className="flex items-center">
+                    <Trash2 className="mr-3 h-4 w-4" />
+                    <span>Lixeira</span>
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DialogTrigger asChild>

@@ -30,6 +30,7 @@ export const useActions = (options: UseActionsOptions = {}) => {
         .from('actions')
         .select('*, brands(name)')
         .eq('team_id', team.id)
+        .is('deleted_at', null)
         .order('created_at', { ascending: false })
         .limit(limit);
       

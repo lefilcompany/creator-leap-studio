@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MoreHorizontal, Star, FolderOpen, Check, User, Users, ChevronRight, X } from 'lucide-react';
+import { MoreHorizontal, Star, FolderOpen, Check, User, Users, ChevronRight, X, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
@@ -18,6 +18,7 @@ interface ActionCardMenuProps {
   isTeamFavorite: boolean;
   hasTeam: boolean;
   onToggleFavorite: (actionId: string, scope: FavoriteScope) => void;
+  onDelete?: (actionId: string) => void;
   size?: 'sm' | 'md';
 }
 
@@ -27,6 +28,7 @@ export function ActionCardMenu({
   isTeamFavorite,
   hasTeam,
   onToggleFavorite,
+  onDelete,
   size = 'md',
 }: ActionCardMenuProps) {
   const { categories, addActionToCategory, removeActionFromCategory } = useCategories();
@@ -173,6 +175,19 @@ export function ActionCardMenu({
             )}
           </PopoverContent>
         </Popover>
+
+        {onDelete && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={(e) => { e.stopPropagation(); onDelete(actionId); }}
+              className="gap-2.5 text-destructive focus:text-destructive focus:bg-destructive/10"
+            >
+              <Trash2 className="h-4 w-4 flex-shrink-0" />
+              <span className="flex-1">Apagar</span>
+            </DropdownMenuItem>
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );
