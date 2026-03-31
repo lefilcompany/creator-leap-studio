@@ -214,10 +214,15 @@ serve(async (req) => {
     if (detailLevel !== 7) advParts.push(`Detalhe: ${detailLevel}/10`);
     if (advParts.length > 0) briefingSections.push(`CONFIGURAÇÕES VISUAIS: ${advParts.join(' | ')}`);
 
-    const limitedPreserve = preserveImages ? preserveImages.slice(0, 2) : [];
-    const limitedStyle = styleReferenceImages ? styleReferenceImages.slice(0, 1) : [];
-    if (limitedPreserve.length > 0) briefingSections.push(`IMAGENS DE REFERÊNCIA DA MARCA: ${limitedPreserve.length} imagem(ns) fornecidas.`);
-    if (limitedStyle.length > 0) briefingSections.push(`IMAGENS DE REFERÊNCIA DE ESTILO: ${limitedStyle.length} imagem(ns) fornecidas.`);
+    const limitedPreserve = preserveImages ? preserveImages.slice(0, 3) : [];
+    const limitedStyle = styleReferenceImages ? styleReferenceImages.slice(0, 3) : [];
+    // Fallback: if no images were categorized, use all referenceImages directly
+    const fallbackImages = (limitedPreserve.length === 0 && limitedStyle.length === 0 && referenceImages?.length > 0)
+      ? referenceImages.slice(0, 3)
+      : [];
+    const totalRefImages = limitedPreserve.length + limitedStyle.length + fallbackImages.length;
+    if (totalRefImages > 0) briefingSections.push(`IMAGENS DE REFERÊNCIA: ${totalRefImages} imagem(ns) fornecida(s). Use-as como base visual obrigatória para cores, composição, estilo e elementos da imagem gerada.`);
+    if (limitedPreserve.length > 0) briefingSections.push(`PRESERVAR: ${limitedPreserve.length} imagem(ns) marcada(s) para preservação — mantenha os elementos, formas e cores exatos dessas imagens.`);
     if (negativePrompt) briefingSections.push(`ELEMENTOS A EVITAR: ${negativePrompt}`);
 
     const briefingDocument = briefingSections.join('\n\n');
@@ -235,13 +240,14 @@ serve(async (req) => {
     if (isPortrait) promptSuffix = "high-end portrait photography, hyper-realistic eyes with catchlight, detailed skin pores, masterpiece, 8k, shot on 85mm lens, f/1.4, cinematic lighting, sharp focus on eyes, natural skin tone, professional studio lighting";
 
     // Build image role prefix
-    const hasAnyRefImages = limitedPreserve.length > 0 || limitedStyle.length > 0;
+    const hasAnyRefImages = limitedPreserve.length > 0 || limitedStyle.length > 0 || fallbackImages.length > 0;
     let imageRolePrefix = '';
     if (hasAnyRefImages) {
       const roleParts: string[] = [];
-      if (limitedPreserve.length > 0) roleParts.push(`A(s) primeira(s) ${limitedPreserve.length} imagem(ns) definem a Identidade Visual e Paleta de Cores obrigatória`);
-      if (limitedStyle.length > 0) roleParts.push(`A(s) última(s) servem apenas como inspiração de composição`);
-      roleParts.push('⚠️ PROPORÇÕES DAS REFERÊNCIAS: As imagens de referência servem APENAS para paleta, identidade visual, estilo e conteúdo. IGNORE COMPLETAMENTE as proporções e dimensões das imagens de referência. O formato de saída é definido EXCLUSIVAMENTE pelo aspect ratio solicitado');
+      if (limitedPreserve.length > 0) roleParts.push(`As imagens marcadas como PRESERVAR definem a Identidade Visual, paleta de cores e elementos obrigatórios — NÃO altere esses elementos`);
+      if (limitedStyle.length > 0 || fallbackImages.length > 0) roleParts.push(`As imagens de referência definem o estilo visual, composição, cores e atmosfera desejados — use como inspiração forte`);
+      roleParts.push('⚠️ IMPORTANTE: Use as imagens de referência como BASE VISUAL OBRIGATÓRIA. Cores, estilo, composição e atmosfera devem refletir as referências fornecidas');
+      roleParts.push('⚠️ PROPORÇÕES DAS REFERÊNCIAS: IGNORE as proporções e dimensões das imagens de referência. O formato de saída é definido EXCLUSIVAMENTE pelo aspect ratio solicitado');
       imageRolePrefix = `${roleParts.join('. ')}.\n\n`;
     }
 
@@ -268,19 +274,20 @@ serve(async (req) => {
     // =====================================
     const messageContent: any[] = [{ type: 'text', text: userPrompt }];
 
+    // Add preserve images first (highest priority)
     for (const img of limitedPreserve) {
       if (img) messageContent.push({ type: 'image_url', image_url: { url: img } });
     }
-    if (referenceImages?.length > 0 && !limitedStyle.length) {
-      for (const img of referenceImages.slice(0, 1)) {
-        if (img) messageContent.push({ type: 'image_url', image_url: { url: img } });
-      }
-    }
+    // Add style reference images
     for (const img of limitedStyle) {
       if (img) messageContent.push({ type: 'image_url', image_url: { url: img } });
     }
+    // Add fallback reference images (when no preserve/style classification)
+    for (const img of fallbackImages) {
+      if (img) messageContent.push({ type: 'image_url', image_url: { url: img } });
+    }
 
-    console.log(`[Step 3] Message parts: ${messageContent.length} (1 text + ${messageContent.length - 1} images)`);
+    console.log(`[Step 3] Message parts: ${messageContent.length} (1 text + ${messageContent.length - 1} images, preserve: ${limitedPreserve.length}, style: ${limitedStyle.length}, fallback: ${fallbackImages.length})`);
 
     // =====================================
     // STEP 4: Generate image via Gateway with retry
