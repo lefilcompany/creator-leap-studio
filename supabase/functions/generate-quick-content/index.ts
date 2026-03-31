@@ -276,6 +276,9 @@ serve(async (req) => {
     let negativePromptFinal = styleSettings.negativePrompt;
     if (negativePrompt && negativePrompt.trim()) negativePromptFinal = `${negativePrompt.trim()}, ${negativePromptFinal}`;
     negativePromptFinal += ', text, watermark, typography, letters, signature, words, labels, do not follow reference image dimensions or aspect ratio';
+    if (isMarketplace) {
+      negativePromptFinal += ', do not redesign the product, do not change product colors, do not alter product shape, do not stylize or cartoon the product, do not simplify product details, do not invent new product features';
+    }
 
     userPrompt += `\n\n[AVOID] ${negativePromptFinal}`;
     console.log('[Step 3] Final prompt length:', userPrompt.length, 'chars');
