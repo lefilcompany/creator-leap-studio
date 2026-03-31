@@ -41,6 +41,7 @@ export default function ContentCreationSelector() {
         image: "/create/image",
         "quick-image": "/create/quick",
         video: "/create/video",
+        marketplace: "/create/marketplace",
       };
       navigate(routes[creationType]);
     }
