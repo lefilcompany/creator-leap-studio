@@ -129,6 +129,24 @@ export default function History() {
     setSelectionMode(false);
   }, [bulkSelectedIds, queryClient]);
 
+  const handleBulkDelete = useCallback(async () => {
+    const ids = Array.from(bulkSelectedIds);
+    try {
+      const { error } = await supabase
+        .from('actions')
+        .update({ deleted_at: new Date().toISOString() })
+        .in('id', ids);
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ['history-actions'] });
+      queryClient.invalidateQueries({ queryKey: ['trash-items'] });
+      toast.success(`${ids.length} ${ids.length === 1 ? 'item movido' : 'itens movidos'} para a lixeira`);
+    } catch {
+      toast.error('Erro ao mover para a lixeira');
+    }
+    setBulkSelectedIds(new Set());
+    setSelectionMode(false);
+  }, [bulkSelectedIds, queryClient]);
+
   // Get all category items for filtering
   const { data: categoryItems = [] } = useQuery({
     queryKey: ['all-category-items'],
