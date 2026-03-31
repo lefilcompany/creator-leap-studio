@@ -240,13 +240,14 @@ serve(async (req) => {
     if (isPortrait) promptSuffix = "high-end portrait photography, hyper-realistic eyes with catchlight, detailed skin pores, masterpiece, 8k, shot on 85mm lens, f/1.4, cinematic lighting, sharp focus on eyes, natural skin tone, professional studio lighting";
 
     // Build image role prefix
-    const hasAnyRefImages = limitedPreserve.length > 0 || limitedStyle.length > 0;
+    const hasAnyRefImages = limitedPreserve.length > 0 || limitedStyle.length > 0 || fallbackImages.length > 0;
     let imageRolePrefix = '';
     if (hasAnyRefImages) {
       const roleParts: string[] = [];
-      if (limitedPreserve.length > 0) roleParts.push(`A(s) primeira(s) ${limitedPreserve.length} imagem(ns) definem a Identidade Visual e Paleta de Cores obrigatória`);
-      if (limitedStyle.length > 0) roleParts.push(`A(s) última(s) servem apenas como inspiração de composição`);
-      roleParts.push('⚠️ PROPORÇÕES DAS REFERÊNCIAS: As imagens de referência servem APENAS para paleta, identidade visual, estilo e conteúdo. IGNORE COMPLETAMENTE as proporções e dimensões das imagens de referência. O formato de saída é definido EXCLUSIVAMENTE pelo aspect ratio solicitado');
+      if (limitedPreserve.length > 0) roleParts.push(`As imagens marcadas como PRESERVAR definem a Identidade Visual, paleta de cores e elementos obrigatórios — NÃO altere esses elementos`);
+      if (limitedStyle.length > 0 || fallbackImages.length > 0) roleParts.push(`As imagens de referência definem o estilo visual, composição, cores e atmosfera desejados — use como inspiração forte`);
+      roleParts.push('⚠️ IMPORTANTE: Use as imagens de referência como BASE VISUAL OBRIGATÓRIA. Cores, estilo, composição e atmosfera devem refletir as referências fornecidas');
+      roleParts.push('⚠️ PROPORÇÕES DAS REFERÊNCIAS: IGNORE as proporções e dimensões das imagens de referência. O formato de saída é definido EXCLUSIVAMENTE pelo aspect ratio solicitado');
       imageRolePrefix = `${roleParts.join('. ')}.\n\n`;
     }
 
