@@ -6,6 +6,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { PlatformChatbot } from "./PlatformChatbot";
 import { PresenceTracker } from "@/components/PresenceTracker";
 import { UpdateBanner } from "@/components/UpdateBanner";
+import { RouteProgressBar } from "@/components/RouteProgressBar";
 
 export const DashboardLayout = () => {
   const isMobile = useIsMobile();
