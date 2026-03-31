@@ -30,6 +30,7 @@ export const getCreditCostLabel = (action: keyof typeof CREDIT_COSTS): string =>
     CREATE_BRAND: "Criar marca",
     CREATE_PERSONA: "Criar persona",
     CREATE_THEME: "Criar tema",
+    MARKETPLACE_IMAGE: "Imagem para marketplace",
   };
   return labels[action];
 };
