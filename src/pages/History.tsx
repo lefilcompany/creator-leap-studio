@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
+import { useSoftDelete } from '@/hooks/useTrash';
 import { History as HistoryIcon, HelpCircle, Star } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
