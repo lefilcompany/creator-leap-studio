@@ -30,6 +30,7 @@ export function ActionCardMenu({
   hasTeam,
   onToggleFavorite,
   onDelete,
+  imageUrl,
   size = 'md',
 }: ActionCardMenuProps) {
   const { categories, addActionToCategory, removeActionFromCategory } = useCategories();
