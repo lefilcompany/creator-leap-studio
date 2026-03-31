@@ -420,30 +420,20 @@ export default function MarketplaceContent() {
                       <Label className="text-sm font-medium">Estilo de Fundo</Label>
                       <NativeSelect
                         value={backgroundStyle}
-                        onChange={e => setBackgroundStyle(e.target.value)}
+                        onValueChange={setBackgroundStyle}
                         className="mt-1"
-                      >
-                        {MARKETPLACE_BACKGROUNDS.map(bg => (
-                          <NativeSelectOption key={bg.value} value={bg.value}>
-                            {bg.label}
-                          </NativeSelectOption>
-                        ))}
-                      </NativeSelect>
+                        options={MARKETPLACE_BACKGROUNDS.map(bg => ({ value: bg.value, label: bg.label }))}
+                      />
                     </div>
 
                     <div>
                       <Label className="text-sm font-medium">Plataforma</Label>
                       <NativeSelect
                         value={marketplacePlatform}
-                        onChange={e => setMarketplacePlatform(e.target.value)}
+                        onValueChange={setMarketplacePlatform}
                         className="mt-1"
-                      >
-                        {MARKETPLACE_PLATFORMS.map(mp => (
-                          <NativeSelectOption key={mp.value} value={mp.value}>
-                            {mp.label}
-                          </NativeSelectOption>
-                        ))}
-                      </NativeSelect>
+                        options={MARKETPLACE_PLATFORMS.map(mp => ({ value: mp.value, label: mp.label }))}
+                      />
                     </div>
                   </div>
 
@@ -465,16 +455,13 @@ export default function MarketplaceContent() {
                     <Label className="text-sm font-medium">Marca (opcional)</Label>
                     <NativeSelect
                       value={brandId}
-                      onChange={e => setBrandId(e.target.value)}
+                      onValueChange={setBrandId}
                       className="mt-1"
-                    >
-                      <NativeSelectOption value="">Sem marca</NativeSelectOption>
-                      {brands.map((brand: any) => (
-                        <NativeSelectOption key={brand.id} value={brand.id}>
-                          {brand.name}
-                        </NativeSelectOption>
-                      ))}
-                    </NativeSelect>
+                      placeholder="Sem marca"
+                      showClearOption
+                      clearLabel="Sem marca"
+                      options={brands.map((brand: any) => ({ value: brand.id, label: brand.name }))}
+                    />
                   </div>
                 </div>
               </div>
