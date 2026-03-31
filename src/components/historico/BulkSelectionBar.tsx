@@ -183,6 +183,35 @@ export function BulkSelectionBar({
           </PopoverContent>
         </Popover>
 
+        {/* Delete */}
+        {onBulkDelete && (
+          <>
+            <div className="w-px h-4 bg-border/50" />
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-destructive hover:bg-destructive/10 transition-colors active:scale-95">
+                  <Trash2 className="h-3.5 w-3.5" />
+                  Apagar
+                </button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Mover para lixeira?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    {count} {count === 1 ? 'item será movido' : 'itens serão movidos'} para a lixeira. Você poderá restaurá-los em até 30 dias.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction onClick={onBulkDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                    Apagar
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </>
+        )}
+
         <div className="w-px h-4 bg-border/50" />
 
         {/* Clear */}
