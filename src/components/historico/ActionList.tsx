@@ -311,6 +311,7 @@ export default function ActionList({
   onToggleBulkSelect,
   selectionMode,
   onToggleSelectionMode,
+  onDelete,
 }: ActionListProps) {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
