@@ -357,6 +357,7 @@ export default function History() {
               onToggleBulkSelect={handleToggleBulkSelect}
               selectionMode={selectionMode}
               onToggleSelectionMode={handleToggleSelectionMode}
+              onDelete={(actionId) => softDelete.mutate(actionId)}
             />
           </div>
         </div>
