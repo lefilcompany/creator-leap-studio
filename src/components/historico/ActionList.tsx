@@ -505,6 +505,7 @@ export default function ActionList({
                         isTeamFavorite={!!isTeamFavorite?.(action.id)}
                         hasTeam={!!hasTeam}
                         onToggleFavorite={(id, scope) => onToggleFavorite?.(id, scope)}
+                        onDelete={onDelete}
                         size="sm"
                       />
                     </TableCell>
