@@ -52,6 +52,8 @@ interface ActionListProps {
   onToggleBulkSelect?: (actionId: string) => void;
   selectionMode?: boolean;
   onToggleSelectionMode?: () => void;
+  // Delete
+  onDelete?: (actionId: string) => void;
 }
 
 const formatDate = (dateString: string) => {
