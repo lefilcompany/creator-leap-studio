@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
-import { Star, FolderOpen, X, ChevronDown, User, Users, Plus, Minus } from 'lucide-react';
+import { Star, FolderOpen, X, ChevronDown, User, Users, Plus, Minus, Trash2 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useCategories } from '@/hooks/useCategories';
 import type { FavoriteScope } from '@/hooks/useFavorites';
 
@@ -10,6 +11,7 @@ interface BulkSelectionBarProps {
   onBulkFavorite: (scope: FavoriteScope) => void;
   onBulkAddToCategory: (categoryId: string) => void;
   onBulkRemoveFromCategory: (categoryId: string) => void;
+  onBulkDelete?: () => void;
   hasTeam: boolean;
   actionCategoryMap: Map<string, string[]>;
 }
