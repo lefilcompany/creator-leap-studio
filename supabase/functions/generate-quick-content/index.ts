@@ -115,8 +115,11 @@ serve(async (req) => {
       aspectRatio: rawAspectRatio, visualStyle = 'realistic', style = 'auto',
       quality = 'standard', negativePrompt = '', colorPalette = 'auto',
       lighting = 'natural', composition = 'auto', cameraAngle = 'eye_level',
-      detailLevel = 7, mood = 'auto',
+      detailLevel = 7, mood = 'auto', mode = 'quick',
     } = body;
+
+    const isMarketplace = mode === 'marketplace';
+    const creditCost = isMarketplace ? CREDIT_COSTS.MARKETPLACE_IMAGE : CREDIT_COSTS.QUICK_IMAGE;
 
     // Resolve aspect ratio using shared utility
     const resolved = resolveAspectRatio({
@@ -137,8 +140,8 @@ serve(async (req) => {
     console.log('Generate Quick Content Request:', { promptLength: prompt.length, brandId, platform, visualStyle, userId: authenticatedUserId });
 
     // Check credits
-    const creditCheck = await checkUserCredits(supabase, authenticatedUserId, CREDIT_COSTS.QUICK_IMAGE);
-    if (!creditCheck.hasCredits) return new Response(JSON.stringify({ error: `Créditos insuficientes. Necessário: ${CREDIT_COSTS.QUICK_IMAGE} créditos` }), { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    const creditCheck = await checkUserCredits(supabase, authenticatedUserId, creditCost);
+    if (!creditCheck.hasCredits) return new Response(JSON.stringify({ error: `Créditos insuficientes. Necessário: ${creditCost} créditos` }), { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
     const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
     if (!GEMINI_API_KEY) return new Response(JSON.stringify({ error: 'GEMINI_API_KEY não configurada.' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
@@ -244,8 +247,13 @@ serve(async (req) => {
     let imageRolePrefix = '';
     if (hasAnyRefImages) {
       const roleParts: string[] = [];
-      if (limitedPreserve.length > 0) roleParts.push(`As imagens marcadas como PRESERVAR definem a Identidade Visual, paleta de cores e elementos obrigatórios — NÃO altere esses elementos`);
-      if (limitedStyle.length > 0 || fallbackImages.length > 0) roleParts.push(`As imagens de referência definem o estilo visual, composição, cores e atmosfera desejados — use como inspiração forte`);
+      if (isMarketplace) {
+        roleParts.push('⚠️ MODO MARKETPLACE/E-COMMERCE: As imagens de referência são FOTOS REAIS DO PRODUTO. Você DEVE preservar o produto EXATAMENTE como ele é — mesma forma, cores, rótulos, detalhes e proporções. NÃO redesenhe, NÃO altere e NÃO invente detalhes do produto');
+        roleParts.push('Crie uma foto de catálogo profissional com o produto real como elemento central, em alta qualidade de estúdio fotográfico');
+      } else {
+        if (limitedPreserve.length > 0) roleParts.push(`As imagens marcadas como PRESERVAR definem a Identidade Visual, paleta de cores e elementos obrigatórios — NÃO altere esses elementos`);
+        if (limitedStyle.length > 0 || fallbackImages.length > 0) roleParts.push(`As imagens de referência definem o estilo visual, composição, cores e atmosfera desejados — use como inspiração forte`);
+      }
       roleParts.push('⚠️ IMPORTANTE: Use as imagens de referência como BASE VISUAL OBRIGATÓRIA. Cores, estilo, composição e atmosfera devem refletir as referências fornecidas');
       roleParts.push('⚠️ PROPORÇÕES DAS REFERÊNCIAS: IGNORE as proporções e dimensões das imagens de referência. O formato de saída é definido EXCLUSIVAMENTE pelo aspect ratio solicitado');
       imageRolePrefix = `${roleParts.join('. ')}.\n\n`;
@@ -413,30 +421,30 @@ serve(async (req) => {
     }
 
     // Deduct credits
-    const deductResult = await deductUserCredits(supabase, authenticatedUserId, CREDIT_COSTS.QUICK_IMAGE);
+    const deductResult = await deductUserCredits(supabase, authenticatedUserId, creditCost);
     if (!deductResult.success) console.error('Error deducting credits:', deductResult.error);
 
     await recordUserCreditUsage(supabase, {
       userId: authenticatedUserId,
       teamId: authenticatedTeamId,
-      actionType: 'QUICK_IMAGE',
-      creditsUsed: CREDIT_COSTS.QUICK_IMAGE,
+      actionType: isMarketplace ? 'MARKETPLACE_IMAGE' : 'QUICK_IMAGE',
+      creditsUsed: creditCost,
       creditsBefore: creditCheck.currentCredits,
       creditsAfter: deductResult.newCredits,
-      description: 'Criação rápida de imagem (Pipeline v5)',
-      metadata: { platform, aspectRatio: normalizedAspectRatio, style, brandId, model: 'gemini-2.5-flash-image', aspectRatioSource }
+      description: isMarketplace ? 'Imagem de produto para marketplace' : 'Criação rápida de imagem (Pipeline v5)',
+      metadata: { platform, aspectRatio: normalizedAspectRatio, style, brandId, model: 'gemini-2.5-flash-image', aspectRatioSource, mode }
     });
 
     // Save action
     const { data: actionData, error: actionError } = await supabase.from('actions').insert({
       user_id: authenticatedUserId,
       team_id: authenticatedTeamId || null,
-      type: 'CRIAR_CONTEUDO_RAPIDO',
+      type: isMarketplace ? 'CRIAR_CONTEUDO_RAPIDO' : 'CRIAR_CONTEUDO_RAPIDO',
       status: 'completed',
       brand_id: brandId || null,
       asset_path: !uploadError ? fileName : null,
       thumb_path: !uploadError ? fileName : null,
-      details: { prompt, platform, aspectRatio: normalizedAspectRatio, style, quality, colorPalette, lighting, composition, cameraAngle, detailLevel, mood, negativePrompt: !!negativePrompt, hasReferenceImages: referenceImages?.length > 0, hasPreserveImages: preserveImages?.length > 0, hasStyleReferenceImages: styleReferenceImages?.length > 0, themeId, personaId, pipeline: 'quick_v5', requestedAspectRatio: normalizedAspectRatio, aspectRatioSource },
+      details: { prompt, platform, aspectRatio: normalizedAspectRatio, style, quality, colorPalette, lighting, composition, cameraAngle, detailLevel, mood, negativePrompt: !!negativePrompt, hasReferenceImages: referenceImages?.length > 0, hasPreserveImages: preserveImages?.length > 0, hasStyleReferenceImages: styleReferenceImages?.length > 0, themeId, personaId, pipeline: 'quick_v5', requestedAspectRatio: normalizedAspectRatio, aspectRatioSource, mode },
       result: {
         imageUrl: finalImageUrl,
         textResponse,
@@ -457,7 +465,7 @@ serve(async (req) => {
       imageUrl: finalImageUrl,
       textResponse,
       actionId: actionData?.id,
-      creditsUsed: CREDIT_COSTS.QUICK_IMAGE,
+      creditsUsed: creditCost,
       creditsRemaining: deductResult.newCredits,
       brandName, themeName, personaName, platform,
       finalWidth: postProcessResult.finalWidth,

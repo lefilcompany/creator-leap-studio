@@ -43,6 +43,7 @@ const CreateImage = lazy(() => import("./pages/CreateImage"));
 const CreateVideo = lazy(() => import("./pages/CreateVideo"));
 const AnimateImage = lazy(() => import("./pages/AnimateImage"));
 const ContentCreationSelector = lazy(() => import("./pages/ContentCreationSelector"));
+const MarketplaceContent = lazy(() => import("./pages/MarketplaceContent"));
 const ContentResult = lazy(() => import("./pages/ContentResult"));
 const VideoResult = lazy(() => import("./pages/VideoResult"));
 const ReviewContent = lazy(() => import("./pages/ReviewContent"));
@@ -146,7 +147,7 @@ const App = () => (
                         <Route path="create/image" element={<SuspenseRoute><CreateImage /></SuspenseRoute>} />
                         <Route path="create/video" element={<SuspenseRoute><CreateVideo /></SuspenseRoute>} />
                         <Route path="create/animate" element={<SuspenseRoute><AnimateImage /></SuspenseRoute>} />
-                        <Route path="create/marketplace" element={<SuspenseRoute><QuickContent /></SuspenseRoute>} />
+                        <Route path="create/marketplace" element={<SuspenseRoute><MarketplaceContent /></SuspenseRoute>} />
                         <Route path="result" element={<SuspenseRoute><ContentResult /></SuspenseRoute>} />
                         <Route path="video-result" element={<SuspenseRoute><VideoResult /></SuspenseRoute>} />
                         <Route path="review" element={<SuspenseRoute><ReviewContent /></SuspenseRoute>} />
