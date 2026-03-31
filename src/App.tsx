@@ -43,6 +43,7 @@ const CreateImage = lazy(() => import("./pages/CreateImage"));
 const CreateVideo = lazy(() => import("./pages/CreateVideo"));
 const AnimateImage = lazy(() => import("./pages/AnimateImage"));
 const ContentCreationSelector = lazy(() => import("./pages/ContentCreationSelector"));
+const MarketplaceContent = lazy(() => import("./pages/MarketplaceContent"));
 const ContentResult = lazy(() => import("./pages/ContentResult"));
 const VideoResult = lazy(() => import("./pages/VideoResult"));
 const ReviewContent = lazy(() => import("./pages/ReviewContent"));
