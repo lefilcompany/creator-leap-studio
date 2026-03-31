@@ -14,6 +14,7 @@ export const DashboardLayout = () => {
   return (
     <SidebarProvider defaultOpen={true}>
       <PresenceTracker />
+      <RouteProgressBar />
       <div className="h-screen w-full flex flex-col overflow-hidden bg-[var(--layout-bg)]">
         <UpdateBanner />
         <div className="flex flex-1 min-h-0 overflow-hidden">
