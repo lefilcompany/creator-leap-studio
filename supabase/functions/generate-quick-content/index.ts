@@ -465,7 +465,7 @@ serve(async (req) => {
       imageUrl: finalImageUrl,
       textResponse,
       actionId: actionData?.id,
-      creditsUsed: CREDIT_COSTS.QUICK_IMAGE,
+      creditsUsed: creditCost,
       creditsRemaining: deductResult.newCredits,
       brandName, themeName, personaName, platform,
       finalWidth: postProcessResult.finalWidth,
