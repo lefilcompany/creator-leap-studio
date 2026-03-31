@@ -62,19 +62,84 @@ export function useHistoryActions(filters: HistoryFilters) {
         if (entry) typeDbValue = entry[0];
       }
 
+      const normalizeRowsFromActionsTable = (tableRows: any[]) => {
+        return tableRows.map((row) => {
+          const result = (row.result || {}) as Record<string, any>;
+          const details = (row.details || {}) as Record<string, any>;
+          const brand = Array.isArray(row.brands) ? row.brands[0] : row.brands;
+
+          return {
+            id: row.id,
+            type: row.type,
+            created_at: row.created_at,
+            approved: row.approved,
+            brand_id: row.brand_id,
+            brand_name: brand?.name || null,
+            image_url: result.imageUrl || result.originalImage || null,
+            objective: details.objective || null,
+            platform: details.platform || null,
+            thumb_path: row.thumb_path || null,
+            title: result.title || result.description || null,
+            video_url: result.videoUrl || null,
+          };
+        });
+      };
+
+      let rows: any[] = [];
+      let rpcError: any = null;
+
       const { data, error } = await supabase.rpc('get_action_summaries', {
         p_user_id: user!.id,
         p_team_id: user?.teamId || null,
         p_brand_filter: filters.brandFilter !== 'all' ? filters.brandFilter : null,
         p_type_filter: typeDbValue,
         p_limit: ITEMS_PER_PAGE,
+        p_offset: 0,
         p_cursor_created_at: cursor?.createdAt || null,
         p_cursor_id: cursor?.id || null,
       });
 
-      if (error) throw error;
+      if (error) {
+        rpcError = error;
+      } else {
+        rows = data || [];
+      }
 
-      const rows = data || [];
+      // Fallback robusto: se a RPC falhar ou voltar vazia indevidamente, busca direto na tabela
+      if (rpcError || rows.length === 0) {
+        let fallbackQuery = supabase
+          .from('actions')
+          .select('id, type, created_at, approved, brand_id, thumb_path, result, details, brands:brand_id(name)')
+          .is('deleted_at', null)
+          .order('created_at', { ascending: false })
+          .order('id', { ascending: false })
+          .limit(ITEMS_PER_PAGE);
+
+        if (user?.teamId) {
+          fallbackQuery = fallbackQuery.or(`user_id.eq.${user.id},team_id.eq.${user.teamId}`);
+        } else {
+          fallbackQuery = fallbackQuery.eq('user_id', user!.id);
+        }
+
+        if (filters.brandFilter !== 'all') {
+          fallbackQuery = fallbackQuery.eq('brand_id', filters.brandFilter);
+        }
+
+        if (typeDbValue) {
+          fallbackQuery = fallbackQuery.eq('type', typeDbValue);
+        }
+
+        if (cursor?.createdAt) {
+          fallbackQuery = fallbackQuery.lt('created_at', cursor.createdAt);
+        }
+
+        const { data: fallbackData, error: fallbackError } = await fallbackQuery;
+
+        if (fallbackError && rpcError) throw rpcError;
+        if (fallbackError) throw fallbackError;
+
+        rows = normalizeRowsFromActionsTable(fallbackData || []);
+      }
 
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
       const storageBase = supabaseUrl
@@ -113,9 +178,9 @@ export function useHistoryActions(filters: HistoryFilters) {
 
         return {
           id: row.id,
-          type: row.type,
+          type: row.type as ActionSummary['type'],
           createdAt: row.created_at,
-          approved: row.approved,
+          approved: !!row.approved,
           brand: row.brand_name ? { id: row.brand_id, name: row.brand_name } : null,
           imageUrl,
           videoUrl: row.video_url || undefined,
