@@ -12,7 +12,7 @@ import { contentCreationSelectorSteps } from "@/components/onboarding/tourSteps"
 import { PageBreadcrumb } from "@/components/PageBreadcrumb";
 import createBanner from "@/assets/create-banner.jpg";
 
-type CreationType = "image" | "quick-image" | "video";
+type CreationType = "image" | "quick-image" | "video" | "marketplace";
 
 export default function ContentCreationSelector() {
   const navigate = useNavigate();
