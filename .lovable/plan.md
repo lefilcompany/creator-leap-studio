@@ -1,37 +1,58 @@
 
 
-## Melhorias no Chatbot - Formatação, Reply, Copiar e Prompts de Criação
+## Plano: Sistema de Lixeira (Soft Delete) para Ações
 
-### O que será feito
+### Resumo
+Adicionar opção "Apagar" no menu de cada ação no histórico, com soft delete (coluna `deleted_at`). Criar página "Lixeira" acessível pela engrenagem do header. Itens na lixeira são exibidos com contagem regressiva e podem ser restaurados ou excluídos permanentemente. Após 30 dias, são apagados automaticamente.
 
-1. **Renderização com Markdown** - Usar `react-markdown` (já instalado) para formatar respostas do assistente com negrito, listas, etc.
+---
 
-2. **Reply a mensagem específica** - Ao clicar/hover em uma mensagem, exibir botão de reply. Ao clicar, mostra um preview da mensagem referenciada acima do input (estilo WhatsApp). O texto do reply é prefixado na mensagem enviada para contexto.
+### 1. Migração de banco de dados
 
-3. **Copiar mensagem** - Botão de copiar no hover de cada mensagem (assistente e usuário), copiando o conteúdo para clipboard com feedback visual.
+- Adicionar coluna `deleted_at timestamptz` (nullable, default null) na tabela `actions`
+- Criar índice parcial em `deleted_at` para performance
+- Atualizar a função `get_action_summaries` para filtrar `WHERE deleted_at IS NULL`
+- Criar função SQL `permanent_delete_old_trash()` que deleta ações com `deleted_at < NOW() - INTERVAL '30 days'`
 
-4. **Ação "Criar Imagem com Prompt"** - Quando o assistente sugerir um prompt de criação de imagem, incluir um botão de ação que redireciona para `/create/content` com o prompt pré-preenchido no campo `description`. O system prompt será atualizado para instruir o agente a gerar blocos de prompt de imagem quando o usuário pedir, usando um formato especial `[PROMPT_IMAGE: ...]` que o frontend detecta e transforma em botão clicável.
+### 2. Opção "Apagar" no ActionCardMenu
 
-5. **Design alinhado ao sistema** - Melhorar visual com rounded-2xl nos balões, avatar do assistente (ícone Sparkles), espaçamento refinado, hover states com ações, e cores consistentes com o tema rosa/roxo do sistema.
+- Adicionar prop `onDelete` ao `ActionCardMenu`
+- Adicionar item "Apagar" com ícone `Trash2` e cor destrutiva no dropdown
+- Incluir diálogo de confirmação antes de mover para lixeira
+- O delete faz `UPDATE actions SET deleted_at = NOW() WHERE id = ?`
+
+### 3. Hook `useTrash`
+
+- Novo hook `src/hooks/useTrash.ts`:
+  - Query para listar ações onde `deleted_at IS NOT NULL` (do time do usuário)
+  - Mutation `restoreAction`: seta `deleted_at = NULL`
+  - Mutation `permanentDelete`: deleta fisicamente a ação
+  - Mutation `emptyTrash`: deleta todas as ações da lixeira
+  - Mutation `softDelete`: seta `deleted_at = NOW()`
+
+### 4. Página Lixeira
+
+- Nova página `src/pages/Trash.tsx`:
+  - Lista de ações deletadas com informações de quando foram deletadas
+  - Badge mostrando dias restantes antes da exclusão permanente
+  - Botões para restaurar individualmente ou esvaziar lixeira
+  - Mensagem vazia quando não há itens
+
+### 5. Rota e navegação
+
+- Adicionar rota `/trash` dentro do `DashboardLayout` em `App.tsx`
+- Adicionar link "Lixeira" com ícone `Trash2` no dropdown da engrenagem do `Header.tsx`
+
+### 6. Limpeza automática (cron)
+
+- Criar edge function `cleanup-trash/index.ts` que executa `DELETE FROM actions WHERE deleted_at < NOW() - INTERVAL '30 days'`
+- Agendar via `pg_cron` para rodar diariamente
+
+---
 
 ### Detalhes técnicos
 
-**Arquivo: `src/components/PlatformChatbot.tsx`**
-- Adicionar tipo `Message` com campo opcional `replyTo: { idx: number; content: string }`
-- Adicionar estado `replyingTo` para controlar qual mensagem está sendo respondida
-- Renderizar mensagens com `ReactMarkdown` dentro de `prose prose-sm`
-- No hover de cada mensagem, mostrar toolbar com ícones Reply e Copy
-- Detectar padrão `[PROMPT_IMAGE: ...]` no conteúdo e renderizar como botão "Usar este prompt" que navega para `/create/content?prompt=...`
-- Preview do reply acima do input com botão X para cancelar
-
-**Arquivo: `supabase/functions/platform-chat/index.ts`**
-- Adicionar ao system prompt instrução para gerar prompts de imagem no formato `[PROMPT_IMAGE: descrição detalhada do prompt]` quando o usuário pedir sugestões de imagem ou prompts criativos
-- Instruir o agente a ser proativo em sugerir prompts de criação
-
-**Arquivo: `src/pages/CreateContent.tsx`**
-- Ler query param `prompt` da URL e pré-preencher o campo `description` do formulário
-
-### Estimativa
-- 3 arquivos modificados
-- Nenhuma migração de banco necessária
+- Todas as queries existentes de actions precisam adicionar filtro `deleted_at IS NULL` (na função SQL `get_action_summaries` e no hook `useActions`)
+- A RLS existente já protege o acesso — o soft delete usa UPDATE que já tem policy
+- O delete permanente usa a policy DELETE existente (`can_access_resource`)
 
