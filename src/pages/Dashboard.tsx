@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { TrialBanner } from "@/components/TrialBanner";
 import { ExpiredTrialBlocker } from "@/components/ExpiredTrialBlocker";
 import { useQuery } from "@tanstack/react-query";
+import { useHistoryActions, useHistoryBrands } from "@/hooks/useHistoryActions";
 
 import { dashboardSteps, navbarSteps } from '@/components/onboarding/tourSteps';
 import { TourSelector } from '@/components/onboarding/TourSelector';
