@@ -274,19 +274,20 @@ serve(async (req) => {
     // =====================================
     const messageContent: any[] = [{ type: 'text', text: userPrompt }];
 
+    // Add preserve images first (highest priority)
     for (const img of limitedPreserve) {
       if (img) messageContent.push({ type: 'image_url', image_url: { url: img } });
     }
-    if (referenceImages?.length > 0 && !limitedStyle.length) {
-      for (const img of referenceImages.slice(0, 1)) {
-        if (img) messageContent.push({ type: 'image_url', image_url: { url: img } });
-      }
-    }
+    // Add style reference images
     for (const img of limitedStyle) {
       if (img) messageContent.push({ type: 'image_url', image_url: { url: img } });
     }
+    // Add fallback reference images (when no preserve/style classification)
+    for (const img of fallbackImages) {
+      if (img) messageContent.push({ type: 'image_url', image_url: { url: img } });
+    }
 
-    console.log(`[Step 3] Message parts: ${messageContent.length} (1 text + ${messageContent.length - 1} images)`);
+    console.log(`[Step 3] Message parts: ${messageContent.length} (1 text + ${messageContent.length - 1} images, preserve: ${limitedPreserve.length}, style: ${limitedStyle.length}, fallback: ${fallbackImages.length})`);
 
     // =====================================
     // STEP 4: Generate image via Gateway with retry
