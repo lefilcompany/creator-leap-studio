@@ -115,8 +115,11 @@ serve(async (req) => {
       aspectRatio: rawAspectRatio, visualStyle = 'realistic', style = 'auto',
       quality = 'standard', negativePrompt = '', colorPalette = 'auto',
       lighting = 'natural', composition = 'auto', cameraAngle = 'eye_level',
-      detailLevel = 7, mood = 'auto',
+      detailLevel = 7, mood = 'auto', mode = 'quick',
     } = body;
+
+    const isMarketplace = mode === 'marketplace';
+    const creditCost = isMarketplace ? CREDIT_COSTS.MARKETPLACE_IMAGE : CREDIT_COSTS.QUICK_IMAGE;
 
     // Resolve aspect ratio using shared utility
     const resolved = resolveAspectRatio({
