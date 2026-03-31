@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MoreHorizontal, Star, FolderOpen, Check, User, Users, ChevronRight, X } from 'lucide-react';
+import { MoreHorizontal, Star, FolderOpen, Check, User, Users, ChevronRight, X, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
