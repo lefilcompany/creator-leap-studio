@@ -439,7 +439,7 @@ serve(async (req) => {
     const { data: actionData, error: actionError } = await supabase.from('actions').insert({
       user_id: authenticatedUserId,
       team_id: authenticatedTeamId || null,
-      type: 'CRIAR_CONTEUDO_RAPIDO',
+      type: isMarketplace ? 'CRIAR_CONTEUDO_RAPIDO' : 'CRIAR_CONTEUDO_RAPIDO',
       status: 'completed',
       brand_id: brandId || null,
       asset_path: !uploadError ? fileName : null,
