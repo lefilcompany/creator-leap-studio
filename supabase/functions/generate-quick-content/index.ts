@@ -248,8 +248,11 @@ serve(async (req) => {
     if (hasAnyRefImages) {
       const roleParts: string[] = [];
       if (isMarketplace) {
-        roleParts.push('⚠️ MODO MARKETPLACE/E-COMMERCE: As imagens de referência são FOTOS REAIS DO PRODUTO. Você DEVE preservar o produto EXATAMENTE como ele é — mesma forma, cores, rótulos, detalhes e proporções. NÃO redesenhe, NÃO altere e NÃO invente detalhes do produto');
-        roleParts.push('Crie uma foto de catálogo profissional com o produto real como elemento central, em alta qualidade de estúdio fotográfico');
+        roleParts.push('⚠️ MODO MARKETPLACE/E-COMMERCE — REGRA ABSOLUTA DE PRESERVAÇÃO:');
+        roleParts.push('As imagens de referência são FOTOS REAIS DO PRODUTO. O produto deve aparecer 100% IDÊNTICO à foto original — mesma forma, cores, rótulos, texturas, proporções, logotipos, tipografia da embalagem e TODOS os detalhes visuais');
+        roleParts.push('NÃO redesenhe, NÃO estilize, NÃO simplifique, NÃO altere cores, NÃO invente detalhes, NÃO remova elementos do produto. O produto é INTOCÁVEL');
+        roleParts.push('Sua ÚNICA tarefa é: 1) Extrair/recortar o produto da foto original preservando-o pixel a pixel; 2) Ambientar e modular o produto em um cenário/fundo profissional de catálogo; 3) Ajustar apenas iluminação e sombras para integração natural na cena');
+        roleParts.push('O produto REAL da foto é o elemento central. Trate como se fosse uma montagem fotográfica: o produto é colado intacto sobre o novo fundo');
       } else {
         if (limitedPreserve.length > 0) roleParts.push(`As imagens marcadas como PRESERVAR definem a Identidade Visual, paleta de cores e elementos obrigatórios — NÃO altere esses elementos`);
         if (limitedStyle.length > 0 || fallbackImages.length > 0) roleParts.push(`As imagens de referência definem o estilo visual, composição, cores e atmosfera desejados — use como inspiração forte`);
@@ -273,6 +276,9 @@ serve(async (req) => {
     let negativePromptFinal = styleSettings.negativePrompt;
     if (negativePrompt && negativePrompt.trim()) negativePromptFinal = `${negativePrompt.trim()}, ${negativePromptFinal}`;
     negativePromptFinal += ', text, watermark, typography, letters, signature, words, labels, do not follow reference image dimensions or aspect ratio';
+    if (isMarketplace) {
+      negativePromptFinal += ', do not redesign the product, do not change product colors, do not alter product shape, do not stylize or cartoon the product, do not simplify product details, do not invent new product features';
+    }
 
     userPrompt += `\n\n[AVOID] ${negativePromptFinal}`;
     console.log('[Step 3] Final prompt length:', userPrompt.length, 'chars');
