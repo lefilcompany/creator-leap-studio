@@ -537,6 +537,7 @@ export default function ActionList({
                 isBulkSelected={bulkSelectedIds?.has(action.id)}
                 onToggleBulkSelect={() => onToggleBulkSelect?.(action.id)}
                 onToggleSelectionMode={onToggleSelectionMode}
+                onDelete={onDelete}
               />
             );
           })}
