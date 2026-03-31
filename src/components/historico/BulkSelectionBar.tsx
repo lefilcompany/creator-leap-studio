@@ -22,6 +22,7 @@ export function BulkSelectionBar({
   onBulkFavorite,
   onBulkAddToCategory,
   onBulkRemoveFromCategory,
+  onBulkDelete,
   hasTeam,
   actionCategoryMap,
 }: BulkSelectionBarProps) {
