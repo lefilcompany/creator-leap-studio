@@ -17,6 +17,7 @@ import {
   PanelLeft,
   Columns2,
   CreditCard,
+  Trash2,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Input } from "@/components/ui/input";
