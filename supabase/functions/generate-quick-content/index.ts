@@ -247,8 +247,13 @@ serve(async (req) => {
     let imageRolePrefix = '';
     if (hasAnyRefImages) {
       const roleParts: string[] = [];
-      if (limitedPreserve.length > 0) roleParts.push(`As imagens marcadas como PRESERVAR definem a Identidade Visual, paleta de cores e elementos obrigatórios — NÃO altere esses elementos`);
-      if (limitedStyle.length > 0 || fallbackImages.length > 0) roleParts.push(`As imagens de referência definem o estilo visual, composição, cores e atmosfera desejados — use como inspiração forte`);
+      if (isMarketplace) {
+        roleParts.push('⚠️ MODO MARKETPLACE/E-COMMERCE: As imagens de referência são FOTOS REAIS DO PRODUTO. Você DEVE preservar o produto EXATAMENTE como ele é — mesma forma, cores, rótulos, detalhes e proporções. NÃO redesenhe, NÃO altere e NÃO invente detalhes do produto');
+        roleParts.push('Crie uma foto de catálogo profissional com o produto real como elemento central, em alta qualidade de estúdio fotográfico');
+      } else {
+        if (limitedPreserve.length > 0) roleParts.push(`As imagens marcadas como PRESERVAR definem a Identidade Visual, paleta de cores e elementos obrigatórios — NÃO altere esses elementos`);
+        if (limitedStyle.length > 0 || fallbackImages.length > 0) roleParts.push(`As imagens de referência definem o estilo visual, composição, cores e atmosfera desejados — use como inspiração forte`);
+      }
       roleParts.push('⚠️ IMPORTANTE: Use as imagens de referência como BASE VISUAL OBRIGATÓRIA. Cores, estilo, composição e atmosfera devem refletir as referências fornecidas');
       roleParts.push('⚠️ PROPORÇÕES DAS REFERÊNCIAS: IGNORE as proporções e dimensões das imagens de referência. O formato de saída é definido EXCLUSIVAMENTE pelo aspect ratio solicitado');
       imageRolePrefix = `${roleParts.join('. ')}.\n\n`;
