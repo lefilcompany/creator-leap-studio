@@ -19,6 +19,7 @@ interface ActionCardMenuProps {
   hasTeam: boolean;
   onToggleFavorite: (actionId: string, scope: FavoriteScope) => void;
   onDelete?: (actionId: string) => void;
+  imageUrl?: string | null;
   size?: 'sm' | 'md';
 }
 
