@@ -175,6 +175,19 @@ export function ActionCardMenu({
             )}
           </PopoverContent>
         </Popover>
+
+        {onDelete && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={(e) => { e.stopPropagation(); onDelete(actionId); }}
+              className="gap-2.5 text-destructive focus:text-destructive focus:bg-destructive/10"
+            >
+              <Trash2 className="h-4 w-4 flex-shrink-0" />
+              <span className="flex-1">Apagar</span>
+            </DropdownMenuItem>
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

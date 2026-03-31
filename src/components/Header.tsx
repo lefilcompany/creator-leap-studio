@@ -359,6 +359,12 @@ export const Header = () => {
                   <CreditCard className="mr-3 h-4 w-4" />
                   <span>{isLoadingPortal ? "Carregando..." : "Gerenciar Cartão"}</span>
                 </DropdownMenuItem>
+                <DropdownMenuItem className="p-3 cursor-pointer" asChild>
+                  <Link to="/trash" className="flex items-center">
+                    <Trash2 className="mr-3 h-4 w-4" />
+                    <span>Lixeira</span>
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DialogTrigger asChild>
                   <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10 p-3 cursor-pointer">

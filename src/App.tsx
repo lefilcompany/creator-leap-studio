@@ -164,6 +164,7 @@ const App = () => (
                         <Route path="action/:actionId" element={<SuspenseRoute><ActionView /></SuspenseRoute>} />
                         <Route path="categories" element={<SuspenseRoute><Categories /></SuspenseRoute>} />
                         <Route path="categories/:categoryId" element={<SuspenseRoute><CategoryView /></SuspenseRoute>} />
+                        <Route path="trash" element={<SuspenseRoute><Trash /></SuspenseRoute>} />
                       </Route>
                       
                       {/* System admin routes with separate layout */}
