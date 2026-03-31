@@ -339,6 +339,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setTrialDaysRemaining(null);
       dataCache.current = null;
       lastReloadTime.current = 0;
+
+      // Clear all caches to force fresh load on next login
+      try {
+        // Clear React Query cache
+        localStorage.removeItem('REACT_QUERY_OFFLINE_CACHE');
+        // Clear any persisted form data
+        Object.keys(localStorage).forEach(key => {
+          if (key.startsWith('form-') || key.startsWith('quick-content-') || key.startsWith('draft-')) {
+            localStorage.removeItem(key);
+          }
+        });
+        // Unregister service workers to ensure fresh assets
+        if ('serviceWorker' in navigator) {
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          for (const registration of registrations) {
+            await registration.unregister();
+          }
+        }
+        // Clear browser caches
+        if ('caches' in window) {
+          const cacheNames = await caches.keys();
+          for (const name of cacheNames) {
+            await caches.delete(name);
+          }
+        }
+      } catch (e) {
+        console.warn('Cache cleanup on logout:', e);
+      }
+
+      // Force full page reload to clear any in-memory state and fetch fresh assets
+      window.location.href = '/login';
     } catch (error) {
       // Silent error
     }
