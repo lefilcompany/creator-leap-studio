@@ -249,6 +249,7 @@ function ActionCard({ action, isSelected, onNavigate, isPersonalFavorite, isTeam
             isTeamFavorite={!!isTeamFavorite}
             hasTeam={!!hasTeam}
             onToggleFavorite={(id, scope) => onToggleFavorite?.(id, scope)}
+            onDelete={onDelete}
           />
         </div>
       </div>
