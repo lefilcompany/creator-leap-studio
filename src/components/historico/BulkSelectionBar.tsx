@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
-import { Star, FolderOpen, X, ChevronDown, User, Users, Plus, Minus } from 'lucide-react';
+import { Star, FolderOpen, X, ChevronDown, User, Users, Plus, Minus, Trash2 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useCategories } from '@/hooks/useCategories';
 import type { FavoriteScope } from '@/hooks/useFavorites';
 
@@ -10,6 +11,7 @@ interface BulkSelectionBarProps {
   onBulkFavorite: (scope: FavoriteScope) => void;
   onBulkAddToCategory: (categoryId: string) => void;
   onBulkRemoveFromCategory: (categoryId: string) => void;
+  onBulkDelete?: () => void;
   hasTeam: boolean;
   actionCategoryMap: Map<string, string[]>;
 }
@@ -20,6 +22,7 @@ export function BulkSelectionBar({
   onBulkFavorite,
   onBulkAddToCategory,
   onBulkRemoveFromCategory,
+  onBulkDelete,
   hasTeam,
   actionCategoryMap,
 }: BulkSelectionBarProps) {
@@ -179,6 +182,35 @@ export function BulkSelectionBar({
             )}
           </PopoverContent>
         </Popover>
+
+        {/* Delete */}
+        {onBulkDelete && (
+          <>
+            <div className="w-px h-4 bg-border/50" />
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-destructive hover:bg-destructive/10 transition-colors active:scale-95">
+                  <Trash2 className="h-3.5 w-3.5" />
+                  Apagar
+                </button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Mover para lixeira?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    {count} {count === 1 ? 'item será movido' : 'itens serão movidos'} para a lixeira. Você poderá restaurá-los em até 30 dias.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction onClick={onBulkDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                    Apagar
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </>
+        )}
 
         <div className="w-px h-4 bg-border/50" />
 
