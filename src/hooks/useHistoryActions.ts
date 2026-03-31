@@ -40,6 +40,8 @@ export function useHistoryBrands() {
       })) as BrandSummary[];
     },
     enabled: !!user?.id,
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 30,
   });
 }
 
@@ -73,7 +75,6 @@ export function useHistoryActions(filters: HistoryFilters) {
       if (error) throw error;
 
       const rows = data || [];
-      const totalCount = rows[0]?.total_count || 0;
 
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
       const storageBase = supabaseUrl
@@ -129,10 +130,12 @@ export function useHistoryActions(filters: HistoryFilters) {
         ? { createdAt: lastAction.createdAt, id: lastAction.id }
         : null;
 
-      return { actions, nextCursor, totalCount };
+      return { actions, nextCursor, totalCount: 0 };
     },
     initialPageParam: undefined,
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     enabled: !!user?.id,
+    staleTime: 1000 * 60 * 2, // 2 min cache — avoid re-fetching on every navigation
+    gcTime: 1000 * 60 * 15,   // keep in cache 15 min
   });
 }
