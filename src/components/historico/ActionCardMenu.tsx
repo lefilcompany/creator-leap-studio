@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MoreHorizontal, Star, FolderOpen, Check, User, Users, ChevronRight, X, Trash2 } from 'lucide-react';
+import { MoreHorizontal, Star, FolderOpen, Check, User, Users, ChevronRight, X, Trash2, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
@@ -19,6 +19,7 @@ interface ActionCardMenuProps {
   hasTeam: boolean;
   onToggleFavorite: (actionId: string, scope: FavoriteScope) => void;
   onDelete?: (actionId: string) => void;
+  imageUrl?: string | null;
   size?: 'sm' | 'md';
 }
 
@@ -29,6 +30,7 @@ export function ActionCardMenu({
   hasTeam,
   onToggleFavorite,
   onDelete,
+  imageUrl,
   size = 'md',
 }: ActionCardMenuProps) {
   const { categories, addActionToCategory, removeActionFromCategory } = useCategories();
@@ -175,6 +177,36 @@ export function ActionCardMenu({
             )}
           </PopoverContent>
         </Popover>
+
+        {imageUrl && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={async (e) => {
+                e.stopPropagation();
+                try {
+                  const response = await fetch(imageUrl);
+                  const blob = await response.blob();
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `imagem-${actionId.slice(0, 8)}.png`;
+                  document.body.appendChild(a);
+                  a.click();
+                  document.body.removeChild(a);
+                  URL.revokeObjectURL(url);
+                } catch {
+                  window.open(imageUrl, '_blank');
+                }
+                setMenuOpen(false);
+              }}
+              className="gap-2.5"
+            >
+              <Download className="h-4 w-4 flex-shrink-0" />
+              <span className="flex-1">Baixar imagem</span>
+            </DropdownMenuItem>
+          </>
+        )}
 
         {onDelete && (
           <>

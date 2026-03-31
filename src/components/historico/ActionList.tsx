@@ -251,6 +251,7 @@ function ActionCard({ action, isSelected, onNavigate, isPersonalFavorite, isTeam
             hasTeam={!!hasTeam}
             onToggleFavorite={(id, scope) => onToggleFavorite?.(id, scope)}
             onDelete={onDelete}
+            imageUrl={action.imageUrl}
           />
         </div>
       </div>
@@ -507,6 +508,7 @@ export default function ActionList({
                         hasTeam={!!hasTeam}
                         onToggleFavorite={(id, scope) => onToggleFavorite?.(id, scope)}
                         onDelete={onDelete}
+                        imageUrl={action.imageUrl}
                         size="sm"
                       />
                     </TableCell>
