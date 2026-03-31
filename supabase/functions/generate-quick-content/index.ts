@@ -214,10 +214,15 @@ serve(async (req) => {
     if (detailLevel !== 7) advParts.push(`Detalhe: ${detailLevel}/10`);
     if (advParts.length > 0) briefingSections.push(`CONFIGURAÇÕES VISUAIS: ${advParts.join(' | ')}`);
 
-    const limitedPreserve = preserveImages ? preserveImages.slice(0, 2) : [];
-    const limitedStyle = styleReferenceImages ? styleReferenceImages.slice(0, 1) : [];
-    if (limitedPreserve.length > 0) briefingSections.push(`IMAGENS DE REFERÊNCIA DA MARCA: ${limitedPreserve.length} imagem(ns) fornecidas.`);
-    if (limitedStyle.length > 0) briefingSections.push(`IMAGENS DE REFERÊNCIA DE ESTILO: ${limitedStyle.length} imagem(ns) fornecidas.`);
+    const limitedPreserve = preserveImages ? preserveImages.slice(0, 3) : [];
+    const limitedStyle = styleReferenceImages ? styleReferenceImages.slice(0, 3) : [];
+    // Fallback: if no images were categorized, use all referenceImages directly
+    const fallbackImages = (limitedPreserve.length === 0 && limitedStyle.length === 0 && referenceImages?.length > 0)
+      ? referenceImages.slice(0, 3)
+      : [];
+    const totalRefImages = limitedPreserve.length + limitedStyle.length + fallbackImages.length;
+    if (totalRefImages > 0) briefingSections.push(`IMAGENS DE REFERÊNCIA: ${totalRefImages} imagem(ns) fornecida(s). Use-as como base visual obrigatória para cores, composição, estilo e elementos da imagem gerada.`);
+    if (limitedPreserve.length > 0) briefingSections.push(`PRESERVAR: ${limitedPreserve.length} imagem(ns) marcada(s) para preservação — mantenha os elementos, formas e cores exatos dessas imagens.`);
     if (negativePrompt) briefingSections.push(`ELEMENTOS A EVITAR: ${negativePrompt}`);
 
     const briefingDocument = briefingSections.join('\n\n');
