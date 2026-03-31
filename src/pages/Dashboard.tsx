@@ -23,6 +23,10 @@ const Dashboard = () => {
   const { user, isLoading } = useAuth();
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
 
+  // Prefetch history data so /history opens instantly from cache
+  useHistoryActions({ brandFilter: 'all', typeFilter: 'all' });
+  useHistoryBrands();
+
   useEffect(() => {
     if (!user) return;
     
