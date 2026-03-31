@@ -178,6 +178,36 @@ export function ActionCardMenu({
           </PopoverContent>
         </Popover>
 
+        {imageUrl && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={async (e) => {
+                e.stopPropagation();
+                try {
+                  const response = await fetch(imageUrl);
+                  const blob = await response.blob();
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `imagem-${actionId.slice(0, 8)}.png`;
+                  document.body.appendChild(a);
+                  a.click();
+                  document.body.removeChild(a);
+                  URL.revokeObjectURL(url);
+                } catch {
+                  window.open(imageUrl, '_blank');
+                }
+                setMenuOpen(false);
+              }}
+              className="gap-2.5"
+            >
+              <Download className="h-4 w-4 flex-shrink-0" />
+              <span className="flex-1">Baixar imagem</span>
+            </DropdownMenuItem>
+          </>
+        )}
+
         {onDelete && (
           <>
             <DropdownMenuSeparator />
