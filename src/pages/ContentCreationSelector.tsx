@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Loader2, Zap, ImageIcon, Video, HelpCircle } from "lucide-react";
+import { Loader2, Zap, ImageIcon, Video, HelpCircle, ShoppingBag } from "lucide-react";
 import { CREDIT_COSTS } from "@/lib/creditCosts";
 import { useAuth } from "@/hooks/useAuth";
 import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
@@ -12,7 +12,7 @@ import { contentCreationSelectorSteps } from "@/components/onboarding/tourSteps"
 import { PageBreadcrumb } from "@/components/PageBreadcrumb";
 import createBanner from "@/assets/create-banner.jpg";
 
-type CreationType = "image" | "quick-image" | "video";
+type CreationType = "image" | "quick-image" | "video" | "marketplace";
 
 export default function ContentCreationSelector() {
   const navigate = useNavigate();
@@ -41,6 +41,7 @@ export default function ContentCreationSelector() {
         image: "/create/image",
         "quick-image": "/create/quick",
         video: "/create/video",
+        marketplace: "/create/marketplace",
       };
       navigate(routes[creationType]);
     }
@@ -148,7 +149,7 @@ export default function ContentCreationSelector() {
           onValueChange={(value) => setCreationType(value as CreationType)}
           className="h-full"
         >
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-full">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 h-full">
             {/* Criar Imagem Rápida */}
             <label htmlFor="quick-image" className="cursor-pointer h-full" onClick={() => setCreationType("quick-image")}>
               <Card className="border-0 shadow-lg hover:shadow-xl hover:bg-amber-500/10 hover:border-amber-500/30 transition-all duration-300 h-full active:scale-[0.98] touch-manipulation rounded-2xl">
@@ -221,6 +222,32 @@ export default function ContentCreationSelector() {
                     <Video className="h-4 w-4 text-secondary" />
                     <span className="text-sm font-bold text-secondary">
                       {CREDIT_COSTS.VIDEO_GENERATION} créditos
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+            </label>
+
+            {/* Marketplace */}
+            <label htmlFor="marketplace" className="cursor-pointer h-full" onClick={() => setCreationType("marketplace")}>
+              <Card className="border-0 shadow-lg hover:shadow-xl hover:bg-emerald-500/10 hover:border-emerald-500/30 transition-all duration-300 h-full active:scale-[0.98] touch-manipulation rounded-2xl">
+                <CardContent className="p-6 flex flex-col items-center text-center gap-4 h-full justify-between">
+                  <RadioGroupItem value="marketplace" id="marketplace" className="sr-only" />
+                  <div className="flex flex-col items-center gap-4 flex-1 justify-center">
+                    <div className="w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
+                      <ShoppingBag className="h-8 w-8 text-emerald-500" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <h3 className="font-semibold text-lg">Marketplace</h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        Crie imagens profissionais de produtos para marketplaces e e-commerce
+                      </p>
+                    </div>
+                  </div>
+                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/15 border border-emerald-500/30">
+                    <ShoppingBag className="h-4 w-4 text-emerald-500" />
+                    <span className="text-sm font-bold text-emerald-500">
+                      {CREDIT_COSTS.MARKETPLACE_IMAGE} créditos
                     </span>
                   </div>
                 </CardContent>

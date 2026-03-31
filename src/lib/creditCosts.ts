@@ -12,6 +12,7 @@ export const CREDIT_COSTS = {
   CREATE_BRAND: 1,
   CREATE_PERSONA: 1,
   CREATE_THEME: 1,
+  MARKETPLACE_IMAGE: 5,
 } as const;
 
 export const getCreditCostLabel = (action: keyof typeof CREDIT_COSTS): string => {
@@ -29,6 +30,7 @@ export const getCreditCostLabel = (action: keyof typeof CREDIT_COSTS): string =>
     CREATE_BRAND: "Criar marca",
     CREATE_PERSONA: "Criar persona",
     CREATE_THEME: "Criar tema",
+    MARKETPLACE_IMAGE: "Imagem para marketplace",
   };
   return labels[action];
 };

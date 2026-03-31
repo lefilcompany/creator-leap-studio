@@ -146,6 +146,7 @@ const App = () => (
                         <Route path="create/image" element={<SuspenseRoute><CreateImage /></SuspenseRoute>} />
                         <Route path="create/video" element={<SuspenseRoute><CreateVideo /></SuspenseRoute>} />
                         <Route path="create/animate" element={<SuspenseRoute><AnimateImage /></SuspenseRoute>} />
+                        <Route path="create/marketplace" element={<SuspenseRoute><QuickContent /></SuspenseRoute>} />
                         <Route path="result" element={<SuspenseRoute><ContentResult /></SuspenseRoute>} />
                         <Route path="video-result" element={<SuspenseRoute><VideoResult /></SuspenseRoute>} />
                         <Route path="review" element={<SuspenseRoute><ReviewContent /></SuspenseRoute>} />
