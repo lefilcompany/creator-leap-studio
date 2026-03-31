@@ -7,6 +7,9 @@ import { TrialBanner } from "@/components/TrialBanner";
 import { ExpiredTrialBlocker } from "@/components/ExpiredTrialBlocker";
 import { useQuery } from "@tanstack/react-query";
 import { useHistoryActions, useHistoryBrands } from "@/hooks/useHistoryActions";
+import { useBrands } from "@/hooks/useBrands";
+import { usePersonas } from "@/hooks/usePersonas";
+import { useThemes } from "@/hooks/useThemes";
 
 import { dashboardSteps, navbarSteps } from '@/components/onboarding/tourSteps';
 import { TourSelector } from '@/components/onboarding/TourSelector';
