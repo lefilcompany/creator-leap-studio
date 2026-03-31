@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { TrialBanner } from "@/components/TrialBanner";
 import { ExpiredTrialBlocker } from "@/components/ExpiredTrialBlocker";
 import { useQuery } from "@tanstack/react-query";
+import { useHistoryActions, useHistoryBrands } from "@/hooks/useHistoryActions";
 
 import { dashboardSteps, navbarSteps } from '@/components/onboarding/tourSteps';
 import { TourSelector } from '@/components/onboarding/TourSelector';
@@ -21,6 +22,10 @@ import { PostRegistrationPurchaseModal } from "@/components/PostRegistrationPurc
 const Dashboard = () => {
   const { user, isLoading } = useAuth();
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
+
+  // Prefetch history data so /history opens instantly from cache
+  useHistoryActions({ brandFilter: 'all', typeFilter: 'all' });
+  useHistoryBrands();
 
   useEffect(() => {
     if (!user) return;
