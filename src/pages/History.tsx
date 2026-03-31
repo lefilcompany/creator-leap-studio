@@ -37,6 +37,7 @@ export default function History() {
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const isMobile = useIsMobile();
   const { categories, addActionToCategory } = useCategories();
+  const softDelete = useSoftDelete();
 
   // Bulk selection
   const [selectionMode, setSelectionMode] = useState(false);
