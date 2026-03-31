@@ -158,6 +158,8 @@ export default function History() {
       return data || [];
     },
     enabled: !!user?.id,
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 30,
   });
 
   const actionCategoryMap = useMemo(() => {
