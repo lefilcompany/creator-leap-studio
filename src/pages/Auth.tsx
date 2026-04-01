@@ -326,34 +326,36 @@ const Auth = () => {
       if (data.user) {
         toast.success("Cadastro realizado com sucesso!");
 
-        try {
-          await supabase.functions.invoke("rd-station-integration", {
-            body: {
-              eventType: "user_registered",
-              userData: {
-                email: formData.email,
-                name: formData.name,
-                phone: formData.phone,
-                city: formData.city,
-                state: formData.state,
-                tags: [
-                  "novo_usuario",
-                  "criador_conta",
-                  ...(utmParams.utm_source ? [`utm_source_${utmParams.utm_source}`] : []),
-                  ...(utmParams.utm_campaign ? [`utm_campaign_${utmParams.utm_campaign}`] : []),
-                ],
-                ...(Object.keys(utmParams).length > 0 && { utm: utmParams }),
-              },
+        // RD Station em background (não bloqueia)
+        supabase.functions.invoke("rd-station-integration", {
+          body: {
+            eventType: "user_registered",
+            userData: {
+              email: formData.email,
+              name: formData.name,
+              phone: formData.phone,
+              city: formData.city,
+              state: formData.state,
+              tags: [
+                "novo_usuario",
+                "criador_conta",
+                ...(utmParams.utm_source ? [`utm_source_${utmParams.utm_source}`] : []),
+                ...(utmParams.utm_campaign ? [`utm_campaign_${utmParams.utm_campaign}`] : []),
+              ],
+              ...(Object.keys(utmParams).length > 0 && { utm: utmParams }),
             },
-          });
-        } catch (rdError) {
+          },
+        }).catch((rdError) => {
           console.error("Erro ao enviar para RD Station:", rdError);
-        }
+        });
 
         if (couponCode && isValidCouponFormat) {
           try {
             localStorage.setItem("pending_coupon_code", normalizedCouponCode);
             localStorage.setItem("pending_coupon_user_id", data.user.id);
+
+            // Aguardar profile ser criado pelo trigger antes de resgatar cupom
+            await new Promise(resolve => setTimeout(resolve, 1500));
 
             const { data: couponResult, error: couponError } = await supabase.functions.invoke("redeem-coupon", {
               body: { couponCode: normalizedCouponCode },
@@ -374,8 +376,8 @@ const Auth = () => {
           }
         }
 
-        // Redirecionar direto para o dashboard (cartão pode ser cadastrado depois)
-        setWaitingForAuth(true);
+        // Redirecionar direto para o dashboard
+        navigate("/dashboard", { replace: true });
       }
     } catch (err) {
       toast.error("Ocorreu um erro ao tentar se cadastrar.");
