@@ -369,7 +369,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       // Force full page reload to clear any in-memory state and fetch fresh assets
-      window.location.href = '/login';
+      window.location.href = '/';
     } catch (error) {
       // Silent error
     }
