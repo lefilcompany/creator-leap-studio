@@ -300,6 +300,7 @@ const Auth = () => {
     }
 
     setLoading(true);
+    setRegistrationStep("Criando sua conta...");
     try {
       const normalizedCouponCode = couponCode.trim().toUpperCase();
 
@@ -325,7 +326,7 @@ const Auth = () => {
       }
 
       if (data.user) {
-        toast.success("Cadastro realizado com sucesso!");
+        setRegistrationStep("Configurando seu perfil...");
 
         // RD Station em background (não bloqueia)
         supabase.functions.invoke("rd-station-integration", {
@@ -352,6 +353,7 @@ const Auth = () => {
 
         if (couponCode && isValidCouponFormat) {
           try {
+            setRegistrationStep("Aplicando cupom...");
             localStorage.setItem("pending_coupon_code", normalizedCouponCode);
             localStorage.setItem("pending_coupon_user_id", data.user.id);
 
@@ -377,6 +379,9 @@ const Auth = () => {
           }
         }
 
+        setRegistrationStep("Tudo pronto! Redirecionando...");
+        await new Promise(resolve => setTimeout(resolve, 500));
+
         // Redirecionar direto para o dashboard
         navigate("/dashboard", { replace: true });
       }
@@ -384,6 +389,7 @@ const Auth = () => {
       toast.error("Ocorreu um erro ao tentar se cadastrar.");
     } finally {
       setLoading(false);
+      setRegistrationStep(null);
     }
   };
 
