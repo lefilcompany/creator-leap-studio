@@ -736,6 +736,36 @@ const Auth = () => {
 
   return (
     <>
+      {/* Registration loading overlay */}
+      <AnimatePresence>
+        {registrationStep && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-background/80 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="flex flex-col items-center gap-4 p-8 rounded-2xl bg-card shadow-xl border border-border/50"
+            >
+              <Loader2 className="h-10 w-10 animate-spin text-primary" />
+              <motion.p
+                key={registrationStep}
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-base font-medium text-foreground"
+              >
+                {registrationStep}
+              </motion.p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <div className="min-h-screen flex flex-col items-center justify-center relative overflow-y-auto p-4 sm:p-6"
         style={{
           background: 'linear-gradient(135deg, hsl(330 70% 92%) 0%, hsl(310 50% 93%) 20%, hsl(280 55% 94%) 40%, hsl(330 60% 95%) 60%, hsl(200 60% 93%) 80%, hsl(270 50% 92%) 100%)',
