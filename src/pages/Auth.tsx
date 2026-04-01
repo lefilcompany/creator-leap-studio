@@ -56,6 +56,7 @@ const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [registrationStep, setRegistrationStep] = useState<string | null>(null);
   const [showTeamSelection, setShowTeamSelection] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [waitingForAuth, setWaitingForAuth] = useState(false);
