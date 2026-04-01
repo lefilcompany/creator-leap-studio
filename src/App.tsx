@@ -120,6 +120,7 @@ const App = () => (
                     <Routes>
                       {/* Public routes */}
                       <Route path="/" element={<SuspenseRoute><Auth /></SuspenseRoute>} />
+                      <Route path="/login" element={<SuspenseRoute><Auth /></SuspenseRoute>} />
                       <Route path="/cadastro" element={<RegisterRedirect />} />
                       <Route path="/register" element={<RegisterRedirect />} />
                       <Route path="/forgot-password" element={<SuspenseRoute><ForgotPassword /></SuspenseRoute>} />
