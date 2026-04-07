@@ -25,62 +25,7 @@ function getProfileSyncPayload(profile: {
   };
 }
 
-// ============= CUPONS PROMOCIONAIS ÚNICOS (200 créditos) =============
-const PROMO_COUPONS: Record<string, string> = {
-  'alinearaujo200': 'Aline Araújo',
-  'anacelina200': 'Ana Celina',
-  'anahildameneses200': 'Ana Hilda Randal Meneses',
-  'anaquezado200': 'Ana Quezado',
-  'camilaandrade200': 'Camila Andrade',
-  'carlamatos200': 'Carla Matos',
-  'carolvasconcelos200': 'Carol Vasconcelos',
-  'cassiamonteiro200': 'Cassia Monteiro',
-  'chateaubriandarrais200': 'Chateaubriand Arrais',
-  'claudioaugusto200': 'Cláudio Augusto',
-  'daviraulino200': 'Davi Raulino',
-  'drfabricio200': 'Dr. Fabricio',
-  'eliasbruno200': 'Elias Bruno',
-  'elizianecolares200': 'Eliziane Colares',
-  'emmanuelbrandao200': 'Emmanuel Brandão',
-  'giacomobrayner200': 'Giacomo Brayner',
-  'helainetahim200': 'Helaine Tahim',
-  'hugolopes200': 'Hugo Lopes',
-  'ilinamemede200': 'Ilina Mamede',
-  'ionaramonteiro200': 'Ionara Monteiro',
-  'joselmaoliveira200': 'Joselma Oliveira',
-  'karlarodrigues200': 'Karla Rodrigues',
-  'kellyannepinheiro200': 'Kellyanne Pinheiro',
-  'larissaaguiar200': 'Larissa Aguiar',
-  'leonardoleitao200': 'Leonardo Leitão',
-  'liaquindere200': 'Lia Quinderé',
-  'lucianacastro200': 'Luciana Castro',
-  'ludgardooliveira200': 'Ludgardo Oliveira',
-  'luisalemos200': 'Luisa Lemos',
-  'marcosandre200': 'Marcos André',
-  'mariatereza200': 'Maria Tereza',
-  'maurocosta200': 'Mauro Costa',
-  'nayaraagrela200': 'Nayara Agrela',
-  'paulojrpieiro200': 'Paulo Jr. Pieiro',
-  'raysaridia200': 'Raysa Ridia',
-  'rebeccabrasil200': 'Rebecca Brasil',
-  'renatasantos200': 'Renata Santos',
-  'rodrigobourbon200': 'Rodrigo Bourbon',
-  'ronaldotelles200': 'Ronaldo Telles',
-  'tatianabrigido200': 'Tatiana Brigido',
-  'thiagocaldas200': 'Thiago Caldas',
-  'thiagofacanha200': 'Thiago Façanha',
-  'thiagotaumaturgo200': 'Thiago Taumaturgo',
-  'vinifernandes200': 'Vini Fernandes',
-  'sinaravasconcelos200': 'Sinara Vasconcelos',
-  'samuelmuniz200': 'Samuel Muniz',
-};
-
-const PROMO_CREDITS = 200;
-
-// Função para verificar se é um cupom promocional
-function isPromoCoupon(code: string): boolean {
-  return code.toLowerCase() in PROMO_COUPONS;
-}
+// Promo coupons are now managed in the 'coupons' table in the database.
 
 // ============= SISTEMA DE CUPONS COM CHECKSUM =============
 const PREFIX_VALUES: Record<string, number> = {
@@ -292,87 +237,7 @@ serve(async (req) => {
 
     console.log(`[redeem-coupon] User profile found: ${user.id} (team: ${profile.team_id || 'none'})`);
 
-    // ============= CUPOM PROMOCIONAL =============
-    if (isPromoCoupon(lowerCode)) {
-      const promoOwner = PROMO_COUPONS[lowerCode];
-      console.log(`[redeem-coupon] Promo coupon detected: ${lowerCode} (${promoOwner})`);
-
-      // Registrar cupom promocional (usa user.id como team_id se não tiver equipe)
-      const { error: insertError } = await supabaseAdmin
-        .from('coupons_used')
-        .insert({
-          team_id: profile.team_id || null,
-          coupon_code: lowerCode,
-          coupon_prefix: 'PROMO',
-          prize_type: 'credits',
-          prize_value: PROMO_CREDITS,
-          redeemed_by: user.id
-        });
-
-      if (insertError) {
-        console.error('[redeem-coupon] Error registering promo coupon:', insertError);
-        if (insertError.code === '23505') {
-          return new Response(
-            JSON.stringify({ valid: false, error: 'Este cupom já foi utilizado.' }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-          );
-        }
-        throw new Error('Erro ao registrar cupom. Tente novamente.');
-      }
-
-      // Adicionar créditos ao USUÁRIO (somar, não substituir)
-      const creditsBefore = profile.credits || 0;
-      const newCredits = creditsBefore + PROMO_CREDITS;
-      const newMaxCredits = Math.max(profile.max_credits ?? 0, newCredits);
-      const expireAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-      const { data: updatedProfile, error: creditUpdateError } = await supabaseAdmin
-        .from('profiles')
-        .update({ credits: newCredits, max_credits: newMaxCredits, credits_expire_at: expireAt })
-        .eq('id', user.id)
-        .select('credits, max_credits, credits_expire_at, plan_id, subscription_status, subscription_period_end')
-        .single();
-      const addResult = { success: !creditUpdateError, newCredits, error: creditUpdateError?.message };
-
-      if (!addResult.success) {
-        console.error('[redeem-coupon] Error updating user credits:', addResult.error);
-        return new Response(
-          JSON.stringify({ 
-            valid: false, 
-            error: 'Cupom registrado, mas erro ao aplicar créditos. Contate o suporte.' 
-          }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-        );
-      }
-
-      // Registrar no histórico
-      await recordUserCreditUsage(supabaseAdmin, {
-        userId: user.id,
-        teamId: profile.team_id || undefined,
-        actionType: 'COUPON_REDEMPTION',
-        creditsUsed: -PROMO_CREDITS, // Negativo porque é adição
-        creditsBefore: creditsBefore,
-        creditsAfter: addResult.newCredits,
-        description: `Cupom promocional ${promoOwner}`,
-        metadata: { coupon_code: lowerCode, coupon_type: 'promo' }
-      });
-
-      console.log(`[redeem-coupon] ✅ Promo coupon redeemed: ${lowerCode} (+${PROMO_CREDITS} credits)`);
-
-      return new Response(
-        JSON.stringify({
-          valid: true,
-          prize: {
-            type: 'credits',
-            value: PROMO_CREDITS,
-            description: `${PROMO_CREDITS} créditos (Cupom ${promoOwner})`
-          },
-          profile: updatedProfile ? getProfileSyncPayload(updatedProfile) : undefined,
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // ============= CUPOM DO BANCO DE DADOS (criado por admin) =============
+    // ============= CUPOM DO BANCO DE DADOS (criado por admin ou promocional) =============
     // First check if coupon exists at all (without is_active filter)
     const { data: dbCouponAny, error: dbCouponAnyError } = await supabaseAdmin
       .from('coupons')
