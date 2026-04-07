@@ -25,62 +25,7 @@ function getProfileSyncPayload(profile: {
   };
 }
 
-// ============= CUPONS PROMOCIONAIS ÚNICOS (200 créditos) =============
-const PROMO_COUPONS: Record<string, string> = {
-  'alinearaujo200': 'Aline Araújo',
-  'anacelina200': 'Ana Celina',
-  'anahildameneses200': 'Ana Hilda Randal Meneses',
-  'anaquezado200': 'Ana Quezado',
-  'camilaandrade200': 'Camila Andrade',
-  'carlamatos200': 'Carla Matos',
-  'carolvasconcelos200': 'Carol Vasconcelos',
-  'cassiamonteiro200': 'Cassia Monteiro',
-  'chateaubriandarrais200': 'Chateaubriand Arrais',
-  'claudioaugusto200': 'Cláudio Augusto',
-  'daviraulino200': 'Davi Raulino',
-  'drfabricio200': 'Dr. Fabricio',
-  'eliasbruno200': 'Elias Bruno',
-  'elizianecolares200': 'Eliziane Colares',
-  'emmanuelbrandao200': 'Emmanuel Brandão',
-  'giacomobrayner200': 'Giacomo Brayner',
-  'helainetahim200': 'Helaine Tahim',
-  'hugolopes200': 'Hugo Lopes',
-  'ilinamemede200': 'Ilina Mamede',
-  'ionaramonteiro200': 'Ionara Monteiro',
-  'joselmaoliveira200': 'Joselma Oliveira',
-  'karlarodrigues200': 'Karla Rodrigues',
-  'kellyannepinheiro200': 'Kellyanne Pinheiro',
-  'larissaaguiar200': 'Larissa Aguiar',
-  'leonardoleitao200': 'Leonardo Leitão',
-  'liaquindere200': 'Lia Quinderé',
-  'lucianacastro200': 'Luciana Castro',
-  'ludgardooliveira200': 'Ludgardo Oliveira',
-  'luisalemos200': 'Luisa Lemos',
-  'marcosandre200': 'Marcos André',
-  'mariatereza200': 'Maria Tereza',
-  'maurocosta200': 'Mauro Costa',
-  'nayaraagrela200': 'Nayara Agrela',
-  'paulojrpieiro200': 'Paulo Jr. Pieiro',
-  'raysaridia200': 'Raysa Ridia',
-  'rebeccabrasil200': 'Rebecca Brasil',
-  'renatasantos200': 'Renata Santos',
-  'rodrigobourbon200': 'Rodrigo Bourbon',
-  'ronaldotelles200': 'Ronaldo Telles',
-  'tatianabrigido200': 'Tatiana Brigido',
-  'thiagocaldas200': 'Thiago Caldas',
-  'thiagofacanha200': 'Thiago Façanha',
-  'thiagotaumaturgo200': 'Thiago Taumaturgo',
-  'vinifernandes200': 'Vini Fernandes',
-  'sinaravasconcelos200': 'Sinara Vasconcelos',
-  'samuelmuniz200': 'Samuel Muniz',
-};
-
-const PROMO_CREDITS = 200;
-
-// Função para verificar se é um cupom promocional
-function isPromoCoupon(code: string): boolean {
-  return code.toLowerCase() in PROMO_COUPONS;
-}
+// Promo coupons are now managed in the 'coupons' table in the database.
 
 // ============= SISTEMA DE CUPONS COM CHECKSUM =============
 const PREFIX_VALUES: Record<string, number> = {
