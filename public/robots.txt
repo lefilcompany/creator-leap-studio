@@ -1,8 +1,42 @@
 User-agent: Googlebot
 Allow: /
+Disallow: /dashboard
+Disallow: /brands
+Disallow: /themes
+Disallow: /personas
+Disallow: /history
+Disallow: /create
+Disallow: /credits
+Disallow: /team
+Disallow: /profile
+Disallow: /system
+Disallow: /trash
+Disallow: /action
+Disallow: /categories
+Disallow: /plan
+Disallow: /review
+Disallow: /result
+Disallow: /quick-content
+Disallow: /video-result
+Disallow: /credit-history
+Disallow: /onboarding
+Disallow: /payment-success
+Disallow: /reset-password
+Disallow: /forgot-password
 
 User-agent: Bingbot
 Allow: /
+Disallow: /dashboard
+Disallow: /brands
+Disallow: /themes
+Disallow: /personas
+Disallow: /history
+Disallow: /create
+Disallow: /credits
+Disallow: /team
+Disallow: /profile
+Disallow: /system
+Disallow: /trash
 
 User-agent: Twitterbot
 Allow: /
@@ -12,3 +46,16 @@ Allow: /
 
 User-agent: *
 Allow: /
+Disallow: /dashboard
+Disallow: /brands
+Disallow: /themes
+Disallow: /personas
+Disallow: /history
+Disallow: /create
+Disallow: /credits
+Disallow: /team
+Disallow: /profile
+Disallow: /system
+Disallow: /trash
+
+Sitemap: https://pla.creator.lefil.com.br/sitemap.xml
