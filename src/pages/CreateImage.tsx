@@ -380,7 +380,55 @@ export default function CreateImage() {
     key: 'create-image-form', formData, excludeFields: ['referenceFiles']
   });
 
+  const [showPrefillWarning, setShowPrefillWarning] = useState(false);
+
   useEffect(() => {
+    // Check for prefill data from ContentResult "reuse prompt" action
+    if (location.state?.prefillData) {
+      const pf = location.state.prefillData;
+      const mapped: Partial<FormData> = {};
+      // Map originalFormData keys to CreateImage FormData keys
+      if (pf.brandId) mapped.brand = pf.brandId;
+      if (pf.themeId) mapped.theme = pf.themeId;
+      if (pf.personaId) mapped.persona = pf.personaId;
+      if (pf.description || pf.prompt || pf.objective) mapped.prompt = pf.description || pf.prompt || pf.objective;
+      if (pf.platform) mapped.platform = pf.platform;
+      if (pf.tone) mapped.tone = Array.isArray(pf.tone) ? pf.tone : [pf.tone];
+      if (pf.additionalInfo) mapped.additionalInfo = pf.additionalInfo;
+      if (pf.contentType) mapped.contentType = pf.contentType;
+      if (pf.visualStyle) mapped.visualStyle = pf.visualStyle;
+      if (pf.negativePrompt) mapped.negativePrompt = pf.negativePrompt;
+      if (pf.colorPalette) mapped.colorPalette = pf.colorPalette;
+      if (pf.lighting) mapped.lighting = pf.lighting;
+      if (pf.composition) mapped.composition = pf.composition;
+      if (pf.cameraAngle) mapped.cameraAngle = pf.cameraAngle;
+      if (pf.detailLevel) mapped.detailLevel = pf.detailLevel;
+      if (pf.mood) mapped.mood = pf.mood;
+      if (pf.aspectRatio) mapped.aspectRatio = pf.aspectRatio;
+      if (pf.width) mapped.width = String(pf.width);
+      if (pf.height) mapped.height = String(pf.height);
+      // Text on image
+      if (pf.includeText !== undefined) mapped.imageIncludeText = pf.includeText;
+      if (pf.textContent) mapped.imageTextContent = pf.textContent;
+      if (pf.textPosition) mapped.imageTextPosition = pf.textPosition;
+      if (pf.fontStyle) mapped.fontStyle = pf.fontStyle;
+      if (pf.fontFamily) mapped.fontFamily = pf.fontFamily;
+      if (pf.fontWeight) mapped.fontWeight = pf.fontWeight;
+      if (pf.fontItalic !== undefined) mapped.fontItalic = pf.fontItalic;
+      if (pf.fontSize) mapped.fontSize = pf.fontSize;
+      if (pf.textDesignStyle) mapped.textDesignStyle = pf.textDesignStyle;
+      if (pf.ctaText) mapped.ctaText = pf.ctaText;
+      if (pf.adMode) mapped.adMode = pf.adMode;
+      if (pf.priceText) mapped.priceText = pf.priceText;
+      if (pf.includeBrandLogo !== undefined) mapped.includeBrandLogo = pf.includeBrandLogo;
+
+      setFormData(prev => ({ ...prev, ...mapped }));
+      if (pf.contentType) setContentType(pf.contentType);
+      setShowPrefillWarning(true);
+      // Clear location state to prevent re-applying
+      window.history.replaceState({}, document.title);
+      return;
+    }
     const persisted = loadPersistedData();
     if (persisted) setFormData(prev => ({ ...prev, ...persisted }));
   }, []);
