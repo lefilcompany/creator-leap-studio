@@ -623,7 +623,7 @@ export default function CreateImage() {
         brand: selectedBrand?.name || formData.brand, theme: selectedTheme?.title || formData.theme,
         persona: selectedPersona?.name || formData.persona, objective: formData.prompt,
         description: formData.prompt, tone: formData.tone, platform: formData.platform,
-        contentType, visualStyle: formData.visualStyle || 'realistic', additionalInfo: formData.additionalInfo,
+        contentType: contentType, visualStyle: formData.visualStyle || 'realistic', additionalInfo: formData.additionalInfo,
         aspectRatio: effectiveAspectRatio, width: targetDims.width, height: targetDims.height,
         referenceRole: 'style',
         preserveImages: [...finalBrandImages, ...finalPreservedUserImages],
