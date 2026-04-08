@@ -971,6 +971,14 @@ export default function ContentResult() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Report Problem Dialog */}
+      <ReportProblemDialog
+        open={showReportDialog}
+        onOpenChange={setShowReportDialog}
+        actionId={contentData?.actionId}
+        actionType="CRIAR_CONTEUDO"
+      />
     </div>
   );
 }
