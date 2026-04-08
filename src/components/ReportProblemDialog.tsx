@@ -96,13 +96,32 @@ export function ReportProblemDialog({
     setPreviewUrls((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const clearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const resetForm = () => {
     setProblemType("");
     setDescription("");
     previewUrls.forEach(URL.revokeObjectURL);
     setScreenshots([]);
     setPreviewUrls([]);
+    if (clearTimerRef.current) {
+      clearTimeout(clearTimerRef.current);
+      clearTimerRef.current = null;
+    }
   };
+
+  const scheduleReset = () => {
+    if (clearTimerRef.current) clearTimeout(clearTimerRef.current);
+    clearTimerRef.current = setTimeout(() => {
+      resetForm();
+    }, 30000);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (clearTimerRef.current) clearTimeout(clearTimerRef.current);
+    };
+  }, []);
 
   const handleSubmit = async () => {
     if (!problemType || !description.trim()) {
@@ -172,7 +191,8 @@ export function ReportProblemDialog({
     <Dialog
       open={open}
       onOpenChange={(v) => {
-        if (!v) resetForm();
+        if (!v) scheduleReset();
+        else if (clearTimerRef.current) { clearTimeout(clearTimerRef.current); clearTimerRef.current = null; }
         onOpenChange(v);
       }}
     >
