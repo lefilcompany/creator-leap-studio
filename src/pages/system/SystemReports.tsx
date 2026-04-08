@@ -166,6 +166,7 @@ export default function SystemReports() {
   };
 
   const filteredReports = reports.filter((r) => {
+    if (originFilter !== "all" && r.action_type !== originFilter) return false;
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
     return (
@@ -243,6 +244,16 @@ export default function SystemReports() {
             <SelectItem value="open">Abertos</SelectItem>
             <SelectItem value="resolved">Resolvidos</SelectItem>
             <SelectItem value="dismissed">Dispensados</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={originFilter} onValueChange={setOriginFilter}>
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="Filtrar por origem" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas as origens</SelectItem>
+            <SelectItem value="CRIAR_CONTEUDO_RAPIDO">Imagem Rápida</SelectItem>
+            <SelectItem value="CRIAR_CONTEUDO">Imagem Personalizada</SelectItem>
           </SelectContent>
         </Select>
       </div>
