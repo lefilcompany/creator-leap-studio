@@ -69,6 +69,7 @@ export default function QuickContent() {
   });
   const [referenceFiles, setReferenceFiles] = useState<File[]>([]);
   const [preserveImageIndices, setPreserveImageIndices] = useState<number[]>([]);
+  const [showPrefillWarning, setShowPrefillWarning] = useState(false);
 
   const teamId = user?.teamId;
   const userId = user?.id;
