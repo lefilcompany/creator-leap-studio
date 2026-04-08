@@ -423,18 +423,15 @@ export default function QuickContent() {
               id="quick-generate-button"
               onClick={generateQuickContent}
               disabled={isGenerating || !formData.prompt.trim() || (user?.credits || 0) < CREDIT_COSTS.QUICK_IMAGE}
-              size="lg"
-              className="bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_100%] animate-gradient text-primary-foreground hover:opacity-90 transition-opacity shadow-lg px-8 py-5 h-auto flex-col gap-0.5"
+              className="bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_100%] animate-gradient text-primary-foreground hover:opacity-90 transition-opacity shadow-md rounded-full px-6 h-11 text-sm font-semibold gap-2"
             >
               {isGenerating ? (
-                <span className="flex items-center"><Loader2 className="mr-2 h-5 w-5 animate-spin" />Gerando...</span>
+                <><Loader2 className="h-4 w-4 animate-spin" />Gerando...</>
               ) : (
                 <>
-                  <span className="flex items-center text-base font-semibold">
-                    <Zap className="mr-2 h-5 w-5" />
-                    Gerar Imagem Rápida
-                  </span>
-                  <span className="text-xs font-normal text-primary-foreground/60">{CREDIT_COSTS.QUICK_IMAGE} créditos serão consumidos</span>
+                  <Zap className="h-4 w-4" />
+                  Gerar Imagem Rápida
+                  <span className="text-primary-foreground/60 text-xs font-normal">· {CREDIT_COSTS.QUICK_IMAGE} créditos</span>
                 </>
               )}
             </Button>
