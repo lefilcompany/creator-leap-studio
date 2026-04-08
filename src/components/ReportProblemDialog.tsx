@@ -188,21 +188,21 @@ export function ReportProblemDialog({
 
         <div className="space-y-3 pt-1">
           {/* Problem Type */}
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label className="text-sm font-semibold">Tipo do problema *</Label>
-            <RadioGroup value={problemType} onValueChange={setProblemType} className="grid grid-cols-2 gap-2">
+            <RadioGroup value={problemType} onValueChange={setProblemType} className="grid grid-cols-2 gap-1.5">
               {PROBLEM_TYPES.map((type) => (
                 <label
                   key={type.value}
                   htmlFor={type.value}
-                  className={`flex items-center space-x-2.5 rounded-xl border-2 p-3.5 cursor-pointer transition-all ${
+                  className={`flex items-center space-x-2 rounded-lg border p-3 cursor-pointer transition-colors ${
                     problemType === type.value
                       ? "border-primary bg-primary/5"
-                      : "border-border hover:border-primary/40"
+                      : "border-border"
                   }`}
                 >
                   <RadioGroupItem value={type.value} id={type.value} />
-                  <span className="text-sm font-medium">{type.label}</span>
+                  <span className="text-sm">{type.label}</span>
                 </label>
               ))}
             </RadioGroup>
