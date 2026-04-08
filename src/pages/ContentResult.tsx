@@ -672,7 +672,7 @@ export default function ContentResult() {
       'textDesignStyle', 'ctaText', 'adMode', 'priceText', 'includeBrandLogo',
     ];
     keys.forEach(k => { if (originalFormData[k] !== undefined && originalFormData[k] !== null && originalFormData[k] !== '') prefillData[k] = originalFormData[k]; });
-    navigate("/create-image", { state: { prefillData } });
+    navigate("/create/image", { state: { prefillData } });
     toast.warning("Se você usou imagens de referência, lembre-se de anexá-las novamente.", { duration: 6000 });
   };
 
@@ -701,7 +701,7 @@ export default function ContentResult() {
         <PageBreadcrumb
           items={[
             { label: "Criar Conteúdo", href: "/create" },
-            { label: "Criação Personalizada", href: "/create-image" },
+            { label: "Criação Personalizada", href: "/create/image" },
             { label: "Resultado" },
           ]}
           variant="overlay"
@@ -988,7 +988,7 @@ export default function ContentResult() {
                         <span className="text-xs text-muted-foreground">Reutilizar as configurações atuais</span>
                       </div>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate("/create-image")} className="gap-3 py-3.5 px-3 cursor-pointer rounded-lg focus:bg-muted hover:bg-muted data-[highlighted]:bg-muted focus:text-foreground data-[highlighted]:text-foreground">
+                    <DropdownMenuItem onClick={() => navigate("/create/image")} className="gap-3 py-3.5 px-3 cursor-pointer rounded-lg focus:bg-muted hover:bg-muted data-[highlighted]:bg-muted focus:text-foreground data-[highlighted]:text-foreground">
                       <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-muted shrink-0">
                         <Sparkles className="h-4 w-4 text-muted-foreground" />
                       </div>
