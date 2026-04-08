@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { CategorySelector } from "@/components/CategorySelector";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Info } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -29,6 +31,7 @@ import createBanner from "@/assets/create-banner.jpg";
 
 export default function QuickContent() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, refreshUserCredits } = useAuth();
   const { addTask, tasks } = useBackgroundTasks();
   const isGenerating = tasks.some(t => t.type === "quick_content" && t.status === "running");
@@ -66,6 +69,7 @@ export default function QuickContent() {
   });
   const [referenceFiles, setReferenceFiles] = useState<File[]>([]);
   const [preserveImageIndices, setPreserveImageIndices] = useState<number[]>([]);
+  const [showPrefillWarning, setShowPrefillWarning] = useState(false);
 
   const teamId = user?.teamId;
   const userId = user?.id;
@@ -123,6 +127,14 @@ export default function QuickContent() {
   });
 
   useEffect(() => {
+    // Check for prefill data from QuickContentResult "reuse prompt" action
+    if (location.state?.prefillData) {
+      setFormData(prev => ({ ...prev, ...location.state.prefillData }));
+      setShowPrefillWarning(true);
+      // Clear the location state to prevent re-applying on re-render
+      window.history.replaceState({}, document.title);
+      return;
+    }
     const persisted = loadPersistedData();
     if (persisted) setFormData(prev => ({ ...prev, ...persisted }));
   }, []);
@@ -215,6 +227,13 @@ export default function QuickContent() {
               imageUrl: data.imageUrl, description: data.description, actionId: data.actionId,
               prompt: formData.prompt, brandName: data.brandName, themeName: data.themeName,
               personaName: data.personaName, platform: formData.platform,
+              // Pass full form data for reuse
+              brandId: formData.brandId, themeId: formData.themeId, personaId: formData.personaId,
+              aspectRatio: formData.aspectRatio, visualStyle: formData.visualStyle,
+              style: formData.style, quality: formData.quality,
+              colorPalette: formData.colorPalette, lighting: formData.lighting,
+              composition: formData.composition, cameraAngle: formData.cameraAngle,
+              mood: formData.mood, width: formData.width, height: formData.height,
             },
           };
         },
@@ -279,6 +298,14 @@ export default function QuickContent() {
       {/* Main Form — Two columns on desktop */}
       <main className="px-4 sm:px-6 lg:px-8 pt-4 pb-8 flex-1">
         <div className="max-w-7xl mx-auto space-y-4 mt-4">
+          {showPrefillWarning && (
+            <Alert className="border-primary/50 bg-primary/5">
+              <Info className="h-4 w-4 text-primary" />
+              <AlertDescription className="text-sm">
+                Os campos foram preenchidos com base na sua criação anterior. <strong>Anexe novamente as imagens de referência</strong>, caso tenha utilizado.
+              </AlertDescription>
+            </Alert>
+          )}
 
           <div id="quick-content-form" className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6">
             {/* Left column */}
