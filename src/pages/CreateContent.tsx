@@ -1236,10 +1236,32 @@ export default function CreateContent() {
     }
   };
 
+  const isGeneratingContent = tasks.some(t => t.type === "create_content" && t.status === "running");
+  const generatingTask = generatingTaskId ? tasks.find(t => t.id === generatingTaskId) : null;
+  const isTaskComplete = generatingTask?.status === "complete";
+
+  // Auto-navigate to result when generation completes
+  useEffect(() => {
+    if (!generatingTaskId) return;
+    const task = tasks.find(t => t.id === generatingTaskId);
+    if (task?.status === "complete" && task.resultRoute) {
+      navigate(task.resultRoute, { state: task.resultState });
+      setGeneratingTaskId(null);
+    }
+  }, [tasks, generatingTaskId, navigate]);
+
   if (isLoadingData) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (isGeneratingContent || isTaskComplete) {
+    return (
+      <div className="min-h-full bg-gradient-to-br from-background via-background to-muted/20">
+        <QuickContentLoading isComplete={isTaskComplete || false} />
       </div>
     );
   }
