@@ -115,10 +115,19 @@ export function ReportProblemDialog({
   const scheduleReset = () => {
     if (clearTimerRef.current) clearTimeout(clearTimerRef.current);
     clearTimerRef.current = setTimeout(() => {
-      if (!isOpenRef.current) resetForm();
       clearTimerRef.current = null;
+      if (isOpenRef.current) return; // don't reset while open
+      resetForm();
     }, 30000);
   };
+
+  // Cancel any pending reset whenever modal opens
+  useEffect(() => {
+    if (open && clearTimerRef.current) {
+      clearTimeout(clearTimerRef.current);
+      clearTimerRef.current = null;
+    }
+  }, [open]);
 
   useEffect(() => {
     return () => {
