@@ -69,7 +69,7 @@ export function BackgroundTaskProvider({ children }: { children: React.ReactNode
       return [...prev, task];
     });
 
-    toast.info("Geração iniciada!", { description: label, duration: 3000 });
+    toast.info("Geração iniciada!", { description: `${label} — sua imagem está sendo gerada em segundo plano.`, duration: 4000 });
 
     // Run async work
     asyncFn()

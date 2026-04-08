@@ -226,7 +226,6 @@ export default function MarketplaceContent() {
       );
 
       setGeneratingTaskId(newTaskId);
-      toast.info("Sua imagem de produto está sendo gerada...");
     } catch (error: any) {
       console.error("Error preparing marketplace payload:", error);
       toast.error(error.message || "Erro ao preparar criação");
