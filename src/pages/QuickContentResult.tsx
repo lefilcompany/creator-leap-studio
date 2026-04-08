@@ -259,7 +259,7 @@ export default function QuickContentResult() {
     keys.forEach(k => { if (originalFormData[k]) prefillData[k] = originalFormData[k]; });
     if (!prefillData.prompt && prompt) prefillData.prompt = prompt;
     navigate("/quick-content", { state: { prefillData } });
-    toast.info("Se você usou imagens de referência, lembre-se de anexá-las novamente.", { duration: 6000 });
+    toast.warning("Se você usou imagens de referência, lembre-se de anexá-las novamente.", { duration: 6000 });
   };
 
   if (!imageUrl) return null;
