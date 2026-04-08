@@ -227,6 +227,13 @@ export default function QuickContent() {
               imageUrl: data.imageUrl, description: data.description, actionId: data.actionId,
               prompt: formData.prompt, brandName: data.brandName, themeName: data.themeName,
               personaName: data.personaName, platform: formData.platform,
+              // Pass full form data for reuse
+              brandId: formData.brandId, themeId: formData.themeId, personaId: formData.personaId,
+              aspectRatio: formData.aspectRatio, visualStyle: formData.visualStyle,
+              style: formData.style, quality: formData.quality,
+              colorPalette: formData.colorPalette, lighting: formData.lighting,
+              composition: formData.composition, cameraAngle: formData.cameraAngle,
+              mood: formData.mood, width: formData.width, height: formData.height,
             },
           };
         },
