@@ -27,6 +27,7 @@ interface ReportProblemDialogProps {
   onOpenChange: (open: boolean) => void;
   actionId?: string;
   actionType?: string;
+  generatedImageUrl?: string;
 }
 
 export function ReportProblemDialog({
@@ -34,6 +35,7 @@ export function ReportProblemDialog({
   onOpenChange,
   actionId,
   actionType,
+  generatedImageUrl,
 }: ReportProblemDialogProps) {
   const { user } = useAuth();
   const [problemType, setProblemType] = useState("");
