@@ -495,42 +495,48 @@ export default function QuickContentResult() {
             <DialogTitle>Visualização da Imagem</DialogTitle>
             <DialogDescription>Imagem ampliada do conteúdo gerado</DialogDescription>
           </DialogHeader>
-          <div className="relative w-full h-full flex items-center justify-center">
+          <div className="absolute top-4 right-4 z-50 flex items-center gap-2">
+            <Button
+              size="sm"
+              onClick={(e) => { e.stopPropagation(); handleDownload(); }}
+              className="bg-white/15 hover:bg-white/25 text-white backdrop-blur-md border border-white/20 rounded-lg gap-1.5 transition-all duration-300 h-9 px-3"
+            >
+              <Download className="h-4 w-4" />
+              Baixar
+            </Button>
+            <Button
+              size="sm"
+              onClick={async (e) => {
+                e.stopPropagation();
+                try {
+                  const response = await fetch(currentImageUrl);
+                  const blob = await response.blob();
+                  await navigator.clipboard.write([
+                    new ClipboardItem({ [blob.type]: blob })
+                  ]);
+                  setIsImageCopied(true);
+                  setTimeout(() => setIsImageCopied(false), 2000);
+                } catch {
+                  toast.error("Não foi possível copiar a imagem");
+                }
+              }}
+              className={`backdrop-blur-md border border-white/20 rounded-lg gap-1.5 transition-all duration-300 h-9 px-3 ${isImageCopied ? 'bg-green-500/30 hover:bg-green-500/40 text-green-300' : 'bg-white/15 hover:bg-white/25 text-white'}`}
+            >
+              <span className="relative h-4 w-4">
+                <Copy className={`h-4 w-4 absolute inset-0 transition-all duration-300 ${isImageCopied ? 'opacity-0 scale-75' : 'opacity-100 scale-100'}`} />
+                <Check className={`h-4 w-4 absolute inset-0 transition-all duration-300 ${isImageCopied ? 'opacity-100 scale-100' : 'opacity-0 scale-75'}`} />
+              </span>
+              {isImageCopied ? "Copiado!" : "Copiar"}
+            </Button>
+            <button
+              onClick={() => setIsImageDialogOpen(false)}
+              className="h-9 w-9 flex items-center justify-center rounded-lg bg-white/15 hover:bg-white/25 text-white backdrop-blur-md border border-white/20 transition-all duration-300"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+          <div className="w-full h-full flex items-center justify-center">
             <img src={currentImageUrl} alt="Conteúdo gerado ampliado" className="max-w-full max-h-[90vh] object-contain" />
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-3 z-50">
-              <Button
-                size="lg"
-                onClick={(e) => { e.stopPropagation(); handleDownload(); }}
-                className="bg-white/15 hover:bg-white/25 text-white backdrop-blur-md border border-white/20 rounded-xl gap-2 shadow-2xl transition-all duration-300"
-              >
-                <Download className="h-4 w-4" />
-                Baixar
-              </Button>
-              <Button
-                size="lg"
-                onClick={async (e) => {
-                  e.stopPropagation();
-                  try {
-                    const response = await fetch(currentImageUrl);
-                    const blob = await response.blob();
-                    await navigator.clipboard.write([
-                      new ClipboardItem({ [blob.type]: blob })
-                    ]);
-                    setIsImageCopied(true);
-                    setTimeout(() => setIsImageCopied(false), 2000);
-                  } catch {
-                    toast.error("Não foi possível copiar a imagem");
-                  }
-                }}
-                className={`backdrop-blur-md border border-white/20 rounded-xl gap-2 shadow-2xl transition-all duration-300 ${isImageCopied ? 'bg-green-500/30 hover:bg-green-500/40 text-green-300' : 'bg-white/15 hover:bg-white/25 text-white'}`}
-              >
-                <span className="relative h-4 w-4">
-                  <Copy className={`h-4 w-4 absolute inset-0 transition-all duration-300 ${isImageCopied ? 'opacity-0 scale-75' : 'opacity-100 scale-100'}`} />
-                  <Check className={`h-4 w-4 absolute inset-0 transition-all duration-300 ${isImageCopied ? 'opacity-100 scale-100' : 'opacity-0 scale-75'}`} />
-                </span>
-                {isImageCopied ? "Copiado!" : "Copiar"}
-              </Button>
-            </div>
           </div>
         </DialogContent>
       </Dialog>
