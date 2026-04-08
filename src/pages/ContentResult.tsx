@@ -898,8 +898,8 @@ export default function ContentResult() {
                     )}
                     <div className="flex flex-wrap gap-2">
                       {platformName && (
-                        <Badge variant="outline" className="gap-1.5 py-1.5 px-3 text-sm border-border/50">
-                          <Share2 className="h-3.5 w-3.5" />{platformName}
+                        <Badge variant="outline" className="gap-1.5 py-1.5 px-3 text-sm border-border/50 hover:bg-transparent">
+                          <PlatformIcon platform={platformName} />{platformName}
                         </Badge>
                       )}
                       {brandName && (
