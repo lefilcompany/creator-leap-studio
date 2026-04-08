@@ -27,6 +27,7 @@ import { UnifiedPromptBox } from "@/components/quick-content/UnifiedPromptBox";
 import { VisualStyleGrid } from "@/components/quick-content/VisualStyleGrid";
 import { FormatPreview } from "@/components/quick-content/FormatPreview";
 import { CustomizationCards } from "@/components/quick-content/CustomizationCards";
+import { QuickContentLoading } from "@/components/quick-content/QuickContentLoading";
 import createBanner from "@/assets/create-banner.jpg";
 
 export default function QuickContent() {
@@ -248,6 +249,17 @@ export default function QuickContent() {
       // error already shown via toast
     }
   };
+
+  const generatingTask = generatingTaskId ? tasks.find(t => t.id === generatingTaskId) : null;
+  const isTaskComplete = generatingTask?.status === "complete";
+
+  if (isGenerating || isTaskComplete) {
+    return (
+      <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8 min-h-full">
+        <QuickContentLoading isComplete={isTaskComplete} />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8 min-h-full">
