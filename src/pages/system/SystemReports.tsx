@@ -52,6 +52,14 @@ const PROBLEM_TYPE_LABELS: Record<string, string> = {
   other: "Outro",
 };
 
+const ACTION_TYPE_LABELS: Record<string, { label: string; color: string }> = {
+  CRIAR_CONTEUDO_RAPIDO: { label: "Imagem Rápida", color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" },
+  CRIAR_CONTEUDO: { label: "Imagem Personalizada", color: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400" },
+  REVISAR_CONTEUDO: { label: "Revisão", color: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400" },
+  PLANEJAR_CONTEUDO: { label: "Planejamento", color: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" },
+  GERAR_VIDEO: { label: "Vídeo", color: "bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400" },
+};
+
 const STATUS_CONFIG: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline"; icon: React.ElementType }> = {
   open: { label: "Aberto", variant: "destructive", icon: AlertTriangle },
   resolved: { label: "Resolvido", variant: "default", icon: CheckCircle2 },
@@ -62,6 +70,7 @@ export default function SystemReports() {
   const [reports, setReports] = useState<Report[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("all");
+  const [originFilter, setOriginFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [adminNotes, setAdminNotes] = useState("");
@@ -157,6 +166,7 @@ export default function SystemReports() {
   };
 
   const filteredReports = reports.filter((r) => {
+    if (originFilter !== "all" && r.action_type !== originFilter) return false;
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
     return (
@@ -236,6 +246,16 @@ export default function SystemReports() {
             <SelectItem value="dismissed">Dispensados</SelectItem>
           </SelectContent>
         </Select>
+        <Select value={originFilter} onValueChange={setOriginFilter}>
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="Filtrar por origem" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas as origens</SelectItem>
+            <SelectItem value="CRIAR_CONTEUDO_RAPIDO">Imagem Rápida</SelectItem>
+            <SelectItem value="CRIAR_CONTEUDO">Imagem Personalizada</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Table */}
@@ -256,6 +276,7 @@ export default function SystemReports() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Usuário</TableHead>
+                    <TableHead>Origem</TableHead>
                     <TableHead>Tipo</TableHead>
                     <TableHead className="hidden md:table-cell">Descrição</TableHead>
                     <TableHead>Status</TableHead>
@@ -284,6 +305,17 @@ export default function SystemReports() {
                                 <p className="text-xs text-muted-foreground truncate">{report.team_name}</p>
                               )}
                             </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            {report.action_type && ACTION_TYPE_LABELS[report.action_type] ? (
+                              <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${ACTION_TYPE_LABELS[report.action_type].color}`}>
+                                {ACTION_TYPE_LABELS[report.action_type].label}
+                              </span>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">—</span>
+                            )}
                           </div>
                         </TableCell>
                         <TableCell>
@@ -374,6 +406,18 @@ export default function SystemReports() {
 
               {/* Problem details */}
               <div className="space-y-3">
+                {selectedReport.action_type && (
+                  <div>
+                    <p className="text-sm font-semibold text-muted-foreground mb-1">Origem</p>
+                    {ACTION_TYPE_LABELS[selectedReport.action_type] ? (
+                      <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${ACTION_TYPE_LABELS[selectedReport.action_type].color}`}>
+                        {ACTION_TYPE_LABELS[selectedReport.action_type].label}
+                      </span>
+                    ) : (
+                      <p className="text-sm">{selectedReport.action_type}</p>
+                    )}
+                  </div>
+                )}
                 <div>
                   <p className="text-sm font-semibold text-muted-foreground mb-1">Tipo do problema</p>
                   <p className="text-sm">{PROBLEM_TYPE_LABELS[selectedReport.problem_type] || selectedReport.problem_type}</p>

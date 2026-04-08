@@ -635,6 +635,7 @@ export default function QuickContentResult() {
         onOpenChange={setShowReportDialog}
         actionId={actionId}
         actionType="CRIAR_CONTEUDO_RAPIDO"
+        generatedImageUrl={currentImageUrl}
       />
     </div>
   );
