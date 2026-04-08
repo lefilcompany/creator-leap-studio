@@ -113,7 +113,7 @@ export function ReportProblemDialog({
   const scheduleReset = () => {
     if (clearTimerRef.current) clearTimeout(clearTimerRef.current);
     clearTimerRef.current = setTimeout(() => {
-      resetForm();
+      if (!open) resetForm();
     }, 30000);
   };
 
