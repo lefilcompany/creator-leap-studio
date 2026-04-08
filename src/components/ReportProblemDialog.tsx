@@ -175,7 +175,7 @@ export function ReportProblemDialog({
         onOpenChange(v);
       }}
     >
-      <DialogContent ref={dialogRef} className="max-w-2xl w-[calc(100vw-2rem)] sm:w-full max-h-[90vh] overflow-y-auto">
+      <DialogContent ref={dialogRef} className="max-w-2xl w-[calc(100vw-2rem)] sm:w-full max-h-[90vh] overflow-y-auto [&_*]:outline-none [&_*]:ring-0 [&_*]:ring-offset-0">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-lg">
             <AlertTriangle className="h-5 w-5 text-destructive" />
@@ -186,7 +186,7 @@ export function ReportProblemDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-5 py-2">
+        <div className="space-y-3 pt-1">
           {/* Problem Type */}
           <div className="space-y-2">
             <Label className="text-sm font-semibold">Tipo do problema *</Label>
