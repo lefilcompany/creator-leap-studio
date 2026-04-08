@@ -264,6 +264,7 @@ export default function SystemReports() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Usuário</TableHead>
+                    <TableHead>Origem</TableHead>
                     <TableHead>Tipo</TableHead>
                     <TableHead className="hidden md:table-cell">Descrição</TableHead>
                     <TableHead>Status</TableHead>
@@ -292,6 +293,17 @@ export default function SystemReports() {
                                 <p className="text-xs text-muted-foreground truncate">{report.team_name}</p>
                               )}
                             </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            {report.action_type && ACTION_TYPE_LABELS[report.action_type] ? (
+                              <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${ACTION_TYPE_LABELS[report.action_type].color}`}>
+                                {ACTION_TYPE_LABELS[report.action_type].label}
+                              </span>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">—</span>
+                            )}
                           </div>
                         </TableCell>
                         <TableCell>
