@@ -27,6 +27,7 @@ import { UnifiedPromptBox } from "@/components/quick-content/UnifiedPromptBox";
 import { VisualStyleGrid } from "@/components/quick-content/VisualStyleGrid";
 import { FormatPreview } from "@/components/quick-content/FormatPreview";
 import { CustomizationCards } from "@/components/quick-content/CustomizationCards";
+import { QuickContentLoading } from "@/components/quick-content/QuickContentLoading";
 import createBanner from "@/assets/create-banner.jpg";
 
 export default function QuickContent() {
