@@ -110,7 +110,8 @@ export default function ContentResult() {
   }, [checkTruncation, contentData]);
 
   // Auto-save to history (like QuickContentResult)
-  const autoSaveToHistory = useCallback(async (data: ContentResultData) => {
+  const autoSaveToHistoryRef = useRef<((data: ContentResultData) => Promise<void>) | null>(null);
+  autoSaveToHistoryRef.current = async (data: ContentResultData) => {
     if (!user || data.actionId || isSavedToHistory) return;
     
     try {
@@ -186,7 +187,7 @@ export default function ContentResult() {
     } catch (error) {
       console.error("Erro no auto-save:", error);
     }
-  }, [user, isSavedToHistory]);
+  };
 
   useEffect(() => {
     const loadContent = async () => {
