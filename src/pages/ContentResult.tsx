@@ -1,8 +1,18 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Download, Copy, Sparkles, ArrowLeft, Check, ImageIcon, Video, RefreshCw, FileText, Loader, Coins, Undo2, Redo2, History, AlertTriangle } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import {
+  Download, Copy, Sparkles, Check, ImageIcon, Video, RefreshCw, FileText,
+  Loader, Coins, Undo2, Redo2, History, AlertTriangle, Maximize2, Pen,
+  Plus, ChevronDown, X, Share2, Building2, Palette, User, Zap, Info
+} from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -15,6 +25,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { ContentResultSkeleton } from "@/components/ContentResultSkeleton";
 import { CREDIT_COSTS } from "@/lib/creditCosts";
 import { ReportProblemDialog } from "@/components/ReportProblemDialog";
+import { PageBreadcrumb } from "@/components/PageBreadcrumb";
+import { CreationProgressBar } from "@/components/CreationProgressBar";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import createBanner from "@/assets/create-banner.jpg";
 
 interface ContentResultData {
   type: "image" | "video";
@@ -40,6 +58,7 @@ export default function ContentResult() {
     refreshUserCredits
   } = useAuth();
   const [copied, setCopied] = useState(false);
+  const [isImageCopied, setIsImageCopied] = useState(false);
   const [contentData, setContentData] = useState<ContentResultData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showReviewDialog, setShowReviewDialog] = useState(false);
@@ -53,6 +72,22 @@ export default function ContentResult() {
   const [currentVersionIndex, setCurrentVersionIndex] = useState(0);
   const [isCaptionExpanded, setIsCaptionExpanded] = useState(false);
   const [showReportDialog, setShowReportDialog] = useState(false);
+  const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
+  const [isConfigOpen, setIsConfigOpen] = useState(false);
+  const [isCaptionTruncated, setIsCaptionTruncated] = useState(false);
+  const captionRef = useRef<HTMLParagraphElement>(null);
+
+  const checkTruncation = useCallback(() => {
+    if (captionRef.current) {
+      setIsCaptionTruncated(captionRef.current.scrollHeight > captionRef.current.clientHeight);
+    }
+  }, []);
+
+  useEffect(() => {
+    checkTruncation();
+    window.addEventListener('resize', checkTruncation);
+    return () => window.removeEventListener('resize', checkTruncation);
+  }, [checkTruncation, contentData]);
 
   useEffect(() => {
     const loadContent = async () => {
@@ -156,7 +191,6 @@ export default function ContentResult() {
               parsed.mediaUrl = imageUrl;
             }
             setContentData(parsed);
-            // Restore version history
             if (parsed.versions && parsed.versions.length > 0) {
               setVersionHistory(parsed.versions);
               setCurrentVersionIndex(parsed.currentVersion || parsed.versions.length - 1);
@@ -313,13 +347,11 @@ export default function ContentResult() {
             editedImageUrl: data?.editedImageUrl,
             errorMessage: error?.message
           });
-          // Check for error in response body (edge function may return error in data)
           const actualError = error || (data?.error ? { message: data.error } : null);
           
           if (actualError) {
             console.error("❌ Erro ao editar imagem:", actualError, data);
             
-            // Handle insufficient credits from response body
             if (data?.error === 'Créditos insuficientes') {
               toast.error("Créditos insuficientes", {
                 description: `Necessários: ${data.required}, disponíveis: ${data.available}`,
@@ -407,7 +439,7 @@ export default function ContentResult() {
         mediaUrl: updatedContent.mediaUrl,
         _updateKey: Date.now()
       };
-      setContentData(newContentData);
+      setContentData(newContentData as any);
 
       if (reviewType === "image" && updatedContent.mediaUrl) {
         try {
@@ -432,7 +464,6 @@ export default function ContentResult() {
         mediaUrl: updatedContent.mediaUrl
       };
 
-      // Update version history state
       setVersionHistory(prev => {
         const newHistory = [...prev, newVersion];
         setCurrentVersionIndex(newHistory.length - 1);
@@ -568,7 +599,6 @@ export default function ContentResult() {
       setContentData({ ...contentData, actionId: actionData.id });
       setIsSavedToHistory(true);
 
-      // Auto-assign to category if categoryId was passed from creation form
       const categoryIdFromForm = contentData.categoryId || saved.categoryId;
       if (categoryIdFromForm && actionData.id) {
         try {
@@ -607,128 +637,151 @@ export default function ContentResult() {
     } : prev);
   };
 
+  const handleReusePrompt = () => {
+    const saved = JSON.parse(localStorage.getItem("currentContent") || "{}");
+    const originalFormData = saved.originalFormData || {};
+    const prefillData: Record<string, any> = {};
+    const keys = [
+      'description', 'prompt', 'brandId', 'themeId', 'personaId', 'platform',
+      'aspectRatio', 'visualStyle', 'style', 'quality', 'objective', 'tone',
+      'colorPalette', 'lighting', 'composition', 'cameraAngle',
+      'mood', 'width', 'height', 'additionalInfo'
+    ];
+    keys.forEach(k => { if (originalFormData[k]) prefillData[k] = originalFormData[k]; });
+    navigate("/create-image", { state: { prefillData } });
+    toast.warning("Se você usou imagens de referência, lembre-se de anexá-las novamente.", { duration: 6000 });
+  };
+
   if (isLoading || !contentData) {
     return <ContentResultSkeleton />;
   }
 
+  const saved = JSON.parse(localStorage.getItem("currentContent") || "{}");
+  const originalFormData = saved.originalFormData || {};
+  const promptUsed = originalFormData.description || originalFormData.prompt || contentData.caption || "";
+  const brandName = originalFormData.brand || contentData.brand;
+  const platformName = contentData.platform;
+  const themeName = originalFormData.theme;
+  const personaName = originalFormData.persona;
+  const formatName = originalFormData.aspectRatio;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-3 md:p-4 lg:p-6">
-      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-5 md:space-y-6 animate-fade-in">
-        {/* Header */}
-        <Card className="shadow-lg border-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5 animate-scale-in">
-          <CardContent className="p-3 sm:p-4 md:p-5 lg:p-6">
-            {/* Mobile Layout */}
-            <div className="flex sm:hidden flex-col gap-3">
-              <div className="flex items-center gap-2.5">
-                <Button variant="ghost" size="icon" onClick={() => navigate("/create")} className="rounded-xl hover:bg-primary/10 hover:border-primary/20 border border-transparent hover-scale transition-all duration-200 h-9 w-9 flex-shrink-0 hover:shadow-md hover:text-primary">
-                  <ArrowLeft className="h-4 w-4" />
-                </Button>
-                <div className="flex-shrink-0 bg-primary/10 text-primary rounded-xl p-2">
-                  <Sparkles className="h-5 w-5 animate-pulse" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h1 className="font-bold text-foreground leading-tight text-base">Conteúdo Gerado</h1>
-                  <p className="text-muted-foreground text-xs leading-tight truncate">
-                    {contentData.brand} • {contentData.platform}
-                  </p>
-                </div>
-                <Badge variant="outline" className="bg-muted/50 text-muted-foreground border-border/30 gap-1 px-2 py-1 text-xs h-7 flex-shrink-0">
-                  <RefreshCw className="h-3 w-3" />
-                  <span>{user?.credits || 0}</span>
-                </Badge>
-              </div>
-            </div>
+    <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8 min-h-full">
+      {/* Banner */}
+      <div className="relative h-20 md:h-24 overflow-hidden">
+        <PageBreadcrumb
+          items={[
+            { label: "Criar Conteúdo", href: "/create" },
+            { label: "Criação Personalizada", href: "/create-image" },
+            { label: "Resultado" },
+          ]}
+          variant="overlay"
+        />
+        <img src={createBanner} alt="Resultado" className="w-full h-full object-cover object-center" loading="eager" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+      </div>
 
-            {/* Desktop/Tablet Layout */}
-            <div className="hidden sm:flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3 min-w-0 flex-1">
-                <Button variant="ghost" size="icon" onClick={() => navigate("/create")} className="rounded-xl hover:bg-primary/10 hover:border-primary/20 border border-transparent hover-scale transition-all duration-200 flex-shrink-0 hover:shadow-md hover:text-primary">
-                  <ArrowLeft className="h-5 w-5" />
-                </Button>
-                <div className="flex-shrink-0 bg-primary/10 text-primary rounded-xl p-2.5 lg:p-3">
-                  <Sparkles className="h-5 w-5 lg:h-6 lg:w-6 animate-pulse" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-foreground truncate">Conteúdo Gerado</h1>
-                  <p className="text-muted-foreground text-sm truncate">{contentData.brand} • {contentData.platform}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <Badge variant="outline" className="bg-muted/50 text-muted-foreground border-border/30 gap-2 px-3 py-1.5 text-xs">
-                  <RefreshCw className="h-3 w-3" />
-                  <span>{user?.credits || 0} créditos</span>
-                </Badge>
-                <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 gap-2 px-3 py-1.5 text-xs">
-                  {contentData.type === "video" ? <Video className="h-4 w-4" /> : <ImageIcon className="h-4 w-4" />}
-                  <span>{contentData.type === "video" ? "Vídeo" : "Imagem"}</span>
-                </Badge>
-              </div>
+      {/* Header Card + Progress Bar */}
+      <div className="relative px-4 sm:px-6 lg:px-8 -mt-8 z-10">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-stretch gap-3">
+          {/* Title card */}
+          <div className="bg-card rounded-2xl shadow-lg p-2.5 lg:p-3 flex items-center gap-2.5 flex-1 min-w-0">
+            <div className="flex-shrink-0 bg-primary/10 text-primary rounded-xl p-2">
+              <Sparkles className="h-5 w-5 lg:h-6 lg:w-6" />
             </div>
-          </CardContent>
-        </Card>
+            <div className="min-w-0">
+              <h1 className="text-lg lg:text-xl font-bold text-foreground leading-tight">Criar Conteúdo</h1>
+              <p className="text-muted-foreground text-[11px] lg:text-xs">Criação personalizada com IA</p>
+            </div>
+            <div className="ml-auto flex items-center gap-2 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-xl px-3 py-1.5 flex-shrink-0 border border-primary/20">
+              <div className="relative flex-shrink-0">
+                <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary rounded-full blur-sm opacity-40" />
+                <div className="relative bg-gradient-to-r from-primary to-secondary text-white rounded-full p-1.5">
+                  <Zap className="h-3.5 w-3.5" />
+                </div>
+              </div>
+              <span className="text-lg font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">{user?.credits || 0}</span>
+              <span className="text-xs text-muted-foreground font-medium hidden sm:inline">Créditos</span>
+            </div>
+          </div>
 
-        {/* Two-column layout: Image left (sticky), Caption right */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5 md:gap-6">
-          {/* Image - Left on desktop, first on mobile */}
-          <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-xl sm:rounded-2xl overflow-hidden animate-fade-in hover:shadow-xl transition-shadow duration-300 order-1 lg:sticky lg:top-4 lg:self-start" style={{ animationDelay: "100ms" }}>
-            <CardContent className="p-0">
-              <div className="relative bg-muted/30 overflow-hidden group">
-                {contentData.isProcessing ? (
-                  <div className="flex items-center justify-center min-h-[300px]">
-                    <div className="text-center space-y-4">
-                      <Loader className="h-12 w-12 mx-auto text-primary animate-spin" />
-                      <div className="space-y-2">
-                        <p className="text-lg font-semibold text-foreground">Gerando...</p>
-                        <p className="text-sm text-muted-foreground">Isso pode levar alguns minutos</p>
+          {/* Progress bar card */}
+          <div className="bg-card rounded-2xl shadow-lg p-3 lg:p-4 flex-shrink-0 flex items-center min-w-[320px]">
+            <CreationProgressBar currentStep="result" />
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <main className="px-4 sm:px-6 lg:px-8 pt-6 pb-8 flex-1">
+        <div className="max-w-7xl mx-auto space-y-6">
+          {/* Two-column layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Image Card - Left column, sticky */}
+            <div className="lg:sticky lg:top-4 lg:self-start order-1">
+              <Card className="bg-card border-0 shadow-xl rounded-2xl overflow-hidden animate-fade-in group relative">
+                <div className="relative bg-muted/20">
+                  {contentData.isProcessing ? (
+                    <div className="flex items-center justify-center min-h-[300px]">
+                      <div className="text-center space-y-4">
+                        <Loader className="h-12 w-12 mx-auto text-primary animate-spin" />
+                        <div className="space-y-2">
+                          <p className="text-lg font-semibold text-foreground">Gerando...</p>
+                          <p className="text-sm text-muted-foreground">Isso pode levar alguns minutos</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ) : contentData.mediaUrl ? (
-                  contentData.type === "video" ? (
-                    <video src={contentData.mediaUrl} controls className="w-full max-h-[80vh] object-contain" autoPlay loop muted>
-                      Seu navegador não suporta vídeos.
-                    </video>
+                  ) : contentData.mediaUrl ? (
+                    contentData.type === "video" ? (
+                      <video src={contentData.mediaUrl} controls className="w-full max-h-[80vh] object-contain" autoPlay loop muted>
+                        Seu navegador não suporta vídeos.
+                      </video>
+                    ) : (
+                      <img
+                        key={contentData.mediaUrl}
+                        src={contentData.mediaUrl}
+                        alt="Conteúdo gerado"
+                        className="w-full max-h-[80vh] object-contain"
+                      />
+                    )
                   ) : (
-                    <img
-                      key={contentData.mediaUrl}
-                      src={contentData.mediaUrl}
-                      alt="Conteúdo gerado"
-                      className="w-full max-h-[80vh] object-contain"
-                    />
-                  )
-                ) : (
-                  <div className="flex items-center justify-center min-h-[300px]">
-                    <div className="text-center space-y-2">
-                      <ImageIcon className="h-10 w-10 sm:h-12 sm:w-12 mx-auto text-muted-foreground/50" />
-                      <p className="text-sm sm:text-base text-muted-foreground">Mídia não disponível</p>
+                    <div className="flex items-center justify-center min-h-[300px]">
+                      <div className="text-center space-y-2">
+                        <ImageIcon className="h-10 w-10 mx-auto text-muted-foreground/50" />
+                        <p className="text-sm text-muted-foreground">Mídia não disponível</p>
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
+                  )}
 
-              {/* Action buttons */}
-              <div className="p-3 sm:p-4 bg-gradient-to-r from-muted/30 to-muted/10 border-t border-border/20 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                <Button onClick={handleDownload} size="lg" className="flex-1 gap-2 hover-scale transition-all duration-200 hover:shadow-md rounded-xl">
-                  <Download className="h-4 w-4" />
-                  <span>Download</span>
-                </Button>
-                <div className="relative group">
-                  <Button onClick={handleOpenReview} variant="secondary" className="w-full flex-1 sm:flex-initial rounded-xl gap-2 hover-scale transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 group" size="lg" disabled={!user?.credits || user.credits < CREDIT_COSTS.IMAGE_REVIEW}>
-                    <RefreshCw className="h-4 w-4 group-hover:rotate-180 transition-transform duration-500" />
-                    <span>Revisar</span>
-                    <Badge variant="outline" className="ml-1 gap-1 border-secondary-foreground/30">
-                      <Coins className="h-3 w-3" />
-                      {CREDIT_COSTS.IMAGE_REVIEW}
-                    </Badge>
-                  </Button>
+                  {/* Hover overlay */}
+                  {contentData.mediaUrl && !contentData.isProcessing && contentData.type !== "video" && (
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-300 flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100">
+                      <Button
+                        size="lg"
+                        variant="secondary"
+                        className="bg-white/90 hover:bg-white text-foreground shadow-lg gap-2 rounded-xl backdrop-blur-sm"
+                        onClick={() => setIsImageDialogOpen(true)}
+                      >
+                        <Maximize2 className="h-4 w-4" />
+                        Ampliar
+                      </Button>
+                      <Button
+                        size="lg"
+                        variant="secondary"
+                        className="bg-white/90 hover:bg-white text-foreground shadow-lg gap-2 rounded-xl backdrop-blur-sm"
+                        onClick={handleDownload}
+                      >
+                        <Download className="h-4 w-4" />
+                        Download
+                      </Button>
+                    </div>
+                  )}
                 </div>
-              </div>
-              {/* Version Navigation */}
-              {versionHistory.length > 1 && (
-                <div className="p-3 sm:p-4 bg-muted/20 border-t border-border/20">
-                  <div className="flex items-center justify-between gap-2">
-                    <Button onClick={() => handleNavigateVersion("prev")} variant="outline" size="sm" disabled={currentVersionIndex === 0} className="rounded-xl gap-1.5 text-xs sm:text-sm">
+
+                {/* Version Navigation */}
+                {versionHistory.length > 1 && (
+                  <div className="p-3 bg-muted/20 border-t border-border/20 flex items-center justify-between">
+                    <Button onClick={() => handleNavigateVersion("prev")} variant="outline" size="sm" disabled={currentVersionIndex === 0} className="rounded-lg gap-1.5 text-xs">
                       <Undo2 className="h-3.5 w-3.5" />
                       <span className="hidden sm:inline">Anterior</span>
                     </Button>
@@ -737,141 +790,263 @@ export default function ContentResult() {
                       <span className="font-medium">{currentVersionIndex === 0 ? "Original" : `Revisão ${currentVersionIndex}`}</span>
                       <span>({currentVersionIndex + 1}/{versionHistory.length})</span>
                     </div>
-                    <Button onClick={() => handleNavigateVersion("next")} variant="outline" size="sm" disabled={currentVersionIndex === versionHistory.length - 1} className="rounded-xl gap-1.5 text-xs sm:text-sm">
+                    <Button onClick={() => handleNavigateVersion("next")} variant="outline" size="sm" disabled={currentVersionIndex === versionHistory.length - 1} className="rounded-lg gap-1.5 text-xs">
                       <span className="hidden sm:inline">Próxima</span>
                       <Redo2 className="h-3.5 w-3.5" />
                     </Button>
                   </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                )}
+              </Card>
+            </div>
 
-          {/* Caption - Right on desktop, second on mobile */}
-          <div className="space-y-4 order-2">
-            <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-xl sm:rounded-2xl animate-fade-in hover:shadow-xl transition-shadow duration-300" style={{ animationDelay: "200ms" }}>
-              <CardContent className="p-4 sm:p-5 md:p-6 space-y-3 sm:space-y-4">
-                <div className="flex items-center justify-between pb-3 border-b border-border/20">
-                  <h2 className="text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">
-                    <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-                    Legenda
-                  </h2>
-                  <Button onClick={handleCopyCaption} variant="outline" size="sm" className="rounded-xl gap-2 hover-scale transition-all duration-200 hover:bg-accent/20 hover:text-accent hover:border-accent">
-                    {copied ? (
-                      <><Check className="h-4 w-4 text-green-500 animate-scale-in" /><span className="hidden sm:inline">Copiado</span></>
-                    ) : (
-                      <><Copy className="h-4 w-4" /><span className="hidden sm:inline">Copiar</span></>
-                    )}
+            {/* Right column - Info */}
+            <div className="space-y-5 order-2">
+              {/* Success Title */}
+              <h2 className="text-3xl sm:text-4xl font-extrabold leading-tight">
+                <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+                  Conteúdo gerado{"\n"}com sucesso!
+                </span>
+              </h2>
+
+              {/* Caption Card */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold text-foreground">Legenda gerada:</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleCopyCaption}
+                    className="gap-1.5 h-8 text-xs"
+                  >
+                    <span className="relative h-4 w-4">
+                      <Copy className={`h-4 w-4 absolute inset-0 transition-all duration-300 ${copied ? 'opacity-0 scale-75' : 'opacity-100 scale-100'}`} />
+                      <Check className={`h-4 w-4 absolute inset-0 text-green-500 transition-all duration-300 ${copied ? 'opacity-100 scale-100' : 'opacity-0 scale-75'}`} />
+                    </span>
+                    {copied ? "Copiado" : "Copiar"}
                   </Button>
                 </div>
-
-                <div className="space-y-3 sm:space-y-4">
-                  <div className="bg-muted/30 rounded-xl p-4 sm:p-5 backdrop-blur-sm">
-                    {contentData.title && contentData.body && contentData.hashtags ? (
-                      <>
-                        <h3 className="text-base sm:text-lg md:text-xl font-bold text-foreground mb-3">
-                          {contentData.title}
-                          {contentData.isLocalFallback && (
-                            <Badge variant="outline" className="ml-2 text-xs">Padrão</Badge>
-                          )}
-                        </h3>
-                        <div className="relative">
-                          <p className={`text-sm sm:text-base text-foreground leading-relaxed whitespace-pre-wrap ${!isCaptionExpanded ? 'line-clamp-3' : ''}`}>
-                            {contentData.body}
-                          </p>
-                          {contentData.body && contentData.body.length > 150 && (
-                            <button
-                              onClick={() => setIsCaptionExpanded(!isCaptionExpanded)}
-                              className="text-sm font-medium text-primary hover:text-primary/80 mt-1 transition-colors"
-                            >
-                              {isCaptionExpanded ? "Ler menos" : "Ler mais"}
-                            </button>
-                          )}
-                        </div>
-                        <div className="mt-4 pt-4 border-t border-border/20">
-                          <div className="flex flex-wrap gap-2">
-                            {contentData.hashtags.map((tag, index) => (
-                              <span key={index} className="text-xs sm:text-sm text-primary font-medium bg-primary/10 px-2 py-1 rounded-md">
-                                #{tag}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        {contentData.title && (
-                          <h3 className="text-base sm:text-lg md:text-xl font-bold text-foreground mb-3">{contentData.title}</h3>
-                        )}
-                        <div className="relative">
-                          <p className={`text-sm sm:text-base text-foreground leading-relaxed whitespace-pre-wrap ${!isCaptionExpanded ? 'line-clamp-3' : ''}`}>
-                            {contentData.caption}
-                          </p>
-                          {contentData.caption && contentData.caption.length > 150 && (
-                            <button
-                              onClick={() => setIsCaptionExpanded(!isCaptionExpanded)}
-                              className="text-sm font-medium text-primary hover:text-primary/80 mt-1 transition-colors"
-                            >
-                              {isCaptionExpanded ? "Ler menos" : "Ler mais"}
-                            </button>
-                          )}
-                        </div>
-                        {contentData.hashtags && contentData.hashtags.length > 0 && (
-                          <div className="mt-4 pt-4 border-t border-border/20">
-                            <div className="flex flex-wrap gap-2">
-                              {contentData.hashtags.map((tag, index) => (
-                                <span key={index} className="text-xs sm:text-sm text-primary font-medium bg-primary/10 px-2 py-1 rounded-md">
-                                  #{tag}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </>
-                    )}
-                  </div>
-
-                  <div className="pt-3 sm:pt-4 border-t border-border/20 space-y-2 sm:space-y-3">
-                    {!isSavedToHistory && (
-                      <Button onClick={handleSaveToHistory} disabled={isSaving} className="w-full rounded-xl hover-scale transition-all duration-200 hover:shadow-lg gap-2 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-sm sm:text-base" size="lg">
-                        {isSaving ? (
-                          <><Loader className="h-4 w-4 animate-spin" />Salvando...</>
-                        ) : (
-                          <><Check className="h-4 w-4" />Salvar no Histórico</>
-                        )}
-                      </Button>
-                    )}
-
-                    {isSavedToHistory && contentData.actionId && (
-                      <Button onClick={() => navigate(`/action/${contentData.actionId}`)} variant="default" className="w-full rounded-xl hover-scale transition-all duration-200 gap-2 text-sm sm:text-base" size="lg">
-                        <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
-                        <span className="hidden sm:inline">Salvo no Histórico - Ver Detalhes</span>
-                        <span className="sm:hidden">Ver no Histórico</span>
-                      </Button>
-                    )}
-
-                    <Button onClick={() => navigate("/create")} variant="outline" className="w-full rounded-xl hover-scale transition-all duration-200 hover:shadow-md hover:bg-accent/20 hover:text-accent hover:border-accent text-sm sm:text-base" size="lg">
-                      Criar Novo Conteúdo
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      onClick={() => setShowReportDialog(true)}
-                      className="w-full rounded-xl text-destructive hover:text-destructive/80 hover:bg-destructive/10 gap-2 text-sm sm:text-base"
-                      size="lg"
+                <div className="bg-muted/40 rounded-xl p-4 border border-border/30">
+                  {contentData.title && (
+                    <h3 className="text-base sm:text-lg font-bold text-foreground mb-2">
+                      {contentData.title}
+                      {contentData.isLocalFallback && (
+                        <Badge variant="outline" className="ml-2 text-xs">Padrão</Badge>
+                      )}
+                    </h3>
+                  )}
+                  <p
+                    ref={captionRef}
+                    className={`text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap transition-all duration-300 ${!isCaptionExpanded ? 'line-clamp-3' : ''}`}
+                  >
+                    {contentData.body || contentData.caption}
+                  </p>
+                  {(isCaptionTruncated || isCaptionExpanded) && (
+                    <button
+                      onClick={() => setIsCaptionExpanded(!isCaptionExpanded)}
+                      className="text-sm font-medium text-primary hover:text-primary/80 mt-2 transition-colors"
                     >
-                      <AlertTriangle className="h-4 w-4" />
-                      Reportar problema
-                    </Button>
-                    <Button onClick={() => navigate("/history")} variant="ghost" className="w-full rounded-xl hover-scale transition-all duration-200 text-sm sm:text-base" size="lg">
-                      Ver Histórico
-                    </Button>
-                  </div>
+                      {isCaptionExpanded ? "Ler menos" : "Ler mais"}
+                    </button>
+                  )}
+                  {contentData.hashtags && contentData.hashtags.length > 0 && (
+                    <div className="mt-3 pt-3 border-t border-border/20 flex flex-wrap gap-2">
+                      {contentData.hashtags.map((tag, index) => (
+                        <span key={index} className="text-xs text-primary font-medium bg-primary/10 px-2 py-1 rounded-md">
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+
+              {/* Configurations Used - Collapsible */}
+              {(brandName || themeName || personaName || platformName || promptUsed) && (
+                <Collapsible open={isConfigOpen} onOpenChange={setIsConfigOpen}>
+                  <CollapsibleTrigger asChild>
+                    <button className="flex items-center justify-between w-full text-sm font-semibold text-foreground py-2 border-b border-border/30 hover:text-primary transition-colors">
+                      <span>Configurações utilizadas</span>
+                      <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isConfigOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="pt-3 space-y-3">
+                    {promptUsed && (
+                      <div className="bg-muted/40 rounded-xl p-4 border border-border/30">
+                        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Prompt</span>
+                        <p className="text-sm text-foreground mt-1 whitespace-pre-wrap line-clamp-4">{promptUsed}</p>
+                      </div>
+                    )}
+                    <div className="flex flex-wrap gap-2">
+                      {platformName && (
+                        <Badge variant="outline" className="gap-1.5 py-1.5 px-3 text-sm border-border/50">
+                          <Share2 className="h-3.5 w-3.5" />{platformName}
+                        </Badge>
+                      )}
+                      {brandName && (
+                        <Badge variant="secondary" className="gap-1.5 py-1.5 px-3 text-sm bg-primary/10 text-primary border-primary/20">
+                          <Building2 className="h-3.5 w-3.5" />{brandName}
+                        </Badge>
+                      )}
+                      {themeName && (
+                        <Badge variant="secondary" className="gap-1.5 py-1.5 px-3 text-sm bg-accent/10 text-accent-foreground border-accent/20">
+                          <Palette className="h-3.5 w-3.5" />{themeName}
+                        </Badge>
+                      )}
+                      {personaName && (
+                        <Badge variant="secondary" className="gap-1.5 py-1.5 px-3 text-sm bg-secondary/20 text-secondary-foreground border-secondary/30">
+                          <User className="h-3.5 w-3.5" />{personaName}
+                        </Badge>
+                      )}
+                      {formatName && (
+                        <Badge variant="outline" className="gap-1.5 py-1.5 px-3 text-sm border-border/50">
+                          <ImageIcon className="h-3.5 w-3.5" />{formatName}
+                        </Badge>
+                      )}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+              )}
+
+              {/* Save to history */}
+              {!isSavedToHistory && (
+                <Button onClick={handleSaveToHistory} disabled={isSaving} className="w-full rounded-xl gap-2 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90" size="lg">
+                  {isSaving ? (
+                    <><Loader className="h-4 w-4 animate-spin" />Salvando...</>
+                  ) : (
+                    <><Check className="h-4 w-4" />Salvar no Histórico</>
+                  )}
+                </Button>
+              )}
+
+              {/* Report problem link */}
+              <button
+                onClick={() => setShowReportDialog(true)}
+                className="flex items-center gap-2 text-sm text-destructive hover:text-destructive/80 transition-colors"
+              >
+                <AlertTriangle className="h-4 w-4" />
+                Reportar problema com geração
+              </button>
+
+              {/* Saved info */}
+              {isSavedToHistory && contentData.actionId && (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Info className="h-3.5 w-3.5" />
+                  <span>Ação salva no histórico</span>
+                  <Button variant="link" size="sm" className="h-auto p-0 text-xs" onClick={() => navigate(`/action/${contentData.actionId}`)}>
+                    Ver detalhes
+                  </Button>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                <Button
+                  onClick={handleOpenReview}
+                  size="lg"
+                  className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground rounded-xl gap-2 h-14 text-base font-bold shadow-lg hover:shadow-xl transition-all"
+                  disabled={!user?.credits || user.credits < CREDIT_COSTS.IMAGE_REVIEW}
+                >
+                  <Pen className="h-5 w-5" />
+                  Corrigir
+                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="secondary"
+                      size="lg"
+                      className="rounded-xl gap-2 h-14 text-base font-bold shadow-lg hover:shadow-xl transition-all border-2 border-secondary/30"
+                    >
+                      <Plus className="h-5 w-5" />
+                      Criar outro
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="center" className="w-60 p-1.5">
+                    <DropdownMenuItem onClick={handleReusePrompt} className="gap-3 py-3.5 px-3 cursor-pointer rounded-lg focus:bg-primary/10 hover:bg-primary/10 data-[highlighted]:bg-primary/10 focus:text-foreground data-[highlighted]:text-foreground">
+                      <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-primary/15 shrink-0">
+                        <RefreshCw className="h-4 w-4 text-primary" />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="font-semibold text-sm">Mesmo prompt</span>
+                        <span className="text-xs text-muted-foreground">Reutilizar as configurações atuais</span>
+                      </div>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/create-image")} className="gap-3 py-3.5 px-3 cursor-pointer rounded-lg focus:bg-muted hover:bg-muted data-[highlighted]:bg-muted focus:text-foreground data-[highlighted]:text-foreground">
+                      <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-muted shrink-0">
+                        <Sparkles className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="font-semibold text-sm">Começar do zero</span>
+                        <span className="text-xs text-muted-foreground">Criar com novas configurações</span>
+                      </div>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <Button
+                  onClick={() => navigate("/history")}
+                  size="lg"
+                  className="bg-gradient-to-r from-accent to-accent/80 hover:from-accent/90 hover:to-accent/70 text-accent-foreground rounded-xl gap-2 h-14 text-base font-bold shadow-lg hover:shadow-xl transition-all"
+                >
+                  <History className="h-5 w-5" />
+                  Histórico
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      </main>
+
+      {/* Image Dialog - Glassmorphism */}
+      <Dialog open={isImageDialogOpen} onOpenChange={(open) => { setIsImageDialogOpen(open); if (!open) setIsImageCopied(false); }}>
+        <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 overflow-hidden border-0 bg-black/95 [&>button]:hidden">
+          <DialogHeader className="sr-only">
+            <DialogTitle>Visualização da Imagem</DialogTitle>
+            <DialogDescription>Imagem ampliada do conteúdo gerado</DialogDescription>
+          </DialogHeader>
+          <div className="absolute top-4 right-4 z-50 flex items-center gap-2">
+            <Button
+              size="sm"
+              onClick={(e) => { e.stopPropagation(); handleDownload(); }}
+              className="bg-white/15 hover:bg-white/25 text-white backdrop-blur-md border border-white/20 rounded-lg gap-1.5 transition-all duration-300 h-9 px-3"
+            >
+              <Download className="h-4 w-4" />
+              Baixar
+            </Button>
+            <Button
+              size="sm"
+              onClick={async (e) => {
+                e.stopPropagation();
+                try {
+                  const response = await fetch(contentData.mediaUrl);
+                  const blob = await response.blob();
+                  await navigator.clipboard.write([
+                    new ClipboardItem({ [blob.type]: blob })
+                  ]);
+                  setIsImageCopied(true);
+                  setTimeout(() => setIsImageCopied(false), 2000);
+                } catch {
+                  toast.error("Não foi possível copiar a imagem");
+                }
+              }}
+              className={`backdrop-blur-md border border-white/20 rounded-lg gap-1.5 transition-all duration-300 h-9 px-3 ${isImageCopied ? 'bg-green-500/30 hover:bg-green-500/40 text-green-300' : 'bg-white/15 hover:bg-white/25 text-white'}`}
+            >
+              <span className="relative h-4 w-4">
+                <Copy className={`h-4 w-4 absolute inset-0 transition-all duration-300 ${isImageCopied ? 'opacity-0 scale-75' : 'opacity-100 scale-100'}`} />
+                <Check className={`h-4 w-4 absolute inset-0 transition-all duration-300 ${isImageCopied ? 'opacity-100 scale-100' : 'opacity-0 scale-75'}`} />
+              </span>
+              {isImageCopied ? "Copiado!" : "Copiar"}
+            </Button>
+            <button
+              onClick={() => setIsImageDialogOpen(false)}
+              className="h-9 w-9 flex items-center justify-center rounded-lg bg-white/15 hover:bg-white/25 text-white backdrop-blur-md border border-white/20 transition-all duration-300"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+          <div className="w-full h-full flex items-center justify-center">
+            <img src={contentData.mediaUrl} alt="Conteúdo gerado ampliado" className="max-w-full max-h-[90vh] object-contain" />
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Review Dialog */}
       <Dialog open={showReviewDialog} onOpenChange={setShowReviewDialog}>
