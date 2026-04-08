@@ -147,6 +147,41 @@ export function ReportProblemDialog({
     setIsSubmitting(true);
     try {
       const uploadedUrls: string[] = [];
+
+      // Auto-attach the generated image (final version with corrections)
+      if (generatedImageUrl) {
+        try {
+          if (generatedImageUrl.startsWith('data:')) {
+            // Base64 image — upload to storage
+            const base64Data = generatedImageUrl.split(',')[1];
+            const byteCharacters = atob(base64Data);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+              byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            const blob = new Blob([byteArray], { type: 'image/png' });
+            const path = `reports/${user.id}/generated_${Date.now()}.png`;
+            const { error: uploadError } = await supabase.storage
+              .from("content-images")
+              .upload(path, blob);
+            if (!uploadError) {
+              const { data: urlData } = supabase.storage
+                .from("content-images")
+                .getPublicUrl(path);
+              uploadedUrls.push(urlData.publicUrl);
+            }
+          } else if (generatedImageUrl.startsWith('http')) {
+            // Already a public URL — include directly
+            const cleanUrl = generatedImageUrl.split('?')[0];
+            uploadedUrls.push(cleanUrl);
+          }
+        } catch (imgError) {
+          console.error("Failed to attach generated image:", imgError);
+        }
+      }
+
+      // Upload user-provided screenshots
       for (const file of screenshots) {
         const ext = file.name.split(".").pop() || "png";
         const path = `reports/${user.id}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
