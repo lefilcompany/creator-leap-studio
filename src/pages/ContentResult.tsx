@@ -110,7 +110,8 @@ export default function ContentResult() {
   }, [checkTruncation, contentData]);
 
   // Auto-save to history (like QuickContentResult)
-  const autoSaveToHistory = useCallback(async (data: ContentResultData) => {
+  const autoSaveToHistoryRef = useRef<((data: ContentResultData) => Promise<void>) | null>(null);
+  autoSaveToHistoryRef.current = async (data: ContentResultData) => {
     if (!user || data.actionId || isSavedToHistory) return;
     
     try {
@@ -186,11 +187,12 @@ export default function ContentResult() {
     } catch (error) {
       console.error("Erro no auto-save:", error);
     }
-  }, [user, isSavedToHistory]);
+  };
 
   useEffect(() => {
     const loadContent = async () => {
       try {
+        // Clean old sessionStorage images
         Object.keys(sessionStorage).forEach(key => {
           if (key.startsWith("image_")) {
             const timestamp = parseInt(key.split("_")[1]);
@@ -199,8 +201,14 @@ export default function ContentResult() {
             }
           }
         });
+        // Clean old versions_* localStorage entries to prevent QuotaExceeded
+        Object.keys(localStorage).forEach(key => {
+          if (key.startsWith("versions_content_") || key.startsWith("revisions_content_")) {
+            localStorage.removeItem(key);
+          }
+        });
       } catch (error) {
-        console.error("Erro ao limpar sessionStorage:", error);
+        console.error("Erro ao limpar storage:", error);
       }
 
       if (location.state?.contentData) {
@@ -282,7 +290,7 @@ export default function ContentResult() {
 
         // Auto-save to history if not already saved
         if (!data.actionId) {
-          autoSaveToHistory(data);
+          autoSaveToHistoryRef.current?.(data);
         }
       } else {
         const saved = localStorage.getItem("currentContent");
@@ -318,7 +326,7 @@ export default function ContentResult() {
       }
     };
     loadContent();
-  }, [location.state, navigate, autoSaveToHistory]);
+  }, [location.state, navigate]);
 
   const handleCopyCaption = async () => {
     if (!contentData) return;
