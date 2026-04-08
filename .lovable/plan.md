@@ -1,83 +1,45 @@
 
 
-# Plano: Sistema de Report de Problemas na Geração
+# Plano: Tela de Carregamento com Logo GIF na Criação Rápida
 
 ## Resumo
 
-Criar um sistema completo de reporte de problemas: dialog com formulário, tabela no banco, Edge Function para enviar email ao suporte, e página admin para gerenciar os reports.
+Quando o usuário clicar em "Gerar Imagem Rápida", a página `/quick-content` substituirá o formulário por uma tela de carregamento elegante com a logo animada (GIF extraído do vídeo .mov), uma barra de progresso com porcentagem simulada, e o texto motivacional. O usuário pode navegar para outras páginas livremente — a geração continua em segundo plano via sidebar.
 
 ---
 
-## Componentes
+## O que será feito
 
-### 1. Tabela `generation_reports` no banco
+### 1. Converter o vídeo .mov em GIF transparente
+- Usar ffmpeg para extrair o vídeo como GIF com fundo transparente
+- Salvar o GIF em `public/images/logo-loading.gif`
 
-Campos: `id`, `user_id`, `team_id`, `action_id`, `action_type`, `description`, `screenshot_urls` (jsonb array), `status` (open/resolved/dismissed), `created_at`, `resolved_at`, `admin_notes`. RLS: usuário vê os próprios, system admin vê todos e pode atualizar.
+### 2. Criar componente `QuickContentLoading`
+- Novo componente `src/components/quick-content/QuickContentLoading.tsx`
+- Exibe a logo GIF com animação de pulsação (scale up/down via CSS)
+- Barra de progresso com porcentagem numérica que simula progresso (0% → ~90% gradualmente enquanto gera, pula para 100% ao completar)
+- Texto: "Um instante, estamos criando a imagem perfeita para você"
+- Barra de progresso estilizada com gradiente primary
+- Botão sutil informando que pode navegar livremente
 
-### 2. Componente `ReportProblemDialog`
+### 3. Modificar `QuickContent.tsx`
+- Quando `isGenerating` for true e o usuário ainda estiver na página, renderizar o `QuickContentLoading` no lugar do formulário
+- Manter toda a lógica de background task e auto-navegação ao resultado
+- O usuário continua podendo sair — a sidebar mostra o progresso
 
-Dialog reutilizável com:
-- Campo de descrição do problema (textarea, obrigatório)
-- Upload de até 3 screenshots (usando bucket `content-images`)
-- Seleção do tipo de problema (imagem distorcida, texto incorreto, erro de geração, outro)
-- Botão de enviar com loading state
-
-Ao submeter: insere na tabela `generation_reports` e invoca a Edge Function de email.
-
-### 3. Edge Function `send-report-email`
-
-Recebe os dados do report e envia email para `suporte.creator@lefil.com.br` via Resend (já configurado no projeto) com:
-- Nome e email do usuário
-- Equipe (se tiver)
-- Tipo e descrição do problema
-- Links das screenshots
-- Link direto para a action no sistema
-- Data/hora do report
-
-### 4. Página Admin `/system/reports`
-
-Tabela com todos os reports, filtros por status, busca por usuário. Cada report mostra:
-- Quem enviou (nome, email, avatar)
-- Equipe
-- Data/hora
-- Tipo de problema
-- Descrição
-- Screenshots (clicáveis)
-- Status (badge colorido)
-- Botão para marcar como resolvido/dispensado com campo de notas
-
-### 5. Integrações
-
-- Botão "Reportar problema" no `QuickContentResult.tsx` abre o dialog
-- Mesmo botão no `ContentResult.tsx` para consistência
-- Nova rota `/system/reports` no App.tsx
-- Novo item "Reports" no `SystemSidebar.tsx` com ícone `MessageSquareWarning`
-
----
-
-## Arquivos
-
-| Arquivo | Ação |
-|---------|------|
-| Migration SQL | Criar tabela `generation_reports` com RLS |
-| `src/components/ReportProblemDialog.tsx` | Novo componente dialog |
-| `supabase/functions/send-report-email/index.ts` | Nova Edge Function |
-| `src/pages/system/SystemReports.tsx` | Nova página admin |
-| `src/pages/QuickContentResult.tsx` | Integrar dialog |
-| `src/pages/ContentResult.tsx` | Integrar dialog |
-| `src/App.tsx` | Adicionar rota `/system/reports` |
-| `src/components/system/SystemSidebar.tsx` | Adicionar link "Reports" |
+### 4. Progresso simulado
+- Timer que incrementa de 0% a ~90% ao longo de ~25 segundos (tempo médio de geração)
+- Ao completar (task status = "complete"), pula para 100% e redireciona
 
 ---
 
 ## Detalhes Técnicos
 
-### Email via Resend
-O projeto já tem `RESEND_API_KEY` e `LOVABLE_API_KEY` configurados. A Edge Function usará o gateway Resend para enviar o email formatado em HTML com os detalhes do report.
-
-### Upload de Screenshots
-Reutiliza o bucket `content-images` (público). O usuário seleciona imagens, faz upload via `supabase.storage`, e os URLs são salvos no campo `screenshot_urls`.
-
-### Status Flow
-`open` → `resolved` ou `dismissed` (admin atualiza via painel).
+| Item | Detalhe |
+|------|---------|
+| Conversão vídeo | `ffmpeg -i logo.mov -vf "fps=15,scale=200:-1" -gifflags +transdiff -y logo-loading.gif` |
+| Componente | `QuickContentLoading.tsx` com progress state via `useEffect` + `setInterval` |
+| Animação logo | CSS `animate-pulse` ou keyframe customizado de scale 0.95↔1.05 |
+| Progress bar | Componente `Progress` do shadcn + texto numérico centralizado |
+| Integração | Condicional no return do `QuickContent.tsx`: `isGenerating ? <QuickContentLoading> : <formulário>` |
 
