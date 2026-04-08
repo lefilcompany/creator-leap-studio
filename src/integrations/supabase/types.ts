@@ -541,6 +541,54 @@ export type Database = {
           },
         ]
       }
+      generation_reports: {
+        Row: {
+          action_id: string | null
+          action_type: string | null
+          admin_notes: string | null
+          created_at: string
+          description: string
+          id: string
+          problem_type: string
+          resolved_at: string | null
+          screenshot_urls: Json | null
+          status: string
+          team_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          action_id?: string | null
+          action_type?: string | null
+          admin_notes?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          problem_type: string
+          resolved_at?: string | null
+          screenshot_urls?: Json | null
+          status?: string
+          team_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          action_id?: string | null
+          action_type?: string | null
+          admin_notes?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          problem_type?: string
+          resolved_at?: string | null
+          screenshot_urls?: Json | null
+          status?: string
+          team_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string | null
