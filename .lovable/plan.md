@@ -1,58 +1,90 @@
 
 
-## Plano: Sistema de Lixeira (Soft Delete) para Ações
+# Plano: Redesign das Telas de Resultado de Geração de Imagem
 
-### Resumo
-Adicionar opção "Apagar" no menu de cada ação no histórico, com soft delete (coluna `deleted_at`). Criar página "Lixeira" acessível pela engrenagem do header. Itens na lixeira são exibidos com contagem regressiva e podem ser restaurados ou excluídos permanentemente. Após 30 dias, são apagados automaticamente.
+## Resumo
 
----
-
-### 1. Migração de banco de dados
-
-- Adicionar coluna `deleted_at timestamptz` (nullable, default null) na tabela `actions`
-- Criar índice parcial em `deleted_at` para performance
-- Atualizar a função `get_action_summaries` para filtrar `WHERE deleted_at IS NULL`
-- Criar função SQL `permanent_delete_old_trash()` que deleta ações com `deleted_at < NOW() - INTERVAL '30 days'`
-
-### 2. Opção "Apagar" no ActionCardMenu
-
-- Adicionar prop `onDelete` ao `ActionCardMenu`
-- Adicionar item "Apagar" com ícone `Trash2` e cor destrutiva no dropdown
-- Incluir diálogo de confirmação antes de mover para lixeira
-- O delete faz `UPDATE actions SET deleted_at = NOW() WHERE id = ?`
-
-### 3. Hook `useTrash`
-
-- Novo hook `src/hooks/useTrash.ts`:
-  - Query para listar ações onde `deleted_at IS NOT NULL` (do time do usuário)
-  - Mutation `restoreAction`: seta `deleted_at = NULL`
-  - Mutation `permanentDelete`: deleta fisicamente a ação
-  - Mutation `emptyTrash`: deleta todas as ações da lixeira
-  - Mutation `softDelete`: seta `deleted_at = NOW()`
-
-### 4. Página Lixeira
-
-- Nova página `src/pages/Trash.tsx`:
-  - Lista de ações deletadas com informações de quando foram deletadas
-  - Badge mostrando dias restantes antes da exclusão permanente
-  - Botões para restaurar individualmente ou esvaziar lixeira
-  - Mensagem vazia quando não há itens
-
-### 5. Rota e navegação
-
-- Adicionar rota `/trash` dentro do `DashboardLayout` em `App.tsx`
-- Adicionar link "Lixeira" com ícone `Trash2` no dropdown da engrenagem do `Header.tsx`
-
-### 6. Limpeza automática (cron)
-
-- Criar edge function `cleanup-trash/index.ts` que executa `DELETE FROM actions WHERE deleted_at < NOW() - INTERVAL '30 days'`
-- Agendar via `pg_cron` para rodar diariamente
+Reformular as páginas `ContentResult.tsx` e `QuickContentResult.tsx` para melhorar a experiência de visualização da imagem e interação com legendas/prompts, seguindo o layout da referência (imagem à esquerda, informações à direita).
 
 ---
 
-### Detalhes técnicos
+## Mudanças Principais
 
-- Todas as queries existentes de actions precisam adicionar filtro `deleted_at IS NULL` (na função SQL `get_action_summaries` e no hook `useActions`)
-- A RLS existente já protege o acesso — o soft delete usa UPDATE que já tem policy
-- O delete permanente usa a policy DELETE existente (`can_access_resource`)
+### 1. Layout da Imagem sem Scroll
+
+**Ambas as páginas**: A imagem gerada será exibida em tamanho completo sem scroll interno, usando `object-contain` com altura máxima controlada (`max-h-[80vh]`) e sem `aspect-ratio` forçado, permitindo que a proporção real da imagem determine o espaço. No desktop, layout de 2 colunas (imagem esquerda sticky, conteúdo direita).
+
+### 2. ContentResult — Legenda Truncada com "Ler mais"
+
+- Adicionar estado `isExpanded` para controlar a exibição da legenda
+- Por padrão, truncar o corpo da legenda em 3 linhas usando `line-clamp-3`
+- Botão "Ler mais" que expande para mostrar o texto completo
+- Quando expandido, botão muda para "Ler menos"
+- Título e hashtags sempre visíveis; apenas o corpo é truncado
+
+### 3. QuickContentResult — Prompt Truncado + Copiar + Reusar
+
+- **Prompt truncado**: Exibir o prompt usado com `line-clamp-3` e botão "Ler mais"
+- **Botão Copiar com transição de check**: Ícone de cópia que ao clicar muda para check verde com animação smooth, volta ao normal após 2s (já existe parcialmente, mas será refinado com transição CSS)
+- **Botão "Criar nova com mesmo prompt"**: 
+  - Navega para `/quick-content` passando `location.state` com os dados do formulário pré-preenchidos (`prompt`, `brandId`, `themeId`, `personaId`, `platform`, `aspectRatio`, `visualStyle`, etc.)
+  - Na página `QuickContent.tsx`, adicionar lógica no `useEffect` para ler `location.state` e preencher os campos
+  - Exibir um `Alert` de aviso: "Os campos foram preenchidos com base na sua criação anterior. Anexe novamente as imagens de referência, caso tenha utilizado."
+
+### 4. Botões de Ação (baseado na referência)
+
+Ambas as páginas terão 3 botões de ação proeminentes no rodapé:
+- **Corrigir** (revisão de imagem/legenda) — cor primária/rosa
+- **Gerar outra** (navega para tela de criação) — cor secundária
+- **Histórico** (navega para `/history`) — cor destaque
+
+---
+
+## Arquivos Modificados
+
+| Arquivo | Alteração |
+|---------|-----------|
+| `src/pages/ContentResult.tsx` | Refatorar layout imagem sem scroll, legenda truncada com "ler mais", botões de ação redesenhados |
+| `src/pages/QuickContentResult.tsx` | Prompt truncado com "ler mais", copiar com transição check, botão reusar prompt, layout sem scroll na imagem |
+| `src/pages/QuickContent.tsx` | Receber `location.state` para pré-preencher formulário, exibir alerta sobre imagens de referência |
+
+---
+
+## Detalhes Técnicos
+
+### Truncamento com "Ler mais"
+```text
+Estado: isExpanded (boolean)
+Classe CSS: line-clamp-3 quando não expandido
+Botão: text button "Ler mais" / "Ler menos"
+```
+
+### Botão Copiar com transição
+```text
+Estado: isCopied (boolean)
+Transição: ícone Copy → Check com scale animation
+Classes: transition-all duration-300
+Timeout: 2 segundos para reset
+```
+
+### Pré-preenchimento do QuickContent
+```text
+location.state?.prefillData contém:
+  - prompt, brandId, themeId, personaId
+  - platform, aspectRatio, visualStyle
+  - showPrefillWarning: true
+
+QuickContent.tsx useEffect:
+  if (location.state?.prefillData) {
+    setFormData(prev => ({ ...prev, ...location.state.prefillData }))
+    // Mostrar alerta sobre imagens
+  }
+```
+
+### Imagem sem scroll
+```text
+Container: relative, sem aspect-ratio forçado
+Imagem: w-full, max-h-[80vh], object-contain
+Sem overflow-hidden no container vertical
+```
 
