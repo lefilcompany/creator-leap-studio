@@ -42,6 +42,8 @@ export default function QuickContentResult() {
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   const promptRef = useRef<HTMLParagraphElement>(null);
 
+  const { imageUrl, description, actionId, prompt, brandName, themeName, personaName, platform } = location.state || {};
+
   const checkTruncation = useCallback(() => {
     if (promptRef.current) {
       setIsPromptTruncated(promptRef.current.scrollHeight > promptRef.current.clientHeight);
@@ -53,8 +55,6 @@ export default function QuickContentResult() {
     window.addEventListener('resize', checkTruncation);
     return () => window.removeEventListener('resize', checkTruncation);
   }, [checkTruncation, prompt]);
-
-  const { imageUrl, description, actionId, prompt, brandName, themeName, personaName, platform } = location.state || {};
   const originalFormData = location.state || {};
 
   useEffect(() => {
