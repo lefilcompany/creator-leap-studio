@@ -31,6 +31,7 @@ import createBanner from "@/assets/create-banner.jpg";
 
 export default function QuickContent() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, refreshUserCredits } = useAuth();
   const { addTask, tasks } = useBackgroundTasks();
   const isGenerating = tasks.some(t => t.type === "quick_content" && t.status === "running");
