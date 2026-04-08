@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import logoLoading from "/images/logo-loading.gif";
 
 interface QuickContentLoadingProps {
   isComplete: boolean;
@@ -18,11 +17,9 @@ export function QuickContentLoading({ isComplete }: QuickContentLoadingProps) {
       return;
     }
 
-    // Simulate progress: 0→90% over ~30s with easing
     const interval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 90) return prev;
-        // Slow down as it gets higher
         const increment = Math.max(0.3, (90 - prev) / 30);
         return Math.min(90, prev + increment);
       });
@@ -34,16 +31,16 @@ export function QuickContentLoading({ isComplete }: QuickContentLoadingProps) {
   return (
     <div className="flex flex-col items-center justify-center min-h-[70vh] px-4 animate-fade-in">
       {/* Pulsing logo */}
-      <div className="mb-8">
+      <div className="mb-6">
         <img
-          src={logoLoading}
+          src="/images/logo-loading.png"
           alt="Carregando"
-          className="w-32 h-32 object-contain animate-pulse-scale"
+          className="w-44 h-44 md:w-52 md:h-52 object-contain animate-pulse-scale"
         />
       </div>
 
       {/* Text */}
-      <h2 className="text-xl md:text-2xl font-bold text-foreground text-center mb-2">
+      <h2 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent text-center mb-2">
         Um instante, estamos criando a imagem perfeita para você
       </h2>
       <p className="text-sm text-muted-foreground text-center mb-8 max-w-md">
