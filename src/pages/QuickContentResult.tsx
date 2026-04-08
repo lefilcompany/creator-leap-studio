@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -38,9 +38,23 @@ export default function QuickContentResult() {
   const [currentImageUrl, setCurrentImageUrl] = useState("");
   const [imageHistory, setImageHistory] = useState<string[]>([]);
   const [isPromptExpanded, setIsPromptExpanded] = useState(false);
+  const [isPromptTruncated, setIsPromptTruncated] = useState(false);
   const [isConfigOpen, setIsConfigOpen] = useState(false);
+  const promptRef = useRef<HTMLParagraphElement>(null);
 
   const { imageUrl, description, actionId, prompt, brandName, themeName, personaName, platform } = location.state || {};
+
+  const checkTruncation = useCallback(() => {
+    if (promptRef.current) {
+      setIsPromptTruncated(promptRef.current.scrollHeight > promptRef.current.clientHeight);
+    }
+  }, []);
+
+  useEffect(() => {
+    checkTruncation();
+    window.addEventListener('resize', checkTruncation);
+    return () => window.removeEventListener('resize', checkTruncation);
+  }, [checkTruncation, prompt]);
   const originalFormData = location.state || {};
 
   useEffect(() => {
@@ -369,10 +383,13 @@ export default function QuickContentResult() {
                   </Button>
                 </div>
                 <div className="bg-muted/40 rounded-xl p-4 border border-border/30">
-                  <p className={`text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap ${!isPromptExpanded ? 'line-clamp-3' : ''}`}>
+                  <p
+                    ref={promptRef}
+                    className={`text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap transition-all duration-300 ${!isPromptExpanded ? 'line-clamp-3' : ''}`}
+                  >
                     {prompt}
                   </p>
-                  {prompt && prompt.length > 120 && (
+                  {isPromptTruncated && (
                     <button
                       onClick={() => setIsPromptExpanded(!isPromptExpanded)}
                       className="text-sm font-medium text-primary hover:text-primary/80 mt-2 transition-colors"
