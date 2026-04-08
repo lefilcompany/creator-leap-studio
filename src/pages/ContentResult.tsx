@@ -1179,6 +1179,7 @@ export default function ContentResult() {
         onOpenChange={setShowReportDialog}
         actionId={contentData?.actionId}
         actionType="CRIAR_CONTEUDO"
+        generatedImageUrl={contentData?.mediaUrl}
       />
     </div>
   );
