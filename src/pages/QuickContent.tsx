@@ -250,6 +250,17 @@ export default function QuickContent() {
     }
   };
 
+  const generatingTask = generatingTaskId ? tasks.find(t => t.id === generatingTaskId) : null;
+  const isTaskComplete = generatingTask?.status === "complete";
+
+  if (isGenerating || isTaskComplete) {
+    return (
+      <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8 min-h-full">
+        <QuickContentLoading isComplete={isTaskComplete} />
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8 min-h-full">
       
