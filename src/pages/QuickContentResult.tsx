@@ -369,10 +369,13 @@ export default function QuickContentResult() {
                   </Button>
                 </div>
                 <div className="bg-muted/40 rounded-xl p-4 border border-border/30">
-                  <p className={`text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap ${!isPromptExpanded ? 'line-clamp-3' : ''}`}>
+                  <p
+                    ref={promptRef}
+                    className={`text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap transition-all duration-300 ${!isPromptExpanded ? 'line-clamp-3' : ''}`}
+                  >
                     {prompt}
                   </p>
-                  {prompt && prompt.length > 120 && (
+                  {isPromptTruncated && (
                     <button
                       onClick={() => setIsPromptExpanded(!isPromptExpanded)}
                       className="text-sm font-medium text-primary hover:text-primary/80 mt-2 transition-colors"
