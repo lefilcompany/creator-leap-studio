@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import {
   Download, Copy, Check, Maximize2, RefreshCw, Undo2, Zap,
   Coins, Building2, Palette, User, Share2, History, Pen,
-  ChevronDown, AlertTriangle, Info
+  ChevronDown, AlertTriangle, Info, X
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
