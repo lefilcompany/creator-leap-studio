@@ -419,28 +419,25 @@ export default function QuickContent() {
 
           {/* Generate Button — full width */}
           <div className="flex justify-center pb-6">
-            <div className="flex items-center gap-3">
-              <Button
-                id="quick-generate-button"
-                onClick={generateQuickContent}
-                disabled={isGenerating || !formData.prompt.trim() || (user?.credits || 0) < CREDIT_COSTS.QUICK_IMAGE}
-                size="lg"
-                className="bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_100%] animate-gradient text-primary-foreground hover:opacity-90 transition-opacity shadow-lg px-8 py-3 text-base"
-              >
-                {isGenerating ? (
-                  <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Gerando...</>
-                ) : (
-                  <>
+            <Button
+              id="quick-generate-button"
+              onClick={generateQuickContent}
+              disabled={isGenerating || !formData.prompt.trim() || (user?.credits || 0) < CREDIT_COSTS.QUICK_IMAGE}
+              size="lg"
+              className="bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_100%] animate-gradient text-primary-foreground hover:opacity-90 transition-opacity shadow-lg px-8 py-5 h-auto flex-col gap-0.5"
+            >
+              {isGenerating ? (
+                <span className="flex items-center"><Loader2 className="mr-2 h-5 w-5 animate-spin" />Gerando...</span>
+              ) : (
+                <>
+                  <span className="flex items-center text-base font-semibold">
                     <Zap className="mr-2 h-5 w-5" />
                     Gerar Imagem Rápida
-                  </>
-                )}
-              </Button>
-              <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                <Coins className="h-4 w-4 text-primary" />
-                <span><strong className="text-foreground">{CREDIT_COSTS.QUICK_IMAGE}</strong> créditos</span>
-              </div>
-            </div>
+                  </span>
+                  <span className="text-xs font-normal text-primary-foreground/60">{CREDIT_COSTS.QUICK_IMAGE} créditos serão consumidos</span>
+                </>
+              )}
+            </Button>
           </div>
         </div>
       </main>
