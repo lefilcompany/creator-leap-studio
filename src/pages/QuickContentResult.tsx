@@ -490,18 +490,22 @@ export default function QuickContentResult() {
                       Criar outro
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="center" className="w-56">
-                    <DropdownMenuItem onClick={handleReusePrompt} className="gap-2 py-3 cursor-pointer">
-                      <RefreshCw className="h-4 w-4 text-primary" />
+                  <DropdownMenuContent align="center" className="w-60 p-1.5">
+                    <DropdownMenuItem onClick={handleReusePrompt} className="gap-3 py-3.5 px-3 cursor-pointer rounded-lg focus:bg-primary/10 hover:bg-primary/10 data-[highlighted]:bg-primary/10">
+                      <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-primary/15 shrink-0">
+                        <RefreshCw className="h-4 w-4 text-primary" />
+                      </div>
                       <div className="flex flex-col">
-                        <span className="font-medium">Mesmo prompt</span>
+                        <span className="font-semibold text-sm">Mesmo prompt</span>
                         <span className="text-xs text-muted-foreground">Reutilizar as configurações atuais</span>
                       </div>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate("/quick-content")} className="gap-2 py-3 cursor-pointer">
-                      <Sparkles className="h-4 w-4 text-accent-foreground" />
+                    <DropdownMenuItem onClick={() => navigate("/quick-content")} className="gap-3 py-3.5 px-3 cursor-pointer rounded-lg focus:bg-muted hover:bg-muted data-[highlighted]:bg-muted">
+                      <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-muted shrink-0">
+                        <Sparkles className="h-4 w-4 text-muted-foreground" />
+                      </div>
                       <div className="flex flex-col">
-                        <span className="font-medium">Começar do zero</span>
+                        <span className="font-semibold text-sm">Começar do zero</span>
                         <span className="text-xs text-muted-foreground">Criar com novas configurações</span>
                       </div>
                     </DropdownMenuItem>
