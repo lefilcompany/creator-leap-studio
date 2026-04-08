@@ -394,6 +394,18 @@ export default function SystemReports() {
 
               {/* Problem details */}
               <div className="space-y-3">
+                {selectedReport.action_type && (
+                  <div>
+                    <p className="text-sm font-semibold text-muted-foreground mb-1">Origem</p>
+                    {ACTION_TYPE_LABELS[selectedReport.action_type] ? (
+                      <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${ACTION_TYPE_LABELS[selectedReport.action_type].color}`}>
+                        {ACTION_TYPE_LABELS[selectedReport.action_type].label}
+                      </span>
+                    ) : (
+                      <p className="text-sm">{selectedReport.action_type}</p>
+                    )}
+                  </div>
+                )}
                 <div>
                   <p className="text-sm font-semibold text-muted-foreground mb-1">Tipo do problema</p>
                   <p className="text-sm">{PROBLEM_TYPE_LABELS[selectedReport.problem_type] || selectedReport.problem_type}</p>
