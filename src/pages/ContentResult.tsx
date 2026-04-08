@@ -86,7 +86,7 @@ export default function ContentResult() {
   const [reviewPrompt, setReviewPrompt] = useState("");
   const [isReviewing, setIsReviewing] = useState(false);
   const [totalRevisions, setTotalRevisions] = useState(0);
-  const [isSaving, setIsSaving] = useState(false);
+  
   const [isSavedToHistory, setIsSavedToHistory] = useState(false);
   const [versionHistory, setVersionHistory] = useState<any[]>([]);
   const [currentVersionIndex, setCurrentVersionIndex] = useState(0);
