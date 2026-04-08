@@ -334,6 +334,27 @@ export function ReportProblemDialog({
           </div>
         </div>
       </DialogContent>
+
+      {/* Image Preview Overlay */}
+      {previewImageUrl && (
+        <div
+          className="fixed inset-0 z-[300] bg-black/80 flex items-center justify-center cursor-pointer"
+          onClick={() => setPreviewImageUrl(null)}
+        >
+          <button
+            className="absolute top-4 right-4 bg-white/15 hover:bg-white/25 text-white backdrop-blur-md border border-white/20 rounded-lg p-2 transition-all"
+            onClick={() => setPreviewImageUrl(null)}
+          >
+            <X className="h-5 w-5" />
+          </button>
+          <img
+            src={previewImageUrl}
+            alt="Preview"
+            className="max-w-[90vw] max-h-[85vh] object-contain rounded-lg"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </Dialog>
   );
 }
