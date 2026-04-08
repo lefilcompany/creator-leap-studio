@@ -52,6 +52,14 @@ const PROBLEM_TYPE_LABELS: Record<string, string> = {
   other: "Outro",
 };
 
+const ACTION_TYPE_LABELS: Record<string, { label: string; color: string }> = {
+  CRIAR_CONTEUDO_RAPIDO: { label: "Imagem Rápida", color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" },
+  CRIAR_CONTEUDO: { label: "Imagem Personalizada", color: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400" },
+  REVISAR_CONTEUDO: { label: "Revisão", color: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400" },
+  PLANEJAR_CONTEUDO: { label: "Planejamento", color: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" },
+  GERAR_VIDEO: { label: "Vídeo", color: "bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400" },
+};
+
 const STATUS_CONFIG: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline"; icon: React.ElementType }> = {
   open: { label: "Aberto", variant: "destructive", icon: AlertTriangle },
   resolved: { label: "Resolvido", variant: "default", icon: CheckCircle2 },
