@@ -209,7 +209,7 @@ export function ReportProblemDialog({
           </div>
 
           {/* Description */}
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label htmlFor="report-description" className="text-sm font-semibold">
               Descrição do problema *
             </Label>
@@ -218,7 +218,7 @@ export function ReportProblemDialog({
               placeholder="Descreva detalhadamente o que aconteceu de errado..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="min-h-[120px]"
+              className="min-h-[100px] focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-primary"
               maxLength={1000}
             />
             <p className="text-xs text-muted-foreground text-right">
@@ -227,11 +227,11 @@ export function ReportProblemDialog({
           </div>
 
           {/* Screenshots */}
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label className="text-sm font-semibold">
               Capturas de tela (opcional, máx. 3)
             </Label>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-2">
               {previewUrls.map((url, i) => (
                 <div key={i} className="relative w-24 h-24 rounded-lg overflow-hidden border border-border group">
                   <img src={url} alt={`Screenshot ${i + 1}`} className="w-full h-full object-cover" />
