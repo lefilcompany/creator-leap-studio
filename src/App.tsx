@@ -73,6 +73,7 @@ const SystemLogs = lazy(() => import("./pages/system/SystemLogs"));
 const SystemPlans = lazy(() => import("./pages/system/SystemPlans"));
 const SystemSettings = lazy(() => import("./pages/system/SystemSettings"));
 const SystemCoupons = lazy(() => import("./pages/system/SystemCoupons"));
+const SystemReports = lazy(() => import("./pages/system/SystemReports"));
 
 // Optimized QueryClient configuration
 const queryClient = new QueryClient({
@@ -178,6 +179,7 @@ const App = () => (
                         <Route path="teams" element={<SuspenseRoute><SystemTeams /></SuspenseRoute>} />
                         <Route path="logs" element={<SuspenseRoute><SystemLogs /></SuspenseRoute>} />
                         <Route path="coupons" element={<SuspenseRoute><SystemCoupons /></SuspenseRoute>} />
+                        <Route path="reports" element={<SuspenseRoute><SystemReports /></SuspenseRoute>} />
                         <Route path="settings" element={<SuspenseRoute><SystemSettings /></SuspenseRoute>} />
                       </Route>
                       

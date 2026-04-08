@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Download, Copy, Sparkles, ArrowLeft, Check, ImageIcon, Video, RefreshCw, FileText, Loader, Coins, Undo2, Redo2, History } from "lucide-react";
+import { Download, Copy, Sparkles, ArrowLeft, Check, ImageIcon, Video, RefreshCw, FileText, Loader, Coins, Undo2, Redo2, History, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -14,6 +14,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { ContentResultSkeleton } from "@/components/ContentResultSkeleton";
 import { CREDIT_COSTS } from "@/lib/creditCosts";
+import { ReportProblemDialog } from "@/components/ReportProblemDialog";
 
 interface ContentResultData {
   type: "image" | "video";
@@ -51,6 +52,7 @@ export default function ContentResult() {
   const [versionHistory, setVersionHistory] = useState<any[]>([]);
   const [currentVersionIndex, setCurrentVersionIndex] = useState(0);
   const [isCaptionExpanded, setIsCaptionExpanded] = useState(false);
+  const [showReportDialog, setShowReportDialog] = useState(false);
 
   useEffect(() => {
     const loadContent = async () => {
@@ -851,6 +853,15 @@ export default function ContentResult() {
                     <Button onClick={() => navigate("/create")} variant="outline" className="w-full rounded-xl hover-scale transition-all duration-200 hover:shadow-md hover:bg-accent/20 hover:text-accent hover:border-accent text-sm sm:text-base" size="lg">
                       Criar Novo Conteúdo
                     </Button>
+                    <Button
+                      variant="ghost"
+                      onClick={() => setShowReportDialog(true)}
+                      className="w-full rounded-xl text-destructive hover:text-destructive/80 hover:bg-destructive/10 gap-2 text-sm sm:text-base"
+                      size="lg"
+                    >
+                      <AlertTriangle className="h-4 w-4" />
+                      Reportar problema
+                    </Button>
                     <Button onClick={() => navigate("/history")} variant="ghost" className="w-full rounded-xl hover-scale transition-all duration-200 text-sm sm:text-base" size="lg">
                       Ver Histórico
                     </Button>
@@ -960,6 +971,14 @@ export default function ContentResult() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Report Problem Dialog */}
+      <ReportProblemDialog
+        open={showReportDialog}
+        onOpenChange={setShowReportDialog}
+        actionId={contentData?.actionId}
+        actionType="CRIAR_CONTEUDO"
+      />
     </div>
   );
 }
