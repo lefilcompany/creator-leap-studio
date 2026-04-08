@@ -116,7 +116,7 @@ export function ReportProblemDialog({
           body: {
             userName: user.name,
             userEmail: user.email,
-            teamName: user.teamName || null,
+            teamName: null,
             problemType,
             description: description.trim(),
             screenshotUrls: uploadedUrls,

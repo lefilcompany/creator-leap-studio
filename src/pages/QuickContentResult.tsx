@@ -17,6 +17,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { CREDIT_COSTS } from "@/lib/creditCosts";
 import { PageBreadcrumb } from "@/components/PageBreadcrumb";
+import { ReportProblemDialog } from "@/components/ReportProblemDialog";
 import { CreationProgressBar } from "@/components/CreationProgressBar";
 import {
   Collapsible,
@@ -41,6 +42,7 @@ export default function QuickContentResult() {
   const [isPromptExpanded, setIsPromptExpanded] = useState(false);
   const [isPromptTruncated, setIsPromptTruncated] = useState(false);
   const [isConfigOpen, setIsConfigOpen] = useState(false);
+  const [showReportDialog, setShowReportDialog] = useState(false);
   const promptRef = useRef<HTMLParagraphElement>(null);
 
   const { imageUrl, description, actionId, prompt, brandName, themeName, personaName, platform } = location.state || {};
@@ -450,7 +452,10 @@ export default function QuickContentResult() {
               )}
 
               {/* Report problem link */}
-              <button className="flex items-center gap-2 text-sm text-destructive hover:text-destructive/80 transition-colors">
+              <button
+                onClick={() => setShowReportDialog(true)}
+                className="flex items-center gap-2 text-sm text-destructive hover:text-destructive/80 transition-colors"
+              >
                 <AlertTriangle className="h-4 w-4" />
                 Reportar problema com geração
               </button>
