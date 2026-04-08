@@ -491,7 +491,7 @@ export default function QuickContentResult() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="center" className="w-60 p-1.5">
-                    <DropdownMenuItem onClick={handleReusePrompt} className="gap-3 py-3.5 px-3 cursor-pointer rounded-lg focus:bg-primary/10 hover:bg-primary/10 data-[highlighted]:bg-primary/10">
+                    <DropdownMenuItem onClick={handleReusePrompt} className="gap-3 py-3.5 px-3 cursor-pointer rounded-lg focus:bg-primary/10 hover:bg-primary/10 data-[highlighted]:bg-primary/10 focus:text-foreground data-[highlighted]:text-foreground">
                       <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-primary/15 shrink-0">
                         <RefreshCw className="h-4 w-4 text-primary" />
                       </div>
@@ -500,7 +500,7 @@ export default function QuickContentResult() {
                         <span className="text-xs text-muted-foreground">Reutilizar as configurações atuais</span>
                       </div>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate("/quick-content")} className="gap-3 py-3.5 px-3 cursor-pointer rounded-lg focus:bg-muted hover:bg-muted data-[highlighted]:bg-muted">
+                    <DropdownMenuItem onClick={() => navigate("/quick-content")} className="gap-3 py-3.5 px-3 cursor-pointer rounded-lg focus:bg-muted hover:bg-muted data-[highlighted]:bg-muted focus:text-foreground data-[highlighted]:text-foreground">
                       <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-muted shrink-0">
                         <Sparkles className="h-4 w-4 text-muted-foreground" />
                       </div>
