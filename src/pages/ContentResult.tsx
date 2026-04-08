@@ -883,7 +883,7 @@ export default function ContentResult() {
                         </Badge>
                       )}
                       {brandName && (
-                        <Badge variant="secondary" className="gap-1.5 py-1.5 px-3 text-sm bg-primary/10 text-primary border-primary/20">
+                        <Badge variant="secondary" className="gap-1.5 py-1.5 px-3 text-sm bg-primary/10 hover:bg-primary/10 text-primary border-primary/20">
                           <Building2 className="h-3.5 w-3.5" />{brandName}
                         </Badge>
                       )}
