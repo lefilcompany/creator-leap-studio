@@ -30,6 +30,7 @@ export default function QuickContentResult() {
   const location = useLocation();
   const { user, refreshUserCredits } = useAuth();
   const [isCopied, setIsCopied] = useState(false);
+  const [isImageCopied, setIsImageCopied] = useState(false);
   const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
   const [showReviewDialog, setShowReviewDialog] = useState(false);
   const [reviewPrompt, setReviewPrompt] = useState("");
@@ -488,19 +489,48 @@ export default function QuickContentResult() {
       </main>
 
       {/* Image Dialog */}
-      <Dialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen}>
-        <DialogContent className="max-w-[95vw] max-h-[95vh] p-2 overflow-auto border-0 bg-black/95">
-          <div className="absolute top-4 right-4 z-50 flex gap-2">
-            <Button size="sm" variant="secondary" onClick={(e) => { e.stopPropagation(); handleDownload(); }} className="bg-white/10 hover:bg-white/20 text-white">
-              <Download className="h-4 w-4 mr-2" />Baixar
-            </Button>
-          </div>
+      <Dialog open={isImageDialogOpen} onOpenChange={(open) => { setIsImageDialogOpen(open); if (!open) setIsImageCopied(false); }}>
+        <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 overflow-hidden border-0 bg-black/95 [&>button]:hidden">
           <DialogHeader className="sr-only">
             <DialogTitle>Visualização da Imagem</DialogTitle>
             <DialogDescription>Imagem ampliada do conteúdo gerado</DialogDescription>
           </DialogHeader>
-          <div className="flex items-center justify-center min-h-full">
-            <img src={currentImageUrl} alt="Conteúdo gerado ampliado" className="max-w-full max-h-[90vh] object-contain cursor-default" />
+          <div className="relative w-full h-full flex items-center justify-center">
+            <img src={currentImageUrl} alt="Conteúdo gerado ampliado" className="max-w-full max-h-[90vh] object-contain" />
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-3 z-50">
+              <Button
+                size="lg"
+                onClick={(e) => { e.stopPropagation(); handleDownload(); }}
+                className="bg-white/15 hover:bg-white/25 text-white backdrop-blur-md border border-white/20 rounded-xl gap-2 shadow-2xl transition-all duration-300"
+              >
+                <Download className="h-4 w-4" />
+                Baixar
+              </Button>
+              <Button
+                size="lg"
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  try {
+                    const response = await fetch(currentImageUrl);
+                    const blob = await response.blob();
+                    await navigator.clipboard.write([
+                      new ClipboardItem({ [blob.type]: blob })
+                    ]);
+                    setIsImageCopied(true);
+                    setTimeout(() => setIsImageCopied(false), 2000);
+                  } catch {
+                    toast.error("Não foi possível copiar a imagem");
+                  }
+                }}
+                className={`backdrop-blur-md border border-white/20 rounded-xl gap-2 shadow-2xl transition-all duration-300 ${isImageCopied ? 'bg-green-500/30 hover:bg-green-500/40 text-green-300' : 'bg-white/15 hover:bg-white/25 text-white'}`}
+              >
+                <span className="relative h-4 w-4">
+                  <Copy className={`h-4 w-4 absolute inset-0 transition-all duration-300 ${isImageCopied ? 'opacity-0 scale-75' : 'opacity-100 scale-100'}`} />
+                  <Check className={`h-4 w-4 absolute inset-0 transition-all duration-300 ${isImageCopied ? 'opacity-100 scale-100' : 'opacity-0 scale-75'}`} />
+                </span>
+                {isImageCopied ? "Copiado!" : "Copiar"}
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
