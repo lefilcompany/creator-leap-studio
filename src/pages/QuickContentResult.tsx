@@ -289,8 +289,8 @@ export default function QuickContentResult() {
               <Zap className="h-5 w-5 lg:h-6 lg:w-6" />
             </div>
             <div className="min-w-0">
-              <h1 className="text-lg lg:text-xl font-bold text-foreground leading-tight">Criar Imagem</h1>
-              <p className="text-muted-foreground text-[11px] lg:text-xs">Gere imagens profissionais com IA</p>
+              <h1 className="text-lg lg:text-xl font-bold text-foreground leading-tight">Resultado da Geração</h1>
+              <p className="text-muted-foreground text-[11px] lg:text-xs">Confira o conteúdo gerado com IA</p>
             </div>
             <div className="ml-auto flex items-center gap-2 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-xl px-3 py-1.5 flex-shrink-0 border border-primary/20">
               <div className="relative flex-shrink-0">
