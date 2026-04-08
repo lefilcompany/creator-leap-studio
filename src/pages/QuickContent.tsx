@@ -291,6 +291,14 @@ export default function QuickContent() {
       {/* Main Form — Two columns on desktop */}
       <main className="px-4 sm:px-6 lg:px-8 pt-4 pb-8 flex-1">
         <div className="max-w-7xl mx-auto space-y-4 mt-4">
+          {showPrefillWarning && (
+            <Alert className="border-primary/50 bg-primary/5">
+              <Info className="h-4 w-4 text-primary" />
+              <AlertDescription className="text-sm">
+                Os campos foram preenchidos com base na sua criação anterior. <strong>Anexe novamente as imagens de referência</strong>, caso tenha utilizado.
+              </AlertDescription>
+            </Alert>
+          )}
 
           <div id="quick-content-form" className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6">
             {/* Left column */}
