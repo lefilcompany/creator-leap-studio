@@ -6,8 +6,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import {
   Download, Copy, Check, Maximize2, RefreshCw, Undo2, Zap,
   Coins, Building2, Palette, User, Share2, History, Pen,
-  ChevronDown, AlertTriangle, Info, X
+  ChevronDown, AlertTriangle, Info, X, Plus, Sparkles
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
@@ -386,15 +392,6 @@ export default function QuickContentResult() {
                       </span>
                       {isCopied ? "Copiado" : "Copiar"}
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleReusePrompt}
-                      className="gap-1.5 h-8 text-xs text-primary hover:text-primary/80"
-                    >
-                      <RefreshCw className="h-3.5 w-3.5" />
-                      Gerar novamente
-                    </Button>
                   </div>
                 </div>
                 <div className="bg-muted/40 rounded-xl p-4 border border-border/30">
@@ -482,15 +479,34 @@ export default function QuickContentResult() {
                   <Pen className="h-5 w-5" />
                   Corrigir
                 </Button>
-                <Button
-                  onClick={handleReusePrompt}
-                  variant="secondary"
-                  size="lg"
-                  className="rounded-xl gap-2 h-14 text-base font-bold shadow-lg hover:shadow-xl transition-all border-2 border-secondary/30"
-                >
-                  <RefreshCw className="h-5 w-5" />
-                  Gerar outra
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="secondary"
+                      size="lg"
+                      className="rounded-xl gap-2 h-14 text-base font-bold shadow-lg hover:shadow-xl transition-all border-2 border-secondary/30"
+                    >
+                      <Plus className="h-5 w-5" />
+                      Criar outro
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="center" className="w-56">
+                    <DropdownMenuItem onClick={handleReusePrompt} className="gap-2 py-3 cursor-pointer">
+                      <RefreshCw className="h-4 w-4 text-primary" />
+                      <div className="flex flex-col">
+                        <span className="font-medium">Mesmo prompt</span>
+                        <span className="text-xs text-muted-foreground">Reutilizar as configurações atuais</span>
+                      </div>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/quick-content")} className="gap-2 py-3 cursor-pointer">
+                      <Sparkles className="h-4 w-4 text-accent-foreground" />
+                      <div className="flex flex-col">
+                        <span className="font-medium">Começar do zero</span>
+                        <span className="text-xs text-muted-foreground">Criar com novas configurações</span>
+                      </div>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 <Button
                   onClick={() => navigate("/history")}
                   size="lg"
