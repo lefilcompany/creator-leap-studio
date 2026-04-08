@@ -38,7 +38,7 @@ export function QuickContentLoading({ isComplete }: QuickContentLoadingProps) {
         <img
           src={logoLoading}
           alt="Carregando"
-          className="w-32 h-32 object-contain animate-[pulse-scale_2s_ease-in-out_infinite]"
+          className="w-32 h-32 object-contain animate-pulse-scale"
         />
       </div>
 
