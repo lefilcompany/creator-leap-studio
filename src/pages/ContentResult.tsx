@@ -283,7 +283,7 @@ export default function ContentResult() {
 
         // Auto-save to history if not already saved
         if (!data.actionId) {
-          autoSaveToHistory(data);
+          autoSaveToHistoryRef.current?.(data);
         }
       } else {
         const saved = localStorage.getItem("currentContent");
@@ -319,7 +319,7 @@ export default function ContentResult() {
       }
     };
     loadContent();
-  }, [location.state, navigate, autoSaveToHistory]);
+  }, [location.state, navigate]);
 
   const handleCopyCaption = async () => {
     if (!contentData) return;
