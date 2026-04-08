@@ -524,14 +524,15 @@ export default function CreateImage() {
   };
 
   const isFormValid = useMemo(() => {
-    return formData.brand && formData.prompt && formData.platform && formData.tone.length > 0 && referenceFiles.length > 0;
-  }, [formData.brand, formData.prompt, formData.platform, formData.tone.length, referenceFiles.length]);
+    const hasPlatformOrFormat = !!(formData.platform || formData.aspectRatio);
+    return formData.brand && formData.prompt && hasPlatformOrFormat && formData.tone.length > 0 && referenceFiles.length > 0;
+  }, [formData.brand, formData.prompt, formData.platform, formData.aspectRatio, formData.tone.length, referenceFiles.length]);
 
   const validateForm = () => {
     const missing: string[] = [];
     if (!formData.brand) missing.push('brand');
     if (!formData.prompt) missing.push('prompt');
-    if (!formData.platform) missing.push('platform');
+    if (!formData.platform && !formData.aspectRatio) missing.push('platform');
     if (formData.tone.length === 0) missing.push('tone');
     if (referenceFiles.length === 0) missing.push('referenceFiles');
     setMissingFields(missing);
