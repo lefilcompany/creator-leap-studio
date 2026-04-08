@@ -611,7 +611,7 @@ export default function ContentResult() {
         console.error("Error refreshing user credits:", error);
       }
 
-      if (saved.actionId && saved.savedToHistory) {
+      if (saved.actionId) {
         const { error: updateError } = await supabase.from("actions").update({
           revisions: newRevisionCount,
           result: {
