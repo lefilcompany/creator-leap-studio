@@ -43,7 +43,7 @@ export function QuickContentLoading({ isComplete }: QuickContentLoadingProps) {
       </div>
 
       {/* Text */}
-      <h2 className="text-xl md:text-2xl lg:text-3xl font-extrabold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent text-center mb-3 tracking-tight max-w-md">
+      <h2 className="text-2xl md:text-3xl lg:text-4xl font-extrabold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent text-center mb-3 tracking-tight max-w-md">
         Um instante, estamos criando a imagem perfeita para você
       </h2>
       <p className="text-base md:text-lg text-muted-foreground text-center mb-8 max-w-lg font-medium">
