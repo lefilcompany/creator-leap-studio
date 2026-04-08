@@ -942,6 +942,15 @@ export default function ContentResult() {
                 </div>
               )}
 
+              {/* Report problem link */}
+              <button
+                onClick={() => setShowReportDialog(true)}
+                className="flex items-center gap-2 text-sm text-destructive hover:text-destructive/80 transition-colors"
+              >
+                <AlertTriangle className="h-4 w-4" />
+                Reportar problema com geração
+              </button>
+
               {/* Action Buttons */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
                 <Button
