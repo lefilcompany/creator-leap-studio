@@ -608,6 +608,14 @@ export default function QuickContentResult() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Report Problem Dialog */}
+      <ReportProblemDialog
+        open={showReportDialog}
+        onOpenChange={setShowReportDialog}
+        actionId={actionId}
+        actionType="CRIAR_CONTEUDO_RAPIDO"
+      />
     </div>
   );
 }
