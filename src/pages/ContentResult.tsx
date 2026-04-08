@@ -683,7 +683,12 @@ export default function ContentResult() {
   const platformName = contentData.platform;
   const themeName = originalFormData.theme;
   const personaName = originalFormData.persona;
-  const formatName = originalFormData.aspectRatio;
+  const aspectRatio = originalFormData.aspectRatio;
+  const formatWidth = originalFormData.width;
+  const formatHeight = originalFormData.height;
+  const formatLabel = aspectRatio
+    ? `${aspectRatio}${formatWidth && formatHeight ? ` (${formatWidth}×${formatHeight})` : ''}`
+    : null;
 
   return (
     <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8 min-h-full">
@@ -917,9 +922,9 @@ export default function ContentResult() {
                           <User className="h-3.5 w-3.5" />{personaName}
                         </Badge>
                       )}
-                      {formatName && (
-                        <Badge variant="outline" className="gap-1.5 py-1.5 px-3 text-sm border-border/50">
-                          <ImageIcon className="h-3.5 w-3.5" />{formatName}
+                      {formatLabel && (
+                        <Badge variant="outline" className="gap-1.5 py-1.5 px-3 text-sm border-border/50 hover:bg-transparent">
+                          <ImageIcon className="h-3.5 w-3.5" />{formatLabel}
                         </Badge>
                       )}
                     </div>
