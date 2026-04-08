@@ -34,6 +34,7 @@ import { VisualStyleGrid } from "@/components/quick-content/VisualStyleGrid";
 import { CameraAngleGrid } from "@/components/quick-content/CameraAngleGrid";
 import { CategorySelector } from "@/components/CategorySelector";
 import { FormatPreview } from "@/components/quick-content/FormatPreview";
+import { QuickContentLoading } from "@/components/quick-content/QuickContentLoading";
 import createBanner from "@/assets/create-banner.jpg";
 
 enum GenerationStep {
@@ -249,7 +250,7 @@ function CustomizationCardInline({
 
 export default function CreateImage() {
   const { user, session, refreshUserCredits } = useAuth();
-  const { addTask } = useBackgroundTasks();
+  const { addTask, tasks } = useBackgroundTasks();
   const navigate = useNavigate();
   const location = useLocation();
   const [formData, setFormData] = useState<FormData>({
@@ -747,6 +748,67 @@ export default function CreateImage() {
   );
 
   const selectedStyleLabel = VISUAL_STYLES.find(s => s.value === formData.visualStyle);
+
+  // --- Loading view (same pattern as QuickContent) ---
+  const isGenerating = tasks.some(t => t.type === "create_image" && t.status === "running");
+  const generatingTask = generatingTaskId ? tasks.find(t => t.id === generatingTaskId) : null;
+  const isTaskComplete = generatingTask?.status === "complete";
+
+  useEffect(() => {
+    if (isTaskComplete && generatingTask) {
+      const timer = setTimeout(() => {
+        navigate(generatingTask.resultRoute, { state: generatingTask.resultState });
+        setGeneratingTaskId(null);
+      }, 600);
+      return () => clearTimeout(timer);
+    }
+  }, [isTaskComplete, generatingTask, navigate]);
+
+  if (isGenerating || isTaskComplete) {
+    return (
+      <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8 min-h-full">
+        {/* Banner */}
+        <div className="relative h-24 md:h-28 overflow-hidden">
+          <PageBreadcrumb items={[{ label: "Criar Conteúdo", href: "/create" }, { label: "Criar Imagem" }]} variant="overlay" />
+          <img src={createBanner} alt="Criar Imagem" className="w-full h-full object-cover object-center" loading="eager" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+        </div>
+
+        {/* Header Cards */}
+        <div className="relative px-4 sm:px-6 lg:px-8 -mt-8 z-10">
+          <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-stretch gap-3">
+            <div className="bg-card rounded-2xl shadow-lg p-3 lg:p-4 flex items-center gap-3 flex-1 min-w-0">
+              <div className="flex-shrink-0 bg-primary/10 text-primary rounded-xl p-2">
+                <ImageIcon className="h-5 w-5 lg:h-6 lg:w-6" />
+              </div>
+              <div className="min-w-0">
+                <h1 className="text-lg lg:text-xl font-bold text-foreground leading-tight">Criar Imagem</h1>
+                <p className="text-muted-foreground text-[11px] lg:text-xs">Gere imagens profissionais com IA</p>
+              </div>
+              <div className="ml-auto flex items-center gap-2 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-xl px-3 py-1.5 flex-shrink-0 border border-primary/20">
+                <div className="relative flex-shrink-0">
+                  <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary rounded-full blur-sm opacity-40" />
+                  <div className="relative bg-gradient-to-r from-primary to-secondary text-white rounded-full p-1.5">
+                    <Zap className="h-3.5 w-3.5" />
+                  </div>
+                </div>
+                <span className="text-lg font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">{user?.credits || 0}</span>
+                <span className="text-xs text-muted-foreground font-medium">créditos</span>
+              </div>
+            </div>
+            <div className="bg-card rounded-2xl shadow-lg p-3 lg:p-4 flex-shrink-0 flex items-center min-w-[320px]">
+              <CreationProgressBar currentStep="generating" />
+            </div>
+          </div>
+        </div>
+
+        {/* Loading animation */}
+        <main className="px-4 sm:px-6 lg:px-8 pt-4 pb-8 flex-1">
+          <QuickContentLoading isComplete={!!isTaskComplete} />
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8 min-h-full">
