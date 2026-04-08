@@ -28,6 +28,7 @@ export function PageBreadcrumb({ items, className, variant = "default" }: PageBr
 
   return (
     <Breadcrumb className={cn(
+      "hidden md:flex",
       isOverlay && "absolute top-4 left-4 sm:left-6 lg:left-8 z-10",
       className
     )}>
