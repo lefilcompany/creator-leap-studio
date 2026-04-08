@@ -683,7 +683,12 @@ export default function ContentResult() {
   const platformName = contentData.platform;
   const themeName = originalFormData.theme;
   const personaName = originalFormData.persona;
-  const formatName = originalFormData.aspectRatio;
+  const aspectRatio = originalFormData.aspectRatio;
+  const formatWidth = originalFormData.width;
+  const formatHeight = originalFormData.height;
+  const formatLabel = aspectRatio
+    ? `${aspectRatio}${formatWidth && formatHeight ? ` (${formatWidth}×${formatHeight})` : ''}`
+    : null;
 
   return (
     <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8 min-h-full">
