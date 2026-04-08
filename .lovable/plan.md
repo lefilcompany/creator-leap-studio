@@ -1,45 +1,64 @@
 
 
-# Plano: Tela de Carregamento com Logo GIF na Criação Rápida
+# Plano: Alinhar design da página `/result` com `/quick-content-result`
 
-## Resumo
+## Objetivo
+Transformar o layout de `ContentResult.tsx` para seguir o mesmo padrão visual de `QuickContentResult.tsx`: banner com breadcrumb, header card com créditos, progress bar, two-column layout com imagem sticky à esquerda e informações à direita, incluindo a legenda no formato atual, e um collapsible "Configurações" com prompt, marca, plataforma e formato.
 
-Quando o usuário clicar em "Gerar Imagem Rápida", a página `/quick-content` substituirá o formulário por uma tela de carregamento elegante com a logo animada (GIF extraído do vídeo .mov), uma barra de progresso com porcentagem simulada, e o texto motivacional. O usuário pode navegar para outras páginas livremente — a geração continua em segundo plano via sidebar.
+## Mudanças principais
 
----
+### 1. Substituir o header atual por banner + breadcrumb + header card + progress bar
+- Banner com `createBanner`, breadcrumb overlay ("Criar Conteúdo > Criação Personalizada > Resultado")
+- Header card com ícone Sparkles, título "Criar Conteúdo", subtítulo, e badge de créditos (mesmo estilo gradient)
+- Progress bar card com `CreationProgressBar currentStep="result"`
 
-## O que será feito
+### 2. Coluna esquerda — Imagem (sticky)
+- Card sem borda com `shadow-xl rounded-2xl`, imagem com `max-h-[80vh] object-contain`
+- Hover overlay com botões "Ampliar" e "Download" (estilo `bg-white/90`)
+- Barra de versões (revert) mantida abaixo da imagem quando há revisões
 
-### 1. Converter o vídeo .mov em GIF transparente
-- Usar ffmpeg para extrair o vídeo como GIF com fundo transparente
-- Salvar o GIF em `public/images/logo-loading.gif`
+### 3. Coluna direita — Informações
+- Título gradient "Conteúdo gerado com sucesso!"
+- **Legenda** exibida da mesma forma atual: título em bold, body com line-clamp-3 e "Ler mais", hashtags com badges coloridos, botão copiar
+- **Configurações (collapsible, retraído por padrão)**: prompt utilizado (com copiar), marca, plataforma, formato — usando badges com ícones
+- Link "Reportar problema"
+- Info de ação salva (se existir actionId)
+- Botões de ação em grid 3 colunas: "Corrigir", "Criar outro" (dropdown), "Histórico"
+- Botão "Salvar no Histórico" mantido quando não salvo
 
-### 2. Criar componente `QuickContentLoading`
-- Novo componente `src/components/quick-content/QuickContentLoading.tsx`
-- Exibe a logo GIF com animação de pulsação (scale up/down via CSS)
-- Barra de progresso com porcentagem numérica que simula progresso (0% → ~90% gradualmente enquanto gera, pula para 100% ao completar)
-- Texto: "Um instante, estamos criando a imagem perfeita para você"
-- Barra de progresso estilizada com gradiente primary
-- Botão sutil informando que pode navegar livremente
+### 4. Modal de ampliar imagem
+- Mesmo estilo glassmorphism do QuickContentResult: fundo `bg-black/95`, botões Download/Copiar/Fechar no canto superior direito com `backdrop-blur-md`
 
-### 3. Modificar `QuickContent.tsx`
-- Quando `isGenerating` for true e o usuário ainda estiver na página, renderizar o `QuickContentLoading` no lugar do formulário
-- Manter toda a lógica de background task e auto-navegação ao resultado
-- O usuário continua podendo sair — a sidebar mostra o progresso
+### 5. Importações adicionais
+- Adicionar imports: `PageBreadcrumb`, `CreationProgressBar`, `Collapsible`, `createBanner`, `Maximize2`, `Pen`, `Plus`, `ChevronDown`, `X`, `Share2`, `Building2`, `Palette`, `User`, `Zap`
 
-### 4. Progresso simulado
-- Timer que incrementa de 0% a ~90% ao longo de ~25 segundos (tempo médio de geração)
-- Ao completar (task status = "complete"), pula para 100% e redireciona
+## Arquivos alterados
+- `src/pages/ContentResult.tsx` — rewrite completo do layout (JSX de retorno), mantendo toda a lógica existente intacta
 
----
+## Detalhes técnicos
 
-## Detalhes Técnicos
+```text
+Layout Structure:
+┌─────────────────────────────────────────┐
+│ Banner + Breadcrumb (overlay)           │
+├─────────────────────────────────────────┤
+│ [Header Card + Credits] [Progress Bar]  │
+├──────────────────┬──────────────────────┤
+│                  │ "Conteúdo gerado     │
+│   Imagem         │  com sucesso!"       │
+│   (sticky)       │                      │
+│                  │ [Legenda Card]        │
+│   hover:         │   Título bold         │
+│   Ampliar/DL     │   Body (clamp-3)     │
+│                  │   #hashtags          │
+│   [Versões]      │                      │
+│                  │ ▸ Configurações       │
+│                  │   Prompt, Marca...   │
+│                  │                      │
+│                  │ [Corrigir][Criar][Hist]│
+└──────────────────┴──────────────────────┘
+```
 
-| Item | Detalhe |
-|------|---------|
-| Conversão vídeo | `ffmpeg -i logo.mov -vf "fps=15,scale=200:-1" -gifflags +transdiff -y logo-loading.gif` |
-| Componente | `QuickContentLoading.tsx` com progress state via `useEffect` + `setInterval` |
-| Animação logo | CSS `animate-pulse` ou keyframe customizado de scale 0.95↔1.05 |
-| Progress bar | Componente `Progress` do shadcn + texto numérico centralizado |
-| Integração | Condicional no return do `QuickContent.tsx`: `isGenerating ? <QuickContentLoading> : <formulário>` |
+- A lógica de save to history, review (image/caption), version navigation permanece inalterada
+- Apenas o JSX de renderização será reescrito para alinhar com o design de QuickContentResult
 
