@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -250,6 +250,7 @@ export default function CreateImage() {
   const { user, session, refreshUserCredits } = useAuth();
   const { addTask } = useBackgroundTasks();
   const navigate = useNavigate();
+  const location = useLocation();
   const [formData, setFormData] = useState<FormData>({
     brand: "", theme: "", persona: "", prompt: "", platform: "",
     tone: [], additionalInfo: "", contentType: "organic",
