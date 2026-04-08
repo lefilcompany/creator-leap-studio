@@ -127,6 +127,14 @@ export default function QuickContent() {
   });
 
   useEffect(() => {
+    // Check for prefill data from QuickContentResult "reuse prompt" action
+    if (location.state?.prefillData) {
+      setFormData(prev => ({ ...prev, ...location.state.prefillData }));
+      setShowPrefillWarning(true);
+      // Clear the location state to prevent re-applying on re-render
+      window.history.replaceState({}, document.title);
+      return;
+    }
     const persisted = loadPersistedData();
     if (persisted) setFormData(prev => ({ ...prev, ...persisted }));
   }, []);
