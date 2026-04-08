@@ -922,9 +922,9 @@ export default function ContentResult() {
                           <User className="h-3.5 w-3.5" />{personaName}
                         </Badge>
                       )}
-                      {formatName && (
-                        <Badge variant="outline" className="gap-1.5 py-1.5 px-3 text-sm border-border/50">
-                          <ImageIcon className="h-3.5 w-3.5" />{formatName}
+                      {formatLabel && (
+                        <Badge variant="outline" className="gap-1.5 py-1.5 px-3 text-sm border-border/50 hover:bg-transparent">
+                          <ImageIcon className="h-3.5 w-3.5" />{formatLabel}
                         </Badge>
                       )}
                     </div>
