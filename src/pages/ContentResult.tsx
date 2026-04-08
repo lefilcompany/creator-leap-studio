@@ -931,28 +931,8 @@ export default function ContentResult() {
                 </Collapsible>
               )}
 
-              {/* Save to history */}
-              {!isSavedToHistory && (
-                <Button onClick={handleSaveToHistory} disabled={isSaving} className="w-full rounded-xl gap-2 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90" size="lg">
-                  {isSaving ? (
-                    <><Loader className="h-4 w-4 animate-spin" />Salvando...</>
-                  ) : (
-                    <><Check className="h-4 w-4" />Salvar no Histórico</>
-                  )}
-                </Button>
-              )}
-
-              {/* Report problem link */}
-              <button
-                onClick={() => setShowReportDialog(true)}
-                className="flex items-center gap-2 text-sm text-destructive hover:text-destructive/80 transition-colors"
-              >
-                <AlertTriangle className="h-4 w-4" />
-                Reportar problema com geração
-              </button>
-
               {/* Saved info */}
-              {isSavedToHistory && contentData.actionId && (
+              {contentData.actionId && (
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Info className="h-3.5 w-3.5" />
                   <span>Ação salva no histórico</span>
