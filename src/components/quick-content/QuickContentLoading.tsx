@@ -30,12 +30,15 @@ export function QuickContentLoading({ isComplete }: QuickContentLoadingProps) {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[70vh] px-4 animate-fade-in">
-      {/* Pulsing logo */}
+      {/* Animated logo video */}
       <div className="mb-6">
-        <img
-          src="/images/logo-loading.png"
-          alt="Carregando"
-          className="w-44 h-44 md:w-52 md:h-52 object-contain animate-pulse-scale"
+        <video
+          src="/images/logo-loading.webm"
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="w-44 h-44 md:w-52 md:h-52 object-contain"
         />
       </div>
 
