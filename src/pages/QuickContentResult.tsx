@@ -251,6 +251,7 @@ export default function QuickContentResult() {
     keys.forEach(k => { if (originalFormData[k]) prefillData[k] = originalFormData[k]; });
     if (!prefillData.prompt && prompt) prefillData.prompt = prompt;
     navigate("/quick-content", { state: { prefillData } });
+    toast.info("Se você usou imagens de referência, lembre-se de anexá-las novamente.", { duration: 6000 });
   };
 
   if (!imageUrl) return null;
@@ -370,18 +371,29 @@ export default function QuickContentResult() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-semibold text-foreground">Prompt utilizado:</span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleCopyPrompt}
-                    className="gap-1.5 h-8 text-xs"
-                  >
-                    <span className="relative h-4 w-4">
-                      <Copy className={`h-4 w-4 absolute inset-0 transition-all duration-300 ${isCopied ? 'opacity-0 scale-75' : 'opacity-100 scale-100'}`} />
-                      <Check className={`h-4 w-4 absolute inset-0 text-green-500 transition-all duration-300 ${isCopied ? 'opacity-100 scale-100' : 'opacity-0 scale-75'}`} />
-                    </span>
-                    {isCopied ? "Copiado" : "Copiar"}
-                  </Button>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleCopyPrompt}
+                      className="gap-1.5 h-8 text-xs"
+                    >
+                      <span className="relative h-4 w-4">
+                        <Copy className={`h-4 w-4 absolute inset-0 transition-all duration-300 ${isCopied ? 'opacity-0 scale-75' : 'opacity-100 scale-100'}`} />
+                        <Check className={`h-4 w-4 absolute inset-0 text-green-500 transition-all duration-300 ${isCopied ? 'opacity-100 scale-100' : 'opacity-0 scale-75'}`} />
+                      </span>
+                      {isCopied ? "Copiado" : "Copiar"}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleReusePrompt}
+                      className="gap-1.5 h-8 text-xs text-primary hover:text-primary/80"
+                    >
+                      <RefreshCw className="h-3.5 w-3.5" />
+                      Gerar novamente
+                    </Button>
+                  </div>
                 </div>
                 <div className="bg-muted/40 rounded-xl p-4 border border-border/30">
                   <p
