@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -38,7 +38,21 @@ export default function QuickContentResult() {
   const [currentImageUrl, setCurrentImageUrl] = useState("");
   const [imageHistory, setImageHistory] = useState<string[]>([]);
   const [isPromptExpanded, setIsPromptExpanded] = useState(false);
+  const [isPromptTruncated, setIsPromptTruncated] = useState(false);
   const [isConfigOpen, setIsConfigOpen] = useState(false);
+  const promptRef = useRef<HTMLParagraphElement>(null);
+
+  const checkTruncation = useCallback(() => {
+    if (promptRef.current) {
+      setIsPromptTruncated(promptRef.current.scrollHeight > promptRef.current.clientHeight);
+    }
+  }, []);
+
+  useEffect(() => {
+    checkTruncation();
+    window.addEventListener('resize', checkTruncation);
+    return () => window.removeEventListener('resize', checkTruncation);
+  }, [checkTruncation, prompt]);
 
   const { imageUrl, description, actionId, prompt, brandName, themeName, personaName, platform } = location.state || {};
   const originalFormData = location.state || {};
