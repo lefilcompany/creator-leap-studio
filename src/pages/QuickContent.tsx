@@ -419,25 +419,28 @@ export default function QuickContent() {
 
           {/* Generate Button — full width */}
           <div className="flex justify-center pb-6">
-            <Button
-              id="quick-generate-button"
-              onClick={generateQuickContent}
-              disabled={isGenerating || !formData.prompt.trim() || (user?.credits || 0) < CREDIT_COSTS.QUICK_IMAGE}
-              size="lg"
-              className="bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_100%] animate-gradient text-primary-foreground hover:opacity-90 transition-opacity shadow-lg gap-2"
-            >
-              {isGenerating ? (
-                <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Gerando...</>
-              ) : (
-                <>
-                  <Zap className="mr-2 h-5 w-5" />
-                  Gerar Imagem Rápida
-                  <Badge variant="secondary" className="ml-2 bg-primary-foreground/20 text-primary-foreground border-primary-foreground/30 gap-1">
-                    <Coins className="h-3 w-3" />{CREDIT_COSTS.QUICK_IMAGE}
-                  </Badge>
-                </>
-              )}
-            </Button>
+            <div className="flex items-center gap-3">
+              <Button
+                id="quick-generate-button"
+                onClick={generateQuickContent}
+                disabled={isGenerating || !formData.prompt.trim() || (user?.credits || 0) < CREDIT_COSTS.QUICK_IMAGE}
+                size="lg"
+                className="bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_100%] animate-gradient text-primary-foreground hover:opacity-90 transition-opacity shadow-lg px-8 py-3 text-base"
+              >
+                {isGenerating ? (
+                  <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Gerando...</>
+                ) : (
+                  <>
+                    <Zap className="mr-2 h-5 w-5" />
+                    Gerar Imagem Rápida
+                  </>
+                )}
+              </Button>
+              <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                <Coins className="h-4 w-4 text-primary" />
+                <span><strong className="text-foreground">{CREDIT_COSTS.QUICK_IMAGE}</strong> créditos</span>
+              </div>
+            </div>
           </div>
         </div>
       </main>
