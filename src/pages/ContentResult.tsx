@@ -50,6 +50,7 @@ export default function ContentResult() {
   const [isSavedToHistory, setIsSavedToHistory] = useState(false);
   const [versionHistory, setVersionHistory] = useState<any[]>([]);
   const [currentVersionIndex, setCurrentVersionIndex] = useState(0);
+  const [isCaptionExpanded, setIsCaptionExpanded] = useState(false);
 
   useEffect(() => {
     const loadContent = async () => {
@@ -608,7 +609,6 @@ export default function ContentResult() {
     return <ContentResultSkeleton />;
   }
 
-  const [isCaptionExpanded, setIsCaptionExpanded] = useState(false);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-3 md:p-4 lg:p-6">
