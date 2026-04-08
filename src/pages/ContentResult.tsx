@@ -608,6 +608,8 @@ export default function ContentResult() {
     return <ContentResultSkeleton />;
   }
 
+  const [isCaptionExpanded, setIsCaptionExpanded] = useState(false);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-3 md:p-4 lg:p-6">
       <div className="max-w-7xl mx-auto space-y-4 sm:space-y-5 md:space-y-6 animate-fade-in">
@@ -629,15 +631,10 @@ export default function ContentResult() {
                     {contentData.brand} • {contentData.platform}
                   </p>
                 </div>
-                <div className="flex items-center gap-1.5 flex-shrink-0">
-                  <Badge variant="outline" className="bg-muted/50 text-muted-foreground border-border/30 gap-1 px-2 py-1 text-xs h-7">
-                    <RefreshCw className="h-3 w-3" />
-                    <span>{user?.credits || 0} créditos</span>
-                  </Badge>
-                  <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 p-1.5 h-7 w-7 flex items-center justify-center">
-                    {contentData.type === "video" ? <Video className="h-3.5 w-3.5" /> : <ImageIcon className="h-3.5 w-3.5" />}
-                  </Badge>
-                </div>
+                <Badge variant="outline" className="bg-muted/50 text-muted-foreground border-border/30 gap-1 px-2 py-1 text-xs h-7 flex-shrink-0">
+                  <RefreshCw className="h-3 w-3" />
+                  <span>{user?.credits || 0}</span>
+                </Badge>
               </div>
             </div>
 
@@ -647,21 +644,14 @@ export default function ContentResult() {
                 <Button variant="ghost" size="icon" onClick={() => navigate("/create")} className="rounded-xl hover:bg-primary/10 hover:border-primary/20 border border-transparent hover-scale transition-all duration-200 flex-shrink-0 hover:shadow-md hover:text-primary">
                   <ArrowLeft className="h-5 w-5" />
                 </Button>
-                <div className="flex items-center gap-3 min-w-0 flex-1">
-                  <div className="flex-shrink-0 bg-primary/10 text-primary rounded-xl p-2.5 lg:p-3">
-                    <Sparkles className="h-5 w-5 lg:h-6 lg:w-6 animate-pulse" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-foreground truncate">
-                      Conteúdo Gerado
-                    </h1>
-                    <p className="text-muted-foreground text-sm truncate">
-                      {contentData.brand} • {contentData.platform}
-                    </p>
-                  </div>
+                <div className="flex-shrink-0 bg-primary/10 text-primary rounded-xl p-2.5 lg:p-3">
+                  <Sparkles className="h-5 w-5 lg:h-6 lg:w-6 animate-pulse" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-foreground truncate">Conteúdo Gerado</h1>
+                  <p className="text-muted-foreground text-sm truncate">{contentData.brand} • {contentData.platform}</p>
                 </div>
               </div>
-
               <div className="flex items-center gap-2 flex-shrink-0">
                 <Badge variant="outline" className="bg-muted/50 text-muted-foreground border-border/30 gap-2 px-3 py-1.5 text-xs">
                   <RefreshCw className="h-3 w-3" />
@@ -676,126 +666,25 @@ export default function ContentResult() {
           </CardContent>
         </Card>
 
-        {/* Two-column layout: Caption left, Image right */}
+        {/* Two-column layout: Image left (sticky), Caption right */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5 md:gap-6">
-          {/* Caption - Left on desktop, second on mobile */}
-          <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-xl sm:rounded-2xl animate-fade-in hover:shadow-xl transition-shadow duration-300 order-2 lg:order-2" style={{ animationDelay: "200ms" }}>
-            <CardContent className="p-4 sm:p-5 md:p-6 space-y-3 sm:space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-border/20">
-                <h2 className="text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">
-                  <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-                  Legenda
-                </h2>
-                <Button onClick={handleCopyCaption} variant="outline" size="sm" className="rounded-xl gap-2 hover-scale transition-all duration-200 hover:bg-accent/20 hover:text-accent hover:border-accent">
-                  {copied ? (
-                    <>
-                      <Check className="h-4 w-4 text-success animate-scale-in" />
-                      <span className="hidden sm:inline">Copiado</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="h-4 w-4" />
-                      <span className="hidden sm:inline">Copiar</span>
-                    </>
-                  )}
-                </Button>
-              </div>
-
-              <div className="space-y-3 sm:space-y-4">
-                <div className="bg-muted/30 rounded-xl p-4 sm:p-5 min-h-[250px] max-h-[500px] overflow-y-auto backdrop-blur-sm">
-                  {contentData.title && contentData.body && contentData.hashtags ? (
-                    <>
-                      <h3 className="text-base sm:text-lg md:text-xl font-bold text-foreground mb-3">
-                        {contentData.title}
-                        {contentData.isLocalFallback && (
-                          <Badge variant="outline" className="ml-2 text-xs">Padrão</Badge>
-                        )}
-                      </h3>
-                      <p className="text-sm sm:text-base text-foreground leading-relaxed whitespace-pre-wrap">
-                        {contentData.body}
-                      </p>
-                      <div className="mt-4 pt-4 border-t border-border/20">
-                        <div className="flex flex-wrap gap-2">
-                          {contentData.hashtags.map((tag, index) => (
-                            <span key={index} className="text-xs sm:text-sm text-primary font-medium bg-primary/10 px-2 py-1 rounded-md">
-                              #{tag}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      {contentData.title && (
-                        <h3 className="text-base sm:text-lg md:text-xl font-bold text-foreground mb-3">
-                          {contentData.title}
-                        </h3>
-                      )}
-                      <p className="text-sm sm:text-base text-foreground leading-relaxed whitespace-pre-wrap">
-                        {contentData.caption}
-                      </p>
-                      {contentData.hashtags && contentData.hashtags.length > 0 && (
-                        <div className="mt-4 pt-4 border-t border-border/20">
-                          <div className="flex flex-wrap gap-2">
-                            {contentData.hashtags.map((tag, index) => (
-                              <span key={index} className="text-xs sm:text-sm text-primary font-medium bg-primary/10 px-2 py-1 rounded-md">
-                                #{tag}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </>
-                  )}
-                </div>
-
-                <div className="pt-3 sm:pt-4 border-t border-border/20 space-y-2 sm:space-y-3">
-                  {!isSavedToHistory && (
-                    <Button onClick={handleSaveToHistory} disabled={isSaving} className="w-full rounded-xl hover-scale transition-all duration-200 hover:shadow-lg gap-2 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-sm sm:text-base" size="lg">
-                      {isSaving ? (
-                        <><Loader className="h-4 w-4 animate-spin" />Salvando...</>
-                      ) : (
-                        <><Check className="h-4 w-4" />Salvar no Histórico</>
-                      )}
-                    </Button>
-                  )}
-
-                  {isSavedToHistory && contentData.actionId && (
-                    <Button onClick={() => navigate(`/action/${contentData.actionId}`)} variant="default" className="w-full rounded-xl hover-scale transition-all duration-200 gap-2 text-sm sm:text-base" size="lg">
-                      <Check className="h-4 w-4 text-success flex-shrink-0" />
-                      <span className="hidden sm:inline">Salvo no Histórico - Ver Detalhes</span>
-                      <span className="sm:hidden">Ver no Histórico</span>
-                    </Button>
-                  )}
-
-                  <Button onClick={() => navigate("/create")} variant="outline" className="w-full rounded-xl hover-scale transition-all duration-200 hover:shadow-md hover:bg-accent/20 hover:text-accent hover:border-accent text-sm sm:text-base" size="lg">
-                    Criar Novo Conteúdo
-                  </Button>
-                  <Button onClick={() => navigate("/history")} variant="ghost" className="w-full rounded-xl hover-scale transition-all duration-200 text-sm sm:text-base" size="lg">
-                    Ver Histórico
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Media Preview - Right on desktop, first on mobile */}
-          <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-xl sm:rounded-2xl overflow-hidden animate-fade-in hover:shadow-xl transition-shadow duration-300 order-1 lg:order-1 lg:sticky lg:top-4 lg:self-start" style={{ animationDelay: "100ms" }}>
+          {/* Image - Left on desktop, first on mobile */}
+          <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-xl sm:rounded-2xl overflow-hidden animate-fade-in hover:shadow-xl transition-shadow duration-300 order-1 lg:sticky lg:top-4 lg:self-start" style={{ animationDelay: "100ms" }}>
             <CardContent className="p-0">
-              <div className="aspect-square bg-muted/30 relative overflow-hidden group mx-auto">
+              <div className="relative bg-muted/30 overflow-hidden group">
                 {contentData.isProcessing ? (
-                  <div className="flex items-center justify-center h-full">
+                  <div className="flex items-center justify-center min-h-[300px]">
                     <div className="text-center space-y-4">
                       <Loader className="h-12 w-12 mx-auto text-primary animate-spin" />
                       <div className="space-y-2">
-                        <p className="text-lg font-semibold text-foreground">Gerando vídeo...</p>
+                        <p className="text-lg font-semibold text-foreground">Gerando...</p>
                         <p className="text-sm text-muted-foreground">Isso pode levar alguns minutos</p>
                       </div>
                     </div>
                   </div>
                 ) : contentData.mediaUrl ? (
                   contentData.type === "video" ? (
-                    <video src={contentData.mediaUrl} controls className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" autoPlay loop muted>
+                    <video src={contentData.mediaUrl} controls className="w-full max-h-[80vh] object-contain" autoPlay loop muted>
                       Seu navegador não suporta vídeos.
                     </video>
                   ) : (
@@ -803,18 +692,17 @@ export default function ContentResult() {
                       key={contentData.mediaUrl}
                       src={contentData.mediaUrl}
                       alt="Conteúdo gerado"
-                      className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
+                      className="w-full max-h-[80vh] object-contain"
                     />
                   )
                 ) : (
-                  <div className="flex items-center justify-center h-full">
+                  <div className="flex items-center justify-center min-h-[300px]">
                     <div className="text-center space-y-2">
                       <ImageIcon className="h-10 w-10 sm:h-12 sm:w-12 mx-auto text-muted-foreground/50" />
                       <p className="text-sm sm:text-base text-muted-foreground">Mídia não disponível</p>
                     </div>
                   </div>
                 )}
-                <div className="absolute inset-0 bg-gradient-to-t from-foreground/10 to-transparent pointer-events-none" />
               </div>
 
               {/* Action buttons */}
@@ -832,44 +720,23 @@ export default function ContentResult() {
                       {CREDIT_COSTS.IMAGE_REVIEW}
                     </Badge>
                   </Button>
-                  {(!user?.credits || user.credits < CREDIT_COSTS.IMAGE_REVIEW) && (
-                    <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-destructive text-destructive-foreground px-3 py-1.5 rounded-lg text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 shadow-lg">
-                      Créditos insuficientes ({CREDIT_COSTS.IMAGE_REVIEW} necessários)
-                    </div>
-                  )}
                 </div>
               </div>
               {/* Version Navigation */}
               {versionHistory.length > 1 && (
                 <div className="p-3 sm:p-4 bg-muted/20 border-t border-border/20">
                   <div className="flex items-center justify-between gap-2">
-                    <Button
-                      onClick={() => handleNavigateVersion("prev")}
-                      variant="outline"
-                      size="sm"
-                      disabled={currentVersionIndex === 0}
-                      className="rounded-xl gap-1.5 text-xs sm:text-sm"
-                    >
+                    <Button onClick={() => handleNavigateVersion("prev")} variant="outline" size="sm" disabled={currentVersionIndex === 0} className="rounded-xl gap-1.5 text-xs sm:text-sm">
                       <Undo2 className="h-3.5 w-3.5" />
-                      <span className="hidden sm:inline">Versão Anterior</span>
-                      <span className="sm:hidden">Anterior</span>
+                      <span className="hidden sm:inline">Anterior</span>
                     </Button>
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                       <History className="h-3.5 w-3.5" />
-                      <span className="font-medium">
-                        {currentVersionIndex === 0 ? "Original" : `Revisão ${currentVersionIndex}`}
-                      </span>
+                      <span className="font-medium">{currentVersionIndex === 0 ? "Original" : `Revisão ${currentVersionIndex}`}</span>
                       <span>({currentVersionIndex + 1}/{versionHistory.length})</span>
                     </div>
-                    <Button
-                      onClick={() => handleNavigateVersion("next")}
-                      variant="outline"
-                      size="sm"
-                      disabled={currentVersionIndex === versionHistory.length - 1}
-                      className="rounded-xl gap-1.5 text-xs sm:text-sm"
-                    >
-                      <span className="hidden sm:inline">Versão Revisada</span>
-                      <span className="sm:hidden">Próxima</span>
+                    <Button onClick={() => handleNavigateVersion("next")} variant="outline" size="sm" disabled={currentVersionIndex === versionHistory.length - 1} className="rounded-xl gap-1.5 text-xs sm:text-sm">
+                      <span className="hidden sm:inline">Próxima</span>
                       <Redo2 className="h-3.5 w-3.5" />
                     </Button>
                   </div>
@@ -877,6 +744,121 @@ export default function ContentResult() {
               )}
             </CardContent>
           </Card>
+
+          {/* Caption - Right on desktop, second on mobile */}
+          <div className="space-y-4 order-2">
+            <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-xl sm:rounded-2xl animate-fade-in hover:shadow-xl transition-shadow duration-300" style={{ animationDelay: "200ms" }}>
+              <CardContent className="p-4 sm:p-5 md:p-6 space-y-3 sm:space-y-4">
+                <div className="flex items-center justify-between pb-3 border-b border-border/20">
+                  <h2 className="text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">
+                    <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                    Legenda
+                  </h2>
+                  <Button onClick={handleCopyCaption} variant="outline" size="sm" className="rounded-xl gap-2 hover-scale transition-all duration-200 hover:bg-accent/20 hover:text-accent hover:border-accent">
+                    {copied ? (
+                      <><Check className="h-4 w-4 text-green-500 animate-scale-in" /><span className="hidden sm:inline">Copiado</span></>
+                    ) : (
+                      <><Copy className="h-4 w-4" /><span className="hidden sm:inline">Copiar</span></>
+                    )}
+                  </Button>
+                </div>
+
+                <div className="space-y-3 sm:space-y-4">
+                  <div className="bg-muted/30 rounded-xl p-4 sm:p-5 backdrop-blur-sm">
+                    {contentData.title && contentData.body && contentData.hashtags ? (
+                      <>
+                        <h3 className="text-base sm:text-lg md:text-xl font-bold text-foreground mb-3">
+                          {contentData.title}
+                          {contentData.isLocalFallback && (
+                            <Badge variant="outline" className="ml-2 text-xs">Padrão</Badge>
+                          )}
+                        </h3>
+                        <div className="relative">
+                          <p className={`text-sm sm:text-base text-foreground leading-relaxed whitespace-pre-wrap ${!isCaptionExpanded ? 'line-clamp-3' : ''}`}>
+                            {contentData.body}
+                          </p>
+                          {contentData.body && contentData.body.length > 150 && (
+                            <button
+                              onClick={() => setIsCaptionExpanded(!isCaptionExpanded)}
+                              className="text-sm font-medium text-primary hover:text-primary/80 mt-1 transition-colors"
+                            >
+                              {isCaptionExpanded ? "Ler menos" : "Ler mais"}
+                            </button>
+                          )}
+                        </div>
+                        <div className="mt-4 pt-4 border-t border-border/20">
+                          <div className="flex flex-wrap gap-2">
+                            {contentData.hashtags.map((tag, index) => (
+                              <span key={index} className="text-xs sm:text-sm text-primary font-medium bg-primary/10 px-2 py-1 rounded-md">
+                                #{tag}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        {contentData.title && (
+                          <h3 className="text-base sm:text-lg md:text-xl font-bold text-foreground mb-3">{contentData.title}</h3>
+                        )}
+                        <div className="relative">
+                          <p className={`text-sm sm:text-base text-foreground leading-relaxed whitespace-pre-wrap ${!isCaptionExpanded ? 'line-clamp-3' : ''}`}>
+                            {contentData.caption}
+                          </p>
+                          {contentData.caption && contentData.caption.length > 150 && (
+                            <button
+                              onClick={() => setIsCaptionExpanded(!isCaptionExpanded)}
+                              className="text-sm font-medium text-primary hover:text-primary/80 mt-1 transition-colors"
+                            >
+                              {isCaptionExpanded ? "Ler menos" : "Ler mais"}
+                            </button>
+                          )}
+                        </div>
+                        {contentData.hashtags && contentData.hashtags.length > 0 && (
+                          <div className="mt-4 pt-4 border-t border-border/20">
+                            <div className="flex flex-wrap gap-2">
+                              {contentData.hashtags.map((tag, index) => (
+                                <span key={index} className="text-xs sm:text-sm text-primary font-medium bg-primary/10 px-2 py-1 rounded-md">
+                                  #{tag}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+
+                  <div className="pt-3 sm:pt-4 border-t border-border/20 space-y-2 sm:space-y-3">
+                    {!isSavedToHistory && (
+                      <Button onClick={handleSaveToHistory} disabled={isSaving} className="w-full rounded-xl hover-scale transition-all duration-200 hover:shadow-lg gap-2 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-sm sm:text-base" size="lg">
+                        {isSaving ? (
+                          <><Loader className="h-4 w-4 animate-spin" />Salvando...</>
+                        ) : (
+                          <><Check className="h-4 w-4" />Salvar no Histórico</>
+                        )}
+                      </Button>
+                    )}
+
+                    {isSavedToHistory && contentData.actionId && (
+                      <Button onClick={() => navigate(`/action/${contentData.actionId}`)} variant="default" className="w-full rounded-xl hover-scale transition-all duration-200 gap-2 text-sm sm:text-base" size="lg">
+                        <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
+                        <span className="hidden sm:inline">Salvo no Histórico - Ver Detalhes</span>
+                        <span className="sm:hidden">Ver no Histórico</span>
+                      </Button>
+                    )}
+
+                    <Button onClick={() => navigate("/create")} variant="outline" className="w-full rounded-xl hover-scale transition-all duration-200 hover:shadow-md hover:bg-accent/20 hover:text-accent hover:border-accent text-sm sm:text-base" size="lg">
+                      Criar Novo Conteúdo
+                    </Button>
+                    <Button onClick={() => navigate("/history")} variant="ghost" className="w-full rounded-xl hover-scale transition-all duration-200 text-sm sm:text-base" size="lg">
+                      Ver Histórico
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
 
