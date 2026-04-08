@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { AlertTriangle, Upload, X, Loader2, ImageIcon } from "lucide-react";
+import { AlertTriangle, Upload, X, Loader2, ClipboardPaste } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -42,21 +42,52 @@ export function ReportProblemDialog({
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
+  const addFiles = useCallback((files: File[]) => {
+    const imageFiles = files.filter(f => f.type.startsWith("image/"));
+    if (imageFiles.length === 0) return;
     const remaining = 3 - screenshots.length;
-    if (files.length > remaining) {
-      toast.error(`Você pode enviar no máximo 3 imagens`);
+    if (remaining <= 0) {
+      toast.error("Limite de 3 imagens atingido");
+      return;
     }
-    const toAdd = files.slice(0, remaining);
+    const toAdd = imageFiles.slice(0, remaining);
     setScreenshots((prev) => [...prev, ...toAdd]);
     setPreviewUrls((prev) => [
       ...prev,
       ...toAdd.map((f) => URL.createObjectURL(f)),
     ]);
+  }, [screenshots.length]);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    addFiles(files);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
+
+  // Handle paste from clipboard
+  useEffect(() => {
+    if (!open) return;
+    const handlePaste = (e: ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      const imageFiles: File[] = [];
+      for (const item of Array.from(items)) {
+        if (item.type.startsWith("image/")) {
+          const file = item.getAsFile();
+          if (file) imageFiles.push(file);
+        }
+      }
+      if (imageFiles.length > 0) {
+        e.preventDefault();
+        addFiles(imageFiles);
+        toast.success("Imagem colada com sucesso!");
+      }
+    };
+    document.addEventListener("paste", handlePaste);
+    return () => document.removeEventListener("paste", handlePaste);
+  }, [open, addFiles]);
 
   const removeScreenshot = (index: number) => {
     URL.revokeObjectURL(previewUrls[index]);
@@ -81,7 +112,6 @@ export function ReportProblemDialog({
 
     setIsSubmitting(true);
     try {
-      // Upload screenshots
       const uploadedUrls: string[] = [];
       for (const file of screenshots) {
         const ext = file.name.split(".").pop() || "png";
@@ -96,7 +126,6 @@ export function ReportProblemDialog({
         uploadedUrls.push(urlData.publicUrl);
       }
 
-      // Insert report
       const { error: insertError } = await supabase
         .from("generation_reports")
         .insert({
@@ -110,7 +139,6 @@ export function ReportProblemDialog({
         });
       if (insertError) throw insertError;
 
-      // Send email notification
       try {
         await supabase.functions.invoke("send-report-email", {
           body: {
@@ -147,7 +175,7 @@ export function ReportProblemDialog({
         onOpenChange(v);
       }}
     >
-      <DialogContent className="max-w-lg w-[calc(100vw-2rem)] sm:w-full max-h-[90vh] overflow-y-auto">
+      <DialogContent ref={dialogRef} className="max-w-2xl w-[calc(100vw-2rem)] sm:w-full max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-lg">
             <AlertTriangle className="h-5 w-5 text-destructive" />
@@ -164,19 +192,18 @@ export function ReportProblemDialog({
             <Label className="text-sm font-semibold">Tipo do problema *</Label>
             <RadioGroup value={problemType} onValueChange={setProblemType} className="grid grid-cols-2 gap-2">
               {PROBLEM_TYPES.map((type) => (
-                <div
+                <label
                   key={type.value}
-                  className={`flex items-center space-x-2 rounded-xl border-2 p-3 cursor-pointer transition-all ${
+                  htmlFor={type.value}
+                  className={`flex items-center space-x-2.5 rounded-xl border-2 p-3.5 cursor-pointer transition-all ${
                     problemType === type.value
                       ? "border-primary bg-primary/5"
                       : "border-border hover:border-primary/40"
                   }`}
                 >
                   <RadioGroupItem value={type.value} id={type.value} />
-                  <Label htmlFor={type.value} className="cursor-pointer text-sm">
-                    {type.label}
-                  </Label>
-                </div>
+                  <span className="text-sm font-medium">{type.label}</span>
+                </label>
               ))}
             </RadioGroup>
           </div>
@@ -191,7 +218,7 @@ export function ReportProblemDialog({
               placeholder="Descreva detalhadamente o que aconteceu de errado..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="min-h-[100px]"
+              className="min-h-[120px]"
               maxLength={1000}
             />
             <p className="text-xs text-muted-foreground text-right">
@@ -206,7 +233,7 @@ export function ReportProblemDialog({
             </Label>
             <div className="flex flex-wrap gap-3">
               {previewUrls.map((url, i) => (
-                <div key={i} className="relative w-20 h-20 rounded-lg overflow-hidden border border-border group">
+                <div key={i} className="relative w-24 h-24 rounded-lg overflow-hidden border border-border group">
                   <img src={url} alt={`Screenshot ${i + 1}`} className="w-full h-full object-cover" />
                   <button
                     type="button"
@@ -218,16 +245,51 @@ export function ReportProblemDialog({
                 </div>
               ))}
               {screenshots.length < 3 && (
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-20 h-20 rounded-lg border-2 border-dashed border-border hover:border-primary/50 flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-primary transition-colors"
-                >
-                  <Upload className="h-4 w-4" />
-                  <span className="text-[10px]">Enviar</span>
-                </button>
+                <>
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-24 h-24 rounded-lg border-2 border-dashed border-border hover:border-primary/50 flex flex-col items-center justify-center gap-1.5 text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    <Upload className="h-5 w-5" />
+                    <span className="text-xs">Enviar</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        const items = await navigator.clipboard.read();
+                        const imageFiles: File[] = [];
+                        for (const item of items) {
+                          const imageType = item.types.find(t => t.startsWith("image/"));
+                          if (imageType) {
+                            const blob = await item.getType(imageType);
+                            const ext = imageType.split("/")[1] || "png";
+                            const file = new File([blob], `pasted-image.${ext}`, { type: imageType });
+                            imageFiles.push(file);
+                          }
+                        }
+                        if (imageFiles.length > 0) {
+                          addFiles(imageFiles);
+                          toast.success("Imagem colada com sucesso!");
+                        } else {
+                          toast.error("Nenhuma imagem encontrada na área de transferência");
+                        }
+                      } catch {
+                        toast.info("Use Ctrl+V para colar uma imagem da área de transferência");
+                      }
+                    }}
+                    className="w-24 h-24 rounded-lg border-2 border-dashed border-border hover:border-primary/50 flex flex-col items-center justify-center gap-1.5 text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    <ClipboardPaste className="h-5 w-5" />
+                    <span className="text-xs">Colar</span>
+                  </button>
+                </>
               )}
             </div>
+            <p className="text-xs text-muted-foreground">
+              Você também pode colar imagens com <kbd className="px-1.5 py-0.5 rounded bg-muted border border-border text-[10px] font-mono">Ctrl+V</kbd>
+            </p>
             <input
               ref={fileInputRef}
               type="file"
