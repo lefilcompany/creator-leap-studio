@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -250,6 +251,7 @@ export default function CreateImage() {
   const { user, session, refreshUserCredits } = useAuth();
   const { addTask } = useBackgroundTasks();
   const navigate = useNavigate();
+  const location = useLocation();
   const [formData, setFormData] = useState<FormData>({
     brand: "", theme: "", persona: "", prompt: "", platform: "",
     tone: [], additionalInfo: "", contentType: "organic",
@@ -379,7 +381,55 @@ export default function CreateImage() {
     key: 'create-image-form', formData, excludeFields: ['referenceFiles']
   });
 
+  const [showPrefillWarning, setShowPrefillWarning] = useState(false);
+
   useEffect(() => {
+    // Check for prefill data from ContentResult "reuse prompt" action
+    if (location.state?.prefillData) {
+      const pf = location.state.prefillData;
+      const mapped: Partial<FormData> = {};
+      // Map originalFormData keys to CreateImage FormData keys
+      if (pf.brandId) mapped.brand = pf.brandId;
+      if (pf.themeId) mapped.theme = pf.themeId;
+      if (pf.personaId) mapped.persona = pf.personaId;
+      if (pf.description || pf.prompt || pf.objective) mapped.prompt = pf.description || pf.prompt || pf.objective;
+      if (pf.platform) mapped.platform = pf.platform;
+      if (pf.tone) mapped.tone = Array.isArray(pf.tone) ? pf.tone : [pf.tone];
+      if (pf.additionalInfo) mapped.additionalInfo = pf.additionalInfo;
+      if (pf.contentType) mapped.contentType = pf.contentType;
+      if (pf.visualStyle) mapped.visualStyle = pf.visualStyle;
+      if (pf.negativePrompt) mapped.negativePrompt = pf.negativePrompt;
+      if (pf.colorPalette) mapped.colorPalette = pf.colorPalette;
+      if (pf.lighting) mapped.lighting = pf.lighting;
+      if (pf.composition) mapped.composition = pf.composition;
+      if (pf.cameraAngle) mapped.cameraAngle = pf.cameraAngle;
+      if (pf.detailLevel) mapped.detailLevel = pf.detailLevel;
+      if (pf.mood) mapped.mood = pf.mood;
+      if (pf.aspectRatio) mapped.aspectRatio = pf.aspectRatio;
+      if (pf.width) mapped.width = String(pf.width);
+      if (pf.height) mapped.height = String(pf.height);
+      // Text on image
+      if (pf.includeText !== undefined) mapped.imageIncludeText = pf.includeText;
+      if (pf.textContent) mapped.imageTextContent = pf.textContent;
+      if (pf.textPosition) mapped.imageTextPosition = pf.textPosition;
+      if (pf.fontStyle) mapped.fontStyle = pf.fontStyle;
+      if (pf.fontFamily) mapped.fontFamily = pf.fontFamily;
+      if (pf.fontWeight) mapped.fontWeight = pf.fontWeight;
+      if (pf.fontItalic !== undefined) mapped.fontItalic = pf.fontItalic;
+      if (pf.fontSize) mapped.fontSize = pf.fontSize;
+      if (pf.textDesignStyle) mapped.textDesignStyle = pf.textDesignStyle;
+      if (pf.ctaText) mapped.ctaText = pf.ctaText;
+      if (pf.adMode) mapped.adMode = pf.adMode;
+      if (pf.priceText) mapped.priceText = pf.priceText;
+      if (pf.includeBrandLogo !== undefined) mapped.includeBrandLogo = pf.includeBrandLogo;
+
+      setFormData(prev => ({ ...prev, ...mapped }));
+      if (pf.contentType) setContentType(pf.contentType);
+      setShowPrefillWarning(true);
+      // Clear location state to prevent re-applying
+      window.history.replaceState({}, document.title);
+      return;
+    }
     const persisted = loadPersistedData();
     if (persisted) setFormData(prev => ({ ...prev, ...persisted }));
   }, []);
@@ -758,6 +808,14 @@ export default function CreateImage() {
       {/* Main Form — Two columns on desktop */}
       <main className="px-4 sm:px-6 lg:px-8 pt-4 pb-8 flex-1">
         <div className="max-w-7xl mx-auto space-y-4 mt-4">
+          {showPrefillWarning && (
+            <Alert className="border-primary/50 bg-primary/5">
+              <Info className="h-4 w-4 text-primary" />
+              <AlertDescription className="text-sm">
+                Os campos foram preenchidos com base na sua criação anterior. <strong>Anexe novamente as imagens de referência</strong>, caso tenha utilizado.
+              </AlertDescription>
+            </Alert>
+          )}
 
           <div id="create-image-form" className="grid grid-cols-1 lg:grid-cols-[1fr_320px] xl:grid-cols-[1fr_400px] gap-6">
             {/* ═══ Left Column ═══ */}

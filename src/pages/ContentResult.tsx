@@ -660,13 +660,18 @@ export default function ContentResult() {
     const saved = JSON.parse(localStorage.getItem("currentContent") || "{}");
     const originalFormData = saved.originalFormData || {};
     const prefillData: Record<string, any> = {};
+    // Map all fields including text-on-image settings
     const keys = [
-      'description', 'prompt', 'brandId', 'themeId', 'personaId', 'platform',
-      'aspectRatio', 'visualStyle', 'style', 'quality', 'objective', 'tone',
+      'description', 'prompt', 'objective', 'brandId', 'themeId', 'personaId', 'platform',
+      'aspectRatio', 'visualStyle', 'style', 'quality', 'tone',
       'colorPalette', 'lighting', 'composition', 'cameraAngle',
-      'mood', 'width', 'height', 'additionalInfo'
+      'mood', 'width', 'height', 'additionalInfo', 'contentType',
+      'negativePrompt', 'detailLevel',
+      'includeText', 'textContent', 'textPosition',
+      'fontStyle', 'fontFamily', 'fontWeight', 'fontItalic', 'fontSize',
+      'textDesignStyle', 'ctaText', 'adMode', 'priceText', 'includeBrandLogo',
     ];
-    keys.forEach(k => { if (originalFormData[k]) prefillData[k] = originalFormData[k]; });
+    keys.forEach(k => { if (originalFormData[k] !== undefined && originalFormData[k] !== null && originalFormData[k] !== '') prefillData[k] = originalFormData[k]; });
     navigate("/create-image", { state: { prefillData } });
     toast.warning("Se você usou imagens de referência, lembre-se de anexá-las novamente.", { duration: 6000 });
   };
