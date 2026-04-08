@@ -109,6 +109,85 @@ export default function ContentResult() {
     return () => window.removeEventListener('resize', checkTruncation);
   }, [checkTruncation, contentData]);
 
+  // Auto-save to history (like QuickContentResult)
+  const autoSaveToHistory = useCallback(async (data: ContentResultData) => {
+    if (!user || data.actionId || isSavedToHistory) return;
+    
+    try {
+      const saved = JSON.parse(localStorage.getItem("currentContent") || "{}");
+      
+      let brandId = null;
+      if (saved.originalFormData?.brandId || data.originalFormData?.brandId) {
+        brandId = saved.originalFormData?.brandId || data.originalFormData?.brandId;
+      }
+
+      let actionType: "CRIAR_CONTEUDO" | "CRIAR_CONTEUDO_RAPIDO" | "GERAR_VIDEO" = "CRIAR_CONTEUDO_RAPIDO";
+      const formData = saved.originalFormData || data.originalFormData || {};
+      if (data.type === "video") {
+        actionType = "GERAR_VIDEO";
+      } else if (formData.objective && formData.description && formData.tone) {
+        actionType = "CRIAR_CONTEUDO";
+      }
+
+      const { data: actionData, error: actionError } = await supabase.from("actions").insert({
+        type: actionType,
+        brand_id: brandId,
+        team_id: user.teamId,
+        user_id: user.id,
+        status: "Concluído",
+        approved: false,
+        revisions: 0,
+        details: {
+          prompt: formData.description || formData.prompt || data.caption,
+          objective: formData.objective,
+          platform: data.platform,
+          tone: formData.tone,
+          brand: formData.brand || data.brand,
+          theme: formData.theme,
+          persona: formData.persona,
+          additionalInfo: formData.additionalInfo,
+          versions: saved.versions || []
+        },
+        result: {
+          imageUrl: data.mediaUrl,
+          title: data.title,
+          body: data.body || data.caption,
+          hashtags: data.hashtags
+        }
+      }).select().single();
+
+      if (actionError) {
+        console.error("Erro ao salvar automaticamente:", actionError);
+        return;
+      }
+
+      // Update local state
+      const updatedData = { ...data, actionId: actionData.id };
+      setContentData(updatedData);
+      setIsSavedToHistory(true);
+
+      // Update localStorage
+      const updatedSaved = { ...saved, actionId: actionData.id, savedToHistory: true };
+      localStorage.setItem("currentContent", JSON.stringify(updatedSaved));
+
+      // Assign category if exists
+      const categoryId = data.categoryId || saved.categoryId;
+      if (categoryId && actionData.id) {
+        try {
+          await supabase.from('action_category_items').insert({
+            category_id: categoryId,
+            action_id: actionData.id,
+            added_by: user.id,
+          });
+        } catch (e) {
+          console.error("Erro ao atribuir categoria:", e);
+        }
+      }
+    } catch (error) {
+      console.error("Erro no auto-save:", error);
+    }
+  }, [user, isSavedToHistory]);
+
   useEffect(() => {
     const loadContent = async () => {
       try {
@@ -200,6 +279,11 @@ export default function ContentResult() {
           const count = parseInt(savedRevisions);
           setTotalRevisions(count);
         }
+
+        // Auto-save to history if not already saved
+        if (!data.actionId) {
+          autoSaveToHistory(data);
+        }
       } else {
         const saved = localStorage.getItem("currentContent");
         if (saved) {
@@ -234,7 +318,7 @@ export default function ContentResult() {
       }
     };
     loadContent();
-  }, [location.state, navigate]);
+  }, [location.state, navigate, autoSaveToHistory]);
 
   const handleCopyCaption = async () => {
     if (!contentData) return;
