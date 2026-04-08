@@ -35,7 +35,7 @@ import { getPlatformImageSpec, getCaptionGuidelines, platformSpecs } from "@/lib
 import { useFormPersistence } from '@/hooks/useFormPersistence';
 import { TourSelector } from '@/components/onboarding/TourSelector';
 import { createContentSteps, navbarSteps } from '@/components/onboarding/tourSteps';
-
+import { QuickContentLoading } from '@/components/quick-content/QuickContentLoading';
 
 enum GenerationStep {
   IDLE = "IDLE",
@@ -100,7 +100,7 @@ const toneOptions = [
 export default function CreateContent() {
   const { user, session, reloadUserData } = useAuth();
   const navigate = useNavigate();
-  const { addTask } = useBackgroundTasks();
+  const { addTask, tasks } = useBackgroundTasks();
   const [formData, setFormData] = useState<FormData>({
     brand: "",
     theme: "",
