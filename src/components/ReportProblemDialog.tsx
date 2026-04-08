@@ -175,7 +175,7 @@ export function ReportProblemDialog({
         onOpenChange(v);
       }}
     >
-      <DialogContent ref={dialogRef} className="max-w-2xl w-[calc(100vw-2rem)] sm:w-full max-h-[90vh] overflow-y-auto">
+      <DialogContent ref={dialogRef} className="max-w-2xl w-[calc(100vw-2rem)] sm:w-full max-h-[90vh] overflow-y-auto [&_*]:outline-none [&_*]:ring-0 [&_*]:ring-offset-0">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-lg">
             <AlertTriangle className="h-5 w-5 text-destructive" />
@@ -186,30 +186,30 @@ export function ReportProblemDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-5 py-2">
+        <div className="space-y-3 pt-1">
           {/* Problem Type */}
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label className="text-sm font-semibold">Tipo do problema *</Label>
-            <RadioGroup value={problemType} onValueChange={setProblemType} className="grid grid-cols-2 gap-2">
+            <RadioGroup value={problemType} onValueChange={setProblemType} className="grid grid-cols-2 gap-1.5">
               {PROBLEM_TYPES.map((type) => (
                 <label
                   key={type.value}
                   htmlFor={type.value}
-                  className={`flex items-center space-x-2.5 rounded-xl border-2 p-3.5 cursor-pointer transition-all ${
+                  className={`flex items-center space-x-2 rounded-lg border p-3 cursor-pointer transition-colors ${
                     problemType === type.value
                       ? "border-primary bg-primary/5"
-                      : "border-border hover:border-primary/40"
+                      : "border-border"
                   }`}
                 >
                   <RadioGroupItem value={type.value} id={type.value} />
-                  <span className="text-sm font-medium">{type.label}</span>
+                  <span className="text-sm">{type.label}</span>
                 </label>
               ))}
             </RadioGroup>
           </div>
 
           {/* Description */}
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label htmlFor="report-description" className="text-sm font-semibold">
               Descrição do problema *
             </Label>
@@ -218,7 +218,7 @@ export function ReportProblemDialog({
               placeholder="Descreva detalhadamente o que aconteceu de errado..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="min-h-[120px]"
+              className="min-h-[100px] focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-primary"
               maxLength={1000}
             />
             <p className="text-xs text-muted-foreground text-right">
@@ -227,11 +227,11 @@ export function ReportProblemDialog({
           </div>
 
           {/* Screenshots */}
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label className="text-sm font-semibold">
               Capturas de tela (opcional, máx. 3)
             </Label>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-2">
               {previewUrls.map((url, i) => (
                 <div key={i} className="relative w-24 h-24 rounded-lg overflow-hidden border border-border group">
                   <img src={url} alt={`Screenshot ${i + 1}`} className="w-full h-full object-cover" />
