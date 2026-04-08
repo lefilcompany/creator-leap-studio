@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { AlertTriangle, Upload, X, Loader2, ClipboardPaste } from "lucide-react";
+import { AlertTriangle, Upload, X, Loader2, ClipboardPaste, Maximize2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -41,6 +41,7 @@ export function ReportProblemDialog({
   const [screenshots, setScreenshots] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
 
@@ -233,11 +234,14 @@ export function ReportProblemDialog({
             </Label>
             <div className="flex flex-wrap gap-2">
               {previewUrls.map((url, i) => (
-                <div key={i} className="relative w-24 h-24 rounded-lg overflow-hidden border border-border group">
+                <div key={i} className="relative w-24 h-24 rounded-lg overflow-hidden border border-border group cursor-pointer" onClick={() => setPreviewImageUrl(url)}>
                   <img src={url} alt={`Screenshot ${i + 1}`} className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <Maximize2 className="h-4 w-4 text-white" />
+                  </div>
                   <button
                     type="button"
-                    onClick={() => removeScreenshot(i)}
+                    onClick={(e) => { e.stopPropagation(); removeScreenshot(i); }}
                     className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
                   >
                     <X className="h-3 w-3" />
@@ -330,6 +334,27 @@ export function ReportProblemDialog({
           </div>
         </div>
       </DialogContent>
+
+      {/* Image Preview Overlay */}
+      {previewImageUrl && (
+        <div
+          className="fixed inset-0 z-[300] bg-black/80 flex items-center justify-center cursor-pointer"
+          onClick={() => setPreviewImageUrl(null)}
+        >
+          <button
+            className="absolute top-4 right-4 bg-white/15 hover:bg-white/25 text-white backdrop-blur-md border border-white/20 rounded-lg p-2 transition-all"
+            onClick={() => setPreviewImageUrl(null)}
+          >
+            <X className="h-5 w-5" />
+          </button>
+          <img
+            src={previewImageUrl}
+            alt="Preview"
+            className="max-w-[90vw] max-h-[85vh] object-contain rounded-lg"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </Dialog>
   );
 }
