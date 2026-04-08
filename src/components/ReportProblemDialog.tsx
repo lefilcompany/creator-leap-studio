@@ -97,6 +97,8 @@ export function ReportProblemDialog({
   };
 
   const clearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isOpenRef = useRef(open);
+  isOpenRef.current = open;
 
   const resetForm = () => {
     setProblemType("");
@@ -113,7 +115,8 @@ export function ReportProblemDialog({
   const scheduleReset = () => {
     if (clearTimerRef.current) clearTimeout(clearTimerRef.current);
     clearTimerRef.current = setTimeout(() => {
-      if (!open) resetForm();
+      if (!isOpenRef.current) resetForm();
+      clearTimerRef.current = null;
     }, 30000);
   };
 
