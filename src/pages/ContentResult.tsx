@@ -86,7 +86,7 @@ export default function ContentResult() {
   const [reviewPrompt, setReviewPrompt] = useState("");
   const [isReviewing, setIsReviewing] = useState(false);
   const [totalRevisions, setTotalRevisions] = useState(0);
-  const [isSaving, setIsSaving] = useState(false);
+  
   const [isSavedToHistory, setIsSavedToHistory] = useState(false);
   const [versionHistory, setVersionHistory] = useState<any[]>([]);
   const [currentVersionIndex, setCurrentVersionIndex] = useState(0);
@@ -108,6 +108,85 @@ export default function ContentResult() {
     window.addEventListener('resize', checkTruncation);
     return () => window.removeEventListener('resize', checkTruncation);
   }, [checkTruncation, contentData]);
+
+  // Auto-save to history (like QuickContentResult)
+  const autoSaveToHistory = useCallback(async (data: ContentResultData) => {
+    if (!user || data.actionId || isSavedToHistory) return;
+    
+    try {
+      const saved = JSON.parse(localStorage.getItem("currentContent") || "{}");
+      
+      let brandId = null;
+      if (saved.originalFormData?.brandId || data.originalFormData?.brandId) {
+        brandId = saved.originalFormData?.brandId || data.originalFormData?.brandId;
+      }
+
+      let actionType: "CRIAR_CONTEUDO" | "CRIAR_CONTEUDO_RAPIDO" | "GERAR_VIDEO" = "CRIAR_CONTEUDO_RAPIDO";
+      const formData = saved.originalFormData || data.originalFormData || {};
+      if (data.type === "video") {
+        actionType = "GERAR_VIDEO";
+      } else if (formData.objective && formData.description && formData.tone) {
+        actionType = "CRIAR_CONTEUDO";
+      }
+
+      const { data: actionData, error: actionError } = await supabase.from("actions").insert({
+        type: actionType,
+        brand_id: brandId,
+        team_id: user.teamId,
+        user_id: user.id,
+        status: "Concluído",
+        approved: false,
+        revisions: 0,
+        details: {
+          prompt: formData.description || formData.prompt || data.caption,
+          objective: formData.objective,
+          platform: data.platform,
+          tone: formData.tone,
+          brand: formData.brand || data.brand,
+          theme: formData.theme,
+          persona: formData.persona,
+          additionalInfo: formData.additionalInfo,
+          versions: saved.versions || []
+        },
+        result: {
+          imageUrl: data.mediaUrl,
+          title: data.title,
+          body: data.body || data.caption,
+          hashtags: data.hashtags
+        }
+      }).select().single();
+
+      if (actionError) {
+        console.error("Erro ao salvar automaticamente:", actionError);
+        return;
+      }
+
+      // Update local state
+      const updatedData = { ...data, actionId: actionData.id };
+      setContentData(updatedData);
+      setIsSavedToHistory(true);
+
+      // Update localStorage
+      const updatedSaved = { ...saved, actionId: actionData.id, savedToHistory: true };
+      localStorage.setItem("currentContent", JSON.stringify(updatedSaved));
+
+      // Assign category if exists
+      const categoryId = data.categoryId || saved.categoryId;
+      if (categoryId && actionData.id) {
+        try {
+          await supabase.from('action_category_items').insert({
+            category_id: categoryId,
+            action_id: actionData.id,
+            added_by: user.id,
+          });
+        } catch (e) {
+          console.error("Erro ao atribuir categoria:", e);
+        }
+      }
+    } catch (error) {
+      console.error("Erro no auto-save:", error);
+    }
+  }, [user, isSavedToHistory]);
 
   useEffect(() => {
     const loadContent = async () => {
@@ -200,6 +279,11 @@ export default function ContentResult() {
           const count = parseInt(savedRevisions);
           setTotalRevisions(count);
         }
+
+        // Auto-save to history if not already saved
+        if (!data.actionId) {
+          autoSaveToHistory(data);
+        }
       } else {
         const saved = localStorage.getItem("currentContent");
         if (saved) {
@@ -234,7 +318,7 @@ export default function ContentResult() {
       }
     };
     loadContent();
-  }, [location.state, navigate]);
+  }, [location.state, navigate, autoSaveToHistory]);
 
   const handleCopyCaption = async () => {
     if (!contentData) return;
@@ -527,7 +611,7 @@ export default function ContentResult() {
         console.error("Error refreshing user credits:", error);
       }
 
-      if (saved.actionId && saved.savedToHistory) {
+      if (saved.actionId) {
         const { error: updateError } = await supabase.from("actions").update({
           revisions: newRevisionCount,
           result: {
@@ -554,92 +638,7 @@ export default function ContentResult() {
     }
   };
 
-  const handleSaveToHistory = async () => {
-    if (!contentData || !user) return;
-    if (isSavedToHistory) {
-      toast.info("Este conteúdo já foi salvo no histórico");
-      return;
-    }
-    setIsSaving(true);
-    try {
-      const saved = JSON.parse(localStorage.getItem("currentContent") || "{}");
 
-      let brandId = null;
-      if (saved.originalFormData?.brandId) {
-        brandId = saved.originalFormData.brandId;
-      }
-
-      let actionType: "CRIAR_CONTEUDO" | "CRIAR_CONTEUDO_RAPIDO" | "GERAR_VIDEO" = "CRIAR_CONTEUDO_RAPIDO";
-
-      if (contentData.type === "video") {
-        actionType = "GERAR_VIDEO";
-      } else if (saved.originalFormData?.objective && saved.originalFormData?.description && saved.originalFormData?.tone) {
-        actionType = "CRIAR_CONTEUDO";
-      }
-
-      const { data: actionData, error: actionError } = await supabase.from("actions").insert({
-        type: actionType,
-        brand_id: brandId,
-        team_id: user.teamId,
-        user_id: user.id,
-        status: "Concluído",
-        approved: false,
-        revisions: totalRevisions,
-        details: {
-          prompt: saved.originalFormData?.description || saved.originalFormData?.prompt || contentData.caption,
-          objective: saved.originalFormData?.objective,
-          platform: contentData.platform,
-          tone: saved.originalFormData?.tone,
-          brand: saved.originalFormData?.brand || contentData.brand,
-          theme: saved.originalFormData?.theme,
-          persona: saved.originalFormData?.persona,
-          additionalInfo: saved.originalFormData?.additionalInfo,
-          versions: saved.versions || []
-        },
-        result: {
-          imageUrl: contentData.mediaUrl,
-          title: contentData.title,
-          body: contentData.body || contentData.caption,
-          hashtags: contentData.hashtags
-        }
-      }).select().single();
-
-      if (actionError) {
-        console.error("Erro ao salvar no histórico:", actionError);
-        throw new Error("Erro ao salvar no histórico");
-      }
-
-      const updatedSaved = {
-        ...saved,
-        actionId: actionData.id,
-        savedToHistory: true
-      };
-      localStorage.setItem("currentContent", JSON.stringify(updatedSaved));
-
-      setContentData({ ...contentData, actionId: actionData.id });
-      setIsSavedToHistory(true);
-
-      const categoryIdFromForm = contentData.categoryId || saved.categoryId;
-      if (categoryIdFromForm && actionData.id) {
-        try {
-          await supabase.from('action_category_items').insert({
-            category_id: categoryIdFromForm,
-            action_id: actionData.id,
-            added_by: user.id,
-          });
-        } catch (e) {
-          console.error("Erro ao atribuir categoria:", e);
-        }
-      }
-
-      toast.success("Conteúdo salvo no histórico com sucesso!");
-    } catch (error) {
-      console.error("Erro ao salvar:", error);
-      toast.error("Erro ao salvar no histórico. Tente novamente.");
-    } finally {
-      setIsSaving(false);
-    }
-  };
 
   const handleNavigateVersion = (direction: "prev" | "next") => {
     const newIndex = direction === "prev" ? currentVersionIndex - 1 : currentVersionIndex + 1;
@@ -932,15 +931,15 @@ export default function ContentResult() {
                 </Collapsible>
               )}
 
-              {/* Save to history */}
-              {!isSavedToHistory && (
-                <Button onClick={handleSaveToHistory} disabled={isSaving} className="w-full rounded-xl gap-2 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90" size="lg">
-                  {isSaving ? (
-                    <><Loader className="h-4 w-4 animate-spin" />Salvando...</>
-                  ) : (
-                    <><Check className="h-4 w-4" />Salvar no Histórico</>
-                  )}
-                </Button>
+              {/* Saved info */}
+              {contentData.actionId && (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Info className="h-3.5 w-3.5" />
+                  <span>Ação salva no histórico</span>
+                  <Button variant="link" size="sm" className="h-auto p-0 text-xs" onClick={() => navigate(`/action/${contentData.actionId}`)}>
+                    Ver detalhes
+                  </Button>
+                </div>
               )}
 
               {/* Report problem link */}
@@ -951,17 +950,6 @@ export default function ContentResult() {
                 <AlertTriangle className="h-4 w-4" />
                 Reportar problema com geração
               </button>
-
-              {/* Saved info */}
-              {isSavedToHistory && contentData.actionId && (
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <Info className="h-3.5 w-3.5" />
-                  <span>Ação salva no histórico</span>
-                  <Button variant="link" size="sm" className="h-auto p-0 text-xs" onClick={() => navigate(`/action/${contentData.actionId}`)}>
-                    Ver detalhes
-                  </Button>
-                </div>
-              )}
 
               {/* Action Buttons */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
