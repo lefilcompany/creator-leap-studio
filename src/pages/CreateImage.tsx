@@ -1533,14 +1533,13 @@ export default function CreateImage() {
 
           {/* Generate Button — full width */}
           <div className="flex justify-center pb-6">
-            <Button id="generate-button" onClick={handleGenerateContent} disabled={loading || !isFormValid} size="lg"
-              className="bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_100%] animate-gradient text-primary-foreground hover:opacity-90 transition-opacity shadow-lg gap-2">
-              {loading ? (<><Loader2 className="animate-spin h-5 w-5" /><span>Gerando imagem...</span></>) : (
+            <Button id="generate-button" onClick={handleGenerateContent} disabled={loading || !isFormValid}
+              className="bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_100%] animate-gradient text-primary-foreground hover:opacity-90 transition-opacity shadow-lg rounded-full px-6 h-11 text-sm font-semibold gap-2">
+              {loading ? (<><Loader2 className="h-4 w-4 animate-spin" />Gerando...</>) : (
                 <>
-                  <Sparkles className="h-5 w-5" /><span>Gerar Imagem</span>
-                  <Badge variant="secondary" className="ml-2 bg-primary-foreground/20 text-primary-foreground border-primary-foreground/30 gap-1">
-                    <Coins className="h-3 w-3" />{CREDIT_COSTS.COMPLETE_IMAGE}
-                  </Badge>
+                  <Sparkles className="h-4 w-4" />
+                  Gerar Imagem
+                  <span className="text-primary-foreground/60 text-xs font-normal">· {CREDIT_COSTS.COMPLETE_IMAGE} créditos</span>
                 </>
               )}
             </Button>
