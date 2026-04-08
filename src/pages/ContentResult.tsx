@@ -192,6 +192,7 @@ export default function ContentResult() {
   useEffect(() => {
     const loadContent = async () => {
       try {
+        // Clean old sessionStorage images
         Object.keys(sessionStorage).forEach(key => {
           if (key.startsWith("image_")) {
             const timestamp = parseInt(key.split("_")[1]);
@@ -200,8 +201,14 @@ export default function ContentResult() {
             }
           }
         });
+        // Clean old versions_* localStorage entries to prevent QuotaExceeded
+        Object.keys(localStorage).forEach(key => {
+          if (key.startsWith("versions_content_") || key.startsWith("revisions_content_")) {
+            localStorage.removeItem(key);
+          }
+        });
       } catch (error) {
-        console.error("Erro ao limpar sessionStorage:", error);
+        console.error("Erro ao limpar storage:", error);
       }
 
       if (location.state?.contentData) {
