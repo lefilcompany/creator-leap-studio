@@ -31,14 +31,14 @@ export function QuickContentLoading({ isComplete }: QuickContentLoadingProps) {
   return (
     <div className="flex flex-col items-center justify-center h-full px-4 animate-fade-in py-2">
       {/* Animated logo video */}
-      <div className="mb-2 md:mb-4">
+      <div className="mb-0 md:mb-1">
         <video
           src="/images/logo-loading.webm"
           autoPlay
           loop
           muted
           playsInline
-          className="w-28 h-28 md:w-36 md:h-36 lg:w-44 lg:h-44 object-contain"
+          className="w-24 h-24 md:w-32 md:h-32 lg:w-36 lg:h-36 object-contain"
         />
       </div>
 
