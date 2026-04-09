@@ -539,12 +539,23 @@ export default function CreateImage() {
     return missing.length === 0;
   };
 
+  const scrollPageToTop = () => {
+    window.scrollTo({ top: 0, behavior: "instant" });
+
+    const pageScrollContainer = document.querySelector("main.flex-1.overflow-x-hidden.overflow-y-auto") as HTMLElement | null;
+    pageScrollContainer?.scrollTo({ top: 0, behavior: "instant" });
+
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  };
+
   const handleGenerateContent = async () => {
     if (!user) return toast.error("Usuário não encontrado.");
     const availableCredits = user?.credits || 0;
     if (availableCredits <= 0) return toast.error("Seus créditos para criação de conteúdo acabaram.");
     if (!validateForm()) return toast.error("Por favor, preencha todos os campos obrigatórios (*).");
 
+    scrollPageToTop();
     setLoading(true);
 
     try {
@@ -733,6 +744,7 @@ export default function CreateImage() {
       );
 
       setGeneratingTaskId(newTaskId);
+      requestAnimationFrame(() => scrollPageToTop());
     } catch (err: any) {
       console.error("Erro:", err);
       toast.error("Erro ao preparar geração", { description: err.message || "Tente novamente." });
@@ -767,9 +779,7 @@ export default function CreateImage() {
 
   useEffect(() => {
     if (isGenerating || isTaskComplete) {
-      window.scrollTo({ top: 0, behavior: "instant" });
-      const mainContent = document.querySelector("main.overflow-y-auto, [class*='overflow-y-auto']");
-      if (mainContent) mainContent.scrollTop = 0;
+      scrollPageToTop();
     }
   }, [isGenerating, isTaskComplete]);
 
