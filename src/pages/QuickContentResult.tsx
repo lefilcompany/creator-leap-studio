@@ -511,14 +511,6 @@ export default function QuickContentResult() {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-                <Button
-                  onClick={() => navigate("/history")}
-                  size="lg"
-                  className="bg-gradient-to-r from-accent to-accent/80 hover:from-accent/90 hover:to-accent/70 text-accent-foreground rounded-xl gap-2 h-14 text-base font-bold shadow-lg hover:shadow-xl transition-all"
-                >
-                  <History className="h-5 w-5" />
-                  Histórico
-                </Button>
               </div>
             </div>
           </div>
