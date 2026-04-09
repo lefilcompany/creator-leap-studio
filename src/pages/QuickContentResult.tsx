@@ -540,7 +540,7 @@ export default function QuickContentResult() {
 
       {/* Image Dialog */}
       <Dialog open={isImageDialogOpen} onOpenChange={(open) => { setIsImageDialogOpen(open); if (!open) setIsImageCopied(false); }}>
-        <DialogContent className="max-w-[92vw] max-h-[92vh] w-auto h-auto p-3 overflow-visible border-0 bg-black/95 [&>button]:hidden rounded-xl">
+        <DialogContent className="max-w-[92vw] max-h-[92vh] w-auto h-auto p-3 overflow-hidden border-0 bg-black/95 [&>button]:hidden rounded-xl [&>div:first-child]:overflow-hidden [&>div:first-child]:p-0">
           <DialogHeader className="sr-only">
             <DialogTitle>Visualização da Imagem</DialogTitle>
             <DialogDescription>Imagem ampliada do conteúdo gerado</DialogDescription>
