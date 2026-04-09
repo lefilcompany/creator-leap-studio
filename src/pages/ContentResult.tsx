@@ -979,24 +979,24 @@ export default function ContentResult() {
               </button>
 
               {/* Action Buttons */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+              <div className="flex flex-col gap-2 pt-2 w-1/2">
                 <Button
                   onClick={handleOpenReview}
-                  size="lg"
-                  className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground rounded-xl gap-2 h-14 text-base font-bold shadow-lg hover:shadow-xl transition-all"
+                  size="default"
+                  className="bg-accent/20 border border-accent/30 text-accent rounded-xl gap-2 h-10 w-full text-sm font-semibold shadow-lg hover:shadow-xl transition-all"
                   disabled={!user?.credits || user.credits < CREDIT_COSTS.IMAGE_REVIEW}
                 >
-                  <Pen className="h-5 w-5" />
+                  <Pen className="h-4 w-4" />
                   Corrigir
                 </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="secondary"
-                      size="lg"
-                      className="rounded-xl gap-2 h-14 text-base font-bold shadow-lg hover:shadow-xl transition-all border-2 border-secondary/30"
+                      size="default"
+                      className="bg-gradient-to-r from-primary via-secondary to-accent hover:opacity-90 text-white rounded-xl gap-2 h-10 w-full text-sm font-semibold shadow-lg hover:shadow-xl transition-all"
                     >
-                      <Plus className="h-5 w-5" />
+                      <Plus className="h-4 w-4" />
                       Criar outro
                     </Button>
                   </DropdownMenuTrigger>
@@ -1021,14 +1021,6 @@ export default function ContentResult() {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-                <Button
-                  onClick={() => navigate("/history")}
-                  size="lg"
-                  className="bg-gradient-to-r from-accent to-accent/80 hover:from-accent/90 hover:to-accent/70 text-accent-foreground rounded-xl gap-2 h-14 text-base font-bold shadow-lg hover:shadow-xl transition-all"
-                >
-                  <History className="h-5 w-5" />
-                  Histórico
-                </Button>
               </div>
             </div>
           </div>
