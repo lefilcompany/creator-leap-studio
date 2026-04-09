@@ -394,7 +394,7 @@ export default function QuickContentResult() {
                     </Button>
                   </div>
                 </div>
-                <div className="bg-muted/40 rounded-xl p-4 border border-border/30">
+                <div className="backdrop-blur-2xl bg-gradient-to-br from-primary/[0.04] via-white/[0.06] to-accent/[0.04] rounded-2xl p-4 border border-primary/[0.12] shadow-[0_2px_12px_-4px_rgba(0,0,0,0.06),inset_0_1px_0_0_rgba(255,255,255,0.15)]">
                   <p
                     ref={promptRef}
                     className={`text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap transition-all duration-300 ${!isPromptExpanded ? 'line-clamp-3' : ''}`}
@@ -424,24 +424,24 @@ export default function QuickContentResult() {
                   <CollapsibleContent className="pt-3">
                     <div className="flex flex-wrap gap-2">
                       {platform && (
-                        <Badge variant="outline" className="gap-1.5 py-1.5 px-3 text-sm border-border/50">
+                        <span className="inline-flex items-center gap-1.5 py-1.5 px-3 text-sm font-medium rounded-xl backdrop-blur-2xl bg-gradient-to-br from-muted/[0.12] via-white/[0.08] to-muted/[0.06] border border-foreground/[0.12] text-foreground shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06),inset_0_1px_0_0_rgba(255,255,255,0.15)]">
                           <Share2 className="h-3.5 w-3.5" />{platform}
-                        </Badge>
+                        </span>
                       )}
                       {brandName && (
-                        <Badge variant="secondary" className="gap-1.5 py-1.5 px-3 text-sm bg-primary/10 text-primary border-primary/20">
+                        <span className="inline-flex items-center gap-1.5 py-1.5 px-3 text-sm font-medium rounded-xl backdrop-blur-2xl bg-gradient-to-br from-primary/[0.1] via-white/[0.08] to-secondary/[0.06] border border-primary/25 text-primary shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06),inset_0_1px_0_0_rgba(255,255,255,0.15)]">
                           <Building2 className="h-3.5 w-3.5" />{brandName}
-                        </Badge>
+                        </span>
                       )}
                       {themeName && (
-                        <Badge variant="secondary" className="gap-1.5 py-1.5 px-3 text-sm bg-accent/10 text-accent-foreground border-accent/20">
+                        <span className="inline-flex items-center gap-1.5 py-1.5 px-3 text-sm font-medium rounded-xl backdrop-blur-2xl bg-gradient-to-br from-accent/[0.1] via-white/[0.08] to-primary/[0.06] border border-accent/25 text-accent shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06),inset_0_1px_0_0_rgba(255,255,255,0.15)]">
                           <Palette className="h-3.5 w-3.5" />{themeName}
-                        </Badge>
+                        </span>
                       )}
                       {personaName && (
-                        <Badge variant="secondary" className="gap-1.5 py-1.5 px-3 text-sm bg-secondary/20 text-secondary-foreground border-secondary/30">
+                        <span className="inline-flex items-center gap-1.5 py-1.5 px-3 text-sm font-medium rounded-xl backdrop-blur-2xl bg-gradient-to-br from-secondary/[0.1] via-white/[0.08] to-primary/[0.06] border border-secondary/25 text-secondary shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06),inset_0_1px_0_0_rgba(255,255,255,0.15)]">
                           <User className="h-3.5 w-3.5" />{personaName}
-                        </Badge>
+                        </span>
                       )}
                     </div>
                   </CollapsibleContent>
