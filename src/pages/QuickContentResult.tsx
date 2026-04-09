@@ -540,13 +540,13 @@ export default function QuickContentResult() {
 
       {/* Image Dialog */}
       <Dialog open={isImageDialogOpen} onOpenChange={(open) => { setIsImageDialogOpen(open); if (!open) setIsImageCopied(false); }}>
-        <DialogContent className="max-w-[92vw] max-h-[92vh] w-auto h-auto p-3 overflow-hidden border-0 bg-black/95 [&>button]:hidden rounded-xl [&>div:first-child]:overflow-hidden [&>div:first-child]:p-0">
+        <DialogContent className="max-w-[92vw] max-h-[92vh] w-auto h-auto p-0 overflow-hidden border-0 bg-black/95 [&>button]:hidden rounded-xl [&>div:first-child]:p-0 [&>div:first-child]:overflow-hidden">
           <DialogHeader className="sr-only">
             <DialogTitle>Visualização da Imagem</DialogTitle>
             <DialogDescription>Imagem ampliada do conteúdo gerado</DialogDescription>
           </DialogHeader>
-          <div className="relative">
-            <div className="absolute -top-1 right-0 z-10 flex items-center gap-1.5">
+          <div className="flex flex-col">
+            <div className="flex items-center justify-end gap-1.5 px-3 py-2 shrink-0">
               <Button
                 size="sm"
                 onClick={(e) => { e.stopPropagation(); handleDownload(); }}
@@ -586,8 +586,8 @@ export default function QuickContentResult() {
                 <X className="h-3 w-3" />
               </button>
             </div>
-            <div className="flex items-center justify-center pt-6">
-              <img src={currentImageUrl} alt="Conteúdo gerado ampliado" className="max-w-[88vw] max-h-[84vh] object-contain rounded-lg" />
+            <div className="flex items-center justify-center px-3 pb-3">
+              <img src={currentImageUrl} alt="Conteúdo gerado ampliado" className="max-w-[88vw] max-h-[calc(92vh-52px)] object-contain rounded-lg" />
             </div>
           </div>
         </DialogContent>
