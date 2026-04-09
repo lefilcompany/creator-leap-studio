@@ -979,7 +979,7 @@ export default function ContentResult() {
               </button>
 
               {/* Action Buttons */}
-              <div className="flex flex-row gap-2 pt-2 w-1/2">
+              <div className="flex flex-col gap-2 pt-2 w-1/2">
                 <button
                   onClick={handleOpenReview}
                   disabled={!user?.credits || user.credits < CREDIT_COSTS.IMAGE_REVIEW}
