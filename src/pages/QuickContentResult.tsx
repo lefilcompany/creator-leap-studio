@@ -469,11 +469,11 @@ export default function QuickContentResult() {
               )}
 
               {/* Action Buttons - matching reference */}
-              <div className="flex flex-col gap-2 pt-2 w-1/2 mx-auto">
+              <div className="flex flex-col gap-2 pt-2 w-1/2">
                 <Button
                   onClick={handleOpenReview}
                   size="default"
-                  className="relative overflow-hidden bg-accent/20 border border-accent/30 text-accent rounded-xl gap-2 h-10 w-full text-sm font-semibold shadow-lg hover:shadow-xl hover:bg-accent/30 transition-all duration-300 before:absolute before:inset-0 before:translate-x-[-100%] before:bg-gradient-to-r before:from-transparent before:via-white/30 before:to-transparent hover:before:translate-x-[100%] before:transition-transform before:duration-700 before:ease-in-out"
+                  className="bg-accent/20 border border-accent/30 text-accent rounded-xl gap-2 h-10 w-full text-sm font-semibold shadow-lg hover:shadow-xl transition-all"
                   disabled={!user?.credits || user.credits < CREDIT_COSTS.IMAGE_REVIEW}
                 >
                   <Pen className="h-4 w-4" />
