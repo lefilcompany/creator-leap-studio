@@ -483,7 +483,7 @@ export default function QuickContentResult() {
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Info className="h-3.5 w-3.5" />
                   <span>Ação salva no histórico</span>
-                  <Button variant="link" size="sm" className="h-auto p-0 text-xs" onClick={() => navigate(`/action/${actionId}`)}>
+                  <Button variant="link" size="sm" className="h-auto p-0 text-xs" onClick={() => navigate('/history')}>
                     Ver detalhes
                   </Button>
                 </div>
