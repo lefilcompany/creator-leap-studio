@@ -245,6 +245,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "actions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "teammate_profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       brands: {
@@ -481,6 +488,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "credit_history_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "teammate_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1209,6 +1223,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "user_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "teammate_profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       user_presence_history: {
@@ -1264,7 +1285,48 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      teammate_profiles: {
+        Row: {
+          avatar_url: string | null
+          banner_url: string | null
+          city: string | null
+          created_at: string | null
+          email: string | null
+          id: string | null
+          name: string | null
+          phone: string | null
+          state: string | null
+          team_id: string | null
+          tutorial_completed: boolean | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          banner_url?: string | null
+          city?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string | null
+          name?: string | null
+          phone?: string | null
+          state?: string | null
+          team_id?: string | null
+          tutorial_completed?: boolean | null
+        }
+        Update: {
+          avatar_url?: string | null
+          banner_url?: string | null
+          city?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string | null
+          name?: string | null
+          phone?: string | null
+          state?: string | null
+          team_id?: string | null
+          tutorial_completed?: boolean | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       align_team_credits_and_setup_trial: {
