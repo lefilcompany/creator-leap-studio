@@ -370,7 +370,7 @@ export default function QuickContentResult() {
             <div className="space-y-5 order-2 lg:order-1">
               {/* Success Title */}
               <h2 className="font-bold leading-tight text-4xl">
-                <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent font-bold text-3xl">
                   Imagem gerada{"\n"}com sucesso!
                 </span>
               </h2>
