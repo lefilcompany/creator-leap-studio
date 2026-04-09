@@ -840,7 +840,7 @@ export default function ContentResult() {
             <div className="space-y-5 order-2">
               {/* Success Title */}
               <h2 className="text-3xl sm:text-4xl font-extrabold leading-tight">
-                <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent font-bold text-3xl">
                   Conteúdo gerado{"\n"}com sucesso!
                 </span>
               </h2>
