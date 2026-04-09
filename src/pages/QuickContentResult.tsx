@@ -469,7 +469,7 @@ export default function QuickContentResult() {
               )}
 
               {/* Action Buttons - matching reference */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+              <div className="flex flex-col gap-3 pt-2">
                 <Button
                   onClick={handleOpenReview}
                   size="lg"
