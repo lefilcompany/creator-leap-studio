@@ -469,24 +469,24 @@ export default function QuickContentResult() {
               )}
 
               {/* Action Buttons - matching reference */}
-              <div className="flex flex-col gap-3 pt-2">
+              <div className="flex flex-col gap-2 pt-2">
                 <Button
                   onClick={handleOpenReview}
-                  size="lg"
-                  className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground rounded-xl gap-2 h-14 text-base font-bold shadow-lg hover:shadow-xl transition-all"
+                  size="default"
+                  className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground rounded-xl gap-2 h-10 w-full text-sm font-semibold shadow-lg hover:shadow-xl transition-all"
                   disabled={!user?.credits || user.credits < CREDIT_COSTS.IMAGE_REVIEW}
                 >
-                  <Pen className="h-5 w-5" />
+                  <Pen className="h-4 w-4" />
                   Corrigir
                 </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="secondary"
-                      size="lg"
-                      className="rounded-xl gap-2 h-14 text-base font-bold shadow-lg hover:shadow-xl transition-all border-2 border-secondary/30"
+                      size="default"
+                      className="rounded-xl gap-2 h-10 w-full text-sm font-semibold shadow-lg hover:shadow-xl transition-all border-2 border-secondary/30"
                     >
-                      <Plus className="h-5 w-5" />
+                      <Plus className="h-4 w-4" />
                       Criar outro
                     </Button>
                   </DropdownMenuTrigger>
