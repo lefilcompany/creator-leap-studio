@@ -255,8 +255,8 @@ export default function QuickContent() {
   useEffect(() => {
     if (isGenerating || isTaskComplete) {
       window.scrollTo({ top: 0, behavior: "instant" });
-      const mainContent = document.querySelector("main.overflow-y-auto, [class*='overflow-y-auto']");
-      if (mainContent) mainContent.scrollTop = 0;
+      const mainContent = document.querySelector("main");
+      if (mainContent) mainContent.scrollTo({ top: 0, behavior: "instant" });
     }
   }, [isGenerating, isTaskComplete]);
 
