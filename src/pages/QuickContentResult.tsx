@@ -317,7 +317,7 @@ export default function QuickContentResult() {
           {/* Two-column layout */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Image Card - Left column, sticky on desktop */}
-            <div className="lg:sticky lg:top-4 lg:self-start order-1">
+            <div className="lg:sticky lg:top-4 lg:self-start order-1 lg:order-2">
               <Card className="bg-card border-0 shadow-xl rounded-2xl overflow-hidden animate-fade-in group relative">
                 <div className="relative bg-muted/20">
                   <img
@@ -367,7 +367,7 @@ export default function QuickContentResult() {
             </div>
 
             {/* Right column - Info */}
-            <div className="space-y-5 order-2">
+            <div className="space-y-5 order-2 lg:order-1">
               {/* Success Title */}
               <h2 className="font-bold leading-tight text-4xl">
                 <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
