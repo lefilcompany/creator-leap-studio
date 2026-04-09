@@ -862,7 +862,7 @@ export default function ContentResult() {
                     {copied ? "Copiado" : "Copiar"}
                   </Button>
                 </div>
-                <div className="backdrop-blur-xl bg-foreground/[0.03] rounded-2xl p-4 border border-foreground/[0.06] shadow-[0_2px_12px_-4px_rgba(0,0,0,0.08),inset_0_0.5px_0_0_rgba(255,255,255,0.1)]">
+                <div className="backdrop-blur-2xl bg-gradient-to-br from-primary/[0.04] via-white/[0.06] to-accent/[0.04] rounded-2xl p-4 border border-primary/[0.12] shadow-[0_2px_12px_-4px_rgba(0,0,0,0.06),inset_0_1px_0_0_rgba(255,255,255,0.15)]">
                   {contentData.title && (
                     <h3 className="text-sm sm:text-base font-bold text-foreground mb-2">
                       {contentData.title}
@@ -922,7 +922,7 @@ export default function ContentResult() {
                   </CollapsibleTrigger>
                   <CollapsibleContent className="pt-3 space-y-3">
                     {promptUsed && (
-                      <div className="backdrop-blur-xl bg-foreground/[0.03] rounded-xl p-4 border border-foreground/[0.06] shadow-[0_2px_12px_-4px_rgba(0,0,0,0.08),inset_0_0.5px_0_0_rgba(255,255,255,0.1)]">
+                      <div className="backdrop-blur-2xl bg-gradient-to-br from-primary/[0.04] via-white/[0.06] to-accent/[0.04] rounded-xl p-4 border border-primary/[0.12] shadow-[0_2px_12px_-4px_rgba(0,0,0,0.06),inset_0_1px_0_0_rgba(255,255,255,0.15)]">
                         <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Prompt</span>
                         <p className="text-sm text-foreground/90 mt-1.5 whitespace-pre-wrap line-clamp-4 leading-relaxed">{promptUsed}</p>
                       </div>
