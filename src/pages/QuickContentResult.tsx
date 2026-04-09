@@ -494,7 +494,7 @@ export default function QuickContentResult() {
                 <Button
                   onClick={handleOpenReview}
                   size="default"
-                  className="relative overflow-hidden bg-accent/20 border border-accent/30 text-accent rounded-xl gap-2 h-10 w-full text-sm font-semibold shadow-lg hover:shadow-xl transition-all before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/25 before:to-transparent before:translate-x-[-200%] hover:before:translate-x-[200%] before:transition-transform before:duration-700 before:ease-in-out"
+                  className="relative overflow-hidden bg-accent/20 hover:bg-accent/25 border border-accent/30 text-accent rounded-xl gap-2 h-10 w-full text-sm font-semibold shadow-lg hover:shadow-xl transition-all before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/25 before:to-transparent before:translate-x-[-200%] hover:before:translate-x-[200%] before:transition-transform before:duration-700 before:ease-in-out"
                   disabled={!user?.credits || user.credits < CREDIT_COSTS.IMAGE_REVIEW}
                 >
                   <Pen className="h-4 w-4" />
