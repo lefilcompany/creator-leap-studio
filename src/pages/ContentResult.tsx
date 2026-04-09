@@ -929,29 +929,29 @@ export default function ContentResult() {
                     )}
                     <div className="flex flex-wrap gap-2">
                       {platformName && (
-                        <Badge variant="outline" className="gap-1.5 py-1.5 px-3 text-sm border-border/50 hover:bg-transparent">
+                        <span className="inline-flex items-center gap-1.5 py-1.5 px-3 text-sm font-medium rounded-lg backdrop-blur-xl bg-foreground/[0.06] border border-foreground/[0.08] text-foreground/80 shadow-[inset_0_0.5px_0_0_rgba(255,255,255,0.12)]">
                           <PlatformIcon platform={platformName} />{platformName}
-                        </Badge>
+                        </span>
                       )}
                       {brandName && (
-                        <Badge variant="secondary" className="gap-1.5 py-1.5 px-3 text-sm bg-primary/10 hover:bg-primary/10 text-primary border-primary/20">
+                        <span className="inline-flex items-center gap-1.5 py-1.5 px-3 text-sm font-medium rounded-lg backdrop-blur-xl bg-primary/[0.08] border border-primary/[0.12] text-primary shadow-[inset_0_0.5px_0_0_rgba(255,255,255,0.12)]">
                           <Building2 className="h-3.5 w-3.5" />{brandName}
-                        </Badge>
+                        </span>
                       )}
                       {themeName && (
-                        <Badge variant="secondary" className="gap-1.5 py-1.5 px-3 text-sm bg-accent/10 text-accent-foreground border-accent/20">
+                        <span className="inline-flex items-center gap-1.5 py-1.5 px-3 text-sm font-medium rounded-lg backdrop-blur-xl bg-accent/[0.08] border border-accent/[0.12] text-accent-foreground shadow-[inset_0_0.5px_0_0_rgba(255,255,255,0.12)]">
                           <Palette className="h-3.5 w-3.5" />{themeName}
-                        </Badge>
+                        </span>
                       )}
                       {personaName && (
-                        <Badge variant="secondary" className="gap-1.5 py-1.5 px-3 text-sm bg-secondary/20 text-secondary-foreground border-secondary/30">
+                        <span className="inline-flex items-center gap-1.5 py-1.5 px-3 text-sm font-medium rounded-lg backdrop-blur-xl bg-secondary/[0.08] border border-secondary/[0.12] text-secondary-foreground shadow-[inset_0_0.5px_0_0_rgba(255,255,255,0.12)]">
                           <User className="h-3.5 w-3.5" />{personaName}
-                        </Badge>
+                        </span>
                       )}
                       {formatLabel && (
-                        <Badge variant="outline" className="gap-1.5 py-1.5 px-3 text-sm border-border/50 hover:bg-transparent">
+                        <span className="inline-flex items-center gap-1.5 py-1.5 px-3 text-sm font-medium rounded-lg backdrop-blur-xl bg-foreground/[0.06] border border-foreground/[0.08] text-foreground/80 shadow-[inset_0_0.5px_0_0_rgba(255,255,255,0.12)]">
                           <ImageIcon className="h-3.5 w-3.5" />{formatLabel}
-                        </Badge>
+                        </span>
                       )}
                     </div>
                   </CollapsibleContent>
