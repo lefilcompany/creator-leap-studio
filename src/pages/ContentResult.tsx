@@ -929,27 +929,27 @@ export default function ContentResult() {
                     )}
                     <div className="flex flex-wrap gap-2">
                       {platformName && (
-                        <span className="inline-flex items-center gap-1.5 py-1.5 px-3 text-sm font-medium rounded-lg backdrop-blur-xl bg-foreground/[0.06] border border-foreground/[0.08] text-foreground/80 shadow-[inset_0_0.5px_0_0_rgba(255,255,255,0.12)]">
+                        <span className="inline-flex items-center gap-1.5 py-1.5 px-3 text-sm font-medium rounded-xl backdrop-blur-2xl bg-gradient-to-br from-primary/[0.06] via-white/[0.08] to-accent/[0.06] border border-primary/20 text-foreground/80 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06),inset_0_1px_0_0_rgba(255,255,255,0.15)]">
                           <PlatformIcon platform={platformName} />{platformName}
                         </span>
                       )}
                       {brandName && (
-                        <span className="inline-flex items-center gap-1.5 py-1.5 px-3 text-sm font-medium rounded-lg backdrop-blur-xl bg-primary/[0.08] border border-primary/[0.12] text-primary shadow-[inset_0_0.5px_0_0_rgba(255,255,255,0.12)]">
+                        <span className="inline-flex items-center gap-1.5 py-1.5 px-3 text-sm font-medium rounded-xl backdrop-blur-2xl bg-gradient-to-br from-primary/[0.1] via-white/[0.08] to-secondary/[0.06] border border-primary/25 text-primary shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06),inset_0_1px_0_0_rgba(255,255,255,0.15)]">
                           <Building2 className="h-3.5 w-3.5" />{brandName}
                         </span>
                       )}
                       {themeName && (
-                        <span className="inline-flex items-center gap-1.5 py-1.5 px-3 text-sm font-medium rounded-lg backdrop-blur-xl bg-accent/[0.08] border border-accent/[0.12] text-accent-foreground shadow-[inset_0_0.5px_0_0_rgba(255,255,255,0.12)]">
+                        <span className="inline-flex items-center gap-1.5 py-1.5 px-3 text-sm font-medium rounded-xl backdrop-blur-2xl bg-gradient-to-br from-accent/[0.08] via-white/[0.08] to-primary/[0.06] border border-accent/20 text-accent-foreground shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06),inset_0_1px_0_0_rgba(255,255,255,0.15)]">
                           <Palette className="h-3.5 w-3.5" />{themeName}
                         </span>
                       )}
                       {personaName && (
-                        <span className="inline-flex items-center gap-1.5 py-1.5 px-3 text-sm font-medium rounded-lg backdrop-blur-xl bg-secondary/[0.08] border border-secondary/[0.12] text-secondary-foreground shadow-[inset_0_0.5px_0_0_rgba(255,255,255,0.12)]">
+                        <span className="inline-flex items-center gap-1.5 py-1.5 px-3 text-sm font-medium rounded-xl backdrop-blur-2xl bg-gradient-to-br from-secondary/[0.1] via-white/[0.08] to-primary/[0.06] border border-secondary/20 text-secondary-foreground shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06),inset_0_1px_0_0_rgba(255,255,255,0.15)]">
                           <User className="h-3.5 w-3.5" />{personaName}
                         </span>
                       )}
                       {formatLabel && (
-                        <span className="inline-flex items-center gap-1.5 py-1.5 px-3 text-sm font-medium rounded-lg backdrop-blur-xl bg-foreground/[0.06] border border-foreground/[0.08] text-foreground/80 shadow-[inset_0_0.5px_0_0_rgba(255,255,255,0.12)]">
+                        <span className="inline-flex items-center gap-1.5 py-1.5 px-3 text-sm font-medium rounded-xl backdrop-blur-2xl bg-gradient-to-br from-primary/[0.06] via-white/[0.08] to-accent/[0.06] border border-primary/20 text-foreground/80 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06),inset_0_1px_0_0_rgba(255,255,255,0.15)]">
                           <ImageIcon className="h-3.5 w-3.5" />{formatLabel}
                         </span>
                       )}
