@@ -980,15 +980,15 @@ export default function ContentResult() {
 
               {/* Action Buttons */}
               <div className="flex flex-col gap-2 pt-2 w-1/2">
-                <Button
+                <button
                   onClick={handleOpenReview}
-                  size="default"
-                  className="bg-accent/20 border border-accent/30 text-accent rounded-xl gap-2 h-10 w-full text-sm font-semibold shadow-lg hover:shadow-xl transition-all"
                   disabled={!user?.credits || user.credits < CREDIT_COSTS.IMAGE_REVIEW}
+                  className="relative overflow-hidden bg-accent/20 border border-accent/30 text-accent rounded-xl gap-2 h-10 w-full text-sm font-semibold shadow-lg hover:shadow-xl transition-all inline-flex items-center justify-center disabled:pointer-events-none disabled:opacity-50 group"
                 >
-                  <Pen className="h-4 w-4" />
-                  Corrigir
-                </Button>
+                  <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none" />
+                  <Pen className="h-4 w-4 relative z-10" />
+                  <span className="relative z-10">Corrigir</span>
+                </button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
