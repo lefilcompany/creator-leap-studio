@@ -991,14 +991,13 @@ export default function ContentResult() {
                 </button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="secondary"
-                      size="default"
-                      className="bg-gradient-to-r from-primary via-secondary to-accent hover:opacity-90 text-white rounded-xl gap-2 h-10 w-full text-sm font-semibold shadow-lg hover:shadow-xl transition-all"
+                    <button
+                      className="relative overflow-hidden bg-gradient-to-r from-primary via-secondary to-accent text-white rounded-xl gap-2 h-10 w-full text-sm font-semibold shadow-lg hover:shadow-xl transition-all inline-flex items-center justify-center group"
                     >
-                      <Plus className="h-4 w-4" />
-                      Criar outro
-                    </Button>
+                      <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none" />
+                      <Plus className="h-4 w-4 relative z-10" />
+                      <span className="relative z-10">Criar outro</span>
+                    </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="center" className="w-60 p-1.5">
                     <DropdownMenuItem onClick={handleReusePrompt} className="gap-3 py-3.5 px-3 cursor-pointer rounded-lg focus:bg-primary/10 hover:bg-primary/10 data-[highlighted]:bg-primary/10 focus:text-foreground data-[highlighted]:text-foreground">
