@@ -754,8 +754,8 @@ export default function ContentResult() {
         <div className="max-w-7xl mx-auto space-y-6">
           {/* Two-column layout */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Image Card - Left column, sticky */}
-            <div className="lg:sticky lg:top-4 lg:self-start order-1">
+            {/* Image Card - Right column, sticky */}
+            <div className="lg:sticky lg:top-4 lg:self-start order-1 lg:order-2">
               <Card className="bg-card border-0 shadow-xl rounded-2xl overflow-hidden animate-fade-in group relative">
                 <div className="relative bg-muted/20">
                   {contentData.isProcessing ? (
@@ -837,7 +837,7 @@ export default function ContentResult() {
             </div>
 
             {/* Right column - Info */}
-            <div className="space-y-5 order-2">
+            <div className="space-y-5 order-2 lg:order-1">
               {/* Success Title */}
               <h2 className="text-3xl sm:text-4xl font-extrabold leading-tight">
                 <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent font-bold text-3xl">
