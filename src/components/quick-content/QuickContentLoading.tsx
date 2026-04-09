@@ -29,30 +29,30 @@ export function QuickContentLoading({ isComplete }: QuickContentLoadingProps) {
   }, [isComplete]);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[70vh] px-4 animate-fade-in">
+    <div className="flex flex-col items-center justify-center h-full px-4 animate-fade-in py-2">
       {/* Animated logo video */}
-      <div className="mb-6">
+      <div className="mb-2 md:mb-4">
         <video
           src="/images/logo-loading.webm"
           autoPlay
           loop
           muted
           playsInline
-          className="w-44 h-44 md:w-52 md:h-52 object-contain"
+          className="w-28 h-28 md:w-36 md:h-36 lg:w-44 lg:h-44 object-contain"
         />
       </div>
 
       {/* Text */}
-      <h2 className="text-2xl md:text-3xl lg:text-4xl font-extrabold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent text-center mb-3 tracking-tight max-w-md">
+      <h2 className="text-xl md:text-2xl lg:text-3xl font-extrabold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent text-center mb-1 md:mb-2 tracking-tight max-w-md">
         Um instante, estamos criando a imagem perfeita para você
       </h2>
-      <p className="text-base md:text-lg text-muted-foreground text-center mb-8 max-w-lg font-medium">
+      <p className="text-sm md:text-base text-muted-foreground text-center mb-4 md:mb-6 max-w-lg font-medium">
         Isso pode levar alguns segundos. Você pode navegar livremente — a geração continua em segundo plano.
       </p>
 
       {/* Progress bar */}
-      <div className="w-full max-w-sm space-y-2">
-        <Progress value={progress} className="h-3 bg-muted" />
+      <div className="w-full max-w-sm space-y-1">
+        <Progress value={progress} className="h-2.5 bg-muted" />
         <p className="text-center text-sm font-semibold text-primary">
           {Math.round(progress)}%
         </p>
@@ -61,7 +61,7 @@ export function QuickContentLoading({ isComplete }: QuickContentLoadingProps) {
       {/* Navigate away hint */}
       <button
         onClick={() => navigate("/dashboard")}
-        className="mt-8 flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
+        className="mt-4 md:mt-6 flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
       >
         <ArrowLeft className="h-3.5 w-3.5" />
         Voltar ao Dashboard enquanto gera
