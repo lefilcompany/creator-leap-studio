@@ -765,6 +765,14 @@ export default function CreateImage() {
     }
   }, [isTaskComplete, generatingTask, navigate]);
 
+  useEffect(() => {
+    if (isGenerating || isTaskComplete) {
+      window.scrollTo({ top: 0, behavior: "instant" });
+      const mainContent = document.querySelector("main.overflow-y-auto, [class*='overflow-y-auto']");
+      if (mainContent) mainContent.scrollTop = 0;
+    }
+  }, [isGenerating, isTaskComplete]);
+
   if (isGenerating || isTaskComplete) {
     return (
       <div className="flex flex-col -m-4 sm:-m-6 lg:-m-8 min-h-full">
