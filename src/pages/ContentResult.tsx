@@ -862,9 +862,9 @@ export default function ContentResult() {
                     {copied ? "Copiado" : "Copiar"}
                   </Button>
                 </div>
-                <div className="bg-muted/40 rounded-xl p-4 border border-border/30">
+                <div className="bg-muted/40 rounded-xl p-3 border border-border/30">
                   {contentData.title && (
-                    <h3 className="text-base sm:text-lg font-bold text-foreground mb-2">
+                    <h3 className="text-sm sm:text-base font-bold text-foreground mb-1.5">
                       {contentData.title}
                       {contentData.isLocalFallback && (
                         <Badge variant="outline" className="ml-2 text-xs">Padrão</Badge>
@@ -873,7 +873,7 @@ export default function ContentResult() {
                   )}
                   <p
                     ref={captionRef}
-                    className={`text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap transition-all duration-300 ${!isCaptionExpanded ? 'line-clamp-3' : ''}`}
+                    className={`text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap transition-all duration-300 ${!isCaptionExpanded ? 'line-clamp-3' : ''}`}
                   >
                     {contentData.body || contentData.caption}
                   </p>
@@ -885,10 +885,24 @@ export default function ContentResult() {
                       {isCaptionExpanded ? "Ler menos" : "Ler mais"}
                     </button>
                   )}
-                  {contentData.hashtags && contentData.hashtags.length > 0 && (
-                    <div className="mt-3 pt-3 border-t border-border/20 flex flex-wrap gap-2">
+                  {contentData.hashtags && contentData.hashtags.length > 0 && !isCaptionExpanded && (
+                    <div className="mt-2 pt-2 border-t border-border/20 flex flex-wrap gap-1.5 line-clamp-2 overflow-hidden max-h-16">
+                      {contentData.hashtags.slice(0, 8).map((tag, index) => (
+                        <span key={index} className="text-[10px] text-primary font-medium bg-primary/10 px-1.5 py-0.5 rounded">
+                          #{tag}
+                        </span>
+                      ))}
+                      {contentData.hashtags.length > 8 && (
+                        <span className="text-[10px] text-muted-foreground font-medium px-1.5 py-0.5">
+                          +{contentData.hashtags.length - 8}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  {contentData.hashtags && contentData.hashtags.length > 0 && isCaptionExpanded && (
+                    <div className="mt-2 pt-2 border-t border-border/20 flex flex-wrap gap-1.5">
                       {contentData.hashtags.map((tag, index) => (
-                        <span key={index} className="text-xs text-primary font-medium bg-primary/10 px-2 py-1 rounded-md">
+                        <span key={index} className="text-[10px] text-primary font-medium bg-primary/10 px-1.5 py-0.5 rounded">
                           #{tag}
                         </span>
                       ))}
