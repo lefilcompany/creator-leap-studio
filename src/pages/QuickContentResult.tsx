@@ -585,8 +585,8 @@ export default function QuickContentResult() {
               <X className="h-3 w-3" />
             </button>
           </div>
-          <div className="flex-1 min-h-0 flex items-center justify-center px-4 pb-4">
-            <img src={currentImageUrl} alt="Conteúdo gerado ampliado" className="max-w-full max-h-[calc(95vh-60px)] object-contain" />
+          <div className="flex items-center justify-center p-4">
+            <img src={currentImageUrl} alt="Conteúdo gerado ampliado" className="max-w-full max-h-[90vh] object-contain" />
           </div>
         </DialogContent>
       </Dialog>
