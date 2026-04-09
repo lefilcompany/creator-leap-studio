@@ -540,18 +540,18 @@ export default function QuickContentResult() {
 
       {/* Image Dialog */}
       <Dialog open={isImageDialogOpen} onOpenChange={(open) => { setIsImageDialogOpen(open); if (!open) setIsImageCopied(false); }}>
-        <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 overflow-hidden border-0 bg-black/95 [&>button]:hidden flex flex-col">
+        <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 overflow-hidden border-0 bg-black/95 [&>button]:hidden relative">
           <DialogHeader className="sr-only">
             <DialogTitle>Visualização da Imagem</DialogTitle>
             <DialogDescription>Imagem ampliada do conteúdo gerado</DialogDescription>
           </DialogHeader>
-          <div className="flex items-center justify-end gap-2 px-4 py-3 bg-black/80 backdrop-blur-md shrink-0">
+          <div className="absolute top-2 right-2 z-10 flex items-center gap-1.5">
             <Button
               size="sm"
               onClick={(e) => { e.stopPropagation(); handleDownload(); }}
-              className="bg-white/15 hover:bg-white/25 text-white backdrop-blur-md border border-white/20 rounded-lg gap-1.5 transition-all duration-300 h-9 px-3"
+              className="bg-white/15 hover:bg-white/25 text-white backdrop-blur-md border border-white/20 rounded-lg gap-1 transition-all duration-300 h-7 px-2 text-xs"
             >
-              <Download className="h-4 w-4" />
+              <Download className="h-3 w-3" />
               Baixar
             </Button>
             <Button
@@ -570,23 +570,23 @@ export default function QuickContentResult() {
                   toast.error("Não foi possível copiar a imagem");
                 }
               }}
-              className={`backdrop-blur-md border border-white/20 rounded-lg gap-1.5 transition-all duration-300 h-9 px-3 ${isImageCopied ? 'bg-green-500/30 hover:bg-green-500/40 text-green-300' : 'bg-white/15 hover:bg-white/25 text-white'}`}
+              className={`backdrop-blur-md border border-white/20 rounded-lg gap-1 transition-all duration-300 h-7 px-2 text-xs ${isImageCopied ? 'bg-green-500/30 hover:bg-green-500/40 text-green-300' : 'bg-white/15 hover:bg-white/25 text-white'}`}
             >
-              <span className="relative h-4 w-4">
-                <Copy className={`h-4 w-4 absolute inset-0 transition-all duration-300 ${isImageCopied ? 'opacity-0 scale-75' : 'opacity-100 scale-100'}`} />
-                <Check className={`h-4 w-4 absolute inset-0 transition-all duration-300 ${isImageCopied ? 'opacity-100 scale-100' : 'opacity-0 scale-75'}`} />
+              <span className="relative h-3 w-3">
+                <Copy className={`h-3 w-3 absolute inset-0 transition-all duration-300 ${isImageCopied ? 'opacity-0 scale-75' : 'opacity-100 scale-100'}`} />
+                <Check className={`h-3 w-3 absolute inset-0 transition-all duration-300 ${isImageCopied ? 'opacity-100 scale-100' : 'opacity-0 scale-75'}`} />
               </span>
               {isImageCopied ? "Copiado!" : "Copiar"}
             </Button>
             <button
               onClick={() => setIsImageDialogOpen(false)}
-              className="h-9 w-9 flex items-center justify-center rounded-lg bg-white/15 hover:bg-white/25 text-white backdrop-blur-md border border-white/20 transition-all duration-300"
+              className="h-7 w-7 flex items-center justify-center rounded-lg bg-white/15 hover:bg-white/25 text-white backdrop-blur-md border border-white/20 transition-all duration-300"
             >
-              <X className="h-4 w-4" />
+              <X className="h-3 w-3" />
             </button>
           </div>
-          <div className="flex-1 min-h-0 flex items-center justify-center px-4 pb-4">
-            <img src={currentImageUrl} alt="Conteúdo gerado ampliado" className="max-w-full max-h-[calc(95vh-60px)] object-contain" />
+          <div className="flex items-center justify-center p-4">
+            <img src={currentImageUrl} alt="Conteúdo gerado ampliado" className="max-w-full max-h-[90vh] object-contain" />
           </div>
         </DialogContent>
       </Dialog>
