@@ -862,9 +862,9 @@ export default function ContentResult() {
                     {copied ? "Copiado" : "Copiar"}
                   </Button>
                 </div>
-                <div className="bg-muted/40 rounded-xl p-3 border border-border/30">
+                <div className="backdrop-blur-xl bg-foreground/[0.03] rounded-2xl p-4 border border-foreground/[0.06] shadow-[0_2px_12px_-4px_rgba(0,0,0,0.08),inset_0_0.5px_0_0_rgba(255,255,255,0.1)]">
                   {contentData.title && (
-                    <h3 className="text-sm sm:text-base font-bold text-foreground mb-1.5">
+                    <h3 className="text-sm sm:text-base font-bold text-foreground mb-2">
                       {contentData.title}
                       {contentData.isLocalFallback && (
                         <Badge variant="outline" className="ml-2 text-xs">Padrão</Badge>
@@ -886,9 +886,9 @@ export default function ContentResult() {
                     </button>
                   )}
                   {contentData.hashtags && contentData.hashtags.length > 0 && !isCaptionExpanded && (
-                    <div className="mt-2 pt-2 border-t border-border/20 flex flex-wrap gap-1.5 line-clamp-2 overflow-hidden max-h-16">
+                    <div className="mt-3 pt-3 border-t border-foreground/[0.06] flex flex-wrap gap-1.5 overflow-hidden max-h-16">
                       {contentData.hashtags.slice(0, 8).map((tag, index) => (
-                        <span key={index} className="text-[10px] text-primary font-medium bg-primary/10 px-1.5 py-0.5 rounded">
+                        <span key={index} className="text-[10px] text-primary font-medium backdrop-blur-sm bg-primary/[0.08] border border-primary/[0.1] px-2 py-0.5 rounded-md shadow-[inset_0_0.5px_0_0_rgba(255,255,255,0.08)]">
                           #{tag}
                         </span>
                       ))}
@@ -900,9 +900,9 @@ export default function ContentResult() {
                     </div>
                   )}
                   {contentData.hashtags && contentData.hashtags.length > 0 && isCaptionExpanded && (
-                    <div className="mt-2 pt-2 border-t border-border/20 flex flex-wrap gap-1.5">
+                    <div className="mt-3 pt-3 border-t border-foreground/[0.06] flex flex-wrap gap-1.5">
                       {contentData.hashtags.map((tag, index) => (
-                        <span key={index} className="text-[10px] text-primary font-medium bg-primary/10 px-1.5 py-0.5 rounded">
+                        <span key={index} className="text-[10px] text-primary font-medium backdrop-blur-sm bg-primary/[0.08] border border-primary/[0.1] px-2 py-0.5 rounded-md shadow-[inset_0_0.5px_0_0_rgba(255,255,255,0.08)]">
                           #{tag}
                         </span>
                       ))}
@@ -922,9 +922,9 @@ export default function ContentResult() {
                   </CollapsibleTrigger>
                   <CollapsibleContent className="pt-3 space-y-3">
                     {promptUsed && (
-                      <div className="bg-muted/40 rounded-xl p-4 border border-border/30">
-                        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Prompt</span>
-                        <p className="text-sm text-foreground mt-1 whitespace-pre-wrap line-clamp-4">{promptUsed}</p>
+                      <div className="backdrop-blur-xl bg-foreground/[0.03] rounded-xl p-4 border border-foreground/[0.06] shadow-[0_2px_12px_-4px_rgba(0,0,0,0.08),inset_0_0.5px_0_0_rgba(255,255,255,0.1)]">
+                        <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Prompt</span>
+                        <p className="text-sm text-foreground/90 mt-1.5 whitespace-pre-wrap line-clamp-4 leading-relaxed">{promptUsed}</p>
                       </div>
                     )}
                     <div className="flex flex-wrap gap-2">
