@@ -484,7 +484,7 @@ export default function QuickContentResult() {
                     <Button
                       variant="secondary"
                       size="default"
-                      className="rounded-xl gap-2 h-10 w-full text-sm font-semibold shadow-lg hover:shadow-xl transition-all border-2 border-secondary/30"
+                      className="bg-gradient-to-r from-primary via-secondary to-accent hover:opacity-90 text-white rounded-xl gap-2 h-10 w-full text-sm font-semibold shadow-lg hover:shadow-xl transition-all"
                     >
                       <Plus className="h-4 w-4" />
                       Criar outro
