@@ -93,7 +93,7 @@ export default function ContentResult() {
   const [isCaptionExpanded, setIsCaptionExpanded] = useState(false);
   const [showReportDialog, setShowReportDialog] = useState(false);
   const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
-  const [isConfigOpen, setIsConfigOpen] = useState(false);
+  const [isConfigOpen, setIsConfigOpen] = useState(true);
   const [isCaptionTruncated, setIsCaptionTruncated] = useState(false);
   const captionRef = useRef<HTMLParagraphElement>(null);
 
