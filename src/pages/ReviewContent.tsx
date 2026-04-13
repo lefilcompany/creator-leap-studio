@@ -495,60 +495,6 @@ const ReviewContent = () => {
 
           {reviewType && (
             <>
-              {/* Basic Config */}
-              <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
-                <CardHeader className="pb-4">
-                  <h2 className="text-xl font-semibold flex items-center gap-3">
-                    <div className="w-2 h-2 bg-primary rounded-full"></div>
-                    Configuração Básica
-                  </h2>
-                  <p className="text-muted-foreground text-sm">Defina marca e tema para contextualizar a IA</p>
-                </CardHeader>
-                <CardContent className="p-6 pt-0">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div id="review-brand-field" className="space-y-3">
-                      <Label htmlFor="brand" className="text-sm font-semibold text-foreground">
-                        Marca <span className="text-destructive">*</span>
-                      </Label>
-                      {isLoadingData ? (
-                        <Skeleton className="h-11 w-full rounded-xl" />
-                      ) : (
-                        <NativeSelect
-                          value={brand}
-                          onValueChange={handleBrandChange}
-                          options={brands.map((b) => ({ value: b.id, label: b.name }))}
-                          placeholder="Selecione a marca"
-                          triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50"
-                        />
-                      )}
-                    </div>
-                    <div id="review-theme-field" className="space-y-3">
-                      <Label htmlFor="theme" className="text-sm font-semibold text-foreground">
-                        Tema Estratégico (Opcional)
-                      </Label>
-                      {isLoadingData ? (
-                        <Skeleton className="h-11 w-full rounded-xl" />
-                      ) : (
-                        <NativeSelect
-                          value={theme}
-                          onValueChange={setTheme}
-                          options={filteredThemes.map((t) => ({ value: t.id, label: t.title }))}
-                          placeholder={!brand ? "Primeiro, escolha a marca" : "Selecione o tema"}
-                          disabled={!brand || filteredThemes.length === 0}
-                          triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50 disabled:opacity-50"
-                        />
-                      )}
-                    </div>
-                    <div className="md:col-span-2">
-                      <CategorySelector
-                        value={categoryId}
-                        onChange={setCategoryId}
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
               {/* Content Review */}
               <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
                 <CardHeader className="pb-4">
@@ -686,6 +632,60 @@ const ReviewContent = () => {
                         </div>
                       </>
                     )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Configurações */}
+              <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
+                <CardHeader className="pb-4">
+                  <h2 className="text-xl font-semibold flex items-center gap-3">
+                    <div className="w-2 h-2 bg-primary rounded-full"></div>
+                    Configurações
+                  </h2>
+                  <p className="text-muted-foreground text-sm">Defina marca e tema para contextualizar a IA</p>
+                </CardHeader>
+                <CardContent className="p-6 pt-0">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div id="review-brand-field" className="space-y-3">
+                      <Label htmlFor="brand" className="text-sm font-semibold text-foreground">
+                        Marca <span className="text-destructive">*</span>
+                      </Label>
+                      {isLoadingData ? (
+                        <Skeleton className="h-11 w-full rounded-xl" />
+                      ) : (
+                        <NativeSelect
+                          value={brand}
+                          onValueChange={handleBrandChange}
+                          options={brands.map((b) => ({ value: b.id, label: b.name }))}
+                          placeholder="Selecione a marca"
+                          triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50"
+                        />
+                      )}
+                    </div>
+                    <div id="review-theme-field" className="space-y-3">
+                      <Label htmlFor="theme" className="text-sm font-semibold text-foreground">
+                        Tema Estratégico (Opcional)
+                      </Label>
+                      {isLoadingData ? (
+                        <Skeleton className="h-11 w-full rounded-xl" />
+                      ) : (
+                        <NativeSelect
+                          value={theme}
+                          onValueChange={setTheme}
+                          options={filteredThemes.map((t) => ({ value: t.id, label: t.title }))}
+                          placeholder={!brand ? "Primeiro, escolha a marca" : "Selecione o tema"}
+                          disabled={!brand || filteredThemes.length === 0}
+                          triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50 disabled:opacity-50"
+                        />
+                      )}
+                    </div>
+                    <div className="md:col-span-2">
+                      <CategorySelector
+                        value={categoryId}
+                        onChange={setCategoryId}
+                      />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
