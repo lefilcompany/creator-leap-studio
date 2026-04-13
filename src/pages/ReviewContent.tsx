@@ -664,99 +664,28 @@ const ReviewContent = () => {
                 </CardContent>
               </Card>
 
-              {/* Configuração Básica */}
-              <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-2xl">
-                <CardHeader className="pb-3 md:pb-4 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-t-2xl">
-                  <h2 className="text-lg md:text-xl font-semibold flex items-center gap-3 text-foreground">
-                    <div className="w-2 h-2 bg-primary rounded-full"></div>
-                    Configuração Básica
-                  </h2>
-                  <p className="text-muted-foreground text-xs md:text-sm">
-                    Defina marca, tema e público
-                  </p>
-                </CardHeader>
-                <CardContent className="space-y-4 md:space-y-5 p-4 md:p-6">
-                  <div className="space-y-2 md:space-y-3">
-                    <Label htmlFor="brand" className="text-xs md:text-sm font-semibold text-foreground">
-                      Marca <span className="text-destructive">*</span>
-                    </Label>
-                    {isLoadingData ? (
-                      <Skeleton className="h-10 md:h-11 w-full rounded-xl" />
-                    ) : (
-                      <NativeSelect
-                        value={brand}
-                        onValueChange={handleBrandChange}
-                        options={brands.map((b) => ({ value: b.id, label: b.name }))}
-                        placeholder={brands.length === 0 ? "Nenhuma marca cadastrada" : "Selecione a marca"}
-                        disabled={brands.length === 0}
-                        triggerClassName={`h-10 md:h-11 rounded-xl border-2 border-border/50 bg-background/50 text-sm hover:border-border/70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
-                      />
-                    )}
-                    {!isLoadingData && brands.length === 0 && (
-                      <p className="text-xs text-muted-foreground">
-                        Você precisa cadastrar uma marca antes de ajustar conteúdo.{" "}
-                        <button
-                          onClick={() => navigate("/marcas")}
-                          className="text-primary hover:underline font-medium"
-                        >
-                          Ir para Marcas
-                        </button>
-                      </p>
-                    )}
-                  </div>
+              {/* Personalizações */}
+              <CustomizationCards
+                brands={brands.map(b => ({ id: b.id, name: b.name }))}
+                personas={filteredPersonas.map(p => ({ id: p.id, name: p.name }))}
+                themes={filteredThemes.map(t => ({ id: t.id, title: t.title }))}
+                formData={{ brandId: brand, personaId: persona, themeId: theme }}
+                onFormChange={(updates) => {
+                  if ('brandId' in updates) {
+                    handleBrandChange(updates.brandId || "");
+                  }
+                  if ('personaId' in updates) setPersona(updates.personaId || "");
+                  if ('themeId' in updates) setTheme(updates.themeId || "");
+                }}
+                loadingBrands={isLoadingBrands}
+                loadingPersonas={isLoadingPersonas}
+                loadingThemes={isLoadingThemes}
+              />
 
-                  <div className="space-y-2 md:space-y-3">
-                    <Label htmlFor="theme" className="text-xs md:text-sm font-semibold text-foreground">
-                      Tema Estratégico
-                    </Label>
-                    {isLoadingData ? (
-                      <Skeleton className="h-10 md:h-11 w-full rounded-xl" />
-                    ) : (
-                      <NativeSelect
-                        value={theme}
-                        onValueChange={setTheme}
-                        options={filteredThemes.map((t) => ({ value: t.id, label: t.title }))}
-                        placeholder={
-                          !brand
-                            ? "Primeiro, escolha a marca"
-                            : filteredThemes.length === 0
-                            ? "Nenhum tema disponível"
-                            : "Selecione um tema (opcional)"
-                        }
-                        disabled={!brand || filteredThemes.length === 0}
-                        triggerClassName="h-10 md:h-11 rounded-xl border-2 border-border/50 bg-background/50 disabled:opacity-50 text-sm hover:border-border/70 transition-colors"
-                      />
-                    )}
-                  </div>
-
-                  <div className="space-y-2 md:space-y-3">
-                    <Label htmlFor="persona" className="text-xs md:text-sm font-semibold text-foreground">
-                      Persona
-                    </Label>
-                    {isLoadingData ? (
-                      <Skeleton className="h-10 md:h-11 w-full rounded-xl" />
-                    ) : (
-                      <NativeSelect
-                        value={persona}
-                        onValueChange={setPersona}
-                        options={filteredPersonas.map((p) => ({ value: p.id, label: p.name }))}
-                        placeholder={
-                          !brand
-                            ? "Primeiro, escolha a marca"
-                            : "Adicionar persona"
-                        }
-                        disabled={!brand || filteredPersonas.length === 0}
-                        triggerClassName="h-10 md:h-11 rounded-xl border-2 border-border/50 bg-background/50 disabled:opacity-50 text-sm hover:border-border/70 transition-colors"
-                      />
-                    )}
-                  </div>
-
-                  <CategorySelector
-                    value={categoryId}
-                    onChange={setCategoryId}
-                  />
-                </CardContent>
-              </Card>
+              <CategorySelector
+                value={categoryId}
+                onChange={setCategoryId}
+              />
 
               {/* Actions */}
               <div className="flex flex-col items-center gap-4">
