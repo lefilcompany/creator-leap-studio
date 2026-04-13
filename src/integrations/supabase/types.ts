@@ -254,6 +254,59 @@ export type Database = {
           },
         ]
       }
+      brand_style_preferences: {
+        Row: {
+          brand_id: string
+          created_at: string
+          id: string
+          last_updated_from_feedback_at: string | null
+          negative_patterns: Json | null
+          positive_patterns: Json | null
+          style_summary: string | null
+          team_id: string | null
+          total_negative: number | null
+          total_positive: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          brand_id: string
+          created_at?: string
+          id?: string
+          last_updated_from_feedback_at?: string | null
+          negative_patterns?: Json | null
+          positive_patterns?: Json | null
+          style_summary?: string | null
+          team_id?: string | null
+          total_negative?: number | null
+          total_positive?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          brand_id?: string
+          created_at?: string
+          id?: string
+          last_updated_from_feedback_at?: string | null
+          negative_patterns?: Json | null
+          positive_patterns?: Json | null
+          style_summary?: string | null
+          team_id?: string | null
+          total_negative?: number | null
+          total_positive?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brand_style_preferences_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       brands: {
         Row: {
           avatar_url: string | null
@@ -434,6 +487,66 @@ export type Database = {
             columns: ["team_id"]
             isOneToOne: false
             referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      creation_feedback: {
+        Row: {
+          action_id: string
+          brand_id: string | null
+          comment: string | null
+          created_at: string
+          id: string
+          image_url: string | null
+          rating: string
+          tags: string[] | null
+          team_id: string | null
+          thumb_path: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          action_id: string
+          brand_id?: string | null
+          comment?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          rating: string
+          tags?: string[] | null
+          team_id?: string | null
+          thumb_path?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          action_id?: string
+          brand_id?: string | null
+          comment?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          rating?: string
+          tags?: string[] | null
+          team_id?: string | null
+          thumb_path?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "creation_feedback_action_id_fkey"
+            columns: ["action_id"]
+            isOneToOne: false
+            referencedRelation: "actions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "creation_feedback_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
             referencedColumns: ["id"]
           },
         ]

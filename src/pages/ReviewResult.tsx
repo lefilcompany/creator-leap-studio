@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { PageBreadcrumb } from '@/components/PageBreadcrumb';
+import { CreationFeedback } from '@/components/CreationFeedback';
 import reviewBanner from '@/assets/review-banner.jpg';
 
 const ReviewResult = () => {
@@ -13,7 +14,7 @@ const ReviewResult = () => {
   const navigate = useNavigate();
   const [isCopied, setIsCopied] = useState(false);
 
-  const { reviewType, review, originalContent, brandName, themeName, actionId } = location.state || {};
+  const { reviewType, review, originalContent, brandName, themeName, actionId, brandId } = location.state || {};
 
   if (!review || !reviewType) {
     navigate('/review');
@@ -170,6 +171,16 @@ const ReviewResult = () => {
                   {review}
                 </ReactMarkdown>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Feedback */}
+          <Card className="border-0 shadow-lg rounded-2xl">
+            <CardContent className="p-4">
+              <CreationFeedback
+                actionId={actionId}
+                brandId={brandId}
+              />
             </CardContent>
           </Card>
 

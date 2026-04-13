@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from "react";
+import { CreationFeedback } from "@/components/CreationFeedback";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -384,6 +385,15 @@ export default function QuickContentResult() {
                     </Button>
                   </div>
                 )}
+
+                {/* Feedback */}
+                <div className="p-3 bg-muted/10 border-t border-border/20">
+                  <CreationFeedback
+                    actionId={actionId}
+                    brandId={originalFormData.brandId}
+                    imageUrl={currentImageUrl}
+                  />
+                </div>
               </Card>
             </div>
 

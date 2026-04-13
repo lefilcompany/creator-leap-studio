@@ -131,7 +131,7 @@ const isPortraitRequest = (promptText: string): boolean => {
 // =====================================
 // BRIEFING DOCUMENT BUILDER (for text LLM only)
 // =====================================
-function buildBriefingDocument(formData: any, brandData: any, themeData: any, personaData: any): string {
+function buildBriefingDocument(formData: any, brandData: any, themeData: any, personaData: any, stylePrefs?: any): string {
   const sections: string[] = [];
   const description = cleanInput(formData.description);
   const platform = cleanInput(formData.platform);
@@ -260,6 +260,15 @@ function buildBriefingDocument(formData: any, brandData: any, themeData: any, pe
   if (styleReferenceImages.length > 0) sections.push(`IMAGENS DE REFERÊNCIA DE ESTILO: ${styleReferenceImages.length} imagem(ns) de referência de estilo foram fornecidas.`);
   if (additionalInfo) sections.push(`INFORMAÇÕES ADICIONAIS: ${additionalInfo}`);
   if (negativePrompt) sections.push(`ELEMENTOS A EVITAR: ${negativePrompt}`);
+
+  // Inject learned style preferences from user feedback
+  if (stylePrefs && (stylePrefs.total_positive > 0 || stylePrefs.total_negative > 0)) {
+    const prefParts: string[] = [`APRENDIZADO DE ESTILO (baseado em ${stylePrefs.total_positive + stylePrefs.total_negative} avaliações do usuário)`];
+    if (stylePrefs.style_summary) prefParts.push(`Resumo: ${stylePrefs.style_summary}`);
+    if (stylePrefs.total_positive > 0) prefParts.push(`${stylePrefs.total_positive} criações foram APROVADAS pelo usuário — siga esse estilo visual`);
+    if (stylePrefs.total_negative > 0) prefParts.push(`${stylePrefs.total_negative} criações foram REJEITADAS pelo usuário — EVITE esse tipo de resultado visual`);
+    sections.push(prefParts.join('. '));
+  }
 
   sections.push(`COMPLIANCE (incorporar silenciosamente na descrição visual):
 - Respeitar diretrizes éticas brasileiras (CONAR/CDC)
@@ -686,22 +695,24 @@ serve(async (req) => {
     // =====================================
     // STEP 1: Fetch COMPLETE data from DB in parallel
     // =====================================
-    const [brandResult, themeResult, personaResult] = await Promise.all([
+    const [brandResult, themeResult, personaResult, stylePrefsResult] = await Promise.all([
       formData.brandId ? supabase.from('brands').select('name, segment, values, keywords, goals, promise, restrictions, logo, moodboard, reference_image, brand_color, color_palette').eq('id', formData.brandId).single() : Promise.resolve({ data: null }),
       formData.themeId ? supabase.from('strategic_themes').select('title, description, tone_of_voice, target_audience, objectives, macro_themes, expected_action, best_formats, hashtags, color_palette, platforms').eq('id', formData.themeId).single() : Promise.resolve({ data: null }),
       formData.personaId ? supabase.from('personas').select('name, age, gender, location, professional_context, main_goal, challenges, beliefs_and_interests, interest_triggers, purchase_journey_stage, preferred_tone_of_voice').eq('id', formData.personaId).single() : Promise.resolve({ data: null }),
+      formData.brandId ? supabase.from('brand_style_preferences').select('positive_patterns, negative_patterns, style_summary, total_positive, total_negative').eq('brand_id', formData.brandId).maybeSingle() : Promise.resolve({ data: null }),
     ]);
 
     const brandData = brandResult.data;
     const themeData = themeResult.data;
     const personaData = personaResult.data;
+    const stylePrefs = stylePrefsResult.data;
 
-    console.log('[Step 1] Data fetched:', { brand: !!brandData, theme: !!themeData, persona: !!personaData });
+    console.log('[Step 1] Data fetched:', { brand: !!brandData, theme: !!themeData, persona: !!personaData, stylePrefs: !!stylePrefs });
 
     // =====================================
     // STEP 2: Build Briefing Document & Expand with LLM Refiner
     // =====================================
-    const briefingDocument = buildBriefingDocument(formData, brandData, themeData, personaData);
+    const briefingDocument = buildBriefingDocument(formData, brandData, themeData, personaData, stylePrefs);
     console.log('[Step 2] Briefing document:', briefingDocument.length, 'chars');
 
     const includeText = formData.includeText ?? false;
