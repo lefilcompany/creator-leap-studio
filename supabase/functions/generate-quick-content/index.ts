@@ -200,6 +200,15 @@ serve(async (req) => {
     if (platform) briefingSections.push(`PLATAFORMA: ${platform}`);
     briefingSections.push(`ESTILO VISUAL: ${visualStyle}`);
 
+    // Inject learned style preferences from user feedback
+    if (stylePrefs && (stylePrefs.total_positive > 0 || stylePrefs.total_negative > 0)) {
+      const prefParts: string[] = [`APRENDIZADO DE ESTILO (baseado em ${stylePrefs.total_positive + stylePrefs.total_negative} avaliações do usuário)`];
+      if (stylePrefs.style_summary) prefParts.push(`Resumo: ${stylePrefs.style_summary}`);
+      if (stylePrefs.total_positive > 0) prefParts.push(`${stylePrefs.total_positive} criações aprovadas — siga esse estilo visual`);
+      if (stylePrefs.total_negative > 0) prefParts.push(`${stylePrefs.total_negative} criações rejeitadas — EVITE esse tipo de resultado`);
+      briefingSections.push(prefParts.join('. '));
+    }
+
     const advParts: string[] = [];
     if (colorPalette !== 'auto') advParts.push(`Paleta: ${colorPalette}`);
     if (lighting !== 'natural') advParts.push(`Iluminação: ${lighting}`);
