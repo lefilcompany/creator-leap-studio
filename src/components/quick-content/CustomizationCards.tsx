@@ -55,6 +55,7 @@ function TruncatedBadge({ label, onRemove }: { label: string; onRemove: () => vo
 interface Option {
   value: string;
   label: string;
+  color?: string | null;
 }
 
 interface CustomizationCardProps {
@@ -127,7 +128,7 @@ function CustomizationCard({ icon, title, description, options, value, onChange,
 }
 
 interface CustomizationCardsProps {
-  brands: { id: string; name: string }[];
+  brands: { id: string; name: string; brandColor?: string | null }[];
   personas: { id: string; name: string }[];
   themes: { id: string; title: string }[];
   categories?: { id: string; name: string }[];
