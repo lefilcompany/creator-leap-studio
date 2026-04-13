@@ -5,7 +5,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useState, useRef, useEffect, useCallback } from "react";
 
-function TruncatedBadge({ label, onRemove }: { label: string; onRemove: () => void }) {
+function TruncatedBadge({ label, onRemove, color }: { label: string; onRemove: () => void; color?: string | null }) {
   const textRef = useRef<HTMLSpanElement>(null);
   const [isTruncated, setIsTruncated] = useState(false);
 
@@ -25,6 +25,9 @@ function TruncatedBadge({ label, onRemove }: { label: string; onRemove: () => vo
       variant="secondary"
       className="gap-1 px-2 py-0.5 text-[10px] font-medium bg-primary/10 text-primary border border-primary/20 max-w-full hover:bg-primary/10 cursor-default"
     >
+      {color && (
+        <span className="flex-shrink-0 h-2.5 w-2.5 rounded-full border border-primary/20" style={{ backgroundColor: color }} />
+      )}
       <span ref={textRef} className="truncate">{label}</span>
       <button
         type="button"
