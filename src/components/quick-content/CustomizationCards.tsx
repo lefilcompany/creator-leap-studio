@@ -5,7 +5,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useState, useRef, useEffect, useCallback } from "react";
 
-function TruncatedBadge({ label, onRemove }: { label: string; onRemove: () => void }) {
+function TruncatedBadge({ label, onRemove, color }: { label: string; onRemove: () => void; color?: string | null }) {
   const textRef = useRef<HTMLSpanElement>(null);
   const [isTruncated, setIsTruncated] = useState(false);
 
@@ -25,6 +25,9 @@ function TruncatedBadge({ label, onRemove }: { label: string; onRemove: () => vo
       variant="secondary"
       className="gap-1 px-2 py-0.5 text-[10px] font-medium bg-primary/10 text-primary border border-primary/20 max-w-full hover:bg-primary/10 cursor-default"
     >
+      {color && (
+        <span className="flex-shrink-0 h-2.5 w-2.5 rounded-full border border-primary/20" style={{ backgroundColor: color }} />
+      )}
       <span ref={textRef} className="truncate">{label}</span>
       <button
         type="button"
@@ -55,6 +58,7 @@ function TruncatedBadge({ label, onRemove }: { label: string; onRemove: () => vo
 interface Option {
   value: string;
   label: string;
+  color?: string | null;
 }
 
 interface CustomizationCardProps {
@@ -97,7 +101,7 @@ function CustomizationCard({ icon, title, description, options, value, onChange,
           {/* Footer — selected tag */}
           <div className="mt-2 min-h-[22px]">
             {selected ? (
-              <TruncatedBadge label={selected.label} onRemove={() => onChange("")} />
+              <TruncatedBadge label={selected.label} onRemove={() => onChange("")} color={selected.color} />
             ) : (
               <span className="text-[10px] text-muted-foreground/50">Nenhum selecionado</span>
             )}
@@ -113,10 +117,13 @@ function CustomizationCard({ icon, title, description, options, value, onChange,
               key={opt.value}
               type="button"
               onClick={() => { onChange(opt.value); setOpen(false); }}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${
+              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all flex items-center gap-2 ${
                 value === opt.value ? "bg-primary/10 text-primary font-medium" : "text-foreground hover:bg-muted/60"
               }`}
             >
+              {opt.color && (
+                <span className="flex-shrink-0 h-3 w-3 rounded-full border border-border/50" style={{ backgroundColor: opt.color }} />
+              )}
               {opt.label}
             </button>
           ))
@@ -127,7 +134,7 @@ function CustomizationCard({ icon, title, description, options, value, onChange,
 }
 
 interface CustomizationCardsProps {
-  brands: { id: string; name: string }[];
+  brands: { id: string; name: string; brandColor?: string | null }[];
   personas: { id: string; name: string }[];
   themes: { id: string; title: string }[];
   categories?: { id: string; name: string }[];
@@ -151,7 +158,7 @@ export function CustomizationCards({
           icon={<Building2 className="h-4 w-4" />}
           title="Marca"
           description="Vincular a uma marca"
-          options={brands.map(b => ({ value: b.id, label: b.name }))}
+          options={brands.map(b => ({ value: b.id, label: b.name, color: b.brandColor }))}
           value={formData.brandId}
           onChange={v => onFormChange({ brandId: v, ...(v ? {} : { personaId: "", themeId: "" }) })}
           loading={loadingBrands}

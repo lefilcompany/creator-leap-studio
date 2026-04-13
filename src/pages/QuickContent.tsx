@@ -389,7 +389,7 @@ export default function QuickContent() {
 
                 {/* Customizations */}
                 <CustomizationCards
-                  brands={brands}
+                  brands={brands.map((b: any) => ({ id: b.id, name: b.name, brandColor: b.brand_color || b.brandColor }))}
                   personas={filteredPersonas}
                   themes={filteredThemes}
                   formData={formData}

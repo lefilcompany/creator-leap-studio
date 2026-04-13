@@ -55,7 +55,7 @@ const ReviewContent = () => {
     queryKey: ['brands', user?.teamId],
     queryFn: async () => {
       if (!user) return [];
-      const query = supabase.from("brands").select("id, name");
+      const query = supabase.from("brands").select("id, name, brand_color");
       if (user.teamId) {
         query.eq("team_id", user.teamId);
       } else {
@@ -668,7 +668,7 @@ const ReviewContent = () => {
 
               {/* Personalizações */}
               <CustomizationCards
-                brands={brands.map(b => ({ id: b.id, name: b.name }))}
+                brands={brands.map(b => ({ id: b.id, name: b.name, brandColor: b.brand_color }))}
                 personas={filteredPersonas.map(p => ({ id: p.id, name: p.name }))}
                 themes={filteredThemes.map(t => ({ id: t.id, title: t.title }))}
                 categories={categories.map(c => ({ id: c.id, name: c.name }))}
