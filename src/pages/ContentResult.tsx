@@ -394,7 +394,7 @@ export default function ContentResult() {
     if (!reviewPrompt.trim() || !contentData || !reviewType) return;
 
     if (!user?.credits || user.credits < CREDIT_COSTS.IMAGE_REVIEW) {
-      toast.error(`Você não tem créditos disponíveis. Cada revisão custa ${CREDIT_COSTS.IMAGE_REVIEW} créditos.`);
+      toast.error(`Você não tem créditos disponíveis. Cada ajuste custa ${CREDIT_COSTS.IMAGE_REVIEW} créditos.`);
       return;
     }
     setIsReviewing(true);
@@ -406,7 +406,7 @@ export default function ContentResult() {
       const updatedContent = { ...contentData };
 
       if (reviewType === "caption") {
-        toast.info("Revisando legenda com base no seu feedback...");
+        toast.info("Ajustando legenda com base no seu feedback...");
         const { data, error } = await supabase.functions.invoke("revise-caption-openai", {
           body: {
             prompt: reviewPrompt,
@@ -421,11 +421,11 @@ export default function ContentResult() {
           }
         });
         if (error) {
-          console.error("Erro ao revisar legenda:", error);
-          throw new Error(error.message || "Falha ao revisar legenda");
+          console.error("Erro ao ajustar legenda:", error);
+          throw new Error(error.message || "Falha ao ajustar legenda");
         }
         if (!data.title || !data.body || !data.hashtags) {
-          throw new Error("Resposta inválida da revisão de legenda");
+          throw new Error("Resposta inválida do ajuste de legenda");
         }
 
         const formattedCaption = `${data.title}\n\n${data.body}\n\n${data.hashtags.map((tag: string) => `#${tag}`).join(" ")}`;
@@ -635,12 +635,12 @@ export default function ContentResult() {
           console.error("Erro ao atualizar histórico:", updateError);
         }
       }
-      toast.success("Revisão concluída! 1 crédito foi consumido.");
+      toast.success("Ajuste concluído! 1 crédito foi consumido.");
       setShowReviewDialog(false);
       setReviewPrompt("");
     } catch (error) {
-      console.error("Erro ao processar revisão:", error);
-      toast.error("Erro ao processar revisão. Tente novamente.");
+      console.error("Erro ao processar ajuste:", error);
+      toast.error("Erro ao processar ajuste. Tente novamente.");
     } finally {
       setIsReviewing(false);
     }
@@ -824,7 +824,7 @@ export default function ContentResult() {
                     </Button>
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                       <History className="h-3.5 w-3.5" />
-                      <span className="font-medium">{currentVersionIndex === 0 ? "Original" : `Revisão ${currentVersionIndex}`}</span>
+                      <span className="font-medium">{currentVersionIndex === 0 ? "Original" : `Ajuste ${currentVersionIndex}`}</span>
                       <span>({currentVersionIndex + 1}/{versionHistory.length})</span>
                     </div>
                     <Button onClick={() => handleNavigateVersion("next")} variant="outline" size="sm" disabled={currentVersionIndex === versionHistory.length - 1} className="rounded-lg gap-1.5 text-xs">
@@ -1086,7 +1086,7 @@ export default function ContentResult() {
             <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
               <RefreshCw className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
               <span className="truncate">
-                {reviewType ? `Revisar ${reviewType === "image" ? contentData?.type === "video" ? "Vídeo" : "Imagem" : "Legenda"}` : "Escolha o tipo de revisão"}
+                {reviewType ? `Ajustar ${reviewType === "image" ? contentData?.type === "video" ? "Vídeo" : "Imagem" : "Legenda"}` : "Escolha o tipo de ajuste"}
               </span>
             </DialogTitle>
             <DialogDescription>
@@ -1095,10 +1095,10 @@ export default function ContentResult() {
                   Descreva as alterações que deseja fazer.
                   <span className="text-orange-600 font-medium flex items-center gap-1 mt-1">
                     <Coins className="h-3.5 w-3.5" />
-                    Esta revisão consumirá {CREDIT_COSTS.IMAGE_REVIEW} créditos. Você tem {user?.credits || 0} crédito(s).
+                    Este ajuste consumirá {CREDIT_COSTS.IMAGE_REVIEW} créditos. Você tem {user?.credits || 0} crédito(s).
                   </span>
                 </>
-              ) : "Selecione o que você deseja revisar neste conteúdo."}
+              ) : "Selecione o que você deseja ajustar neste conteúdo."}
             </DialogDescription>
           </DialogHeader>
 
@@ -1111,7 +1111,7 @@ export default function ContentResult() {
                     {contentData?.type === "video" ? <Video className="h-5 w-5 text-primary group-hover:scale-110 transition-transform" /> : <ImageIcon className="h-5 w-5 text-primary group-hover:scale-110 transition-transform" />}
                     <div>
                       <div className="font-semibold group-hover:text-primary transition-colors">
-                        Revisar {contentData?.type === "video" ? "Vídeo" : "Imagem"}
+                        Ajustar {contentData?.type === "video" ? "Vídeo" : "Imagem"}
                       </div>
                       <div className="text-sm text-muted-foreground">Alterar elementos visuais do conteúdo</div>
                     </div>
@@ -1123,7 +1123,7 @@ export default function ContentResult() {
                   <Label htmlFor="caption" className="flex-1 cursor-pointer flex items-center gap-3">
                     <FileText className="h-5 w-5 text-secondary group-hover:scale-110 transition-transform" />
                     <div>
-                      <div className="font-semibold group-hover:text-secondary transition-colors">Revisar Legenda</div>
+                      <div className="font-semibold group-hover:text-secondary transition-colors">Ajustar Legenda</div>
                       <div className="text-sm text-muted-foreground">Melhorar o texto e a mensagem</div>
                     </div>
                   </Label>
@@ -1134,7 +1134,7 @@ export default function ContentResult() {
                 <Alert className="border-orange-500/50 bg-orange-500/10">
                   <RefreshCw className="h-4 w-4 text-orange-600" />
                   <AlertDescription className="text-sm">
-                    <span className="font-semibold text-orange-600">Atenção:</span> Esta revisão consumirá 1 crédito do seu plano.
+                    <span className="font-semibold text-orange-600">Atenção:</span> Este ajuste consumirá 1 crédito do seu plano.
                     {user?.credits !== undefined && (
                       <span className="block mt-1 text-muted-foreground">
                         {user.credits > 0 ? (
@@ -1166,7 +1166,7 @@ export default function ContentResult() {
                   </Button>
                   <Button onClick={handleSubmitReview} className="flex-1 gap-2" disabled={!reviewPrompt.trim() || isReviewing || !user?.credits || user.credits <= 0}>
                     {isReviewing ? (
-                      <><RefreshCw className="h-4 w-4 animate-spin" />Revisando...</>
+                      <><RefreshCw className="h-4 w-4 animate-spin" />Ajustando...</>
                     ) : (
                       <><Check className="h-4 w-4" />Confirmar e Usar 1 Crédito</>
                     )}

@@ -175,7 +175,7 @@ export default function QuickContentResult() {
 
   const handleRevert = () => {
     if (imageHistory.length <= 1) {
-      toast.error("Não há revisões para reverter");
+      toast.error("Não há ajustes para reverter");
       return;
     }
     const newHistory = [...imageHistory];
@@ -195,7 +195,7 @@ export default function QuickContentResult() {
         if (error) console.error("Error updating action:", error);
       });
     }
-    toast.success("Revisão revertida com sucesso!");
+    toast.success("Ajuste revertido com sucesso!");
   };
 
   const handleSubmitReview = async () => {
@@ -204,7 +204,7 @@ export default function QuickContentResult() {
       return;
     }
     if (!user?.credits || user.credits < CREDIT_COSTS.IMAGE_REVIEW) {
-      toast.error(`Créditos insuficientes. Cada revisão custa ${CREDIT_COSTS.IMAGE_REVIEW} créditos.`);
+      toast.error(`Créditos insuficientes. Cada ajuste custa ${CREDIT_COSTS.IMAGE_REVIEW} créditos.`);
       return;
     }
     setIsReviewing(true);
@@ -247,12 +247,12 @@ export default function QuickContentResult() {
         }).eq("id", actionId);
       }
 
-      toast.success("Revisão concluída! 1 crédito foi consumido.");
+      toast.success("Ajuste concluído! 1 crédito foi consumido.");
       setShowReviewDialog(false);
       setReviewPrompt("");
     } catch (error) {
-      console.error("Erro ao revisar imagem:", error);
-      toast.error(error instanceof Error ? error.message : "Erro ao revisar imagem");
+      console.error("Erro ao ajustar imagem:", error);
+      toast.error(error instanceof Error ? error.message : "Erro ao ajustar imagem");
     } finally {
       setIsReviewing(false);
     }
@@ -376,7 +376,7 @@ export default function QuickContentResult() {
                   <div className="p-3 bg-muted/20 border-t border-border/20 flex items-center justify-between">
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <History className="h-3 w-3" />
-                      <span>{totalRevisions} revisão{totalRevisions !== 1 ? "ões" : ""}</span>
+                      <span>{totalRevisions} ajuste{totalRevisions !== 1 ? "s" : ""}</span>
                     </div>
                     <Button variant="outline" size="sm" onClick={handleRevert} disabled={imageHistory.length <= 1} className="gap-1.5 text-xs rounded-lg">
                       <Undo2 className="h-3.5 w-3.5" />
@@ -598,7 +598,7 @@ export default function QuickContentResult() {
         <DialogContent className="max-w-2xl w-[calc(100vw-2rem)] sm:w-full">
           <DialogHeader>
             <DialogTitle className="text-lg sm:text-xl font-bold flex items-center gap-2">
-              <RefreshCw className="h-5 w-5 text-primary" />Revisar Imagem
+              <RefreshCw className="h-5 w-5 text-primary" />Ajustar Imagem
             </DialogTitle>
             <DialogDescription className="text-xs sm:text-sm">
               Descreva o que você gostaria de alterar na imagem. A IA preservará a imagem original, modificando apenas o que você solicitar.
@@ -607,7 +607,7 @@ export default function QuickContentResult() {
           <div className="space-y-3 sm:space-y-4 py-3 sm:py-4">
             <Alert>
               <AlertDescription className="text-xs sm:text-sm">
-                Esta revisão consumirá <strong>{CREDIT_COSTS.IMAGE_REVIEW} créditos</strong>.
+                Este ajuste consumirá <strong>{CREDIT_COSTS.IMAGE_REVIEW} créditos</strong>.
                 {user?.credits && user.credits > 0 && (
                   <> Você tem <strong>{user.credits}</strong> {user.credits !== 1 ? "créditos disponíveis" : "crédito disponível"}.</>
                 )}
@@ -634,9 +634,9 @@ export default function QuickContentResult() {
                 className="w-full sm:w-auto bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-xs sm:text-sm gap-1"
               >
                 {isReviewing ? (
-                  <><RefreshCw className="mr-1.5 h-3.5 w-3.5 animate-spin" />Revisando...</>
-                ) : (
-                  <><RefreshCw className="mr-1.5 h-3.5 w-3.5" />Revisar<Badge variant="secondary" className="ml-1 bg-primary-foreground/20 text-primary-foreground border-primary-foreground/30 gap-1"><Coins className="h-3 w-3" />{CREDIT_COSTS.IMAGE_REVIEW}</Badge></>
+                   <><RefreshCw className="mr-1.5 h-3.5 w-3.5 animate-spin" />Ajustando...</>
+                 ) : (
+                   <><RefreshCw className="mr-1.5 h-3.5 w-3.5" />Ajustar<Badge variant="secondary" className="ml-1 bg-primary-foreground/20 text-primary-foreground border-primary-foreground/30 gap-1"><Coins className="h-3 w-3" />{CREDIT_COSTS.IMAGE_REVIEW}</Badge></>
                 )}
               </Button>
             </div>
