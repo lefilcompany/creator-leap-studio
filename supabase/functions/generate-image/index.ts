@@ -686,17 +686,19 @@ serve(async (req) => {
     // =====================================
     // STEP 1: Fetch COMPLETE data from DB in parallel
     // =====================================
-    const [brandResult, themeResult, personaResult] = await Promise.all([
+    const [brandResult, themeResult, personaResult, stylePrefsResult] = await Promise.all([
       formData.brandId ? supabase.from('brands').select('name, segment, values, keywords, goals, promise, restrictions, logo, moodboard, reference_image, brand_color, color_palette').eq('id', formData.brandId).single() : Promise.resolve({ data: null }),
       formData.themeId ? supabase.from('strategic_themes').select('title, description, tone_of_voice, target_audience, objectives, macro_themes, expected_action, best_formats, hashtags, color_palette, platforms').eq('id', formData.themeId).single() : Promise.resolve({ data: null }),
       formData.personaId ? supabase.from('personas').select('name, age, gender, location, professional_context, main_goal, challenges, beliefs_and_interests, interest_triggers, purchase_journey_stage, preferred_tone_of_voice').eq('id', formData.personaId).single() : Promise.resolve({ data: null }),
+      formData.brandId ? supabase.from('brand_style_preferences').select('positive_patterns, negative_patterns, style_summary, total_positive, total_negative').eq('brand_id', formData.brandId).maybeSingle() : Promise.resolve({ data: null }),
     ]);
 
     const brandData = brandResult.data;
     const themeData = themeResult.data;
     const personaData = personaResult.data;
+    const stylePrefs = stylePrefsResult.data;
 
-    console.log('[Step 1] Data fetched:', { brand: !!brandData, theme: !!themeData, persona: !!personaData });
+    console.log('[Step 1] Data fetched:', { brand: !!brandData, theme: !!themeData, persona: !!personaData, stylePrefs: !!stylePrefs });
 
     // =====================================
     // STEP 2: Build Briefing Document & Expand with LLM Refiner
