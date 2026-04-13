@@ -107,12 +107,18 @@ const ReviewContent = () => {
 
   const isLoadingData = isLoadingBrands || isLoadingThemes || isLoadingPersonas;
 
-  // Filtered themes derived from brand selection
+  // Filtered themes and personas derived from brand selection
   const filteredThemes = useMemo(() => {
     if (!brand) return [];
     const selectedBrand = brands.find((b) => b.id === brand);
     return selectedBrand ? themes.filter((t) => t.brandId === selectedBrand.id) : [];
   }, [brand, brands, themes]);
+
+  const filteredPersonas = useMemo(() => {
+    if (!brand) return [];
+    const selectedBrand = brands.find((b) => b.id === brand);
+    return selectedBrand ? personas.filter((p) => p.brandId === selectedBrand.id) : [];
+  }, [brand, brands, personas]);
 
   // Persistência de formulário
   const { loadPersistedData, clearPersistedData } = useFormPersistence({
@@ -145,6 +151,7 @@ const ReviewContent = () => {
   const handleBrandChange = (value: string) => {
     setBrand(value);
     setTheme("");
+    setPersona("");
   };
 
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
