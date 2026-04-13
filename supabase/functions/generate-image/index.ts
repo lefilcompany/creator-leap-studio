@@ -712,7 +712,7 @@ serve(async (req) => {
     // =====================================
     // STEP 2: Build Briefing Document & Expand with LLM Refiner
     // =====================================
-    const briefingDocument = buildBriefingDocument(formData, brandData, themeData, personaData);
+    const briefingDocument = buildBriefingDocument(formData, brandData, themeData, personaData, stylePrefs);
     console.log('[Step 2] Briefing document:', briefingDocument.length, 'chars');
 
     const includeText = formData.includeText ?? false;
