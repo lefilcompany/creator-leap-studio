@@ -1,6 +1,6 @@
 import { useState, ChangeEvent, useEffect, useMemo } from "react";
 import { CustomizationCards } from "@/components/quick-content/CustomizationCards";
-import { CategorySelector } from "@/components/CategorySelector";
+import { useCategories } from "@/hooks/useCategories";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -36,6 +36,7 @@ const ReviewContent = () => {
   const { user, refreshUserCredits } = useAuth();
   const { addTask } = useBackgroundTasks();
   const { shouldShowTour } = useOnboarding();
+  const { categories, isLoading: isLoadingCategories } = useCategories();
   const [reviewType, setReviewType] = useState<ReviewType | null>(null);
   const [brand, setBrand] = useState("");
   const [theme, setTheme] = useState("");
@@ -670,22 +671,18 @@ const ReviewContent = () => {
                 brands={brands.map(b => ({ id: b.id, name: b.name }))}
                 personas={filteredPersonas.map(p => ({ id: p.id, name: p.name }))}
                 themes={filteredThemes.map(t => ({ id: t.id, title: t.title }))}
-                formData={{ brandId: brand, personaId: persona, themeId: theme }}
+                categories={categories.map(c => ({ id: c.id, name: c.name }))}
+                formData={{ brandId: brand, personaId: persona, themeId: theme, categoryId }}
                 onFormChange={(updates) => {
-                  if ('brandId' in updates) {
-                    handleBrandChange(updates.brandId || "");
-                  }
+                  if ('brandId' in updates) handleBrandChange(updates.brandId || "");
                   if ('personaId' in updates) setPersona(updates.personaId || "");
                   if ('themeId' in updates) setTheme(updates.themeId || "");
+                  if ('categoryId' in updates) setCategoryId(updates.categoryId || "");
                 }}
                 loadingBrands={isLoadingBrands}
                 loadingPersonas={isLoadingPersonas}
                 loadingThemes={isLoadingThemes}
-              />
-
-              <CategorySelector
-                value={categoryId}
-                onChange={setCategoryId}
+                loadingCategories={isLoadingCategories}
               />
 
               {/* Actions */}
