@@ -131,7 +131,7 @@ const isPortraitRequest = (promptText: string): boolean => {
 // =====================================
 // BRIEFING DOCUMENT BUILDER (for text LLM only)
 // =====================================
-function buildBriefingDocument(formData: any, brandData: any, themeData: any, personaData: any): string {
+function buildBriefingDocument(formData: any, brandData: any, themeData: any, personaData: any, stylePrefs?: any): string {
   const sections: string[] = [];
   const description = cleanInput(formData.description);
   const platform = cleanInput(formData.platform);
