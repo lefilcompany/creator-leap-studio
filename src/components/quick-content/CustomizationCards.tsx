@@ -98,7 +98,7 @@ function CustomizationCard({ icon, title, description, options, value, onChange,
           {/* Footer — selected tag */}
           <div className="mt-2 min-h-[22px]">
             {selected ? (
-              <TruncatedBadge label={selected.label} onRemove={() => onChange("")} />
+              <TruncatedBadge label={selected.label} onRemove={() => onChange("")} color={selected.color} />
             ) : (
               <span className="text-[10px] text-muted-foreground/50">Nenhum selecionado</span>
             )}
@@ -114,10 +114,13 @@ function CustomizationCard({ icon, title, description, options, value, onChange,
               key={opt.value}
               type="button"
               onClick={() => { onChange(opt.value); setOpen(false); }}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${
+              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all flex items-center gap-2 ${
                 value === opt.value ? "bg-primary/10 text-primary font-medium" : "text-foreground hover:bg-muted/60"
               }`}
             >
+              {opt.color && (
+                <span className="flex-shrink-0 h-3 w-3 rounded-full border border-border/50" style={{ backgroundColor: opt.color }} />
+              )}
               {opt.label}
             </button>
           ))
