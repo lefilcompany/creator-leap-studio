@@ -261,6 +261,15 @@ function buildBriefingDocument(formData: any, brandData: any, themeData: any, pe
   if (additionalInfo) sections.push(`INFORMAÇÕES ADICIONAIS: ${additionalInfo}`);
   if (negativePrompt) sections.push(`ELEMENTOS A EVITAR: ${negativePrompt}`);
 
+  // Inject learned style preferences from user feedback
+  if (stylePrefs && (stylePrefs.total_positive > 0 || stylePrefs.total_negative > 0)) {
+    const prefParts: string[] = [`APRENDIZADO DE ESTILO (baseado em ${stylePrefs.total_positive + stylePrefs.total_negative} avaliações do usuário)`];
+    if (stylePrefs.style_summary) prefParts.push(`Resumo: ${stylePrefs.style_summary}`);
+    if (stylePrefs.total_positive > 0) prefParts.push(`${stylePrefs.total_positive} criações foram APROVADAS pelo usuário — siga esse estilo visual`);
+    if (stylePrefs.total_negative > 0) prefParts.push(`${stylePrefs.total_negative} criações foram REJEITADAS pelo usuário — EVITE esse tipo de resultado visual`);
+    sections.push(prefParts.join('. '));
+  }
+
   sections.push(`COMPLIANCE (incorporar silenciosamente na descrição visual):
 - Respeitar diretrizes éticas brasileiras (CONAR/CDC)
 - Sem discriminação, sem consumo de álcool visível
