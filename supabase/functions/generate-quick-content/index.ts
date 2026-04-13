@@ -149,15 +149,17 @@ serve(async (req) => {
     // =====================================
     // STEP 1: Fetch COMPLETE data from DB in parallel
     // =====================================
-    const [brandResult, themeResult, personaResult] = await Promise.all([
+     const [brandResult, themeResult, personaResult, stylePrefsResult] = await Promise.all([
       brandId ? supabase.from('brands').select('name, segment, values, keywords, goals, promise, restrictions, brand_color, color_palette').eq('id', brandId).single() : Promise.resolve({ data: null }),
       themeId ? supabase.from('strategic_themes').select('title, description, tone_of_voice, target_audience, objectives, macro_themes, expected_action, best_formats, hashtags').eq('id', themeId).single() : Promise.resolve({ data: null }),
       personaId ? supabase.from('personas').select('name, age, gender, location, professional_context, main_goal, challenges, beliefs_and_interests, interest_triggers, purchase_journey_stage, preferred_tone_of_voice').eq('id', personaId).single() : Promise.resolve({ data: null }),
+      brandId ? supabase.from('brand_style_preferences').select('positive_patterns, negative_patterns, style_summary, total_positive, total_negative').eq('brand_id', brandId).maybeSingle() : Promise.resolve({ data: null }),
     ]);
 
     const brandData = brandResult.data;
     const themeData = themeResult.data;
     const personaData = personaResult.data;
+    const stylePrefs = stylePrefsResult.data;
     const brandName = brandData?.name || null;
     const themeName = themeData?.title || null;
     const personaName = personaData?.name || null;
