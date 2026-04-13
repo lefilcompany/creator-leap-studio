@@ -495,12 +495,14 @@ const ReviewContent = () => {
 
           {reviewType && (
             <>
-              {/* Basic Config */}
+              {/* Content Review - comes first */}
               <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
                 <CardHeader className="pb-4">
                   <h2 className="text-xl font-semibold flex items-center gap-3">
-                    <div className="w-2 h-2 bg-primary rounded-full"></div>
-                    Configuração Básica
+                    <div className="w-2 h-2 bg-secondary rounded-full"></div>
+                    {reviewType === "image" && "Análise da Imagem"}
+                    {reviewType === "caption" && "Revisão da Legenda"}
+                    {reviewType === "text-for-image" && "Revisão de Texto para Imagem"}
                   </h2>
                   <p className="text-muted-foreground text-sm">Defina marca e tema para contextualizar a IA</p>
                 </CardHeader>
