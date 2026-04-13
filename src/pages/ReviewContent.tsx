@@ -321,6 +321,7 @@ const ReviewContent = () => {
     setReviewType(null);
     setBrand("");
     setTheme("");
+    setPersona("");
     setAdjustmentsPrompt("");
     setImageFile(null);
     setPreviewUrl(null);
