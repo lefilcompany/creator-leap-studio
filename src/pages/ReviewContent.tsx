@@ -303,6 +303,7 @@ const ReviewContent = () => {
               brandName: selectedBrand?.name,
               themeName: selectedTheme?.title,
               actionId: data.actionId,
+              brandId: brand,
             }
           };
         },
