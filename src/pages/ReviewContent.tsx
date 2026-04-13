@@ -668,7 +668,7 @@ const ReviewContent = () => {
 
               {/* Personalizações */}
               <CustomizationCards
-                brands={brands.map(b => ({ id: b.id, name: b.name }))}
+                brands={brands.map(b => ({ id: b.id, name: b.name, brandColor: b.brand_color }))}
                 personas={filteredPersonas.map(p => ({ id: p.id, name: p.name }))}
                 themes={filteredThemes.map(t => ({ id: t.id, title: t.title }))}
                 categories={categories.map(c => ({ id: c.id, name: c.name }))}
