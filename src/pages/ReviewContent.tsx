@@ -38,6 +38,7 @@ const ReviewContent = () => {
   const [reviewType, setReviewType] = useState<ReviewType | null>(null);
   const [brand, setBrand] = useState("");
   const [theme, setTheme] = useState("");
+  const [persona, setPersona] = useState("");
   const [adjustmentsPrompt, setAdjustmentsPrompt] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -85,7 +86,26 @@ const ReviewContent = () => {
     staleTime: 1000 * 60 * 5,
   });
 
-  const isLoadingData = isLoadingBrands || isLoadingThemes;
+  // React Query for personas
+  const { data: personas = [], isLoading: isLoadingPersonas } = useQuery({
+    queryKey: ['personas', user?.teamId],
+    queryFn: async () => {
+      if (!user) return [];
+      const query = supabase.from("personas").select("id, name, brand_id");
+      if (user.teamId) {
+        query.eq("team_id", user.teamId);
+      } else {
+        query.eq("user_id", user.id);
+      }
+      const { data, error } = await query;
+      if (error) throw error;
+      return (data || []).map((p) => ({ id: p.id, name: p.name, brandId: p.brand_id }));
+    },
+    enabled: !!user,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const isLoadingData = isLoadingBrands || isLoadingThemes || isLoadingPersonas;
 
   // Filtered themes derived from brand selection
   const filteredThemes = useMemo(() => {
