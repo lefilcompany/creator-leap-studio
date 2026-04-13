@@ -1,6 +1,6 @@
 import { useState, ChangeEvent, useEffect, useMemo } from "react";
 import { CustomizationCards } from "@/components/quick-content/CustomizationCards";
-import { CategorySelector } from "@/components/CategorySelector";
+import { useCategories } from "@/hooks/useCategories";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
