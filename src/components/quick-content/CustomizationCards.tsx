@@ -1,6 +1,6 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { X, ChevronDown, Building2, UserRound, Palette } from "lucide-react";
+import { X, ChevronDown, Building2, UserRound, Palette, FolderOpen } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useState, useRef, useEffect, useCallback } from "react";
@@ -130,16 +130,18 @@ interface CustomizationCardsProps {
   brands: { id: string; name: string }[];
   personas: { id: string; name: string }[];
   themes: { id: string; title: string }[];
-  formData: { brandId: string; personaId: string; themeId: string };
-  onFormChange: (updates: Partial<{ brandId: string; personaId: string; themeId: string }>) => void;
+  categories?: { id: string; name: string }[];
+  formData: { brandId: string; personaId: string; themeId: string; categoryId?: string };
+  onFormChange: (updates: Partial<{ brandId: string; personaId: string; themeId: string; categoryId: string }>) => void;
   loadingBrands: boolean;
   loadingPersonas: boolean;
   loadingThemes: boolean;
+  loadingCategories?: boolean;
 }
 
 export function CustomizationCards({
-  brands, personas, themes, formData, onFormChange,
-  loadingBrands, loadingPersonas, loadingThemes,
+  brands, personas, themes, categories, formData, onFormChange,
+  loadingBrands, loadingPersonas, loadingThemes, loadingCategories,
 }: CustomizationCardsProps) {
   return (
     <div className="flex flex-col gap-2.5 h-full">
@@ -174,6 +176,17 @@ export function CustomizationCards({
           disabled={!formData.brandId}
           loading={loadingThemes}
         />
+        {categories && categories.length > 0 && (
+          <CustomizationCard
+            icon={<FolderOpen className="h-4 w-4" />}
+            title="Categoria"
+            description="Organizar conteúdo"
+            options={categories.map(c => ({ value: c.id, label: c.name }))}
+            value={formData.categoryId || ""}
+            onChange={v => onFormChange({ categoryId: v })}
+            loading={loadingCategories}
+          />
+        )}
       </div>
     </div>
   );
