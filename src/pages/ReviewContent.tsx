@@ -38,6 +38,7 @@ const ReviewContent = () => {
   const [reviewType, setReviewType] = useState<ReviewType | null>(null);
   const [brand, setBrand] = useState("");
   const [theme, setTheme] = useState("");
+  const [persona, setPersona] = useState("");
   const [adjustmentsPrompt, setAdjustmentsPrompt] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -85,14 +86,39 @@ const ReviewContent = () => {
     staleTime: 1000 * 60 * 5,
   });
 
-  const isLoadingData = isLoadingBrands || isLoadingThemes;
+  // React Query for personas
+  const { data: personas = [], isLoading: isLoadingPersonas } = useQuery({
+    queryKey: ['personas', user?.teamId],
+    queryFn: async () => {
+      if (!user) return [];
+      const query = supabase.from("personas").select("id, name, brand_id");
+      if (user.teamId) {
+        query.eq("team_id", user.teamId);
+      } else {
+        query.eq("user_id", user.id);
+      }
+      const { data, error } = await query;
+      if (error) throw error;
+      return (data || []).map((p) => ({ id: p.id, name: p.name, brandId: p.brand_id }));
+    },
+    enabled: !!user,
+    staleTime: 1000 * 60 * 5,
+  });
 
-  // Filtered themes derived from brand selection
+  const isLoadingData = isLoadingBrands || isLoadingThemes || isLoadingPersonas;
+
+  // Filtered themes and personas derived from brand selection
   const filteredThemes = useMemo(() => {
     if (!brand) return [];
     const selectedBrand = brands.find((b) => b.id === brand);
     return selectedBrand ? themes.filter((t) => t.brandId === selectedBrand.id) : [];
   }, [brand, brands, themes]);
+
+  const filteredPersonas = useMemo(() => {
+    if (!brand) return [];
+    const selectedBrand = brands.find((b) => b.id === brand);
+    return selectedBrand ? personas.filter((p) => p.brandId === selectedBrand.id) : [];
+  }, [brand, brands, personas]);
 
   // Persistência de formulário
   const { loadPersistedData, clearPersistedData } = useFormPersistence({
@@ -125,6 +151,7 @@ const ReviewContent = () => {
   const handleBrandChange = (value: string) => {
     setBrand(value);
     setTheme("");
+    setPersona("");
   };
 
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -294,6 +321,7 @@ const ReviewContent = () => {
     setReviewType(null);
     setBrand("");
     setTheme("");
+    setPersona("");
     setAdjustmentsPrompt("");
     setImageFile(null);
     setPreviewUrl(null);
@@ -636,57 +664,97 @@ const ReviewContent = () => {
                 </CardContent>
               </Card>
 
-              {/* Configurações */}
-              <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
-                <CardHeader className="pb-4">
-                  <h2 className="text-xl font-semibold flex items-center gap-3">
+              {/* Configuração Básica */}
+              <Card className="backdrop-blur-sm bg-card/80 border border-border/20 shadow-lg rounded-2xl">
+                <CardHeader className="pb-3 md:pb-4 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-t-2xl">
+                  <h2 className="text-lg md:text-xl font-semibold flex items-center gap-3 text-foreground">
                     <div className="w-2 h-2 bg-primary rounded-full"></div>
-                    Configurações
+                    Configuração Básica
                   </h2>
-                  <p className="text-muted-foreground text-sm">Defina marca e tema para contextualizar a IA</p>
+                  <p className="text-muted-foreground text-xs md:text-sm">
+                    Defina marca, tema e público
+                  </p>
                 </CardHeader>
-                <CardContent className="p-6 pt-0">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div id="review-brand-field" className="space-y-3">
-                      <Label htmlFor="brand" className="text-sm font-semibold text-foreground">
-                        Marca <span className="text-destructive">*</span>
-                      </Label>
-                      {isLoadingData ? (
-                        <Skeleton className="h-11 w-full rounded-xl" />
-                      ) : (
-                        <NativeSelect
-                          value={brand}
-                          onValueChange={handleBrandChange}
-                          options={brands.map((b) => ({ value: b.id, label: b.name }))}
-                          placeholder="Selecione a marca"
-                          triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50"
-                        />
-                      )}
-                    </div>
-                    <div id="review-theme-field" className="space-y-3">
-                      <Label htmlFor="theme" className="text-sm font-semibold text-foreground">
-                        Tema Estratégico (Opcional)
-                      </Label>
-                      {isLoadingData ? (
-                        <Skeleton className="h-11 w-full rounded-xl" />
-                      ) : (
-                        <NativeSelect
-                          value={theme}
-                          onValueChange={setTheme}
-                          options={filteredThemes.map((t) => ({ value: t.id, label: t.title }))}
-                          placeholder={!brand ? "Primeiro, escolha a marca" : "Selecione o tema"}
-                          disabled={!brand || filteredThemes.length === 0}
-                          triggerClassName="h-11 rounded-xl border-2 border-border/50 bg-background/50 disabled:opacity-50"
-                        />
-                      )}
-                    </div>
-                    <div className="md:col-span-2">
-                      <CategorySelector
-                        value={categoryId}
-                        onChange={setCategoryId}
+                <CardContent className="space-y-4 md:space-y-5 p-4 md:p-6">
+                  <div className="space-y-2 md:space-y-3">
+                    <Label htmlFor="brand" className="text-xs md:text-sm font-semibold text-foreground">
+                      Marca <span className="text-destructive">*</span>
+                    </Label>
+                    {isLoadingData ? (
+                      <Skeleton className="h-10 md:h-11 w-full rounded-xl" />
+                    ) : (
+                      <NativeSelect
+                        value={brand}
+                        onValueChange={handleBrandChange}
+                        options={brands.map((b) => ({ value: b.id, label: b.name }))}
+                        placeholder={brands.length === 0 ? "Nenhuma marca cadastrada" : "Selecione a marca"}
+                        disabled={brands.length === 0}
+                        triggerClassName={`h-10 md:h-11 rounded-xl border-2 border-border/50 bg-background/50 text-sm hover:border-border/70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
                       />
-                    </div>
+                    )}
+                    {!isLoadingData && brands.length === 0 && (
+                      <p className="text-xs text-muted-foreground">
+                        Você precisa cadastrar uma marca antes de ajustar conteúdo.{" "}
+                        <button
+                          onClick={() => navigate("/marcas")}
+                          className="text-primary hover:underline font-medium"
+                        >
+                          Ir para Marcas
+                        </button>
+                      </p>
+                    )}
                   </div>
+
+                  <div className="space-y-2 md:space-y-3">
+                    <Label htmlFor="theme" className="text-xs md:text-sm font-semibold text-foreground">
+                      Tema Estratégico
+                    </Label>
+                    {isLoadingData ? (
+                      <Skeleton className="h-10 md:h-11 w-full rounded-xl" />
+                    ) : (
+                      <NativeSelect
+                        value={theme}
+                        onValueChange={setTheme}
+                        options={filteredThemes.map((t) => ({ value: t.id, label: t.title }))}
+                        placeholder={
+                          !brand
+                            ? "Primeiro, escolha a marca"
+                            : filteredThemes.length === 0
+                            ? "Nenhum tema disponível"
+                            : "Selecione um tema (opcional)"
+                        }
+                        disabled={!brand || filteredThemes.length === 0}
+                        triggerClassName="h-10 md:h-11 rounded-xl border-2 border-border/50 bg-background/50 disabled:opacity-50 text-sm hover:border-border/70 transition-colors"
+                      />
+                    )}
+                  </div>
+
+                  <div className="space-y-2 md:space-y-3">
+                    <Label htmlFor="persona" className="text-xs md:text-sm font-semibold text-foreground">
+                      Persona
+                    </Label>
+                    {isLoadingData ? (
+                      <Skeleton className="h-10 md:h-11 w-full rounded-xl" />
+                    ) : (
+                      <NativeSelect
+                        value={persona}
+                        onValueChange={setPersona}
+                        options={filteredPersonas.map((p) => ({ value: p.id, label: p.name }))}
+                        placeholder={
+                          !brand
+                            ? "Primeiro, escolha a marca"
+                            : "Adicionar persona"
+                        }
+                        disabled={!brand || filteredPersonas.length === 0}
+                        triggerClassName="h-10 md:h-11 rounded-xl border-2 border-border/50 bg-background/50 disabled:opacity-50 text-sm hover:border-border/70 transition-colors"
+                      />
+                    )}
+                  </div>
+
+                  <CategorySelector
+                    value={categoryId}
+                    onChange={setCategoryId}
+                  />
                 </CardContent>
               </Card>
 
