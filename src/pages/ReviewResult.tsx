@@ -8,7 +8,6 @@ import ReactMarkdown from 'react-markdown';
 import { PageBreadcrumb } from '@/components/PageBreadcrumb';
 import { CreationFeedback } from '@/components/CreationFeedback';
 import reviewBanner from '@/assets/review-banner.jpg';
-import reviewBanner from '@/assets/review-banner.jpg';
 
 const ReviewResult = () => {
   const location = useLocation();
