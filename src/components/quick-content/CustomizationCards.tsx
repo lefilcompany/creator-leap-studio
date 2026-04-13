@@ -158,7 +158,7 @@ export function CustomizationCards({
           icon={<Building2 className="h-4 w-4" />}
           title="Marca"
           description="Vincular a uma marca"
-          options={brands.map(b => ({ value: b.id, label: b.name }))}
+          options={brands.map(b => ({ value: b.id, label: b.name, color: b.brandColor }))}
           value={formData.brandId}
           onChange={v => onFormChange({ brandId: v, ...(v ? {} : { personaId: "", themeId: "" }) })}
           loading={loadingBrands}

@@ -55,7 +55,7 @@ const ReviewContent = () => {
     queryKey: ['brands', user?.teamId],
     queryFn: async () => {
       if (!user) return [];
-      const query = supabase.from("brands").select("id, name");
+      const query = supabase.from("brands").select("id, name, brand_color");
       if (user.teamId) {
         query.eq("team_id", user.teamId);
       } else {
