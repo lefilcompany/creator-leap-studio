@@ -651,7 +651,7 @@ export async function fetchApprovedFeedbackImages(
 
       const buffer = new Uint8Array(await imgResp.arrayBuffer());
       if (buffer.length < 100) continue;
-      const b64 = btoa(String.fromCharCode(...buffer));
+      const b64 = uint8ArrayToBase64(buffer);
       const mimeType = imgResp.headers.get('content-type') || 'image/png';
       feedbackBase64Images.push(`data:${mimeType};base64,${b64}`);
     } catch (e) {

@@ -391,7 +391,7 @@ serve(async (req) => {
     let finalImageUrl: string;
     if (uploadError) {
       console.error('Storage upload error:', uploadError);
-      const base64Fallback = btoa(String.fromCharCode(...postProcessResult.processedData));
+      const base64Fallback = uint8ArrayToBase64(postProcessResult.processedData);
       finalImageUrl = `data:image/png;base64,${base64Fallback}`;
       console.warn('[Quick Step 7] Upload failed, returning post-processed base64 fallback');
     } else {
@@ -436,7 +436,7 @@ REGRAS:
 - NÃO use emojis excessivos (máximo 2-3 no total)`;
 
       // Build image part for Gemini
-      const imageBase64 = btoa(String.fromCharCode(...postProcessResult.processedData));
+      const imageBase64 = uint8ArrayToBase64(postProcessResult.processedData);
       const captionResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${CAPTION_MODEL}:generateContent?key=${GEMINI_API_KEY}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
