@@ -149,11 +149,12 @@ serve(async (req) => {
     // =====================================
     // STEP 1: Fetch COMPLETE data from DB in parallel
     // =====================================
-     const [brandResult, themeResult, personaResult, stylePrefsResult] = await Promise.all([
+     const [brandResult, themeResult, personaResult, stylePrefsResult, approvedFeedbackResult] = await Promise.all([
       brandId ? supabase.from('brands').select('name, segment, values, keywords, goals, promise, restrictions, brand_color, color_palette').eq('id', brandId).single() : Promise.resolve({ data: null }),
       themeId ? supabase.from('strategic_themes').select('title, description, tone_of_voice, target_audience, objectives, macro_themes, expected_action, best_formats, hashtags').eq('id', themeId).single() : Promise.resolve({ data: null }),
       personaId ? supabase.from('personas').select('name, age, gender, location, professional_context, main_goal, challenges, beliefs_and_interests, interest_triggers, purchase_journey_stage, preferred_tone_of_voice').eq('id', personaId).single() : Promise.resolve({ data: null }),
       brandId ? supabase.from('brand_style_preferences').select('positive_patterns, negative_patterns, style_summary, total_positive, total_negative').eq('brand_id', brandId).maybeSingle() : Promise.resolve({ data: null }),
+      brandId ? supabase.from('creation_feedback').select('image_url, thumb_path').eq('brand_id', brandId).eq('rating', 'positive').not('image_url', 'is', null).order('created_at', { ascending: false }).limit(3) : Promise.resolve({ data: null }),
     ]);
 
     const brandData = brandResult.data;
@@ -163,6 +164,36 @@ serve(async (req) => {
     const brandName = brandData?.name || null;
     const themeName = themeData?.title || null;
     const personaName = personaData?.name || null;
+    const approvedFeedbackImages = approvedFeedbackResult?.data || [];
+
+    // Fetch approved feedback images as base64 for visual reference
+    const feedbackBase64Images: string[] = [];
+    if (approvedFeedbackImages.length > 0) {
+      const supabaseStorageUrl = `${supabaseUrl}/storage/v1/object/public/content-images/`;
+      for (const fb of approvedFeedbackImages) {
+        try {
+          let imgUrl = fb.image_url || '';
+          if (imgUrl && !imgUrl.startsWith('data:') && !imgUrl.startsWith('http')) {
+            imgUrl = `${supabaseStorageUrl}${imgUrl.replace(/^\/+/, '')}`;
+          }
+          if (!imgUrl || imgUrl.startsWith('data:')) continue;
+
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 5000);
+          const imgResp = await fetch(imgUrl, { signal: controller.signal }).finally(() => clearTimeout(timeoutId));
+          if (!imgResp.ok) continue;
+
+          const buffer = new Uint8Array(await imgResp.arrayBuffer());
+          if (buffer.length < 100) continue;
+          const b64 = btoa(String.fromCharCode(...buffer));
+          const mimeType = imgResp.headers.get('content-type') || 'image/png';
+          feedbackBase64Images.push(`data:${mimeType};base64,${b64}`);
+        } catch (e) {
+          console.warn('[Quick] Failed to fetch approved feedback image, skipping:', e);
+        }
+      }
+      console.log(`[Quick] Fetched ${feedbackBase64Images.length}/${approvedFeedbackImages.length} approved feedback images as base64`);
+    }
 
     // =====================================
     // STEP 2: Build briefing & expand with LLM Refiner
