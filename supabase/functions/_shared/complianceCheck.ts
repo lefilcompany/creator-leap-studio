@@ -149,7 +149,7 @@ export async function checkCompliance(
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [{ role: 'user', parts }],
-          generationConfig: { temperature: 0.1, maxOutputTokens: 2048 },
+          generationConfig: { temperature: 0.1, maxOutputTokens: 4096 },
         }),
       }
     );
@@ -162,16 +162,11 @@ export async function checkCompliance(
     const data = await response.json();
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
     
-    // Parse JSON da resposta - strip markdown fences and extract JSON
-    let cleanText = text;
-    // Remove ```json ... ``` wrapping
-    const fenceMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
-    if (fenceMatch) {
-      cleanText = fenceMatch[1].trim();
-    }
-    const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
+    // Parse JSON - handle markdown fences and extract JSON object
+    const stripped = text.replace(/```json/g, '').replace(/```/g, '').trim();
+    const jsonMatch = stripped.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
-      console.error('[Compliance] No JSON found after cleaning:', cleanText.substring(0, 300));
+      console.error('[Compliance] No JSON found:', stripped.substring(0, 300));
       return getDefaultApproved();
     }
     
