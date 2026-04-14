@@ -1,4 +1,4 @@
-import { ShieldCheck, ShieldAlert, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
+import { ShieldCheck, ShieldAlert, AlertTriangle, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
 import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -8,6 +8,8 @@ export interface ComplianceCheckData {
   score: number;
   flags: string[];
   details: string;
+  correctionInstructions?: string;
+  wasAutoCorreted?: boolean;
 }
 
 interface ComplianceAlertProps {
