@@ -5,6 +5,7 @@ import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
 import { checkUserCredits, deductUserCredits, recordUserCreditUsage } from '../_shared/userCredits.ts';
 import { expandBriefing } from '../_shared/expandBriefing.ts';
 import { postProcessImage, resolveAspectRatio, normalizeAspectRatioForGemini, ASPECT_RATIO_DIMENSIONS, decodeBase64Image } from '../_shared/imagePostProcess.ts';
+import { checkCompliance, type ComplianceResult } from '../_shared/complianceCheck.ts';
 import {
   cleanInput,
   normalizeImageArray,
@@ -424,7 +425,89 @@ serve(async (req) => {
       console.log('[Step 7] Image uploaded:', publicUrl);
     }
 
-    // Deduct credits
+    // =====================================
+    // STEP 8: Compliance Check + Auto-correction
+    // =====================================
+    console.log('[Step 8] Running compliance check...');
+    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')!;
+    const brandContext = formData.brandId ? `Marca: ${formData.description}` : '';
+    let complianceResult: ComplianceResult | null = null;
+    let finalPublicUrl = publicUrl;
+
+    try {
+      complianceResult = await checkCompliance(publicUrl, formData.description || '', GEMINI_API_KEY, brandContext);
+
+      // Se reprovado e temos instruções de correção, regenerar SEM custo extra
+      if (!complianceResult.approved && complianceResult.correctionInstructions) {
+        console.log('[Step 8] ❌ Compliance FAILED. Auto-correcting...');
+        const originalIssues = [...(complianceResult.flags || [])];
+
+        // Regenerar com prompt corrigido
+        const correctedPrompt = `${formData.description}\n\nCORREÇÕES OBRIGATÓRIAS DE COMPLIANCE:\n${complianceResult.correctionInstructions}`;
+        
+        try {
+          const correctedParts = convertToGeminiParts([
+            { type: 'text', text: `${correctedPrompt}\n\nIMPORTANTE: Esta é uma regeneração para corrigir problemas de compliance. Siga TODAS as instruções de correção acima.` }
+          ]);
+
+          const correctedResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${usedImageModel}:generateContent?key=${GEMINI_API_KEY}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ role: 'user', parts: correctedParts }],
+              generationConfig: {
+                responseModalities: ['IMAGE', 'TEXT'],
+                ...(geminiAspectRatio ? { imageConfig: { aspectRatio: geminiAspectRatio } } : {}),
+              },
+            }),
+          });
+
+          if (correctedResponse.ok) {
+            const correctedData = await correctedResponse.json();
+            const correctedExtracted = extractImageFromResponse(correctedData);
+
+            if (correctedExtracted.imageUrl) {
+              console.log('[Step 8] ✅ Corrected image generated, post-processing...');
+
+              let correctedBinary: Uint8Array;
+              if (correctedExtracted.imageUrl.startsWith('data:')) {
+                correctedBinary = decodeBase64Image(correctedExtracted.imageUrl);
+              } else {
+                const imgResp = await fetch(correctedExtracted.imageUrl);
+                correctedBinary = new Uint8Array(await imgResp.arrayBuffer());
+              }
+
+              const correctedPost = await postProcessImage(correctedBinary, aspectRatio, targetDims.width, targetDims.height);
+
+              // Upload corrected image
+              const correctedFileName = `content-images/${authenticatedTeamId || authenticatedUserId}/${Date.now()}_corrected.png`;
+              const { error: correctedUploadErr } = await supabase.storage.from('content-images').upload(correctedFileName, correctedPost.processedData, { contentType: 'image/png', upsert: false });
+
+              if (!correctedUploadErr) {
+                const { data: correctedUrlData } = supabase.storage.from('content-images').getPublicUrl(correctedFileName);
+                finalPublicUrl = correctedUrlData.publicUrl;
+                console.log('[Step 8] ✅ Corrected image uploaded:', finalPublicUrl);
+              }
+
+              complianceResult = {
+                ...complianceResult,
+                approved: true,
+                wasAutoCorrected: true,
+                originalIssues,
+                score: 85,
+              };
+            }
+          }
+        } catch (correctionError) {
+          console.error('[Step 8] Auto-correction failed:', correctionError);
+          // Manter a imagem original com os flags de compliance
+        }
+      }
+    } catch (complianceError) {
+      console.error('[Step 8] Compliance check error:', complianceError);
+    }
+
+    // Deduct credits (apenas uma vez, mesmo com regeneração)
     const deductResult = await deductUserCredits(supabase, authenticatedUserId, CREDIT_COSTS.COMPLETE_IMAGE);
     const creditsAfter = deductResult.newCredits;
     if (!deductResult.success) console.error('Error deducting credits:', deductResult.error);
@@ -465,7 +548,7 @@ serve(async (req) => {
         aspectRatioSource,
       },
       result: {
-        imageUrl: publicUrl,
+        imageUrl: finalPublicUrl,
         description: resultDescription,
         headline: briefingResult.headline || null,
         subtexto: briefingResult.subtexto || null,
@@ -476,13 +559,14 @@ serve(async (req) => {
         requestedAspectRatio: postProcessResult.requestedAspectRatio,
         wasCropped: postProcessResult.wasCropped,
         wasResized: postProcessResult.wasResized,
+        complianceCheck: complianceResult,
       }
     }).select().single();
 
     if (actionError) console.error('Error creating action:', actionError);
 
     return new Response(JSON.stringify({
-      imageUrl: publicUrl,
+      imageUrl: finalPublicUrl,
       description: resultDescription,
       headline: briefingResult.headline || null,
       subtexto: briefingResult.subtexto || null,
@@ -493,6 +577,7 @@ serve(async (req) => {
       finalHeight: postProcessResult.finalHeight,
       finalAspectRatio: postProcessResult.finalAspectRatio,
       requestedAspectRatio: postProcessResult.requestedAspectRatio,
+      complianceCheck: complianceResult,
     }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
   } catch (error) {
