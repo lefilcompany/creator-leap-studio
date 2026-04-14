@@ -166,6 +166,11 @@ export function BrandFeedbackPanel({ brandId, accentColor }: BrandFeedbackPanelP
                     <ThumbsUp className="h-3 w-3 text-emerald-400 drop-shadow-md" />
                   </div>
                 </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
