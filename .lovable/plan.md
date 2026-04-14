@@ -1,58 +1,69 @@
 
 
-# Plano: Imagens aprovadas como referência visual na geração
+# Plano: Unificar generate-quick-content com o pipeline do generate-image
 
-## Situação atual
+## Resumo
 
-O sistema já salva `image_url` e `thumb_path` no `creation_feedback` e consolida contagens no `brand_style_preferences`. Porém, as Edge Functions de geração (`generate-image` e `generate-quick-content`) apenas injetam texto sobre os totais — **nunca enviam as imagens aprovadas como referência visual para o modelo**.
+O `generate-quick-content` (569 linhas) usa um pipeline simplificado com modelo Flash e prompt flat. O `generate-image` (1190 linhas) usa um pipeline completo com `buildBriefingDocument()`, `buildDirectorPrompt()`, modelo Pro com fallback, timeout de 90s e suporte a texto na imagem. Vamos reescrever o quick content para usar exatamente o mesmo pipeline.
 
-## O que será feito
+## Diferenças-chave atuais
 
-Quando uma marca tem imagens com feedback positivo, as últimas 2-3 imagens aprovadas serão buscadas do Storage e enviadas como referência visual ao modelo de IA, junto com instruções para seguir esse estilo.
+| Aspecto | generate-image | generate-quick-content |
+|---------|---------------|----------------------|
+| Briefing | `buildBriefingDocument()` estruturado | Inline simplificado |
+| Prompt | `buildDirectorPrompt()` com 7 seções | Prompt flat |
+| Modelo | `gemini-3-pro-image-preview` + fallback Flash | `gemini-2.5-flash-image` sem fallback |
+| Timeout | 90s com AbortController | Sem timeout |
+| Art Director | Gera headline/subtexto/legenda | Ignora headline/legenda |
+| Texto | Suporte completo (tipografia, CTA, design styles) | Nunca inclui texto |
+| Negative prompt | Composição inteligente | Fixo + "no text" sempre |
 
 ## Etapas
 
-### 1. Buscar imagens aprovadas no backend (Edge Functions)
+### 1. Criar `supabase/functions/_shared/imagePromptBuilder.ts`
 
-Nas duas Edge Functions (`generate-image` e `generate-quick-content`), após buscar `brand_style_preferences`, adicionar uma query ao `creation_feedback` para obter as últimas 3 imagens com rating positivo para a marca:
+Extrair do `generate-image/index.ts` as seguintes funções e constantes:
+- `cleanInput()`, `normalizeImageArray()`
+- `FONT_STYLES`, `TEXT_DESIGN_PROMPTS`, `PLATFORM_ASPECT_RATIO`
+- `getStyleSettings()`
+- `isPortraitRequest()`
+- `buildBriefingDocument()`
+- `buildDirectorPrompt()`
+- `extractImageFromResponse()`
+- `convertToGeminiParts()`
 
-```sql
-SELECT image_url, thumb_path 
-FROM creation_feedback 
-WHERE brand_id = ? AND rating = 'positive' 
-  AND (image_url IS NOT NULL OR thumb_path IS NOT NULL)
-ORDER BY created_at DESC 
-LIMIT 3
-```
+### 2. Atualizar `generate-image/index.ts`
 
-### 2. Converter URLs do Storage em base64
+Remover as funções/constantes extraídas e importar do módulo compartilhado. O handler (serve) permanece inalterado.
 
-As imagens estão no bucket `content-images` (público). O backend fará fetch dessas URLs, converterá para base64 e as adicionará como `image_url` parts no payload enviado ao modelo Gemini — da mesma forma que as referências manuais do usuário já são enviadas.
+### 3. Reescrever `generate-quick-content/index.ts`
 
-### 3. Injetar instruções contextuais no prompt
+Substituir o pipeline atual para usar as funções compartilhadas:
+- Usar `buildBriefingDocument()` para o briefing (mapeando `prompt` -> `description`)
+- Usar `expandBriefing()` com parâmetros completos (incluindo headline/legenda)
+- Usar `buildDirectorPrompt()` para o prompt final (com `includeText: false` por padrão)
+- Usar modelo `gemini-3-pro-image-preview` como primário com fallback para `gemini-2.5-flash-image`
+- Usar timeout de 90s com AbortController
+- Retornar headline/subtexto/legenda do Art Director no resultado
 
-Junto com as imagens, adicionar ao prompt uma instrução clara:
+**Mantém inalterado:**
+- Custo de créditos: `QUICK_IMAGE` (3) vs `COMPLETE_IMAGE` (8)
+- Tipo de ação: `CRIAR_CONTEUDO_RAPIDO`
+- Parâmetros de entrada (backward compatible)
+- Modo marketplace
 
-> "REFERÊNCIAS DE ESTILO APROVADO: As imagens a seguir foram aprovadas pelo usuário como exemplos do estilo visual desejado para esta marca. Use-as como referência forte para cores, composição, atmosfera e estilo geral."
+## Arquivos
 
-### 4. Limite e prioridade
-
-- Máximo de **3 imagens de feedback** aprovado por geração
-- Imagens de referência manuais do usuário têm prioridade sobre as de feedback
-- Total de referências (manuais + feedback) limitado ao máximo já existente (5)
-- Se o usuário já forneceu 5+ referências manuais, as de feedback não são adicionadas
-
-## Arquivos modificados
-
-| Arquivo | Mudança |
-|---------|---------|
-| `supabase/functions/generate-image/index.ts` | Buscar feedback positivo, fetch imagens, adicionar ao prompt |
-| `supabase/functions/generate-quick-content/index.ts` | Mesmo tratamento |
+| Arquivo | Ação |
+|---------|------|
+| `supabase/functions/_shared/imagePromptBuilder.ts` | **Novo** — funções compartilhadas |
+| `supabase/functions/generate-image/index.ts` | Refatorar — importar do shared |
+| `supabase/functions/generate-quick-content/index.ts` | Reescrever — usar pipeline completo |
 
 ## Detalhes técnicos
 
-- As imagens do bucket público são acessíveis via URL direta (`content-images`)
-- O fetch será feito no backend (Deno) e convertido para base64 inline
-- Timeout de 5s por imagem com fallback silencioso (se falhar, pula)
-- Nenhuma mudança no frontend ou banco de dados necessária
+- Importação via caminho relativo: `../_shared/imagePromptBuilder.ts`
+- O quick content passará a enviar `formData`-like ao `buildBriefingDocument` mapeando os campos existentes (`prompt` -> `description`, etc.)
+- O resultado do quick content incluirá `headline`, `subtexto` e `legenda` gerados pelo Art Director
+- Nenhuma mudança no frontend necessária — os campos extras são adicionais e opcionais
 
