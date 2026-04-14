@@ -400,6 +400,82 @@ serve(async (req) => {
       console.log('[Quick Step 7] Image uploaded:', publicUrl);
     }
 
+    // =====================================
+    // STEP 8: Generate caption by analyzing the created image
+    // =====================================
+    console.log('[Quick Step 8] Generating caption from image analysis...');
+
+    let captionData: { titulo: string; legenda: string; cta: string; hashtags: string[] } = {
+      titulo: '', legenda: '', cta: '', hashtags: []
+    };
+
+    try {
+      const CAPTION_MODEL = 'gemini-2.5-flash';
+      const brandContext = brandData ? `\nContexto da marca: "${brandData.name}" - Segmento: ${brandData.segment || 'não especificado'}. Valores: ${brandData.values || 'não especificado'}. Palavras-chave: ${brandData.keywords || 'não especificado'}.` : '';
+      const themeContext = themeData ? `\nTema estratégico: "${themeData.title}" - Tom de voz: ${themeData.tone_of_voice || 'não especificado'}. Público-alvo: ${themeData.target_audience || 'não especificado'}. Hashtags sugeridas do tema: ${themeData.hashtags || 'não especificado'}.` : '';
+      const personaContext = personaData ? `\nPersona: "${personaData.name}" - ${personaData.age}, ${personaData.gender}. Objetivo: ${personaData.main_goal || 'não especificado'}. Tom preferido: ${personaData.preferred_tone_of_voice || 'não especificado'}.` : '';
+      const platformContext = platform ? `\nPlataforma: ${platform}.` : '';
+
+      const captionPrompt = `Você é um social media manager expert. Analise esta imagem e crie uma legenda completa para redes sociais.
+${brandContext}${themeContext}${personaContext}${platformContext}
+
+Responda APENAS com um JSON válido (sem markdown, sem \`\`\`), com EXATAMENTE esta estrutura:
+{
+  "titulo": "Um título curto e impactante (máx 10 palavras)",
+  "legenda": "Um parágrafo de legenda envolvente e natural para redes sociais (3-5 frases)",
+  "cta": "Uma frase de call-to-action convidativa",
+  "hashtags": ["#hashtag1", "#hashtag2", "#hashtag3", "#hashtag4", "#hashtag5"]
+}
+
+REGRAS:
+- O título deve capturar a essência da imagem
+- A legenda deve ser envolvente, natural e conectar com o público
+- O CTA deve incentivar engajamento (comentar, compartilhar, salvar)
+- Exatamente 5 hashtags relevantes
+- Tudo em português brasileiro
+- NÃO use emojis excessivos (máximo 2-3 no total)`;
+
+      // Build image part for Gemini
+      const imageBase64 = btoa(String.fromCharCode(...postProcessResult.processedData));
+      const captionResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${CAPTION_MODEL}:generateContent?key=${GEMINI_API_KEY}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            role: 'user',
+            parts: [
+              { text: captionPrompt },
+              { inlineData: { mimeType: 'image/png', data: imageBase64 } }
+            ]
+          }],
+          generationConfig: { temperature: 0.7, maxOutputTokens: 1024 },
+        }),
+      });
+
+      if (captionResponse.ok) {
+        const captionResult = await captionResponse.json();
+        const captionText = captionResult?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        console.log('[Quick Step 8] Raw caption response:', captionText.substring(0, 200));
+
+        // Parse JSON from response
+        const jsonMatch = captionText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]);
+          captionData = {
+            titulo: parsed.titulo || '',
+            legenda: parsed.legenda || '',
+            cta: parsed.cta || '',
+            hashtags: Array.isArray(parsed.hashtags) ? parsed.hashtags.slice(0, 5) : [],
+          };
+          console.log('[Quick Step 8] Caption generated:', { titulo: captionData.titulo, legendaLen: captionData.legenda.length, cta: captionData.cta, hashtagCount: captionData.hashtags.length });
+        }
+      } else {
+        console.error('[Quick Step 8] Caption generation failed:', captionResponse.status);
+      }
+    } catch (captionError) {
+      console.error('[Quick Step 8] Caption generation error:', captionError);
+    }
+
     // Deduct credits
     const deductResult = await deductUserCredits(supabase, authenticatedUserId, creditCost);
     if (!deductResult.success) console.error('Error deducting credits:', deductResult.error);
@@ -431,15 +507,18 @@ serve(async (req) => {
         hasReferenceImages: referenceImages?.length > 0,
         hasPreserveImages: rawPreserveImages?.length > 0,
         hasStyleReferenceImages: rawStyleReferenceImages?.length > 0,
-        themeId, personaId, pipeline: 'unified_v6',
+        themeId, personaId, pipeline: 'unified_v7',
         requestedAspectRatio: normalizedAspectRatio, aspectRatioSource, mode
       },
       result: {
         imageUrl: finalImageUrl,
         textResponse,
-        headline: briefingResult.headline || null,
-        subtexto: briefingResult.subtexto || null,
-        legenda: briefingResult.legenda || null,
+        headline: captionData.titulo || null,
+        title: captionData.titulo || null,
+        legenda: captionData.legenda || null,
+        body: captionData.legenda || null,
+        cta: captionData.cta || null,
+        hashtags: captionData.hashtags.length > 0 ? captionData.hashtags : null,
         generatedAt: new Date().toISOString(),
         finalWidth: postProcessResult.finalWidth,
         finalHeight: postProcessResult.finalHeight,
@@ -456,9 +535,10 @@ serve(async (req) => {
       success: true,
       imageUrl: finalImageUrl,
       textResponse,
-      headline: briefingResult.headline || null,
-      subtexto: briefingResult.subtexto || null,
-      legenda: briefingResult.legenda || null,
+      headline: captionData.titulo || null,
+      legenda: captionData.legenda || null,
+      cta: captionData.cta || null,
+      hashtags: captionData.hashtags.length > 0 ? captionData.hashtags : null,
       actionId: actionData?.id,
       creditsUsed: creditCost,
       creditsRemaining: deductResult.newCredits,
