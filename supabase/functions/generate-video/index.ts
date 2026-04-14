@@ -10,7 +10,7 @@ const corsHeaders = {
 };
 
 // Função para processar vídeo em background
-async function processVideoGeneration(operationName: string, actionId: string, userId: string, teamId: string | null) {
+async function processVideoGeneration(operationName: string, actionId: string, userId: string, teamId: string | null, originalPrompt: string = '', brandContext: string = '') {
   const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
   const BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
