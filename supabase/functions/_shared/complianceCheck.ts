@@ -72,14 +72,14 @@ Analise a imagem fornecida e o texto associado com RIGOR MÁXIMO para detectar Q
 - ⚠️ Textos na imagem devem ser legíveis e corretos
 
 ## FORMATO DE RESPOSTA:
-Responda EXATAMENTE neste formato JSON:
+Responda EXATAMENTE neste formato JSON (TODOS os textos devem estar em PORTUGUÊS BRASILEIRO):
 {
   "approved": true/false,
   "score": 0-100,
-  "flags": ["lista", "de", "problemas", "encontrados"],
-  "details": "Descrição detalhada dos problemas encontrados e por que violam a legislação",
+  "flags": ["lista", "de", "códigos", "dos", "problemas"],
+  "details": "Descrição detalhada EM PORTUGUÊS dos problemas encontrados e por que violam a legislação. Escreva de forma clara e acessível para o usuário final.",
   "category": "categoria principal (alcohol, tobacco, health, food, children, consumer, lgpd, discrimination, violence, trademark, text_quality, none)",
-  "correctionInstructions": "Se reprovado, instruções ESPECÍFICAS para corrigir o prompt e gerar uma nova imagem que esteja em conformidade. Descreva exatamente o que deve ser diferente na nova geração."
+  "correctionInstructions": "Se reprovado, instruções ESPECÍFICAS em português para corrigir o prompt e gerar uma nova imagem que esteja em conformidade. Descreva exatamente o que deve ser diferente na nova geração."
 }
 
 IMPORTANTE:
