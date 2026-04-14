@@ -219,6 +219,9 @@ export default function MarketplaceContent() {
               prompt: marketplacePrompt,
               brandName: data.brandName,
               platform: "marketplace",
+              headline: data.headline,
+              subtexto: data.subtexto,
+              legenda: data.legenda,
             },
           };
         },
