@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { ComplianceAlert, type ComplianceData } from "@/components/ComplianceAlert";
 
 interface VideoResultData {
   mediaUrl: string;
@@ -30,6 +31,7 @@ interface VideoResultData {
   audioStyle?: string;
   visualStyle?: string;
   veoVersion?: string;
+  complianceCheck?: ComplianceData;
 }
 
 export default function VideoResult() {
@@ -75,6 +77,7 @@ export default function VideoResult() {
                 audioStyle?: string;
                 visualStyle?: string;
                 veoVersion?: string;
+                complianceCheck?: ComplianceData;
               } | null;
 
               if (actionData?.status === 'completed' && result?.videoUrl) {
@@ -85,7 +88,8 @@ export default function VideoResult() {
                   isProcessing: false,
                   audioStyle: result.audioStyle,
                   visualStyle: result.visualStyle,
-                  veoVersion: result.veoVersion
+                  veoVersion: result.veoVersion,
+                  complianceCheck: result.complianceCheck,
                 } : null);
                 
                 // Mostrar toast apenas uma vez e limpar o intervalo
