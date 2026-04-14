@@ -443,21 +443,35 @@ serve(async (req) => {
         const originalIssues = [...(complianceResult.flags || [])];
 
         // Regenerar com prompt corrigido
-        const correctedPrompt = `${formData.description}\n\nCORREÇÕES OBRIGATÓRIAS DE COMPLIANCE:\n${complianceResult.correctionInstructions}`;
-        
         try {
-          const correctedParts = convertToGeminiParts([
-            { type: 'text', text: `${correctedPrompt}\n\nIMPORTANTE: Esta é uma regeneração para corrigir problemas de compliance. Siga TODAS as instruções de correção acima.` }
-          ]);
+          // Download the original image to use as reference for editing
+          const origImgResp = await fetch(finalPublicUrl);
+          const origImgBuffer = await origImgResp.arrayBuffer();
+          const origBytes = new Uint8Array(origImgBuffer);
+          const chunkSize = 8192;
+          let binaryStr = '';
+          for (let i = 0; i < origBytes.length; i += chunkSize) {
+            const chunk = origBytes.subarray(i, i + chunkSize);
+            binaryStr += String.fromCharCode(...chunk);
+          }
+          const origBase64 = btoa(binaryStr);
+          const origMimeType = origImgResp.headers.get('content-type') || 'image/png';
 
-          const correctedResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${usedImageModel}:generateContent?key=${GEMINI_API_KEY}`, {
+          const correctedParts = [
+            { 
+              text: `Edite esta imagem para corrigir os seguintes problemas de compliance, mantendo o máximo possível da composição, estilo, cores e elementos originais. A imagem corrigida deve ser visualmente muito similar à original, apenas com as correções necessárias aplicadas:\n\nPROBLEMAS A CORRIGIR:\n${complianceResult.correctionInstructions}\n\nINSTRUÇÃO ORIGINAL: ${formData.description}\n\nIMPORTANTE: Mantenha a mesma cena, cenário, personagens e estilo visual. Apenas corrija os problemas específicos listados acima.` 
+            },
+            { inlineData: { mimeType: origMimeType, data: origBase64 } }
+          ];
+
+          const editModel = 'gemini-2.5-flash-image-preview';
+          const correctedResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${editModel}:generateContent?key=${GEMINI_API_KEY}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               contents: [{ role: 'user', parts: correctedParts }],
               generationConfig: {
                 responseModalities: ['IMAGE', 'TEXT'],
-                ...(geminiAspectRatio ? { imageConfig: { aspectRatio: geminiAspectRatio } } : {}),
               },
             }),
           });
