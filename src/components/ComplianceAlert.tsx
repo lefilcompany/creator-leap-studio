@@ -5,6 +5,36 @@ import { Button } from "@/components/ui/button";
 import { ShieldCheck, ShieldAlert, ShieldX, ChevronDown, ChevronUp, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+const flagTranslations: Record<string, string> = {
+  alcohol_consumption_depicted: "Consumo de bebida alcoólica retratado",
+  missing_alcohol_warning_label: "Tarja obrigatória de advertência ausente",
+  consumer_information_omission: "Omissão de informação ao consumidor",
+  tobacco_advertising: "Propaganda de tabaco",
+  tobacco_consumption: "Consumo de tabaco retratado",
+  misleading_health_claims: "Alegações enganosas de saúde",
+  missing_health_disclaimer: "Aviso de saúde obrigatório ausente",
+  child_directed_advertising: "Publicidade direcionada a crianças",
+  child_exploitation: "Exploração infantil",
+  misleading_advertising: "Publicidade enganosa",
+  abusive_advertising: "Publicidade abusiva",
+  discrimination: "Discriminação",
+  explicit_content: "Conteúdo sexual explícito",
+  violence: "Violência",
+  hate_speech: "Discurso de ódio",
+  trademark_misuse: "Uso indevido de marca registrada",
+  personal_data_exposure: "Exposição de dados pessoais",
+  text_quality: "Qualidade do texto na imagem",
+  unhealthy_food_children: "Alimento não saudável direcionado a crianças",
+  false_nutritional_claims: "Alegações nutricionais falsas",
+  before_after_health: "Antes e depois para produtos de saúde",
+  alcohol_success_association: "Associação de álcool com sucesso",
+  alcohol_minors: "Menores em contexto de bebida alcoólica",
+};
+
+function translateFlag(flag: string): string {
+  return flagTranslations[flag] || flag.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
 export interface ComplianceData {
   approved: boolean;
   score: number;
