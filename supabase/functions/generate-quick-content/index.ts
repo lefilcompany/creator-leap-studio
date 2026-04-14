@@ -19,21 +19,6 @@ import {
   buildFeedbackMessageParts,
   uint8ArrayToBase64,
 } from '../_shared/imagePromptBuilder.ts';
-import { expandBriefing } from '../_shared/expandBriefing.ts';
-import { postProcessImage, resolveAspectRatio, normalizeAspectRatioForGemini, ASPECT_RATIO_DIMENSIONS, decodeBase64Image } from '../_shared/imagePostProcess.ts';
-import {
-  cleanInput,
-  normalizeImageArray,
-  getStyleSettings,
-  isPortraitRequest,
-  buildBriefingDocument,
-  buildDirectorPrompt,
-  extractImageFromResponse,
-  convertToGeminiParts,
-  fetchApprovedFeedbackImages,
-  buildFeedbackMessageParts,
-  uint8ArrayToBase64,
-} from '../_shared/imagePromptBuilder.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
