@@ -544,7 +544,7 @@ export default function ActionView() {
               <div className="flex flex-col lg:flex-row gap-6">
                 {/* Image */}
                 {action.result?.imageUrl && (
-                  <div className="lg:w-1/2">
+                  <div className="lg:w-1/2 space-y-4">
                     <SectionCard title="Imagem Gerada" icon={<Image className="h-4 w-4" />} accentColor={accentColor}
                       headerRight={<Button variant="ghost" size="sm" onClick={() => handleDownloadImage(action.result!.imageUrl!, `imagem-${action.id}`)}><Download className="mr-2 h-4 w-4" />Baixar</Button>}
                     >
@@ -555,6 +555,12 @@ export default function ActionView() {
                         </div>
                       </div>
                     </SectionCard>
+                    <CreationFeedback
+                      actionId={action.id}
+                      brandId={action.brandId || undefined}
+                      imageUrl={action.result?.imageUrl}
+                      thumbPath={action.result?.thumbPath}
+                    />
                   </div>
                 )}
                 {/* Details & Info */}
@@ -571,12 +577,6 @@ export default function ActionView() {
                       )}
                       {action.details?.additionalInfo && <DetailField label="Informações Adicionais"><p className="text-sm text-foreground leading-relaxed">{action.details.additionalInfo}</p></DetailField>}
                       <Separator className="bg-border/10" />
-                      <CreationFeedback
-                        actionId={action.id}
-                        brandId={action.brandId || undefined}
-                        imageUrl={action.result?.imageUrl}
-                        thumbPath={action.result?.thumbPath}
-                      />
                       <div className="grid grid-cols-2 gap-4">
                         <DetailField label="Data de Criação"><p className="text-sm font-medium text-foreground">{formatDate(action.createdAt)}</p></DetailField>
                         <DetailField label="Marca"><p className="text-sm font-medium text-foreground">{action.brand?.name || 'Não especificada'}</p></DetailField>
@@ -631,7 +631,7 @@ export default function ActionView() {
               <div className="flex flex-col lg:flex-row lg:items-stretch gap-6">
                 {/* Image */}
                 {action.result?.imageUrl && (
-                  <div className="lg:w-1/2">
+                  <div className="lg:w-1/2 space-y-4">
                     <SectionCard title="Imagem Gerada" icon={<Image className="h-4 w-4" />} accentColor={accentColor}
                       headerRight={<Button variant="ghost" size="sm" onClick={() => handleDownloadImage(action.result!.imageUrl!, `imagem-${action.id}`)}><Download className="mr-2 h-4 w-4" />Baixar</Button>}
                     >
@@ -642,6 +642,12 @@ export default function ActionView() {
                         </div>
                       </div>
                     </SectionCard>
+                    <CreationFeedback
+                      actionId={action.id}
+                      brandId={action.brandId || undefined}
+                      imageUrl={action.result?.imageUrl}
+                      thumbPath={action.result?.thumbPath}
+                    />
                   </div>
                 )}
                 {/* Legenda ao lado da imagem */}
@@ -696,12 +702,6 @@ export default function ActionView() {
                     </div>
                   )}
                   <Separator className="bg-border/10" />
-                  <CreationFeedback
-                    actionId={action.id}
-                    brandId={action.brandId || undefined}
-                    imageUrl={action.result?.imageUrl}
-                    thumbPath={action.result?.thumbPath}
-                  />
                   <div className="grid grid-cols-2 gap-4">
                     <DetailField label="Data de Criação"><p className="text-sm font-medium text-foreground">{formatDate(action.createdAt)}</p></DetailField>
                     <DetailField label="Marca"><p className="text-sm font-medium text-foreground">{action.brand?.name || 'Não especificada'}</p></DetailField>
@@ -718,7 +718,7 @@ export default function ActionView() {
             <div className="flex flex-col lg:flex-row gap-6">
               {/* Video */}
               {action.result?.videoUrl && (
-                <div className="lg:w-1/2">
+                <div className="lg:w-1/2 space-y-4">
                   <SectionCard title="Vídeo Gerado" icon={<Video className="h-4 w-4" />} accentColor={accentColor}
                     headerRight={<Button variant="ghost" size="sm" onClick={() => handleDownloadVideo(action.result!.videoUrl!, `video-${action.id}`)}><Download className="mr-2 h-4 w-4" />Baixar</Button>}
                   >
@@ -726,6 +726,12 @@ export default function ActionView() {
                       <video src={action.result.videoUrl} controls className="w-full h-auto" playsInline>Seu navegador não suporta a tag de vídeo.</video>
                     </div>
                   </SectionCard>
+                  <CreationFeedback
+                    actionId={action.id}
+                    brandId={action.brandId || undefined}
+                    imageUrl={action.result?.imageUrl}
+                    thumbPath={action.result?.thumbPath}
+                  />
                 </div>
               )}
               {/* Details & Info */}
@@ -750,12 +756,6 @@ export default function ActionView() {
                     {action.details?.aspectRatio && <DetailField label="Proporção"><p className="text-sm font-medium text-foreground">{action.details.aspectRatio}</p></DetailField>}
                     {action.details?.additionalInfo && <DetailField label="Informações Adicionais"><p className="text-sm text-foreground leading-relaxed">{action.details.additionalInfo}</p></DetailField>}
                     <Separator className="bg-border/10" />
-                    <CreationFeedback
-                      actionId={action.id}
-                      brandId={action.brandId || undefined}
-                      imageUrl={action.result?.imageUrl}
-                      thumbPath={action.result?.thumbPath}
-                    />
                     <div className="grid grid-cols-2 gap-4">
                       <DetailField label="Data de Criação"><p className="text-sm font-medium text-foreground">{formatDate(action.createdAt)}</p></DetailField>
                       <DetailField label="Marca"><p className="text-sm font-medium text-foreground">{action.brand?.name || 'Não especificada'}</p></DetailField>
@@ -774,7 +774,7 @@ export default function ActionView() {
               {/* Row: Original image (if image review) + Details & Info */}
               <div className="flex flex-col lg:flex-row gap-6">
                 {action.result?.originalImage && (
-                  <div className="lg:w-1/2">
+                  <div className="lg:w-1/2 space-y-4">
                     <SectionCard title="Imagem Original" icon={<Image className="h-4 w-4" />} accentColor={accentColor}>
                       <div className="relative group rounded-xl overflow-hidden border border-border/10 shadow-sm cursor-pointer" onClick={() => setLightboxImage(action.result!.originalImage!)}>
                         <img src={action.result.originalImage} alt="Imagem original" className="w-full h-auto" />
@@ -783,6 +783,12 @@ export default function ActionView() {
                         </div>
                       </div>
                     </SectionCard>
+                    <CreationFeedback
+                      actionId={action.id}
+                      brandId={action.brandId || undefined}
+                      imageUrl={action.result?.imageUrl || action.result?.originalImage}
+                      thumbPath={action.result?.thumbPath}
+                    />
                   </div>
                 )}
                 <div className={action.result?.originalImage ? 'lg:w-1/2' : 'w-full'}>
@@ -809,12 +815,6 @@ export default function ActionView() {
                         </DetailField>
                       )}
                       <Separator className="bg-border/10" />
-                      <CreationFeedback
-                        actionId={action.id}
-                        brandId={action.brandId || undefined}
-                        imageUrl={action.result?.imageUrl || action.result?.originalImage}
-                        thumbPath={action.result?.thumbPath}
-                      />
                       <div className="grid grid-cols-2 gap-4">
                         <DetailField label="Data de Criação"><p className="text-sm font-medium text-foreground">{formatDate(action.createdAt)}</p></DetailField>
                         <DetailField label="Marca"><p className="text-sm font-medium text-foreground">{action.brand?.name || 'Não especificada'}</p></DetailField>
