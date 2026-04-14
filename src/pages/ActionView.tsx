@@ -9,6 +9,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { Download, Copy, CheckCircle, Sparkles, Calendar, Loader2, Clock, User, Tag, Check, FileText, File, FileCode, LayoutGrid, List, ArrowLeft, Info, Image, Video, ClipboardList, FileOutput, Users, Globe, X, ZoomIn, FolderOpen } from 'lucide-react';
 import { CreationFeedback } from '@/components/CreationFeedback';
+import { ComplianceAlert } from '@/components/ComplianceAlert';
 import type { Action } from '@/types/action';
 import { ACTION_TYPE_DISPLAY } from '@/types/action';
 import ReactMarkdown from 'react-markdown';
@@ -555,6 +556,9 @@ export default function ActionView() {
                         </div>
                       </div>
                     </SectionCard>
+                    {action.result?.complianceCheck && (
+                      <ComplianceAlert data={action.result.complianceCheck as any} />
+                    )}
                     <CreationFeedback
                       actionId={action.id}
                       brandId={action.brandId || undefined}
