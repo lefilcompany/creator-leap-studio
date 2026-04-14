@@ -11,6 +11,15 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // 1. Validate JWT
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Não autorizado' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
+      )
+    }
+
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
@@ -21,6 +30,38 @@ Deno.serve(async (req) => {
         }
       }
     )
+
+    // 2. Verify caller identity
+    const supabaseAuth = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader } } }
+    )
+
+    const { data: claimsData, error: claimsError } = await supabaseAuth.auth.getUser()
+    if (claimsError || !claimsData?.user) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Token inválido' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
+      )
+    }
+
+    const callerId = claimsData.user.id
+
+    // 3. Verify caller has 'system' role
+    const { data: hasSystemRole, error: roleError } = await supabaseAdmin
+      .from('user_roles')
+      .select('id')
+      .eq('user_id', callerId)
+      .eq('role', 'system')
+      .maybeSingle()
+
+    if (roleError || !hasSystemRole) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Acesso negado: permissão de administrador necessária' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 403 }
+      )
+    }
 
     const { email, newPassword, userId } = await req.json()
 
@@ -34,9 +75,8 @@ Deno.serve(async (req) => {
 
     let targetUserId = userId
 
-    // Se não tiver userId, buscar pelo email
     if (!targetUserId && email) {
-      console.log(`Looking up user by email: ${email}`)
+      console.log(`System admin ${callerId} looking up user by email`)
       const { data: users, error: getUserError } = await supabaseAdmin.auth.admin.listUsers()
       
       if (getUserError) {
@@ -52,9 +92,8 @@ Deno.serve(async (req) => {
       targetUserId = user.id
     }
 
-    console.log(`Resetting password for userId: ${targetUserId}`)
+    console.log(`System admin ${callerId} resetting password for userId: ${targetUserId}`)
 
-    // Update user password directly by ID
     const { data, error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
       targetUserId,
       { password: newPassword }
@@ -64,7 +103,7 @@ Deno.serve(async (req) => {
       throw updateError
     }
 
-    console.log(`Password reset successfully for userId: ${targetUserId}`)
+    console.log(`Password reset successfully by admin ${callerId} for userId: ${targetUserId}`)
 
     return new Response(
       JSON.stringify({ 
