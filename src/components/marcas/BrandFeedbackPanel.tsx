@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { ThumbsUp, ThumbsDown, TrendingUp, Image as ImageIcon, ExternalLink } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -23,10 +24,10 @@ interface BrandFeedbackPanelProps {
 }
 
 export function BrandFeedbackPanel({ brandId, accentColor }: BrandFeedbackPanelProps) {
+  const navigate = useNavigate();
   const [stats, setStats] = useState<FeedbackStats | null>(null);
   const [topImages, setTopImages] = useState<TopImage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -150,7 +151,7 @@ export function BrandFeedbackPanel({ brandId, accentColor }: BrandFeedbackPanelP
                 <div
                   key={img.id}
                   className="relative group aspect-square rounded-xl overflow-hidden border border-border/10 cursor-pointer hover:ring-2 hover:ring-primary/30 transition-all duration-200"
-                  onClick={() => setPreviewImage(img.imageUrl)}
+                  onClick={() => navigate(`/action/${img.actionId}`)}
                 >
                   <img
                     src={src}
@@ -168,20 +169,6 @@ export function BrandFeedbackPanel({ brandId, accentColor }: BrandFeedbackPanelP
               );
             })}
           </div>
-        </div>
-      )}
-
-      {/* Image preview modal */}
-      {previewImage && (
-        <div
-          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 cursor-pointer"
-          onClick={() => setPreviewImage(null)}
-        >
-          <img
-            src={previewImage}
-            alt="Preview"
-            className="max-w-full max-h-[90vh] object-contain rounded-lg"
-          />
         </div>
       )}
     </div>
