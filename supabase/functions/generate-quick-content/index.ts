@@ -5,82 +5,23 @@ import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
 import { checkUserCredits, deductUserCredits, recordUserCreditUsage } from '../_shared/userCredits.ts';
 import { expandBriefing } from '../_shared/expandBriefing.ts';
 import { postProcessImage, resolveAspectRatio, normalizeAspectRatioForGemini, ASPECT_RATIO_DIMENSIONS, decodeBase64Image } from '../_shared/imagePostProcess.ts';
+import {
+  cleanInput,
+  normalizeImageArray,
+  getStyleSettings,
+  isPortraitRequest,
+  buildBriefingDocument,
+  buildDirectorPrompt,
+  extractImageFromResponse,
+  convertToGeminiParts,
+  fetchApprovedFeedbackImages,
+  buildFeedbackMessageParts,
+} from '../_shared/imagePromptBuilder.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
-
-function cleanInput(text: string | undefined | null): string {
-  if (!text) return '';
-  return text.replace(/[<>{}\[\]"`]/g, '').replace(/\s+/g, ' ').trim();
-}
-
-// =====================================
-// STYLE SETTINGS
-// =====================================
-const getStyleSettings = (styleType: string) => {
-  const styles: Record<string, { suffix: string; negativePrompt: string }> = {
-    realistic: {
-      suffix: "high-end portrait photography, hyper-realistic eyes with catchlight, detailed skin pores, fine facial hair, masterpiece, 8k, shot on 85mm lens, f/1.8, cinematic lighting, sharp focus on eyes, natural skin tone, professional studio lighting, raw photo",
-      negativePrompt: "cartoon, anime, 3d render, illustration, painting, drawing, deformed eyes, asymmetrical face, plastic skin, doll-like, lowres, fused eyes, extra eyelashes, bad anatomy, elongated face, bad hands, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, jpeg artifacts, signature, watermark, blurry, crossed eyes, lazy eye, unnatural skin color"
-    },
-    animated: { suffix: "3D animated movie style, Pixar Disney animation style, vibrant colors, soft lighting, smooth surfaces, expressive features, highly detailed, cinematic composition, professional 3D render, octane render, unreal engine 5", negativePrompt: "realistic, photorealistic, photograph, raw photo, low quality, blurry, pixelated, ugly, deformed, bad anatomy, text, watermark, signature" },
-    cartoon: { suffix: "cartoon style illustration, bold outlines, flat colors, vibrant palette, playful design, clean vector art, comic book style, exaggerated features, expressive, fun aesthetic, professional illustration", negativePrompt: "realistic, photorealistic, photograph, 3d render, anime, low quality, blurry, dark, gritty, text, watermark, signature" },
-    anime: { suffix: "anime style, manga illustration, Japanese animation aesthetic, cel shading, vibrant colors, detailed eyes, soft lighting, studio ghibli inspired, beautiful lineart, high quality anime art, detailed background", negativePrompt: "realistic, photorealistic, photograph, western cartoon, 3d render, low quality, blurry, bad anatomy, extra limbs, text, watermark, signature" },
-    watercolor: { suffix: "watercolor painting, soft washes, delicate brushstrokes, paper texture, artistic, flowing colors, ethereal atmosphere, hand-painted aesthetic, traditional art, fine art painting, gallery quality", negativePrompt: "photograph, digital art, 3d render, sharp edges, hard lines, low quality, blurry, text, watermark, signature" },
-    oil_painting: { suffix: "oil painting masterpiece, rich impasto texture, classical painting technique, museum quality, fine art, dramatic lighting, old masters style, canvas texture, brushstroke details, gallery piece, renaissance inspired", negativePrompt: "photograph, digital art, 3d render, cartoon, anime, flat colors, low quality, blurry, text, watermark, signature" },
-    digital_art: { suffix: "digital art illustration, concept art, artstation trending, highly detailed, vibrant colors, dynamic composition, professional digital painting, matte painting, fantasy art style, epic scene", negativePrompt: "photograph, low quality, blurry, amateur, bad anatomy, deformed, text, watermark, signature" },
-    sketch: { suffix: "pencil sketch, hand-drawn illustration, artistic sketch, cross-hatching, graphite drawing, professional artist sketch, detailed linework, sketchbook style, raw artistic expression, traditional drawing", negativePrompt: "color, photograph, 3d render, digital art, low quality, blurry, text, watermark, signature" },
-    minimalist: { suffix: "minimalist design, clean lines, simple composition, negative space, modern aesthetic, elegant simplicity, geometric shapes, limited color palette, sophisticated design, scandinavian style", negativePrompt: "cluttered, busy, complex, detailed, realistic, photograph, low quality, blurry, text, watermark, signature" },
-    vintage: { suffix: "vintage aesthetic, retro style, nostalgic atmosphere, film grain, faded colors, 70s 80s inspired, analog photography feel, warm tones, old-school charm, classic look, polaroid style", negativePrompt: "modern, futuristic, digital, clean, sharp, cartoon, anime, low quality, blurry, text, watermark, signature" }
-  };
-  return styles[styleType] || styles.realistic;
-};
-
-const isPortraitRequest = (promptText: string): boolean => {
-  const portraitKeywords = ['retrato', 'portrait', 'rosto', 'face', 'pessoa', 'person', 'homem', 'man', 'mulher', 'woman', 'criança', 'child', 'close-up', 'headshot', 'selfie', 'avatar', 'modelo', 'model', 'executivo', 'executive', 'profissional', 'professional', 'jovem', 'young', 'idoso', 'elderly', 'adulto', 'adult'];
-  return portraitKeywords.some(keyword => promptText.toLowerCase().includes(keyword));
-};
-
-// Extract image from Gemini direct API response
-function extractImageFromResponse(data: any): { imageUrl: string | null; textResponse: string | null } {
-  let imageUrl: string | null = null;
-  let textResponse: string | null = null;
-
-  // Gemini direct API format: candidates[].content.parts[]
-  const parts = data.candidates?.[0]?.content?.parts;
-  if (parts) {
-    for (const part of parts) {
-      if (part.inlineData?.data && !imageUrl) {
-        imageUrl = `data:${part.inlineData.mimeType || 'image/png'};base64,${part.inlineData.data}`;
-      }
-      if (part.text && !textResponse) {
-        textResponse = part.text;
-      }
-    }
-  }
-  return { imageUrl, textResponse };
-}
-
-// Convert OpenAI-style message content to Gemini parts format
-function convertToGeminiParts(messageContent: any[]): any[] {
-  const parts: any[] = [];
-  for (const item of messageContent) {
-    if (item.type === 'text') {
-      parts.push({ text: item.text });
-    } else if (item.type === 'image_url' && item.image_url?.url) {
-      const url = item.image_url.url;
-      if (url.startsWith('data:')) {
-        const match = url.match(/^data:([^;]+);base64,(.+)$/);
-        if (match) {
-          parts.push({ inlineData: { mimeType: match[1], data: match[2] } });
-        }
-      }
-    }
-  }
-  return parts;
-}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -111,7 +52,7 @@ serve(async (req) => {
 
     const {
       prompt, brandId, themeId, personaId, platform,
-      referenceImages = [], preserveImages = [], styleReferenceImages = [],
+      referenceImages = [], preserveImages: rawPreserveImages = [], styleReferenceImages: rawStyleReferenceImages = [],
       aspectRatio: rawAspectRatio, visualStyle = 'realistic', style = 'auto',
       quality = 'standard', negativePrompt = '', colorPalette = 'auto',
       lighting = 'natural', composition = 'auto', cameraAngle = 'eye_level',
@@ -121,23 +62,12 @@ serve(async (req) => {
     const isMarketplace = mode === 'marketplace';
     const creditCost = isMarketplace ? CREDIT_COSTS.MARKETPLACE_IMAGE : CREDIT_COSTS.QUICK_IMAGE;
 
-    // Resolve aspect ratio using shared utility
-    const resolved = resolveAspectRatio({
-      aspectRatio: rawAspectRatio,
-      width: body.width,
-      height: body.height,
-      platform,
-    });
+    // Resolve aspect ratio
+    const resolved = resolveAspectRatio({ aspectRatio: rawAspectRatio, width: body.width, height: body.height, platform });
     const normalizedAspectRatio = resolved.aspectRatio;
     const aspectRatioSource = resolved.source;
 
-    console.log('[Quick] Aspect ratio resolution:', {
-      rawAspectRatio: rawAspectRatio || 'not set',
-      resolvedAspectRatio: normalizedAspectRatio,
-      source: aspectRatioSource,
-    });
-
-    console.log('Generate Quick Content Request:', { promptLength: prompt.length, brandId, platform, visualStyle, userId: authenticatedUserId });
+    console.log('[Quick] Request:', { promptLength: prompt.length, brandId, platform, visualStyle, userId: authenticatedUserId, aspectRatio: normalizedAspectRatio });
 
     // Check credits
     const creditCheck = await checkUserCredits(supabase, authenticatedUserId, creditCost);
@@ -149,7 +79,7 @@ serve(async (req) => {
     // =====================================
     // STEP 1: Fetch COMPLETE data from DB in parallel
     // =====================================
-     const [brandResult, themeResult, personaResult, stylePrefsResult, approvedFeedbackResult] = await Promise.all([
+    const [brandResult, themeResult, personaResult, stylePrefsResult, approvedFeedbackResult] = await Promise.all([
       brandId ? supabase.from('brands').select('name, segment, values, keywords, goals, promise, restrictions, brand_color, color_palette').eq('id', brandId).single() : Promise.resolve({ data: null }),
       themeId ? supabase.from('strategic_themes').select('title, description, tone_of_voice, target_audience, objectives, macro_themes, expected_action, best_formats, hashtags').eq('id', themeId).single() : Promise.resolve({ data: null }),
       personaId ? supabase.from('personas').select('name, age, gender, location, professional_context, main_goal, challenges, beliefs_and_interests, interest_triggers, purchase_journey_stage, preferred_tone_of_voice').eq('id', personaId).single() : Promise.resolve({ data: null }),
@@ -166,123 +96,112 @@ serve(async (req) => {
     const personaName = personaData?.name || null;
     const approvedFeedbackImages = approvedFeedbackResult?.data || [];
 
-    // Fetch approved feedback images as base64 for visual reference
-    const feedbackBase64Images: string[] = [];
-    if (approvedFeedbackImages.length > 0) {
-      const supabaseStorageUrl = `${supabaseUrl}/storage/v1/object/public/content-images/`;
-      for (const fb of approvedFeedbackImages) {
-        try {
-          let imgUrl = fb.image_url || '';
-          if (imgUrl && !imgUrl.startsWith('data:') && !imgUrl.startsWith('http')) {
-            imgUrl = `${supabaseStorageUrl}${imgUrl.replace(/^\/+/, '')}`;
-          }
-          if (!imgUrl || imgUrl.startsWith('data:')) continue;
+    // Fetch approved feedback images as base64
+    const feedbackBase64Images = await fetchApprovedFeedbackImages(supabaseUrl, approvedFeedbackImages, '[Quick]');
 
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 5000);
-          const imgResp = await fetch(imgUrl, { signal: controller.signal }).finally(() => clearTimeout(timeoutId));
-          if (!imgResp.ok) continue;
-
-          const buffer = new Uint8Array(await imgResp.arrayBuffer());
-          if (buffer.length < 100) continue;
-          const b64 = btoa(String.fromCharCode(...buffer));
-          const mimeType = imgResp.headers.get('content-type') || 'image/png';
-          feedbackBase64Images.push(`data:${mimeType};base64,${b64}`);
-        } catch (e) {
-          console.warn('[Quick] Failed to fetch approved feedback image, skipping:', e);
-        }
-      }
-      console.log(`[Quick] Fetched ${feedbackBase64Images.length}/${approvedFeedbackImages.length} approved feedback images as base64`);
-    }
+    console.log('[Quick Step 1] Data fetched:', { brand: !!brandData, theme: !!themeData, persona: !!personaData, stylePrefs: !!stylePrefs, approvedImages: feedbackBase64Images.length });
 
     // =====================================
-    // STEP 2: Build briefing & expand with LLM Refiner
+    // STEP 2: Build Briefing Document & Expand with LLM Refiner
+    // (Map quick content params to the full pipeline format)
     // =====================================
-    const briefingSections: string[] = [];
-    briefingSections.push(`PEDIDO PRINCIPAL DO USUÁRIO (PRIORIDADE MÁXIMA): ${prompt}`);
-
-    if (brandData) {
-      let ctx = `CONTEXTO DA MARCA: ${brandData.name} (${brandData.segment})`;
-      if (brandData.values) ctx += ` | Valores: ${brandData.values}`;
-      if (brandData.keywords) ctx += ` | Keywords: ${brandData.keywords}`;
-      if (brandData.goals) ctx += ` | Objetivos: ${brandData.goals}`;
-      if (brandData.promise) ctx += ` | Promessa: ${brandData.promise}`;
-      if (brandData.restrictions) ctx += ` | Restrições: ${brandData.restrictions}`;
-      briefingSections.push(ctx);
-    }
-    if (themeData) {
-      let ctx = `TEMA ESTRATÉGICO: ${themeData.title}`;
-      if (themeData.tone_of_voice) ctx += ` | Tom: ${themeData.tone_of_voice}`;
-      if (themeData.target_audience) ctx += ` | Público: ${themeData.target_audience}`;
-      if (themeData.objectives) ctx += ` | Objetivos: ${themeData.objectives}`;
-      if (themeData.macro_themes) ctx += ` | Macro-temas: ${themeData.macro_themes}`;
-      if (themeData.expected_action) ctx += ` | Ação esperada: ${themeData.expected_action}`;
-      briefingSections.push(ctx);
-    }
-    if (personaData) {
-      let ctx = `PÚBLICO-ALVO: ${personaData.name} (${personaData.age}, ${personaData.gender})`;
-      if (personaData.location) ctx += ` | Local: ${personaData.location}`;
-      if (personaData.professional_context) ctx += ` | Contexto: ${personaData.professional_context}`;
-      if (personaData.main_goal) ctx += ` | Objetivo: ${personaData.main_goal}`;
-      if (personaData.challenges) ctx += ` | Desafios: ${personaData.challenges}`;
-      if (personaData.interest_triggers) ctx += ` | Gatilhos: ${personaData.interest_triggers}`;
-      briefingSections.push(ctx);
-    }
-    if (platform) briefingSections.push(`PLATAFORMA: ${platform}`);
-    briefingSections.push(`ESTILO VISUAL: ${visualStyle}`);
-
-    // Inject learned style preferences from user feedback
-    if (stylePrefs && (stylePrefs.total_positive > 0 || stylePrefs.total_negative > 0)) {
-      const prefParts: string[] = [`APRENDIZADO DE ESTILO (baseado em ${stylePrefs.total_positive + stylePrefs.total_negative} avaliações do usuário)`];
-      if (stylePrefs.style_summary) prefParts.push(`Resumo: ${stylePrefs.style_summary}`);
-      if (stylePrefs.total_positive > 0) prefParts.push(`${stylePrefs.total_positive} criações aprovadas — siga esse estilo visual`);
-      if (stylePrefs.total_negative > 0) prefParts.push(`${stylePrefs.total_negative} criações rejeitadas — EVITE esse tipo de resultado`);
-      briefingSections.push(prefParts.join('. '));
-    }
-
-    const advParts: string[] = [];
-    if (colorPalette !== 'auto') advParts.push(`Paleta: ${colorPalette}`);
-    if (lighting !== 'natural') advParts.push(`Iluminação: ${lighting}`);
-    if (composition !== 'auto') advParts.push(`Composição: ${composition}`);
-    const cameraAngleMap: Record<string, string> = {
-      eye_level: 'Nível dos olhos: perspectiva natural, câmera na altura do sujeito',
-      top_down: 'Vista superior (top-down/flat lay): câmera diretamente acima',
-      low_angle: 'Contra-plongée: câmera de baixo para cima, transmite grandiosidade',
-      high_angle: 'Plongée: câmera de cima para baixo',
-      close_up: 'Close-up: enquadramento muito próximo, foco em detalhes',
-      wide_shot: 'Plano geral (wide shot): enquadramento amplo com contexto',
-      dutch_angle: 'Ângulo holandês (dutch angle): câmera inclinada, cria dinamismo',
-      american_shot: 'Plano americano (cowboy shot): enquadramento dos joelhos/coxas para cima, equilibra expressão facial e ação corporal',
+    const formData = {
+      description: prompt,
+      platform,
+      objective: '',
+      tone: [],
+      additionalInfo: '',
+      contentType: 'organic',
+      visualStyle,
+      negativePrompt,
+      colorPalette,
+      lighting,
+      composition,
+      cameraAngle,
+      detailLevel,
+      mood,
+      preserveImages: rawPreserveImages,
+      styleReferenceImages: rawStyleReferenceImages,
     };
-    if (cameraAngle !== 'eye_level') advParts.push(`Câmera: ${cameraAngleMap[cameraAngle] || cameraAngle}`);
-    if (mood !== 'auto') advParts.push(`Clima: ${mood}`);
-    if (detailLevel !== 7) advParts.push(`Detalhe: ${detailLevel}/10`);
-    if (advParts.length > 0) briefingSections.push(`CONFIGURAÇÕES VISUAIS: ${advParts.join(' | ')}`);
 
-    const limitedPreserve = preserveImages ? preserveImages.slice(0, 3) : [];
-    const limitedStyle = styleReferenceImages ? styleReferenceImages.slice(0, 3) : [];
-    // Fallback: if no images were categorized, use all referenceImages directly
-    const fallbackImages = (limitedPreserve.length === 0 && limitedStyle.length === 0 && referenceImages?.length > 0)
-      ? referenceImages.slice(0, 3)
-      : [];
-    const totalRefImages = limitedPreserve.length + limitedStyle.length + fallbackImages.length;
-    if (totalRefImages > 0) briefingSections.push(`IMAGENS DE REFERÊNCIA: ${totalRefImages} imagem(ns) fornecida(s). Use-as como base visual obrigatória para cores, composição, estilo e elementos da imagem gerada.`);
-    if (limitedPreserve.length > 0) briefingSections.push(`PRESERVAR: ${limitedPreserve.length} imagem(ns) marcada(s) para preservação — mantenha os elementos, formas e cores exatos dessas imagens.`);
-    if (negativePrompt) briefingSections.push(`ELEMENTOS A EVITAR: ${negativePrompt}`);
-
-    const briefingDocument = briefingSections.join('\n\n');
-    console.log('[Step 2] Briefing document built, expanding with LLM...');
+    const briefingDocument = buildBriefingDocument(formData, brandData, themeData, personaData, stylePrefs);
+    console.log('[Quick Step 2] Briefing document:', briefingDocument.length, 'chars');
 
     const briefingResult = await expandBriefing({
       briefingDocument,
       visualStyle,
+      hasTextOverlay: false,
+      tones: [],
+      brandData,
+      themeData,
+      personaData,
+      platform: cleanInput(platform),
     });
 
-    const visualDescription = briefingResult.expandedPrompt || prompt;
+    console.log('[Quick Step 2] Refiner result:', {
+      hasVisual: !!briefingResult.expandedPrompt,
+      headline: briefingResult.headline,
+      subtexto: briefingResult.subtexto,
+      legendaLength: briefingResult.legenda?.length || 0,
+    });
+
+    // =====================================
+    // STEP 3: Build Master Prompt using shared buildDirectorPrompt
+    // =====================================
+    const description = cleanInput(prompt);
     const styleSettings = getStyleSettings(visualStyle);
-    const isPortrait = visualStyle === 'realistic' && isPortraitRequest(prompt);
-    let promptSuffix = styleSettings.suffix;
-    if (isPortrait) promptSuffix = "high-end portrait photography, hyper-realistic eyes with catchlight, detailed skin pores, masterpiece, 8k, shot on 85mm lens, f/1.4, cinematic lighting, sharp focus on eyes, natural skin tone, professional studio lighting";
+    const isPortrait = visualStyle === 'realistic' && isPortraitRequest(description);
+    let finalStyleSuffix = styleSettings.suffix;
+    if (isPortrait) {
+      finalStyleSuffix = "high-end portrait photography, hyper-realistic eyes with catchlight, detailed skin pores, masterpiece, 8k, shot on 85mm lens, f/1.4, cinematic lighting, sharp focus on eyes, natural skin tone, professional studio lighting";
+    }
+
+    const enrichedDescription = briefingResult.expandedPrompt || description;
+
+    // Normalize reference images
+    const limitedPreserve = normalizeImageArray(rawPreserveImages, 3);
+    const limitedStyle = normalizeImageArray(rawStyleReferenceImages, 3);
+    const fallbackImages = (limitedPreserve.length === 0 && limitedStyle.length === 0 && referenceImages?.length > 0)
+      ? normalizeImageArray(referenceImages, 3)
+      : [];
+
+    const preserveImagesCount = limitedPreserve.length;
+    const styleReferenceImagesCount = limitedStyle.length + fallbackImages.length;
+
+    const masterPrompt = buildDirectorPrompt({
+      originalDescription: description,
+      enrichedDescription,
+      brandData,
+      themeData,
+      personaData,
+      platform: cleanInput(platform),
+      contentType: 'organic',
+      objective: description,
+      tones: [],
+      visualStyle,
+      styleSuffix: finalStyleSuffix,
+      includeText: false,
+      textContent: '',
+      textPosition: 'center',
+      fontStyle: 'modern',
+      textDesignStyle: 'clean',
+      preserveImagesCount,
+      styleReferenceImagesCount,
+      headline: briefingResult.headline || '',
+      subtexto: briefingResult.subtexto || '',
+      ctaText: '',
+      adProfessionalMode: false,
+      priceText: '',
+      includeBrandLogo: false,
+      aspectRatio: normalizedAspectRatio,
+      colorPalette,
+      lighting,
+      composition,
+      cameraAngle,
+      detailLevel,
+      mood,
+      negativePrompt: cleanInput(negativePrompt),
+    });
 
     // Build image role prefix
     const hasAnyRefImages = limitedPreserve.length > 0 || limitedStyle.length > 0 || fallbackImages.length > 0;
@@ -304,17 +223,7 @@ serve(async (req) => {
       imageRolePrefix = `${roleParts.join('. ')}.\n\n`;
     }
 
-    // Aspect ratio config using shared utility
-    const geminiAspectRatio = normalizeAspectRatioForGemini(normalizedAspectRatio);
-    const dims = ASPECT_RATIO_DIMENSIONS[normalizedAspectRatio] || ASPECT_RATIO_DIMENSIONS['1:1'];
-    
-    console.log('[Quick] Gemini aspect ratio:', normalizedAspectRatio, '-> Gemini:', geminiAspectRatio, '| target:', dims.width, 'x', dims.height);
-    
-    const dimensionPrefix = `⚠️ DIMENSÃO OBRIGATÓRIA: A imagem DEVE ser gerada com proporção EXATA de ${normalizedAspectRatio} (${dims.width}x${dims.height}px). IGNORE as proporções de qualquer imagem de referência. O OUTPUT deve ter EXATAMENTE esta proporção.\n\n`;
-
-    let userPrompt = `${dimensionPrefix}${imageRolePrefix}INSTRUÇÃO PRINCIPAL: ${prompt.trim()}\n\nDETALHES VISUAIS: ${visualDescription}, ${promptSuffix}`;
-
-    // Build negative prompt - quick content NEVER has text overlay
+    // Build negative prompt
     let negativePromptFinal = styleSettings.negativePrompt;
     if (negativePrompt && negativePrompt.trim()) negativePromptFinal = `${negativePrompt.trim()}, ${negativePromptFinal}`;
     negativePromptFinal += ', text, watermark, typography, letters, signature, words, labels, do not follow reference image dimensions or aspect ratio';
@@ -322,23 +231,26 @@ serve(async (req) => {
       negativePromptFinal += ', do not redesign the product, do not change product colors, do not alter product shape, do not stylize or cartoon the product, do not simplify product details, do not invent new product features';
     }
 
-    userPrompt += `\n\n[AVOID] ${negativePromptFinal}`;
-    console.log('[Step 3] Final prompt length:', userPrompt.length, 'chars');
+    // Aspect ratio config
+    const geminiAspectRatio = normalizeAspectRatioForGemini(normalizedAspectRatio);
+    const dims = ASPECT_RATIO_DIMENSIONS[normalizedAspectRatio] || ASPECT_RATIO_DIMENSIONS['1:1'];
+
+    const dimensionPrefix = `⚠️ DIMENSÃO OBRIGATÓRIA: A imagem DEVE ser gerada com proporção EXATA de ${normalizedAspectRatio} (${dims.width}x${dims.height}px). IGNORE as proporções de qualquer imagem de referência. O OUTPUT deve ter EXATAMENTE esta proporção.\n\n`;
+    const finalPrompt = `${dimensionPrefix}${imageRolePrefix}${masterPrompt}\n\n[AVOID] ${negativePromptFinal}`;
+
+    console.log('[Quick Step 3] Final prompt length:', finalPrompt.length, 'chars');
 
     // =====================================
-    // STEP 3: Build message content with images
+    // STEP 4: Build message content with images
     // =====================================
-    const messageContent: any[] = [{ type: 'text', text: userPrompt }];
+    const messageContent: any[] = [{ type: 'text', text: finalPrompt }];
 
-    // Add preserve images first (highest priority)
     for (const img of limitedPreserve) {
       if (img) messageContent.push({ type: 'image_url', image_url: { url: img } });
     }
-    // Add style reference images
     for (const img of limitedStyle) {
       if (img) messageContent.push({ type: 'image_url', image_url: { url: img } });
     }
-    // Add fallback reference images (when no preserve/style classification)
     for (const img of fallbackImages) {
       if (img) messageContent.push({ type: 'image_url', image_url: { url: img } });
     }
@@ -346,63 +258,49 @@ serve(async (req) => {
     // Add approved feedback images + config as style references
     const totalManualImages = limitedPreserve.length + limitedStyle.length + fallbackImages.length;
     const feedbackSlots = Math.max(0, 5 - totalManualImages);
-    const feedbackToAdd = feedbackBase64Images.slice(0, feedbackSlots);
-    if (feedbackToAdd.length > 0 || approvedFeedbackImages.length > 0) {
-      // Build config recipes from approved actions
-      const approvedRecipes: string[] = [];
-      for (const fb of approvedFeedbackImages) {
-        const actionDetails = (fb as any).actions?.details;
-        if (actionDetails && typeof actionDetails === 'object') {
-          const recipe: string[] = [];
-          if (actionDetails.prompt || actionDetails.description) recipe.push(`Prompt: "${(actionDetails.prompt || actionDetails.description || '').substring(0, 200)}"`);
-          if (actionDetails.visualStyle) recipe.push(`Estilo: ${actionDetails.visualStyle}`);
-          if (actionDetails.colorPalette && actionDetails.colorPalette !== 'auto') recipe.push(`Paleta: ${actionDetails.colorPalette}`);
-          if (actionDetails.lighting && actionDetails.lighting !== 'natural') recipe.push(`Iluminação: ${actionDetails.lighting}`);
-          if (actionDetails.composition && actionDetails.composition !== 'auto') recipe.push(`Composição: ${actionDetails.composition}`);
-          if (actionDetails.cameraAngle && actionDetails.cameraAngle !== 'eye_level') recipe.push(`Ângulo: ${actionDetails.cameraAngle}`);
-          if (actionDetails.mood && actionDetails.mood !== 'auto') recipe.push(`Clima: ${actionDetails.mood}`);
-          if (actionDetails.platform) recipe.push(`Plataforma: ${actionDetails.platform}`);
-          if (actionDetails.style) recipe.push(`Style: ${actionDetails.style}`);
-          if (recipe.length > 0) approvedRecipes.push(`- ${recipe.join(' | ')}`);
-        }
-      }
-
-      let feedbackInstruction = `\n\nREFERÊNCIAS DE ESTILO APROVADO: As criações a seguir foram APROVADAS pelo usuário como exemplos do estilo visual desejado para esta marca.`;
-      if (approvedRecipes.length > 0) {
-        feedbackInstruction += `\n\nCONFIGURAÇÕES QUE GERARAM RESULTADOS APROVADOS (use como guia de estilo):\n${approvedRecipes.join('\n')}`;
-        feedbackInstruction += `\n\nSiga padrões semelhantes de estilo visual, paleta, iluminação e composição quando compatíveis com o pedido atual.`;
-      }
-      if (feedbackToAdd.length > 0) {
-        feedbackInstruction += `\n\nAs ${feedbackToAdd.length} imagem(ns) a seguir são exemplos visuais aprovados. Use-as como referência forte para cores, composição, atmosfera e estilo geral.`;
-      }
-
+    if (feedbackBase64Images.length > 0 || approvedFeedbackImages.length > 0) {
+      const { feedbackInstruction, feedbackImagesToAdd } = buildFeedbackMessageParts(
+        approvedFeedbackImages,
+        feedbackBase64Images,
+        feedbackSlots,
+      );
       messageContent.push({ type: 'text', text: feedbackInstruction });
-      for (const img of feedbackToAdd) {
+      for (const img of feedbackImagesToAdd) {
         messageContent.push({ type: 'image_url', image_url: { url: img } });
       }
-      console.log(`[Quick] Added ${feedbackToAdd.length} approved feedback images + ${approvedRecipes.length} config recipes as style references`);
+      console.log(`[Quick Step 4] Added ${feedbackImagesToAdd.length} approved feedback images as style references`);
     }
 
-    console.log(`[Step 3] Message parts: ${messageContent.length} (text + ${messageContent.length - 1} other parts, preserve: ${limitedPreserve.length}, style: ${limitedStyle.length}, fallback: ${fallbackImages.length}, feedback: ${feedbackToAdd.length})`);
+    console.log(`[Quick Step 4] Message parts: ${messageContent.length} (text + images)`);
 
     // =====================================
-    // STEP 4: Generate image via Gateway with retry
+    // STEP 5: Generate image via Gemini Direct API (same model as generate-image)
     // =====================================
     const MAX_RETRIES = 3;
+    const REQUEST_TIMEOUT_MS = 90000;
+    const PRIMARY_IMAGE_MODEL = 'gemini-3-pro-image-preview';
+    const FALLBACK_IMAGE_MODEL = 'gemini-2.5-flash-image';
+
     let lastError: any = null;
     let imageUrl: string | null = null;
     let textResponse: string | null = null;
+    let usedImageModel = PRIMARY_IMAGE_MODEL;
 
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       try {
-        console.log(`[Step 4] Image generation attempt ${attempt}/${MAX_RETRIES}...`);
+        const modelForAttempt = attempt <= 2 ? PRIMARY_IMAGE_MODEL : FALLBACK_IMAGE_MODEL;
+        usedImageModel = modelForAttempt;
+
+        console.log(`[Quick Step 5] Image generation attempt ${attempt}/${MAX_RETRIES} with model ${modelForAttempt}...`);
 
         const geminiParts = convertToGeminiParts(messageContent);
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${GEMINI_API_KEY}`, {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelForAttempt}:generateContent?key=${GEMINI_API_KEY}`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
+          signal: controller.signal,
           body: JSON.stringify({
             contents: [{ role: 'user', parts: geminiParts }],
             generationConfig: {
@@ -410,11 +308,11 @@ serve(async (req) => {
               ...(geminiAspectRatio ? { imageConfig: { aspectRatio: geminiAspectRatio } } : {}),
             },
           }),
-        });
+        }).finally(() => clearTimeout(timeoutId));
 
         if (!response.ok) {
           const errorText = await response.text();
-          console.error(`Gemini error (attempt ${attempt}):`, response.status, errorText);
+          console.error(`Gemini error (attempt ${attempt}, model ${modelForAttempt}):`, response.status, errorText);
 
           if (response.status === 429) return new Response(JSON.stringify({ error: 'Limite de requisições excedido. Tente novamente em alguns instantes.' }), { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
           if (response.status === 402) return new Response(JSON.stringify({ error: 'Créditos de IA esgotados.' }), { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
@@ -425,7 +323,7 @@ serve(async (req) => {
             }
           }
 
-          lastError = new Error(`Gemini error: ${response.status}`);
+          lastError = new Error(`Gemini error (${modelForAttempt}): ${response.status}`);
           if (attempt < MAX_RETRIES) { await new Promise(r => setTimeout(r, 2000)); continue; }
           throw lastError;
         }
@@ -439,15 +337,17 @@ serve(async (req) => {
           if (textResponse) {
             return new Response(JSON.stringify({ error: 'O modelo não conseguiu gerar a imagem. Tente um prompt diferente.', isComplianceError: true, modelResponse: textResponse }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
           }
-          throw new Error('No image found in response');
+          throw new Error(`No image found in response for model ${modelForAttempt}`);
         }
 
-        console.log(`[Step 4] Image generated on attempt ${attempt}`);
+        console.log(`[Quick Step 5] Image generated on attempt ${attempt} with model ${modelForAttempt}`);
         break;
 
       } catch (error) {
         console.error(`Attempt ${attempt} failed:`, error);
         lastError = error;
+        const isAbort = error instanceof Error && error.name === 'AbortError';
+        if (isAbort) console.error(`[Quick Step 5] Timeout after ${REQUEST_TIMEOUT_MS}ms (attempt ${attempt})`);
         if (attempt < MAX_RETRIES) await new Promise(r => setTimeout(r, 2000));
       }
     }
@@ -457,9 +357,9 @@ serve(async (req) => {
     }
 
     // =====================================
-    // STEP 5: Post-process image (center-crop + resize)
+    // STEP 6: Post-process image
     // =====================================
-    console.log('[Step 5] Post-processing image to exact dimensions...');
+    console.log('[Quick Step 6] Post-processing image to exact dimensions...');
 
     let rawBinaryData: Uint8Array;
     if (imageUrl.startsWith('data:')) {
@@ -469,26 +369,19 @@ serve(async (req) => {
       rawBinaryData = new Uint8Array(await imgResp.arrayBuffer());
     }
 
-    const postProcessResult = await postProcessImage(
-      rawBinaryData,
-      normalizedAspectRatio,
-      dims.width,
-      dims.height,
-    );
+    const postProcessResult = await postProcessImage(rawBinaryData, normalizedAspectRatio, dims.width, dims.height);
 
-    console.log('[Step 5] Post-process result:', {
+    console.log('[Quick Step 6] Post-process result:', {
       finalWidth: postProcessResult.finalWidth,
       finalHeight: postProcessResult.finalHeight,
-      finalAspectRatio: postProcessResult.finalAspectRatio,
       wasCropped: postProcessResult.wasCropped,
       wasResized: postProcessResult.wasResized,
-      outputSize: postProcessResult.processedData.length,
     });
 
     // =====================================
-    // STEP 6: Upload to Storage
+    // STEP 7: Upload to Storage
     // =====================================
-    console.log('[Step 6] Uploading post-processed image to storage...');
+    console.log('[Quick Step 7] Uploading post-processed image to storage...');
     const timestamp = Date.now();
     const randomId = crypto.randomUUID();
     const fileName = `quick-content/${authenticatedTeamId || authenticatedUserId}/${timestamp}-${randomId}.png`;
@@ -498,14 +391,13 @@ serve(async (req) => {
     let finalImageUrl: string;
     if (uploadError) {
       console.error('Storage upload error:', uploadError);
-      // Fallback: return base64 of post-processed image
       const base64Fallback = btoa(String.fromCharCode(...postProcessResult.processedData));
       finalImageUrl = `data:image/png;base64,${base64Fallback}`;
-      console.warn('[Step 6] Upload failed, returning post-processed base64 fallback');
+      console.warn('[Quick Step 7] Upload failed, returning post-processed base64 fallback');
     } else {
       const { data: { publicUrl } } = supabase.storage.from('content-images').getPublicUrl(fileName);
       finalImageUrl = publicUrl;
-      console.log('[Step 6] Image uploaded:', publicUrl);
+      console.log('[Quick Step 7] Image uploaded:', publicUrl);
     }
 
     // Deduct credits
@@ -519,23 +411,35 @@ serve(async (req) => {
       creditsUsed: creditCost,
       creditsBefore: creditCheck.currentCredits,
       creditsAfter: deductResult.newCredits,
-      description: isMarketplace ? 'Imagem de produto para marketplace' : 'Criação rápida de imagem (Pipeline v5)',
-      metadata: { platform, aspectRatio: normalizedAspectRatio, style, brandId, model: 'gemini-2.5-flash-image', aspectRatioSource, mode }
+      description: isMarketplace ? 'Imagem de produto para marketplace' : 'Criação rápida de imagem (Pipeline Unificado v6)',
+      metadata: { platform, aspectRatio: normalizedAspectRatio, style, brandId, model: usedImageModel, aspectRatioSource, mode }
     });
 
     // Save action
     const { data: actionData, error: actionError } = await supabase.from('actions').insert({
       user_id: authenticatedUserId,
       team_id: authenticatedTeamId || null,
-      type: isMarketplace ? 'CRIAR_CONTEUDO_RAPIDO' : 'CRIAR_CONTEUDO_RAPIDO',
+      type: 'CRIAR_CONTEUDO_RAPIDO',
       status: 'completed',
       brand_id: brandId || null,
       asset_path: !uploadError ? fileName : null,
       thumb_path: !uploadError ? fileName : null,
-      details: { prompt, platform, aspectRatio: normalizedAspectRatio, style, quality, colorPalette, lighting, composition, cameraAngle, detailLevel, mood, negativePrompt: !!negativePrompt, hasReferenceImages: referenceImages?.length > 0, hasPreserveImages: preserveImages?.length > 0, hasStyleReferenceImages: styleReferenceImages?.length > 0, themeId, personaId, pipeline: 'quick_v5', requestedAspectRatio: normalizedAspectRatio, aspectRatioSource, mode },
+      details: {
+        prompt, description: prompt, platform, aspectRatio: normalizedAspectRatio, style, quality,
+        visualStyle, colorPalette, lighting, composition, cameraAngle, detailLevel, mood,
+        negativePrompt: !!negativePrompt,
+        hasReferenceImages: referenceImages?.length > 0,
+        hasPreserveImages: rawPreserveImages?.length > 0,
+        hasStyleReferenceImages: rawStyleReferenceImages?.length > 0,
+        themeId, personaId, pipeline: 'unified_v6',
+        requestedAspectRatio: normalizedAspectRatio, aspectRatioSource, mode
+      },
       result: {
         imageUrl: finalImageUrl,
         textResponse,
+        headline: briefingResult.headline || null,
+        subtexto: briefingResult.subtexto || null,
+        legenda: briefingResult.legenda || null,
         generatedAt: new Date().toISOString(),
         finalWidth: postProcessResult.finalWidth,
         finalHeight: postProcessResult.finalHeight,
@@ -552,6 +456,9 @@ serve(async (req) => {
       success: true,
       imageUrl: finalImageUrl,
       textResponse,
+      headline: briefingResult.headline || null,
+      subtexto: briefingResult.subtexto || null,
+      legenda: briefingResult.legenda || null,
       actionId: actionData?.id,
       creditsUsed: creditCost,
       creditsRemaining: deductResult.newCredits,
