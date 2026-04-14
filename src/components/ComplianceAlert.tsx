@@ -125,7 +125,7 @@ export function ComplianceAlert({ compliance, mediaType = "image", className }: 
               ✅ A {mediaType === "image" ? "imagem" : "mídia"} foi regenerada automaticamente para corrigir:
               <ul className="list-disc list-inside mt-1 space-y-0.5">
                 {originalIssues.map((issue, i) => (
-                  <li key={i} className="text-xs">{issue}</li>
+                  <li key={i} className="text-xs">{translateFlag(issue)}</li>
                 ))}
               </ul>
             </AlertDescription>
@@ -151,7 +151,7 @@ export function ComplianceAlert({ compliance, mediaType = "image", className }: 
                   <div className="flex flex-wrap gap-1">
                     {flags.map((flag, i) => (
                       <Badge key={i} variant="outline" className="text-xs bg-background">
-                        {flag}
+                        {translateFlag(flag)}
                       </Badge>
                     ))}
                   </div>
