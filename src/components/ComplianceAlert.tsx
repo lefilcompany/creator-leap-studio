@@ -37,8 +37,16 @@ export function ComplianceAlert({ data, className }: ComplianceAlertProps) {
       )}>
         <ShieldCheck className="h-4 w-4 text-green-600 shrink-0" />
         <span className="text-xs text-green-700 dark:text-green-400 font-medium">
-          Conteúdo verificado — sem problemas detectados
+          {wasAutoCorreted 
+            ? 'Conteúdo corrigido automaticamente — agora em conformidade'
+            : 'Conteúdo verificado — sem problemas detectados'}
         </span>
+        {wasAutoCorreted && (
+          <Badge variant="outline" className="text-[10px] border-green-500/30 text-green-600 gap-1">
+            <RefreshCw className="h-2.5 w-2.5" />
+            Auto-corrigido
+          </Badge>
+        )}
         <Badge variant="outline" className="ml-auto text-[10px] border-green-500/30 text-green-600">
           {score}/100
         </Badge>
