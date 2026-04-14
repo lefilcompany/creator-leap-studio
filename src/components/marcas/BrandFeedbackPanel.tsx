@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { ThumbsUp, ThumbsDown, TrendingUp, Image as ImageIcon, ExternalLink } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
