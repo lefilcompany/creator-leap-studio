@@ -70,6 +70,7 @@ interface ContentResultData {
   isLocalFallback?: boolean;
   isProcessing?: boolean;
   categoryId?: string;
+  complianceCheck?: ComplianceData;
 }
 
 export default function ContentResult() {
