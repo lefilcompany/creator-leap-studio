@@ -17,7 +17,7 @@ export default function CreditHistory() {
     const labels: Record<string, string> = {
       QUICK_IMAGE: "Imagem Rápida",
       COMPLETE_IMAGE: "Imagem Completa",
-      IMAGE_GENERATION: "Geração de Imagem",
+      IMAGE_EDIT: "Correção de Imagem",
       IMAGE_REVIEW: "Revisão de Imagem",
       CAPTION_REVIEW: "Revisão de Legenda",
       TEXT_REVIEW: "Revisão de Texto",

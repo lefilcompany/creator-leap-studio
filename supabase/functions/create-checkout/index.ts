@@ -67,7 +67,10 @@ serve(async (req) => {
 
     const { type, price_id, plan_id, package_id, credits, return_url, payment_mode } = await req.json();
     if (!type || !['plan', 'custom', 'credits'].includes(type)) {
-      throw new Error("type is required and must be 'plan', 'custom', or 'credits'");
+      return new Response(JSON.stringify({ error: "type is required and must be 'plan', 'custom', or 'credits'" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
     }
     logStep("Request data received", { type, price_id, plan_id, package_id, credits, payment_mode });
 
@@ -94,7 +97,12 @@ serve(async (req) => {
     if (type === 'plan' || type === 'credits') {
       // Compra de pacote de créditos
       const packageId = package_id || plan_id;
-      if (!price_id || !packageId) throw new Error("price_id and package_id are required for credits purchase");
+      if (!price_id || !packageId) {
+        return new Response(JSON.stringify({ error: "price_id and package_id are required for credits purchase" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 400,
+        });
+      }
       
       // Determinar modo: payment (avulso) ou subscription (recorrente)
       const checkoutMode = payment_mode === 'payment' ? 'payment' : 'subscription';
