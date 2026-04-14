@@ -695,19 +695,51 @@ serve(async (req) => {
     // =====================================
     // STEP 1: Fetch COMPLETE data from DB in parallel
     // =====================================
-    const [brandResult, themeResult, personaResult, stylePrefsResult] = await Promise.all([
+    const [brandResult, themeResult, personaResult, stylePrefsResult, approvedFeedbackResult] = await Promise.all([
       formData.brandId ? supabase.from('brands').select('name, segment, values, keywords, goals, promise, restrictions, logo, moodboard, reference_image, brand_color, color_palette').eq('id', formData.brandId).single() : Promise.resolve({ data: null }),
       formData.themeId ? supabase.from('strategic_themes').select('title, description, tone_of_voice, target_audience, objectives, macro_themes, expected_action, best_formats, hashtags, color_palette, platforms').eq('id', formData.themeId).single() : Promise.resolve({ data: null }),
       formData.personaId ? supabase.from('personas').select('name, age, gender, location, professional_context, main_goal, challenges, beliefs_and_interests, interest_triggers, purchase_journey_stage, preferred_tone_of_voice').eq('id', formData.personaId).single() : Promise.resolve({ data: null }),
       formData.brandId ? supabase.from('brand_style_preferences').select('positive_patterns, negative_patterns, style_summary, total_positive, total_negative').eq('brand_id', formData.brandId).maybeSingle() : Promise.resolve({ data: null }),
+      formData.brandId ? supabase.from('creation_feedback').select('image_url, thumb_path').eq('brand_id', formData.brandId).eq('rating', 'positive').not('image_url', 'is', null).order('created_at', { ascending: false }).limit(3) : Promise.resolve({ data: null }),
     ]);
 
     const brandData = brandResult.data;
     const themeData = themeResult.data;
     const personaData = personaResult.data;
     const stylePrefs = stylePrefsResult.data;
+    const approvedFeedbackImages = approvedFeedbackResult?.data || [];
 
-    console.log('[Step 1] Data fetched:', { brand: !!brandData, theme: !!themeData, persona: !!personaData, stylePrefs: !!stylePrefs });
+    // Fetch approved feedback images as base64 for visual reference
+    const feedbackBase64Images: string[] = [];
+    if (approvedFeedbackImages.length > 0) {
+      const supabaseStorageUrl = `${supabaseUrl}/storage/v1/object/public/content-images/`;
+      for (const fb of approvedFeedbackImages) {
+        try {
+          let imgUrl = fb.image_url || '';
+          // Normalize storage URL
+          if (imgUrl && !imgUrl.startsWith('data:') && !imgUrl.startsWith('http')) {
+            imgUrl = `${supabaseStorageUrl}${imgUrl.replace(/^\/+/, '')}`;
+          }
+          if (!imgUrl || imgUrl.startsWith('data:')) continue;
+
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 5000);
+          const imgResp = await fetch(imgUrl, { signal: controller.signal }).finally(() => clearTimeout(timeoutId));
+          if (!imgResp.ok) continue;
+
+          const buffer = new Uint8Array(await imgResp.arrayBuffer());
+          if (buffer.length < 100) continue;
+          const b64 = btoa(String.fromCharCode(...buffer));
+          const mimeType = imgResp.headers.get('content-type') || 'image/png';
+          feedbackBase64Images.push(`data:${mimeType};base64,${b64}`);
+        } catch (e) {
+          console.warn('[Step 1] Failed to fetch approved feedback image, skipping:', e);
+        }
+      }
+      console.log(`[Step 1] Fetched ${feedbackBase64Images.length}/${approvedFeedbackImages.length} approved feedback images as base64`);
+    }
+
+    console.log('[Step 1] Data fetched:', { brand: !!brandData, theme: !!themeData, persona: !!personaData, stylePrefs: !!stylePrefs, approvedImages: feedbackBase64Images.length });
 
     // =====================================
     // STEP 2: Build Briefing Document & Expand with LLM Refiner
@@ -890,7 +922,19 @@ serve(async (req) => {
       if (img) messageContent.push({ type: 'image_url', image_url: { url: img } });
     }
 
-    console.log(`[Step 4] Message parts: ${messageContent.length} (1 text + ${messageContent.length - 1} images)`);
+    // Add approved feedback images as style references (only if user hasn't maxed out manual references)
+    const totalManualImages = preserveImages.length + styleReferenceImages.length;
+    const feedbackSlots = Math.max(0, 5 - totalManualImages);
+    const feedbackToAdd = feedbackBase64Images.slice(0, feedbackSlots);
+    if (feedbackToAdd.length > 0) {
+      messageContent.push({ type: 'text', text: `\n\nREFERÊNCIAS DE ESTILO APROVADO: As ${feedbackToAdd.length} imagem(ns) a seguir foram APROVADAS pelo usuário como exemplos do estilo visual desejado para esta marca. Use-as como referência forte para cores, composição, atmosfera e estilo geral. Mantenha consistência visual com essas referências aprovadas.` });
+      for (const img of feedbackToAdd) {
+        messageContent.push({ type: 'image_url', image_url: { url: img } });
+      }
+      console.log(`[Step 4] Added ${feedbackToAdd.length} approved feedback images as style references`);
+    }
+
+    console.log(`[Step 4] Message parts: ${messageContent.length} (text + images)`);
 
     // =====================================
     // STEP 5: Generate image via Gemini Direct API (gemini-3-pro-image-preview)
