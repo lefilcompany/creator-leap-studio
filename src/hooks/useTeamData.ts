@@ -112,7 +112,7 @@ export const useTeamMembers = (teamId: string | undefined) => {
       if (!teamId) return [];
 
       const { data, error } = await supabase
-        .from('profiles')
+        .from('teammate_profiles')
         .select('id, name, email, avatar_url')
         .eq('team_id', teamId);
 
@@ -141,7 +141,7 @@ export const usePendingRequests = (teamId: string | undefined, isAdmin: boolean)
 
       const userIds = requestsData.map((req: any) => req.user_id);
       const { data: profilesData } = await supabase
-        .from('profiles')
+        .from('teammate_profiles')
         .select('id, name, email, avatar_url')
         .in('id', userIds);
 
