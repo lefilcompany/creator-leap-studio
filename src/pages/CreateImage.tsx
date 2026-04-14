@@ -263,6 +263,7 @@ export default function CreateImage() {
     fontStyle: "modern", fontFamily: "Montserrat", fontWeight: "700", fontItalic: false,
     textDesignStyle: "clean", ctaText: "",
     adMode: "standard", priceText: "", includeBrandLogo: false,
+    aspectRatio: "1:1", width: "1080", height: "1080",
   });
 
   const [selectedCategoryId, setSelectedCategoryId] = useState("");
