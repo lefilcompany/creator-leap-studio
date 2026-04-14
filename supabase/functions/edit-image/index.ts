@@ -2,7 +2,8 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
 import { checkUserCredits, deductUserCredits, recordUserCreditUsage } from '../_shared/userCredits.ts';
-import { cleanInput } from '../_shared/imagePromptBuilder.ts';
+import { cleanInput, extractImageFromResponse, convertToGeminiParts, uint8ArrayToBase64 } from '../_shared/imagePromptBuilder.ts';
+import { checkCompliance, type ComplianceResult } from '../_shared/complianceCheck.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
