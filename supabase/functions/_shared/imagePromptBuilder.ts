@@ -9,6 +9,20 @@ import { ASPECT_RATIO_DIMENSIONS } from './imagePostProcess.ts';
 // UTILITY FUNCTIONS
 // =====================================
 
+/**
+ * Safely converts a Uint8Array to a base64 string using chunked processing.
+ * Avoids "Maximum call stack size exceeded" when using String.fromCharCode(...largeArray).
+ */
+export function uint8ArrayToBase64(bytes: Uint8Array): string {
+  let binary = '';
+  const chunkSize = 8192;
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    const chunk = bytes.subarray(i, Math.min(i + chunkSize, bytes.length));
+    binary += String.fromCharCode.apply(null, Array.from(chunk));
+  }
+  return btoa(binary);
+}
+
 export function cleanInput(text: string | string[] | undefined | null): string {
   if (!text) return "";
   if (Array.isArray(text)) return text.map(item => cleanInput(item)).join(", ");
@@ -651,7 +665,7 @@ export async function fetchApprovedFeedbackImages(
 
       const buffer = new Uint8Array(await imgResp.arrayBuffer());
       if (buffer.length < 100) continue;
-      const b64 = btoa(String.fromCharCode(...buffer));
+      const b64 = uint8ArrayToBase64(buffer);
       const mimeType = imgResp.headers.get('content-type') || 'image/png';
       feedbackBase64Images.push(`data:${mimeType};base64,${b64}`);
     } catch (e) {
