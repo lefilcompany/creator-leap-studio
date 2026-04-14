@@ -700,7 +700,7 @@ serve(async (req) => {
       formData.themeId ? supabase.from('strategic_themes').select('title, description, tone_of_voice, target_audience, objectives, macro_themes, expected_action, best_formats, hashtags, color_palette, platforms').eq('id', formData.themeId).single() : Promise.resolve({ data: null }),
       formData.personaId ? supabase.from('personas').select('name, age, gender, location, professional_context, main_goal, challenges, beliefs_and_interests, interest_triggers, purchase_journey_stage, preferred_tone_of_voice').eq('id', formData.personaId).single() : Promise.resolve({ data: null }),
       formData.brandId ? supabase.from('brand_style_preferences').select('positive_patterns, negative_patterns, style_summary, total_positive, total_negative').eq('brand_id', formData.brandId).maybeSingle() : Promise.resolve({ data: null }),
-      formData.brandId ? supabase.from('creation_feedback').select('image_url, thumb_path').eq('brand_id', formData.brandId).eq('rating', 'positive').not('image_url', 'is', null).order('created_at', { ascending: false }).limit(3) : Promise.resolve({ data: null }),
+      formData.brandId ? supabase.from('creation_feedback').select('image_url, thumb_path, actions(details, result)').eq('brand_id', formData.brandId).eq('rating', 'positive').not('image_url', 'is', null).order('created_at', { ascending: false }).limit(3) : Promise.resolve({ data: null }),
     ]);
 
     const brandData = brandResult.data;
@@ -922,16 +922,44 @@ serve(async (req) => {
       if (img) messageContent.push({ type: 'image_url', image_url: { url: img } });
     }
 
-    // Add approved feedback images as style references (only if user hasn't maxed out manual references)
+    // Add approved feedback images + config as style references
     const totalManualImages = preserveImages.length + styleReferenceImages.length;
     const feedbackSlots = Math.max(0, 5 - totalManualImages);
     const feedbackToAdd = feedbackBase64Images.slice(0, feedbackSlots);
-    if (feedbackToAdd.length > 0) {
-      messageContent.push({ type: 'text', text: `\n\nREFERÊNCIAS DE ESTILO APROVADO: As ${feedbackToAdd.length} imagem(ns) a seguir foram APROVADAS pelo usuário como exemplos do estilo visual desejado para esta marca. Use-as como referência forte para cores, composição, atmosfera e estilo geral. Mantenha consistência visual com essas referências aprovadas.` });
+    if (feedbackToAdd.length > 0 || approvedFeedbackImages.length > 0) {
+      // Build config recipes from approved actions
+      const approvedRecipes: string[] = [];
+      for (const fb of approvedFeedbackImages) {
+        const actionDetails = (fb as any).actions?.details;
+        if (actionDetails && typeof actionDetails === 'object') {
+          const recipe: string[] = [];
+          if (actionDetails.prompt || actionDetails.description) recipe.push(`Prompt: "${(actionDetails.prompt || actionDetails.description || '').substring(0, 200)}"`);
+          if (actionDetails.visualStyle) recipe.push(`Estilo: ${actionDetails.visualStyle}`);
+          if (actionDetails.colorPalette && actionDetails.colorPalette !== 'auto') recipe.push(`Paleta: ${actionDetails.colorPalette}`);
+          if (actionDetails.lighting && actionDetails.lighting !== 'natural') recipe.push(`Iluminação: ${actionDetails.lighting}`);
+          if (actionDetails.composition && actionDetails.composition !== 'auto') recipe.push(`Composição: ${actionDetails.composition}`);
+          if (actionDetails.cameraAngle && actionDetails.cameraAngle !== 'eye_level') recipe.push(`Ângulo: ${actionDetails.cameraAngle}`);
+          if (actionDetails.mood && actionDetails.mood !== 'auto') recipe.push(`Clima: ${actionDetails.mood}`);
+          if (actionDetails.platform) recipe.push(`Plataforma: ${actionDetails.platform}`);
+          if (actionDetails.style) recipe.push(`Style: ${actionDetails.style}`);
+          if (recipe.length > 0) approvedRecipes.push(`- ${recipe.join(' | ')}`);
+        }
+      }
+
+      let feedbackInstruction = `\n\nREFERÊNCIAS DE ESTILO APROVADO: As criações a seguir foram APROVADAS pelo usuário como exemplos do estilo visual desejado para esta marca.`;
+      if (approvedRecipes.length > 0) {
+        feedbackInstruction += `\n\nCONFIGURAÇÕES QUE GERARAM RESULTADOS APROVADOS (use como guia de estilo):\n${approvedRecipes.join('\n')}`;
+        feedbackInstruction += `\n\nSiga padrões semelhantes de estilo visual, paleta, iluminação e composição quando compatíveis com o pedido atual.`;
+      }
+      if (feedbackToAdd.length > 0) {
+        feedbackInstruction += `\n\nAs ${feedbackToAdd.length} imagem(ns) a seguir são exemplos visuais aprovados. Use-as como referência forte para cores, composição, atmosfera e estilo geral.`;
+      }
+
+      messageContent.push({ type: 'text', text: feedbackInstruction });
       for (const img of feedbackToAdd) {
         messageContent.push({ type: 'image_url', image_url: { url: img } });
       }
-      console.log(`[Step 4] Added ${feedbackToAdd.length} approved feedback images as style references`);
+      console.log(`[Step 4] Added ${feedbackToAdd.length} approved feedback images + ${approvedRecipes.length} config recipes as style references`);
     }
 
     console.log(`[Step 4] Message parts: ${messageContent.length} (text + images)`);
