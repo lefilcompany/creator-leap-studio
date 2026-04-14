@@ -3,7 +3,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
 import { checkUserCredits, deductUserCredits, recordUserCreditUsage } from '../_shared/userCredits.ts';
-import { checkCompliance } from '../_shared/complianceCheck.ts';
+import { checkCompliance, autoCorrectImage } from '../_shared/complianceCheck.ts';
 import { expandBriefing } from '../_shared/expandBriefing.ts';
 import { postProcessImage, resolveAspectRatio, normalizeAspectRatioForGemini, ASPECT_RATIO_DIMENSIONS, decodeBase64Image } from '../_shared/imagePostProcess.ts';
 import {
@@ -425,10 +425,37 @@ serve(async (req) => {
       console.log('[Step 7] Image uploaded:', publicUrl);
     }
 
-    // Compliance check (fail-open)
+    // Compliance check with auto-correction (fail-open)
     const associatedText = [briefingResult.headline, briefingResult.subtexto, briefingResult.legenda].filter(Boolean).join(' ');
-    const complianceCheck = await checkCompliance(publicUrl, associatedText || undefined);
+    let complianceCheck = await checkCompliance(publicUrl, associatedText || undefined);
     console.log('[Step 8] Compliance check:', { approved: complianceCheck.approved, score: complianceCheck.score, flags: complianceCheck.flags.length });
+
+    // Auto-correct if compliance failed and we have correction instructions
+    if (!complianceCheck.approved && complianceCheck.correctionInstructions) {
+      console.log('[Step 8b] Auto-correcting image due to compliance violations...');
+      const correctedBase64 = await autoCorrectImage(publicUrl, complianceCheck.correctionInstructions, formData.description);
+      if (correctedBase64) {
+        // Re-upload corrected image
+        const correctedBinary = decodeBase64Image(correctedBase64);
+        const correctedPostProcess = await postProcessImage(correctedBinary, aspectRatio, targetDims.width, targetDims.height);
+        const correctedFileName = `content-images/${authenticatedTeamId || authenticatedUserId}/${Date.now()}-corrected.png`;
+        const { error: corrUploadErr } = await supabase.storage.from('content-images').upload(correctedFileName, correctedPostProcess.processedData, { contentType: 'image/png', upsert: false });
+        if (!corrUploadErr) {
+          const { data: corrUrlData } = supabase.storage.from('content-images').getPublicUrl(correctedFileName);
+          publicUrl = corrUrlData.publicUrl;
+          console.log('[Step 8b] Corrected image uploaded:', publicUrl);
+          // Re-check compliance on corrected image
+          const recheck = await checkCompliance(publicUrl, associatedText || undefined);
+          recheck.wasAutoCorreted = true;
+          complianceCheck = recheck;
+          console.log('[Step 8b] Re-check compliance:', { approved: complianceCheck.approved, score: complianceCheck.score });
+        } else {
+          console.error('[Step 8b] Failed to upload corrected image:', corrUploadErr);
+        }
+      } else {
+        console.warn('[Step 8b] Auto-correction failed, delivering original image with flags');
+      }
+    }
 
     // Deduct credits
     const deductResult = await deductUserCredits(supabase, authenticatedUserId, CREDIT_COSTS.COMPLETE_IMAGE);

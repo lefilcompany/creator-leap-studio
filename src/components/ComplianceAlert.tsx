@@ -1,4 +1,4 @@
-import { ShieldCheck, ShieldAlert, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
+import { ShieldCheck, ShieldAlert, AlertTriangle, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
 import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -8,6 +8,8 @@ export interface ComplianceCheckData {
   score: number;
   flags: string[];
   details: string;
+  correctionInstructions?: string;
+  wasAutoCorreted?: boolean;
 }
 
 interface ComplianceAlertProps {
@@ -20,7 +22,7 @@ export function ComplianceAlert({ data, className }: ComplianceAlertProps) {
 
   if (!data) return null;
 
-  const { approved, score, flags, details } = data;
+  const { approved, score, flags, details, wasAutoCorreted } = data;
 
   // Determine severity
   const isWarning = approved && flags.length > 0;
@@ -35,8 +37,16 @@ export function ComplianceAlert({ data, className }: ComplianceAlertProps) {
       )}>
         <ShieldCheck className="h-4 w-4 text-green-600 shrink-0" />
         <span className="text-xs text-green-700 dark:text-green-400 font-medium">
-          Conteúdo verificado — sem problemas detectados
+          {wasAutoCorreted 
+            ? 'Conteúdo corrigido automaticamente — agora em conformidade'
+            : 'Conteúdo verificado — sem problemas detectados'}
         </span>
+        {wasAutoCorreted && (
+          <Badge variant="outline" className="text-[10px] border-green-500/30 text-green-600 gap-1">
+            <RefreshCw className="h-2.5 w-2.5" />
+            Auto-corrigido
+          </Badge>
+        )}
         <Badge variant="outline" className="ml-auto text-[10px] border-green-500/30 text-green-600">
           {score}/100
         </Badge>

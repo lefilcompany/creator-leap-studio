@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
 import { checkUserCredits, deductUserCredits, recordUserCreditUsage } from '../_shared/userCredits.ts';
-import { checkCompliance } from '../_shared/complianceCheck.ts';
+import { checkCompliance, autoCorrectImage } from '../_shared/complianceCheck.ts';
 import { cleanInput } from '../_shared/imagePromptBuilder.ts';
 
 const corsHeaders = {
@@ -282,9 +282,28 @@ serve(async (req) => {
     const { data: { publicUrl } } = supabase.storage.from('content-images').getPublicUrl(fileName);
     console.log('✅ Imagem editada armazenada:', publicUrl);
 
-    // Compliance check (fail-open)
-    const complianceCheck = await checkCompliance(publicUrl, reviewPrompt || undefined);
+    // Compliance check with auto-correction (fail-open)
+    let complianceCheck = await checkCompliance(publicUrl, reviewPrompt || undefined);
     console.log('[Edit] Compliance check:', { approved: complianceCheck.approved, score: complianceCheck.score, flags: complianceCheck.flags.length });
+
+    // Auto-correct if compliance failed
+    if (!complianceCheck.approved && complianceCheck.correctionInstructions) {
+      console.log('[Edit] Auto-correcting image due to compliance violations...');
+      const correctedBase64 = await autoCorrectImage(publicUrl, complianceCheck.correctionInstructions, reviewPrompt || undefined);
+      if (correctedBase64) {
+        const correctedBinary = Uint8Array.from(atob(correctedBase64.split(',')[1]), c => c.charCodeAt(0));
+        const correctedFileName = `edited-images/${Date.now()}-corrected.png`;
+        const { error: corrUploadErr } = await supabase.storage.from('content-images').upload(correctedFileName, correctedBinary, { contentType: 'image/png', upsert: false });
+        if (!corrUploadErr) {
+          const { data: { publicUrl: corrUrl } } = supabase.storage.from('content-images').getPublicUrl(correctedFileName);
+          publicUrl = corrUrl;
+          console.log('[Edit] Corrected image uploaded:', publicUrl);
+          const recheck = await checkCompliance(publicUrl, reviewPrompt || undefined);
+          recheck.wasAutoCorreted = true;
+          complianceCheck = recheck;
+        }
+      }
+    }
 
     // Deduct credits
     const deductResult = await deductUserCredits(supabase, user.id, creditCost);

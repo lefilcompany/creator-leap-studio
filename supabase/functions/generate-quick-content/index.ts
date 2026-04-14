@@ -3,7 +3,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
 import { checkUserCredits, deductUserCredits, recordUserCreditUsage } from '../_shared/userCredits.ts';
-import { checkCompliance } from '../_shared/complianceCheck.ts';
+import { checkCompliance, autoCorrectImage } from '../_shared/complianceCheck.ts';
 import { expandBriefing } from '../_shared/expandBriefing.ts';
 import { postProcessImage, resolveAspectRatio, normalizeAspectRatioForGemini, ASPECT_RATIO_DIMENSIONS, decodeBase64Image } from '../_shared/imagePostProcess.ts';
 import {
@@ -484,10 +484,35 @@ REGRAS:
       console.error('[Quick Step 8] Caption generation error:', captionError);
     }
 
-    // Compliance check (fail-open)
+    // Compliance check with auto-correction (fail-open)
     const associatedText = [captionData.titulo, captionData.legenda, captionData.cta].filter(Boolean).join(' ');
-    const complianceCheck = await checkCompliance(finalImageUrl, associatedText || undefined);
+    let complianceCheck = await checkCompliance(finalImageUrl, associatedText || undefined);
     console.log('[Quick Step 9] Compliance check:', { approved: complianceCheck.approved, score: complianceCheck.score, flags: complianceCheck.flags.length });
+
+    // Auto-correct if compliance failed and we have correction instructions
+    if (!complianceCheck.approved && complianceCheck.correctionInstructions) {
+      console.log('[Quick Step 9b] Auto-correcting image due to compliance violations...');
+      const correctedBase64 = await autoCorrectImage(finalImageUrl, complianceCheck.correctionInstructions, prompt);
+      if (correctedBase64) {
+        const correctedBinary = Uint8Array.from(atob(correctedBase64.split(',')[1]), c => c.charCodeAt(0));
+        const correctedPostProcess = await postProcessImage(correctedBinary, normalizedAspectRatio, dims.width, dims.height);
+        const correctedFileName = `quick-content/${authenticatedTeamId || authenticatedUserId}/${Date.now()}-corrected.png`;
+        const { error: corrUploadErr } = await supabase.storage.from('content-images').upload(correctedFileName, correctedPostProcess.processedData, { contentType: 'image/png', upsert: false });
+        if (!corrUploadErr) {
+          const { data: { publicUrl: corrUrl } } = supabase.storage.from('content-images').getPublicUrl(correctedFileName);
+          finalImageUrl = corrUrl;
+          console.log('[Quick Step 9b] Corrected image uploaded:', finalImageUrl);
+          const recheck = await checkCompliance(finalImageUrl, associatedText || undefined);
+          recheck.wasAutoCorreted = true;
+          complianceCheck = recheck;
+          console.log('[Quick Step 9b] Re-check compliance:', { approved: complianceCheck.approved, score: complianceCheck.score });
+        } else {
+          console.error('[Quick Step 9b] Failed to upload corrected image:', corrUploadErr);
+        }
+      } else {
+        console.warn('[Quick Step 9b] Auto-correction failed, delivering original image with flags');
+      }
+    }
 
     // Deduct credits
     const deductResult = await deductUserCredits(supabase, authenticatedUserId, creditCost);
