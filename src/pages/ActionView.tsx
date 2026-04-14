@@ -641,41 +641,32 @@ export default function ActionView() {
                 {action.result && (action.result.headline || action.result.legenda || action.result.title || action.result.body) && (
                   <div className={action.result?.imageUrl ? 'lg:w-1/2' : 'w-full'}>
                     <SectionCard title="Legenda" icon={<FileOutput className="h-4 w-4" />} accentColor={accentColor}>
-                      <div className="space-y-6">
+                      <div className="space-y-3">
                         {(action.result.headline || action.result.title) && (
                           <div>
-                            <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center justify-between">
                               <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Título</p>
-                              <Button variant="ghost" size="sm" onClick={() => handleCopyText((action.result!.headline || action.result!.title)!)} disabled={copying}>{copying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Copy className="mr-2 h-4 w-4" />}Copiar</Button>
+                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleCopyText((action.result!.headline || action.result!.title)!)} disabled={copying}>{copying ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Copy className="h-3.5 w-3.5" />}</Button>
                             </div>
-                            <div className="p-4 bg-muted/30 rounded-xl border border-border/10"><p className="font-medium text-foreground">{action.result.headline || action.result.title}</p></div>
-                          </div>
-                        )}
-                        {action.result.subtexto && (
-                          <div>
-                            <div className="flex items-center justify-between mb-2">
-                              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Subtexto</p>
-                              <Button variant="ghost" size="sm" onClick={() => handleCopyText(action.result!.subtexto!)} disabled={copying}>{copying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Copy className="mr-2 h-4 w-4" />}Copiar</Button>
-                            </div>
-                            <div className="p-4 bg-muted/30 rounded-xl border border-border/10"><p className="text-foreground text-sm">{action.result.subtexto}</p></div>
+                            <p className="font-semibold text-foreground text-base">{action.result.headline || action.result.title}</p>
                           </div>
                         )}
                         {(action.result.legenda || action.result.body) && (
                           <div>
-                            <div className="flex items-center justify-between mb-2">
-                              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Corpo da Legenda</p>
-                              <Button variant="ghost" size="sm" onClick={() => handleCopyText((action.result!.legenda || action.result!.body)!)} disabled={copying}>{copying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Copy className="mr-2 h-4 w-4" />}Copiar</Button>
+                            <div className="flex items-center justify-between">
+                              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Legenda</p>
+                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleCopyText((action.result!.legenda || action.result!.body)!)} disabled={copying}>{copying ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Copy className="h-3.5 w-3.5" />}</Button>
                             </div>
-                            <div className="p-4 bg-muted/30 rounded-xl border border-border/10"><p className="whitespace-pre-wrap text-foreground leading-relaxed text-sm">{action.result.legenda || action.result.body}</p></div>
+                            <p className="whitespace-pre-wrap text-foreground leading-relaxed text-sm">{action.result.legenda || action.result.body}</p>
                           </div>
                         )}
                         {action.result.hashtags && action.result.hashtags.length > 0 && (
                           <div>
-                            <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center justify-between">
                               <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Hashtags</p>
-                              <Button variant="ghost" size="sm" onClick={() => handleCopyText(action.result!.hashtags!.join(' '))} disabled={copying}>{copying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Copy className="mr-2 h-4 w-4" />}Copiar</Button>
+                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleCopyText(action.result!.hashtags!.join(' '))} disabled={copying}>{copying ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Copy className="h-3.5 w-3.5" />}</Button>
                             </div>
-                            <div className="p-4 bg-muted/30 rounded-xl border border-border/10"><div className="flex flex-wrap gap-2">{action.result.hashtags.map((tag: string, idx: number) => <Badge key={idx} variant="secondary">{tag}</Badge>)}</div></div>
+                            <div className="flex flex-wrap gap-1.5">{action.result.hashtags.map((tag: string, idx: number) => <span key={idx} className="text-sm text-primary">{tag}</span>)}</div>
                           </div>
                         )}
                       </div>
