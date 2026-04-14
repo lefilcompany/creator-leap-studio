@@ -110,9 +110,9 @@ export function ComplianceAlert({ compliance, mediaType = "image", className }: 
             <Badge variant="outline" className={cn("text-xs font-medium", badgeClass)}>
               {label}
             </Badge>
-            <span className="text-xs text-muted-foreground">
-              Score: {score}/100
-            </span>
+              <span className="text-xs text-muted-foreground">
+                Pontuação: {score}/100
+              </span>
             {mediaType === "video" && !approved && (
               <span className="text-xs text-muted-foreground italic">
                 (vídeos não são regenerados automaticamente)
