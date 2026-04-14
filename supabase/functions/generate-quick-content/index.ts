@@ -3,6 +3,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
 import { checkUserCredits, deductUserCredits, recordUserCreditUsage } from '../_shared/userCredits.ts';
+import { checkCompliance } from '../_shared/complianceCheck.ts';
 import { expandBriefing } from '../_shared/expandBriefing.ts';
 import { postProcessImage, resolveAspectRatio, normalizeAspectRatioForGemini, ASPECT_RATIO_DIMENSIONS, decodeBase64Image } from '../_shared/imagePostProcess.ts';
 import {
@@ -483,6 +484,11 @@ REGRAS:
       console.error('[Quick Step 8] Caption generation error:', captionError);
     }
 
+    // Compliance check (fail-open)
+    const associatedText = [captionData.titulo, captionData.legenda, captionData.cta].filter(Boolean).join(' ');
+    const complianceCheck = await checkCompliance(finalImageUrl, associatedText || undefined);
+    console.log('[Quick Step 9] Compliance check:', { approved: complianceCheck.approved, score: complianceCheck.score, flags: complianceCheck.flags.length });
+
     // Deduct credits
     const deductResult = await deductUserCredits(supabase, authenticatedUserId, creditCost);
     if (!deductResult.success) console.error('Error deducting credits:', deductResult.error);
@@ -533,6 +539,7 @@ REGRAS:
         requestedAspectRatio: postProcessResult.requestedAspectRatio,
         wasCropped: postProcessResult.wasCropped,
         wasResized: postProcessResult.wasResized,
+        complianceCheck,
       }
     }).select().single();
 
@@ -554,6 +561,7 @@ REGRAS:
       finalHeight: postProcessResult.finalHeight,
       finalAspectRatio: postProcessResult.finalAspectRatio,
       requestedAspectRatio: postProcessResult.requestedAspectRatio,
+      complianceCheck,
     }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
   } catch (error) {
