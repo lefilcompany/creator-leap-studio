@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
 import { checkUserCredits, deductUserCredits, recordUserCreditUsage } from '../_shared/userCredits.ts';
+import { cleanInput } from '../_shared/imagePromptBuilder.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -10,10 +11,6 @@ const corsHeaders = {
 
 const MAX_PROMPT_LENGTH = 8000;
 
-function cleanInput(text: string | undefined | null): string {
-  if (!text) return '';
-  return text.replace(/[<>{}\[\]"`]/g, '').replace(/\s+/g, ' ').trim();
-}
 
 function buildRevisionPrompt(
   adjustment: string,
