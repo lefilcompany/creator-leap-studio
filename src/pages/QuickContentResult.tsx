@@ -443,44 +443,35 @@ export default function QuickContentResult() {
                 </div>
               </div>
 
-              {/* Headline, Subtexto & Legenda from Art Director */}
-              {(headline || subtexto || legenda) && (
-                <div className="space-y-3">
-                  {headline && (
-                    <div className="space-y-1">
-                      <span className="text-sm font-semibold text-foreground">Headline sugerida:</span>
-                      <div className="backdrop-blur-2xl bg-gradient-to-br from-primary/[0.04] via-white/[0.06] to-accent/[0.04] rounded-2xl p-4 border border-primary/[0.12] shadow-[0_2px_12px_-4px_rgba(0,0,0,0.06),inset_0_1px_0_0_rgba(255,255,255,0.15)]">
-                        <p className="text-sm text-foreground font-medium">{headline}</p>
-                        {subtexto && <p className="text-xs text-muted-foreground mt-1">{subtexto}</p>}
-                      </div>
-                    </div>
-                  )}
-                  {legenda && (
-                    <div className="space-y-1">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-semibold text-foreground">Legenda sugerida:</span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={async () => {
-                            try {
-                              await navigator.clipboard.writeText(legenda);
-                              toast.success("Legenda copiada!");
-                            } catch {
-                              toast.error("Erro ao copiar legenda");
-                            }
-                          }}
-                          className="gap-1.5 h-8 text-xs"
-                        >
-                          <Copy className="h-4 w-4" />
-                          Copiar
-                        </Button>
-                      </div>
-                      <div className="backdrop-blur-2xl bg-gradient-to-br from-secondary/[0.04] via-white/[0.06] to-primary/[0.04] rounded-2xl p-4 border border-secondary/[0.12] shadow-[0_2px_12px_-4px_rgba(0,0,0,0.06),inset_0_1px_0_0_rgba(255,255,255,0.15)]">
-                        <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{legenda}</p>
-                      </div>
-                    </div>
-                  )}
+              {/* Legenda sugerida */}
+              {(headline || legenda || cta || (hashtags && hashtags.length > 0)) && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-semibold text-foreground">Legenda sugerida</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={async () => {
+                        try {
+                          const parts = [headline, legenda, cta, hashtags?.join(' ')].filter(Boolean);
+                          await navigator.clipboard.writeText(parts.join('\n\n'));
+                          toast.success("Legenda copiada!");
+                        } catch {
+                          toast.error("Erro ao copiar legenda");
+                        }
+                      }}
+                      className="gap-1.5 h-8 text-xs"
+                    >
+                      <Copy className="h-4 w-4" />
+                      Copiar tudo
+                    </Button>
+                  </div>
+                  <div className="backdrop-blur-2xl bg-gradient-to-br from-primary/[0.04] via-white/[0.06] to-accent/[0.04] rounded-2xl p-4 border border-primary/[0.12] shadow-[0_2px_12px_-4px_rgba(0,0,0,0.06),inset_0_1px_0_0_rgba(255,255,255,0.15)] space-y-3">
+                    {headline && <p className="font-semibold text-foreground text-base leading-snug">{headline}</p>}
+                    {legenda && <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{legenda}</p>}
+                    {cta && <p className="text-sm font-medium text-primary">{cta}</p>}
+                    {hashtags && hashtags.length > 0 && <p className="text-sm text-muted-foreground">{hashtags.join(' ')}</p>}
+                  </div>
                 </div>
               )}
 
