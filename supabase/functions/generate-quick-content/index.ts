@@ -154,7 +154,7 @@ serve(async (req) => {
       themeId ? supabase.from('strategic_themes').select('title, description, tone_of_voice, target_audience, objectives, macro_themes, expected_action, best_formats, hashtags').eq('id', themeId).single() : Promise.resolve({ data: null }),
       personaId ? supabase.from('personas').select('name, age, gender, location, professional_context, main_goal, challenges, beliefs_and_interests, interest_triggers, purchase_journey_stage, preferred_tone_of_voice').eq('id', personaId).single() : Promise.resolve({ data: null }),
       brandId ? supabase.from('brand_style_preferences').select('positive_patterns, negative_patterns, style_summary, total_positive, total_negative').eq('brand_id', brandId).maybeSingle() : Promise.resolve({ data: null }),
-      brandId ? supabase.from('creation_feedback').select('image_url, thumb_path').eq('brand_id', brandId).eq('rating', 'positive').not('image_url', 'is', null).order('created_at', { ascending: false }).limit(3) : Promise.resolve({ data: null }),
+      brandId ? supabase.from('creation_feedback').select('image_url, thumb_path, actions(details, result)').eq('brand_id', brandId).eq('rating', 'positive').not('image_url', 'is', null).order('created_at', { ascending: false }).limit(3) : Promise.resolve({ data: null }),
     ]);
 
     const brandData = brandResult.data;
