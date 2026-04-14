@@ -282,6 +282,16 @@ serve(async (req) => {
     const { data: { publicUrl } } = supabase.storage.from('content-images').getPublicUrl(fileName);
     console.log('✅ Imagem editada armazenada:', publicUrl);
 
+    // Compliance check (sem regeneração para edições - apenas flag)
+    let complianceResult: ComplianceResult | null = null;
+    try {
+      const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')!;
+      complianceResult = await checkCompliance(publicUrl, adjustment || '', GEMINI_API_KEY);
+      console.log('🔍 Compliance check:', { approved: complianceResult.approved, score: complianceResult.score });
+    } catch (compErr) {
+      console.error('Compliance check error:', compErr);
+    }
+
     // Deduct credits
     const deductResult = await deductUserCredits(supabase, user.id, creditCost);
     if (!deductResult.success) {
@@ -300,7 +310,7 @@ serve(async (req) => {
       });
     }
 
-    return new Response(JSON.stringify({ editedImageUrl: publicUrl, creditsRemaining: deductResult.newCredits }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    return new Response(JSON.stringify({ editedImageUrl: publicUrl, creditsRemaining: deductResult.newCredits, complianceCheck: complianceResult }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
   } catch (error) {
     console.error('❌ Erro na função edit-image:', error);
