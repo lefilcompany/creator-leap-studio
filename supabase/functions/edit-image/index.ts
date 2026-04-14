@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
 import { checkUserCredits, deductUserCredits, recordUserCreditUsage } from '../_shared/userCredits.ts';
+import { checkCompliance } from '../_shared/complianceCheck.ts';
 import { cleanInput } from '../_shared/imagePromptBuilder.ts';
 
 const corsHeaders = {
@@ -281,6 +282,10 @@ serve(async (req) => {
     const { data: { publicUrl } } = supabase.storage.from('content-images').getPublicUrl(fileName);
     console.log('✅ Imagem editada armazenada:', publicUrl);
 
+    // Compliance check (fail-open)
+    const complianceCheck = await checkCompliance(publicUrl, reviewPrompt || undefined);
+    console.log('[Edit] Compliance check:', { approved: complianceCheck.approved, score: complianceCheck.score, flags: complianceCheck.flags.length });
+
     // Deduct credits
     const deductResult = await deductUserCredits(supabase, user.id, creditCost);
     if (!deductResult.success) {
@@ -299,7 +304,7 @@ serve(async (req) => {
       });
     }
 
-    return new Response(JSON.stringify({ editedImageUrl: publicUrl, creditsRemaining: deductResult.newCredits }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    return new Response(JSON.stringify({ editedImageUrl: publicUrl, creditsRemaining: deductResult.newCredits, complianceCheck }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
   } catch (error) {
     console.error('❌ Erro na função edit-image:', error);

@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { CreationFeedback } from "@/components/CreationFeedback";
+import { ComplianceAlert } from "@/components/ComplianceAlert";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -73,7 +74,7 @@ export default function QuickContentResult() {
   const [showReportDialog, setShowReportDialog] = useState(false);
   const promptRef = useRef<HTMLParagraphElement>(null);
 
-  const { imageUrl, description, actionId, prompt, brandName, themeName, personaName, platform, headline, subtexto, legenda, cta, hashtags } = location.state || {};
+  const { imageUrl, description, actionId, prompt, brandName, themeName, personaName, platform, headline, subtexto, legenda, cta, hashtags, complianceCheck } = location.state || {};
 
   const checkTruncation = useCallback(() => {
     if (promptRef.current) {
@@ -383,6 +384,13 @@ export default function QuickContentResult() {
                       <Undo2 className="h-3.5 w-3.5" />
                       Reverter
                     </Button>
+                  </div>
+                )}
+
+                {/* Compliance Alert */}
+                {complianceCheck && (
+                  <div className="px-3 pt-3">
+                    <ComplianceAlert data={complianceCheck} />
                   </div>
                 )}
 
