@@ -20,8 +20,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { ArrowLeft, Trash2, Tag, ExternalLink, FileDown, Calendar, User, Save, Loader2, Sparkles, Target, LayoutGrid, List, Info, Palette, Pencil } from 'lucide-react';
+import { ArrowLeft, Trash2, Tag, ExternalLink, FileDown, Calendar, User, Save, Loader2, Sparkles, Target, LayoutGrid, List, Info, Palette, Pencil, TrendingUp } from 'lucide-react';
 import { BrandVisualIdentity } from '@/components/marcas/BrandVisualIdentity';
+import { BrandFeedbackPanel } from '@/components/marcas/BrandFeedbackPanel';
 import { BrandAvatarEditor } from '@/components/marcas/BrandAvatarEditor';
 import type { Brand, MoodboardFile, ColorItem } from '@/types/brand';
 import { supabase } from '@/integrations/supabase/client';
@@ -545,6 +546,10 @@ export default function BrandView() {
               />
             </SectionCard>
 
+
+            <SectionCard title="Aprendizado da IA" icon={<TrendingUp className="h-4 w-4" />} accentColor={brandColor}>
+              <BrandFeedbackPanel brandId={brand.id} accentColor={brandColor} />
+            </SectionCard>
 
             <div className="bg-card/60 backdrop-blur-sm rounded-2xl p-4 text-xs text-muted-foreground space-y-1.5 border border-border/10">
               <div className="flex items-center gap-2">
