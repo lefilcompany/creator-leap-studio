@@ -845,6 +845,9 @@ export default function ContentResult() {
                   />
                 </div>
               </Card>
+
+              {/* Compliance Alert */}
+              <ComplianceAlert compliance={contentData?.complianceCheck as ComplianceData} className="mt-3" />
             </div>
 
             {/* Right column - Info */}
