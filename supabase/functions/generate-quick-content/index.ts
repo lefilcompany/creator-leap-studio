@@ -484,7 +484,73 @@ REGRAS:
       console.error('[Quick Step 8] Caption generation error:', captionError);
     }
 
-    // Deduct credits
+    // =====================================
+    // STEP 9: Compliance Check + Auto-correction
+    // =====================================
+    console.log('[Quick Step 9] Running compliance check...');
+    let complianceResult: ComplianceResult | null = null;
+
+    try {
+      const brandCtx = brandData ? `Marca: ${brandData.name}, Segmento: ${brandData.segment}` : '';
+      complianceResult = await checkCompliance(finalImageUrl, prompt || '', GEMINI_API_KEY, brandCtx);
+
+      if (!complianceResult.approved && complianceResult.correctionInstructions) {
+        console.log('[Quick Step 9] ❌ Compliance FAILED. Auto-correcting...');
+        const originalIssues = [...(complianceResult.flags || [])];
+
+        try {
+          const correctedPrompt = `${prompt}\n\nCORREÇÕES OBRIGATÓRIAS DE COMPLIANCE:\n${complianceResult.correctionInstructions}`;
+          const correctedParts = convertToGeminiParts([
+            { type: 'text', text: correctedPrompt }
+          ]);
+
+          const correctedResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${usedImageModel}:generateContent?key=${GEMINI_API_KEY}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ role: 'user', parts: correctedParts }],
+              generationConfig: {
+                responseModalities: ['IMAGE', 'TEXT'],
+                ...(geminiAspectRatio ? { imageConfig: { aspectRatio: geminiAspectRatio } } : {}),
+              },
+            }),
+          });
+
+          if (correctedResponse.ok) {
+            const correctedData = await correctedResponse.json();
+            const correctedExtracted = extractImageFromResponse(correctedData);
+
+            if (correctedExtracted.imageUrl) {
+              let correctedBinary: Uint8Array;
+              if (correctedExtracted.imageUrl.startsWith('data:')) {
+                correctedBinary = decodeBase64Image(correctedExtracted.imageUrl);
+              } else {
+                const imgResp = await fetch(correctedExtracted.imageUrl);
+                correctedBinary = new Uint8Array(await imgResp.arrayBuffer());
+              }
+
+              const correctedPost = await postProcessImage(correctedBinary, normalizedAspectRatio, dims.width, dims.height);
+              const correctedFileName = `quick-content/${authenticatedTeamId || authenticatedUserId}/${Date.now()}_corrected.png`;
+              const { error: correctedUploadErr } = await supabase.storage.from('content-images').upload(correctedFileName, correctedPost.processedData, { contentType: 'image/png', upsert: false });
+
+              if (!correctedUploadErr) {
+                const { data: correctedUrlData } = supabase.storage.from('content-images').getPublicUrl(correctedFileName);
+                finalImageUrl = correctedUrlData.publicUrl;
+                console.log('[Quick Step 9] ✅ Corrected image uploaded:', finalImageUrl);
+              }
+
+              complianceResult = { ...complianceResult, approved: true, wasAutoCorrected: true, originalIssues, score: 85 };
+            }
+          }
+        } catch (correctionError) {
+          console.error('[Quick Step 9] Auto-correction failed:', correctionError);
+        }
+      }
+    } catch (complianceError) {
+      console.error('[Quick Step 9] Compliance check error:', complianceError);
+    }
+
+    // Deduct credits (uma vez, mesmo com regeneração)
     const deductResult = await deductUserCredits(supabase, authenticatedUserId, creditCost);
     if (!deductResult.success) console.error('Error deducting credits:', deductResult.error);
 
@@ -534,6 +600,7 @@ REGRAS:
         requestedAspectRatio: postProcessResult.requestedAspectRatio,
         wasCropped: postProcessResult.wasCropped,
         wasResized: postProcessResult.wasResized,
+        complianceCheck: complianceResult,
       }
     }).select().single();
 
@@ -555,6 +622,7 @@ REGRAS:
       finalHeight: postProcessResult.finalHeight,
       finalAspectRatio: postProcessResult.finalAspectRatio,
       requestedAspectRatio: postProcessResult.requestedAspectRatio,
+      complianceCheck: complianceResult,
     }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
   } catch (error) {
