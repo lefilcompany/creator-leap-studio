@@ -620,6 +620,7 @@ export default function ActionView() {
           {/* ══ CRIAR_CONTEUDO_RAPIDO ══ */}
           {action.type === 'CRIAR_CONTEUDO_RAPIDO' && (
             <>
+              {/* Row: Image + Legenda side by side */}
               <div className="flex flex-col lg:flex-row gap-6">
                 {/* Image */}
                 {action.result?.imageUrl && (
@@ -636,79 +637,79 @@ export default function ActionView() {
                     </SectionCard>
                   </div>
                 )}
-                {/* Details & Info */}
-                <div className={action.result?.imageUrl ? 'lg:w-1/2' : 'w-full'}>
-                  <SectionCard title="Detalhes e Informações" icon={<ClipboardList className="h-4 w-4" />} accentColor={accentColor}>
-                    <div className="space-y-5">
-                      {action.details?.objective && <DetailField label="Objetivo"><p className="text-sm font-medium text-foreground">{action.details.objective}</p></DetailField>}
-                      {action.details?.platform && renderPlatformField(action.details.platform)}
-                      {action.details?.tone && Array.isArray(action.details.tone) && action.details.tone.length > 0 && (
-                        <DetailField label="Tom de Voz">
-                          <div className="flex flex-wrap gap-2 mt-1">{action.details.tone.map((t: string, idx: number) => <Badge key={idx} variant="outline">{t}</Badge>)}</div>
-                        </DetailField>
-                      )}
-                      {action.details?.additionalInfo && <DetailField label="Informações Adicionais"><p className="text-sm text-foreground leading-relaxed">{action.details.additionalInfo}</p></DetailField>}
-                      {action.details?.isVideoMode && (
-                        <div className="grid grid-cols-2 gap-4">
-                          <DetailField label="Modo de Geração"><Badge variant="secondary">Vídeo</Badge></DetailField>
-                          {action.details.ratio && <DetailField label="Proporção"><p className="text-sm font-medium text-foreground">{action.details.ratio}</p></DetailField>}
-                          {action.details.duration && <DetailField label="Duração"><p className="text-sm font-medium text-foreground">{action.details.duration}s</p></DetailField>}
-                        </div>
-                      )}
-                      <Separator className="bg-border/10" />
-                      <div className="grid grid-cols-2 gap-4">
-                        <DetailField label="Data de Criação"><p className="text-sm font-medium text-foreground">{formatDate(action.createdAt)}</p></DetailField>
-                        <DetailField label="Marca"><p className="text-sm font-medium text-foreground">{action.brand?.name || 'Não especificada'}</p></DetailField>
-                        <DetailField label="Criado por"><p className="text-sm font-medium text-foreground break-words">{action.user?.name || 'Não especificado'}</p></DetailField>
-                        <DetailField label="Status"><Badge className={`mt-1 ${getStatusColor(action.status)}`}>{action.status}</Badge></DetailField>
+                {/* Legenda ao lado da imagem */}
+                {action.result && (action.result.headline || action.result.legenda || action.result.title || action.result.body) && (
+                  <div className={action.result?.imageUrl ? 'lg:w-1/2' : 'w-full'}>
+                    <SectionCard title="Legenda" icon={<FileOutput className="h-4 w-4" />} accentColor={accentColor}>
+                      <div className="space-y-6">
+                        {(action.result.headline || action.result.title) && (
+                          <div>
+                            <div className="flex items-center justify-between mb-2">
+                              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Título</p>
+                              <Button variant="ghost" size="sm" onClick={() => handleCopyText((action.result!.headline || action.result!.title)!)} disabled={copying}>{copying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Copy className="mr-2 h-4 w-4" />}Copiar</Button>
+                            </div>
+                            <div className="p-4 bg-muted/30 rounded-xl border border-border/10"><p className="font-medium text-foreground">{action.result.headline || action.result.title}</p></div>
+                          </div>
+                        )}
+                        {action.result.subtexto && (
+                          <div>
+                            <div className="flex items-center justify-between mb-2">
+                              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Subtexto</p>
+                              <Button variant="ghost" size="sm" onClick={() => handleCopyText(action.result!.subtexto!)} disabled={copying}>{copying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Copy className="mr-2 h-4 w-4" />}Copiar</Button>
+                            </div>
+                            <div className="p-4 bg-muted/30 rounded-xl border border-border/10"><p className="text-foreground text-sm">{action.result.subtexto}</p></div>
+                          </div>
+                        )}
+                        {(action.result.legenda || action.result.body) && (
+                          <div>
+                            <div className="flex items-center justify-between mb-2">
+                              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Corpo da Legenda</p>
+                              <Button variant="ghost" size="sm" onClick={() => handleCopyText((action.result!.legenda || action.result!.body)!)} disabled={copying}>{copying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Copy className="mr-2 h-4 w-4" />}Copiar</Button>
+                            </div>
+                            <div className="p-4 bg-muted/30 rounded-xl border border-border/10"><p className="whitespace-pre-wrap text-foreground leading-relaxed text-sm">{action.result.legenda || action.result.body}</p></div>
+                          </div>
+                        )}
+                        {action.result.hashtags && action.result.hashtags.length > 0 && (
+                          <div>
+                            <div className="flex items-center justify-between mb-2">
+                              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Hashtags</p>
+                              <Button variant="ghost" size="sm" onClick={() => handleCopyText(action.result!.hashtags!.join(' '))} disabled={copying}>{copying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Copy className="mr-2 h-4 w-4" />}Copiar</Button>
+                            </div>
+                            <div className="p-4 bg-muted/30 rounded-xl border border-border/10"><div className="flex flex-wrap gap-2">{action.result.hashtags.map((tag: string, idx: number) => <Badge key={idx} variant="secondary">{tag}</Badge>)}</div></div>
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  </SectionCard>
-                </div>
-              </div>
-              {/* Legenda / Social Media Content */}
-              {action.result && (action.result.headline || action.result.legenda || action.result.title || action.result.body) && (
-                <SectionCard title="Legenda" icon={<FileOutput className="h-4 w-4" />} accentColor={accentColor}>
-                  <div className="space-y-6">
-                    {(action.result.headline || action.result.title) && (
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Título</p>
-                          <Button variant="ghost" size="sm" onClick={() => handleCopyText((action.result!.headline || action.result!.title)!)} disabled={copying}>{copying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Copy className="mr-2 h-4 w-4" />}Copiar</Button>
-                        </div>
-                        <div className="p-4 bg-muted/30 rounded-xl border border-border/10"><p className="font-medium text-foreground">{action.result.headline || action.result.title}</p></div>
-                      </div>
-                    )}
-                    {action.result.subtexto && (
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Subtexto</p>
-                          <Button variant="ghost" size="sm" onClick={() => handleCopyText(action.result!.subtexto!)} disabled={copying}>{copying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Copy className="mr-2 h-4 w-4" />}Copiar</Button>
-                        </div>
-                        <div className="p-4 bg-muted/30 rounded-xl border border-border/10"><p className="text-foreground text-sm">{action.result.subtexto}</p></div>
-                      </div>
-                    )}
-                    {(action.result.legenda || action.result.body) && (
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Corpo da Legenda</p>
-                          <Button variant="ghost" size="sm" onClick={() => handleCopyText((action.result!.legenda || action.result!.body)!)} disabled={copying}>{copying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Copy className="mr-2 h-4 w-4" />}Copiar</Button>
-                        </div>
-                        <div className="p-4 bg-muted/30 rounded-xl border border-border/10"><p className="whitespace-pre-wrap text-foreground leading-relaxed text-sm">{action.result.legenda || action.result.body}</p></div>
-                      </div>
-                    )}
-                    {action.result.hashtags && action.result.hashtags.length > 0 && (
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Hashtags</p>
-                          <Button variant="ghost" size="sm" onClick={() => handleCopyText(action.result!.hashtags!.join(' '))} disabled={copying}>{copying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Copy className="mr-2 h-4 w-4" />}Copiar</Button>
-                        </div>
-                        <div className="p-4 bg-muted/30 rounded-xl border border-border/10"><div className="flex flex-wrap gap-2">{action.result.hashtags.map((tag: string, idx: number) => <Badge key={idx} variant="secondary">{tag}</Badge>)}</div></div>
-                      </div>
-                    )}
+                    </SectionCard>
                   </div>
-                </SectionCard>
-              )}
+                )}
+              </div>
+              {/* Detalhes e Informações abaixo */}
+              <SectionCard title="Detalhes e Informações" icon={<ClipboardList className="h-4 w-4" />} accentColor={accentColor}>
+                <div className="space-y-5">
+                  {action.details?.objective && <DetailField label="Objetivo"><p className="text-sm font-medium text-foreground">{action.details.objective}</p></DetailField>}
+                  {action.details?.platform && renderPlatformField(action.details.platform)}
+                  {action.details?.tone && Array.isArray(action.details.tone) && action.details.tone.length > 0 && (
+                    <DetailField label="Tom de Voz">
+                      <div className="flex flex-wrap gap-2 mt-1">{action.details.tone.map((t: string, idx: number) => <Badge key={idx} variant="outline">{t}</Badge>)}</div>
+                    </DetailField>
+                  )}
+                  {action.details?.additionalInfo && <DetailField label="Informações Adicionais"><p className="text-sm text-foreground leading-relaxed">{action.details.additionalInfo}</p></DetailField>}
+                  {action.details?.isVideoMode && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <DetailField label="Modo de Geração"><Badge variant="secondary">Vídeo</Badge></DetailField>
+                      {action.details.ratio && <DetailField label="Proporção"><p className="text-sm font-medium text-foreground">{action.details.ratio}</p></DetailField>}
+                      {action.details.duration && <DetailField label="Duração"><p className="text-sm font-medium text-foreground">{action.details.duration}s</p></DetailField>}
+                    </div>
+                  )}
+                  <Separator className="bg-border/10" />
+                  <div className="grid grid-cols-2 gap-4">
+                    <DetailField label="Data de Criação"><p className="text-sm font-medium text-foreground">{formatDate(action.createdAt)}</p></DetailField>
+                    <DetailField label="Marca"><p className="text-sm font-medium text-foreground">{action.brand?.name || 'Não especificada'}</p></DetailField>
+                    <DetailField label="Criado por"><p className="text-sm font-medium text-foreground break-words">{action.user?.name || 'Não especificado'}</p></DetailField>
+                    <DetailField label="Status"><Badge className={`mt-1 ${getStatusColor(action.status)}`}>{action.status}</Badge></DetailField>
+                  </div>
+                </div>
+              </SectionCard>
             </>
           )}
 
