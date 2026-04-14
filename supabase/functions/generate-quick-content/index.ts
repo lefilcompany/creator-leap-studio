@@ -343,7 +343,19 @@ serve(async (req) => {
       if (img) messageContent.push({ type: 'image_url', image_url: { url: img } });
     }
 
-    console.log(`[Step 3] Message parts: ${messageContent.length} (1 text + ${messageContent.length - 1} images, preserve: ${limitedPreserve.length}, style: ${limitedStyle.length}, fallback: ${fallbackImages.length})`);
+    // Add approved feedback images as style references (only if user hasn't maxed out manual references)
+    const totalManualImages = limitedPreserve.length + limitedStyle.length + fallbackImages.length;
+    const feedbackSlots = Math.max(0, 5 - totalManualImages);
+    const feedbackToAdd = feedbackBase64Images.slice(0, feedbackSlots);
+    if (feedbackToAdd.length > 0) {
+      messageContent.push({ type: 'text', text: `\n\nREFERÊNCIAS DE ESTILO APROVADO: As ${feedbackToAdd.length} imagem(ns) a seguir foram APROVADAS pelo usuário como exemplos do estilo visual desejado para esta marca. Use-as como referência forte para cores, composição, atmosfera e estilo geral. Mantenha consistência visual com essas referências aprovadas.` });
+      for (const img of feedbackToAdd) {
+        messageContent.push({ type: 'image_url', image_url: { url: img } });
+      }
+      console.log(`[Quick] Added ${feedbackToAdd.length} approved feedback images as style references`);
+    }
+
+    console.log(`[Step 3] Message parts: ${messageContent.length} (text + ${messageContent.length - 1} other parts, preserve: ${limitedPreserve.length}, style: ${limitedStyle.length}, fallback: ${fallbackImages.length}, feedback: ${feedbackToAdd.length})`);
 
     // =====================================
     // STEP 4: Generate image via Gateway with retry
