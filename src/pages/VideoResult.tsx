@@ -303,7 +303,11 @@ export default function VideoResult() {
             </CardContent>
           </Card>
 
-          {/* Info and Actions Grid */}
+          {/* Compliance Alert */}
+          {!videoData.isProcessing && (
+            <ComplianceAlert compliance={videoData.complianceCheck} mediaType="video" />
+          )}
+
           <div className="grid md:grid-cols-2 gap-4">
             {/* Platform and Brand Info */}
             <Card className="border-primary/10">
