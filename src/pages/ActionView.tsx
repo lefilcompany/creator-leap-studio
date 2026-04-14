@@ -646,6 +646,9 @@ export default function ActionView() {
                         </div>
                       </div>
                     </SectionCard>
+                    {action.result?.complianceCheck && (
+                      <ComplianceAlert data={action.result.complianceCheck as any} />
+                    )}
                     <CreationFeedback
                       actionId={action.id}
                       brandId={action.brandId || undefined}
@@ -730,6 +733,9 @@ export default function ActionView() {
                       <video src={action.result.videoUrl} controls className="w-full h-auto" playsInline>Seu navegador não suporta a tag de vídeo.</video>
                     </div>
                   </SectionCard>
+                  {action.result?.complianceCheck && (
+                    <ComplianceAlert data={action.result.complianceCheck as any} />
+                  )}
                   <CreationFeedback
                     actionId={action.id}
                     brandId={action.brandId || undefined}
@@ -787,6 +793,9 @@ export default function ActionView() {
                         </div>
                       </div>
                     </SectionCard>
+                    {action.result?.complianceCheck && (
+                      <ComplianceAlert data={action.result.complianceCheck as any} />
+                    )}
                     <CreationFeedback
                       actionId={action.id}
                       brandId={action.brandId || undefined}
