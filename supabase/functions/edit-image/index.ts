@@ -11,10 +11,6 @@ const corsHeaders = {
 
 const MAX_PROMPT_LENGTH = 8000;
 
-function cleanInput(text: string | undefined | null): string {
-  if (!text) return '';
-  return text.replace(/[<>{}\[\]"`]/g, '').replace(/\s+/g, ' ').trim();
-}
 
 function buildRevisionPrompt(
   adjustment: string,
