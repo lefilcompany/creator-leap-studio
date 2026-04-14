@@ -162,11 +162,16 @@ export async function checkCompliance(
     const data = await response.json();
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
     
-    // Parse JSON da resposta - strip markdown code blocks first
-    const cleanedText = text.replace(/```(?:json)?\s*/g, '').replace(/```\s*/g, '');
-    const jsonMatch = cleanedText.match(/\{[\s\S]*\}/);
+    // Parse JSON da resposta - strip markdown fences and extract JSON
+    let cleanText = text;
+    // Remove ```json ... ``` wrapping
+    const fenceMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (fenceMatch) {
+      cleanText = fenceMatch[1].trim();
+    }
+    const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
-      console.error('[Compliance] No JSON in response:', text.substring(0, 200));
+      console.error('[Compliance] No JSON found after cleaning:', cleanText.substring(0, 300));
       return getDefaultApproved();
     }
     
