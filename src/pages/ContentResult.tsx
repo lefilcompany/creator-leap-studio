@@ -35,6 +35,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import createBanner from "@/assets/create-banner.jpg";
+import { ComplianceAlert, type ComplianceData } from "@/components/ComplianceAlert";
 
 function PlatformIcon({ platform, className = "h-3.5 w-3.5" }: { platform: string; className?: string }) {
   switch (platform) {
