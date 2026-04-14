@@ -22,7 +22,7 @@ export function ComplianceAlert({ data, className }: ComplianceAlertProps) {
 
   if (!data) return null;
 
-  const { approved, score, flags, details } = data;
+  const { approved, score, flags, details, wasAutoCorreted } = data;
 
   // Determine severity
   const isWarning = approved && flags.length > 0;
