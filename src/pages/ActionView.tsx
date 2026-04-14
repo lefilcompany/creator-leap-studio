@@ -555,6 +555,10 @@ export default function ActionView() {
                         </div>
                       </div>
                     </SectionCard>
+                    {/* Compliance Alert for images */}
+                    {action.result?.complianceCheck && (
+                      <ComplianceAlert compliance={action.result.complianceCheck as ComplianceData} className="mt-3" />
+                    )}
                   </div>
                 )}
                 {/* Details & Info */}
