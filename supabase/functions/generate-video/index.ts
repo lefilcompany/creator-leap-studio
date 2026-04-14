@@ -865,7 +865,8 @@ STYLE: Maintain the general aesthetic of the reference image while adding dynami
 
     // Usar EdgeRuntime.waitUntil para manter o processamento em background
     // Isso garante que a função continue executando até o vídeo ser processado
-    const backgroundPromise = processVideoGeneration(operationName, actionId, actionData.user_id, actionData.team_id).catch(err => {
+    const brandCtx = brandData ? `Marca: ${brandData.name}, Segmento: ${brandData.segment}` : '';
+    const backgroundPromise = processVideoGeneration(operationName, actionId, actionData.user_id, actionData.team_id, prompt || '', brandCtx).catch(err => {
       console.error('Background video processing error:', err);
     });
     
