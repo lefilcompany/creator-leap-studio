@@ -162,8 +162,9 @@ export async function checkCompliance(
     const data = await response.json();
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
     
-    // Parse JSON da resposta
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    // Parse JSON da resposta - strip markdown code blocks first
+    const cleanedText = text.replace(/```(?:json)?\s*/g, '').replace(/```\s*/g, '');
+    const jsonMatch = cleanedText.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
       console.error('[Compliance] No JSON in response:', text.substring(0, 200));
       return getDefaultApproved();
