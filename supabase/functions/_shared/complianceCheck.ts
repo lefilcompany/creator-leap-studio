@@ -122,14 +122,21 @@ export async function checkCompliance(
       const mimeType = header.match(/data:(.*?);/)?.[1] || 'image/png';
       parts.push({ inlineData: { mimeType, data } });
     } else {
-      // URL - download and convert to base64
+      // URL - download and convert to base64 (chunked to avoid stack overflow)
       const imgResponse = await fetch(imageUrl);
       if (!imgResponse.ok) {
         console.error('[Compliance] Failed to download image:', imgResponse.status);
         return getDefaultApproved();
       }
       const imgBuffer = await imgResponse.arrayBuffer();
-      const base64 = btoa(String.fromCharCode(...new Uint8Array(imgBuffer)));
+      const bytes = new Uint8Array(imgBuffer);
+      const chunkSize = 8192;
+      let binaryStr = '';
+      for (let i = 0; i < bytes.length; i += chunkSize) {
+        const chunk = bytes.subarray(i, i + chunkSize);
+        binaryStr += String.fromCharCode(...chunk);
+      }
+      const base64 = btoa(binaryStr);
       const contentType = imgResponse.headers.get('content-type') || 'image/png';
       parts.push({ inlineData: { mimeType: contentType, data: base64 } });
     }
@@ -142,7 +149,7 @@ export async function checkCompliance(
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [{ role: 'user', parts }],
-          generationConfig: { temperature: 0.1, maxOutputTokens: 2048 },
+          generationConfig: { temperature: 0.1, maxOutputTokens: 4096 },
         }),
       }
     );
@@ -155,10 +162,11 @@ export async function checkCompliance(
     const data = await response.json();
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
     
-    // Parse JSON da resposta
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    // Parse JSON - handle markdown fences and extract JSON object
+    const stripped = text.replace(/```json/g, '').replace(/```/g, '').trim();
+    const jsonMatch = stripped.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
-      console.error('[Compliance] No JSON in response:', text.substring(0, 200));
+      console.error('[Compliance] No JSON found:', stripped.substring(0, 300));
       return getDefaultApproved();
     }
     
@@ -223,7 +231,8 @@ export async function checkVideoCompliance(
     const data = await response.json();
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
     
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    const cleanedText = text.replace(/```(?:json)?\s*/g, '').replace(/```\s*/g, '');
+    const jsonMatch = cleanedText.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
       return getDefaultApproved();
     }
