@@ -73,7 +73,7 @@ export default function QuickContentResult() {
   const [showReportDialog, setShowReportDialog] = useState(false);
   const promptRef = useRef<HTMLParagraphElement>(null);
 
-  const { imageUrl, description, actionId, prompt, brandName, themeName, personaName, platform, headline, subtexto, legenda } = location.state || {};
+  const { imageUrl, description, actionId, prompt, brandName, themeName, personaName, platform, headline, subtexto, legenda, cta, hashtags } = location.state || {};
 
   const checkTruncation = useCallback(() => {
     if (promptRef.current) {
