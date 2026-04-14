@@ -231,7 +231,8 @@ export async function checkVideoCompliance(
     const data = await response.json();
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
     
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    const cleanedText = text.replace(/```(?:json)?\s*/g, '').replace(/```\s*/g, '');
+    const jsonMatch = cleanedText.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
       return getDefaultApproved();
     }
