@@ -640,34 +640,30 @@ export default function ActionView() {
                 {/* Legenda ao lado da imagem */}
                 {action.result && (action.result.headline || action.result.legenda || action.result.title || action.result.body) && (
                   <div className={action.result?.imageUrl ? 'lg:w-1/2' : 'w-full'}>
-                    <SectionCard title="Legenda" icon={<FileOutput className="h-4 w-4" />} accentColor={accentColor}>
+                    <SectionCard title="Legenda" icon={<FileOutput className="h-4 w-4" />} accentColor={accentColor}
+                      headerRight={
+                        <Button variant="ghost" size="sm" onClick={() => {
+                          const r = action.result!;
+                          const title = r.headline || r.title || '';
+                          const body = r.legenda || r.body || '';
+                          const cta = r.cta || '';
+                          const tags = (r.hashtags || []).slice(0, 5).join(' ');
+                          handleCopyText([title, body, cta, tags].filter(Boolean).join('\n\n'));
+                        }} disabled={copying}>{copying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Copy className="mr-2 h-4 w-4" />}Copiar tudo</Button>
+                      }
+                    >
                       <div className="space-y-3">
                         {(action.result.headline || action.result.title) && (
-                          <div>
-                            <div className="flex items-center justify-between">
-                              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Título</p>
-                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleCopyText((action.result!.headline || action.result!.title)!)} disabled={copying}>{copying ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Copy className="h-3.5 w-3.5" />}</Button>
-                            </div>
-                            <p className="font-semibold text-foreground text-base">{action.result.headline || action.result.title}</p>
-                          </div>
+                          <p className="font-semibold text-foreground text-base leading-snug">{action.result.headline || action.result.title}</p>
                         )}
                         {(action.result.legenda || action.result.body) && (
-                          <div>
-                            <div className="flex items-center justify-between">
-                              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Legenda</p>
-                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleCopyText((action.result!.legenda || action.result!.body)!)} disabled={copying}>{copying ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Copy className="h-3.5 w-3.5" />}</Button>
-                            </div>
-                            <p className="whitespace-pre-wrap text-foreground leading-relaxed text-sm">{action.result.legenda || action.result.body}</p>
-                          </div>
+                          <p className="whitespace-pre-wrap text-foreground/90 leading-relaxed text-sm">{action.result.legenda || action.result.body}</p>
+                        )}
+                        {action.result.cta && (
+                          <p className="text-sm font-medium text-primary">{action.result.cta}</p>
                         )}
                         {action.result.hashtags && action.result.hashtags.length > 0 && (
-                          <div>
-                            <div className="flex items-center justify-between">
-                              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Hashtags</p>
-                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleCopyText(action.result!.hashtags!.join(' '))} disabled={copying}>{copying ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Copy className="h-3.5 w-3.5" />}</Button>
-                            </div>
-                            <div className="flex flex-wrap gap-1.5">{action.result.hashtags.map((tag: string, idx: number) => <span key={idx} className="text-sm text-primary">{tag}</span>)}</div>
-                          </div>
+                          <p className="text-sm text-muted-foreground">{action.result.hashtags.slice(0, 5).join(' ')}</p>
                         )}
                       </div>
                     </SectionCard>
