@@ -220,8 +220,9 @@ export default function MarketplaceContent() {
               brandName: data.brandName,
               platform: "marketplace",
               headline: data.headline,
-              subtexto: data.subtexto,
               legenda: data.legenda,
+              cta: data.cta,
+              hashtags: data.hashtags,
             },
           };
         },
