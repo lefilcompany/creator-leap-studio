@@ -922,7 +922,19 @@ serve(async (req) => {
       if (img) messageContent.push({ type: 'image_url', image_url: { url: img } });
     }
 
-    console.log(`[Step 4] Message parts: ${messageContent.length} (1 text + ${messageContent.length - 1} images)`);
+    // Add approved feedback images as style references (only if user hasn't maxed out manual references)
+    const totalManualImages = preserveImages.length + styleReferenceImages.length;
+    const feedbackSlots = Math.max(0, 5 - totalManualImages);
+    const feedbackToAdd = feedbackBase64Images.slice(0, feedbackSlots);
+    if (feedbackToAdd.length > 0) {
+      messageContent.push({ type: 'text', text: `\n\nREFERÊNCIAS DE ESTILO APROVADO: As ${feedbackToAdd.length} imagem(ns) a seguir foram APROVADAS pelo usuário como exemplos do estilo visual desejado para esta marca. Use-as como referência forte para cores, composição, atmosfera e estilo geral. Mantenha consistência visual com essas referências aprovadas.` });
+      for (const img of feedbackToAdd) {
+        messageContent.push({ type: 'image_url', image_url: { url: img } });
+      }
+      console.log(`[Step 4] Added ${feedbackToAdd.length} approved feedback images as style references`);
+    }
+
+    console.log(`[Step 4] Message parts: ${messageContent.length} (text + images)`);
 
     // =====================================
     // STEP 5: Generate image via Gemini Direct API (gemini-3-pro-image-preview)
