@@ -396,6 +396,9 @@ export default function QuickContentResult() {
                   />
                 </div>
               </Card>
+
+              {/* Compliance Alert */}
+              <ComplianceAlert compliance={complianceCheck as ComplianceData} className="mt-3" />
             </div>
 
             {/* Right column - Info */}
