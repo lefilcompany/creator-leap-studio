@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { CreationFeedback } from "@/components/CreationFeedback";
+import { ComplianceAlert } from "@/components/ComplianceAlert";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -69,6 +70,7 @@ interface ContentResultData {
   isLocalFallback?: boolean;
   isProcessing?: boolean;
   categoryId?: string;
+  complianceCheck?: { approved: boolean; score: number; flags: string[]; details: string };
 }
 
 export default function ContentResult() {
@@ -832,6 +834,13 @@ export default function ContentResult() {
                       <span className="hidden sm:inline">Próxima</span>
                       <Redo2 className="h-3.5 w-3.5" />
                     </Button>
+                  </div>
+                )}
+
+                {/* Compliance Alert */}
+                {contentData.complianceCheck && (
+                  <div className="px-3 pt-3">
+                    <ComplianceAlert data={contentData.complianceCheck} />
                   </div>
                 )}
 
