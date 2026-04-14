@@ -122,14 +122,21 @@ export async function checkCompliance(
       const mimeType = header.match(/data:(.*?);/)?.[1] || 'image/png';
       parts.push({ inlineData: { mimeType, data } });
     } else {
-      // URL - download and convert to base64
+      // URL - download and convert to base64 (chunked to avoid stack overflow)
       const imgResponse = await fetch(imageUrl);
       if (!imgResponse.ok) {
         console.error('[Compliance] Failed to download image:', imgResponse.status);
         return getDefaultApproved();
       }
       const imgBuffer = await imgResponse.arrayBuffer();
-      const base64 = btoa(String.fromCharCode(...new Uint8Array(imgBuffer)));
+      const bytes = new Uint8Array(imgBuffer);
+      const chunkSize = 8192;
+      let binaryStr = '';
+      for (let i = 0; i < bytes.length; i += chunkSize) {
+        const chunk = bytes.subarray(i, i + chunkSize);
+        binaryStr += String.fromCharCode(...chunk);
+      }
+      const base64 = btoa(binaryStr);
       const contentType = imgResponse.headers.get('content-type') || 'image/png';
       parts.push({ inlineData: { mimeType: contentType, data: base64 } });
     }
