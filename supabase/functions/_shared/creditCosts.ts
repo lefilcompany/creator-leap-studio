@@ -1,7 +1,6 @@
 export const CREDIT_COSTS = {
   QUICK_IMAGE: 3,           // Imagem rápida (QuickContent)
   COMPLETE_IMAGE: 8,        // Imagem completa (CreateContent)
-  IMAGE_GENERATION: 5,      // Geração de imagem standalone
   IMAGE_EDIT: 1,            // Correção/ajuste de imagem
   IMAGE_REVIEW: 4,          // Revisão de imagem
   CAPTION_REVIEW: 2,        // Revisão de legenda
