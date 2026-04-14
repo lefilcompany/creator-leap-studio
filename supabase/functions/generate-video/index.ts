@@ -128,6 +128,15 @@ async function processVideoGeneration(operationName: string, actionId: string, u
     const videoUrl = publicUrlData.publicUrl;
     console.log('Background: Video uploaded to storage:', videoUrl);
 
+    // Compliance check do vídeo (apenas flag, sem regeneração)
+    let complianceResult: ComplianceResult | null = null;
+    try {
+      complianceResult = await checkVideoCompliance(videoUrl, originalPrompt, GEMINI_API_KEY!, brandContext);
+      console.log('Background: Compliance check:', { approved: complianceResult?.approved, score: complianceResult?.score });
+    } catch (compErr) {
+      console.error('Background: Compliance check error:', compErr);
+    }
+
     // Atualizar histórico com status de conclusão
     await supabase
       .from('credit_history')
@@ -153,10 +162,10 @@ async function processVideoGeneration(operationName: string, actionId: string, u
           videoUrl,
           processingTime: `${attempts * 5} seconds`,
           attempts: attempts,
-          // Metadata do modelo usado
           modelUsed: operationName.includes('veo-3.1') ? 'veo-3.1' : 'veo-3.0',
           audioStyle: Deno.env.get('VIDEO_AUDIO_STYLE') || 'sound_effects',
-          visualStyle: Deno.env.get('VIDEO_VISUAL_STYLE') || 'cinematic'
+          visualStyle: Deno.env.get('VIDEO_VISUAL_STYLE') || 'cinematic',
+          complianceCheck: complianceResult,
         },
         status: 'completed',
         updated_at: new Date().toISOString()
