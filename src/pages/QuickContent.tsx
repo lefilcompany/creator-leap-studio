@@ -229,6 +229,7 @@ export default function QuickContent() {
               prompt: formData.prompt, brandName: data.brandName, themeName: data.themeName,
               personaName: data.personaName, platform: formData.platform,
               headline: data.headline, legenda: data.legenda, cta: data.cta, hashtags: data.hashtags,
+              complianceCheck: data.complianceCheck,
               // Pass full form data for reuse
               brandId: formData.brandId, themeId: formData.themeId, personaId: formData.personaId,
               aspectRatio: formData.aspectRatio, visualStyle: formData.visualStyle,
