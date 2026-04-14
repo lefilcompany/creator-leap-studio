@@ -16,6 +16,7 @@ import {
   convertToGeminiParts,
   fetchApprovedFeedbackImages,
   buildFeedbackMessageParts,
+  uint8ArrayToBase64,
 } from '../_shared/imagePromptBuilder.ts';
 
 const corsHeaders = {
