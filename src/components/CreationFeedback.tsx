@@ -99,43 +99,67 @@ export function CreationFeedback({ actionId, brandId, imageUrl, thumbPath, class
   if (!actionId) return null;
 
   return (
-    <div className={cn("flex items-center gap-2", className)}>
-      <span className="text-xs text-muted-foreground font-medium">Essa criação ficou boa?</span>
-      <div className="flex items-center gap-1">
+    <div className={cn(
+      "rounded-xl border border-border/40 bg-muted/30 backdrop-blur-sm p-3 space-y-2",
+      className
+    )}>
+      <div className="flex items-center gap-2">
+        <div className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center">
+          <ThumbsUp className="h-2.5 w-2.5 text-primary" />
+        </div>
+        <span className="text-xs font-semibold text-foreground tracking-tight">
+          Avalie esta criação
+        </span>
+      </div>
+      <p className="text-[11px] text-muted-foreground leading-relaxed">
+        Seu feedback ensina a IA a criar conteúdos cada vez melhores para sua marca.
+      </p>
+      <div className="flex items-center gap-2 pt-1">
         <Button
-          variant="ghost"
+          variant="outline"
           size="sm"
           disabled={loading}
           onClick={() => handleFeedback("positive")}
           className={cn(
-            "h-8 w-8 p-0 rounded-full transition-all",
+            "h-9 px-4 rounded-lg gap-1.5 text-xs font-medium transition-all duration-200",
             rating === "positive"
-              ? "bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/20 ring-1 ring-emerald-500/30"
-              : "text-muted-foreground hover:text-emerald-600 hover:bg-emerald-500/10"
+              ? "bg-emerald-500/15 text-emerald-600 border-emerald-500/30 hover:bg-emerald-500/20 shadow-sm shadow-emerald-500/10"
+              : "text-muted-foreground hover:text-emerald-600 hover:border-emerald-500/30 hover:bg-emerald-500/5"
           )}
         >
-          {loading && rating !== "positive" ? null : <ThumbsUp className="h-4 w-4" />}
+          <ThumbsUp className="h-3.5 w-3.5" />
+          Gostei
         </Button>
         <Button
-          variant="ghost"
+          variant="outline"
           size="sm"
           disabled={loading}
           onClick={() => handleFeedback("negative")}
           className={cn(
-            "h-8 w-8 p-0 rounded-full transition-all",
+            "h-9 px-4 rounded-lg gap-1.5 text-xs font-medium transition-all duration-200",
             rating === "negative"
-              ? "bg-rose-500/15 text-rose-600 hover:bg-rose-500/20 ring-1 ring-rose-500/30"
-              : "text-muted-foreground hover:text-rose-600 hover:bg-rose-500/10"
+              ? "bg-rose-500/15 text-rose-600 border-rose-500/30 hover:bg-rose-500/20 shadow-sm shadow-rose-500/10"
+              : "text-muted-foreground hover:text-rose-600 hover:border-rose-500/30 hover:bg-rose-500/5"
           )}
         >
-          {loading && rating !== "negative" ? null : <ThumbsDown className="h-4 w-4" />}
+          <ThumbsDown className="h-3.5 w-3.5" />
+          Melhorar
         </Button>
-        {loading && <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />}
+        {loading && <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground ml-1" />}
       </div>
       {rating && (
-        <span className="text-[10px] text-muted-foreground/70 animate-fade-in">
-          {rating === "positive" ? "A IA usará isso como referência" : "A IA evitará esse estilo"}
-        </span>
+        <div className={cn(
+          "flex items-center gap-1.5 pt-1 animate-fade-in",
+          rating === "positive" ? "text-emerald-600" : "text-rose-500"
+        )}>
+          <div className={cn(
+            "h-1.5 w-1.5 rounded-full",
+            rating === "positive" ? "bg-emerald-500" : "bg-rose-500"
+          )} />
+          <span className="text-[11px] font-medium">
+            {rating === "positive" ? "A IA usará isso como referência de estilo" : "A IA evitará criar nesse estilo"}
+          </span>
+        </div>
       )}
     </div>
   );
