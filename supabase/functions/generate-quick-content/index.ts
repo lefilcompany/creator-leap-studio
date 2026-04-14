@@ -449,29 +449,35 @@ REGRAS:
               { inlineData: { mimeType: 'image/png', data: imageBase64 } }
             ]
           }],
-          generationConfig: { temperature: 0.7, maxOutputTokens: 1024 },
+          generationConfig: { temperature: 0.7, maxOutputTokens: 4096 },
         }),
       });
 
       if (captionResponse.ok) {
         const captionResult = await captionResponse.json();
         const captionText = captionResult?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-        console.log('[Quick Step 8] Raw caption response:', captionText.substring(0, 200));
+        console.log('[Quick Step 8] Raw caption response length:', captionText.length, 'preview:', captionText.substring(0, 300));
 
         // Parse JSON from response
-        const jsonMatch = captionText.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          const parsed = JSON.parse(jsonMatch[0]);
-          captionData = {
-            titulo: parsed.titulo || '',
-            legenda: parsed.legenda || '',
-            cta: parsed.cta || '',
-            hashtags: Array.isArray(parsed.hashtags) ? parsed.hashtags.slice(0, 5) : [],
-          };
-          console.log('[Quick Step 8] Caption generated:', { titulo: captionData.titulo, legendaLen: captionData.legenda.length, cta: captionData.cta, hashtagCount: captionData.hashtags.length });
+        try {
+          const jsonMatch = captionText.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            const parsed = JSON.parse(jsonMatch[0]);
+            captionData = {
+              titulo: parsed.titulo || '',
+              legenda: parsed.legenda || '',
+              cta: parsed.cta || '',
+              hashtags: Array.isArray(parsed.hashtags) ? parsed.hashtags.slice(0, 5) : [],
+            };
+            console.log('[Quick Step 8] Caption generated:', { titulo: captionData.titulo, legendaLen: captionData.legenda.length, cta: captionData.cta, hashtagCount: captionData.hashtags.length });
+          } else {
+            console.error('[Quick Step 8] No JSON found in caption response');
+          }
+        } catch (parseError) {
+          console.error('[Quick Step 8] JSON parse error:', parseError, 'raw text:', captionText.substring(0, 500));
         }
       } else {
-        console.error('[Quick Step 8] Caption generation failed:', captionResponse.status);
+        console.error('[Quick Step 8] Caption generation failed:', captionResponse.status, await captionResponse.text());
       }
     } catch (captionError) {
       console.error('[Quick Step 8] Caption generation error:', captionError);
