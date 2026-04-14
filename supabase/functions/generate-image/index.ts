@@ -16,6 +16,7 @@ import {
   convertToGeminiParts,
   fetchApprovedFeedbackImages,
   buildFeedbackMessageParts,
+  uint8ArrayToBase64,
 } from '../_shared/imagePromptBuilder.ts';
 
 const corsHeaders = {
@@ -414,7 +415,7 @@ serve(async (req) => {
     let publicUrl: string;
     if (uploadError) {
       console.error('Storage upload error:', uploadError);
-      const base64Fallback = btoa(String.fromCharCode(...postProcessResult.processedData));
+      const base64Fallback = uint8ArrayToBase64(postProcessResult.processedData);
       publicUrl = `data:image/png;base64,${base64Fallback}`;
       console.warn('[Step 7] Upload failed, returning post-processed base64 fallback');
     } else {
