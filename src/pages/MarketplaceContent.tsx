@@ -223,6 +223,7 @@ export default function MarketplaceContent() {
               legenda: data.legenda,
               cta: data.cta,
               hashtags: data.hashtags,
+              complianceCheck: data.complianceCheck || null,
             },
           };
         },

@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/collapsible";
 import createBanner from "@/assets/create-banner.jpg";
 import { cn } from "@/lib/utils";
+import { ComplianceAlert, type ComplianceData } from "@/components/ComplianceAlert";
 
 function PlatformIcon({ platform, className = "h-3.5 w-3.5" }: { platform: string; className?: string }) {
   switch (platform) {
@@ -73,7 +74,7 @@ export default function QuickContentResult() {
   const [showReportDialog, setShowReportDialog] = useState(false);
   const promptRef = useRef<HTMLParagraphElement>(null);
 
-  const { imageUrl, description, actionId, prompt, brandName, themeName, personaName, platform, headline, subtexto, legenda, cta, hashtags } = location.state || {};
+  const { imageUrl, description, actionId, prompt, brandName, themeName, personaName, platform, headline, subtexto, legenda, cta, hashtags, complianceCheck } = location.state || {};
 
   const checkTruncation = useCallback(() => {
     if (promptRef.current) {
@@ -395,6 +396,9 @@ export default function QuickContentResult() {
                   />
                 </div>
               </Card>
+
+              {/* Compliance Alert */}
+              <ComplianceAlert compliance={complianceCheck as ComplianceData} className="mt-3" />
             </div>
 
             {/* Right column - Info */}

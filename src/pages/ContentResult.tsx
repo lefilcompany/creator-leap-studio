@@ -35,6 +35,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import createBanner from "@/assets/create-banner.jpg";
+import { ComplianceAlert, type ComplianceData } from "@/components/ComplianceAlert";
 
 function PlatformIcon({ platform, className = "h-3.5 w-3.5" }: { platform: string; className?: string }) {
   switch (platform) {
@@ -69,6 +70,7 @@ interface ContentResultData {
   isLocalFallback?: boolean;
   isProcessing?: boolean;
   categoryId?: string;
+  complianceCheck?: ComplianceData;
 }
 
 export default function ContentResult() {
@@ -844,6 +846,9 @@ export default function ContentResult() {
                   />
                 </div>
               </Card>
+
+              {/* Compliance Alert */}
+              <ComplianceAlert compliance={contentData?.complianceCheck as ComplianceData} className="mt-3" />
             </div>
 
             {/* Right column - Info */}
