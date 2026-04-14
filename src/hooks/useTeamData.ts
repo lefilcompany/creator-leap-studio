@@ -112,7 +112,7 @@ export const useTeamMembers = (teamId: string | undefined) => {
       if (!teamId) return [];
 
       const { data, error } = await supabase
-        .from('profiles')
+        .from('teammate_profiles')
         .select('id, name, email, avatar_url')
         .eq('team_id', teamId);
 

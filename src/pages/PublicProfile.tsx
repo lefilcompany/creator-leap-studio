@@ -51,7 +51,7 @@ export default function PublicProfile() {
     try {
       // Load profile data
       const { data: profileData, error } = await supabase
-        .from('profiles')
+        .from('teammate_profiles')
         .select('id, name, email, avatar_url, banner_url, state, city, created_at, team_id')
         .eq('id', userId)
         .single();

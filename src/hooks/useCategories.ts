@@ -281,7 +281,7 @@ export function useCategoryMembers(categoryId: string | undefined) {
 
       const userIds = data.map((m: any) => m.user_id);
       const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
+        .from('teammate_profiles')
         .select('id, name, email, avatar_url')
         .in('id', userIds);
       if (profilesError) throw profilesError;

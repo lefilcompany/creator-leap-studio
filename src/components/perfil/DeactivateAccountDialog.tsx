@@ -44,7 +44,7 @@ export default function DeactivateAccountDialog({ open, onOpenChange }: Deactiva
       
       if (isAdmin) {
         const { data: members, error } = await supabase
-          .from('profiles')
+          .from('teammate_profiles')
           .select('id, name, email')
           .eq('team_id', team.id)
           .neq('id', user.id);

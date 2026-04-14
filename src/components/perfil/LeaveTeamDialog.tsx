@@ -51,7 +51,7 @@ export default function LeaveTeamDialog({ open, onOpenChange, teamName }: LeaveT
 
       if (team?.admin_id === user.id) {
         const { count } = await supabase
-          .from('profiles')
+          .from('teammate_profiles')
           .select('id', { count: 'exact', head: true })
           .eq('team_id', profile.team_id)
           .neq('id', user.id);
