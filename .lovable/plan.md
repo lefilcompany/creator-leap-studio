@@ -1,79 +1,30 @@
 
 
-# Plano: Agente de Compliance/Moderação Pós-Geração
+## Padronizar CORS Headers em Todas as Edge Functions
 
-## Objetivo
-Adicionar uma etapa automática de verificação de compliance em todas as criações de imagem. Após a imagem ser gerada e antes de retornar o resultado ao usuário, um agente de IA (Gemini) analisa a imagem e seu conteúdo textual para detectar violações de diretrizes, leis, conteúdo ofensivo, marcas registradas, etc.
+### Problema
+A maioria das edge functions usa headers CORS mínimos (`authorization, x-client-info, apikey, content-type`), enquanto 3 functions (`customer-portal`, `setup-card`, `platform-chat`) incluem headers extras do SDK Supabase. Versões mais recentes do client JS enviam esses headers extras, e se não forem aceitos, o preflight CORS falha.
 
-## Arquitetura
+### Solução
+Atualizar **todas as 30+ edge functions** para usar os headers completos do SDK:
 
-```text
-Geração da Imagem → Upload ao Storage → [NOVO] Agente de Compliance → Retorno ao Usuário
-                                              │
-                                              ├─ APROVADO → retorna normalmente
-                                              └─ REPROVADO → retorna com flag + motivos
+```
+"authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version"
 ```
 
-O resultado **nunca é bloqueado** — a imagem é entregue ao usuário, mas acompanhada de um campo `complianceCheck` com status e alertas. Isso permite que o usuário decida, mas com total transparência sobre riscos.
+### Arquivos a alterar (~30 files)
+Cada arquivo em `supabase/functions/*/index.ts` que define `corsHeaders` com os headers mínimos terá a string `Access-Control-Allow-Headers` atualizada para incluir os 4 headers extras. Nenhuma outra alteração de lógica.
 
-## Detalhes Técnicos
+### Functions que já estão corretas (não precisam de alteração)
+- `customer-portal/index.ts`
+- `setup-card/index.ts`
+- `platform-chat/index.ts`
 
-### 1. Criar módulo compartilhado `_shared/complianceCheck.ts`
-Função reutilizável que:
-- Recebe a URL pública da imagem (ou base64) e o texto/legenda associados
-- Envia para Gemini Vision (gemini-2.5-flash) com um prompt de moderação
-- Analisa: conteúdo ofensivo, discriminatório, violação de direitos autorais/marcas, informações falsas, conteúdo regulado (saúde, financeiro), nudez/violência, textos ilegíveis ou enganosos
-- Retorna um objeto estruturado: `{ approved: boolean, score: number, flags: string[], details: string }`
-
-### 2. Integrar nos 3 pipelines de geração de imagem
-
-**Funções afetadas:**
-- `generate-image/index.ts` (criação completa)
-- `generate-quick-content/index.ts` (criação rápida / marketplace)
-- `edit-image/index.ts` (edição de imagem)
-
-Em cada uma, após o upload ao storage e antes do retorno final:
-- Chamar `checkCompliance(imageUrl, textos)`
-- Incluir o resultado no campo `result` da action salva e na resposta JSON
-
-### 3. Exibir alertas no frontend
-
-**Páginas afetadas:**
-- `ContentResult.tsx`
-- `QuickContentResult.tsx`
-- `ActionView.tsx`
-
-Criar um componente `ComplianceAlert` que:
-- Mostra um badge verde "Aprovado" se sem flags
-- Mostra alertas amarelos/vermelhos com os motivos encontrados
-- Permite ao usuário reconhecer e prosseguir
-
-### 4. Prompt do Agente de Compliance
-
-O agente verificará:
-- Conteúdo sexual, violento ou discriminatório
-- Uso indevido de símbolos protegidos, marcas registradas ou logotipos
-- Alegações de saúde, financeiras ou jurídicas sem embasamento
-- Textos ilegíveis, truncados ou com erros graves
-- Violação de direitos de imagem (rostos identificáveis sem contexto)
-- Conteúdo que possa violar leis brasileiras (CDC, LGPD, ECA, Marco Civil)
-
-### 5. Sem custo extra de créditos
-A verificação de compliance não consome créditos do usuário — é uma etapa de segurança do sistema.
-
-## Arquivos a Criar/Modificar
-
-| Arquivo | Ação |
-|---------|------|
-| `supabase/functions/_shared/complianceCheck.ts` | **Criar** — módulo compartilhado |
-| `supabase/functions/generate-image/index.ts` | Modificar — integrar chamada |
-| `supabase/functions/generate-quick-content/index.ts` | Modificar — integrar chamada |
-| `supabase/functions/edit-image/index.ts` | Modificar — integrar chamada |
-| `src/components/ComplianceAlert.tsx` | **Criar** — componente de alerta |
-| `src/pages/ContentResult.tsx` | Modificar — exibir compliance |
-| `src/pages/QuickContentResult.tsx` | Modificar — exibir compliance |
-| `src/pages/ActionView.tsx` | Modificar — exibir compliance |
-
-## Impacto no Tempo de Geração
-A verificação adiciona ~3-5 segundos (uma chamada Gemini Vision leve). Se falhar, a imagem é entregue normalmente sem o check (fail-open para não bloquear o usuário).
+### Functions a atualizar
+- `generate-quick-content`, `generate-image`, `generate-video`, `generate-caption`, `generate-plan`
+- `edit-image`, `animate-image`, `review-caption`, `review-image`, `review-text-for-image`, `revise-caption-openai`
+- `create-checkout`, `check-subscription`, `verify-payment`, `daily-subscription-check`, `stripe-webhook`, `get-stripe-revenue`
+- `delete-account`, `deactivate-account`, `reset-user-password`, `send-reset-password-email`
+- `redeem-coupon`, `check-gemini-quota`, `cleanup-trash`, `send-report-email`
+- `rd-station-integration`, `migrate-brands`, `migrate-users`, `migrate-personas`, `migrate-strategic-themes`, `migrate-action-images`
 

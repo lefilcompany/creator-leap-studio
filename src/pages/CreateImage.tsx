@@ -686,7 +686,7 @@ export default function CreateImage() {
             body: JSON.stringify(requestData),
           });
           if (!imageResponse.ok) throw new Error(`Erro ao gerar imagem: ${await imageResponse.text()}`);
-          const { imageUrl, attempt, legenda, complianceCheck } = await imageResponse.json();
+          const { imageUrl, attempt, legenda } = await imageResponse.json();
 
           // Handle caption
           let captionData: any = null;
@@ -737,7 +737,6 @@ export default function CreateImage() {
                 originalFormData: { ...requestData, brandId: formData.brand },
                 actionId: undefined, isLocalFallback,
                 categoryId: selectedCategoryId || undefined,
-                complianceCheck,
               }
             }
           };

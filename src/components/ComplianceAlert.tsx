@@ -1,118 +1,145 @@
-import { ShieldCheck, ShieldAlert, AlertTriangle, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
-import { useState } from 'react';
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
+import { useState } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ShieldCheck, ShieldAlert, ShieldX, ChevronDown, ChevronUp, RefreshCw } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-export interface ComplianceCheckData {
+export interface ComplianceData {
   approved: boolean;
   score: number;
   flags: string[];
   details: string;
+  category?: string;
+  wasAutoCorrected?: boolean;
+  originalIssues?: string[];
   correctionInstructions?: string;
-  wasAutoCorreted?: boolean;
 }
 
 interface ComplianceAlertProps {
-  data: ComplianceCheckData | null | undefined;
+  compliance: ComplianceData | null | undefined;
+  mediaType?: "image" | "video";
   className?: string;
 }
 
-export function ComplianceAlert({ data, className }: ComplianceAlertProps) {
+export function ComplianceAlert({ compliance, mediaType = "image", className }: ComplianceAlertProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  if (!data) return null;
+  if (!compliance) return null;
 
-  const { approved, score, flags, details, wasAutoCorreted } = data;
+  const { approved, score, flags, details, wasAutoCorrected, originalIssues } = compliance;
 
-  // Determine severity
-  const isWarning = approved && flags.length > 0;
-  const isDanger = !approved;
-  const isSafe = approved && flags.length === 0;
+  // Determinar nível de severidade
+  const severity = approved
+    ? wasAutoCorrected
+      ? "corrected"
+      : "safe"
+    : score >= 50
+      ? "warning"
+      : "danger";
 
-  if (isSafe) {
-    return (
-      <div className={cn(
-        "flex items-center gap-2 px-3 py-2 rounded-lg bg-green-500/10 border border-green-500/20",
-        className
-      )}>
-        <ShieldCheck className="h-4 w-4 text-green-600 shrink-0" />
-        <span className="text-xs text-green-700 dark:text-green-400 font-medium">
-          {wasAutoCorreted 
-            ? 'Conteúdo corrigido automaticamente — agora em conformidade'
-            : 'Conteúdo verificado — sem problemas detectados'}
-        </span>
-        {wasAutoCorreted && (
-          <Badge variant="outline" className="text-[10px] border-green-500/30 text-green-600 gap-1">
-            <RefreshCw className="h-2.5 w-2.5" />
-            Auto-corrigido
-          </Badge>
-        )}
-        <Badge variant="outline" className="ml-auto text-[10px] border-green-500/30 text-green-600">
-          {score}/100
-        </Badge>
-      </div>
-    );
-  }
+  const config = {
+    safe: {
+      icon: ShieldCheck,
+      label: "Conteúdo Seguro",
+      badgeClass: "bg-emerald-500/10 text-emerald-600 border-emerald-500/30",
+      alertClass: "border-emerald-500/30 bg-emerald-500/5",
+      iconClass: "text-emerald-500",
+    },
+    corrected: {
+      icon: RefreshCw,
+      label: "Auto-corrigido",
+      badgeClass: "bg-blue-500/10 text-blue-600 border-blue-500/30",
+      alertClass: "border-blue-500/30 bg-blue-500/5",
+      iconClass: "text-blue-500",
+    },
+    warning: {
+      icon: ShieldAlert,
+      label: "Atenção",
+      badgeClass: "bg-amber-500/10 text-amber-600 border-amber-500/30",
+      alertClass: "border-amber-500/30 bg-amber-500/5",
+      iconClass: "text-amber-500",
+    },
+    danger: {
+      icon: ShieldX,
+      label: "Problema Detectado",
+      badgeClass: "bg-red-500/10 text-red-600 border-red-500/30",
+      alertClass: "border-red-500/30 bg-red-500/5",
+      iconClass: "text-red-500",
+    },
+  };
+
+  const { icon: Icon, label, badgeClass, alertClass, iconClass } = config[severity];
 
   return (
-    <div className={cn(
-      "rounded-lg border overflow-hidden",
-      isDanger 
-        ? "bg-destructive/10 border-destructive/30" 
-        : "bg-yellow-500/10 border-yellow-500/30",
-      className
-    )}>
-      <button
-        onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center gap-2 px-3 py-2 text-left"
-      >
-        {isDanger ? (
-          <ShieldAlert className="h-4 w-4 text-destructive shrink-0" />
-        ) : (
-          <AlertTriangle className="h-4 w-4 text-yellow-600 shrink-0" />
-        )}
-        <span className={cn(
-          "text-xs font-medium flex-1",
-          isDanger ? "text-destructive" : "text-yellow-700 dark:text-yellow-400"
-        )}>
-          {isDanger 
-            ? `Atenção: ${flags.length} problema(s) identificado(s)` 
-            : `Aviso: ${flags.length} ponto(s) de atenção`}
-        </span>
-        <Badge 
-          variant="outline" 
-          className={cn(
-            "text-[10px]",
-            isDanger ? "border-destructive/30 text-destructive" : "border-yellow-500/30 text-yellow-600"
-          )}
-        >
-          {score}/100
-        </Badge>
-        {isExpanded ? (
-          <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" />
-        ) : (
-          <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
-        )}
-      </button>
+    <Alert className={cn(alertClass, "transition-all", className)}>
+      <div className="flex items-start gap-3">
+        <Icon className={cn("h-5 w-5 mt-0.5 shrink-0", iconClass)} />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <Badge variant="outline" className={cn("text-xs font-medium", badgeClass)}>
+              {label}
+            </Badge>
+            <span className="text-xs text-muted-foreground">
+              Score: {score}/100
+            </span>
+            {mediaType === "video" && !approved && (
+              <span className="text-xs text-muted-foreground italic">
+                (vídeos não são regenerados automaticamente)
+              </span>
+            )}
+          </div>
 
-      {isExpanded && (
-        <div className="px-3 pb-3 space-y-2">
-          <p className="text-xs text-muted-foreground">{details}</p>
+          {wasAutoCorrected && originalIssues && originalIssues.length > 0 && (
+            <AlertDescription className="mt-2 text-sm text-blue-600">
+              ✅ A {mediaType === "image" ? "imagem" : "mídia"} foi regenerada automaticamente para corrigir:
+              <ul className="list-disc list-inside mt-1 space-y-0.5">
+                {originalIssues.map((issue, i) => (
+                  <li key={i} className="text-xs">{issue}</li>
+                ))}
+              </ul>
+            </AlertDescription>
+          )}
+
           {flags.length > 0 && (
-            <ul className="space-y-1">
-              {flags.map((flag, i) => (
-                <li key={i} className="flex items-start gap-1.5 text-xs text-muted-foreground">
-                  <span className={cn(
-                    "mt-1.5 h-1.5 w-1.5 rounded-full shrink-0",
-                    isDanger ? "bg-destructive" : "bg-yellow-500"
-                  )} />
-                  {flag}
-                </li>
-              ))}
-            </ul>
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 px-1 mt-1 text-xs"
+                onClick={() => setIsExpanded(!isExpanded)}
+              >
+                {isExpanded ? (
+                  <><ChevronUp className="h-3 w-3 mr-1" /> Ocultar detalhes</>
+                ) : (
+                  <><ChevronDown className="h-3 w-3 mr-1" /> Ver {flags.length} {flags.length === 1 ? "alerta" : "alertas"}</>
+                )}
+              </Button>
+
+              {isExpanded && (
+                <div className="mt-2 space-y-2">
+                  <div className="flex flex-wrap gap-1">
+                    {flags.map((flag, i) => (
+                      <Badge key={i} variant="outline" className="text-xs bg-background">
+                        {flag}
+                      </Badge>
+                    ))}
+                  </div>
+                  {details && (
+                    <p className="text-xs text-muted-foreground leading-relaxed">{details}</p>
+                  )}
+                </div>
+              )}
+            </>
+          )}
+
+          {approved && !wasAutoCorrected && flags.length === 0 && (
+            <AlertDescription className="mt-1 text-xs text-muted-foreground">
+              Nenhuma violação de diretrizes ou legislação detectada.
+            </AlertDescription>
           )}
         </div>
-      )}
-    </div>
+      </div>
+    </Alert>
   );
 }

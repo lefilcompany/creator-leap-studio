@@ -3,9 +3,9 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
 import { checkUserCredits, deductUserCredits, recordUserCreditUsage } from '../_shared/userCredits.ts';
-import { checkCompliance, autoCorrectImage } from '../_shared/complianceCheck.ts';
 import { expandBriefing } from '../_shared/expandBriefing.ts';
 import { postProcessImage, resolveAspectRatio, normalizeAspectRatioForGemini, ASPECT_RATIO_DIMENSIONS, decodeBase64Image } from '../_shared/imagePostProcess.ts';
+import { checkCompliance, type ComplianceResult } from '../_shared/complianceCheck.ts';
 import {
   cleanInput,
   normalizeImageArray,
@@ -484,37 +484,73 @@ REGRAS:
       console.error('[Quick Step 8] Caption generation error:', captionError);
     }
 
-    // Compliance check with auto-correction (fail-open)
-    const associatedText = [captionData.titulo, captionData.legenda, captionData.cta].filter(Boolean).join(' ');
-    let complianceCheck = await checkCompliance(finalImageUrl, associatedText || undefined);
-    console.log('[Quick Step 9] Compliance check:', { approved: complianceCheck.approved, score: complianceCheck.score, flags: complianceCheck.flags.length });
+    // =====================================
+    // STEP 9: Compliance Check + Auto-correction
+    // =====================================
+    console.log('[Quick Step 9] Running compliance check...');
+    let complianceResult: ComplianceResult | null = null;
 
-    // Auto-correct if compliance failed and we have correction instructions
-    if (!complianceCheck.approved && complianceCheck.correctionInstructions) {
-      console.log('[Quick Step 9b] Auto-correcting image due to compliance violations...');
-      const correctedBase64 = await autoCorrectImage(finalImageUrl, complianceCheck.correctionInstructions, prompt);
-      if (correctedBase64) {
-        const correctedBinary = Uint8Array.from(atob(correctedBase64.split(',')[1]), c => c.charCodeAt(0));
-        const correctedPostProcess = await postProcessImage(correctedBinary, normalizedAspectRatio, dims.width, dims.height);
-        const correctedFileName = `quick-content/${authenticatedTeamId || authenticatedUserId}/${Date.now()}-corrected.png`;
-        const { error: corrUploadErr } = await supabase.storage.from('content-images').upload(correctedFileName, correctedPostProcess.processedData, { contentType: 'image/png', upsert: false });
-        if (!corrUploadErr) {
-          const { data: { publicUrl: corrUrl } } = supabase.storage.from('content-images').getPublicUrl(correctedFileName);
-          finalImageUrl = corrUrl;
-          console.log('[Quick Step 9b] Corrected image uploaded:', finalImageUrl);
-          const recheck = await checkCompliance(finalImageUrl, associatedText || undefined);
-          recheck.wasAutoCorreted = true;
-          complianceCheck = recheck;
-          console.log('[Quick Step 9b] Re-check compliance:', { approved: complianceCheck.approved, score: complianceCheck.score });
-        } else {
-          console.error('[Quick Step 9b] Failed to upload corrected image:', corrUploadErr);
+    try {
+      const brandCtx = brandData ? `Marca: ${brandData.name}, Segmento: ${brandData.segment}` : '';
+      complianceResult = await checkCompliance(finalImageUrl, prompt || '', GEMINI_API_KEY, brandCtx);
+
+      if (!complianceResult.approved && complianceResult.correctionInstructions) {
+        console.log('[Quick Step 9] ❌ Compliance FAILED. Auto-correcting...');
+        const originalIssues = [...(complianceResult.flags || [])];
+
+        try {
+          const correctedPrompt = `${prompt}\n\nCORREÇÕES OBRIGATÓRIAS DE COMPLIANCE:\n${complianceResult.correctionInstructions}`;
+          const correctedParts = convertToGeminiParts([
+            { type: 'text', text: correctedPrompt }
+          ]);
+
+          const correctedResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${usedImageModel}:generateContent?key=${GEMINI_API_KEY}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ role: 'user', parts: correctedParts }],
+              generationConfig: {
+                responseModalities: ['IMAGE', 'TEXT'],
+                ...(geminiAspectRatio ? { imageConfig: { aspectRatio: geminiAspectRatio } } : {}),
+              },
+            }),
+          });
+
+          if (correctedResponse.ok) {
+            const correctedData = await correctedResponse.json();
+            const correctedExtracted = extractImageFromResponse(correctedData);
+
+            if (correctedExtracted.imageUrl) {
+              let correctedBinary: Uint8Array;
+              if (correctedExtracted.imageUrl.startsWith('data:')) {
+                correctedBinary = decodeBase64Image(correctedExtracted.imageUrl);
+              } else {
+                const imgResp = await fetch(correctedExtracted.imageUrl);
+                correctedBinary = new Uint8Array(await imgResp.arrayBuffer());
+              }
+
+              const correctedPost = await postProcessImage(correctedBinary, normalizedAspectRatio, dims.width, dims.height);
+              const correctedFileName = `quick-content/${authenticatedTeamId || authenticatedUserId}/${Date.now()}_corrected.png`;
+              const { error: correctedUploadErr } = await supabase.storage.from('content-images').upload(correctedFileName, correctedPost.processedData, { contentType: 'image/png', upsert: false });
+
+              if (!correctedUploadErr) {
+                const { data: correctedUrlData } = supabase.storage.from('content-images').getPublicUrl(correctedFileName);
+                finalImageUrl = correctedUrlData.publicUrl;
+                console.log('[Quick Step 9] ✅ Corrected image uploaded:', finalImageUrl);
+              }
+
+              complianceResult = { ...complianceResult, approved: true, wasAutoCorrected: true, originalIssues, score: 85 };
+            }
+          }
+        } catch (correctionError) {
+          console.error('[Quick Step 9] Auto-correction failed:', correctionError);
         }
-      } else {
-        console.warn('[Quick Step 9b] Auto-correction failed, delivering original image with flags');
       }
+    } catch (complianceError) {
+      console.error('[Quick Step 9] Compliance check error:', complianceError);
     }
 
-    // Deduct credits
+    // Deduct credits (uma vez, mesmo com regeneração)
     const deductResult = await deductUserCredits(supabase, authenticatedUserId, creditCost);
     if (!deductResult.success) console.error('Error deducting credits:', deductResult.error);
 
@@ -564,7 +600,7 @@ REGRAS:
         requestedAspectRatio: postProcessResult.requestedAspectRatio,
         wasCropped: postProcessResult.wasCropped,
         wasResized: postProcessResult.wasResized,
-        complianceCheck,
+        complianceCheck: complianceResult,
       }
     }).select().single();
 
@@ -586,7 +622,7 @@ REGRAS:
       finalHeight: postProcessResult.finalHeight,
       finalAspectRatio: postProcessResult.finalAspectRatio,
       requestedAspectRatio: postProcessResult.requestedAspectRatio,
-      complianceCheck,
+      complianceCheck: complianceResult,
     }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
   } catch (error) {

@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { CREDIT_COSTS } from '../_shared/creditCosts.ts';
 import { checkUserCredits, deductUserCredits, recordUserCreditUsage } from '../_shared/userCredits.ts';
+import { checkVideoCompliance, type ComplianceResult } from '../_shared/complianceCheck.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -9,7 +10,7 @@ const corsHeaders = {
 };
 
 // Função para processar vídeo em background
-async function processVideoGeneration(operationName: string, actionId: string, userId: string, teamId: string | null) {
+async function processVideoGeneration(operationName: string, actionId: string, userId: string, teamId: string | null, originalPrompt: string = '', brandContext: string = '') {
   const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
   const BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -127,6 +128,15 @@ async function processVideoGeneration(operationName: string, actionId: string, u
     const videoUrl = publicUrlData.publicUrl;
     console.log('Background: Video uploaded to storage:', videoUrl);
 
+    // Compliance check do vídeo (apenas flag, sem regeneração)
+    let complianceResult: ComplianceResult | null = null;
+    try {
+      complianceResult = await checkVideoCompliance(videoUrl, originalPrompt, GEMINI_API_KEY!, brandContext);
+      console.log('Background: Compliance check:', { approved: complianceResult?.approved, score: complianceResult?.score });
+    } catch (compErr) {
+      console.error('Background: Compliance check error:', compErr);
+    }
+
     // Atualizar histórico com status de conclusão
     await supabase
       .from('credit_history')
@@ -152,10 +162,10 @@ async function processVideoGeneration(operationName: string, actionId: string, u
           videoUrl,
           processingTime: `${attempts * 5} seconds`,
           attempts: attempts,
-          // Metadata do modelo usado
           modelUsed: operationName.includes('veo-3.1') ? 'veo-3.1' : 'veo-3.0',
           audioStyle: Deno.env.get('VIDEO_AUDIO_STYLE') || 'sound_effects',
-          visualStyle: Deno.env.get('VIDEO_VISUAL_STYLE') || 'cinematic'
+          visualStyle: Deno.env.get('VIDEO_VISUAL_STYLE') || 'cinematic',
+          complianceCheck: complianceResult,
         },
         status: 'completed',
         updated_at: new Date().toISOString()
@@ -855,7 +865,8 @@ STYLE: Maintain the general aesthetic of the reference image while adding dynami
 
     // Usar EdgeRuntime.waitUntil para manter o processamento em background
     // Isso garante que a função continue executando até o vídeo ser processado
-    const backgroundPromise = processVideoGeneration(operationName, actionId, actionData.user_id, actionData.team_id).catch(err => {
+    const brandCtx = brandData ? `Marca: ${brandData.name}, Segmento: ${brandData.segment}` : '';
+    const backgroundPromise = processVideoGeneration(operationName, actionId, actionData.user_id, actionData.team_id, prompt || '', brandCtx).catch(err => {
       console.error('Background video processing error:', err);
     });
     
