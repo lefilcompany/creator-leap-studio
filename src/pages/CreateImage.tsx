@@ -997,7 +997,7 @@ export default function CreateImage() {
 
               {/* 2. Personalizações (sem card, flex lado a lado) */}
               <div className="space-y-2.5">
-                <p className="text-base font-bold text-foreground">Personalizações <span className="text-xs font-normal text-muted-foreground">(opcional)</span></p>
+                <p className="text-base font-bold text-foreground">Personalizações</p>
                 <div className="flex flex-wrap gap-2">
                   {/* Tipo de Conteúdo */}
                   <div className={`flex-1 min-w-[140px] flex flex-col rounded-xl p-3 text-left bg-card shadow-sm ${contentType === "ads" ? "ring-1 ring-primary/30" : ""}`}>
