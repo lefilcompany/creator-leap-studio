@@ -8,6 +8,7 @@ import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { Download, Copy, CheckCircle, Sparkles, Calendar, Loader2, Clock, User, Tag, Check, FileText, File, FileCode, LayoutGrid, List, ArrowLeft, Info, Image, Video, ClipboardList, FileOutput, Users, Globe, X, ZoomIn, FolderOpen } from 'lucide-react';
+import { CreationFeedback } from '@/components/CreationFeedback';
 import type { Action } from '@/types/action';
 import { ACTION_TYPE_DISPLAY } from '@/types/action';
 import ReactMarkdown from 'react-markdown';
@@ -570,6 +571,12 @@ export default function ActionView() {
                       )}
                       {action.details?.additionalInfo && <DetailField label="Informações Adicionais"><p className="text-sm text-foreground leading-relaxed">{action.details.additionalInfo}</p></DetailField>}
                       <Separator className="bg-border/10" />
+                      <CreationFeedback
+                        actionId={action.id}
+                        brandId={action.brandId || undefined}
+                        imageUrl={action.result?.imageUrl}
+                        thumbPath={action.result?.thumbPath}
+                      />
                       <div className="grid grid-cols-2 gap-4">
                         <DetailField label="Data de Criação"><p className="text-sm font-medium text-foreground">{formatDate(action.createdAt)}</p></DetailField>
                         <DetailField label="Marca"><p className="text-sm font-medium text-foreground">{action.brand?.name || 'Não especificada'}</p></DetailField>
@@ -689,6 +696,12 @@ export default function ActionView() {
                     </div>
                   )}
                   <Separator className="bg-border/10" />
+                  <CreationFeedback
+                    actionId={action.id}
+                    brandId={action.brandId || undefined}
+                    imageUrl={action.result?.imageUrl}
+                    thumbPath={action.result?.thumbPath}
+                  />
                   <div className="grid grid-cols-2 gap-4">
                     <DetailField label="Data de Criação"><p className="text-sm font-medium text-foreground">{formatDate(action.createdAt)}</p></DetailField>
                     <DetailField label="Marca"><p className="text-sm font-medium text-foreground">{action.brand?.name || 'Não especificada'}</p></DetailField>
@@ -737,6 +750,12 @@ export default function ActionView() {
                     {action.details?.aspectRatio && <DetailField label="Proporção"><p className="text-sm font-medium text-foreground">{action.details.aspectRatio}</p></DetailField>}
                     {action.details?.additionalInfo && <DetailField label="Informações Adicionais"><p className="text-sm text-foreground leading-relaxed">{action.details.additionalInfo}</p></DetailField>}
                     <Separator className="bg-border/10" />
+                    <CreationFeedback
+                      actionId={action.id}
+                      brandId={action.brandId || undefined}
+                      imageUrl={action.result?.imageUrl}
+                      thumbPath={action.result?.thumbPath}
+                    />
                     <div className="grid grid-cols-2 gap-4">
                       <DetailField label="Data de Criação"><p className="text-sm font-medium text-foreground">{formatDate(action.createdAt)}</p></DetailField>
                       <DetailField label="Marca"><p className="text-sm font-medium text-foreground">{action.brand?.name || 'Não especificada'}</p></DetailField>
@@ -790,6 +809,12 @@ export default function ActionView() {
                         </DetailField>
                       )}
                       <Separator className="bg-border/10" />
+                      <CreationFeedback
+                        actionId={action.id}
+                        brandId={action.brandId || undefined}
+                        imageUrl={action.result?.imageUrl || action.result?.originalImage}
+                        thumbPath={action.result?.thumbPath}
+                      />
                       <div className="grid grid-cols-2 gap-4">
                         <DetailField label="Data de Criação"><p className="text-sm font-medium text-foreground">{formatDate(action.createdAt)}</p></DetailField>
                         <DetailField label="Marca"><p className="text-sm font-medium text-foreground">{action.brand?.name || 'Não especificada'}</p></DetailField>
@@ -842,6 +867,10 @@ export default function ActionView() {
                   {action.details?.objective && <DetailField label="Objetivo"><p className="text-sm font-medium text-foreground">{action.details.objective}</p></DetailField>}
                   {action.details?.additionalInfo && <DetailField label="Informações Adicionais"><p className="text-sm text-foreground leading-relaxed">{action.details.additionalInfo}</p></DetailField>}
                   <Separator className="bg-border/10" />
+                  <CreationFeedback
+                    actionId={action.id}
+                    brandId={action.brandId || undefined}
+                  />
                   <div className="grid grid-cols-2 gap-4">
                     <DetailField label="Data de Criação"><p className="text-sm font-medium text-foreground">{formatDate(action.createdAt)}</p></DetailField>
                     <DetailField label="Marca"><p className="text-sm font-medium text-foreground">{action.brand?.name || 'Não especificada'}</p></DetailField>
