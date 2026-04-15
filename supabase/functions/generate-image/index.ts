@@ -409,13 +409,52 @@ serve(async (req) => {
     });
 
     // =====================================
+    // STEP 6.5: Apply Text Overlay (if text enabled)
+    // =====================================
+    let finalImageData = postProcessResult.processedData;
+    
+    if (includeText) {
+      console.log('[Step 6.5] Applying text overlay with typographic engine...');
+      try {
+        const textOverlayConfig = buildTextOverlayConfig({
+          includeText,
+          textContent: textContent || '',
+          textPosition: cleanInput(formData.textPosition) || 'center',
+          fontFamily: formData.fontFamily || 'Montserrat',
+          fontWeight: formData.fontWeight || '700',
+          fontSize: formData.fontSize,
+          textDesignStyle: formData.textDesignStyle || 'clean',
+          ctaText: cleanInput(formData.ctaText) || '',
+          headline: briefingResult.headline || '',
+          subtexto: briefingResult.subtexto || '',
+          disclaimerText: cleanInput(formData.disclaimerText) || '',
+          disclaimerStyle: formData.disclaimerStyle,
+          brandColor: brandData?.brand_color || undefined,
+          contentType: formData.contentType || 'organic',
+          imageWidth: postProcessResult.finalWidth,
+          imageHeight: postProcessResult.finalHeight,
+        });
+
+        if (textOverlayConfig) {
+          finalImageData = await applyTextOverlay(finalImageData, textOverlayConfig);
+          console.log('[Step 6.5] Text overlay applied successfully');
+        } else {
+          console.log('[Step 6.5] No text overlay config generated, skipping');
+        }
+      } catch (overlayError) {
+        console.error('[Step 6.5] Text overlay failed, using image without text:', overlayError);
+        // Continue with original image - text overlay is non-critical
+      }
+    }
+
+    // =====================================
     // STEP 7: Upload to Storage
     // =====================================
     console.log('[Step 7] Uploading post-processed image to storage...');
     const timestamp = Date.now();
     const fileName = `content-images/${authenticatedTeamId || authenticatedUserId}/${timestamp}.png`;
 
-    const { error: uploadError } = await supabase.storage.from('content-images').upload(fileName, postProcessResult.processedData, { contentType: 'image/png', upsert: false });
+    const { error: uploadError } = await supabase.storage.from('content-images').upload(fileName, finalImageData, { contentType: 'image/png', upsert: false });
     
     let publicUrl: string;
     if (uploadError) {
