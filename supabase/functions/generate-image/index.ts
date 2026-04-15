@@ -220,6 +220,7 @@ serve(async (req) => {
       fontFamily: formData.fontFamily,
       fontWeight: formData.fontWeight,
       fontItalic: formData.fontItalic,
+      useTextOverlay: includeText, // Always use text overlay engine for text
     });
 
     // Build image role prefix
