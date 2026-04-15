@@ -1520,9 +1520,7 @@ export default function CreateImage() {
                           className="text-destructive hover:text-destructive hover:bg-destructive/10"
                           onClick={() => {
                             setFormData(prev => ({ ...prev, imageIncludeText: false, imageTextContent: '', ctaText: '', disclaimerText: undefined, disclaimerStyle: undefined }));
-                            setTextModalOpen(false);
-                          }}
-                        >
+                            setFormData(prev => ({ ...prev, imageIncludeText: false, imageTextContent: '', ctaText: '', disclaimerText: undefined, disclaimerStyle: undefined }));
                             setTextModalOpen(false);
                           }}
                         >
