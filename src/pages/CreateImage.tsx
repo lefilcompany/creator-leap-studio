@@ -1610,6 +1610,39 @@ export default function CreateImage() {
                                 </div>
                               </div>
                             </div>
+                            {/* Disclaimer preview */}
+                            {formData.disclaimerText && (
+                              (() => {
+                                const style = formData.disclaimerStyle || 'bottom_horizontal';
+                                if (style === 'bottom_horizontal') {
+                                  return (
+                                    <div className="absolute bottom-0 left-0 right-0 px-2 py-0.5 text-center">
+                                      <span className="text-[6px] text-muted-foreground/70 leading-none">{formData.disclaimerText}</span>
+                                    </div>
+                                  );
+                                }
+                                if (style === 'bottom_left_vertical') {
+                                  return (
+                                    <div className="absolute bottom-2 left-1" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
+                                      <span className="text-[5px] text-muted-foreground/70 leading-none">{formData.disclaimerText}</span>
+                                    </div>
+                                  );
+                                }
+                                if (style === 'bottom_right_vertical') {
+                                  return (
+                                    <div className="absolute bottom-2 right-1" style={{ writingMode: 'vertical-rl' }}>
+                                      <span className="text-[5px] text-muted-foreground/70 leading-none">{formData.disclaimerText}</span>
+                                    </div>
+                                  );
+                                }
+                                // bottom_band
+                                return (
+                                  <div className="absolute bottom-0 left-0 right-0 bg-black/70 px-2 py-0.5 text-center">
+                                    <span className="text-[6px] text-white/80 leading-none">{formData.disclaimerText}</span>
+                                  </div>
+                                );
+                              })()
+                            )}
                             {/* Labels */}
                             <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between">
                               <span className="text-[9px] text-muted-foreground/60 font-medium">
