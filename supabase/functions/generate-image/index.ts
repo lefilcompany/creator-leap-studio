@@ -6,6 +6,7 @@ import { checkUserCredits, deductUserCredits, recordUserCreditUsage } from '../_
 import { expandBriefing } from '../_shared/expandBriefing.ts';
 import { postProcessImage, resolveAspectRatio, normalizeAspectRatioForGemini, ASPECT_RATIO_DIMENSIONS, decodeBase64Image } from '../_shared/imagePostProcess.ts';
 import { checkCompliance, type ComplianceResult } from '../_shared/complianceCheck.ts';
+import { applyTextOverlay, buildTextOverlayConfig } from '../_shared/textOverlay.ts';
 import {
   cleanInput,
   normalizeImageArray,
@@ -219,6 +220,7 @@ serve(async (req) => {
       fontFamily: formData.fontFamily,
       fontWeight: formData.fontWeight,
       fontItalic: formData.fontItalic,
+      useTextOverlay: includeText, // Always use text overlay engine for text
     });
 
     // Build image role prefix
@@ -239,7 +241,9 @@ serve(async (req) => {
     const userNegativePrompt = cleanInput(formData.negativePrompt);
     const negativeComponents = [styleSettings.negativePrompt];
     if (userNegativePrompt) negativeComponents.push(userNegativePrompt);
-    if (!includeText) negativeComponents.push('text, watermark, typography, letters, signature, words, labels');
+    // Always suppress AI text rendering: when no text needed it's obvious; 
+    // when text IS needed, the overlay engine handles it in post-processing
+    negativeComponents.push('text, watermark, typography, letters, signature, words, labels');
     const finalNegativePrompt = negativeComponents.filter(Boolean).join(', ');
 
     // Resolve aspect ratio using shared utility
@@ -407,20 +411,59 @@ serve(async (req) => {
     });
 
     // =====================================
+    // STEP 6.5: Apply Text Overlay (if text enabled)
+    // =====================================
+    let finalImageData = postProcessResult.processedData;
+    
+    if (includeText) {
+      console.log('[Step 6.5] Applying text overlay with typographic engine...');
+      try {
+        const textOverlayConfig = buildTextOverlayConfig({
+          includeText,
+          textContent: textContent || '',
+          textPosition: cleanInput(formData.textPosition) || 'center',
+          fontFamily: formData.fontFamily || 'Montserrat',
+          fontWeight: formData.fontWeight || '700',
+          fontSize: formData.fontSize,
+          textDesignStyle: formData.textDesignStyle || 'clean',
+          ctaText: cleanInput(formData.ctaText) || '',
+          headline: briefingResult.headline || '',
+          subtexto: briefingResult.subtexto || '',
+          disclaimerText: cleanInput(formData.disclaimerText) || '',
+          disclaimerStyle: formData.disclaimerStyle,
+          brandColor: brandData?.brand_color || undefined,
+          contentType: formData.contentType || 'organic',
+          imageWidth: postProcessResult.finalWidth,
+          imageHeight: postProcessResult.finalHeight,
+        });
+
+        if (textOverlayConfig) {
+          finalImageData = await applyTextOverlay(finalImageData, textOverlayConfig);
+          console.log('[Step 6.5] Text overlay applied successfully');
+        } else {
+          console.log('[Step 6.5] No text overlay config generated, skipping');
+        }
+      } catch (overlayError) {
+        console.error('[Step 6.5] Text overlay failed, using image without text:', overlayError);
+        // Continue with original image - text overlay is non-critical
+      }
+    }
+
+    // =====================================
     // STEP 7: Upload to Storage
     // =====================================
     console.log('[Step 7] Uploading post-processed image to storage...');
     const timestamp = Date.now();
     const fileName = `content-images/${authenticatedTeamId || authenticatedUserId}/${timestamp}.png`;
 
-    const { error: uploadError } = await supabase.storage.from('content-images').upload(fileName, postProcessResult.processedData, { contentType: 'image/png', upsert: false });
+    const { error: uploadError } = await supabase.storage.from('content-images').upload(fileName, finalImageData, { contentType: 'image/png', upsert: false });
     
     let publicUrl: string;
     if (uploadError) {
       console.error('Storage upload error:', uploadError);
-      const base64Fallback = uint8ArrayToBase64(postProcessResult.processedData);
+      const base64Fallback = uint8ArrayToBase64(finalImageData);
       publicUrl = `data:image/png;base64,${base64Fallback}`;
-      console.warn('[Step 7] Upload failed, returning post-processed base64 fallback');
+      console.warn('[Step 7] Upload failed, returning base64 fallback');
     } else {
       const { data: urlData } = supabase.storage.from('content-images').getPublicUrl(fileName);
       publicUrl = urlData.publicUrl;
@@ -463,7 +506,8 @@ serve(async (req) => {
         contentType: formData.contentType,
         preserveImagesCount: preserveImages.length,
         styleReferenceImagesCount: styleReferenceImages.length,
-        pipeline: 'premium_v5',
+        pipeline: 'premium_v5_textoverlay',
+        textOverlayUsed: includeText,
         requestedAspectRatio: aspectRatio,
         aspectRatioSource,
       },

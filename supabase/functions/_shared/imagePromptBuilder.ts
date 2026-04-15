@@ -323,6 +323,7 @@ export interface BuildDirectorPromptParams {
   fontFamily?: string;
   fontWeight?: string;
   fontItalic?: boolean;
+  useTextOverlay?: boolean; // When true, AI should NOT render text - overlay engine handles it
 }
 
 export function buildDirectorPrompt(params: BuildDirectorPromptParams): string {
@@ -471,7 +472,32 @@ export function buildDirectorPrompt(params: BuildDirectorPromptParams): string {
   const hasUserText = params.includeText && params.textContent;
   const hasRefinerText = params.headline || params.subtexto;
   
-  if (hasUserText || (isAd && hasRefinerText)) {
+  // When text overlay engine is active, tell AI to NOT render text but leave clean space
+  if (params.useTextOverlay && (hasUserText || (isAd && hasRefinerText) || params.includeText)) {
+    const positionMap: Record<string, string> = {
+      'top': 'terço superior',
+      'center': 'centro',
+      'bottom': 'terço inferior',
+      'top-left': 'canto superior esquerdo',
+      'top-right': 'canto superior direito',
+      'bottom-left': 'canto inferior esquerdo',
+      'bottom-right': 'canto inferior direito',
+    };
+    const textPos = positionMap[params.textPosition || 'center'] || 'centro';
+    
+    sections.push(`### 4. RESERVA DE ESPAÇO PARA TEXTO (SEM TEXTO NA IMAGEM)
+⚠️ INSTRUÇÃO CRÍTICA: NÃO renderize NENHUM texto, letras, palavras, números ou símbolos na imagem.
+O texto será adicionado EXTERNAMENTE por uma engine tipográfica profissional em pós-processamento.
+
+Sua responsabilidade é APENAS:
+1. Criar uma área com ESPAÇO NEGATIVO LIMPO e UNIFORME na posição "${textPos}" da imagem.
+2. Esta área deve ter fundo suave (cor sólida, desfocado ou gradiente sutil) para garantir legibilidade do texto que será sobreposto.
+3. A área reservada deve ocupar aproximadamente 25-35% da imagem na posição indicada.
+4. NÃO coloque elementos visuais importantes nesta zona — ela deve ser "respiro visual".
+5. O restante da composição deve ser rico e completo como uma peça profissional.
+
+PROIBIDO: Qualquer texto, letra, número, símbolo, watermark ou tipografia na imagem gerada.`);
+  } else if (hasUserText || (isAd && hasRefinerText)) {
     const fontDesc = FONT_STYLES[params.fontStyle] || FONT_STYLES['modern'];
     const primaryText = params.textContent || params.headline || '';
     const ctaText = params.ctaText || (isAd ? params.subtexto : '') || '';
