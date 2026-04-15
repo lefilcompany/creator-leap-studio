@@ -1643,16 +1643,16 @@ export default function CreateImage() {
                                 );
                               })()
                             )}
-                            {/* Labels */}
-                            <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between">
-                              <span className="text-[9px] text-muted-foreground/60 font-medium">
-                                {formData.fontFamily || 'Montserrat'}
-                              </span>
-                              <span className="text-[9px] text-muted-foreground/60 font-medium">
-                                {TEXT_DESIGN_OPTIONS.find(d => d.value === formData.textDesignStyle)?.label || 'Clean'}
-                              </span>
-                            </div>
+                            
                           </FormatPreview>
+                          <div className="flex items-center justify-between mt-2 px-1">
+                            <span className="text-[10px] text-foreground/60 font-medium">
+                              {formData.fontFamily || 'Montserrat'}
+                            </span>
+                            <span className="text-[10px] text-foreground/60 font-medium">
+                              {TEXT_DESIGN_OPTIONS.find(d => d.value === formData.textDesignStyle)?.label || 'Clean'}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </div>
