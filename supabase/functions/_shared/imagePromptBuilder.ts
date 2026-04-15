@@ -309,6 +309,8 @@ export interface BuildDirectorPromptParams {
   adProfessionalMode: boolean;
   priceText: string;
   includeBrandLogo: boolean;
+  disclaimerText?: string;
+  disclaimerStyle?: string;
   aspectRatio?: string;
   colorPalette?: string;
   lighting?: string;
