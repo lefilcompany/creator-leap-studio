@@ -533,7 +533,8 @@ IDIOMA OBRIGATÓRIO: Português Brasileiro (pt-BR). Todo texto DEVE seguir ortog
 - Se for anúncio, inclua também um CTA (Call-to-Action) curto e direto (ex: "Saiba mais", "Compre agora", "Garanta o seu").
 - Tipografia: ${FONT_STYLES[params.fontStyle] || FONT_STYLES['modern']}
 - Posição: ${params.textPosition || 'center'}.
-- Legibilidade: 100% legível com contraste absoluto.`);
+- Legibilidade: 100% legível com contraste absoluto.
+- QUALIDADE: Texto com bordas SUAVES e ANTI-ALIASED. Zero serrilhamento. Contornos limpos e nítidos como tipografia profissional impressa.`);
   } else {
     sections.push(`### 4. SEM TEXTO\n- SEM TEXTO: CRÍTICO: NÃO inclua NENHUM texto, palavras, letras, números ou símbolos visíveis na imagem. A imagem deve ser puramente visual.`);
   }
