@@ -459,9 +459,9 @@ serve(async (req) => {
     let publicUrl: string;
     if (uploadError) {
       console.error('Storage upload error:', uploadError);
-      const base64Fallback = uint8ArrayToBase64(postProcessResult.processedData);
+      const base64Fallback = uint8ArrayToBase64(finalImageData);
       publicUrl = `data:image/png;base64,${base64Fallback}`;
-      console.warn('[Step 7] Upload failed, returning post-processed base64 fallback');
+      console.warn('[Step 7] Upload failed, returning base64 fallback');
     } else {
       const { data: urlData } = supabase.storage.from('content-images').getPublicUrl(fileName);
       publicUrl = urlData.publicUrl;
