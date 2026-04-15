@@ -323,6 +323,7 @@ export interface BuildDirectorPromptParams {
   fontFamily?: string;
   fontWeight?: string;
   fontItalic?: boolean;
+  useTextOverlay?: boolean; // When true, AI should NOT render text - overlay engine handles it
 }
 
 export function buildDirectorPrompt(params: BuildDirectorPromptParams): string {
