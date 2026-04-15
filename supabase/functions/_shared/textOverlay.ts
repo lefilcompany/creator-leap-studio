@@ -54,15 +54,76 @@ const FONT_URL_MAP: Record<string, string> = {
   'Caveat': 'caveat',
 };
 
+// Direct TTF URLs from GitHub-hosted Google Fonts mirrors
+const DIRECT_FONT_URLS: Record<string, Record<string, string>> = {
+  'Montserrat': {
+    '400': 'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/montserrat/Montserrat%5Bwght%5D.ttf',
+    '600': 'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/montserrat/Montserrat%5Bwght%5D.ttf',
+    '700': 'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/montserrat/Montserrat%5Bwght%5D.ttf',
+  },
+  'Roboto': {
+    '400': 'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/roboto/Roboto%5Bwdth%2Cwght%5D.ttf',
+    '600': 'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/roboto/Roboto%5Bwdth%2Cwght%5D.ttf',
+    '700': 'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/roboto/Roboto%5Bwdth%2Cwght%5D.ttf',
+  },
+  'Open Sans': {
+    '400': 'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/opensans/OpenSans%5Bwdth%2Cwght%5D.ttf',
+    '700': 'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/opensans/OpenSans%5Bwdth%2Cwght%5D.ttf',
+  },
+  'Lato': {
+    '400': 'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/lato/Lato%5Bwght%5D.ttf',
+    '700': 'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/lato/Lato%5Bwght%5D.ttf',
+  },
+  'Poppins': {
+    '400': 'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/poppins/Poppins-Regular.ttf',
+    '600': 'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/poppins/Poppins-SemiBold.ttf',
+    '700': 'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/poppins/Poppins-Bold.ttf',
+  },
+  'Oswald': {
+    '400': 'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/oswald/Oswald%5Bwght%5D.ttf',
+    '700': 'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/oswald/Oswald%5Bwght%5D.ttf',
+  },
+  'Inter': {
+    '400': 'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/inter/Inter%5Bopsz%2Cwght%5D.ttf',
+    '700': 'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/inter/Inter%5Bopsz%2Cwght%5D.ttf',
+  },
+  'Playfair Display': {
+    '400': 'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/playfairdisplay/PlayfairDisplay%5Bwght%5D.ttf',
+    '700': 'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/playfairdisplay/PlayfairDisplay%5Bwght%5D.ttf',
+  },
+  'Bebas Neue': {
+    '400': 'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/bebasneue/BebasNeue-Regular.ttf',
+    '700': 'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/bebasneue/BebasNeue-Regular.ttf',
+  },
+  'Raleway': {
+    '400': 'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/raleway/Raleway%5Bwght%5D.ttf',
+    '700': 'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/raleway/Raleway%5Bwght%5D.ttf',
+  },
+};
+
 async function downloadFont(fontFamily: string, weight: string = '700'): Promise<Uint8Array> {
   const cacheKey = `${fontFamily}-${weight}`;
   if (fontCache.has(cacheKey)) return fontCache.get(cacheKey)!;
 
   try {
-    // Use Google Fonts CSS API with old user-agent to get TTF
+    // Try direct TTF URL first
+    const familyUrls = DIRECT_FONT_URLS[fontFamily];
+    const directUrl = familyUrls?.[weight] || familyUrls?.['400'];
+
+    if (directUrl) {
+      const fontResp = await fetch(directUrl);
+      if (fontResp.ok) {
+        const fontData = new Uint8Array(await fontResp.arrayBuffer());
+        fontCache.set(cacheKey, fontData);
+        console.log(`[TextOverlay] Downloaded font (direct): ${fontFamily} ${weight} (${fontData.length} bytes)`);
+        return fontData;
+      }
+      console.warn(`[TextOverlay] Direct URL failed for ${fontFamily}: ${fontResp.status}`);
+    }
+
+    // Fallback: Google Fonts CSS API
     const googleName = encodeURIComponent(fontFamily);
     const cssUrl = `https://fonts.googleapis.com/css2?family=${googleName}:wght@${weight}`;
-
     const cssResp = await fetch(cssUrl, {
       headers: { 'User-Agent': 'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)' }
     });
@@ -70,23 +131,23 @@ async function downloadFont(fontFamily: string, weight: string = '700'): Promise
     if (!cssResp.ok) throw new Error(`CSS fetch failed: ${cssResp.status}`);
     const css = await cssResp.text();
 
-    // Extract TTF URL
-    const urlMatch = css.match(/url\(([^)]+\.ttf[^)]*)\)/);
-    if (!urlMatch) throw new Error(`No TTF URL found for ${fontFamily}`);
+    // Match any font URL (ttf, woff, woff2)
+    const urlMatch = css.match(/url\(([^)]+\.(ttf|woff2?|otf)[^)]*)\)/);
+    if (!urlMatch) throw new Error(`No font URL found for ${fontFamily}`);
 
     const fontResp = await fetch(urlMatch[1]);
     if (!fontResp.ok) throw new Error(`Font download failed: ${fontResp.status}`);
 
     const fontData = new Uint8Array(await fontResp.arrayBuffer());
     fontCache.set(cacheKey, fontData);
-    console.log(`[TextOverlay] Downloaded font: ${fontFamily} ${weight} (${fontData.length} bytes)`);
+    console.log(`[TextOverlay] Downloaded font (CSS): ${fontFamily} ${weight} (${fontData.length} bytes)`);
     return fontData;
   } catch (error) {
     console.warn(`[TextOverlay] Failed to download "${fontFamily}": ${error}`);
 
-    // Fallback to Roboto
-    if (fontFamily !== 'Roboto') {
-      return downloadFont('Roboto', weight);
+    // Fallback to Montserrat (most reliable direct URL)
+    if (fontFamily !== 'Montserrat') {
+      return downloadFont('Montserrat', weight);
     }
 
     throw new Error(`Cannot load any font`);
