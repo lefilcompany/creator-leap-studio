@@ -477,21 +477,33 @@ export function buildDirectorPrompt(params: BuildDirectorPromptParams): string {
     const ctaText = params.ctaText || (isAd ? params.subtexto : '') || '';
     
     const textParts = [`### 4. TEXTO E DESIGN
-- IDIOMA OBRIGATÓRIO: Português Brasileiro (pt-BR). Todo texto DEVE seguir ortografia, acentuação e gramática do Português do Brasil. Use acentos corretamente (é, ã, ç, ô, etc.). NUNCA use português de Portugal ou espanhol.`];
+
+⚠️ QUALIDADE TIPOGRÁFICA OBRIGATÓRIA:
+- O texto DEVE ser renderizado com bordas SUAVES e ANTI-ALIASED. NUNCA produza texto serrilhado, pixelado ou com bordas irregulares.
+- Cada caractere deve ter contornos LIMPOS, NÍTIDOS e PERFEITAMENTE DEFINIDOS, como em design gráfico profissional.
+- Use renderização de alta resolução para o texto: mínimo 300 DPI equivalente, com suavização de bordas (anti-aliasing) ativada.
+- O texto deve parecer impresso por uma tipografia profissional, NÃO gerado por computador de baixa qualidade.
+- Se o texto tiver serrilhamento (jagged edges), REFAÇA a renderização com bordas mais suaves.
+
+IDIOMA OBRIGATÓRIO: Português Brasileiro (pt-BR). Todo texto DEVE seguir ortografia, acentuação e gramática do Português do Brasil. Use acentos corretamente (é, ã, ç, ô, etc.). NUNCA use português de Portugal ou espanhol.`];
 
     if (primaryText) {
       textParts.push(`- Headline: Renderize PERFEITAMENTE o texto EXATO: "${primaryText}"
-  - CADA LETRA deve ser renderizada com precisão absoluta. Verifique caractere por caractere.
-  - Acentos e cedilhas (á, é, í, ó, ú, â, ê, ô, ã, õ, ç) DEVEM estar corretos e visíveis.
-  - NÃO altere, omita ou substitua nenhuma letra ou acento do texto fornecido.
-  - NÃO invente texto adicional além do fornecido.`);
+  - SOLETRAÇÃO CARACTERE POR CARACTERE: ${primaryText.split('').map((c, i) => `[${i+1}]="${c}"`).join(' ')}
+  - O texto acima está soletrado caractere por caractere. Reproduza EXATAMENTE esta sequência.
+  - Acentos e cedilhas (á, é, í, ó, ú, â, ê, ô, ã, õ, ç) DEVEM estar corretos, visíveis e com formas suaves.
+  - NÃO altere, omita, troque ou substitua NENHUMA letra ou acento do texto fornecido.
+  - NÃO invente texto adicional além do fornecido.
+  - Cada letra deve ter BORDAS SUAVES e CONTORNOS PERFEITOS — zero serrilhamento.`);
     }
     
     if (ctaText) {
       textParts.push(`- CTA (Call-to-Action): Renderize PERFEITAMENTE o texto EXATO: "${ctaText}"
+  - SOLETRAÇÃO: ${ctaText.split('').map((c, i) => `[${i+1}]="${c}"`).join(' ')}
   - O CTA deve estar posicionado de forma destacada, geralmente na parte inferior da imagem.
   - Use um botão ou destaque visual para o CTA (fundo contrastante, borda arredondada).
-  - O CTA deve ser menor que a headline mas igualmente legível.`);
+  - O CTA deve ser menor que a headline mas igualmente legível.
+  - Bordas do texto do CTA devem ser SUAVES e ANTI-ALIASED.`);
     }
     
     const designPrompt = TEXT_DESIGN_PROMPTS[params.textDesignStyle] || TEXT_DESIGN_PROMPTS['clean'];
@@ -505,8 +517,13 @@ export function buildDirectorPrompt(params: BuildDirectorPromptParams): string {
     textParts.push(`- Tipografia: ${fullTypoDesc}
 - Posição: ${params.textPosition || 'center'}. O texto NÃO deve obstruir o rosto.
 - ${designPrompt}
-- Legibilidade: O texto DEVE ser 100% legível. O design do texto deve fazer parte de uma composição profissional em formato para ${params.platform || 'redes sociais'}.
-- VERIFICAÇÃO FINAL: Antes de finalizar, releia o texto renderizado e confirme que está IDÊNTICO ao texto fornecido, letra por letra, acento por acento.`);
+- Legibilidade: O texto DEVE ser 100% legível com bordas suaves e anti-aliased. O design do texto deve fazer parte de uma composição profissional em formato para ${params.platform || 'redes sociais'}.
+- RENDERIZAÇÃO: Texto com qualidade tipográfica profissional — contornos limpos, kerning correto, sem artefatos visuais, sem pixels soltos, sem bordas irregulares.
+- VERIFICAÇÃO FINAL OBRIGATÓRIA: Antes de finalizar, execute estas verificações:
+  1. Releia o texto renderizado CARACTERE POR CARACTERE e confirme que está IDÊNTICO ao fornecido.
+  2. Verifique que TODOS os acentos estão presentes e corretos (á, é, í, ó, ú, â, ê, ô, ã, õ, ç).
+  3. Confirme que as bordas do texto estão SUAVES (sem serrilhamento/jagged edges).
+  4. Se encontrar qualquer erro, CORRIJA antes de entregar.`);
     
     sections.push(textParts.join('\n'));
   } else if (params.includeText) {
