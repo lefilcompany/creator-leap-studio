@@ -1,30 +1,41 @@
 
 
-## Padronizar CORS Headers em Todas as Edge Functions
+# Plano: Criar equipe "Lefil Testes" com dados completos
 
-### Problema
-A maioria das edge functions usa headers CORS mínimos (`authorization, x-client-info, apikey, content-type`), enquanto 3 functions (`customer-portal`, `setup-card`, `platform-chat`) incluem headers extras do SDK Supabase. Versões mais recentes do client JS enviam esses headers extras, e se não forem aceitos, o preflight CORS falha.
+## Resumo
+Criar a equipe "Lefil Testes", mover Samuel e Rodrigo para ela, e popular com 5 marcas, 5 personas, 5 temas estratégicos e **30 criações** (10 conteúdo rápido, 10 criar conteúdo, 5 calendário de conteúdo, 5 marketplace).
 
-### Solução
-Atualizar **todas as 30+ edge functions** para usar os headers completos do SDK:
+## Dados dos usuários
+- **Samuel**: `cc592fe7-fb8f-4b53-93a1-aa25d848bf43` (atual equipe: `30ade942-ffa3-4800-9e1b-724238309989`)
+- **Rodrigo**: `cf6ac154-9daa-4023-acaf-dd7b2fd7823b` (atual equipe: `a8e8f53f-0fd7-450e-8e9c-029ca943ab79`)
 
-```
-"authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version"
-```
+## Etapas
 
-### Arquivos a alterar (~30 files)
-Cada arquivo em `supabase/functions/*/index.ts` que define `corsHeaders` com os headers mínimos terá a string `Access-Control-Allow-Headers` atualizada para incluir os 4 headers extras. Nenhuma outra alteração de lógica.
+### 1. Criar equipe e mover usuários
+- Remover Samuel e Rodrigo das equipes atuais (limpar `profiles.team_id` e `team_members`)
+- Criar equipe "Lefil Testes" (code: `lefil-testes`, admin: Samuel, plan: `free`)
+- Associar ambos à nova equipe (`profiles.team_id` + `team_members`)
 
-### Functions que já estão corretas (não precisam de alteração)
-- `customer-portal/index.ts`
-- `setup-card/index.ts`
-- `platform-chat/index.ts`
+### 2. Criar 5 marcas
+Marcas fictícias variadas: Café Aroma (Alimentação), StudioFit (Fitness), VerdeTech (Sustentabilidade), PetAmor (Pet Shop), ArteBrasil (Artesanato). Cada uma com segmento, valores, palavras-chave e metas.
 
-### Functions a atualizar
-- `generate-quick-content`, `generate-image`, `generate-video`, `generate-caption`, `generate-plan`
-- `edit-image`, `animate-image`, `review-caption`, `review-image`, `review-text-for-image`, `revise-caption-openai`
-- `create-checkout`, `check-subscription`, `verify-payment`, `daily-subscription-check`, `stripe-webhook`, `get-stripe-revenue`
-- `delete-account`, `deactivate-account`, `reset-user-password`, `send-reset-password-email`
-- `redeem-coupon`, `check-gemini-quota`, `cleanup-trash`, `send-report-email`
-- `rd-station-integration`, `migrate-brands`, `migrate-users`, `migrate-personas`, `migrate-strategic-themes`, `migrate-action-images`
+### 3. Criar 5 personas (1 por marca)
+Dados demográficos, contexto profissional, desafios, tom de voz.
+
+### 4. Criar 5 temas estratégicos (1 por marca)
+Título, descrição, paleta, público-alvo, hashtags, objetivos, plataformas.
+
+### 5. Criar 30 criações (actions)
+Distribuídas entre as 5 marcas (6 por marca):
+- **10× `CRIAR_CONTEUDO_RAPIDO`** — com `details` (prompt, platform, objective) e `result` (título, legenda, hashtags)
+- **10× `CRIAR_CONTEUDO`** — com `details` (prompt, platform, persona, theme) e `result` (imageUrl, título, legenda)
+- **5× `PLANEJAR_CONTEUDO`** — com `details` (objective, platform) e `result` (plan com calendário)
+- **5× `CRIAR_CONTEUDO_RAPIDO` com `mode: 'marketplace'`** — com `details` (prompt, mode: marketplace, platform: marketplace)
+- Datas variadas nos últimos 30 dias
+- `user_id` de Samuel como criador
+
+## Detalhes técnicos
+- Todas as operações via ferramenta de inserção SQL (INSERT/UPDATE/DELETE)
+- Nenhuma migração de schema necessária
+- Execução sequencial: equipe → marcas → personas → temas → ações
 
