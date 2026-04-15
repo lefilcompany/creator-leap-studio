@@ -431,7 +431,7 @@ serve(async (req) => {
     // STEP 8: Compliance Check + Auto-correction
     // =====================================
     console.log('[Step 8] Running compliance check...');
-    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')!;
+    const geminiKeyCompliance = GEMINI_API_KEY;
     const brandContext = formData.brandId ? `Marca: ${formData.description}` : '';
     let complianceResult: ComplianceResult | null = null;
     let finalPublicUrl = publicUrl;
