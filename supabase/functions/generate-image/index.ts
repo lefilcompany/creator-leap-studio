@@ -427,103 +427,7 @@ serve(async (req) => {
       console.log('[Step 7] Image uploaded:', publicUrl);
     }
 
-    // =====================================
-    // STEP 8: Compliance Check + Auto-correction
-    // =====================================
-    console.log('[Step 8] Running compliance check...');
-    const geminiKeyCompliance = GEMINI_API_KEY;
-    const brandContext = formData.brandId ? `Marca: ${formData.description}` : '';
-    let complianceResult: ComplianceResult | null = null;
-    let finalPublicUrl = publicUrl;
-
-    try {
-      complianceResult = await checkCompliance(publicUrl, formData.description || '', GEMINI_API_KEY, brandContext);
-
-      // Se reprovado e temos instruções de correção, regenerar SEM custo extra
-      if (!complianceResult.approved && complianceResult.correctionInstructions) {
-        console.log('[Step 8] ❌ Compliance FAILED. Auto-correcting...');
-        const originalIssues = [...(complianceResult.flags || [])];
-
-        // Regenerar com prompt corrigido
-        try {
-          // Download the original image to use as reference for editing
-          const origImgResp = await fetch(finalPublicUrl);
-          const origImgBuffer = await origImgResp.arrayBuffer();
-          const origBytes = new Uint8Array(origImgBuffer);
-          const chunkSize = 8192;
-          let binaryStr = '';
-          for (let i = 0; i < origBytes.length; i += chunkSize) {
-            const chunk = origBytes.subarray(i, i + chunkSize);
-            binaryStr += String.fromCharCode(...chunk);
-          }
-          const origBase64 = btoa(binaryStr);
-          const origMimeType = origImgResp.headers.get('content-type') || 'image/png';
-
-          const correctedParts = [
-            { 
-              text: `Edite esta imagem para corrigir os seguintes problemas de compliance, mantendo o máximo possível da composição, estilo, cores e elementos originais. A imagem corrigida deve ser visualmente muito similar à original, apenas com as correções necessárias aplicadas:\n\nPROBLEMAS A CORRIGIR:\n${complianceResult.correctionInstructions}\n\nINSTRUÇÃO ORIGINAL: ${formData.description}\n\nIMPORTANTE: Mantenha a mesma cena, cenário, personagens e estilo visual. Apenas corrija os problemas específicos listados acima.` 
-            },
-            { inlineData: { mimeType: origMimeType, data: origBase64 } }
-          ];
-
-          const editModel = 'gemini-2.5-flash-image-preview';
-          const correctedResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${editModel}:generateContent?key=${GEMINI_API_KEY}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{ role: 'user', parts: correctedParts }],
-              generationConfig: {
-                responseModalities: ['IMAGE', 'TEXT'],
-              },
-            }),
-          });
-
-          if (correctedResponse.ok) {
-            const correctedData = await correctedResponse.json();
-            const correctedExtracted = extractImageFromResponse(correctedData);
-
-            if (correctedExtracted.imageUrl) {
-              console.log('[Step 8] ✅ Corrected image generated, post-processing...');
-
-              let correctedBinary: Uint8Array;
-              if (correctedExtracted.imageUrl.startsWith('data:')) {
-                correctedBinary = decodeBase64Image(correctedExtracted.imageUrl);
-              } else {
-                const imgResp = await fetch(correctedExtracted.imageUrl);
-                correctedBinary = new Uint8Array(await imgResp.arrayBuffer());
-              }
-
-              const correctedPost = await postProcessImage(correctedBinary, aspectRatio, targetDims.width, targetDims.height);
-
-              // Upload corrected image
-              const correctedFileName = `content-images/${authenticatedTeamId || authenticatedUserId}/${Date.now()}_corrected.png`;
-              const { error: correctedUploadErr } = await supabase.storage.from('content-images').upload(correctedFileName, correctedPost.processedData, { contentType: 'image/png', upsert: false });
-
-              if (!correctedUploadErr) {
-                const { data: correctedUrlData } = supabase.storage.from('content-images').getPublicUrl(correctedFileName);
-                finalPublicUrl = correctedUrlData.publicUrl;
-                console.log('[Step 8] ✅ Corrected image uploaded:', finalPublicUrl);
-              }
-
-              complianceResult = {
-                ...complianceResult,
-                approved: true,
-                wasAutoCorrected: true,
-                originalIssues,
-                score: 85,
-              };
-            }
-          }
-        } catch (correctionError) {
-          console.error('[Step 8] Auto-correction failed:', correctionError);
-          // Manter a imagem original com os flags de compliance
-        }
-      }
-    } catch (complianceError) {
-      console.error('[Step 8] Compliance check error:', complianceError);
-    }
-
-    // Deduct credits (apenas uma vez, mesmo com regeneração)
+    // Deduct credits
     const deductResult = await deductUserCredits(supabase, authenticatedUserId, CREDIT_COSTS.COMPLETE_IMAGE);
     const creditsAfter = deductResult.newCredits;
     if (!deductResult.success) console.error('Error deducting credits:', deductResult.error);
@@ -564,7 +468,7 @@ serve(async (req) => {
         aspectRatioSource,
       },
       result: {
-        imageUrl: finalPublicUrl,
+        imageUrl: publicUrl,
         description: resultDescription,
         headline: briefingResult.headline || null,
         subtexto: briefingResult.subtexto || null,
@@ -575,14 +479,112 @@ serve(async (req) => {
         requestedAspectRatio: postProcessResult.requestedAspectRatio,
         wasCropped: postProcessResult.wasCropped,
         wasResized: postProcessResult.wasResized,
-        complianceCheck: complianceResult,
+        complianceCheck: null,
       }
     }).select().single();
 
     if (actionError) console.error('Error creating action:', actionError);
 
+    // =====================================
+    // STEP 8: Compliance Check in Background
+    // =====================================
+    const actionId = actionData?.id;
+    if (actionId) {
+      const bgTask = async () => {
+        try {
+          console.log('[BG] Running compliance check...');
+          const brandContext = formData.brandId ? `Marca: ${formData.description}` : '';
+          let complianceResult: ComplianceResult | null = null;
+          let finalUrl = publicUrl;
+
+          complianceResult = await checkCompliance(publicUrl, formData.description || '', GEMINI_API_KEY, brandContext);
+
+          if (!complianceResult.approved && complianceResult.correctionInstructions) {
+            console.log('[BG] ❌ Compliance FAILED. Auto-correcting...');
+            const originalIssues = [...(complianceResult.flags || [])];
+
+            try {
+              const origImgResp = await fetch(publicUrl);
+              const origImgBuffer = await origImgResp.arrayBuffer();
+              const origBytes = new Uint8Array(origImgBuffer);
+              const chunkSize = 8192;
+              let binaryStr = '';
+              for (let i = 0; i < origBytes.length; i += chunkSize) {
+                const chunk = origBytes.subarray(i, i + chunkSize);
+                binaryStr += String.fromCharCode(...chunk);
+              }
+              const origBase64 = btoa(binaryStr);
+              const origMimeType = origImgResp.headers.get('content-type') || 'image/png';
+
+              const correctedParts = [
+                { text: `Edite esta imagem para corrigir os seguintes problemas de compliance, mantendo o máximo possível da composição, estilo, cores e elementos originais.\n\nPROBLEMAS A CORRIGIR:\n${complianceResult.correctionInstructions}\n\nINSTRUÇÃO ORIGINAL: ${formData.description}\n\nIMPORTANTE: Mantenha a mesma cena, cenário, personagens e estilo visual.` },
+                { inlineData: { mimeType: origMimeType, data: origBase64 } }
+              ];
+
+              const editModel = 'gemini-2.5-flash-image-preview';
+              const correctedResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${editModel}:generateContent?key=${GEMINI_API_KEY}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  contents: [{ role: 'user', parts: correctedParts }],
+                  generationConfig: { responseModalities: ['IMAGE', 'TEXT'] },
+                }),
+              });
+
+              if (correctedResponse.ok) {
+                const correctedData = await correctedResponse.json();
+                const correctedExtracted = extractImageFromResponse(correctedData);
+                if (correctedExtracted.imageUrl) {
+                  let correctedBinary: Uint8Array;
+                  if (correctedExtracted.imageUrl.startsWith('data:')) {
+                    correctedBinary = decodeBase64Image(correctedExtracted.imageUrl);
+                  } else {
+                    const imgResp = await fetch(correctedExtracted.imageUrl);
+                    correctedBinary = new Uint8Array(await imgResp.arrayBuffer());
+                  }
+                  const correctedPost = await postProcessImage(correctedBinary, aspectRatio, targetDims.width, targetDims.height);
+                  const correctedFileName = `content-images/${authenticatedTeamId || authenticatedUserId}/${Date.now()}_corrected.png`;
+                  const { error: correctedUploadErr } = await supabase.storage.from('content-images').upload(correctedFileName, correctedPost.processedData, { contentType: 'image/png', upsert: false });
+                  if (!correctedUploadErr) {
+                    const { data: correctedUrlData } = supabase.storage.from('content-images').getPublicUrl(correctedFileName);
+                    finalUrl = correctedUrlData.publicUrl;
+                  }
+                  complianceResult = { ...complianceResult, approved: true, wasAutoCorrected: true, originalIssues, score: 85 };
+                }
+              }
+            } catch (correctionError) {
+              console.error('[BG] Auto-correction failed:', correctionError);
+            }
+          }
+
+          // Update action with compliance result
+          await supabase.from('actions').update({
+            result: {
+              imageUrl: finalUrl,
+              description: resultDescription,
+              headline: briefingResult.headline || null,
+              subtexto: briefingResult.subtexto || null,
+              legenda: briefingResult.legenda || null,
+              finalWidth: postProcessResult.finalWidth,
+              finalHeight: postProcessResult.finalHeight,
+              finalAspectRatio: postProcessResult.finalAspectRatio,
+              requestedAspectRatio: postProcessResult.requestedAspectRatio,
+              wasCropped: postProcessResult.wasCropped,
+              wasResized: postProcessResult.wasResized,
+              complianceCheck: complianceResult,
+            },
+            ...(finalUrl !== publicUrl ? { asset_path: finalUrl, thumb_path: finalUrl } : {}),
+          }).eq('id', actionId);
+          console.log('[BG] Compliance check done, action updated');
+        } catch (bgError) {
+          console.error('[BG] Compliance background error:', bgError);
+        }
+      };
+      EdgeRuntime.waitUntil(bgTask());
+    }
+
     return new Response(JSON.stringify({
-      imageUrl: finalPublicUrl,
+      imageUrl: publicUrl,
       description: resultDescription,
       headline: briefingResult.headline || null,
       subtexto: briefingResult.subtexto || null,
@@ -593,7 +595,7 @@ serve(async (req) => {
       finalHeight: postProcessResult.finalHeight,
       finalAspectRatio: postProcessResult.finalAspectRatio,
       requestedAspectRatio: postProcessResult.requestedAspectRatio,
-      complianceCheck: complianceResult,
+      complianceCheck: null,
     }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
   } catch (error) {
