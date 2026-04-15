@@ -78,6 +78,8 @@ interface FormData {
   adMode?: 'standard' | 'professional';
   priceText?: string;
   includeBrandLogo?: boolean;
+  disclaimerText?: string;
+  disclaimerStyle?: string;
 }
 
 // Aspect ratio to dimensions mapping (must match backend)
@@ -163,6 +165,24 @@ const TEXT_DESIGN_OPTIONS = [
   { value: 'badge', label: 'Badge/Selo', desc: 'Texto dentro de selo/etiqueta colorida com destaque' },
   { value: 'plaquinha', label: 'Plaquinha', desc: 'Texto em placa de madeira/metal com textura' },
   { value: 'card_overlay', label: 'Card Overlay', desc: 'Painel com informações sobrepostas na foto' },
+] as const;
+
+const DISCLAIMER_PRESETS = [
+  { value: 'alcohol', label: '🍺 Bebidas Alcoólicas', text: 'BEBA COM MODERAÇÃO. VENDA PROIBIDA PARA MENORES DE 18 ANOS.' },
+  { value: 'tobacco', label: '🚬 Tabaco', text: 'ESTE PRODUTO CONTÉM NICOTINA E É PREJUDICIAL À SAÚDE.' },
+  { value: 'medication', label: '💊 Medicamentos', text: 'SE PERSISTIREM OS SINTOMAS, O MÉDICO DEVERÁ SER CONSULTADO.' },
+  { value: 'supplements', label: '🥤 Suplementos', text: 'ESTE PRODUTO NÃO É UM MEDICAMENTO. NÃO SUBSTITUI UMA ALIMENTAÇÃO EQUILIBRADA.' },
+  { value: 'pesticide', label: '☠️ Agrotóxico', text: 'CUIDADO: PRODUTO PERIGOSO. LEIA O RÓTULO ANTES DE USAR.' },
+  { value: 'food_allergy', label: '⚠️ Alérgenos', text: 'CONTÉM OU PODE CONTER TRAÇOS DE ALÉRGENOS. CONSULTE O RÓTULO.' },
+  { value: 'electrical', label: '⚡ Risco Elétrico', text: 'PERIGO: RISCO DE CHOQUE ELÉTRICO. MANTENHA FORA DO ALCANCE DE CRIANÇAS.' },
+  { value: 'custom', label: '✏️ Personalizado', text: '' },
+] as const;
+
+const DISCLAIMER_STYLE_OPTIONS = [
+  { value: 'bottom_horizontal', label: 'Rodapé', desc: 'Texto pequeno na barra inferior, horizontal' },
+  { value: 'bottom_left_vertical', label: 'Lateral Esq.', desc: 'Texto deitado na vertical, canto inferior esquerdo' },
+  { value: 'bottom_right_vertical', label: 'Lateral Dir.', desc: 'Texto deitado na vertical, canto inferior direito' },
+  { value: 'bottom_band', label: 'Faixa Inferior', desc: 'Faixa escura no rodapé com texto centralizado' },
 ] as const;
 
 const toneOptions = [
