@@ -684,6 +684,8 @@ export default function CreateImage() {
         adMode: contentType === 'ads' ? (formData.adMode || 'standard') : undefined,
         priceText: formData.priceText?.trim() || "",
         includeBrandLogo: formData.includeBrandLogo || false,
+        disclaimerText: formData.disclaimerText?.trim() || "",
+        disclaimerStyle: formData.disclaimerStyle || "",
         teamId: user?.teamId,
       };
 
