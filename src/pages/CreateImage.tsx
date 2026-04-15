@@ -1426,6 +1426,90 @@ export default function CreateImage() {
                             ))}
                           </div>
                         </div>
+
+                        {/* Disclaimer / Safety Text */}
+                        <div className="space-y-2 border-t border-border/50 pt-4">
+                          <Label className="text-sm font-bold flex items-center gap-1.5">
+                            <span>⚠️</span> Texto de Segurança / Aviso Legal
+                          </Label>
+                          <p className="text-[11px] text-muted-foreground leading-snug">
+                            Texto obrigatório para bebidas alcoólicas, medicamentos e outros produtos regulamentados.
+                          </p>
+                          <div className="grid grid-cols-2 gap-1.5">
+                            {DISCLAIMER_PRESETS.map(preset => (
+                              <button
+                                key={preset.value}
+                                type="button"
+                                onClick={() => {
+                                  if (preset.value === 'custom') {
+                                    setFormData(prev => ({ ...prev, disclaimerText: prev.disclaimerText || '', disclaimerStyle: prev.disclaimerStyle || 'bottom_horizontal' }));
+                                  } else {
+                                    setFormData(prev => ({
+                                      ...prev,
+                                      disclaimerText: preset.text,
+                                      disclaimerStyle: prev.disclaimerStyle || 'bottom_horizontal',
+                                    }));
+                                  }
+                                }}
+                                className={`px-2.5 py-2 rounded-lg text-[11px] transition-all active:scale-[0.97] text-left ${
+                                  formData.disclaimerText === preset.text && preset.value !== 'custom'
+                                    ? 'bg-primary text-primary-foreground shadow-sm'
+                                    : formData.disclaimerText && formData.disclaimerText !== '' && preset.value === 'custom' && !DISCLAIMER_PRESETS.slice(0, -1).some(p => p.text === formData.disclaimerText)
+                                    ? 'bg-primary text-primary-foreground shadow-sm'
+                                    : 'bg-muted/50 text-foreground hover:text-primary hover:shadow-sm'
+                                }`}
+                              >
+                                {preset.label}
+                              </button>
+                            ))}
+                          </div>
+
+                          {formData.disclaimerText !== undefined && (
+                            <div className="space-y-3 mt-2">
+                              <div>
+                                <Textarea
+                                  value={formData.disclaimerText}
+                                  onChange={e => setFormData(prev => ({ ...prev, disclaimerText: e.target.value }))}
+                                  placeholder="Digite o texto de aviso..."
+                                  className="text-xs min-h-[60px] resize-none"
+                                  maxLength={150}
+                                />
+                                <span className="text-[10px] text-muted-foreground">{formData.disclaimerText.length}/150</span>
+                              </div>
+
+                              <div className="space-y-1.5">
+                                <Label className="text-xs font-medium">Posição do aviso</Label>
+                                <div className="grid grid-cols-2 gap-1.5">
+                                  {DISCLAIMER_STYLE_OPTIONS.map(style => (
+                                    <button
+                                      key={style.value}
+                                      type="button"
+                                      onClick={() => setFormData(prev => ({ ...prev, disclaimerStyle: style.value }))}
+                                      className={`px-2.5 py-2 rounded-lg text-left transition-all active:scale-[0.97] space-y-0.5 ${
+                                        formData.disclaimerStyle === style.value
+                                          ? 'bg-primary text-primary-foreground shadow-sm'
+                                          : 'bg-muted/50 text-foreground hover:text-primary hover:shadow-sm'
+                                      }`}
+                                    >
+                                      <span className="font-semibold text-[11px] block">{style.label}</span>
+                                      <span className={`text-[9px] block leading-tight ${
+                                        formData.disclaimerStyle === style.value ? 'text-primary-foreground/70' : 'text-muted-foreground'
+                                      }`}>{style.desc}</span>
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+
+                              <button
+                                type="button"
+                                onClick={() => setFormData(prev => ({ ...prev, disclaimerText: undefined, disclaimerStyle: undefined }))}
+                                className="text-[11px] text-destructive hover:underline"
+                              >
+                                Remover aviso
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
 
                       <div className="flex items-center gap-2 px-6 py-1.5 border-t border-border/50">
@@ -1435,7 +1519,10 @@ export default function CreateImage() {
                           size="sm"
                           className="text-destructive hover:text-destructive hover:bg-destructive/10"
                           onClick={() => {
-                            setFormData(prev => ({ ...prev, imageIncludeText: false, imageTextContent: '', ctaText: '' }));
+                            setFormData(prev => ({ ...prev, imageIncludeText: false, imageTextContent: '', ctaText: '', disclaimerText: undefined, disclaimerStyle: undefined }));
+                            setTextModalOpen(false);
+                          }}
+                        >
                             setTextModalOpen(false);
                           }}
                         >
