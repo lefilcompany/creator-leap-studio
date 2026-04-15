@@ -241,8 +241,9 @@ serve(async (req) => {
     const userNegativePrompt = cleanInput(formData.negativePrompt);
     const negativeComponents = [styleSettings.negativePrompt];
     if (userNegativePrompt) negativeComponents.push(userNegativePrompt);
-    // When using text overlay, AI should NOT generate any text (we add it later)
-    if (!includeText || includeText) negativeComponents.push('text, watermark, typography, letters, signature, words, labels');
+    // Always suppress AI text rendering: when no text needed it's obvious; 
+    // when text IS needed, the overlay engine handles it in post-processing
+    negativeComponents.push('text, watermark, typography, letters, signature, words, labels');
     const finalNegativePrompt = negativeComponents.filter(Boolean).join(', ');
 
     // Resolve aspect ratio using shared utility
