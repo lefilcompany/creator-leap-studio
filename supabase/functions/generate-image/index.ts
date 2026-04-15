@@ -205,6 +205,8 @@ serve(async (req) => {
       adProfessionalMode: formData.adMode === 'professional',
       priceText: cleanInput(formData.priceText) || '',
       includeBrandLogo: formData.includeBrandLogo || false,
+      disclaimerText: cleanInput(formData.disclaimerText) || '',
+      disclaimerStyle: formData.disclaimerStyle || 'bottom_horizontal',
       aspectRatio: formData.aspectRatio || undefined,
       colorPalette: formData.colorPalette || 'auto',
       lighting: formData.lighting || 'natural',

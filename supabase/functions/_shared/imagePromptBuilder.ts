@@ -309,6 +309,8 @@ export interface BuildDirectorPromptParams {
   adProfessionalMode: boolean;
   priceText: string;
   includeBrandLogo: boolean;
+  disclaimerText?: string;
+  disclaimerStyle?: string;
   aspectRatio?: string;
   colorPalette?: string;
   lighting?: string;
@@ -578,11 +580,33 @@ DESIGN GRÁFICO OBRIGATÓRIO:
 - Referência visual: peças de social media de grandes marcas brasileiras (McDonald's, iFood, Magazine Luiza)`);
   }
 
-  // SECTION 7: ESPECIFICAÇÕES TÉCNICAS
+  // DISCLAIMER / SAFETY TEXT
+  if (params.disclaimerText?.trim()) {
+    const disclaimerPositionMap: Record<string, string> = {
+      'bottom_horizontal': 'na parte inferior da imagem, centralizado, em uma linha horizontal fina',
+      'bottom_left_vertical': 'no canto inferior esquerdo, texto rotacionado 90° (deitado na vertical, lido de baixo para cima)',
+      'bottom_right_vertical': 'no canto inferior direito, texto rotacionado 90° (deitado na vertical, lido de baixo para cima)',
+      'bottom_band': 'em uma faixa escura semitransparente na parte inferior da imagem, texto centralizado',
+    };
+    const posDesc = disclaimerPositionMap[params.disclaimerStyle || 'bottom_horizontal'] || disclaimerPositionMap['bottom_horizontal'];
+    const sectionNum = params.adProfessionalMode ? '7' : '6';
+    sections.push(`### ${sectionNum}. TEXTO DE SEGURANÇA / AVISO LEGAL
+- OBRIGATÓRIO: Renderize o seguinte aviso EXATAMENTE como fornecido: "${params.disclaimerText.trim()}"
+- Posição: ${posDesc}
+- Fonte: MUITO PEQUENA (6-8px visual), discreta, em caixa alta
+- Cor: branco ou cinza claro com opacidade reduzida (60-80%), garantindo legibilidade mínima
+- NÃO deve competir visualmente com o conteúdo principal
+- Este texto é um requisito legal/regulatório e DEVE estar presente na imagem final`);
+  }
+
+  // ESPECIFICAÇÕES TÉCNICAS
+  const techSectionNum = params.disclaimerText?.trim()
+    ? (params.adProfessionalMode ? '8' : '7')
+    : (params.adProfessionalMode ? '7' : '6');
   const dimInstruction = params.aspectRatio && ASPECT_RATIO_DIMENSIONS[params.aspectRatio]
     ? `\n- ⚠️ PROPORÇÃO OBRIGATÓRIA: ${params.aspectRatio} (${ASPECT_RATIO_DIMENSIONS[params.aspectRatio].width}x${ASPECT_RATIO_DIMENSIONS[params.aspectRatio].height}px). IGNORE proporções das imagens de referência.`
     : '';
-  sections.push(`### ${params.adProfessionalMode ? '7' : '6'}. ESPECIFICAÇÕES TÉCNICAS E COMPLIANCE
+  sections.push(`### ${techSectionNum}. ESPECIFICAÇÕES TÉCNICAS E COMPLIANCE
 - Formato: Otimizado para ${params.platform || 'redes sociais'}${dimInstruction}
 - Resolução: 4K, PNG para nitidez
 - COMPLIANCE ÉTICO (CONAR/CDC):
