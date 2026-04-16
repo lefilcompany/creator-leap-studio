@@ -34,6 +34,7 @@ type PersonaTemplate = {
   location: string;
   main_goal: string;
   challenges: string;
+  purchase_journey_stage?: string | null;
 };
 
 export default function PersonasMarketplacePage() {
