@@ -312,8 +312,8 @@ export function AppSidebar() {
   ];
 
   const actionButtons = [
-    { id: "nav-create-content", href: "/create", icon: Sparkles, label: t.sidebar.createContent, variant: "primary" as const },
     { id: "nav-plan-content", href: "/plan", icon: Calendar, label: t.sidebar.planContent, variant: "secondary" as const },
+    { id: "nav-create-content", href: "/create", icon: Sparkles, label: t.sidebar.createContent, variant: "primary" as const },
   ];
 
   const handleMobileNavigate = () => {
