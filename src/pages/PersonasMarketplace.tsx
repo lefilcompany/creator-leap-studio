@@ -460,36 +460,44 @@ export default function PersonasMarketplacePage() {
           </div>
         </div>
       </div>{/* /two-column layout */}
-      {/* Sticky checkout */}
-      <div className="sticky bottom-4 bg-card rounded-2xl shadow-xl border border-border/40 p-4">
+      {/* Sticky checkout — fixed on mobile, sticky on desktop */}
+      <div className="fixed bottom-0 inset-x-0 z-30 sm:sticky sm:bottom-4 sm:inset-x-auto bg-card sm:rounded-2xl shadow-xl border-t sm:border border-border/40 p-3 sm:p-4">
         {unaffordableCount > 0 && (
-          <div className="mb-3 flex items-start gap-2 text-xs bg-destructive/10 text-destructive rounded-lg p-2.5 border border-destructive/20">
-            <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-            <span>
-              Você selecionou {selectedIds.size} personas, mas só tem créditos para {affordableCount}. As {unaffordableCount} restantes serão ignoradas.
+          <div className="mb-2 sm:mb-3 flex items-start gap-2 text-[11px] sm:text-xs bg-destructive/10 text-destructive rounded-lg p-2 sm:p-2.5 border border-destructive/20">
+            <AlertCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0 mt-0.5" />
+            <span className="leading-snug">
+              <span className="hidden sm:inline">Você selecionou {selectedIds.size} personas, mas só tem créditos para {affordableCount}. As {unaffordableCount} restantes serão ignoradas.</span>
+              <span className="sm:hidden">Créditos só cobrem {affordableCount} de {selectedIds.size}.</span>
             </span>
           </div>
         )}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-4 text-sm">
-            <div className="flex items-center gap-1.5">
-              <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-              <span className="font-medium">{selectedIds.size}</span>
-              <span className="text-muted-foreground">selecionadas</span>
+        <div className="flex flex-row items-center justify-between gap-2 sm:gap-3">
+          <div className="flex items-center gap-2 sm:gap-4 text-xs sm:text-sm min-w-0">
+            <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+              <ShoppingCart className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
+              <span className="font-semibold">{selectedIds.size}</span>
+              <span className="text-muted-foreground hidden xs:inline sm:inline">sel.</span>
             </div>
-            <div className="flex items-center gap-1.5">
-              <Coins className="h-4 w-4 text-primary" />
+            <div className="flex items-center gap-1 sm:gap-1.5 min-w-0">
+              <Coins className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary shrink-0" />
               <span className="font-bold text-foreground">{willCharge}</span>
-              <span className="text-muted-foreground text-xs">
-                / {userCredits} disponíveis
+              <span className="text-muted-foreground text-[10px] sm:text-xs truncate">
+                / {userCredits}
               </span>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => navigate('/personas')} disabled={isPurchasing}>
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate('/personas')}
+              disabled={isPurchasing}
+              className="h-9 sm:h-10 px-2.5 sm:px-4 text-xs sm:text-sm hidden xs:inline-flex sm:inline-flex"
+            >
               Cancelar
             </Button>
             <Button
+              size="sm"
               onClick={handlePurchase}
               disabled={
                 isPurchasing ||
@@ -497,14 +505,16 @@ export default function PersonasMarketplacePage() {
                 !selectedBrandId ||
                 maxAffordable === 0
               }
-              className="bg-gradient-to-r from-primary to-secondary text-primary-foreground shadow-md min-w-[180px]"
+              className="h-9 sm:h-10 px-3 sm:px-4 text-xs sm:text-sm bg-gradient-to-r from-primary to-secondary text-primary-foreground shadow-md sm:min-w-[180px]"
             >
               {isPurchasing ? (
                 'Processando...'
               ) : (
                 <>
-                  <ShoppingCart className="mr-2 h-4 w-4" />
-                  Adicionar {affordableCount > 0 ? `(${affordableCount})` : ''}
+                  <ShoppingCart className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">Adicionar </span>
+                  <span className="sm:hidden">OK </span>
+                  {affordableCount > 0 ? `(${affordableCount})` : ''}
                 </>
               )}
             </Button>
