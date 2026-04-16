@@ -160,7 +160,7 @@ export default function ContentCreationSelector() {
                       <ImageIcon className="h-8 w-8 text-primary" />
                     </div>
                     <div className="space-y-1.5">
-                      <h3 className="font-semibold text-lg">Criar Imagem</h3>
+                      <h3 className="font-semibold text-lg">Criar Conteúdo</h3>
                       <p className="text-sm text-muted-foreground leading-relaxed">
                         Crie imagens profissionais com IA usando prompts e controle completo
                       </p>
@@ -186,7 +186,7 @@ export default function ContentCreationSelector() {
                       <Video className="h-8 w-8 text-secondary" />
                     </div>
                     <div className="space-y-1.5">
-                      <h3 className="font-semibold text-lg">Criação de Vídeo</h3>
+                      <h3 className="font-semibold text-lg">Criar Vídeo</h3>
                       <p className="text-sm text-muted-foreground leading-relaxed">
                         Gere vídeos impactantes com IA usando o modelo Veo
                       </p>
