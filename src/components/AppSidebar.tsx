@@ -354,13 +354,6 @@ export function AppSidebar() {
             />
           ))}
 
-          {/* Categories Dropdown */}
-          <CategoriesDropdown
-            collapsed={collapsed}
-            onNavigate={handleMobileNavigate}
-            disabled={isNavigationDisabled}
-          />
-
           {postCategoryLinks.map(link => (
             <NavItem
               key={link.href}
