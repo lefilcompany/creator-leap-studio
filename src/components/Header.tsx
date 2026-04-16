@@ -310,32 +310,6 @@ export const Header = () => {
                     <span>{t.settings.about}</span>
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="p-3 cursor-pointer" asChild>
-                  <Link to="/contact" className="flex items-center">
-                    <FileText className="mr-3 h-4 w-4" />
-                    <span>Entre em Contato</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="p-3 cursor-pointer" asChild>
-                  <Link to="/privacy" className="flex items-center">
-                    <Shield className="mr-3 h-4 w-4" />
-                    <span>{t.settings.privacy}</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="p-3 cursor-pointer" asChild>
-                  <Link to="/history" className="flex items-center">
-                    <History className="mr-3 h-4 w-4" />
-                    <span>Histórico</span>
-                  </Link>
-                </DropdownMenuItem>
-                {isSystemAdmin && (
-                  <DropdownMenuItem className="p-3 cursor-pointer" asChild>
-                    <Link to="/system" className="flex items-center">
-                      <Shield className="mr-3 h-4 w-4" />
-                      <span>Sistema</span>
-                    </Link>
-                  </DropdownMenuItem>
-                )}
                 <DropdownMenuItem
                   className="p-3 cursor-pointer"
                   onClick={() => {
@@ -351,6 +325,19 @@ export const Header = () => {
                   <RefreshCw className="mr-3 h-4 w-4" />
                   <span>Refazer Tours</span>
                 </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="p-3 cursor-pointer" asChild>
+                  <Link to="/privacy" className="flex items-center">
+                    <Shield className="mr-3 h-4 w-4" />
+                    <span>{t.settings.privacy}</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="p-3 cursor-pointer" asChild>
+                  <Link to="/contact" className="flex items-center">
+                    <FileText className="mr-3 h-4 w-4" />
+                    <span>Entre em Contato</span>
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem
                   className="p-3 cursor-pointer"
                   onClick={handleManageCard}
@@ -365,6 +352,14 @@ export const Header = () => {
                     <span>Lixeira</span>
                   </Link>
                 </DropdownMenuItem>
+                {isSystemAdmin && (
+                  <DropdownMenuItem className="p-3 cursor-pointer" asChild>
+                    <Link to="/system" className="flex items-center">
+                      <Shield className="mr-3 h-4 w-4" />
+                      <span>Sistema</span>
+                    </Link>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuSeparator />
                 <DialogTrigger asChild>
                   <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10 p-3 cursor-pointer">
