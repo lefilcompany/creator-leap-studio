@@ -169,6 +169,38 @@ const markdownComponents = {
   ),
 };
 
+// ── Format plan markdown so each field appears on its own line ──
+const PLAN_FIELD_LABELS = [
+  'Plataforma',
+  'Data sugerida',
+  'Data',
+  'Objetivo',
+  'Funil',
+  'Persona',
+  'Grande Ideia',
+  'Formato',
+  'Resumo',
+  'Copy Sugerida',
+  'Copy',
+  'Imagem/Vídeo',
+  'Imagem',
+  'Vídeo',
+  'Hashtags',
+  'Melhor Horário',
+  'Melhor horário',
+];
+
+const formatPlanMarkdown = (raw: string): string => {
+  if (!raw) return '';
+  const labelPattern = PLAN_FIELD_LABELS
+    .sort((a, b) => b.length - a.length)
+    .map((l) => l.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+    .join('|');
+  // Insert blank line before each "Label:" so it renders as its own paragraph
+  const regex = new RegExp(`(?<!\\n)\\s*\\*?\\*?(${labelPattern})\\*?\\*?\\s*:`, 'g');
+  return raw.replace(regex, (_, label) => `\n\n**${label}:**`);
+};
+
 // ══════════════════════════════════════════════════════════════
 export default function ActionView() {
   const { actionId } = useParams<{ actionId: string }>();
@@ -968,7 +1000,7 @@ export default function ActionView() {
                   ) : (
                     <div className="p-5 bg-muted/30 rounded-xl border border-border/10">
                       <div className="prose prose-sm prose-slate dark:prose-invert max-w-none">
-                        <ReactMarkdown components={markdownComponents}>{action.result!.plan!}</ReactMarkdown>
+                        <ReactMarkdown components={markdownComponents}>{formatPlanMarkdown(action.result!.plan!)}</ReactMarkdown>
                       </div>
                     </div>
                   )}
@@ -1091,7 +1123,7 @@ export default function ActionView() {
             <DialogDescription>Conteúdo gerado em formato Markdown</DialogDescription>
           </DialogHeader>
           <div className="prose prose-sm dark:prose-invert max-w-none mt-4">
-            <ReactMarkdown components={markdownComponents}>{action?.result?.plan || ""}</ReactMarkdown>
+            <ReactMarkdown components={markdownComponents}>{formatPlanMarkdown(action?.result?.plan || "")}</ReactMarkdown>
           </div>
         </DialogContent>
       </Dialog>
