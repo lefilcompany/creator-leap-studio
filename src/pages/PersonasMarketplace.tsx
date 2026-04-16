@@ -53,8 +53,8 @@ export default function PersonasMarketplacePage() {
   const [selectedBrandId, setSelectedBrandId] = useState<string>('');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isPurchasing, setIsPurchasing] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeCategory, setActiveCategory] = useState<string>('all');
+  const [filters, setFilters] = useState<MarketplaceFilters>(initialFilters);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   const userCredits = user?.credits || 0;
 
@@ -65,7 +65,7 @@ export default function PersonasMarketplacePage() {
         const [templatesRes, brandsRes] = await Promise.all([
           supabase
             .from('persona_templates')
-            .select('id, name, category, avatar_url, short_description, gender, age, location, main_goal, challenges')
+            .select('id, name, category, avatar_url, short_description, gender, age, location, main_goal, challenges, purchase_journey_stage')
             .eq('is_active', true)
             .order('display_order', { ascending: true }),
           supabase
@@ -119,31 +119,70 @@ export default function PersonasMarketplacePage() {
     [brands, selectedBrandId]
   );
 
-  const categories = useMemo(() => {
-    const set = new Set<string>();
-    templates.forEach((t) => t.category && set.add(t.category));
-    return ['all', ...Array.from(set).sort()];
-  }, [templates]);
+  // --- Filter logic ---
+  const getAgeRange = (ageStr: string): AgeRange | null => {
+    const n = parseInt((ageStr || '').replace(/\D/g, ''), 10);
+    if (!n) return null;
+    if (n < 30) return '18-29';
+    if (n < 45) return '30-44';
+    if (n < 60) return '45-59';
+    return '60+';
+  };
+
+  const getState = (location: string): string | null => {
+    const m = (location || '').match(/,\s*([A-Z]{2})\b/);
+    return m ? m[1] : null;
+  };
 
   const filteredTemplates = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
+    const q = filters.search.trim().toLowerCase();
     return templates.filter((t) => {
-      if (activeCategory !== 'all' && t.category !== activeCategory) return false;
-      if (!q) return true;
-      const haystack = [
-        t.name,
-        t.category,
-        t.short_description,
-        t.location,
-        t.main_goal,
-        t.challenges,
-      ]
-        .filter(Boolean)
-        .join(' ')
-        .toLowerCase();
-      return haystack.includes(q);
+      if (filters.categories.length && (!t.category || !filters.categories.includes(t.category))) return false;
+      if (filters.genders.length && !filters.genders.includes(t.gender)) return false;
+      if (filters.ageRanges.length) {
+        const r = getAgeRange(t.age);
+        if (!r || !filters.ageRanges.includes(r)) return false;
+      }
+      if (filters.states.length) {
+        const s = getState(t.location);
+        if (!s || !filters.states.includes(s)) return false;
+      }
+      if (filters.journeyStages.length) {
+        if (!t.purchase_journey_stage || !filters.journeyStages.includes(t.purchase_journey_stage)) return false;
+      }
+      if (q) {
+        const hay = [t.name, t.category, t.short_description, t.location, t.main_goal, t.challenges]
+          .filter(Boolean).join(' ').toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
     });
-  }, [templates, searchQuery, activeCategory]);
+  }, [templates, filters]);
+
+  const facets = useMemo(() => {
+    const count = (getter: (t: PersonaTemplate) => string | null | undefined) => {
+      const map = new Map<string, number>();
+      templates.forEach((t) => {
+        const v = getter(t);
+        if (!v) return;
+        map.set(v, (map.get(v) || 0) + 1);
+      });
+      return Array.from(map.entries())
+        .map(([value, c]) => ({ value, count: c }))
+        .sort((a, b) => b.count - a.count || a.value.localeCompare(b.value));
+    };
+    const ageOrder: AgeRange[] = ['18-29', '30-44', '45-59', '60+'];
+    const ageCounts = count((t) => getAgeRange(t.age));
+    return {
+      categories: count((t) => t.category),
+      genders: count((t) => t.gender),
+      ageRanges: ageOrder
+        .map((r) => ({ value: r, count: ageCounts.find((a) => a.value === r)?.count || 0 }))
+        .filter((a) => a.count > 0),
+      states: count((t) => getState(t.location)),
+      journeyStages: count((t) => t.purchase_journey_stage),
+    };
+  }, [templates]);
 
   const handlePurchase = async () => {
     if (!selectedBrandId) {
