@@ -319,20 +319,36 @@ export default function PersonasPage() {
             </div>
           </div>
 
-          <Button 
-            id="personas-create-button"
-            onClick={() => handleOpenDialog()} 
-            disabled={isButtonDisabled}
-            className="rounded-lg bg-gradient-to-r from-primary to-secondary px-4 py-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed shrink-0 shadow-md"
-            title={!user ? 'Carregando...' : ((user.credits || 0) < 1 ? 'Créditos insuficientes' : undefined)}
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Nova persona
-            <span className="ml-2 flex items-center gap-1 text-xs opacity-90">
-              <Coins className="h-3 w-3" />
-              1
-            </span>
-          </Button>
+          <div className="flex items-center gap-2 shrink-0">
+            <Button
+              variant="outline"
+              onClick={() => setIsMarketplaceOpen(true)}
+              className="relative rounded-lg border-2 border-primary/40 bg-gradient-to-br from-primary/5 to-secondary/5 hover:from-primary/10 hover:to-secondary/10 hover:border-primary text-foreground px-4 py-2 text-sm shrink-0 shadow-sm group"
+              title="Adicionar personas do catálogo"
+            >
+              <Sparkles className="mr-2 h-4 w-4 text-primary group-hover:scale-110 transition-transform" />
+              Catálogo de personas
+              <span className="ml-2 flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-md bg-primary/15 text-primary font-medium">
+                <Coins className="h-3 w-3" />
+                20
+              </span>
+            </Button>
+
+            <Button
+              id="personas-create-button"
+              onClick={() => handleOpenDialog()}
+              disabled={isButtonDisabled}
+              className="rounded-lg bg-gradient-to-r from-primary to-secondary px-4 py-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed shrink-0 shadow-md"
+              title={!user ? 'Carregando...' : ((user.credits || 0) < 1 ? 'Créditos insuficientes' : undefined)}
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Nova persona
+              <span className="ml-2 flex items-center gap-1 text-xs opacity-90">
+                <Coins className="h-3 w-3" />
+                1
+              </span>
+            </Button>
+          </div>
         </div>
 
         <TourSelector 
