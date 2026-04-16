@@ -127,53 +127,79 @@ serve(async (req) => {
       );
     }
 
+    const platformLabel = normalizedPlatforms.join(', ');
+    const today = new Date();
+    const todayISO = today.toISOString().split('T')[0];
+
     const systemPrompt = `Você é um especialista em planejamento de conteúdo estratégico para redes sociais.
 
-IMPORTANTE: Você DEVE gerar EXATAMENTE ${quantity} post(s) completo(s).
+IMPORTANTE: Você DEVE gerar EXATAMENTE ${quantity} conteúdo(s) completo(s), distribuídos entre as plataformas selecionadas: ${platformLabel}.
 
-Use a seguinte estrutura para o planejamento:
+Sua resposta DEVE conter DUAS partes, nesta ordem exata:
+
+PARTE 1 — Markdown legível para humanos (mantenha como já fazemos hoje):
 
 # Plano de Conteúdo Estratégico
 
 ## Marca: [Nome da Marca]
-
 ## Tema(s): [Temas Estratégicos]
-
-## Plataforma: [Plataforma]
-
-## Quantidade de Posts: ${quantity}
-
+## Plataforma(s): ${platformLabel}
+## Quantidade de Conteúdos: ${quantity}
 ## Objetivo Principal: [Objetivo]
 
 ---
 
-## SUGESTÕES DE POSTS
+## SUGESTÕES DE CONTEÚDOS
 
-Para CADA UM dos ${quantity} posts, siga EXATAMENTE este formato:
+Para CADA UM dos ${quantity} conteúdos:
 
-### Post [N] - [Título Descritivo e Chamativo]
+### Conteúdo [N] - [Título Descritivo e Chamativo]
 
-**Objetivo:** [Objetivo específico - ex: Autoridade, Prova Social, Educação, Cultura/Marca]
-
+**Plataforma:** [Uma das plataformas selecionadas]
+**Data sugerida:** [YYYY-MM-DD a partir de ${todayISO}]
+**Objetivo:** [Autoridade, Prova Social, Educação, Cultura/Marca, etc]
 **Funil:** [Topo, Meio ou Fundo]
-
-**Persona:** [Descrição específica do público-alvo]
-
-**Grande Ideia:** [Conceito principal em uma frase impactante]
-
-**Formato:** [Tipo de conteúdo - Reels, Carrossel, IGTV, Post estático, etc]
-
-**Copy Sugerida:** [Texto completo e detalhado da legenda, incluindo call-to-action]
-
-**Imagem/Vídeo:** [Descrição visual detalhada do conteúdo, incluindo elementos visuais, cores, composição]
-
+**Persona:** [Descrição do público-alvo]
+**Grande Ideia:** [Conceito principal em uma frase]
+**Formato:** [Reels, Carrossel, Post estático, Story, Vídeo curto, etc]
+**Resumo:** [2-3 linhas resumindo o conteúdo]
+**Copy Sugerida:** [Texto completo da legenda com CTA]
+**Imagem/Vídeo:** [Descrição visual detalhada]
 **Hashtags:** [5-10 hashtags relevantes]
-
-**Melhor Horário:** [Sugestão de horário para publicação baseado no comportamento da persona]
+**Melhor Horário:** [Sugestão de horário]
 
 ---
 
-IMPORTANTE: Certifique-se de que TODOS os ${quantity} posts estejam completos e bem estruturados.`;
+PARTE 2 — Bloco JSON estruturado (OBRIGATÓRIO), no FINAL da resposta, dentro de um bloco \`\`\`json ... \`\`\`. Use exatamente este schema:
+
+\`\`\`json
+{
+  "posts": [
+    {
+      "title": "string",
+      "platform": "instagram|facebook|linkedin|twitter|tiktok",
+      "format": "string",
+      "summary": "string curto (1-2 frases)",
+      "date": "YYYY-MM-DD",
+      "objective": "string",
+      "funnel": "Topo|Meio|Fundo",
+      "persona": "string",
+      "bigIdea": "string",
+      "copy": "string completa",
+      "visual": "string descritiva",
+      "hashtags": ["#tag1", "#tag2"],
+      "bestTime": "string"
+    }
+  ]
+}
+\`\`\`
+
+REGRAS:
+- O JSON deve conter EXATAMENTE ${quantity} itens em "posts".
+- "platform" deve ser um dos valores: ${normalizedPlatforms.map((p) => `"${p}"`).join(', ')}.
+- Distribua os conteúdos entre as plataformas de forma equilibrada.
+- "date" deve estar em formato ISO (YYYY-MM-DD), começando a partir de ${todayISO} e espaçando os conteúdos.
+- O JSON DEVE ser parseável (sem comentários, sem trailing commas).`;
 
     let brandContext = '';
     if (brandData) {
@@ -204,7 +230,7 @@ Tema ${index + 1}:
       });
     }
 
-    const userPrompt = `${brandContext}\n${themesContext}\n\nPlataforma: ${platform}\nQuantidade de Posts: ${quantity}\nObjetivo: ${objective}\n${additionalInfo ? `Informações Adicionais: ${additionalInfo}` : ''}\n\nPor favor, gere um plano estratégico completo com EXATAMENTE ${quantity} post(s) seguindo a estrutura fornecida.`;
+    const userPrompt = `${brandContext}\n${themesContext}\n\nPlataformas: ${platformLabel}\nQuantidade de Conteúdos: ${quantity}\nObjetivo: ${objective}\n${additionalInfo ? `Informações Adicionais: ${additionalInfo}` : ''}\n\nPor favor, gere um plano estratégico completo com EXATAMENTE ${quantity} conteúdo(s) seguindo a estrutura fornecida (Markdown + bloco JSON final).`;
 
     console.log('Calling Gemini API with gemini-2.5-flash model...');
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`, {
@@ -217,7 +243,7 @@ Tema ${index + 1}:
         systemInstruction: { parts: [{ text: systemPrompt }] },
         generationConfig: {
           temperature: 0.7,
-          maxOutputTokens: 4000,
+          maxOutputTokens: 8000,
         },
       }),
     });
