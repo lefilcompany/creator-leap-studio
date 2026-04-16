@@ -1,14 +1,13 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Plus, Users, HelpCircle, Sparkles, UserPlus } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import PersonaList from '@/components/personas/PersonaList';
 import type { BrandInfo } from '@/components/personas/PersonaList';
 import PersonaDialog from '@/components/personas/PersonaDialog';
-import PersonaMarketplaceDialog from '@/components/personas/PersonaMarketplaceDialog';
 import type { Persona, PersonaSummary } from '@/types/persona';
 import type { BrandSummary } from '@/types/brand';
 import { useAuth } from '@/hooks/useAuth';
@@ -26,6 +25,7 @@ type PersonaFormData = Omit<Persona, 'id' | 'createdAt' | 'updatedAt' | 'teamId'
 export default function PersonasPage() {
   const { user, team, refreshTeamData, refreshUserCredits } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const initialViewMode = (location.state as any)?.viewMode || 'grid';
 
   const [personas, setPersonas] = useState<PersonaSummary[]>([]);
@@ -36,7 +36,6 @@ export default function PersonasPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [personaToEdit, setPersonaToEdit] = useState<Persona | null>(null);
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
-  const [isMarketplaceOpen, setIsMarketplaceOpen] = useState(false);
 
   const ITEMS_PER_PAGE = 500;
 
@@ -322,7 +321,7 @@ export default function PersonasPage() {
           <div className="flex items-center gap-2 shrink-0">
             <Button
               variant="outline"
-              onClick={() => setIsMarketplaceOpen(true)}
+              onClick={() => navigate('/personas/marketplace')}
               className="relative rounded-lg border-2 border-primary/40 bg-gradient-to-br from-primary/5 to-secondary/5 hover:from-primary/10 hover:to-secondary/10 hover:border-primary text-foreground px-4 py-2 text-sm shrink-0 shadow-sm group"
               title="Adicionar personas do catálogo"
             >
@@ -402,12 +401,6 @@ export default function PersonasPage() {
         freeResourcesRemaining={3 - (team?.free_personas_used || 0)}
       />
 
-      <PersonaMarketplaceDialog
-        isOpen={isMarketplaceOpen}
-        onOpenChange={setIsMarketplaceOpen}
-        brands={brandSummaries}
-        onPurchaseComplete={loadPersonas}
-      />
     </div>
   );
 }
