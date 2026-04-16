@@ -188,7 +188,7 @@ export default function ContentCreationSelector() {
                     <div className="space-y-1.5">
                       <h3 className="font-semibold text-lg">Criar Vídeo</h3>
                       <p className="text-sm text-muted-foreground leading-relaxed">
-                        Gere vídeos impactantes com IA usando o modelo Veo
+                        Gere vídeos impactantes com IA
                       </p>
                     </div>
                   </div>
