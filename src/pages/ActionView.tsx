@@ -5,9 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Download, Copy, CheckCircle, Sparkles, Calendar, Loader2, Clock, User, Tag, Check, FileText, File, FileCode, LayoutGrid, List, ArrowLeft, Info, Image, Video, ClipboardList, FileOutput, Users, Globe, X, ZoomIn, FolderOpen } from 'lucide-react';
+import { Download, Copy, CheckCircle, Sparkles, Calendar, Loader2, Clock, User, Tag, Check, FileText, File, FileCode, LayoutGrid, List, ArrowLeft, Info, Image, Video, ClipboardList, FileOutput, Users, Globe, X, ZoomIn, FolderOpen, Lightbulb, Target, Hash } from 'lucide-react';
 import { ComplianceAlert, type ComplianceData } from '@/components/ComplianceAlert';
 import type { Action } from '@/types/action';
 import { ACTION_TYPE_DISPLAY } from '@/types/action';
@@ -180,8 +180,43 @@ export default function ActionView() {
   const [copying, setCopying] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  const [selectedPost, setSelectedPost] = useState<any | null>(null);
+  const [showFullPlan, setShowFullPlan] = useState(false);
   const { data: actionCats = [] } = useActionCategories(actionId);
   const { categories, addActionToCategory, removeActionFromCategory } = useCategories();
+
+  const handleCreatePostContent = (post: any) => {
+    const params = new URLSearchParams();
+    const descParts: string[] = [];
+    if (post.title) descParts.push(post.title);
+    if (post.bigIdea) descParts.push(post.bigIdea);
+    if (post.summary) descParts.push(post.summary);
+    if (post.visual) descParts.push(`Visual: ${post.visual}`);
+    if (post.copy) descParts.push(`Copy de referência: ${post.copy}`);
+    params.set("prompt", descParts.join("\n\n"));
+    if (action?.brandId) params.set("brand", action.brandId);
+    if (post.platform) params.set("platform", String(post.platform).toLowerCase());
+    navigate(`/create/content?${params.toString()}`);
+  };
+
+  const PLAN_PLATFORM_LABELS: Record<string, string> = {
+    instagram: "Instagram",
+    facebook: "Facebook",
+    linkedin: "LinkedIn",
+    twitter: "Twitter (X)",
+    tiktok: "TikTok",
+  };
+
+  const formatPlanDate = (iso?: string) => {
+    if (!iso) return "—";
+    try {
+      const d = new Date(iso);
+      if (isNaN(d.getTime())) return iso;
+      return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
+    } catch {
+      return iso;
+    }
+  };
 
   // ── Data fetching ────────────────────────────────────────
   useEffect(() => {
@@ -856,31 +891,87 @@ export default function ActionView() {
                 </div>
               </SectionCard>
               {/* Plan result below */}
-              {action.result?.plan && (
-                <SectionCard title="Plano de Conteúdo" icon={<FileOutput className="h-4 w-4" />} accentColor={accentColor}
+              {(action.result?.plan || (Array.isArray((action.result as any)?.posts) && (action.result as any).posts.length > 0)) && (
+                <SectionCard
+                  title="Calendário de Conteúdo"
+                  icon={<FileOutput className="h-4 w-4" />}
+                  accentColor={accentColor}
                   headerRight={
                     <div className="flex gap-2">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="outline" size="icon" className="h-8 w-8"><Download className="h-4 w-4" /></Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-card z-50">
-                          <DropdownMenuItem onClick={() => handleDownloadDocx(action.result!.plan!)} className="cursor-pointer"><FileText className="mr-2 h-4 w-4" />Download DOCX</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleDownloadTxt(action.result!.plan!)} className="cursor-pointer"><File className="mr-2 h-4 w-4" />Download TXT</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleDownloadMd(action.result!.plan!)} className="cursor-pointer"><FileCode className="mr-2 h-4 w-4" />Download MD</DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleCopyText(action.result!.plan!)} disabled={copying}>
-                        {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                      </Button>
+                      {action.result?.plan && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8"
+                          onClick={() => setShowFullPlan(true)}
+                        >
+                          <FileText className="mr-2 h-4 w-4" />
+                          Ver plano completo
+                        </Button>
+                      )}
+                      {action.result?.plan && (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="icon" className="h-8 w-8"><Download className="h-4 w-4" /></Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="bg-card z-50">
+                            <DropdownMenuItem onClick={() => handleDownloadDocx(action.result!.plan!)} className="cursor-pointer"><FileText className="mr-2 h-4 w-4" />Download DOCX</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleDownloadTxt(action.result!.plan!)} className="cursor-pointer"><File className="mr-2 h-4 w-4" />Download TXT</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleDownloadMd(action.result!.plan!)} className="cursor-pointer"><FileCode className="mr-2 h-4 w-4" />Download MD</DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      )}
+                      {action.result?.plan && (
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleCopyText(action.result!.plan!)} disabled={copying}>
+                          {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                        </Button>
+                      )}
                     </div>
                   }
                 >
-                  <div className="p-5 bg-muted/30 rounded-xl border border-border/10">
-                    <div className="prose prose-sm prose-slate dark:prose-invert max-w-none">
-                      <ReactMarkdown components={markdownComponents}>{action.result.plan}</ReactMarkdown>
+                  {Array.isArray((action.result as any)?.posts) && (action.result as any).posts.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {((action.result as any).posts as any[]).map((post, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => setSelectedPost(post)}
+                          className="group text-left bg-card rounded-2xl shadow-sm hover:shadow-md border border-border/40 hover:border-primary/40 transition-all p-4 flex flex-col gap-3"
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
+                              {PLAN_PLATFORM_LABELS[String(post.platform || "").toLowerCase()] || post.platform || "Plataforma"}
+                            </Badge>
+                            <span className="text-xs text-muted-foreground flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              {formatPlanDate(post.date)}
+                            </span>
+                          </div>
+                          <h3 className="font-semibold text-base text-foreground line-clamp-2">
+                            {post.title || `Conteúdo ${idx + 1}`}
+                          </h3>
+                          {post.format && (
+                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                              <Image className="h-3.5 w-3.5" />
+                              <span>{post.format}</span>
+                            </div>
+                          )}
+                          {post.summary && (
+                            <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">{post.summary}</p>
+                          )}
+                          <div className="mt-auto pt-2 text-xs text-primary font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                            Ver detalhes →
+                          </div>
+                        </button>
+                      ))}
                     </div>
-                  </div>
+                  ) : (
+                    <div className="p-5 bg-muted/30 rounded-xl border border-border/10">
+                      <div className="prose prose-sm prose-slate dark:prose-invert max-w-none">
+                        <ReactMarkdown components={markdownComponents}>{action.result!.plan!}</ReactMarkdown>
+                      </div>
+                    </div>
+                  )}
                 </SectionCard>
               )}
             </>
@@ -913,6 +1004,107 @@ export default function ActionView() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* ═══ Plan Post Detail Dialog ═══ */}
+      <Dialog open={!!selectedPost} onOpenChange={(o) => !o && setSelectedPost(null)}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          {selectedPost && (
+            <>
+              <DialogHeader>
+                <div className="flex flex-wrap items-center gap-2 mb-2">
+                  <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
+                    {PLAN_PLATFORM_LABELS[String(selectedPost.platform || "").toLowerCase()] || selectedPost.platform}
+                  </Badge>
+                  {selectedPost.date && (
+                    <Badge variant="outline" className="gap-1">
+                      <Calendar className="h-3 w-3" />
+                      {formatPlanDate(selectedPost.date)}
+                    </Badge>
+                  )}
+                  {selectedPost.format && (
+                    <Badge variant="outline" className="gap-1">
+                      <Image className="h-3 w-3" />
+                      {selectedPost.format}
+                    </Badge>
+                  )}
+                </div>
+                <DialogTitle className="text-xl">{selectedPost.title}</DialogTitle>
+                {selectedPost.summary && <DialogDescription>{selectedPost.summary}</DialogDescription>}
+              </DialogHeader>
+
+              <div className="space-y-3 mt-2">
+                {selectedPost.bigIdea && (
+                  <PlanDetailRow icon={<Lightbulb className="h-4 w-4" />} label="Grande ideia" value={selectedPost.bigIdea} />
+                )}
+                {selectedPost.objective && (
+                  <PlanDetailRow icon={<Target className="h-4 w-4" />} label="Objetivo" value={selectedPost.objective} />
+                )}
+                {selectedPost.funnel && (
+                  <PlanDetailRow icon={<Target className="h-4 w-4" />} label="Funil" value={selectedPost.funnel} />
+                )}
+                {selectedPost.persona && (
+                  <PlanDetailRow icon={<Users className="h-4 w-4" />} label="Persona" value={selectedPost.persona} />
+                )}
+                {selectedPost.copy && (
+                  <PlanDetailRow icon={<FileText className="h-4 w-4" />} label="Copy sugerida" value={selectedPost.copy} />
+                )}
+                {selectedPost.visual && (
+                  <PlanDetailRow icon={<Image className="h-4 w-4" />} label="Imagem / Vídeo" value={selectedPost.visual} />
+                )}
+                {Array.isArray(selectedPost.hashtags) && selectedPost.hashtags.length > 0 && (
+                  <PlanDetailRow
+                    icon={<Hash className="h-4 w-4" />}
+                    label="Hashtags"
+                    value={selectedPost.hashtags.join(" ")}
+                  />
+                )}
+                {selectedPost.bestTime && (
+                  <PlanDetailRow icon={<Clock className="h-4 w-4" />} label="Melhor horário" value={selectedPost.bestTime} />
+                )}
+              </div>
+
+              <div className="mt-6 flex flex-col sm:flex-row gap-2 sm:justify-end pt-4 border-t border-border">
+                <Button variant="outline" onClick={() => setSelectedPost(null)}>
+                  Fechar
+                </Button>
+                <Button
+                  onClick={() => {
+                    handleCreatePostContent(selectedPost);
+                    setSelectedPost(null);
+                  }}
+                  className="gap-2"
+                >
+                  <Sparkles className="h-4 w-4" />
+                  Criar este conteúdo
+                </Button>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* ═══ Full Plan Markdown Dialog ═══ */}
+      <Dialog open={showFullPlan} onOpenChange={setShowFullPlan}>
+        <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Plano completo</DialogTitle>
+            <DialogDescription>Conteúdo gerado em formato Markdown</DialogDescription>
+          </DialogHeader>
+          <div className="prose prose-sm dark:prose-invert max-w-none mt-4">
+            <ReactMarkdown components={markdownComponents}>{action?.result?.plan || ""}</ReactMarkdown>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
+
+const PlanDetailRow = ({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) => (
+  <div className="bg-muted/30 rounded-xl p-3 border border-border/40">
+    <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">
+      {icon}
+      {label}
+    </div>
+    <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">{value}</p>
+  </div>
+);
