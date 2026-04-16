@@ -3,11 +3,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Plus, Users, HelpCircle } from 'lucide-react';
+import { Plus, Users, HelpCircle, Sparkles } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import PersonaList from '@/components/personas/PersonaList';
 import type { BrandInfo } from '@/components/personas/PersonaList';
 import PersonaDialog from '@/components/personas/PersonaDialog';
+import PersonaMarketplaceDialog from '@/components/personas/PersonaMarketplaceDialog';
 import type { Persona, PersonaSummary } from '@/types/persona';
 import type { BrandSummary } from '@/types/brand';
 import { useAuth } from '@/hooks/useAuth';
