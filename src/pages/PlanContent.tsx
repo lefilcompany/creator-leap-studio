@@ -366,25 +366,45 @@ const PlanContent = () => {
                     <Skeleton className="h-10 w-full rounded-xl" />
                   ) : (
                     <>
-                      <div className="flex flex-wrap gap-2 pt-1">
-                        {PLATFORM_OPTIONS.map((opt) => {
-                          const selected = formData.platform.includes(opt.value);
-                          return (
-                            <button
-                              key={opt.value}
-                              type="button"
-                              onClick={() => handlePlatformToggle(opt.value)}
-                              className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium transition-all active:scale-[0.97] border-2 ${
-                                selected
-                                  ? "bg-primary/10 text-foreground border-primary/40 shadow-sm"
-                                  : "bg-background text-muted-foreground border-border hover:border-primary/40 hover:text-foreground"
-                              }`}
-                            >
-                              <span>{opt.label}</span>
-                            </button>
-                          );
-                        })}
-                      </div>
+                      <NativeSelect
+                        key={`platform-select-${formData.platform.length}`}
+                        value=""
+                        onValueChange={(v) => {
+                          if (v && !formData.platform.includes(v)) {
+                            handlePlatformToggle(v);
+                          }
+                        }}
+                        options={PLATFORM_OPTIONS
+                          .filter((opt) => !formData.platform.includes(opt.value))
+                          .map((opt) => ({ value: opt.value, label: opt.label }))}
+                        placeholder={formData.platform.length > 0 ? "Adicionar mais plataformas..." : "Selecionar plataforma"}
+                        disabled={PLATFORM_OPTIONS.filter((opt) => !formData.platform.includes(opt.value)).length === 0}
+                        triggerClassName="h-10 rounded-xl border-2 border-border bg-background hover:border-primary/40 transition-colors disabled:opacity-50"
+                      />
+                      {formData.platform.length > 0 && (
+                        <div className="flex flex-wrap gap-2 pt-2">
+                          {formData.platform.map((platformValue) => {
+                            const opt = PLATFORM_OPTIONS.find((o) => o.value === platformValue);
+                            return (
+                              <Badge
+                                key={platformValue}
+                                variant="secondary"
+                                className="gap-1.5 pl-3 pr-1.5 py-1 text-xs font-medium bg-primary/10 text-primary border border-primary/20 hover:bg-primary/15"
+                              >
+                                {opt?.label || platformValue}
+                                <button
+                                  type="button"
+                                  onClick={() => handlePlatformToggle(platformValue)}
+                                  className="ml-0.5 w-4 h-4 rounded-full bg-primary/20 text-primary hover:bg-destructive hover:text-destructive-foreground transition-colors flex items-center justify-center"
+                                  aria-label={`Remover plataforma ${opt?.label || platformValue}`}
+                                >
+                                  <X size={10} />
+                                </button>
+                              </Badge>
+                            );
+                          })}
+                        </div>
+                      )}
                       <p className="text-xs text-muted-foreground flex items-start gap-1.5">
                         <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
                         <span>Selecione uma ou mais plataformas — o planejamento será adaptado a cada uma</span>
