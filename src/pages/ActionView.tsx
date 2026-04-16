@@ -180,8 +180,43 @@ export default function ActionView() {
   const [copying, setCopying] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  const [selectedPost, setSelectedPost] = useState<any | null>(null);
+  const [showFullPlan, setShowFullPlan] = useState(false);
   const { data: actionCats = [] } = useActionCategories(actionId);
   const { categories, addActionToCategory, removeActionFromCategory } = useCategories();
+
+  const handleCreatePostContent = (post: any) => {
+    const params = new URLSearchParams();
+    const descParts: string[] = [];
+    if (post.title) descParts.push(post.title);
+    if (post.bigIdea) descParts.push(post.bigIdea);
+    if (post.summary) descParts.push(post.summary);
+    if (post.visual) descParts.push(`Visual: ${post.visual}`);
+    if (post.copy) descParts.push(`Copy de referência: ${post.copy}`);
+    params.set("prompt", descParts.join("\n\n"));
+    if (action?.brandId) params.set("brand", action.brandId);
+    if (post.platform) params.set("platform", String(post.platform).toLowerCase());
+    navigate(`/create/content?${params.toString()}`);
+  };
+
+  const PLAN_PLATFORM_LABELS: Record<string, string> = {
+    instagram: "Instagram",
+    facebook: "Facebook",
+    linkedin: "LinkedIn",
+    twitter: "Twitter (X)",
+    tiktok: "TikTok",
+  };
+
+  const formatPlanDate = (iso?: string) => {
+    if (!iso) return "—";
+    try {
+      const d = new Date(iso);
+      if (isNaN(d.getTime())) return iso;
+      return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
+    } catch {
+      return iso;
+    }
+  };
 
   // ── Data fetching ────────────────────────────────────────
   useEffect(() => {
