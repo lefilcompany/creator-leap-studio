@@ -12,14 +12,13 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Check, Coins, ShoppingCart, Sparkles, Users, AlertCircle, MapPin, Cake } from 'lucide-react';
+import { Check, Coins, ShoppingCart, Sparkles, AlertCircle, MapPin, Cake, UserRound } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import type { BrandSummary } from '@/types/brand';
 import { PageBreadcrumb } from '@/components/PageBreadcrumb';
-import Persona3DAvatar from '@/components/personas/Persona3DAvatar';
 
 const COST_PER_PERSONA = 20;
 
@@ -238,20 +237,6 @@ export default function PersonasMarketplacePage() {
           ) : (
             templates.map((t) => {
               const selected = selectedIds.has(t.id);
-              const gender = (t.gender || '').toLowerCase();
-              const isFemale = gender.includes('fem') || gender.includes('mulher');
-              const isMale = gender.includes('mas') || gender.includes('homem');
-              const personaGender: 'male' | 'female' | 'neutral' = isFemale
-                ? 'female'
-                : isMale
-                ? 'male'
-                : 'neutral';
-              const ageNum = parseInt((t.age || '').replace(/\D/g, ''), 10) || undefined;
-              const gradientClass = isFemale
-                ? 'from-pink-200 via-rose-300 to-rose-400'
-                : isMale
-                ? 'from-blue-200 via-indigo-300 to-indigo-400'
-                : 'from-primary/30 via-primary/50 to-secondary/60';
 
               return (
                 <button
@@ -259,10 +244,10 @@ export default function PersonasMarketplacePage() {
                   type="button"
                   onClick={() => toggleSelection(t.id)}
                   className={cn(
-                    'group relative text-left rounded-xl border-2 transition-all hover:shadow-lg overflow-hidden flex min-h-[180px]',
+                    'group relative text-left rounded-xl border-2 transition-all hover:shadow-lg overflow-hidden flex min-h-[180px] bg-background',
                     selected
-                      ? 'border-primary bg-primary/5 shadow-md'
-                      : 'border-border bg-background hover:border-primary/40'
+                      ? 'border-primary shadow-md ring-2 ring-primary/20'
+                      : 'border-border hover:border-primary/40'
                   )}
                 >
                   {selected && (
@@ -271,28 +256,26 @@ export default function PersonasMarketplacePage() {
                     </div>
                   )}
 
-                  {/* Left 30% — 3D persona character */}
-                  <div
-                    className={cn(
-                      'w-[30%] shrink-0 relative bg-gradient-to-br overflow-hidden',
-                      gradientClass
-                    )}
-                  >
+                  {/* Left 35% — realistic persona photo */}
+                  <div className="w-[35%] shrink-0 relative bg-muted overflow-hidden">
                     {t.avatar_url ? (
                       <img
                         src={t.avatar_url}
                         alt={t.name}
-                        className="absolute inset-0 w-full h-full object-cover"
+                        loading="lazy"
+                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                       />
                     ) : (
-                      <div className="absolute inset-0">
-                        <Persona3DAvatar gender={personaGender} age={ageNum} seed={t.id} />
+                      <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-muted to-muted-foreground/20">
+                        <UserRound className="h-12 w-12 text-muted-foreground/60" />
                       </div>
                     )}
+                    {/* Subtle gradient overlay for legibility on edge */}
+                    <div className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-background/40 to-transparent pointer-events-none" />
                   </div>
 
-                  {/* Right 70% — All persona info */}
-                  <div className="w-[70%] flex flex-col p-3.5 gap-2 min-w-0">
+                  {/* Right 65% — All persona info */}
+                  <div className="w-[65%] flex flex-col p-3.5 gap-2 min-w-0">
                     <div className="min-w-0 pr-6">
                       <h3 className="font-semibold text-sm text-foreground line-clamp-2 leading-tight">
                         {t.name}
