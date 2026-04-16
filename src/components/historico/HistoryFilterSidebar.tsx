@@ -187,7 +187,7 @@ function SidebarContent({
         </FilterSection>
 
         {/* Category — separated at the end */}
-        <div className="mt-6 pt-4 border-t border-border/40">
+        <div className="mt-6 border-t border-border/40 py-0 pt-0">
           <FilterSection title="Categoria">
             <div className="space-y-0.5 max-h-48 overflow-y-auto">
               <button
