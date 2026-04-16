@@ -299,7 +299,7 @@ export default function PersonaMarketplaceDialog({
         {/* Checkout footer */}
         <div className="p-4 border-t border-border/40 bg-card shrink-0">
           {unaffordableCount > 0 && (
-            <div className="mb-3 flex items-start gap-2 text-xs bg-amber-500/10 text-amber-700 dark:text-amber-400 rounded-lg p-2.5 border border-amber-500/20">
+            <div className="mb-3 flex items-start gap-2 text-xs bg-destructive/10 text-destructive rounded-lg p-2.5 border border-destructive/20">
               <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
               <span>
                 Você selecionou {selectedIds.size} personas, mas só tem créditos para {affordableCount}. As {unaffordableCount} restantes serão ignoradas.
