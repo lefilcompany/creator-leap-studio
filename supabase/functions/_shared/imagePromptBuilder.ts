@@ -323,7 +323,6 @@ export interface BuildDirectorPromptParams {
   fontFamily?: string;
   fontWeight?: string;
   fontItalic?: boolean;
-  useTextOverlay?: boolean; // When true, AI should NOT render text - overlay engine handles it
 }
 
 export function buildDirectorPrompt(params: BuildDirectorPromptParams): string {
@@ -472,64 +471,27 @@ export function buildDirectorPrompt(params: BuildDirectorPromptParams): string {
   const hasUserText = params.includeText && params.textContent;
   const hasRefinerText = params.headline || params.subtexto;
   
-  // When text overlay engine is active, tell AI to NOT render text but leave clean space
-  if (params.useTextOverlay && (hasUserText || (isAd && hasRefinerText) || params.includeText)) {
-    const positionMap: Record<string, string> = {
-      'top': 'terço superior',
-      'center': 'centro',
-      'bottom': 'terço inferior',
-      'top-left': 'canto superior esquerdo',
-      'top-right': 'canto superior direito',
-      'bottom-left': 'canto inferior esquerdo',
-      'bottom-right': 'canto inferior direito',
-    };
-    const textPos = positionMap[params.textPosition || 'center'] || 'centro';
-    
-    sections.push(`### 4. RESERVA DE ESPAÇO PARA TEXTO (SEM TEXTO NA IMAGEM)
-⚠️ INSTRUÇÃO CRÍTICA: NÃO renderize NENHUM texto, letras, palavras, números ou símbolos na imagem.
-O texto será adicionado EXTERNAMENTE por uma engine tipográfica profissional em pós-processamento.
-
-Sua responsabilidade é APENAS:
-1. Criar uma área com ESPAÇO NEGATIVO LIMPO e UNIFORME na posição "${textPos}" da imagem.
-2. Esta área deve ter fundo suave (cor sólida, desfocado ou gradiente sutil) para garantir legibilidade do texto que será sobreposto.
-3. A área reservada deve ocupar aproximadamente 25-35% da imagem na posição indicada.
-4. NÃO coloque elementos visuais importantes nesta zona — ela deve ser "respiro visual".
-5. O restante da composição deve ser rico e completo como uma peça profissional.
-
-PROIBIDO: Qualquer texto, letra, número, símbolo, watermark ou tipografia na imagem gerada.`);
-  } else if (hasUserText || (isAd && hasRefinerText)) {
+  if (hasUserText || (isAd && hasRefinerText)) {
     const fontDesc = FONT_STYLES[params.fontStyle] || FONT_STYLES['modern'];
     const primaryText = params.textContent || params.headline || '';
     const ctaText = params.ctaText || (isAd ? params.subtexto : '') || '';
     
     const textParts = [`### 4. TEXTO E DESIGN
-
-⚠️ QUALIDADE TIPOGRÁFICA OBRIGATÓRIA:
-- O texto DEVE ser renderizado com bordas SUAVES e ANTI-ALIASED. NUNCA produza texto serrilhado, pixelado ou com bordas irregulares.
-- Cada caractere deve ter contornos LIMPOS, NÍTIDOS e PERFEITAMENTE DEFINIDOS, como em design gráfico profissional.
-- Use renderização de alta resolução para o texto: mínimo 300 DPI equivalente, com suavização de bordas (anti-aliasing) ativada.
-- O texto deve parecer impresso por uma tipografia profissional, NÃO gerado por computador de baixa qualidade.
-- Se o texto tiver serrilhamento (jagged edges), REFAÇA a renderização com bordas mais suaves.
-
-IDIOMA OBRIGATÓRIO: Português Brasileiro (pt-BR). Todo texto DEVE seguir ortografia, acentuação e gramática do Português do Brasil. Use acentos corretamente (é, ã, ç, ô, etc.). NUNCA use português de Portugal ou espanhol.`];
+- IDIOMA OBRIGATÓRIO: Português Brasileiro (pt-BR). Todo texto DEVE seguir ortografia, acentuação e gramática do Português do Brasil. Use acentos corretamente (é, ã, ç, ô, etc.). NUNCA use português de Portugal ou espanhol.`];
 
     if (primaryText) {
       textParts.push(`- Headline: Renderize PERFEITAMENTE o texto EXATO: "${primaryText}"
-  - SOLETRAÇÃO CARACTERE POR CARACTERE: ${primaryText.split('').map((c, i) => `[${i+1}]="${c}"`).join(' ')}
-  - O texto acima está soletrado caractere por caractere. Reproduza EXATAMENTE esta sequência.
-  - Acentos e cedilhas (á, é, í, ó, ú, â, ê, ô, ã, õ, ç) DEVEM estar corretos, visíveis e com formas suaves.
-  - NÃO altere, omita, troque ou substitua NENHUMA letra ou acento do texto fornecido.
-  - NÃO invente texto adicional além do fornecido.
-  - Cada letra deve ter BORDAS SUAVES e CONTORNOS PERFEITOS — zero serrilhamento.`);
+  - CADA LETRA deve ser renderizada com precisão absoluta. Verifique caractere por caractere.
+  - Acentos e cedilhas (á, é, í, ó, ú, â, ê, ô, ã, õ, ç) DEVEM estar corretos e visíveis.
+  - NÃO altere, omita ou substitua nenhuma letra ou acento do texto fornecido.
+  - NÃO invente texto adicional além do fornecido.`);
     }
     
     if (ctaText) {
       textParts.push(`- CTA (Call-to-Action): Renderize PERFEITAMENTE o texto EXATO: "${ctaText}"
-  - SOLETRAÇÃO: ${ctaText.split('').map((c, i) => `[${i+1}]="${c}"`).join(' ')}
   - O CTA deve estar posicionado de forma destacada, geralmente na parte inferior da imagem.
   - Use um botão ou destaque visual para o CTA (fundo contrastante, borda arredondada).
-  - O CTA deve ser menor que a headline mas igualmente legível.
-  - Bordas do texto do CTA devem ser SUAVES e ANTI-ALIASED.`);
+  - O CTA deve ser menor que a headline mas igualmente legível.`);
     }
     
     const designPrompt = TEXT_DESIGN_PROMPTS[params.textDesignStyle] || TEXT_DESIGN_PROMPTS['clean'];
@@ -543,13 +505,8 @@ IDIOMA OBRIGATÓRIO: Português Brasileiro (pt-BR). Todo texto DEVE seguir ortog
     textParts.push(`- Tipografia: ${fullTypoDesc}
 - Posição: ${params.textPosition || 'center'}. O texto NÃO deve obstruir o rosto.
 - ${designPrompt}
-- Legibilidade: O texto DEVE ser 100% legível com bordas suaves e anti-aliased. O design do texto deve fazer parte de uma composição profissional em formato para ${params.platform || 'redes sociais'}.
-- RENDERIZAÇÃO: Texto com qualidade tipográfica profissional — contornos limpos, kerning correto, sem artefatos visuais, sem pixels soltos, sem bordas irregulares.
-- VERIFICAÇÃO FINAL OBRIGATÓRIA: Antes de finalizar, execute estas verificações:
-  1. Releia o texto renderizado CARACTERE POR CARACTERE e confirme que está IDÊNTICO ao fornecido.
-  2. Verifique que TODOS os acentos estão presentes e corretos (á, é, í, ó, ú, â, ê, ô, ã, õ, ç).
-  3. Confirme que as bordas do texto estão SUAVES (sem serrilhamento/jagged edges).
-  4. Se encontrar qualquer erro, CORRIJA antes de entregar.`);
+- Legibilidade: O texto DEVE ser 100% legível. O design do texto deve fazer parte de uma composição profissional em formato para ${params.platform || 'redes sociais'}.
+- VERIFICAÇÃO FINAL: Antes de finalizar, releia o texto renderizado e confirme que está IDÊNTICO ao texto fornecido, letra por letra, acento por acento.`);
     
     sections.push(textParts.join('\n'));
   } else if (params.includeText) {
@@ -559,8 +516,7 @@ IDIOMA OBRIGATÓRIO: Português Brasileiro (pt-BR). Todo texto DEVE seguir ortog
 - Se for anúncio, inclua também um CTA (Call-to-Action) curto e direto (ex: "Saiba mais", "Compre agora", "Garanta o seu").
 - Tipografia: ${FONT_STYLES[params.fontStyle] || FONT_STYLES['modern']}
 - Posição: ${params.textPosition || 'center'}.
-- Legibilidade: 100% legível com contraste absoluto.
-- QUALIDADE: Texto com bordas SUAVES e ANTI-ALIASED. Zero serrilhamento. Contornos limpos e nítidos como tipografia profissional impressa.`);
+- Legibilidade: 100% legível com contraste absoluto.`);
   } else {
     sections.push(`### 4. SEM TEXTO\n- SEM TEXTO: CRÍTICO: NÃO inclua NENHUM texto, palavras, letras, números ou símbolos visíveis na imagem. A imagem deve ser puramente visual.`);
   }
