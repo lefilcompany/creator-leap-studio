@@ -1643,16 +1643,16 @@ export default function CreateImage() {
                                 );
                               })()
                             )}
+                            <div className="absolute inset-x-2 bottom-2 flex items-center justify-between rounded-lg border border-border/50 bg-background/85 px-2 py-1 backdrop-blur-sm">
+                              <span className="text-[10px] text-foreground/70 font-medium">
+                                {formData.fontFamily || 'Montserrat'}
+                              </span>
+                              <span className="text-[10px] text-foreground/70 font-medium">
+                                {TEXT_DESIGN_OPTIONS.find(d => d.value === formData.textDesignStyle)?.label || 'Clean'}
+                              </span>
+                            </div>
                             
                           </FormatPreview>
-                          <div className="flex items-center justify-between mt-2 px-1">
-                            <span className="text-[10px] text-foreground/60 font-medium">
-                              {formData.fontFamily || 'Montserrat'}
-                            </span>
-                            <span className="text-[10px] text-foreground/60 font-medium">
-                              {TEXT_DESIGN_OPTIONS.find(d => d.value === formData.textDesignStyle)?.label || 'Clean'}
-                            </span>
-                          </div>
                         </div>
                       </div>
                     </div>
