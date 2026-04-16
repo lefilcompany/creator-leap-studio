@@ -408,6 +408,39 @@ serve(async (req) => {
     });
 
     // =====================================
+    // STEP 6.5: Apply Text Overlay (if requested)
+    // =====================================
+    let finalImageData = postProcessResult.processedData;
+
+    if (includeText && (briefingResult.headline || briefingResult.subtexto || formData.ctaText)) {
+      console.log('[Step 6.5] Applying text overlay with typographic engine...');
+      try {
+        const overlayResult = await applyTextOverlay(finalImageData, {
+          headline: briefingResult.headline,
+          subtexto: briefingResult.subtexto,
+          ctaText: cleanInput(formData.ctaText) || '',
+          disclaimerText: cleanInput(formData.disclaimerText) || '',
+          disclaimerStyle: formData.disclaimerStyle || 'bottom_horizontal',
+          textPosition: cleanInput(formData.textPosition) || 'top',
+          fontFamily: formData.fontFamily || 'Montserrat',
+          fontWeight: formData.fontWeight || 'bold',
+          fontItalic: formData.fontItalic || false,
+          fontSize: formData.fontSize,
+          textDesignStyle: formData.textDesignStyle || 'clean',
+          brandColor: brandData?.brand_color || '#FFFFFF',
+          imageWidth: postProcessResult.finalWidth,
+          imageHeight: postProcessResult.finalHeight,
+        });
+        if (overlayResult.elementsApplied > 0) {
+          finalImageData = overlayResult.processedData;
+          console.log('[Step 6.5] Text overlay applied successfully');
+        }
+      } catch (overlayError) {
+        console.error('[Step 6.5] Text overlay failed, continuing without text:', overlayError);
+      }
+    }
+
+    // =====================================
     // STEP 7: Upload to Storage
     // =====================================
     console.log('[Step 7] Uploading post-processed image to storage...');
