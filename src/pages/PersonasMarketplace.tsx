@@ -238,6 +238,14 @@ export default function PersonasMarketplacePage() {
         ]}
       />
 
+      {/* Aviso topo */}
+      <div className="flex items-start gap-2 sm:gap-3 rounded-2xl border border-primary/30 bg-primary/5 p-3 sm:p-4 text-primary">
+        <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 shrink-0 mt-0.5" />
+        <p className="text-[12px] sm:text-sm leading-snug">
+          <strong className="font-semibold">Atenção:</strong> é necessário vincular as personas a uma marca antes de adicioná-las. Selecione a marca abaixo para continuar.
+        </p>
+      </div>
+
       {/* Header */}
       <div className="bg-card rounded-2xl shadow-md p-3 sm:p-4 lg:p-5 flex items-center gap-3">
         <div className="bg-gradient-to-br from-primary to-secondary rounded-xl p-2 sm:p-2.5 shadow-md shrink-0">
