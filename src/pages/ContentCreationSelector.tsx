@@ -238,9 +238,9 @@ export default function ContentCreationSelector() {
                       <CheckCircle className="h-8 w-8 text-accent" />
                     </div>
                     <div className="space-y-1.5">
-                      <h3 className="font-semibold text-lg">Ajustar Conteúdo</h3>
+                      <h3 className="font-semibold text-lg">Revisar Conteúdo</h3>
                       <p className="text-sm text-muted-foreground leading-relaxed">
-                        Ajuste imagens, legendas e textos com IA
+                        Revise imagens, legendas e textos com IA
                       </p>
                     </div>
                   </div>
