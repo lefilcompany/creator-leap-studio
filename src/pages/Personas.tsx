@@ -82,37 +82,37 @@ export default function PersonasPage() {
     loadBrands();
   }, [user?.id]);
 
-  // Load personas
-  useEffect(() => {
-    const loadPersonas = async () => {
-      if (!user?.id) return;
-      setIsLoadingPersonas(true);
-      try {
-        const { data, error } = await supabase
-          .from('personas')
-          .select('id, brand_id, name, created_at')
-          .order('created_at', { ascending: false })
-          .limit(ITEMS_PER_PAGE);
+  const loadPersonas = useCallback(async () => {
+    if (!user?.id) return;
+    setIsLoadingPersonas(true);
+    try {
+      const { data, error } = await supabase
+        .from('personas')
+        .select('id, brand_id, name, created_at')
+        .order('created_at', { ascending: false })
+        .limit(ITEMS_PER_PAGE);
 
-        if (error) throw error;
+      if (error) throw error;
 
-        const personas: PersonaSummary[] = (data || []).map(p => ({
-          id: p.id,
-          brandId: p.brand_id,
-          name: p.name,
-          createdAt: p.created_at,
-        }));
+      const personas: PersonaSummary[] = (data || []).map(p => ({
+        id: p.id,
+        brandId: p.brand_id,
+        name: p.name,
+        createdAt: p.created_at,
+      }));
 
-        setPersonas(personas);
-      } catch (error) {
-        console.error('Erro ao carregar personas:', error);
-        toast.error('Erro ao carregar personas');
-      } finally {
-        setIsLoadingPersonas(false);
-      }
-    };
-    loadPersonas();
+      setPersonas(personas);
+    } catch (error) {
+      console.error('Erro ao carregar personas:', error);
+      toast.error('Erro ao carregar personas');
+    } finally {
+      setIsLoadingPersonas(false);
+    }
   }, [user?.id]);
+
+  useEffect(() => {
+    loadPersonas();
+  }, [loadPersonas]);
 
   const handleOpenDialog = useCallback((persona: Persona | null = null) => {
     if (persona) {
