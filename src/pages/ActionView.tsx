@@ -891,31 +891,87 @@ export default function ActionView() {
                 </div>
               </SectionCard>
               {/* Plan result below */}
-              {action.result?.plan && (
-                <SectionCard title="Plano de Conteúdo" icon={<FileOutput className="h-4 w-4" />} accentColor={accentColor}
+              {(action.result?.plan || (Array.isArray((action.result as any)?.posts) && (action.result as any).posts.length > 0)) && (
+                <SectionCard
+                  title="Calendário de Conteúdo"
+                  icon={<FileOutput className="h-4 w-4" />}
+                  accentColor={accentColor}
                   headerRight={
                     <div className="flex gap-2">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="outline" size="icon" className="h-8 w-8"><Download className="h-4 w-4" /></Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-card z-50">
-                          <DropdownMenuItem onClick={() => handleDownloadDocx(action.result!.plan!)} className="cursor-pointer"><FileText className="mr-2 h-4 w-4" />Download DOCX</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleDownloadTxt(action.result!.plan!)} className="cursor-pointer"><File className="mr-2 h-4 w-4" />Download TXT</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleDownloadMd(action.result!.plan!)} className="cursor-pointer"><FileCode className="mr-2 h-4 w-4" />Download MD</DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleCopyText(action.result!.plan!)} disabled={copying}>
-                        {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                      </Button>
+                      {action.result?.plan && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8"
+                          onClick={() => setShowFullPlan(true)}
+                        >
+                          <FileText className="mr-2 h-4 w-4" />
+                          Ver plano completo
+                        </Button>
+                      )}
+                      {action.result?.plan && (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="icon" className="h-8 w-8"><Download className="h-4 w-4" /></Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="bg-card z-50">
+                            <DropdownMenuItem onClick={() => handleDownloadDocx(action.result!.plan!)} className="cursor-pointer"><FileText className="mr-2 h-4 w-4" />Download DOCX</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleDownloadTxt(action.result!.plan!)} className="cursor-pointer"><File className="mr-2 h-4 w-4" />Download TXT</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleDownloadMd(action.result!.plan!)} className="cursor-pointer"><FileCode className="mr-2 h-4 w-4" />Download MD</DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      )}
+                      {action.result?.plan && (
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleCopyText(action.result!.plan!)} disabled={copying}>
+                          {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                        </Button>
+                      )}
                     </div>
                   }
                 >
-                  <div className="p-5 bg-muted/30 rounded-xl border border-border/10">
-                    <div className="prose prose-sm prose-slate dark:prose-invert max-w-none">
-                      <ReactMarkdown components={markdownComponents}>{action.result.plan}</ReactMarkdown>
+                  {Array.isArray((action.result as any)?.posts) && (action.result as any).posts.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {((action.result as any).posts as any[]).map((post, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => setSelectedPost(post)}
+                          className="group text-left bg-card rounded-2xl shadow-sm hover:shadow-md border border-border/40 hover:border-primary/40 transition-all p-4 flex flex-col gap-3"
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
+                              {PLAN_PLATFORM_LABELS[String(post.platform || "").toLowerCase()] || post.platform || "Plataforma"}
+                            </Badge>
+                            <span className="text-xs text-muted-foreground flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              {formatPlanDate(post.date)}
+                            </span>
+                          </div>
+                          <h3 className="font-semibold text-base text-foreground line-clamp-2">
+                            {post.title || `Conteúdo ${idx + 1}`}
+                          </h3>
+                          {post.format && (
+                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                              <Image className="h-3.5 w-3.5" />
+                              <span>{post.format}</span>
+                            </div>
+                          )}
+                          {post.summary && (
+                            <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">{post.summary}</p>
+                          )}
+                          <div className="mt-auto pt-2 text-xs text-primary font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                            Ver detalhes →
+                          </div>
+                        </button>
+                      ))}
                     </div>
-                  </div>
+                  ) : (
+                    <div className="p-5 bg-muted/30 rounded-xl border border-border/10">
+                      <div className="prose prose-sm prose-slate dark:prose-invert max-w-none">
+                        <ReactMarkdown components={markdownComponents}>{action.result!.plan!}</ReactMarkdown>
+                      </div>
+                    </div>
+                  )}
                 </SectionCard>
               )}
             </>
