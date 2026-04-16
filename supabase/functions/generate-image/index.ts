@@ -6,6 +6,7 @@ import { checkUserCredits, deductUserCredits, recordUserCreditUsage } from '../_
 import { expandBriefing } from '../_shared/expandBriefing.ts';
 import { postProcessImage, resolveAspectRatio, normalizeAspectRatioForGemini, ASPECT_RATIO_DIMENSIONS, decodeBase64Image } from '../_shared/imagePostProcess.ts';
 import { checkCompliance, type ComplianceResult } from '../_shared/complianceCheck.ts';
+import { applyTextOverlay } from '../_shared/textOverlay.ts';
 import {
   cleanInput,
   normalizeImageArray,
@@ -407,18 +408,51 @@ serve(async (req) => {
     });
 
     // =====================================
+    // STEP 6.5: Apply Text Overlay (if requested)
+    // =====================================
+    let finalImageData = postProcessResult.processedData;
+
+    if (includeText && (briefingResult.headline || briefingResult.subtexto || formData.ctaText)) {
+      console.log('[Step 6.5] Applying text overlay with typographic engine...');
+      try {
+        const overlayResult = await applyTextOverlay(finalImageData, {
+          headline: briefingResult.headline,
+          subtexto: briefingResult.subtexto,
+          ctaText: cleanInput(formData.ctaText) || '',
+          disclaimerText: cleanInput(formData.disclaimerText) || '',
+          disclaimerStyle: formData.disclaimerStyle || 'bottom_horizontal',
+          textPosition: cleanInput(formData.textPosition) || 'top',
+          fontFamily: formData.fontFamily || 'Montserrat',
+          fontWeight: formData.fontWeight || 'bold',
+          fontItalic: formData.fontItalic || false,
+          fontSize: formData.fontSize,
+          textDesignStyle: formData.textDesignStyle || 'clean',
+          brandColor: brandData?.brand_color || '#FFFFFF',
+          imageWidth: postProcessResult.finalWidth,
+          imageHeight: postProcessResult.finalHeight,
+        });
+        if (overlayResult.elementsApplied > 0) {
+          finalImageData = overlayResult.processedData;
+          console.log('[Step 6.5] Text overlay applied successfully');
+        }
+      } catch (overlayError) {
+        console.error('[Step 6.5] Text overlay failed, continuing without text:', overlayError);
+      }
+    }
+
+    // =====================================
     // STEP 7: Upload to Storage
     // =====================================
     console.log('[Step 7] Uploading post-processed image to storage...');
     const timestamp = Date.now();
     const fileName = `content-images/${authenticatedTeamId || authenticatedUserId}/${timestamp}.png`;
 
-    const { error: uploadError } = await supabase.storage.from('content-images').upload(fileName, postProcessResult.processedData, { contentType: 'image/png', upsert: false });
+    const { error: uploadError } = await supabase.storage.from('content-images').upload(fileName, finalImageData, { contentType: 'image/png', upsert: false });
     
     let publicUrl: string;
     if (uploadError) {
       console.error('Storage upload error:', uploadError);
-      const base64Fallback = uint8ArrayToBase64(postProcessResult.processedData);
+      const base64Fallback = uint8ArrayToBase64(finalImageData);
       publicUrl = `data:image/png;base64,${base64Fallback}`;
       console.warn('[Step 7] Upload failed, returning post-processed base64 fallback');
     } else {
