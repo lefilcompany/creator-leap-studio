@@ -1000,7 +1000,7 @@ export default function ActionView() {
                   ) : (
                     <div className="p-5 bg-muted/30 rounded-xl border border-border/10">
                       <div className="prose prose-sm prose-slate dark:prose-invert max-w-none">
-                        <ReactMarkdown components={markdownComponents}>{action.result!.plan!}</ReactMarkdown>
+                        <ReactMarkdown components={markdownComponents}>{formatPlanMarkdown(action.result!.plan!)}</ReactMarkdown>
                       </div>
                     </div>
                   )}
