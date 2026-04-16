@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Plus, Users, HelpCircle, Sparkles } from 'lucide-react';
+import { Plus, Users, HelpCircle, Sparkles, UserPlus } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import PersonaList from '@/components/personas/PersonaList';
 import type { BrandInfo } from '@/components/personas/PersonaList';
@@ -326,7 +326,7 @@ export default function PersonasPage() {
               className="relative rounded-lg border-2 border-primary/40 bg-gradient-to-br from-primary/5 to-secondary/5 hover:from-primary/10 hover:to-secondary/10 hover:border-primary text-foreground px-4 py-2 text-sm shrink-0 shadow-sm group"
               title="Adicionar personas do catálogo"
             >
-              <Sparkles className="mr-2 h-4 w-4 text-primary group-hover:scale-110 transition-transform" />
+              <UserPlus className="mr-2 h-4 w-4 text-primary group-hover:scale-110 transition-transform" />
               Catálogo de personas
               <span className="ml-2 flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-md bg-primary/15 text-primary font-medium">
                 <Coins className="h-3 w-3" />
