@@ -12,14 +12,20 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Input } from '@/components/ui/input';
-import { Check, Coins, ShoppingCart, Sparkles, AlertCircle, MapPin, Cake, UserRound, Search, X } from 'lucide-react';
+import { Check, Coins, ShoppingCart, Sparkles, AlertCircle, MapPin, Cake, UserRound, SlidersHorizontal } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import type { BrandSummary } from '@/types/brand';
 import { PageBreadcrumb } from '@/components/PageBreadcrumb';
+import {
+  MarketplaceFilterSidebar,
+  initialFilters,
+  type MarketplaceFilters,
+  type AgeRange,
+} from '@/components/personas/MarketplaceFilterSidebar';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 const COST_PER_PERSONA = 20;
 
