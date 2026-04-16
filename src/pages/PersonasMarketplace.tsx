@@ -251,67 +251,70 @@ export default function PersonasMarketplacePage() {
         </div>
       </div>
 
-      {/* Brand selector */}
-      <div className="bg-card rounded-2xl shadow-md p-4 lg:p-5">
-        <label className="text-xs font-medium text-foreground mb-2 block">
-          Vincular personas à marca
-        </label>
-        <Select value={selectedBrandId} onValueChange={setSelectedBrandId}>
-          <SelectTrigger className="w-full h-11 bg-background">
-            <SelectValue placeholder="Selecione a marca que receberá as personas" />
-          </SelectTrigger>
-          <SelectContent>
-            {brands.length === 0 ? (
-              <div className="p-3 text-sm text-muted-foreground">Crie uma marca primeiro</div>
-            ) : (
-              brands.map((b) => (
-                <SelectItem key={b.id} value={b.id}>
-                  <div className="flex items-center gap-2">
-                    <Avatar className="h-5 w-5">
-                      {b.avatarUrl && <AvatarImage src={b.avatarUrl} alt={b.name} />}
-                      <AvatarFallback
-                        style={{ backgroundColor: b.brandColor || undefined }}
-                        className="text-[10px] text-primary-foreground"
-                      >
-                        {b.name.charAt(0)}
-                      </AvatarFallback>
-                    </Avatar>
-                    {b.name}
-                  </div>
-                </SelectItem>
-              ))
-            )}
-          </SelectContent>
-        </Select>
-        {selectedBrand && (
-          <p className="text-xs text-muted-foreground mt-2">
-            As personas selecionadas serão criadas em{' '}
-            <strong className="text-foreground">{selectedBrand.name}</strong>
-          </p>
-        )}
-      </div>
+      {/* Brand selector + mobile filters trigger */}
+      <div className="flex flex-col sm:flex-row gap-3 lg:block">
+        <div className="bg-card rounded-2xl shadow-md p-3 sm:p-4 lg:p-5 flex-1 min-w-0">
+          <label className="text-xs font-medium text-foreground mb-2 block">
+            Vincular personas à marca
+          </label>
+          <Select value={selectedBrandId} onValueChange={setSelectedBrandId}>
+            <SelectTrigger className="w-full h-10 sm:h-11 bg-background">
+              <SelectValue placeholder="Selecione a marca que receberá as personas" />
+            </SelectTrigger>
+            <SelectContent>
+              {brands.length === 0 ? (
+                <div className="p-3 text-sm text-muted-foreground">Crie uma marca primeiro</div>
+              ) : (
+                brands.map((b) => (
+                  <SelectItem key={b.id} value={b.id}>
+                    <div className="flex items-center gap-2">
+                      <Avatar className="h-5 w-5">
+                        {b.avatarUrl && <AvatarImage src={b.avatarUrl} alt={b.name} />}
+                        <AvatarFallback
+                          style={{ backgroundColor: b.brandColor || undefined }}
+                          className="text-[10px] text-primary-foreground"
+                        >
+                          {b.name.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      {b.name}
+                    </div>
+                  </SelectItem>
+                ))
+              )}
+            </SelectContent>
+          </Select>
+          {selectedBrand && (
+            <p className="text-[11px] sm:text-xs text-muted-foreground mt-2 truncate">
+              Personas serão criadas em{' '}
+              <strong className="text-foreground">{selectedBrand.name}</strong>
+            </p>
+          )}
+        </div>
 
-      {/* Mobile filters trigger */}
-      <div className="lg:hidden">
-        <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
-          <SheetTrigger asChild>
-            <Button variant="outline" className="w-full justify-center">
-              <SlidersHorizontal className="h-4 w-4 mr-2" />
-              Filtros ({filteredTemplates.length} resultados)
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-[85vw] max-w-sm p-0">
-            <div className="p-4 h-full overflow-hidden">
-              <MarketplaceFilterSidebar
-                filters={filters}
-                onChange={setFilters}
-                facets={facets}
-                totalResults={filteredTemplates.length}
-                totalAll={templates.length}
-              />
-            </div>
-          </SheetContent>
-        </Sheet>
+        {/* Mobile/tablet filters trigger */}
+        <div className="lg:hidden sm:w-auto sm:self-end">
+          <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
+            <SheetTrigger asChild>
+              <Button variant="outline" className="w-full sm:w-auto h-10 sm:h-11 justify-center sm:px-5">
+                <SlidersHorizontal className="h-4 w-4 mr-2" />
+                <span className="sm:hidden">Filtros ({filteredTemplates.length})</span>
+                <span className="hidden sm:inline">Filtros · {filteredTemplates.length}</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-[88vw] max-w-sm p-0">
+              <div className="p-4 h-full overflow-hidden">
+                <MarketplaceFilterSidebar
+                  filters={filters}
+                  onChange={setFilters}
+                  facets={facets}
+                  totalResults={filteredTemplates.length}
+                  totalAll={templates.length}
+                />
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
       </div>
 
       {/* Two-column layout: sidebar + grid */}
