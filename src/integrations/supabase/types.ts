@@ -763,6 +763,75 @@ export type Database = {
           },
         ]
       }
+      persona_templates: {
+        Row: {
+          age: string
+          avatar_url: string | null
+          beliefs_and_interests: string
+          category: string | null
+          challenges: string
+          content_consumption_routine: string
+          created_at: string
+          display_order: number
+          gender: string
+          id: string
+          interest_triggers: string
+          is_active: boolean
+          location: string
+          main_goal: string
+          name: string
+          preferred_tone_of_voice: string
+          professional_context: string
+          purchase_journey_stage: string
+          short_description: string | null
+          updated_at: string
+        }
+        Insert: {
+          age: string
+          avatar_url?: string | null
+          beliefs_and_interests: string
+          category?: string | null
+          challenges: string
+          content_consumption_routine: string
+          created_at?: string
+          display_order?: number
+          gender: string
+          id?: string
+          interest_triggers: string
+          is_active?: boolean
+          location: string
+          main_goal: string
+          name: string
+          preferred_tone_of_voice: string
+          professional_context: string
+          purchase_journey_stage: string
+          short_description?: string | null
+          updated_at?: string
+        }
+        Update: {
+          age?: string
+          avatar_url?: string | null
+          beliefs_and_interests?: string
+          category?: string | null
+          challenges?: string
+          content_consumption_routine?: string
+          created_at?: string
+          display_order?: number
+          gender?: string
+          id?: string
+          interest_triggers?: string
+          is_active?: boolean
+          location?: string
+          main_goal?: string
+          name?: string
+          preferred_tone_of_voice?: string
+          professional_context?: string
+          purchase_journey_stage?: string
+          short_description?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       personas: {
         Row: {
           age: string

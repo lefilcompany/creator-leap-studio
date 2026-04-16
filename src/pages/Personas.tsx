@@ -3,11 +3,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Plus, Users, HelpCircle } from 'lucide-react';
+import { Plus, Users, HelpCircle, Sparkles } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import PersonaList from '@/components/personas/PersonaList';
 import type { BrandInfo } from '@/components/personas/PersonaList';
 import PersonaDialog from '@/components/personas/PersonaDialog';
+import PersonaMarketplaceDialog from '@/components/personas/PersonaMarketplaceDialog';
 import type { Persona, PersonaSummary } from '@/types/persona';
 import type { BrandSummary } from '@/types/brand';
 import { useAuth } from '@/hooks/useAuth';
@@ -35,6 +36,7 @@ export default function PersonasPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [personaToEdit, setPersonaToEdit] = useState<Persona | null>(null);
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
+  const [isMarketplaceOpen, setIsMarketplaceOpen] = useState(false);
 
   const ITEMS_PER_PAGE = 500;
 
@@ -80,37 +82,37 @@ export default function PersonasPage() {
     loadBrands();
   }, [user?.id]);
 
-  // Load personas
-  useEffect(() => {
-    const loadPersonas = async () => {
-      if (!user?.id) return;
-      setIsLoadingPersonas(true);
-      try {
-        const { data, error } = await supabase
-          .from('personas')
-          .select('id, brand_id, name, created_at')
-          .order('created_at', { ascending: false })
-          .limit(ITEMS_PER_PAGE);
+  const loadPersonas = useCallback(async () => {
+    if (!user?.id) return;
+    setIsLoadingPersonas(true);
+    try {
+      const { data, error } = await supabase
+        .from('personas')
+        .select('id, brand_id, name, created_at')
+        .order('created_at', { ascending: false })
+        .limit(ITEMS_PER_PAGE);
 
-        if (error) throw error;
+      if (error) throw error;
 
-        const personas: PersonaSummary[] = (data || []).map(p => ({
-          id: p.id,
-          brandId: p.brand_id,
-          name: p.name,
-          createdAt: p.created_at,
-        }));
+      const personas: PersonaSummary[] = (data || []).map(p => ({
+        id: p.id,
+        brandId: p.brand_id,
+        name: p.name,
+        createdAt: p.created_at,
+      }));
 
-        setPersonas(personas);
-      } catch (error) {
-        console.error('Erro ao carregar personas:', error);
-        toast.error('Erro ao carregar personas');
-      } finally {
-        setIsLoadingPersonas(false);
-      }
-    };
-    loadPersonas();
+      setPersonas(personas);
+    } catch (error) {
+      console.error('Erro ao carregar personas:', error);
+      toast.error('Erro ao carregar personas');
+    } finally {
+      setIsLoadingPersonas(false);
+    }
   }, [user?.id]);
+
+  useEffect(() => {
+    loadPersonas();
+  }, [loadPersonas]);
 
   const handleOpenDialog = useCallback((persona: Persona | null = null) => {
     if (persona) {
@@ -317,20 +319,36 @@ export default function PersonasPage() {
             </div>
           </div>
 
-          <Button 
-            id="personas-create-button"
-            onClick={() => handleOpenDialog()} 
-            disabled={isButtonDisabled}
-            className="rounded-lg bg-gradient-to-r from-primary to-secondary px-4 py-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed shrink-0 shadow-md"
-            title={!user ? 'Carregando...' : ((user.credits || 0) < 1 ? 'Créditos insuficientes' : undefined)}
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Nova persona
-            <span className="ml-2 flex items-center gap-1 text-xs opacity-90">
-              <Coins className="h-3 w-3" />
-              1
-            </span>
-          </Button>
+          <div className="flex items-center gap-2 shrink-0">
+            <Button
+              variant="outline"
+              onClick={() => setIsMarketplaceOpen(true)}
+              className="relative rounded-lg border-2 border-primary/40 bg-gradient-to-br from-primary/5 to-secondary/5 hover:from-primary/10 hover:to-secondary/10 hover:border-primary text-foreground px-4 py-2 text-sm shrink-0 shadow-sm group"
+              title="Adicionar personas do catálogo"
+            >
+              <Sparkles className="mr-2 h-4 w-4 text-primary group-hover:scale-110 transition-transform" />
+              Catálogo de personas
+              <span className="ml-2 flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-md bg-primary/15 text-primary font-medium">
+                <Coins className="h-3 w-3" />
+                20
+              </span>
+            </Button>
+
+            <Button
+              id="personas-create-button"
+              onClick={() => handleOpenDialog()}
+              disabled={isButtonDisabled}
+              className="rounded-lg bg-gradient-to-r from-primary to-secondary px-4 py-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed shrink-0 shadow-md"
+              title={!user ? 'Carregando...' : ((user.credits || 0) < 1 ? 'Créditos insuficientes' : undefined)}
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Nova persona
+              <span className="ml-2 flex items-center gap-1 text-xs opacity-90">
+                <Coins className="h-3 w-3" />
+                1
+              </span>
+            </Button>
+          </div>
         </div>
 
         <TourSelector 
@@ -382,6 +400,13 @@ export default function PersonasPage() {
         resourceType="persona"
         isFreeResource={(team?.free_personas_used || 0) < 3}
         freeResourcesRemaining={3 - (team?.free_personas_used || 0)}
+      />
+
+      <PersonaMarketplaceDialog
+        isOpen={isMarketplaceOpen}
+        onOpenChange={setIsMarketplaceOpen}
+        brands={brandSummaries}
+        onPurchaseComplete={loadPersonas}
       />
     </div>
   );
