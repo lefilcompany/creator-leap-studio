@@ -129,6 +129,72 @@ function CharacterMesh({ gender, age = 30, seed = '' }: Persona3DAvatarProps) {
         <meshStandardMaterial color="#a8324a" />
       </mesh>
 
+      {/* Beard */}
+      {hasBeard && (
+        <mesh position={[0, 0.7, 0.18]} castShadow>
+          <sphereGeometry args={[0.3, 24, 24, 0, Math.PI * 2, Math.PI / 2.4, Math.PI / 2.6]} />
+          <meshStandardMaterial color={hair} roughness={0.95} />
+        </mesh>
+      )}
+
+      {/* Glasses */}
+      {hasGlasses && (
+        <group position={[0, 0.85, 0.3]}>
+          <mesh position={[-0.1, 0, 0]}>
+            <torusGeometry args={[0.07, 0.012, 8, 24]} />
+            <meshStandardMaterial color={glassesColor} roughness={0.4} metalness={0.3} />
+          </mesh>
+          <mesh position={[0.1, 0, 0]}>
+            <torusGeometry args={[0.07, 0.012, 8, 24]} />
+            <meshStandardMaterial color={glassesColor} roughness={0.4} metalness={0.3} />
+          </mesh>
+          <mesh position={[0, 0, 0]}>
+            <boxGeometry args={[0.06, 0.012, 0.012]} />
+            <meshStandardMaterial color={glassesColor} roughness={0.4} metalness={0.3} />
+          </mesh>
+          <mesh position={[-0.1, 0, 0.005]}>
+            <circleGeometry args={[0.062, 24]} />
+            <meshStandardMaterial color="#cfe6ff" transparent opacity={0.25} roughness={0.1} />
+          </mesh>
+          <mesh position={[0.1, 0, 0.005]}>
+            <circleGeometry args={[0.062, 24]} />
+            <meshStandardMaterial color="#cfe6ff" transparent opacity={0.25} roughness={0.1} />
+          </mesh>
+        </group>
+      )}
+
+      {/* Earrings */}
+      {hasEarring && (
+        <>
+          <mesh position={[-0.31, 0.78, 0.05]} castShadow>
+            <sphereGeometry args={[0.022, 16, 16]} />
+            <meshStandardMaterial color="#f5d061" metalness={0.8} roughness={0.25} />
+          </mesh>
+          <mesh position={[0.31, 0.78, 0.05]} castShadow>
+            <sphereGeometry args={[0.022, 16, 16]} />
+            <meshStandardMaterial color="#f5d061" metalness={0.8} roughness={0.25} />
+          </mesh>
+        </>
+      )}
+
+      {/* Freckles */}
+      {hasFreckles && (
+        <>
+          {([
+            [-0.13, 0.81, 0.29],
+            [-0.07, 0.79, 0.305],
+            [0.05, 0.79, 0.305],
+            [0.12, 0.81, 0.29],
+            [-0.02, 0.82, 0.31],
+          ] as [number, number, number][]).map(([x, y, z], i) => (
+            <mesh key={i} position={[x, y, z]}>
+              <sphereGeometry args={[0.008, 8, 8]} />
+              <meshStandardMaterial color="#8b5a2b" roughness={0.9} />
+            </mesh>
+          ))}
+        </>
+      )}
+
       {/* Shirt collar accent */}
       <mesh position={[0, 0.42, 0.35]}>
         <boxGeometry args={[0.18, 0.04, 0.02]} />
