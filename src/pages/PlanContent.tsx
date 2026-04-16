@@ -423,7 +423,7 @@ const PlanContent = () => {
 
                 <div id="plan-quantity-field" className="space-y-1.5">
                   <Label htmlFor="quantity" className="text-sm font-bold text-foreground">
-                    Qtd. de Posts <span className="text-destructive">*</span>
+                    Qtd. de Conteúdos <span className="text-destructive">*</span>
                   </Label>
                   {isLoadingData ? (
                     <Skeleton className="h-10 w-full rounded-xl" />
@@ -442,7 +442,7 @@ const PlanContent = () => {
                       />
                       <p className="text-xs text-muted-foreground flex items-start gap-1.5">
                         <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
-                        <span>Defina quantos posts o planejamento deve gerar (máx. 7)</span>
+                        <span>Defina quantos conteúdos o planejamento deve gerar (máx. 7)</span>
                       </p>
                     </>
                   )}
@@ -482,7 +482,7 @@ const PlanContent = () => {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-6">
                 <div id="plan-objective-field" className="space-y-1.5">
                   <Label htmlFor="objective" className="text-sm font-bold text-foreground">
-                    Objetivo dos Posts <span className="text-destructive">*</span>
+                    Objetivo dos Conteúdos <span className="text-destructive">*</span>
                   </Label>
                   <Textarea
                     id="objective"
@@ -516,16 +516,6 @@ const PlanContent = () => {
             </CardContent>
           </Card>
 
-          {/* Category Selector */}
-          <Card className="bg-card border-0 shadow-md rounded-2xl overflow-hidden">
-            <CardContent className="p-5 sm:p-7">
-              <CategorySelector
-                value={categoryId}
-                onChange={setCategoryId}
-              />
-            </CardContent>
-          </Card>
-
           {/* Action Button */}
           <Card className="bg-gradient-to-r from-primary/5 via-secondary/5 to-accent/5 border border-border/20 rounded-2xl shadow-lg">
             <CardContent className="p-4 sm:p-5">
@@ -537,7 +527,7 @@ const PlanContent = () => {
                     loading ||
                     !formData.brand ||
                     formData.theme.length === 0 ||
-                    !formData.platform ||
+                    formData.platform.length === 0 ||
                     !formData.objective
                   }
                   className="w-full max-w-lg h-11 sm:h-12 rounded-xl text-sm sm:text-base font-bold bg-gradient-to-r from-primary via-purple-600 to-secondary hover:from-primary/90 shadow-xl transition-all duration-500 disabled:opacity-50 gap-2"
