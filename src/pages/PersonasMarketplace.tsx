@@ -348,17 +348,6 @@ export default function PersonasMarketplacePage() {
                   : 'Nenhuma persona corresponde aos filtros.'}
               </div>
             ) : (
-          {isLoading ? (
-            Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-44 rounded-xl bg-muted/40 animate-pulse" />
-            ))
-          ) : filteredTemplates.length === 0 ? (
-            <div className="col-span-full text-center py-12 text-muted-foreground">
-              {templates.length === 0
-                ? 'Nenhuma persona disponível no catálogo.'
-                : 'Nenhuma persona corresponde à busca.'}
-            </div>
-          ) : (
             filteredTemplates.map((t) => {
               const selected = selectedIds.has(t.id);
 
