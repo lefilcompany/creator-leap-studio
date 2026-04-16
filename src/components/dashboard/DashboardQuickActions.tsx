@@ -79,7 +79,7 @@ export const DashboardQuickActions = () => (
               </div>
               <div>
                 <p className="font-bold text-sm text-foreground">{action.title}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{action.description}</p>
+                <p className="text-xs mt-0.5 text-slate-600">{action.description}</p>
               </div>
             </CardContent>
           </Card>
