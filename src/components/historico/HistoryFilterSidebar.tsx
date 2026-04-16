@@ -186,10 +186,11 @@ function SidebarContent({
           </div>
         </FilterSection>
 
-        {/* Category — separated at the end */}
-        <div className="mt-6 border-t border-border/40 py-0 pt-0">
-          <FilterSection title="Categoria">
-            <div className="space-y-0.5 max-h-48 overflow-y-auto">
+        <div className="mx-3 border-t border-border/20" />
+
+        {/* Category — at the end */}
+        <FilterSection title="Categoria">
+          <div className="space-y-0.5 max-h-48 overflow-y-auto">
               <button
                 onClick={() => onCategoryFilterChange('all')}
                 className={cn(
@@ -234,9 +235,8 @@ function SidebarContent({
                   </button>
                 );
               })}
-            </div>
-          </FilterSection>
-        </div>
+          </div>
+        </FilterSection>
       </div>
 
       {/* Clear filters */}
