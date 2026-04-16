@@ -12,7 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Check, Coins, ShoppingCart, Sparkles, Users, AlertCircle } from 'lucide-react';
+import { Check, Coins, ShoppingCart, Sparkles, Users, AlertCircle, User, UserRound, MapPin, Cake } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
@@ -225,10 +225,10 @@ export default function PersonasMarketplacePage() {
 
       {/* Cards grid */}
       <div className="bg-card rounded-2xl shadow-md p-4 lg:p-5">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
           {isLoading ? (
-            Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="h-48 rounded-xl bg-muted/40 animate-pulse" />
+            Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="h-44 rounded-xl bg-muted/40 animate-pulse" />
             ))
           ) : templates.length === 0 ? (
             <div className="col-span-full text-center py-12 text-muted-foreground">
@@ -237,31 +237,59 @@ export default function PersonasMarketplacePage() {
           ) : (
             templates.map((t) => {
               const selected = selectedIds.has(t.id);
+              const gender = (t.gender || '').toLowerCase();
+              const isFemale = gender.includes('fem') || gender.includes('mulher');
+              const isMale = gender.includes('mas') || gender.includes('homem');
+              const PersonaIcon = isFemale ? UserRound : isMale ? User : Users;
+              const gradientClass = isFemale
+                ? 'from-pink-400 to-rose-500'
+                : isMale
+                ? 'from-blue-400 to-indigo-500'
+                : 'from-primary to-secondary';
+
               return (
                 <button
                   key={t.id}
                   type="button"
                   onClick={() => toggleSelection(t.id)}
                   className={cn(
-                    'relative text-left rounded-xl border-2 p-4 transition-all hover:shadow-md',
+                    'group relative text-left rounded-xl border-2 transition-all hover:shadow-lg overflow-hidden flex',
                     selected
                       ? 'border-primary bg-primary/5 shadow-md'
                       : 'border-border bg-background hover:border-primary/40'
                   )}
                 >
                   {selected && (
-                    <div className="absolute top-3 right-3 bg-primary rounded-full p-1 shadow-md">
+                    <div className="absolute top-2 right-2 z-10 bg-primary rounded-full p-1 shadow-md">
                       <Check className="h-3 w-3 text-primary-foreground" />
                     </div>
                   )}
-                  <div className="flex items-start gap-3 mb-3">
-                    <Avatar className="h-12 w-12 border-2 border-background shadow-sm">
-                      {t.avatar_url && <AvatarImage src={t.avatar_url} alt={t.name} />}
-                      <AvatarFallback className="bg-gradient-to-br from-primary to-secondary text-primary-foreground">
-                        <Users className="h-5 w-5" />
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0 pr-6">
+
+                  {/* Left 30% — Persona avatar/illustration */}
+                  <div
+                    className={cn(
+                      'w-[30%] shrink-0 flex items-center justify-center bg-gradient-to-br relative',
+                      gradientClass
+                    )}
+                  >
+                    {t.avatar_url ? (
+                      <img
+                        src={t.avatar_url}
+                        alt={t.name}
+                        className="absolute inset-0 w-full h-full object-cover"
+                      />
+                    ) : (
+                      <PersonaIcon
+                        className="h-14 w-14 text-white/95 drop-shadow-md group-hover:scale-110 transition-transform"
+                        strokeWidth={1.5}
+                      />
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
+                  </div>
+
+                  {/* Right 70% — All persona info */}
+                  <div className="w-[70%] flex flex-col p-3.5 gap-2 min-w-0">
+                    <div className="min-w-0 pr-6">
                       <h3 className="font-semibold text-sm text-foreground line-clamp-2 leading-tight">
                         {t.name}
                       </h3>
@@ -271,25 +299,38 @@ export default function PersonasMarketplacePage() {
                         </Badge>
                       )}
                     </div>
-                  </div>
-                  {t.short_description && (
-                    <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
-                      {t.short_description}
-                    </p>
-                  )}
-                  <div className="flex items-center gap-2 text-[11px] text-muted-foreground border-t border-border/40 pt-2 mt-2">
-                    <span>{t.age}</span>
-                    <span className="text-border">•</span>
-                    <span className="truncate">{t.location}</span>
-                  </div>
-                  <div className="flex items-center justify-between mt-3 pt-2 border-t border-border/40">
-                    <div className="flex items-center gap-1 text-xs font-medium text-primary">
-                      <Coins className="h-3 w-3" />
-                      {COST_PER_PERSONA} créditos
+
+                    {t.short_description && (
+                      <p className="text-xs text-muted-foreground line-clamp-2 leading-snug">
+                        {t.short_description}
+                      </p>
+                    )}
+
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-muted-foreground mt-auto">
+                      <span className="flex items-center gap-1">
+                        <Cake className="h-3 w-3" />
+                        {t.age}
+                      </span>
+                      <span className="flex items-center gap-1 truncate">
+                        <MapPin className="h-3 w-3 shrink-0" />
+                        <span className="truncate">{t.location}</span>
+                      </span>
                     </div>
-                    <span className="text-[11px] text-muted-foreground">
-                      {selected ? 'Selecionada' : 'Adicionar'}
-                    </span>
+
+                    <div className="flex items-center justify-between pt-2 border-t border-border/40">
+                      <div className="flex items-center gap-1 text-xs font-medium text-primary">
+                        <Coins className="h-3 w-3" />
+                        {COST_PER_PERSONA} créditos
+                      </div>
+                      <span
+                        className={cn(
+                          'text-[11px] font-medium',
+                          selected ? 'text-primary' : 'text-muted-foreground'
+                        )}
+                      >
+                        {selected ? 'Selecionada' : 'Adicionar'}
+                      </span>
+                    </div>
                   </div>
                 </button>
               );
