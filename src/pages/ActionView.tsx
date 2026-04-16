@@ -1310,9 +1310,12 @@ export default function ActionView() {
           <DialogHeader>
             <DialogTitle>Plano completo</DialogTitle>
             <DialogDescription>Conteúdo gerado em formato Markdown</DialogDescription>
+          <DialogHeader>
+            <DialogTitle>Plano completo</DialogTitle>
+            <DialogDescription>Visualização estruturada do calendário</DialogDescription>
           </DialogHeader>
-          <div className="prose prose-sm dark:prose-invert max-w-none mt-4">
-            <ReactMarkdown components={markdownComponents}>{formatPlanMarkdown(action?.result?.plan || "")}</ReactMarkdown>
+          <div className="mt-4">
+            <StructuredPlan raw={action?.result?.plan || ""} />
           </div>
         </DialogContent>
       </Dialog>
