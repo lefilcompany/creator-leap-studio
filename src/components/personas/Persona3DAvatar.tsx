@@ -29,12 +29,13 @@ function CharacterMesh({ gender, age = 30, seed = '' }: Persona3DAvatarProps) {
     group.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.6) * 0.25;
   });
 
-  const { skin, hair, shirt, accent } = useMemo(() => {
+  const { skin, hair, shirt, accent, hasGlasses, hasBeard, hasEarring, hasFreckles, glassesColor } = useMemo(() => {
     const h = hashSeed(seed || gender);
     const skinTones = ['#f5cfa0', '#e8b48a', '#d29575', '#a87253', '#7a4c34'];
     const skin = skinTones[h % skinTones.length];
 
     const isOlder = age >= 55;
+    const isYoung = age < 25;
     const youngHair = ['#2b1d14', '#3d2914', '#5c3a1e', '#1a1a1a', '#8b5a2b'];
     const olderHair = ['#9aa0a6', '#bdbdbd', '#e0e0e0'];
     const hair = (isOlder ? olderHair : youngHair)[h % (isOlder ? olderHair.length : youngHair.length)];
@@ -53,7 +54,25 @@ function CharacterMesh({ gender, age = 30, seed = '' }: Persona3DAvatarProps) {
       shirt = '#6366f1';
       accent = '#ffffff';
     }
-    return { skin, hair, shirt, accent };
+
+    // Trait variations based on seed bits + persona attributes
+    // Glasses more likely on older personas
+    const glassesRoll = (h >> 5) % 100;
+    const hasGlasses = isOlder ? glassesRoll < 55 : glassesRoll < 30;
+    // Beard only on male personas, more likely if older
+    const beardRoll = (h >> 7) % 100;
+    const hasBeard = gender === 'male' && (isOlder ? beardRoll < 70 : beardRoll < 35);
+    // Earring more likely on female / younger
+    const earringRoll = (h >> 9) % 100;
+    const hasEarring = gender === 'female' ? earringRoll < 65 : (isYoung ? earringRoll < 25 : earringRoll < 8);
+    // Freckles for variety on lighter skin tones
+    const frecklesRoll = (h >> 11) % 100;
+    const hasFreckles = (h % skinTones.length) < 2 && frecklesRoll < 35;
+    // Glasses color variation
+    const glassesColors = ['#1a1a1a', '#3d2914', '#7a4c34', '#475569', '#a16207'];
+    const glassesColor = glassesColors[(h >> 13) % glassesColors.length];
+
+    return { skin, hair, shirt, accent, hasGlasses, hasBeard, hasEarring, hasFreckles, glassesColor };
   }, [gender, age, seed]);
 
   const isFemale = gender === 'female';
