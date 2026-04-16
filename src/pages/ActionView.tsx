@@ -1309,9 +1309,6 @@ export default function ActionView() {
         <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Plano completo</DialogTitle>
-            <DialogDescription>Conteúdo gerado em formato Markdown</DialogDescription>
-          <DialogHeader>
-            <DialogTitle>Plano completo</DialogTitle>
             <DialogDescription>Visualização estruturada do calendário</DialogDescription>
           </DialogHeader>
           <div className="mt-4">
