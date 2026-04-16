@@ -47,6 +47,7 @@ export default function PersonasMarketplacePage() {
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [filters, setFilters] = useState<MarketplaceFilters>(initialFilters);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [previewTemplate, setPreviewTemplate] = useState<PersonaTemplate | null>(null);
 
   const userCredits = user?.credits || 0;
 
