@@ -1189,10 +1189,8 @@ export default function ActionView() {
                       ))}
                     </div>
                   ) : (
-                    <div className="p-5 bg-muted/30 rounded-xl border border-border/10">
-                      <div className="prose prose-sm prose-slate dark:prose-invert max-w-none">
-                        <ReactMarkdown components={markdownComponents}>{formatPlanMarkdown(action.result!.plan!)}</ReactMarkdown>
-                      </div>
+                    <div className="p-5 bg-muted/20 rounded-2xl border border-border/20">
+                      <StructuredPlan raw={action.result!.plan!} />
                     </div>
                   )}
                 </SectionCard>
