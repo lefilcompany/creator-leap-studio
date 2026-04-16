@@ -12,7 +12,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Check, Coins, ShoppingCart, Sparkles, AlertCircle, MapPin, Cake, UserRound } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Check, Coins, ShoppingCart, Sparkles, AlertCircle, MapPin, Cake, UserRound, Search, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
@@ -45,6 +46,8 @@ export default function PersonasMarketplacePage() {
   const [selectedBrandId, setSelectedBrandId] = useState<string>('');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isPurchasing, setIsPurchasing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeCategory, setActiveCategory] = useState<string>('all');
 
   const userCredits = user?.credits || 0;
 
@@ -108,6 +111,32 @@ export default function PersonasMarketplacePage() {
     () => brands.find((b) => b.id === selectedBrandId),
     [brands, selectedBrandId]
   );
+
+  const categories = useMemo(() => {
+    const set = new Set<string>();
+    templates.forEach((t) => t.category && set.add(t.category));
+    return ['all', ...Array.from(set).sort()];
+  }, [templates]);
+
+  const filteredTemplates = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    return templates.filter((t) => {
+      if (activeCategory !== 'all' && t.category !== activeCategory) return false;
+      if (!q) return true;
+      const haystack = [
+        t.name,
+        t.category,
+        t.short_description,
+        t.location,
+        t.main_goal,
+        t.challenges,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+      return haystack.includes(q);
+    });
+  }, [templates, searchQuery, activeCategory]);
 
   const handlePurchase = async () => {
     if (!selectedBrandId) {
@@ -224,18 +253,68 @@ export default function PersonasMarketplacePage() {
       </div>
 
       {/* Cards grid */}
-      <div className="bg-card rounded-2xl shadow-md p-4 lg:p-5">
+      <div className="bg-card rounded-2xl shadow-md p-4 lg:p-5 space-y-4">
+        {/* Search + categories */}
+        <div className="space-y-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Buscar persona por nome, profissão, cidade..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 pr-9 h-10 bg-background"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-muted text-muted-foreground"
+                aria-label="Limpar busca"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
+          {categories.length > 1 && (
+            <div className="flex flex-wrap gap-1.5">
+              {categories.map((cat) => (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => setActiveCategory(cat)}
+                  className={cn(
+                    'text-xs px-3 py-1.5 rounded-full border transition-colors',
+                    activeCategory === cat
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-background text-muted-foreground border-border hover:border-primary/40 hover:text-foreground'
+                  )}
+                >
+                  {cat === 'all' ? `Todas (${templates.length})` : cat}
+                </button>
+              ))}
+            </div>
+          )}
+          {!isLoading && (
+            <p className="text-xs text-muted-foreground">
+              {filteredTemplates.length} {filteredTemplates.length === 1 ? 'persona encontrada' : 'personas encontradas'}
+            </p>
+          )}
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
           {isLoading ? (
             Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="h-44 rounded-xl bg-muted/40 animate-pulse" />
             ))
-          ) : templates.length === 0 ? (
+          ) : filteredTemplates.length === 0 ? (
             <div className="col-span-full text-center py-12 text-muted-foreground">
-              Nenhuma persona disponível no catálogo.
+              {templates.length === 0
+                ? 'Nenhuma persona disponível no catálogo.'
+                : 'Nenhuma persona corresponde à busca.'}
             </div>
           ) : (
-            templates.map((t) => {
+            filteredTemplates.map((t) => {
               const selected = selectedIds.has(t.id);
 
               return (
