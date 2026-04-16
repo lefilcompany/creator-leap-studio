@@ -235,9 +235,8 @@ function SidebarContent({
                   </button>
                 );
               })}
-            </div>
-          </FilterSection>
-        </div>
+          </div>
+        </FilterSection>
       </div>
 
       {/* Clear filters */}
