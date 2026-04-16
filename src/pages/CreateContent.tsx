@@ -1108,7 +1108,7 @@ export default function CreateContent() {
             throw new Error(`Erro ao gerar imagem: ${await imageResponse.text()}`);
           }
 
-          const { imageUrl, attempt, complianceCheck } = await imageResponse.json();
+          const { imageUrl, attempt, complianceCheck, actionId: generatedActionId } = await imageResponse.json();
 
           // 2. Generate caption
           const captionResponse = await fetch(
@@ -1183,7 +1183,7 @@ export default function CreateContent() {
                 body: captionData.body,
                 hashtags: captionData.hashtags,
                 originalFormData: { ...capturedRequestData, brandId: capturedFormData.brand },
-                actionId: undefined,
+                actionId: generatedActionId,
                 isLocalFallback,
                 categoryId: capturedCategoryId || undefined,
                 complianceCheck: complianceCheck || null,
