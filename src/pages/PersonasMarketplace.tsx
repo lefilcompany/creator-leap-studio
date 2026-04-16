@@ -446,10 +446,10 @@ export default function PersonasMarketplacePage() {
                 </button>
               );
             })
-          )}
+            )}
+          </div>
         </div>
-      </div>
-
+      </div>{/* /two-column layout */}
       {/* Sticky checkout */}
       <div className="sticky bottom-4 bg-card rounded-2xl shadow-xl border border-border/40 p-4">
         {unaffordableCount > 0 && (
