@@ -28,8 +28,14 @@ serve(async (req) => {
       );
     }
     
-    const { brand, themes, platform, quantity, objective, additionalInfo, userId, teamId } = await req.json();
-    console.log('Request payload:', { brand, themes, platform, quantity, userId, teamId });
+    const { brand, themes, platform, platforms, quantity, objective, additionalInfo, userId, teamId } = await req.json();
+    
+    // Normalize platforms: accept both legacy `platform` (string) and new `platforms` (array)
+    const platformList: string[] = Array.isArray(platforms)
+      ? platforms.filter((p) => typeof p === 'string' && p.trim().length > 0)
+      : (typeof platform === 'string' && platform.trim().length > 0 ? [platform] : []);
+    
+    console.log('Request payload:', { brand, themes, platforms: platformList, quantity, userId, teamId });
 
     // Input validation
     if (!brand || typeof brand !== 'string' || brand.trim().length === 0) {
@@ -47,11 +53,11 @@ serve(async (req) => {
     }
     
     const validPlatforms = ['instagram', 'linkedin', 'facebook', 'twitter', 'tiktok'];
-    const normalizedPlatform = platform.toLowerCase().trim();
-    if (!normalizedPlatform || !validPlatforms.includes(normalizedPlatform)) {
-      console.error('Invalid platform:', platform);
+    const normalizedPlatforms = platformList.map((p) => p.toLowerCase().trim());
+    if (normalizedPlatforms.length === 0 || normalizedPlatforms.some((p) => !validPlatforms.includes(p))) {
+      console.error('Invalid platforms:', platformList);
       return new Response(
-        JSON.stringify({ error: 'Invalid platform' }),
+        JSON.stringify({ error: 'Invalid platforms' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
