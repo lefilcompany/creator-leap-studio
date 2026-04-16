@@ -1004,6 +1004,107 @@ export default function ActionView() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* ═══ Plan Post Detail Dialog ═══ */}
+      <Dialog open={!!selectedPost} onOpenChange={(o) => !o && setSelectedPost(null)}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          {selectedPost && (
+            <>
+              <DialogHeader>
+                <div className="flex flex-wrap items-center gap-2 mb-2">
+                  <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
+                    {PLAN_PLATFORM_LABELS[String(selectedPost.platform || "").toLowerCase()] || selectedPost.platform}
+                  </Badge>
+                  {selectedPost.date && (
+                    <Badge variant="outline" className="gap-1">
+                      <Calendar className="h-3 w-3" />
+                      {formatPlanDate(selectedPost.date)}
+                    </Badge>
+                  )}
+                  {selectedPost.format && (
+                    <Badge variant="outline" className="gap-1">
+                      <Image className="h-3 w-3" />
+                      {selectedPost.format}
+                    </Badge>
+                  )}
+                </div>
+                <DialogTitle className="text-xl">{selectedPost.title}</DialogTitle>
+                {selectedPost.summary && <DialogDescription>{selectedPost.summary}</DialogDescription>}
+              </DialogHeader>
+
+              <div className="space-y-3 mt-2">
+                {selectedPost.bigIdea && (
+                  <PlanDetailRow icon={<Lightbulb className="h-4 w-4" />} label="Grande ideia" value={selectedPost.bigIdea} />
+                )}
+                {selectedPost.objective && (
+                  <PlanDetailRow icon={<Target className="h-4 w-4" />} label="Objetivo" value={selectedPost.objective} />
+                )}
+                {selectedPost.funnel && (
+                  <PlanDetailRow icon={<Target className="h-4 w-4" />} label="Funil" value={selectedPost.funnel} />
+                )}
+                {selectedPost.persona && (
+                  <PlanDetailRow icon={<Users className="h-4 w-4" />} label="Persona" value={selectedPost.persona} />
+                )}
+                {selectedPost.copy && (
+                  <PlanDetailRow icon={<FileText className="h-4 w-4" />} label="Copy sugerida" value={selectedPost.copy} />
+                )}
+                {selectedPost.visual && (
+                  <PlanDetailRow icon={<Image className="h-4 w-4" />} label="Imagem / Vídeo" value={selectedPost.visual} />
+                )}
+                {Array.isArray(selectedPost.hashtags) && selectedPost.hashtags.length > 0 && (
+                  <PlanDetailRow
+                    icon={<Hash className="h-4 w-4" />}
+                    label="Hashtags"
+                    value={selectedPost.hashtags.join(" ")}
+                  />
+                )}
+                {selectedPost.bestTime && (
+                  <PlanDetailRow icon={<Clock className="h-4 w-4" />} label="Melhor horário" value={selectedPost.bestTime} />
+                )}
+              </div>
+
+              <div className="mt-6 flex flex-col sm:flex-row gap-2 sm:justify-end pt-4 border-t border-border">
+                <Button variant="outline" onClick={() => setSelectedPost(null)}>
+                  Fechar
+                </Button>
+                <Button
+                  onClick={() => {
+                    handleCreatePostContent(selectedPost);
+                    setSelectedPost(null);
+                  }}
+                  className="gap-2"
+                >
+                  <Sparkles className="h-4 w-4" />
+                  Criar este conteúdo
+                </Button>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* ═══ Full Plan Markdown Dialog ═══ */}
+      <Dialog open={showFullPlan} onOpenChange={setShowFullPlan}>
+        <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Plano completo</DialogTitle>
+            <DialogDescription>Conteúdo gerado em formato Markdown</DialogDescription>
+          </DialogHeader>
+          <div className="prose prose-sm dark:prose-invert max-w-none mt-4">
+            <ReactMarkdown components={markdownComponents}>{action?.result?.plan || ""}</ReactMarkdown>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
+
+const PlanDetailRow = ({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) => (
+  <div className="bg-muted/30 rounded-xl p-3 border border-border/40">
+    <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">
+      {icon}
+      {label}
+    </div>
+    <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">{value}</p>
+  </div>
+);
