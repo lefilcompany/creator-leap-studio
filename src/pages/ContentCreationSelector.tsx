@@ -12,7 +12,7 @@ import { contentCreationSelectorSteps } from "@/components/onboarding/tourSteps"
 import { PageBreadcrumb } from "@/components/PageBreadcrumb";
 import createBanner from "@/assets/create-banner.jpg";
 
-type CreationType = "image" | "quick-image" | "video" | "marketplace";
+type CreationType = "image" | "video" | "marketplace" | "review";
 
 export default function ContentCreationSelector() {
   const navigate = useNavigate();
@@ -39,9 +39,9 @@ export default function ContentCreationSelector() {
     if (creationType) {
       const routes: Record<CreationType, string> = {
         image: "/create/image",
-        "quick-image": "/create/quick",
         video: "/create/video",
         marketplace: "/create/marketplace",
+        review: "/review",
       };
       navigate(routes[creationType]);
     }
