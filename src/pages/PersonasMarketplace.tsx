@@ -26,22 +26,14 @@ import {
   type AgeRange,
 } from '@/components/personas/MarketplaceFilterSidebar';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import {
+  PersonaTemplateDetailsDialog,
+  type PersonaTemplateFull,
+} from '@/components/personas/PersonaTemplateDetailsDialog';
 
 const COST_PER_PERSONA = 20;
 
-type PersonaTemplate = {
-  id: string;
-  name: string;
-  category: string | null;
-  avatar_url: string | null;
-  short_description: string | null;
-  gender: string;
-  age: string;
-  location: string;
-  main_goal: string;
-  challenges: string;
-  purchase_journey_stage?: string | null;
-};
+type PersonaTemplate = PersonaTemplateFull;
 
 export default function PersonasMarketplacePage() {
   const navigate = useNavigate();
@@ -55,6 +47,7 @@ export default function PersonasMarketplacePage() {
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [filters, setFilters] = useState<MarketplaceFilters>(initialFilters);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [previewTemplate, setPreviewTemplate] = useState<PersonaTemplate | null>(null);
 
   const userCredits = user?.credits || 0;
 
@@ -65,7 +58,7 @@ export default function PersonasMarketplacePage() {
         const [templatesRes, brandsRes] = await Promise.all([
           supabase
             .from('persona_templates')
-            .select('id, name, category, avatar_url, short_description, gender, age, location, main_goal, challenges, purchase_journey_stage')
+            .select('id, name, category, avatar_url, short_description, gender, age, location, professional_context, beliefs_and_interests, content_consumption_routine, main_goal, challenges, preferred_tone_of_voice, purchase_journey_stage, interest_triggers')
             .eq('is_active', true)
             .order('display_order', { ascending: true }),
           supabase
@@ -352,12 +345,19 @@ export default function PersonasMarketplacePage() {
               const selected = selectedIds.has(t.id);
 
               return (
-                <button
+                <div
                   key={t.id}
-                  type="button"
-                  onClick={() => toggleSelection(t.id)}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setPreviewTemplate(t)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setPreviewTemplate(t);
+                    }
+                  }}
                   className={cn(
-                    'group relative text-left rounded-xl border-2 transition-all hover:shadow-lg overflow-hidden flex min-h-[180px] bg-background',
+                    'group relative text-left rounded-xl border-2 transition-all hover:shadow-lg overflow-hidden flex min-h-[180px] bg-background cursor-pointer',
                     selected
                       ? 'border-primary shadow-md ring-2 ring-primary/20'
                       : 'border-border hover:border-primary/40'
@@ -383,7 +383,6 @@ export default function PersonasMarketplacePage() {
                         <UserRound className="h-12 w-12 text-muted-foreground/60" />
                       </div>
                     )}
-                    {/* Subtle gradient overlay for legibility on edge */}
                     <div className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-background/40 to-transparent pointer-events-none" />
                   </div>
 
@@ -417,22 +416,41 @@ export default function PersonasMarketplacePage() {
                       </span>
                     </div>
 
-                    <div className="flex items-center justify-between pt-2 border-t border-border/40">
+                    <div className="flex items-center justify-between gap-2 pt-2 border-t border-border/40">
                       <div className="flex items-center gap-1 text-xs font-medium text-primary">
                         <Coins className="h-3 w-3" />
                         {COST_PER_PERSONA} créditos
                       </div>
-                      <span
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant={selected ? 'default' : 'outline'}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleSelection(t.id);
+                        }}
                         className={cn(
-                          'text-[11px] font-medium',
-                          selected ? 'text-primary' : 'text-muted-foreground'
+                          'h-7 px-2.5 text-[11px] font-semibold gap-1 transition-all',
+                          selected
+                            ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                            : 'border-primary/40 text-primary hover:bg-primary hover:text-primary-foreground hover:border-primary'
                         )}
                       >
-                        {selected ? 'Selecionada' : 'Adicionar'}
-                      </span>
+                        {selected ? (
+                          <>
+                            <Check className="h-3 w-3" />
+                            Adicionada
+                          </>
+                        ) : (
+                          <>
+                            <ShoppingCart className="h-3 w-3" />
+                            Adicionar
+                          </>
+                        )}
+                      </Button>
                     </div>
                   </div>
-                </button>
+                </div>
               );
             })
             )}
@@ -490,6 +508,15 @@ export default function PersonasMarketplacePage() {
           </div>
         </div>
       </div>
+
+      <PersonaTemplateDetailsDialog
+        template={previewTemplate}
+        open={!!previewTemplate}
+        onOpenChange={(o) => !o && setPreviewTemplate(null)}
+        selected={previewTemplate ? selectedIds.has(previewTemplate.id) : false}
+        onToggleSelect={() => previewTemplate && toggleSelection(previewTemplate.id)}
+        costPerPersona={COST_PER_PERSONA}
+      />
     </div>
   );
 }
