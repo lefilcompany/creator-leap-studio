@@ -285,7 +285,26 @@ Tema ${index + 1}:
       );
     }
     
-    const generatedPlan = data.candidates[0].content.parts[0].text;
+    const rawText = data.candidates[0].content.parts[0].text;
+
+    // Extract structured JSON block from the response (```json ... ```)
+    let posts: any[] = [];
+    let cleanedMarkdown = rawText;
+    try {
+      const jsonMatch = rawText.match(/```json\s*([\s\S]*?)\s*```/i);
+      if (jsonMatch && jsonMatch[1]) {
+        const parsed = JSON.parse(jsonMatch[1]);
+        if (parsed && Array.isArray(parsed.posts)) {
+          posts = parsed.posts;
+        }
+        // Remove the JSON block from the markdown shown to the user
+        cleanedMarkdown = rawText.replace(/```json[\s\S]*?```/i, '').trim();
+      }
+    } catch (parseErr) {
+      console.error('Failed to parse structured posts JSON:', parseErr);
+    }
+
+    const generatedPlan = cleanedMarkdown;
 
     // Deduct credits (individual)
     const deductResult = await deductUserCredits(supabase, userId, CREDIT_COSTS.CONTENT_PLAN);
@@ -306,7 +325,7 @@ Tema ${index + 1}:
       creditsBefore: creditCheck.currentCredits,
       creditsAfter: deductResult.newCredits,
       description: 'Calendário de conteúdo',
-      metadata: { platform, quantity, themes }
+      metadata: { platforms: normalizedPlatforms, quantity, themes }
     });
 
     // Save action
@@ -318,8 +337,8 @@ Tema ${index + 1}:
         team_id: teamId || null,
         brand_id: brand,
         status: 'Aguardando revisão',
-        result: { plan: generatedPlan },
-        details: { themes, platform, quantity, objective, additionalInfo }
+        result: { plan: generatedPlan, posts },
+        details: { themes, platforms: normalizedPlatforms, quantity, objective, additionalInfo }
       })
       .select('id')
       .single();
@@ -335,6 +354,7 @@ Tema ${index + 1}:
     return new Response(
       JSON.stringify({ 
         plan: generatedPlan,
+        posts,
         actionId: actionData.id,
         creditsRemaining: deductResult.newCredits 
       }),
