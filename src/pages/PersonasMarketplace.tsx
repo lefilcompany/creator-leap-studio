@@ -26,22 +26,14 @@ import {
   type AgeRange,
 } from '@/components/personas/MarketplaceFilterSidebar';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import {
+  PersonaTemplateDetailsDialog,
+  type PersonaTemplateFull,
+} from '@/components/personas/PersonaTemplateDetailsDialog';
 
 const COST_PER_PERSONA = 20;
 
-type PersonaTemplate = {
-  id: string;
-  name: string;
-  category: string | null;
-  avatar_url: string | null;
-  short_description: string | null;
-  gender: string;
-  age: string;
-  location: string;
-  main_goal: string;
-  challenges: string;
-  purchase_journey_stage?: string | null;
-};
+type PersonaTemplate = PersonaTemplateFull;
 
 export default function PersonasMarketplacePage() {
   const navigate = useNavigate();
