@@ -112,6 +112,32 @@ export default function PersonasMarketplacePage() {
     [brands, selectedBrandId]
   );
 
+  const categories = useMemo(() => {
+    const set = new Set<string>();
+    templates.forEach((t) => t.category && set.add(t.category));
+    return ['all', ...Array.from(set).sort()];
+  }, [templates]);
+
+  const filteredTemplates = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    return templates.filter((t) => {
+      if (activeCategory !== 'all' && t.category !== activeCategory) return false;
+      if (!q) return true;
+      const haystack = [
+        t.name,
+        t.category,
+        t.short_description,
+        t.location,
+        t.main_goal,
+        t.challenges,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+      return haystack.includes(q);
+    });
+  }, [templates, searchQuery, activeCategory]);
+
   const handlePurchase = async () => {
     if (!selectedBrandId) {
       toast.error('Selecione uma marca primeiro');
