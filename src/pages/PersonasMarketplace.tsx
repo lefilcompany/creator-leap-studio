@@ -230,7 +230,7 @@ export default function PersonasMarketplacePage() {
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-3 sm:gap-4 pb-32 sm:pb-4">
       <PageBreadcrumb
         items={[
           { label: 'Personas', href: '/personas' },
@@ -239,13 +239,13 @@ export default function PersonasMarketplacePage() {
       />
 
       {/* Header */}
-      <div className="bg-card rounded-2xl shadow-md p-4 lg:p-5 flex items-center gap-3">
-        <div className="bg-gradient-to-br from-primary to-secondary rounded-xl p-2.5 shadow-md">
-          <Sparkles className="h-5 w-5 text-primary-foreground" />
+      <div className="bg-card rounded-2xl shadow-md p-3 sm:p-4 lg:p-5 flex items-center gap-3">
+        <div className="bg-gradient-to-br from-primary to-secondary rounded-xl p-2 sm:p-2.5 shadow-md shrink-0">
+          <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-primary-foreground" />
         </div>
         <div className="flex-1 min-w-0">
-          <h1 className="text-lg lg:text-xl font-bold text-foreground">Catálogo de Personas</h1>
-          <p className="text-xs lg:text-sm text-muted-foreground">
+          <h1 className="text-base sm:text-lg lg:text-xl font-bold text-foreground leading-tight">Catálogo de Personas</h1>
+          <p className="text-[11px] sm:text-xs lg:text-sm text-muted-foreground leading-snug">
             Adicione personas pré-prontas à sua marca por {COST_PER_PERSONA} créditos cada
           </p>
         </div>
