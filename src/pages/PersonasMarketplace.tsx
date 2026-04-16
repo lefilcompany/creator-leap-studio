@@ -508,6 +508,15 @@ export default function PersonasMarketplacePage() {
           </div>
         </div>
       </div>
+
+      <PersonaTemplateDetailsDialog
+        template={previewTemplate}
+        open={!!previewTemplate}
+        onOpenChange={(o) => !o && setPreviewTemplate(null)}
+        selected={previewTemplate ? selectedIds.has(previewTemplate.id) : false}
+        onToggleSelect={() => previewTemplate && toggleSelection(previewTemplate.id)}
+        costPerPersona={COST_PER_PERSONA}
+      />
     </div>
   );
 }
