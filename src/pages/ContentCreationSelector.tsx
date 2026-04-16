@@ -162,7 +162,7 @@ export default function ContentCreationSelector() {
                     <div className="space-y-1.5">
                       <h3 className="font-semibold text-lg">Criar Conteúdo</h3>
                       <p className="text-sm text-muted-foreground leading-relaxed">
-                        Crie imagens profissionais com IA usando prompts e controle completo
+                        crie textos e imagens com contexto de marca
                       </p>
                     </div>
                   </div>
