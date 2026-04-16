@@ -12,7 +12,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Check, Coins, ShoppingCart, Sparkles, AlertCircle, MapPin, Cake, UserRound } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Check, Coins, ShoppingCart, Sparkles, AlertCircle, MapPin, Cake, UserRound, Search, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
@@ -45,6 +46,8 @@ export default function PersonasMarketplacePage() {
   const [selectedBrandId, setSelectedBrandId] = useState<string>('');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isPurchasing, setIsPurchasing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeCategory, setActiveCategory] = useState<string>('all');
 
   const userCredits = user?.credits || 0;
 
