@@ -230,7 +230,7 @@ export default function PersonasMarketplacePage() {
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-3 sm:gap-4 pb-32 sm:pb-4">
       <PageBreadcrumb
         items={[
           { label: 'Personas', href: '/personas' },
@@ -239,85 +239,88 @@ export default function PersonasMarketplacePage() {
       />
 
       {/* Header */}
-      <div className="bg-card rounded-2xl shadow-md p-4 lg:p-5 flex items-center gap-3">
-        <div className="bg-gradient-to-br from-primary to-secondary rounded-xl p-2.5 shadow-md">
-          <Sparkles className="h-5 w-5 text-primary-foreground" />
+      <div className="bg-card rounded-2xl shadow-md p-3 sm:p-4 lg:p-5 flex items-center gap-3">
+        <div className="bg-gradient-to-br from-primary to-secondary rounded-xl p-2 sm:p-2.5 shadow-md shrink-0">
+          <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-primary-foreground" />
         </div>
         <div className="flex-1 min-w-0">
-          <h1 className="text-lg lg:text-xl font-bold text-foreground">Catálogo de Personas</h1>
-          <p className="text-xs lg:text-sm text-muted-foreground">
+          <h1 className="text-base sm:text-lg lg:text-xl font-bold text-foreground leading-tight">Catálogo de Personas</h1>
+          <p className="text-[11px] sm:text-xs lg:text-sm text-muted-foreground leading-snug">
             Adicione personas pré-prontas à sua marca por {COST_PER_PERSONA} créditos cada
           </p>
         </div>
       </div>
 
-      {/* Brand selector */}
-      <div className="bg-card rounded-2xl shadow-md p-4 lg:p-5">
-        <label className="text-xs font-medium text-foreground mb-2 block">
-          Vincular personas à marca
-        </label>
-        <Select value={selectedBrandId} onValueChange={setSelectedBrandId}>
-          <SelectTrigger className="w-full h-11 bg-background">
-            <SelectValue placeholder="Selecione a marca que receberá as personas" />
-          </SelectTrigger>
-          <SelectContent>
-            {brands.length === 0 ? (
-              <div className="p-3 text-sm text-muted-foreground">Crie uma marca primeiro</div>
-            ) : (
-              brands.map((b) => (
-                <SelectItem key={b.id} value={b.id}>
-                  <div className="flex items-center gap-2">
-                    <Avatar className="h-5 w-5">
-                      {b.avatarUrl && <AvatarImage src={b.avatarUrl} alt={b.name} />}
-                      <AvatarFallback
-                        style={{ backgroundColor: b.brandColor || undefined }}
-                        className="text-[10px] text-primary-foreground"
-                      >
-                        {b.name.charAt(0)}
-                      </AvatarFallback>
-                    </Avatar>
-                    {b.name}
-                  </div>
-                </SelectItem>
-              ))
-            )}
-          </SelectContent>
-        </Select>
-        {selectedBrand && (
-          <p className="text-xs text-muted-foreground mt-2">
-            As personas selecionadas serão criadas em{' '}
-            <strong className="text-foreground">{selectedBrand.name}</strong>
-          </p>
-        )}
-      </div>
+      {/* Brand selector + mobile filters trigger */}
+      <div className="flex flex-col sm:flex-row gap-3 lg:block">
+        <div className="bg-card rounded-2xl shadow-md p-3 sm:p-4 lg:p-5 flex-1 min-w-0">
+          <label className="text-xs font-medium text-foreground mb-2 block">
+            Vincular personas à marca
+          </label>
+          <Select value={selectedBrandId} onValueChange={setSelectedBrandId}>
+            <SelectTrigger className="w-full h-10 sm:h-11 bg-background">
+              <SelectValue placeholder="Selecione a marca que receberá as personas" />
+            </SelectTrigger>
+            <SelectContent>
+              {brands.length === 0 ? (
+                <div className="p-3 text-sm text-muted-foreground">Crie uma marca primeiro</div>
+              ) : (
+                brands.map((b) => (
+                  <SelectItem key={b.id} value={b.id}>
+                    <div className="flex items-center gap-2">
+                      <Avatar className="h-5 w-5">
+                        {b.avatarUrl && <AvatarImage src={b.avatarUrl} alt={b.name} />}
+                        <AvatarFallback
+                          style={{ backgroundColor: b.brandColor || undefined }}
+                          className="text-[10px] text-primary-foreground"
+                        >
+                          {b.name.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      {b.name}
+                    </div>
+                  </SelectItem>
+                ))
+              )}
+            </SelectContent>
+          </Select>
+          {selectedBrand && (
+            <p className="text-[11px] sm:text-xs text-muted-foreground mt-2 truncate">
+              Personas serão criadas em{' '}
+              <strong className="text-foreground">{selectedBrand.name}</strong>
+            </p>
+          )}
+        </div>
 
-      {/* Mobile filters trigger */}
-      <div className="lg:hidden">
-        <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
-          <SheetTrigger asChild>
-            <Button variant="outline" className="w-full justify-center">
-              <SlidersHorizontal className="h-4 w-4 mr-2" />
-              Filtros ({filteredTemplates.length} resultados)
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-[85vw] max-w-sm p-0">
-            <div className="p-4 h-full overflow-hidden">
-              <MarketplaceFilterSidebar
-                filters={filters}
-                onChange={setFilters}
-                facets={facets}
-                totalResults={filteredTemplates.length}
-                totalAll={templates.length}
-              />
-            </div>
-          </SheetContent>
-        </Sheet>
+        {/* Mobile/tablet filters trigger */}
+        <div className="lg:hidden sm:w-auto sm:self-end">
+          <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
+            <SheetTrigger asChild>
+              <Button variant="outline" className="w-full sm:w-auto h-10 sm:h-11 justify-center sm:px-5">
+                <SlidersHorizontal className="h-4 w-4 mr-2" />
+                <span className="sm:hidden">Filtros ({filteredTemplates.length})</span>
+                <span className="hidden sm:inline">Filtros · {filteredTemplates.length}</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-[88vw] max-w-sm p-0">
+              <div className="p-4 h-full overflow-hidden">
+                <MarketplaceFilterSidebar
+                  filters={filters}
+                  onChange={setFilters}
+                  facets={facets}
+                  totalResults={filteredTemplates.length}
+                  totalAll={templates.length}
+                />
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
       </div>
 
       {/* Two-column layout: sidebar + grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] xl:grid-cols-[280px_1fr] gap-3 lg:gap-4 items-start">
         {/* Desktop sidebar */}
-        <div className="hidden lg:block">
+        <div className="hidden lg:block lg:sticky lg:top-4">
           <MarketplaceFilterSidebar
             filters={filters}
             onChange={setFilters}
@@ -328,8 +331,8 @@ export default function PersonasMarketplacePage() {
         </div>
 
         {/* Cards grid */}
-        <div className="bg-card rounded-2xl shadow-md p-4 lg:p-5">
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div className="bg-card rounded-2xl shadow-md p-3 sm:p-4 lg:p-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-4">
             {isLoading ? (
               Array.from({ length: 6 }).map((_, i) => (
                 <div key={i} className="h-44 rounded-xl bg-muted/40 animate-pulse" />
@@ -457,36 +460,44 @@ export default function PersonasMarketplacePage() {
           </div>
         </div>
       </div>{/* /two-column layout */}
-      {/* Sticky checkout */}
-      <div className="sticky bottom-4 bg-card rounded-2xl shadow-xl border border-border/40 p-4">
+      {/* Sticky checkout — fixed on mobile, sticky on desktop */}
+      <div className="fixed bottom-0 inset-x-0 z-30 sm:sticky sm:bottom-4 sm:inset-x-auto bg-card sm:rounded-2xl shadow-xl border-t sm:border border-border/40 p-3 sm:p-4">
         {unaffordableCount > 0 && (
-          <div className="mb-3 flex items-start gap-2 text-xs bg-destructive/10 text-destructive rounded-lg p-2.5 border border-destructive/20">
-            <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-            <span>
-              Você selecionou {selectedIds.size} personas, mas só tem créditos para {affordableCount}. As {unaffordableCount} restantes serão ignoradas.
+          <div className="mb-2 sm:mb-3 flex items-start gap-2 text-[11px] sm:text-xs bg-destructive/10 text-destructive rounded-lg p-2 sm:p-2.5 border border-destructive/20">
+            <AlertCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0 mt-0.5" />
+            <span className="leading-snug">
+              <span className="hidden sm:inline">Você selecionou {selectedIds.size} personas, mas só tem créditos para {affordableCount}. As {unaffordableCount} restantes serão ignoradas.</span>
+              <span className="sm:hidden">Créditos só cobrem {affordableCount} de {selectedIds.size}.</span>
             </span>
           </div>
         )}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-4 text-sm">
-            <div className="flex items-center gap-1.5">
-              <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-              <span className="font-medium">{selectedIds.size}</span>
-              <span className="text-muted-foreground">selecionadas</span>
+        <div className="flex flex-row items-center justify-between gap-2 sm:gap-3">
+          <div className="flex items-center gap-2 sm:gap-4 text-xs sm:text-sm min-w-0">
+            <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+              <ShoppingCart className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
+              <span className="font-semibold">{selectedIds.size}</span>
+              <span className="text-muted-foreground hidden xs:inline sm:inline">sel.</span>
             </div>
-            <div className="flex items-center gap-1.5">
-              <Coins className="h-4 w-4 text-primary" />
+            <div className="flex items-center gap-1 sm:gap-1.5 min-w-0">
+              <Coins className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary shrink-0" />
               <span className="font-bold text-foreground">{willCharge}</span>
-              <span className="text-muted-foreground text-xs">
-                / {userCredits} disponíveis
+              <span className="text-muted-foreground text-[10px] sm:text-xs truncate">
+                / {userCredits}
               </span>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => navigate('/personas')} disabled={isPurchasing}>
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate('/personas')}
+              disabled={isPurchasing}
+              className="h-9 sm:h-10 px-2.5 sm:px-4 text-xs sm:text-sm hidden xs:inline-flex sm:inline-flex"
+            >
               Cancelar
             </Button>
             <Button
+              size="sm"
               onClick={handlePurchase}
               disabled={
                 isPurchasing ||
@@ -494,14 +505,16 @@ export default function PersonasMarketplacePage() {
                 !selectedBrandId ||
                 maxAffordable === 0
               }
-              className="bg-gradient-to-r from-primary to-secondary text-primary-foreground shadow-md min-w-[180px]"
+              className="h-9 sm:h-10 px-3 sm:px-4 text-xs sm:text-sm bg-gradient-to-r from-primary to-secondary text-primary-foreground shadow-md sm:min-w-[180px]"
             >
               {isPurchasing ? (
                 'Processando...'
               ) : (
                 <>
-                  <ShoppingCart className="mr-2 h-4 w-4" />
-                  Adicionar {affordableCount > 0 ? `(${affordableCount})` : ''}
+                  <ShoppingCart className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">Adicionar </span>
+                  <span className="sm:hidden">OK </span>
+                  {affordableCount > 0 ? `(${affordableCount})` : ''}
                 </>
               )}
             </Button>

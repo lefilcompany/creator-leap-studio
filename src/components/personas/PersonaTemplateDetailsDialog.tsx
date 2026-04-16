@@ -84,29 +84,45 @@ export function PersonaTemplateDetailsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl max-h-[90vh] p-0 overflow-hidden">
+      <DialogContent className="max-w-5xl w-[calc(100vw-1rem)] sm:w-[calc(100vw-3rem)] max-h-[92vh] sm:max-h-[90vh] p-0 overflow-hidden gap-0">
         <DialogHeader className="sr-only">
           <DialogTitle>{t.name}</DialogTitle>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 md:grid-cols-[300px_1fr] max-h-[90vh]">
+        <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] lg:grid-cols-[300px_1fr] max-h-[92vh] sm:max-h-[90vh] overflow-hidden">
           {/* Left — photo & quick facts */}
-          <div className="bg-gradient-to-br from-muted/60 to-muted/20 p-5 flex flex-col gap-4 border-b md:border-b-0 md:border-r border-border/40">
-            <div className="aspect-square rounded-2xl overflow-hidden bg-muted shadow-md ring-1 ring-border/40">
-              {t.avatar_url ? (
-                <img
-                  src={t.avatar_url}
-                  alt={t.name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <UserRound className="h-20 w-20 text-muted-foreground/40" />
+          <div className="bg-gradient-to-br from-muted/60 to-muted/20 p-4 sm:p-5 flex flex-col gap-3 sm:gap-4 border-b md:border-b-0 md:border-r border-border/40 md:max-h-[90vh] md:overflow-y-auto">
+            <div className="flex md:block gap-4">
+              <div className="w-24 sm:w-32 md:w-full aspect-square rounded-2xl overflow-hidden bg-muted shadow-md ring-1 ring-border/40 shrink-0">
+                {t.avatar_url ? (
+                  <img
+                    src={t.avatar_url}
+                    alt={t.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <UserRound className="h-10 w-10 sm:h-20 sm:w-20 text-muted-foreground/40" />
+                  </div>
+                )}
+              </div>
+
+              <div className="md:hidden flex-1 min-w-0 flex flex-col justify-center">
+                <h2 className="text-base sm:text-xl font-bold text-foreground leading-tight">{t.name}</h2>
+                {t.category && (
+                  <Badge variant="secondary" className="mt-1.5 text-[10px] self-start">
+                    {t.category}
+                  </Badge>
+                )}
+                <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 mt-2 text-[11px] text-foreground/70">
+                  <span className="flex items-center gap-1"><UserRound className="h-3 w-3 text-primary" />{t.gender}</span>
+                  <span className="flex items-center gap-1"><Cake className="h-3 w-3 text-primary" />{t.age}</span>
+                  <span className="flex items-center gap-1 truncate"><MapPin className="h-3 w-3 text-primary shrink-0" /><span className="truncate">{t.location}</span></span>
                 </div>
-              )}
+              </div>
             </div>
 
-            <div>
+            <div className="hidden md:block">
               <h2 className="text-xl font-bold text-foreground leading-tight">{t.name}</h2>
               {t.category && (
                 <Badge variant="secondary" className="mt-2 text-[11px]">
@@ -116,12 +132,12 @@ export function PersonaTemplateDetailsDialog({
             </div>
 
             {t.short_description && (
-              <p className="text-sm text-muted-foreground leading-snug">
+              <p className="text-xs sm:text-sm text-muted-foreground leading-snug">
                 {t.short_description}
               </p>
             )}
 
-            <div className="space-y-2 text-sm">
+            <div className="hidden md:block space-y-2 text-sm">
               <div className="flex items-center gap-2 text-foreground/80">
                 <UserRound className="h-4 w-4 text-primary" />
                 <span>{t.gender}</span>
@@ -137,7 +153,7 @@ export function PersonaTemplateDetailsDialog({
             </div>
 
             <div className="mt-auto pt-3 border-t border-border/40">
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center justify-between mb-2 sm:mb-3">
                 <div className="flex items-center gap-1.5 text-sm font-semibold text-primary">
                   <Coins className="h-4 w-4" />
                   {costPerPersona} créditos
@@ -146,7 +162,7 @@ export function PersonaTemplateDetailsDialog({
               <Button
                 onClick={onToggleSelect}
                 className={cn(
-                  'w-full',
+                  'w-full h-10',
                   selected
                     ? 'bg-primary text-primary-foreground'
                     : 'bg-gradient-to-r from-primary to-secondary text-primary-foreground'
@@ -168,16 +184,16 @@ export function PersonaTemplateDetailsDialog({
           </div>
 
           {/* Right — full persona details */}
-          <ScrollArea className="max-h-[90vh]">
-            <div className="p-5 lg:p-6 space-y-3">
+          <ScrollArea className="max-h-[55vh] md:max-h-[90vh]">
+            <div className="p-4 sm:p-5 lg:p-6 space-y-3">
               <div>
-                <h3 className="text-base font-bold text-foreground mb-1">Perfil completo</h3>
-                <p className="text-xs text-muted-foreground">
+                <h3 className="text-sm sm:text-base font-bold text-foreground mb-1">Perfil completo</h3>
+                <p className="text-[11px] sm:text-xs text-muted-foreground">
                   Todas as informações desta persona, prontas para serem importadas para sua marca.
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-2.5 sm:gap-3">
                 <InfoBlock
                   icon={Briefcase}
                   label="Contexto profissional"
