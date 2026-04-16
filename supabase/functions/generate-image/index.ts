@@ -447,12 +447,12 @@ serve(async (req) => {
     const timestamp = Date.now();
     const fileName = `content-images/${authenticatedTeamId || authenticatedUserId}/${timestamp}.png`;
 
-    const { error: uploadError } = await supabase.storage.from('content-images').upload(fileName, postProcessResult.processedData, { contentType: 'image/png', upsert: false });
+    const { error: uploadError } = await supabase.storage.from('content-images').upload(fileName, finalImageData, { contentType: 'image/png', upsert: false });
     
     let publicUrl: string;
     if (uploadError) {
       console.error('Storage upload error:', uploadError);
-      const base64Fallback = uint8ArrayToBase64(postProcessResult.processedData);
+      const base64Fallback = uint8ArrayToBase64(finalImageData);
       publicUrl = `data:image/png;base64,${base64Fallback}`;
       console.warn('[Step 7] Upload failed, returning post-processed base64 fallback');
     } else {
