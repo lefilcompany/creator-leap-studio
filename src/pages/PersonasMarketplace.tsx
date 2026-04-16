@@ -12,14 +12,20 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Input } from '@/components/ui/input';
-import { Check, Coins, ShoppingCart, Sparkles, AlertCircle, MapPin, Cake, UserRound, Search, X } from 'lucide-react';
+import { Check, Coins, ShoppingCart, Sparkles, AlertCircle, MapPin, Cake, UserRound, SlidersHorizontal } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import type { BrandSummary } from '@/types/brand';
 import { PageBreadcrumb } from '@/components/PageBreadcrumb';
+import {
+  MarketplaceFilterSidebar,
+  initialFilters,
+  type MarketplaceFilters,
+  type AgeRange,
+} from '@/components/personas/MarketplaceFilterSidebar';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 const COST_PER_PERSONA = 20;
 
@@ -34,6 +40,7 @@ type PersonaTemplate = {
   location: string;
   main_goal: string;
   challenges: string;
+  purchase_journey_stage?: string | null;
 };
 
 export default function PersonasMarketplacePage() {
@@ -46,8 +53,8 @@ export default function PersonasMarketplacePage() {
   const [selectedBrandId, setSelectedBrandId] = useState<string>('');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isPurchasing, setIsPurchasing] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeCategory, setActiveCategory] = useState<string>('all');
+  const [filters, setFilters] = useState<MarketplaceFilters>(initialFilters);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   const userCredits = user?.credits || 0;
 
@@ -58,7 +65,7 @@ export default function PersonasMarketplacePage() {
         const [templatesRes, brandsRes] = await Promise.all([
           supabase
             .from('persona_templates')
-            .select('id, name, category, avatar_url, short_description, gender, age, location, main_goal, challenges')
+            .select('id, name, category, avatar_url, short_description, gender, age, location, main_goal, challenges, purchase_journey_stage')
             .eq('is_active', true)
             .order('display_order', { ascending: true }),
           supabase
@@ -112,31 +119,70 @@ export default function PersonasMarketplacePage() {
     [brands, selectedBrandId]
   );
 
-  const categories = useMemo(() => {
-    const set = new Set<string>();
-    templates.forEach((t) => t.category && set.add(t.category));
-    return ['all', ...Array.from(set).sort()];
-  }, [templates]);
+  // --- Filter logic ---
+  const getAgeRange = (ageStr: string): AgeRange | null => {
+    const n = parseInt((ageStr || '').replace(/\D/g, ''), 10);
+    if (!n) return null;
+    if (n < 30) return '18-29';
+    if (n < 45) return '30-44';
+    if (n < 60) return '45-59';
+    return '60+';
+  };
+
+  const getState = (location: string): string | null => {
+    const m = (location || '').match(/,\s*([A-Z]{2})\b/);
+    return m ? m[1] : null;
+  };
 
   const filteredTemplates = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
+    const q = filters.search.trim().toLowerCase();
     return templates.filter((t) => {
-      if (activeCategory !== 'all' && t.category !== activeCategory) return false;
-      if (!q) return true;
-      const haystack = [
-        t.name,
-        t.category,
-        t.short_description,
-        t.location,
-        t.main_goal,
-        t.challenges,
-      ]
-        .filter(Boolean)
-        .join(' ')
-        .toLowerCase();
-      return haystack.includes(q);
+      if (filters.categories.length && (!t.category || !filters.categories.includes(t.category))) return false;
+      if (filters.genders.length && !filters.genders.includes(t.gender)) return false;
+      if (filters.ageRanges.length) {
+        const r = getAgeRange(t.age);
+        if (!r || !filters.ageRanges.includes(r)) return false;
+      }
+      if (filters.states.length) {
+        const s = getState(t.location);
+        if (!s || !filters.states.includes(s)) return false;
+      }
+      if (filters.journeyStages.length) {
+        if (!t.purchase_journey_stage || !filters.journeyStages.includes(t.purchase_journey_stage)) return false;
+      }
+      if (q) {
+        const hay = [t.name, t.category, t.short_description, t.location, t.main_goal, t.challenges]
+          .filter(Boolean).join(' ').toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
     });
-  }, [templates, searchQuery, activeCategory]);
+  }, [templates, filters]);
+
+  const facets = useMemo(() => {
+    const count = (getter: (t: PersonaTemplate) => string | null | undefined) => {
+      const map = new Map<string, number>();
+      templates.forEach((t) => {
+        const v = getter(t);
+        if (!v) return;
+        map.set(v, (map.get(v) || 0) + 1);
+      });
+      return Array.from(map.entries())
+        .map(([value, c]) => ({ value, count: c }))
+        .sort((a, b) => b.count - a.count || a.value.localeCompare(b.value));
+    };
+    const ageOrder: AgeRange[] = ['18-29', '30-44', '45-59', '60+'];
+    const ageCounts = count((t) => getAgeRange(t.age));
+    return {
+      categories: count((t) => t.category),
+      genders: count((t) => t.gender),
+      ageRanges: ageOrder
+        .map((r) => ({ value: r, count: ageCounts.find((a) => a.value === r)?.count || 0 }))
+        .filter((a) => a.count > 0),
+      states: count((t) => getState(t.location)),
+      journeyStages: count((t) => t.purchase_journey_stage),
+    };
+  }, [templates]);
 
   const handlePurchase = async () => {
     if (!selectedBrandId) {
@@ -252,68 +298,56 @@ export default function PersonasMarketplacePage() {
         )}
       </div>
 
-      {/* Cards grid */}
-      <div className="bg-card rounded-2xl shadow-md p-4 lg:p-5 space-y-4">
-        {/* Search + categories */}
-        <div className="space-y-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Buscar persona por nome, profissão, cidade..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 pr-9 h-10 bg-background"
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery('')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-muted text-muted-foreground"
-                aria-label="Limpar busca"
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
-            )}
-          </div>
-          {categories.length > 1 && (
-            <div className="flex flex-wrap gap-1.5">
-              {categories.map((cat) => (
-                <button
-                  key={cat}
-                  type="button"
-                  onClick={() => setActiveCategory(cat)}
-                  className={cn(
-                    'text-xs px-3 py-1.5 rounded-full border transition-colors',
-                    activeCategory === cat
-                      ? 'bg-primary text-primary-foreground border-primary'
-                      : 'bg-background text-muted-foreground border-border hover:border-primary/40 hover:text-foreground'
-                  )}
-                >
-                  {cat === 'all' ? `Todas (${templates.length})` : cat}
-                </button>
-              ))}
+      {/* Mobile filters trigger */}
+      <div className="lg:hidden">
+        <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
+          <SheetTrigger asChild>
+            <Button variant="outline" className="w-full justify-center">
+              <SlidersHorizontal className="h-4 w-4 mr-2" />
+              Filtros ({filteredTemplates.length} resultados)
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="w-[85vw] max-w-sm p-0">
+            <div className="p-4 h-full overflow-hidden">
+              <MarketplaceFilterSidebar
+                filters={filters}
+                onChange={setFilters}
+                facets={facets}
+                totalResults={filteredTemplates.length}
+                totalAll={templates.length}
+              />
             </div>
-          )}
-          {!isLoading && (
-            <p className="text-xs text-muted-foreground">
-              {filteredTemplates.length} {filteredTemplates.length === 1 ? 'persona encontrada' : 'personas encontradas'}
-            </p>
-          )}
+          </SheetContent>
+        </Sheet>
+      </div>
+
+      {/* Two-column layout: sidebar + grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4 items-start">
+        {/* Desktop sidebar */}
+        <div className="hidden lg:block">
+          <MarketplaceFilterSidebar
+            filters={filters}
+            onChange={setFilters}
+            facets={facets}
+            totalResults={filteredTemplates.length}
+            totalAll={templates.length}
+          />
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-          {isLoading ? (
-            Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-44 rounded-xl bg-muted/40 animate-pulse" />
-            ))
-          ) : filteredTemplates.length === 0 ? (
-            <div className="col-span-full text-center py-12 text-muted-foreground">
-              {templates.length === 0
-                ? 'Nenhuma persona disponível no catálogo.'
-                : 'Nenhuma persona corresponde à busca.'}
-            </div>
-          ) : (
+        {/* Cards grid */}
+        <div className="bg-card rounded-2xl shadow-md p-4 lg:p-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+            {isLoading ? (
+              Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="h-44 rounded-xl bg-muted/40 animate-pulse" />
+              ))
+            ) : filteredTemplates.length === 0 ? (
+              <div className="col-span-full text-center py-12 text-muted-foreground">
+                {templates.length === 0
+                  ? 'Nenhuma persona disponível no catálogo.'
+                  : 'Nenhuma persona corresponde aos filtros.'}
+              </div>
+            ) : (
             filteredTemplates.map((t) => {
               const selected = selectedIds.has(t.id);
 
@@ -401,10 +435,10 @@ export default function PersonasMarketplacePage() {
                 </button>
               );
             })
-          )}
+            )}
+          </div>
         </div>
-      </div>
-
+      </div>{/* /two-column layout */}
       {/* Sticky checkout */}
       <div className="sticky bottom-4 bg-card rounded-2xl shadow-xl border border-border/40 p-4">
         {unaffordableCount > 0 && (
