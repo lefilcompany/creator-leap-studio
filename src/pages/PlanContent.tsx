@@ -24,11 +24,19 @@ import planBanner from "@/assets/plan-banner.jpg";
 interface FormData {
   brand: string;
   theme: string[];
-  platform: string;
+  platform: string[];
   quantity: number | "";
   objective: string;
   additionalInfo: string;
 }
+
+const PLATFORM_OPTIONS = [
+  { value: "instagram", label: "Instagram" },
+  { value: "facebook", label: "Facebook" },
+  { value: "linkedin", label: "LinkedIn" },
+  { value: "twitter", label: "Twitter (X)" },
+  { value: "tiktok", label: "TikTok" },
+];
 
 const PlanContent = () => {
   const { user, refreshTeamCredits } = useAuth();
@@ -37,7 +45,7 @@ const PlanContent = () => {
   const [formData, setFormData] = useState<FormData>({
     brand: "",
     theme: [],
-    platform: "",
+    platform: [],
     quantity: 1,
     objective: "",
     additionalInfo: "",
@@ -46,7 +54,6 @@ const PlanContent = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [brands, setBrands] = useState<any[]>([]);
   const [themes, setThemes] = useState<any[]>([]);
-  const [categoryId, setCategoryId] = useState("");
   const creditsRemaining = user?.credits ?? 0;
   const [isLoadingData, setIsLoadingData] = useState(true);
 
@@ -119,8 +126,13 @@ const PlanContent = () => {
     }));
   };
 
-  const handlePlatformChange = (value: string) => {
-    setFormData((prev) => ({ ...prev, platform: value }));
+  const handlePlatformToggle = (value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      platform: prev.platform.includes(value)
+        ? prev.platform.filter((p) => p !== value)
+        : [...prev.platform, value],
+    }));
   };
 
   const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -149,7 +161,7 @@ const PlanContent = () => {
   };
 
   const generatePlan = async () => {
-    if (!formData.brand || formData.theme.length === 0 || !formData.platform || !formData.objective) {
+    if (!formData.brand || formData.theme.length === 0 || formData.platform.length === 0 || !formData.objective) {
       toast.error("Por favor, preencha todos os campos obrigatórios (*)");
       return;
     }
@@ -177,7 +189,7 @@ const PlanContent = () => {
       const payload = {
         brand: formData.brand,
         themes: formData.theme,
-        platform: formData.platform,
+        platforms: formData.platform,
         quantity: formData.quantity,
         objective: formData.objective,
         additionalInfo: formData.additionalInfo,
@@ -186,8 +198,6 @@ const PlanContent = () => {
       };
 
       clearPersistedData();
-
-      const capturedCategoryId = categoryId;
 
       addTask(
         "Calendário de Conteúdo",
@@ -207,24 +217,11 @@ const PlanContent = () => {
             throw new Error(data.error);
           }
 
-          // Auto-assign to category if selected
-          if (capturedCategoryId && data.actionId) {
-            try {
-              await supabase.from('action_category_items').insert({
-                category_id: capturedCategoryId,
-                action_id: data.actionId,
-                added_by: user!.id,
-              });
-            } catch (e) {
-              console.error("Erro ao atribuir categoria:", e);
-            }
-          }
-
           try { await refreshTeamCredits(); } catch {}
 
           return {
             route: "/plan-result",
-            state: { plan: data.plan, actionId: data.actionId }
+            state: { plan: data.plan, posts: data.posts, brandId: formData.brand, actionId: data.actionId }
           };
         },
         () => refreshTeamCredits?.()
