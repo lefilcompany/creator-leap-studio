@@ -345,12 +345,19 @@ export default function PersonasMarketplacePage() {
               const selected = selectedIds.has(t.id);
 
               return (
-                <button
+                <div
                   key={t.id}
-                  type="button"
-                  onClick={() => toggleSelection(t.id)}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setPreviewTemplate(t)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setPreviewTemplate(t);
+                    }
+                  }}
                   className={cn(
-                    'group relative text-left rounded-xl border-2 transition-all hover:shadow-lg overflow-hidden flex min-h-[180px] bg-background',
+                    'group relative text-left rounded-xl border-2 transition-all hover:shadow-lg overflow-hidden flex min-h-[180px] bg-background cursor-pointer',
                     selected
                       ? 'border-primary shadow-md ring-2 ring-primary/20'
                       : 'border-border hover:border-primary/40'
@@ -376,7 +383,6 @@ export default function PersonasMarketplacePage() {
                         <UserRound className="h-12 w-12 text-muted-foreground/60" />
                       </div>
                     )}
-                    {/* Subtle gradient overlay for legibility on edge */}
                     <div className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-background/40 to-transparent pointer-events-none" />
                   </div>
 
@@ -410,22 +416,41 @@ export default function PersonasMarketplacePage() {
                       </span>
                     </div>
 
-                    <div className="flex items-center justify-between pt-2 border-t border-border/40">
+                    <div className="flex items-center justify-between gap-2 pt-2 border-t border-border/40">
                       <div className="flex items-center gap-1 text-xs font-medium text-primary">
                         <Coins className="h-3 w-3" />
                         {COST_PER_PERSONA} créditos
                       </div>
-                      <span
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant={selected ? 'default' : 'outline'}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleSelection(t.id);
+                        }}
                         className={cn(
-                          'text-[11px] font-medium',
-                          selected ? 'text-primary' : 'text-muted-foreground'
+                          'h-7 px-2.5 text-[11px] font-semibold gap-1 transition-all',
+                          selected
+                            ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                            : 'border-primary/40 text-primary hover:bg-primary hover:text-primary-foreground hover:border-primary'
                         )}
                       >
-                        {selected ? 'Selecionada' : 'Adicionar'}
-                      </span>
+                        {selected ? (
+                          <>
+                            <Check className="h-3 w-3" />
+                            Adicionada
+                          </>
+                        ) : (
+                          <>
+                            <ShoppingCart className="h-3 w-3" />
+                            Adicionar
+                          </>
+                        )}
+                      </Button>
                     </div>
                   </div>
-                </button>
+                </div>
               );
             })
             )}
