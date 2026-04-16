@@ -29,12 +29,13 @@ function CharacterMesh({ gender, age = 30, seed = '' }: Persona3DAvatarProps) {
     group.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.6) * 0.25;
   });
 
-  const { skin, hair, shirt, accent } = useMemo(() => {
+  const { skin, hair, shirt, accent, hasGlasses, hasBeard, hasEarring, hasFreckles, glassesColor } = useMemo(() => {
     const h = hashSeed(seed || gender);
     const skinTones = ['#f5cfa0', '#e8b48a', '#d29575', '#a87253', '#7a4c34'];
     const skin = skinTones[h % skinTones.length];
 
     const isOlder = age >= 55;
+    const isYoung = age < 25;
     const youngHair = ['#2b1d14', '#3d2914', '#5c3a1e', '#1a1a1a', '#8b5a2b'];
     const olderHair = ['#9aa0a6', '#bdbdbd', '#e0e0e0'];
     const hair = (isOlder ? olderHair : youngHair)[h % (isOlder ? olderHair.length : youngHair.length)];
@@ -53,7 +54,25 @@ function CharacterMesh({ gender, age = 30, seed = '' }: Persona3DAvatarProps) {
       shirt = '#6366f1';
       accent = '#ffffff';
     }
-    return { skin, hair, shirt, accent };
+
+    // Trait variations based on seed bits + persona attributes
+    // Glasses more likely on older personas
+    const glassesRoll = (h >> 5) % 100;
+    const hasGlasses = isOlder ? glassesRoll < 55 : glassesRoll < 30;
+    // Beard only on male personas, more likely if older
+    const beardRoll = (h >> 7) % 100;
+    const hasBeard = gender === 'male' && (isOlder ? beardRoll < 70 : beardRoll < 35);
+    // Earring more likely on female / younger
+    const earringRoll = (h >> 9) % 100;
+    const hasEarring = gender === 'female' ? earringRoll < 65 : (isYoung ? earringRoll < 25 : earringRoll < 8);
+    // Freckles for variety on lighter skin tones
+    const frecklesRoll = (h >> 11) % 100;
+    const hasFreckles = (h % skinTones.length) < 2 && frecklesRoll < 35;
+    // Glasses color variation
+    const glassesColors = ['#1a1a1a', '#3d2914', '#7a4c34', '#475569', '#a16207'];
+    const glassesColor = glassesColors[(h >> 13) % glassesColors.length];
+
+    return { skin, hair, shirt, accent, hasGlasses, hasBeard, hasEarring, hasFreckles, glassesColor };
   }, [gender, age, seed]);
 
   const isFemale = gender === 'female';
@@ -109,6 +128,72 @@ function CharacterMesh({ gender, age = 30, seed = '' }: Persona3DAvatarProps) {
         <torusGeometry args={[0.05, 0.012, 8, 16, Math.PI]} />
         <meshStandardMaterial color="#a8324a" />
       </mesh>
+
+      {/* Beard */}
+      {hasBeard && (
+        <mesh position={[0, 0.7, 0.18]} castShadow>
+          <sphereGeometry args={[0.3, 24, 24, 0, Math.PI * 2, Math.PI / 2.4, Math.PI / 2.6]} />
+          <meshStandardMaterial color={hair} roughness={0.95} />
+        </mesh>
+      )}
+
+      {/* Glasses */}
+      {hasGlasses && (
+        <group position={[0, 0.85, 0.3]}>
+          <mesh position={[-0.1, 0, 0]}>
+            <torusGeometry args={[0.07, 0.012, 8, 24]} />
+            <meshStandardMaterial color={glassesColor} roughness={0.4} metalness={0.3} />
+          </mesh>
+          <mesh position={[0.1, 0, 0]}>
+            <torusGeometry args={[0.07, 0.012, 8, 24]} />
+            <meshStandardMaterial color={glassesColor} roughness={0.4} metalness={0.3} />
+          </mesh>
+          <mesh position={[0, 0, 0]}>
+            <boxGeometry args={[0.06, 0.012, 0.012]} />
+            <meshStandardMaterial color={glassesColor} roughness={0.4} metalness={0.3} />
+          </mesh>
+          <mesh position={[-0.1, 0, 0.005]}>
+            <circleGeometry args={[0.062, 24]} />
+            <meshStandardMaterial color="#cfe6ff" transparent opacity={0.25} roughness={0.1} />
+          </mesh>
+          <mesh position={[0.1, 0, 0.005]}>
+            <circleGeometry args={[0.062, 24]} />
+            <meshStandardMaterial color="#cfe6ff" transparent opacity={0.25} roughness={0.1} />
+          </mesh>
+        </group>
+      )}
+
+      {/* Earrings */}
+      {hasEarring && (
+        <>
+          <mesh position={[-0.31, 0.78, 0.05]} castShadow>
+            <sphereGeometry args={[0.022, 16, 16]} />
+            <meshStandardMaterial color="#f5d061" metalness={0.8} roughness={0.25} />
+          </mesh>
+          <mesh position={[0.31, 0.78, 0.05]} castShadow>
+            <sphereGeometry args={[0.022, 16, 16]} />
+            <meshStandardMaterial color="#f5d061" metalness={0.8} roughness={0.25} />
+          </mesh>
+        </>
+      )}
+
+      {/* Freckles */}
+      {hasFreckles && (
+        <>
+          {([
+            [-0.13, 0.81, 0.29],
+            [-0.07, 0.79, 0.305],
+            [0.05, 0.79, 0.305],
+            [0.12, 0.81, 0.29],
+            [-0.02, 0.82, 0.31],
+          ] as [number, number, number][]).map(([x, y, z], i) => (
+            <mesh key={i} position={[x, y, z]}>
+              <sphereGeometry args={[0.008, 8, 8]} />
+              <meshStandardMaterial color="#8b5a2b" roughness={0.9} />
+            </mesh>
+          ))}
+        </>
+      )}
 
       {/* Shirt collar accent */}
       <mesh position={[0, 0.42, 0.35]}>
