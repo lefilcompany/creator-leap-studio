@@ -401,6 +401,13 @@ export default function PersonasPage() {
         isFreeResource={(team?.free_personas_used || 0) < 3}
         freeResourcesRemaining={3 - (team?.free_personas_used || 0)}
       />
+
+      <PersonaMarketplaceDialog
+        isOpen={isMarketplaceOpen}
+        onOpenChange={setIsMarketplaceOpen}
+        brands={brandSummaries}
+        onPurchaseComplete={loadPersonas}
+      />
     </div>
   );
 }
