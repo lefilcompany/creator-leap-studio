@@ -360,20 +360,20 @@ export default function PersonasMarketplacePage() {
                     }
                   }}
                   className={cn(
-                    'group relative text-left rounded-xl border-2 transition-all hover:shadow-lg overflow-hidden flex min-h-[180px] bg-background cursor-pointer',
+                    'group relative text-left rounded-xl border-2 transition-all hover:shadow-lg overflow-hidden flex min-h-[160px] sm:min-h-[180px] bg-background cursor-pointer',
                     selected
                       ? 'border-primary shadow-md ring-2 ring-primary/20'
                       : 'border-border hover:border-primary/40'
                   )}
                 >
                   {selected && (
-                    <div className="absolute top-2 right-2 z-10 bg-primary rounded-full p-1 shadow-md">
-                      <Check className="h-3 w-3 text-primary-foreground" />
+                    <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 z-10 bg-primary rounded-full p-0.5 sm:p-1 shadow-md">
+                      <Check className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-primary-foreground" />
                     </div>
                   )}
 
-                  {/* Left 35% — realistic persona photo */}
-                  <div className="w-[35%] shrink-0 relative bg-muted overflow-hidden">
+                  {/* Left — realistic persona photo */}
+                  <div className="w-[38%] xs:w-[35%] shrink-0 relative bg-muted overflow-hidden">
                     {t.avatar_url ? (
                       <img
                         src={t.avatar_url}
@@ -383,46 +383,46 @@ export default function PersonasMarketplacePage() {
                       />
                     ) : (
                       <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-muted to-muted-foreground/20">
-                        <UserRound className="h-12 w-12 text-muted-foreground/60" />
+                        <UserRound className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground/60" />
                       </div>
                     )}
-                    <div className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-background/40 to-transparent pointer-events-none" />
+                    <div className="absolute inset-y-0 right-0 w-6 sm:w-8 bg-gradient-to-l from-background/40 to-transparent pointer-events-none" />
                   </div>
 
-                  {/* Right 65% — All persona info */}
-                  <div className="w-[65%] flex flex-col p-3.5 gap-2 min-w-0">
-                    <div className="min-w-0 pr-6">
-                      <h3 className="font-semibold text-sm text-foreground line-clamp-2 leading-tight">
+                  {/* Right — All persona info */}
+                  <div className="flex-1 min-w-0 flex flex-col p-2.5 sm:p-3.5 gap-1.5 sm:gap-2">
+                    <div className="min-w-0 pr-5 sm:pr-6">
+                      <h3 className="font-semibold text-[13px] sm:text-sm text-foreground line-clamp-2 leading-tight">
                         {t.name}
                       </h3>
                       {t.category && (
-                        <Badge variant="secondary" className="mt-1 text-[10px] px-1.5 py-0">
+                        <Badge variant="secondary" className="mt-1 text-[9px] sm:text-[10px] px-1.5 py-0">
                           {t.category}
                         </Badge>
                       )}
                     </div>
 
                     {t.short_description && (
-                      <p className="text-xs text-muted-foreground line-clamp-2 leading-snug">
+                      <p className="hidden sm:block text-xs text-muted-foreground line-clamp-2 leading-snug">
                         {t.short_description}
                       </p>
                     )}
 
-                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-muted-foreground mt-auto">
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] sm:text-[11px] text-muted-foreground mt-auto">
                       <span className="flex items-center gap-1">
                         <Cake className="h-3 w-3" />
                         {t.age}
                       </span>
-                      <span className="flex items-center gap-1 truncate">
+                      <span className="flex items-center gap-1 min-w-0 max-w-full">
                         <MapPin className="h-3 w-3 shrink-0" />
                         <span className="truncate">{t.location}</span>
                       </span>
                     </div>
 
-                    <div className="flex items-center justify-between gap-2 pt-2 border-t border-border/40">
-                      <div className="flex items-center gap-1 text-xs font-medium text-primary">
-                        <Coins className="h-3 w-3" />
-                        {COST_PER_PERSONA} créditos
+                    <div className="flex items-center justify-between gap-1.5 pt-1.5 sm:pt-2 border-t border-border/40">
+                      <div className="flex items-center gap-1 text-[11px] sm:text-xs font-medium text-primary min-w-0">
+                        <Coins className="h-3 w-3 shrink-0" />
+                        <span className="truncate">{COST_PER_PERSONA} <span className="hidden xs:inline">créditos</span><span className="xs:hidden">cr.</span></span>
                       </div>
                       <Button
                         type="button"
@@ -433,21 +433,23 @@ export default function PersonasMarketplacePage() {
                           toggleSelection(t.id);
                         }}
                         className={cn(
-                          'h-7 px-2.5 text-[11px] font-semibold gap-1 transition-all',
+                          'h-7 px-2 sm:px-2.5 text-[10px] sm:text-[11px] font-semibold gap-1 transition-all shrink-0',
                           selected
                             ? 'bg-primary text-primary-foreground hover:bg-primary/90'
                             : 'border-primary/40 text-primary hover:bg-primary hover:text-primary-foreground hover:border-primary'
                         )}
+                        aria-label={selected ? 'Remover persona' : 'Adicionar persona'}
                       >
                         {selected ? (
                           <>
                             <Check className="h-3 w-3" />
-                            Adicionada
+                            <span className="hidden xs:inline">Adicionada</span>
+                            <span className="xs:hidden">Ok</span>
                           </>
                         ) : (
                           <>
                             <ShoppingCart className="h-3 w-3" />
-                            Adicionar
+                            <span>Adicionar</span>
                           </>
                         )}
                       </Button>
