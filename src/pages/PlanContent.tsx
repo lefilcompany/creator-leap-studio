@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { CategorySelector } from "@/components/CategorySelector";
+
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
