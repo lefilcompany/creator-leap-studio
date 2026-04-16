@@ -12,14 +12,13 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Check, Coins, ShoppingCart, Sparkles, Users, AlertCircle, MapPin, Cake } from 'lucide-react';
+import { Check, Coins, ShoppingCart, Sparkles, AlertCircle, MapPin, Cake, UserRound } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import type { BrandSummary } from '@/types/brand';
 import { PageBreadcrumb } from '@/components/PageBreadcrumb';
-import Persona3DAvatar from '@/components/personas/Persona3DAvatar';
 
 const COST_PER_PERSONA = 20;
 
