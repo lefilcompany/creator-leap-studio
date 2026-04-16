@@ -359,28 +359,35 @@ const PlanContent = () => {
                 </div>
 
                 <div id="plan-platform-field" className="space-y-1.5">
-                  <Label htmlFor="platform" className="text-sm font-bold text-foreground">
-                    Plataforma <span className="text-destructive">*</span>
+                  <Label className="text-sm font-bold text-foreground">
+                    Plataformas <span className="text-destructive">*</span>
                   </Label>
                   {isLoadingData ? (
                     <Skeleton className="h-10 w-full rounded-xl" />
                   ) : (
                     <>
-                      <NativeSelect
-                        value={formData.platform}
-                        onValueChange={handlePlatformChange}
-                        options={[
-                          { value: "instagram", label: "Instagram" },
-                          { value: "facebook", label: "Facebook" },
-                          { value: "linkedin", label: "LinkedIn" },
-                          { value: "twitter", label: "Twitter (X)" },
-                        ]}
-                        placeholder="Nenhuma plataforma selecionada"
-                        triggerClassName="h-10 rounded-xl border-2 border-border bg-background hover:border-primary/40 transition-colors"
-                      />
+                      <div className="flex flex-wrap gap-2 pt-1">
+                        {PLATFORM_OPTIONS.map((opt) => {
+                          const selected = formData.platform.includes(opt.value);
+                          return (
+                            <button
+                              key={opt.value}
+                              type="button"
+                              onClick={() => handlePlatformToggle(opt.value)}
+                              className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium transition-all active:scale-[0.97] border-2 ${
+                                selected
+                                  ? "bg-primary/10 text-foreground border-primary/40 shadow-sm"
+                                  : "bg-background text-muted-foreground border-border hover:border-primary/40 hover:text-foreground"
+                              }`}
+                            >
+                              <span>{opt.label}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
                       <p className="text-xs text-muted-foreground flex items-start gap-1.5">
                         <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
-                        <span>O planejamento será adaptado ao formato e linguagem da plataforma escolhida</span>
+                        <span>Selecione uma ou mais plataformas — o planejamento será adaptado a cada uma</span>
                       </p>
                     </>
                   )}
