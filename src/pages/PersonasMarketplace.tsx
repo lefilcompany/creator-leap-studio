@@ -12,13 +12,14 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Check, Coins, ShoppingCart, Sparkles, Users, AlertCircle, User, UserRound, MapPin, Cake } from 'lucide-react';
+import { Check, Coins, ShoppingCart, Sparkles, Users, AlertCircle, MapPin, Cake } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import type { BrandSummary } from '@/types/brand';
 import { PageBreadcrumb } from '@/components/PageBreadcrumb';
+import Persona3DAvatar from '@/components/personas/Persona3DAvatar';
 
 const COST_PER_PERSONA = 20;
 
@@ -240,12 +241,17 @@ export default function PersonasMarketplacePage() {
               const gender = (t.gender || '').toLowerCase();
               const isFemale = gender.includes('fem') || gender.includes('mulher');
               const isMale = gender.includes('mas') || gender.includes('homem');
-              const PersonaIcon = isFemale ? UserRound : isMale ? User : Users;
-              const gradientClass = isFemale
-                ? 'from-pink-400 to-rose-500'
+              const personaGender: 'male' | 'female' | 'neutral' = isFemale
+                ? 'female'
                 : isMale
-                ? 'from-blue-400 to-indigo-500'
-                : 'from-primary to-secondary';
+                ? 'male'
+                : 'neutral';
+              const ageNum = parseInt((t.age || '').replace(/\D/g, ''), 10) || undefined;
+              const gradientClass = isFemale
+                ? 'from-pink-200 via-rose-300 to-rose-400'
+                : isMale
+                ? 'from-blue-200 via-indigo-300 to-indigo-400'
+                : 'from-primary/30 via-primary/50 to-secondary/60';
 
               return (
                 <button
@@ -253,7 +259,7 @@ export default function PersonasMarketplacePage() {
                   type="button"
                   onClick={() => toggleSelection(t.id)}
                   className={cn(
-                    'group relative text-left rounded-xl border-2 transition-all hover:shadow-lg overflow-hidden flex',
+                    'group relative text-left rounded-xl border-2 transition-all hover:shadow-lg overflow-hidden flex min-h-[180px]',
                     selected
                       ? 'border-primary bg-primary/5 shadow-md'
                       : 'border-border bg-background hover:border-primary/40'
@@ -265,10 +271,10 @@ export default function PersonasMarketplacePage() {
                     </div>
                   )}
 
-                  {/* Left 30% — Persona avatar/illustration */}
+                  {/* Left 30% — 3D persona character */}
                   <div
                     className={cn(
-                      'w-[30%] shrink-0 flex items-center justify-center bg-gradient-to-br relative',
+                      'w-[30%] shrink-0 relative bg-gradient-to-br overflow-hidden',
                       gradientClass
                     )}
                   >
@@ -279,12 +285,10 @@ export default function PersonasMarketplacePage() {
                         className="absolute inset-0 w-full h-full object-cover"
                       />
                     ) : (
-                      <PersonaIcon
-                        className="h-14 w-14 text-white/95 drop-shadow-md group-hover:scale-110 transition-transform"
-                        strokeWidth={1.5}
-                      />
+                      <div className="absolute inset-0">
+                        <Persona3DAvatar gender={personaGender} age={ageNum} seed={t.id} />
+                      </div>
                     )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
                   </div>
 
                   {/* Right 70% — All persona info */}
