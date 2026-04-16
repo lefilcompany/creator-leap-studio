@@ -1123,7 +1123,7 @@ export default function ActionView() {
             <DialogDescription>Conteúdo gerado em formato Markdown</DialogDescription>
           </DialogHeader>
           <div className="prose prose-sm dark:prose-invert max-w-none mt-4">
-            <ReactMarkdown components={markdownComponents}>{action?.result?.plan || ""}</ReactMarkdown>
+            <ReactMarkdown components={markdownComponents}>{formatPlanMarkdown(action?.result?.plan || "")}</ReactMarkdown>
           </div>
         </DialogContent>
       </Dialog>
