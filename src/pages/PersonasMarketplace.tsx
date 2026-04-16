@@ -261,43 +261,64 @@ export default function PersonasMarketplacePage() {
 
       {/* Brand selector + mobile filters trigger */}
       <div className="flex flex-col sm:flex-row gap-3 lg:block">
-        <div className="bg-card rounded-2xl shadow-md p-3 sm:p-4 lg:p-5 flex-1 min-w-0">
-          <label className="text-xs font-medium text-foreground mb-2 block">
-            Vincular personas à marca
-          </label>
-          <Select value={selectedBrandId} onValueChange={setSelectedBrandId}>
-            <SelectTrigger className="w-full h-10 sm:h-11 bg-background">
-              <SelectValue placeholder="Selecione a marca que receberá as personas" />
-            </SelectTrigger>
-            <SelectContent>
-              {brands.length === 0 ? (
-                <div className="p-3 text-sm text-muted-foreground">Crie uma marca primeiro</div>
-              ) : (
-                brands.map((b) => (
-                  <SelectItem key={b.id} value={b.id}>
-                    <div className="flex items-center gap-2">
-                      <Avatar className="h-5 w-5">
-                        {b.avatarUrl && <AvatarImage src={b.avatarUrl} alt={b.name} />}
-                        <AvatarFallback
-                          style={{ backgroundColor: b.brandColor || undefined }}
-                          className="text-[10px] text-primary-foreground"
-                        >
-                          {b.name.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
-                      {b.name}
-                    </div>
-                  </SelectItem>
-                ))
-              )}
-            </SelectContent>
-          </Select>
-          {selectedBrand && (
-            <p className="text-[11px] sm:text-xs text-muted-foreground mt-2 truncate">
-              Personas serão criadas em{' '}
-              <strong className="text-foreground">{selectedBrand.name}</strong>
-            </p>
-          )}
+        <div className={cn(
+          "relative rounded-2xl shadow-lg p-4 sm:p-5 lg:p-6 flex-1 min-w-0 overflow-hidden transition-all",
+          "bg-gradient-to-br from-primary/10 via-card to-secondary/10 border-2",
+          selectedBrand ? "border-primary/40" : "border-primary/60 ring-2 ring-primary/20"
+        )}>
+          <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="relative">
+            <div className="flex items-center gap-2 mb-2.5 flex-wrap">
+              <div className="bg-primary/15 rounded-lg p-1.5">
+                <Sparkles className="h-3.5 w-3.5 text-primary" />
+              </div>
+              <label className="text-sm font-semibold text-foreground">
+                Vincular personas à marca
+              </label>
+              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-primary/15 text-primary border-0">
+                Obrigatório
+              </Badge>
+            </div>
+            <Select value={selectedBrandId} onValueChange={setSelectedBrandId}>
+              <SelectTrigger className={cn(
+                "w-full h-11 sm:h-12 bg-background border-2 font-medium shadow-sm transition-all",
+                selectedBrand ? "border-primary/30" : "border-primary/40 hover:border-primary"
+              )}>
+                <SelectValue placeholder="✨ Selecione a marca que receberá as personas" />
+              </SelectTrigger>
+              <SelectContent>
+                {brands.length === 0 ? (
+                  <div className="p-3 text-sm text-muted-foreground">Crie uma marca primeiro</div>
+                ) : (
+                  brands.map((b) => (
+                    <SelectItem key={b.id} value={b.id}>
+                      <div className="flex items-center gap-2">
+                        <Avatar className="h-5 w-5">
+                          {b.avatarUrl && <AvatarImage src={b.avatarUrl} alt={b.name} />}
+                          <AvatarFallback
+                            style={{ backgroundColor: b.brandColor || undefined }}
+                            className="text-[10px] text-primary-foreground"
+                          >
+                            {b.name.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                        {b.name}
+                      </div>
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
+            {selectedBrand && (
+              <div className="flex items-center gap-2 mt-3 px-3 py-2 rounded-lg bg-primary/10 border border-primary/20">
+                <Check className="h-3.5 w-3.5 text-primary shrink-0" />
+                <p className="text-[11px] sm:text-xs text-foreground/80 truncate">
+                  Personas serão criadas em{' '}
+                  <strong className="text-primary font-semibold">{selectedBrand.name}</strong>
+                </p>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Mobile/tablet filters trigger */}
