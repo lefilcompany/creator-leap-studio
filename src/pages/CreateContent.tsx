@@ -178,9 +178,16 @@ export default function CreateContent() {
   
   useEffect(() => {
     const promptFromChat = searchParams.get('prompt');
-    if (promptFromChat) {
-      setFormData(prev => ({ ...prev, description: promptFromChat }));
-      return; // Skip persisted data when coming from chatbot prompt
+    const brandFromQuery = searchParams.get('brand');
+    const platformFromQuery = searchParams.get('platform');
+    if (promptFromChat || brandFromQuery || platformFromQuery) {
+      setFormData(prev => ({
+        ...prev,
+        ...(promptFromChat ? { description: promptFromChat } : {}),
+        ...(brandFromQuery ? { brand: brandFromQuery } : {}),
+        ...(platformFromQuery ? { platform: platformFromQuery } : {}),
+      }));
+      return; // Skip persisted data when coming from external source
     }
     const persisted = loadPersistedData();
     if (persisted) {
