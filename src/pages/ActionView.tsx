@@ -201,6 +201,197 @@ const formatPlanMarkdown = (raw: string): string => {
   return raw.replace(regex, (_, label) => `\n\n**${label}:**`);
 };
 
+// ── Structured Plan Renderer ─────────────────────────────────
+interface PlanContentBlock {
+  title: string;
+  fields: { label: string; value: string }[];
+}
+interface ParsedPlan {
+  title: string;
+  header: { label: string; value: string }[];
+  contents: PlanContentBlock[];
+}
+
+const FIELD_LABELS_SET = new Set(
+  PLAN_FIELD_LABELS.concat(['Marca', 'Tema(s)', 'Tema', 'Plataforma(s)', 'Quantidade de Conteúdos', 'Objetivo Principal'])
+    .map((l) => l.toLowerCase())
+);
+
+const stripMd = (s: string) => s.replace(/^[#*\-\s]+/, '').replace(/\*\*/g, '').trim();
+
+const parsePlanText = (raw: string): ParsedPlan => {
+  const result: ParsedPlan = { title: '', header: [], contents: [] };
+  if (!raw) return result;
+
+  const lines = raw.split('\n').map((l) => l.trim()).filter(Boolean);
+  let mode: 'header' | 'contents' = 'header';
+  let currentBlock: PlanContentBlock | null = null;
+  let lastField: { label: string; value: string } | null = null;
+
+  for (const line of lines) {
+    const cleaned = stripMd(line);
+    if (!cleaned) continue;
+
+    // Title detection (first H1 or "Plano de Conteúdo..." header)
+    if (!result.title && /^#\s+/.test(line)) {
+      result.title = cleaned;
+      continue;
+    }
+
+    // Section divider "SUGESTÕES DE CONTEÚDOS"
+    if (/sugestões? de conteúdos?/i.test(cleaned) || /^##\s+/.test(line)) {
+      mode = 'contents';
+      lastField = null;
+      continue;
+    }
+
+    // New content block "Conteúdo N - Título"
+    const contentMatch = cleaned.match(/^conteúdo\s+\d+\s*[-–:]\s*(.+)$/i);
+    if (contentMatch) {
+      mode = 'contents';
+      if (currentBlock) result.contents.push(currentBlock);
+      currentBlock = { title: contentMatch[1].trim(), fields: [] };
+      lastField = null;
+      continue;
+    }
+
+    // Field "Label: value"
+    const fieldMatch = cleaned.match(/^([A-Za-zÀ-ÿ/\s().]+?):\s*(.*)$/);
+    if (fieldMatch) {
+      const label = fieldMatch[1].trim();
+      const value = fieldMatch[2].trim();
+      if (FIELD_LABELS_SET.has(label.toLowerCase())) {
+        const field = { label, value };
+        if (mode === 'header') {
+          result.header.push(field);
+        } else if (currentBlock) {
+          currentBlock.fields.push(field);
+        }
+        lastField = field;
+        continue;
+      }
+    }
+
+    // Continuation of previous field's value (multi-line)
+    if (lastField) {
+      lastField.value = lastField.value ? `${lastField.value}\n${cleaned}` : cleaned;
+    }
+  }
+
+  if (currentBlock) result.contents.push(currentBlock);
+  if (!result.title) result.title = 'Calendário de Conteúdo';
+  return result;
+};
+
+const FIELD_ICONS: Record<string, React.ComponentType<any>> = {
+  plataforma: Globe,
+  'data sugerida': Calendar,
+  data: Calendar,
+  objetivo: Target,
+  funil: Target,
+  persona: Users,
+  'grande ideia': Lightbulb,
+  formato: Image,
+  resumo: FileText,
+  copy: FileText,
+  'copy sugerida': FileText,
+  'imagem/vídeo': Image,
+  imagem: Image,
+  vídeo: Video,
+  hashtags: Hash,
+  'melhor horário': Clock,
+  marca: Tag,
+  'tema(s)': Tag,
+  tema: Tag,
+  'plataforma(s)': Globe,
+  'quantidade de conteúdos': ClipboardList,
+  'objetivo principal': Target,
+};
+
+const FieldRow = ({ label, value }: { label: string; value: string }) => {
+  const Icon = FIELD_ICONS[label.toLowerCase()] || Info;
+  return (
+    <div className="flex flex-col gap-1.5 py-2.5 border-b border-border/30 last:border-b-0">
+      <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+        <Icon className="h-3.5 w-3.5 text-primary/70" />
+        {label}
+      </div>
+      <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap pl-5">
+        {value}
+      </p>
+    </div>
+  );
+};
+
+const StructuredPlan = ({ raw }: { raw: string }) => {
+  const plan = parsePlanText(raw);
+  return (
+    <div className="space-y-6">
+      {/* Title */}
+      <div className="text-center pb-4 border-b border-border/40">
+        <h1 className="text-2xl font-bold text-foreground tracking-tight">{plan.title}</h1>
+      </div>
+
+      {/* Header / Resumo do Plano */}
+      {plan.header.length > 0 && (
+        <div className="bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 rounded-2xl border border-border/40 p-5">
+          <h2 className="text-xs font-bold text-primary uppercase tracking-widest mb-3 flex items-center gap-2">
+            <ClipboardList className="h-3.5 w-3.5" />
+            Resumo do plano
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
+            {plan.header.map((f, i) => (
+              <FieldRow key={i} label={f.label} value={f.value} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Conteúdos */}
+      {plan.contents.length > 0 && (
+        <div className="space-y-4">
+          <h2 className="text-sm font-bold text-foreground uppercase tracking-widest flex items-center gap-2 pt-2">
+            <Sparkles className="h-4 w-4 text-primary" />
+            Sugestões de conteúdos
+            <span className="text-muted-foreground font-medium normal-case tracking-normal">
+              ({plan.contents.length})
+            </span>
+          </h2>
+          {plan.contents.map((block, idx) => (
+            <div
+              key={idx}
+              className="bg-card rounded-2xl border border-border/40 shadow-sm hover:shadow-md transition-shadow overflow-hidden"
+            >
+              <div className="bg-gradient-to-r from-primary/10 to-transparent px-5 py-3.5 border-b border-border/30">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex items-center justify-center w-7 h-7 rounded-full bg-primary/15 text-primary text-xs font-bold flex-shrink-0">
+                    {idx + 1}
+                  </div>
+                  <h3 className="text-base font-semibold text-foreground leading-snug">
+                    {block.title}
+                  </h3>
+                </div>
+              </div>
+              <div className="px-5 py-2">
+                {block.fields.map((f, i) => (
+                  <FieldRow key={i} label={f.label} value={f.value} />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Fallback raw markdown if parsing yielded nothing */}
+      {plan.header.length === 0 && plan.contents.length === 0 && (
+        <div className="prose prose-sm dark:prose-invert max-w-none">
+          <ReactMarkdown components={markdownComponents}>{formatPlanMarkdown(raw)}</ReactMarkdown>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // ══════════════════════════════════════════════════════════════
 export default function ActionView() {
   const { actionId } = useParams<{ actionId: string }>();
@@ -998,10 +1189,8 @@ export default function ActionView() {
                       ))}
                     </div>
                   ) : (
-                    <div className="p-5 bg-muted/30 rounded-xl border border-border/10">
-                      <div className="prose prose-sm prose-slate dark:prose-invert max-w-none">
-                        <ReactMarkdown components={markdownComponents}>{formatPlanMarkdown(action.result!.plan!)}</ReactMarkdown>
-                      </div>
+                    <div className="p-5 bg-muted/20 rounded-2xl border border-border/20">
+                      <StructuredPlan raw={action.result!.plan!} />
                     </div>
                   )}
                 </SectionCard>
@@ -1120,10 +1309,10 @@ export default function ActionView() {
         <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Plano completo</DialogTitle>
-            <DialogDescription>Conteúdo gerado em formato Markdown</DialogDescription>
+            <DialogDescription>Visualização estruturada do calendário</DialogDescription>
           </DialogHeader>
-          <div className="prose prose-sm dark:prose-invert max-w-none mt-4">
-            <ReactMarkdown components={markdownComponents}>{formatPlanMarkdown(action?.result?.plan || "")}</ReactMarkdown>
+          <div className="mt-4">
+            <StructuredPlan raw={action?.result?.plan || ""} />
           </div>
         </DialogContent>
       </Dialog>
