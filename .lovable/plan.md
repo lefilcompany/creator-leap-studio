@@ -1,41 +1,62 @@
 
 
-# Plano: Criar equipe "Lefil Testes" com dados completos
+## Substituir "Temas Estratégicos" / "Temas" / "Tema" por "Editorias" / "Editoria"
 
-## Resumo
-Criar a equipe "Lefil Testes", mover Samuel e Rodrigo para ela, e popular com 5 marcas, 5 personas, 5 temas estratégicos e **30 criações** (10 conteúdo rápido, 10 criar conteúdo, 5 calendário de conteúdo, 5 marketplace).
+Vou trocar todos os rótulos voltados ao usuário (UI, traduções, tour de onboarding, breadcrumbs, mensagens, formulários) que fazem referência a "Temas Estratégicos", "Tema Estratégico", "Temas", "Tema", "Novo Tema", "Editar Tema", etc. por suas equivalências:
 
-## Dados dos usuários
-- **Samuel**: `cc592fe7-fb8f-4b53-93a1-aa25d848bf43` (atual equipe: `30ade942-ffa3-4800-9e1b-724238309989`)
-- **Rodrigo**: `cf6ac154-9daa-4023-acaf-dd7b2fd7823b` (atual equipe: `a8e8f53f-0fd7-450e-8e9c-029ca943ab79`)
+- "Temas Estratégicos" → "Editorias"
+- "Tema Estratégico" / "Tema" → "Editoria"
+- "Novo Tema" → "Nova Editoria"
+- "Editar Tema" → "Editar Editoria"
+- "Criar Tema" → "Criar Editoria"
+- "tema(s) estratégico(s)" / "tema(s)" (em frases corridas voltadas ao usuário) → "editoria(s)"
+- "Macro-temas" / "Macro Temas" → "Macro-editorias" / "Macro Editorias"
 
-## Etapas
+### Arquivos que serão alterados (apenas strings visíveis ao usuário)
 
-### 1. Criar equipe e mover usuários
-- Remover Samuel e Rodrigo das equipes atuais (limpar `profiles.team_id` e `team_members`)
-- Criar equipe "Lefil Testes" (code: `lefil-testes`, admin: Samuel, plan: `free`)
-- Associar ambos à nova equipe (`profiles.team_id` + `team_members`)
+**Navegação, traduções e tour**
+- `src/lib/translations.ts` — `sidebar.themes`, bloco `themes.*` (PT e ES)
+- `src/lib/formTranslations.ts` — bloco `forms.themes.*`, textos com "temas" em mensagens de exclusão/saída de equipe
+- `src/components/onboarding/tourSteps.ts` — passos referentes a `nav-themes`, `themes-create-button`, `plan-themes-field`, `select-theme`, `review-theme-field`
+- `src/components/onboarding/TourSelector.tsx` (se houver label) e `src/pages/Themes.tsx` (label do tour "Tour de Temas Estratégicos")
 
-### 2. Criar 5 marcas
-Marcas fictícias variadas: Café Aroma (Alimentação), StudioFit (Fitness), VerdeTech (Sustentabilidade), PetAmor (Pet Shop), ArteBrasil (Artesanato). Cada uma com segmento, valores, palavras-chave e metas.
+**Páginas**
+- `src/pages/Themes.tsx` — breadcrumb, título "Seus Temas Estratégicos", popover explicativo, botão "Novo tema", textos de erro/toast, dica dos 3 gratuitos
+- `src/pages/ThemeView.tsx` — breadcrumbs e textos
+- `src/pages/CreateContent.tsx` — label "Tema Estratégico", mensagens de validação/loader
+- `src/pages/CreateImage.tsx` — `CustomizationCardInline` title "Tema" e descrição
+- `src/pages/PlanContent.tsx` — label "Tema Estratégico" e placeholders
+- `src/pages/Brands.tsx` — bullet "Adicione personas e temas estratégicos à marca"
+- `src/pages/ActionView.tsx` — labels "Tema Estratégico" / "Temas Estratégicos"
+- `src/pages/CreditHistory.tsx` — `CREATE_THEME: "Criar Tema"` → "Criar Editoria"
 
-### 3. Criar 5 personas (1 por marca)
-Dados demográficos, contexto profissional, desafios, tom de voz.
+**Componentes**
+- `src/components/temas/ThemeDialog.tsx` — títulos, descrições e botão "Criar Tema"
+- `src/components/temas/ThemeDetails.tsx` — "Editar tema", "Macro Temas"
+- `src/components/temas/ThemeList.tsx` — empty state "Nenhum tema encontrado"
+- `src/components/quick-content/CustomizationCards.tsx` — title "Tema" / descrição
+- `src/components/dashboard/DashboardStats.tsx` — label "Temas Estratégicos"
+- `src/components/perfil/LeaveTeamDialog.tsx` — texto "marcas, temas e conteúdos"
+- `src/components/historico/ActionDetails.tsx` — label "Tema Estratégico"
+- `src/lib/creditCosts.ts` — `CREATE_THEME: "Criar tema"` → "Criar editoria"
 
-### 4. Criar 5 temas estratégicos (1 por marca)
-Título, descrição, paleta, público-alvo, hashtags, objetivos, plataformas.
+**Chatbot (texto exibido ao usuário)**
+- `supabase/functions/platform-chat/index.ts` — seção "🎯 Temas Estratégicos (/themes)" do conhecimento base, dicas e descrição geral
 
-### 5. Criar 30 criações (actions)
-Distribuídas entre as 5 marcas (6 por marca):
-- **10× `CRIAR_CONTEUDO_RAPIDO`** — com `details` (prompt, platform, objective) e `result` (título, legenda, hashtags)
-- **10× `CRIAR_CONTEUDO`** — com `details` (prompt, platform, persona, theme) e `result` (imageUrl, título, legenda)
-- **5× `PLANEJAR_CONTEUDO`** — com `details` (objective, platform) e `result` (plan com calendário)
-- **5× `CRIAR_CONTEUDO_RAPIDO` com `mode: 'marketplace'`** — com `details` (prompt, mode: marketplace, platform: marketplace)
-- Datas variadas nos últimos 30 dias
-- `user_id` de Samuel como criador
+### O que NÃO será alterado (intencionalmente)
 
-## Detalhes técnicos
-- Todas as operações via ferramenta de inserção SQL (INSERT/UPDATE/DELETE)
-- Nenhuma migração de schema necessária
-- Execução sequencial: equipe → marcas → personas → temas → ações
+- Nomes de variáveis, tipos, hooks, rotas (`/themes`), IDs DOM (`nav-themes`, `themes-list`, etc.), tabelas e colunas do banco (`strategic_themes`, `theme_id`, `themeData`, etc.), props internas e arquivos de tipo (`src/types/theme.ts`).
+- Prompts internos enviados à IA em edge functions (`generate-plan`, `generate-quick-content`, `edit-image`, `review-image`, `imagePromptBuilder`) — esses textos ("TEMA ESTRATÉGICO:", "Tema Estratégico:") são instruções internas para o modelo e mantê-los preserva a qualidade da geração. Posso alterá-los também se preferir, mas o padrão é não tocar.
+- Migration SQL antiga (`20251001133719_*.sql`) — registros históricos de planos no banco; mudanças cosméticas não justificam nova migration.
+- `next-themes` / `useTheme` / `setTheme` (toggle de modo claro/escuro) — não é "tema estratégico".
+- Arquivos de documentação (`README.md`, guias `.md`) salvo se solicitado.
+
+### Pergunta de escopo
+
+Antes de aplicar, confirme:
+
+1. **Prompts internos para a IA** (não visíveis ao usuário, mas afetam contexto enviado ao Gemini): manter como "Tema Estratégico" ou trocar para "Editoria"? Por padrão vou **manter** para preservar comportamento de geração.
+2. **Rota `/themes`** continua a mesma (não vou renomear para `/editorias` para evitar quebrar links existentes, favoritos e analytics). Confirme se está ok.
+
+Se concordar com esses dois pontos, aplico tudo de uma vez. Se quiser que eu também (a) traduza prompts internos e/ou (b) crie redirect `/themes` → `/editorias`, me avise antes de aprovar.
 
