@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { cn } from '@/lib/utils';
 
@@ -184,8 +184,7 @@ export function MarketplaceFilterSidebar({ filters, onChange, facets, totalResul
             onToggle={(v) => toggleArrayValue('journeyStages', v)}
           />
         </Accordion>
-        <ScrollBar orientation="vertical" />
-      </ScrollArea>
+      </div>
     </aside>
   );
 }
