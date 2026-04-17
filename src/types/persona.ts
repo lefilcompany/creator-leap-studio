@@ -40,6 +40,9 @@ export type Persona = {
 
   // Adicionado para otimizar "ganchos" de conteúdo e anúncios
   interestTriggers: string;
+
+  // Adicionado para detalhar perfil financeiro e padrão de consumo
+  incomeAndPurchaseHabits?: string;
 };
 
 // Dados mínimos utilizados nas listagens de personas

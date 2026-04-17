@@ -140,6 +140,7 @@ serve(async (req) => {
       preferred_tone_of_voice: t.preferred_tone_of_voice,
       purchase_journey_stage: t.purchase_journey_stage,
       interest_triggers: t.interest_triggers,
+      income_and_purchase_habits: t.income_and_purchase_habits,
     }));
 
     const { data: createdPersonas, error: insErr } = await admin

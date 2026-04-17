@@ -775,6 +775,7 @@ export type Database = {
           display_order: number
           gender: string
           id: string
+          income_and_purchase_habits: string | null
           interest_triggers: string
           is_active: boolean
           location: string
@@ -797,6 +798,7 @@ export type Database = {
           display_order?: number
           gender: string
           id?: string
+          income_and_purchase_habits?: string | null
           interest_triggers: string
           is_active?: boolean
           location: string
@@ -819,6 +821,7 @@ export type Database = {
           display_order?: number
           gender?: string
           id?: string
+          income_and_purchase_habits?: string | null
           interest_triggers?: string
           is_active?: boolean
           location?: string
@@ -842,6 +845,7 @@ export type Database = {
           created_at: string | null
           gender: string
           id: string
+          income_and_purchase_habits: string | null
           interest_triggers: string
           location: string
           main_goal: string
@@ -862,6 +866,7 @@ export type Database = {
           created_at?: string | null
           gender: string
           id?: string
+          income_and_purchase_habits?: string | null
           interest_triggers: string
           location: string
           main_goal: string
@@ -882,6 +887,7 @@ export type Database = {
           created_at?: string | null
           gender?: string
           id?: string
+          income_and_purchase_habits?: string | null
           interest_triggers?: string
           location?: string
           main_goal?: string
