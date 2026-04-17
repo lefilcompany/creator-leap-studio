@@ -159,6 +159,7 @@ export default function PersonaDetails({ persona, brands, onEdit, onDelete, isLo
           <DetailField label="Tom de Voz Preferido" value={persona.preferredToneOfVoice} field="preferredToneOfVoice" />
           <DetailField label="Estágio da Jornada de Compra" value={persona.purchaseJourneyStage} field="purchaseJourneyStage" />
           <DetailField label="Gatilhos de Interesse" value={persona.interestTriggers} />
+          <DetailField label="Renda e Hábitos de Compra" value={persona.incomeAndPurchaseHabits} />
           <DetailField label="Data de Criação" value={formatDate(persona.createdAt)} />
           {persona.createdAt !== persona.updatedAt && (
             <DetailField label="Última Atualização" value={formatDate(persona.updatedAt)} />

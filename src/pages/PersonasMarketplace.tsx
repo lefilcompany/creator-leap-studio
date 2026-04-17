@@ -59,7 +59,7 @@ export default function PersonasMarketplacePage() {
         const [templatesRes, brandsRes] = await Promise.all([
           supabase
             .from('persona_templates')
-            .select('id, name, category, avatar_url, short_description, gender, age, location, professional_context, beliefs_and_interests, content_consumption_routine, main_goal, challenges, preferred_tone_of_voice, purchase_journey_stage, interest_triggers')
+            .select('id, name, category, avatar_url, short_description, gender, age, location, professional_context, beliefs_and_interests, content_consumption_routine, main_goal, challenges, preferred_tone_of_voice, purchase_journey_stage, interest_triggers, income_and_purchase_habits')
             .eq('is_active', true)
             .order('display_order', { ascending: true }),
           supabase

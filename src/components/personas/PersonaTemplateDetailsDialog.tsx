@@ -19,6 +19,7 @@ import {
   Compass,
   Zap,
   Check,
+  Wallet,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -39,6 +40,7 @@ export type PersonaTemplateFull = {
   preferred_tone_of_voice: string;
   purchase_journey_stage: string;
   interest_triggers: string;
+  income_and_purchase_habits?: string | null;
 };
 
 type Props = {
@@ -242,6 +244,11 @@ export function PersonaTemplateDetailsDialog({
                   icon={Zap}
                   label="Gatilhos de interesse"
                   value={t.interest_triggers}
+                />
+                <InfoBlock
+                  icon={Wallet}
+                  label="Renda e hábitos de compra"
+                  value={t.income_and_purchase_habits}
                 />
               </div>
             </div>
