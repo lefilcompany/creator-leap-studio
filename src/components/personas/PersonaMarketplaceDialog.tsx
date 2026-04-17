@@ -60,6 +60,7 @@ export default function PersonaMarketplaceDialog({
   const [selectedBrandId, setSelectedBrandId] = useState<string>("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isPurchasing, setIsPurchasing] = useState(false);
+  const [ownedNames, setOwnedNames] = useState<Set<string>>(new Set());
 
   const userCredits = user?.credits || 0;
 
@@ -89,7 +90,45 @@ export default function PersonaMarketplaceDialog({
     load();
   }, [isOpen, defaultBrandId, brands]);
 
-  const toggleSelection = (id: string) => {
+  // Load personas already owned by the selected brand (match by name)
+  useEffect(() => {
+    if (!isOpen || !selectedBrandId) {
+      setOwnedNames(new Set());
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data, error } = await supabase
+          .from("personas")
+          .select("name")
+          .eq("brand_id", selectedBrandId);
+        if (error) throw error;
+        if (cancelled) return;
+        const names = new Set((data || []).map((p: any) => (p.name || "").trim().toLowerCase()));
+        setOwnedNames(names);
+        // Remove any selections that became "owned" after brand change
+        setSelectedIds((prev) => {
+          const next = new Set(prev);
+          for (const t of templates) {
+            if (names.has((t.name || "").trim().toLowerCase())) next.delete(t.id);
+          }
+          return next;
+        });
+      } catch (e) {
+        console.error("[marketplace] failed to load owned personas", e);
+        if (!cancelled) setOwnedNames(new Set());
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, selectedBrandId, templates]);
+
+  const isOwned = (name: string) => ownedNames.has((name || "").trim().toLowerCase());
+
+  const toggleSelection = (id: string, name: string) => {
+    if (isOwned(name)) return;
     setSelectedIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
