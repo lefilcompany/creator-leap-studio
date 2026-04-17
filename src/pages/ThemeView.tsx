@@ -173,7 +173,7 @@ export default function ThemeView() {
       setHasChanges(false);
     } catch (error) {
       console.error('Erro ao carregar tema:', error);
-      toast.error('Erro ao carregar detalhes do tema');
+      toast.error('Erro ao carregar detalhes da editoria');
       navigate('/themes');
     } finally {
       setIsLoading(false);
@@ -233,7 +233,7 @@ export default function ThemeView() {
         .eq('id', theme.id);
 
       if (error) throw error;
-      toast.success('Tema atualizado com sucesso!', { id: toastId });
+      toast.success('Editoria atualizada com sucesso!', { id: toastId });
       originalRef.current = { ...formData };
       originalColorPaletteRef.current = [...colorPalette];
       setHasChanges(false);
@@ -241,7 +241,7 @@ export default function ThemeView() {
       queryClient.invalidateQueries({ queryKey: ['theme', theme.id] });
     } catch (error) {
       console.error('Erro ao salvar tema:', error);
-      toast.error('Erro ao salvar tema', { id: toastId });
+      toast.error('Erro ao salvar editoria', { id: toastId });
     } finally {
       setIsSaving(false);
     }
@@ -251,14 +251,14 @@ export default function ThemeView() {
     if (!theme) return;
     const toastId = 'theme-delete';
     try {
-      toast.loading('Deletando tema...', { id: toastId });
+      toast.loading('Deletando editoria...', { id: toastId });
       const { error } = await supabase.from('strategic_themes').delete().eq('id', theme.id);
       if (error) throw error;
-      toast.success('Tema deletado com sucesso!', { id: toastId });
+      toast.success('Editoria deletada com sucesso!', { id: toastId });
       navigate('/themes');
     } catch (error) {
       console.error('Erro ao deletar tema:', error);
-      toast.error('Erro ao deletar tema', { id: toastId });
+      toast.error('Erro ao deletar editoria', { id: toastId });
     }
   }, [theme, navigate]);
 
@@ -288,9 +288,9 @@ export default function ThemeView() {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <Palette className="h-16 w-16 text-muted-foreground/50 mb-4" />
-        <h3 className="text-xl font-semibold">Tema não encontrado</h3>
+        <h3 className="text-xl font-semibold">Editoria não encontrada</h3>
         <Button variant="outline" className="mt-4" onClick={() => navigate('/themes')}>
-          Voltar para temas
+          Voltar para editorias
         </Button>
       </div>
     );
@@ -323,7 +323,7 @@ export default function ThemeView() {
             <PageBreadcrumb
               items={[
                 { 
-                  label: 'Temas', 
+                  label: 'Editorias', 
                   href: '/themes',
                   state: { viewMode },
                   icon: viewMode === 'list' 
@@ -371,7 +371,7 @@ export default function ThemeView() {
                   <AlertDialogHeader>
                     <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Essa ação não pode ser desfeita. Isso irá deletar permanentemente o tema &quot;{theme.title}&quot;.
+                      Essa ação não pode ser desfeita. Isso irá deletar permanentemente a editoria &quot;{theme.title}&quot;.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
@@ -415,7 +415,7 @@ export default function ThemeView() {
             <SectionCard title="Estratégia" icon={<Target className="h-4 w-4" />} accentColor={brandColor}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <EditableField label="Objetivos" value={formData.objectives || ''} onChange={(v) => updateField('objectives', v)} />
-                <EditableField label="Macro Temas" value={formData.macroThemes || ''} onChange={(v) => updateField('macroThemes', v)} />
+                <EditableField label="Macro Editorias" value={formData.macroThemes || ''} onChange={(v) => updateField('macroThemes', v)} />
                 <EditableField label="Ação Esperada" value={formData.expectedAction || ''} onChange={(v) => updateField('expectedAction', v)} />
                 <EditableField label="Hashtags" value={formData.hashtags || ''} onChange={(v) => updateField('hashtags', v)} />
               </div>

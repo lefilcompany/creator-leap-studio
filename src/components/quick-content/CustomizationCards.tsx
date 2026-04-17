@@ -175,8 +175,8 @@ export function CustomizationCards({
         />
         <CustomizationCard
           icon={<Palette className="h-4 w-4" />}
-          title="Tema"
-          description="Tema estratégico"
+          title="Editoria"
+          description="Linha editorial"
           options={themes.map((t: any) => ({ value: t.id, label: t.title }))}
           value={formData.themeId}
           onChange={v => onFormChange({ themeId: v })}

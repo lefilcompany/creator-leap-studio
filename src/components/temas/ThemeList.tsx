@@ -144,7 +144,7 @@ function BrandGroupHeader({ brand, themeCount, isOpen, onToggle }: { brand: Bran
       </div>
 
       <span className="text-xs text-muted-foreground bg-muted/50 px-2 py-0.5 rounded-full flex-shrink-0">
-        {themeCount} {themeCount === 1 ? 'tema' : 'temas'}
+        {themeCount} {themeCount === 1 ? 'editoria' : 'editorias'}
       </span>
 
       <div className="text-muted-foreground transition-transform duration-200">
@@ -244,14 +244,14 @@ export default function ThemeList({ themes, brands, isLoading = false, initialVi
       {searchQuery.trim() ? (
         <>
           <Search className="h-12 w-12 mx-auto mb-3 opacity-50" />
-          <p className="text-base">Nenhum tema encontrado para "{searchQuery}"</p>
+          <p className="text-base">Nenhuma editoria encontrada para "{searchQuery}"</p>
           <p className="text-sm mt-1 opacity-75">Tente buscar com outro termo.</p>
         </>
       ) : (
         <>
           <Palette className="h-12 w-12 mx-auto mb-3 opacity-50" />
-          <p className="text-base">Nenhum tema encontrado</p>
-          <p className="text-sm mt-1 opacity-75">Clique em "Novo tema" para começar.</p>
+          <p className="text-base">Nenhuma editoria encontrada</p>
+          <p className="text-sm mt-1 opacity-75">Clique em "Nova editoria" para começar.</p>
         </>
       )}
     </div>
@@ -400,7 +400,7 @@ export default function ThemeList({ themes, brands, isLoading = false, initialVi
                                 <TableRow className="hover:bg-transparent border-b border-border/20">
                                   <TableHead className="w-1 p-0" />
                                   <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
-                                    Tema
+                                    Editoria
                                   </TableHead>
                                   <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-semibold text-right">
                                     Data de Criação

@@ -35,7 +35,7 @@ export const DashboardStats = ({ actionsCount, brandsCount, personasCount = 0, t
       link: "/personas",
     },
     {
-      label: "Temas Estratégicos",
+      label: "Editorias",
       value: themesCount,
       icon: Palette,
       color: "text-success",

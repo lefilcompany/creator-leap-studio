@@ -136,8 +136,8 @@ export default function ThemeDetails({ theme, onEdit, onDelete, brands, isLoadin
     return (
       <div className="h-full bg-card p-6 flex flex-col items-center justify-center text-center">
         <Palette className="h-16 w-16 text-muted-foreground/50 mb-4" />
-        <h3 className="text-xl font-semibold text-foreground">Nenhum tema selecionado</h3>
-        <p className="text-muted-foreground">Selecione um tema na lista para ver os detalhes.</p>
+        <h3 className="text-xl font-semibold text-foreground">Nenhuma editoria selecionada</h3>
+        <p className="text-muted-foreground">Selecione uma editoria na lista para ver os detalhes.</p>
       </div>
     );
   }
@@ -174,7 +174,7 @@ export default function ThemeDetails({ theme, onEdit, onDelete, brands, isLoadin
           <ColorPaletteField colors={parsedColors} />
           <DetailField label="Público-Alvo" value={theme.targetAudience} />
           <DetailField label="Objetivos" value={theme.objectives} />
-          <DetailField label="Macro Temas" value={theme.macroThemes} />
+          <DetailField label="Macro Editorias" value={theme.macroThemes} />
           <DetailField label="Ação Esperada" value={theme.expectedAction} />
           <DetailField label="Formato de Conteúdo" value={theme.contentFormat} />
           <DetailField label="Melhores Formatos" value={theme.bestFormats} />
@@ -199,7 +199,7 @@ export default function ThemeDetails({ theme, onEdit, onDelete, brands, isLoadin
             <AlertDialogHeader>
               <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
               <AlertDialogDescription>
-                Esta ação não pode ser desfeita. O tema "{theme.title}" será permanentemente deletado.
+                Esta ação não pode ser desfeita. A editoria "{theme.title}" será permanentemente deletada.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -214,7 +214,7 @@ export default function ThemeDetails({ theme, onEdit, onDelete, brands, isLoadin
           </AlertDialogContent>
         </AlertDialog>
         <Button onClick={() => onEdit(theme)} className="w-full flex-1 rounded-full">
-          <Edit className="mr-2 h-4 w-4" /> Editar tema
+          <Edit className="mr-2 h-4 w-4" /> Editar editoria
         </Button>
       </div>
     </div>

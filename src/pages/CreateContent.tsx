@@ -829,7 +829,7 @@ export default function CreateContent() {
       
       // Theme e persona são opcionais, mas se fornecidos devem ser válidos
       if (formData.theme && !uuidRegex.test(formData.theme)) {
-        toast.error("Tema estratégico inválido", { id: toastId });
+        toast.error("Editoria inválida", { id: toastId });
         return;
       }
       
@@ -1061,7 +1061,7 @@ export default function CreateContent() {
               processingSteps: [
                 '✅ Vídeo iniciado',
                 '⏳ Analisando contexto da marca',
-                '⏳ Aplicando tema estratégico',
+                '⏳ Aplicando editoria',
                 '⏳ Gerando movimento e transições',
                 '⏳ Aplicando estilo visual',
                 '⏳ Renderizando vídeo final'
@@ -1449,7 +1449,7 @@ export default function CreateContent() {
                     htmlFor="theme"
                     className="text-xs md:text-sm font-semibold text-foreground"
                   >
-                    Tema Estratégico
+                    Editoria
                   </Label>
                   {isLoadingData ? (
                     <Skeleton className="h-10 md:h-11 w-full rounded-xl" />
@@ -1462,8 +1462,8 @@ export default function CreateContent() {
                         !formData.brand
                           ? "Primeiro, escolha a marca"
                           : filteredThemes.length === 0
-                          ? "Nenhum tema disponível"
-                          : "Selecione um tema (opcional)"
+                          ? "Nenhuma editoria disponível"
+                          : "Selecione uma editoria (opcional)"
                       }
                       disabled={!formData.brand || filteredThemes.length === 0}
                       triggerClassName="h-10 md:h-11 rounded-xl border-2 border-border/50 bg-background/50 disabled:opacity-50 text-sm hover:border-border/70 transition-colors"

@@ -213,7 +213,7 @@ interface ParsedPlan {
 }
 
 const FIELD_LABELS_SET = new Set(
-  PLAN_FIELD_LABELS.concat(['Marca', 'Tema(s)', 'Tema', 'Plataforma(s)', 'Quantidade de Conteúdos', 'Objetivo Principal'])
+  PLAN_FIELD_LABELS.concat(['Marca', 'Editoria(s)', 'Editoria', 'Plataforma(s)', 'Quantidade de Conteúdos', 'Objetivo Principal'])
     .map((l) => l.toLowerCase())
 );
 
@@ -303,6 +303,8 @@ const FIELD_ICONS: Record<string, React.ComponentType<any>> = {
   marca: Tag,
   'tema(s)': Tag,
   tema: Tag,
+  'editoria(s)': Tag,
+  editoria: Tag,
   'plataforma(s)': Globe,
   'quantidade de conteúdos': ClipboardList,
   'objetivo principal': Target,
@@ -991,7 +993,7 @@ export default function ActionView() {
                     {action.details?.platform && renderPlatformField(action.details.platform)}
                     {action.details?.brand && <DetailField label="Marca"><p className="text-sm font-medium text-foreground">{action.details.brand}</p></DetailField>}
                     {action.details?.persona && <DetailField label="Persona"><p className="text-sm font-medium text-foreground">{action.details.persona}</p></DetailField>}
-                    {action.details?.theme && <DetailField label="Tema Estratégico"><p className="text-sm font-medium text-foreground">{action.details.theme}</p></DetailField>}
+                    {action.details?.theme && <DetailField label="Editoria"><p className="text-sm font-medium text-foreground">{action.details.theme}</p></DetailField>}
                     {action.details?.tone && Array.isArray(action.details.tone) && action.details.tone.length > 0 && (
                       <DetailField label="Tom de Voz">
                         <div className="flex flex-wrap gap-2 mt-1">{action.details.tone.map((t: string, idx: number) => <Badge key={idx} variant="outline">{t}</Badge>)}</div>
@@ -1041,7 +1043,7 @@ export default function ActionView() {
                       )}
                       {action.details?.prompt && <DetailField label="Contexto/Ajustes Solicitados"><p className="text-sm text-foreground leading-relaxed">{action.details.prompt}</p></DetailField>}
                       {action.details?.brandName && <DetailField label="Marca"><p className="text-sm font-medium text-foreground">{action.details.brandName}</p></DetailField>}
-                      {action.details?.themeName && <DetailField label="Tema Estratégico"><p className="text-sm font-medium text-foreground">{action.details.themeName}</p></DetailField>}
+                      {action.details?.themeName && <DetailField label="Editoria"><p className="text-sm font-medium text-foreground">{action.details.themeName}</p></DetailField>}
                       {action.details?.caption && (
                         <DetailField label="Legenda Enviada">
                           <div className="mt-1 p-3 bg-muted/30 rounded-lg"><p className="text-foreground whitespace-pre-wrap text-sm">{action.details.caption}</p></div>
@@ -1098,7 +1100,7 @@ export default function ActionView() {
                   {action.details?.platform && renderPlatformField(action.details.platform)}
                   {action.details?.quantity && <DetailField label="Quantidade de Posts"><p className="text-sm font-medium text-foreground">{action.details.quantity}</p></DetailField>}
                   {action.details?.theme && Array.isArray(action.details.theme) && action.details.theme.length > 0 && (
-                    <DetailField label="Temas Estratégicos">
+                    <DetailField label="Editorias">
                       <div className="flex flex-wrap gap-2 mt-1">{action.details.theme.map((t: string, idx: number) => <Badge key={idx} variant="secondary">{t}</Badge>)}</div>
                     </DetailField>
                   )}
