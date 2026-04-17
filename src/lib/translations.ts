@@ -2,7 +2,7 @@ export const translations = {
   pt: {
     // Header
     search: {
-      placeholder: "Pesquisar marcas, temas, personas...",
+      placeholder: "Pesquisar marcas, editorias, personas...",
       searchContent: "Pesquisar Conteúdo",
       searching: "Pesquisando...",
       noResults: "Nenhum resultado encontrado",
@@ -31,7 +31,7 @@ export const translations = {
     sidebar: {
       home: "Home",
       brands: "Marcas",
-      themes: "Temas Estratégicos",
+      themes: "Editorias",
       personas: "Personas",
       quickContent: "Criação Rápida",
       history: "Histórico",
@@ -313,13 +313,13 @@ export const translations = {
       triggersPlaceholder: "Quais são os gatilhos que despertam o interesse desta persona?",
     },
     
-    // Themes
+    // Themes (Editorias)
     themes: {
-      title: "Temas Estratégicos",
-      newTheme: "Novo Tema",
-      editTheme: "Editar Tema",
-      deleteTheme: "Excluir Tema",
-      themeName: "Nome do Tema",
+      title: "Editorias",
+      newTheme: "Nova Editoria",
+      editTheme: "Editar Editoria",
+      deleteTheme: "Excluir Editoria",
+      themeName: "Nome da Editoria",
       description: "Descrição",
       objective: "Objetivo",
       targetAudience: "Público-Alvo",
@@ -329,14 +329,14 @@ export const translations = {
       active: "Ativo",
       inactive: "Inativo",
       completed: "Concluído",
-      noThemes: "Nenhum tema encontrado",
-      createFirst: "Crie seu primeiro tema para começar",
-      themeDetails: "Detalhes do Tema",
-      confirmDelete: "Tem certeza que deseja excluir este tema?",
+      noThemes: "Nenhuma editoria encontrada",
+      createFirst: "Crie sua primeira editoria para começar",
+      themeDetails: "Detalhes da Editoria",
+      confirmDelete: "Tem certeza que deseja excluir esta editoria?",
       deleteMessage: "Esta ação não pode ser desfeita.",
-      themeCreated: "Tema criado com sucesso!",
-      themeUpdated: "Tema atualizado com sucesso!",
-      themeDeleted: "Tema excluído com sucesso!",
+      themeCreated: "Editoria criada com sucesso!",
+      themeUpdated: "Editoria atualizada com sucesso!",
+      themeDeleted: "Editoria excluída com sucesso!",
     },
     
     // History
@@ -355,7 +355,7 @@ export const translations = {
       createdAt: "Criado em",
       brand: "Marca",
       persona: "Persona",
-      theme: "Tema",
+      theme: "Editoria",
       contentType: "Tipo de Conteúdo",
       viewDetails: "Ver Detalhes",
       deleteAction: "Excluir Ação",
@@ -438,7 +438,7 @@ export const translations = {
       title: "Criar Conteúdo",
       selectBrand: "Selecione uma Marca",
       selectPersona: "Selecione uma Persona",
-      selectTheme: "Selecione um Tema",
+      selectTheme: "Selecione uma Editoria",
       contentType: "Tipo de Conteúdo",
       imageWithCaption: "Imagem com Legenda",
       videoWithCaption: "Vídeo com Legenda",
@@ -473,7 +473,7 @@ export const translations = {
     planContent: {
       title: "Calendário de Conteúdo",
       selectBrand: "Selecione uma Marca",
-      selectTheme: "Selecione um Tema",
+      selectTheme: "Selecione uma Editoria",
       selectPersonas: "Selecione Personas",
       duration: "Duração",
       oneWeek: "1 Semana",
@@ -1043,7 +1043,7 @@ export const translations = {
   
   es: {
     search: {
-      placeholder: "Buscar marcas, temas, personas...",
+      placeholder: "Buscar marcas, editoriales, personas...",
       searchContent: "Buscar Contenido",
       searching: "Buscando...",
       noResults: "No se encontraron resultados",
@@ -1070,7 +1070,7 @@ export const translations = {
     sidebar: {
       home: "Inicio",
       brands: "Marcas",
-      themes: "Temas Estratégicos",
+      themes: "Editoriales",
       personas: "Personas",
       quickContent: "Creación Rápida",
       history: "Historial",
