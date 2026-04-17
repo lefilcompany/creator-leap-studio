@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
-import { Sparkles, Tags, UserCircle, Palette } from "lucide-react";
+import { Sparkles, Tags, UserCircle, Newspaper } from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface DashboardStatsProps {
@@ -37,7 +37,7 @@ export const DashboardStats = ({ actionsCount, brandsCount, personasCount = 0, t
     {
       label: "Editorias",
       value: themesCount,
-      icon: Palette,
+      icon: Newspaper,
       color: "text-success",
       bg: "bg-success/10",
       link: "/themes",

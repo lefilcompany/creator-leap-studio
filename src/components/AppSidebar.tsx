@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
-import { Home, Tag, Users, Calendar, History, Sparkles, CheckCircle, Palette, Coins, UsersRound, FolderOpen, ChevronRight } from "lucide-react";
+import { Home, Tag, Users, Calendar, History, Sparkles, CheckCircle, Newspaper, Coins, UsersRound, FolderOpen, ChevronRight } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarRail, useSidebar } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -302,7 +302,7 @@ export function AppSidebar() {
   const navLinks = [
     { id: "nav-dashboard", href: "/dashboard", icon: Home, label: t.sidebar.home },
     { id: "nav-brands", href: "/brands", icon: Tag, label: t.sidebar.brands },
-    { id: "nav-themes", href: "/themes", icon: Palette, label: t.sidebar.themes },
+    { id: "nav-themes", href: "/themes", icon: Newspaper, label: t.sidebar.themes },
     { id: "nav-personas", href: "/personas", icon: Users, label: t.sidebar.personas },
     { id: "nav-history", href: "/history", icon: History, label: t.sidebar.history },
   ];

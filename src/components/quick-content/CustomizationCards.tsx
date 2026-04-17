@@ -1,6 +1,6 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { X, ChevronDown, Building2, UserRound, Palette, FolderOpen } from "lucide-react";
+import { X, ChevronDown, Building2, UserRound, Newspaper, FolderOpen } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useState, useRef, useEffect, useCallback } from "react";
@@ -174,7 +174,7 @@ export function CustomizationCards({
           loading={loadingPersonas}
         />
         <CustomizationCard
-          icon={<Palette className="h-4 w-4" />}
+          icon={<Newspaper className="h-4 w-4" />}
           title="Editoria"
           description="Linha editorial"
           options={themes.map((t: any) => ({ value: t.id, label: t.title }))}

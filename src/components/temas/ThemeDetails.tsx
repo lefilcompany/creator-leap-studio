@@ -12,7 +12,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Edit, Trash2, Palette } from 'lucide-react';
+import { Edit, Trash2, Palette, Newspaper } from 'lucide-react';
 import type { StrategicTheme } from '@/types/theme';
 import type { BrandSummary, ColorItem } from '@/types/brand';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -135,7 +135,7 @@ export default function ThemeDetails({ theme, onEdit, onDelete, brands, isLoadin
   if (!theme) {
     return (
       <div className="h-full bg-card p-6 flex flex-col items-center justify-center text-center">
-        <Palette className="h-16 w-16 text-muted-foreground/50 mb-4" />
+        <Newspaper className="h-16 w-16 text-muted-foreground/50 mb-4" />
         <h3 className="text-xl font-semibold text-foreground">Nenhuma editoria selecionada</h3>
         <p className="text-muted-foreground">Selecione uma editoria na lista para ver os detalhes.</p>
       </div>

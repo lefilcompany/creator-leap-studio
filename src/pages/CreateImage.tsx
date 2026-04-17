@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { TagSelect } from "@/components/ui/tag-select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Sparkles, Zap, X, Info, ImagePlus, Coins, Image as ImageIcon, HelpCircle, Paintbrush, ChevronDown, Plus, Settings2, Mic, ClipboardPaste, Type, Building2, UserRound, Palette } from "lucide-react";
+import { Loader2, Sparkles, Zap, X, Info, ImagePlus, Coins, Image as ImageIcon, HelpCircle, Paintbrush, ChevronDown, Plus, Settings2, Mic, ClipboardPaste, Type, Building2, UserRound, Newspaper } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CREDIT_COSTS } from "@/lib/creditCosts";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -1080,7 +1080,7 @@ export default function CreateImage() {
                   {/* Editoria */}
                   {isLoadingData ? <Skeleton className="h-24 flex-1 min-w-[140px] rounded-xl" /> : (
                     <CustomizationCardInline
-                      icon={<Palette className="h-4 w-4" />}
+                      icon={<Newspaper className="h-4 w-4" />}
                       title="Editoria"
                       description="Linha editorial"
                       options={filteredThemes.map(t => ({ value: t.id, label: t.title }))}
