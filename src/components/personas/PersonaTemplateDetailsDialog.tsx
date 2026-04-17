@@ -201,7 +201,7 @@ export function PersonaTemplateDetailsDialog({
           </div>
 
           {/* Right — full persona details */}
-          <ScrollArea className="max-h-[55vh] md:max-h-[90vh]">
+          <ScrollArea className="flex-1 min-h-0 md:h-full">
             <div className="p-4 sm:p-5 lg:p-6 space-y-3">
               <div>
                 <h3 className="text-sm sm:text-base font-bold text-foreground mb-1">Perfil completo</h3>
