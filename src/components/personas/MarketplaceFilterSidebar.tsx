@@ -68,7 +68,7 @@ export function MarketplaceFilterSidebar({ filters, onChange, facets, totalResul
   const reset = () => onChange(initialFilters);
 
   return (
-    <aside className="bg-card rounded-2xl shadow-md p-4 lg:p-5 flex flex-col">
+    <aside className="bg-card rounded-2xl shadow-md p-4 lg:p-5 flex flex-col px-[19px] mx-0">
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
