@@ -36,16 +36,33 @@ interface EditableFieldProps {
   label: string;
   value: string;
   onChange: (value: string) => void;
-  type?: 'input' | 'textarea' | 'select';
+  type?: 'input' | 'textarea' | 'select' | 'datalist';
   placeholder?: string;
   options?: { value: string; label: string }[];
+  datalistId?: string;
+  suggestions?: string[];
 }
 
-const EditableField = ({ label, value, onChange, type = 'textarea', placeholder, options }: EditableFieldProps) => (
+const EditableField = ({ label, value, onChange, type = 'textarea', placeholder, options, datalistId, suggestions }: EditableFieldProps) => (
   <div className="space-y-1.5">
     <Label className="text-xs text-muted-foreground font-medium uppercase tracking-wider">{label}</Label>
     {type === 'select' && options ? (
       <NativeSelect value={value} onValueChange={onChange} options={options} className="bg-background/80 backdrop-blur-sm border-border/20" />
+    ) : type === 'datalist' && datalistId && suggestions ? (
+      <>
+        <Input
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder || label}
+          list={datalistId}
+          className="bg-background/80 backdrop-blur-sm border-border/20 focus:border-primary/50 focus:ring-primary/20 transition-all duration-200"
+        />
+        <datalist id={datalistId}>
+          {suggestions.map((s) => (
+            <option key={s} value={s} />
+          ))}
+        </datalist>
+      </>
     ) : type === 'input' ? (
       <Input
         value={value}
@@ -93,29 +110,11 @@ interface BrandData {
 
 const translations = formTranslations.pt.forms.personas;
 
-const genderOptions = [
-  { value: 'male', label: translations.genderOptions.male },
-  { value: 'female', label: translations.genderOptions.female },
-  { value: 'non-binary', label: translations.genderOptions.nonBinary },
-  { value: 'preferNotToSay', label: translations.genderOptions.preferNotToSay },
-];
+const genderSuggestions = ['Feminino', 'Masculino', 'Não-binário', 'Prefere não informar'];
 
-const toneOptions = [
-  { value: 'professional', label: translations.toneOptions.professional },
-  { value: 'casual', label: translations.toneOptions.casual },
-  { value: 'friendly', label: translations.toneOptions.friendly },
-  { value: 'inspiring', label: translations.toneOptions.inspiring },
-  { value: 'direct', label: translations.toneOptions.direct },
-  { value: 'educational', label: translations.toneOptions.educational },
-];
+const toneSuggestions = ['Profissional', 'Casual', 'Amigável', 'Inspirador', 'Direto', 'Educativo'];
 
-const journeyOptions = [
-  { value: 'awareness', label: translations.journeyStages.awareness },
-  { value: 'consideration', label: translations.journeyStages.consideration },
-  { value: 'decision', label: translations.journeyStages.decision },
-  { value: 'postPurchase', label: translations.journeyStages.postPurchase },
-  { value: 'advocacy', label: translations.journeyStages.advocacy },
-];
+const journeySuggestions = ['Descoberta', 'Conhecimento', 'Consciência', 'Consideração', 'Avaliação', 'Decisão', 'Pós-compra', 'Advocacia'];
 
 export default function PersonaView() {
   const { personaId } = useParams<{ personaId: string }>();
@@ -370,7 +369,7 @@ export default function PersonaView() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <EditableField label="Nome" value={formData.name || ''} onChange={(v) => updateField('name', v)} type="input" />
               <EditableField label="Idade" value={formData.age || ''} onChange={(v) => updateField('age', v)} type="input" />
-              <EditableField label="Gênero" value={formData.gender || ''} onChange={(v) => updateField('gender', v)} type="select" options={genderOptions} />
+              <EditableField label="Gênero" value={formData.gender || ''} onChange={(v) => updateField('gender', v)} type="datalist" datalistId="persona-gender-options" suggestions={genderSuggestions} />
               <EditableField label="Localização" value={formData.location || ''} onChange={(v) => updateField('location', v)} type="input" />
             </div>
           </SectionCard>
@@ -387,8 +386,8 @@ export default function PersonaView() {
           <SectionCard title="Comportamento e Estratégia" icon={<Target className="h-4 w-4" />} accentColor={brandColor}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <EditableField label="Rotina de Consumo de Conteúdo" value={formData.contentConsumptionRoutine || ''} onChange={(v) => updateField('contentConsumptionRoutine', v)} />
-              <EditableField label="Tom de Voz Preferido" value={formData.preferredToneOfVoice || ''} onChange={(v) => updateField('preferredToneOfVoice', v)} type="select" options={toneOptions} />
-              <EditableField label="Estágio da Jornada de Compra" value={formData.purchaseJourneyStage || ''} onChange={(v) => updateField('purchaseJourneyStage', v)} type="select" options={journeyOptions} />
+              <EditableField label="Tom de Voz Preferido" value={formData.preferredToneOfVoice || ''} onChange={(v) => updateField('preferredToneOfVoice', v)} type="datalist" datalistId="persona-tone-options" suggestions={toneSuggestions} />
+              <EditableField label="Estágio da Jornada de Compra" value={formData.purchaseJourneyStage || ''} onChange={(v) => updateField('purchaseJourneyStage', v)} type="datalist" datalistId="persona-journey-options" suggestions={journeySuggestions} />
               <EditableField label="Gatilhos de Interesse" value={formData.interestTriggers || ''} onChange={(v) => updateField('interestTriggers', v)} />
             </div>
           </SectionCard>
