@@ -104,8 +104,8 @@ export default function Themes() {
 
         setThemes(themes);
       } catch (error) {
-        console.error('Erro ao carregar temas:', error);
-        toast.error("Não foi possível carregar os temas estratégicos");
+        console.error('Erro ao carregar editorias:', error);
+        toast.error("Não foi possível carregar as editorias");
       } finally {
         setIsLoadingThemes(false);
       }
@@ -126,7 +126,7 @@ export default function Themes() {
     const freeThemesUsed = team?.free_themes_used || 0;
     const isFree = freeThemesUsed < 3;
     if (!isFree && (user.credits || 0) < 1) {
-      toast.error('Créditos insuficientes. Criar um tema custa 1 crédito (os 3 primeiros são gratuitos).');
+      toast.error('Créditos insuficientes. Criar uma editoria custa 1 crédito (as 3 primeiras são gratuitas).');
       return;
     }
     setThemeToEdit(null);
@@ -183,7 +183,7 @@ export default function Themes() {
           };
 
           setThemes(prev => prev.map(t => t.id === summary.id ? summary : t));
-          toast.success('Tema atualizado com sucesso!');
+          toast.success('Editoria atualizada com sucesso!');
           setIsDialogOpen(false);
           setThemeToEdit(null);
           return saved;
@@ -255,15 +255,15 @@ export default function Themes() {
                 credits_used: 1,
                 credits_before: currentCredits,
                 credits_after: currentCredits - 1,
-                description: `Criação do tema: ${formData.title}`,
+                description: `Criação da editoria: ${formData.title}`,
                 metadata: { theme_id: saved.id, theme_title: formData.title }
               });
             await refreshUserCredits();
           }
 
           toast.success(isFree 
-            ? `Tema criado com sucesso! (${3 - freeThemesUsed - 1} temas gratuitos restantes)` 
-            : 'Tema criado com sucesso!'
+            ? `Editoria criada com sucesso! (${3 - freeThemesUsed - 1} editorias gratuitas restantes)` 
+            : 'Editoria criada com sucesso!'
           );
 
           setIsDialogOpen(false);
@@ -271,8 +271,8 @@ export default function Themes() {
           return saved;
         }
       } catch (error) {
-        console.error('Erro ao salvar tema:', error);
-        toast.error("Erro ao salvar tema. Tente novamente.");
+        console.error('Erro ao salvar editoria:', error);
+        toast.error("Erro ao salvar editoria. Tente novamente.");
         throw error;
       }
     },
@@ -287,7 +287,7 @@ export default function Themes() {
       <div className="relative w-full h-28 md:h-36 flex-shrink-0 overflow-hidden">
         <PageBreadcrumb
           variant="overlay"
-          items={[{ label: 'Temas Estratégicos' }]}
+          items={[{ label: 'Editorias' }]}
         />
         <img 
           src={themesBanner} 
@@ -308,7 +308,7 @@ export default function Themes() {
             </div>
             <div>
               <h1 className="text-xl lg:text-2xl font-bold text-foreground flex items-center gap-2">
-                Seus Temas Estratégicos
+                Suas Editorias
                 <Popover>
                   <PopoverTrigger asChild>
                     <button className="text-muted-foreground hover:text-foreground transition-colors">
@@ -317,25 +317,25 @@ export default function Themes() {
                   </PopoverTrigger>
                   <PopoverContent className="w-80 text-sm" side="bottom" align="start">
                     <div className="space-y-2">
-                      <h4 className="font-semibold text-foreground">O que são Temas Estratégicos?</h4>
+                      <h4 className="font-semibold text-foreground">O que são Editorias?</h4>
                       <p className="text-muted-foreground">
-                        Temas estratégicos são diretrizes de conteúdo que definem o tom, estilo e objetivos das suas publicações.
+                        Editorias são diretrizes de conteúdo que definem o tom, estilo e objetivos das suas publicações.
                       </p>
                       <h4 className="font-semibold text-foreground mt-3">Como usar?</h4>
                       <ul className="text-muted-foreground space-y-1 list-disc list-inside">
-                        <li>Crie um tema vinculado a uma marca existente</li>
+                        <li>Crie uma editoria vinculada a uma marca existente</li>
                         <li>Defina público-alvo, tom de voz e objetivos</li>
-                        <li>Use o tema ao criar conteúdos para manter a estratégia alinhada</li>
+                        <li>Use a editoria ao criar conteúdos para manter a estratégia alinhada</li>
                       </ul>
                       <p className="text-xs text-muted-foreground/70 mt-2">
-                        Os 3 primeiros temas são gratuitos. Depois, cada novo tema custa 1 crédito.
+                        As 3 primeiras editorias são gratuitas. Depois, cada nova editoria custa 1 crédito.
                       </p>
                     </div>
                   </PopoverContent>
                 </Popover>
               </h1>
               <p className="text-xs lg:text-sm text-muted-foreground">
-                Gerencie, edite ou crie novos temas para seus projetos.
+                Gerencie, edite ou crie novas editorias para seus projetos.
               </p>
             </div>
           </div>
@@ -348,7 +348,7 @@ export default function Themes() {
             title={!user ? 'Carregando...' : ((user.credits || 0) < 1 ? 'Créditos insuficientes' : undefined)}
           >
             <Plus className="mr-2 h-4 w-4" />
-            Novo tema
+            Nova editoria
             <span className="ml-2 flex items-center gap-1 text-xs opacity-90">
               <Coins className="h-3 w-3" />
               1
@@ -367,7 +367,7 @@ export default function Themes() {
             {
               tourType: 'themes',
               steps: themesSteps,
-              label: 'Tour de Temas',
+              label: 'Tour de Editorias',
               targetElement: '#themes-create-button'
             }
           ]}
@@ -402,7 +402,7 @@ export default function Themes() {
         onConfirm={handleConfirmCreate}
         currentBalance={user?.credits || 0}
         cost={1}
-        resourceType="tema estratégico"
+        resourceType="editoria"
         isFreeResource={(team?.free_themes_used || 0) < 3}
         freeResourcesRemaining={3 - (team?.free_themes_used || 0)}
       />
@@ -418,7 +418,7 @@ export default function Themes() {
           {
             tourType: 'themes',
             steps: themesSteps,
-            label: 'Tour de Temas Estratégicos',
+            label: 'Tour de Editorias',
             targetElement: '#themes-create-button'
           }
         ]}
