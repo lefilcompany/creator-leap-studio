@@ -68,7 +68,7 @@ export function MarketplaceFilterSidebar({ filters, onChange, facets, totalResul
   const reset = () => onChange(initialFilters);
 
   return (
-    <aside className="bg-card rounded-2xl shadow-md p-4 lg:p-5 max-h-[70vh] lg:max-h-none lg:h-full flex flex-col min-h-0 overflow-hidden">
+    <aside className="bg-card rounded-2xl shadow-md p-4 lg:p-5 flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
@@ -141,7 +141,7 @@ export function MarketplaceFilterSidebar({ filters, onChange, facets, totalResul
       )}
 
       {/* Filter groups */}
-      <ScrollArea className="flex-1 min-h-0 -mr-2 pr-2 overscroll-contain">
+      <div className="flex-1">
         <Accordion
           type="multiple"
           defaultValue={['categories', 'genders', 'ageRanges']}
