@@ -510,7 +510,7 @@ export default function PersonasMarketplacePage() {
                       ) : (
                         <div className="flex items-center gap-1 text-[11px] sm:text-xs font-medium text-primary min-w-0">
                           <Coins className="h-3 w-3 shrink-0" />
-                          <span className="truncate">{COST_PER_PERSONA} <span className="hidden xs:inline">créditos</span><span className="xs:hidden">cr.</span></span>
+                          <span className="truncate">{COST_PER_PERSONA} créditos</span>
                         </div>
                       )}
                       <Button
