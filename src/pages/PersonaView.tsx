@@ -369,7 +369,7 @@ export default function PersonaView() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <EditableField label="Nome" value={formData.name || ''} onChange={(v) => updateField('name', v)} type="input" />
               <EditableField label="Idade" value={formData.age || ''} onChange={(v) => updateField('age', v)} type="input" />
-              <EditableField label="Gênero" value={formData.gender || ''} onChange={(v) => updateField('gender', v)} type="select" options={genderOptions} />
+              <EditableField label="Gênero" value={formData.gender || ''} onChange={(v) => updateField('gender', v)} type="datalist" datalistId="persona-gender-options" suggestions={genderSuggestions} />
               <EditableField label="Localização" value={formData.location || ''} onChange={(v) => updateField('location', v)} type="input" />
             </div>
           </SectionCard>
@@ -386,8 +386,8 @@ export default function PersonaView() {
           <SectionCard title="Comportamento e Estratégia" icon={<Target className="h-4 w-4" />} accentColor={brandColor}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <EditableField label="Rotina de Consumo de Conteúdo" value={formData.contentConsumptionRoutine || ''} onChange={(v) => updateField('contentConsumptionRoutine', v)} />
-              <EditableField label="Tom de Voz Preferido" value={formData.preferredToneOfVoice || ''} onChange={(v) => updateField('preferredToneOfVoice', v)} type="select" options={toneOptions} />
-              <EditableField label="Estágio da Jornada de Compra" value={formData.purchaseJourneyStage || ''} onChange={(v) => updateField('purchaseJourneyStage', v)} type="select" options={journeyOptions} />
+              <EditableField label="Tom de Voz Preferido" value={formData.preferredToneOfVoice || ''} onChange={(v) => updateField('preferredToneOfVoice', v)} type="datalist" datalistId="persona-tone-options" suggestions={toneSuggestions} />
+              <EditableField label="Estágio da Jornada de Compra" value={formData.purchaseJourneyStage || ''} onChange={(v) => updateField('purchaseJourneyStage', v)} type="datalist" datalistId="persona-journey-options" suggestions={journeySuggestions} />
               <EditableField label="Gatilhos de Interesse" value={formData.interestTriggers || ''} onChange={(v) => updateField('interestTriggers', v)} />
             </div>
           </SectionCard>
