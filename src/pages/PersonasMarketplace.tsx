@@ -418,6 +418,7 @@ export default function PersonasMarketplacePage() {
             ) : (
             filteredTemplates.map((t) => {
               const selected = selectedIds.has(t.id);
+              const owned = isOwned(t.name);
 
               return (
                 <div
@@ -432,17 +433,23 @@ export default function PersonasMarketplacePage() {
                     }
                   }}
                   className={cn(
-                    'group relative text-left rounded-xl border-2 transition-all hover:shadow-lg overflow-hidden flex min-h-[160px] sm:min-h-[180px] bg-background cursor-pointer',
-                    selected
-                      ? 'border-primary shadow-md ring-2 ring-primary/20'
-                      : 'border-border hover:border-primary/40'
+                    'group relative text-left rounded-xl border-2 transition-all overflow-hidden flex min-h-[160px] sm:min-h-[180px] cursor-pointer',
+                    owned
+                      ? 'border-emerald-500/40 bg-emerald-500/5'
+                      : selected
+                      ? 'border-primary shadow-md ring-2 ring-primary/20 bg-background hover:shadow-lg'
+                      : 'border-border bg-background hover:border-primary/40 hover:shadow-lg'
                   )}
                 >
-                  {selected && (
+                  {owned ? (
+                    <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 z-10 bg-emerald-500 rounded-full p-0.5 sm:p-1 shadow-md">
+                      <Check className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-primary-foreground" />
+                    </div>
+                  ) : selected ? (
                     <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 z-10 bg-primary rounded-full p-0.5 sm:p-1 shadow-md">
                       <Check className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-primary-foreground" />
                     </div>
-                  )}
+                  ) : null}
 
                   {/* Left — realistic persona photo */}
                   <div className="w-[38%] xs:w-[35%] shrink-0 relative bg-muted overflow-hidden">
@@ -451,7 +458,10 @@ export default function PersonasMarketplacePage() {
                         src={t.avatar_url}
                         alt={t.name}
                         loading="lazy"
-                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        className={cn(
+                          "absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105",
+                          owned && "opacity-70"
+                        )}
                       />
                     ) : (
                       <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-muted to-muted-foreground/20">
@@ -492,27 +502,43 @@ export default function PersonasMarketplacePage() {
                     </div>
 
                     <div className="flex items-center justify-between gap-1.5 pt-1.5 sm:pt-2 border-t border-border/40">
-                      <div className="flex items-center gap-1 text-[11px] sm:text-xs font-medium text-primary min-w-0">
-                        <Coins className="h-3 w-3 shrink-0" />
-                        <span className="truncate">{COST_PER_PERSONA} <span className="hidden xs:inline">créditos</span><span className="xs:hidden">cr.</span></span>
-                      </div>
+                      {owned ? (
+                        <Badge className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 text-[9px] sm:text-[10px] font-semibold px-1.5 py-0.5">
+                          <Check className="h-2.5 w-2.5 mr-0.5" />
+                          Já adicionada
+                        </Badge>
+                      ) : (
+                        <div className="flex items-center gap-1 text-[11px] sm:text-xs font-medium text-primary min-w-0">
+                          <Coins className="h-3 w-3 shrink-0" />
+                          <span className="truncate">{COST_PER_PERSONA} <span className="hidden xs:inline">créditos</span><span className="xs:hidden">cr.</span></span>
+                        </div>
+                      )}
                       <Button
                         type="button"
                         size="sm"
                         variant={selected ? 'default' : 'outline'}
+                        disabled={owned}
                         onClick={(e) => {
                           e.stopPropagation();
                           toggleSelection(t.id);
                         }}
                         className={cn(
                           'h-7 px-2 sm:px-2.5 text-[10px] sm:text-[11px] font-semibold gap-1 transition-all shrink-0',
-                          selected
+                          owned
+                            ? 'opacity-50 cursor-not-allowed border-border text-muted-foreground'
+                            : selected
                             ? 'bg-primary text-primary-foreground hover:bg-primary/90'
                             : 'border-primary/40 text-primary hover:bg-primary hover:text-primary-foreground hover:border-primary'
                         )}
-                        aria-label={selected ? 'Remover persona' : 'Adicionar persona'}
+                        aria-label={owned ? 'Persona já adquirida' : selected ? 'Remover persona' : 'Adicionar persona'}
                       >
-                        {selected ? (
+                        {owned ? (
+                          <>
+                            <Check className="h-3 w-3" />
+                            <span className="hidden xs:inline">Em uso</span>
+                            <span className="xs:hidden">Ok</span>
+                          </>
+                        ) : selected ? (
                           <>
                             <Check className="h-3 w-3" />
                             <span className="hidden xs:inline">Adicionada</span>
