@@ -205,24 +205,18 @@ export default function PersonaDialog({ isOpen, onOpenChange, onSave, personaToE
                   <FormItem>
                     <FormLabel>Gênero *</FormLabel>
                     <FormControl>
-                      <div className="relative">
-                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                        <select
-                          value={field.value}
-                          onChange={(e) => field.onChange(e.target.value)}
-                          className="w-full h-10 text-sm px-3 pr-10 rounded-md border border-input bg-background text-foreground appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                          data-lpignore="true"
-                          data-1p-ignore="true"
-                          autoComplete="off"
-                        >
-                          <option value="" disabled>Selecione o gênero</option>
-                          <option value="Feminino">Feminino</option>
-                          <option value="Masculino">Masculino</option>
-                          <option value="Não-binário">Não-binário</option>
-                          <option value="Prefere não informar">Prefere não informar</option>
-                        </select>
-                      </div>
+                      <Input
+                        placeholder="Ex: Feminino"
+                        list="gender-options"
+                        {...field}
+                      />
                     </FormControl>
+                    <datalist id="gender-options">
+                      <option value="Feminino" />
+                      <option value="Masculino" />
+                      <option value="Não-binário" />
+                      <option value="Prefere não informar" />
+                    </datalist>
                     <FormMessage />
                   </FormItem>
                 )}
